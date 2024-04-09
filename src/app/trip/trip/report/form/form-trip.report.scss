@@ -97,15 +97,21 @@
           min-height: var(--form-field-height);
           ion-col {
             &.form-label {
+              padding-right: 10px;
+              text-align: right;
+              display: flex;
+              flex-direction: column;
+              align-items: flex-end;
+              justify-content: center;
               &.horiz-checkbox {
+                flex-direction: row;
+                align-items: flex-start;
                 span {
                   display: inline-block;
                   margin-right: 5px;
                 }
               }
-              padding-right: 10px;
-              text-align: right;
-              .tips {
+              .help {
                 font-size: var(--font-small);
                 font-style: italic;
               }
@@ -301,8 +307,8 @@
 @media screen {
   .slides {
     section {
-      border: solid 1px;
       &.landscape {
+        border: solid 1px;
         height: var(--slide-width) !important;
         width: var(--slide-height) !important;
         //position: relative;
@@ -310,6 +316,7 @@
         top: 12.5%;
       }
       &.portrait {
+        border: solid 1px;
         width: var(--slide-width) !important;
         height: var(--slide-height) !important;
       }

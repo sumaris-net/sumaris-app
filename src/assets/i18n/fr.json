@@ -1416,7 +1416,8 @@
           }
         },
         "PHYSICAL_GEAR": {
-          "TITLE": "FICHE ENGINS (page {{ pageNumber }})"
+          "TITLE": "FICHE ENGINS (page {{ pageNumber }})",
+          "OPERATIONS": "N° OP associée(s) :"
         },
         "ONBOARD_OBSERVATION": {
           "TITLE": "Dossier d'observation en mer"

@@ -8,14 +8,15 @@ import { Operation, Trip } from '../../trip.model';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { isNotNil, LatLongPattern, splitById, StatusIds } from '@sumaris-net/ngx-components';
+import { isNil, isNotNil, LatLongPattern, splitById, StatusIds } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { Strategy } from '@app/referential/services/model/strategy.model';
-import { MeasurementFormValues, MeasurementUtils } from '@app/data/measurement/measurement.model';
+import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils } from '@app/data/measurement/measurement.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 export class FormTripReportStats extends BaseReportStats {
   // gearPmfms: DenormalizedPmfmStrategy[];
@@ -27,17 +28,22 @@ export class FormTripReportStats extends BaseReportStats {
   strataEnabled?: boolean;
   saleTypes?: string[];
   strategy: Strategy;
+  operationsRankByGears: { [key: number]: number[] };
+  pmfmByGearsId: { [key: number]: number[] };
   measurementValues: {
     trip: MeasurementFormValues;
     operations: MeasurementFormValues[];
+    gears: (MeasurementFormValues | MeasurementModelValues)[];
   };
   pmfms: {
     trip: IPmfm[];
     operation: IPmfm[];
+    gears?: IPmfm[];
   };
   pmfmsByIds?: {
     trip?: { [key: number]: IPmfm };
     operation?: { [key: number]: IPmfm };
+    grar?: IPmfm[];
   };
 }
 
@@ -56,6 +62,8 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected latLongPattern: LatLongPattern;
   protected readonly nbOfOpOnBalankPage = 9;
   protected readonly maxLinePeerTable = 9;
+  protected readonly nbOfGearOnBlankPage = 3;
+  protected readonly maxGearPeepPage = 3;
 
   protected readonly tripService: TripService;
   protected readonly referentialRefService: ReferentialRefService;
@@ -119,10 +127,15 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
             acquisitionLevel: AcquisitionLevelCodes.OPERATION,
             strategyId,
           }),
+          gears: await this.programRefService.loadProgramPmfms(data.program.label, {
+            acquisitionLevel: AcquisitionLevelCodes.PHYSICAL_GEAR,
+            strategyId,
+          }),
         }
       : {
           trip: [],
           operation: [],
+          gears: [],
         };
 
     stats.pmfmsByIds = {
@@ -133,6 +146,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     stats.measurementValues = {
       trip: MeasurementUtils.toMeasurementValues(data.measurements),
       operations: data.operations.map((op) => MeasurementUtils.toMeasurementValues(op.measurements)),
+      gears: data.gears.map((gear) => gear.measurementValues),
     };
 
     stats.subtitle = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_SUBTITLE);
@@ -143,6 +157,28 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     stats.saleTypes = (
       await this.referentialRefService.loadAll(0, 1000, null, null, { entityName: 'SaleType', statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY] })
     ).data.map((i) => i.label);
+
+    stats.operationsRankByGears = data.gears.reduce((result, gear) => {
+      const ops = data.operations.filter((op) => op.physicalGear.id == gear.id);
+      result[gear.id] = ops.map((op) => op.rankOrder);
+      return result;
+    }, {});
+
+    stats.pmfmByGearsId = data.gears
+      .map((physicalGear) => physicalGear.gear.id)
+      .reduce((res, gearId) => {
+        // Extract gearId for physicalGear and remove duplicates
+        if (!res.includes(gearId)) res.push(gearId);
+        return res;
+      }, [])
+      .reduce((res, gearId) => {
+        // Group pmfm by gearId
+        const pmfms = stats.pmfms.gears.filter((pmfm: DenormalizedPmfmStrategy) => {
+          return isNil(pmfm.gearIds) || pmfm.gearIds.includes(gearId);
+        });
+        res[gearId] = pmfms;
+        return res;
+      }, {});
 
     return stats;
   }
