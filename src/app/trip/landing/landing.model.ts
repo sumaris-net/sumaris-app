@@ -47,6 +47,8 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
   samples: Sample[] = null;
   samplesCount?: number = null;
 
+  saleIds: number[] = null;
+
   constructor() {
     super(Landing.TYPENAME);
   }
@@ -71,6 +73,8 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     target.samples = (this.samples && this.samples.map((s) => s.asObject(opts))) || undefined;
     target.samplesCount =
       (this.samples && this.samples.filter((s) => s.measurementValues && isNotNilOrBlank(s.measurementValues[PmfmIds.TAG_ID])).length) || undefined;
+
+    target.saleIds = this.saleIds;
 
     // Strategy
     target.strategy = this.strategy?.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*keep for field*/ });
@@ -112,6 +116,8 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
       source.samplesCount,
       this.samples?.filter((s) => s.measurementValues && isNotNilOrBlank(s.measurementValues[PmfmIds.TAG_ID])).length
     );
+
+    this.saleIds = source.saleIds;
 
     // Strategy
     this.strategy =

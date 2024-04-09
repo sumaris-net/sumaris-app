@@ -118,6 +118,7 @@ export const LandingFragments = {
       rankOrder
       observedLocationId
       tripId
+      saleIds
       vesselSnapshot {
         ...VesselSnapshotFragment
       }

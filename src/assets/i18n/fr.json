@@ -1690,6 +1690,8 @@
       "RECORDER_PERSON": "Saisisseur",
       "SAMPLES_COUNT": "Nb mesures",
       "QUALITY": "État",
+      "TAXON_GROUP": "Espèce commerciale (FAO)",
+      "TAXON_NAME": "Espèce scientifique",
       "SAMPLING": {
         "STRATEGY": "Ligne de plan",
         "SAMPLES_COUNT": "Nb. prélèvements",

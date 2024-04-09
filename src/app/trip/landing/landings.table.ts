@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotNil, Person } from '@sumaris-net/ngx-components';
+import { AccountService, AppValidatorService, Person, isNil, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';
 import { Trip } from '../trip/trip.model';
@@ -19,6 +19,8 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { RxState } from '@rx-angular/state';
+import { UntypedFormGroup, Validators } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, filter, tap } from 'rxjs';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -31,6 +33,8 @@ export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'creationDate',
   'recorderPerson',
   'samplesCount',
+  'taxonGroup',
+  'taxonName',
 ];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
@@ -56,6 +60,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
+  @Output() openSale = new EventEmitter<TableElement<Landing>>();
 
   @Input() canDelete = true;
   @Input() showFabButton = false;
@@ -75,6 +80,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   get isTripDetailEditor(): boolean {
     return this._detailEditor === 'trip';
+  }
+
+  get isSaleDetailEditor(): boolean {
+    return this._detailEditor === 'sale';
   }
 
   @Input()
@@ -167,6 +176,24 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   }
 
   @Input()
+  set showTaxonGroupColumn(value: boolean) {
+    this.setShowColumn('taxonGroup', value);
+  }
+
+  get showTaxonGroupColumn(): boolean {
+    return this.getShowColumn('taxonGroup');
+  }
+
+  @Input()
+  set showTaxonNameColumn(value: boolean) {
+    this.setShowColumn('taxonName', value);
+  }
+
+  get showTaxonNameColumn(): boolean {
+    return this.getShowColumn('taxonName');
+  }
+
+  @Input()
   set parent(value: ObservedLocation | Trip | undefined) {
     this.setParent(value);
   }
@@ -229,12 +256,53 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       },
       mobile: this.mobile,
     });
+
+    this.registerSubscription(
+      this.pmfms$
+        .pipe(
+          filter(isNotEmptyArray),
+          distinctUntilChanged(),
+          tap((pmfms) => this.onPmfmsLoaded(pmfms))
+        )
+        .pipe(debounceTime(250))
+        .subscribe()
+    );
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
     this.openTrip.unsubscribe();
     this.newTrip.unsubscribe();
+    this.openSale.unsubscribe();
+  }
+
+  onPmfmsLoaded(pmfms: IPmfm[]) {
+    // Listening on column 'IS_OBSERVED' value changes
+    const hasIsObservedPmfm = pmfms.findIndex((p) => p.id === PmfmIds.IS_OBSERVED) !== -1;
+    if (hasIsObservedPmfm) {
+      const isObservedControlPath = `measurementValues.${PmfmIds.IS_OBSERVED}`;
+      this.registerSubscription(
+        this.registerCellValueChanges('isObserved', isObservedControlPath, true).subscribe((isObservedValue) => {
+          if (!this.editedRow) return; // Should never occur
+          const row = this.editedRow;
+          const controls = (row.validator.get('measurementValues') as UntypedFormGroup).controls;
+          if (isObservedValue) {
+            if (controls[PmfmIds.NON_OBSERVATION_CAUSE]) {
+              if (row.validator.enabled) {
+                controls[PmfmIds.NON_OBSERVATION_CAUSE].enable();
+              }
+              controls[PmfmIds.NON_OBSERVATION_CAUSE].setValidators(Validators.required);
+            }
+          } else {
+            if (controls[PmfmIds.NON_OBSERVATION_CAUSE]) {
+              controls[PmfmIds.NON_OBSERVATION_CAUSE].disable();
+              controls[PmfmIds.NON_OBSERVATION_CAUSE].setValue(null);
+              controls[PmfmIds.NON_OBSERVATION_CAUSE].setValidators(null);
+            }
+          }
+        })
+      );
+    }
   }
 
   mapPmfms(pmfms: IPmfm[]): IPmfm[] {
@@ -309,6 +377,20 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     } else {
       // New trip
       this.newTrip.emit(row);
+    }
+  }
+
+  confirmAndEditSale(event?: MouseEvent, row?: TableElement<Landing>): boolean {
+    if (event) event.stopPropagation();
+
+    if (!this.confirmEditCreate(event, row)) {
+      return false;
+    }
+
+    const saleIds = row.currentData.saleIds;
+    if (isNotNil(saleIds) && saleIds.length === 1) {
+      // Edit sale
+      this.openSale.emit(row);
     }
   }
 

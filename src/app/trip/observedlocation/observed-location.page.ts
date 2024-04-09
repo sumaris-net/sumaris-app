@@ -360,6 +360,25 @@ export class ObservedLocationPage
     }
   }
 
+  async onOpenSale<T extends Landing>(row: TableElement<T>) {
+    const saved =
+      this.isOnFieldMode && this.dirty
+        ? // If on field mode: try to save silently
+          await this.save(undefined)
+        : // If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm();
+
+    if (!saved) return; // Cannot save
+
+    this.markAsLoading();
+
+    try {
+      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${row.currentData.saleIds[0]}`);
+    } finally {
+      this.markAsLoaded();
+    }
+  }
+
   async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
     const programLabel = this.aggregatedLandingsTable?.programLabel || this.programLabel || this.data.program.label;
     if (!this.data.startDateTime || !programLabel) {
@@ -533,6 +552,10 @@ export class ObservedLocationPage
         landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
         landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
         this.showLandingTab = true;
+
+        const isSaleDetailEditor = this.landingEditor === 'sale';
+        landingsTable.showTaxonGroupColumn = isSaleDetailEditor;
+        landingsTable.showTaxonNameColumn = isSaleDetailEditor;
       }
 
       // If new data: update trip form (need to update validator, with showObservers)
