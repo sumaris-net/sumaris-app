@@ -1,5 +1,19 @@
 <app-toolbar [title]="title$ | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
   <ion-buttons slot="end">
+    @if (!mobile) {
+      <app-named-filter-selector
+        [class.cdk-visually-hidden]="!filterExpansionPanel.expanded"
+        [entityName]="'ActivityCalendar'"
+        [appearance]="'outline'"
+        [subscriptSizing]="'dynamic'"
+        [filterContentProvider]="namedFilterContentProvider"
+        [filterFormDirty]="filterForm.dirty"
+        [autocompleteConfig]="namedFilterAutocompleteConfig"
+        [filterImportCallback]="filterImportCallback"
+        (filterSelected)="setFilter($event)"
+      ></app-named-filter-selector>
+    }
+
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
       <!-- Add -->
       <button mat-icon-button *ngIf="canEdit && !mobile" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
