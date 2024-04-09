@@ -34,12 +34,12 @@ export abstract class DataRootEntityValidatorService<
     [key: string]: any;
   } {
     return Object.assign(super.getFormGroupConfig(data), {
-      program: [(data && data.program) || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      creationDate: [(data && data.creationDate) || null],
-      validationDate: [(data && data.validationDate) || null],
-      recorderPerson: [(data && data.recorderPerson) || null, SharedValidators.entity],
-      comments: [(data && data.comments) || null, Validators.maxLength(2000)],
-      synchronizationStatus: [(data && data.synchronizationStatus) || null],
+      program: [data?.program || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      creationDate: [data?.creationDate || null],
+      validationDate: [data?.validationDate || null],
+      recorderPerson: [data?.recorderPerson || null, SharedValidators.entity],
+      comments: [data?.comments || null, Validators.maxLength(2000)],
+      synchronizationStatus: [data?.synchronizationStatus || null],
     });
   }
 

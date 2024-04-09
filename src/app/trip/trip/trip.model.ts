@@ -693,7 +693,6 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
   fromObject(source: any, opts?: any): Trip {
     super.fromObject(source);
-    console.log('TODO samplingStrata=', source.samplingStrata);
     this.samplingStrata = (source.samplingStrata && ReferentialRef.fromObject(source.samplingStrata)) || undefined;
     this.departureDateTime = fromDateISOString(source.departureDateTime);
     this.returnDateTime = fromDateISOString(source.returnDateTime);

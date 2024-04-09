@@ -65,7 +65,7 @@ import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -76,6 +76,7 @@ export interface TripPageState extends RootDataEntityEditorState {
   departureDateTime: Moment;
   departureLocation: ReferentialRef;
   reportTypes: Property[];
+  returnDateTime: Moment;
 }
 
 @Component({
@@ -107,6 +108,10 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   private _forceMeasurementAsOptionalOnFieldMode = false;
   private _measurementSubscription: Subscription;
 
+  @RxStateSelect() protected returnDateTime$: Observable<Moment>;
+
+  @RxStateProperty() protected reportTypes: Property[];
+
   showSaleForm = false;
   showGearTable = false;
   showOperationTable = false;
@@ -123,8 +128,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   @ViewChild('physicalGearsTable', { static: true }) physicalGearsTable: PhysicalGearTable;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
   @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
-
-  @RxStateProperty() reportTypes: Property[];
 
   get dirty(): boolean {
     return (
@@ -168,6 +171,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Listen some field
     this._state.connect('departureDateTime', this.tripForm.departureDateTimeChanges.pipe(filter((d) => d?.isValid())));
+    this._state.connect('returnDateTime', this.tripForm.maxDateChanges.pipe(filter((d) => d?.isValid())));
     this._state.connect('departureLocation', this.tripForm.departureLocationChanges);
     this._state.connect(
       'reportTypes',

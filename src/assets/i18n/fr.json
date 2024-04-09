@@ -3231,6 +3231,11 @@
     },
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Activité {{year}}",
+      "BASE_PORT_LOCATION": "Port d'attache / exploit.",
+      "BTN_ADD_METIER_BLOCK": "Ajouter un bloc métier",
+      "BTN_REPORT": "Éditer un rapport...",
+      "BTN_EXPAND_ALL": "Déplier tout",
+      "BTN_COLLAPSE_ALL": "Replier tout",
       "YEAR": "Année :",
       "VESSEL_SNAPSHOT": "Navire",
       "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
@@ -3246,9 +3251,7 @@
       "VESSEL_OWNER": "Armateur",
       "REGISTRATION_LOCATION": "Quartier maritime",
       "IS_ACTIVE": "Actif ?",
-      "BASE_PORT_LOCATION": "Port d'attache / exploit.",
       "OTHER_FEATURES": "Caractéristiques d'enquête :",
-      "BTN_ADD_METIER_BLOCK": "Ajouter un block métier",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
         "DISABLE": "Inactif",

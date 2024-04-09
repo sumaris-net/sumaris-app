@@ -168,23 +168,20 @@
           <ion-row class="ion-no-padding">
             <ion-col class="ion-padding">
               <!-- trip -->
-              <app-form-trip
-                #tripForm
-                [showError]="false"
-                [returnFieldsRequired]="usageMode | isOnDesk"
-                (onSubmit)="save($event)"
-                (maxDateChanges)="saleForm.minDate = $event"
-              >
+              <app-form-trip #tripForm [showError]="false" [returnFieldsRequired]="usageMode | isOnDesk" (onSubmit)="save($event)">
                 <!-- sale -->
                 <app-form-sale
                   #saleForm
                   [class.cdk-visually-hidden]="!showSaleForm || (measurementsForm.readySubject | async) === false"
+                  [showProgram]="false"
                   [showVessel]="false"
                   [showError]="false"
                   [showComment]="false"
                   [showEndDateTime]="false"
                   [required]="false"
                   [tabindex]="showSaleForm ? 10 : -1"
+                  [minDate]="returnDateTime$ | async"
+                  [debug]="debug"
                   beforeObservers
                 ></app-form-sale>
 
