@@ -68,6 +68,9 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
       // Computed values (e.g. for SIH-OBSBIO program)
       samplesCount: [toNumber(data?.samplesCount, null), null],
+
+      // Sale Ids
+      saleIds: [(data && data.saleIds) || null],
     });
 
     // Add measurement values

@@ -123,6 +123,26 @@
       </td>
     </ng-container>
 
+    <!-- Taxon group (commercial species) -->
+    <ng-container matColumnDef="taxonGroup">
+      <th mat-header-cell *matHeaderCellDef>
+        <ion-label translate>LANDING.TABLE.TAXON_GROUP</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-label>TODO</ion-label>
+      </td>
+    </ng-container>
+
+    <!-- Taxon name (scientific species) -->
+    <ng-container matColumnDef="taxonName">
+      <th mat-header-cell *matHeaderCellDef>
+        <ion-label translate>LANDING.TABLE.TAXON_NAME</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-label>TODO</ion-label>
+      </td>
+    </ng-container>
+
     <!-- Vessel base port Column -->
     <ng-container matColumnDef="vesselBasePortLocation">
       <th mat-header-cell *matHeaderCellDef>
@@ -310,7 +330,7 @@
             <mat-icon>delete</mat-icon>
           </button>
 
-          <!-- Edit trip button -->
+          <!-- Edit trip/sale button -->
           <ng-template #otherButtons>
             <button
               mat-icon-button
@@ -320,6 +340,16 @@
               (click)="confirmAndEditTrip($event, row)"
             >
               <ion-icon name="boat" slot="icon-only"></ion-icon>
+            </button>
+            <button
+              mat-icon-button
+              *ngIf="row.id !== -1 && isSaleDetailEditor"
+              color="primary"
+              [disabled]="!(row.currentData.saleIds | isArrayLength: { equals: 1 })"
+              [title]="'COMMON.BTN_EDIT' | translate"
+              (click)="confirmAndEditSale($event, row)"
+            >
+              <ion-icon name="arrow-forward-outline" slot="icon-only"></ion-icon>
             </button>
           </ng-template>
         </ng-template>

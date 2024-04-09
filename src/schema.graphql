@@ -504,6 +504,7 @@ type LandingVO {
   "Get landing's trip"
   trip: TripVO
   tripId: Int
+  saleIds: [Int]
   updateDate: Date
   validationDate: Date
   vesselDateTime: Date

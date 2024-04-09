@@ -1508,6 +1508,8 @@
       "RECORDER_PERSON": "Recorder",
       "SAMPLES_COUNT": "Measurement count",
       "QUALITY": "State",
+      "TAXON_GROUP": "Commercial species (FAO)",
+      "TAXON_NAME": "Scientific species",
       "SAMPLING": {
         "STRATEGY": "Sampling plan row",
         "SAMPLES_COUNT": "Samples count",

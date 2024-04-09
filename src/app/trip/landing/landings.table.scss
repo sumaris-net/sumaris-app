@@ -40,6 +40,13 @@
     .mat-column-pmfm {
       min-width: 120px;
       max-width: 250px;
+
+      // PMFM specific
+      // Boolean field
+      // 510 ->Observed? Y/N
+      &.mat-column-510 {
+        min-width: 50px;
+      }
     }
 
     .visible-hover {
