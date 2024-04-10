@@ -98,8 +98,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   protected animationSelection = new SelectionModel<TableElement<SubBatch>>(false, []);
 
-  @RxStateSelect() protected taxonNames$: Observable<TaxonNameRef[]>;
-
   get selectedRow(): TableElement<SubBatch> {
     return this.selection.selected[0] || this.editedRow;
   }
