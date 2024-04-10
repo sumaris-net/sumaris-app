@@ -16,6 +16,7 @@ import {
   ReferentialRef,
   ReferentialUtils,
   toNumber,
+  TranslateContextService,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { SaleForm } from './sale.form';
@@ -90,6 +91,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected pmfmService = inject(PmfmService);
   protected referentialRefService = inject(ReferentialRefService);
   protected vesselSnapshotService = inject(VesselSnapshotService);
+  protected translateContext = inject(TranslateContextService);
   protected selectedSubTabIndex = 0;
   showParent = false;
   showEntityMetadata = false;
@@ -591,13 +593,13 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     // new data
     if (!data || isNil(data.id)) {
-      return titlePrefix + this.translate.instant(`SALE.NEW.${i18nSuffix}TITLE`);
+      return titlePrefix + this.translateContext.instant(`SALE.NEW.TITLE`, i18nSuffix);
     }
 
     // Existing data
     return (
       titlePrefix +
-      this.translate.instant(`SALE.EDIT.${i18nSuffix}TITLE`, {
+      this.translateContext.instant(`SALE.EDIT.TITLE`, i18nSuffix, {
         vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
       })
     );
