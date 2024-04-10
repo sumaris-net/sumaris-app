@@ -162,7 +162,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() useSticky = false;
   @Input() usageMode: UsageMode;
   @Input() enableWeightLengthConversion: boolean;
-  @Input() i18nPmfmPrefix: string;
+  @Input() i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
   @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
   @Input() showAutoFillButton = true;
   @Input() allowQvPmfmGroup = true;

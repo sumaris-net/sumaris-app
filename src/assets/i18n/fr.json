@@ -1491,7 +1491,12 @@
       "COMMENTS": "Commentaires"
     },
     "BATCH": {
-      "PMFM": {}
+      "PMFM": {
+        "SALE_OBSERVATION": {
+          "UNCERTAIN_SPECIES": "Identification à confirmer ?",
+          "SIZE_UNLI_CAT": "Catégorie de tri terrain"
+        }
+      }
     },
     "ERROR": {
       "LOAD_ERROR": "Erreur de chargement de la vente.",
