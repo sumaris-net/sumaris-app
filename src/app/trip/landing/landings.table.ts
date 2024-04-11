@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, Person, isNil, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
+import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -276,32 +276,29 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.openSale.unsubscribe();
   }
 
-  onPmfmsLoaded(pmfms: IPmfm[]) {
-    // Listening on column 'IS_OBSERVED' value changes
-    const hasIsObservedPmfm = pmfms.findIndex((p) => p.id === PmfmIds.IS_OBSERVED) !== -1;
-    if (hasIsObservedPmfm) {
-      const isObservedControlPath = `measurementValues.${PmfmIds.IS_OBSERVED}`;
-      this.registerSubscription(
-        this.registerCellValueChanges('isObserved', isObservedControlPath, true).subscribe((isObservedValue) => {
-          if (!this.editedRow) return; // Should never occur
-          const row = this.editedRow;
-          const controls = (row.validator.get('measurementValues') as UntypedFormGroup).controls;
-          if (isObservedValue) {
-            if (controls[PmfmIds.NON_OBSERVATION_CAUSE]) {
-              if (row.validator.enabled) {
-                controls[PmfmIds.NON_OBSERVATION_CAUSE].enable();
-              }
-              controls[PmfmIds.NON_OBSERVATION_CAUSE].setValidators(Validators.required);
+  protected onPmfmsLoaded(pmfms: IPmfm[]) {
+    if (this.inlineEdition) {
+      const pmfmIds = pmfms.map((p) => p.id).filter(isNotNil);
+      // Listening on column 'IS_OBSERVED' value changes, to enable/disable column 'NON_OBSERVATION_REASON''
+      const hasIsObservedAndReasonPmfms = pmfmIds.includes(PmfmIds.IS_OBSERVED) && pmfmIds.includes(PmfmIds.NON_OBSERVATION_REASON);
+      if (hasIsObservedAndReasonPmfms) {
+        this.registerSubscription(
+          this.registerCellValueChanges('isObserved', `measurementValues.${PmfmIds.IS_OBSERVED}`, true).subscribe((isObservedValue) => {
+            if (!this.editedRow) return; // Should never occur
+            const row = this.editedRow;
+            const controls = (row.validator.get('measurementValues') as UntypedFormGroup).controls;
+            if (isObservedValue) {
+              if (row.validator.enabled) controls[PmfmIds.NON_OBSERVATION_REASON].enable();
+              controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(Validators.required);
+              controls[PmfmIds.NON_OBSERVATION_REASON].updateValueAndValidity();
+            } else {
+              controls[PmfmIds.NON_OBSERVATION_REASON].disable();
+              controls[PmfmIds.NON_OBSERVATION_REASON].setValue(null);
+              controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(null);
             }
-          } else {
-            if (controls[PmfmIds.NON_OBSERVATION_CAUSE]) {
-              controls[PmfmIds.NON_OBSERVATION_CAUSE].disable();
-              controls[PmfmIds.NON_OBSERVATION_CAUSE].setValue(null);
-              controls[PmfmIds.NON_OBSERVATION_CAUSE].setValidators(null);
-            }
-          }
-        })
-      );
+          })
+        );
+      }
     }
   }
 

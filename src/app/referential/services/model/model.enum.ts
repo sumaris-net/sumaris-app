@@ -154,7 +154,7 @@ export const PmfmIds = {
   PETS: 502,
   SALE_TYPE: 503,
   IS_OBSERVED: 510,
-  NON_OBSERVATION_CAUSE: 511,
+  NON_OBSERVATION_REASON: 511,
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {

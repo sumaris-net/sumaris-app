@@ -11,7 +11,6 @@ import {
   ViewChild,
 } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { isObservable, Observable, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormGroup, Validators } from '@angular/forms';
@@ -273,15 +272,13 @@ export class SubBatchesTable
 
       // Create listener on column 'DISCARD_OR_LANDING' value changes
       this.registerSubscription(
-        this.registerCellValueChanges('discard', 'measurementValues.' + PmfmIds.DISCARD_OR_LANDING.toString(), true).subscribe((value) => {
+        this.registerCellValueChanges('discard', `measurementValues.${PmfmIds.DISCARD_OR_LANDING}`, true).subscribe((value) => {
           if (!this.editedRow) return; // Should never occur
           const row = this.editedRow;
           const controls = (row.validator.controls['measurementValues'] as UntypedFormGroup).controls;
           if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
             if (controls[PmfmIds.DISCARD_REASON]) {
-              if (row.validator.enabled) {
-                controls[PmfmIds.DISCARD_REASON].enable();
-              }
+              if (row.validator.enabled) controls[PmfmIds.DISCARD_REASON].enable();
               controls[PmfmIds.DISCARD_REASON].setValidators(Validators.required);
               controls[PmfmIds.DISCARD_REASON].updateValueAndValidity();
             }
@@ -299,12 +296,10 @@ export class SubBatchesTable
         this.registerCellValueChanges('parentGroup', 'parentGroup', true).subscribe((parentGroup) => {
           if (!this.editedRow) return; // Skip
 
-          const parenTaxonGroupId = parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id;
+          const parenTaxonGroupId = parentGroup?.taxonGroup?.id;
           if (isNil(parenTaxonGroupId)) return; // Skip
 
           const row = this.editedRow;
-
-          const formEnabled = row.validator.enabled;
           const controls = (row.validator.controls['measurementValues'] as UntypedFormGroup).controls;
 
           (this.pmfms || []).forEach((pmfm) => {
@@ -316,9 +311,7 @@ export class SubBatchesTable
             // Update control state
             if (control) {
               if (enable) {
-                if (formEnabled) {
-                  control.enable();
-                }
+                if (row.validator.enabled) control.enable();
                 control.setValidators(PmfmValidators.create(pmfm));
               } else {
                 control.disable();

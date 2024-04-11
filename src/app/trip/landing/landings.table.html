@@ -330,13 +330,13 @@
             <mat-icon>delete</mat-icon>
           </button>
 
-          <!-- Edit trip/sale button -->
+          <!-- Edit buttons (trip or sale) -->
           <ng-template #otherButtons>
             <button
               mat-icon-button
               *ngIf="row.id !== -1 && isTripDetailEditor"
               [color]="row.currentData.tripId ? 'primary' : 'medium'"
-              [title]="'COMMON.BTN_EDIT' | translate"
+              [title]="'LANDING.TABLE.BTN_OPEN_TRIP' | translate"
               (click)="confirmAndEditTrip($event, row)"
             >
               <ion-icon name="boat" slot="icon-only"></ion-icon>
@@ -344,12 +344,12 @@
             <button
               mat-icon-button
               *ngIf="row.id !== -1 && isSaleDetailEditor"
-              color="primary"
-              [disabled]="!(row.currentData.saleIds | isArrayLength: { equals: 1 })"
-              [title]="'COMMON.BTN_EDIT' | translate"
+              [color]="(row.currentData.saleIds | isArrayLength: { equals: 1 }) ? 'primary' : 'dark'"
+              [disabled]="row.currentData.saleIds | isArrayLength: { greaterThan: 1 }"
+              [title]="'LANDING.TABLE.BTN_OPEN_SALE' | translate"
               (click)="confirmAndEditSale($event, row)"
             >
-              <ion-icon name="arrow-forward-outline" slot="icon-only"></ion-icon>
+              <ion-icon name="pricetag" slot="icon-only"></ion-icon>
             </button>
           </ng-template>
         </ng-template>
