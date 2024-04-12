@@ -599,10 +599,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.isIndividualMeasure = isIndividualMeasure;
 
     if (isIndividualMeasure) {
-      this.setModalStyle(this.viewCtrl, 'modal-large');
+      this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_LARGE);
       this.editedRow?.cancelOrDelete();
     } else {
-      this.setModalStyle(this.viewCtrl, 'modal-small');
+      this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_SMALL);
     }
   }
 

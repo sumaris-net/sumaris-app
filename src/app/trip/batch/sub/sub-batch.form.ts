@@ -839,8 +839,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   onIndividualMeasureChange(event: MatRadioChange) {
     this.isIndividualMeasure = event.value;
 
-    //if(!this.isIndividualMeasure) this.form.get('individualCount').enable();
-
     if (this.isIndividualMeasure) {
       this.form.enable();
       this.form.get('individualCount').disable();
