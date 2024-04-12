@@ -315,11 +315,23 @@
               <tr class="group-head">
                 <th colspan="5"></th>
                 <th colspan="2" class="font-medium ion-text-center">
-                  <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.PARENT' | translate }}</div>
+                  <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.OPERATION_START' | translate }}</div>
                 </th>
-                <th colspan="2" class="font-medium ion-text-center">
-                  <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.CHILD' | translate }}</div>
-                </th>
+                @if (stats.options.showFishingStartDateTime) {
+                  <th colspan="2" class="font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.PARENT' | translate }}</div>
+                  </th>
+                }
+                @if (stats.options.showFishingEndDateTime) {
+                  <th colspan="2" class="font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.CHILD' | translate }}</div>
+                  </th>
+                }
+                @if (stats.options.showEndDate) {
+                  <th colspan="2" class="font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.OPERATION_END' | translate }}</div>
+                  </th>
+                }
               </tr>
               <tr>
                 <th class="col-tiny font-medium text-vertical">
@@ -348,12 +360,30 @@
                 <th class="col-medium font-medium ion-text-center">
                   <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
                 </th>
-                <th class="col-compact font-medium ion-text-center">
-                  <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
-                </th>
-                <th class="col-medium font-medium ion-text-center">
-                  <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
-                </th>
+                @if (stats.options.showFishingStartDateTime) {
+                  <th class="col-compact font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+                  </th>
+                  <th class="col-medium font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                  </th>
+                }
+                @if (stats.options.showFishingEndDateTime) {
+                  <th class="col-compact font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+                  </th>
+                  <th class="col-medium font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                  </th>
+                }
+                @if (stats.options.showEndDate) {
+                  <th class="col-compact font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+                  </th>
+                  <th class="col-medium font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                  </th>
+                }
                 @for (pmfm of stats.pmfms.operation | arrayFilter: filterPmfmForOperationTable; track pmfm) {
                   <th class="col-tiny font-small text-vertical">
                     <div>{{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix } }}</div>
@@ -400,49 +430,73 @@
                   <!-- Start date time -->
                   <td class="col-compact">
                     @if (!isBlankForm) {
-                      {{ op.fishingStartDateTime || op.startDateTime | dateFormat: { time: true } }}
+                      {{ op.startDateTime | dateFormat: { time: true } }}
                     }
                   </td>
                   <!-- Start position -->
                   <td class="col-medium">
                     @if (isBlankForm) {
-                      <span class="font-large place-holder">
-                        <span [style.letter-spacing]="'3px'">__°__.___</span>
-                        N
-                        <br />
-                        <span [style.letter-spacing]="'3px'">__°__.___</span>
-                        E ou W
-                      </span>
+                      <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
                     } @else {
                       {{ op.startPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
                       <br />
                       {{ op.startPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
                     }
                   </td>
-
-                  <!-- End date -->
-                  <td class="col-compact">
-                    @if (!isBlankForm) {
-                      {{ op.fishingEndDateTime || op.endDateTime | dateFormat: { time: true } }}
-                    }
-                  </td>
-
-                  <!-- End position -->
-                  <td class="col-medium">
-                    @if (isBlankForm) {
-                      <span class="font-large place-holder">
-                        <span [style.letter-spacing]="'3px'">__°__.___</span>
-                        N
+                  @if (stats.options.showFishingStartDateTime) {
+                    <!-- Fishing start Date time -->
+                    <td class="col-compact">
+                      @if (!isBlankForm) {
+                        {{ op.fishingStartDateTime | dateFormat: { time: true } }}
+                      }
+                    </td>
+                    <!-- Start fishing position -->
+                    <td class="col-medium">
+                      @if (isBlankForm) {
+                        <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
+                      } @else {
+                        {{ op.fishingStartPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
                         <br />
-                        <span [style.letter-spacing]="'3px'">__°__.___</span>
-                        E ou W
-                      </span>
-                    } @else {
-                      {{ op.endPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
-                      <br />
-                      {{ op.endPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
-                    }
-                  </td>
+                        {{ op.fishingStartPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                      }
+                    </td>
+                  }
+                  @if (stats.options.showFishingEndDateTime) {
+                    <!-- Fishing end date time -->
+                    <td class="col-compact">
+                      @if (!isBlankForm) {
+                        {{ op.fishingEndDateTime | dateFormat: { time: true } }}
+                      }
+                    </td>
+                    <!-- Fishing end position -->
+                    <td class="col-medium">
+                      @if (isBlankForm) {
+                        <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
+                      } @else {
+                        {{ op.fishingEndPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                        <br />
+                        {{ op.fishingEndPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                      }
+                    </td>
+                  }
+                  @if (stats.options.showEndDate) {
+                    <!-- End date time -->
+                    <td class="col-compact">
+                      @if (!isBlankForm) {
+                        {{ op.endDateTime | dateFormat: { time: true } }}
+                      }
+                    </td>
+                    <!-- End position -->
+                    <td class="col-medium">
+                      @if (isBlankForm) {
+                        <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
+                      } @else {
+                        {{ op.endPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                        <br />
+                        {{ op.endPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                      }
+                    </td>
+                  }
                   @for (pmfm of stats.pmfms.operation | arrayFilter: filterPmfmForOperationTable; track pmfm) {
                     <td class="col-tiny font-small ion-text-center">
                       <div
@@ -624,5 +678,15 @@
     <div class="loader">
       <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
     </div>
+  </ng-template>
+
+  <ng-template #latLongPlaceHolder>
+    <span class="font-large place-holder">
+      <span [style.letter-spacing]="'3px'">__°__.___</span>
+      N
+      <br />
+      <span [style.letter-spacing]="'3px'">__°__.___</span>
+      E ou W
+    </span>
   </ng-template>
 </ion-content>

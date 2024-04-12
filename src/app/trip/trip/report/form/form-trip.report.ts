@@ -45,6 +45,11 @@ export class FormTripReportStats extends BaseReportStats {
     operation?: { [key: number]: IPmfm };
     grar?: IPmfm[];
   };
+  options: {
+    showFishingStartDateTime: boolean;
+    showFishingEndDateTime: boolean;
+    showEndDate: boolean;
+  };
 }
 
 @Component({
@@ -116,6 +121,11 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     stats.strategy = await this.loadStrategy(stats.program, data);
     const strategyId = stats.strategy?.id;
     // TODO Load strategy (by program, date/time, location)
+    stats.options = {
+      showFishingStartDateTime: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
+      showFishingEndDateTime: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
+      showEndDate: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
+    };
 
     stats.pmfms = isNotNil(strategyId)
       ? {

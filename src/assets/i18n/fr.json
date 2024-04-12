@@ -1397,6 +1397,8 @@
           "COMMENTS_TITLE": "FICHE OPERATIONS DE PECHE (verso)",
           "NB_OP": "Nombre total d'opérations de pêche effectuées pendant la marée :",
           "TABLE": {
+            "OPERATION_START": "Début de l'opération",
+            "OPERATION_END": "Fin de l'opération",
             "PARENT": "Filage (fin de mise à l’eau de l’engin)*",
             "CHILD": "Virage (début de remontée de l’engin)*",
             "NUM_OP": "N° OP",
