@@ -78,6 +78,11 @@ export class FormTripReportStats extends BaseReportStats {
     sampleTaxonNameEnabled: boolean;
     sampleTaxonGroupEnabled: boolean;
   };
+  options: {
+    showFishingStartDateTime: boolean;
+    showFishingEndDateTime: boolean;
+    showEndDate: boolean;
+  };
 }
 
 @Component({
