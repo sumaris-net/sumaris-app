@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Inject, Injector, Input, OnInit, ViewChild, viewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Batch } from '../common/batch.model';
 import {
@@ -17,7 +17,7 @@ import {
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
-import { Animation, IonContent, ModalController } from '@ionic/angular';
+import { Animation, IonCol, IonContent, ModalController } from '@ionic/angular';
 import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
@@ -33,6 +33,8 @@ import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validato
 import { RxState } from '@rx-angular/state';
 import { RxStateSelect } from '@app/shared/state/state.decorator';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { ModalUtils } from '@app/shared/modal/modal.utils';
+import { Form } from '@angular/forms';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -129,6 +131,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() playSound: boolean;
   @Input() showBluetoothIcon = false;
   @Input() canDebug: boolean;
+
+  isIndividualMeasure: boolean = true;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -574,6 +578,32 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.debug = !this.debug;
     this.markForCheck();
     await this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
+  }
+
+  async setModalStyle(modalCtrl: ModalController, cssClass: 'modal-large' | 'modal-small') {
+    const modal = await modalCtrl.getTop();
+
+    if (modal) {
+      const isLargeModal = cssClass === ModalUtils.CSS_CLASS_LARGE;
+      if (isLargeModal) {
+        modal.classList.remove(ModalUtils.CSS_CLASS_SMALL);
+        modal.classList.add(ModalUtils.CSS_CLASS_LARGE);
+      } else {
+        modal.classList.remove(ModalUtils.CSS_CLASS_LARGE);
+        modal.classList.add(ModalUtils.CSS_CLASS_SMALL);
+      }
+    }
+  }
+
+  onIndividualMeasureChange(isIndividualMeasure: boolean) {
+    this.isIndividualMeasure = isIndividualMeasure;
+
+    if (isIndividualMeasure) {
+      this.setModalStyle(this.viewCtrl, 'modal-large');
+      this.editedRow?.cancelOrDelete();
+    } else {
+      this.setModalStyle(this.viewCtrl, 'modal-small');
+    }
   }
 
   getFormErrors = AppFormUtils.getFormErrors;

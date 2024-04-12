@@ -2,10 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  EventEmitter,
   Injector,
   Input,
   OnDestroy,
   OnInit,
+  Output,
   QueryList,
   ViewChild,
   ViewChildren,
@@ -74,6 +76,7 @@ import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { MatRadioChange } from '@angular/material/radio';
 
 export interface SubBatchFormState extends MeasurementsFormState {
   computingWeight: boolean;
@@ -103,7 +106,15 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   selectedTaxonNameIndex = -1;
   warning: string;
   weightPmfm: IPmfm;
+  isIndividualMeasure: boolean = true;
   enableLengthWeightConversion: boolean;
+
+  defaultMethodChecked: string;
+  readonly isIndividualMeasureValues = [
+    { key: 'IS_INDIVIDUAL_MEASURE', value: true },
+    { key: 'IS_INDIVIDUAL_COUNT', value: false },
+  ];
+
   @RxStateProperty() taxonNames: TaxonNameRef[];
 
   @Input() title: string;
@@ -132,6 +143,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
       this.setAvailableParents(value);
     }
   }
+
+  @Output() isIndividualMeasureChanges = new EventEmitter<boolean>();
 
   get availableParents(): BatchGroup[] {
     return this._availableParents;
@@ -822,5 +835,20 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
         })
       )
       .subscribe();
+  }
+  onIndividualMeasureChange(event: MatRadioChange) {
+    this.isIndividualMeasure = event.value;
+
+    //if(!this.isIndividualMeasure) this.form.get('individualCount').enable();
+
+    if (this.isIndividualMeasure) {
+      this.form.enable();
+      this.form.get('individualCount').disable();
+    } else {
+      this.form.disable();
+      this.form.get('individualCount').enable();
+    }
+
+    this.isIndividualMeasureChanges.emit(this.isIndividualMeasure);
   }
 }

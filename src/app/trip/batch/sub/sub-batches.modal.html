@@ -64,7 +64,16 @@
   <ion-grid class="ion-no-padding" [class.disabled]="disabled">
     <ion-row>
       <!-- form -->
-      <ion-col size="12" push="" size-md="4" push-md="8" size-lg="3" push-lg="9" class="ion-col-form">
+
+      <ion-col
+        #colAttr
+        size="12"
+        push=""
+        [pushMd]="isIndividualMeasure ? 8 : null"
+        [sizeLg]="isIndividualMeasure ? 3 : null"
+        [pushLg]="isIndividualMeasure ? 9 : null"
+        class="ion-col-form"
+      >
         <!-- error -->
         <ion-item *ngIf="form.error; let error" lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -92,13 +101,23 @@
           [maxVisibleButtons]="maxVisibleButtons"
           [maxItemCountForButtons]="maxItemCountForButtons"
           [i18nSuffix]="i18nColumnSuffix"
+          (isIndividualMeasureChanges)="onIndividualMeasureChange($event)"
           [mobile]="mobile"
           [debug]="debug"
         ></app-sub-batch-form>
       </ion-col>
 
       <!-- table -->
-      <ion-col size="12" pull="" size-md="8" pull-md="4" size-lg="9" pull-lg="3" class="table-container ion-no-padding compact">
+      <ion-col
+        size="12"
+        pull=""
+        size-md="8"
+        pull-md="4"
+        size-lg="9"
+        pull-lg="3"
+        [hidden]="!isIndividualMeasure"
+        class="table-container ion-no-padding compact"
+      >
         <!-- todo mf -->
         <mat-toolbar *ngIf="showToolbar">
           <ng-container *ngIf="!selection.hasValue(); else hasSelection">
