@@ -156,7 +156,12 @@ export const ProgramProperties = Object.freeze({
       columnSizes: [2, 4, 6],
     },
   },
-
+  TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY: <FormFieldDefinition>{
+    key: 'sumaris.trip.gears.columns.pmfm.hideIfEmpty',
+    label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY',
+    defaultValue: false,
+    type: 'boolean',
+  },
   TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.gear.rankOrder.enable',
     label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE',
