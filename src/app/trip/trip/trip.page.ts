@@ -353,6 +353,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     );
     this.physicalGearsTable.setModalOption('minChildrenCount', program.getPropertyAsInt(ProgramProperties.TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT));
     this.physicalGearsTable.i18nColumnSuffix = i18nSuffix;
+    this.physicalGearsTable.hideEmptyPmfmColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY);
+    this.physicalGearsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS);
 
     // Operation table
     const positionEnabled = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
