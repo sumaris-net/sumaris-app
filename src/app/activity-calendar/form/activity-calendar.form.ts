@@ -142,7 +142,6 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     );
 
     // Listen year
-    console.log('TODO listening year');
     this.registerSubscription(
       merge(
         this.form.get('year').valueChanges,
