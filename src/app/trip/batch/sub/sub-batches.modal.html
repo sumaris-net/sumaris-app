@@ -226,6 +226,7 @@
                 [autofocus]="focusColumn == pmfm.id"
                 [pmfm]="pmfm"
                 [compact]="true"
+                [readonly]="pmfm.isComputed"
               ></app-pmfm-field>
               <!-- readonly value-->
               <ng-template #readonlyPmfmField>

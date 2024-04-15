@@ -35,6 +35,8 @@ import { RxStateSelect } from '@app/shared/state/state.decorator';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ModalUtils } from '@app/shared/modal/modal.utils';
 import { Form } from '@angular/forms';
+import { SaleContextService } from '@app/trip/sale/sale-context.service';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -77,6 +79,7 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
   templateUrl: 'sub-batches.modal.html',
   providers: [
     { provide: ContextService, useExisting: TripContextService },
+    { provide: ContextService, useExisting: SaleContextService },
     { provide: SubBatchValidatorService, useClass: SubBatchValidatorService },
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
@@ -133,6 +136,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() canDebug: boolean;
 
   isIndividualMeasure: boolean = true;
+  readOnlyPmfmIds: number[];
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -278,6 +282,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
+    this.readOnlyPmfmIds = [PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH];
     pmfms = super.mapPmfms(pmfms);
 
     const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;

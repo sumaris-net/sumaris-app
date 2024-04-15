@@ -49,6 +49,7 @@ import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { LandingService } from '@app/trip/landing/landing.service';
 import { Landing } from '@app/trip/landing/landing.model';
 import { IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
+import { SaleContextService } from './sale-context.service';
 
 export class SaleEditorOptions extends RootDataEditorOptions {}
 
@@ -118,7 +119,11 @@ export class SalePage<ST extends SalePageState = SalePageState>
   // Catch batch, sorting batches, individual measure
   @ViewChild('batchTree', { static: true }) batchTree: IBatchTreeComponent;
 
-  constructor(injector: Injector, @Optional() options: SaleEditorOptions) {
+  constructor(
+    injector: Injector,
+    @Optional() options: SaleEditorOptions,
+    protected saleContext: SaleContextService
+  ) {
     super(injector, Sale, injector.get(SaleService), {
       pathIdAttribute: 'saleId',
       tabCount: 2,
@@ -674,15 +679,14 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     // Date
     const date = this.saleForm.startDateTimeControl?.value;
-    this.context.setValue('date', fromDateISOString(date));
+    this.saleContext.setValue('date', fromDateISOString(date));
 
     // Fishing area
     if (this.showFishingArea) {
       const fishingArea = this.fishingAreaForm?.value;
       const fishingAreas = fishingArea ? [fishingArea] : this.data?.fishingAreas;
-      this.context.setValue('fishingAreas', fishingAreas);
+      this.saleContext.setValue('fishingAreas', fishingAreas);
     }
-
-    this.context.resetValue('vesselPositions');
+    this.saleContext.resetValue('vesselPositions');
   }
 }
