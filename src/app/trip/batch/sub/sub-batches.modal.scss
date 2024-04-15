@@ -23,6 +23,9 @@ ion-grid.disabled {
     max-width: 100% !important;
   }
 }
+ion-col.ion-col-form-mobile {
+  flex: 0% !important;
+}
 .mat-mdc-table {
   /*Hide selected row (if scale by an animation) */
   overflow-x: hidden;

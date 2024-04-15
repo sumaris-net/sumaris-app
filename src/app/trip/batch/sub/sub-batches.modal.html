@@ -66,12 +66,12 @@
       <!-- form -->
 
       <ion-col
-        #colAttr
         size="12"
         push=""
         [pushMd]="isIndividualMeasure ? 8 : null"
         [sizeLg]="isIndividualMeasure ? 3 : null"
         [pushLg]="isIndividualMeasure ? 9 : null"
+        [ngClass]="mobile ? 'ion-col-form-mobile' : 'null'"
         class="ion-col-form"
       >
         <!-- error -->
