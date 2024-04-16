@@ -37,6 +37,7 @@ import { ModalUtils } from '@app/shared/modal/modal.utils';
 import { Form } from '@angular/forms';
 import { SaleContextService } from '@app/trip/sale/sale-context.service';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { ContextUtils } from '@app/shared/context/context.utils';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -68,6 +69,7 @@ export interface ISubBatchesModalOptions {
   onNewParentClick: () => Promise<BatchGroup | undefined>;
 
   canDebug: boolean;
+  contextType: string;
 }
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -78,9 +80,14 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
   styleUrls: ['sub-batches.modal.scss'],
   templateUrl: 'sub-batches.modal.html',
   providers: [
-    { provide: ContextService, useExisting: TripContextService },
-    { provide: ContextService, useExisting: SaleContextService },
     { provide: SubBatchValidatorService, useClass: SubBatchValidatorService },
+    {
+      provide: ContextService,
+      useFactory: (tripService: TripContextService, saleService: SaleContextService, contextType: string) => {
+        return contextType === ContextUtils.TRIP_CONTEXT_NAME ? tripService : saleService;
+      },
+      deps: [TripContextService, SaleContextService],
+    },
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: () => ({
@@ -134,6 +141,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() playSound: boolean;
   @Input() showBluetoothIcon = false;
   @Input() canDebug: boolean;
+  @Input() contextType: string;
 
   isIndividualMeasure: boolean = true;
   readOnlyPmfmIds: number[];
@@ -176,6 +184,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   ngOnInit() {
     this.canDebug = toBoolean(this.canDebug, !environment.production);
     this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
+    console.log('[Sub-Batches-Modal] ContexType use : ', this.contextType);
 
     if (this.disabled) {
       this.showForm = false;

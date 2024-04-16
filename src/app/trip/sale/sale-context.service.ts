@@ -1,7 +1,7 @@
 import { Sale } from './sale.model';
 import { inject, Inject, Injectable, Optional } from '@angular/core';
 import { DataContext, DataContextService } from '@app/data/services/model/data-context.model';
-import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
+import { BacthTreeContext, BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { APP_MAIN_CONTEXT_SERVICE } from '@app/shared/context.service';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
 import { Batch } from '../batch/common/batch.model';
@@ -11,7 +11,7 @@ export interface SaleContext extends DataContext, BatchContext {
 }
 
 @Injectable({ providedIn: 'root' })
-export class SaleContextService<C extends SaleContext = SaleContext> extends DataContextService<C> {
+export class SaleContextService<C extends SaleContext = SaleContext> extends DataContextService<C> implements BacthTreeContext {
   protected context = inject(APP_MAIN_CONTEXT_SERVICE, { optional: true });
 
   @RxStateProperty() sale: Sale;

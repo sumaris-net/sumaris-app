@@ -50,6 +50,7 @@ import { LandingService } from '@app/trip/landing/landing.service';
 import { Landing } from '@app/trip/landing/landing.model';
 import { IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
 import { SaleContextService } from './sale-context.service';
+import { ContextUtils } from '@app/shared/context/context.utils';
 
 export class SaleEditorOptions extends RootDataEditorOptions {}
 
@@ -94,6 +95,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected vesselSnapshotService = inject(VesselSnapshotService);
   protected translateContext = inject(TranslateContextService);
   protected selectedSubTabIndex = 0;
+  contextType: string = ContextUtils.SALE_CONTEXT_NAME;
   showParent = false;
   showEntityMetadata = false;
   showQualityForm = false;
