@@ -48,6 +48,7 @@ import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Strategy } from '@app/referential/services/model/strategy.model';
+import moment from 'moment';
 
 export const ObservedLocationPageSettingsEnum = {
   PAGE_ID: 'observedLocation',
@@ -552,10 +553,6 @@ export class ObservedLocationPage
         landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
         landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
         this.showLandingTab = true;
-
-        const isSaleDetailEditor = this.landingEditor === 'sale';
-        landingsTable.showTaxonGroupColumn = isSaleDetailEditor;
-        landingsTable.showTaxonNameColumn = isSaleDetailEditor;
       }
 
       // If new data: update trip form (need to update validator, with showObservers)
@@ -729,6 +726,29 @@ export class ObservedLocationPage
       : this.landingTable?.invalid
         ? ObservedLocationPage.TABS.LANDINGS
         : -1;
+  }
+
+  protected onSamplingStrataChanges(samplingStrata: ReferentialRef) {
+    // TODO JVF
+    const landing = new Landing();
+    landing.rankOrder = 1;
+    landing.vesselSnapshot = new VesselSnapshot();
+    landing.vesselSnapshot.id = 1;
+    landing.vesselSnapshot.name = 'Vessel';
+    landing.program = this.program;
+    landing.dateTime = moment();
+    landing.location = new ReferentialRef();
+    landing.location.id = 1;
+    landing.location.name = 'Location';
+    console.log('onSamplingStrataChanges', samplingStrata);
+
+    landing.measurementValues = {
+      [PmfmIds.STRATEGY_LABEL]: samplingStrata.label,
+      [PmfmIds.CONTROLLED_SPECIES]: 304, // LANGOUSTINE
+      [PmfmIds.IS_OBSERVED]: false,
+    };
+
+    this.landingsTable.addOrUpdateEntityToTable(landing, { confirmEditCreate: true });
   }
 
   protected markForCheck() {

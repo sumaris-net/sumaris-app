@@ -33,8 +33,6 @@ export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'creationDate',
   'recorderPerson',
   'samplesCount',
-  'taxonGroup',
-  'taxonName',
 ];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
@@ -173,24 +171,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   get showSamplesCountColumn(): boolean {
     return this.getShowColumn('samplesCount');
-  }
-
-  @Input()
-  set showTaxonGroupColumn(value: boolean) {
-    this.setShowColumn('taxonGroup', value);
-  }
-
-  get showTaxonGroupColumn(): boolean {
-    return this.getShowColumn('taxonGroup');
-  }
-
-  @Input()
-  set showTaxonNameColumn(value: boolean) {
-    this.setShowColumn('taxonName', value);
-  }
-
-  get showTaxonNameColumn(): boolean {
-    return this.getShowColumn('taxonName');
   }
 
   @Input()

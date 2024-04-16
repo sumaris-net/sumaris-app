@@ -101,7 +101,7 @@
                 [mobile]="mobile"
                 [debug]="debug"
                 (onSubmit)="save($event)"
-                [timezone]="dbTimeZone"
+                (samplingStrataChanges)="onSamplingStrataChanges($event)"
               ></app-form-observed-location>
             </ion-col>
 
