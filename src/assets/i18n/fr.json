@@ -1061,6 +1061,9 @@
           "ADD_MEASURE_DOTS": "Ajouter une mesure :",
           "EDIT_MEASURE_DOTS": "Modifier une mesure :",
           "BTN_MANUAL_ENTRY": "Saisie manuelle"
+        },
+        "TYPE": {
+          "TITLE": "Type d'opération :"
         }
       },
       "TABLE": {

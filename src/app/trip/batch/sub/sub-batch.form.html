@@ -1,9 +1,13 @@
 <form class="form-container" [formGroup]="form">
-  <mat-radio-group name="methodList" fxLayout="column" style="display: flex; flex-direction: column" (change)="onIndividualMeasureChange($event)">
-    <mat-radio-button *ngFor="let item of isIndividualMeasureValues" [value]="item.value" name="methodList">
-      {{ 'TRIP.BATCH.EDIT.' + item.key | translate }}
-    </mat-radio-button>
-  </mat-radio-group>
+  <mat-boolean-field
+    formControlName="measureMethode"
+    [style]="(mobile && 'button') || 'radio'"
+    [placeholder]="'TRIP.BATCH.EDIT.TYPE.TITLE' | translate"
+    [yesLabel]="'TRIP.BATCH.EDIT.' + isIndividualMeasureValues[0].key | translate"
+    [noLabel]="'TRIP.BATCH.EDIT.' + isIndividualMeasureValues[1].key | translate"
+    required
+  ></mat-boolean-field>
+
   <br />
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">

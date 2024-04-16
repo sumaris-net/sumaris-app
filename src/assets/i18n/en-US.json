@@ -1031,6 +1031,9 @@
           "ADD_MEASURE_DOTS": "Add a measure:",
           "EDIT_MEASURE_DOTS": "Edit a measure:",
           "BTN_MANUAL_ENTRY": "Manual entry"
+        },
+        "TYPE": {
+          "TITLE": "Operation type:"
         }
       },
       "TABLE": {

@@ -103,6 +103,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   enableIndividualCountControl: UntypedFormControl;
   freezeTaxonNameControl: UntypedFormControl;
   freezeQvPmfmControl: UntypedFormControl;
+  measureMethodeControl: UntypedFormControl;
   selectedTaxonNameIndex = -1;
   warning: string;
   weightPmfm: IPmfm;
@@ -239,6 +240,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     this.freezeQvPmfmControl.setValue(true, { emitEvent: false });
 
     this.freezeTaxonNameControl = this.formBuilder.control(!this.mobile, Validators.required);
+
+    this.measureMethodeControl = this.formBuilder.control(true, Validators.required);
+    this.form.addControl('measureMethode', this.measureMethodeControl);
 
     // Listen pending status
     this._state.connect(
@@ -429,6 +433,13 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     if (this.mobile) {
       this.registerSubscription(this.listenIchthyometer());
     }
+
+    this.form
+      .get('measureMethode')
+      .valueChanges.pipe(distinctUntilChanged())
+      .subscribe((isIndividualMeasure) => {
+        this.onIndividualMeasureChange(isIndividualMeasure);
+      });
 
     this.ngInitExtension();
   }
@@ -836,17 +847,20 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
       )
       .subscribe();
   }
-  onIndividualMeasureChange(event: MatRadioChange) {
-    this.isIndividualMeasure = event.value;
+  onIndividualMeasureChange(isIndividualMeasure: boolean) {
+    if (this.isIndividualMeasure !== isIndividualMeasure) {
+      this.isIndividualMeasure = isIndividualMeasure;
 
-    if (this.isIndividualMeasure) {
-      this.form.enable();
-      this.form.get('individualCount').disable();
-    } else {
-      this.form.disable();
-      this.form.get('individualCount').enable();
+      if (this.isIndividualMeasure) {
+        this.form.enable();
+        this.form.get('individualCount').disable();
+      } else {
+        this.form.disable();
+        this.form.get('individualCount').enable();
+        this.form.get('measureMethode').enable();
+      }
+
+      this.isIndividualMeasureChanges.emit(this.isIndividualMeasure);
     }
-
-    this.isIndividualMeasureChanges.emit(this.isIndividualMeasure);
   }
 }
