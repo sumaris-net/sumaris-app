@@ -60,8 +60,10 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     if (opts.withSale) {
       form.addControl(
         'sale',
-        this.saleValidator.getFormGroup(data && data.sale, {
+        this.saleValidator.getFormGroup(data?.sale, {
           required: false,
+          withVessel: false,
+          withProgram: false,
         })
       );
     }

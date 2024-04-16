@@ -318,7 +318,12 @@ export abstract class BaseMeasurementsTable<
 
   protected getDisplayColumns(): string[] {
     const pmfms = this.pmfms;
-    if (!pmfms) return this.columns;
+
+    // Remove columns to hide
+    if (!pmfms) return this.columns.filter((column) => !this.excludesColumns.includes(column));
+
+    // DEBUG
+    console.debug(this.logPrefix + 'Updating display columns...');
 
     const userColumns = this.getUserColumns();
 
@@ -327,8 +332,8 @@ export abstract class BaseMeasurementsTable<
       .filter((p) => !p.hidden)
       .map((p) => p.id.toString());
 
-    const startColumns = ((this.options && this.options.reservedStartColumns) || []).filter((c) => !userColumns || userColumns.includes(c));
-    const endColumns = ((this.options && this.options.reservedEndColumns) || []).filter((c) => !userColumns || userColumns.includes(c));
+    const startColumns = (this.options?.reservedStartColumns || []).filter((c) => !userColumns || userColumns.includes(c));
+    const endColumns = (this.options?.reservedEndColumns || []).filter((c) => !userColumns || userColumns.includes(c));
 
     return (
       RESERVED_START_COLUMNS.concat(startColumns)
@@ -344,10 +349,10 @@ export abstract class BaseMeasurementsTable<
     //if (!this.loading) this.markForCheck();
   }
 
-  setShowColumn(columnName: string, show: boolean) {
+  setShowColumn(columnName: string, show: boolean, opts?: { emitEvent?: boolean }) {
     super.setShowColumn(columnName, show, { emitEvent: false });
 
-    if (!this.loading) this.updateColumns();
+    if (!this.loading && opts?.emitEvent !== false) this.updateColumns();
   }
 
   async ready(opts?: WaitForOptions) {
@@ -436,9 +441,9 @@ export abstract class BaseMeasurementsTable<
     }
   }
 
-  protected async getMaxRankOrder(): Promise<number> {
-    const rows = this.dataSource.getRows();
-    return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
+  protected async getMaxRankOrder(data?: T[]): Promise<number> {
+    data = data || this.dataSource.getData() || [];
+    return Math.max(0, ...data.map((entity) => entity.rankOrder || 0));
   }
 
   protected async existsRankOrder(rankOrder: number, excludedRows?: TableElement<T>[]): Promise<boolean> {

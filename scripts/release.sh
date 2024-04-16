@@ -174,17 +174,27 @@ cd ${PROJECT_DIR}/scripts || exit 1
 ./release-android.sh
 [[ $? -ne 0 ]] && exit 1
 
+echo "**********************************"
+echo "* Finishing release"
+echo "**********************************"
+
+cd ${PROJECT_DIR}/scripts || exit 1
+./release-finish.sh $version $branch
+[[ $? -ne 0 ]] && exit 1
+# Pause (if propagation is need between hosted git server and github)
+sleep 40s
 
 echo "**********************************"
-echo " /!\ You should now :"
-echo " - Open Android Studio and Build the release APK..."
-echo " - Then run: "
-echo ""
-echo "cd $PROJECT_DIR/scripts"
+echo "* Uploading artifacts to Github..."
+echo "**********************************"
+cd $PROJECT_DIR/scripts || exit 1
 if [[ "$branch" =~ ^features?/.* ]]; then
-  echo "./release-android-sign.sh && ./release-finish.sh $version $branch && ./release-to-github.sh $task $branch"
+  ./release-to-github.sh $task $branch || exit 1
 else
-  echo "./release-android-sign.sh && ./release-finish.sh && ./release-to-github.sh $task"
+  ./release-to-github.sh $task || exit 1
 fi
 
-exit 1
+echo "**********************************"
+echo "* Build release succeed !"
+echo "**********************************"
+

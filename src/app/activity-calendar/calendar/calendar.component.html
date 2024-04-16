@@ -32,6 +32,16 @@
     <ng-container matColumnDef="month" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
       <mat-header-cell *matHeaderCellDef>
         <ion-label>&nbsp;</ion-label>
+        <!-- Expand all -->
+        <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_EXPAND_ALL' | translate" (click)="expandAll($event)">
+          <mat-icon>unfold_more_double</mat-icon>
+        </button>
+
+        <!-- Collapse all -->
+        <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COLLAPSE_ALL' | translate" (click)="collapseAll($event)">
+          <mat-icon>unfold_less_double</mat-icon>
+        </button>
+
         <!-- Add metier block -->
         <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_ADD_METIER_BLOCK' | translate" (click)="addMetierBlock($event)">
           <mat-icon>add</mat-icon>
@@ -216,11 +226,11 @@
         <mat-cell
           #cell
           *matCellDef="let row"
-          [class.mat-mdc-cell-resizable]="!col.hidden"
           class="{{ col.class }}"
+          [class.mat-mdc-cell-resizable]="!col.hidden"
           [class.collapsed]="col.hidden"
           (mouseenter)="col.hidden && resizingCell && expandBlock($event, col.blockIndex)"
-          (click)="(col.hidden && toggleBlock($event, col.blockIndex)) || setFocusColumn(col.key)"
+          (click)="col.hidden ? toggleBlock($event, col.blockIndex) : setFocusColumn(col.key)"
         >
           @if (!col.hidden) {
             @if (!col.hidden && row.editing && row.validator | formGetControl: col.path; as control) {

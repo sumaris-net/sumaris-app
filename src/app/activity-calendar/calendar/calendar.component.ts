@@ -42,17 +42,17 @@ import { BaseMeasurementsTable, BaseMeasurementsTableConfig, BaseMeasurementsTab
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 
-const DYNAMIC_COLUMNS = [
-  'metier1',
-  'metier1FishingArea1',
-  'metier1FishingArea2',
-  'metier2',
-  'metier2FishingArea1',
-  'metier2FishingArea2',
-  'metier3',
-  'metier3FishingArea1',
-  'metier3FishingArea2',
-];
+const MAX_METIER_COUNT = 10;
+const MAX_FISHING_AREA_COUNT = 2;
+const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
+  .fill(null)
+  .flatMap(
+    (_, index) =>
+      <string[]>[
+        `metier${index + 1}`,
+        ...new Array<string>(MAX_FISHING_AREA_COUNT).fill(null).flatMap((_, faIndex) => <string[]>[`metier${index + 1}FishingArea${faIndex + 1}`]),
+      ]
+  );
 const ACTIVITY_MONTH_START_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
 const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
 
@@ -158,8 +158,8 @@ export class CalendarComponent
   @Input() fishingAreaLocationLevelIds: number[];
   @Input() metierTaxonGroupIds: number[];
   @Input() timezone: string = DateUtils.moment().tz();
-  @Input() maxMetierCount = 3;
-  @Input() maxFishingAreaCount = 2;
+  @Input() maxMetierCount = MAX_METIER_COUNT;
+  @Input() maxFishingAreaCount = MAX_FISHING_AREA_COUNT;
   @Input() usageMode: UsageMode;
   @Input() showPmfmDetails = false;
 
@@ -546,6 +546,18 @@ export class CalendarComponent
     }
   }
 
+  protected expandAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
+    for (let i = 0; i < this.metierCount; i++) {
+      this.expandBlock(null, i);
+    }
+  }
+
+  protected collapseAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
+    for (let i = 0; i < this.metierCount; i++) {
+      this.collapseBlock(null, i);
+    }
+  }
+
   protected async suggestMetiers(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
     // eslint-disable-next-line prefer-const
@@ -636,13 +648,24 @@ export class CalendarComponent
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
+    this.setBlockExpanded(blockIndex, true);
+  }
+
+  collapseBlock(event: UIEvent, blockIndex: number) {
+    if (event?.defaultPrevented) return; // Skip^
+    event?.preventDefault();
+
+    this.setBlockExpanded(blockIndex, false);
+  }
+
+  protected setBlockExpanded(blockIndex: number, expanded: boolean) {
     const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return;
 
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
-    masterColumn.expanded = true;
+    masterColumn.expanded = expanded;
 
     // Update sub columns
     blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));

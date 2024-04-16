@@ -16,17 +16,18 @@ import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.mo
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from './physicalgear.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PhysicalGearFilter } from './physical-gear.filter';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
-import { BehaviorSubject, merge, Subscription } from 'rxjs';
+import { merge, Subscription } from 'rxjs';
 import { OverlayEventDetail } from '@ionic/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { RxState } from '@rx-angular/state';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed', 'comments'];
@@ -39,9 +40,8 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed',
   providers: [RxState],
 })
 export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
-  touchedSubject = new BehaviorSubject<boolean>(false);
-  filterForm: UntypedFormGroup;
-  modalOptions: Partial<IPhysicalGearModalOptions>;
+  private _previousMaxRankOrder: number;
+  private _modalOptions: Partial<IPhysicalGearModalOptions>;
 
   @Input() canDelete = true;
   @Input() canSelect = true;
@@ -53,6 +53,8 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   @Input() showPmfmDetails = false;
   @Input() usageMode: UsageMode;
   @Input() minRowCount = 0;
+  @Input() hideEmptyPmfmColumn = false;
+  @Input() includedPmfmIds: number[];
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);
@@ -232,17 +234,22 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     );
   }
 
-  updateView(res: LoadResult<PhysicalGear> | undefined, opts?: { emitEvent?: boolean }): Promise<void> {
+  async updateView(res: LoadResult<PhysicalGear> | undefined, opts?: { emitEvent?: boolean }): Promise<void> {
+    this.updateHiddenPmfmColumns(res?.data);
+
+    // Keep previous rankOrder, once (this is need to avoid duplicated key error, in Adagio database)
+    this._previousMaxRankOrder = Math.max(await this.getMaxRankOrder(), this._previousMaxRankOrder || 0);
+
     return super.updateView(res, opts);
   }
 
   setModalOption(key: keyof IPhysicalGearModalOptions, value: IPhysicalGearModalOptions[typeof key]) {
-    this.modalOptions = this.modalOptions || {};
-    this.modalOptions[key as any] = value;
+    this._modalOptions = this._modalOptions || {};
+    this._modalOptions[key as any] = value;
   }
 
   getModalOption(key: keyof IPhysicalGearModalOptions): IPhysicalGearModalOptions[typeof key] {
-    return this.modalOptions[key];
+    return this._modalOptions[key];
   }
 
   setFilter(value: Partial<PhysicalGearFilter>, opts?: { emitEvent: boolean }) {
@@ -267,9 +274,53 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   /* -- protected function -- */
 
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
-    const includedPmfmIds = this.context.program?.getPropertyAsNumbers(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS);
-    // Keep selectivity device, if any
+    const includedPmfmIds =
+      this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS);
+    // Keep required and included pmfm ids
     return pmfms.filter((p) => p.required || includedPmfmIds?.includes(p.id));
+  }
+
+  /**
+   * Check pmfms column (hide if empty, and show if has data)
+   * @param data
+   * @protected
+   */
+  protected updateHiddenPmfmColumns(data?: PhysicalGear[]) {
+    const pmfms = this.pmfms;
+    if (!pmfms) return; // Skip if pmfm not loaded
+
+    const hideEmptyPmfmColumns =
+      this.hideEmptyPmfmColumn || this.context.program?.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY);
+    if (!hideEmptyPmfmColumns) return; // Skip
+
+    data = data || this.dataSource.getData() || [];
+    const includedPmfmIds =
+      this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS);
+
+    let hasChanges = false;
+    const updatedPmfms = pmfms.map((p) => {
+      const hidden = !includedPmfmIds?.includes(p.id) && data.every((physicalGear) => PmfmValueUtils.isEmpty(physicalGear.measurementValues[p.id]));
+      if (p.hidden !== hidden) {
+        p = p.clone();
+        p.hidden = hidden;
+        hasChanges = true;
+
+        // DEBUG
+        //console.debug(this.logPrefix + `Pmfm column ${p.id} is now ${hidden ? 'hidden' : 'visible'}`);
+      }
+      return p;
+    });
+
+    if (!hasChanges) return; // Nothing changed
+
+    // Apply updated pmfms (will call updateColumns())
+    this.filteredPmfms = updatedPmfms;
+  }
+
+  protected async getMaxRankOrder(): Promise<number> {
+    // Keep previous rankOrder, to avoid duplication key error, in Adagio DB
+    this._previousMaxRankOrder = Math.max(await super.getMaxRankOrder(), this._previousMaxRankOrder || 0);
+    return this._previousMaxRankOrder;
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -284,6 +335,9 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     if (data && role !== 'delete') {
       if (this.debug) console.debug('Adding new gear:', data);
       await this.addEntityToTable(data, { confirmCreate: false, editing: false });
+
+      // Check pmfms column (hide if empty)
+      this.updateHiddenPmfmColumns();
     }
     return true;
   }
@@ -347,7 +401,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
         usageMode: this.usageMode,
         debug: this.debug,
         // Override using given options
-        ...this.modalOptions,
+        ...this._modalOptions,
       },
       cssClass: hasTopModal ? 'modal-large stack-modal' : 'modal-large',
       backdropDismiss: false,

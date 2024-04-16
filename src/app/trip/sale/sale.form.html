@@ -3,10 +3,16 @@
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-    >
   </ion-item>
 
   <ion-grid class="ion-no-padding">
+    <!-- debug -->
+    <ion-row *ngIf="debug">
+      <ion-col offset="0" offset-md="2" offset-lg="3">
+        <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+      </ion-col>
+    </ion-row>
+
     <!-- Program -->
     <ion-row *ngIf="showProgram">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
@@ -27,7 +33,6 @@
 
     <!-- Vessel -->
     <ion-row *ngIf="showVessel">
-      <!--      todo mf to be check with benoit-->
       <ion-col offset="0" offset-md="2" offset-lg="3">
         <mat-autocomplete-field
           *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
@@ -53,7 +58,7 @@
           [placeholder]="'SALE.SALE_TYPE' | translate"
           [config]="autocompleteFields.saleType"
           [tabindex]="tabindex === -1 ? -1 : tabindex + 2"
-          [required]="required"
+          [required]="required || (form | formGetValue: 'saleLocation' | isNotEmptyReferential)"
         >
           <ion-icon matPrefix name="card"></ion-icon>
         </mat-autocomplete-field>
@@ -109,7 +114,7 @@
             [placeholder]="'SALE.SALE_LOCATION' | translate"
             [config]="autocompleteFields.location"
             [tabindex]="tabindex === -1 ? -1 : tabindex + 7"
-            [required]="form | formGetValue: 'saleType' | isNotEmptyReferential"
+            [required]="required || (form | formGetValue: 'saleType' | isNotEmptyReferential)"
           >
             <mat-icon matPrefix>room</mat-icon>
           </mat-autocomplete-field>
@@ -119,7 +124,7 @@
             [placeholder]="'SALE.DATE_TIME' | translate"
             formControlName="startDateTime"
             [tabindex]="tabindex === -1 ? -1 : tabindex + 8"
-            [required]="form | formGetValue: 'saleType' | isNotEmptyReferential"
+            [required]="required || (form | formGetValue: 'saleType' | isNotEmptyReferential)"
           >
             <!-- icon need for small screen -->
             <mat-icon matPrefix class="visible-xs">today</mat-icon>
@@ -157,4 +162,36 @@
     <input matInput hidden />
     <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
   </mat-form-field>
+</ng-template>
+
+<ng-template #debugPanel>
+  <app-debug title="Sale Form">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          form.ready: {{ readySubject | async }}
+          <br />
+          form.loading: {{ loading }}
+          <br />
+          form.enabled: {{ enabled }}
+          <br />
+          form.dirty: {{ dirty }}
+          <br />
+          form.valid: {{ valid }}
+          <br />
+        </ion-col>
+        <ion-col>
+          form.required: {{ required }}
+          <br />
+          form.empty: {{ empty }}
+          <br />
+          <br />
+          form.showProgram: {{ showProgram }}
+          <br />
+          form.showVessel: {{ showVessel }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
 </ng-template>

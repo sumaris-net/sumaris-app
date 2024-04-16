@@ -62,7 +62,6 @@ export abstract class AppDataEntityReport<
       ...this.i18nContext,
       pmfmPrefix: computedContext?.pmfmPrefix,
     };
-    console.debug('MYTEST I18', this.i18nContext, this.i18nContextSuffix);
   }
 
   dataAsObject(source: T, opts?: EntityAsObjectOptions): any {

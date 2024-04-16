@@ -232,24 +232,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
     // Combo: sampling strata
     this.registerAutocompleteField('samplingStrata', {
-      suggestFn: (value, filter) => {
-        return this.referentialRefService.suggest(value, { ...filter, levelLabel: this.programLabel }, null, null, {
-          withProperties: true,
-        });
-      },
-      filter: <Partial<ReferentialRefFilter>>{
-        entityName: 'DenormalizedSamplingStrata',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        searchAttributes: ['label', 'properties.samplingSchemeLabel'],
-      },
-      attributes: ['label', 'properties.samplingSchemeLabel'],
-      columnNames: ['REFERENTIAL.LABEL', 'TRIP.SAMPLING_SCHEME_LABEL'],
-      mobile: this.mobile,
-      showAllOnFocus: this.mobile,
-    });
-
-    // Combo: sampling strata
-    this.registerAutocompleteField('samplingStrata', {
       suggestFn: (value, filter) =>
         this.referentialRefService.suggest(value, { ...filter, levelLabel: this.programLabel }, null, null, {
           withProperties: true,

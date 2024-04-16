@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import { SaleValidatorService } from './sale.validator';
+import { SaleValidatorOptions, SaleValidatorService } from './sale.validator';
 import { Moment } from 'moment';
-import { AppForm, OnReady, referentialToString, toNumber } from '@sumaris-net/ngx-components';
+import { AppForm, isNilOrBlank, OnReady, referentialToString, ReferentialUtils, StatusIds, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Sale } from './sale.model';
-import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormControl } from '@angular/forms';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 @Component({
   selector: 'app-form-sale',
@@ -16,8 +17,10 @@ import { UntypedFormControl } from '@angular/forms';
 })
 export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   private _minDate: Moment = null;
+  private _required: boolean;
 
-  @Input() required = true;
+  protected readonly mobile = this.settings.mobile;
+
   @Input() showError = true;
   @Input() showProgram = true;
   @Input() showVessel = true;
@@ -27,6 +30,17 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   @Input() showButtons = true;
   @Input() i18nSuffix: string;
 
+  @Input() set required(value: boolean) {
+    if (this._required !== value) {
+      this._required = value;
+      if (!this.loading) this.updateFormGroup();
+    }
+  }
+
+  get required(): boolean {
+    return this._required;
+  }
+
   @Input() set minDate(value: Moment) {
     if (value && (!this._minDate || !this._minDate.isSame(value))) {
       this._minDate = value;
@@ -34,14 +48,18 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
     }
   }
 
+  get minDate(): Moment {
+    return this._minDate;
+  }
+
   get empty(): any {
     const value = this.value;
     return (
-      (!value.saleLocation || !value.saleLocation.id) &&
+      ReferentialUtils.isEmpty(value.saleLocation) &&
       !value.startDateTime &&
       !value.endDateTime &&
-      (!value.saleType || !value.saleType.id) &&
-      (!value.comments || !value.comments.length)
+      ReferentialUtils.isEmpty(value.saleType) &&
+      isNilOrBlank(value.comments)
     );
   }
 
@@ -56,11 +74,12 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   constructor(
     injector: Injector,
     protected validatorService: SaleValidatorService,
+    protected programRefService: ProgramRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector, validatorService.getFormGroup());
+    super(injector, validatorService.getFormGroup(null, { required: false }));
   }
 
   ngOnInit() {
@@ -68,6 +87,20 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
 
     // Set defaults
     this.tabindex = toNumber(this.tabindex, 0);
+    this._required = toBoolean(this._required, this.showProgram);
+
+    // Combo: programs
+    if (this.showProgram) {
+      this.registerAutocompleteField('program', {
+        service: this.programRefService,
+        filter: {
+          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+          acquisitionLevelLabels: [AcquisitionLevelCodes.SALE, AcquisitionLevelCodes.PRODUCT_SALE, AcquisitionLevelCodes.PACKET_SALE],
+        },
+        mobile: this.mobile,
+        showAllOnFocus: this.mobile,
+      });
+    }
 
     // Combo: vessels (if need)
     if (this.showVessel) {
@@ -101,11 +134,15 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   }
 
   protected updateFormGroup(opts?: { emitEvent?: boolean }) {
-    console.info('[sale-form] Updating form group...');
-    this.validatorService.updateFormGroup(this.form, {
-      required: this.required, // Set if required or not
+    const validatorOpts: SaleValidatorOptions = {
+      required: this._required, // Set if required or not
       minDate: this._minDate,
-    });
+      withProgram: this.showProgram,
+      withVessel: this.showVessel,
+    };
+
+    console.info('[sale-form] Updating form group...', validatorOpts);
+    this.validatorService.updateFormGroup(this.form, validatorOpts);
 
     if (!opts || opts.emitEvent !== false) {
       this.form.updateValueAndValidity();

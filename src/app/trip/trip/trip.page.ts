@@ -31,6 +31,7 @@ import {
   isNotNilOrBlank,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PromiseEvent,
+  Property,
   ReferentialRef,
   ReferentialUtils,
   sleep,
@@ -64,6 +65,7 @@ import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -73,6 +75,8 @@ export const TripPageSettingsEnum = {
 export interface TripPageState extends RootDataEntityEditorState {
   departureDateTime: Moment;
   departureLocation: ReferentialRef;
+  reportTypes: Property[];
+  returnDateTime: Moment;
 }
 
 @Component({
@@ -103,6 +107,10 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
   private _measurementSubscription: Subscription;
+
+  @RxStateSelect() protected returnDateTime$: Observable<Moment>;
+
+  @RxStateProperty() protected reportTypes: Property[];
 
   showSaleForm = false;
   showGearTable = false;
@@ -163,7 +171,19 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Listen some field
     this._state.connect('departureDateTime', this.tripForm.departureDateTimeChanges.pipe(filter((d) => d?.isValid())));
+    this._state.connect('returnDateTime', this.tripForm.maxDateChanges.pipe(filter((d) => d?.isValid())));
     this._state.connect('departureLocation', this.tripForm.departureLocationChanges);
+    this._state.connect(
+      'reportTypes',
+      this.program$.pipe(
+        map((program) => {
+          return program.getPropertyAsStrings(ProgramProperties.TRIP_REPORT_TYPE).map((key) => {
+            const values = ProgramProperties.TRIP_REPORT_TYPE.values as Property[];
+            return values.find((item) => item.key === key);
+          });
+        })
+      )
+    );
 
     // Update the data context
     this.registerSubscription(
@@ -333,6 +353,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     );
     this.physicalGearsTable.setModalOption('minChildrenCount', program.getPropertyAsInt(ProgramProperties.TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT));
     this.physicalGearsTable.i18nColumnSuffix = i18nSuffix;
+    this.physicalGearsTable.hideEmptyPmfmColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY);
+    this.physicalGearsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS);
 
     // Operation table
     const positionEnabled = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
@@ -518,16 +540,16 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
-  async openReport() {
+  async openReport(reportType?: TripReportType) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-    const reportType = this.program?.getProperty(ProgramProperties.TRIP_REPORT_TYPE) || ProgramProperties.TRIP_REPORT_TYPE.defaultValue;
-    const typePath = reportType !== <TripReportType>'legacy' ? [reportType] : [];
-    const queryParams = ''; // reportType === 'form' ? '?print-pdf=1' : '';
-    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...typePath].join('/') + queryParams, { replaceUrl: true });
-    // return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...typePath].join('/'));
+
+    if (!reportType) reportType = this.reportTypes.length === 1 ? <TripReportType>this.reportTypes[0].key : 'legacy';
+
+    const typepath = reportType !== <TripReportType>'legacy' ? [reportType] : [];
+    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...typepath].join('/'));
   }
 
   protected async setValue(data: Trip) {

@@ -61,7 +61,7 @@ do
   #echo "-------------------------------------------"
   #echo "--- Installing Android target ${TARGET_VERSION}..."
   #echo y | sdkmanager "platforms;android-${TARGET_VERSION}" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
-[[ $? -ne 0 ]] && exit 1
+  [[ $? -ne 0 ]] && exit 1
 done
 
 # Install NDK

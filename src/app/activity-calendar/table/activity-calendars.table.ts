@@ -157,7 +157,6 @@ export class ActivityCalendarsTable
     // Load years
     {
       const years = new Array(10).fill(DateUtils.moment().year()).map((year, index) => year - index);
-      console.log('TODO', years); // Affiche un tableau vide, de 10 éléments, au lieu de 2023,2022,2021...
       this._state.set({ years });
     }
 
