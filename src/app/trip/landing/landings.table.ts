@@ -287,7 +287,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
             if (!this.editedRow) return; // Should never occur
             const row = this.editedRow;
             const controls = (row.validator.get('measurementValues') as UntypedFormGroup).controls;
-            if (isObservedValue) {
+            if (!isObservedValue) {
               if (row.validator.enabled) controls[PmfmIds.NON_OBSERVATION_REASON].enable();
               controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(Validators.required);
               controls[PmfmIds.NON_OBSERVATION_REASON].updateValueAndValidity();
