@@ -144,7 +144,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() contextType: string;
 
   isIndividualMeasure: boolean = true;
-  readOnlyPmfmIds: number[];
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -291,7 +290,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-    this.readOnlyPmfmIds = [PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH];
     pmfms = super.mapPmfms(pmfms);
 
     const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;

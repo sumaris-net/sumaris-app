@@ -243,7 +243,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
 
     this.measureMethodeControl = this.formBuilder.control(true, Validators.required);
     this.form.addControl('measureMethode', this.measureMethodeControl);
-
+    this.isIndividualMeasure = this.measureMethodeControl.value;
     // Listen pending status
     this._state.connect(
       'computingWeight',
@@ -505,9 +505,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
       this.form.get('taxonName').disable(opts);
     }
 
-    if (!this.enableIndividualCount) {
-      this.form.get('individualCount').disable(opts);
-    }
+    // if (!this.enableIndividualCount) {
+    //   this.form.get('individualCount').disable(opts);
+    // }
 
     // Other field to disable by default (e.g. discard reason, in SUMARiS program)
     this._disableByDefaultControls.forEach((c) => c.disable(opts));
@@ -848,7 +848,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
       .subscribe();
   }
   onIndividualMeasureChange(isIndividualMeasure: boolean) {
-    if (this.isIndividualMeasure !== isIndividualMeasure) {
+    if (isIndividualMeasure !== null) {
       this.isIndividualMeasure = isIndividualMeasure;
 
       if (this.isIndividualMeasure) {
