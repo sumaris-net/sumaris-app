@@ -157,7 +157,7 @@ build:env:
     - npm version
   script:
     # Build
-    - npm run build.${BUILD_ENVIRONMENT}
+    - npm run build:${BUILD_ENVIRONMENT}
   after_script:
     # Remember version
     - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
