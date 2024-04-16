@@ -614,7 +614,7 @@ deploy:webext:release:tags:
   script:
     # Build docker image
     - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTML=www" --build-arg="NGINX_CONF=target/docker/site.conf" -f scripts/docker/run/Dockerfile .
+    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTML=www" --build-arg="NGINX_CONF=scripts/docker/run/site.conf" -f scripts/docker/run/Dockerfile .
     - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
 
 docker:develop:
