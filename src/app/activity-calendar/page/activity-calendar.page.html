@@ -169,7 +169,6 @@
           [requiredStrategy]="requiredStrategy$ | async"
           [strategyId]="(strategy$ | async)?.id"
           [timezone]="dbTimeZone"
-          (onNewRow)="addRow($event)"
           [debug]="debug"
         ></app-calendar>
       </div>
