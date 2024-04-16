@@ -226,11 +226,11 @@
         <mat-cell
           #cell
           *matCellDef="let row"
-          [class.mat-mdc-cell-resizable]="!col.hidden"
           class="{{ col.class }}"
+          [class.mat-mdc-cell-resizable]="!col.hidden"
           [class.collapsed]="col.hidden"
           (mouseenter)="col.hidden && resizingCell && expandBlock($event, col.blockIndex)"
-          (click)="(col.hidden && toggleBlock($event, col.blockIndex)) || setFocusColumn(col.key)"
+          (click)="col.hidden ? toggleBlock($event, col.blockIndex) : setFocusColumn(col.key)"
         >
           @if (!col.hidden) {
             @if (!col.hidden && row.editing && row.validator | formGetControl: col.path; as control) {
