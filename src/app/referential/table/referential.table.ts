@@ -34,7 +34,7 @@ import {
   StatusList,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, UntypedFormBuilder } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment';
 import { BaseReferentialFilter, ReferentialFilter } from '../services/filter/referential.filter';
@@ -92,7 +92,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
   columnDefinitions: FormFieldDefinition[];
   i18nLevelName: string;
   i18nParentName: string;
-  readonly detailsPath = {
+  protected readonly detailsPath = {
     Program: '/referential/programs/:id',
     Software: '/referential/software/:id?label=:label',
     Pmfm: '/referential/pmfm/:id?label=:label',
@@ -104,7 +104,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     // Extraction (special case)
     ExtractionProduct: '/extraction/product/:id?label=:label',
   };
-  readonly dataTypes: { [key: string]: new () => BaseReferential<any> } = {
+  protected readonly dataTypes: { [key: string]: new () => BaseReferential<any> } = {
     Parameter,
     Pmfm,
     TaxonName,
@@ -112,25 +112,33 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     Method,
     TaxonGroup: FullReferential,
   };
-  readonly dataServices: { [key: string]: any } = {
+  protected readonly dataServices: { [key: string]: any } = {
     Parameter: ParameterService,
     Pmfm: PmfmService,
     TaxonName: TaxonNameService,
     Unit: ReferentialService,
     TaxonGroup: ReferentialService,
   };
-  readonly dataValidators: { [key: string]: any } = {
+  protected readonly dataValidators: { [key: string]: any } = {
     Method: MethodValidatorService,
   };
-  readonly entityNamesWithParent = ['TaxonGroup', 'TaxonName'];
+  protected readonly entityNamesWithParent = ['TaxonGroup', 'TaxonName'];
 
   // Pu sub entity class (not editable without a root entity)
-  readonly excludedEntityNames: string[] = ['QualitativeValue', 'RoundWeightConversion', 'WeightLengthConversion', 'ProgramPrivilege'];
+  protected readonly excludedEntityNames: string[] = ['QualitativeValue', 'RoundWeightConversion', 'WeightLengthConversion', 'ProgramPrivilege'];
 
-  readonly statusList = StatusList;
-  readonly statusById = StatusById;
+  protected readonly statusList = StatusList;
+  protected readonly statusById = StatusById;
   protected fileService: ReferentialFileService<IReferentialRef<any>>;
-  readonly importPolicies: ReferentialImportPolicy[] = ['insert-update', 'insert-only', 'update-only'];
+  protected readonly importPolicies: ReferentialImportPolicy[] = ['insert-update', 'insert-only', 'update-only'];
+
+  get searchText(): string {
+    return this.searchTextControl?.value;
+  }
+
+  get searchTextControl(): UntypedFormControl {
+    return this.filterForm?.controls.searchText as UntypedFormControl;
+  }
 
   @Input() set showLevelColumn(value: boolean) {
     this.setShowColumn('level', value);

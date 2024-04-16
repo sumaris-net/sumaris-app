@@ -77,13 +77,6 @@
         (downloadAsType)="openDownloadPage($event)"
       ></app-extraction-button>
 
-      <!-- map -->
-      <button mat-icon-button *ngIf="canOpenMap" [title]="'EXTRACTION.BTN_OPEN_MAP' | translate" (click)="openSelectionMap($event)">
-        <mat-icon>
-          <ion-icon name="earth"></ion-icon>
-        </mat-icon>
-      </button>
-
       <!-- delete -->
       <button
         mat-icon-button
@@ -130,12 +123,6 @@
   <button mat-menu-item *ngIf="synchronizationStatus !== 'SYNC'" (click)="importFromFile($event)">
     <mat-icon>upload</mat-icon>
     <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
-  </button>
-
-  <!-- trash -->
-  <button mat-menu-item *ngIf="isAdmin || synchronizationStatus !== 'SYNC'" (click)="openTrashModal($event)">
-    <mat-icon>delete_sweep</mat-icon>
-    <ion-label translate>COMMON.BTN_SHOW_TRASH_DOTS</ion-label>
   </button>
 
   <!-- Force offline (DEV ONLY) -->

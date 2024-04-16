@@ -6,9 +6,17 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 import { ActivityCalendarsTable } from '@app/activity-calendar/table/activity-calendars.table';
 import { ActivityCalendarOfflineModal } from '@app/activity-calendar/offline/activity-calendar-offline.modal';
 import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module';
+import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
 
 @NgModule({
-  imports: [AppCoreModule, TranslateModule.forChild(), AppReferentialPipesModule, AppPmfmFormFieldModule, AppEntityQualityModule],
+  imports: [
+    AppCoreModule,
+    TranslateModule.forChild(),
+    AppReferentialPipesModule,
+    AppPmfmFormFieldModule,
+    AppEntityQualityModule,
+    AppExtractionButtonModule,
+  ],
   declarations: [ActivityCalendarsTable, ActivityCalendarOfflineModal],
   exports: [ActivityCalendarsTable, ActivityCalendarOfflineModal],
 })
