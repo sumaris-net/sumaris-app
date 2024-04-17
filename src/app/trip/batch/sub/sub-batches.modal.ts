@@ -409,7 +409,11 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     } else {
       titlePrefix = '';
     }
-    this.titleSubject.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
+    if (this.isIndividualMeasure) {
+      this.titleSubject.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
+    } else {
+      this.titleSubject.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.TITLE').toPromise()));
+    }
   }
 
   protected async suggestTaxonNames(value?: any, options?: any): Promise<LoadResult<TaxonNameRef>> {
@@ -616,6 +620,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     } else {
       this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_SMALL);
     }
+    this.computeTitle();
   }
 
   getFormErrors = AppFormUtils.getFormErrors;

@@ -1062,6 +1062,9 @@
           "EDIT_MEASURE_DOTS": "Modifier une mesure :",
           "BTN_MANUAL_ENTRY": "Saisie manuelle"
         },
+        "INDIVIDUAL_COUNT": {
+          "TITLE": "Dénombrement"
+        },
         "TYPE": {
           "TITLE": "Type d'opération :"
         }
