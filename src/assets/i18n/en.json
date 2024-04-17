@@ -2016,7 +2016,8 @@
     "OPTIONS": {
       "VESSELS_ENABLE": "Referential > Vessels: Enable?",
       "VESSELS_IMPORT_ENABLE": "Referential > Navires: Enable vessel file import?",
-      "VESSELS_REPLACEMENT_ENABLE": "Referential > Vessels > Replacement: Enable?"
+      "VESSELS_REPLACEMENT_ENABLE": "Referential > Vessels > Replacement: Enable?",
+      "VESSEL_REGISTRATION_LOCATION_LEVEL_IDS": "Referential > Vessels: Registration location level(s)"
     },
     "INFO": {
       "IMPORT_ENTITIES_SUCCEED": "Importation finished <b>successfully</b>!<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour.",

@@ -250,8 +250,8 @@
       },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
-        "DEFAULT_FILTER_COUNTRY_ID": "Saisie > Navire: Pavillon",
-        "DEFAULT_FILTER_TYPE_ID": "Saisie > Navire: Type de navire",
+        "DEFAULT_FILTER_COUNTRY_ID": "Saisie > Navire: Pavillon (filtre)",
+        "DEFAULT_FILTER_TYPE_ID": "Saisie > Navire: Type de navire (filtre)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
         "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires > Port d'attache: Nb caract. min pour recherche",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Saisie > Navire: Nb caract. min pour recherche",
@@ -2191,7 +2191,8 @@
     "OPTIONS": {
       "VESSELS_ENABLE": "Référentiels > Navires: Activer ?",
       "VESSELS_IMPORT_ENABLE": "Référentiels > Navires: Activer l'importation fichier ?",
-      "VESSELS_REPLACEMENT_ENABLE": "Référentiels > Navires: Activer le remplacement des navires temporaires ?"
+      "VESSELS_REPLACEMENT_ENABLE": "Référentiels > Navires: Activer le remplacement des navires temporaires ?",
+      "VESSEL_REGISTRATION_LOCATION_LEVEL_IDS": "Référentiels > Navires: Niveau(x) de lieu d'immatriculation ?"
     },
     "INFO": {
       "IMPORT_ENTITIES_SUCCEED": "Importation terminée <b>avec succès</b> !<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour, {{skipCount}} ignoré(s).",

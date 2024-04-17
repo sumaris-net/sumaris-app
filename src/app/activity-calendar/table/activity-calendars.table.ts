@@ -240,7 +240,7 @@ export class ActivityCalendarsTable
         this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
 
         // Locations combo (filter)
-        this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_ID);
+        this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_IDS);
         this.basePortLocationLevelIds = [LocationLevelIds.PORT];
 
         this.updateColumns();
