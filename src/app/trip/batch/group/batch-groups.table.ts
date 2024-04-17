@@ -54,7 +54,7 @@ import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measure
 import { environment } from '@environments/environment';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
-import { ContextName } from '@app/shared/context/context.utils';
+import { ContextNameType } from '@app/shared/context/context.utils';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -274,7 +274,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() enableWeightLengthConversion: boolean;
   @Input() labelPrefix: string; // Prefix to use for BatchGroup.label. If empty, will use the acquisitionLevel
-  @Input() contextType: ContextName;
+  @Input() contextType: ContextNameType;
 
   @Input() set showWeightColumns(value: boolean) {
     if (this._showWeightColumns !== value) {

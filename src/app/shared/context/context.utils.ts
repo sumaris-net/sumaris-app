@@ -3,4 +3,4 @@ export class ContextUtils {
   static readonly SALE_CONTEXT_NAME = 'saleContext';
 }
 
-export type ContextName = typeof ContextUtils.TRIP_CONTEXT_NAME | typeof ContextUtils.SALE_CONTEXT_NAME;
+export type ContextNameType = typeof ContextUtils.TRIP_CONTEXT_NAME | typeof ContextUtils.SALE_CONTEXT_NAME;

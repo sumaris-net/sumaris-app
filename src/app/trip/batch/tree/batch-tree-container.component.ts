@@ -73,7 +73,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { ContextName } from '@app/shared/context/context.utils';
+import { ContextNameType } from '@app/shared/context/context.utils';
 
 interface BadgeState {
   hidden: boolean;
@@ -172,7 +172,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
   @Input() useModal = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
   @Input() controlButtonText: 'QUALITY.BTN_CONTROL';
-  @Input() contextType: ContextName;
+  @Input() contextType: ContextNameType;
 
   @Input() @RxStateProperty() programLabel: string;
   @Input() @RxStateProperty() requiredStrategy: boolean;

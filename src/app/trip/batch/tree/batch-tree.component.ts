@@ -51,7 +51,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { qualityFlagInvalid } from '@app/data/services/model/model.utils';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
-import { ContextName } from '@app/shared/context/context.utils';
+import { ContextNameType } from '@app/shared/context/context.utils';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
@@ -173,7 +173,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() @RxStateProperty() allowSpeciesSampling: boolean;
   @Input() @RxStateProperty() allowSubBatches: boolean;
   @Input() debug: boolean;
-  @Input() contextType: ContextName;
+  @Input() contextType: ContextNameType;
 
   @Input() set physicalGear(value: PhysicalGear) {
     this._state.set({
