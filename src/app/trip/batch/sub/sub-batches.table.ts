@@ -757,6 +757,8 @@ export class SubBatchesTable
       // TODO : add sequence
     }
 
+    if (!data.parentGroup) data.parentGroup = this._availableParents[0];
+
     // Set individual count to 1, if column not shown
     if (!this.showIndividualCount) {
       data.individualCount = isNotNil(data.individualCount) ? data.individualCount : 1;
