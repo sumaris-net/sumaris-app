@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { Moment } from 'moment';
 import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } from '../observed-location.validator';
@@ -15,11 +15,9 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  OnReady,
   Person,
   PersonService,
   PersonUtils,
-  ReferentialRef,
   ReferentialUtils,
   StatusIds,
   toBoolean,
@@ -50,7 +48,7 @@ export interface ObservedLocationFormState extends MeasurementsFormState {
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [RxState],
 })
-export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation, ObservedLocationFormState> implements OnInit, OnReady {
+export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation, ObservedLocationFormState> implements OnInit {
   private _showSamplingStrata: boolean;
   private _locationSuggestLengthThreshold: number;
   private _lastValidatorOpts: any;
@@ -100,8 +98,6 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   }
 
   @RxStateProperty() @Input() showObservers: boolean;
-
-  @Output() samplingStrataChanges = new EventEmitter<ReferentialRef>();
 
   get empty(): any {
     const value = this.value;
@@ -244,19 +240,6 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     );
 
     this._state.hold(this.showObservers$.pipe(filter(() => this.loaded)), () => this.updateFormGroup());
-  }
-
-  ngOnReady() {
-    this.updateFormGroup();
-
-    if (this.showSamplingStrata) {
-      this.registerSubscription(
-        this.form
-          .get('samplingStrata')
-          .valueChanges.pipe(filter(ReferentialUtils.isNotEmpty), distinctUntilChanged())
-          .subscribe((samplingStrata) => this.samplingStrataChanges.next(samplingStrata))
-      );
-    }
   }
 
   protected onApplyingEntity(data: ObservedLocation, opts?: { [p: string]: any }) {

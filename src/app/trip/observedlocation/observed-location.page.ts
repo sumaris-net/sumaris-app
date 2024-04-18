@@ -712,6 +712,33 @@ export class ObservedLocationPage
   protected async onEntitySaved(data: ObservedLocation): Promise<void> {
     await super.onEntitySaved(data);
 
+    if (this.landingsTable?.isSaleDetailEditor && this.isNewData) {
+      // TODO JVF: Retrieve species based on data.samplingStrata
+
+      for (let i = 1; i <= 5; i++) {
+        const landing = new Landing();
+        landing.rankOrder = i;
+        landing.vesselSnapshot = new VesselSnapshot();
+        landing.vesselSnapshot.id = 1;
+        landing.vesselSnapshot.name = `Vessel 1`;
+        landing.program = this.program;
+        landing.dateTime = moment();
+        landing.location = new ReferentialRef();
+        landing.location.id = 1;
+        landing.location.name = `Location 1`;
+        // Update landings' observed location so it saves correctly
+        landing.observedLocation = data;
+        landing.observedLocationId = data.id;
+
+        landing.measurementValues = {
+          [PmfmIds.CONTROLLED_SPECIES]: 304, // LANGOUSTINE
+          [PmfmIds.IS_OBSERVED]: false,
+        };
+
+        await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
+      }
+    }
+
     // Save landings table, when editable
     if (this.landingsTable?.dirty && this.landingsTable.canEdit) {
       await this.landingsTable.save();
@@ -726,29 +753,6 @@ export class ObservedLocationPage
       : this.landingTable?.invalid
         ? ObservedLocationPage.TABS.LANDINGS
         : -1;
-  }
-
-  protected onSamplingStrataChanges(samplingStrata: ReferentialRef) {
-    // TODO JVF
-    const landing = new Landing();
-    landing.rankOrder = 1;
-    landing.vesselSnapshot = new VesselSnapshot();
-    landing.vesselSnapshot.id = 1;
-    landing.vesselSnapshot.name = 'Vessel';
-    landing.program = this.program;
-    landing.dateTime = moment();
-    landing.location = new ReferentialRef();
-    landing.location.id = 1;
-    landing.location.name = 'Location';
-    console.log('onSamplingStrataChanges', samplingStrata);
-
-    landing.measurementValues = {
-      [PmfmIds.STRATEGY_LABEL]: samplingStrata.label,
-      [PmfmIds.CONTROLLED_SPECIES]: 304, // LANGOUSTINE
-      [PmfmIds.IS_OBSERVED]: false,
-    };
-
-    this.landingsTable.addOrUpdateEntityToTable(landing, { confirmEditCreate: true });
   }
 
   protected markForCheck() {
