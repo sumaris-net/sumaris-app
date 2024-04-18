@@ -281,10 +281,21 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
     super.enable(opts);
 
-    // Leave program disable once data has been saved
-    if (!this.isNewData && !this.programControl.disabled) {
-      this.programControl.disable({ emitEvent: false });
-      this.markForCheck();
+    if (!this.isNewData) {
+      // Leave program disable once data has been saved
+      if (!this.programControl.disabled) {
+        this.programControl.disable({ emitEvent: false });
+        this.markForCheck();
+      }
+
+      // Leave sampling strata disabled once data has been saved
+      if (this.showSamplingStrata) {
+        const samplingStrataControl = this.form.get('samplingStrata');
+        if (!samplingStrataControl.disabled) {
+          samplingStrataControl.disable({ emitEvent: false });
+          this.markForCheck();
+        }
+      }
     }
   }
 
