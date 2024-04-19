@@ -70,10 +70,12 @@ import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measure
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -1338,11 +1340,31 @@ export class LandingService
 
     // Load the strategy from measurementValues (if exists)
     if (!opts.strategy) {
-      const strategyLabel = entity.measurementValues?.[PmfmIds.STRATEGY_LABEL];
-      if (isNotNilOrBlank(strategyLabel)) {
-        opts.strategy = await this.strategyRefService.loadByLabel(strategyLabel, { programId: opts.program?.id });
+      const strategyResolution = opts.program.getProperty(ProgramProperties.DATA_STRATEGY_RESOLUTION) as DataStrategyResolution;
+      switch (strategyResolution) {
+        case 'user-select': {
+          const strategyLabel = entity.measurementValues?.[PmfmIds.STRATEGY_LABEL];
+          if (isNotNilOrBlank(strategyLabel)) {
+            opts.strategy = await this.strategyRefService.loadByLabel(strategyLabel, { programId: opts.program?.id });
+          }
+          break;
+        }
+        case 'spatio-temporal':
+          opts.strategy = await this.strategyRefService.loadByFilter({
+            programId: opts?.program.id,
+            acquisitionLevel: AcquisitionLevelCodes.LANDING,
+            startDate: entity.dateTime,
+            location: (entity.observedLocation as ObservedLocation)?.location || entity.location,
+          });
+          break;
+        case 'last':
+          opts.strategy = await this.strategyRefService.loadByFilter({
+            programId: opts?.program.id,
+            acquisitionLevel: AcquisitionLevelCodes.LANDING,
+          });
+          break;
       }
-      if (!opts.strategy) {
+      if (!opts.strategy && strategyResolution !== 'none') {
         console.warn(this._logPrefix + 'No strategy loaded from landing #' + entity.id);
       }
     }
