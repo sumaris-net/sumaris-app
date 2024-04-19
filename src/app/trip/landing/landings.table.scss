@@ -42,9 +42,7 @@
       max-width: 250px;
 
       // PMFM specific
-      // Boolean field
-      // 510 ->Observed? Y/N
-      &.mat-column-510 {
+      &.mat-column-IS_OBSERVED {
         min-width: 50px;
       }
     }
