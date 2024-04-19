@@ -59,6 +59,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
   @Output() openSale = new EventEmitter<TableElement<Landing>>();
+  @Output() newSale = new EventEmitter<TableElement<Landing>>();
 
   @Input() canDelete = true;
   @Input() showFabButton = false;
@@ -368,6 +369,9 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     if (isNotNil(saleIds) && saleIds.length === 1) {
       // Edit sale
       this.openSale.emit(row);
+    } else {
+      // New sale
+      this.newSale.emit(row);
     }
   }
 

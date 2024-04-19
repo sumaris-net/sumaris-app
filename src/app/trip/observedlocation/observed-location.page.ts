@@ -342,6 +342,10 @@ export class ObservedLocationPage
     }
   }
 
+  async onNewSale(event?: any) {
+    await this.onNewLanding(event);
+  }
+
   async onOpenTrip<T extends Landing>(row: TableElement<T>) {
     const saved =
       this.isOnFieldMode && this.dirty

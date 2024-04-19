@@ -325,7 +325,6 @@
               mat-icon-button
               *ngIf="row.id !== -1 && isSaleDetailEditor"
               [color]="(row.currentData.saleIds | isArrayLength: { equals: 1 }) ? 'primary' : 'dark'"
-              [disabled]="row.currentData.saleIds | isArrayLength: { greaterThan: 1 }"
               [title]="'LANDING.TABLE.BTN_OPEN_SALE' | translate"
               (click)="confirmAndEditSale($event, row)"
             >
