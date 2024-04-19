@@ -206,12 +206,14 @@
         class="mat-column-pmfm"
         [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
         [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
+        (click)="focusColumn = pmfm.id.toString()"
       >
         <app-pmfm-field
           *ngIf="row.editing; else readOnly"
           [pmfm]="pmfm"
           [formControl]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
           [compact]="pmfm?.type === 'boolean'"
+          [autofocus]="row.editing && focusColumn == pmfm.id"
           floatLabel="never"
         ></app-pmfm-field>
         <ng-template #readOnly>
