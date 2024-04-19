@@ -103,7 +103,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   enableIndividualCountControl: UntypedFormControl;
   freezeTaxonNameControl: UntypedFormControl;
   freezeQvPmfmControl: UntypedFormControl;
-  measureMethodeControl: UntypedFormControl;
+  isIndividualMeasureControl: UntypedFormControl;
   selectedTaxonNameIndex = -1;
   warning: string;
   weightPmfm: IPmfm;
@@ -240,10 +240,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     this.freezeQvPmfmControl.setValue(true, { emitEvent: false });
 
     this.freezeTaxonNameControl = this.formBuilder.control(!this.mobile, Validators.required);
-
-    this.measureMethodeControl = this.formBuilder.control(true, Validators.required);
-    this.form.addControl('measureMethode', this.measureMethodeControl);
-    this.isIndividualMeasure = this.measureMethodeControl.value;
+    this.isIndividualMeasureControl = this.formBuilder.control(true, Validators.required);
+    this.form.addControl('isIndividualMeasure', this.isIndividualMeasureControl);
+    this.isIndividualMeasure = this.isIndividualMeasureControl.value;
     // Listen pending status
     this._state.connect(
       'computingWeight',
@@ -435,7 +434,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     }
 
     this.form
-      .get('measureMethode')
+      .get('isIndividualMeasure')
       .valueChanges.pipe(distinctUntilChanged())
       .subscribe((isIndividualMeasure) => {
         this.onIndividualMeasureChange(isIndividualMeasure);
@@ -857,7 +856,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
       } else {
         this.form.disable();
         this.form.get('individualCount').enable();
-        this.form.get('measureMethode').enable();
+        this.form.get('isIndividualMeasure').enable();
       }
 
       this.isIndividualMeasureChanges.emit(this.isIndividualMeasure);
