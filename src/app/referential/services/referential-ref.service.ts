@@ -49,6 +49,7 @@ import {
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
   UnitIds,
+  VesselIds,
   VesselTypeIds,
 } from './model/model.enum';
 import { ReferentialFragments } from './referential.fragments';
@@ -1032,6 +1033,9 @@ export class ReferentialRefService
     // Vessel types
     VesselTypeIds.FISHING_VESSEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.VESSEL_TYPE_FISHING_VESSEL);
     VesselTypeIds.SCIENTIFIC_RESEARCH_VESSEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL);
+
+    // Vessels
+    VesselIds.UNKNOWN = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.VESSEL_UNKNOWN_ID);
 
     // TODO: add other enumerations
 

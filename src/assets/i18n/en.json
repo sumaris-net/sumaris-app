@@ -335,7 +335,8 @@
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Referential > Taxon group type / National metier",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Referential > Taxon group type / DCF metier lvl 5",
         "VESSEL_TYPE_FISHING_VESSEL_ID": "Referential > Vessel type > Professional fishing vessels",
-        "VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL_ID": "Referential > Vessel type > Scientific vessels"
+        "VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL_ID": "Referential > Vessel type > Scientific vessels",
+        "VESSEL_UNKNOWN_ID": "Referential > Unknown vessel (id)"
       },
       "TESTING": "Developer mode?",
       "ENTITY_TRASH": "Enable trash on pod?",

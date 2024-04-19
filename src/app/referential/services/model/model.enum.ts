@@ -48,6 +48,10 @@ export const VesselTypeIds = {
   SCIENTIFIC_RESEARCH_VESSEL: 2,
 };
 
+export const VesselIds = {
+  UNKNOWN: 5,
+};
+
 export const TaxonGroupTypeIds = {
   FAO: 2,
   DCF_METIER_LVL_5: 3,

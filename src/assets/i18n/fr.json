@@ -349,7 +349,8 @@
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métiers nationaux",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métiers DCF niv 5",
         "VESSEL_TYPE_FISHING_VESSEL_ID": "Référentiel > Type de navire > Navire professionnel",
-        "VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL_ID": "Référentiel > Type de navire > Navire scientifique"
+        "VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL_ID": "Référentiel > Type de navire > Navire scientifique",
+        "VESSEL_UNKNOWN_ID": "Référentiel > Navire inconnu (id)"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",

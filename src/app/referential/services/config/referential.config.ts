@@ -16,6 +16,7 @@ import {
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
   UnitIds,
+  VesselIds,
   VesselTypeIds,
 } from '../model/model.enum';
 import { FieldMergeFunction } from '@apollo/client/cache/inmemory/policies';
@@ -901,6 +902,12 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       },
     },
     defaultValue: VesselTypeIds.SCIENTIFIC_RESEARCH_VESSEL.toString(),
+  },
+  VESSEL_UNKNOWN_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Vessel.UNKNOWN.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.VESSEL_UNKNOWN_ID',
+    type: 'integer',
+    defaultValue: VesselIds.UNKNOWN.toString(),
   },
 });
 
