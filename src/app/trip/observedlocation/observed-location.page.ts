@@ -553,6 +553,11 @@ export class ObservedLocationPage
         landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
         landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
         this.showLandingTab = true;
+
+        if (landingsTable.inlineEdition) {
+          // Set landings table as child when inline edition is enabled, so it saves correctly
+          this.addChildForm(landingsTable);
+        }
       }
 
       // If new data: update trip form (need to update validator, with showObservers)
