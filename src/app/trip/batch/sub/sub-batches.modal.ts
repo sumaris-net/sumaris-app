@@ -182,7 +182,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   ngOnInit() {
     this.form.isIndividualMeasure = this.isIndividualMeasure;
-
     this.canDebug = toBoolean(this.canDebug, !environment.production);
     this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
     console.log('[Sub-Batches-Modal] ContexType use : ', this.contextType);
