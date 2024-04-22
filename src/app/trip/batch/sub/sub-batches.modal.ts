@@ -70,6 +70,7 @@ export interface ISubBatchesModalOptions {
 
   canDebug: boolean;
   contextType: string;
+  isIndividualMeasure: boolean;
 }
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -142,8 +143,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() showBluetoothIcon = false;
   @Input() canDebug: boolean;
   @Input() contextType: string;
-
-  isIndividualMeasure: boolean = true;
+  @Input() isIndividualMeasure: boolean;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -181,6 +181,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   ngOnInit() {
+    this.form.isIndividualMeasure = this.isIndividualMeasure;
+
     this.canDebug = toBoolean(this.canDebug, !environment.production);
     this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
     console.log('[Sub-Batches-Modal] ContexType use : ', this.contextType);
@@ -200,7 +202,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.showForm = this._enabled && this.showForm && this.form && true;
     this.playSound = toBoolean(this.playSound, this.mobile);
     this.showBluetoothIcon = this.showBluetoothIcon && this._enabled && this.platform.isApp();
-
     this.markAsReady();
 
     this.load();
@@ -321,6 +322,11 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async close(event?: Event) {
+    if (!this.form.isIndividualMeasure) {
+      this.closeIfIndividualCount();
+      return;
+    }
+
     if (this.loading) return; // avoid many call
 
     // Form is dirty
@@ -356,6 +362,24 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       if (!saved) return; // Error
 
       await this.viewCtrl.dismiss(this.getValue());
+    } catch (err) {
+      console.error(err);
+      this.setError((err && err.message) || err);
+      this.markAsLoaded();
+    }
+  }
+
+  async closeIfIndividualCount(event?: Event) {
+    if (this.loading) return; // avoid many call
+    this.markAsLoading();
+    this.resetError();
+
+    try {
+      const subBatch = this.form.form.value;
+      const parentGroup = this.form.parentGroup;
+      const samplingBatch = BatchUtils.getOrCreateSamplingChild(parentGroup);
+      samplingBatch.individualCount = subBatch.individualCount;
+      await this.viewCtrl.dismiss(parentGroup, 'individualCount');
     } catch (err) {
       console.error(err);
       this.setError((err && err.message) || err);
@@ -616,9 +640,11 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     if (isIndividualMeasure) {
       this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_LARGE);
+    } else if (this.isIndividualMeasure === false) {
+      this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_SMALL);
       this.editedRow?.cancelOrDelete();
     } else {
-      this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_SMALL);
+      this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_LARGE);
     }
     this.computeTitle();
   }

@@ -1123,7 +1123,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
     // FIXME: opts.showParentGroup=true not working
     const showParentGroup = !opts || opts.showParent !== false; // True by default
-
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,
       componentProps: <ISubBatchesModalOptions>{
@@ -1140,6 +1139,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,
         contextType: this.contextType,
+        isIndividualMeasure: null,
         // Scientific species is required, only not already set in batch groups
         showTaxonNameColumn: !this.showTaxonNameColumn,
         // If on field mode: use individualCount=1 on each sub-batches
@@ -1180,10 +1180,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // User cancelled
     if (isNil(data) || role === 'cancel') {
       if (this.debug) console.debug('[batches-table] Sub-batches modal: user cancelled');
+    } else if (role === 'individualCount') {
+      //TODO update individualCount and reset subBatches
+      //await this.addOrUpdateEntityToTable(BatchGroup.fromObject(data));
     } else {
-      // DEBUG
-      //if (this.debug) console.debug('[batches-table] Sub-batches modal result: ', data);
-
       this.onSubBatchesChanges.emit(data);
     }
 
