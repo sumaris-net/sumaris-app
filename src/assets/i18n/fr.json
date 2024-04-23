@@ -2865,7 +2865,7 @@
       "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres",
       "BATCH_DENORMALIZATION_ENABLE": "Extraction > Activer la dénormalisation des lots ?",
       "SPECIES_LENGTH_PMFM_IDS": "Extraction > Mensurations (HL) : PSFM(s) de longueur",
-      "STRAT_MONITORING_SCIENTIFIC_CRUISE_ENABLE": "Extraction > Suivi des stratégies (SM) : Activer le suivi des campagne en mer ?"
+      "STRAT_MONITORING_SCIENTIFIC_CRUISE_ENABLE": "Extraction > Suivi des stratégies (SM) : Activer le suivi des campagnes en mer ?"
     },
     "PRODUCT": {
       "NEW": {
