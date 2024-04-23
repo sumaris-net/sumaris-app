@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, HostListener, inject, Injector, Input, OnInit } from '@angular/core';
 import {
   DateUtils,
   EntityUtils,
@@ -128,6 +128,9 @@ export class CalendarComponent
   >
   implements OnInit
 {
+  protected vesselSnapshotService = inject(VesselSnapshotService);
+  protected referentialRefService = inject(ReferentialRefService);
+
   @RxStateSelect() protected vesselSnapshots$: Observable<VesselSnapshot[]>;
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
@@ -169,8 +172,6 @@ export class CalendarComponent
 
   constructor(
     injector: Injector,
-    private vesselSnapshotService: VesselSnapshotService,
-    private referentialRefService: ReferentialRefService,
     private element: ElementRef
   ) {
     super(

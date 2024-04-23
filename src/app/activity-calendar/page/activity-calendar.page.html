@@ -191,7 +191,21 @@
           }
         </as-split-area>
         <as-split-area [minSize]="30" [size]="rightPanelWidth" [visible]="rightPanelVisible">
-          <p>RIGHT</p>
+          <!--          <mat-accordion>-->
+          <!--            <mat-expansion-panel>-->
+          <!--              <mat-expansion-panel-header>Janvier</mat-expansion-panel-header>-->
+          <!--              <p></p>-->
+          <!--            </mat-expansion-panel>-->
+          <!--          </mat-accordion>-->
+
+          <app-calendar
+            #mapCalendar
+            [programLabel]="programLabel$ | async"
+            [requiredStrategy]="requiredStrategy$ | async"
+            [strategyId]="(strategy$ | async)?.id"
+            [timezone]="dbTimeZone"
+            [debug]="debug"
+          ></app-calendar>
         </as-split-area>
       </as-split>
     </mat-tab>

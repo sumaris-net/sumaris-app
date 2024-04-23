@@ -26,7 +26,7 @@ import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from '@ap
 import { ActivityCalendar } from '../model/activity-calendar.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, mergeMap, Observable } from 'rxjs';
 import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
@@ -46,6 +46,7 @@ import { CalendarComponent } from '@app/activity-calendar/calendar/calendar.comp
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
+import { ActivityMonthFilter } from '@app/activity-calendar/calendar/activity-month.model';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -105,6 +106,7 @@ export class ActivityCalendarPage
   @ViewChild('baseForm', { static: true }) baseForm: ActivityCalendarForm;
   @ViewChild('calendar') calendar: CalendarComponent;
   @ViewChild('map') map: ActivityCalendarMapComponent;
+  @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
 
   constructor(
     injector: Injector,
@@ -157,6 +159,25 @@ export class ActivityCalendarPage
           this.markForCheck();
         }
       })
+    );
+
+    // Listen first opening the operations tab, then save
+    this.registerSubscription(
+      this.tabGroup.selectedTabChange
+        .pipe(
+          filter((event) => this.showMap && event.index === ActivityCalendarPage.TABS.MAP),
+          // Save calendar when opening the map tab (keep editor dirty)
+          tap(() => this.calendar.dirty && this.markAsDirty()),
+          mergeMap(() => (this.calendar.dirty ? this.calendar.save() : Promise.resolve(true))),
+          filter((saved) => saved === true),
+          // If save succeed, propage calendar data to map
+          mergeMap(async () => {
+            const value = await this.getValue();
+            await this.mapCalendar.setValue(value);
+            this.mapCalendar.setFilter(ActivityMonthFilter.fromObject({ month: 1 }));
+          })
+        )
+        .subscribe()
     );
   }
 
