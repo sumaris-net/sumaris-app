@@ -4,7 +4,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
-import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';
 import { Trip } from '../trip/trip.model';
@@ -55,6 +55,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected referentialRefService: ReferentialRefService;
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
+
+  unknownVesselId = VesselIds.UNKNOWN;
 
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
