@@ -724,28 +724,62 @@ export class ObservedLocationPage
     if (this.landingsTable?.isSaleDetailEditor && this.isNewData) {
       // TODO JVF: Retrieve species based on data.samplingStrata
 
-      for (let i = 1; i <= 5; i++) {
-        const landing = new Landing();
-        landing.rankOrder = i;
-        landing.vesselSnapshot = new VesselSnapshot();
-        landing.vesselSnapshot.id = 1;
-        landing.vesselSnapshot.name = `Vessel 1`;
-        landing.program = this.program;
-        landing.dateTime = moment();
-        landing.location = new ReferentialRef();
-        landing.location.id = 1;
-        landing.location.name = `Location 1`;
-        // Update landings' observed location so it saves correctly
-        landing.observedLocation = data;
-        landing.observedLocationId = data.id;
+      const landing = new Landing();
+      landing.rankOrder = 1;
+      landing.vesselSnapshot = new VesselSnapshot();
+      landing.vesselSnapshot.id = 5;
+      landing.vesselSnapshot.name = `Unknown vessel`;
+      landing.program = this.program;
+      landing.dateTime = moment();
+      landing.location = new ReferentialRef();
+      landing.location.id = 1;
+      landing.location.name = `Location 1`;
+      // Update landings' observed location so it saves correctly
+      landing.observedLocation = data;
+      landing.observedLocationId = data.id;
+      landing.measurementValues = {
+        [PmfmIds.CONTROLLED_SPECIES]: 304, // LANGOUSTINE
+        [PmfmIds.IS_OBSERVED]: false,
+      };
+      await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
 
-        landing.measurementValues = {
-          [PmfmIds.CONTROLLED_SPECIES]: 304, // LANGOUSTINE
-          [PmfmIds.IS_OBSERVED]: false,
-        };
+      const landing2 = new Landing();
+      landing2.rankOrder = 2;
+      landing2.vesselSnapshot = new VesselSnapshot();
+      landing2.vesselSnapshot.id = 1;
+      landing2.vesselSnapshot.name = `Vessel 1`;
+      landing2.program = this.program;
+      landing2.dateTime = moment();
+      landing2.location = new ReferentialRef();
+      landing2.location.id = 1;
+      landing2.location.name = `Location 1`;
+      // Update landings' observed location so it saves correctly
+      landing2.observedLocation = data;
+      landing2.observedLocationId = data.id;
+      landing2.measurementValues = {
+        [PmfmIds.CONTROLLED_SPECIES]: 300, // ANCHOIS
+        [PmfmIds.IS_OBSERVED]: false,
+      };
+      await this.landingsTable.addOrUpdateEntityToTable(landing2, { editing: false });
 
-        await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
-      }
+      const landing3 = new Landing();
+      landing3.rankOrder = 3;
+      landing3.vesselSnapshot = new VesselSnapshot();
+      landing3.vesselSnapshot.id = 1;
+      landing3.vesselSnapshot.name = `Vessel 1`;
+      landing3.program = this.program;
+      landing3.dateTime = moment();
+      landing3.location = new ReferentialRef();
+      landing3.location.id = 1;
+      landing3.location.name = `Location 1`;
+      // Update landings' observed location so it saves correctly
+      landing3.observedLocation = data;
+      landing3.observedLocationId = data.id;
+      landing3.measurementValues = {
+        [PmfmIds.CONTROLLED_SPECIES]: 302, // BAR
+        [PmfmIds.IS_OBSERVED]: false,
+      };
+      await this.landingsTable.addOrUpdateEntityToTable(landing3, { editing: false });
     }
 
     // Save landings table, when editable
