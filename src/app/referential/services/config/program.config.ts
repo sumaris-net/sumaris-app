@@ -432,6 +432,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean',
   },
+  TRIP_BATCH_ALLOW_INDIVIDUAL_COUNTY_ONLY_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.batch.allowIndividualCountOnly.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_ALLOW_INDIVIDUAL_COUNTY_ONLY_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
   TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ENABLE',

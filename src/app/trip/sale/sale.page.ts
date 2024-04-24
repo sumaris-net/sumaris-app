@@ -103,6 +103,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   parentAcquisitionLevel: AcquisitionLevelType;
   showBatchTablesByProgram = false;
   showBatchTables = true;
+  readonly contextType: string = ContextUtils.SALE_CONTEXT_NAME;
   @RxStateProperty() strategyLabel: string;
 
   get form(): UntypedFormGroup {

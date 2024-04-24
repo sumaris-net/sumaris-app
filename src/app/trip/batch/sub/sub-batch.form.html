@@ -1,15 +1,16 @@
 <form class="form-container" [formGroup]="form">
-  <mat-boolean-field
-    [formControl]="isIndividualMeasureControl"
-    [disabled]="disabled"
-    [style]="(mobile && 'button') || 'radio'"
-    [placeholder]="'TRIP.BATCH.EDIT.TYPE.TITLE' | translate"
-    [yesLabel]="'TRIP.BATCH.EDIT.' + isIndividualMeasureValues[0].key | translate"
-    [noLabel]="'TRIP.BATCH.EDIT.' + isIndividualMeasureValues[1].key | translate"
-    [floatLabel]="'always'"
-    required
-  ></mat-boolean-field>
-
+  @if (allowIndividualCountOnly) {
+    <mat-boolean-field
+      [formControl]="isIndividualMeasureControl"
+      [disabled]="disabled"
+      [style]="(mobile && 'button') || 'radio'"
+      [placeholder]="'TRIP.BATCH.EDIT.TYPE.TITLE' | translate"
+      [yesLabel]="'TRIP.BATCH.EDIT.' + isIndividualMeasureValues[0].key | translate"
+      [noLabel]="'TRIP.BATCH.EDIT.' + isIndividualMeasureValues[1].key | translate"
+      [floatLabel]="'always'"
+      required
+    ></mat-boolean-field>
+  }
   <br />
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">

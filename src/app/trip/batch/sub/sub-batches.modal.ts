@@ -8,6 +8,7 @@ import {
   firstNotNilPromise,
   isEmptyArray,
   isNil,
+  isNotNil,
   isNotNilOrBlank,
   LoadResult,
   LocalSettingsService,
@@ -37,7 +38,9 @@ import { ModalUtils } from '@app/shared/modal/modal.utils';
 import { Form } from '@angular/forms';
 import { SaleContextService } from '@app/trip/sale/sale-context.service';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { ContextUtils } from '@app/shared/context/context.utils';
+import { ContextUtils, ContextUtilsService } from '@app/shared/context/context.utils';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Router } from '@angular/router';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -70,6 +73,7 @@ export interface ISubBatchesModalOptions {
 
   canDebug: boolean;
   isIndividualMeasure: boolean;
+  allowIndividualCountOnly: boolean;
 }
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -80,14 +84,14 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
   styleUrls: ['sub-batches.modal.scss'],
   templateUrl: 'sub-batches.modal.html',
   providers: [
-    { provide: SubBatchValidatorService, useClass: SubBatchValidatorService },
     {
       provide: ContextService,
-      useFactory: (tripService: TripContextService, saleService: SaleContextService, contextType: string) => {
-        return contextType === ContextUtils.TRIP_CONTEXT_NAME ? tripService : saleService;
+      useFactory: (tripService: TripContextService, saleService: SaleContextService, contextUtilsService: ContextUtilsService, router: Router) => {
+        return contextUtilsService.getLastContextUse() === ContextUtils.SALE_CONTEXT_NAME ? saleService : tripService;
       },
-      deps: [TripContextService, SaleContextService],
+      deps: [TripContextService, SaleContextService, ContextUtilsService, Router],
     },
+    { provide: SubBatchValidatorService, useClass: SubBatchValidatorService },
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: () => ({
@@ -141,8 +145,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() playSound: boolean;
   @Input() showBluetoothIcon = false;
   @Input() canDebug: boolean;
-  @Input() contextType: string;
   @Input() isIndividualMeasure: boolean;
+  @Input() allowIndividualCountOnly: boolean;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -180,11 +184,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   ngOnInit() {
-    this.form.isIndividualMeasure = this.isIndividualMeasure;
     this.canDebug = toBoolean(this.canDebug, !environment.production);
     this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
-    console.log('[Sub-Batches-Modal] ContexType use : ', this.contextType);
-
+    console.log('iciiiiiiiii', this.context);
+    this.applyProgramProperties();
     if (this.disabled) {
       this.showForm = false;
       this.disable();
@@ -645,6 +648,24 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_LARGE);
     }
     this.computeTitle();
+  }
+
+  private applyProgramProperties() {
+    if (this.allowIndividualCountOnly) {
+      this.form.isIndividualMeasure = this.isIndividualMeasure;
+    } else if (this.allowIndividualCountOnly === null) {
+      const contextualProgram = this.context.getValue('program');
+      if (isNotNil(contextualProgram)) {
+        this.allowIndividualCountOnly = contextualProgram.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ALLOW_INDIVIDUAL_COUNTY_ONLY_ENABLE);
+        if (this.allowIndividualCountOnly) {
+          this.form.isIndividualMeasure = this.isIndividualMeasure;
+        } else {
+          this.form.isIndividualMeasure = true;
+        }
+      }
+    } else {
+      this.form.isIndividualMeasure = true;
+    }
   }
 
   getFormErrors = AppFormUtils.getFormErrors;

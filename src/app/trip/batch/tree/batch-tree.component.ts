@@ -51,6 +51,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { qualityFlagInvalid } from '@app/data/services/model/model.utils';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { ContextNameType } from '@app/shared/context/context.utils';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
@@ -133,6 +134,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   private _listenProgramChanges = true;
   protected _logPrefix = '[batch-tree] ';
   protected _debugData: any;
+  allowIndividualCountOnly: boolean;
 
   @RxStateRegister() protected readonly _state: RxState<BatchTreeState> = inject(RxState, { self: true });
 
@@ -172,6 +174,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() @RxStateProperty() allowSpeciesSampling: boolean;
   @Input() @RxStateProperty() allowSubBatches: boolean;
   @Input() debug: boolean;
+  @Input() contextType: ContextNameType;
 
   @Input() set physicalGear(value: PhysicalGear) {
     this._state.set({
@@ -665,6 +668,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.samplingRatioFormat = samplingRatioFormat;
 
     this.catchBatchForm.samplingRatioFormat = samplingRatioFormat;
+    this.allowIndividualCountOnly = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ALLOW_INDIVIDUAL_COUNTY_ONLY_ENABLE);
 
     this.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
     this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);

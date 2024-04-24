@@ -110,10 +110,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   weightPmfm: IPmfm;
   enableLengthWeightConversion: boolean;
   defaultMethodChecked: string;
-  readonly isIndividualMeasureValues = [
-    { key: 'IS_INDIVIDUAL_MEASURE', value: true },
-    { key: 'IS_INDIVIDUAL_COUNT', value: false },
-  ];
+  readonly isIndividualMeasureValues = [{ key: 'IS_INDIVIDUAL_MEASURE' }, { key: 'IS_INDIVIDUAL_COUNT' }];
 
   @RxStateProperty() taxonNames: TaxonNameRef[];
 
@@ -133,6 +130,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @Input() i18nSuffix: string;
   @Input() mobile: boolean;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
+  @Input() allowIndividualCountOnly: boolean;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
   @Input() @RxStateProperty() showTaxonName: boolean;
   @Input() @RxStateProperty() qvPmfm: IPmfm;
@@ -262,7 +260,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
 
   ngOnInit() {
     super.ngOnInit();
-    //this.isIndividualMeasureControl.setValue();
     // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     this.isNew = toBoolean(this.isNew, false);
@@ -436,14 +433,12 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     if (this.mobile) {
       this.registerSubscription(this.listenIchthyometer());
     }
-    this.isIndividualMeasureControl.valueChanges.subscribe((isIndividualMeasure) => {
-      this.onIndividualMeasureChange(isIndividualMeasure);
-    });
+    this.isIndividualMeasureControl.valueChanges.subscribe(() => this.onIndividualMeasureChange());
 
     this.ngInitExtension();
   }
   ngOnReady() {
-    this.onIndividualMeasureChange(this.isIndividualMeasure);
+    this.onIndividualMeasureChange();
   }
 
   async doNewParentClick(event: Event) {
@@ -849,7 +844,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
       )
       .subscribe();
   }
-  onIndividualMeasureChange(isIndividualMeasure: boolean) {
+  onIndividualMeasureChange() {
     if (this.isIndividualMeasure) {
       this.form.enable();
       this.form.get('individualCount').disable();
