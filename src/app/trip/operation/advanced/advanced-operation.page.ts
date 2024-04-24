@@ -9,7 +9,6 @@ import { ContextService } from '@app/shared/context.service';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
 import { AdvancedBatchModelValidatorService } from '@app/trip/batch/tree/advanced/advanced-batch-model.validator';
-import { ContextUtils } from '@app/shared/context/context.utils';
 
 @Component({
   selector: 'app-advanced-operation-page',

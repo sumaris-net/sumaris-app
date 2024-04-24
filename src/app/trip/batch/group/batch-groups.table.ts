@@ -35,7 +35,7 @@ import { Batch } from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { SubBatch } from '../sub/sub-batch.model';
-import { debounceTime, isObservable, Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, firstValueFrom, isObservable, Observable, Subject, Subscription } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
@@ -54,7 +54,6 @@ import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measure
 import { environment } from '@environments/environment';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
-import { ContextNameType, ContextUtilsService } from '@app/shared/context/context.utils';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -275,7 +274,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   @Input() enableWeightLengthConversion: boolean;
   @Input() labelPrefix: string; // Prefix to use for BatchGroup.label. If empty, will use the acquisitionLevel
   @Input() allowIndividualCountOnly: boolean;
-  @Input() contextType: ContextNameType;
 
   @Input() set showWeightColumns(value: boolean) {
     if (this._showWeightColumns !== value) {
@@ -317,8 +315,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   constructor(
     injector: Injector,
     validatorService: BatchGroupValidatorService,
-    protected context: TripContextService,
-    private contextUtilsService: ContextUtilsService
+    protected context: TripContextService
   ) {
     super(
       injector,
@@ -360,7 +357,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   }
 
   ngOnInit() {
-    this.contextUtilsService.updateLastContextUse(this.contextType);
     this.inlineEdition = this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
     this.showIndividualCountColumns = toBoolean(this.showIndividualCountColumns, !this.mobile);
@@ -1193,25 +1189,20 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     return data;
   }
 
-  async checkIfIsIndividualMeasure(parentGroup: BatchGroup, SubBatch: SubBatch[] | Observable<SubBatch[]>) {
-    const data = isObservable(SubBatch) ? await SubBatch.toPromise() : SubBatch;
-    const hasSubatches = data.reduce((res, b) => {
-      if (b.individualCount === 1 && Batch.equals(parentGroup, b.parentGroup)) {
-        return res.concat(b);
-      }
-      return res;
-    }, []);
+  async checkIfIsIndividualMeasure(parentGroup: BatchGroup, subBatches: SubBatch[] | Observable<SubBatch[]>) {
+    const data = isObservable(subBatches) ? await firstValueFrom(subBatches) : subBatches;
+    const filteredSubBatches = data.filter((b) => b.individualCount > 0 && Batch.equals(parentGroup, b.parentGroup));
 
-    if (parentGroup.individualCount > 0 && isEmptyArray(hasSubatches)) {
+    if (parentGroup.individualCount > 0 && isEmptyArray(filteredSubBatches)) {
       return false;
-    } else if (parentGroup.individualCount > 0 && isNotEmptyArray(hasSubatches)) {
+    } else if (parentGroup.individualCount > 0 && isNotEmptyArray(filteredSubBatches)) {
       return true;
     } else if (parentGroup.individualCount === 0 || parentGroup.individualCount === null) {
       return true;
     } else {
       return true;
     }
-    //can be factored with  return !(parentGroup.individualCount > 0 && isEmptyArray(hasSubatches));
+    //can be factored with  return (parentGroup.individualCount === 0 || isNotEmptyArray(subatches));
   }
 
   protected async openDetailModal(dataToOpen?: BatchGroup, row?: TableElement<BatchGroup>): Promise<OverlayEventDetail<BatchGroup | undefined>> {

@@ -50,7 +50,6 @@ import { LandingService } from '@app/trip/landing/landing.service';
 import { Landing } from '@app/trip/landing/landing.model';
 import { IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
 import { SaleContextService } from './sale-context.service';
-import { ContextUtils } from '@app/shared/context/context.utils';
 
 export class SaleEditorOptions extends RootDataEditorOptions {}
 
@@ -61,7 +60,7 @@ export const SalesPageSettingsEnum = {
   PAGE_ID: 'sale',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
   FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME,
-}; //todo mf to be check
+};
 @Component({
   selector: 'app-sale-page',
   templateUrl: './sale.page.html',
@@ -103,7 +102,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
   parentAcquisitionLevel: AcquisitionLevelType;
   showBatchTablesByProgram = false;
   showBatchTables = true;
-  readonly contextType: string = ContextUtils.SALE_CONTEXT_NAME;
   @RxStateProperty() strategyLabel: string;
 
   get form(): UntypedFormGroup {

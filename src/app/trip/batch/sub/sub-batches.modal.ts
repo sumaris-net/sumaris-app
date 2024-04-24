@@ -38,7 +38,6 @@ import { ModalUtils } from '@app/shared/modal/modal.utils';
 import { Form } from '@angular/forms';
 import { SaleContextService } from '@app/trip/sale/sale-context.service';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { ContextUtils, ContextUtilsService } from '@app/shared/context/context.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Router } from '@angular/router';
 
@@ -86,10 +85,10 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
   providers: [
     {
       provide: ContextService,
-      useFactory: (tripService: TripContextService, saleService: SaleContextService, contextUtilsService: ContextUtilsService, router: Router) => {
-        return contextUtilsService.getLastContextUse() === ContextUtils.SALE_CONTEXT_NAME ? saleService : tripService;
-      },
-      deps: [TripContextService, SaleContextService, ContextUtilsService, Router],
+      // useFactory: (tripService: TripContextService, saleService: SaleContextService, contextUtilsService: ContextUtilsService, router: Router) => {
+      //   return contextUtilsService.getLastContextUse() === ContextUtils.SALE_CONTEXT_NAME ? saleService : tripService;
+      // },
+      // deps: [TripContextService, SaleContextService, ContextUtilsService, Router],
     },
     { provide: SubBatchValidatorService, useClass: SubBatchValidatorService },
     {
@@ -186,7 +185,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   ngOnInit() {
     this.canDebug = toBoolean(this.canDebug, !environment.production);
     this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
-    console.log('iciiiiiiiii', this.context);
     this.applyProgramProperties();
     if (this.disabled) {
       this.showForm = false;
