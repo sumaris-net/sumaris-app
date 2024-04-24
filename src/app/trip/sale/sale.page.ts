@@ -95,7 +95,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected vesselSnapshotService = inject(VesselSnapshotService);
   protected translateContext = inject(TranslateContextService);
   protected selectedSubTabIndex = 0;
-  contextType: string = ContextUtils.SALE_CONTEXT_NAME;
   showParent = false;
   showEntityMetadata = false;
   showQualityForm = false;

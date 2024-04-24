@@ -69,7 +69,6 @@ export interface ISubBatchesModalOptions {
   onNewParentClick: () => Promise<BatchGroup | undefined>;
 
   canDebug: boolean;
-  contextType: string;
   isIndividualMeasure: boolean;
 }
 

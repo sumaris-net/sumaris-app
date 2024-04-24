@@ -25,8 +25,6 @@ import { ContextUtils } from '@app/shared/context/context.utils';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdvancedOperationPage extends OperationPage {
-  contextType: string = ContextUtils.TRIP_CONTEXT_NAME;
-
   get invalid(): boolean {
     // Allow batchTree to be invalid
     return this.opeForm?.invalid || this.measurementsForm?.invalid || this.sampleTree?.invalid || false;
