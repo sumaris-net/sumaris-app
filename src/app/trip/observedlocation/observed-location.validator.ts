@@ -11,7 +11,7 @@ import {
 import { DateUtils, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from './observed-location.model';
 import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import moment from 'moment';
@@ -43,6 +43,13 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
         (opts.strategy && opts.strategy.denormalizedPmfms) ||
         (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms) ||
         [];
+
+      // Override SALE_TYPE type to 'qualitative_value'
+      const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
+      if (saleTypePmfm) {
+        saleTypePmfm.type = 'qualitative_value';
+      }
+
       pmfms
         .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION)
         .forEach((p) => {

@@ -1347,10 +1347,31 @@ export class ObservedLocationService
 
     // Load the strategy from measurementValues (if exists)
     if (!opts.strategy) {
-      const strategyLabel = entity.measurementValues?.[PmfmIds.STRATEGY_LABEL];
-      opts.strategy =
-        (isNotNilOrBlank(strategyLabel) && (await this.strategyRefService.loadByLabel(strategyLabel, { programId: opts.program?.id }))) || null;
-      if (!opts.strategy) {
+      const strategyResolution = opts.program.getProperty(ProgramProperties.DATA_STRATEGY_RESOLUTION) as DataStrategyResolution;
+      switch (strategyResolution) {
+        case 'user-select': {
+          const strategyLabel = entity.measurementValues?.[PmfmIds.STRATEGY_LABEL];
+          if (isNotNilOrBlank(strategyLabel)) {
+            opts.strategy = await this.strategyRefService.loadByLabel(strategyLabel, { programId: opts.program?.id });
+          }
+          break;
+        }
+        case 'spatio-temporal':
+          opts.strategy = await this.strategyRefService.loadByFilter({
+            programId: opts?.program.id,
+            acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION,
+            startDate: entity.startDateTime,
+            location: entity.location,
+          });
+          break;
+        case 'last':
+          opts.strategy = await this.strategyRefService.loadByFilter({
+            programId: opts?.program.id,
+            acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION,
+          });
+          break;
+      }
+      if (!opts.strategy && strategyResolution !== 'none') {
         console.debug(this._logPrefix + 'No strategy loaded from ObservedLocation#' + entity.id);
       }
     }
