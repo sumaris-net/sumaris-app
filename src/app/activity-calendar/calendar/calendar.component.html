@@ -32,22 +32,11 @@
     <ng-container matColumnDef="month" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
       <mat-header-cell *matHeaderCellDef>
         <ion-label>&nbsp;</ion-label>
-        <!-- Expand all -->
-        <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_EXPAND_ALL' | translate" (click)="expandAll($event)">
-          <mat-icon>unfold_more_double</mat-icon>
-        </button>
-
-        <!-- Collapse all -->
-        <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COLLAPSE_ALL' | translate" (click)="collapseAll($event)">
-          <mat-icon>unfold_less_double</mat-icon>
-        </button>
-
-        <!-- Add metier block -->
-        <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_ADD_METIER_BLOCK' | translate" (click)="addMetierBlock($event)">
-          <mat-icon>add</mat-icon>
-        </button>
+        <!-- top left buttons -->
+        <ng-container *ngTemplateOutlet="metierButtons"></ng-container>
       </mat-header-cell>
-      <mat-header-cell *matCellDef="let row" [title]="errorSpan.innerText || ''">
+
+      <mat-header-cell *matCellDef="let row" [title]="errorSpan.innerText || ''" class="mat-column-reset-background-color">
         <ion-label class="ion-text-center">
           <ion-text matBadge="!" [matBadgeHidden]="!row.editing || row.valid" matBadgeOverlap="false" matBadgeColor="accent" matBadgeSize="small">
             {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
@@ -63,7 +52,7 @@
       <mat-header-cell *matHeaderCellDef>
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER</ion-label>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row">
+      <mat-cell *matCellDef="let row" class="mat-column-reset-background-color">
         <ion-label *rxIf="vesselOwners$; let vesselOwners; suspense: skeletonText80" class="computed">
           <!--          {{ vesselOwners | mapGet: row.currentData.month | propertyGet: 'vesselOwner' | referentialToString: locationDisplayAttributes }}-->
         </ion-label>
@@ -74,7 +63,7 @@
       <mat-header-cell *matHeaderCellDef class="odd">
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION</ion-label>
       </mat-header-cell>
-      <mat-cell *matCellDef="let row" class="odd">
+      <mat-cell *matCellDef="let row" class="odd mat-column-reset-background-color">
         <ion-label *rxIf="vesselSnapshots$; let vesselSnapshots; suspense: skeletonText80" class="computed">
           {{ vesselSnapshots | mapGet: row.currentData.month | propertyGet: 'registrationLocation' | referentialToString: locationDisplayAttributes }}
         </ion-label>
@@ -120,10 +109,11 @@
       <mat-cell *matCellDef="let row" class="odd mat-mdc-cell-resizable" #cell (click)="focusColumn = 'basePortLocation'">
         @if (row.editing && row.validator | formGetControl: 'basePortLocation'; as control) {
           <mat-autocomplete-field
-            [placeholder]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
             [formControl]="control"
             [config]="autocompleteFields.basePortLocation"
+            [placeholder]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
             [autofocus]="focusColumn === 'basePortLocation'"
+            [floatLabel]="'never'"
           ></mat-autocomplete-field>
         } @else {
           @if (row.currentData.basePortLocation | referentialToString: locationDisplayAttributes; as label) {
@@ -258,17 +248,16 @@
     <app-actions-column
       [stickyEnd]="stickyEnd"
       [style]="'mat-table'"
+      class="mat-column-reset-background-color"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"
       (forward)="confirmAndForward($event.event, $event.row)"
       [canCancel]="true"
-      [dirtyIcon]="false"
+      [dirtyIcon]="true"
     >
-      <!-- Add metier block -->
-      <button mat-icon-button matHeader [title]="'ACTIVITY_CALENDAR.EDIT.BTN_ADD_METIER_BLOCK' | translate" (click)="addMetierBlock($event)">
-        <mat-icon>add</mat-icon>
-      </button>
+      <!-- top left buttons -->
+      <ng-container matHeader *ngTemplateOutlet="metierButtons"></ng-container>
     </app-actions-column>
 
     <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
@@ -302,6 +291,23 @@
     (mousedown)="onMouseDown($event, cell, row, col.month)"
     (mouseup)="onMouseUp($event)"
   ></div>
+</ng-template>
+
+<ng-template #metierButtons>
+  <!-- Expand all -->
+  <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_EXPAND_ALL' | translate" (click)="expandAll($event)">
+    <mat-icon>unfold_more_double</mat-icon>
+  </button>
+
+  <!-- Collapse all -->
+  <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COLLAPSE_ALL' | translate" (click)="collapseAll($event)">
+    <mat-icon>unfold_less_double</mat-icon>
+  </button>
+
+  <!-- Add metier block -->
+  <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_ADD_METIER_BLOCK' | translate" (click)="addMetierBlock($event)">
+    <mat-icon>add</mat-icon>
+  </button>
 </ng-template>
 
 <ng-template #skeletonText80>

@@ -6,6 +6,10 @@
   }
 }
 
+.mat-accordion {
+  --expansion-panel-padding: 0;
+}
+
 app-entity-metadata {
   .visible-hover {
     visibility: hidden;

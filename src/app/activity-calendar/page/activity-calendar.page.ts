@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ActivityCalendarForm } from '../form/activity-calendar.form';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
@@ -14,6 +14,7 @@ import {
   fadeInOutAnimation,
   fromDateISOString,
   HistoryPageReference,
+  InMemoryEntitiesService,
   isNotNil,
   ReferentialRef,
   referentialToString,
@@ -46,7 +47,7 @@ import { CalendarComponent } from '@app/activity-calendar/calendar/calendar.comp
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
-import { ActivityMonthFilter } from '@app/activity-calendar/calendar/activity-month.model';
+import { ActivityMonth, ActivityMonthFilter } from '@app/activity-calendar/calendar/activity-month.model';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -72,6 +73,14 @@ export interface ActivityCalendarPageState extends RootDataEntityEditorState {
         pathIdAttribute: 'calendarId',
       },
     },
+    {
+      provide: InMemoryEntitiesService,
+      useFactory: () =>
+        new InMemoryEntitiesService(ActivityMonth, ActivityMonthFilter, {
+          equals: EntityUtils.equals,
+          sortByReplacement: { id: 'month' },
+        }),
+    },
     RxState,
   ],
 })
@@ -82,7 +91,8 @@ export class ActivityCalendarPage
   static TABS = {
     GENERAL: 0,
     CALENDAR: 1,
-    MAP: 2,
+    METIER: 2,
+    MAP: 3,
   };
 
   dbTimeZone = DateUtils.moment().tz();
@@ -106,7 +116,7 @@ export class ActivityCalendarPage
   @ViewChild('baseForm', { static: true }) baseForm: ActivityCalendarForm;
   @ViewChild('calendar') calendar: CalendarComponent;
   @ViewChild('map') map: ActivityCalendarMapComponent;
-  @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
+  @ViewChildren('mapMonth', { read: CalendarComponent }) mapMonths!: QueryList<CalendarComponent>;
 
   constructor(
     injector: Injector,
@@ -118,7 +128,7 @@ export class ActivityCalendarPage
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
       pathIdAttribute: 'calendarId',
-      tabCount: 3,
+      tabCount: 4, // 3 is map is hidden
       i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.',
       enableListenChanges: false, // TODO enable
       acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
@@ -167,14 +177,14 @@ export class ActivityCalendarPage
         .pipe(
           filter((event) => this.showMap && event.index === ActivityCalendarPage.TABS.MAP),
           // Save calendar when opening the map tab (keep editor dirty)
-          tap(() => this.calendar.dirty && this.markAsDirty()),
-          mergeMap(() => (this.calendar.dirty ? this.calendar.save() : Promise.resolve(true))),
-          filter((saved) => saved === true),
-          // If save succeed, propage calendar data to map
-          mergeMap(async () => {
-            const value = await this.getValue();
-            await this.mapCalendar.setValue(value);
-            this.mapCalendar.setFilter(ActivityMonthFilter.fromObject({ month: 1 }));
+          filter(() => this.calendar.dirty),
+          tap(async () => {
+            console.log('TODO reload map months');
+            this.markAsDirty();
+            await this.calendar.save();
+            this.mapMonths.forEach((month) => {
+              month.doRefresh();
+            });
           })
         )
         .subscribe()
@@ -333,13 +343,14 @@ export class ActivityCalendarPage
     if (this.isOnFieldMode) {
       data.year = DateUtils.moment().utc().year() - 1;
 
-      // Listen first opening the operations tab, then save
+      // Listen first opening the calendar tab, then save
       this.registerSubscription(
         this.tabGroup.selectedTabChange
           .pipe(
             filter((event) => event.index === ActivityCalendarPage.TABS.CALENDAR),
-            first(),
-            tap(() => this.save())
+            mergeMap(() => this.save()),
+            filter((saved) => saved === true),
+            first()
           )
           .subscribe()
       );

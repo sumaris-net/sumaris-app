@@ -1,3 +1,4 @@
+
 .table-container {
   --table-toolbar-height: 0px;
   height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
@@ -84,7 +85,12 @@
     border-left: 1px solid rgba(0, 0, 0, 0.12);
 
     &.odd {
-      background-color: rgba(var(--ion-color-medium-rgb), 0.2);
+      --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
+      background-color: var(--mat-table-background-color);
+
+      &.mat-column-reset-background-color {
+        --mat-table-background-color: var(--ion-color-step-100) !important;
+      }
     }
 
     &.collapsed {
@@ -114,6 +120,12 @@
 
   .mat-column-metier {
     background-color: rgba(var(--ion-color-medium-rgb), 0.4);
+  }
+
+  .mat-column-reset-background-color,
+  ::ng-deep .mat-column-reset-background-color {
+    --ion-background-color: var(--mat-table-background-color) !important;
+    background-color: var(--mat-table-background-color) !important;
   }
 
   .mat-mdc-cell-resizable {
@@ -181,13 +193,6 @@
       &:hover {
         background-color: var(--mat-cell-resizable-handle-color-hover);
       }
-    }
-  }
-
-  .mat-mdc-row.mat-mdc-row-disabled:hover,
-  .mat-mdc-row.mat-row-disabled:hover {
-    .mat-column-actions {
-      background-color: var(--ion-background-color);
     }
   }
 

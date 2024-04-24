@@ -174,6 +174,16 @@
       </div>
     </mat-tab>
 
+    <!-- TAB: Métiers -->
+    <mat-tab #metierTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_METIER' | translateContext: i18nContext.suffix" [disabled]="!showMap" appSubMenuTab>
+      <ng-template mat-tab-label>
+        <mat-icon><ion-icon name="settings"></ion-icon></mat-icon>
+        <ion-label>
+          {{ metierTab.textLabel }}
+        </ion-label>
+      </ng-template>
+    </mat-tab>
+
     <!-- TAB: Map -->
     <mat-tab #mapTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_MAP' | translateContext: i18nContext.suffix" [disabled]="!showMap" appSubMenuTab>
       <ng-template mat-tab-label>
@@ -186,26 +196,16 @@
       <as-split direction="horizontal" [useTransition]="true" (dragEnd)="map?.containerResize()" [restrictMove]="mobile">
         <as-split-area [minSize]="20" [size]="100 - rightPanelWidth">
           <!-- map -->
-          @if (selectedTabIndex === 2) {
+          @if (selectedTabIndex === 3) {
             <app-activity-calendar-map #map></app-activity-calendar-map>
           }
         </as-split-area>
         <as-split-area [minSize]="30" [size]="rightPanelWidth" [visible]="rightPanelVisible">
-          <!--          <mat-accordion>-->
-          <!--            <mat-expansion-panel>-->
-          <!--              <mat-expansion-panel-header>Janvier</mat-expansion-panel-header>-->
-          <!--              <p></p>-->
-          <!--            </mat-expansion-panel>-->
-          <!--          </mat-accordion>-->
-
-          <app-calendar
-            #mapCalendar
-            [programLabel]="programLabel$ | async"
-            [requiredStrategy]="requiredStrategy$ | async"
-            [strategyId]="(strategy$ | async)?.id"
-            [timezone]="dbTimeZone"
-            [debug]="debug"
-          ></app-calendar>
+          <mat-accordion>
+            @for (type of calendar.dataSource; track $index) {
+            <ng-container *ngTemplateOutlet="mapMonth; context: { $implicit: 1 }"></ng-container>
+            <ng-container *ngTemplateOutlet="mapMonth; context: { $implicit: 2 }"></ng-container>
+          </mat-accordion>
         </as-split-area>
       </as-split>
     </mat-tab>
@@ -240,6 +240,22 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<ng-template #mapMonth let-month>
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>{{ month }}</mat-expansion-panel-header>
+
+    <app-calendar
+      #mapMonth
+      [month]="month"
+      [programLabel]="programLabel$ | async"
+      [requiredStrategy]="requiredStrategy$ | async"
+      [strategyId]="(strategy$ | async)?.id"
+      [timezone]="dbTimeZone"
+      [debug]="debug"
+    ></app-calendar>
+  </mat-expansion-panel>
+</ng-template>
 
 <ng-template #debugPanel>
   <app-debug title="Editor and Form">

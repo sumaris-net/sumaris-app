@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, HostListener, inject, Injector, Input, OnInit } from '@angular/core';
 import {
   DateUtils,
-  EntityUtils,
   IEntitiesService,
   InMemoryEntitiesService,
   isEmptyArray,
@@ -103,17 +102,7 @@ export interface ActivityCalendarState extends BaseMeasurementsTableState {
   selector: 'app-calendar',
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
-  providers: [
-    {
-      provide: InMemoryEntitiesService,
-      useFactory: () =>
-        new InMemoryEntitiesService(ActivityMonth, ActivityMonthFilter, {
-          equals: EntityUtils.equals,
-          sortByReplacement: { id: 'month' },
-        }),
-    },
-    RxState,
-  ],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarComponent
@@ -166,6 +155,13 @@ export class CalendarComponent
   @Input() usageMode: UsageMode;
   @Input() showPmfmDetails = false;
 
+  @Input() set month(value: number) {
+    this.filter = ActivityMonthFilter.fromObject({ month: value });
+  }
+  get month(): number {
+    return this.filter?.month;
+  }
+
   get isOnFieldMode() {
     return this.usageMode === 'FIELD';
   }
@@ -178,11 +174,12 @@ export class CalendarComponent
       injector,
       ActivityMonth,
       ActivityMonthFilter,
-      new InMemoryEntitiesService(ActivityMonth, ActivityMonthFilter, {
-        //onSave: (data) => this.onSave(data),
-        equals: ActivityMonth.equals,
-        sortByReplacement: { id: 'rankOrder' },
-      }),
+      injector.get(InMemoryEntitiesService) ||
+        new InMemoryEntitiesService(ActivityMonth, ActivityMonthFilter, {
+          //onSave: (data) => this.onSave(data),
+          equals: ActivityMonth.equals,
+          sortByReplacement: { id: 'rankOrder' },
+        }),
       injector.get(LocalSettingsService).mobile ? null : injector.get(ActivityMonthValidatorService),
       {
         reservedStartColumns: ACTIVITY_MONTH_START_COLUMNS,
