@@ -1064,9 +1064,6 @@
         },
         "INDIVIDUAL_COUNT": {
           "TITLE": "Dénombrement"
-        },
-        "TYPE": {
-          "TITLE": "Type d'opération :"
         }
       },
       "TABLE": {

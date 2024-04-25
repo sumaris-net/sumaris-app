@@ -109,16 +109,7 @@
       </ion-col>
 
       <!-- table -->
-      <ion-col
-        size="12"
-        pull=""
-        size-md="8"
-        pull-md="4"
-        size-lg="9"
-        pull-lg="3"
-        [hidden]="!isIndividualMeasure"
-        class="table-container ion-no-padding compact"
-      >
+      <ion-col size="12" pull="" size-md="8" pull-md="4" size-lg="9" pull-lg="3" [hidden]="!isIndividualMeasure" class="table-container compact">
         <!-- todo mf -->
         <mat-toolbar *ngIf="showToolbar">
           <ng-container *ngIf="!selection.hasValue(); else hasSelection">

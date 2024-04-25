@@ -26,6 +26,12 @@ ion-grid.disabled {
 ion-col.ion-col-form-mobile {
   flex: 0% !important;
 }
+ion-col.ion-col-form {
+  padding: 0.3%;
+}
+.table-container {
+  padding: 1px;
+}
 .mat-mdc-table {
   /*Hide selected row (if scale by an animation) */
   overflow-x: hidden;
