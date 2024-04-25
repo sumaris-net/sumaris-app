@@ -81,8 +81,9 @@ import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
 import { IMPORT_REFERENTIAL_ENTITIES, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
