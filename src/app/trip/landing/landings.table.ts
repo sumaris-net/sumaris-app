@@ -259,6 +259,18 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.openSale.unsubscribe();
   }
 
+  // Change visibility to public
+  setError(error: string, opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean }) {
+    super.setError(error, opts);
+
+    // TODO: Use showOnlyInvalidRows to filter and invalidate rows
+  }
+
+  // Change visibility to public
+  resetError(opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean }) {
+    this.setError(undefined, opts);
+  }
+
   protected onPmfmsLoaded(pmfms: IPmfm[]) {
     if (this.inlineEdition) {
       const pmfmIds = pmfms.map((p) => p.id).filter(isNotNil);

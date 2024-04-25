@@ -6,7 +6,7 @@ import { MeasurementsValidatorService } from '@app/data/measurement/measurement.
 import { Landing } from './landing.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
 import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
@@ -146,6 +146,14 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     }
   ) {
     const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
-    return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
+    const form = this.measurementsValidatorService.getFormGroup(measurementValues, opts);
+
+    // Add non-observation reason validator if non observed
+    if (!measurementValues[PmfmIds.IS_OBSERVED]) {
+      form.controls[PmfmIds.NON_OBSERVATION_REASON].addValidators(Validators.required);
+      form.controls[PmfmIds.NON_OBSERVATION_REASON].updateValueAndValidity();
+    }
+
+    return form;
   }
 }

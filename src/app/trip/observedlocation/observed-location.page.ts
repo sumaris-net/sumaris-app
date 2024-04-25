@@ -7,6 +7,7 @@ import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   Alerts,
+  AppErrorWithDetails,
   AppTable,
   CORE_CONFIG_OPTIONS,
   DateUtils,
@@ -178,6 +179,30 @@ export class ObservedLocationPage
   ngOnDestroy() {
     super.ngOnDestroy();
     this._measurementSubscription?.unsubscribe();
+  }
+
+  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
+    // If errors in landings
+    if (typeof error !== 'string' && error?.details?.errors?.landings) {
+      // Show error in landing table
+      this.landingsTable.setError('OBSERVED_LOCATION.ERROR.INVALID_LANDING', {
+        showOnlyInvalidRows: true,
+      });
+
+      // Open the landing tab
+      this.tabGroup.selectedIndex = ObservedLocationPage.TABS.LANDINGS;
+
+      // Reset other errors
+      super.setError(undefined, opts);
+    }
+
+    // Error in the main form
+    else {
+      super.setError(error, opts);
+
+      // Reset error in table (and filter in op table)
+      this.landingsTable?.resetError(opts);
+    }
   }
 
   /**
