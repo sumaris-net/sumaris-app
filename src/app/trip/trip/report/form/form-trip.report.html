@@ -242,11 +242,7 @@
                 @for (type of stats.saleTypes; track $index) {
                   <ion-col>
                     {{ type }}&nbsp;
-                    @if (data?.sale?.saleType.label === type) {
-                      <mat-icon class="mat-icon mat-icon-sm">check_box</mat-icon>
-                    } @else {
-                      <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
-                    }
+                    <ion-icon [name]="data?.sale?.saleType.label === type ? 'checkbox-outline' : 'square-outline'"></ion-icon>
                   </ion-col>
                 }
               </ion-row>
@@ -263,7 +259,7 @@
                 {{ 'TRIP.REPORT.FORM.TRIP.RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK_HELP' | translate }}
               </span>
             </span>
-            <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
+            <ion-icon [name]="'square-outline'"></ion-icon>
           </ion-col>
           <ion-col class="form-label horiz-checkbox" size="6">
             <span>
@@ -273,7 +269,7 @@
                 {{ 'TRIP.REPORT.FORM.TRIP.RETURN_TO_CAPTAIN_HELP' | translate }}
               </span>
             </span>
-            <mat-icon class="mat-icon mat-icon-sm">check_box_outline_blank</mat-icon>
+            <ion-icon [name]="'square-outline'"></ion-icon>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -303,7 +299,7 @@
               <ion-col size="auto">
                 <h3>{{ 'TRIP.REPORT.FORM.OPERATION.NB_OP' | translate }}</h3>
               </ion-col>
-              <ion-col class="title-value ion-text-center font-large" size="auto">
+              <ion-col class="title-value ion-text-center font-large no-border-bottom" size="auto">
                 @if (!isBlankForm) {
                   {{ data.operations?.length }}
                 }
@@ -614,8 +610,198 @@
       }
     </section>
 
-    <section *sectionDef class="portrait"></section>
+    <!-- Iterate over all batches by operation ids -->
+    @for (opId of stats.denormalizedBatchesByOp | mapKeys; track opId) {
+      <section *sectionDef>
+        <!-- Iterate over all types of batches (landing/discard) -->
+        @for (batchType of stats.denormalizedBatchesByOp | mapGet: opId | mapKeys; track $index) {
+          <ng-content
+            *ngTemplateOutlet="
+              batchesTable;
+              context: {
+                batchType: batchType,
+                opId: opId,
+                batches: stats.denormalizedBatchesByOp | mapGet: opId | mapGet: batchType
+              }
+            "
+          ></ng-content>
+        }
+      </section>
+    }
   </app-reveal>
+
+  <!-- "type" can be 'landing' or 'discard' -->
+  <ng-template #batchesTable let-batchType="batchType" let-opId="opId" let-batches="batches">
+    @for (
+      batchesChunk of (batches  | arrayFilter: isNotSamplingBatch | arrayFilter: isNotTreeBatchRootElement ) | splitArrayInChunks:maxBatchesLinesPeerTable;
+      track $index;
+      let isLastBatchesChunk = $last , isFirstBatchesChunk = $first
+    ) {
+      <section class="portrait">
+        <ng-content
+          *ngTemplateOutlet="
+            pageHeader;
+            context: {
+              title: 'TRIP.REPORT.FORM.BATCH.TITLE_' + (batchType | uppercase),
+              titleParams: { pageNumber: $index + 1 }
+            }
+          "
+        ></ng-content>
+        <ion-grid class="report-section ion-no-padding">
+          <ion-row class="section-title ion-margin-bottom">
+            <ion-col size="auto">
+              <h3>{{ 'TRIP.REPORT.FORM.NUM_OP' | translate }}</h3>
+            </ion-col>
+            <ion-col class="title-value ion-text-center font-large" size="auto">
+              @if (!isBlankForm) {
+                {{ stats.operationRankOrderByOperationIds | mapGet: opId }}
+              }
+            </ion-col>
+          </ion-row>
+          @if (batchType === 'discard' && isFirstBatchesChunk) {
+            <ion-row class="form-field">
+              <ion-col class="form-label" size="6">
+                {{ 'TRIP.REPORT.FORM.BATCH.PNR_TOTAL_WEIGHT' | translate }}
+              </ion-col>
+              <ion-col class="form-value no-border-bottom" size="2" [class.computed]="batches[0].elevateWeight | isNil">
+                {{ batches[0].elevateWeight || batches[0].indirectWeight }}
+              </ion-col>
+            </ion-row>
+            <ion-row class="form-field">
+              <ion-col class="form-label" size="6">
+                {{ 'TRIP.REPORT.FORM.BATCH.PNR_SAMPLING_WEIGHT' | translate }}
+              </ion-col>
+              <ion-col class="form-value no-border-bottom" size="2" [class.computed]="batches[0].elevateContextWeight | isNil">
+                {{ batches[0].elevateContextWeight || batches[0].indirectContextWeight }}
+              </ion-col>
+            </ion-row>
+            <ion-row class="form-field">
+              <ion-col class="form-label" size="6">
+                {{ 'TRIP.REPORT.FORM.BATCH.FRACTION_FIELD' | translate }}
+              </ion-col>
+              <ion-col class="form-value no-border-bottom" size="2"></ion-col>
+            </ion-row>
+          }
+        </ion-grid>
+        <table [style.--row-height]="'30px'">
+          <thead>
+            <tr class="group-head">
+              <th colspan="4" class="no-border">
+                <ion-grid class="ion-no-padding ion-no-margin">
+                  <ion-row>
+                    <ion-col size="6" class="vertical-centred-content">
+                      {{ 'TRIP.REPORT.FORM.BATCH.EXCLUSIVE_SCIENTIFIC_SPECIES' | translate }}
+                    </ion-col>
+                    <ion-col size="3" class="vertical-centred-content">
+                      <ion-icon [name]="batches[0].exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                      &nbsp;
+                      {{ 'COMMON.YES' | translate }}
+                    </ion-col>
+                    <ion-col size="3" class="vertical-centred-content">
+                      <ion-icon [name]="!batches[0].exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                      &nbsp;
+                      {{ 'COMMON.NO' | translate }}
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </th>
+              <th colspan="2" class="col-small"></th>
+              <th colspan="3" class="col-small ion-text-center">
+                {{ 'TRIP.REPORT.FORM.BATCH.SUB_SAMPLING' | translate }}
+              </th>
+            </tr>
+            <tr>
+              <th class="col-tiny no-border ion-text-center no-margin no-padding">
+                <mat-icon class="mat-icon mat-icon-sm">arrow_downward</mat-icon>
+              </th>
+              <th class="col-medium ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.TAXON_GROUPS' | translate }}</th>
+              <th class="col-medium ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.TAXON_NAMES' | translate }}</th>
+              <th class="col-extra-large ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.SORT_CRITERIAS' | translate }}</th>
+              <th class="col-small ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.TOTAL_WEIGHT' | translate }}</th>
+              <th class="col-small ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.TOTAL_INDIV' | translate }}</th>
+              <th class="col-small ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.FRACTION' | translate }}</th>
+              <th class="col-small ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.WEIGHT' | translate }}</th>
+              <th class="col-small ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.NB_INDIV' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (batch of batchesChunk; track batch.id) {
+              <tr>
+                <td class="col-tiny no-margin no-padding ion-text-center font-large">
+                  @if (batch.qualityFlagId | qualityFlagInvalid) {
+                    <ion-icon [name]="batch.qualityFlagId | qualityFlagToIcon" color="danger"></ion-icon>
+                  }
+                  <ion-icon [name]="batch.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                </td>
+                <td class="col-medium">{{ batch.taxonGroup | referentialToString }}</td>
+                <td class="col-medium">{{ batch.taxonName | referentialToString }}</td>
+                <td class="col-extra-large no-margin no-padding">
+                  <div class="denormalized-batch-sorting-values-text">
+                    <div class="denormalized-batch-tree-indent">
+                      @for (component of batch.treeIndent | denormalizedBatchGetTreeIndentComponents; track $index) {
+                        <div [class]="component"></div>
+                      }
+                    </div>
+                    <div>
+                      @if (batch.individualCount === 1) {
+                        {{ batch.sortingValuesText }}
+                      } @else {
+                        @for (pmfmId of batch.measurementValues | mapKeys; track pmfmId; let last = $last) {
+                          {{
+                            batch.measurementValues
+                              | mapGet: pmfmId
+                              | pmfmValue
+                                : {
+                                    pmfm: stats.pmfmsByIds.denormalizedBatch | mapGet: pmfmId
+                                  }
+                          }}
+                          @if (!last) {
+                            &nbsp;-&nbsp;
+                          }
+                        }
+                      }
+                    </div>
+                  </div>
+                </td>
+                <td class="col-small ion-text-right">
+                  @if (!(batch | denormalizeBatchIsIndividual)) {
+                    {{ batch.elevateWeight }}
+                  }
+                </td>
+                <td class="col-small ion-text-right">
+                  @if (!(batch | denormalizeBatchIsIndividual)) {
+                    {{ batch.elevateIndividualCount }}
+                  }
+                </td>
+                @if (batch | denormalizeBatchSamplingChildOrSelf: batches; as samplingBatch) {
+                  <td class="col-small ion-text-right">{{ samplingBatch.samplingRatioText || samplingBatch.samplingRatio }}</td>
+                  <td class="col-small ion-text-right" [class.computed]="samplingBatch.weight | isNil">
+                    {{ samplingBatch.weight || samplingBatch.indirectWeight }}
+                  </td>
+                  <td class="col-small ion-text-right" [class.computed]="samplingBatch.individualCount | isNil">
+                    {{ samplingBatch.individualCount || samplingBatch.indirectIndividualCount }}
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            @if (isLastBatchesChunk) {
+              <tr>
+                <td colspan="4" class="ion-text-end">
+                  <b>{{ 'TRIP.REPORT.FORM.BATCH.PNR_TOTAL_WEIGHT' | translate }}</b>
+                </td>
+                <td class="col-small total"></td>
+                <td colspan="4" class="col-small"></td>
+              </tr>
+            }
+          </tfoot>
+          <caption [innerHTML]="'TRIP.REPORT.FORM.BATCH.TABLE_LEGEND' | translate"></caption>
+        </table>
+        <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
+      </section>
+    }
+  </ng-template>
 
   <ng-template #pageHeader let-title="title" let-titleParams="titleParams">
     <ion-grid class="report-header ion-no-padding">

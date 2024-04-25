@@ -17,9 +17,13 @@ import { StrategyRefService } from '@app/referential/services/strategy-ref.servi
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { DenormalizedBatchService } from '@app/trip/denormalized-batch/denormalized-batch.service';
+import { DenormalizedBatch } from '@app/trip/denormalized-batch/denormalized-batch.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { Batch } from '@app/trip/batch/common/batch.model';
+import { environment } from '@environments/environment';
 
 export class FormTripReportStats extends BaseReportStats {
-  // gearPmfms: DenormalizedPmfmStrategy[];
   readonly pmfmIdsMap = PmfmIds;
   subtitle?: string;
   footerText?: string;
@@ -28,8 +32,17 @@ export class FormTripReportStats extends BaseReportStats {
   strataEnabled?: boolean;
   saleTypes?: string[];
   strategy: Strategy;
+  operationRankOrderByOperationIds: { [key: number]: number };
   operationsRankByGears: { [key: number]: number[] };
   pmfmByGearsId: { [key: number]: number[] };
+  denormalizedBatchesByOp: {
+    [key: number]: {
+      landing: DenormalizedBatch[];
+      discard: DenormalizedBatch[];
+    };
+  };
+  landingBatchOp: { [kej: number]: DenormalizedBatch[] };
+  discardBatchOp: { [key: number]: DenormalizedBatch[] };
   measurementValues: {
     trip: MeasurementFormValues;
     operations: MeasurementFormValues[];
@@ -39,11 +52,13 @@ export class FormTripReportStats extends BaseReportStats {
     trip: IPmfm[];
     operation: IPmfm[];
     gears?: IPmfm[];
+    denormalizedBatch?: IPmfm[];
   };
   pmfmsByIds?: {
     trip?: { [key: number]: IPmfm };
     operation?: { [key: number]: IPmfm };
-    grar?: IPmfm[];
+    gears?: IPmfm[];
+    denormalizedBatch?: { [key: number]: IPmfm };
   };
   options: {
     showFishingStartDateTime: boolean;
@@ -65,18 +80,16 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected logPrefix = 'trip-form-report';
   protected isBlankForm: boolean;
   protected latLongPattern: LatLongPattern;
-  protected readonly nbOfOpOnBalankPage = 9;
+  protected readonly nbOfOpOnBlankPage = 9;
   protected readonly maxLinePeerTable = 9;
   protected readonly nbOfGearOnBlankPage = 3;
   protected readonly maxGearPeepPage = 3;
+  protected readonly maxBatchesLinesPeerTable = 24;
 
   protected readonly tripService: TripService;
   protected readonly referentialRefService: ReferentialRefService;
   protected readonly strategyRefService: StrategyRefService;
-
-  protected filterPmfmForOperationTable = (pmfm: IPmfm): boolean => {
-    return ![PmfmIds.HAS_INDIVIDUAL_MEASURES, PmfmIds.TRIP_PROGRESS].includes(pmfm.id);
-  };
+  protected readonly denormalizedBatchService: DenormalizedBatchService;
 
   constructor(injector: Injector) {
     super(injector, Trip, FormTripReportStats);
@@ -84,8 +97,27 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     this.referentialRefService = injector.get(ReferentialRefService);
     this.strategyRefService = injector.get(StrategyRefService);
     this.latLongPattern = this.settings.latLongFormat;
+    this.denormalizedBatchService = this.injector.get(DenormalizedBatchService);
 
     this.isBlankForm = this.route.snapshot.data[FormTripReport.isBlankFormParam];
+    this.debug = !environment.production;
+  }
+
+  protected filterPmfmForOperationTable(pmfm: IPmfm): boolean {
+    return ![PmfmIds.HAS_INDIVIDUAL_MEASURES, PmfmIds.TRIP_PROGRESS].includes(pmfm.id);
+  }
+
+  protected isNotSamplingBatch(batch: DenormalizedBatch): boolean {
+    return !BatchUtils.isSamplingBatch(batch as any as Batch);
+  }
+
+  protected getOperationRankOrderById(opId: number) {
+    if (isNil(this.data?.operations)) return null;
+    return this.data.operations.find((o) => o.id);
+  }
+
+  protected isNotTreeBatchRootElement(batch: DenormalizedBatch) {
+    return batch.treeLevel > 2;
   }
 
   protected async loadData(id: number, opts?: any): Promise<Trip> {
@@ -97,7 +129,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       data = Trip.fromObject({
         id: id,
         program: Program.fromObject({ label: realData.program.label }),
-        operations: new Array(this.nbOfOpOnBalankPage).fill(null).map((_, index) => Operation.fromObject({ rankOrder: index + 1 })),
+        operations: new Array(this.nbOfOpOnBlankPage).fill(null).map((_, index) => Operation.fromObject({ rankOrder: index + 1 })),
       });
     } else {
       data = await this.tripService.load(id, { ...opts, withOperation: true });
@@ -127,6 +159,11 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       showEndDate: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
     };
 
+    stats.operationRankOrderByOperationIds = data.operations.reduce((acc, op) => {
+      acc[op.id] = op.rankOrder;
+      return acc;
+    }, []);
+
     stats.pmfms = isNotNil(strategyId)
       ? {
           trip: await this.programRefService.loadProgramPmfms(data.program.label, {
@@ -141,6 +178,16 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
             acquisitionLevel: AcquisitionLevelCodes.PHYSICAL_GEAR,
             strategyId,
           }),
+          denormalizedBatch: [
+            ...(await this.programRefService.loadProgramPmfms(data.program.label, {
+              acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
+              strategyId,
+            })),
+            ...(await this.programRefService.loadProgramPmfms(data.program.label, {
+              acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
+              strategyId,
+            })),
+          ],
         }
       : {
           trip: [],
@@ -151,6 +198,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     stats.pmfmsByIds = {
       trip: splitById(stats.pmfms.trip),
       operation: splitById(stats.pmfms.operation),
+      denormalizedBatch: splitById(stats.pmfms.denormalizedBatch),
     };
 
     stats.measurementValues = {
@@ -158,6 +206,34 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       operations: data.operations.map((op) => MeasurementUtils.toMeasurementValues(op.measurements)),
       gears: data.gears.map((gear) => gear.measurementValues),
     };
+
+    stats.denormalizedBatchesByOp = {};
+    for (const op of data.operations) {
+      const batches = (await this.denormalizedBatchService.loadAll(0, 1000, null, null, { operationId: op.id })).data;
+      stats.denormalizedBatchesByOp[op.id] = {
+        landing: batches.filter((b) => b.isLanding),
+        discard: batches.filter((b) => b.isDiscard),
+      };
+    }
+
+    stats.landingBatchOp = {};
+    for (const op of data.operations) {
+      const batch = (await this.denormalizedBatchService.loadAll(0, 1000, null, null, { operationId: op.id, isLanding: true })).data;
+      if (batch.length > 0) {
+        stats.landingBatchOp[op.id] = (
+          await this.denormalizedBatchService.loadAll(0, 1000, null, null, { operationId: op.id, isLanding: true })
+        ).data;
+      }
+    }
+    stats.discardBatchOp = {};
+    for (const op of data.operations) {
+      const batch = (await this.denormalizedBatchService.loadAll(0, 1000, null, null, { operationId: op.id, isDiscard: true })).data;
+      if (batch.length > 0) {
+        stats.discardBatchOp[op.id] = (
+          await this.denormalizedBatchService.loadAll(0, 1000, null, null, { operationId: op.id, isDiscard: true })
+        ).data;
+      }
+    }
 
     stats.subtitle = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_SUBTITLE);
     stats.footerText = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_FOOTER);

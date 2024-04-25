@@ -171,6 +171,68 @@ type DataOriginVO {
   vesselUseFeaturesId: Int
 }
 
+type DenormalizedBatchSortingValueVO {
+  alphanumericalValue: String
+  batch: DenormalizedBatchVO
+  batchId: Int
+  id: Int
+  isInherited: Boolean
+  numericalValue: Float
+  parameter: ReferentialVO
+  pmfm: PmfmVO
+  pmfmId: Int
+  qualitativeValue: ReferentialVO
+  rankOrder: Int
+  unit: ReferentialVO
+}
+
+type DenormalizedBatchVO {
+  calculatedTaxonGroup: ReferentialVO
+  children: [DenormalizedBatchVO]
+  comments: String
+  elevateContextWeight: Float
+  elevateIndividualCount: Int
+  elevateRtpWeight: Float
+  elevateWeight: Float
+  exhaustiveInventory: Boolean
+  flatRankOrder: Short
+  id: Int
+  indirectContextWeight: Float
+  indirectIndividualCount: Int
+  indirectRtpWeight: Float
+  indirectWeight: Float
+  individualCount: Int
+  inheritedTaxonGroup: ReferentialVO
+  inheritedTaxonName: TaxonNameVO
+  isDiscard: Boolean
+  isLanding: Boolean
+  label: String
+  leaf: Boolean!
+  locationId: Int
+  measurementValues: Map_Integer_StringScalar
+  operation: OperationVO
+  operationId: Int
+  parent: DenormalizedBatchVO
+  parentId: Int
+  qualityFlagId: Int
+  rankOrder: Int
+  sale: SaleVO
+  saleId: Int
+  samplingRatio: Float
+  samplingRatioText: String
+  sortingValues: [DenormalizedBatchSortingValueVO]
+  sortingValuesText: String
+  taxonElevateContextWeight: Float
+  taxonElevateIndividualCount: Int
+  taxonGroup: ReferentialVO
+  taxonName: TaxonNameVO
+  treeIndent: String
+  treeLevel: Short
+  updateDate: Date
+  weight: Float
+  weightMethodId: Int
+}
+
 type DenormalizedPmfmStrategyVO {
   acquisitionLevel: String
   acquisitionNumber: Int
@@ -495,6 +557,7 @@ type LandingVO {
   rankOrder: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
+  saleIds: [Int]
   "Get landing's sales"
   sales: [SaleVO]
   "Get landing's samples"
@@ -1263,6 +1326,8 @@ type Query {
     "Should included all enumerations values in properties ?"
     inherited: Boolean = true
   ): ConfigurationVO
+  "Get denormalized batches"
+  denormalizedBatches(filter: DenormalizedBatchesFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [DenormalizedBatchVO]
   "Get a department"
   department(id: Int!): DepartmentVO
   "Search in departments"
@@ -1302,7 +1367,7 @@ type Query {
   "Get a landing, by id"
   landing(id: Int!): LandingVO
   "Search in landings"
-  landings(filter: LandingFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "dateTime", sortDirection: String = "asc", trash: Boolean = false): [LandingVO]
+  landings(filter: LandingFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "flatRankOrder", sortDirection: String = "asc", trash: Boolean = false): [LandingVO]
   "Get total number of landings"
   landingsCount(filter: LandingFilterVOInput, trash: Boolean = false): Long!
   "Get last update date of all referential"
@@ -2392,6 +2457,19 @@ input DataValidateOptionsInput {
   withChildren: Boolean
 }
 
+input DenormalizedBatchesFilterVOInput {
+  dataQualityStatus: [DataQualityStatusEnum]
+  isDiscard: Boolean
+  isLanding: Boolean
+  observedLocationId: Int
+  operationId: Int
+  operationIds: [Int]
+  qualityFlagIds: [Int]
+  recorderDepartmentId: Int
+  saleId: Int
+  tripId: Int
+}
+
 input DenormalizedPmfmStrategyVOInput {
   acquisitionLevel: String
   acquisitionNumber: Int
@@ -2768,6 +2846,7 @@ input LandingVOInput {
   rankOrder: Int
   recorderDepartment: DepartmentVOInput
   recorderPerson: PersonVOInput
+  saleIds: [Int]
   sales: [SaleVOInput]
   samples: [SampleVOInput]
   samplesCount: Int

@@ -1428,6 +1428,25 @@
           "ONBOARD_OBSERVATION": {
             "HAS_INDIVIDUAL_MEASURES": "Échantillonnage"
           }
+        },
+        "BATCH": {
+          "TITLE_LANDING": "FICHE ECHANTILLONNAGE PARTIE RETENUE (page {{ pageNumber }})",
+          "TITLE_DISCARD": "FICHE ECHANTILLONNAGE PARTIE REJETÉE (page {{ pageNumber }})",
+          "TAXON_GROUPS": "Espèces commerciales",
+          "TAXON_NAMES": "Espèces scientifique",
+          "SORT_CRITERIAS": "Critères de classement",
+          "TOTAL_WEIGHT": "Poids TOTAL (kg)",
+          "TOTAL_INDIV": "Nombre TOTAL",
+          "FRACTION": "Fraction",
+          "WEIGHT": "Poids (kg)",
+          "NB_INDIV": "Nb. Indiv.",
+          "EXCLUSIVE_SCIENTIFIC_SPECIES": "Exhaustivité des espèces scientifiques ?",
+          "PR_TOTAL_WEIGHT": "Poids TOTAL partie retenue (kg) :",
+          "SUB_SAMPLING": "Sous echantillon",
+          "PNR_TOTAL_WEIGHT": "Poids TOTAL de la PNR (kg) :",
+          "PNR_SAMPLING_WEIGHT": "Poids ECHANTILLONNE de la PNR (kg) :",
+          "FRACTION_FIELD": "Fraction :",
+          "TABLE_LEGEND": "Légende : Les lots dont la qualité est invalide sont en <span class=\"invalid\">rouge</span>, les valeurs calculées sont en <span class=\"computed\">bleu et italique</span>, les valeurs issues d'estimation terrain sont surlignées, les valeurs mesurées, pesées ou comptées sont en noir."
         }
       }
     },
