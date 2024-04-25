@@ -233,6 +233,68 @@ type DenormalizedBatchVO {
     weightMethodId: Int
 }
 
+type DenormalizedBatchSortingValueVO {
+  alphanumericalValue: String
+  batch: DenormalizedBatchVO
+  batchId: Int
+  id: Int
+  isInherited: Boolean
+  numericalValue: Float
+  parameter: ReferentialVO
+  pmfm: PmfmVO
+  pmfmId: Int
+  qualitativeValue: ReferentialVO
+  rankOrder: Int
+  unit: ReferentialVO
+}
+
+type DenormalizedBatchVO {
+  calculatedTaxonGroup: ReferentialVO
+  children: [DenormalizedBatchVO]
+  comments: String
+  elevateContextWeight: Float
+  elevateIndividualCount: Int
+  elevateRtpWeight: Float
+  elevateWeight: Float
+  exhaustiveInventory: Boolean
+  flatRankOrder: Short
+  id: Int
+  indirectContextWeight: Float
+  indirectIndividualCount: Int
+  indirectRtpWeight: Float
+  indirectWeight: Float
+  individualCount: Int
+  inheritedTaxonGroup: ReferentialVO
+  inheritedTaxonName: TaxonNameVO
+  isDiscard: Boolean
+  isLanding: Boolean
+  label: String
+  leaf: Boolean!
+  locationId: Int
+  measurementValues: Map_Integer_StringScalar
+  operation: OperationVO
+  operationId: Int
+  parent: DenormalizedBatchVO
+  parentId: Int
+  qualityFlagId: Int
+  rankOrder: Int
+  sale: SaleVO
+  saleId: Int
+  samplingRatio: Float
+  samplingRatioText: String
+  sortingValues: [DenormalizedBatchSortingValueVO]
+  sortingValuesText: String
+  taxonElevateContextWeight: Float
+  taxonElevateIndividualCount: Int
+  taxonGroup: ReferentialVO
+  taxonName: TaxonNameVO
+  treeIndent: String
+  treeLevel: Short
+  updateDate: Date
+  weight: Float
+  weightMethodId: Int
+}
+
 type DenormalizedPmfmStrategyVO {
     acquisitionLevel: String
     acquisitionNumber: Int
@@ -2471,6 +2533,19 @@ input DenormalizedBatchesFilterVOInput {
     recorderDepartmentId: Int
     saleId: Int
     tripId: Int
+}
+
+input DenormalizedBatchesFilterVOInput {
+  dataQualityStatus: [DataQualityStatusEnum]
+  isDiscard: Boolean
+  isLanding: Boolean
+  observedLocationId: Int
+  operationId: Int
+  operationIds: [Int]
+  qualityFlagIds: [Int]
+  recorderDepartmentId: Int
+  saleId: Int
+  tripId: Int
 }
 
 input DenormalizedPmfmStrategyVOInput {

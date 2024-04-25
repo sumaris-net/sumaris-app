@@ -65,11 +65,6 @@ export class FormTripReportStats extends BaseReportStats {
     showFishingEndDateTime: boolean;
     showEndDate: boolean;
   };
-  options: {
-    showFishingStartDateTime: boolean;
-    showFishingEndDateTime: boolean;
-    showEndDate: boolean;
-  };
 }
 
 @Component({
