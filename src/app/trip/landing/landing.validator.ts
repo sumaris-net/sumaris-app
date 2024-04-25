@@ -54,7 +54,7 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
   }
 
   getFormGroupConfig(data?: Landing, opts?: O): { [p: string]: any } {
-    const config = Object.assign(super.getFormGroupConfig(data), {
+    const config = Object.assign(super.getFormGroupConfig(data, opts), {
       __typename: [Landing.TYPENAME],
       location: [data?.location || null, SharedValidators.entity],
       dateTime: [data?.dateTime || null],
@@ -106,7 +106,7 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     opts.withMeasurements = toBoolean(opts.withMeasurements, toBoolean(!!opts.program, false));
     opts.withMeasurementTypename = toBoolean(opts.withMeasurementTypename, opts.withMeasurements);
 
-    opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR);
+    opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.LANDING);
     // TODO add more options, for all form parts:
     // opts.withFishingArea = ...
     // opts.withMetier = ...
