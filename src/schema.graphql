@@ -234,65 +234,65 @@ type DenormalizedBatchVO {
 }
 
 type DenormalizedBatchSortingValueVO {
-  alphanumericalValue: String
-  batch: DenormalizedBatchVO
-  batchId: Int
-  id: Int
-  isInherited: Boolean
-  numericalValue: Float
-  parameter: ReferentialVO
-  pmfm: PmfmVO
-  pmfmId: Int
-  qualitativeValue: ReferentialVO
-  rankOrder: Int
-  unit: ReferentialVO
+    alphanumericalValue: String
+    batch: DenormalizedBatchVO
+    batchId: Int
+    id: Int
+    isInherited: Boolean
+    numericalValue: Float
+    parameter: ReferentialVO
+    pmfm: PmfmVO
+    pmfmId: Int
+    qualitativeValue: ReferentialVO
+    rankOrder: Int
+    unit: ReferentialVO
 }
 
 type DenormalizedBatchVO {
-  calculatedTaxonGroup: ReferentialVO
-  children: [DenormalizedBatchVO]
-  comments: String
-  elevateContextWeight: Float
-  elevateIndividualCount: Int
-  elevateRtpWeight: Float
-  elevateWeight: Float
-  exhaustiveInventory: Boolean
-  flatRankOrder: Short
-  id: Int
-  indirectContextWeight: Float
-  indirectIndividualCount: Int
-  indirectRtpWeight: Float
-  indirectWeight: Float
-  individualCount: Int
-  inheritedTaxonGroup: ReferentialVO
-  inheritedTaxonName: TaxonNameVO
-  isDiscard: Boolean
-  isLanding: Boolean
-  label: String
-  leaf: Boolean!
-  locationId: Int
-  measurementValues: Map_Integer_StringScalar
-  operation: OperationVO
-  operationId: Int
-  parent: DenormalizedBatchVO
-  parentId: Int
-  qualityFlagId: Int
-  rankOrder: Int
-  sale: SaleVO
-  saleId: Int
-  samplingRatio: Float
-  samplingRatioText: String
-  sortingValues: [DenormalizedBatchSortingValueVO]
-  sortingValuesText: String
-  taxonElevateContextWeight: Float
-  taxonElevateIndividualCount: Int
-  taxonGroup: ReferentialVO
-  taxonName: TaxonNameVO
-  treeIndent: String
-  treeLevel: Short
-  updateDate: Date
-  weight: Float
-  weightMethodId: Int
+    calculatedTaxonGroup: ReferentialVO
+    children: [DenormalizedBatchVO]
+    comments: String
+    elevateContextWeight: Float
+    elevateIndividualCount: Int
+    elevateRtpWeight: Float
+    elevateWeight: Float
+    exhaustiveInventory: Boolean
+    flatRankOrder: Short
+    id: Int
+    indirectContextWeight: Float
+    indirectIndividualCount: Int
+    indirectRtpWeight: Float
+    indirectWeight: Float
+    individualCount: Int
+    inheritedTaxonGroup: ReferentialVO
+    inheritedTaxonName: TaxonNameVO
+    isDiscard: Boolean
+    isLanding: Boolean
+    label: String
+    leaf: Boolean!
+    locationId: Int
+    measurementValues: Map_Integer_StringScalar
+    operation: OperationVO
+    operationId: Int
+    parent: DenormalizedBatchVO
+    parentId: Int
+    qualityFlagId: Int
+    rankOrder: Int
+    sale: SaleVO
+    saleId: Int
+    samplingRatio: Float
+    samplingRatioText: String
+    sortingValues: [DenormalizedBatchSortingValueVO]
+    sortingValuesText: String
+    taxonElevateContextWeight: Float
+    taxonElevateIndividualCount: Int
+    taxonGroup: ReferentialVO
+    taxonName: TaxonNameVO
+    treeIndent: String
+    treeLevel: Short
+    updateDate: Date
+    weight: Float
+    weightMethodId: Int
 }
 
 type DenormalizedPmfmStrategyVO {
@@ -326,6 +326,17 @@ type DenormalizedPmfmStrategyVO {
     type: String
     unitLabel: String
     updateDate: Date
+}
+
+type DenormalizedTripResultVO {
+    batchCount: Long!
+    executionTime: Long!
+    invalidBatchCount: Long!
+    message: String
+    operationCount: Long!
+    status: JobStatusEnum
+    tripCount: Long!
+    tripErrorCount: Long!
 }
 
 type DepartmentVO {
@@ -1388,6 +1399,8 @@ type Query {
         "Should included all enumerations values in properties ?"
         inherited: Boolean = true
     ): ConfigurationVO
+    "Check if trip has been denormalized or not"
+    denormalizeTrip(id: Int!): DenormalizedTripResultVO
     "Get denormalized batches"
     denormalizedBatches(filter: DenormalizedBatchesFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [DenormalizedBatchVO]
     "Get a department"
@@ -2354,13 +2367,11 @@ input ActivityCalendarFilterVOInput {
     excludedIds: [Int]
     includedIds: [Int]
     locationId: Int
-    locationIds: [Int]
     programIds: [Int]
     programLabel: String
     qualityFlagIds: [Int]
     recorderDepartmentId: Int
     recorderPersonId: Int
-    registrationLocationId: Int
     registrationLocationIds: [Int]
     startDate: Date
     vesselId: Int
@@ -2397,7 +2408,10 @@ input AggregatedLandingFilterVOInput {
     dataQualityStatus: [DataQualityStatusEnum]
     endDate: Date
     locationId: Int
+<<<<<<< HEAD
     locationIds: [Int]
+=======
+>>>>>>> 375652622 ([enh] FromTripReport: Denormalize batches before compute stats)
     observedLocationId: Int
     programIds: [Int]
     programLabel: String
@@ -2521,6 +2535,7 @@ input DataOriginVOInput {
 
 input DataValidateOptionsInput {
     withChildren: Boolean
+<<<<<<< HEAD
 }
 
 input DenormalizedBatchesFilterVOInput {
@@ -2533,19 +2548,20 @@ input DenormalizedBatchesFilterVOInput {
     recorderDepartmentId: Int
     saleId: Int
     tripId: Int
+=======
+>>>>>>> 375652622 ([enh] FromTripReport: Denormalize batches before compute stats)
 }
 
 input DenormalizedBatchesFilterVOInput {
-  dataQualityStatus: [DataQualityStatusEnum]
-  isDiscard: Boolean
-  isLanding: Boolean
-  observedLocationId: Int
-  operationId: Int
-  operationIds: [Int]
-  qualityFlagIds: [Int]
-  recorderDepartmentId: Int
-  saleId: Int
-  tripId: Int
+    dataQualityStatus: [DataQualityStatusEnum]
+    isDiscard: Boolean
+    isLanding: Boolean
+    observedLocationId: Int
+    operationId: Int
+    qualityFlagIds: [Int]
+    recorderDepartmentId: Int
+    saleId: Int
+    tripId: Int
 }
 
 input DenormalizedPmfmStrategyVOInput {
@@ -3324,7 +3340,10 @@ input PhysicalGearFilterVOInput {
     excludeParentGearId: Int
     excludeTripId: Int
     locationId: Int
+<<<<<<< HEAD
     locationIds: [Int]
+=======
+>>>>>>> 375652622 ([enh] FromTripReport: Denormalize batches before compute stats)
     parentGearId: Int
     programIds: [Int]
     programLabel: String
@@ -3660,7 +3679,10 @@ input SampleFilterVOInput {
     includedIds: [Int]
     landingId: Int
     locationId: Int
+<<<<<<< HEAD
     locationIds: [Int]
+=======
+>>>>>>> 375652622 ([enh] FromTripReport: Denormalize batches before compute stats)
     observedLocationId: Int
     observedLocationIds: [Int]
     operationId: Int
@@ -4083,7 +4105,10 @@ input VesselFilterVOInput {
     excludedIds: [Int]
     includedIds: [Int]
     locationId: Int
+<<<<<<< HEAD
     locationIds: [Int]
+=======
+>>>>>>> 375652622 ([enh] FromTripReport: Denormalize batches before compute stats)
     minUpdateDate: Date
     onlyWithRegistration: Boolean
     programIds: [Int]

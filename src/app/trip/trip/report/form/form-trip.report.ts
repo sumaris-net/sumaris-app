@@ -149,6 +149,10 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
 
   protected async computeStats(data: Trip, opts?: IComputeStatsOpts<FormTripReportStats>): Promise<FormTripReportStats> {
     const stats = new FormTripReportStats();
+
+    // Ensures that batches be denormalized for this trip before generate report
+    await this.denormalizedBatchService.denormalizeTrip(data.id);
+
     stats.program = await this.programRefService.loadByLabel(data.program.label);
     stats.strategy = await this.loadStrategy(stats.program, data);
     const strategyId = stats.strategy?.id;

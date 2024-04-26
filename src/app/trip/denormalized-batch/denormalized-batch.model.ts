@@ -4,6 +4,18 @@ import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { Entity, EntityClass, ReferentialRef, isNotEmptyArray } from '@sumaris-net/ngx-components';
 
+export interface DenormalizedTripResult {
+  tripCount: number;
+  operationCount: number;
+  batchCount: number;
+
+  tripErrorCount: number;
+  invalidBatchCount: number;
+
+  message: string;
+  jobStatusEnum: number;
+}
+
 export interface DenormalizedBatchAsObjectOptions extends DataEntityAsObjectOptions {}
 
 export interface DenormalizedBatchFromObjectOptions {}
