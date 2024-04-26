@@ -71,7 +71,7 @@ export class DenormalizedBatch<
     this.samplingRatioText = source.samplingRatioText;
     this.samplingRatio = source.samplingRatio;
     this.taxonGroup = ReferentialRef.fromObject(source.taxonGroup);
-    this.taxonName = TaxonNameRef.fromObject(source.taxonGroup);
+    this.taxonName = TaxonNameRef.fromObject(source.taxonName);
     this.operationId = source.operationId;
     // this.sortingValues = isNotEmptyArray(source.sortingValues)
     //   ? source.sortingValues.map(DenormalizedBatchSortingValue.fromObject)
