@@ -633,7 +633,7 @@
   <!-- "type" can be 'landing' or 'discard' -->
   <ng-template #batchesTable let-batchType="batchType" let-opId="opId" let-batches="batches">
     @for (
-      batchesChunk of (batches  | arrayFilter: isNotSamplingBatch | arrayFilter: isNotTreeBatchRootElement ) | splitArrayInChunks:maxBatchesLinesPeerTable;
+      batchesChunk of (batches | arrayFilter: isNotTreeBatchRootElement | arrayFilter: isNotSamplingBatch) | splitArrayInChunks:maxBatchesLinesPeerTable;
       track $index;
       let isLastBatchesChunk = $last , isFirstBatchesChunk = $first
     ) {
@@ -693,12 +693,18 @@
                       {{ 'TRIP.REPORT.FORM.BATCH.EXCLUSIVE_SCIENTIFIC_SPECIES' | translate }}
                     </ion-col>
                     <ion-col size="3" class="vertical-centred-content">
-                      <ion-icon [name]="batches[0].exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                      <ion-icon
+                        [style.font-size]="'1.5em'"
+                        [name]="batches[0].exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"
+                      ></ion-icon>
                       &nbsp;
                       {{ 'COMMON.YES' | translate }}
                     </ion-col>
                     <ion-col size="3" class="vertical-centred-content">
-                      <ion-icon [name]="!batches[0].exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                      <ion-icon
+                        [style.font-size]="'1.5em'"
+                        [name]="!batches[0].exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"
+                      ></ion-icon>
                       &nbsp;
                       {{ 'COMMON.NO' | translate }}
                     </ion-col>
@@ -728,38 +734,44 @@
             @for (batch of batchesChunk; track batch.id) {
               <tr>
                 <td class="col-tiny no-margin no-padding ion-text-center font-large">
-                  @if (batch.qualityFlagId | qualityFlagInvalid) {
-                    <ion-icon [name]="batch.qualityFlagId | qualityFlagToIcon" color="danger"></ion-icon>
-                  }
-                  <ion-icon [name]="batch.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                  <ion-icon [style.font-size]="'1.1em'" [name]="batch.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
                 </td>
                 <td class="col-medium">{{ batch.taxonGroup | referentialToString }}</td>
                 <td class="col-medium">{{ batch.taxonName | referentialToString }}</td>
                 <td class="col-extra-large no-margin no-padding">
                   <div class="denormalized-batch-sorting-values-text">
                     <div class="denormalized-batch-tree-indent">
-                      @for (component of batch.treeIndent | denormalizedBatchGetTreeIndentComponents; track $index) {
+                      @for (component of batch | denormalizedBatchGetTreeIndentComponents: { cleanRootElement: true }; track $index) {
                         <div [class]="component"></div>
                       }
                     </div>
                     <div>
-                      @if (batch.individualCount === 1) {
-                        {{ batch.sortingValuesText }}
-                      } @else {
-                        @for (pmfmId of batch.measurementValues | mapKeys; track pmfmId; let last = $last) {
-                          {{
-                            batch.measurementValues
-                              | mapGet: pmfmId
-                              | pmfmValue
-                                : {
-                                    pmfm: stats.pmfmsByIds.denormalizedBatch | mapGet: pmfmId
-                                  }
-                          }}
-                          @if (!last) {
-                            &nbsp;-&nbsp;
+                      @if (batch.qualityFlagId | qualityFlagInvalid) {
+                        <ion-icon [name]="batch.qualityFlagId | qualityFlagToIcon" color="danger"></ion-icon>
+                      }
+                      <b>
+                        @if (batch.individualCount === 1) {
+                          {{ batch.sortingValuesText }}
+                        } @else {
+                          @for (pmfmId of batch.measurementValues | mapKeys; track pmfmId; let last = $last) {
+                            {{
+                              batch.measurementValues
+                                | mapGet: pmfmId
+                                | pmfmValue
+                                  : {
+                                      pmfm: stats.pmfmsByIds.denormalizedBatch | mapGet: pmfmId,
+                                      propertyNames: ['label', 'name']
+                                    }
+                            }}
+                            @if (!last) {
+                              ,&nbsp;
+                            }
                           }
                         }
-                      }
+                      </b>
+                      <!-- {{ batch.treeLevel }}<br/> -->
+                      <!-- {{ batch.label }}<br/> -->
+                      <!-- {{ batch | denormalizedBatchGetTreeIndentComponents: {cleanRootElement: true, cleanSamplingElement: true} | json}} -->
                     </div>
                   </div>
                 </td>
