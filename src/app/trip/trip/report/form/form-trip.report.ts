@@ -155,7 +155,9 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected async computeStats(data: Trip, opts?: IComputeStatsOpts<FormTripReportStats>): Promise<FormTripReportStats> {
     const stats = new FormTripReportStats();
 
-    // Get program and options
+    // Ensures that batches be denormalized for this trip before generate report
+    await this.denormalizedBatchService.denormalizeTrip(data.id);
+
     stats.program = await this.programRefService.loadByLabel(data.program.label);
     stats.options = {
       showFishingStartDateTime: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
