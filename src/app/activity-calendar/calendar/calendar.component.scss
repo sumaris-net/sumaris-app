@@ -1,3 +1,11 @@
+.mat-accordion {
+  --expansion-panel-padding: 0;
+  .mat-expansion-panel-header {
+    &.mat-expanded {
+      background-color: var(--ion-color-secondary100);
+    }
+  }
+}
 
 .table-container {
   --table-toolbar-height: 0px;
@@ -23,7 +31,7 @@
 .mat-mdc-table {
   --col-header-size: 150px;
   --col-min-size: 100px;
-  --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / 12));
+  --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / var(--month-count, 12)));
   --mat-cell-border-color-hover: var(--ion-color-secondary);
   --mat-row-height: 35px !important;
   --mat-row-max-height: 35px !important;
@@ -126,6 +134,15 @@
   ::ng-deep .mat-column-reset-background-color {
     --ion-background-color: var(--mat-table-background-color) !important;
     background-color: var(--mat-table-background-color) !important;
+  }
+
+  ::ng-deep .mat-form-field-disabled {
+    input::-webkit-input-placeholder, /* Chrome/Opera/Safari */
+    input::-moz-placeholder, /* Firefox 19+ */
+    input:-ms-input-placeholder, /* IE 10+ */
+    input:-moz-placeholder { /* Firefox 18- */
+      color: transparent;
+    }
   }
 
   .mat-mdc-cell-resizable {

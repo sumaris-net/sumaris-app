@@ -194,18 +194,25 @@
       </ng-template>
 
       <as-split direction="horizontal" [useTransition]="true" (dragEnd)="map?.containerResize()" [restrictMove]="mobile">
-        <as-split-area [minSize]="20" [size]="100 - rightPanelWidth">
+        <as-split-area [minSize]="20" [size]="100 - mapPanelWidth">
           <!-- map -->
-          @if (selectedTabIndex === 3) {
+          @if (!!map || (selectedTabIndex === 3 && calendar.valid)) {
             <app-activity-calendar-map #map></app-activity-calendar-map>
           }
         </as-split-area>
-        <as-split-area [minSize]="30" [size]="rightPanelWidth" [visible]="rightPanelVisible">
-          <mat-accordion>
-            @for (type of calendar.dataSource; track $index) {
-            <ng-container *ngTemplateOutlet="mapMonth; context: { $implicit: 1 }"></ng-container>
-            <ng-container *ngTemplateOutlet="mapMonth; context: { $implicit: 2 }"></ng-container>
-          </mat-accordion>
+        <as-split-area [minSize]="30" [size]="mapPanelWidth" [visible]="showMapPanel">
+          <app-calendar
+            #mapCalendar
+            [style]="'accordion'"
+            [programLabel]="programLabel$ | async"
+            [requiredStrategy]="requiredStrategy$ | async"
+            [strategyId]="(strategy$ | async)?.id"
+            [timezone]="dbTimeZone"
+            [showVesselOwner]="false"
+            [showRegistrationLocation]="false"
+            [showMonth]="debug"
+            [debug]="debug"
+          ></app-calendar>
         </as-split-area>
       </as-split>
     </mat-tab>
@@ -240,22 +247,6 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
-
-<ng-template #mapMonth let-month>
-  <mat-expansion-panel>
-    <mat-expansion-panel-header>{{ month }}</mat-expansion-panel-header>
-
-    <app-calendar
-      #mapMonth
-      [month]="month"
-      [programLabel]="programLabel$ | async"
-      [requiredStrategy]="requiredStrategy$ | async"
-      [strategyId]="(strategy$ | async)?.id"
-      [timezone]="dbTimeZone"
-      [debug]="debug"
-    ></app-calendar>
-  </mat-expansion-panel>
-</ng-template>
 
 <ng-template #debugPanel>
   <app-debug title="Editor and Form">

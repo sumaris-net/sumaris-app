@@ -362,9 +362,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
     return this.landingForm.translateControlPath(controlPath);
   }
 
-  /* -- protected method -- */
-
-  protected async setValue(data: Landing): Promise<void> {
+  async setValue(data: Landing): Promise<void> {
     // Clean invalid sample label
     (data.samples || []).forEach((sample) => {
       if (sample.label?.startsWith('#')) sample.label = '';
@@ -380,7 +378,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
     }
   }
 
-  protected async getValue(): Promise<Landing> {
+  async getValue(): Promise<Landing> {
     let data = await super.getValue();
 
     // Convert into entity
@@ -410,6 +408,8 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
 
     return data;
   }
+
+  /* -- protected method -- */
 
   protected async computeTitle(data: Landing): Promise<string> {
     const titlePrefix =

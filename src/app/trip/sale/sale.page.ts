@@ -263,7 +263,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   /* -- protected methods  -- */
 
   protected registerForms() {
-    this.addChildForms([this.saleForm, this.fishingAreaForm, this.batchTree]);
+    this.addForms([this.saleForm, this.fishingAreaForm, this.batchTree]);
   }
 
   protected async onNewEntity(data: Sale, options?: EntityServiceLoadOptions): Promise<void> {
@@ -550,7 +550,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     return parent;
   }
 
-  protected async setValue(data: Sale): Promise<void> {
+  async setValue(data: Sale): Promise<void> {
     if (!data) return; // Skip
 
     await this.saleForm.setValue(data);
@@ -629,7 +629,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       : 'DESK';
   }
 
-  protected async getValue(): Promise<Sale> {
+  async getValue(): Promise<Sale> {
     // DEBUG
     //console.debug('[sale-page] getValue()');
 

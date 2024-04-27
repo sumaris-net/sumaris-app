@@ -8,7 +8,7 @@ import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module'
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
-import { CalendarAccordionComponent } from '@app/activity-calendar/calendar/accordion/calendar-accordion.component';
+import { AppDataModule } from '@app/data/data.module';
 
 @NgModule({
   imports: [
@@ -24,15 +24,15 @@ import { CalendarAccordionComponent } from '@app/activity-calendar/calendar/acco
     SharedDebugModule,
     AppPmfmFormFieldModule,
     AppIconModule,
+    AppDataModule,
   ],
-  declarations: [CalendarComponent, CalendarAccordionComponent],
+  declarations: [CalendarComponent],
   exports: [
     SharedModule,
     TranslateModule,
 
     // Components
     CalendarComponent,
-    CalendarAccordionComponent,
   ],
 })
 export class AppCalendarModule {}

@@ -12,7 +12,6 @@ import {
   HistoryPageReference,
   isNil,
   referentialToString,
-  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import { Parameter } from '../../services/model/parameter.model';
 import { ParameterService } from '../../services/parameter.service';
@@ -106,11 +105,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
     }
   }
 
-  protected registerForms() {
-    this.addChildForms([this.qualitativeValuesTable, this.referentialForm]);
-  }
-
-  protected setValue(data: Parameter) {
+  setValue(data: Parameter) {
     if (!data) return; // Skip
 
     const json = data.asObject();
@@ -124,7 +119,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
     this.markAsPristine();
   }
 
-  protected async getValue(): Promise<Parameter> {
+  async getValue(): Promise<Parameter> {
     const data = await super.getValue();
 
     // Re add label, because missing when field disable
@@ -135,6 +130,12 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
     data.qualitativeValues = this.qualitativeValuesTable.value;
 
     return data;
+  }
+
+  /* -- protected methods -- */
+
+  protected registerForms() {
+    this.addForms([this.qualitativeValuesTable, this.referentialForm]);
   }
 
   protected computeTitle(data: Parameter): Promise<string> {

@@ -187,12 +187,12 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     return super.loadFromRoute();
   }
 
-  protected setValue(data: SamplingStrategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  async setValue(data: SamplingStrategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     if (!data) return; // Skip
-    this.strategyForm.setValue(data);
+    await this.strategyForm.setValue(data, opts);
   }
 
-  protected async getValue(): Promise<SamplingStrategy> {
+  async getValue(): Promise<SamplingStrategy> {
     const value: SamplingStrategy = (await this.strategyForm.getValue()) as SamplingStrategy;
 
     // Add default PmfmStrategy

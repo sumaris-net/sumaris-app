@@ -1,6 +1,19 @@
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, inject, Injector, Input, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  inject,
+  Injector,
+  Input,
+  OnInit,
+  QueryList,
+  ViewChildren,
+} from '@angular/core';
 import {
   DateUtils,
+  EntityUtils,
   IEntitiesService,
   InMemoryEntitiesService,
   isEmptyArray,
@@ -19,11 +32,16 @@ import {
   StatusIds,
   toDateISOString,
   UsageMode,
+  waitFor,
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
-import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { TableElement } from '@e-is/ngx-material-table';
 import { ActivityMonth, ActivityMonthFilter } from '@app/activity-calendar/calendar/activity-month.model';
-import { ActivityMonthValidatorOptions, ActivityMonthValidatorService } from '@app/activity-calendar/calendar/activity-month.validator';
+import {
+  ActivityMonthValidatorOptions,
+  ActivityMonthValidators,
+  ActivityMonthValidatorService,
+} from '@app/activity-calendar/calendar/activity-month.validator';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { RxState } from '@rx-angular/state';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
@@ -32,14 +50,15 @@ import { Observable, Subscription } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
-import { GearUseFeatures, GearUseFeaturesComparators } from '@app/activity-calendar/model/gear-use-features.model';
 import { UntypedFormGroup } from '@angular/forms';
-import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
+import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { BaseMeasurementsTable, BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
+import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
+import { Moment } from 'moment/moment';
+import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 
 const MAX_METIER_COUNT = 10;
 const MAX_FISHING_AREA_COUNT = 2;
@@ -90,7 +109,7 @@ export interface ColumnDefinition {
   hidden?: boolean;
 }
 
-export interface ActivityCalendarState extends BaseMeasurementsTableState {
+export interface CalendarComponentState extends BaseMeasurementsTableState {
   metierLevelId: number;
   vesselSnapshots: VesselSnapshot[];
   vesselOwners: VesselOwner[];
@@ -98,11 +117,23 @@ export interface ActivityCalendarState extends BaseMeasurementsTableState {
   metierCount: number;
 }
 
+export type CalendarComponentStyle = 'table' | 'accordion';
+
 @Component({
   selector: 'app-calendar',
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.scss'],
-  providers: [RxState],
+  providers: [
+    {
+      provide: InMemoryEntitiesService,
+      useFactory: () =>
+        new InMemoryEntitiesService(ActivityMonth, ActivityMonthFilter, {
+          equals: EntityUtils.equals,
+          sortByReplacement: { id: 'month' },
+        }),
+    },
+    RxState,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarComponent
@@ -111,11 +142,11 @@ export class CalendarComponent
     ActivityMonthFilter,
     IEntitiesService<ActivityMonth, ActivityMonthFilter>,
     ActivityMonthValidatorService,
-    ActivityCalendarState,
-    BaseMeasurementsTableConfig<ActivityMonth, ActivityCalendarState>,
+    CalendarComponentState,
+    BaseMeasurementsTableConfig<ActivityMonth, CalendarComponentState>,
     ActivityMonthValidatorOptions
   >
-  implements OnInit
+  implements OnInit, AfterViewInit
 {
   protected vesselSnapshotService = inject(VesselSnapshotService);
   protected referentialRefService = inject(ReferentialRefService);
@@ -123,11 +154,11 @@ export class CalendarComponent
   @RxStateSelect() protected vesselSnapshots$: Observable<VesselSnapshot[]>;
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
+  @RxStateSelect() protected months$: Observable<Moment[]>;
   readonly isActiveList = IsActiveList;
   readonly isActiveMap = Object.freeze(splitById(IsActiveList));
 
   protected rowSubscription: Subscription;
-  protected data: ActivityCalendar;
   protected hiddenColumns = ['select', 'id'];
   protected resizingCell: {
     validating?: boolean;
@@ -139,11 +170,14 @@ export class CalendarComponent
   };
   protected originalMouseY: number;
   protected originalMouseX: number;
+  protected _children: CalendarComponent[];
 
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
   @RxStateProperty() metierCount: number;
+
+  @Input() @RxStateProperty() months: Moment[];
 
   @Input() locationDisplayAttributes: string[];
   @Input() basePortLocationLevelIds: number[];
@@ -154,6 +188,7 @@ export class CalendarComponent
   @Input() maxFishingAreaCount = MAX_FISHING_AREA_COUNT;
   @Input() usageMode: UsageMode;
   @Input() showPmfmDetails = false;
+  @Input() style: CalendarComponentStyle = 'table';
 
   @Input() set month(value: number) {
     this.filter = ActivityMonthFilter.fromObject({ month: value });
@@ -162,9 +197,75 @@ export class CalendarComponent
     return this.filter?.month;
   }
 
+  @Input() set showVesselOwner(value: boolean) {
+    this.setShowColumn('vesselOwner', value);
+  }
+  get showVesselOwner(): boolean {
+    return this.getShowColumn('vesselOwner');
+  }
+
+  @Input() set showRegistrationLocation(value: boolean) {
+    this.setShowColumn('registrationLocation', value);
+  }
+  get showRegistrationLocation(): boolean {
+    return this.getShowColumn('registrationLocation');
+  }
+  @Input() set showMonth(value: boolean) {
+    this.setShowColumn('month', value);
+  }
+  get showMonth(): boolean {
+    return this.getShowColumn('month');
+  }
+
   get isOnFieldMode() {
     return this.usageMode === 'FIELD';
   }
+
+  get dirty(): boolean {
+    return this.dirtySubject.value || (this._children && this._children.findIndex((c) => c.enabled && c.dirty) !== -1) || false;
+  }
+
+  /**
+   * Is valid (tables and forms)
+   */
+  get valid(): boolean {
+    // Important: Should be not invalid AND not pending, so use '!valid' (DO NOT use 'invalid')
+    return !this._children || this._children.findIndex((c) => c.enabled && !c.valid) === -1;
+  }
+
+  get invalid(): boolean {
+    return (this._children && this._children.findIndex((c) => c.enabled && c.invalid) !== -1) || false;
+  }
+
+  get pending(): boolean {
+    return (this._children && this._children.findIndex((c) => c.enabled && c.pending) !== -1) || false;
+  }
+
+  get loading(): boolean {
+    return this.loadingSubject.value || (this._children && this._children.findIndex((c) => c.enabled && c.loading) !== -1) || false;
+  }
+
+  get loaded(): boolean {
+    return (!this.loadingSubject.value && (!this._children || this._children.findIndex((c) => c.enabled && c.loading) === -1)) || false;
+  }
+
+  get touched(): boolean {
+    return this.touchedSubject.value || (this._children && this._children.findIndex((c) => c.enabled && c.touched) !== -1) || false;
+  }
+
+  get untouched(): boolean {
+    return (!this.touchedSubject.value && (!this._children || this._children.findIndex((c) => c.enabled && c.touched) === -1)) || false;
+  }
+
+  set value(data: ActivityMonth[]) {
+    this.setValue(data);
+  }
+
+  get value(): ActivityMonth[] {
+    return this.getValue();
+  }
+
+  @ViewChildren('monthCalendar', { read: CalendarComponent }) monthCalendars!: QueryList<CalendarComponent>;
 
   constructor(
     injector: Injector,
@@ -184,13 +285,14 @@ export class CalendarComponent
       {
         reservedStartColumns: ACTIVITY_MONTH_START_COLUMNS,
         reservedEndColumns: ACTIVITY_MONTH_END_COLUMNS,
-        i18nColumnPrefix: 'ACTIVITY_CALENDAR.TABLE.',
+        i18nColumnPrefix: 'ACTIVITY_CALENDAR.EDIT.',
         i18nPmfmPrefix: 'ACTIVITY_CALENDAR.PMFM.',
         // Cannot override mapPmfms (by options)
         //mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onPrepareRowForm: (form) => this.onPrepareRowForm(form),
-        initialState: <ActivityCalendarState>{
+        initialState: <CalendarComponentState>{
           requiredStrategy: true,
+          requiredGear: false,
           acquisitionLevel: AcquisitionLevelCodes.MONTHLY_ACTIVITY,
           metierCount: 0,
         },
@@ -201,6 +303,7 @@ export class CalendarComponent
     this.sticky = true;
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
     this.excludesColumns = [...DYNAMIC_COLUMNS];
+    this.logPrefix = '[activity-calendar] ';
   }
 
   async ngOnInit() {
@@ -247,83 +350,124 @@ export class CalendarComponent
     //this.markAsReady();
   }
 
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
+  }
+
+  initTableContainer(element: any) {
+    if (this.style === 'accordion') return; // Skip
+    super.initTableContainer(element);
+  }
+
+  markAsReady(opts?: { emitEvent?: boolean }) {
+    if (this.style === 'accordion') {
+      this._children = this._children || (this.monthCalendars.length ? this.monthCalendars.toArray() : null);
+      if (isEmptyArray(this._children)) {
+        waitFor(() => this.monthCalendars.length > 0, { stop: this.destroySubject, stopError: false }).then(() => this.markAsReady(opts));
+        return;
+      }
+      this._children?.forEach((c) => c.markAsReady(opts));
+      super.markAsReady(opts);
+    } else {
+      super.markAsReady(opts);
+    }
+  }
+
   ngOnDestroy() {
     super.ngOnDestroy();
     this.rowSubscription?.unsubscribe();
   }
 
-  async setValue(data: ActivityCalendar) {
-    this.data = ActivityCalendar.fromObject(data);
-    const year = data?.year || DateUtils.moment().tz(this.timezone).year() - 1;
-    const vesselId = data.vesselSnapshot?.id;
+  async setValue(data: ActivityMonth[]) {
+    console.debug(this.logPrefix + 'Setting data', data);
 
-    const baseDate = this.timezone ? DateUtils.moment().tz(this.timezone).year(year).startOf('year') : DateUtils.moment().year(year).startOf('year');
-    let metierBlockCount = 0;
-    const months = new Array(12).fill(null).map((_, month) => {
-      const startDate = baseDate.clone().month(month).startOf('month');
-      const endDate = startDate.clone().endOf('month');
+    switch (this.style) {
+      // Table
+      case 'table':
+        // Set data service
+        this.memoryDataService.value = data;
 
-      // DEBUG
-      if (this.debug) console.debug(this.logPrefix + `month #${month} starting at ${toDateISOString(startDate)}`);
+        this.waitIdle({ stop: this.destroySubject }).then(() => {
+          const metierBlockCount = data.reduce((res, month) => Math.max(month.gearUseFeatures?.length || 0, res), 0);
+          // DEBUG
+          console.debug(this.logPrefix + 'Metier block count=' + metierBlockCount);
 
-      const source = data.vesselUseFeatures?.find((vuf) => DateUtils.isSame(startDate, vuf.startDate)) || { startDate };
-      const target = ActivityMonth.fromObject(source);
-      target.gearUseFeatures =
-        data.gearUseFeatures
-          ?.filter((guf) => DateUtils.isSame(startDate, guf.startDate))
-          .sort(GearUseFeaturesComparators.sortRankOrder)
-          .map(GearUseFeatures.fromObject) || [];
-      metierBlockCount = Math.max(metierBlockCount, target.gearUseFeatures.length);
-      // if (isNotNil(target.isActive)) {
-      //   switch (target.isActive) {
-      //     case VesselUseFeaturesIsActiveEnum.ACTIVE: {
-      //       if (isEmptyArray())
-      //     }
-      //     case VesselUseFeaturesIsActiveEnum.INACTIVE:
-      //     case VesselUseFeaturesIsActiveEnum.NOT_EXISTS: {
-      //
-      //     }
-      //   }
-      //
-      // })
-      target.vesselId = vesselId;
-      target.endDate = endDate;
-      target.month = month + 1;
-      return target;
-    });
+          while (this.metierCount < metierBlockCount) {
+            this.addMetierBlock();
+          }
+        });
 
-    // DEBUG
-    console.debug(this.logPrefix + 'Metier block count=' + metierBlockCount);
+        // Load vessels
+        if (isNotEmptyArray(data)) {
+          const year = data[0].startDate.year();
+          const vesselId = data[0].vesselId;
+          if (isNotNil(vesselId)) {
+            await this.loadVessels(vesselId, year);
+          }
+        }
+        break;
 
-    while (this.metierCount < metierBlockCount) {
-      this.addMetierBlock();
-    }
-
-    this.memoryDataService.value = months;
-
-    // Load vessels
-    if (isNotNil(vesselId)) {
-      await this.loadVessels(vesselId, year);
+      // Accordion
+      case 'accordion':
+        await this.waitForChildren();
+        this._children.map((child, index) => {
+          const month = child.month;
+          const filteredMonth = data.find((am) => am.month === month);
+          child.value = [filteredMonth];
+        });
+        this.markAsLoaded();
+        this.memoryDataService.value = []; // Not need
+        break;
     }
   }
 
-  async getValue() {
-    const data = this.data?.clone() || ActivityCalendar.fromObject({});
+  getValue(): ActivityMonth[] {
+    switch (this.style) {
+      // Table
+      case 'table': {
+        const months = this.memoryDataService.value;
 
-    const months = this.memoryDataService.value;
-    data.vesselUseFeatures = months.filter((month) => isNotNil(month.isActive)).map((month) => VesselUseFeatures.fromObject(month.asObject()));
-    data.gearUseFeatures = months
-      .filter((month) => month.isActive === VesselUseFeaturesIsActiveEnum.ACTIVE && isNotEmptyArray(month.gearUseFeatures))
-      .reduce((res, month) => res.concat(...month.gearUseFeatures), []);
+        // Clear empty block
+        months.forEach((month) => {
+          if (month.isActive === VesselUseFeaturesIsActiveEnum.ACTIVE) {
+            month.gearUseFeatures = month.gearUseFeatures?.filter(GearUseFeatures.isNotEmpty);
+          } else {
+            month.gearUseFeatures = []; // Clear gears
+            month.measurementValues = {}; // Clear measurements
+          }
+        });
 
-    return data;
+        return months;
+      }
+
+      // Accordion
+      case 'accordion': {
+        return this._children?.flatMap((child) => child.value) || <ActivityMonth[]>[];
+      }
+    }
   }
 
   async loadVessels(vesselId: number, year: number) {
-    const now = this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment();
+    const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
+    const endDate = startDate.clone().endOf('year');
+    const { data } = await this.vesselSnapshotService.loadAll(
+      0,
+      12, // all
+      null,
+      null,
+      {
+        vesselId,
+        startDate,
+        endDate,
+        onlyWithRegistration: true, // TODO Est-ce utilisé ?
+      },
+      { withTotal: false, withDates: true }
+    );
+    console.log('TODO vesselSnapshots loaded: ', data);
+
     this.vesselSnapshots = await Promise.all(
-      new Array(12).fill(null).map(async (_, month) => {
-        const date = now.clone().utc(false).year(year).month(month).startOf('month');
+      CalendarUtils.MONTHS.map(async (_, month) => {
+        const date = startDate.clone().utc(false).month(month);
 
         // DEBUG
         if (this.debug) console.debug(this.logPrefix + `Loading vessel for month #${month} using date ${toDateISOString(date)}`);
@@ -343,6 +487,12 @@ export class CalendarComponent
         return data?.[0] || null;
       })
     );
+  }
+
+  async waitForChildren(opts?: WaitForOptions) {
+    if (this.style === 'accordion' && isEmptyArray(this._children)) {
+      return waitFor(() => this.monthCalendars.length > 0, { stop: this.destroySubject, stopError: false, ...opts });
+    }
   }
 
   onMouseDown(event: MouseEvent, cellElement: HTMLTableCellElement, row: TableElement<any>, columnName: string, axis?: 'x' | 'y') {
@@ -531,7 +681,7 @@ export class CalendarComponent
       }),
     ];
 
-    this.dataSource.getRows().forEach((row) => this.onPrepareRowForm(row.validator));
+    this.dataSource.getRows().forEach((row) => this.onPrepareRowForm(row.validator, { listenChanges: false }));
 
     this.focusColumn = blockColumns[0].key;
     this.dynamicColumns = this.dynamicColumns ? [...this.dynamicColumns, ...blockColumns] : blockColumns;
@@ -575,39 +725,13 @@ export class CalendarComponent
 
   protected onPrepareRowForm(
     form: UntypedFormGroup,
-    opts?: {
-      pmfms?: IPmfm[];
-      markForCheck?: () => void;
-    }
-  ) {
-    if (!form) return;
-
-    this.rowSubscription?.unsubscribe();
-
-    const isActiveControl = form.get('isActive');
-    this.rowSubscription = isActiveControl.valueChanges.subscribe(() => {
-      this.updateRowForm(form, { ...opts, markForCheck: () => this.markForCheck() });
-    });
-
-    this.updateRowForm(form, opts);
-  }
-  protected configureValidator(opts: MeasurementsTableValidatorOptions) {
-    super.configureValidator(opts);
-
-    this.validatorService.delegateOptions = {
-      maxMetierCount: this.maxMetierCount,
-      maxFishingAreaCount: this.maxFishingAreaCount,
-    };
-  }
-
-  protected updateRowForm(
-    form: UntypedFormGroup,
     opts?: ActivityMonthValidatorOptions & {
-      markForCheck?: () => void;
+      listenChanges?: boolean;
     }
   ) {
-    const isActive = form.get('isActive').value;
+    if (!form || !this.validatorService) return;
 
+    const isActive = form.get('isActive').value;
     console.debug(this.logPrefix + 'Preparing row form... isActive=' + isActive, form);
 
     opts = {
@@ -620,7 +744,21 @@ export class CalendarComponent
     };
     this.validatorService.updateFormGroup(form, opts);
 
-    if (opts?.markForCheck) opts.markForCheck();
+    if (opts?.listenChanges !== false) {
+      this.rowSubscription?.unsubscribe();
+      this.rowSubscription = ActivityMonthValidators.startListenChanges(form, this.pmfms, {
+        markForCheck: () => this.markForCheck(),
+      });
+    }
+  }
+
+  protected configureValidator(opts: MeasurementsTableValidatorOptions) {
+    super.configureValidator(opts);
+
+    this.validatorService.delegateOptions = {
+      maxMetierCount: this.maxMetierCount,
+      maxFishingAreaCount: this.maxFishingAreaCount,
+    };
   }
 
   toggleBlock(event: UIEvent, blockIndex: number) {

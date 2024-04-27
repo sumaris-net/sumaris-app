@@ -120,7 +120,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   /* -- protected methods -- */
 
   protected registerForms() {
-    this.addChildForms([this.referentialForm, this.strategyForm]);
+    this.addForms([this.referentialForm, this.strategyForm]);
   }
 
   protected async onNewEntity(data: Strategy, options?: EntityServiceLoadOptions): Promise<void> {
@@ -147,7 +147,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     }
   }
 
-  protected async setValue(data: Strategy) {
+  async setValue(data: Strategy) {
     if (!data) return; // Skip
 
     this.referentialForm.setValue(data);

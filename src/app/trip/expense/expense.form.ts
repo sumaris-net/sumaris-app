@@ -198,7 +198,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     this.markForCheck();
   }
 
-  protected getValue(): Measurement[] {
+  getValue(): Measurement[] {
     const values = super.getValue();
 
     // reset computed values from tuples

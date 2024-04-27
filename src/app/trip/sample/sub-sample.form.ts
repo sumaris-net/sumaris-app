@@ -143,7 +143,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnIn
     return pmfms;
   }
 
-  protected getValue(): Sample {
+  getValue(): Sample {
     const value = super.getValue();
 
     // Copy parent measurement, if any

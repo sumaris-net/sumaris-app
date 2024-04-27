@@ -241,7 +241,7 @@ export class AuctionControlValidators {
       }
     }
 
-    if (opts && opts.markForCheck) {
+    if (opts?.markForCheck) {
       //console.debug("[auction-control-validator] calling MarkForCheck...");
       opts.markForCheck();
     }

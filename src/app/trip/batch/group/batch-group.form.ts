@@ -374,7 +374,7 @@ export class BatchGroupForm
     }
   }
 
-  protected getValue(): BatchGroup {
+  getValue(): BatchGroup {
     const data = super.getValue();
     if (!data) return; // No set yet
 

@@ -153,7 +153,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
     await super.setValue(data, opts);
   }
 
-  protected getValue(): PhysicalGear {
+  getValue(): PhysicalGear {
     const target = super.getValue();
 
     // Re Add gear, if control has been disabled

@@ -147,7 +147,7 @@ export class SampleForm extends MeasurementValuesForm<Sample> implements OnInit,
     }
   }
 
-  protected getValue(): Sample {
+  getValue(): Sample {
     const value = super.getValue();
     // Reset comment, when hidden
     if (!this.showComment) value.comments = undefined;

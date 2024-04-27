@@ -95,7 +95,7 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
     });
   }
 
-  protected getValue(): Measurement[] {
+  getValue(): Measurement[] {
     const values = super.getValue();
 
     // parse values

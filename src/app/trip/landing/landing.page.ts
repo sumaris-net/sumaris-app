@@ -305,7 +305,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   /* -- protected methods  -- */
 
   protected registerForms() {
-    this.addChildForms([this.landingForm, this.samplesTable]);
+    this.addForms([this.landingForm, this.samplesTable]);
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -681,7 +681,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     return parent;
   }
 
-  protected async setValue(data: Landing): Promise<void> {
+  async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
     await this.landingForm.setValue(data);
@@ -744,7 +744,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
       : 'DESK';
   }
 
-  protected async getValue(): Promise<Landing> {
+  async getValue(): Promise<Landing> {
     // DEBUG
     //console.debug('[landing-page] getValue()');
 

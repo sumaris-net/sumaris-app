@@ -228,7 +228,7 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
   }
 
   protected registerForms() {
-    this.addChildForms([
+    this.addForms([
       this.tripForm,
       this.measurementsForm,
       this.fishingAreaForm,
@@ -392,7 +392,7 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
     this.showExpenseTab = false;
   }
 
-  protected async setValue(data: Trip): Promise<void> {
+  async setValue(data: Trip): Promise<void> {
     // Set data to form
     const formPromise = this.tripForm.setValue(data, { emitEvent: true });
 

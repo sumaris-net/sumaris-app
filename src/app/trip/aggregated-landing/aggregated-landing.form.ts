@@ -135,7 +135,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
     this.form.controls.activities.valueChanges
       .pipe(
-        filter(() => !this._loading)
+        filter(() => !this.loading)
         // distinctUntilChanged()
         // debounceTime(1000)
       )
