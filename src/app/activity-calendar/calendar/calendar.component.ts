@@ -342,11 +342,6 @@ export class CalendarComponent
       mobile: this.mobile,
     });
 
-    // Listen row edition
-    // if (this.inlineEdition) {
-    //   this.registerSubscription(this.onStartEditingRow.subscribe((row) => this.onStartEditingMonth(row)));
-    // }
-
     //this.markAsReady();
   }
 

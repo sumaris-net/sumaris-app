@@ -148,6 +148,7 @@ export class ProductsTable
         })
     );
 
+    // TODO pass to constructor's options
     this.registerSubscription(this.onStartEditingRow.subscribe((row) => this.onStartEditProduct(row)));
   }
 
