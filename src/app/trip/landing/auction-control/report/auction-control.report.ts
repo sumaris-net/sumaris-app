@@ -20,7 +20,6 @@ export class AuctionControlReport extends BaseLandingReport {
   /* -- protected function -- */
 
   protected computeTitle(data: Landing, stats: LandingStats): Promise<string> {
-    console.debug('MYTEST TOTO');
     return firstValueFrom(
       this.translate.get('AUCTION_CONTROL.REPORT.TITLE', {
         vessel: data.vesselSnapshot.name,

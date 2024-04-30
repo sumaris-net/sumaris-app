@@ -67,6 +67,13 @@ const routes: Routes = [
       {
         path: 'form',
         pathMatch: 'full',
+        data: { isBlankForm: false },
+        loadChildren: () => import('./report/form/form-trip-report-routing.module').then((m) => m.FormTripReportRoutingModule),
+      },
+      {
+        path: 'blank-form',
+        pathMatch: 'full',
+        data: { isBlankForm: true },
         loadChildren: () => import('./report/form/form-trip-report-routing.module').then((m) => m.FormTripReportRoutingModule),
       },
     ],
