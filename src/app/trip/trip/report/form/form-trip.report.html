@@ -614,17 +614,17 @@
     }
 
     <!-- Iterate over all batches by operation ids -->
-    @for (opId of stats.denormalizedBatchesByOp | mapKeys; track opId) {
+    @for (opId of stats.denormalizedBatchLinesByOp | mapKeys; track opId) {
       <section *sectionDef>
         <!-- Iterate over all types of batches (landing/discard) -->
-        @for (batchType of stats.denormalizedBatchesByOp | mapGet: opId | mapKeys; track $index) {
+        @for (batchType of stats.denormalizedBatchLinesByOp | mapGet: opId | mapKeys; track $index) {
           <ng-content
             *ngTemplateOutlet="
               batchesTable;
               context: {
                 batchType: batchType,
                 opId: opId,
-                batches: stats.denormalizedBatchesByOp | mapGet: opId | mapGet: batchType
+                batches: stats.denormalizedBatchLinesByOp | mapGet: opId | mapGet: batchType
               }
             "
           ></ng-content>
@@ -636,7 +636,7 @@
   <!-- "type" can be 'landing' or 'discard' -->
   <ng-template #batchesTable let-batchType="batchType" let-opId="opId" let-batches="batches">
     @for (
-      batchesChunk of (batches | arrayFilter: isNotTreeBatchRootElement | arrayFilter: isNotSamplingBatch) | splitArrayInChunks:maxBatchesLinesPeerTable;
+      batchesChunk of batches | splitArrayInChunks:maxBatchesLinesPeerTable;
       track $index;
       let isLastBatchesChunk = $last , isFirstBatchesChunk = $first
     ) {
@@ -734,7 +734,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (batch of batchesChunk; track batch.id) {
+            @for (batch of batchesChunk; track batch.id; let isLast = $last) {
               <tr>
                 <td class="col-tiny no-margin no-padding ion-text-center font-large">
                   <ion-icon [style.font-size]="'1.1em'" [name]="batch.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
@@ -742,13 +742,9 @@
                 <td class="col-medium">{{ batch.taxonGroup | referentialToString }}</td>
                 <td class="col-medium">{{ batch.taxonName | referentialToString }}</td>
                 <td class="col-extra-large no-margin no-padding">
-                  <div class="denormalized-batch-sorting-values-text">
-                    <div class="denormalized-batch-tree-indent">
-                      @for (component of batch | denormalizedBatchGetTreeIndentComponents: { cleanRootElement: true }; track $index) {
-                        <div [class]="component"></div>
-                      }
-                    </div>
-                    <div>
+                  <div class="denormalized-batch-sorting-values">
+                    <div class="denormalized-batch-tree-indent" [innerHtml]="batch.treeIndent"></div>
+                    <div class="denormalized-batch-sorting-values-text">
                       @if (batch.qualityFlagId | qualityFlagInvalid) {
                         <ion-icon [name]="batch.qualityFlagId | qualityFlagToIcon" color="danger"></ion-icon>
                       }
@@ -785,15 +781,13 @@
                     {{ batch.elevateIndividualCount }}
                   }
                 </td>
-                @if (batch | denormalizeBatchSamplingChildOrSelf: batches; as samplingBatch) {
-                  <td class="col-small ion-text-right">{{ samplingBatch.samplingRatioText || samplingBatch.samplingRatio }}</td>
-                  <td class="col-small ion-text-right" [class.computed]="samplingBatch.weight | isNil">
-                    {{ samplingBatch.weight || samplingBatch.indirectWeight }}
-                  </td>
-                  <td class="col-small ion-text-right" [class.computed]="samplingBatch.individualCount | isNil">
-                    {{ samplingBatch.individualCount || samplingBatch.indirectIndividualCount }}
-                  </td>
-                }
+                <td class="col-small ion-text-right">{{ batch.samplingRatioText || batch.samplingRatio }}</td>
+                <td class="col-small ion-text-right" [class.computed]="batch.weight | isNil">
+                  {{ batch.weight || batch.indirectWeight }}
+                </td>
+                <td class="col-small ion-text-right" [class.computed]="batch.individualCount | isNil">
+                  {{ batch.individualCount || batch.indirectIndividualCount }}
+                </td>
               </tr>
             }
           </tbody>

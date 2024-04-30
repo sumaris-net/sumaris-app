@@ -307,50 +307,49 @@ html.print-pdf .reveal .slides section {
         tr {
           height: var(--row-height);
           td {
-            div.denormalized-batch-sorting-values-text {
+            div.denormalized-batch-sorting-values {
               padding: 0;
               margin: 0;
               display: flex;
               align-items: center;
-              --element-width: 6px;
+              --element-width: 16px;
               .denormalized-batch-tree-indent {
                 min-height: var(--row-height);
                 max-height: var(--row-height);
                 display: flex;
                 align-items: flex-start;
                 justify-content: flex-start;
-                & + div {
-                  position: relative;
-                  left: calc(var(--element-width) * -1 + 1px);
-                }
                 div {
                   min-height: var(--row-height);
                   max-height: var(--row-height);
-                  min-width: calc(var(--element-width) * 2);
-                  min-width: calc(var(--element-width) * 2);
-                  &.trunc {
-                    border-right: 1px dotted;
+                  min-width: var(--element-width);
+                  min-width: var(--element-width);
+                  &.trunc,
+                  &.leaf {
+                    border-left: 1px dotted;
                   }
                   &.leaf,
-                  &.final-leaf {
-                    border-left: 1px dotted;
-                    position: relative;
-                    left: -1px;
+                  &.last-leaf {
                     &:before {
                       content: '';
                       display: block;
                       min-height: calc(var(--row-height) / 2);
                       max-height: calc(var(--row-height) / 2);
-                      min-width: var(--element-width);
-                      max-width: var(--element-width);
+                      min-width: calc(var(--element-width) / 2);
+                      max-width: calc(var(--element-width) / 2);
                       border-bottom: 1px dotted;
                     }
                   }
-                  &.final-leaf {
-                    min-height: calc(var(--row-height) / 2);
-                    max-height: calc(var(--row-height) / 2);
+                  &.last-leaf {
+                    &:before {
+                      border-left: 1px dotted;
+                    }
                   }
                 }
+              }
+              .denormalized-batch-sorting-values-text {
+                position: relative;
+                left: calc(var(--element-width) / -4);
               }
             }
             span {

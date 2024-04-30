@@ -30,6 +30,7 @@ export const DenormalizedBatchFragments = {
       measurementValues
       samplingRatioText
       samplingRatio
+      parentId
       taxonGroup {
         ...LightReferentialFragment
       }
