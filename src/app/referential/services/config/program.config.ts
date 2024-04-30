@@ -344,6 +344,18 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean',
   },
+  TRIP_BATCH_MEASURE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.measure.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
+  TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ONLY_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.measure.individualCountOnly.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ONLY_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
   TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.individualCount.enable',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE',
@@ -394,12 +406,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
-  TRIP_BATCH_MEASURE_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.batch.measure.enable',
-    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_ENABLE',
-    defaultValue: 'true',
-    type: 'boolean',
-  },
   TRIP_BATCH_WEIGHT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.weight.enable',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_WEIGHT_ENABLE',
@@ -430,12 +436,6 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.operation.batch.ichthyometer.enable',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE',
     defaultValue: 'true',
-    type: 'boolean',
-  },
-  TRIP_BATCH_ALLOW_INDIVIDUAL_COUNTY_ONLY_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.trip.batch.allowIndividualCountOnly.enable',
-    label: 'PROGRAM.OPTIONS.TRIP_BATCH_ALLOW_INDIVIDUAL_COUNTY_ONLY_ENABLE',
-    defaultValue: 'false',
     type: 'boolean',
   },
   TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{

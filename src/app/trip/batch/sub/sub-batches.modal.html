@@ -63,16 +63,14 @@
   <!-- sub batch form -->
   <ion-grid class="ion-no-padding" [class.disabled]="disabled">
     <ion-row>
-      <!-- form -->
-
       <ion-col
         size="12"
         push=""
-        [pushMd]="isIndividualMeasure ? 8 : null"
-        [sizeLg]="isIndividualMeasure ? 3 : null"
-        [pushLg]="isIndividualMeasure ? 9 : null"
-        [ngClass]="mobile ? 'ion-col-form-mobile' : 'null'"
+        [pushMd]="(showSubBatchForm && 8) || null"
+        [sizeLg]="(showSubBatchForm && 3) || null"
+        [pushLg]="(showSubBatchForm && 9) || null"
         class="ion-col-form"
+        [class.mobile]="mobile"
       >
         <!-- error -->
         <ion-item *ngIf="form.error; let error" lines="none">
@@ -80,7 +78,51 @@
           <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
         </ion-item>
 
+        @if (allowIndividualCountOnly && (modalForm | formGetControl: 'showSubBatchForm'); as showSubBatchControl) {
+          <form class="form-container" [formGroup]="modalForm">
+            <!-- measure/count toggle -->
+            <mat-boolean-field
+              [formControl]="showSubBatchControl"
+              [disabled]="disabled"
+              [style]="mobile ? 'button' : 'radio'"
+              [yesLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_MEASURE' | translate"
+              [noLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_COUNT' | translate"
+              [floatLabel]="'always'"
+              [showButtonIcons]="false"
+            ></mat-boolean-field>
+
+            <!-- Individual count -->
+            @if ((showSubBatchControl.valueChanges | async) === false) {
+              <mat-form-field>
+                <input
+                  matInput
+                  autocomplete="off"
+                  [formControl]="modalForm | formGetControl: 'individualCount'"
+                  min="1"
+                  type="number"
+                  step="1"
+                  pattern="[0-9]*"
+                  (keypress)="filterNumberInput($event, false)"
+                  (keyup.enter)="closeWithIndividualCount($event)"
+                  (focus)="selectInputContent($event)"
+                  [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT' | translate"
+                  [required]="true"
+                  [tabindex]="1"
+                />
+                <mat-error *ngIf="modalForm.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+                <mat-error *ngIf="modalForm.controls.individualCount.hasError('min')">
+                  {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate: modalForm.controls.individualCount.errors['min'] }}
+                </mat-error>
+                <mat-error *ngIf="modalForm.controls.individualCount.hasError('integer')">
+                  {{ 'ERROR.FIELD_NOT_VALID_INTEGER' | translate }}
+                </mat-error>
+              </mat-form-field>
+            }
+          </form>
+        }
+
         <app-sub-batch-form
+          [class.cdk-visually-hidden]="showIndividualCountOnly"
           #form
           [title]="editedRow ? 'TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS' : 'TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS'"
           [programLabel]="programLabel"
@@ -101,16 +143,22 @@
           [maxVisibleButtons]="maxVisibleButtons"
           [maxItemCountForButtons]="maxItemCountForButtons"
           [i18nSuffix]="i18nColumnSuffix"
-          (isIndividualMeasureChanges)="onIndividualMeasureChange($event)"
-          [allowIndividualCountOnly]="allowIndividualCountOnly"
           [mobile]="mobile"
           [debug]="debug"
         ></app-sub-batch-form>
       </ion-col>
 
       <!-- table -->
-      <ion-col size="12" pull="" size-md="8" pull-md="4" size-lg="9" pull-lg="3" [hidden]="!isIndividualMeasure" class="table-container compact">
-        <!-- todo mf -->
+      <ion-col
+        size="12"
+        pull=""
+        size-md="8"
+        pull-md="4"
+        size-lg="9"
+        pull-lg="3"
+        class="table-container compact"
+        [class.cdk-visually-hidden]="showIndividualCountOnly"
+      >
         <mat-toolbar *ngIf="showToolbar">
           <ng-container *ngIf="!selection.hasValue(); else hasSelection">
             <!-- Add -->
@@ -187,15 +235,21 @@
               <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
             </th>
             <td mat-cell *matCellDef="let row" (click)="focusColumn = 'taxonName'">
-              <mat-autocomplete-field
-                floatLabel="never"
-                class="min-width-medium"
-                [autofocus]="row.editing && focusColumn === 'taxonName'"
-                [formControl]="row.validator.controls.taxonName"
-                [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER' | translate"
-                [required]="showTaxonNameColumn"
-                [config]="autocompleteFields.taxonName"
-              ></mat-autocomplete-field>
+              @if (row.editing) {
+                <mat-autocomplete-field
+                  floatLabel="never"
+                  class="min-width-medium"
+                  [autofocus]="focusColumn === 'taxonName'"
+                  [formControl]="row.validator.controls.taxonName"
+                  [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER' | translate"
+                  [required]="showTaxonNameColumn"
+                  [config]="autocompleteFields.taxonName"
+                ></mat-autocomplete-field>
+              } @else if (inlineEdition) {
+                {{ row.validator | formGetValue: 'taxonName' | referentialToString: ['name'] }}
+              } @else {
+                {{ row.currentData.taxonName | referentialToString: ['name'] }}
+              }
             </td>
           </ng-container>
 
@@ -211,17 +265,16 @@
               [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
               [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
             >
-              <app-pmfm-field
-                *ngIf="row.editing; else readonlyPmfmField"
-                floatLabel="never"
-                [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-                [autofocus]="focusColumn == pmfm.id"
-                [pmfm]="pmfm"
-                [compact]="true"
-                [readonly]="pmfm.isComputed"
-              ></app-pmfm-field>
-              <!-- readonly value-->
-              <ng-template #readonlyPmfmField>
+              @if (row.editing) {
+                <app-pmfm-field
+                  floatLabel="never"
+                  [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+                  [autofocus]="focusColumn == pmfm.id"
+                  [pmfm]="pmfm"
+                  [compact]="true"
+                  [readonly]="pmfm.isComputed"
+                ></app-pmfm-field>
+              } @else if (inlineEdition) {
                 <span
                   [innerHTML]="
                     row.validator
@@ -229,17 +282,51 @@
                       | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
                   "
                 ></span>
-              </ng-template>
+              } @else {
+                <span
+                  [innerHTML]="row.currentData | measurementValueGet: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"
+                ></span>
+              }
             </td>
           </ng-container>
 
           <!-- individualCount column -->
           <ng-container matColumnDef="individualCount">
-            <th mat-header-cell *matHeaderCellDef>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
               <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
             </th>
-            <td mat-cell *matCellDef="let row">
-              {{ row.currentData.individualCount }}
+            <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing" (click)="focusColumn = 'individualCount'">
+              @if (row.editing) {
+                <mat-form-field *ngIf="row.editing; else readonlyCell">
+                  <input
+                    matInput
+                    autocomplete="off"
+                    [formControl]="row.validator.controls.individualCount"
+                    [appAutofocus]="row.editing && focusColumn === 'individualCount'"
+                    min="1"
+                    type="number"
+                    step="1"
+                    pattern="[0-9]*"
+                    (click)="selectInputContent($event)"
+                    [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT' | translate"
+                    required
+                  />
+                  <mat-error *ngIf="row.validator.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+                  <mat-error *ngIf="row.validator.controls.individualCount.hasError('min')">
+                    {{ 'ERROR.FIELD_MIN_COMPACT' | translate: row.validator.controls.individualCount.errors['min'] }}
+                  </mat-error>
+                  <mat-error *ngIf="row.validator.controls.individualCount.hasError('integer')">
+                    {{ 'ERROR.FIELD_NOT_VALID_INTEGER' | translate }}
+                  </mat-error>
+                </mat-form-field>
+              } @else if (inlineEdition) {
+                {{ row.validator | formGetValue: 'individualCount' }}
+              } @else {
+                {{ row.currentData.individualCount }}
+              }
+              <ng-template #readonlyCell>
+                <ion-label>{{ row.currentData.individualCount }}</ion-label>
+              </ng-template>
             </td>
           </ng-container>
 
@@ -332,6 +419,10 @@
           showTaxonNameColumn: {{ showTaxonNameColumn }}
           <br />
           showIndividualCount: {{ showIndividualCount }}
+          <br />
+          allowIndividualCountOnly: {{ allowIndividualCountOnly }}
+          <br />
+          showIndividualCountOnly: {{ showIndividualCountOnly }}
           <br />
           i18nSuffix: {{ i18nSuffix }}
           <br />

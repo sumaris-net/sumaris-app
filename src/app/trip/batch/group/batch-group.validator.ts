@@ -1,22 +1,11 @@
 import { Injectable } from '@angular/core';
-import { FormArray, FormGroup, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { FormArray, FormGroup, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { BatchValidatorOptions, BatchValidators, BatchValidatorService } from '../common/batch.validator';
 import { BatchGroup } from './batch-group.model';
-import {
-  AppFormUtils,
-  FormErrors,
-  isNotEmptyArray,
-  isNotNil,
-  LocalSettingsService,
-  SharedAsyncValidators,
-  SharedValidators,
-  toBoolean,
-  toNumber,
-} from '@sumaris-net/ngx-components';
+import { isNotEmptyArray, isNotNil, LocalSettingsService, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { environment } from '@environments/environment';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { debounceTime } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
@@ -43,7 +32,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
     const config = super.getFormGroupConfig(data, opts);
 
     if (opts?.root) {
-      config['observedIndividualCount'] = [data && data.observedIndividualCount, SharedValidators.integer];
+      config['observedIndividualCount'] = [toNumber(data?.observedIndividualCount, null), SharedValidators.integer];
     }
 
     return config;

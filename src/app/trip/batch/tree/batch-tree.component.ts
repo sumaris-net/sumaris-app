@@ -111,13 +111,14 @@ export interface BatchTreeState {
   requiredGear: boolean;
   gearId: number;
 
-  samplingRatioFormat: SamplingRatioFormat;
   showCatchForm: boolean;
   showBatchTables: boolean;
+  samplingRatioFormat: SamplingRatioFormat;
   allowSpeciesSampling: boolean;
-  showSubBatchesTable: boolean;
-  allowSubBatches: boolean;
+  allowSamplingIndividualCountOnly: boolean;
   programAllowMeasure: boolean;
+  allowSubBatches: boolean;
+  showSubBatchesTable: boolean;
   data: Batch;
 }
 
@@ -133,7 +134,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   private _listenProgramChanges = true;
   protected _logPrefix = '[batch-tree] ';
   protected _debugData: any;
-  allowIndividualCountOnly: boolean;
 
   @RxStateRegister() protected readonly _state: RxState<BatchTreeState> = inject(RxState, { self: true });
 
@@ -152,6 +152,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @RxStateSelect() readonly showSubBatchesTable$: Observable<boolean>;
   @RxStateSelect() readonly programAllowMeasure$: Observable<boolean>;
   @RxStateSelect() readonly allowSubBatches$: Observable<boolean>;
+  @RxStateSelect() readonly allowSamplingIndividualCountOnly$: Observable<boolean>;
   @RxStateSelect() readonly requiredStrategy$: Observable<boolean>;
   @RxStateSelect() readonly strategyId$: Observable<number>;
   @RxStateSelect() readonly requiredGear$: Observable<boolean>;
@@ -171,6 +172,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() @RxStateProperty() showCatchForm: boolean;
   @Input() @RxStateProperty() showBatchTables: boolean;
   @Input() @RxStateProperty() allowSpeciesSampling: boolean;
+  @Input() @RxStateProperty() allowIndividualCountOnly: boolean;
   @Input() @RxStateProperty() allowSubBatches: boolean;
   @Input() debug: boolean;
 
@@ -664,14 +666,16 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.enableWeightLengthConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
     const samplingRatioFormat = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT) as SamplingRatioFormat;
     this.samplingRatioFormat = samplingRatioFormat;
+    const allowIndividualCountOnly = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ONLY_ENABLE);
+    this.allowIndividualCountOnly = allowIndividualCountOnly;
 
     this.catchBatchForm.samplingRatioFormat = samplingRatioFormat;
-    this.allowIndividualCountOnly = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ALLOW_INDIVIDUAL_COUNTY_ONLY_ENABLE);
 
     this.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
     this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
     this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
     this.batchGroupsTable.samplingRatioFormat = samplingRatioFormat;
+    this.batchGroupsTable.allowIndividualCountOnly = allowIndividualCountOnly;
     this.batchGroupsTable.enableWeightLengthConversion = this.enableWeightLengthConversion;
     this.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
     this.batchGroupsTable.setModalOption(

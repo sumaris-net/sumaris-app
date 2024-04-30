@@ -11,7 +11,6 @@ import {
   ViewChild,
 } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { isObservable, Observable, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormGroup, Validators } from '@angular/forms';
@@ -186,7 +185,7 @@ export class SubBatchesTable
   }
 
   get showIndividualCount(): boolean {
-    return this.getShowColumn('individualCount') && this.displayedColumns.findIndex((c) => c === 'individualCount') !== -1;
+    return this.getShowColumn('individualCount'); // && this.displayedColumns.some((c) => c === 'individualCount');
   }
 
   @Input()

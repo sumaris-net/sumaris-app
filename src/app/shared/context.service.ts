@@ -16,6 +16,9 @@ export interface Context<T = any> {
   clipboard?: Clipboard<T>;
   program?: Program;
   strategy?: Strategy;
+
+  // A child context, that can be dynamically set (e.g. TripContext, or SaleContext)
+  child?: Context<any>;
 }
 
 export const APP_MAIN_CONTEXT_SERVICE = new InjectionToken<ContextService>('ContextService');
@@ -24,11 +27,16 @@ export const CONTEXT_DEFAULT_STATE = new InjectionToken<Record<string, any>>('Co
 
 @Injectable()
 export class ContextService<S extends Context<T> = Context<any>, T = any> extends RxState<S> {
+  @RxStateProperty() program: Program;
+  @RxStateProperty() strategy: Strategy;
+  @RxStateProperty('clipboard', (_, value) => <T>{ ...value, updateDate: DateUtils.moment() }) clipboard: Clipboard<T>;
+  @RxStateProperty() child: Context<any>;
+
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: Partial<S>) {
     super();
 
     // Apply default, if any
-    this.set(this.defaultState);
+    if (this.defaultState) this.set(this.defaultState);
   }
 
   setValue<K extends keyof S>(key: K, value: S[K]) {
@@ -57,9 +65,4 @@ export class ContextService<S extends Context<T> = Context<any>, T = any> extend
   getValueAsDate<K extends keyof S>(key: K): Moment {
     return fromDateISOString(this.getValue(key));
   }
-
-  @RxStateProperty() program: Program;
-  @RxStateProperty() strategy: Strategy;
-
-  @RxStateProperty('clipboard', (_, value) => <T>{ ...value, updateDate: DateUtils.moment() }) clipboard: Clipboard<T>;
 }

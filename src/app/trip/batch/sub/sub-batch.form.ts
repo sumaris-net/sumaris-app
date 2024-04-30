@@ -2,12 +2,10 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   Injector,
   Input,
   OnDestroy,
   OnInit,
-  Output,
   QueryList,
   ViewChild,
   ViewChildren,
@@ -15,7 +13,7 @@ import {
 import { Batch } from '../common/batch.model';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { AbstractControl, FormControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import {
@@ -31,7 +29,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
-  OnReady,
   ReferentialUtils,
   SharedValidators,
   startsWithUpperCase,
@@ -77,7 +74,6 @@ import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { MatRadioChange } from '@angular/material/radio';
 
 export interface SubBatchFormState extends MeasurementsFormState {
   computingWeight: boolean;
@@ -91,7 +87,7 @@ export interface SubBatchFormState extends MeasurementsFormState {
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormState> implements OnInit, OnReady, OnDestroy {
+export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormState> implements OnInit, OnDestroy {
   protected _availableParents: BatchGroup[] = [];
   protected _parentAttributes: string[];
   protected _disableByDefaultControls: AbstractControl[] = [];
@@ -104,13 +100,10 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   enableIndividualCountControl: UntypedFormControl;
   freezeTaxonNameControl: UntypedFormControl;
   freezeQvPmfmControl: UntypedFormControl;
-  isIndividualMeasureControl: FormControl;
   selectedTaxonNameIndex = -1;
   warning: string;
   weightPmfm: IPmfm;
   enableLengthWeightConversion: boolean;
-  defaultMethodChecked: string;
-  readonly isIndividualMeasureValues = [{ key: 'IS_INDIVIDUAL_MEASURE' }, { key: 'IS_INDIVIDUAL_COUNT' }];
 
   @RxStateProperty() taxonNames: TaxonNameRef[];
 
@@ -130,7 +123,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @Input() i18nSuffix: string;
   @Input() mobile: boolean;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
-  @Input() allowIndividualCountOnly: boolean;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
   @Input() @RxStateProperty() showTaxonName: boolean;
   @Input() @RxStateProperty() qvPmfm: IPmfm;
@@ -141,14 +133,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     }
   }
 
-  @Output() isIndividualMeasureChanges = new EventEmitter<boolean>();
-
-  get isIndividualMeasure(): boolean {
-    return this.isIndividualMeasureControl.value;
-  }
-  set isIndividualMeasure(value: boolean) {
-    this.isIndividualMeasureControl.setValue(value);
-  }
   get availableParents(): BatchGroup[] {
     return this._availableParents;
   }
@@ -242,8 +226,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     this.freezeQvPmfmControl.setValue(true, { emitEvent: false });
 
     this.freezeTaxonNameControl = this.formBuilder.control(!this.mobile, Validators.required);
-
-    this.isIndividualMeasureControl = this.formBuilder.control(false, Validators.required);
 
     // Listen pending status
     this._state.connect(
@@ -433,12 +415,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     if (this.mobile) {
       this.registerSubscription(this.listenIchthyometer());
     }
-    this.isIndividualMeasureControl.valueChanges.subscribe(() => this.onIndividualMeasureChange());
 
     this.ngInitExtension();
-  }
-  ngOnReady() {
-    this.onIndividualMeasureChange();
   }
 
   async doNewParentClick(event: Event) {
@@ -843,19 +821,5 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
         })
       )
       .subscribe();
-  }
-  onIndividualMeasureChange() {
-    if (this.isIndividualMeasure) {
-      this.form.enable();
-      this.form.get('individualCount').disable();
-    } else if (this.isIndividualMeasure === false) {
-      this.form.disable();
-      this.form.get('individualCount').enable();
-    } else {
-      this.isIndividualMeasure = true;
-      this.form.enable();
-      this.form.get('individualCount').disable();
-    }
-    this.isIndividualMeasureChanges.emit(this.isIndividualMeasure);
   }
 }

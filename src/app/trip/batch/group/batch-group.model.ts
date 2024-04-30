@@ -1,6 +1,6 @@
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '../common/batch.model';
 import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
-import { EntityClass, EntityUtils, isNotEmptyArray, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
+import { EntityClass, EntityUtils, isNil, isNotEmptyArray, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
@@ -16,7 +16,11 @@ export class BatchGroup extends Batch<BatchGroup> {
     const target = new BatchGroup();
     Object.assign(target, batch);
     // Compute observed indiv. count
-    target.observedIndividualCount = BatchUtils.sumObservedIndividualCount(batch.children);
+    const sumObservedIndividualCount = BatchUtils.sumObservedIndividualCount(batch.children);
+    if (sumObservedIndividualCount > 0 || isNil(target.observedIndividualCount)) {
+      console.log('TODO compute', target.observedIndividualCount);
+      target.observedIndividualCount = sumObservedIndividualCount;
+    }
     return target;
   }
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Inject, Injector, Input, OnInit, ViewChild, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Batch } from '../common/batch.model';
 import {
@@ -8,38 +8,33 @@ import {
   firstNotNilPromise,
   isEmptyArray,
   isNil,
-  isNotNil,
   isNotNilOrBlank,
   LoadResult,
   LocalSettingsService,
   PlatformService,
+  SharedValidators,
   toBoolean,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
-import { Animation, IonCol, IonContent, ModalController } from '@ionic/angular';
-import { isObservable, Observable, Subject } from 'rxjs';
+import { Animation, IonContent, ModalController } from '@ionic/angular';
+import { firstValueFrom, isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup } from '../group/batch-group.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { ContextService } from '@app/shared/context.service';
-import { TripContextService } from '@app/trip/trip-context.service';
+import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { environment } from '@environments/environment';
 import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
 import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
 import { RxState } from '@rx-angular/state';
-import { RxStateSelect } from '@app/shared/state/state.decorator';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ModalUtils } from '@app/shared/modal/modal.utils';
-import { Form } from '@angular/forms';
-import { SaleContextService } from '@app/trip/sale/sale-context.service';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { Router } from '@angular/router';
+import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -71,12 +66,12 @@ export interface ISubBatchesModalOptions {
   onNewParentClick: () => Promise<BatchGroup | undefined>;
 
   canDebug: boolean;
-  isIndividualMeasure: boolean;
   allowIndividualCountOnly: boolean;
+  showIndividualCountOnly: boolean;
 }
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
-export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED_END_COLUMNS.filter((col) => col !== 'individualCount');
+export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED_END_COLUMNS; //.filter((col) => col !== 'individualCount');
 
 @Component({
   selector: 'app-sub-batches-modal',
@@ -85,10 +80,12 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
   providers: [
     {
       provide: ContextService,
-      // useFactory: (tripService: TripContextService, saleService: SaleContextService, contextUtilsService: ContextUtilsService, router: Router) => {
-      //   return contextUtilsService.getLastContextUse() === ContextUtils.SALE_CONTEXT_NAME ? saleService : tripService;
-      // },
-      // deps: [TripContextService, SaleContextService, ContextUtilsService, Router],
+      useFactory: (context: ContextService) => {
+        const initialState = context.child || context.get();
+        console.debug('[sub-batches-modal] Creating batch context, using', initialState);
+        return new ContextService(initialState);
+      },
+      deps: [APP_MAIN_CONTEXT_SERVICE],
     },
     { provide: SubBatchValidatorService, useClass: SubBatchValidatorService },
     {
@@ -112,6 +109,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected titleSubject = new Subject<string>();
 
   protected animationSelection = new SelectionModel<TableElement<SubBatch>>(false, []);
+  protected modalForm: UntypedFormGroup;
+  protected showSubBatchFormControl: AbstractControl;
+  protected individualCountControl: AbstractControl;
 
   get selectedRow(): TableElement<SubBatch> {
     return this.selection.selected[0] || this.editedRow;
@@ -134,6 +134,20 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return this.form && this.form.invalid;
   }
 
+  get showIndividualCountOnly(): boolean {
+    return this.showSubBatchFormControl.value === false;
+  }
+  @Input() set showIndividualCountOnly(value: boolean) {
+    this.showSubBatchFormControl.setValue(!value);
+  }
+
+  get showSubBatchForm(): boolean {
+    return this.showSubBatchFormControl.value !== false;
+  }
+  @Input() set showSubBatchForm(value: boolean) {
+    this.showSubBatchFormControl.setValue(value);
+  }
+
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
   @Input() data: SubBatch[] | Observable<SubBatch[]>;
   @Input() showParentGroup: boolean;
@@ -144,8 +158,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() playSound: boolean;
   @Input() showBluetoothIcon = false;
   @Input() canDebug: boolean;
-  @Input() isIndividualMeasure: boolean;
   @Input() allowIndividualCountOnly: boolean;
+  @Input() defaultIsIndividualCountOnly: boolean;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -164,7 +178,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     protected settings: LocalSettingsService,
     protected audio: AudioProvider,
     protected platform: PlatformService,
-    protected context: ContextService,
     validatorService: SubBatchValidatorService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<Batch>
   ) {
@@ -175,6 +188,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'desc';
     this.selection = new SelectionModel<TableElement<SubBatch>>(!this.mobile);
+    this.modalForm = this.formBuilder.group({
+      showSubBatchForm: [true, Validators.required],
+      individualCount: [null, [SharedValidators.integer, Validators.required, Validators.min(0)]],
+    });
+    this.showSubBatchFormControl = this.modalForm.get('showSubBatchForm');
+    this.individualCountControl = this.modalForm.get('individualCount');
 
     // default values
     this.showCommentsColumn = false;
@@ -185,7 +204,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   ngOnInit() {
     this.canDebug = toBoolean(this.canDebug, !environment.production);
     this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
-    this.applyProgramProperties();
+
     if (this.disabled) {
       this.showForm = false;
       this.disable();
@@ -196,11 +215,20 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     // default values
     this.mobile = toBoolean(this.mobile, this.platform.mobile);
     this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
-    this.showIndividualCount = !this._isOnFieldMode; // Hide individual count on mobile device
+    console.log('TODO this.showIndividualCount=' + this.showIndividualCount);
+    this.showIndividualCount = toBoolean(this.showIndividualCount, !this._isOnFieldMode); // Hide individual count on mobile device
     this.showParentGroup = toBoolean(this.showParentGroup, true);
     this.showForm = this._enabled && this.showForm && this.form && true;
     this.playSound = toBoolean(this.playSound, this.mobile);
     this.showBluetoothIcon = this.showBluetoothIcon && this._enabled && this.platform.isApp();
+    this.allowIndividualCountOnly = toBoolean(this.allowIndividualCountOnly, false) && !this.showParentGroup && !this.qvPmfm;
+
+    if (this.allowIndividualCountOnly) {
+      this.registerSubscription(this.showSubBatchFormControl.valueChanges.subscribe((value) => this.onShowSubBatchesChanges(value)));
+    } else {
+      this.showIndividualCountOnly = false;
+    }
+
     this.markAsReady();
 
     this.load();
@@ -273,6 +301,14 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     // Compute the first rankOrder to save
     this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
 
+    // Show individual count form, if aneble
+    if (this.allowIndividualCountOnly) {
+      const samplingBatch = BatchUtils.getOrCreateSamplingChild(this.parentGroup);
+      const individualCount = toNumber(samplingBatch?.individualCount, this.parentGroup.observedIndividualCount);
+      this.showIndividualCountOnly = isEmptyArray(data) && individualCount > 0;
+      this.individualCountControl.setValue(toNumber(individualCount, null));
+    }
+
     super.setValue(data, opts);
   }
 
@@ -321,8 +357,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async close(event?: Event) {
-    if (!this.form.isIndividualMeasure) {
-      this.closeIfIndividualCount();
+    if (this.showIndividualCountOnly) {
+      await this.closeWithIndividualCount();
       return;
     }
 
@@ -361,24 +397,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       if (!saved) return; // Error
 
       await this.viewCtrl.dismiss(this.getValue());
-    } catch (err) {
-      console.error(err);
-      this.setError((err && err.message) || err);
-      this.markAsLoaded();
-    }
-  }
-
-  async closeIfIndividualCount(event?: Event) {
-    if (this.loading) return; // avoid many call
-    this.markAsLoading();
-    this.resetError();
-
-    try {
-      const subBatch = this.form.form.value;
-      const parentGroup = this.form.parentGroup;
-      const samplingBatch = BatchUtils.getOrCreateSamplingChild(parentGroup);
-      samplingBatch.individualCount = subBatch.individualCount;
-      await this.viewCtrl.dismiss(parentGroup, 'individualCount');
     } catch (err) {
       console.error(err);
       this.setError((err && err.message) || err);
@@ -428,14 +446,14 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     let titlePrefix;
     if (!this.showParentGroup && this.parentGroup) {
       const label = BatchUtils.parentToString(this.parentGroup);
-      titlePrefix = await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX', { label }).toPromise();
+      titlePrefix = await firstValueFrom(this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX', { label }));
     } else {
       titlePrefix = '';
     }
-    if (this.isIndividualMeasure) {
-      this.titleSubject.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
+    if (this.showIndividualCountOnly) {
+      this.titleSubject.next(titlePrefix + (await firstValueFrom(this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.TITLE'))));
     } else {
-      this.titleSubject.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.TITLE').toPromise()));
+      this.titleSubject.next(titlePrefix + (await firstValueFrom(this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE'))));
     }
   }
 
@@ -634,37 +652,47 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     }
   }
 
-  onIndividualMeasureChange(isIndividualMeasure: boolean) {
-    this.isIndividualMeasure = isIndividualMeasure;
-
-    if (isIndividualMeasure) {
-      this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_LARGE);
-    } else if (this.isIndividualMeasure === false) {
-      this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_SMALL);
-      this.editedRow?.cancelOrDelete();
+  protected async onShowSubBatchesChanges(showSubBatches: boolean) {
+    if (showSubBatches) {
+      await this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_LARGE);
     } else {
-      this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_LARGE);
+      await this.setModalStyle(this.viewCtrl, ModalUtils.CSS_CLASS_SMALL);
+      this.editedRow?.cancelOrDelete();
     }
-    this.computeTitle();
+    await this.computeTitle();
   }
 
-  private applyProgramProperties() {
-    if (this.allowIndividualCountOnly) {
-      this.form.isIndividualMeasure = this.isIndividualMeasure;
-    } else if (this.allowIndividualCountOnly === null) {
-      const contextualProgram = this.context.getValue('program');
-      if (isNotNil(contextualProgram)) {
-        this.allowIndividualCountOnly = contextualProgram.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ALLOW_INDIVIDUAL_COUNTY_ONLY_ENABLE);
-        if (this.allowIndividualCountOnly) {
-          this.form.isIndividualMeasure = this.isIndividualMeasure;
-        } else {
-          this.form.isIndividualMeasure = true;
+  protected async closeWithIndividualCount(event?: Event) {
+    if (this.loading) return; // avoid many call
+    this.markAsLoading();
+    this.resetError();
+
+    try {
+      if (!this.modalForm.valid) {
+        await AppFormUtils.waitWhilePending(this.modalForm);
+
+        if (!this.modalForm.invalid) {
+          this.modalForm.markAllAsTouched();
+          return;
         }
       }
-    } else {
-      this.form.isIndividualMeasure = true;
+
+      const parentGroup = this.form.parentGroup || this.parentGroup;
+      if (this.individualCountControl.dirty) {
+        const individualCount = this.individualCountControl.value;
+        const samplingBatch = BatchUtils.getOrCreateSamplingChild(parentGroup);
+        samplingBatch.individualCount = individualCount;
+        parentGroup.observedIndividualCount = individualCount;
+      }
+
+      await this.viewCtrl.dismiss(parentGroup, 'batchGroup');
+    } catch (err) {
+      console.error(err);
+      this.setError((err && err.message) || err);
+      this.markAsLoaded();
     }
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
+  filterNumberInput = AppFormUtils.filterNumberInput;
 }

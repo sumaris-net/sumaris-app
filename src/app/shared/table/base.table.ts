@@ -337,14 +337,14 @@ export abstract class AppBaseTable<
     this.markForCheck();
   }
 
-  async addOrUpdateEntityToTable(data: T, opts?: { confirmEditCreate?: boolean }) {
-    // Always try to get the row, even if no ID, because the row can exists (e.g. in memory table)
+  async addOrUpdateEntityToTable(data: T, opts?: { confirmEditCreate?: boolean; editing?: boolean }) {
+    // Always try to get the row, even if no ID, because the row can exist (e.g. in memory table)
     // THis find should use a equals() function
     const row = await this.findRowByEntity(data);
     if (!row) {
-      await this.addEntityToTable(data, opts && { confirmCreate: opts.confirmEditCreate });
+      return await this.addEntityToTable(data, opts && { confirmCreate: opts.confirmEditCreate, editing: opts.editing });
     } else {
-      await this.updateEntityToTable(data, row, opts && { confirmEdit: opts.confirmEditCreate });
+      return await this.updateEntityToTable(data, row, opts && { confirmEdit: opts.confirmEditCreate });
     }
   }
 
