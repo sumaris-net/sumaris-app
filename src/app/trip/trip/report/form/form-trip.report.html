@@ -290,325 +290,332 @@
       <ng-content *ngTemplateOutlet="pageFooter; context: { help: 'TRIP.REPORT.FORM.TRIP.HELP' }"></ng-content>
     </section>
 
-    <section *sectionDef>
-      @for (ops of data.operations | splitArrayInChunks: maxLinePeerTable; track $index) {
-        <section class="landscape">
-          <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE' }"></ng-content>
-          <ion-grid class="report-section ion-no-padding">
-            <ion-row class="section-title ion-no-margin">
-              <ion-col size="auto">
-                <h3>{{ 'TRIP.REPORT.FORM.OPERATION.NB_OP' | translate }}</h3>
-              </ion-col>
-              <ion-col class="title-value ion-text-center font-large no-border-bottom" size="auto">
-                @if (!isBlankForm) {
-                  {{ data.operations?.length }}
-                }
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-          <table>
-            <thead>
-              <tr class="group-head">
-                <th colspan="5"></th>
-                <th colspan="2" class="font-medium ion-text-center">
-                  <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.OPERATION_START' | translate }}</div>
-                </th>
-                @if (stats.options.showFishingStartDateTime) {
-                  <th colspan="2" class="font-medium ion-text-center">
-                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.PARENT' | translate }}</div>
-                  </th>
-                }
-                @if (stats.options.showFishingEndDateTime) {
-                  <th colspan="2" class="font-medium ion-text-center">
-                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.CHILD' | translate }}</div>
-                  </th>
-                }
-                @if (stats.options.showEndDate) {
-                  <th colspan="2" class="font-medium ion-text-center">
-                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.OPERATION_END' | translate }}</div>
-                  </th>
-                }
-              </tr>
-              <tr>
-                <th class="col-tiny font-medium text-vertical">
-                  <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.NUM_OP' | translate }}</div>
-                </th>
-                <th class="col-tiny font-small text-vertical">
-                  <div class="text-vertical">
-                    {{
-                      stats.pmfmsByIds.operation[stats.pmfmIdsMap.HAS_INDIVIDUAL_MEASURES]
-                        | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix }
-                    }}
-                  </div>
-                </th>
-                <th class="col-tiny font-small text-vertical">
-                  <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.PROGRESS' | translate }}</div>
-                </th>
-                <th class="col-extra-large font-medium ion-text-center">
-                  <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.GEAR_SPECIES' | translate }}</div>
-                </th>
-                <th class="col-small font-small text-vertical">
-                  <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.CAPTURE' | translate }}</div>
-                </th>
-                <th class="col-compact font-medium ion-text-center">
-                  <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
-                </th>
-                <th class="col-medium font-medium ion-text-center">
-                  <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
-                </th>
-                @if (stats.options.showFishingStartDateTime) {
-                  <th class="col-compact font-medium ion-text-center">
-                    <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
-                  </th>
-                  <th class="col-medium font-medium ion-text-center">
-                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
-                  </th>
-                }
-                @if (stats.options.showFishingEndDateTime) {
-                  <th class="col-compact font-medium ion-text-center">
-                    <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
-                  </th>
-                  <th class="col-medium font-medium ion-text-center">
-                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
-                  </th>
-                }
-                @if (stats.options.showEndDate) {
-                  <th class="col-compact font-medium ion-text-center">
-                    <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
-                  </th>
-                  <th class="col-medium font-medium ion-text-center">
-                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
-                  </th>
-                }
-                @for (pmfm of stats.pmfms.operation | arrayFilter: filterPmfmForOperationTable; track pmfm) {
-                  <th class="col-tiny font-small text-vertical">
-                    <div>{{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix } }}</div>
-                  </th>
-                }
-              </tr>
-            </thead>
-            <tbody>
-              @for (op of ops; track op.id; let index = $index) {
-                <tr>
-                  <td class="col-tiny ion-text-center font-medium" [style.padding]="0">
-                    <div>
-                      <b>{{ op.rankOrder }}</b>
-                    </div>
-                  </td>
-                  <td class="col-tiny ion-text-center">
-                    <div
-                      [innerHTML]="
-                        stats.measurementValues.operations
-                          | mapGet: index
-                          | mapGet: stats.pmfmIdsMap.HAS_INDIVIDUAL_MEASURES
-                          | pmfmValue: { pmfm: stats.pmfmsByIds.operation | mapGet: stats.pmfmIdsMap.HAS_INDIVIDUAL_MEASURES }
-                      "
-                    ></div>
-                  </td>
-                  <td class="col-tiny ion-text-center">
-                    <div
-                      [innerHTML]="
-                        stats.measurementValues.operations
-                          | mapGet: index
-                          | mapGet: stats.pmfmIdsMap.TRIP_PROGRESS
-                          | pmfmValue: { pmfm: stats.pmfmsByIds.operation | mapGet: stats.pmfmIdsMap.TRIP_PROGRESS }
-                      "
-                    ></div>
-                  </td>
-                  <!-- metier -->
-                  <td class="col-extra-large">
-                    @if (!isBlankForm) {
-                      <b>[{{ op.physicalGear?.rankOrder }}]</b>
-                      {{ op.physicalGear?.gear?.label }}{{ op.metier?.label }} - {{ op.physicalGear?.gear?.name }} {{ op.metier?.name }}
-                    }
-                  </td>
-                  <td class="col-tiny ion-text-center"></td>
-                  <!-- Start date time -->
-                  <td class="col-compact">
-                    @if (!isBlankForm) {
-                      {{ op.startDateTime | dateFormat: { time: true } }}
-                    }
-                  </td>
-                  <!-- Start position -->
-                  <td class="col-medium">
-                    @if (isBlankForm) {
-                      <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
-                    } @else {
-                      {{ op.startPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
-                      <br />
-                      {{ op.startPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
-                    }
-                  </td>
-                  @if (stats.options.showFishingStartDateTime) {
-                    <!-- Fishing start Date time -->
-                    <td class="col-compact">
-                      @if (!isBlankForm) {
-                        {{ op.fishingStartDateTime | dateFormat: { time: true } }}
-                      }
-                    </td>
-                    <!-- Start fishing position -->
-                    <td class="col-medium">
-                      @if (isBlankForm) {
-                        <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
-                      } @else {
-                        {{ op.fishingStartPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
-                        <br />
-                        {{ op.fishingStartPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
-                      }
-                    </td>
-                  }
-                  @if (stats.options.showFishingEndDateTime) {
-                    <!-- Fishing end date time -->
-                    <td class="col-compact">
-                      @if (!isBlankForm) {
-                        {{ op.fishingEndDateTime | dateFormat: { time: true } }}
-                      }
-                    </td>
-                    <!-- Fishing end position -->
-                    <td class="col-medium">
-                      @if (isBlankForm) {
-                        <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
-                      } @else {
-                        {{ op.fishingEndPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
-                        <br />
-                        {{ op.fishingEndPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
-                      }
-                    </td>
-                  }
-                  @if (stats.options.showEndDate) {
-                    <!-- End date time -->
-                    <td class="col-compact">
-                      @if (!isBlankForm) {
-                        {{ op.endDateTime | dateFormat: { time: true } }}
-                      }
-                    </td>
-                    <!-- End position -->
-                    <td class="col-medium">
-                      @if (isBlankForm) {
-                        <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
-                      } @else {
-                        {{ op.endPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
-                        <br />
-                        {{ op.endPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
-                      }
-                    </td>
-                  }
-                  @for (pmfm of stats.pmfms.operation | arrayFilter: filterPmfmForOperationTable; track pmfm) {
-                    <td class="col-tiny font-small ion-text-center">
-                      <div
-                        [innerHTML]="stats.measurementValues.operations | mapGet: index | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm, html: false }"
-                      ></div>
-                    </td>
-                  }
-                </tr>
-              }
-            </tbody>
-          </table>
-          <ul class="caption" [style.margin-top]="'10px'">
-            <li>* : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.ONE_STAR' | translate }}</li>
-            <li>** : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.TWO_STAR' | translate }}</li>
-            <li>1 : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.ONE' | translate }}</li>
-            <li>2 : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.TWO' | translate }}</li>
-            <li>3 : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.THREE' | translate }}</li>
-          </ul>
-          <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
-        </section>
-
-        <section class="landscape">
-          <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE' }"></ng-content>
-          <table class="table-full-width" [style.margin-top]="'50px'">
-            <thead>
-              <tr>
-                <th class="col-tiny font-medium text-vertical">
-                  <div>{{ 'TRIP.REPORT.FORM.NUM_OP' | translate }}</div>
-                </th>
-                <th class="col-maximum font-medium">
-                  <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.COMMENTS' | translate }}</div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (op of ops; track $index) {
-                <tr>
-                  <td class="col-tiny font-medium ion-text-center" [style.padding]="0">
-                    <div>
-                      <b>{{ op.rankOrder }}</b>
-                    </div>
-                  </td>
-                  <td class="col-maximum ion-text-left">
-                    <div>{{ op.comments }}</div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-          <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
-        </section>
-      }
-    </section>
-
-    <section *sectionDef>
-      @for (physicalGears of data.gears | splitArrayInChunks: maxGearPeepPage; track physicalGearSplitIndex; let physicalGearSplitIndex = $index) {
-        <section class="portrait">
-          <ng-content
-            *ngTemplateOutlet="
-              pageHeader;
-              context: { title: 'TRIP.REPORT.FORM.PHYSICAL_GEAR.TITLE', titleParams: { pageNumber: physicalGearSplitIndex + 1 } }
-            "
-          ></ng-content>
-          @for (physicalGear of physicalGears; track physicalGear.rankOrder; let physicalGearIndex = $index) {
-            <ion-grid class="report-section">
-              <ion-row class="section-title">
-                <ion-col>
-                  <h3>{{ physicalGear.gear.label }} - {{ physicalGear.gear.name }}</h3>
+    <!-- Operations table -->
+    @if (data.operations | isNotEmptyArray) {
+      <section *sectionDef>
+        @for (ops of data.operations | splitArrayInChunks: maxLinePeerTable; track $index) {
+          <section class="landscape">
+            <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE' }"></ng-content>
+            <ion-grid class="report-section ion-no-padding">
+              <ion-row class="section-title ion-no-margin">
+                <ion-col size="auto">
+                  <h3>{{ 'TRIP.REPORT.FORM.OPERATION.NB_OP' | translate }}</h3>
                 </ion-col>
-              </ion-row>
-              <ion-row class="form-field ion-margin-bottom">
-                <ion-col class="form-label" size="3">
-                  {{ 'TRIP.REPORT.FORM.PHYSICAL_GEAR.OPERATIONS' | translate }}
-                </ion-col>
-                <ion-col class="form-value" size="9">
-                  {{ stats.operationsRankByGears | mapGet: physicalGear.id | arrayJoin: ', ' }}
-                </ion-col>
-              </ion-row>
-              @for (
-                pmfms of stats.pmfmByGearsId | mapGet: physicalGear.gear.id | splitArrayInChunks: 2;
-                track pmfmSplitIndex;
-                let pmfmSplitIndex = $index
-              ) {
-                <ion-row class="form-field">
-                  @for (pmfm of pmfms; track pmfm.id) {
-                    <ion-col class="form-label" size="3">
-                      {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: true, html: false } }}
-                    </ion-col>
-                    <ion-col
-                      class="form-value"
-                      size="3"
-                      [class.no-border-top]="pmfmSplitIndex > 0"
-                      [innerHTML]="
-                        stats.measurementValues.gears
-                          | mapGet: physicalGearIndex * (physicalGearSplitIndex + 1)
-                          | mapGet: pmfm.id
-                          | pmfmValue: { pmfm: pmfm, html: false }
-                      "
-                    ></ion-col>
+                <ion-col class="title-value ion-text-center font-large no-border-bottom" size="auto">
+                  @if (!isBlankForm) {
+                    {{ data.operations?.length }}
                   }
-                </ion-row>
-              }
-              <ion-row class="form-field ion-margin-top">
-                <ion-col class="form-label" size="3">
-                  {{ 'COMMON.COMMENTS' | translate }}
-                </ion-col>
-                <ion-col class="form-value" size="9">
-                  {{ physicalGear.comments }}
                 </ion-col>
               </ion-row>
             </ion-grid>
-          }
-          <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
-        </section>
-      }
-    </section>
+            <table>
+              <thead>
+                <tr class="group-head">
+                  <th colspan="5"></th>
+                  <th colspan="2" class="font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.OPERATION_START' | translate }}</div>
+                  </th>
+                  @if (stats.options.showFishingStartDateTime) {
+                    <th colspan="2" class="font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.PARENT' | translate }}</div>
+                    </th>
+                  }
+                  @if (stats.options.showFishingEndDateTime) {
+                    <th colspan="2" class="font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.CHILD' | translate }}</div>
+                    </th>
+                  }
+                  @if (stats.options.showEndDate) {
+                    <th colspan="2" class="font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.OPERATION_END' | translate }}</div>
+                    </th>
+                  }
+                </tr>
+                <tr>
+                  <th class="col-tiny font-medium text-vertical">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.NUM_OP' | translate }}</div>
+                  </th>
+                  <th class="col-tiny font-small text-vertical">
+                    <div class="text-vertical">
+                      {{
+                        stats.pmfmsByIds.operation[stats.pmfmIdsMap.HAS_INDIVIDUAL_MEASURES]
+                          | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix }
+                      }}
+                    </div>
+                  </th>
+                  <th class="col-tiny font-small text-vertical">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.PROGRESS' | translate }}</div>
+                  </th>
+                  <th class="col-extra-large font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.GEAR_SPECIES' | translate }}</div>
+                  </th>
+                  <th class="col-small font-small text-vertical">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.CAPTURE' | translate }}</div>
+                  </th>
+                  <th class="col-compact font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+                  </th>
+                  <th class="col-medium font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                  </th>
+                  @if (stats.options.showFishingStartDateTime) {
+                    <th class="col-compact font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+                    </th>
+                    <th class="col-medium font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                    </th>
+                  }
+                  @if (stats.options.showFishingEndDateTime) {
+                    <th class="col-compact font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+                    </th>
+                    <th class="col-medium font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                    </th>
+                  }
+                  @if (stats.options.showEndDate) {
+                    <th class="col-compact font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+                    </th>
+                    <th class="col-medium font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                    </th>
+                  }
+                  @for (pmfm of stats.pmfms.operation | arrayFilter: filterPmfmForOperationTable; track pmfm) {
+                    <th class="col-tiny font-small text-vertical">
+                      <div>{{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix } }}</div>
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (op of ops; track op.id; let index = $index) {
+                  <tr>
+                    <td class="col-tiny ion-text-center font-medium" [style.padding]="0">
+                      <div>
+                        <b>{{ op.rankOrder }}</b>
+                      </div>
+                    </td>
+                    <td class="col-tiny ion-text-center">
+                      <div
+                        [innerHTML]="
+                          stats.measurementValues.operations
+                            | mapGet: index
+                            | mapGet: stats.pmfmIdsMap.HAS_INDIVIDUAL_MEASURES
+                            | pmfmValue: { pmfm: stats.pmfmsByIds.operation | mapGet: stats.pmfmIdsMap.HAS_INDIVIDUAL_MEASURES }
+                        "
+                      ></div>
+                    </td>
+                    <td class="col-tiny ion-text-center">
+                      <div
+                        [innerHTML]="
+                          stats.measurementValues.operations
+                            | mapGet: index
+                            | mapGet: stats.pmfmIdsMap.TRIP_PROGRESS
+                            | pmfmValue: { pmfm: stats.pmfmsByIds.operation | mapGet: stats.pmfmIdsMap.TRIP_PROGRESS }
+                        "
+                      ></div>
+                    </td>
+                    <!-- metier -->
+                    <td class="col-extra-large">
+                      @if (!isBlankForm) {
+                        <b>[{{ op.physicalGear?.rankOrder }}]</b>
+                        {{ op.physicalGear?.gear?.label }}{{ op.metier?.label }} - {{ op.physicalGear?.gear?.name }} {{ op.metier?.name }}
+                      }
+                    </td>
+                    <td class="col-tiny ion-text-center"></td>
+                    <!-- Start date time -->
+                    <td class="col-compact">
+                      @if (!isBlankForm) {
+                        {{ op.startDateTime | dateFormat: { time: true } }}
+                      }
+                    </td>
+                    <!-- Start position -->
+                    <td class="col-medium">
+                      @if (isBlankForm) {
+                        <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
+                      } @else {
+                        {{ op.startPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                        <br />
+                        {{ op.startPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                      }
+                    </td>
+                    @if (stats.options.showFishingStartDateTime) {
+                      <!-- Fishing start Date time -->
+                      <td class="col-compact">
+                        @if (!isBlankForm) {
+                          {{ op.fishingStartDateTime | dateFormat: { time: true } }}
+                        }
+                      </td>
+                      <!-- Start fishing position -->
+                      <td class="col-medium">
+                        @if (isBlankForm) {
+                          <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
+                        } @else {
+                          {{ op.fishingStartPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                          <br />
+                          {{ op.fishingStartPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                        }
+                      </td>
+                    }
+                    @if (stats.options.showFishingEndDateTime) {
+                      <!-- Fishing end date time -->
+                      <td class="col-compact">
+                        @if (!isBlankForm) {
+                          {{ op.fishingEndDateTime | dateFormat: { time: true } }}
+                        }
+                      </td>
+                      <!-- Fishing end position -->
+                      <td class="col-medium">
+                        @if (isBlankForm) {
+                          <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
+                        } @else {
+                          {{ op.fishingEndPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                          <br />
+                          {{ op.fishingEndPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                        }
+                      </td>
+                    }
+                    @if (stats.options.showEndDate) {
+                      <!-- End date time -->
+                      <td class="col-compact">
+                        @if (!isBlankForm) {
+                          {{ op.endDateTime | dateFormat: { time: true } }}
+                        }
+                      </td>
+                      <!-- End position -->
+                      <td class="col-medium">
+                        @if (isBlankForm) {
+                          <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
+                        } @else {
+                          {{ op.endPosition?.latitude | latitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                          <br />
+                          {{ op.endPosition?.longitude | longitudeFormat: { pattern: latLongPattern, placeholderChar: '0' } }}
+                        }
+                      </td>
+                    }
+                    @for (pmfm of stats.pmfms.operation | arrayFilter: filterPmfmForOperationTable; track pmfm) {
+                      <td class="col-tiny font-small ion-text-center">
+                        <div
+                          [innerHTML]="stats.measurementValues.operations | mapGet: index | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm, html: false }"
+                        ></div>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+            <ul class="caption" [style.margin-top]="'10px'">
+              <li>* : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.ONE_STAR' | translate }}</li>
+              <li>** : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.TWO_STAR' | translate }}</li>
+              <li>1 : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.ONE' | translate }}</li>
+              <li>2 : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.TWO' | translate }}</li>
+              <li>3 : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.THREE' | translate }}</li>
+            </ul>
+            <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
+          </section>
+
+            <!-- Operation comments -->
+          <section class="landscape">
+            <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE' }"></ng-content>
+            <table class="table-full-width" [style.margin-top]="'50px'">
+              <thead>
+                <tr>
+                  <th class="col-tiny font-medium text-vertical">
+                    <div>{{ 'TRIP.REPORT.FORM.NUM_OP' | translate }}</div>
+                  </th>
+                  <th class="col-maximum font-medium">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.COMMENTS' | translate }}</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (op of ops; track $index) {
+                  <tr>
+                    <td class="col-tiny font-medium ion-text-center" [style.padding]="0">
+                      <div>
+                        <b>{{ op.rankOrder }}</b>
+                      </div>
+                    </td>
+                    <td class="col-maximum ion-text-left">
+                      <div>{{ op.comments }}</div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
+          </section>
+        }
+      </section>
+    }
+
+    <!-- Physical gears -->
+    @if (data.gears | isNotEmptyArray) {
+      <section *sectionDef>
+        @for (physicalGears of data.gears | splitArrayInChunks: maxGearPeepPage; track physicalGearSplitIndex; let physicalGearSplitIndex = $index) {
+          <section class="portrait">
+            <ng-content
+              *ngTemplateOutlet="
+                pageHeader;
+                context: { title: 'TRIP.REPORT.FORM.PHYSICAL_GEAR.TITLE', titleParams: { pageNumber: physicalGearSplitIndex + 1 } }
+              "
+            ></ng-content>
+            @for (physicalGear of physicalGears; track physicalGear.rankOrder; let physicalGearIndex = $index) {
+              <ion-grid class="report-section">
+                <ion-row class="section-title">
+                  <ion-col>
+                    <h3>{{ physicalGear.gear.label }} - {{ physicalGear.gear.name }}</h3>
+                  </ion-col>
+                </ion-row>
+                <ion-row class="form-field ion-margin-bottom">
+                  <ion-col class="form-label" size="3">
+                    {{ 'TRIP.REPORT.FORM.PHYSICAL_GEAR.OPERATIONS' | translate }}
+                  </ion-col>
+                  <ion-col class="form-value" size="9">
+                    {{ stats.operationsRankByGears | mapGet: physicalGear.id | arrayJoin: ', ' }}
+                  </ion-col>
+                </ion-row>
+                @for (
+                  pmfms of stats.pmfmByGearsId | mapGet: physicalGear.gear.id | splitArrayInChunks: 2;
+                  track pmfmSplitIndex;
+                  let pmfmSplitIndex = $index
+                ) {
+                  <ion-row class="form-field">
+                    @for (pmfm of pmfms; track pmfm.id) {
+                      <ion-col class="form-label" size="3">
+                        {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: true, html: false } }}
+                      </ion-col>
+                      <ion-col
+                        class="form-value"
+                        size="3"
+                        [class.no-border-top]="pmfmSplitIndex > 0"
+                        [innerHTML]="
+                          stats.measurementValues.gears
+                            | mapGet: physicalGearIndex * (physicalGearSplitIndex + 1)
+                            | mapGet: pmfm.id
+                            | pmfmValue: { pmfm: pmfm, html: false }
+                        "
+                      ></ion-col>
+                    }
+                  </ion-row>
+                }
+                <ion-row class="form-field ion-margin-top">
+                  <ion-col class="form-label" size="3">
+                    {{ 'COMMON.COMMENTS' | translate }}
+                  </ion-col>
+                  <ion-col class="form-value" size="9">
+                    {{ physicalGear.comments }}
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            }
+            <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
+          </section>
+        }
+      </section>
+    }
 
     <!-- Iterate over all batches by operation ids -->
     @for (opId of stats.denormalizedBatchesByOp | mapKeys; track opId) {
