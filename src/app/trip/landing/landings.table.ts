@@ -19,8 +19,9 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { RxState } from '@rx-angular/state';
-import { UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, tap } from 'rxjs';
+import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -57,6 +58,15 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected vesselSnapshotAttributes: string[];
 
   unknownVesselId = VesselIds.UNKNOWN;
+
+  showRowError = false;
+
+  statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
+  statusById = DataQualityStatusEnum;
+  readonly filterForm: UntypedFormGroup = this.formBuilder.group({
+    observedLocationId: [null],
+    dataQualityStatus: [null],
+  });
 
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
@@ -181,6 +191,14 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.setParent(value);
   }
 
+  get showQualityColumn(): boolean {
+    return this.getShowColumn('quality');
+  }
+
+  get filterDataQualityControl(): UntypedFormControl {
+    return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
+  }
+
   constructor(
     injector: Injector,
     protected accountService: AccountService,
@@ -263,7 +281,28 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   setError(error: string, opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean }) {
     super.setError(error, opts);
 
-    // TODO: Use showOnlyInvalidRows to filter and invalidate rows
+    // If error
+    if (error) {
+      // Add filter on invalid rows (= not controlled)
+      if (!opts || opts.showOnlyInvalidRows !== false) {
+        this.showRowError = true;
+        const filter = this.filter || new LandingFilter();
+        filter.dataQualityStatus = 'MODIFIED'; // = not controlled landings
+        this.setFilter(filter);
+      }
+    }
+    // No errors
+    else {
+      // Remove filter on invalid rows
+      if (!opts || opts.showOnlyInvalidRows !== true) {
+        this.showRowError = false;
+        const filter = this.filter || new LandingFilter();
+        if (filter.dataQualityStatus === 'MODIFIED') {
+          filter.dataQualityStatus = undefined;
+          this.setFilter(filter);
+        }
+      }
+    }
   }
 
   // Change visibility to public
@@ -417,6 +456,20 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     // When connected user is in observed location observers
     return this._parentObservers?.some((o) => o.id === personId) || false;
+  }
+
+  resetFilter(value?: any, opts?: { emitEvent: boolean }) {
+    super.resetFilter(<LandingFilter>{ ...value, observedLocationId: this.context.observedLocation.id }, opts);
+    this.resetError();
+  }
+
+  clearFilterValue(key: keyof LandingFilter, event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    this.filterForm.get(key).reset(null);
   }
 
   protected markForCheck() {

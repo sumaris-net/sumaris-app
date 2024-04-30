@@ -1579,6 +1579,7 @@
       "PROGRAM": "Programme",
       "START_DATE_TIME": "Date/heure",
       "QUALITY": "État",
+      "QUALITY_FILTER": "Filtrer par état :",
       "LOCATION": "Lieu de la sortie",
       "OBSERVERS": "Observateurs",
       "RECORDER_PERSON": "Saisisseur",
