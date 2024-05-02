@@ -480,9 +480,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
       this.form.get('taxonName').disable(opts);
     }
 
-    // if (!this.enableIndividualCount) {
-    //   this.form.get('individualCount').disable(opts);
-    // }
+    if (this.showIndividualCount && !this.enableIndividualCount) {
+      this.form.get('individualCount').disable(opts);
+    }
 
     // Other field to disable by default (e.g. discard reason, in SUMARiS program)
     this._disableByDefaultControls.forEach((c) => c.disable(opts));

@@ -675,7 +675,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
    * @protected
    */
   protected updateDataContext() {
-    console.debug('[sale-page] Updating data context...');
+    console.debug(`[sale-page] Updating sale context#${this.saleContext.id} ...`);
 
     // Date
     const date = this.saleForm.startDateTimeControl?.value;
@@ -686,7 +686,9 @@ export class SalePage<ST extends SalePageState = SalePageState>
       const fishingArea = this.fishingAreaForm?.value;
       const fishingAreas = fishingArea ? [fishingArea] : this.data?.fishingAreas;
       this.saleContext.setValue('fishingAreas', fishingAreas);
+      this.saleContext.resetValue('vesselPositions');
+    } else {
+      this.saleContext.resetValue('fishingAreas');
     }
-    this.saleContext.resetValue('vesselPositions');
   }
 }

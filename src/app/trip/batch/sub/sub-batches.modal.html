@@ -297,7 +297,7 @@
             </th>
             <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing" (click)="focusColumn = 'individualCount'">
               @if (row.editing) {
-                <mat-form-field *ngIf="row.editing; else readonlyCell">
+                <mat-form-field>
                   <input
                     matInput
                     autocomplete="off"
@@ -324,9 +324,6 @@
               } @else {
                 {{ row.currentData.individualCount }}
               }
-              <ng-template #readonlyCell>
-                <ion-label>{{ row.currentData.individualCount }}</ion-label>
-              </ng-template>
             </td>
           </ng-container>
 

@@ -451,19 +451,17 @@
             *ngVar="row.currentData | propertyGet: col.path as colValue"
           >
             @if (colValue != null) {
-              <ion-label>
-                @switch (col.type) {
-                  @case ('pmfm') {
-                    {{ colValue | pmfmValue: { pmfm: col.pmfm } }}
-                  }
-                  @case ('samplingRatio') {
-                    {{ colValue | samplingRatioFormat: samplingRatioFormat }}
-                  }
-                  @default {
-                    {{ colValue | numberFormat: { maximumFractionDigits: col.pmfm?.maximumNumberDecimals || 3 } }}
-                  }
+              @switch (col.type) {
+                @case ('pmfm') {
+                  <ion-label [innerHTML]="colValue | pmfmValue: { pmfm: col.pmfm, html: false }"></ion-label>
                 }
-              </ion-label>
+                @case ('samplingRatio') {
+                  <ion-label>{{ colValue | samplingRatioFormat: samplingRatioFormat }}</ion-label>
+                }
+                @default {
+                  <ion-label>{{ colValue | numberFormat: { maximumFractionDigits: col.pmfm?.maximumNumberDecimals || 3 } }}</ion-label>
+                }
+              }
             } @else if (col.isWeight && !col.isSampling) {
               <!-- If only individual count filled, display it -->
               <ion-label *ngVar="row.currentData | propertyGet: ['children', col.qvIndex, 'individualCount']; let indivCount">

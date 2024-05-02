@@ -30,7 +30,7 @@ import { environment } from '@environments/environment';
 import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
-import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
+import { BatchContext, SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
 import { RxState } from '@rx-angular/state';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ModalUtils } from '@app/shared/modal/modal.utils';
@@ -80,10 +80,10 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
   providers: [
     {
       provide: ContextService,
-      useFactory: (context: ContextService) => {
-        const initialState = context.child || context.get();
+      useFactory: (mainContext: ContextService) => {
+        const initialState = mainContext.children?.find((c) => !c.empty)?.get() || mainContext.get();
         console.debug('[sub-batches-modal] Creating batch context, using', initialState);
-        return new ContextService(initialState);
+        return new ContextService<BatchContext>(initialState);
       },
       deps: [APP_MAIN_CONTEXT_SERVICE],
     },

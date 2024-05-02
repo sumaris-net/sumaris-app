@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 import { Moment } from 'moment';
-import { DateUtils, fromDateISOString } from '@sumaris-net/ngx-components';
+import { DateUtils, equals, fromDateISOString, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -18,7 +18,7 @@ export interface Context<T = any> {
   strategy?: Strategy;
 
   // A child context, that can be dynamically set (e.g. TripContext, or SaleContext)
-  child?: Context<any>;
+  children?: ContextService<any>[];
 }
 
 export const APP_MAIN_CONTEXT_SERVICE = new InjectionToken<ContextService>('ContextService');
@@ -27,10 +27,12 @@ export const CONTEXT_DEFAULT_STATE = new InjectionToken<Record<string, any>>('Co
 
 @Injectable()
 export class ContextService<S extends Context<T> = Context<any>, T = any> extends RxState<S> {
+  private static ID_SEQUENCE = 1;
+  readonly id: number = ContextService.ID_SEQUENCE++;
   @RxStateProperty() program: Program;
   @RxStateProperty() strategy: Strategy;
   @RxStateProperty('clipboard', (_, value) => <T>{ ...value, updateDate: DateUtils.moment() }) clipboard: Clipboard<T>;
-  @RxStateProperty() child: Context<any>;
+  @RxStateProperty() children: ContextService<any>[];
 
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: Partial<S>) {
     super();
@@ -59,10 +61,26 @@ export class ContextService<S extends Context<T> = Context<any>, T = any> extend
   }
 
   reset(): void {
+    this.children?.forEach((child) => child.reset());
+
     this.set(this.defaultState);
+
+    this.children = null;
   }
 
   getValueAsDate<K extends keyof S>(key: K): Moment {
     return fromDateISOString(this.getValue(key));
+  }
+
+  registerChild(child: ContextService<any>) {
+    if (!child) throw new Error('Missing required argument child context');
+    console.debug(`[context#${this.id}] Registering child context#${child.id}`);
+    this.set('children', (s) => removeDuplicatesFromArray((s.children || []).concat(child), 'id'));
+  }
+  unregisterChild(child: ContextService<any>) {
+    this.set('children', (s) => (s.children || []).filter((c) => c !== child));
+  }
+  get empty(): boolean {
+    return equals(this.defaultState || {}, this.get());
   }
 }

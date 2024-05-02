@@ -1143,6 +1143,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
     // Check modal size, when opening
+    // TODO BLA should be refactoring when
     let modalClass = 'modal-large';
     let showIndividualCountOnly = false;
     if (this.allowIndividualCountOnly) {
