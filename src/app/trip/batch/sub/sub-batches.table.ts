@@ -109,7 +109,6 @@ export class SubBatchesTable
   @Input() displayParentPmfm: IPmfm;
   @Input() showForm = false;
   @Input() usageMode: UsageMode;
-  @Input() useSticky = false;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() weightDisplayDecimals = 2;
 
@@ -155,12 +154,12 @@ export class SubBatchesTable
   }
 
   @Input()
-  set showParentColumn(value: boolean) {
-    this.setShowColumn('parent', value);
+  set showParentGroupColumn(value: boolean) {
+    this.setShowColumn('parentGroup', value);
   }
 
-  get showParentColumn(): boolean {
-    return this.getShowColumn('parent');
+  get showParentGroupColumn(): boolean {
+    return this.getShowColumn('parentGroup');
   }
 
   @Input()
@@ -426,7 +425,7 @@ export class SubBatchesTable
    * @param data
    * @param opts
    */
-  setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
+  async setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
     this.memoryDataService.value = data;
     //this.markAsLoaded();
   }
@@ -666,7 +665,7 @@ export class SubBatchesTable
         isNew,
         disabled: this.disabled,
         qvPmfm: this.qvPmfm,
-        showParent: this.showParentColumn,
+        showParent: this.showParentGroupColumn,
         showTaxonGroup: false, // Not used
         showTaxonName: this.showTaxonNameColumn,
         showIndividualCount: this.showIndividualCount,

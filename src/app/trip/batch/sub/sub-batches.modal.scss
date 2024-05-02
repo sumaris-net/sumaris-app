@@ -25,10 +25,13 @@ ion-grid.disabled {
 }
 
 ion-col.ion-col-form {
-  padding: 4px;
+  //padding: 4px;
 }
 .table-container {
-  padding: 1px;
+  padding: 1px; // Workaround to avoid bug when editing a row
+  &.mobile {
+    padding: 0;
+  }
 }
 .mat-mdc-table {
   /*Hide selected row (if scale by an animation) */

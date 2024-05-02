@@ -23,7 +23,7 @@ import { Animation, IonContent, ModalController } from '@ionic/angular';
 import { firstValueFrom, isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
-import { BatchGroup } from '../group/batch-group.model';
+import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { environment } from '@environments/environment';
@@ -90,12 +90,13 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
     { provide: SubBatchValidatorService, useClass: SubBatchValidatorService },
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
-      useFactory: () => ({
-        prependNewElements: true,
+      useFactory: (settings: LocalSettingsService) => ({
+        prependNewElements: settings.mobile,
         suppressErrors: true,
         reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
         reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS,
       }),
+      deps: [LocalSettingsService],
     },
     RxState,
   ],
@@ -186,7 +187,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.confirmBeforeDelete = true; // Ask confirmation before delete
     this.allowRowDetail = false; // Disable click on a row
     this.defaultSortBy = 'id';
-    this.defaultSortDirection = 'desc';
+    this.defaultSortDirection = settings.mobile ? 'desc' : 'asc';
     this.selection = new SelectionModel<TableElement<SubBatch>>(!this.mobile);
     this.modalForm = this.formBuilder.group({
       showSubBatchForm: [true, Validators.required],
@@ -197,12 +198,13 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     // default values
     this.showCommentsColumn = false;
-    this.showParentColumn = false;
+    this.showParentGroupColumn = false;
     this.settingsId = 'sub-batches-modal';
   }
 
   ngOnInit() {
     this.canDebug = toBoolean(this.canDebug, !environment.production);
+    this.canEdit = this._enabled;
     this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
 
     if (this.disabled) {
@@ -215,9 +217,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     // default values
     this.mobile = toBoolean(this.mobile, this.platform.mobile);
     this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
-    console.log('TODO this.showIndividualCount=' + this.showIndividualCount);
-    this.showIndividualCount = toBoolean(this.showIndividualCount, !this._isOnFieldMode); // Hide individual count on mobile device
+    this.showToolbar = this._enabled && this.inlineEdition; // Hide toolbar if not used
     this.showParentGroup = toBoolean(this.showParentGroup, true);
+    this.showIndividualCount = toBoolean(this.showIndividualCount, !this._isOnFieldMode); // Hide individual count on mobile device
     this.showForm = this._enabled && this.showForm && this.form && true;
     this.playSound = toBoolean(this.playSound, this.mobile);
     this.showBluetoothIcon = this.showBluetoothIcon && this._enabled && this.platform.isApp();
@@ -245,7 +247,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       const data = isObservable(this.data) ? await this.data.toPromise() : this.data;
 
       // Apply data to table
-      this.setValue(data);
+      await this.setValue(data);
 
       // Compute the title
       await this.computeTitle();
@@ -294,22 +296,23 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     await this.form?.ready();
   }
 
-  setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
-    // DEBUG
-    //console.debug('[sub-batches-modal] Applying value to table...', data);
-
+  async setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
     // Compute the first rankOrder to save
     this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
 
-    // Show individual count form, if aneble
-    if (this.allowIndividualCountOnly) {
+    // Show individual count only field
+    this.showIndividualCountOnly = this.allowIndividualCountOnly && (await BatchGroupUtils.hasSamplingIndividualCountOnly(this.parentGroup, data));
+
+    if (this.showIndividualCountOnly) {
       const samplingBatch = BatchUtils.getOrCreateSamplingChild(this.parentGroup);
       const individualCount = toNumber(samplingBatch?.individualCount, this.parentGroup.observedIndividualCount);
-      this.showIndividualCountOnly = isEmptyArray(data) && individualCount > 0;
       this.individualCountControl.setValue(toNumber(individualCount, null));
     }
 
-    super.setValue(data, opts);
+    // DEBUG
+    if (this.debug) console.debug('[sub-batches-modal] Applying value to table...', data);
+
+    return super.setValue(data, opts);
   }
 
   async doSubmitForm(event?: Event, row?: TableElement<SubBatch>): Promise<boolean> {
@@ -353,7 +356,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       }
     }
 
-    await this.viewCtrl.dismiss();
+    await this.viewCtrl.dismiss(undefined, 'cancel');
   }
 
   async close(event?: Event) {
@@ -408,24 +411,21 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return row.currentData.rankOrder > this._initialMaxRankOrder;
   }
 
-  editRow(event: MouseEvent, row?: TableElement<SubBatch>): boolean {
-    row = row || this.selectedRow;
-    if (!row) throw new Error('Missing row argument, or a row selection.');
+  editRow(event: UIEvent, row?: TableElement<SubBatch>): boolean {
+    if (this.mobile) {
+      if (!this._enabled) return false;
+      row = row || this.selectedRow;
+      if (!row) throw new Error('Missing row argument, or a row selection.');
 
-    // Confirm last edited row
-    const confirmed = this.confirmEditCreate();
-    if (!confirmed) return false;
+      // Copy the row into the form
+      this.form.setValue(this.toEntity(row), { emitEvent: true });
 
-    // Copy the row into the form
-    this.form.setValue(this.toEntity(row), { emitEvent: true });
-
-    // Then remove the row
-    row.startEdit();
-
-    // Mark the row as edited
-    this.selectedRow = row;
-
-    return true;
+      // Mark the row as edited
+      this.selectedRow = row;
+      return true;
+    } else {
+      return super.editRow(event, row);
+    }
   }
 
   selectRow(event: MouseEvent | null, row: TableElement<SubBatch>) {

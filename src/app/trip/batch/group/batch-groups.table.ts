@@ -28,7 +28,6 @@ import {
   SETTINGS_DISPLAY_COLUMNS,
   TableSelectColumnsComponent,
   toBoolean,
-  toNumber,
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualityFlagIds, UnitLabel } from '@app/referential/services/model/model.enum';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
@@ -36,7 +35,7 @@ import { Batch } from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { SubBatch } from '../sub/sub-batch.model';
-import { debounceTime, firstValueFrom, isObservable, Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, Observable, Subject, Subscription } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
@@ -733,7 +732,12 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     if (this.loading) return; // Avoid to be called twice
 
     event?.preventDefault();
-    event?.stopPropagation(); // Avoid to send event to clicRow()
+    event?.stopPropagation(); // Avoid to send event to clickRow()
+
+    if (row.editing) {
+      const confirmed = this.confirmEditCreate();
+      if (!confirmed) return; // Stop if cannot confirmed the row
+    }
 
     // Loading spinner
     this.markAsLoading();
@@ -1127,7 +1131,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     opts?: {
       showParent?: boolean;
     }
-  ): Promise<{ role: 'batchGroup' | 'subBatches'; data: BatchGroup | SubBatch[] | undefined }> {
+  ): Promise<{ role?: 'cancel' | 'batchGroup' | 'subBatches'; data?: BatchGroup | SubBatch[] | undefined }> {
     const stopSubject = new Subject<void>();
     const hasTopModal = !!(await this.modalCtrl.getTop());
 
@@ -1139,25 +1143,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // DEBUG
     if (this.debug) console.debug('[batches-table] Open individual measures modal...');
 
-    // FIXME: opts.showParentGroup=true not working
     const showParentGroup = !opts || opts.showParent !== false; // True by default
-
-    // Check modal size, when opening
-    // TODO BLA should be refactoring when
-    let modalClass = 'modal-large';
-    let showIndividualCountOnly = false;
-    if (this.allowIndividualCountOnly) {
-      const samplingBatch = BatchUtils.getSamplingChild(parentGroup);
-      const individualCount = toNumber(samplingBatch?.individualCount, parentGroup.observedIndividualCount);
-      if (individualCount > 0) {
-        const subBatches = isObservable(this.availableSubBatches) ? await firstValueFrom(this.availableSubBatches) : this.availableSubBatches;
-        const noSubBatches = subBatches.every((b) => !BatchGroup.equals(b.parentGroup, parentGroup));
-        if (noSubBatches) {
-          modalClass = 'modal-small';
-          showIndividualCountOnly = true;
-        }
-      }
-    }
+    const showIndividualCountOnly =
+      this.allowIndividualCountOnly && (await BatchGroupUtils.hasSamplingIndividualCountOnly(parentGroup, this.availableSubBatches));
 
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,
@@ -1175,7 +1163,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,
         allowIndividualCountOnly: this.allowIndividualCountOnly,
-        showIndividualCountOnly: showIndividualCountOnly,
+        showIndividualCountOnly,
         // Scientific species is required, only not already set in batch groups
         showTaxonNameColumn: !this.showTaxonNameColumn,
         // If on field mode: use individualCount=1 on each sub-batches
@@ -1202,7 +1190,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       },
       backdropDismiss: false,
       keyboardClose: true,
-      cssClass: hasTopModal ? `stack-modal ${modalClass}` : modalClass,
+      cssClass: (hasTopModal ? 'stack-modal ' : '') + (showIndividualCountOnly ? 'modal-small' : 'modal-large'),
     });
 
     // Open the modal
@@ -1216,6 +1204,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // User cancelled
     if (isNil(data) || role === 'cancel') {
       if (this.debug) console.debug('[batches-table] Sub-batches modal: user cancelled');
+      return { data: null, role: 'cancel' };
     } else if (role === 'batchGroup') {
       this.onSubBatchesChanges.emit([]);
       return { data: BatchGroup.fromObject(data), role: 'batchGroup' };
