@@ -35,6 +35,7 @@ import { RxState } from '@rx-angular/state';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ModalUtils } from '@app/shared/modal/modal.utils';
 import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FloatLabelType } from '@angular/material/form-field';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -163,6 +164,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() allowIndividualCountOnly: boolean;
   @Input() defaultIsIndividualCountOnly: boolean;
   @Input() animationDuration = 1500; // 1.5s
+  @Input() floatLabel: FloatLabelType = 'always';
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;

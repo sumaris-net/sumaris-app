@@ -71,6 +71,7 @@
         [sizeLg]="showSubBatchForm ? 3 : 12"
         [pushLg]="showSubBatchForm ? 9 : null"
         class="ion-col-form"
+        [class.mobile]="mobile"
       >
         <!-- error -->
         <ion-item *ngIf="form.error; let error" lines="none">
@@ -92,8 +93,11 @@
             ></mat-boolean-field>
 
             <!-- Individual count -->
-            @if ((showSubBatchControl.valueChanges | async) === false) {
-              <mat-form-field>
+            @if ((showSubBatchControl | formGetValue) === false) {
+              <mat-form-field [floatLabel]="floatLabel">
+                @if (floatLabel !== 'never') {
+                  <mat-label translate>TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT</mat-label>
+                }
                 <input
                   matInput
                   autocomplete="off"
@@ -105,7 +109,6 @@
                   (keypress)="filterNumberInput($event, false)"
                   (keyup.enter)="closeWithIndividualCount($event)"
                   (focus)="selectInputContent($event)"
-                  [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT' | translate"
                   [required]="true"
                   [tabindex]="1"
                 />
@@ -128,7 +131,7 @@
           [programLabel]="programLabel"
           [pmfms]="undefined"
           [qvPmfm]="undefined"
-          floatLabel="always"
+          [floatLabel]="floatLabel"
           [acquisitionLevel]="acquisitionLevel"
           [parentGroup]="parentGroup"
           [showParentGroup]="showParentGroup"
@@ -157,6 +160,7 @@
         size-lg="9"
         pull-lg="3"
         class="table-container compact"
+        [class.mobile]="mobile"
         [class.cdk-visually-hidden]="showIndividualCountOnly"
       >
         <mat-toolbar *ngIf="showToolbar">
@@ -361,14 +365,14 @@
             mat-row
             *matRowDef="let row; columns: displayedColumns"
             [class.mat-mdc-row-dirty]="isNewRow(row)"
-            [class.mat-mdc-row-error]="row.validator.invalid"
+            [class.mat-mdc-row-error]="row.invalid"
             [class.mat-mdc-row-animated]="animationSelection | isSelected: row"
             [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
             [matMenuTriggerFor]="mobile ? rowActionsMenu : null"
             [matMenuTriggerRestoreFocus]="false"
             (click)="selectRow($event, row)"
             (keydown.escape)="escapeEditingRow($event)"
-            [cdkTrapFocus]="!row.validator.valid"
+            [cdkTrapFocus]="!row.valid"
           ></tr>
         </table>
       </ion-col>

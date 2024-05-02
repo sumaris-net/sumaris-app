@@ -182,48 +182,48 @@
   </ng-container>
 
   <!-- Individual count -->
-  <mat-form-field *ngIf="showIndividualCount">
-    <mat-label translate>TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT</mat-label>
-    <input
-      matInput
-      #inputField
-      autocomplete="off"
-      formControlName="individualCount"
-      min="1"
-      type="number"
-      step="1"
-      pattern="[0-9]*"
-      (keypress)="filterNumberInput($event, false)"
-      (keydown.tab)="doSubmit($event)"
-      (keyup.enter)="doSubmit($event)"
-      (focus)="selectInputContent($event)"
-      [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT' | translate"
-      [required]="!enableIndividualCount"
-      [tabindex]="tabindex + 100"
-    />
-    <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-    <mat-error *ngIf="form.controls.individualCount.hasError('min')">
-      {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate: form.controls.individualCount.errors['min'] }}
-    </mat-error>
-    <mat-error *ngIf="form.controls.individualCount.hasError('integer')">
-      {{ 'ERROR.FIELD_NOT_VALID_INTEGER' | translate }}
-    </mat-error>
+  @if (showIndividualCount) {
+    <mat-form-field [floatLabel]="floatLabel">
+      @if (floatLabel !== 'never') {
+        <mat-label translate>TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT</mat-label>
+      }
+      <input
+        matInput
+        #inputField
+        autocomplete="off"
+        formControlName="individualCount"
+        min="1"
+        type="number"
+        step="1"
+        pattern="[0-9]*"
+        (keypress)="filterNumberInput($event, false)"
+        (keydown.tab)="doSubmit($event)"
+        (keyup.enter)="doSubmit($event)"
+        (focus)="selectInputContent($event)"
+        [required]="enableIndividualCountControl | formGetValue"
+        [tabindex]="tabindex"
+      />
+      <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+      <mat-error *ngIf="form.controls.individualCount.hasError('min')">
+        {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate: form.controls.individualCount.errors['min'] }}
+      </mat-error>
+      <mat-error *ngIf="form.controls.individualCount.hasError('integer')">
+        {{ 'ERROR.FIELD_NOT_VALID_INTEGER' | translate }}
+      </mat-error>
 
-    <!-- checkbox (to manually set the individual count, otherwise it increment one by one) -->
-    <mat-checkbox matSuffix [formControl]="enableIndividualCountControl" labelPosition="after" [tabIndex]="-1">
-      <ion-text><small translate>TRIP.BATCH.EDIT.INDIVIDUAL.BTN_MANUAL_ENTRY</small></ion-text>
-    </mat-checkbox>
-  </mat-form-field>
+      <!-- checkbox (to manually set the individual count, otherwise it increment one by one) -->
+      <mat-checkbox matSuffix [formControl]="enableIndividualCountControl" labelPosition="after" [tabIndex]="-1">
+        <ion-text><small translate>TRIP.BATCH.EDIT.INDIVIDUAL.BTN_MANUAL_ENTRY</small></ion-text>
+      </mat-checkbox>
+    </mat-form-field>
+  }
 
   <!-- Computed weight -->
-  <mat-form-field *ngIf="weightPmfm" floatLabel="always" class="mat-form-field-disabled computed">
-    <input
-      matInput
-      type="number"
-      readonly
-      [placeholder]="weightPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
-      [formControl]="form | formGetControl: 'weight.value'"
-    />
+  <mat-form-field *ngIf="weightPmfm" [floatLabel]="floatLabel" class="mat-form-field-disabled computed">
+    @if (floatLabel !== 'never') {
+      <mat-label>{{ weightPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix } }}</mat-label>
+    }
+    <input matInput type="number" readonly [formControl]="form | formGetControl: 'weight.value'" />
 
     <!-- Compute indicator -->
     <ion-label matSuffix>
