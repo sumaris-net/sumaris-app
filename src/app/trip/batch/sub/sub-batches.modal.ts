@@ -68,6 +68,7 @@ export interface ISubBatchesModalOptions {
   canDebug: boolean;
   allowIndividualCountOnly: boolean;
   showIndividualCountOnly: boolean;
+  animationDuration: number;
 }
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
@@ -115,7 +116,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected individualCountControl: AbstractControl;
 
   get selectedRow(): TableElement<SubBatch> {
-    return this.selection.selected[0] || this.editedRow;
+    return this.singleSelectedRow || this.editedRow;
   }
   set selectedRow(row: TableElement<SubBatch>) {
     this.selection.clear();
@@ -161,6 +162,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() canDebug: boolean;
   @Input() allowIndividualCountOnly: boolean;
   @Input() defaultIsIndividualCountOnly: boolean;
+  @Input() animationDuration = 1500; // 1.5s
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -315,9 +317,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return super.setValue(data, opts);
   }
 
-  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>): Promise<boolean> {
+  async doSubmitForm(event?: Event): Promise<boolean> {
     await this.scrollToTop();
-    const done = await super.doSubmitForm(event, row);
+    const done = await super.doSubmitForm(event, this.inlineEdition ? null : this.selectedRow);
 
     // Forget the edited row
     if (done) {
@@ -530,11 +532,11 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return this._previousMaxRankOrder;
   }
 
-  protected async addEntityToTable(newBatch: SubBatch): Promise<TableElement<SubBatch>> {
-    const row = await super.addEntityToTable(newBatch);
+  protected async addEntityToTable(newBatch: SubBatch, opts?: { confirmCreate?: boolean; editing?: boolean }): Promise<TableElement<SubBatch>> {
+    const row = await super.addEntityToTable(newBatch, opts);
 
     // Highlight the row, few seconds
-    if (row) this.onRowChanged(row);
+    if (row) this.animateRow(row, true);
 
     return row;
   }
@@ -547,7 +549,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     const updatedRow = await super.updateEntityToTable(updatedBatch, row, opts);
 
     // Highlight the row, few seconds
-    if (updatedRow) this.onRowChanged(updatedRow);
+    if (updatedRow) this.animateRow(updatedRow, false);
 
     return updatedRow;
   }
@@ -563,19 +565,19 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
    * When a row has been edited, play a beep and highlight the row (during few seconds)
    *
    * @param row
+   * @param opts
    * @pram times duration of highlight
    */
-  protected async onRowChanged(row: TableElement<SubBatch>) {
+  protected async animateRow(row: TableElement<SubBatch>, isNew: boolean) {
     // Play a beep
     if (this.playSound) this.audio.playBeepConfirm();
 
-    // Selection the animated row (this will apply CSS class mat-row-animated)
+    // Selection the animated row (this will apply CSS class mat-mdc-row-animated)
     this.animationSelection.select(row);
-    this.markForCheck();
     this.cd.detectChanges();
 
-    this.createRowAnimation(document.querySelector('.mat-row-animated'))
-      .duration(500)
+    this.createRowAnimation(document.querySelector('.mat-mdc-row-animated'), isNew)
+      .duration(1500)
       .play()
       .then(() => {
         // If row is still selected: unselect it
@@ -594,39 +596,67 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return this.content.scrollToTop();
   }
 
-  private createRowAnimation(rowElement: Element): Animation {
-    const cellElements = rowElement && Array.from(rowElement.querySelectorAll('.mat-cell'));
+  private createRowAnimation(rowElement: Element, isNew: boolean): Animation {
+    const cellElements = rowElement && Array.from(rowElement.querySelectorAll('.mat-mdc-cell'));
     if (!rowElement || isEmptyArray(cellElements)) {
       return createAnimation();
     }
 
-    const rowAnimation = createAnimation()
-      .addElement(rowElement)
-      .beforeStyles({ 'transition-timing-function': 'ease-in-out', background: 'var(--ion-color-accent)' })
-      .keyframes([
-        { offset: 0, opacity: '0.4', transform: 'translateX(50%)', background: 'var(--ion-color-accent)' },
-        { offset: 0.5, opacity: '0.9', transform: 'translateX(2%)', background: 'var(--ion-color-accent)' },
-        { offset: 1, opacity: '1', transform: 'translateX(0)', background: 'var(--ion-color-base)' },
-      ])
-      .afterStyles({
-        background: 'rgba(var(--ion-color-accent-rgb), 0.8)',
-      });
+    const rowAnimation = isNew
+      ? createAnimation()
+          .addElement(rowElement)
+          .beforeStyles({ 'transition-timing-function': 'ease-in-out', background: 'var(--ion-color-accent)' })
+          .keyframes([
+            { offset: 0, opacity: '0.4', transform: 'translateX(50%)', background: 'var(--ion-color-accent)' },
+            { offset: 0.2, opacity: '0.9', transform: 'translateX(0%)', background: 'var(--ion-color-accent)' },
+            { offset: 1, opacity: '1', transform: 'translateX(0)', background: 'var(--ion-color-base)' },
+          ])
+          .afterStyles({
+            background: 'rgba(var(--ion-color-accent-rgb), 0.8)',
+          })
+      : createAnimation()
+          .addElement(rowElement)
+          .beforeStyles({ 'transition-timing-function': 'ease-in-out', background: 'var(--ion-color-secondary)' })
+          .keyframes([
+            { offset: 0, opacity: '0.4', background: 'var(--ion-color-secondary)' },
+            { offset: 0.2, opacity: '0.9', background: 'var(--ion-color-secondary)' },
+            { offset: 1, opacity: '1', background: 'var(--ion-color-base)' },
+          ])
+          .afterStyles({
+            background: 'rgba(var(--ion-color-accent-rgb), 0.8)',
+          });
 
-    const cellAnimation = createAnimation()
-      .addElement(cellElements)
-      .beforeStyles({
-        'transition-timing-function': 'ease-in-out',
-        color: 'var(--ion-color-accent-contrast)',
-        'font-weight': 'bold',
-      })
-      .keyframes([
-        { offset: 0, color: 'var(--ion-color-accent-contrast)', 'font-weight': 'bold' },
-        { offset: 0.5, color: 'var(--ion-color-accent-contrast)', 'font-weight': 'bold' },
-        { offset: 1, color: 'var(--ion-color-base)', 'font-weight': 'normal' },
-      ])
-      .afterStyles({
-        'font-weight': '',
-      });
+    const cellAnimation = isNew
+      ? createAnimation()
+          .addElement(cellElements)
+          .beforeStyles({
+            'transition-timing-function': 'ease-in-out',
+            color: 'var(--ion-color-accent-contrast)',
+            'font-weight': 'bold',
+          })
+          .keyframes([
+            { offset: 0, color: 'var(--ion-color-accent-contrast)', 'font-weight': 'bold', background: 'var(--ion-color-accent)' },
+            { offset: 0.9, color: 'var(--ion-color-accent-contrast)', 'font-weight': 'bold', background: 'var(--ion-color-accent)' },
+            { offset: 1, color: 'var(--ion-color-base)', 'font-weight': 'normal' },
+          ])
+          .afterStyles({
+            'font-weight': '',
+          })
+      : createAnimation()
+          .addElement(cellElements)
+          .beforeStyles({
+            'transition-timing-function': 'ease-in-out',
+            color: 'var(--ion-color-secondary-contrast)',
+            'font-weight': 'bold',
+          })
+          .keyframes([
+            { offset: 0, color: 'var(--ion-color-secondary-contrast)', 'font-weight': 'bold' },
+            { offset: 0.9, color: 'var(--ion-color-secondary-contrast)', 'font-weight': 'bold' },
+            { offset: 1, color: 'var(--ion-color-base)', 'font-weight': 'normal' },
+          ])
+          .afterStyles({
+            'font-weight': '',
+          });
 
     return createAnimation().addAnimation([rowAnimation, cellAnimation]);
   }

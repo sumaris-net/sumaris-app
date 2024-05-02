@@ -20,7 +20,8 @@ export class BatchGroup extends Batch<BatchGroup> {
     // Compute observed indiv. count
     const sumObservedIndividualCount = BatchUtils.sumObservedIndividualCount(batch.children);
     if (sumObservedIndividualCount > 0 || isNil(target.observedIndividualCount)) {
-      console.log('TODO compute', target.observedIndividualCount);
+      // DEBUG
+      //console.log('DEBUG New computed observedIndividualCount=' + target.observedIndividualCount);
       target.observedIndividualCount = sumObservedIndividualCount;
     }
     return target;

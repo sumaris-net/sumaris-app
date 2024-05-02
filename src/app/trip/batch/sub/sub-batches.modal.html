@@ -44,7 +44,7 @@
 
 <!-- Row actions menu -->
 <mat-menu #rowActionsMenu="matMenu" xPosition="before">
-  <button mat-menu-item [disabled]="disabled" (click)="editRow($event, this.editedRow)">
+  <button mat-menu-item [disabled]="disabled" (click)="editRow($event, selectedRow)">
     <mat-icon>edit</mat-icon>
     <ion-label translate>COMMON.BTN_EDIT</ion-label>
   </button>
@@ -137,7 +137,7 @@
           [displayParentPmfm]="displayParentPmfm"
           [weightDisplayedUnit]="weightDisplayedUnit"
           [onNewParentClick]="onNewParentClick"
-          (onSubmit)="doSubmitForm($event, selectedRow)"
+          (onSubmit)="doSubmitForm($event)"
           [isNew]="!selectedRow"
           [tabindex]="1"
           [maxVisibleButtons]="maxVisibleButtons"
@@ -201,7 +201,7 @@
               ></mat-checkbox>
             </th>
             <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit || mobile">
-              <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
+              <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection | isSelected: row" [tabIndex]="-1"></mat-checkbox>
             </td>
           </ng-container>
 
@@ -347,6 +347,7 @@
             (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
             (backward)="confirmAndBackward($event.event, $event.row)"
             (forward)="confirmAndForward($event.event, $event.row)"
+            [dirtyIcon]="false"
             [canCancel]="false"
           >
             <!-- Options menu -->
@@ -361,7 +362,7 @@
             *matRowDef="let row; columns: displayedColumns"
             [class.mat-mdc-row-dirty]="isNewRow(row)"
             [class.mat-mdc-row-error]="row.validator.invalid"
-            [class.mat-mdc-row-animated]="animationSelection.isSelected(row)"
+            [class.mat-mdc-row-animated]="animationSelection | isSelected: row"
             [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
             [matMenuTriggerFor]="mobile ? rowActionsMenu : null"
             [matMenuTriggerRestoreFocus]="false"
