@@ -99,9 +99,11 @@ export const VesselSnapshotFragments = {
 const VesselSnapshotQueries: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPortAndTotal: any } = {
   // Load all
   loadAll: gql`
-    query VesselSnapshots($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput) {
+    query VesselSnapshots($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput, $withDates: Boolean!) {
       data: vesselSnapshots(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
         ...LightVesselSnapshotFragment
+        startDate @include(if: $withDates)
+        endDate @include(if: $withDates)
       }
     }
     ${VesselSnapshotFragments.lightVesselSnapshot}
@@ -225,7 +227,7 @@ export class VesselSnapshotService
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<VesselSnapshotFilter>,
-    opts?: VesselServiceLoadOptions
+    opts?: VesselServiceLoadOptions & { withDates?: boolean }
   ): Promise<LoadResult<VesselSnapshot>> {
     if (!this.started) await this.ready();
 
@@ -243,6 +245,7 @@ export class VesselSnapshotService
       size: size || 100,
       sortBy: sortBy || (filter?.searchAttributes && filter?.searchAttributes[0]) || VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES[0],
       sortDirection: sortDirection || 'asc',
+      withDates: opts?.withDates || false,
     };
 
     const debug = this._debug && (!opts || opts.debug !== false);

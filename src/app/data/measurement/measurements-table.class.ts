@@ -134,12 +134,13 @@ export abstract class BaseMeasurementsTable<
 
   @RxStateProperty() hasPmfms: boolean;
 
+  @Input() set pmfms(values: IPmfm[]) {
+    this.initialPmfms = values;
+  }
   get pmfms(): IPmfm[] {
     return this.filteredPmfms;
   }
-  set pmfms(values: IPmfm[]) {
-    this.initialPmfms = values;
-  }
+
   get pmfms$(): Observable<IPmfm[]> {
     return this.filteredPmfms$;
   }

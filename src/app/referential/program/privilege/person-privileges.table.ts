@@ -127,9 +127,7 @@ export class PersonPrivilegesTable extends AppBaseTable<ProgramPerson, ProgramPe
     //this.markAsLoaded();
   }
 
-  /* -- protected methods -- */
-
-  protected getValue(): ProgramPerson[] {
+  getValue(): ProgramPerson[] {
     return this.memoryDataService.value;
   }
 }

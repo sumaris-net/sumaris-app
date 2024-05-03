@@ -630,7 +630,7 @@ export class ObservedLocationPage
     if (programLabel) this.programLabel = programLabel;
   }
 
-  protected async setValue(data: ObservedLocation) {
+  async setValue(data: ObservedLocation) {
     console.info(this.logPrefix + 'Setting data', data);
 
     if (!this.isNewData) {
@@ -647,8 +647,8 @@ export class ObservedLocationPage
     }
   }
 
-  protected async getValue(): Promise<ObservedLocation> {
-    return await super.getValue();
+  async getValue(): Promise<ObservedLocation> {
+    return super.getValue();
   }
 
   protected get form(): UntypedFormGroup {
@@ -656,7 +656,7 @@ export class ObservedLocationPage
   }
 
   protected registerForms() {
-    this.addChildForms([
+    this.addForms([
       this.observedLocationForm,
       // Use landings table as child, only if editable
       //() => this.landingsTable?.canEdit && this.landingsTable,

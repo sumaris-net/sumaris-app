@@ -74,7 +74,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     await this.loadCacheStat();
   }
 
-  protected setValue(data: Configuration) {
+  setValue(data: Configuration) {
     if (!data) return; // Skip
 
     const json = data.asObject();

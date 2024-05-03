@@ -109,7 +109,7 @@ export abstract class AppRootDataEntityEditor<
     return super.addToPageHistory(page, opts);
   }
 
-  protected async getValue(): Promise<T> {
+  async getValue(): Promise<T> {
     const data = await super.getValue();
 
     // Re add program, because program control can be disabled

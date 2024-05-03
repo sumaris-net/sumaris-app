@@ -60,7 +60,7 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
     super.ngOnDestroy();
   }
 
-  protected async setValue(data: Product) {
+  async setValue(data: Product) {
     await this.productSaleForm.setValue(Product.fromObject(data));
   }
 

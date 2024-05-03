@@ -1,4 +1,4 @@
-import { DateUtils, EntityAsObjectOptions, EntityClass, EntityFilter, IEntity, isNotNil } from '@sumaris-net/ngx-components';
+import { DateUtils, EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, IEntity, isNotNil } from '@sumaris-net/ngx-components';
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { StoreObject } from '@apollo/client/core';
@@ -39,4 +39,23 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
   }
 }
 
-export class ActivityMonthFilter extends EntityFilter<ActivityMonthFilter, ActivityMonth> {}
+@EntityClass({ typename: 'ActivityMonthFilterVO' })
+export class ActivityMonthFilter extends EntityFilter<ActivityMonthFilter, ActivityMonth> {
+  static fromObject: (source: any, opts?: any) => ActivityMonthFilter;
+
+  month: number;
+
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+    this.month = source.month;
+  }
+
+  protected buildFilter(): FilterFn<ActivityMonth>[] {
+    const filterFns = super.buildFilter();
+    if (isNotNil(this.month)) {
+      const month = this.month;
+      filterFns.push((item) => item.month === month);
+    }
+    return filterFns;
+  }
+}

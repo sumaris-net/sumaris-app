@@ -61,7 +61,6 @@ import { UntypedFormGroup } from '@angular/forms';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { RxState } from '@rx-angular/state';
@@ -264,7 +263,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
     protected programRefService: ProgramRefService,
     protected batchModelValidatorService: BatchModelValidatorService,
     protected pmfmNamePipe: PmfmNamePipe,
-    protected physicalGearService: PhysicalGearService,
     protected context: TripContextService,
     protected _state: RxState<BatchTreeContainerState>,
     protected cd: ChangeDetectorRef,

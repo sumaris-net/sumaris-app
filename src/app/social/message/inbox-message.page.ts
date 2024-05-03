@@ -76,7 +76,7 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
     return null; // Skip page history
   }
 
-  protected async setValue(data: UserEvent): Promise<void> {
+  async setValue(data: UserEvent): Promise<void> {
     // Set form
     const json = {
       ...data.asObject(),

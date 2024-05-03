@@ -368,7 +368,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>,
     this.updateViewState({ onlySelf: true, ...opts });
   }
 
-  protected getValue(): T {
+  getValue(): T {
     if (this.loading) return this.data; // Avoid to return not well loaded data
 
     const measurementValuesForm = this.measurementValuesForm;

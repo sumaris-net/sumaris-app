@@ -13,7 +13,6 @@ import {
   ViewChild,
 } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGearForm } from './physical-gear.form';
 import {
@@ -163,7 +162,7 @@ export class PhysicalGearModal extends AppEntityEditorModal<PhysicalGear> implem
   }
 
   protected registerForms() {
-    this.addChildForms([
+    this.addForms([
       this.physicalGearForm,
       // Will be included by (ngInit)= (see template)
       //this.childrenTable
@@ -329,7 +328,7 @@ export class PhysicalGearModal extends AppEntityEditorModal<PhysicalGear> implem
     }
   }
 
-  protected async setValue(data: PhysicalGear) {
+  async setValue(data: PhysicalGear) {
     // Save children, before reset (not need in the main form)
     const children = data.children;
     data.children = undefined;
@@ -350,7 +349,7 @@ export class PhysicalGearModal extends AppEntityEditorModal<PhysicalGear> implem
     }
   }
 
-  protected async getValue(): Promise<PhysicalGear> {
+  async getValue(): Promise<PhysicalGear> {
     const data = PhysicalGear.fromObject(this.physicalGearForm.value);
 
     if (this.allowChildrenGears && this.showChildrenTable) {

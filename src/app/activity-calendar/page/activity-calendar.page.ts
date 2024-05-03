@@ -26,7 +26,7 @@ import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from '@ap
 import { ActivityCalendar } from '../model/activity-calendar.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, mergeMap, Observable } from 'rxjs';
 import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
@@ -44,8 +44,12 @@ import { RxState } from '@rx-angular/state';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { CalendarComponent } from '@app/activity-calendar/calendar/calendar.component';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
+import { Moment } from 'moment';
+import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
+import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
+import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -55,6 +59,7 @@ export const ActivityCalendarPageSettingsEnum = {
 export interface ActivityCalendarPageState extends RootDataEntityEditorState {
   year: number;
   vesselCountryId: number;
+  months: Moment[];
 }
 
 @Component({
@@ -71,6 +76,14 @@ export interface ActivityCalendarPageState extends RootDataEntityEditorState {
         pathIdAttribute: 'calendarId',
       },
     },
+    /*{
+      provide: InMemoryEntitiesService,
+      useFactory: () =>
+        new InMemoryEntitiesService(ActivityMonth, ActivityMonthFilter, {
+          equals: EntityUtils.equals,
+          sortByReplacement: { id: 'month' },
+        }),
+    },*/
     RxState,
   ],
 })
@@ -81,20 +94,21 @@ export class ActivityCalendarPage
   static TABS = {
     GENERAL: 0,
     CALENDAR: 1,
-    MAP: 2,
+    METIER: 2,
+    MAP: 3,
   };
+
+  @RxStateSelect() protected months$: Observable<Moment[]>;
 
   dbTimeZone = DateUtils.moment().tz();
   allowAddNewVessel: boolean;
   showRecorder = true;
   showCalendar = true;
-  showMap = true;
   enableReport: boolean;
-  rightPanelWidth = 20;
-  rightPanelVisible = true;
-  @RxStateProperty() year: number;
+  protected showMap = true;
+  protected mapPanelWidth = 30;
+  protected showMapPanel = true;
 
-  @Input() @RxStateProperty() vesselCountryId: number;
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
   @Input() showToolbar = true;
@@ -102,9 +116,14 @@ export class ActivityCalendarPage
   @Input() showOptionsMenu = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
 
+  @Input() @RxStateProperty() year: number;
+  @Input() @RxStateProperty() vesselCountryId: number;
+  @Input() @RxStateProperty() months: Moment[];
+
   @ViewChild('baseForm', { static: true }) baseForm: ActivityCalendarForm;
   @ViewChild('calendar') calendar: CalendarComponent;
   @ViewChild('map') map: ActivityCalendarMapComponent;
+  @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
 
   constructor(
     injector: Injector,
@@ -116,7 +135,7 @@ export class ActivityCalendarPage
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
       pathIdAttribute: 'calendarId',
-      tabCount: 3,
+      tabCount: 4, // 3 is map is hidden
       i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.',
       enableListenChanges: false, // TODO enable
       acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
@@ -134,6 +153,14 @@ export class ActivityCalendarPage
 
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
+
+    this._state.connect(
+      'months',
+      this._state.select('year').pipe(
+        filter(isNotNil),
+        map((year) => CalendarUtils.getMonths(year, this.dbTimeZone))
+      )
+    );
 
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
@@ -157,6 +184,41 @@ export class ActivityCalendarPage
           this.markForCheck();
         }
       })
+    );
+
+    // Listen first opening the operations tab, then save
+    this.registerSubscription(
+      this.tabGroup.selectedTabChange
+        .pipe(
+          filter((event) => this.showMap && event.index === ActivityCalendarPage.TABS.MAP),
+          map((event) => {
+            if (!this.calendar.confirmEditCreate()) {
+              this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+              return false;
+            }
+            return true;
+          }),
+          filter((confirmed) => confirmed),
+          tap(async () => {
+            console.debug(this.logPrefix + 'Updating map calendar...');
+            // Save calendar when opening the map tab (keep editor dirty)
+            if (this.calendar.dirty) {
+              this.markAsDirty();
+              const saved = await this.calendar.save();
+              if (!saved) {
+                this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+                return;
+              }
+            }
+
+            console.debug(this.logPrefix + 'Updating map calendar...');
+            const value = await this.calendar.getValue();
+
+            this.mapCalendar.markAsReady();
+            await this.mapCalendar.setValue(value);
+          })
+        )
+        .subscribe()
     );
   }
 
@@ -312,13 +374,14 @@ export class ActivityCalendarPage
     if (this.isOnFieldMode) {
       data.year = DateUtils.moment().utc().year() - 1;
 
-      // Listen first opening the operations tab, then save
+      // Listen first opening the calendar tab, then save
       this.registerSubscription(
         this.tabGroup.selectedTabChange
           .pipe(
             filter((event) => event.index === ActivityCalendarPage.TABS.CALENDAR),
-            first(),
-            tap(() => this.save())
+            mergeMap(() => this.save()),
+            filter((saved) => saved === true),
+            first()
           )
           .subscribe()
       );
@@ -415,7 +478,7 @@ export class ActivityCalendarPage
     }
   }
 
-  protected async setValue(data: ActivityCalendar) {
+  async setValue(data: ActivityCalendar) {
     console.info(this.logPrefix + 'Setting data', data);
 
     const isNewData = this.isNewData;
@@ -427,17 +490,17 @@ export class ActivityCalendarPage
     // Set data to form
     this.baseForm.value = data;
 
-    // Propagate to calendar
-    await this.calendar.setValue(data);
+    // Set data to calendar
+    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data);
   }
 
-  protected async getValue(): Promise<ActivityCalendar> {
+  async getValue(): Promise<ActivityCalendar> {
     const value = await super.getValue();
 
-    const calendarData = await this.calendar.getValue();
-    if (calendarData) {
-      value.vesselUseFeatures = calendarData.vesselUseFeatures;
-      value.gearUseFeatures = calendarData.gearUseFeatures;
+    const months = this.calendar.value;
+    if (months) {
+      value.vesselUseFeatures = months.map((m) => VesselUseFeatures.fromObject(m.asObject()));
+      value.gearUseFeatures = months.flatMap((m) => m.gearUseFeatures);
     }
 
     console.debug('TODO check value=', value);
@@ -455,7 +518,7 @@ export class ActivityCalendarPage
   }
 
   protected registerForms() {
-    this.addChildForms([this.baseForm]);
+    this.addForms([this.baseForm]);
   }
 
   protected async computeTitle(data: ActivityCalendar): Promise<string> {

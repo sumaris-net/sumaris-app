@@ -154,7 +154,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     return !this.editing && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
   }
 
-  protected setValue(data: Vessel) {
+  setValue(data: Vessel) {
     // Set data to form
     this.vesselForm.value = data;
   }

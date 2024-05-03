@@ -91,21 +91,23 @@
         </ion-label>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn = 'parentGroup'">
-        <mat-autocomplete-field
-          *ngIf="row.editing; else readonlyCell"
-          floatLabel="never"
-          class="min-width-medium"
-          [autofocus]="focusColumn === 'parentGroup'"
-          [formControl]="row.validator | formGetControl: 'parentGroup'"
-          [placeholder]="'TRIP.BATCH.TABLE.PARENT_GROUP' | translate"
-          [config]="autocompleteFields.parentGroup"
-          required
-        ></mat-autocomplete-field>
-
-        <!-- readonly -->
-        <ng-template #readonlyCell>
+        @if (row.editing) {
+          <mat-autocomplete-field
+            floatLabel="never"
+            class="min-width-medium"
+            [autofocus]="focusColumn === 'parentGroup'"
+            [formControl]="row.validator | formGetControl: 'parentGroup'"
+            [placeholder]="'TRIP.BATCH.TABLE.PARENT_GROUP' | translate"
+            [config]="autocompleteFields.parentGroup"
+            required
+          ></mat-autocomplete-field>
+        } @else if (mobile) {
+          <!-- readonly (mobile) -->
+          {{ row.currentData.parentGroup | referentialToString: autocompleteFields.parentGroup.attributes }}
+        } @else {
+          <!-- readonly (desktop) -->
           {{ row.validator | formGetValue: 'parentGroup' | referentialToString: autocompleteFields.parentGroup.attributes }}
-        </ng-template>
+        }
       </td>
     </ng-container>
 
