@@ -16,6 +16,7 @@ import {
   ReferentialRef,
   ReferentialUtils,
   toNumber,
+  TranslateContextService,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { SaleForm } from './sale.form';
@@ -48,6 +49,7 @@ import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { LandingService } from '@app/trip/landing/landing.service';
 import { Landing } from '@app/trip/landing/landing.model';
 import { IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
+import { SaleContextService } from './sale-context.service';
 
 export class SaleEditorOptions extends RootDataEditorOptions {}
 
@@ -58,7 +60,7 @@ export const SalesPageSettingsEnum = {
   PAGE_ID: 'sale',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
   FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME,
-}; //todo mf to be check
+};
 @Component({
   selector: 'app-sale-page',
   templateUrl: './sale.page.html',
@@ -90,6 +92,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected pmfmService = inject(PmfmService);
   protected referentialRefService = inject(ReferentialRefService);
   protected vesselSnapshotService = inject(VesselSnapshotService);
+  protected translateContext = inject(TranslateContextService);
   protected selectedSubTabIndex = 0;
   showParent = false;
   showEntityMetadata = false;
@@ -116,7 +119,11 @@ export class SalePage<ST extends SalePageState = SalePageState>
   // Catch batch, sorting batches, individual measure
   @ViewChild('batchTree', { static: true }) batchTree: IBatchTreeComponent;
 
-  constructor(injector: Injector, @Optional() options: SaleEditorOptions) {
+  constructor(
+    injector: Injector,
+    @Optional() options: SaleEditorOptions,
+    protected saleContext: SaleContextService
+  ) {
     super(injector, Sale, injector.get(SaleService), {
       pathIdAttribute: 'saleId',
       tabCount: 2,
@@ -591,13 +598,13 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     // new data
     if (!data || isNil(data.id)) {
-      return titlePrefix + this.translate.instant(`SALE.NEW.${i18nSuffix}TITLE`);
+      return titlePrefix + this.translateContext.instant(`SALE.NEW.TITLE`, i18nSuffix);
     }
 
     // Existing data
     return (
       titlePrefix +
-      this.translate.instant(`SALE.EDIT.${i18nSuffix}TITLE`, {
+      this.translateContext.instant(`SALE.EDIT.TITLE`, i18nSuffix, {
         vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
       })
     );
@@ -668,19 +675,20 @@ export class SalePage<ST extends SalePageState = SalePageState>
    * @protected
    */
   protected updateDataContext() {
-    console.debug('[sale-page] Updating data context...');
+    console.debug(`[sale-page] Updating sale context#${this.saleContext.id} ...`);
 
     // Date
     const date = this.saleForm.startDateTimeControl?.value;
-    this.context.setValue('date', fromDateISOString(date));
+    this.saleContext.setValue('date', fromDateISOString(date));
 
     // Fishing area
     if (this.showFishingArea) {
       const fishingArea = this.fishingAreaForm?.value;
       const fishingAreas = fishingArea ? [fishingArea] : this.data?.fishingAreas;
-      this.context.setValue('fishingAreas', fishingAreas);
+      this.saleContext.setValue('fishingAreas', fishingAreas);
+      this.saleContext.resetValue('vesselPositions');
+    } else {
+      this.saleContext.resetValue('fishingAreas');
     }
-
-    this.context.resetValue('vesselPositions');
   }
 }

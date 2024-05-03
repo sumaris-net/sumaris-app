@@ -1012,6 +1012,8 @@
         "WITH_MEASURE": "With measurement",
         "WITHOUT_MEASURE": "No measurement",
         "IS_SAMPLING": "If measurement, enter the sampling weight:",
+        "IS_INDIVIDUAL_MEASURE": "Measurements",
+        "IS_INDIVIDUAL_COUNT": "Counting",
         "SAMPLING_BATCH": "Sample",
         "SAMPLING_WEIGHT": "Sampling weight (kg)",
         "SAMPLING_CHILDREN_WEIGHT": "Calculated weight by LWR",

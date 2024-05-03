@@ -3,20 +3,10 @@ import { VesselPosition } from '../../position/vessel/vessel-position.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { Moment } from 'moment';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
-import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
+import { APP_MAIN_CONTEXT_SERVICE, Context, ContextService } from '@app/shared/context.service';
 import { Inject, Injectable, Optional } from '@angular/core';
-import { Program } from '@app/referential/services/model/program.model';
-import { Strategy } from '@app/referential/services/model/strategy.model';
 
-export interface DataClipboard {
-  data?: DataEntity<any>;
-  pasteFlags?: number;
-}
-
-export interface DataContext {
-  program?: Program;
-  strategy?: Strategy;
-  clipboard?: DataClipboard;
+export interface DataContext<T extends DataEntity<any> = DataEntity<any>> extends Context<T> {
   usageMode?: UsageMode;
   country?: ReferentialRef;
   date?: Moment;

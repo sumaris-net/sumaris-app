@@ -14,12 +14,26 @@ ion-grid.disabled {
     flex: 0 !important;
     display: none;
     visibility: hidden;
+    padding: 4px;
   }
   ion-col.table-container {
     flex: unset !important;
     right: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
+  }
+}
+
+ion-col.ion-col-form {
+  //padding: 4px;
+  &.mobile {
+    padding: 4px;
+  }
+}
+.table-container {
+  padding: 1px; // Workaround to avoid bug when editing a row
+  &.mobile {
+    padding: 0;
   }
 }
 .mat-mdc-table {

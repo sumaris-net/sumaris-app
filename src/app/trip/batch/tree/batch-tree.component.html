@@ -32,6 +32,10 @@
         <br />
         allowSubBatches: {{ allowSubBatches }}
         <br />
+        allowIndividualCountOnly: {{ allowIndividualCountOnly }}
+        <br />
+        usageMode: {{ usageMode }}
+        <br />
       </ion-col>
       <ion-col>
         catchBatchForm.ready: {{ catchBatchForm.readySubject | async }}
@@ -201,11 +205,13 @@
       [mobile]="mobile"
       [debug]="debug"
       [compactFields]="mobile"
-      [allowSubBatches]="allowSubBatches"
+      [i18nPmfmPrefix]="i18nPmfmPrefix"
       [showSamplingBatchColumns]="showSamplingBatchColumns$ | async"
       [showCommentsColumn]="!mobile"
       [showAutoFillButton]="showAutoFillButton"
       [allowQvPmfmGroup]="allowQvPmfmGroup"
+      [allowSubBatches]="allowSubBatches"
+      [allowIndividualCountOnly]="allowIndividualCountOnly"
       (onSubBatchesChanges)="onSubBatchesChanges($event)"
     ></app-batch-groups-table>
   </mat-tab>
@@ -239,7 +245,7 @@
       [requiredGear]="requiredGear$ | async"
       [gearId]="gearId$ | async"
       [usageMode]="usageMode"
-      [useSticky]="useSticky"
+      [sticky]="useSticky"
       [debug]="debug"
       [tabindex]="200"
     ></app-sub-batches-table>

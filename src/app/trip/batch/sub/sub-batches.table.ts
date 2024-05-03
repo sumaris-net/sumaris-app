@@ -11,7 +11,6 @@ import {
   ViewChild,
 } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { isObservable, Observable, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormGroup, Validators } from '@angular/forms';
@@ -31,6 +30,7 @@ import {
   ReferentialUtils,
   startsWithUpperCase,
   toBoolean,
+  toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
@@ -110,7 +110,6 @@ export class SubBatchesTable
   @Input() displayParentPmfm: IPmfm;
   @Input() showForm = false;
   @Input() usageMode: UsageMode;
-  @Input() useSticky = false;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() weightDisplayDecimals = 2;
 
@@ -156,12 +155,12 @@ export class SubBatchesTable
   }
 
   @Input()
-  set showParentColumn(value: boolean) {
-    this.setShowColumn('parent', value);
+  set showParentGroupColumn(value: boolean) {
+    this.setShowColumn('parentGroup', value);
   }
 
-  get showParentColumn(): boolean {
-    return this.getShowColumn('parent');
+  get showParentGroupColumn(): boolean {
+    return this.getShowColumn('parentGroup');
   }
 
   @Input()
@@ -186,7 +185,7 @@ export class SubBatchesTable
   }
 
   get showIndividualCount(): boolean {
-    return this.getShowColumn('individualCount') && this.displayedColumns.findIndex((c) => c === 'individualCount') !== -1;
+    return this.getShowColumn('individualCount'); // && this.displayedColumns.some((c) => c === 'individualCount');
   }
 
   @Input()
@@ -351,35 +350,38 @@ export class SubBatchesTable
       return false;
     }
 
-    if (row !== this.editedRow && !this.confirmEditCreate()) return false;
+    if (this.inlineEdition) {
+      const confirmed = this.confirmEditCreate();
+      if (!confirmed) return false;
+    }
 
-    await AppFormUtils.waitWhilePending(this.form);
+    if (!this.form.valid) {
+      await AppFormUtils.waitWhilePending(this.form);
 
-    if (this.form.invalid) {
-      await this.onInvalidForm();
-      return false;
+      if (this.form.invalid) {
+        await this.onInvalidForm();
+        return false;
+      }
     }
     const subBatch = this.form.form.value;
-    subBatch.individualCount = isNotNil(subBatch.individualCount) ? subBatch.individualCount : 1;
+    subBatch.individualCount = toNumber(subBatch.individualCount, 1);
 
     // Store computed weight into measurement, if any
     if (this.weightPmfm && isNotNil(subBatch.weight?.value)) {
-      // Convert
-
+      // Keep value only
       subBatch.measurementValues[this.weightPmfm.id] = subBatch.weight?.value;
       delete subBatch.weight;
     }
 
     await this.resetForm(subBatch, { focusFirstEmpty: true });
 
-    // Add batch to table
-    if (!row) {
-      await this.addEntityToTable(subBatch);
-    }
-
     // Update existing row
+    if (row) {
+      await this.updateEntityToTable(subBatch, row, { confirmEdit: true });
+    }
+    // Create new row
     else {
-      await this.updateEntityToTable(subBatch, row);
+      await this.addEntityToTable(subBatch, { editing: false, confirmCreate: true });
     }
 
     return true;
@@ -427,7 +429,7 @@ export class SubBatchesTable
    * @param data
    * @param opts
    */
-  setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
+  async setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
     this.memoryDataService.value = data;
     //this.markAsLoaded();
   }
@@ -667,7 +669,7 @@ export class SubBatchesTable
         isNew,
         disabled: this.disabled,
         qvPmfm: this.qvPmfm,
-        showParent: this.showParentColumn,
+        showParent: this.showParentGroupColumn,
         showTaxonGroup: false, // Not used
         showTaxonName: this.showTaxonNameColumn,
         showIndividualCount: this.showIndividualCount,
@@ -684,7 +686,7 @@ export class SubBatchesTable
     return data instanceof SubBatch ? data : undefined;
   }
 
-  protected async addEntityToTable(newBatch: SubBatch): Promise<TableElement<SubBatch>> {
+  protected async addEntityToTable(newBatch: SubBatch, opts?: { confirmCreate?: boolean; editing?: boolean }): Promise<TableElement<SubBatch>> {
     if (this.debug) console.debug('[batches-table] Adding batch to table:', newBatch);
 
     // Make sure individual count if init
@@ -700,24 +702,15 @@ export class SubBatchesTable
 
       // Already exists: increment individual count
       if (row) {
-        if (row.validator) {
-          const control = row.validator.get('individualCount');
-          control.setValue((control.value || 0) + newBatch.individualCount);
-        } else {
-          row.currentData.individualCount = (row.currentData.individualCount || 0) + newBatch.individualCount;
-          this.markForCheck();
-        }
-        this.markAsDirty();
-
-        // restore as edited row
-        this.editedRow = row;
-
-        return row;
+        const existingBatch = row.currentData;
+        existingBatch.individualCount = (existingBatch.individualCount || 0) + newBatch.individualCount;
+        await this.updateEntityToTable(existingBatch, row, { confirmEdit: opts?.confirmCreate });
+        return;
       }
     }
 
-    // The batch does not exists: add it tp the table
-    return await super.addEntityToTable(newBatch);
+    // The batch does not exists: add it to the table
+    return await super.addEntityToTable(newBatch, opts);
   }
 
   async setAvailableParents(parents: BatchGroup[], opts?: { emitEvent?: boolean; linkDataToParent?: boolean }) {
@@ -756,6 +749,8 @@ export class SubBatchesTable
     if (isNil(data.id)) {
       // TODO : add sequence
     }
+
+    if (!data.parentGroup) data.parentGroup = this.form.parentGroup;
 
     // Set individual count to 1, if column not shown
     if (!this.showIndividualCount) {
