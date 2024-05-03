@@ -15,12 +15,13 @@ import {
   SharedValidators,
   toBoolean,
   toNumber,
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Animation, IonContent, ModalController } from '@ionic/angular';
-import { firstValueFrom, isObservable, Observable, Subject } from 'rxjs';
+import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
@@ -52,6 +53,7 @@ export interface ISubBatchesModalOptions {
   maxItemCountForButtons: number;
   i18nSuffix: string;
   mobile: boolean;
+  usageMode: UsageMode;
   showBluetoothIcon: boolean;
 
   programLabel: string;
@@ -296,6 +298,11 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     //this.form?.markAsReady();
   }
 
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.disable(opts);
+    this.modalForm.disable(opts);
+  }
+
   async ready() {
     await this.form?.ready();
   }
@@ -450,14 +457,14 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     let titlePrefix;
     if (!this.showParentGroup && this.parentGroup) {
       const label = BatchUtils.parentToString(this.parentGroup);
-      titlePrefix = await firstValueFrom(this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX', { label }));
+      titlePrefix = await this.translate.instant('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX', { label });
     } else {
       titlePrefix = '';
     }
     if (this.showIndividualCountOnly) {
-      this.titleSubject.next(titlePrefix + (await firstValueFrom(this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.TITLE'))));
+      this.titleSubject.next(titlePrefix + (await this.translate.instant('TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.TITLE')));
     } else {
-      this.titleSubject.next(titlePrefix + (await firstValueFrom(this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE'))));
+      this.titleSubject.next(titlePrefix + (await this.translate.instant('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE')));
     }
   }
 
@@ -661,12 +668,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
           });
 
     return createAnimation().addAnimation([rowAnimation, cellAnimation]);
-  }
-
-  protected async devToggleDebug() {
-    this.debug = !this.debug;
-    this.markForCheck();
-    await this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
   }
 
   async setModalStyle(modalCtrl: ModalController, cssClass: 'modal-large' | 'modal-small') {

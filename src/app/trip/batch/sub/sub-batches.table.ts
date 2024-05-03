@@ -246,7 +246,7 @@ export class SubBatchesTable
     this.showCommentsColumn = !this.mobile;
 
     // DEBUG
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
     this.logPrefix = '[sub-batches-table] ';
   }
 

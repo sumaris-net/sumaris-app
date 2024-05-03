@@ -29,6 +29,7 @@ import { TripContextService } from '@app/trip/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { environment } from '@environments/environment';
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
   // Show/Hide fields
@@ -59,8 +60,13 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
   private _subscription = new Subscription();
   private _isOnFieldMode: boolean;
 
-  protected loading = false;
-  protected $title = new BehaviorSubject<string>(undefined);
+  protected loadingSubject = new BehaviorSubject(false);
+  protected get loading(): boolean {
+    return this.loadingSubject.value;
+  }
+
+  protected titleSubject = new BehaviorSubject<string>(undefined);
+  protected settingsId: string;
 
   @Input() data: BatchGroup;
   @Input() isNew: boolean;
@@ -92,6 +98,7 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
   @Input() samplingRatioFormat: SamplingRatioFormat;
   @Input() i18nSuffix: string;
   @Input() enableBulkMode: boolean;
+  @Input() canDebug: boolean;
 
   @Input() openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
   @Input() onDelete: (event: Event, data: Batch) => Promise<boolean>;
@@ -141,12 +148,16 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
     // Fixed values
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
 
+    this.settingsId = 'batch-group-modal';
+
     // -- for DEV only
     //this.debug = !environment.production;
   }
 
   ngOnInit() {
     // Default values
+    this.canDebug = toBoolean(this.canDebug, !environment.production);
+    this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
     this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
@@ -439,10 +450,10 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
   protected async computeTitle(data?: Batch) {
     data = data || this.data;
     if (this.isNew) {
-      this.$title.next(await this.translate.get('TRIP.BATCH.NEW.TITLE').toPromise());
+      this.titleSubject.next(await this.translate.instant('TRIP.BATCH.NEW.TITLE'));
     } else {
       const label = BatchUtils.parentToString(data);
-      this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', { label }).toPromise());
+      this.titleSubject.next(await this.translate.instant('TRIP.BATCH.EDIT.TITLE', { label }));
     }
   }
 
@@ -471,13 +482,17 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
   }
 
   protected markAsLoading() {
-    this.loading = true;
-    this.markForCheck();
+    if (!this.loadingSubject.value) {
+      this.loadingSubject.next(true);
+      this.markForCheck();
+    }
   }
 
   protected markAsLoaded() {
-    this.loading = false;
-    this.markForCheck();
+    if (this.loadingSubject.value) {
+      this.loadingSubject.next(false);
+      this.markForCheck();
+    }
   }
 
   protected setError(error: any) {
@@ -487,5 +502,11 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
 
   protected resetError() {
     this.form.error = null;
+  }
+
+  protected async devToggleDebug() {
+    this.debug = !this.debug;
+    this.markForCheck();
+    await this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
   }
 }

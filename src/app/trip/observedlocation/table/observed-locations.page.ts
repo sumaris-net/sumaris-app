@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   Alerts,
   ConfigService,
@@ -25,7 +24,6 @@ import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../observed-location.model';
 import { AppRootDataTable } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../../trip.config';
-import { environment } from '@environments/environment';
 import { BehaviorSubject } from 'rxjs';
 import { ObservedLocationOfflineModal } from '../offline/observed-location-offline.modal';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -131,7 +129,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     this.featureName = ObservedLocationsPageSettingsEnum.FEATURE_NAME;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {

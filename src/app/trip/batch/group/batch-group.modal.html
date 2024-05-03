@@ -1,14 +1,20 @@
 <app-modal-toolbar
   color="secondary"
-  [title]="$title | async"
+  [title]="titleSubject | async"
   (cancel)="close($event)"
   (validate)="onSubmitIfDirty($event)"
   [canValidate]="!loading && !disabled"
-  [showSpinner]="loading"
+  [showSpinner]="loadingSubject | async"
 >
   <ion-buttons slot="end">
     <!-- Options menu -->
-    <button mat-icon-button *ngIf="!loading" [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
+    <button
+      mat-icon-button
+      *ngIf="enabled || canDebug"
+      [disabled]="loadingSubject | async"
+      [title]="'COMMON.BTN_OPTIONS' | translate"
+      [matMenuTriggerFor]="optionsMenu"
+    >
       <mat-icon>more_vert</mat-icon>
     </button>
   </ion-buttons>
@@ -19,6 +25,13 @@
   <button mat-menu-item (click)="delete($event)" [disabled]="disabled">
     <mat-icon>delete_outline</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
+  </button>
+
+  <!-- DEV only -->
+  <button mat-menu-item *ngIf="canDebug" (click)="devToggleDebug()">
+    <mat-icon *ngIf="debug">check_box</mat-icon>
+    <mat-icon *ngIf="!debug">check_box_outline_blank</mat-icon>
+    <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
   </button>
 </mat-menu>
 

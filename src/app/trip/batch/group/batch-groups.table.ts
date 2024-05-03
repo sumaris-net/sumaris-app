@@ -1143,6 +1143,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // DEBUG
     if (this.debug) console.debug('[batches-table] Open individual measures modal...');
 
+    const isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
     const showParentGroup = !opts || opts.showParent !== false; // True by default
     const showIndividualCountOnly =
       this.allowIndividualCountOnly && (await BatchGroupUtils.hasSamplingIndividualCountOnly(parentGroup, this.availableSubBatches));
@@ -1164,10 +1165,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         disabled: this.disabled,
         allowIndividualCountOnly: this.allowIndividualCountOnly,
         showIndividualCountOnly,
-        // Scientific species is required, only not already set in batch groups
+        // Scientific species is required, only if not already set in batch groups
         showTaxonNameColumn: !this.showTaxonNameColumn,
-        // If on field mode: use individualCount=1 on each sub-batches
-        showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
+        // If on field mode: hide individualCount (will force individualCount=1 on each new sub-batch)
+        showIndividualCount: !isOnFieldMode,
         // Define available parent, as an observable (if new parent can added)
         availableParents: this.dataSource.rowsSubject.pipe(
           takeUntil(stopSubject),

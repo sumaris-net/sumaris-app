@@ -10,7 +10,6 @@ import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
 import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-fields-skeleton.module';
 import { RxUnpatch } from '@rx-angular/template/unpatch';
 import { NoHtmlPipe } from '@app/shared/pipes/html.pipes';
-import { IsSelectedPipe } from '@app/shared/pipes/selection.pipes';
 
 @NgModule({
   imports: [
@@ -31,7 +30,6 @@ import { IsSelectedPipe } from '@app/shared/pipes/selection.pipes';
     SplitArrayInChunksPipe,
     PaginationToStringPipe,
     NoHtmlPipe,
-    IsSelectedPipe,
   ],
   exports: [
     SharedModule,
@@ -49,7 +47,6 @@ import { IsSelectedPipe } from '@app/shared/pipes/selection.pipes';
     SplitArrayInChunksPipe,
     PaginationToStringPipe,
     NoHtmlPipe,
-    IsSelectedPipe,
 
     //Sub modules
     MatFormFieldsSkeletonModule,
