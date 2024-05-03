@@ -560,10 +560,10 @@ export const ProgramProperties = Object.freeze({
         key: <TripReportType>'selectivity',
         value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_TRAWL_SELECTIVITY',
       },
-      {
-        key: <TripReportType>'onboard',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_ONBOARD_OBSERVATION',
-      },
+      // {
+      //   key: <TripReportType>'onboard',
+      //   value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_ONBOARD_OBSERVATION',
+      // },
       {
         key: <TripReportType>'form',
         value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM',
@@ -1199,8 +1199,8 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ONBOARD_OBSERVATION',
       },
       {
-        key: 'SALE_OBSERVATION.',
-        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SALE_OBSERVATION',
+        key: 'OBSERVED_SALE.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_OBSERVED_SALE',
       },
     ],
     defaultValue: 'legacy',
