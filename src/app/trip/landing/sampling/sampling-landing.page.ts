@@ -143,7 +143,7 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
   /* -- protected functions -- */
 
   // protected registerForms() {
-  //   this.addChildForms([this.landingForm, this.samplesTable]);
+  //   this.addForms([this.landingForm, this.samplesTable]);
   // }
 
   protected loadStrategy(strategyFilter: Partial<StrategyFilter>): Promise<Strategy> {
@@ -270,7 +270,7 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
     await super.onEntityLoaded(data, options);
   }
 
-  protected async getValue(): Promise<Landing> {
+  async getValue(): Promise<Landing> {
     let data = await super.getValue();
 
     // Convert into entity
@@ -316,7 +316,7 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
     return data;
   }
 
-  protected async setValue(data: Landing): Promise<void> {
+  async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
 
     if (this.parent instanceof ObservedLocation && isNotNil(data.id)) {

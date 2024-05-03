@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import {
   AppFormArray,
@@ -20,9 +20,11 @@ import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils }
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { GearUseFeaturesValidatorOptions, GearUseFeaturesValidatorService } from '@app/activity-calendar/model/gear-use-features.validator';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
-import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
+import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { Subject, Subscription, tap } from 'rxjs';
+import { debounceTime, filter, map, startWith } from 'rxjs/operators';
 
 export interface ActivityMonthValidatorOptions extends GearUseFeaturesValidatorOptions {
   metierCount?: number;
@@ -65,7 +67,7 @@ export class ActivityMonthValidatorService<
     if (opts.withMetier) {
       const gufArray = this.getGearUseFeaturesArray(data?.gearUseFeatures, {
         ...opts,
-        required: true,
+        required: data?.isActive === VesselUseFeaturesIsActiveEnum.ACTIVE,
         withMetier: true,
         withGear: false,
         withFishingAreas: true,
@@ -84,7 +86,7 @@ export class ActivityMonthValidatorService<
       startDate: [data?.startDate || null, Validators.required],
       endDate: [data?.endDate || null, Validators.required],
       isActive: [toNumber(data?.isActive, null), Validators.required],
-      basePortLocation: [data?.basePortLocation || null, Validators.required],
+      basePortLocation: [data?.basePortLocation || null],
       measurementValues: this.formBuilder.group({}),
     });
 
@@ -102,11 +104,16 @@ export class ActivityMonthValidatorService<
 
   getFormGroupOptions(data?: ActivityMonth, opts?: O): AbstractControlOptions {
     return <AbstractControlOptions>{
-      validator: Validators.compose([SharedFormGroupValidators.dateRange('startDate', 'endDate')]),
+      validators: [
+        SharedFormGroupValidators.dateRange('startDate', 'endDate'),
+        /*SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
+          predicate: (control) => control.value !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
+        }),*/
+      ],
     };
   }
 
-  updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
+  updateFormGroup(form: UntypedFormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
 
     const enabled = form.enabled;
@@ -154,14 +161,12 @@ export class ActivityMonthValidatorService<
       });
     } else {
       //if (gufArray) form.removeControl('gearUseFeatures');
-      gufArray.disable();
+      if (gufArray?.enabled) gufArray.disable();
     }
 
     // Update form group validators
     const formValidators = this.getFormGroupOptions(null, opts)?.validators;
     form.setValidators(formValidators);
-
-    return form;
   }
 
   getI18nError(errorKey: string, errorContent?: any): any {
@@ -181,7 +186,7 @@ export class ActivityMonthValidatorService<
       }
     );
     if (data || required) {
-      formArray.patchValue(data?.length ? data : required ? [null] : []);
+      formArray.patchValue(isNotEmptyArray(data) ? data : required ? [null] : []);
     }
     return formArray;
   }
@@ -217,3 +222,98 @@ export class ActivityMonthValidatorService<
     return opts;
   }
 }
+
+export class ActivityMonthValidators {
+  static startListenChanges(form: UntypedFormGroup, pmfms: IPmfm[], opts?: { markForCheck: () => void }): Subscription {
+    if (!form) {
+      console.warn("Argument 'form' required");
+      return null;
+    }
+
+    const $errors = new Subject<ValidationErrors | null>();
+    form.setAsyncValidators((control) => $errors);
+
+    let computing = false;
+    const subscription = form.valueChanges
+      .pipe(
+        startWith<any, any>(form.value),
+        filter(() => !computing),
+        // Protected against loop
+        tap(() => (computing = true)),
+        debounceTime(50),
+        map(() => ActivityMonthValidators.computeAndValidate(form, { ...opts, emitEvent: false, onlySelf: false })),
+        tap((errors) => {
+          computing = false;
+          $errors.next(errors);
+          if (opts.markForCheck) opts.markForCheck();
+        })
+      )
+      .subscribe();
+
+    // When unsubscribe, remove async validator
+    subscription.add(() => {
+      $errors.next(null);
+      $errors.complete();
+      form.clearAsyncValidators();
+      if (opts.markForCheck) opts.markForCheck();
+    });
+
+    return subscription;
+  }
+
+  static computeAndValidate(
+    form: UntypedFormGroup,
+    opts?: ActivityMonthValidatorOptions & {
+      emitEvent?: boolean;
+      onlySelf?: boolean;
+      markForCheck?: () => void;
+    }
+  ): ValidationErrors | null {
+    console.debug('[activity-month-validator] Starting computation and validation...');
+    let errors: any;
+
+    const isActiveControl = form.get('isActive');
+    const isActive = isActiveControl.value;
+
+    // Disable computed pmfms
+    if (isNotNil(isActive)) {
+      const measurementForm = form.get('measurementValues');
+      const basePortLocationControl = form.get('basePortLocation');
+      let gearUseFeatures = form.get('gearUseFeatures');
+      switch (isActive) {
+        case VesselUseFeaturesIsActiveEnum.ACTIVE: {
+          if (basePortLocationControl.disabled) basePortLocationControl.enable({ emitEvent: false });
+          if (measurementForm.disabled) measurementForm.enable({ emitEvent: false });
+          if (gearUseFeatures?.disabled) gearUseFeatures.enable({ emitEvent: false });
+          break;
+        }
+        case VesselUseFeaturesIsActiveEnum.INACTIVE: {
+          measurementForm.reset(null, { emitEvent: false });
+          if (basePortLocationControl.disabled) basePortLocationControl.enable({ emitEvent: false });
+          if (measurementForm.enabled) measurementForm.disable({ emitEvent: false });
+          if (gearUseFeatures?.enabled) gearUseFeatures.disable({ emitEvent: false });
+          break;
+        }
+        case VesselUseFeaturesIsActiveEnum.NOT_EXISTS: {
+          basePortLocationControl.reset(null, { emitEvent: false });
+          if (basePortLocationControl.enabled) basePortLocationControl.disable({ emitEvent: false });
+          measurementForm.reset(null, { emitEvent: false });
+          if (measurementForm.enabled) measurementForm.disable({ emitEvent: false });
+          if (gearUseFeatures?.enabled) gearUseFeatures.disable({ emitEvent: false });
+          break;
+        }
+      }
+    }
+
+    if (opts?.markForCheck) {
+      //console.debug("[activity-month-validator] calling MarkForCheck...");
+      opts.markForCheck();
+    }
+
+    return errors;
+  }
+}
+
+export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
+  // TODO
+};

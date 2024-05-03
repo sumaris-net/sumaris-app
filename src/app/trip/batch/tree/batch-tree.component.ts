@@ -641,7 +641,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   protected registerForms() {
-    this.addChildForms([this.catchBatchForm, this.batchGroupsTable, () => this.subBatchesTable]);
+    this.addForms([this.catchBatchForm, this.batchGroupsTable, () => this.subBatchesTable]);
   }
 
   /**

@@ -296,7 +296,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   protected registerForms() {
-    this.addChildForms([this.tripForm, this.saleForm, this.measurementsForm, this.physicalGearsTable, this.operationsTable]);
+    this.addForms([this.tripForm, this.saleForm, this.measurementsForm, this.physicalGearsTable, this.operationsTable]);
   }
 
   protected async setProgram(program: Program) {
@@ -552,7 +552,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...reportPath].join('/'));
   }
 
-  protected async setValue(data: Trip) {
+  async setValue(data: Trip) {
     try {
       const isNewData = isNil(data.id);
 
@@ -790,7 +790,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     return json;
   }
 
-  protected async getValue(): Promise<Trip> {
+  async getValue(): Promise<Trip> {
     const data = await super.getValue();
 
     data.measurements = this.measurementsForm.value;

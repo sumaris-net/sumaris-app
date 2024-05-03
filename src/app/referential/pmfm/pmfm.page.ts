@@ -233,13 +233,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
     return succeed;
   }
 
-  /* -- protected methods -- */
-
-  protected registerForms() {
-    this.addChildForms([this.referentialForm, this.qualitativeValuesTable]);
-  }
-
-  protected setValue(data: Pmfm) {
+  setValue(data: Pmfm) {
     if (!data) return; // Skip
 
     const json = data.asObject();
@@ -261,7 +255,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
     this.markAsPristine();
   }
 
-  protected async getValue(): Promise<Pmfm> {
+  async getValue(): Promise<Pmfm> {
     const data = await super.getValue();
 
     // Re add label, because missing when field disable
@@ -271,6 +265,12 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
     data.qualitativeValues = this.useDefaultQualitativesValues ? null : this.qualitativeValuesTable.value;
 
     return data;
+  }
+
+  /* -- protected methods -- */
+
+  protected registerForms() {
+    this.addForms([this.referentialForm, this.qualitativeValuesTable]);
   }
 
   protected computeTitle(data: Pmfm): Promise<string> {

@@ -61,13 +61,7 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
     });
   }
 
-  /* -- protected methods -- */
-
-  protected registerForms() {
-    this.addChildForms([this.referentialForm, this.rwcTable]);
-  }
-
-  protected setValue(data: Referential) {
+  setValue(data: Referential) {
     super.setValue(data);
 
     // Set table filter
@@ -77,6 +71,12 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
       });
       this.rwcTable.markAsReady();
     }
+  }
+
+  /* -- protected methods -- */
+
+  protected registerForms() {
+    this.addForms([this.referentialForm, this.rwcTable]);
   }
 
   protected async onEntitySaved(data: Referential): Promise<void> {

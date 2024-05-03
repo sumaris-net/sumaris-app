@@ -727,7 +727,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     }
   }
 
-  protected getValue(): SubBatch {
+  getValue(): SubBatch {
     if (!this.form.dirty) return this.data;
 
     const json = this.form.value;

@@ -1,7 +1,0 @@
-export const TripErrorCodes = {
-    UPDATE_OBSERVED_LOCATION_CHILDREN_DATE_ERROR: 248,
-    ADD_TRIP_GEAR_ERROR: 249,
-    CHILD_OPERATION_NOT_FOUND: 250,
-    PARENT_OPERATION_NOT_FOUND: 251
-};
-//# sourceMappingURL=trip.errors.js.map

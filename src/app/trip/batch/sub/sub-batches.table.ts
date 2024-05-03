@@ -434,11 +434,11 @@ export class SubBatchesTable
     //this.markAsLoaded();
   }
 
-  /* -- protected methods -- */
-
-  protected getValue(): SubBatch[] {
+  getValue(): SubBatch[] {
     return this.memoryDataService.value;
   }
+
+  /* -- protected methods -- */
 
   protected prepareEntityToSave(data: SubBatch) {
     // Override by subclasses

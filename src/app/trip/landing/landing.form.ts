@@ -508,7 +508,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     await super.updateView(data, opts);
   }
 
-  protected getValue(): Landing {
+  getValue(): Landing {
     // DEBUG
     //console.debug(this._logPrefix + 'get value');
 

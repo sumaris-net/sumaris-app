@@ -336,7 +336,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     this.updateViewState({ onlySelf: true, ...opts });
   }
 
-  protected getValue(): Measurement[] {
+  getValue(): Measurement[] {
     if (this.loading) return this.data; // Avoid to return not well loaded data
 
     // Find dirty pmfms, to avoid full update

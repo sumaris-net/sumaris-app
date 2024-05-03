@@ -4,7 +4,6 @@ import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ValidatorService } from '@e-is/ngx-material-table';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   AccountService,
   Alerts,
@@ -167,9 +166,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
     }
   }
 
-  /* -- protected -- */
-
-  protected async setValue(data: ExtractionProduct) {
+  async setValue(data: ExtractionProduct) {
     // Apply data to form
     await this.productForm.setValue(data.asObject());
 
@@ -179,6 +176,8 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
       await this.initResultTable(data);
     }
   }
+
+  /* -- protected -- */
 
   async initDatasourceTable(data: ExtractionProduct) {
     // Apply to table
@@ -250,7 +249,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
     return super.onTabChange(event, queryTabIndexParamName);
   }
 
-  protected async getValue(): Promise<ExtractionProduct> {
+  async getValue(): Promise<ExtractionProduct> {
     const data = await super.getValue();
 
     // Re add label, because missing when field disable

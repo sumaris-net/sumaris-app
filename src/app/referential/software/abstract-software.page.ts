@@ -96,7 +96,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEnt
   }
 
   protected registerForms() {
-    this.addChildForms([this.referentialForm, this.propertiesForm]);
+    this.addForms([this.referentialForm, this.propertiesForm]);
   }
 
   protected async loadFromRoute(): Promise<void> {
@@ -106,7 +106,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEnt
     return super.loadFromRoute();
   }
 
-  protected setValue(data: T) {
+  setValue(data: T) {
     if (!data) return; // Skip
 
     this.form.patchValue(

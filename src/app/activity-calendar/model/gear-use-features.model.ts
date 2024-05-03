@@ -34,6 +34,10 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
     return (!o1 && !o2) || (o1 && o1.equals(o2));
   }
 
+  static isNotEmpty(o: GearUseFeatures) {
+    return !GearUseFeatures.isEmpty(o);
+  }
+
   static isEmpty(o: GearUseFeatures) {
     return (
       !o ||
