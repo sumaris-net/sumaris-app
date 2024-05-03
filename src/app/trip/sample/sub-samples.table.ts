@@ -190,10 +190,10 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   async addOrUpdateEntityToTable(subSample: Sample) {
     if (isNil(subSample.id) && isNil(subSample.rankOrder) && isNil(subSample.label)) {
-      await this.addEntityToTable(subSample);
+      return await this.addEntityToTable(subSample);
     } else {
       const row = await this.findRowByEntity(subSample);
-      await this.updateEntityToTable(subSample, row);
+      return await this.updateEntityToTable(subSample, row);
     }
   }
 

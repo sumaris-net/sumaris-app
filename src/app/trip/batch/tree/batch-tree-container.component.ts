@@ -73,7 +73,6 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-
 interface BadgeState {
   hidden: boolean;
   text: string;

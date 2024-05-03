@@ -1013,6 +1013,8 @@
         "WITHOUT_MEASURE": "No measurement",
         "IS_SAMPLING": "If measurement, enter the sampling weight:",
         "SAMPLING_BATCH": "Sample",
+        "IS_INDIVIDUAL_MEASURE": "Measurements",
+        "IS_INDIVIDUAL_COUNT": "Counting",
         "SAMPLING_WEIGHT": "Sampling weight (kg)",
         "SAMPLING_CHILDREN_WEIGHT": "Calculated weight by LWR",
         "SAMPLING_RATIO_PCT": "Sampling fraction (%)",

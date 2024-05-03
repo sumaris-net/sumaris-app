@@ -369,19 +369,18 @@
         [class.mat-mdc-cell-content-start-padding]="showGroupHeader"
         (click)="focusColumn = (pmfm.id || index).toString()"
       >
-        <app-pmfm-field
-          *ngIf="row.editing; else readonlyPmfmField"
-          floatLabel="never"
-          [pmfm]="pmfm"
-          [i18nPrefix]="i18nPmfmPrefix"
-          [i18nSuffix]="i18nColumnSuffix"
-          [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-          [autofocus]="focusColumn == (pmfm.id || index)"
-          [compact]="compactFields"
-        ></app-pmfm-field>
-
-        <!-- readonly value-->
-        <ng-template #readonlyPmfmField>
+        @if (row.editing) {
+          <app-pmfm-field
+            floatLabel="never"
+            [pmfm]="pmfm"
+            [i18nPrefix]="i18nPmfmPrefix"
+            [i18nSuffix]="i18nColumnSuffix"
+            [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+            [autofocus]="focusColumn == (pmfm.id || index)"
+            [compact]="compactFields"
+          ></app-pmfm-field>
+        } @else {
+          <!-- readonly value-->
           <ion-text
             [innerHTML]="
               row.validator
@@ -389,7 +388,7 @@
                 | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
             "
           ></ion-text>
-        </ng-template>
+        }
       </td>
     </ng-container>
 

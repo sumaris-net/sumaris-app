@@ -58,7 +58,7 @@
     [matSortDirection]="defaultSortDirection"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="useSticky">
+    <ng-container matColumnDef="select" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -73,7 +73,7 @@
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
+    <ng-container matColumnDef="id" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
@@ -219,7 +219,7 @@
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="useSticky"
+      [stickyEnd]="sticky"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"

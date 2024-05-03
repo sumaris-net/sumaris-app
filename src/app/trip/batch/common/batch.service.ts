@@ -30,7 +30,6 @@ import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measure
 import { countSubString } from '@app/shared/functions';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { SelectivityBatchModelValidatorService } from '@app/trip/batch/tree/selectivity/selectivity-batch-model.validator';
 import { AdvancedBatchModelValidatorService } from '@app/trip/batch/tree/advanced/advanced-batch-model.validator';
@@ -54,7 +53,6 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     protected batchGroupValidatorService: BatchGroupValidatorService,
     protected selectivityBatchModelValidatorService: SelectivityBatchModelValidatorService,
     protected advancedBatchModelValidatorService: AdvancedBatchModelValidatorService,
-    protected physicalGearService: PhysicalGearService,
     protected formErrorTranslator: FormErrorTranslator
     //protected subBatchValidatorService: SubBatchValidatorService
   ) {}

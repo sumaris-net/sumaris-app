@@ -142,15 +142,19 @@
         </th>
 
         <td mat-cell *matCellDef="let row" (click)="focusColumn = 'taxonGroup'">
-          <mat-autocomplete-field
-            floatLabel="never"
-            [class.min-width-medium]="qvPmfm"
-            [autofocus]="row.validator.enabled && focusColumn === 'taxonGroup'"
-            [formControl]="row.validator.controls.taxonGroup"
-            [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER' | translate"
-            [required]="showTaxonGroupColumn"
-            [config]="autocompleteFields.taxonGroup"
-          ></mat-autocomplete-field>
+          @if (row.editing) {
+            <mat-autocomplete-field
+              floatLabel="never"
+              [class.min-width-medium]="qvPmfm"
+              [autofocus]="focusColumn === 'taxonGroup'"
+              [formControl]="row.validator | formGetControl: 'taxonGroup'"
+              [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER' | translate"
+              [required]="showTaxonGroupColumn"
+              [config]="autocompleteFields.taxonGroup"
+            ></mat-autocomplete-field>
+          } @else {
+            {{ row.validator | formGetValue: 'taxonGroup' | referentialToString: autocompleteFields.taxonGroup.attributes }}
+          }
         </td>
       </ng-container>
 
@@ -160,15 +164,19 @@
           <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
         </th>
         <td mat-cell *matCellDef="let row" (click)="focusColumn = 'taxonName'">
-          <mat-autocomplete-field
-            floatLabel="never"
-            class="min-width-medium"
-            [autofocus]="row.validator.enabled && focusColumn === 'taxonName'"
-            [formControl]="row.validator.controls.taxonName"
-            [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER' | translate"
-            [required]="showTaxonNameColumn"
-            [config]="autocompleteFields.taxonName"
-          ></mat-autocomplete-field>
+          @if (row.editing) {
+            <mat-autocomplete-field
+              floatLabel="never"
+              class="min-width-medium"
+              [autofocus]="focusColumn === 'taxonName'"
+              [formControl]="row.validator | formGetControl: 'taxonName'"
+              [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER' | translate"
+              [required]="showTaxonNameColumn"
+              [config]="autocompleteFields.taxonName"
+            ></mat-autocomplete-field>
+          } @else {
+            {{ row.validator | formGetValue: 'taxonName' | referentialToString: autocompleteFields.taxonName.attributes }}
+          }
         </td>
       </ng-container>
 
@@ -203,7 +211,7 @@
                     [autofocus]="focusColumn === col.key"
                     [readonly]="computed"
                     [tabindex]="computed && -1"
-                    [compact]="compactFields"
+                    [compact]="compactFields || col.pmfm?.type === 'boolean'"
                   ></app-pmfm-field>
                 }
                 @case ('samplingRatio') {
@@ -232,7 +240,7 @@
               <ion-label>
                 @switch (col.type) {
                   @case ('pmfm') {
-                    {{ row.validator | formGetValue: col.path | pmfmValue: { pmfm: col.pmfm } }}
+                    <span [innerHTML]="row.validator | formGetValue: col.path | pmfmValue: { pmfm: col.pmfm, html: true }"></span>
                   }
                   @case ('samplingRatio') {
                     {{ row.validator | formGetValue: col.path | samplingRatioFormat: samplingRatioFormat }}
@@ -443,22 +451,20 @@
             *ngVar="row.currentData | propertyGet: col.path as colValue"
           >
             @if (colValue != null) {
-              <ion-label>
-                @switch (col.type) {
-                  @case ('pmfm') {
-                    {{ colValue | pmfmValue: { pmfm: col.pmfm } }}
-                  }
-                  @case ('samplingRatio') {
-                    {{ colValue | samplingRatioFormat: samplingRatioFormat }}
-                  }
-                  @default {
-                    {{ colValue | numberFormat: { maximumFractionDigits: col.pmfm?.maximumNumberDecimals || 3 } }}
-                  }
+              @switch (col.type) {
+                @case ('pmfm') {
+                  <ion-label [innerHTML]="colValue | pmfmValue: { pmfm: col.pmfm, html: false }"></ion-label>
                 }
-              </ion-label>
+                @case ('samplingRatio') {
+                  <ion-label>{{ colValue | samplingRatioFormat: samplingRatioFormat }}</ion-label>
+                }
+                @default {
+                  <ion-label>{{ colValue | numberFormat: { maximumFractionDigits: col.pmfm?.maximumNumberDecimals || 3 } }}</ion-label>
+                }
+              }
             } @else if (col.isWeight && !col.isSampling) {
               <!-- If only individual count filled, display it -->
-              <ion-label *ngVar="row.currentData | propertyGet: 'children.' + col.qvIndex + '.individualCount'; let indivCount">
+              <ion-label *ngVar="row.currentData | propertyGet: ['children', col.qvIndex, 'individualCount']; let indivCount">
                 @if (indivCount != null) {
                   {{ indivCount | numberFormat }}
                   {{ 'TRIP.BATCH.TABLE.INDIVIDUAL_UNIT' | translate }}
@@ -542,7 +548,7 @@
     <!-- open individual measures -->
     <button
       mat-icon-button
-      *ngIf="allowSubBatches && (!allowQvPmfmGroup || mobile)"
+      *ngIf="allowSubBatches && (!qvPmfm || mobile)"
       [color]="row.currentData.observedIndividualCount ? 'primary' : undefined"
       [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE' | translate"
       (click)="onSubBatchesClick($event, row, { showParent: false })"

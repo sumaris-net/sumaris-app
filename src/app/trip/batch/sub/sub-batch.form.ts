@@ -104,6 +104,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   warning: string;
   weightPmfm: IPmfm;
   enableLengthWeightConversion: boolean;
+
   @RxStateProperty() taxonNames: TaxonNameRef[];
 
   @Input() title: string;
@@ -123,7 +124,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @Input() mobile: boolean;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
-
   @Input() @RxStateProperty() showTaxonName: boolean;
   @Input() @RxStateProperty() qvPmfm: IPmfm;
 
@@ -242,7 +242,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
 
   ngOnInit() {
     super.ngOnInit();
-
     // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     this.isNew = toBoolean(this.isNew, false);
@@ -481,7 +480,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
       this.form.get('taxonName').disable(opts);
     }
 
-    if (!this.enableIndividualCount) {
+    if (this.showIndividualCount && !this.enableIndividualCount) {
       this.form.get('individualCount').disable(opts);
     }
 

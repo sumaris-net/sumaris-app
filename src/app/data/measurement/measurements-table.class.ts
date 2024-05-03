@@ -86,8 +86,6 @@ export abstract class BaseMeasurementsTable<
   @RxStateProperty() protected initialPmfms: IPmfm[];
   @RxStateProperty() protected filteredPmfms: IPmfm[];
 
-  i18nPmfmPrefix: string = null;
-
   readonly hasRankOrder: boolean;
 
   /**
@@ -95,6 +93,7 @@ export abstract class BaseMeasurementsTable<
    */
   @Input() canEditRankOrder = false;
   @Input() compactFields = true;
+  @Input() i18nPmfmPrefix: string;
 
   @Input()
   @RxStateProperty()
