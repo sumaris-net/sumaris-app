@@ -6,7 +6,7 @@ import { MeasurementsValidatorService } from '@app/data/measurement/measurement.
 import { Landing } from './landing.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
 import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
@@ -54,7 +54,7 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
   }
 
   getFormGroupConfig(data?: Landing, opts?: O): { [p: string]: any } {
-    const config = Object.assign(super.getFormGroupConfig(data), {
+    const config = Object.assign(super.getFormGroupConfig(data, opts), {
       __typename: [Landing.TYPENAME],
       location: [data?.location || null, SharedValidators.entity],
       dateTime: [data?.dateTime || null],
@@ -68,6 +68,9 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
       // Computed values (e.g. for SIH-OBSBIO program)
       samplesCount: [toNumber(data?.samplesCount, null), null],
+
+      // Sale Ids
+      saleIds: [(data && data.saleIds) || null],
     });
 
     // Add measurement values
@@ -103,7 +106,7 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     opts.withMeasurements = toBoolean(opts.withMeasurements, toBoolean(!!opts.program, false));
     opts.withMeasurementTypename = toBoolean(opts.withMeasurementTypename, opts.withMeasurements);
 
-    opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR);
+    opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.LANDING);
     // TODO add more options, for all form parts:
     // opts.withFishingArea = ...
     // opts.withMetier = ...
@@ -143,6 +146,14 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     }
   ) {
     const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
-    return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
+    const form = this.measurementsValidatorService.getFormGroup(measurementValues, opts);
+
+    // Add non-observation reason validator if non observed
+    if (!measurementValues[PmfmIds.IS_OBSERVED]) {
+      form.controls[PmfmIds.NON_OBSERVATION_REASON].addValidators(Validators.required);
+      form.controls[PmfmIds.NON_OBSERVATION_REASON].updateValueAndValidity();
+    }
+
+    return form;
   }
 }

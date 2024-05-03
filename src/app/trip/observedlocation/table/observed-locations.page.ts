@@ -53,8 +53,8 @@ export const ObservedLocationsPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
-  protected $title = new BehaviorSubject<string>('');
-  protected $landingsTitle = new BehaviorSubject<string>('');
+  protected titleSubject = new BehaviorSubject<string>('');
+  protected landingsTitleSubject = new BehaviorSubject<string>('');
   protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
   protected selectedSegment = 'observations';
@@ -327,7 +327,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     this.showTitleSegment = !this.mobile && config.getPropertyAsBoolean(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_LANDINGS_TAB_ENABLE);
 
     const title = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
-    this.$title.next(title);
+    this.titleSubject.next(title);
 
     // Quality
     this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
@@ -398,7 +398,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
 
     // Title
     const landingsTitle = this.translateContext.instant(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE', this.i18nColumnSuffix);
-    this.$landingsTitle.next(landingsTitle);
+    this.landingsTitleSubject.next(landingsTitle);
   }
 
   protected async resetProgram() {
@@ -408,7 +408,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     this.i18nColumnSuffix = '';
 
     // Title
-    this.$landingsTitle.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
+    this.landingsTitleSubject.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
   }
 
   protected markForCheck() {

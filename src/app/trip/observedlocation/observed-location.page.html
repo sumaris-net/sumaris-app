@@ -101,7 +101,6 @@
                 [mobile]="mobile"
                 [debug]="debug"
                 (onSubmit)="save($event)"
-                [timezone]="dbTimeZone"
               ></app-form-observed-location>
             </ion-col>
 
@@ -148,7 +147,7 @@
         <ng-container *rxIf="landingTable$; let table; suspense: suspense">
           <ion-label
             [matBadge]="table.visibleRowCount"
-            [matBadgeHidden]="table.invalid || !table.visibleRowCount"
+            [matBadgeHidden]="table.invalid || !table.visibleRowCount || !!table.error"
             matBadgeOverlap="false"
             matBadgeColor="primary"
             matBadgeSize="small"
@@ -156,7 +155,7 @@
           >
             {{ landingsTab.textLabel }}
           </ion-label>
-          <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="table.invalid"></ion-icon>
+          <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="table.error || (table.invalid && table.dirty)"></ion-icon>
         </ng-container>
         <ng-template #suspense>
           <ion-label><ion-skeleton-text style="min-width: 110px"></ion-skeleton-text></ion-label>
@@ -199,6 +198,8 @@
               (onNewRow)="onNewLanding($event)"
               (openTrip)="onOpenTrip($event)"
               (newTrip)="onNewTrip($event)"
+              (openSale)="onOpenSale($event)"
+              (newSale)="onNewSale($event)"
               (ngInit)="landingTable = landingsTable"
               [debug]="debug"
             ></app-landings-table>

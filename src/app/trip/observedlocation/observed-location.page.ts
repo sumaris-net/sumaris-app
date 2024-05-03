@@ -7,6 +7,7 @@ import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   Alerts,
+  AppErrorWithDetails,
   AppTable,
   CORE_CONFIG_OPTIONS,
   DateUtils,
@@ -28,7 +29,7 @@ import { ObservedLocation } from './observed-location.model';
 import { Landing } from '../landing/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { firstValueFrom, Observable, Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
@@ -48,6 +49,7 @@ import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Strategy } from '@app/referential/services/model/strategy.model';
+import moment from 'moment';
 
 export const ObservedLocationPageSettingsEnum = {
   PAGE_ID: 'observedLocation',
@@ -177,6 +179,30 @@ export class ObservedLocationPage
   ngOnDestroy() {
     super.ngOnDestroy();
     this._measurementSubscription?.unsubscribe();
+  }
+
+  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
+    // If errors in landings
+    if (typeof error !== 'string' && error?.details?.errors?.landings) {
+      // Show error in landing table
+      this.landingsTable.setError('OBSERVED_LOCATION.ERROR.INVALID_LANDING', {
+        showOnlyInvalidRows: true,
+      });
+
+      // Open the landing tab
+      this.tabGroup.selectedIndex = ObservedLocationPage.TABS.LANDINGS;
+
+      // Reset other errors
+      super.setError(undefined, opts);
+    }
+
+    // Error in the main form
+    else {
+      super.setError(error, opts);
+
+      // Reset error in table (and filter in op table)
+      this.landingsTable?.resetError(opts);
+    }
   }
 
   /**
@@ -341,6 +367,10 @@ export class ObservedLocationPage
     }
   }
 
+  async onNewSale(event?: any) {
+    await this.onNewLanding(event);
+  }
+
   async onOpenTrip<T extends Landing>(row: TableElement<T>) {
     const saved =
       this.isOnFieldMode && this.dirty
@@ -355,6 +385,25 @@ export class ObservedLocationPage
 
     try {
       await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${row.currentData.tripId}`);
+    } finally {
+      this.markAsLoaded();
+    }
+  }
+
+  async onOpenSale<T extends Landing>(row: TableElement<T>) {
+    const saved =
+      this.isOnFieldMode && this.dirty
+        ? // If on field mode: try to save silently
+          await this.save(undefined)
+        : // If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm();
+
+    if (!saved) return; // Cannot save
+
+    this.markAsLoading();
+
+    try {
+      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${row.currentData.saleIds[0]}`);
     } finally {
       this.markAsLoaded();
     }
@@ -533,6 +582,11 @@ export class ObservedLocationPage
         landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
         landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
         this.showLandingTab = true;
+
+        if (landingsTable.inlineEdition) {
+          // Set landings table as child when inline edition is enabled, so it saves correctly
+          this.addChildForm(landingsTable);
+        }
       }
 
       // If new data: update trip form (need to update validator, with showObservers)
@@ -648,7 +702,7 @@ export class ObservedLocationPage
   }
 
   async getValue(): Promise<ObservedLocation> {
-    return super.getValue();
+    return this.observedLocationForm.value;
   }
 
   protected get form(): UntypedFormGroup {
@@ -667,19 +721,17 @@ export class ObservedLocationPage
   protected async computeTitle(data: ObservedLocation): Promise<string> {
     // new data
     if (this.isNewData) {
-      return this.translate.get('OBSERVED_LOCATION.NEW.TITLE').toPromise();
+      return this.translate.instant('OBSERVED_LOCATION.NEW.TITLE');
     }
 
     // Make sure page is ready (e.g. i18nContext has been loaded, in setProgram())
     await this.ready();
 
     // Existing data
-    return firstValueFrom(
-      this.translateContext.get(`OBSERVED_LOCATION.EDIT.TITLE`, this.i18nContext.suffix, {
-        location: data.location && (data.location.name || data.location.label),
-        dateTime: data.startDateTime && (this.dateFormat.transform(data.startDateTime) as string),
-      })
-    );
+    return this.translateContext.instant(`OBSERVED_LOCATION.EDIT.TITLE`, this.i18nContext.suffix, {
+      location: data.location && (data.location.name || data.location.label),
+      dateTime: data.startDateTime && (this.dateFormat.transform(data.startDateTime) as string),
+    });
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
@@ -691,6 +743,67 @@ export class ObservedLocationPage
 
   protected async onEntitySaved(data: ObservedLocation): Promise<void> {
     await super.onEntitySaved(data);
+
+    if (this.landingsTable?.isSaleDetailEditor && this.isNewData) {
+      // TODO JVF: Retrieve species based on data.samplingStrata
+
+      const landing = new Landing();
+      landing.rankOrder = 1;
+      landing.vesselSnapshot = new VesselSnapshot();
+      landing.vesselSnapshot.id = 5;
+      landing.vesselSnapshot.name = `Unknown vessel`;
+      landing.program = this.program;
+      landing.dateTime = moment();
+      landing.location = new ReferentialRef();
+      landing.location.id = 1;
+      landing.location.name = `Location 1`;
+      // Update landings' observed location so it saves correctly
+      landing.observedLocation = data;
+      landing.observedLocationId = data.id;
+      landing.measurementValues = {
+        [PmfmIds.CONTROLLED_SPECIES]: 304, // LANGOUSTINE
+        [PmfmIds.IS_OBSERVED]: false,
+      };
+      await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
+
+      const landing2 = new Landing();
+      landing2.rankOrder = 2;
+      landing2.vesselSnapshot = new VesselSnapshot();
+      landing2.vesselSnapshot.id = 1;
+      landing2.vesselSnapshot.name = `Vessel 1`;
+      landing2.program = this.program;
+      landing2.dateTime = moment();
+      landing2.location = new ReferentialRef();
+      landing2.location.id = 1;
+      landing2.location.name = `Location 1`;
+      // Update landings' observed location so it saves correctly
+      landing2.observedLocation = data;
+      landing2.observedLocationId = data.id;
+      landing2.measurementValues = {
+        [PmfmIds.CONTROLLED_SPECIES]: 300, // ANCHOIS
+        [PmfmIds.IS_OBSERVED]: false,
+      };
+      await this.landingsTable.addOrUpdateEntityToTable(landing2, { editing: false });
+
+      const landing3 = new Landing();
+      landing3.rankOrder = 3;
+      landing3.vesselSnapshot = new VesselSnapshot();
+      landing3.vesselSnapshot.id = 1;
+      landing3.vesselSnapshot.name = `Vessel 1`;
+      landing3.program = this.program;
+      landing3.dateTime = moment();
+      landing3.location = new ReferentialRef();
+      landing3.location.id = 1;
+      landing3.location.name = `Location 1`;
+      // Update landings' observed location so it saves correctly
+      landing3.observedLocation = data;
+      landing3.observedLocationId = data.id;
+      landing3.measurementValues = {
+        [PmfmIds.CONTROLLED_SPECIES]: 302, // BAR
+        [PmfmIds.IS_OBSERVED]: false,
+      };
+      await this.landingsTable.addOrUpdateEntityToTable(landing3, { editing: false });
+    }
 
     // Save landings table, when editable
     if (this.landingsTable?.dirty && this.landingsTable.canEdit) {

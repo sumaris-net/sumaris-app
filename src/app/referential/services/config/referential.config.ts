@@ -16,6 +16,7 @@ import {
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
   UnitIds,
+  VesselIds,
   VesselTypeIds,
 } from '../model/model.enum';
 import { FieldMergeFunction } from '@apollo/client/cache/inmemory/policies';
@@ -542,6 +543,42 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.IS_SAMPLING,
   },
+  PMFM_EMV_CATEGORY_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.EMV_CATEGORY.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_EMV_CATEGORY_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.EMV_CATEGORY,
+  },
+  PMFM_PETS_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.PETS.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PETS_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.PETS,
+  },
+  PMFM_SALE_TYPE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SALE_TYPE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SALE_TYPE_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.SALE_TYPE,
+  },
+  PMFM_IS_OBSERVED_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.IS_OBSERVED.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_IS_OBSERVED_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.IS_OBSERVED,
+  },
+  PMFM_NON_OBSERVATION_REASON_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.NON_OBSERVATION_REASON.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_NON_OBSERVATION_REASON_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.NON_OBSERVATION_REASON,
+  },
+
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_SURVEY_ID',
@@ -865,6 +902,12 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       },
     },
     defaultValue: VesselTypeIds.SCIENTIFIC_RESEARCH_VESSEL.toString(),
+  },
+  VESSEL_UNKNOWN_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Vessel.UNKNOWN.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.VESSEL_UNKNOWN_ID',
+    type: 'integer',
+    defaultValue: VesselIds.UNKNOWN.toString(),
   },
 });
 

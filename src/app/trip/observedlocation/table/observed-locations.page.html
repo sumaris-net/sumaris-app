@@ -1,5 +1,5 @@
 <app-toolbar *ngIf="showToolbar" color="primary" [canGoBack]="false" [canShowMenu]="true">
-  <div *rxIf="$title; let title" slot="start">
+  <div *rxIf="titleSubject; let title" slot="start">
     <!-- simple title -->
     <ion-title *ngIf="!showTitleSegment; else titleSegment">{{ title | translate }}</ion-title>
 
@@ -10,7 +10,7 @@
           <ion-label>{{ title | translate }}</ion-label>
         </ion-segment-button>
         <ion-segment-button value="observations/landings" class="ion-title">
-          <ion-label>{{ $landingsTitle | async | translate }}</ion-label>
+          <ion-label>{{ landingsTitleSubject | async | translate }}</ion-label>
         </ion-segment-button>
       </ion-segment>
     </ng-template>
