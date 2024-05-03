@@ -101,12 +101,12 @@
             [config]="autocompleteFields.parentGroup"
             required
           ></mat-autocomplete-field>
-        } @else if (mobile) {
-          <!-- readonly (mobile) -->
-          {{ row.currentData.parentGroup | referentialToString: autocompleteFields.parentGroup.attributes }}
-        } @else {
+        } @else if (inlineEdition) {
           <!-- readonly (desktop) -->
           {{ row.validator | formGetValue: 'parentGroup' | referentialToString: autocompleteFields.parentGroup.attributes }}
+        } @else {
+          <!-- readonly (mobile) -->
+          {{ row.currentData.parentGroup | referentialToString: autocompleteFields.parentGroup.attributes }}
         }
       </td>
     </ng-container>

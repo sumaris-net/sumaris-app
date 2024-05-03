@@ -750,7 +750,7 @@ export class SubBatchesTable
       // TODO : add sequence
     }
 
-    if (!data.parentGroup) data.parentGroup = this.form.parentGroup;
+    if (!data.parentGroup && this.form) data.parentGroup = this.form.parentGroup;
 
     // Set individual count to 1, if column not shown
     if (!this.showIndividualCount) {

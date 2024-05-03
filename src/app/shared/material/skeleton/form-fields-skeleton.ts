@@ -6,5 +6,12 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MatFormFieldsSkeleton {
-  @Input() count: string;
+  protected array: number[];
+
+  @Input() count: number;
+  @Input() width: string = '60%';
+
+  protected get countArray() {
+    return Array(this.count || 1);
+  }
 }

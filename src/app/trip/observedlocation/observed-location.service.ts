@@ -83,6 +83,7 @@ import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measure
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { IMPORT_REFERENTIAL_ENTITIES, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean;
@@ -1181,6 +1182,8 @@ export class ObservedLocationService
       program?: Program;
       acquisitionLevels?: string[];
       locationLevelIds?: number[];
+      entityNames?: string[];
+      countryIds?: number[];
       vesselIds?: number[];
     }
   ): Observable<number>[] {
@@ -1215,10 +1218,25 @@ export class ObservedLocationService
           }
           // Fill options using program
           if (programLabel) {
-            console.debug(`[trip-service] [import] Reducing importation to program {${programLabel}}`);
+            console.debug(`${this._logPrefix}[import] Reducing importation to program {${programLabel}}`);
             const program = await this.programRefService.loadByLabel(programLabel, { fetchPolicy: 'network-only' });
             opts.program = program;
             opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
+
+            // Import weight conversion entities, if enable on program
+            const enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
+            if (enableWeightConversion) {
+              console.debug(`${this._logPrefix}[import] WeightLengthConversion - import enabled (by program)`);
+              opts.entityNames = [...IMPORT_REFERENTIAL_ENTITIES, ...WEIGHT_CONVERSION_ENTITIES];
+
+              // Limit round weight, to the default country location id
+              const countryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
+              if (isNotNilOrBlank(countryId)) {
+                console.debug(`${this._logPrefix}[import] RoundWeightConversion - country id: ` + countryId);
+                opts.countryIds = opts.countryIds || [];
+                if (!opts.countryIds.includes(countryId)) opts.countryIds.push(countryId);
+              }
+            }
 
             // Filter on location level used by the observed location feature
             opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
