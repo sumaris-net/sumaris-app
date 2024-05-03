@@ -6,7 +6,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 
-export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
+export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling' | 'sale';
 export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';

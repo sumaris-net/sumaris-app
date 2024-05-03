@@ -30,6 +30,7 @@ export class MeasurementValueGetPipe extends PmfmValuePipe implements PipeTransf
       hideIfDefaultValue?: boolean;
       showNameForPmfmIds?: number[];
       separator?: string;
+      showYesOrNo?: boolean;
     }
   ): any {
     if (!entity.measurementValues || !opts?.pmfm) return undefined;

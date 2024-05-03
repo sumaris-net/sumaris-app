@@ -166,6 +166,14 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     // Add program, because if control disabled the value is missing
     json.program = this.form.get('program').value;
 
+    // Add sampling strata (if control was disabled, should be readd manually)
+    if (this.showSamplingStrata) {
+      const samplingStrataControl = this.form.get('samplingStrata');
+      json.samplingStrata = ReferentialRef.fromObject(samplingStrataControl.value);
+    } else {
+      delete json.samplingStrata;
+    }
+
     if (!this._showObservers) json.observers = []; // Remove observers, if hide
     if (!this._showMetiers) json.metiers = []; // Remove metiers, if hide
 
