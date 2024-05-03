@@ -504,8 +504,8 @@
         *matRowDef="let row; columns: displayedColumns"
         class="mat-mdc-row-disabled"
         [class.mat-mdc-row-dirty]="!row.currentData.id"
-        [class.mat-mdc-row-error]="row.currentData.qualityFlagId === 4"
         [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        [class.mat-mdc-row-error]="row.currentData.qualityFlagId | qualityFlagBad"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></tr>
