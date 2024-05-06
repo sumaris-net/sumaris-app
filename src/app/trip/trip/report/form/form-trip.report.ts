@@ -34,7 +34,7 @@ export class FormTripReportStats extends BaseReportStats {
   strategy: Strategy;
   operationRankOrderByOperationIds: { [key: number]: number };
   operationsRankByGears: { [key: number]: number[] };
-  pmfmByGearsId: { [key: number]: number[] };
+  pmfmByGearsId: { [key: number]: IPmfm[] };
   denormalizedBatchesByOp: {
     [key: number]: {
       landing: DenormalizedBatch[];

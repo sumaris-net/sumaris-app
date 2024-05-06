@@ -1160,6 +1160,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         usageMode: this.usageMode,
         showParentGroup,
         parentGroup,
+        floatLabel: 'always',
         data: this.availableSubBatches,
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,

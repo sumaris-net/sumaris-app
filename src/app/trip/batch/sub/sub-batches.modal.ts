@@ -3,6 +3,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { Batch } from '../common/batch.model';
 import {
   Alerts,
+  AppFloatLabelType,
   AppFormUtils,
   AudioProvider,
   firstNotNilPromise,
@@ -36,7 +37,6 @@ import { RxState } from '@rx-angular/state';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ModalUtils } from '@app/shared/modal/modal.utils';
 import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { FloatLabelType } from '@angular/material/form-field';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -49,6 +49,7 @@ export interface ISubBatchesModalOptions {
   weightDisplayDecimals?: number;
 
   // UI options
+  floatLabel: AppFloatLabelType;
   maxVisibleButtons: number;
   maxItemCountForButtons: number;
   i18nSuffix: string;
@@ -166,7 +167,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() allowIndividualCountOnly: boolean;
   @Input() defaultIsIndividualCountOnly: boolean;
   @Input() animationDuration = 1500; // 1.5s
-  @Input() floatLabel: FloatLabelType = 'always';
+  @Input() floatLabel: AppFloatLabelType = 'auto';
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;

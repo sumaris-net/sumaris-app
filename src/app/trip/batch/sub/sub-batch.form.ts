@@ -17,6 +17,7 @@ import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGro
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import {
+  AppFloatLabelType,
   AppFormUtils,
   EntityUtils,
   focusNextInput,
@@ -63,7 +64,6 @@ import { PmfmFormField } from '@app/referential/pmfm/field/pmfm.form-field.compo
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { TranslateService } from '@ngx-translate/core';
-import { FloatLabelType } from '@angular/material/form-field';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
@@ -116,7 +116,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @Input() displayParentPmfm: IPmfm;
   @Input() isNew: boolean;
   @Input() tabindex: number;
-  @Input() floatLabel: FloatLabelType;
+  @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
