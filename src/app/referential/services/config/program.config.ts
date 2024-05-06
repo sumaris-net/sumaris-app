@@ -6,12 +6,12 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 
-export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
+export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling' | 'sale';
 export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 
-export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'empty-form';
+export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'blank-form';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
@@ -344,6 +344,18 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean',
   },
+  TRIP_BATCH_MEASURE_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.measure.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
+  TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ONLY_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.measure.individualCountOnly.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ONLY_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
   TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.individualCount.enable',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE',
@@ -392,12 +404,6 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.operation.batch.rankOrder.compute',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE',
     defaultValue: 'false',
-    type: 'boolean',
-  },
-  TRIP_BATCH_MEASURE_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.batch.measure.enable',
-    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_ENABLE',
-    defaultValue: 'true',
     type: 'boolean',
   },
   TRIP_BATCH_WEIGHT_ENABLE: <FormFieldDefinition>{
@@ -554,17 +560,17 @@ export const ProgramProperties = Object.freeze({
         key: <TripReportType>'selectivity',
         value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_TRAWL_SELECTIVITY',
       },
-      {
-        key: <TripReportType>'onboard',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_ONBOARD_OBSERVATION',
-      },
+      // {
+      //   key: <TripReportType>'onboard',
+      //   value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_ONBOARD_OBSERVATION',
+      // },
       {
         key: <TripReportType>'form',
         value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM',
       },
       {
-        key: <TripReportType>'empty-form',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM_EMPTY',
+        key: <TripReportType>'blank-form',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM_BLANK',
       },
     ],
     autocomplete: {
@@ -1193,8 +1199,8 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ONBOARD_OBSERVATION',
       },
       {
-        key: 'SALE_OBSERVATION.',
-        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_SALE_OBSERVATION',
+        key: 'OBSERVED_SALE.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_OBSERVED_SALE',
       },
     ],
     defaultValue: 'legacy',

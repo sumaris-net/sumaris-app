@@ -1,11 +1,10 @@
 import { ChangeDetectorRef, Directive, EventEmitter, inject, Injector, Input, OnDestroy, OnInit, Optional, Output } from '@angular/core';
-import { FloatLabelType } from '@angular/material/form-field';
 import { combineLatestWith, merge, mergeMap, Observable } from 'rxjs';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from './measurement.validator';
 import { distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from './measurement.model';
-import { AppForm, changeCaseToUnderscore, firstTrue, isNil, isNotNil, toNumber } from '@sumaris-net/ngx-components';
+import { AppFloatLabelType, AppForm, changeCaseToUnderscore, firstTrue, isNil, isNotNil, toNumber } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
@@ -51,7 +50,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>,
   @RxStateProperty() protected filteredPmfms: IPmfm[];
 
   @Input() compact = false;
-  @Input() floatLabel: FloatLabelType = 'auto';
+  @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() i18nPmfmPrefix: string = null;
   @Input() i18nSuffix: string = null;
   @Input() forceOptionalExcludedPmfmIds: number[]; // Pmfm that should NOT be forced as optional
@@ -368,7 +367,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>,
     this.updateViewState({ onlySelf: true, ...opts });
   }
 
-  protected getValue(): T {
+  getValue(): T {
     if (this.loading) return this.data; // Avoid to return not well loaded data
 
     const measurementValuesForm = this.measurementValuesForm;

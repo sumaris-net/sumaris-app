@@ -39,11 +39,7 @@ export class MethodPage extends AppReferentialEditor<Method, MethodService> {
   /* -- protected methods -- */
 
   protected registerForms() {
-    this.addChildForms([this.referentialForm]);
-  }
-
-  protected setValue(data: Method) {
-    super.setValue(data);
+    this.addForms([this.referentialForm]);
   }
 
   protected async onEntitySaved(data: Referential): Promise<void> {}

@@ -1,9 +1,11 @@
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '../common/batch.model';
 import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
-import { EntityClass, EntityUtils, isNotEmptyArray, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
+import { EntityClass, EntityUtils, isNil, isNotEmptyArray, isNotNil, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { firstValueFrom, isObservable, Observable } from 'rxjs';
+import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 
 @EntityClass({ typename: 'BatchGroupVO', fromObjectReuseStrategy: 'clone' })
 export class BatchGroup extends Batch<BatchGroup> {
@@ -16,7 +18,12 @@ export class BatchGroup extends Batch<BatchGroup> {
     const target = new BatchGroup();
     Object.assign(target, batch);
     // Compute observed indiv. count
-    target.observedIndividualCount = BatchUtils.sumObservedIndividualCount(batch.children);
+    const sumObservedIndividualCount = BatchUtils.sumObservedIndividualCount(batch.children);
+    if (sumObservedIndividualCount > 0 || isNil(target.observedIndividualCount)) {
+      // DEBUG
+      //console.log('DEBUG New computed observedIndividualCount=' + target.observedIndividualCount);
+      target.observedIndividualCount = sumObservedIndividualCount;
+    }
     return target;
   }
 
@@ -177,5 +184,18 @@ export class BatchGroupUtils {
       qvPmfm.qualitativeValues.sort((qv1, qv2) => (qv1.label === 'LAN' ? -1 : 1));
     }
     return qvPmfm;
+  }
+
+  /**
+   * Check is a batch group has a manually set individual count, or not
+   * @param batchGroup
+   * @param subBatches
+   */
+  static async hasSamplingIndividualCountOnly(batchGroup: BatchGroup, subBatches: SubBatch[] | Observable<SubBatch[]>) {
+    const samplingBatch = BatchUtils.getSamplingChild(batchGroup);
+    const individualCount = toNumber(samplingBatch?.individualCount, batchGroup.observedIndividualCount);
+    if (isNil(individualCount) || individualCount === 0) return false;
+    subBatches = isObservable(subBatches) ? await firstValueFrom(subBatches) : subBatches;
+    return (subBatches || []).every((b) => !BatchGroup.equals(b.parentGroup, batchGroup));
   }
 }

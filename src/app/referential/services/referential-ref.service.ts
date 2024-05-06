@@ -49,6 +49,7 @@ import {
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
   UnitIds,
+  VesselIds,
   VesselTypeIds,
 } from './model/model.enum';
 import { ReferentialFragments } from './referential.fragments';
@@ -986,6 +987,11 @@ export class ReferentialRefService
     PmfmIds.SELECTIVITY_DEVICE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SELECTIVITY_DEVICE_ID);
     PmfmIds.LANDING_CATEGORY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_LANDING_CATEGORY_ID);
     PmfmIds.IS_SAMPLING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_IS_SAMPLING_ID);
+    PmfmIds.EMV_CATEGORY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_EMV_CATEGORY_ID);
+    PmfmIds.PETS = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_PETS_ID);
+    PmfmIds.SALE_TYPE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SALE_TYPE_ID);
+    PmfmIds.IS_OBSERVED = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_IS_OBSERVED_ID);
+    PmfmIds.NON_OBSERVATION_REASON = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_NON_OBSERVATION_REASON_ID);
 
     // Methods
     MethodIds.UNKNOWN = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_UNKNOWN_ID);
@@ -1027,6 +1033,9 @@ export class ReferentialRefService
     // Vessel types
     VesselTypeIds.FISHING_VESSEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.VESSEL_TYPE_FISHING_VESSEL);
     VesselTypeIds.SCIENTIFIC_RESEARCH_VESSEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL);
+
+    // Vessels
+    VesselIds.UNKNOWN = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.VESSEL_UNKNOWN_ID);
 
     // TODO: add other enumerations
 

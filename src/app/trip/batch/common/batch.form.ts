@@ -526,7 +526,7 @@ export class BatchForm<
     super.updateViewState(opts);
   }
 
-  protected getValue(): T {
+  getValue(): T {
     if (!this.data) return undefined;
     const json = this.form.value;
     const data = this.data;

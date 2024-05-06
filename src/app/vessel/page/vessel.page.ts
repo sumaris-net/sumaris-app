@@ -99,7 +99,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
         this.replacementEnabled = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
-        this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_ID);
+        this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_IDS);
 
         this.markForCheck();
       })
@@ -154,7 +154,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     return !this.editing && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
   }
 
-  protected setValue(data: Vessel) {
+  setValue(data: Vessel) {
     // Set data to form
     this.vesselForm.value = data;
   }

@@ -9,8 +9,8 @@ describe('CalendarComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ CalendarComponent ],
-      imports: [IonicModule.forRoot()]
+      declarations: [CalendarComponent],
+      imports: [IonicModule.forRoot()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CalendarComponent);

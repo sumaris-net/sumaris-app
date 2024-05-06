@@ -1402,7 +1402,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
   protected registerForms() {
     // Register sub forms & table
-    this.addChildForms([this.opeForm, this.measurementsForm, this.batchTree, this.sampleTree]);
+    this.addForms([this.opeForm, this.measurementsForm, this.batchTree, this.sampleTree]);
   }
 
   protected waitWhilePending(): Promise<void> {
@@ -1414,7 +1414,7 @@ export class OperationPage<S extends OperationState = OperationState>
     return super.saveDirtyChildren();
   }
 
-  protected async getValue(): Promise<Operation> {
+  async getValue(): Promise<Operation> {
     const data = await super.getValue();
 
     // Batches

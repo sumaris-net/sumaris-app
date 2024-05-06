@@ -444,8 +444,12 @@ export class ReferentialFileService<
                     missingReferences.push(`${subEntityName}#${label}`);
                   }
                 } else {
-                  // Clean ids, update_date, etc.
-                  AppReferentialUtils.cleanIdAndDates(internalSource, false);
+                  if (subEntityName === 'Person') {
+                    console.log(`[referential-table] Keep ${subEntityName}#${internalSource.id}`);
+                  } else {
+                    // Clean ids, update_date, etc.
+                    AppReferentialUtils.cleanIdAndDates(internalSource, false);
+                  }
                 }
               }
 

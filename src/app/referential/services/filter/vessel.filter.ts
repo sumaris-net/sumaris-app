@@ -29,6 +29,8 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
   }
 
   program: ReferentialRef;
+  startDate: Moment;
+  endDate: Moment;
   date: Moment;
   vesselId: number;
   includedIds: number[];
@@ -52,6 +54,8 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       ReferentialRef.fromObject(source.program) ||
       (isNotNilOrBlank(source.programLabel) && ReferentialRef.fromObject({ label: source.programLabel })) ||
       undefined;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
     this.date = fromDateISOString(source.date);
     this.vesselId = source.vesselId;
     this.includedIds = source.includedIds;
@@ -79,7 +83,15 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
-    target.date = toDateISOString(this.date);
+    if (this.date) {
+      target.date = toDateISOString(this.date);
+      delete target.startDate;
+      delete target.endDate;
+    } else {
+      target.startDate = toDateISOString(this.startDate);
+      target.endDate = toDateISOString(this.endDate);
+      delete target.date;
+    }
     if (opts?.minify) {
       target.programLabel = this.program && this.program.label;
       delete target.program;
@@ -157,6 +169,18 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
     const vesselTypeId = this.vesselType?.id;
     if (isNotNil(vesselTypeId)) {
       filterFns.push((t) => t.vesselType?.id === vesselTypeId);
+    }
+
+    // Start date
+    const startDate = this.startDate || this.date;
+    if (isNotNil(startDate)) {
+      filterFns.push((v) => !v.endDate || startDate.isSameOrBefore(v.endDate));
+    }
+
+    // End date
+    const endDate = this.endDate || this.date;
+    if (isNotNil(endDate)) {
+      filterFns.push((v) => endDate.isSameOrAfter(v.startDate));
     }
 
     // Search text

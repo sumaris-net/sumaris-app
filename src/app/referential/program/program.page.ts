@@ -7,7 +7,6 @@ import { ReferentialForm } from '../form/referential.form';
 import { ProgramValidatorService } from '../services/validator/program.validator';
 import { StrategiesTable } from '../strategy/strategies.table';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   AccountService,
   AppEntityEditor,
@@ -201,7 +200,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   /* -- protected methods -- */
 
   protected registerForms() {
-    this.addChildForms([this.referentialForm, this.propertiesForm, this.locationClassificationList, this.locationList, this.personsTable]);
+    this.addForms([this.referentialForm, this.propertiesForm, this.locationClassificationList, this.locationList, this.personsTable]);
   }
 
   protected registerFormField(fieldName: string, def: Partial<FormFieldDefinition>) {
@@ -234,7 +233,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     await super.onEntitySaved(data);
   }
 
-  protected setValue(data: Program) {
+  setValue(data: Program) {
     data = data || new Program();
 
     this.form.patchValue({ ...data, properties: [], locationClassifications: [], strategies: [], persons: [] }, { emitEvent: false });

@@ -48,6 +48,10 @@ export const VesselTypeIds = {
   SCIENTIFIC_RESEARCH_VESSEL: 2,
 };
 
+export const VesselIds = {
+  UNKNOWN: 5,
+};
+
 export const TaxonGroupTypeIds = {
   FAO: 2,
   DCF_METIER_LVL_5: 3,
@@ -153,6 +157,8 @@ export const PmfmIds = {
   /* OBSVENTE */
   PETS: 502,
   SALE_TYPE: 503,
+  IS_OBSERVED: 510,
+  NON_OBSERVATION_REASON: 511,
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {

@@ -89,13 +89,7 @@ export class TaxonNamePage extends AppReferentialEditor<TaxonName, TaxonNameServ
     }
   }
 
-  /* -- protected methods -- */
-
-  protected registerForms() {
-    this.addChildForms([this.referentialForm, this.wlcTable]);
-  }
-
-  protected setValue(data: TaxonName) {
+  setValue(data: TaxonName) {
     if (!data) return; // Skip
 
     super.setValue(data);
@@ -109,13 +103,19 @@ export class TaxonNamePage extends AppReferentialEditor<TaxonName, TaxonNameServ
     }
   }
 
-  protected async getValue(): Promise<TaxonName> {
+  async getValue(): Promise<TaxonName> {
     const data = await super.getValue();
 
     // Re add reference taxon (field can be disabled)
     data.referenceTaxonId = this.form.get('referenceTaxonId').value;
 
     return data;
+  }
+
+  /* -- protected methods -- */
+
+  protected registerForms() {
+    this.addForms([this.referentialForm, this.wlcTable]);
   }
 
   protected async onEntitySaved(data: TaxonName): Promise<void> {

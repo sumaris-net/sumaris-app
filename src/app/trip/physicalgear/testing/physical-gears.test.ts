@@ -9,6 +9,7 @@ import {
   InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
+  isNotNil,
   MatAutocompleteConfigHolder,
   SharedValidators,
   sleep,
@@ -22,6 +23,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { IPhysicalGearModalOptions } from '@app/trip/physicalgear/physical-gear.modal';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
+import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-physical-gears-test',
@@ -61,6 +63,7 @@ export class PhysicalGearsTestPage implements OnInit {
   ) {
     this.filterForm = formBuilder.group({
       program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
+      strategy: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       example: [null, Validators.required],
       modalOptions: formBuilder.group({}),
     });
@@ -76,13 +79,39 @@ export class PhysicalGearsTestPage implements OnInit {
         }),
       attributes: ['label', 'name'],
     });
+    // Strategy
+    this.autocomplete.add('strategy', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelLabel: this.$programLabel.getValue(),
+          entityName: 'Strategy',
+        }),
+      attributes: ['label', 'name'],
+    });
     this.filterForm
       .get('program')
       .valueChanges //.pipe(debounceTime(450))
-      .subscribe((p) => {
-        const label = p && p.label;
-        if (label) {
-          this.$programLabel.next(label);
+      .pipe(
+        map((p) => p?.label),
+        distinctUntilChanged(),
+        filter(isNotNil)
+      )
+      .subscribe(async (programLabel) => {
+        this.$programLabel.next(programLabel);
+        const { data, total } = await this.referentialRefService.loadAll(
+          0,
+          1,
+          null,
+          null,
+          {
+            levelLabel: programLabel,
+            entityName: 'Strategy',
+          },
+          { withTotal: true }
+        );
+        if (total === 1) {
+          this.filterForm.patchValue({ strategy: data[0] });
         }
       });
 
@@ -180,8 +209,8 @@ export class PhysicalGearsTestPage implements OnInit {
     // Set modal options
     this.applyModalOptions();
 
-    // Open first
-    this.openFirstRow();
+    // DEBUG - Open first
+    //this.openFirstRow();
   }
 
   applyModalOptions(modalOptions?: any) {

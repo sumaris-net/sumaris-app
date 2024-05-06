@@ -1824,7 +1824,7 @@ export class TripService
       boundingBox?: BBox;
       locationLevelIds?: number[];
       countryIds?: number[];
-      referentialEntityNames?: string[];
+      entityNames?: string[];
       acquisitionLevels?: string[];
       vesselIds?: number[];
       [key: string]: any;
@@ -1882,7 +1882,7 @@ export class TripService
             // Limit round weight, to the default country location id
             const countryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
             if (isNotNilOrBlank(countryId)) {
-              console.debug('[trip-service] [import] WeightLengthConversion - country id: ' + countryId);
+              console.debug('[trip-service] [import] RoundWeightConversion - country id: ' + countryId);
               opts.countryIds = opts.countryIds || [];
               if (!opts.countryIds.includes(countryId)) opts.countryIds.push(countryId);
             }

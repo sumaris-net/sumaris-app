@@ -18,8 +18,20 @@
           <mat-autocomplete-field
             formControlName="program"
             class="ion-text-wrap"
-            [placeholder]="'TRIP.TABLE.FILTER.PROGRAM' | translate"
+            [placeholder]="'REFERENTIAL.ENTITY.PROGRAM' | translate"
             [config]="autocomplete.fields.program"
+            [tabindex]="1"
+            required
+          ></mat-autocomplete-field>
+        </ion-col>
+
+        <!-- Strategy -->
+        <ion-col size="12" size-md="3">
+          <mat-autocomplete-field
+            formControlName="strategy"
+            class="ion-text-wrap"
+            [placeholder]="'REFERENTIAL.ENTITY.STRATEGY' | translate"
+            [config]="autocomplete.fields.strategy"
             [tabindex]="1"
             required
           ></mat-autocomplete-field>
@@ -77,6 +89,7 @@
         <app-physical-gears-table
           #mobileTable
           [programLabel]="$programLabel | async"
+          [strategyId]="filterForm | formGetValue: 'strategy' | mapGet: 'id'"
           [allowChildrenGears]="true"
           [mobile]="true"
           [debug]="true"

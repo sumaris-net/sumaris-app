@@ -11,7 +11,6 @@ import {
   FilesUtils,
   IEntitiesService,
   isEmptyArray,
-  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -32,7 +31,7 @@ import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { HttpEventType } from '@angular/common/http';
 import { PopoverController } from '@ionic/angular';
-import { AppBaseTable, BaseTableConfig, BaseTableState } from '@app/shared/table/base.table';
+import { AppBaseTable, AppBaseTableFilterRestoreSource, BaseTableConfig, BaseTableState } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import moment from 'moment';
@@ -43,7 +42,7 @@ export const AppRootTableSettingsEnum = {
   FILTER_KEY: 'filter',
 };
 
-export type AppRootTableFilterRestoreSource = 'settings' | 'queryParams';
+export type AppRootTableFilterRestoreSource = AppBaseTableFilterRestoreSource;
 
 export interface IRootDataEntitiesService<
   T extends RootDataEntity<T, ID>,
@@ -633,33 +632,7 @@ export abstract class AppRootDataTable<
     this.markAsLoading();
 
     console.debug(`${this.logPrefix}restoreFilterOrLoad()`, opts);
-
-    const json =
-      this.restoreFilterSources !== false &&
-      (opts?.sources || this.restoreFilterSources || [])
-        .map((source) => {
-          switch (source) {
-            case 'settings':
-              if (isNilOrBlank(this.settingsId)) return;
-              console.debug(this.logPrefix + 'Restoring filter from settings...');
-              return this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
-            case 'queryParams': {
-              const { q } = this.route.snapshot.queryParams;
-              if (q) {
-                console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
-                try {
-                  return JSON.parse(q);
-                } catch (err) {
-                  console.error(this.logPrefix + 'Failed to parse route query param: ' + q, err);
-                }
-              }
-              break;
-            }
-          }
-
-          return null;
-        })
-        .find(isNotNil);
+    const json = this.loadFilter(opts?.sources);
 
     if (json) {
       // Force offline, if no network AND has offline feature
@@ -668,7 +641,7 @@ export abstract class AppRootDataTable<
         json.synchronizationStatus = 'DIRTY';
       }
 
-      this.setFilter(json, { emitEvent: true, ...opts });
+      this.setFilter(json, { emitEvent: true });
     } else {
       // has offline feature
       this.hasOfflineMode = await this._dataService.hasOfflineData();

@@ -81,8 +81,10 @@ import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
+import { IMPORT_REFERENTIAL_ENTITIES, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean;
@@ -1181,6 +1183,8 @@ export class ObservedLocationService
       program?: Program;
       acquisitionLevels?: string[];
       locationLevelIds?: number[];
+      entityNames?: string[];
+      countryIds?: number[];
       vesselIds?: number[];
     }
   ): Observable<number>[] {
@@ -1215,10 +1219,25 @@ export class ObservedLocationService
           }
           // Fill options using program
           if (programLabel) {
-            console.debug(`[trip-service] [import] Reducing importation to program {${programLabel}}`);
+            console.debug(`${this._logPrefix}[import] Reducing importation to program {${programLabel}}`);
             const program = await this.programRefService.loadByLabel(programLabel, { fetchPolicy: 'network-only' });
             opts.program = program;
             opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
+
+            // Import weight conversion entities, if enable on program
+            const enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
+            if (enableWeightConversion) {
+              console.debug(`${this._logPrefix}[import] WeightLengthConversion - import enabled (by program)`);
+              opts.entityNames = [...IMPORT_REFERENTIAL_ENTITIES, ...WEIGHT_CONVERSION_ENTITIES];
+
+              // Limit round weight, to the default country location id
+              const countryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
+              if (isNotNilOrBlank(countryId)) {
+                console.debug(`${this._logPrefix}[import] RoundWeightConversion - country id: ` + countryId);
+                opts.countryIds = opts.countryIds || [];
+                if (!opts.countryIds.includes(countryId)) opts.countryIds.push(countryId);
+              }
+            }
 
             // Filter on location level used by the observed location feature
             opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
@@ -1329,10 +1348,31 @@ export class ObservedLocationService
 
     // Load the strategy from measurementValues (if exists)
     if (!opts.strategy) {
-      const strategyLabel = entity.measurementValues?.[PmfmIds.STRATEGY_LABEL];
-      opts.strategy =
-        (isNotNilOrBlank(strategyLabel) && (await this.strategyRefService.loadByLabel(strategyLabel, { programId: opts.program?.id }))) || null;
-      if (!opts.strategy) {
+      const strategyResolution = opts.program.getProperty(ProgramProperties.DATA_STRATEGY_RESOLUTION) as DataStrategyResolution;
+      switch (strategyResolution) {
+        case 'user-select': {
+          const strategyLabel = entity.measurementValues?.[PmfmIds.STRATEGY_LABEL];
+          if (isNotNilOrBlank(strategyLabel)) {
+            opts.strategy = await this.strategyRefService.loadByLabel(strategyLabel, { programId: opts.program?.id });
+          }
+          break;
+        }
+        case 'spatio-temporal':
+          opts.strategy = await this.strategyRefService.loadByFilter({
+            programId: opts?.program.id,
+            acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION,
+            startDate: entity.startDateTime,
+            location: entity.location,
+          });
+          break;
+        case 'last':
+          opts.strategy = await this.strategyRefService.loadByFilter({
+            programId: opts?.program.id,
+            acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION,
+          });
+          break;
+      }
+      if (!opts.strategy && strategyResolution !== 'none') {
         console.debug(this._logPrefix + 'No strategy loaded from ObservedLocation#' + entity.id);
       }
     }

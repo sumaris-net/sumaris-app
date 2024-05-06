@@ -15,6 +15,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   TranslateContextService,
@@ -52,6 +53,7 @@ export interface BaseTableConfig<
   i18nColumnPrefix?: string;
   initialState?: Partial<ST>;
 }
+export type AppBaseTableFilterRestoreSource = 'settings' | 'queryParams';
 
 @Directive()
 export abstract class AppBaseTable<
@@ -90,6 +92,7 @@ export abstract class AppBaseTable<
   @Input() mobile = false;
   @Input() pressHighlightDuration = 10000; // 10s
   @Input() highlightedRowId: number;
+  @Input() filterPanelFloating = true;
 
   @Input() set canEdit(value: boolean) {
     this._canEdit = value;
@@ -104,7 +107,6 @@ export abstract class AppBaseTable<
 
   filterForm: UntypedFormGroup = null;
   filterCriteriaCount = 0;
-  filterPanelFloating = true;
 
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;
@@ -337,14 +339,14 @@ export abstract class AppBaseTable<
     this.markForCheck();
   }
 
-  async addOrUpdateEntityToTable(data: T, opts?: { confirmEditCreate?: boolean }) {
-    // Always try to get the row, even if no ID, because the row can exists (e.g. in memory table)
+  async addOrUpdateEntityToTable(data: T, opts?: { confirmEditCreate?: boolean; editing?: boolean }) {
+    // Always try to get the row, even if no ID, because the row can exist (e.g. in memory table)
     // THis find should use a equals() function
     const row = await this.findRowByEntity(data);
     if (!row) {
-      await this.addEntityToTable(data, opts && { confirmCreate: opts.confirmEditCreate });
+      return await this.addEntityToTable(data, opts && { confirmCreate: opts.confirmEditCreate, editing: opts.editing });
     } else {
-      await this.updateEntityToTable(data, row, opts && { confirmEdit: opts.confirmEditCreate });
+      return await this.updateEntityToTable(data, row, opts && { confirmEdit: opts.confirmEditCreate });
     }
   }
 
@@ -518,11 +520,23 @@ export abstract class AppBaseTable<
 
   /* -- protected function -- */
 
-  protected restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: ('settings' | 'queryParams')[] }) {
+  protected restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: AppBaseTableFilterRestoreSource[] }) {
     this.markAsLoading();
 
-    const sources = opts?.sources || ['settings', 'queryParams'];
-    const json = sources
+    const json = this.loadFilter(opts?.sources);
+
+    if (json) {
+      this.setFilter(json, { emitEvent: true });
+    } else if (!opts || opts.emitEvent !== false) {
+      this.onRefresh.emit();
+    }
+  }
+
+  protected loadFilter(sources?: AppBaseTableFilterRestoreSource[]): any | undefined {
+    sources = sources || <AppBaseTableFilterRestoreSource[]>['settings', 'queryParams'];
+    console.debug(`${this.logPrefix}Loading filter from sources: `, sources);
+
+    return sources
       .map((source) => {
         switch (source) {
           case 'settings':
@@ -545,12 +559,6 @@ export abstract class AppBaseTable<
         return null;
       })
       .find(isNotNil);
-
-    if (json) {
-      this.setFilter(json, opts);
-    } else if (!opts || opts.emitEvent !== false) {
-      this.onRefresh.emit();
-    }
   }
 
   restoreCompactMode() {
@@ -668,5 +676,11 @@ export abstract class AppBaseTable<
     } else {
       return super.getI18nColumnName(columnName);
     }
+  }
+
+  protected async devToggleDebug() {
+    this.debug = !this.debug;
+    this.markForCheck();
+    if (isNotNilOrBlank(this.settingsId)) await this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
   }
 }

@@ -17,6 +17,7 @@ import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGro
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import {
+  AppFloatLabelType,
   AppFormUtils,
   EntityUtils,
   focusNextInput,
@@ -63,7 +64,6 @@ import { PmfmFormField } from '@app/referential/pmfm/field/pmfm.form-field.compo
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { TranslateService } from '@ngx-translate/core';
-import { FloatLabelType } from '@angular/material/form-field';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
@@ -104,6 +104,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   warning: string;
   weightPmfm: IPmfm;
   enableLengthWeightConversion: boolean;
+
   @RxStateProperty() taxonNames: TaxonNameRef[];
 
   @Input() title: string;
@@ -115,7 +116,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @Input() displayParentPmfm: IPmfm;
   @Input() isNew: boolean;
   @Input() tabindex: number;
-  @Input() floatLabel: FloatLabelType;
+  @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
@@ -123,7 +124,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @Input() mobile: boolean;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
-
   @Input() @RxStateProperty() showTaxonName: boolean;
   @Input() @RxStateProperty() qvPmfm: IPmfm;
 
@@ -242,7 +242,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
 
   ngOnInit() {
     super.ngOnInit();
-
     // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     this.isNew = toBoolean(this.isNew, false);
@@ -481,7 +480,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
       this.form.get('taxonName').disable(opts);
     }
 
-    if (!this.enableIndividualCount) {
+    if (this.showIndividualCount && !this.enableIndividualCount) {
       this.form.get('individualCount').disable(opts);
     }
 
@@ -728,7 +727,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     }
   }
 
-  protected getValue(): SubBatch {
+  getValue(): SubBatch {
     if (!this.form.dirty) return this.data;
 
     const json = this.form.value;

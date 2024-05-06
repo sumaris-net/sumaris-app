@@ -6,7 +6,6 @@ import {
   EntityAsObjectOptions,
   EntityClass,
   FilterFn,
-  isNil,
   isNotEmptyArray,
   isNotNil,
   Person,
@@ -27,6 +26,8 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
       location: source.location,
       locations: source.locations,
       vesselIds: source.vesselIds,
+      recorderPerson: source.recorderPerson,
+      observers: source.observers,
     });
   }
   static fromLandingFilter(source: Partial<LandingFilter>): ObservedLocationFilter {
@@ -37,7 +38,8 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
       endDate: source.endDate,
       location: source.location,
       locations: source.locations,
-      vesselIds: isNil(source.vesselId) ? [source.vesselId] : source.vesselIds,
+      vesselIds: isNotNil(source.vesselId) ? [source.vesselId] : source.vesselIds,
+      observers: source.observers,
     });
   }
 

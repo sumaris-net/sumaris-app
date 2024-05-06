@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotNil, Person } from '@sumaris-net/ngx-components';
+import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';
 import { Trip } from '../trip/trip.model';
@@ -19,6 +19,8 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { RxState } from '@rx-angular/state';
+import { UntypedFormGroup, Validators } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, filter, tap } from 'rxjs';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -54,8 +56,12 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
 
+  unknownVesselId = VesselIds.UNKNOWN;
+
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
+  @Output() openSale = new EventEmitter<TableElement<Landing>>();
+  @Output() newSale = new EventEmitter<TableElement<Landing>>();
 
   @Input() canDelete = true;
   @Input() showFabButton = false;
@@ -65,7 +71,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     if (value !== this._detailEditor) {
       this._detailEditor = value;
       // TODO: should be set with another setter, configure from a ProgramProperties option
-      this.inlineEdition = value === 'trip';
+      this.inlineEdition = value === 'trip' || value === 'sale';
     }
   }
 
@@ -75,6 +81,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   get isTripDetailEditor(): boolean {
     return this._detailEditor === 'trip';
+  }
+
+  get isSaleDetailEditor(): boolean {
+    return this._detailEditor === 'sale';
   }
 
   @Input()
@@ -229,12 +239,62 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       },
       mobile: this.mobile,
     });
+
+    this.registerSubscription(
+      this.pmfms$
+        .pipe(
+          filter(isNotEmptyArray),
+          distinctUntilChanged(),
+          tap((pmfms) => this.onPmfmsLoaded(pmfms))
+        )
+        .pipe(debounceTime(250))
+        .subscribe()
+    );
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
     this.openTrip.unsubscribe();
     this.newTrip.unsubscribe();
+    this.openSale.unsubscribe();
+  }
+
+  // Change visibility to public
+  setError(error: string, opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean }) {
+    super.setError(error, opts);
+
+    // TODO: Use showOnlyInvalidRows to filter and invalidate rows
+  }
+
+  // Change visibility to public
+  resetError(opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean }) {
+    this.setError(undefined, opts);
+  }
+
+  protected onPmfmsLoaded(pmfms: IPmfm[]) {
+    if (this.inlineEdition) {
+      const pmfmIds = pmfms.map((p) => p.id).filter(isNotNil);
+      // Listening on column 'IS_OBSERVED' value changes, to enable/disable column 'NON_OBSERVATION_REASON''
+      const hasIsObservedAndReasonPmfms = pmfmIds.includes(PmfmIds.IS_OBSERVED) && pmfmIds.includes(PmfmIds.NON_OBSERVATION_REASON);
+      if (hasIsObservedAndReasonPmfms) {
+        this.registerSubscription(
+          this.registerCellValueChanges('isObserved', `measurementValues.${PmfmIds.IS_OBSERVED}`, true).subscribe((isObservedValue) => {
+            if (!this.editedRow) return; // Should never occur
+            const row = this.editedRow;
+            const controls = (row.validator.get('measurementValues') as UntypedFormGroup).controls;
+            if (!isObservedValue) {
+              if (row.validator.enabled) controls[PmfmIds.NON_OBSERVATION_REASON].enable();
+              controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(Validators.required);
+              controls[PmfmIds.NON_OBSERVATION_REASON].updateValueAndValidity();
+            } else {
+              controls[PmfmIds.NON_OBSERVATION_REASON].disable();
+              controls[PmfmIds.NON_OBSERVATION_REASON].setValue(null);
+              controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(null);
+            }
+          })
+        );
+      }
+    }
   }
 
   mapPmfms(pmfms: IPmfm[]): IPmfm[] {
@@ -309,6 +369,23 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     } else {
       // New trip
       this.newTrip.emit(row);
+    }
+  }
+
+  confirmAndEditSale(event?: MouseEvent, row?: TableElement<Landing>): boolean {
+    if (event) event.stopPropagation();
+
+    if (!this.confirmEditCreate(event, row)) {
+      return false;
+    }
+
+    const saleIds = row.currentData.saleIds;
+    if (isNotNil(saleIds) && saleIds.length === 1) {
+      // Edit sale
+      this.openSale.emit(row);
+    } else {
+      // New sale
+      this.newSale.emit(row);
     }
   }
 

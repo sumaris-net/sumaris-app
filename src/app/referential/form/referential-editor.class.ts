@@ -108,13 +108,7 @@ export abstract class AppReferentialEditor<
     }
   }
 
-  /* -- protected methods -- */
-
-  protected registerFieldDefinition(opts: FormFieldDefinition) {
-    this.fieldDefinitions[opts.key] = opts;
-  }
-
-  protected setValue(data: T) {
+  setValue(data: T) {
     if (!data) return; // Skip
 
     const json = data.asObject();
@@ -131,7 +125,7 @@ export abstract class AppReferentialEditor<
     this.markAsPristine();
   }
 
-  protected async getValue(): Promise<T> {
+  async getValue(): Promise<T> {
     const data = await super.getValue();
 
     // Re add label, because missing when field disable
@@ -146,6 +140,12 @@ export abstract class AppReferentialEditor<
     }
 
     return data;
+  }
+
+  /* -- protected methods -- */
+
+  protected registerFieldDefinition(opts: FormFieldDefinition) {
+    this.fieldDefinitions[opts.key] = opts;
   }
 
   protected computeTitle(data: T): Promise<string> {

@@ -34,6 +34,10 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
     return (!o1 && !o2) || (o1 && o1.equals(o2));
   }
 
+  static isNotEmpty(o: GearUseFeatures) {
+    return !GearUseFeatures.isEmpty(o);
+  }
+
   static isEmpty(o: GearUseFeatures) {
     return (
       !o ||
@@ -93,6 +97,8 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
     this.rankOrder = source.rankOrder;
     this.dataOrigins = source.dataOrigins?.map(DataOrigin.fromObject) || undefined;
     this.measurementValues = { ...source.measurementValues }; // Copy values
+    this.fishingAreas = source.fishingAreas?.map(FishingArea.fromObject) || undefined;
+    this.dataOrigins = source.dataOrigins?.map(DataOrigin.fromObject) || undefined;
   }
 
   equals(other: GearUseFeatures, opts = { withMeasurementValues: false }): boolean {

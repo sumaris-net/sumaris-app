@@ -191,7 +191,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
   /* -- protected functions -- */
 
   protected registerForms() {
-    this.addChildForms([
+    this.addForms([
       this.referentialForm,
       this.pmfmsTable,
       this.acquisitionLevelList,

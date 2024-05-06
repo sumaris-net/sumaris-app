@@ -38,9 +38,16 @@ import { ContextService } from '@app/shared/context.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { TranslateService } from '@ngx-translate/core';
 import { PositionUtils } from '@app/data/position/position.utils';
+import { Program } from '@app/referential/services/model/program.model';
+import { Strategy } from '@app/referential/services/model/strategy.model';
 
 export interface BatchContext extends DataContext {
   parentGroup?: BatchGroup;
+}
+// to discuss with Benoit for naming and the implementation
+export interface BacthTreeContext {
+  program: Program;
+  strategy: Strategy;
 }
 export interface SubBatchValidatorValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;

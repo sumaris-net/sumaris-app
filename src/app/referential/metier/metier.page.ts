@@ -59,11 +59,7 @@ export class MetierPage extends AppReferentialEditor<Metier, MetierService> {
   /* -- protected Metiers -- */
 
   protected registerForms() {
-    this.addChildForms([this.referentialForm]);
-  }
-
-  protected setValue(data: Metier) {
-    super.setValue(data);
+    this.addForms([this.referentialForm]);
   }
 
   protected async onEntitySaved(data: Referential): Promise<void> {}

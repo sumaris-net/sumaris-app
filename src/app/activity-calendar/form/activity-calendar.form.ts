@@ -180,7 +180,7 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     }
   }
 
-  protected getValue(): ActivityCalendar {
+  getValue(): ActivityCalendar {
     const data = super.getValue();
 
     // Restore disabled properties

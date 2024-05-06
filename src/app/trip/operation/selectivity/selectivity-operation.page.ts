@@ -39,7 +39,7 @@ export class SelectivityOperationPage extends OperationPage {
 
   protected registerForms() {
     // Register sub forms & table
-    this.addChildForms([this.opeForm, this.measurementsForm, this.batchTree]);
+    this.addForms([this.opeForm, this.measurementsForm, this.batchTree]);
   }
 
   onNewFabButtonClick(event: Event) {

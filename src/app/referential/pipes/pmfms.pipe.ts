@@ -81,6 +81,7 @@ interface PmfmValueOptions {
   hideIfDefaultValue?: boolean;
   showNameForPmfmIds?: number[];
   applyDisplayConversion?: boolean;
+  showYesOrNo?: boolean;
 }
 
 @Pipe({
@@ -90,7 +91,8 @@ interface PmfmValueOptions {
 export class PmfmValuePipe implements PipeTransform {
   constructor(
     private dateFormat: DateFormatService,
-    private settings: LocalSettingsService
+    private settings: LocalSettingsService,
+    protected translate: TranslateService
   ) {}
 
   transform(value: any, opts: PmfmValueOptions & { separator?: string }): any {
@@ -119,6 +121,15 @@ export class PmfmValuePipe implements PipeTransform {
       case 'double':
         if (opts.applyDisplayConversion && isNotNil(value) && opts.pmfm.displayConversion) {
           value = opts.pmfm.displayConversion.conversionCoefficient * value;
+        }
+        return PmfmValueUtils.valueToString(value, opts);
+      case 'boolean':
+        if (opts.showYesOrNo) {
+          return value === 'true' || value === true || value === 1
+            ? this.translate.instant('COMMON.YES')
+            : value === 'false' || value === false || value === 0
+              ? this.translate.instant('COMMON.NO')
+              : null;
         }
         return PmfmValueUtils.valueToString(value, opts);
       default:

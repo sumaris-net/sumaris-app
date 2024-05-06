@@ -29,7 +29,6 @@ import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/mode
 import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
 import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
-import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter, tap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
@@ -58,7 +57,7 @@ export const TripsPageSettingsEnum = {
   animations: [slideUpDownAnimation],
 })
 export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnInit, OnDestroy {
-  $title = new BehaviorSubject<string>('');
+  titleSubject = new BehaviorSubject<string>('');
   statusList = DataQualityStatusList;
   statusById = DataQualityStatusEnum;
   qualityFlags: ReferentialRef[];
@@ -132,7 +131,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     this.featureName = TripsPageSettingsEnum.FEATURE_ID;
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -187,7 +186,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
             console.info('[trips] Init from config', config);
 
             const title = config && config.getProperty(TRIP_CONFIG_OPTIONS.TRIP_NAME);
-            this.$title.next(title);
+            this.titleSubject.next(title);
 
             this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
             this.setShowColumn('quality', this.showQuality, { emitEvent: false });

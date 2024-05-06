@@ -40,6 +40,11 @@
     .mat-column-pmfm {
       min-width: 120px;
       max-width: 250px;
+
+      // PMFM specific
+      &.mat-column-IS_OBSERVED {
+        min-width: 50px;
+      }
     }
 
     .visible-hover {
