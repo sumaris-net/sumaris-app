@@ -9,6 +9,7 @@ import {
   AccountService,
   BaseReferential,
   changeCaseToUnderscore,
+  collectByProperty,
   EntityUtils,
   firstNotNilPromise,
   FormFieldDefinition,
@@ -54,6 +55,8 @@ import { AppBaseTable } from '@app/shared/table/base.table';
 import { ReferentialFileService, ReferentialImportPolicy } from '@app/referential/table/referential-file.service';
 import { FullReferential } from '@app/referential/services/model/referential.model';
 import { ErrorCodes } from '@app/referential/services/errors';
+import { Program } from '@app/referential/services/model/program.model';
+import { ProgramService } from '@app/referential/services/program.service';
 
 export const BASE_REFERENTIAL_COLUMNS = ['label', 'name', 'parent', 'level', 'status', 'creationDate', 'updateDate', 'comments'];
 export const IGNORED_ENTITY_COLUMNS = ['__typename', 'entityName', 'id', 'statusId', 'levelId', 'properties', 'parentId'];
@@ -65,6 +68,18 @@ export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
 export const DATA_TYPE = new InjectionToken<new () => BaseReferential<any, any>>('dataType');
 export const FILTER_TYPE = new InjectionToken<new () => BaseReferentialFilter<any, any>>('filterType');
 export const DATA_SERVICE = new InjectionToken<new () => IEntityService<any>>('dataService');
+
+export interface IReferentialType {
+  id: string;
+  label: string;
+  level?: string;
+  levelLabel?: string;
+  disabled: boolean;
+}
+
+export interface IReferentialMenuItem extends IReferentialType {
+  children?: IReferentialType[];
+}
 
 @Component({
   selector: 'app-referential-page',
@@ -86,8 +101,9 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
 
   private _entityName: string;
 
-  $selectedEntity = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }>(undefined);
-  $entities = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }[]>(undefined);
+  $selectedEntity = new BehaviorSubject<IReferentialType>(undefined);
+  $allEntities = new BehaviorSubject<IReferentialType[]>(undefined);
+  $menuItems = new BehaviorSubject<IReferentialMenuItem[]>(undefined);
   $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
   columnDefinitions: FormFieldDefinition[];
   i18nLevelName: string;
@@ -111,6 +127,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     Unit: FullReferential,
     Method,
     TaxonGroup: FullReferential,
+    Program: Program,
   };
   protected readonly dataServices: { [key: string]: any } = {
     Parameter: ParameterService,
@@ -118,14 +135,21 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     TaxonName: TaxonNameService,
     Unit: ReferentialService,
     TaxonGroup: ReferentialService,
+    Program: ProgramService,
   };
   protected readonly dataValidators: { [key: string]: any } = {
     Method: MethodValidatorService,
   };
   protected readonly entityNamesWithParent = ['TaxonGroup', 'TaxonName'];
 
-  // Pu sub entity class (not editable without a root entity)
-  protected readonly excludedEntityNames: string[] = ['QualitativeValue', 'RoundWeightConversion', 'WeightLengthConversion', 'ProgramPrivilege'];
+  // Hidden entities (not editable without a root entity)
+  protected readonly hiddenEntityNames: string[] = [
+    'QualitativeValue',
+    'RoundWeightConversion',
+    'WeightLengthConversion',
+    'ProgramPrivilege',
+    'DenormalizedSamplingStrata',
+  ];
 
   protected readonly statusList = StatusList;
   protected readonly statusById = StatusById;
@@ -264,18 +288,39 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
         .watchTypes()
         .pipe(
           map((types) =>
-            types
-              .filter((type) => !this.excludedEntityNames.includes(type.id))
-              .map((type) => ({
+            types.map((type) => {
+              let label = this.getI18nEntityName(type.id);
+              const divider = label.indexOf(' > ') !== -1 ? label.split(' > ')[0] : 'ZZZ';
+              label = label.replace(divider, '').replace(/^[ >]+/, '');
+              return <IReferentialType & { divider?: string }>{
                 id: type.id,
-                label: this.getI18nEntityName(type.id),
+                divider,
+                label,
                 level: type.level,
                 levelLabel: this.getI18nEntityName(type.level),
-              }))
-          ),
-          map((types) => EntityUtils.sort(types, 'label'))
+                disabled: this.hiddenEntityNames.includes(type.id),
+              };
+            })
+          )
         )
-        .subscribe((types) => this.$entities.next(types))
+        .subscribe((types) => {
+          this.$allEntities.next(types);
+
+          const menuEntities = types.filter((type) => !this.hiddenEntityNames.includes(type.id));
+          const menuDividers = collectByProperty(menuEntities, 'divider');
+          const menuItems = Object.keys(menuDividers)
+            .map((divider) => {
+              const dividerLabel = divider === 'ZZZ' ? this.translate.instant('REFERENTIAL.ENTITY_DIVIDER.OTHER') : divider;
+              const children = EntityUtils.sort(menuDividers[divider], 'label');
+              return <IReferentialMenuItem>{
+                id: divider,
+                label: dividerLabel,
+                children: EntityUtils.sort(children, 'label'),
+              };
+            })
+            .sort(EntityUtils.sortComparator('id', 'asc'));
+          this.$menuItems.next(menuItems);
+        })
     );
 
     this.registerSubscription(
@@ -367,7 +412,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
 
     // Wait end of entities loading
     if (this.canSelectEntity) {
-      const entities = await firstNotNilPromise(this.$entities);
+      const entities = await firstNotNilPromise(this.$allEntities);
 
       const entity = entities.find((e) => e.id === entityName);
       if (!entity) {
@@ -776,7 +821,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
 
   protected isKnownEntityName(entityName: string): boolean {
     if (!entityName) return false;
-    return !!(this.$entities.value || []).find((item) => item.id === entityName);
+    return (this.$allEntities.value || []).some((item) => item.id === entityName) || this.hiddenEntityNames.includes(entityName);
   }
 
   protected async openNewRowDetail(): Promise<boolean> {

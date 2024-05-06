@@ -142,8 +142,10 @@
     },
     "DEBUG": {
       "TITLE": "Debug",
+      "BTN_DEBUG_DOTS": "Debug...",
+      "BTN_ENABLE_DEBUG": "Enable debug?",
       "BTN_COPY_LOCALLY": "Copy locally",
-      "BTN_AUTO_FILL": "Auto fill data"
+      "BTN_AUTO_FILL": "Auto fill?"
     },
     "SHARE": {
       "BTN_SHARE": "Share",
@@ -215,9 +217,6 @@
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HELP_URL": "App > User manual (URL)",
       "FORUM_URL": "App > Forum address (URL)",
-      "ACCOUNT": {
-        "READONLY": "Account > Readonly profile? (readonly option)"
-      },
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -246,22 +245,24 @@
         "ENABLE_NOTIFICATION_ICONS": "Menu > Display notifications icons"
       },
       "VESSEL": {
-        "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel",
-        "DEFAULT_FILTER_COUNTRY_ID": "Vessels: Default country (id)",
+        "DEFAULT_NEW_VESSEL_STATUS": "Vessel > Default status for new vessel",
+        "DEFAULT_FILTER_COUNTRY_ID": "Data entry > Vessel: Default country (filter)",
+        "DEFAULT_FILTER_TYPE_ID": "Data entry > Vessel: Vessel type (filter)",
         "BASE_PORT_LOCATION_VISIBLE": "Vessels: Show base port?",
         "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Vessels > Base port: Nb char. for search",
-        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Vessels: Nb char. for search",
-        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Vessels: Registration: search as prefix?",
-        "NAME_REQUIRED": "Vessels: Name required?",
-        "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Vessels: Use natural order on registration codes?"
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Data entry > Vessel: Nb char. for search",
+        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Data entry > Vessel: search on registration code as prefix?",
+        "NAME_REQUIRED": "Vessel: Name required?",
+        "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Data entry > Vessel: Use natural order on registration codes?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Referential > Program for vessels",
-        "ACQUISITION_LEVEL_TRIP_LABEL": "Referential > Acquitition level > Trip",
-        "ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL": "Referential > Acquitition level > Physical gear",
-        "ACQUISITION_LEVEL_OPERATION_LABEL": "Referential > Acquitition level > Operation",
+        "ACQUISITION_LEVEL_TRIP_LABEL": "Referential > Acquisition level > Trip",
+        "ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL": "Referential > Acquisition level > Physical gear",
+        "ACQUISITION_LEVEL_OPERATION_LABEL": "Referential > Acquisition level > Operation",
         "LOCATION_LEVEL_COUNTRY_ID": "Referential > Location level de lieu > Country",
         "LOCATION_LEVEL_PORT_ID": "Referential > Location level > Port",
+        "LOCATION_LEVEL_MARITIME_DISTRICT_ID": "Referential > Location level > Maritime district",
         "LOCATION_LEVEL_AUCTION_ID": "Referential > Location level > Sale auction",
         "LOCATION_LEVEL_RECTANGLE_ICES_ID": "Referential > Location level > ICES Statistical rectangle",
         "LOCATION_LEVEL_AREA_FAO_ID": "Referential > Location level > FAO Area",
@@ -351,7 +352,7 @@
         "TOKEN": "Crypto",
         "BASIC_AND_TOKEN": "Basic and crypto"
       },
-      "ENABLE_AUTH_API_TOKENS": "API > Enable auth tokens?",
+      "ENABLE_AUTH_API_TOKENS": "Account > Enable authentication tokens (GraphQL API)?",
       "DATA_QUALITY_PROCESS_ENABLE": "Forms > Enable quality process?",
       "DATA_SHOW_RECORDER": "Forms > Show recorder person?",
       "DATA_SHOW_OBSERVERS": "Forms > Show observers?",
@@ -364,7 +365,7 @@
         "FILTER_PERIOD": "Landing > Show period filter?"
       },
       "ACCOUNT": {
-        "ENABLE_AUTH_TOKENS": "Enable auth tokens"
+        "READONLY": "Account > Readonly profile? (readonly option)"
       }
     },
     "CACHE": {
@@ -387,6 +388,7 @@
     "DATA_ACCESS_DIVIDER": "Data access",
     "OBSERVATIONS": "Observations",
     "AUCTION_OCCASIONS": "Occasions in auction",
+    "ACTIVITY_CALENDAR": "Activity calendar",
     "OCCASIONS": "Occasions",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Referential",
@@ -530,6 +532,7 @@
     "NETWORK_DIVIDER": "Network settings",
     "PEER_URL": "Network node address",
     "BTN_CHANGE_PEER": "See available nodes",
+    "BTN_DARK_MODE": "Dark theme",
     "BTN_SHOW_MORE_HELP": "Show more parameters",
     "BTN_CLEAR_CACHE": "Clear data cache",
     "OFFLINE_MODE": "Force offline mode?",
@@ -604,9 +607,16 @@
       }
     }
   },
+  "DATA": {
+    "BTN_WRITE_TO_RECORDER": "Write to the recorder",
+    "MESSAGE_BODY": "Hello,\n\nregarding [{{title}}]({{url}}),\n\n..."
+  },
   "TRIP": {
     "TITLE": "Fishing trip",
     "PROGRAM": "Data collection program",
+    "SAMPLING_SCHEME": "Sampling scheme:",
+    "SAMPLING_STRATA": "Sampling strata reference",
+    "SAMPLING_SCHEME_LABEL": "Sampling program",
     "VESSEL_SNAPSHOT": "Vessel",
     "BTN_ADD_VESSEL": "Add a vessel",
     "DEPARTURE": "Departure:",
@@ -857,6 +867,9 @@
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Accidental catches"
+        },
+        "OBSERVED_TRIP": {
+          "TAB_SAMPLES": "Accidental catches"
         }
       },
       "PARENT": {
@@ -1032,6 +1045,9 @@
           "ADD_MEASURE_DOTS": "Add a measure:",
           "EDIT_MEASURE_DOTS": "Edit a measure:",
           "BTN_MANUAL_ENTRY": "Manual entry"
+        },
+        "INDIVIDUAL_COUNT": {
+          "TITLE": "Specimen count"
         }
       },
       "TABLE": {
@@ -1078,6 +1094,11 @@
           "BATCH_MEASURED_WEIGHT": "Total weight (kg)",
           "BATCH_ESTIMATED_WEIGHT": "Total weight (kg)",
           "BATCH_CALCULATED_WEIGHT": "Total weight (kg)"
+        },
+        "OBSERVED_TRIP": {
+          "BATCH_MEASURED_WEIGHT": "Total weight (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Total weight (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Total weight (kg)"
         }
       },
       "ERROR": {
@@ -1106,6 +1127,9 @@
         },
         "ACCIDENTAL_CATCH": {
           "TITLE": "New accidental catch"
+        },
+        "OBSERVED_TRIP": {
+          "TITLE": "New accidental catch"
         }
       },
       "EDIT": {
@@ -1121,7 +1145,8 @@
         },
         "ACCIDENTAL_CATCH": {
           "TITLE": "Catch {{label}}",
-          "TAXON_GROUP_PLACEHOLDER": "Species (FAO)"
+          "TAXON_GROUP_PLACEHOLDER": "Species (FAO)",
+          "TAXON_NAME_PLACEHOLDER": "Scientific species"
         }
       },
       "TABLE": {
@@ -1168,7 +1193,10 @@
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Individual measures",
-          "TAXON_GROUP": "Species (FAO)",
+          "TAG_COUNT": "<b>{{tagCount}}</b> tagged individual"
+        },
+        "ONBOARD_OBSERVATION": {
+          "TAB_SAMPLES": "Individual measures",
           "TAG_COUNT": "<b>{{tagCount}}</b> tagged individual"
         },
         "SURVIVAL_TEST": {
@@ -1205,6 +1233,10 @@
           "ACCIDENTAL_CATCH": {
             "MEASURE_TIME": "Release hour",
             "TAG_ID": "Tag-ID"
+          },
+          "ONBOARD_OBSERVATION": {
+            "MEASURE_TIME": "Release hour",
+            "TAG_ID": "Tag-ID"
           }
         },
         "SAMPLING": {
@@ -1212,6 +1244,11 @@
           "DRESSING": "Dressing"
         },
         "SURVIVAL_TEST": {
+          "TAG_ID": "Tag-ID"
+        },
+        "ONBOARD_OBSERVATION": {
+          "MEASURE_TIME": "Release hour",
+          "IS_DEAD": "Is dead?",
           "TAG_ID": "Tag-ID"
         }
       },
@@ -1301,6 +1338,7 @@
     "CALCULATED_TOTAL": "Calculated total:"
   },
   "SALE": {
+    "TITLE_PREFIX": "<small>{{location}} - {{date}}</small>",
     "TITLE": "Sale",
     "SALE_FIELD": "Sale:",
     "DATE_TIME": "Date/Time",
@@ -1318,7 +1356,10 @@
       "TITLE": "New sale"
     },
     "EDIT": {
-      "TITLE": "{{location}} - Sale of {{dateTime}}"
+      "TITLE": "{{location}} - Sale of {{dateTime}}",
+      "PROGRAM": "Program",
+      "TAB_GENERAL": "Details",
+      "TAB_BATCHES": "Batches"
     },
     "TABLE": {
       "VESSEL": "Vessel",
@@ -1339,11 +1380,15 @@
       "MANAGER": "Manager"
     },
     "OPTIONS": {
-      "ENABLE": "Scientific cruise > Enable?"
+      "ENABLE": "Scientific cruise > Enable?",
+      "NAME": "Scientific cruise > Title (menu, etc.)"
     }
   },
   "OBSERVED_LOCATION": {
     "TITLE": "Occasion",
+    "SAMPLING_SCHEME": "Sampling scheme:",
+    "SAMPLING_STRATA": "Sampling strata reference",
+    "SAMPLING_SCHEME_LABEL": "Sampling program",
     "NEW": {
       "TITLE": "New occasion"
     },
@@ -1375,12 +1420,12 @@
       },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
-        "TAB_LANDINGS": "Sampling",
+        "TAB_LANDINGS": "Samplings",
         "TAB_GENERAL": "Occasion"
       },
-      "SALE_OBSERVATION": {
+      "OBSERVED_SALE": {
         "TITLE": "{{location}} - {{dateTime}}",
-        "TAB_LANDINGS": "Sampling",
+        "TAB_LANDINGS": "Samplings",
         "TAB_GENERAL": "Occasion"
       }
     },
@@ -1513,14 +1558,20 @@
       "QUALITY": "State",
       "TAXON_GROUP": "Commercial species (FAO)",
       "TAXON_NAME": "Scientific species",
+      "BTN_OPEN_TRIP": "Open the trip",
+      "BTN_OPEN_SALE": "Open the sale",
       "SAMPLING": {
-        "STRATEGY": "Sampling plan row",
+        "STRATEGY": "Sampling strata",
         "SAMPLES_COUNT": "Samples count",
         "TITLE": "Samplings"
       },
       "AUCTION_CONTROL": {
         "SAMPLES_COUNT": "Samples count",
         "TITLE": "Vessels controlled"
+      },
+      "OBSERVED_SALE": {
+        "TITLE": "Samplings",
+        "SAMPLES_COUNT": "Samples count"
       }
     },
     "PMFM": {
@@ -1615,8 +1666,7 @@
     },
     "EDIT": {
       "TITLE": "Vessel {{vessel}}",
-      "OTHER_TAXON_GROUP": "Commercial species (FAO)",
-      "BTN_REPORT": "Generate report"
+      "OTHER_TAXON_GROUP": "Commercial species (FAO)"
     },
     "SAMPLE": {
       "NEW": {
@@ -1665,6 +1715,7 @@
   },
   "QUALITY": {
     "BTN_CONTROL": "Control input",
+    "BTN_CONTROL_WITH_SHORTCUT": "C<u>o</u>Control input",
     "BTN_TERMINATE": "Complete input",
     "BTN_VALIDATE": "Validate",
     "BTN_UNVALIDATE": "Unvalidate",
@@ -1957,11 +2008,13 @@
     },
     "LIST": {
       "TITLE": "Referential",
+      "BTN_IMPORT_OPTIONS_DOTS": "Import options...",
       "FILTER": {
         "ENTITY": "Kind",
         "SEARCH_TEXT": "Search: code, name"
       },
       "IMPORT_POLICY": {
+        "TITLE": "Import options",
         "INSERT-ONLY": "Inserts only",
         "UPDATE-ONLY": "Updates only",
         "INSERT-UPDATE": "Insertions or updates"
@@ -1980,48 +2033,63 @@
       "DELETED": "Deletion in progress"
     },
     "ENTITY": {
+      "CORPUS": "Regulation > Corpus",
+      "CORPUS_TYPE": "Regulation > Corpus type",
       "DEPARTMENT": "Organizations",
+      "DISTANCE_TO_COAST_GRADIENT": "Location/Area > Distance to coast gradients",
+      "DEPTH_GRADIENT": "Location/Area > Depth gradients",
       "EXTRACTION_PRODUCT": "Extraction > Product",
       "EXTRACTION_TABLE": "Extraction > Product tables",
+      "FISHERY": "Regulation > Fisheries",
       "SALE_TYPE": "Sale type",
-      "LOCATION": "Location",
-      "LOCATION_LEVEL": "Location levels",
-      "GEAR": "Gears",
-      "GEAR_LEVEL": "Gear levels",
-      "PARAMETER": "Parameters",
-      "PARAMETER_GROUP": "Parameter groups",
+      "LOCATION": "Location/Area > Location",
+      "LOCATION_LEVEL": "Location/Area >Location levels",
+      "LOCATION_CLASSIFICATION": "Location/Area > Location classifications",
+      "GEAR": "Gear/Metier > Gears",
+      "GEAR_LEVEL": "Gear/Metier > Gear levels",
+      "GEAR_CLASSIFICATION": "Gear/Metier > Gear classifications",
+      "GROUPING": "Grouping > Grouping items",
+      "GROUPING_LEVEL": "Grouping > Grouping levels",
+      "GROUPING_CLASSIFICATION": "Grouping > Grouping classifications",
+      "PARAMETER": "PMFM > Parameters",
+      "PARAMETER_GROUP": "PMFM > Parameter groups",
       "USER_PROFILE": "User profiles",
       "VESSEL_TYPE": "Vessel types",
       "PMFM": "Collected parameters",
-      "DUPLICATE_STRATEGY": "Strategy to duplicate",
-      "MATRIX": "Matrices",
-      "METHOD": "Method",
-      "FRACTION": "Fractions of the matrix",
+      "MATRIX": "PMFM > Matrices",
+      "METHOD": "PMFM > Method",
+      "FRACTION": "PMFM > Fractions of the matrix",
       "ORIGIN_ITEM_TYPE": "Types of origin",
       "OBJECT_TYPE": "Object types",
-      "QUALITATIVE_VALUE": "Qualitative values",
+      "PROCESSING_TYPE": "Processing types",
+      "PROCESSING_FREQUENCY": "Processing frequencies",
+      "PROCESSING_STATUS": "Processing status",
+      "QUALITATIVE_VALUE": "PMFM > Qualitative values",
       "QUALITY_FLAG": "Quality flags",
-      "TAXON_GROUP_TYPE": "Species group types",
-      "TAXON_GROUP": "Commercial and target species",
-      "TAXON_NAME": "Scientific species",
-      "TAXONOMIC_LEVEL": "Taxonomic levels",
-      "REFERENCE_TAXON": "Scientific species identifier",
-      "PROGRAM": "Data collection programmes",
-      "STRATEGY": "Collection strategies",
+      "TAXON_GROUP_TYPE": "Species > Species group types",
+      "TAXON_GROUP": "Species > Commercial and target species",
+      "TAXON_NAME": "Species > Scientific species",
+      "TAXONOMIC_LEVEL": "Species > Taxonomic levels",
+      "REFERENCE_TAXON": "Species > Scientific species identifier",
+      "PROGRAM": "Administration > Data collection programmes",
+      "STRATEGY": "Administration > Collection strategies",
       "ACQUISITION_LEVEL": "Acquisition levels",
       "TRANSCRIBING_ITEM": "Transcribing > Item",
       "TRANSCRIBING_ITEM_TYPE": "Transcribing > Types",
       "TRANSCRIBING_SYSTEM": "Transcribing > Systems",
-      "UNIT": "Unit",
-      "METIER": "Metiers",
-      "SOFTWARE": "Softwares",
+      "UNIT": "PMFM > Unit",
+      "METIER": "Gear/Metier > Metiers",
+      "SOFTWARE": "System > Softwares",
       "STATUS": "Status",
-      "SYSTEM_VERSION": "Database versions"
+      "SAMPLING_STRATA": "Administration > Sampling strata",
+      "SAMPLING_SCHEME": "Administration > Sampling scheme",
+      "SYSTEM_VERSION": "System > Database versions"
     },
     "OPTIONS": {
       "VESSELS_ENABLE": "Referential > Vessels: Enable?",
       "VESSELS_IMPORT_ENABLE": "Referential > Navires: Enable vessel file import?",
-      "VESSELS_REPLACEMENT_ENABLE": "Referential > Vessels > Replacement: Enable?"
+      "VESSELS_REPLACEMENT_ENABLE": "Referential > Vessels > Replacement: Enable?",
+      "VESSEL_REGISTRATION_LOCATION_LEVEL_IDS": "Referential > Vessels: Registration location level(s)"
     },
     "INFO": {
       "IMPORT_ENTITIES_SUCCEED": "Importation finished <b>successfully</b>!<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour.",
@@ -2074,6 +2142,9 @@
       "LOCATION": "Location",
       "PRIVILEGE": "Privilege"
     },
+    "SAMPLING": {
+      "TAB_STRATEGIES": "Sampling stratum"
+    },
     "OPTIONS": {
       "EXTRACTION_FORMATS": "Extraction > Available formats:",
       "I18N_SUFFIX": "Thematic dictionary",
@@ -2083,9 +2154,12 @@
       "I18N_SUFFIX_ACCIDENTAL_CATCH": "Accidental catches",
       "I18N_SUFFIX_AUCTION_CONTROL": "Auction control",
       "I18N_SUFFIX_TRAWL_SELECTIVITY": "Trawl selectivity",
+      "I18N_SUFFIX_OBSERVED_TRIP": "Observation of trips on board (ObsMer)",
+      "I18N_SUFFIX_OBSERVED_SALE": "Observation of sales (ObsVentes)",
       "TRIP_LOCATION_LEVEL_IDS": "Trip: Location level(s)",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Trip > Location: Min nb char. to search",
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
+      "TRIP_SAMPLING_STRATA_ENABLE": "Trip: Enter sampling strata?",
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
       "TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Trip> Offline > Location level(x) to import (ids)",
       "TRIP_METIERS_ENABLE": "Trip: Enter metiers?",
@@ -2093,6 +2167,7 @@
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip: Are other features optional, when on field?",
       "TRIP_HELP_URL": "Trip: Online help (URL)",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Trip > Gears: Optional pmfms to show (ids)",
+      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY": "Trip > Gears: Hide empty pmfm columns?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Trip > Gear: Allow sub-gears?",
       "TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT": "Trip > Gear: Minimum number of sub-gears?",
@@ -2110,15 +2185,17 @@
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Catch > Species batch: Compute sampling nb indiv?",
       "TRIP_BATCH_ENABLE": "Catch > Species batch?",
       "TRIP_BATCH_SAMPLING_RATIO_FORMAT": "Catch > Species batch: Fraction format",
-      "TRIP_BATCH_MEASURE_ENABLE": "Catch > Species batch: Enable individual measures?",
+      "TRIP_BATCH_EXHAUSTIVE_INVENTORY_ENABLE": "Catch > Species batch: Exhaustive inventory?",
       "TRIP_BATCH_WEIGHT_ENABLE": "Catch > Species batch: Enter weight?",
+      "TRIP_BATCH_MEASURE_ENABLE": "Catch > Species batch: Enable individual measures?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Catch > Individual measure: Sort items on save?",
       "TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE": "Catch > Individual measure: Bluetooth icon?",
-      "TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE": "Catch > Individual measure: Compute weight by WLR?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ONLY_ENABLE": "Catch > Individual measure: Enable choice between measure and count ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Catch > Individual measure: Enter nb indiv?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Catch > Individual measure: Scientific species?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Catch > Individual measure: Commercial species?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Catch > Individual measure: Weight unit",
+      "TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE": "Catch > Individual measure: Compute weight by WLR?",
       "TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID": "Catch > Country (ID) for alive weight equivalences",
       "TRIP_SAMPLE_ENABLE": "Sample : Enable?",
       "TRIP_SAMPLE_DATE_TIME_ENABLE": "Sample: Sample date/time?",
@@ -2134,14 +2211,17 @@
       "TRIP_REPORT_ENABLE": "Trip > Enable report edition?",
       "TRIP_REPORT_TYPE": "Trip > Report type",
       "TRIP_REPORT_TYPE_LEGACY": "Default",
-      "TRIP_REPORT_TYPE_FORM": "Form",
-      "TRIP_REPORT_FORM_SUBTITLE": "Repport subtitle",
-      "TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL": "URL for the left header logo",
-      "TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "URL for the left header logo",
-      "TRIP_REPORT_TYPE_SELECTIVITY": "Trawl selectivity",
+      "TRIP_REPORT_TYPE_TRAWL_SELECTIVITY": "Trawl selectivity",
+      "TRIP_REPORT_TYPE_FORM": "Form with data",
+      "TRIP_REPORT_TYPE_FORM_BLANK": "Empty form",
+      "TRIP_REPORT_FORM_SUBTITLE": "Trip > Form report subtitle",
+      "TRIP_REPORT_FORM_FOOTER": "Trip > Form report footer",
+      "TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Trip > Form report: URL for the left header logo",
+      "TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Trip > Form report: URL for the right header logo",
       "TRIP_OPERATION_EDITOR": "Trip > Operation: Editor",
       "TRIP_OPERATION_EDITOR_LEGACY": "Default",
-      "TRIP_OPERATION_EDITOR_SELECTIVITY": "Trawl selectivity",
+      "TRIP_OPERATION_EDITOR_TRAWL_SELECTIVITY": "Trawl selectivity",
+      "TRIP_OPERATION_EDITOR_ADVANCED": "Advanced",
       "TRIP_OPERATION_METIER_ENABLE": "Trip > Operation: Metier?",
       "TRIP_OPERATION_METIER_FILTER": "Trip > Operation: Filter on already used metiers?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip > Operation: Are other features optional, when on field?",
@@ -2183,6 +2263,7 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Occasion > Weekly activity calendar > First day of the week",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Occasion > Weekly activity calendar > Number of days in the week",
       "OBSERVED_LOCATION_REPORT_ENABLE": "Occasion > Enable report edition?",
+      "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Occasion > Offline > Location level(s) to import",
       "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Occasion > Show strategy card?",
       "LANDING_EDITOR": "Occasion > Landing: editor",
       "LANDING_EDITOR_LANDING": "Landing",
@@ -2215,7 +2296,14 @@
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons (mobile)",
       "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Qualitative values > Max values count to use buttons (mobile)",
       "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?",
-      "DATA_OBSERVERS_CAN_WRITE": "Data entry > Authorize the observer of data to modify it?"
+      "DATA_OBSERVERS_CAN_WRITE": "Data entry > Authorize the observer of data to modify it?",
+      "DATA_STRATEGY_RESOLUTION": "Data entry > Collection strategy resolution",
+      "DATA_STRATEGY_RESOLUTION_ENUM": {
+        "LAST": "Most recent",
+        "USER_SELECT": "User selection",
+        "SPATIO_TEMPORAL": "Spatio-temporal",
+        "NONE": "None"
+      }
     },
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Acquisition levels",
@@ -2224,12 +2312,14 @@
       "GEARS": "Gears",
       "TAXON_GROUPS": "Commercial species",
       "TAXON_NAMES": "Target species",
+      "PMFMS": "Collected PMFM",
       "SCIENTIFIC_TAXON_NAMES": "Scientific species",
+      "BTN_OPEN_STRATEGY": "Open the strategy",
       "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFMs",
       "BTN_REMOVE_FROM_SELECTED_PMFM": "Remove from selected PMFMs",
       "DOWNLOAD_JSON_FILENAME": "{{programLabel}}-strategy-{{label}}.json",
       "DOWNLOAD_MANY_JSON_FILENAME": "{{programLabel}}-strategies.json",
-      "TAB_TRANSCRIBING": "Transcodages",
+      "TAB_TRANSCRIBING": "Transcribing",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplicate",
         "HELP": "Select a year for the new sampling plan: "
@@ -2315,6 +2405,9 @@
           "OTHER": "Other"
         }
       },
+      "TRANSCRIBING_MODAL": {
+        "TITLE": "Transcribing items to validate"
+      },
       "SUMMARY": {
         "TITLE": "Strategy",
         "LOCATIONS": "Applied locations:",
@@ -2353,6 +2446,9 @@
         "LOAD_STRATEGY_LABEL_ERROR": "Error while loading strategy's label",
         "LOAD_STRATEGY_SAMPLE_LABEL_ERROR": "Error while loading strategy's sample label",
         "LOAD_STRATEGY_REFERENCES_ERROR": "Error while loading strategy's analytic references",
+        "LOAD_STRATEGY_ERROR": "Error while loading the strategy",
+        "STRATEGY_DUPLICATED": "Duplicated strategy",
+        "STRATEGY_NOT_FOUND_OR_ALLOWED": "Strategy was not exists or not found.",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
         "PARAMETERS.WEIGHT_OR_LENGTH": "Weight or length is required",
         "PARAMETERS.MISSING_FRACTION": "At least one fraction is required",
@@ -2803,14 +2899,19 @@
           "ERRORS": "Error(s) : {{errors}}",
           "MIN_UPDATE_DATE": "min(update_date) : '{{minUpdateDate}}'",
           "VESSELS": "Vessel(s): {{vessels}}"
-        },
-        "TYPE_ENUM": {
-          "VESSEL_SNAPSHOTS_INDEXATION": "Vessel indexation into ElasticSearch"
-        },
-        "ERROR": {
-          "LOAD_TYPES_ERROR": "Error while loading job types",
-          "RUN_JOB_ERROR": "Error while running job"
         }
+      },
+      "TYPE_ENUM": {
+        "VESSEL_SNAPSHOTS_INDEXATION": "Vessel indexation into ElasticSearch",
+        "SIOP_VESSELS_IMPORTATION": "Vessel importation (SIOP format)",
+        "SYS_P_FILL_TAXON_GROUP_HIERARCHY": "Update taxon group hierarchy",
+        "SYS_P_FILL_LOCATION_HIERARCHY": "Update location hierarchy",
+        "SUMARIS_EXTRACTION": "Data extraction",
+        "DENORMALIZE_BATCH": "Batches denormalization"
+      },
+      "ERROR": {
+        "LOAD_TYPES_ERROR": "Error while loading job types",
+        "RUN_JOB_ERROR": "Error while running job"
       }
     },
     "MESSAGE": {
@@ -3054,8 +3155,6 @@
     "FIREFOX_NO_STORAGE": "The application cannot run with Firefox in 'private' mode or without keeping navigation history",
     "FEATURE_NOT_IMPLEMENTED": "Feature not implemented! <small><br/>Please contact your administrator.</small>",
     "GEOLOCATION_ERROR": "Error while getting GPS position. <small><br/>{{message}}</small>",
-    "STRATEGY_NOT_FOUND_OR_ALLOWED": "Strategy not allowed or not found",
-    "STRATEGY_LABEL_DUPLICATED": "Duplicated strategy label",
     "SHARE_AS_PUBLIC_FAIL": "Failed to share publicly"
   },
   "CONFIRM": {

@@ -38,10 +38,6 @@ export class StrategyModal extends AppForm<{ year: Moment }> implements OnInit {
     this.form.enable();
   }
 
-  protected async computeTitle(): Promise<string> {
-    return 'REFERENTIAL.ENTITY.DUPLICATE_STRATEGY';
-  }
-
   async cancel() {
     await this.viewCtrl.dismiss();
   }

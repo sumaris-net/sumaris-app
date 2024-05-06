@@ -48,16 +48,12 @@
     </ng-template>
 
     <!-- select entity -->
-    <ion-button
-      *ngIf="$selectedEntity | async as entity"
-      fill="solid"
-      color="accent"
-      [class.cdk-visually-hidden]="!canSelectEntity"
-      [matMenuTriggerFor]="selectEntityMenu"
-    >
-      <ion-label>{{ entity.label }}</ion-label>
-      <mat-icon slot="end">arrow_drop_down</mat-icon>
-    </ion-button>
+    @if ($selectedEntity | async; as entity) {
+      <ion-button fill="solid" color="accent" [class.cdk-visually-hidden]="!canSelectEntity" [matMenuTriggerFor]="selectEntityMenu">
+        <ion-label>{{ entity.label }}</ion-label>
+        <mat-icon slot="end">arrow_drop_down</mat-icon>
+      </ion-button>
+    }
 
     <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" *ngIf="canEdit" [matMenuTriggerFor]="toolbarOptionsMenu">
       <mat-icon>more_vert</mat-icon>
@@ -67,9 +63,27 @@
 
 <!-- change entity menu  -->
 <mat-menu #selectEntityMenu="matMenu" xPosition="after">
-  <button mat-menu-item *ngFor="let item of $entities | async" (click)="applyEntityName(item.id)">
-    <ion-label>{{ item.label }}</ion-label>
-  </button>
+  @for (item of $menuItems | async; track item.id) {
+    @if (item.children | isEmptyArray) {
+      <button mat-menu-item (click)="applyEntityName(item.id)">
+        <ion-label>{{ item.label }}</ion-label>
+      </button>
+    } @else {
+      @if (item.id === 'ZZZ') {
+        <mat-divider></mat-divider>
+      }
+      <button mat-menu-item [matMenuTriggerFor]="childMenu">
+        <ion-label>{{ item.label }}</ion-label>
+      </button>
+      <mat-menu #childMenu="matMenu" xPosition="after">
+        @for (child of item.children; track child.id) {
+          <button mat-menu-item (click)="applyEntityName(child.id)">
+            <ion-label>{{ child.label }}</ion-label>
+          </button>
+        }
+      </mat-menu>
+    }
+  }
 </mat-menu>
 
 <!-- Download menu -->
@@ -96,7 +110,7 @@
   </button>
 </mat-menu>
 
-<!-- Import menu -->
+<!-- Import options menu -->
 <mat-menu #importFileMenu="matMenu" xPosition="after">
   <!-- CSV import -->
   <button mat-menu-item (click)="importFromCsv($event)">
@@ -109,18 +123,27 @@
   </button>
 
   <!-- Import options button -->
+  <mat-divider></mat-divider>
   <button mat-menu-item [matMenuTriggerFor]="importPolicyMenu">
-    <ion-label translate>COMMON.BTN_OPTIONS</ion-label>
+    <ion-label translate>REFERENTIAL.LIST.BTN_IMPORT_OPTIONS_DOTS</ion-label>
   </button>
 </mat-menu>
 
 <!-- Import policy menu -->
-<mat-menu #importPolicyMenu="matMenu">
+<mat-menu #importPolicyMenu="matMenu" class="ion-no-padding">
   <ng-template matMenuContent>
-    <button *ngFor="let policy of importPolicies" mat-menu-item (click)="importPolicy = policy">
-      <mat-icon>{{ importPolicy === policy ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
-      <ion-label>{{ 'REFERENTIAL.LIST.IMPORT_POLICY.' + policy | uppercase | translate }}</ion-label>
-    </button>
+    <!-- header-->
+    <ion-row class="mat-menu-header ion-no-padding column" *ngIf="title">
+      <ion-col>
+        <ion-label translate>REFERENTIAL.LIST.IMPORT_POLICY.TITLE</ion-label>
+      </ion-col>
+    </ion-row>
+    @for (policy of importPolicies; track policy) {
+      <button mat-menu-item (click)="importPolicy = policy">
+        <mat-icon>{{ importPolicy === policy ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+        <ion-label>{{ 'REFERENTIAL.LIST.IMPORT_POLICY.' + policy | uppercase | translate }}</ion-label>
+      </button>
+    }
   </ng-template>
 </mat-menu>
 
