@@ -3,7 +3,7 @@
   <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
 </ng-container>
 
-<mat-toolbar *ngIf="showToolbar">
+<mat-toolbar *ngIf="showToolbar" [class.expanded]="filterExpansionPanel.expanded">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
     <button mat-icon-button *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
