@@ -97,6 +97,8 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
     this.rankOrder = source.rankOrder;
     this.dataOrigins = source.dataOrigins?.map(DataOrigin.fromObject) || undefined;
     this.measurementValues = { ...source.measurementValues }; // Copy values
+    this.fishingAreas = source.fishingAreas?.map(FishingArea.fromObject) || undefined;
+    this.dataOrigins = source.dataOrigins?.map(DataOrigin.fromObject) || undefined;
   }
 
   equals(other: GearUseFeatures, opts = { withMeasurementValues: false }): boolean {

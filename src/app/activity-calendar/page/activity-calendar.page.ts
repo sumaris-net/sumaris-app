@@ -50,6 +50,7 @@ import { Moment } from 'moment';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
+import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -499,11 +500,12 @@ export class ActivityCalendarPage
 
     const months = this.calendar.value;
     if (months) {
-      value.vesselUseFeatures = months.map((m) => VesselUseFeatures.fromObject(m.asObject()));
-      value.gearUseFeatures = months.flatMap((m) => m.gearUseFeatures);
+      value.vesselUseFeatures = months.map((m) => VesselUseFeatures.fromObject(m.asObject())).filter(VesselUseFeatures.isNotEmpty);
+      value.gearUseFeatures = months.flatMap((m) => m.gearUseFeatures).filter(GearUseFeatures.isNotEmpty);
     }
 
-    console.debug('TODO check value=', value);
+    // DEBUG
+    //console.debug('TODO check value=', value);
 
     return value;
   }

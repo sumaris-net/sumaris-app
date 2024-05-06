@@ -1027,84 +1027,29 @@ export class ActivityCalendarService
     // Update (id and updateDate)
     super.copyIdAndUpdateDate(source, target);
 
-    // Update sale
-    // if (source.sale && target.sale) {
-    //   EntityUtils.copyIdAndUpdateDate(source.sale, target.sale);
-    //   RootDataEntityUtils.copyControlAndValidationDate(source.sale, target.sale);
-    //
-    //   // For a landedActivityCalendar with operationGroups, copy directly sale's product, a reload must be done after service call
-    //   if (opts && opts.withLanding && source.sale.products) {
-    //     target.sale.products = source.sale.products;
-    //   }
-    // }
-    //
-    // // Update fishing areas
-    // if (target.fishingAreas && source.fishingAreas) {
-    //   target.fishingAreas.forEach(entity => {
-    //     const savedFishingArea = source.fishingAreas.find(f => entity.equals(f));
-    //     EntityUtils.copyIdAndUpdateDate(savedFishingArea, entity);
-    //   });
-    // }
-    //
-    // // Update gears (recursively)
-    // if (target.gears && source.gears) {
-    //   this.copyIdAndUpdateDateOnGears(source.gears, target.gears, source);
-    // }
-    //
-    // // Update measurements
-    // if (target.measurements && source.measurements) {
-    //   target.measurements.forEach(entity => {
-    //     const savedMeasurement = source.measurements.find(m => entity.equals(m));
-    //     EntityUtils.copyIdAndUpdateDate(savedMeasurement, entity);
-    //   });
-    // }
-    //
-    // // Update operation groups
-    // if (source.operationGroups && target.operationGroups && opts && opts.withOperationGroup) {
-    //   target.operationGroups.forEach(targetOperationGroup => {
-    //     const sourceOperationGroup = source.operationGroups.find(json => targetOperationGroup.equals(json));
-    //     EntityUtils.copyIdAndUpdateDate(sourceOperationGroup, targetOperationGroup);
-    //
-    //     targetOperationGroup.physicalGearId = sourceOperationGroup.physicalGearId;
-    //
-    //     // Operation group's measurements
-    //     if (sourceOperationGroup && sourceOperationGroup.measurements && targetOperationGroup.measurements) {
-    //       targetOperationGroup.measurements.forEach(targetMeasurement => {
-    //         const sourceMeasurement = sourceOperationGroup.measurements.find(m => targetMeasurement.equals(m));
-    //         EntityUtils.copyIdAndUpdateDate(sourceMeasurement, targetMeasurement);
-    //       });
-    //     }
-    //
-    //     // Operation group's products
-    //     if (sourceOperationGroup && sourceOperationGroup.products && targetOperationGroup.products) {
-    //       targetOperationGroup.products.forEach(targetProduct => {
-    //         const sourceProduct = sourceOperationGroup.products.find(json => targetProduct.equals(json));
-    //         EntityUtils.copyIdAndUpdateDate(sourceProduct, targetProduct);
-    //       });
-    //     }
-    //
-    //     // Operation group's samples (recursively)
-    //     if (sourceOperationGroup && sourceOperationGroup.samples && targetOperationGroup.samples) {
-    //       this.copyIdAndUpdateDateOnSamples(sourceOperationGroup.samples, targetOperationGroup.samples);
-    //     }
-    //
-    //     // Operation group's packets
-    //     if (sourceOperationGroup && sourceOperationGroup.packets && targetOperationGroup.packets) {
-    //       targetOperationGroup.packets.forEach(targetPacket => {
-    //         const sourcePacket = sourceOperationGroup.packets.find(json => targetPacket.equals(json));
-    //         EntityUtils.copyIdAndUpdateDate(sourcePacket, targetPacket);
-    //
-    //         // Packet's compositions
-    //         if (sourcePacket && sourcePacket.composition && targetPacket.composition) {
-    //           targetPacket.composition.forEach(targetComposition => {
-    //             const sourceComposition = sourcePacket.composition.find(json => targetComposition.equals(json));
-    //             EntityUtils.copyIdAndUpdateDate(sourceComposition, targetComposition);
-    //           });
-    //         }
-    //       });
-    //     }
-    //   });
-    // }
+    // Update VUF
+    if (source.vesselUseFeatures && target.vesselUseFeatures) {
+      target.vesselUseFeatures.forEach((targetVuf) => {
+        const sourceVuf = source.vesselUseFeatures.find((f) => targetVuf.equals(f));
+        EntityUtils.copyIdAndUpdateDate(sourceVuf, targetVuf);
+      });
+    }
+
+    // Update GUF
+    if (source.gearUseFeatures && target.gearUseFeatures) {
+      target.gearUseFeatures.forEach((targetGuf) => {
+        const sourceGuf = source.gearUseFeatures.find((f) => targetGuf.equals(f));
+        EntityUtils.copyIdAndUpdateDate(sourceGuf, targetGuf);
+
+        // Update fishing areas
+        if (targetGuf.fishingAreas && sourceGuf.fishingAreas) {
+          targetGuf.fishingAreas.forEach((entity) => {
+            const savedFishingArea = sourceGuf.fishingAreas.find((f) => entity.equals(f));
+            EntityUtils.copyIdAndUpdateDate(savedFishingArea, entity);
+          });
+        }
+      });
+    }
   }
 
   translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {

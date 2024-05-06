@@ -1,4 +1,14 @@
-import { EntityAsObjectOptions, EntityClass, fromDateISOString, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import {
+  DateUtils,
+  EntityAsObjectOptions,
+  EntityClass,
+  fromDateISOString,
+  isNil,
+  isNotNil,
+  ReferentialRef,
+  ReferentialUtils,
+  toDateISOString,
+} from '@sumaris-net/ngx-components';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { DataOrigin } from '@app/activity-calendar/model/data-origin.model';
@@ -15,6 +25,16 @@ export const VesselUseFeaturesIsActiveEnum = {
 @EntityClass({ typename: 'VesselUseFeaturesVO' })
 export class VesselUseFeatures extends DataEntity<VesselUseFeatures> implements IWithProgramEntity<VesselUseFeatures> {
   static fromObject: (source: any, options?: any) => VesselUseFeatures;
+  static equals(o1: VesselUseFeatures, o2: VesselUseFeatures) {
+    return (!o1 && !o2) || (o1 && o1.equals(o2));
+  }
+  static isNotEmpty(o: VesselUseFeatures): boolean {
+    return !VesselUseFeatures.isEmpty(o);
+  }
+
+  static isEmpty(o: VesselUseFeatures): boolean {
+    return !o || (isNil(o.isActive) && MeasurementValuesUtils.isEmpty(o.measurementValues));
+  }
 
   program: ReferentialRef;
   vesselId: number = null;
@@ -51,5 +71,23 @@ export class VesselUseFeatures extends DataEntity<VesselUseFeatures> implements 
     this.basePortLocation = source.basePortLocation && ReferentialRef.fromObject(source.basePortLocation);
     this.dataOrigins = source.dataOrigins?.map(DataOrigin.fromObject) || undefined;
     this.measurementValues = { ...source.measurementValues }; // Copy values
+  }
+
+  equals(other: VesselUseFeatures, opts = { withMeasurementValues: false }): boolean {
+    return (
+      (super.equals(other) && isNotNil(this.id)) ||
+      // Same isActive
+      (this.isActive === other.isActive &&
+        // Same date
+        DateUtils.equals(this.startDate, other.startDate) &&
+        DateUtils.equals(this.endDate, other.endDate) &&
+        // Same parent (activity calendar or daily activity calendar)
+        //((!this.activityCalendarId && !other.activityCalendarId) || this.activityCalendarId === other.activityCalendarId) &&
+        //((!this.dailyActivityCalendarId && !other.dailyActivityCalendarId) || this.dailyActivityCalendarId === other.dailyActivityCalendarId) &&
+        // Same program
+        ReferentialUtils.equals(this.program, other.program) &&
+        // Same measurementsValues
+        (opts.withMeasurementValues !== true || MeasurementValuesUtils.equals(this.measurementValues, other.measurementValues)))
+    );
   }
 }
