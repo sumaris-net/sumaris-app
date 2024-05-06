@@ -3322,6 +3322,7 @@
       "ECONOMIC_SURVEY": "Enquête économique ?",
       "YEAR_PLACEHOLDER": "Année",
       "METIER": "Métier",
+      "GEAR": "Engin",
       "METIER_RANKED": "Métier #{{rankOrder}}",
       "FISHING_AREA": "Zone de pêche",
       "FISHING_AREA_RANKED": "Zone de pêche #{{rankOrder}}",

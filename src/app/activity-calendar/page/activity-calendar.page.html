@@ -182,6 +182,12 @@
           {{ metierTab.textLabel }}
         </ion-label>
       </ng-template>
+      <app-gear-use-features-table
+        #tableMetier
+        [programLabel]="programLabel$ | async"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="(strategy$ | async)?.id"
+      ></app-gear-use-features-table>
     </mat-tab>
 
     <!-- TAB: Map -->
@@ -218,7 +224,6 @@
     </mat-tab>
   </mat-tab-group>
 </ion-content>
-
 <ion-footer hidden-xs hidden-sm hidden-mobile>
   <app-form-buttons-bar
     (onCancel)="reloadWithConfirmation()"

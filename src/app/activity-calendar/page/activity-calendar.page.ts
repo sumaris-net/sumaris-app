@@ -36,7 +36,6 @@ import { PredefinedColors } from '@ionic/core';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
-
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -51,6 +50,7 @@ import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
+import { GearUseFeaturesTable } from '../metier/gear-use-features.table';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -123,6 +123,7 @@ export class ActivityCalendarPage
 
   @ViewChild('baseForm', { static: true }) baseForm: ActivityCalendarForm;
   @ViewChild('calendar') calendar: CalendarComponent;
+  @ViewChild('tableMetier') tableMetier: GearUseFeaturesTable;
   @ViewChild('map') map: ActivityCalendarMapComponent;
   @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
 
@@ -343,7 +344,10 @@ export class ActivityCalendarPage
         this.calendar.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS);
         this.calendar.metierTaxonGroupIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS);
 
-        this.addChildForm(this.calendar);
+        this.addForms([this.calendar]);
+      }
+      if (this.tableMetier) {
+        this.addForms([this.tableMetier]);
       }
 
       // If new data: update trip form (need to update validator, with showObservers)
@@ -493,6 +497,8 @@ export class ActivityCalendarPage
 
     // Set data to calendar
     this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data);
+    //Set data to table
+    this.tableMetier.setValue(data.gearUseFeatures);
   }
 
   async getValue(): Promise<ActivityCalendar> {
@@ -506,6 +512,10 @@ export class ActivityCalendarPage
 
     // DEBUG
     //console.debug('TODO check value=', value);
+    const tableMetierData = await this.tableMetier.getValue();
+    if (isNotNil(tableMetierData)) value.gearUseFeatures = tableMetierData;
+
+    console.debug('TODO check value=', value);
 
     return value;
   }

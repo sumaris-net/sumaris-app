@@ -1,4 +1,4 @@
-import { Inject, Injectable, Injector, Optional } from '@angular/core';
+import { Inject, Injectable, InjectionToken, Injector, Optional } from '@angular/core';
 import { gql } from '@apollo/client/core';
 import { map } from 'rxjs/operators';
 
@@ -71,6 +71,8 @@ import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '@app/activity-calendar/activity-calendar.filter';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { OverlayEventDetail } from '@ionic/core';
+import { GearUseFeatures } from './model/gear-use-features.model';
+import { GearUseFeaturesFilter } from './model/gear-use-features-filter';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -285,6 +287,10 @@ const ActivityCalendarSubscriptions = {
     ${ActivityCalendarFragments.lightActivityCalendar}
   `,
 };
+
+export const GEAR_USE_FEATURES_DATA_SERVICE_TOKEN = new InjectionToken<IEntitiesService<GearUseFeatures, GearUseFeaturesFilter>>(
+  'GearUseFeaturesDataService'
+);
 
 @Injectable({ providedIn: 'root' })
 export class ActivityCalendarService
