@@ -183,4 +183,8 @@ export class CalendarTestPage implements OnInit {
       this.outputs[outputName] = '&nbsp;No result';
     }
   }
+
+  doSubmit(event?: Event) {
+    // Nothing to do
+  }
 }

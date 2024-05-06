@@ -516,7 +516,7 @@
             <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
           </section>
 
-            <!-- Operation comments -->
+          <!-- Operation comments -->
           <section class="landscape">
             <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE' }"></ng-content>
             <table class="table-full-width" [style.margin-top]="'50px'">
@@ -574,14 +574,10 @@
                     {{ 'TRIP.REPORT.FORM.PHYSICAL_GEAR.OPERATIONS' | translate }}
                   </ion-col>
                   <ion-col class="form-value" size="9">
-                    {{ stats.operationsRankByGears | mapGet: physicalGear.id | arrayJoin: ', ' }}
+                    {{ stats.operationsRankByGears[physicalGear.id] | arrayJoin: ', ' }}
                   </ion-col>
                 </ion-row>
-                @for (
-                  pmfms of stats.pmfmByGearsId | mapGet: physicalGear.gear.id | splitArrayInChunks: 2;
-                  track pmfmSplitIndex;
-                  let pmfmSplitIndex = $index
-                ) {
+                @for (pmfms of stats.pmfmByGearsId[physicalGear.gear.id] | splitArrayInChunks: 2; track pmfmSplitIndex; let pmfmSplitIndex = $index) {
                   <ion-row class="form-field">
                     @for (pmfm of pmfms; track pmfm.id) {
                       <ion-col class="form-label" size="3">
