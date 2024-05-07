@@ -48,6 +48,7 @@ export class FormTripReportStats extends BaseReportStats {
     [key: number]: {
       landing: DenormalizedBatch[];
       discard: DenormalizedBatch[];
+      hasNoSample: boolean;
     };
   };
   measurementValues: {
@@ -272,8 +273,8 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         });
 
       // Exclude not visible batches
-      const landings = TreeItemEntityUtils.filterRecursively(root, (b) => b.isLanding && !samplingBatches.includes(b));
-      const discards = TreeItemEntityUtils.filterRecursively(root, (b) => b.isDiscard && !samplingBatches.includes(b));
+      const landings = TreeItemEntityUtils.filterRecursively(root, (b) => b?.isLanding && !samplingBatches.includes(b));
+      const discards = TreeItemEntityUtils.filterRecursively(root, (b) => b?.isDiscard && !samplingBatches.includes(b));
 
       // Compute tre indent text
       [landings, discards].forEach((batches) => {
@@ -286,6 +287,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       stats.denormalizedBatchByOp[op.id] = {
         landing: landings,
         discard: discards,
+        hasNoSample: isEmptyArray(landings) && isEmptyArray(discards),
       };
     }
 
