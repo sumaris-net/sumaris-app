@@ -187,6 +187,7 @@
         [programLabel]="programLabel$ | async"
         [requiredStrategy]="requiredStrategy$ | async"
         [strategyId]="(strategy$ | async)?.id"
+        [timeZone]="dbTimeZone"
       ></app-gear-use-features-table>
     </mat-tab>
 

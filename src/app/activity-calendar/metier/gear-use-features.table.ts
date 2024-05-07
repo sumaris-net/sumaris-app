@@ -9,6 +9,7 @@ import {
   ReferentialUtils,
   isEmptyArray,
   isNotEmptyArray,
+  isNotNil,
   slideUpDownAnimation,
   toBoolean,
 } from '@sumaris-net/ngx-components';
@@ -26,7 +27,7 @@ import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service'
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 
-export const GEAR_RESERVED_START_COLUMNS: string[] = ['metier', 'gear'];
+export const GEAR_RESERVED_START_COLUMNS: string[] = ['metier'];
 @Component({
   selector: 'app-gear-use-features-table',
   templateUrl: 'gear-use-features.table.html',
@@ -40,8 +41,10 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
   protected _initialPmfms: IPmfm[];
 
   @Input() metierTaxonGroupIds: number[];
-  @Input() canAdd: boolean = true;
-  @Input() canDelete: boolean = true;
+  @Input() canAdd: boolean = false;
+  @Input() canDelete: boolean = false;
+  @Input() timeZone;
+  @Input() year: number;
 
   @Input()
   set showMetierColumn(value: boolean) {
@@ -99,9 +102,9 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
     super.ngOnInit();
     this.inlineEdition = !this.readOnly && this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
-    this.showToolbar = toBoolean(this.showToolbar);
-    this.showMetierColumn = true;
-    this.showGearColumn = false;
+    this.showToolbar = toBoolean(this.showToolbar, !this.mobile);
+    this.showMetierColumn = toBoolean(this.showMetierColumn, true);
+    this.showGearColumn = toBoolean(this.showGearColumn, false);
 
     // Always add a confirmation before deletion, if mobile
     if (this.mobile) this.confirmBeforeDelete = true;
@@ -145,9 +148,12 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
   protected async onNewEntity(data: GearUseFeatures): Promise<void> {
     await super.onNewEntity(data);
     console.debug(this.logPrefix, ' Initializing new row data...');
+
     // If table is editable
-    data.startDate = DateUtils.moment().startOf('year');
-    data.endDate = DateUtils.moment().endOf('year');
+    if (isNotNil(this.year)) {
+      data.startDate = DateUtils.moment().tz(this.timeZone).year(this.year).startOf('year'); //timezone
+      data.endDate = data.startDate.clone().endOf('year');
+    }
   }
 
   protected mapPmfms(pmfms: IPmfm[]) {

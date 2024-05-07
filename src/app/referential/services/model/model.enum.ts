@@ -469,7 +469,8 @@ export declare type AcquisitionLevelType =
   | 'ICE_EXPENSE'
   | 'CHILD_OPERATION'
   | 'ACTIVITY_CALENDAR'
-  | 'MONTHLY_ACTIVITY';
+  | 'MONTHLY_ACTIVITY'
+  | 'ACTIVITY_CALENDAR_GEAR_USE_FEATURES';
 
 export const AcquisitionLevelCodes = {
   TRIP: <AcquisitionLevelType>'TRIP',
@@ -496,6 +497,7 @@ export const AcquisitionLevelCodes = {
   CHILD_OPERATION: <AcquisitionLevelType>'CHILD_OPERATION',
   ACTIVITY_CALENDAR: <AcquisitionLevelType>'ACTIVITY_CALENDAR',
   MONTHLY_ACTIVITY: <AcquisitionLevelType>'MONTHLY_ACTIVITY',
+  ACTIVITY_CALENDAR_GEAR_USE_FEATURES: <AcquisitionLevelType>'ACTIVITY_CALENDAR_GEAR_USE_FEATURES',
 };
 
 export const SaleTypeIds = {

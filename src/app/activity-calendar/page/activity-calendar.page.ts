@@ -497,8 +497,18 @@ export class ActivityCalendarPage
 
     // Set data to calendar
     this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data);
+
+    //todo à voir avec ifremer
+    //filter gearUseFeatures avec date debut et fin année
+    // const gearUseFeaturesFiltered = data.gearUseFeatures.filter((objet) => {
+    //   const dateStart = DateUtils.moment().tz(this.dbTimeZone).year(this.year).startOf('year');
+    //   const dateEnd = dateStart.clone().endOf('year');
+
+    //   return dateStart === objet.startDate && dateEnd === objet.endDate;
+    // });
+
     //Set data to table
-    this.tableMetier.setValue(data.gearUseFeatures);
+    await this.tableMetier.setValue(data.gearUseFeatures);
   }
 
   async getValue(): Promise<ActivityCalendar> {
