@@ -294,7 +294,7 @@
     <!-- Operations table -->
     @if (data.operations | isNotEmptyArray) {
       <section *sectionDef>
-        @for (ops of data.operations | splitArrayInChunks: maxLinePeerTable; track $index) {
+        @for (ops of data.operations | splitArrayInChunks: 9; track $index) {
           <section class="landscape">
             <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE' }"></ng-content>
             <ion-grid class="report-section ion-no-padding">
@@ -334,7 +334,7 @@
                 </tr>
                 <tr>
                   <th class="col-tiny font-medium text-vertical">
-                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.NUM_OP' | translate }}</div>
+                    <div>{{ 'TRIP.REPORT.FORM.NUM_OP' | translate }}</div>
                   </th>
                   <th class="col-tiny font-small text-vertical">
                     <div class="text-vertical">
@@ -555,7 +555,7 @@
     <!-- Physical gears -->
     @if (data.gears | isNotEmptyArray) {
       <section *sectionDef>
-        @for (physicalGears of data.gears | splitArrayInChunks: maxGearPeepPage; track physicalGearSplitIndex; let physicalGearSplitIndex = $index) {
+        @for (physicalGears of data.gears | splitArrayInChunks: 3; track physicalGearSplitIndex; let physicalGearSplitIndex = $index) {
           <section class="portrait">
             <ng-content
               *ngTemplateOutlet="
