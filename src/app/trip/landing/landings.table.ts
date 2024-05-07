@@ -296,11 +296,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       // Remove filter on invalid rows
       if (!opts || opts.showOnlyInvalidRows !== true) {
         this.showRowError = false;
-        const filter = this.filter || new LandingFilter();
-        if (filter.dataQualityStatus === 'MODIFIED') {
-          filter.dataQualityStatus = undefined;
-          this.setFilter(filter);
-        }
       }
     }
   }
