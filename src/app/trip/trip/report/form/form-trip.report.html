@@ -616,21 +616,34 @@
 
     <!-- Batch card by operation -->
     @for (opId of stats.denormalizedBatchByOp | mapKeys; track opId) {
-      <section *sectionDef>
-        <!-- Iterate over all types of batches (landing/discard) -->
-        @for (batchType of stats.denormalizedBatchByOp | mapGet: opId | mapKeys; track $index) {
-          <ng-content
-            *ngTemplateOutlet="
-              batchesTable;
-              context: {
-                batchType: batchType,
-                opId: opId,
-                batches: stats.denormalizedBatchByOp | mapGet: opId | mapGet: batchType
-              }
-            "
-          ></ng-content>
-        }
-      </section>
+      @if (stats.denormalizedBatchByOp | mapGet: 'opId' | mapGet: 'hasSample') {
+        <section *sectionDef>
+          @if (stats.denormalizedBatchByOp | mapGet: 'landing' | isNotEmptyArray) {
+            <ng-content
+              *ngTemplateOutlet="
+                batchesTable;
+                context: {
+                  batchType: 'landing',
+                  opId: opId,
+                  batches: stats.denormalizedBatchByOp | mapGet: opId | mapGet: batchType
+                }
+              "
+            ></ng-content>
+          }
+          @if (stats.denormalizedBatchByOp | mapGet: 'discard' | isNotEmptyArray) {
+            <ng-content
+              *ngTemplateOutlet="
+                batchesTable;
+                context: {
+                  batchType: 'discard',
+                  opId: opId,
+                  batches: stats.denormalizedBatchByOp | mapGet: opId | mapGet: batchType
+                }
+              "
+            ></ng-content>
+          }
+        </section>
+      }
     }
 
     <!-- Accidental catch by operation -->
