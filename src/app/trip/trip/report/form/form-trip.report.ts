@@ -43,7 +43,6 @@ export class FormTripReportStats extends BaseReportStats {
   strategy: Strategy;
   operationRankOrderByOperationIds: { [key: number]: number };
   operationsRankByGears: { [key: number]: number[] };
-  denormalizedBatchLinesByOperation: { [key: number]: DenormalizedBatch[] };
   pmfmByGearsId: { [key: number]: number[] };
   denormalizedBatchByOp: {
     [key: number]: {
@@ -92,11 +91,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected isBlankForm: boolean;
   protected latLongPattern: LatLongPattern;
   protected readonly nbOfOpOnBlankPage = 9;
-  protected readonly maxLinePeerTable = 9;
-  protected readonly nbOfGearOnBlankPage = 3;
-  protected readonly maxGearPeerPage = 3;
-  protected readonly maxBatchesLinesPeerTable = 24;
-  protected readonly maxAccidentalCatchLinePeerTable = 18;
 
   protected readonly tripService: TripService;
   protected readonly referentialRefService: ReferentialRefService;
@@ -149,24 +143,31 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected async computeStats(data: Trip, opts?: IComputeStatsOpts<FormTripReportStats>): Promise<FormTripReportStats> {
     const stats = new FormTripReportStats();
 
-    // Ensures that batches be denormalized for this trip before generate report
-    await this.denormalizedBatchService.denormalizeTrip(data.id);
-
+    // Get program and options
     stats.program = await this.programRefService.loadByLabel(data.program.label);
-    stats.strategy = await this.loadStrategy(stats.program, data);
-    const strategyId = stats.strategy?.id;
-    // TODO Load strategy (by program, date/time, location)
     stats.options = {
       showFishingStartDateTime: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
       showFishingEndDateTime: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
       showEndDate: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
     };
+    stats.subtitle = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_SUBTITLE);
+    stats.footerText = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_FOOTER);
+    stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL);
+    stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL);
+    stats.strataEnabled = stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
 
-    stats.operationRankOrderByOperationIds = data.operations.reduce((acc, op) => {
-      acc[op.id] = op.rankOrder;
-      return acc;
-    }, []);
+    // Get strategy
+    stats.strategy = await this.loadStrategy(stats.program, data);
+    const strategyId = stats.strategy?.id;
 
+    // Ensures that batches be denormalized for this trip before generate report
+    await this.denormalizedBatchService.denormalizeTrip(data.id);
+
+    stats.saleTypes = (
+      await this.referentialRefService.loadAll(0, 1000, null, null, { entityName: 'SaleType', statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY] })
+    ).data.map((i) => i.label);
+
+    // Compute stats PMFM
     stats.pmfms = isNotNil(strategyId)
       ? {
           trip: await this.programRefService.loadProgramPmfms(data.program.label, {
@@ -210,11 +211,39 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       samples: splitById(stats.pmfms.samples),
     };
 
+    stats.pmfmByGearsId = data.gears
+      .map((physicalGear) => physicalGear.gear.id)
+      .reduce((res, gearId) => {
+        // Extract gearId for physicalGear and remove duplicates
+        if (!res.includes(gearId)) res.push(gearId);
+        return res;
+      }, [])
+      .reduce((res, gearId) => {
+        // Group pmfm by gearId
+        const pmfms = stats.pmfms.gears.filter((pmfm: DenormalizedPmfmStrategy) => {
+          return isNil(pmfm.gearIds) || pmfm.gearIds.includes(gearId);
+        });
+        res[gearId] = pmfms;
+        return res;
+      }, {});
+
+    // Get all needed measurement values in suitable format
     stats.measurementValues = {
       trip: MeasurementUtils.toMeasurementValues(data.measurements),
       operations: data.operations.map((op) => MeasurementUtils.toMeasurementValues(op.measurements)),
       gears: data.gears.map((gear) => gear.measurementValues),
     };
+
+    stats.operationRankOrderByOperationIds = data.operations.reduce((acc, op) => {
+      acc[op.id] = op.rankOrder;
+      return acc;
+    }, []);
+
+    stats.operationsRankByGears = data.gears.reduce((result, gear) => {
+      const ops = data.operations.filter((op) => op.physicalGear.id == gear.id);
+      result[gear.id] = ops.map((op) => op.rankOrder);
+      return result;
+    }, {});
 
     stats.denormalizedBatchByOp = {};
     for (const op of data.operations) {
@@ -253,39 +282,9 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       };
     }
 
-    stats.subtitle = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_SUBTITLE);
-    stats.footerText = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_FOOTER);
-    stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL);
-    stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL);
-    stats.strataEnabled = stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
-    stats.saleTypes = (
-      await this.referentialRefService.loadAll(0, 1000, null, null, { entityName: 'SaleType', statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY] })
-    ).data.map((i) => i.label);
-
-    stats.operationsRankByGears = data.gears.reduce((result, gear) => {
-      const ops = data.operations.filter((op) => op.physicalGear.id == gear.id);
-      result[gear.id] = ops.map((op) => op.rankOrder);
-      return result;
-    }, {});
-
-    stats.pmfmByGearsId = data.gears
-      .map((physicalGear) => physicalGear.gear.id)
-      .reduce((res, gearId) => {
-        // Extract gearId for physicalGear and remove duplicates
-        if (!res.includes(gearId)) res.push(gearId);
-        return res;
-      }, [])
-      .reduce((res, gearId) => {
-        // Group pmfm by gearId
-        const pmfms = stats.pmfms.gears.filter((pmfm: DenormalizedPmfmStrategy) => {
-          return isNil(pmfm.gearIds) || pmfm.gearIds.includes(gearId);
-        });
-        res[gearId] = pmfms;
-        return res;
-      }, {});
-
-    stats.sampleImagesByOperationIds = data.operations?.reduce((samplesImgsByOp, op) => {
-      samplesImgsByOp[op.id] = (op.samples || [])
+    stats.sampleImagesByOperationIds = {};
+    for (const operation of data.operations || []) {
+      stats.sampleImagesByOperationIds[operation.id] = (operation.samples || [])
         .filter((s) => isNotEmptyArray(s.images))
         .flatMap((s) => {
           // Add title to image
@@ -294,8 +293,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
           });
           return s.images;
         });
-      return samplesImgsByOp;
-    }, {});
+    }
 
     return stats;
   }
@@ -323,8 +321,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   }
 
   protected async computeTitle(data: Trip, stats: FormTripReportStats): Promise<string> {
-    // TODO
-    return "DOSSIER D'OBSERVATION EN MER";
+    return this.translate.instant('TRIP.REPORT.FORM.TITLE');
   }
 
   protected computeDefaultBackHref(data: Trip, stats: FormTripReportStats): string {

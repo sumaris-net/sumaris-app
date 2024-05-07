@@ -637,11 +637,7 @@
     @for (operation of data?.operations; track operation.id) {
       @if (operation?.samples | isNotEmptyArray) {
         <section *sectionDef>
-          @for (
-            samplesChunk of operation?.samples | splitArrayInChunks: maxAccidentalCatchLinePeerTable;
-            track operationChunkIndex;
-            let operationChunkIndex = $index
-          ) {
+          @for (samplesChunk of operation?.samples | splitArrayInChunks: 18; track operationChunkIndex; let operationChunkIndex = $index) {
             <section class="landscape">
               <ng-content
                 *ngTemplateOutlet="
@@ -762,11 +758,7 @@
 
   <!-- "type" can be 'landing' or 'discard' -->
   <ng-template #batchesTable let-batchType="batchType" let-opId="opId" let-batches="batches">
-    @for (
-      batchesChunk of batches | splitArrayInChunks:maxBatchesLinesPeerTable;
-      track $index;
-      let isLastBatchesChunk = $last , isFirstBatchesChunk = $first
-    ) {
+    @for (batchesChunk of batches | splitArrayInChunks: 24; track $index; let isLastBatchesChunk = $last , isFirstBatchesChunk = $first) {
       <section class="portrait">
         <ng-content
           *ngTemplateOutlet="
