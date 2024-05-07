@@ -16,6 +16,7 @@ import {
   fadeInOutAnimation,
   firstNotNilPromise,
   HistoryPageReference,
+  isNil,
   isNotNil,
   ReferentialRef,
   ReferentialUtils,
@@ -744,7 +745,7 @@ export class ObservedLocationPage
   protected async onEntitySaved(data: ObservedLocation): Promise<void> {
     await super.onEntitySaved(data);
 
-    if (this.landingsTable?.isSaleDetailEditor && this.isNewData) {
+    if (this.landingEditor === 'sale' && isNil(this.previousDataId)) {
       // TODO JVF: Retrieve species based on data.samplingStrata
 
       const landing = new Landing();
