@@ -1,4 +1,4 @@
-<mat-toolbar *ngIf="showToolbar">
+<mat-toolbar *ngIf="showToolbar" [class.expanded]="filterExpansionPanel.expanded">
   <button mat-icon-button (click)="openAddJobMenu()" *ngIf="canAdd" [title]="'COMMON.BTN_ADD' | translate">
     <mat-icon>add</mat-icon>
   </button>

@@ -321,8 +321,6 @@ export class LandingService
   extends RootDataSynchroService<Landing, LandingFilter, number, LandingServiceWatchOptions, LandingServiceLoadOptions>
   implements IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>, IEntityService<Landing>
 {
-  protected loading = false;
-
   constructor(
     injector: Injector,
     protected network: NetworkService,
