@@ -15,6 +15,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LatLongPattern,
+  sleep,
   splitById,
   StatusIds,
   TreeItemEntityUtils,
@@ -111,6 +112,15 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
 
     this.isBlankForm = this.route.snapshot.data[FormTripReport.isBlankFormParam];
     this.debug = !environment.production;
+  }
+
+  async updateView() {
+    await super.updateView();
+
+    if (this.reveal.printing) {
+      await sleep(500);
+      await this.reveal.print();
+    }
   }
 
   protected filterPmfmForOperationTable(pmfm: IPmfm): boolean {
