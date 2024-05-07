@@ -1407,7 +1407,6 @@
             "OPERATION_END": "Fin de l'opération",
             "PARENT": "Filage (fin de mise à l’eau de l’engin)*",
             "CHILD": "Virage (début de remontée de l’engin)*",
-            "NUM_OP": "N° OP",
             "ECH_ON": "Échantillonnage (O/N)",
             "PROGRESS": "Déroulement normal ? (O/N)",
             "GEAR_SPECIES": "Engin* + Espèce(s) cible(s) si navire associé** (IMMAT du navire)",
@@ -1453,6 +1452,11 @@
           "PNR_SAMPLING_WEIGHT": "Poids ECHANTILLONNE de la PNR (kg) :",
           "FRACTION_FIELD": "Fraction :",
           "TABLE_LEGEND": "Légende : Les lots dont la qualité est invalide sont en <span class=\"invalid\">rouge</span>, les valeurs calculées sont en <span class=\"computed\">bleu et italique</span>, les valeurs issues d'estimation terrain sont surlignées, les valeurs mesurées, pesées ou comptées sont en noir."
+        },
+        "ACCIDENTAL_CATCH": {
+          "TITLE": "FICHE CAPTURES ACCIDENTELLES",
+          "TAXON_NAME": "Espèce scientifique",
+          "NUM_SAMPLE": "N° ECH"
         }
       }
     },

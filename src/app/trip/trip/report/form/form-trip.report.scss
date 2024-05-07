@@ -150,12 +150,27 @@ html.print-pdf .reveal .slides section {
             }
           }
         }
+        &.gallery {
+          display: flex;
+          align-items: center;
+          justify-content: space-around;
+          height: 630px;
+          img {
+            max-height: 260px;
+          }
+        }
+
         ion-col {
           &.no-border-top {
             border-top: none !important;
           }
           &.no-border-bottom {
             border-bottom: none !important;
+          }
+
+          figure {
+            max-height: 250px;
+            max-width: 250px;
           }
         }
       }
