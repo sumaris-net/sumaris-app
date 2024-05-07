@@ -59,6 +59,14 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
     return this.getShowColumn('gear');
   }
 
+  set value(data: GearUseFeatures[]) {
+    this.setValue(data);
+  }
+
+  get value(): GearUseFeatures[] {
+    return this.getValue();
+  }
+
   constructor(
     injector: Injector,
     validatorService: GearUseFeaturesValidatorService,
@@ -91,6 +99,8 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.MONTHLY_ACTIVITY;
     this.logPrefix = '[gear-use-features-table] ';
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'asc';
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -126,11 +136,11 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
     });
   }
 
-  async setValue(data: GearUseFeatures[]) {
+  setValue(data: GearUseFeatures[]) {
     this.memoryDataService.value = data;
   }
 
-  async getValue() {
+  getValue() {
     return this.memoryDataService.value;
   }
 

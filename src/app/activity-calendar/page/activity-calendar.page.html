@@ -178,7 +178,14 @@
     <mat-tab #metierTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_METIER' | translateContext: i18nContext.suffix" [disabled]="!showMap" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="settings"></ion-icon></mat-icon>
-        <ion-label>
+        <ion-label
+          [matBadge]="tableMetier?.visibleRowCount"
+          [matBadgeHidden]="!tableMetier || tableMetier.invalid || !tableMetier.visibleRowCount"
+          matBadgeOverlap="false"
+          matBadgeColor="primary"
+          matBadgeSize="small"
+          matBadgePosition="above after"
+        >
           {{ metierTab.textLabel }}
         </ion-label>
       </ng-template>

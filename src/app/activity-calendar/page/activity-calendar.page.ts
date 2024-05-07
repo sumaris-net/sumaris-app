@@ -6,6 +6,7 @@ import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   AppEditorOptions,
+  AppTable,
   CORE_CONFIG_OPTIONS,
   DateUtils,
   EntityServiceLoadOptions,
@@ -17,6 +18,8 @@ import {
   isNotNil,
   ReferentialRef,
   referentialToString,
+  ReferentialUtils,
+  removeDuplicatesFromArray,
   StatusIds,
   toBoolean,
   TranslateContextService,
@@ -51,6 +54,7 @@ import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-featu
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { GearUseFeaturesTable } from '../metier/gear-use-features.table';
+import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -188,39 +192,36 @@ export class ActivityCalendarPage
       })
     );
 
-    // Listen first opening the operations tab, then save
+    // Listen first opening the metier tab
     this.registerSubscription(
-      this.tabGroup.selectedTabChange
-        .pipe(
-          filter((event) => this.showMap && event.index === ActivityCalendarPage.TABS.MAP),
-          map((event) => {
-            if (!this.calendar.confirmEditCreate()) {
-              this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
-              return false;
-            }
-            return true;
-          }),
-          filter((confirmed) => confirmed),
-          tap(async () => {
-            console.debug(this.logPrefix + 'Updating map calendar...');
-            // Save calendar when opening the map tab (keep editor dirty)
-            if (this.calendar.dirty) {
-              this.markAsDirty();
-              const saved = await this.calendar.save();
-              if (!saved) {
-                this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
-                return;
-              }
-            }
+      this.tabGroup.selectedTabChange.pipe(filter((event) => event.index === ActivityCalendarPage.TABS.METIER)).subscribe(async () => {
+        console.debug(this.logPrefix + 'Updating metier table...');
+        this.tableMetier.markAsLoading();
 
-            console.debug(this.logPrefix + 'Updating map calendar...');
-            const value = await this.calendar.getValue();
+        // Save calendar when opening the map tab (keep editor dirty)
+        if (!(await this.saveTable(this.calendar)) || !(await this.saveTable(this.tableMetier))) {
+          this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+          this.tableMetier.markAsLoaded();
+          return;
+        }
 
-            this.mapCalendar.markAsReady();
-            await this.mapCalendar.setValue(value);
-          })
-        )
-        .subscribe()
+        this.tableMetier.value = this.getMetierValue(this.calendar.value, this.tableMetier.value);
+      })
+    );
+
+    // Listen first opening the map tab
+    this.registerSubscription(
+      this.tabGroup.selectedTabChange.pipe(filter((event) => this.showMap && event.index === ActivityCalendarPage.TABS.MAP)).subscribe(async () => {
+        console.debug(this.logPrefix + 'Updating map calendar...');
+        this.mapCalendar.markAsLoading();
+        this.mapCalendar.markAsReady();
+        if (!(await this.saveTable(this.calendar))) {
+          this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+          this.tableMetier.markAsLoaded();
+          return;
+        }
+        this.mapCalendar.value = this.calendar.value;
+      })
     );
   }
 
@@ -238,6 +239,15 @@ export class ActivityCalendarPage
       this.tabGroup.realignInkBar();
       this.autoOpenNextTab = false; // Should switch only once
     }
+  }
+
+  async saveTable(table: AppTable<any>) {
+    if (!table.confirmEditCreate()) return false;
+    if (table.dirty) {
+      this.markAsDirty();
+      return await table.save();
+    }
+    return true;
   }
 
   async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
@@ -347,6 +357,7 @@ export class ActivityCalendarPage
         this.addForms([this.calendar]);
       }
       if (this.tableMetier) {
+        this.tableMetier.metierTaxonGroupIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS);
         this.addForms([this.tableMetier]);
       }
 
@@ -496,36 +507,55 @@ export class ActivityCalendarPage
     this.baseForm.value = data;
 
     // Set data to calendar
-    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data);
+    const activityMonths = ActivityMonthUtils.fromActivityCalendar(data);
+    this.calendar.value = activityMonths;
 
-    //todo à voir avec ifremer
-    //filter gearUseFeatures avec date debut et fin année
-    // const gearUseFeaturesFiltered = data.gearUseFeatures.filter((objet) => {
-    //   const dateStart = DateUtils.moment().tz(this.dbTimeZone).year(this.year).startOf('year');
-    //   const dateEnd = dateStart.clone().endOf('year');
+    // Set metier table data
+    this.tableMetier.value = this.getMetierValue(activityMonths, data.gearUseFeatures);
+  }
 
-    //   return dateStart === objet.startDate && dateEnd === objet.endDate;
-    // });
+  getMetierValue(activityMonths: ActivityMonth[], gearUseFeatures: GearUseFeatures[]) {
+    // Set metier table data
+    // TODO sort by startDate ?
+    const monthMetiers = removeDuplicatesFromArray(
+      activityMonths.flatMap((month) => month.gearUseFeatures.map((guf) => guf.metier)),
+      'id'
+    );
+    const firstDayOfYear = DateUtils.moment().tz(this.dbTimeZone).year(this.year).startOf('year');
+    const lastDayOfYear = firstDayOfYear.clone().endOf('year');
 
-    //Set data to table
-    await this.tableMetier.setValue(data.gearUseFeatures);
+    const metiers = monthMetiers
+      .map((metier, index) => {
+        const existingGuf = (gearUseFeatures || []).find((guf) => {
+          //TODO MFA à voir avec ifremer comment filtrer les GUF qui sont à afficher dans le tableau des métiers
+          return (
+            DateUtils.equals(firstDayOfYear, guf.startDate) &&
+            DateUtils.equals(lastDayOfYear, guf.endDate) &&
+            ReferentialUtils.equals(guf.metier, metier)
+          );
+        });
+        if (existingGuf) existingGuf.rankOrder = index + 1;
+        return existingGuf || { startDate: firstDayOfYear, endDate: lastDayOfYear, metier, rankOrder: index + 1 };
+      })
+      .map(GearUseFeatures.fromObject);
+
+    // DEBUG
+    console.debug(this.logPrefix + 'Loaded metiers: ', metiers);
+    return metiers;
   }
 
   async getValue(): Promise<ActivityCalendar> {
     const value = await super.getValue();
 
-    const months = this.calendar.value;
-    if (months) {
-      value.vesselUseFeatures = months.map((m) => VesselUseFeatures.fromObject(m.asObject())).filter(VesselUseFeatures.isNotEmpty);
-      value.gearUseFeatures = months.flatMap((m) => m.gearUseFeatures).filter(GearUseFeatures.isNotEmpty);
+    const activityMonths = this.calendar.value;
+    if (activityMonths) {
+      value.vesselUseFeatures = activityMonths.map((m) => VesselUseFeatures.fromObject(m.asObject())).filter(VesselUseFeatures.isNotEmpty);
+      value.gearUseFeatures = activityMonths.flatMap((m) => m.gearUseFeatures).filter(GearUseFeatures.isNotEmpty);
     }
 
-    // DEBUG
-    //console.debug('TODO check value=', value);
-    const tableMetierData = await this.tableMetier.getValue();
-    if (isNotNil(tableMetierData)) value.gearUseFeatures = tableMetierData;
-
-    console.debug('TODO check value=', value);
+    // Metiers
+    const metierGearUseFeatures = this.tableMetier.value;
+    if (isNotNil(metierGearUseFeatures)) value.gearUseFeatures = [...value.gearUseFeatures, ...metierGearUseFeatures];
 
     return value;
   }

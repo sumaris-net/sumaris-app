@@ -18,11 +18,13 @@ export class ActivityMonthUtils {
       // DEBUG
       //console.debug(`Month #${startDate.month() + 1} - ${toDateISOString(startDate)} -> ${toDateISOString(endDate)}`);
 
-      const source = data.vesselUseFeatures?.find((vuf) => DateUtils.isSame(startDate, vuf.startDate)) || { startDate };
+      const source = data.vesselUseFeatures?.find(
+        (vuf) => DateUtils.isSame(startDate, vuf.startDate, 'day') && DateUtils.isSame(endDate, vuf.endDate, 'day')
+      ) || { startDate };
       const target = ActivityMonth.fromObject(source || {});
       target.gearUseFeatures =
         data.gearUseFeatures
-          ?.filter((guf) => DateUtils.isSame(startDate, guf.startDate, 'month'))
+          ?.filter((guf) => DateUtils.isSame(startDate, guf.startDate, 'day') && DateUtils.isSame(endDate, guf.endDate, 'day'))
           .sort(GearUseFeaturesComparators.sortRankOrder)
           .map(GearUseFeatures.fromObject) || [];
       metierBlockCount = Math.max(metierBlockCount, target.gearUseFeatures.length);
