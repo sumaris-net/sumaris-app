@@ -1003,7 +1003,8 @@ export class LandingService
       const { data } = await this.loadAllByObservedLocation(
         LandingFilter.fromObject({
           observedLocationId: observedLocation.id,
-        })
+        }),
+        { fetchPolicy: 'no-cache' } // TODO BLA
       );
 
       if (isEmptyArray(data)) return undefined;
