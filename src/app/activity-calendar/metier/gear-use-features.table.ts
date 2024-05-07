@@ -3,13 +3,12 @@ import {
   AppValidatorService,
   DateUtils,
   InMemoryEntitiesService,
+  isNotEmptyArray,
+  isNotNil,
   LoadResult,
   Referential,
   ReferentialRef,
   ReferentialUtils,
-  isEmptyArray,
-  isNotEmptyArray,
-  isNotNil,
   slideUpDownAnimation,
   toBoolean,
 } from '@sumaris-net/ngx-components';
@@ -18,7 +17,6 @@ import { environment } from '@environments/environment';
 import { RxState } from '@rx-angular/state';
 import { GearUseFeatures } from '../model/gear-use-features.model';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { GearUseFeaturesFilter } from '../model/gear-use-features-filter';
 import { GearUseFeaturesValidatorService } from '../model/gear-use-features.validator';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
@@ -37,13 +35,10 @@ export const GEAR_RESERVED_START_COLUMNS: string[] = ['metier'];
   providers: [{ provide: AppValidatorService, useExisting: GearUseFeaturesValidatorService }, RxState],
 })
 export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures, GearUseFeaturesFilter> implements OnInit, OnDestroy {
-  private _qvPmfm: IPmfm;
-  protected _initialPmfms: IPmfm[];
-
   @Input() metierTaxonGroupIds: number[];
   @Input() canAdd: boolean = false;
   @Input() canDelete: boolean = false;
-  @Input() timeZone;
+  @Input() timezone: string = DateUtils.moment().tz();
   @Input() year: number;
 
   @Input()
@@ -76,12 +71,15 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
       GearUseFeaturesFilter,
       new InMemoryEntitiesService<GearUseFeatures, GearUseFeaturesFilter>(GearUseFeatures, GearUseFeaturesFilter, {
         sortByReplacement: { id: 'rankOrder' },
+        equals: GearUseFeatures.equals,
       }),
       validatorService,
       {
         reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
         reservedEndColumns: [],
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        initialState: {
+          requiredStrategy: true,
+        },
       }
     );
     //this.referentialRefService = injector.get(ReferentialRefService);
@@ -98,7 +96,7 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
     this.debug = !environment.production;
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     super.ngOnInit();
     this.inlineEdition = !this.readOnly && this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
@@ -138,7 +136,6 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.memoryDataService.stop();
   }
 
   /*-------------------------*/
@@ -146,34 +143,17 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
   /*-------------------------*/
 
   protected async onNewEntity(data: GearUseFeatures): Promise<void> {
-    await super.onNewEntity(data);
     console.debug(this.logPrefix, ' Initializing new row data...');
+
+    await super.onNewEntity(data);
 
     // If table is editable
     if (isNotNil(this.year)) {
-      data.startDate = DateUtils.moment().tz(this.timeZone).year(this.year).startOf('year'); //timezone
+      data.startDate = (this.timezone != null ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(this.year).startOf('year');
       data.endDate = data.startDate.clone().endOf('year');
     }
   }
 
-  protected mapPmfms(pmfms: IPmfm[]) {
-    if (isEmptyArray(pmfms)) return pmfms; // Nothing to map
-
-    this._initialPmfms = pmfms; // Copy original pmfms list
-
-    if (this._qvPmfm) {
-      // Make sure QV Pmfm is required (need to link with parent batch)
-      const index = pmfms.findIndex((pmfm) => pmfm.id === this._qvPmfm.id);
-      if (index !== -1) {
-        // Replace original pmfm by a clone, with hidden=true
-        const qvPmfm = this._qvPmfm.clone();
-        qvPmfm.hidden = false;
-        qvPmfm.required = true;
-        pmfms[index] = qvPmfm;
-      }
-    }
-    return pmfms;
-  }
   protected async suggestMetiers(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
     // eslint-disable-next-line prefer-const

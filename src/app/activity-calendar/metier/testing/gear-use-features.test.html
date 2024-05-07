@@ -132,6 +132,7 @@
           #desktopTable
           [programLabel]="$programLabel | async"
           [strategyId]="filterForm | formGetValue: 'strategy' | mapGet: 'id'"
+          [requiredGear]="false"
           [mobile]="false"
           [debug]="true"
         ></app-gear-use-features-table>
