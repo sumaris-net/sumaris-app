@@ -660,12 +660,25 @@
               <table [style.--row-height]="'30px'">
                 <thead>
                   <tr>
-                    <th class="col-tiny font-medium text-vertical">
-                      <div>{{ 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.NUM_SAMPLE' | translate }}</div>
-                    </th>
-                    <th class="col-medium font-medium">
-                      <div>{{ 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.TAXON_NAME' | translate }}</div>
-                    </th>
+                    @if (stats.options.sampleLabelEnabled) {
+                      <th class="col-compact font-medium">
+                        <div>{{ 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.SAMPLE_LABEL' | translate }}</div>
+                      </th>
+                    } @else {
+                      <th class="col-tiny font-medium text-vertical">
+                        <div>{{ 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.NUM_SAMPLE' | translate }}</div>
+                      </th>
+                    }
+                    @if (stats.options.sampleTaxonNameEnabled) {
+                      <th class="col-medium font-medium">
+                        <div>{{ 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.TAXON_NAME' | translate }}</div>
+                      </th>
+                    }
+                    @if (stats.options.sampleTaxonGroupEnabled) {
+                      <th class="col-medium font-medium">
+                        <div>{{ 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.TAXON_GROUPE' | translate }}</div>
+                      </th>
+                    }
                     @for (pmfm of stats.pmfms.samples; track pmfm.id) {
                       <th class="col-compact ion-text-center font-medium">
                         <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix }"></div>
@@ -681,15 +694,29 @@
                 <tbody>
                   @for (sample of samplesChunk; track sample.id) {
                     <tr>
-                      <td class="col-tiny ion-text-center font-medium" [style.padding]="0">
-                        <div>
-                          <b>{{ $index }}</b>
-                          <!-- <b>{{ sample.rankOrder }}</b> -->
-                        </div>
-                      </td>
-                      <td class="col-medium">
-                        {{ sample.taxonName | referentialToString }}
-                      </td>
+                      @if (stats.options.sampleLabelEnabled) {
+                        <td class="col-compact font-medium">
+                          <div>
+                            <b>{{ sample.label }}</b>
+                          </div>
+                        </td>
+                      } @else {
+                        <td class="col-tiny ion-text-center font-medium" [style.padding]="0">
+                          <div>
+                            <b>{{ sample.rankOrder }}</b>
+                          </div>
+                        </td>
+                      }
+                      @if (stats.options.sampleTaxonNameEnabled) {
+                        <td class="col-medium">
+                          {{ sample.taxonName | referentialToString }}
+                        </td>
+                      }
+                      @if (stats.options.sampleTaxonGroupEnabled) {
+                        <td class="col-medium">
+                          {{ sample.taxonGroup | referentialToString }}
+                        </td>
+                      }
                       @for (pmfm of stats.pmfms.samples; track pmfm.id) {
                         <td
                           class="col-compact ion-text-center"

@@ -1456,7 +1456,9 @@
         "ACCIDENTAL_CATCH": {
           "TITLE": "FICHE CAPTURES ACCIDENTELLES",
           "TAXON_NAME": "Espèce scientifique",
-          "NUM_SAMPLE": "N° ECH"
+          "NUM_SAMPLE": "N° ECH",
+          "SAMPLE_LABEL": "Libellé",
+          "TAXON_GROUPE": "Espèce commerciale"
         }
       }
     },

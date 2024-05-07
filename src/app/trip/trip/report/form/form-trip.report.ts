@@ -74,6 +74,9 @@ export class FormTripReportStats extends BaseReportStats {
     showFishingStartDateTime: boolean;
     showFishingEndDateTime: boolean;
     showEndDate: boolean;
+    sampleLabelEnabled: boolean;
+    sampleTaxonNameEnabled: boolean;
+    sampleTaxonGroupEnabled: boolean;
   };
 }
 
@@ -149,7 +152,11 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       showFishingStartDateTime: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
       showFishingEndDateTime: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
       showEndDate: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
+      sampleLabelEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_LABEL_ENABLE),
+      sampleTaxonGroupEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE),
+      sampleTaxonNameEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE),
     };
+    console.debug('MYTEST OPTION', stats.options);
     stats.subtitle = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_SUBTITLE);
     stats.footerText = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_FOOTER);
     stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL);
@@ -289,7 +296,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         .flatMap((s) => {
           // Add title to image
           s.images.forEach((image) => {
-            image.title = image.title || s.label || `#${s.rankOrder}`;
+            image.title = stats.options.sampleLabelEnabled ? s.label : `#${s.rankOrder}`;
           });
           return s.images;
         });
