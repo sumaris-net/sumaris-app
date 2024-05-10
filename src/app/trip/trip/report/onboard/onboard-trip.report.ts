@@ -38,14 +38,12 @@ export class OnboardTripReport extends BaseTripReport<OnboardExtractionData, Onb
   protected computeSlidesOptions(data: OnboardExtractionData, stats: OnboardTripReportStats): Partial<IRevealExtendedOptions> {
     return {
       ...super.computeSlidesOptions(data, stats),
-      // width: 960,
-      // height: 1385,
       width: 210 * 4,
       height: 297 * 4,
       center: false,
     };
   }
 
-  // Skip : no map on the remport
+  // Skip : no map on the report
   async showMap() {}
 }
