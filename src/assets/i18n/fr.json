@@ -3351,6 +3351,50 @@
     },
     "OPTIONS": {
       "ENABLE": "Calendrier d'activité > Activer ?"
+    },
+    "REPORT": {
+      "TOOL_BAR_TITLE": "<small>{{vessel}}<br></small>Rapport calendrier d'activité {{year}}",
+      "TITLE": "Calendrier d'activité {{ year }}",
+      "NAME": "Nom",
+      "FOOTER": "TODO",
+      "VESSEL_OWNER": "Armateur",
+      "REGISTRATION_LOCATION": "Quartier maritime",
+      "IS_ACTIVE": "Actif ?",
+      "EFFORT_SECTION": {
+        "TITLE": "Effort de pêche"
+      },
+      "METIERS_SECTION": {
+        "TITLE": "Métiers",
+        "ROW_METIER": "Métiers",
+        "ROW_FISHING_AREA": "Zone/Gradient"
+      },
+      "VESSEL_SECTION": {
+        "TITLE": "Navire :",
+        "REGISTRATION_CODE": "Immatriculation :",
+        "REGISTRATION_LOCATION": "Lieux d'immat. :",
+        "VESSEL_NAME": "Nom :"
+      },
+      "INVESTIGATION_QUALIFICATION_SECTION": {
+        "TITLE": "Qualification de l'enquête",
+        "DIRECT": "Direct",
+        "INDIRECT": "Indirect",
+        "ESTIMATED": "Éstimée",
+        "NOT_REALIZABLE": "Non réalisable"
+      },
+      "GEAR_SECTION": {
+        "TITLE": "Caractéristiques engins"
+      },
+      "SELL_SECTION": {
+        "TITLE": "Ventes",
+        "ENTIRELY_AUCTION": "Totalitée en criée",
+        "PARTIALLY_AUCTION": "Partiellement en criée",
+        "OUTSIDE_AUCTION": "Totalitée hoss criée"
+      },
+      "OBSERVER_SECTION": {
+        "TITLE": "Observateur",
+        "LAST_NAME": "Nom :",
+        "FIRST_NAME": "Prénom :"
+      }
     }
   },
   "ERROR": {

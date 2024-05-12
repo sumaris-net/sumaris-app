@@ -112,6 +112,11 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     this.debug = !environment.production;
   }
 
+  computePrintHref(data: Trip, stats: FormTripReportStats): URL {
+    if (this.uuid) return super.computePrintHref(data, stats);
+    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form');
+  }
+
   async updateView() {
     await super.updateView();
 
@@ -345,11 +350,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected computeShareBasePath(): string {
     // TODO
     return 'trips/report/form';
-  }
-
-  computePrintHref(data: Trip, stats: FormTripReportStats): URL {
-    if (this.uuid) return super.computePrintHref(data, stats);
-    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form');
   }
 
   protected computeI18nContext(stats: FormTripReportStats): IReportI18nContext {

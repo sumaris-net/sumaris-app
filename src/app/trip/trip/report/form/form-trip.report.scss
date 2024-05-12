@@ -29,6 +29,7 @@ html.print-pdf .reveal .slides section {
   --r-link-color: var(--ion-color-dark);
 
   section {
+    height: 100%;
     display: flex !important;
     flex-direction: column;
     text-align: left !important;
