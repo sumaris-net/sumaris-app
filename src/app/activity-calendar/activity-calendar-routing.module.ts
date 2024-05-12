@@ -27,6 +27,16 @@ const routes: Routes = [
       pathIdParam: 'calendarId',
     },
   },
+  {
+    path: 'report',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadChildren: () => import('./report/activity-calendar-report-routing.module').then((m) => m.ActivityCalendarReportRoutingModule),
+      },
+    ],
+  },
 ];
 
 @NgModule({

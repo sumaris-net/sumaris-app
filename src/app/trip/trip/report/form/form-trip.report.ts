@@ -114,6 +114,11 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     this.debug = !environment.production;
   }
 
+  computePrintHref(data: Trip, stats: FormTripReportStats): URL {
+    if (this.uuid) return super.computePrintHref(data, stats);
+    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form');
+  }
+
   async updateView() {
     await super.updateView();
 
@@ -167,7 +172,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       sampleTaxonGroupEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE),
       sampleTaxonNameEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE),
     };
-    console.debug('MYTEST OPTION', stats.options);
     stats.subtitle = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_SUBTITLE);
     stats.footerText = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_FOOTER);
     stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL);
@@ -350,11 +354,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected computeShareBasePath(): string {
     // TODO
     return 'trips/report/form';
-  }
-
-  computePrintHref(data: Trip, stats: FormTripReportStats): URL {
-    if (this.uuid) return super.computePrintHref(data, stats);
-    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form');
   }
 
   protected computeI18nContext(stats: FormTripReportStats): IReportI18nContext {

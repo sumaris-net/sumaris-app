@@ -3338,6 +3338,9 @@
     },
     "OPTIONS": {
       "ENABLE": "Calendrier d'activité > Activer ?"
+    },
+    "REPORT": {
+      "TITLE": "Rapport d'activité"
     }
   },
   "ERROR": {
