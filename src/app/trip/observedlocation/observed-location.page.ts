@@ -186,9 +186,27 @@ export class ObservedLocationPage
     // If errors in landings
     if (typeof error !== 'string' && error?.details?.errors?.landings) {
       // Show error in landing table
-      this.landingsTable.setError('OBSERVED_LOCATION.ERROR.INVALID_LANDING', {
+      this.landingsTable.setError('OBSERVED_LOCATION.ERROR.INVALID_LANDINGS', {
         showOnlyInvalidRows: true,
       });
+
+      // Open the landing tab
+      this.tabGroup.selectedIndex = ObservedLocationPage.TABS.LANDINGS;
+
+      // Reset other errors
+      super.setError(undefined, opts);
+    }
+
+    // If other errors in landings
+    else if (typeof error !== 'string' && error?.details?.errors?.observations) {
+      // Show error in landing table
+      this.landingsTable.setError(error.message, {
+        showOnlyInvalidRows: false,
+        errorDetails: error.details.errors.observations,
+      });
+
+      // TODO JVF: Check observed species count error using footer count?
+      // this.landingsTable.observedCount
 
       // Open the landing tab
       this.tabGroup.selectedIndex = ObservedLocationPage.TABS.LANDINGS;

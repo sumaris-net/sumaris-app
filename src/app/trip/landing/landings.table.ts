@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person } from '@sumaris-net/ngx-components';
+import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person, toBoolean } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
@@ -20,8 +20,9 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { RxState } from '@rx-angular/state';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, tap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, Observable, Subscription, tap } from 'rxjs';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -51,15 +52,22 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   private _parentDateTime: Moment;
   private _parentObservers: Person[];
   private _detailEditor: LandingEditor;
+  private _footerRowsSubscription: Subscription;
 
   protected vesselSnapshotService: VesselSnapshotService;
   protected referentialRefService: ReferentialRefService;
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
 
+  protected footerColumns: string[] = ['footer-start'];
+  protected showObservedCount: boolean;
+  @RxStateSelect() protected readonly observedCount$: Observable<number>;
+  @RxStateProperty() protected observedCount: number;
+
   unknownVesselId = VesselIds.UNKNOWN;
 
   showRowError = false;
+  errorDetails: any;
 
   statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
   statusById = DataQualityStatusEnum;
@@ -76,6 +84,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   @Input() canDelete = true;
   @Input() showFabButton = false;
   @Input() includedPmfmIds: number[] = null;
+  @Input() useFooterSticky = true;
 
   @Input() set detailEditor(value: LandingEditor) {
     if (value !== this._detailEditor) {
@@ -268,6 +277,9 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
         .pipe(debounceTime(250))
         .subscribe()
     );
+
+    // Add footer listener
+    this.registerSubscription(this.pmfms$.subscribe((pmfms) => this.addFooterListener(pmfms)));
   }
 
   ngOnDestroy() {
@@ -278,8 +290,9 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   }
 
   // Change visibility to public
-  setError(error: string, opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean }) {
+  setError(error: string, opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean; errorDetails?: any }) {
     super.setError(error, opts);
+    this.errorDetails = opts?.errorDetails;
 
     // If error
     if (error) {
@@ -465,6 +478,48 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     }
 
     this.filterForm.get(key).reset(null);
+  }
+
+  protected addFooterListener(pmfms: IPmfm[]) {
+    this.showObservedCount = !!(pmfms && pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_OBSERVED));
+
+    // Should display observed count: add column to footer
+    if (this.showObservedCount && !this.footerColumns.includes('footer-observedCount')) {
+      this.footerColumns = [...this.footerColumns, 'footer-observedCount'];
+    }
+    // If observed count not displayed
+    else if (!this.showObservedCount) {
+      // Remove from footer columns
+      this.footerColumns = this.footerColumns.filter((column) => column !== 'footer-observedCount');
+
+      // Reset counter
+      this.observedCount = 0;
+    }
+
+    this.showFooter = this.footerColumns.length > 1;
+
+    // DEBUG
+    console.debug('[landings-table] Show footer ?', this.showFooter);
+
+    // Remove previous rows listener
+    if (!this.showFooter && this._footerRowsSubscription) {
+      this.unregisterSubscription(this._footerRowsSubscription);
+      this._footerRowsSubscription.unsubscribe();
+      this._footerRowsSubscription = null;
+    } else if (this.showFooter && !this._footerRowsSubscription) {
+      this._footerRowsSubscription = this.dataSource
+        .connect(null)
+        .pipe(
+          debounceTime(500),
+          filter((_) => !this.filterCriteriaCount) // Only if no filter criteria
+        )
+        .subscribe((rows) => this.updateFooter(rows));
+    }
+  }
+
+  protected updateFooter(rows: TableElement<Landing>[] | readonly TableElement<Landing>[]) {
+    // Update observed count
+    this.observedCount = (rows || []).map((row) => toBoolean(row.currentData.measurementValues[PmfmIds.IS_OBSERVED])).filter((val) => !!val).length;
   }
 
   protected markForCheck() {

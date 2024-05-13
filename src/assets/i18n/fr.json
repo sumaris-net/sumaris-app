@@ -1627,7 +1627,9 @@
       "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
       "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation.",
       "START_DATE_INVALID": "Doit commencer un {{day}}",
-      "INVALID_LANDING": "Débarquement invalide"
+      "INVALID_LANDING": "Débarquement invalide",
+      "INVALID_LANDINGS": "Veuillez observer ou saisir la raison de non observation",
+      "INVALID_OBSERVED_COUNT": "Le nombre d'espèces observés est incorrect (actuellement : {{observedCount}} ; doit être compris entre {{minObservedCount}} et {{maxObservedCount}})"
     },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "La sortie sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
@@ -1716,6 +1718,8 @@
       "TAXON_NAME": "Espèce scientifique",
       "BTN_OPEN_TRIP": "Ouvrir la marée",
       "BTN_OPEN_SALE": "Ouvrir la vente",
+      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> espèce(s) observée(s) (min. : {{minObservedCount}}, max. : {{maxObservedCount}})",
+      "TOTAL_DOTS": "Total :",
       "SAMPLING": {
         "STRATEGY": "Ligne de plan",
         "SAMPLES_COUNT": "Nb. prélèvements",
