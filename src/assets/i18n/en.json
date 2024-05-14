@@ -1564,7 +1564,6 @@
       "BTN_OPEN_TRIP": "Open the trip",
       "BTN_OPEN_SALE": "Open the sale",
       "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> observed species (min.: {{minObservedCount}}, max.: {{maxObservedCount}})",
-      "TOTAL_DOTS": "Total:",
       "SAMPLING": {
         "STRATEGY": "Sampling strata",
         "SAMPLES_COUNT": "Samples count",
