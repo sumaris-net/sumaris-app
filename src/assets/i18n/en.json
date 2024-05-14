@@ -1474,7 +1474,7 @@
       "START_DATE_INVALID": "Must start a {{day}}",
       "INVALID_LANDING": "Invalid landing",
       "INVALID_LANDINGS": "Please observe or enter the reason for non-observation",
-      "INVALID_OBSERVED_COUNT": "Incorrect number of observed species (current: {{observedCount}} ; should be between {{minObservedCount}} and {{maxObservedCount}})"
+      "INVALID_OBSERVED_COUNT": "Incorrect number of observed species. Please observe {{minObservedCount}} to {{maxObservedCount}} species"
     },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "The selected occasion is linked to individual measures.<br/><br/><b>Are you sure</b> you want to delete it?",

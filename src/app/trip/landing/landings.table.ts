@@ -59,10 +59,12 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
 
-  protected footerColumns: string[] = ['footer-start'];
+  protected footerColumns: string[] = [];
   protected showObservedCount: boolean;
   @RxStateSelect() protected readonly observedCount$: Observable<number>;
   @RxStateProperty() protected observedCount: number;
+  minObservedSpeciesCount: number;
+  maxObservedSpeciesCount: number;
 
   unknownVesselId = VesselIds.UNKNOWN;
 
@@ -481,7 +483,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   }
 
   protected addFooterListener(pmfms: IPmfm[]) {
-    this.showObservedCount = !!(pmfms && pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_OBSERVED));
+    this.showObservedCount = this.isSaleDetailEditor && !!(pmfms && pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_OBSERVED));
 
     // Should display observed count: add column to footer
     if (this.showObservedCount && !this.footerColumns.includes('footer-observedCount')) {
@@ -496,7 +498,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       this.observedCount = 0;
     }
 
-    this.showFooter = this.footerColumns.length > 1;
+    this.showFooter = this.footerColumns.length > 0;
 
     // DEBUG
     console.debug('[landings-table] Show footer ?', this.showFooter);
