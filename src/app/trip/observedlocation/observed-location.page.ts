@@ -205,9 +205,6 @@ export class ObservedLocationPage
         errorDetails: error.details.errors.observations,
       });
 
-      // TODO JVF: Check observed species count error using footer count?
-      // this.landingsTable.observedCount
-
       // Open the landing tab
       this.tabGroup.selectedIndex = ObservedLocationPage.TABS.LANDINGS;
 

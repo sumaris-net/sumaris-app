@@ -30,6 +30,7 @@ import {
   NetworkService,
   Person,
   ProgressBarService,
+  toBoolean,
   toDateISOString,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -1037,8 +1038,8 @@ export class LandingService
         // increment, after save/terminate
         opts.progression.increment(progressionStep);
 
-        // TODO JVF: Best way to count observed species?
-        observedCount += +(entity.measurementValues[PmfmIds.IS_OBSERVED] === 'true');
+        // Count observed species
+        observedCount += +toBoolean(entity.measurementValues[PmfmIds.IS_OBSERVED]);
       }
 
       let errorObservation = null;
