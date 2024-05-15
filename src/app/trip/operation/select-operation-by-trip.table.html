@@ -75,20 +75,20 @@
     <!-- id (=rankOrder) -->
     <ng-container matColumnDef="id" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label>#</ion-label>
+        <ion-label [class.ion-padding-start]="mobile || !allowMultiple">#</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-text>{{ row.currentData.rankOrder }}</ion-text>
+        <ion-text [class.ion-padding-start]="mobile || !allowMultiple">{{ row.currentData.rankOrder }}</ion-text>
       </td>
     </ng-container>
 
-    <!-- trip id -->
-    <ng-container matColumnDef="tripId">
+    <!-- quality -->
+    <ng-container matColumnDef="quality">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label translate>TRIP.OPERATION.LIST.TRIP_ID</ion-label>
+        <ion-label translate>TRIP.OPERATION.LIST.TRIP</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <app-operation-icon [value]="row.currentData" allowParentOperation></app-operation-icon>
+        <app-operation-icon [value]="row.currentData" [allowParentOperation]="allowParentOperation"></app-operation-icon>
       </td>
     </ng-container>
 
@@ -203,21 +203,35 @@
     ></tr>
 
     <!-- Divider -->
+    <ng-container matColumnDef="tripId" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
+      <td mat-cell *matCellDef="let row" class="divider">
+        @if (row.currentData.trip; as trip) {
+          @if (showTripId) {
+            <ion-text class="ion-padding-start">
+              {{ trip?.id | mathAbs }}
+            </ion-text>
+          } @else {
+            <app-entity-quality-icon [value]="trip"></app-entity-quality-icon>
+          }
+        }
+      </td>
+    </ng-container>
     <ng-container matColumnDef="divider" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
       <td mat-cell colspan="4" *matCellDef="let row" class="divider">
         <ion-text>
-          {{ row.currentData.trip.id | mathAbs }} -
-          {{
-            'TRIP.OPERATION.PARENT.TRIP'
-              | translate
-                : {
-                    vessel:
-                      (row.currentData.trip.vesselSnapshot &&
-                        (row.currentData.trip.vesselSnapshot.exteriorMarking || row.currentData.trip.vesselSnapshot.name)) ||
-                      '',
-                    departureDateTime: row.currentData.trip.departureDateTime | dateFormat
-                  }
-          }}
+          <span
+            [innerHTML]="
+              'TRIP.OPERATION.PARENT.TRIP'
+                | translate
+                  : {
+                      vessel:
+                        (row.currentData.trip.vesselSnapshot &&
+                          (row.currentData.trip.vesselSnapshot.exteriorMarking || row.currentData.trip.vesselSnapshot.name)) ||
+                        '',
+                      departureDateTime: row.currentData.trip.departureDateTime | dateFormat
+                    }
+            "
+          ></span>
         </ion-text>
       </td>
     </ng-container>
@@ -225,7 +239,14 @@
       <td mat-cell colspan="999" *matCellDef="let row" class="divider"></td>
     </ng-container>
 
-    <tr mat-row *matRowDef="let row; columns: ['divider', 'dividerColspan']; when: isDivider"></tr>
+    <tr
+      mat-row
+      *matRowDef="
+        let row;
+        columns: allowMultiple ? ['select', 'tripId', 'divider', 'dividerColspan'] : ['tripId', 'divider', 'dividerColspan'];
+        when: isDivider
+      "
+    ></tr>
   </table>
 
   <ng-container *ngIf="loadingSubject | async; else noResult">

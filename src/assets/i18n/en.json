@@ -899,7 +899,7 @@
       },
       "LIST": {
         "ID": "Number",
-        "TRIP_ID": "Trip",
+        "TRIP": "Trip",
         "PHYSICAL_GEAR": "Used gear",
         "METIER": "Metier",
         "TARGET_SPECIES": "Target species",

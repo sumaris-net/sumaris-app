@@ -267,7 +267,10 @@
                 [debug]="debug"
               >
                 <!-- Other features (Measurements) -->
-                <ion-grid class="ion-no-padding ion-padding-top" [class.cdk-visually-hidden]="measurementsForm.pmfms$ | async | isEmptyArray">
+                <ion-grid
+                  class="form-container ion-no-padding ion-padding-top"
+                  [class.cdk-visually-hidden]="measurementsForm.pmfms$ | async | isEmptyArray"
+                >
                   <ion-row>
                     <ion-col size="12" size-md="3" size-lg="3">
                       <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-label>
