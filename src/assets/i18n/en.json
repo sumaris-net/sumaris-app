@@ -1442,6 +1442,7 @@
       "PROGRAM": "Programme",
       "START_DATE_TIME": "Date/time",
       "QUALITY": "State",
+      "QUALITY_FILTER": "Filter by state:",
       "LOCATION": "Location",
       "OBSERVERS": "Observers",
       "RECORDER_PERSON": "Recorder",
