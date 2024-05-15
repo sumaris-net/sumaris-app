@@ -10,8 +10,8 @@ import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import {
   ImageAttachment,
-  isEmptyArray,
   isNil,
+  isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   LatLongPattern,
@@ -47,8 +47,8 @@ export class FormTripReportStats extends BaseReportStats {
   pmfmByGearsId: { [key: number]: number[] };
   denormalizedBatchByOp: {
     [key: number]: {
-      landing: DenormalizedBatch[];
-      discard: DenormalizedBatch[];
+      landing?: DenormalizedBatch[];
+      discard?: DenormalizedBatch[];
       hasNoSample: boolean;
     };
   };
@@ -167,7 +167,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       sampleTaxonGroupEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE),
       sampleTaxonNameEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE),
     };
-    console.debug('MYTEST OPTION', stats.options);
     stats.subtitle = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_SUBTITLE);
     stats.footerText = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_FOOTER);
     stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL);
@@ -266,7 +265,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     stats.denormalizedBatchByOp = {};
     for (const op of data.operations) {
       const denormalizedBatches = (await this.denormalizedBatchService.loadAll(0, 1000, null, null, { operationId: op.id })).data;
-      const [root] = DenormalizedBatchUtils.arrayToTree(denormalizedBatches);
+      const [catchBatch] = DenormalizedBatchUtils.arrayToTree(denormalizedBatches);
 
       // Copy sampling batch properties to parent
       const samplingBatches = denormalizedBatches
@@ -283,15 +282,13 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         });
 
       // Exclude not visible batches
-      const landings = TreeItemEntityUtils.filterRecursively(root, (b) => b?.isLanding && !samplingBatches.includes(b));
-      const discards = TreeItemEntityUtils.filterRecursively(root, (b) => b?.isDiscard && !samplingBatches.includes(b));
+      const landings = catchBatch && TreeItemEntityUtils.filterRecursively(catchBatch, (b) => b?.isLanding && !samplingBatches.includes(b));
+      const discards = catchBatch && TreeItemEntityUtils.filterRecursively(catchBatch, (b) => b?.isDiscard && !samplingBatches.includes(b));
 
       // Compute tre indent text
-      [landings, discards].forEach((batches) => {
-        if (batches.length > 0) {
-          DenormalizedBatchUtils.filterTreeComponents(batches[0], (b) => !DenormalizedBatchUtils.isSamplingBatch(b));
-          DenormalizedBatchUtils.computeTreeIndent(batches[0], [], false, { html: true });
-        }
+      [landings, discards].filter(isNotEmptyArray).forEach((batches) => {
+        DenormalizedBatchUtils.filterTreeComponents(batches[0], (b) => !DenormalizedBatchUtils.isSamplingBatch(b));
+        DenormalizedBatchUtils.computeTreeIndent(batches[0], [], false, { html: true });
       });
 
       stats.denormalizedBatchByOp[op.id] = {
