@@ -1,8 +1,20 @@
-import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils } from '@app/data/measurement/measurement.model';
+import { IEntityWithMeasurement, MeasurementModelValues } from '@app/data/measurement/measurement.model';
 import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { Entity, EntityClass, ReferentialRef, isNotEmptyArray } from '@sumaris-net/ngx-components';
+import { Entity, EntityClass, ITreeItemEntity, ReferentialRef } from '@sumaris-net/ngx-components';
+
+export interface DenormalizedTripResult {
+  tripCount: number;
+  operationCount: number;
+  batchCount: number;
+
+  tripErrorCount: number;
+  invalidBatchCount: number;
+
+  message: string;
+  jobStatusEnum: number;
+}
 
 export interface DenormalizedBatchAsObjectOptions extends DataEntityAsObjectOptions {}
 
@@ -16,7 +28,7 @@ export class DenormalizedBatch<
     FO extends DenormalizedBatchFromObjectOptions = DenormalizedBatchFromObjectOptions,
   >
   extends DataEntity<T, ID, O, FO>
-  implements IEntityWithMeasurement<T, ID>
+  implements IEntityWithMeasurement<T, ID>, ITreeItemEntity<T, ID>
 {
   label: string;
   weight: number;
@@ -38,9 +50,12 @@ export class DenormalizedBatch<
   measurementValues: MeasurementModelValues;
   samplingRatioText: string;
   samplingRatio: number;
+  parentId: ID;
   taxonGroup: ReferentialRef = null;
   taxonName: TaxonNameRef = null;
   operationId: number;
+  children: T[];
+  parent: T;
 
   static fromObject: (source: any, opts?: DenormalizedBatchFromObjectOptions) => DenormalizedBatch;
 
@@ -70,6 +85,7 @@ export class DenormalizedBatch<
     this.sortingValuesText = source.sortingValuesText;
     this.samplingRatioText = source.samplingRatioText;
     this.samplingRatio = source.samplingRatio;
+    this.parentId = source.parentId;
     this.taxonGroup = ReferentialRef.fromObject(source.taxonGroup);
     this.taxonName = TaxonNameRef.fromObject(source.taxonName);
     this.operationId = source.operationId;

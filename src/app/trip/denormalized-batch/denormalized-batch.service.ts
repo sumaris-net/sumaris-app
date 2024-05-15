@@ -1,5 +1,5 @@
-import { BaseEntityService, EntityServiceLoadOptions, GraphqlService, LoadResult, PlatformService } from '@sumaris-net/ngx-components';
-import { DenormalizedBatch } from './denormalized-batch.model';
+import { BaseEntityService, EntityServiceLoadOptions, ErrorCodes, GraphqlService, LoadResult, PlatformService } from '@sumaris-net/ngx-components';
+import { DenormalizedBatch, DenormalizedTripResult } from './denormalized-batch.model';
 import { DenormalizedBatchFilter } from './denormalized-batch.filter';
 import gql from 'graphql-tag';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
@@ -7,7 +7,7 @@ import { Injectable } from '@angular/core';
 import { SortDirection } from '@angular/material/sort';
 
 export const DenormalizedBatchFragments = {
-  denormalizedBatchLight: gql`
+  denormalizedBatch: gql`
     fragment DenormalizedBatchFragment on DenormalizedBatchVO {
       id
       label
@@ -30,6 +30,7 @@ export const DenormalizedBatchFragments = {
       measurementValues
       samplingRatioText
       samplingRatio
+      parentId
       taxonGroup {
         ...LightReferentialFragment
       }
@@ -43,6 +44,18 @@ export const DenormalizedBatchFragments = {
     ${ReferentialFragments.lightReferential}
     ${ReferentialFragments.taxonName}
   `,
+  denormalizedTripResult: gql`
+    fragment DenormalizedTripResult on DenormalizedTripResultVO {
+      tripCount
+      operationCount
+      batchCount
+      tripErrorCount
+      invalidBatchCount
+      executionTime
+      message
+      status
+    }
+  `,
 };
 
 export const DenormalizedBatchQueries = {
@@ -53,7 +66,15 @@ export const DenormalizedBatchQueries = {
         __typename
       }
     }
-    ${DenormalizedBatchFragments.denormalizedBatchLight}
+    ${DenormalizedBatchFragments.denormalizedBatch}
+  `,
+  denormalizeTrip: gql`
+    query DenormalizeTrip($tripId: Int!) {
+      data: denormalizeTrip(id: $tripId) {
+        ...DenormalizedTripResult
+      }
+    }
+    ${DenormalizedBatchFragments.denormalizedTripResult}
   `,
 };
 
@@ -83,5 +104,22 @@ export class DenormalizedBatchService extends BaseEntityService<DenormalizedBatc
   ): Promise<LoadResult<DenormalizedBatch>> {
     const result = super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
     return result;
+  }
+
+  async denormalizeTrip(tripId: number): Promise<LoadResult<DenormalizedTripResult>> {
+    if (this._debug) console.debug(this._logPrefix + `DenormalizeTrip {${tripId}}...`);
+
+    const variables = {
+      tripId: tripId,
+    };
+
+    const query = DenormalizedBatchQueries.denormalizeTrip;
+    const { data } = await this.graphql.query<{ data: any }>({
+      query,
+      variables,
+      error: { code: ErrorCodes.LOAD_DATA_ERROR, message: 'ERROR.LOAD_DATA_ERROR' },
+    });
+
+    return data;
   }
 }
