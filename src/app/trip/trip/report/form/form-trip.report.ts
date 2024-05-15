@@ -11,7 +11,6 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import {
   ImageAttachment,
   isNil,
-  isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   LatLongPattern,
@@ -49,7 +48,6 @@ export class FormTripReportStats extends BaseReportStats {
     [key: number]: {
       landing?: DenormalizedBatch[];
       discard?: DenormalizedBatch[];
-      hasNoSample: boolean;
     };
   };
   measurementValues: {
@@ -291,11 +289,11 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         DenormalizedBatchUtils.computeTreeIndent(batches[0], [], false, { html: true });
       });
 
-      stats.denormalizedBatchByOp[op.id] = {
-        landing: landings,
-        discard: discards,
-        hasNoSample: isEmptyArray(landings) && isEmptyArray(discards),
-      };
+      if (isNotEmptyArray(landings) || isNotEmptyArray(discards))
+        stats.denormalizedBatchByOp[op.id] = {
+          landing: landings,
+          discard: discards,
+        };
     }
 
     stats.sampleImagesByOperationIds = {};
