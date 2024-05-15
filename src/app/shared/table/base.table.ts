@@ -350,6 +350,11 @@ export abstract class AppBaseTable<
     }
   }
 
+  escapeEditingRow(event?: Event, row?: TableElement<T>) {
+    super.escapeEditingRow(event, row);
+    if (!this.editedRow) this.focusColumn = null;
+  }
+
   /**
    * Say if the row can be added. Useful to check unique constraints, and warn user
    * is.s physical gear table can check is the rankOrder

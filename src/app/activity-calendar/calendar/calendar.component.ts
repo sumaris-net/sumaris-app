@@ -626,12 +626,12 @@ export class CalendarComponent
     return super.clickRow(event, row);
   }
 
-  cancelOrDelete(event: Event, row: TableElement<ActivityMonth>, opts?: { interactive?: boolean; keepEditing?: boolean }) {
+  cancelOrDelete(event: Event, row: TableElement<ActivityMonth>, opts?: { interactive?: boolean; keepEditing?: boolean; emitEvent?: boolean }) {
     event?.preventDefault();
     super.cancelOrDelete(event, row, { ...opts, keepEditing: false });
 
     // Update view
-    if (!row.editing) this.markForCheck();
+    if (!row.editing && opts?.emitEvent !== false) this.markForCheck();
   }
 
   addMetierBlock(event?: UIEvent, opts?: { emitEvent?: boolean }) {
@@ -726,6 +726,8 @@ export class CalendarComponent
   ) {
     if (!form || !this.validatorService) return;
 
+    this.markAsDirty();
+
     const isActive = form.get('isActive').value;
     console.debug(this.logPrefix + 'Preparing row form... isActive=' + isActive, form);
 
@@ -733,7 +735,7 @@ export class CalendarComponent
       withMetier: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
       withFishingAreas: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
       metierCount: this.metierCount,
-      fishingAreaCount: 1, //this.maxFishingAreaCount,
+      fishingAreaCount: this.maxFishingAreaCount,
       isOnFieldMode: this.isOnFieldMode,
       ...opts,
     };
@@ -743,6 +745,7 @@ export class CalendarComponent
       this.rowSubscription?.unsubscribe();
       this.rowSubscription = ActivityMonthValidators.startListenChanges(form, this.pmfms, {
         markForCheck: () => this.markForCheck(),
+        debounceTime: 100,
       });
     }
   }
@@ -754,6 +757,36 @@ export class CalendarComponent
       maxMetierCount: this.maxMetierCount,
       maxFishingAreaCount: this.maxFishingAreaCount,
     };
+  }
+
+  confirmEditCreate(event?: Event, row?: TableElement<ActivityMonth>): boolean {
+    row = row || this.editedRow;
+    if (!row || !row.editing) return true; // no row to confirm
+
+    // If pristine, cancel instead of confirmed
+    if (row.validator.pristine && !row.validator.valid) {
+      this.cancelOrDelete(event, row);
+      return true;
+    }
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    return super.confirmEditCreate(event, row);
+  }
+
+  clear(event?: Event, row?: TableElement<ActivityMonth>) {
+    row = row || this.editedRow;
+    if (!row || !row.editing) return true; // no row to confirm
+
+    const emptyMonth = new ActivityMonth();
+    delete emptyMonth.startDate;
+    delete emptyMonth.endDate;
+    emptyMonth.gearUseFeatures = [];
+    row.validator.reset(emptyMonth);
+    this.onPrepareRowForm(row.validator, { listenChanges: false });
+    this.cancelOrDelete(event, row, { keepEditing: true });
+    this.markForCheck();
   }
 
   toggleBlock(event: UIEvent, blockIndex: number) {
