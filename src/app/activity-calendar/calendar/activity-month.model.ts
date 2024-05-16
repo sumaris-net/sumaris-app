@@ -11,6 +11,10 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
     return (isNotNil(o1.id) && o1.id === o2.id) || (DateUtils.isSame(o1.startDate, o2.startDate) && DateUtils.isSame(o1.startDate, o2.startDate));
   }
 
+  static isEmpty(o: ActivityMonth) {
+    return VesselUseFeatures.isEmpty(o) && (o.gearUseFeatures || []).every(GearUseFeatures.isEmpty);
+  }
+
   month: number;
   gearUseFeatures: GearUseFeatures[];
 

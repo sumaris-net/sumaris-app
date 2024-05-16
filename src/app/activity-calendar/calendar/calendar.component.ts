@@ -14,6 +14,7 @@ import {
 import {
   DateUtils,
   EntityUtils,
+  getPropertyByPath,
   IEntitiesService,
   InMemoryEntitiesService,
   isEmptyArray,
@@ -59,6 +60,8 @@ import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measure
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { Moment } from 'moment/moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 
 const MAX_METIER_COUNT = 10;
 const MAX_FISHING_AREA_COUNT = 2;
@@ -592,29 +595,36 @@ export class CalendarComponent
 
   protected onMouseEnd(event: { colspan: number; rowspan: number }) {
     const columnName = this.resizingCell.columnName;
-    switch (columnName) {
-      case 'basePortLocation':
-      case 'isActive': {
-        if (event.colspan > 0 && event.rowspan === 1) {
-          this.confirmEditCreate();
-          const sourceRow = this.resizingCell.row;
-          const sourceValue = sourceRow.currentData[columnName];
-          const minRowId = sourceRow.id + 1;
-          const maxRowId = sourceRow.id + (event.colspan - 1);
+    const column = this.dynamicColumns?.find((c) => c.key === columnName);
+    console.debug(this.logPrefix + 'MouseEnd column: ', column);
+    const canCopy =
+      columnName === 'isActive' || columnName === 'basePortLocation' || PMFM_ID_REGEXP.test(columnName) || columnName.startsWith('metier');
+    const path = column?.path || (PMFM_ID_REGEXP.test(columnName) && `measurementValues.${columnName}`) || columnName;
+    if (canCopy) {
+      if (event.colspan > 0 && event.rowspan === 1) {
+        this.confirmEditCreate();
+        const sourceRow = this.resizingCell.row;
+        const sourceValue = getPropertyByPath(sourceRow.currentData, path);
+        const minRowId = sourceRow.id + 1;
+        const maxRowId = sourceRow.id + (event.colspan - 1);
 
-          const targetRows = this.dataSource.getRows().filter((row) => row.id >= minRowId && row.id <= maxRowId);
+        const targetRows = this.dataSource.getRows().filter((row) => row.id >= minRowId && row.id <= maxRowId);
 
-          // DEBUG
-          if (this.debug) console.debug(this.logPrefix + `Copying ${columnName} to ${targetRows.length} months ...`, targetRows);
+        // DEBUG
+        if (this.debug) console.debug(this.logPrefix + `Copying ${columnName} to ${targetRows.length} months ...`, targetRows);
 
-          targetRows.forEach((targetRow) => {
-            if (targetRow.validator) {
-              targetRow.validator.patchValue({ [columnName]: sourceValue });
+        targetRows.forEach((targetRow) => {
+          if (targetRow.validator) {
+            const control = targetRow.validator.get(path);
+            if (control) {
+              control.patchValue(sourceValue, { emitEvent: true });
               targetRow.validator.markAsDirty();
+            } else {
+              console.warn('Control with path not exists: ' + path);
             }
-          });
-          this.markForCheck();
-        }
+          }
+        });
+        this.markForCheck();
       }
     }
     return true;
@@ -628,10 +638,15 @@ export class CalendarComponent
 
   cancelOrDelete(event: Event, row: TableElement<ActivityMonth>, opts?: { interactive?: boolean; keepEditing?: boolean; emitEvent?: boolean }) {
     event?.preventDefault();
+    this.rowSubscription?.unsubscribe();
     super.cancelOrDelete(event, row, { ...opts, keepEditing: false });
-
-    // Update view
-    if (!row.editing && opts?.emitEvent !== false) this.markForCheck();
+    // Listen changes, if still editing (e.g. when cannot cancel)
+    if (row.editing) this.startListenRowFormChanges(row.validator);
+    else {
+      row.validator.markAsPristine();
+      // Update view
+      if (opts?.emitEvent !== false) this.markForCheck();
+    }
   }
 
   addMetierBlock(event?: UIEvent, opts?: { emitEvent?: boolean }) {
@@ -742,12 +757,16 @@ export class CalendarComponent
     this.validatorService.updateFormGroup(form, opts);
 
     if (opts?.listenChanges !== false) {
-      this.rowSubscription?.unsubscribe();
-      this.rowSubscription = ActivityMonthValidators.startListenChanges(form, this.pmfms, {
-        markForCheck: () => this.markForCheck(),
-        debounceTime: 100,
-      });
+      this.startListenRowFormChanges(form);
     }
+  }
+
+  protected startListenRowFormChanges(form: UntypedFormGroup) {
+    this.rowSubscription?.unsubscribe();
+    this.rowSubscription = ActivityMonthValidators.startListenChanges(form, this.pmfms, {
+      markForCheck: () => this.markForCheck(),
+      debounceTime: 100,
+    });
   }
 
   protected configureValidator(opts: MeasurementsTableValidatorOptions) {
@@ -777,15 +796,34 @@ export class CalendarComponent
 
   clear(event?: Event, row?: TableElement<ActivityMonth>) {
     row = row || this.editedRow;
-    if (!row || !row.editing) return true; // no row to confirm
+    if (!row) return true; // no row to confirm
 
-    const emptyMonth = new ActivityMonth();
-    delete emptyMonth.startDate;
-    delete emptyMonth.endDate;
-    emptyMonth.gearUseFeatures = [];
-    row.validator.reset(emptyMonth);
-    this.onPrepareRowForm(row.validator, { listenChanges: false });
-    this.cancelOrDelete(event, row, { keepEditing: true });
+    if (this.debug) console.debug(this.logPrefix + 'Clear row', row);
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const currentData = row.currentData;
+    if (ActivityMonth.isEmpty(currentData)) return true; // Nothing to clear
+
+    const { startDate, endDate } = currentData;
+    const data = ActivityMonth.fromObject({
+      startDate,
+      endDate,
+      measurementValues: MeasurementValuesUtils.normalizeValuesToForm({}, this.pmfms),
+      gearUseFeatures: new Array(this.maxMetierCount).fill({
+        startDate,
+        endDate,
+        fishingAreas: new Array(this.maxFishingAreaCount).fill({}),
+      }),
+    });
+
+    if (row.validator && row.editing) {
+      row.originalData = data;
+      this.cancelOrDelete(event, row, { keepEditing: true });
+    } else {
+      row.currentData = data;
+    }
+    this.markAsDirty({ emitEvent: false });
     this.markForCheck();
   }
 

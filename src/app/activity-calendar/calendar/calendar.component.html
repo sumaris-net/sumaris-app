@@ -299,17 +299,28 @@
           <ng-container *ngTemplateOutlet="metierButtons"></ng-container>
         </div>
         <ng-template #cellInjection let-row>
-          <!-- clear button -->
-          <button
-            mat-icon-button
-            color="light"
-            *ngIf="inlineEdition && row.editing"
-            [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="cancelOrDelete($event, row)"
-            tabIndex="-1"
-          >
-            <mat-icon>undo</mat-icon>
-          </button>
+          @if (inlineEdition && _enabled && !row.pending) {
+            <!-- cancel button -->
+            @if (row.editing && row.dirty) {
+              <button mat-icon-button [title]="'COMMON.BTN_CANCEL' | translate" (click)="cancelOrDelete($event, row)" tabIndex="-1">
+                <mat-icon>undo</mat-icon>
+              </button>
+            }
+
+            <!-- clear button -->
+            @if (row.validator | formGetValue: 'isActive' | isNotNil) {
+              <button
+                mat-icon-button
+                [color]="row.editing ? 'dark' : 'medium'"
+                [class.visible-hover]="!row.editing"
+                [title]="'ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_MONTH' | translate"
+                (click)="clear($event, row)"
+                tabIndex="-1"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+          }
         </ng-template>
       </app-actions-column>
 
