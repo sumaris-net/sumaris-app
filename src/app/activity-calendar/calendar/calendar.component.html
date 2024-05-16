@@ -46,7 +46,7 @@
     (ngInit)="initTableContainer(tableContainer)"
     [class.mobile]="mobile"
   >
-    <mat-table [dataSource]="dataSource" [class.resizing]="!!resizingCell">
+    <mat-table [dataSource]="dataSource" [class.resizing]="resizing">
       <!-- hidden columns (required by AppTable) -->
       <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
         <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
@@ -258,11 +258,11 @@
             class="{{ col.class }}"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
-            (mouseenter)="col.hidden && resizingCell && expandBlock($event, col.blockIndex)"
+            (mouseenter)="col.hidden && resizing && expandBlock($event, col.blockIndex)"
             (click)="col.hidden ? toggleBlock($event, col.blockIndex) : setFocusColumn(col.key)"
           >
             @if (!col.hidden) {
-              @if (!col.hidden && row.editing && row.validator | formGetControl: col.path; as control) {
+              @if (row.editing && row.validator | formGetControl: col.path; as control) {
                 <mat-autocomplete-field
                   [placeholder]="col.placeholder"
                   [formControl]="control"
@@ -272,7 +272,7 @@
                   [panelWidth]="!mobile && '500px'"
                 ></mat-autocomplete-field>
               } @else {
-                @if (!col.hidden && row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
+                @if (row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
                   <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
                 }
               }
@@ -311,13 +311,13 @@
             @if (row.validator | formGetValue: 'isActive' | isNotNil) {
               <button
                 mat-icon-button
-                [color]="row.editing ? 'dark' : 'medium'"
+                [class.cdk-visually-hidden]="resizing"
                 [class.visible-hover]="!row.editing"
                 [title]="'ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_MONTH' | translate"
                 (click)="clear($event, row)"
                 tabIndex="-1"
               >
-                <mat-icon>delete</mat-icon>
+                <ion-icon [color]="row.editing ? 'dark' : 'step-200'" name="close"></ion-icon>
               </button>
             }
           }

@@ -12,6 +12,7 @@ import {
   ViewChildren,
 } from '@angular/core';
 import {
+  Alerts,
   DateUtils,
   EntityUtils,
   getPropertyByPath,
@@ -175,6 +176,10 @@ export class CalendarComponent
   protected originalMouseX: number;
   protected _children: CalendarComponent[];
 
+  protected get resizing(): boolean {
+    return !!this.resizingCell;
+  }
+
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -307,6 +312,7 @@ export class CalendarComponent
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
     this.excludesColumns = [...DYNAMIC_COLUMNS];
     this.logPrefix = '[activity-calendar] ';
+    this.undoableDeletion = true;
   }
 
   async ngOnInit() {
@@ -588,46 +594,17 @@ export class CalendarComponent
   }
 
   protected async validate(event: { colspan: number; rowspan: number }): Promise<boolean> {
-    // TODO display merge menu
+    // TODO display merge/opts menu
     await sleep(500);
     return true;
   }
 
   protected onMouseEnd(event: { colspan: number; rowspan: number }) {
-    const columnName = this.resizingCell.columnName;
-    const column = this.dynamicColumns?.find((c) => c.key === columnName);
-    const path = column?.path || (PMFM_ID_REGEXP.test(columnName) && `measurementValues.${columnName}`) || columnName;
-    console.debug(this.logPrefix + 'MouseEnd path: ', path);
-
-    if (event.colspan !== 0 && event.rowspan === 1) {
-      const canCopy =
-        columnName === 'isActive' || columnName === 'basePortLocation' || PMFM_ID_REGEXP.test(columnName) || columnName.startsWith('metier');
-      if (canCopy) {
-        this.confirmEditCreate();
-        const sourceRow = this.resizingCell.row;
-        const sourceValue = getPropertyByPath(sourceRow.currentData, path);
-        const minRowId = sourceRow.id + 1;
-        const maxRowId = sourceRow.id + (event.colspan - 1);
-
-        const targetRows = this.dataSource.getRows().filter((row) => row.id >= minRowId && row.id <= maxRowId);
-
-        // DEBUG
-        if (this.debug) console.debug(this.logPrefix + `Copying ${columnName} to ${targetRows.length} months ...`, targetRows);
-
-        targetRows.forEach((targetRow) => {
-          if (targetRow.validator) {
-            const control = targetRow.validator.get(path);
-            if (control) {
-              control.patchValue(isNil(sourceValue) ? null : sourceValue, { emitEvent: true });
-              targetRow.validator.markAsDirty();
-            } else {
-              console.warn('Control with path not exists: ' + path);
-            }
-          }
-        });
-        this.markForCheck();
-      }
+    // Vertical copy
+    if (this.canEdit && this.enabled && event.colspan !== 0 && event.rowspan === 1) {
+      return this.copyVertically(this.resizingCell.row, this.resizingCell.columnName, event.colspan);
     }
+
     return true;
   }
 
@@ -795,13 +772,17 @@ export class CalendarComponent
     return super.confirmEditCreate(event, row);
   }
 
-  clear(event?: Event, row?: TableElement<ActivityMonth>) {
+  async clear(event?: Event, row?: TableElement<ActivityMonth>) {
     row = row || this.editedRow;
-    if (!row) return true; // no row to confirm
+    if (!row || event.defaultPrevented) return true; // no row to confirm
 
-    if (this.debug) console.debug(this.logPrefix + 'Clear row', row);
     event?.preventDefault();
     event?.stopPropagation();
+
+    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_MONTH', this.alertCtrl, this.translate);
+    if (!confirmed) return false; // User cancelled
+
+    if (this.debug) console.debug(this.logPrefix + 'Clear row', row);
 
     const currentData = row.currentData;
     if (ActivityMonth.isEmpty(currentData)) return true; // Nothing to clear
@@ -876,5 +857,65 @@ export class CalendarComponent
 
   protected setFocusColumn(key: string) {
     this.focusColumn = key;
+  }
+
+  protected copyVertically(sourceRow: TableElement<ActivityMonth>, columnName: string, colspan: number) {
+    if (!sourceRow || !columnName || colspan === 0 || !this.enabled) return false;
+
+    console.debug(this.logPrefix + `Copying vertically ${columnName} - colspan=${colspan}`);
+
+    // Get column
+    const dynamicColumns = this.dynamicColumns?.find((c) => c.key === columnName);
+    const validColumn = !!dynamicColumns || columnName === 'isActive' || columnName === 'basePortLocation' || PMFM_ID_REGEXP.test(columnName);
+    if (!validColumn) return false;
+
+    const path = dynamicColumns?.path || (PMFM_ID_REGEXP.test(columnName) ? `measurementValues.${columnName}` : columnName);
+
+    // Get target rows
+    const minRowId = colspan > 0 ? sourceRow.id + 1 : sourceRow.id + colspan + 1;
+    const maxRowId = colspan > 0 ? sourceRow.id + colspan - 1 : sourceRow.id - 1;
+    const targetRows = this.dataSource.getRows().filter((row) => row.id >= minRowId && row.id <= maxRowId);
+    if (isEmptyArray(targetRows)) return false; // Skip if empty
+
+    // DEBUG
+    if (this.debug) console.debug(this.logPrefix + `Copying vertically ${columnName} to ${targetRows.length} months ...`, targetRows);
+
+    // Get source value (after confirmed if row is editing)
+    this.confirmEditCreate(); // Row can be NOT confirmed, but it's OK
+    const sourceValue = getPropertyByPath(sourceRow.currentData, path);
+
+    let dirty = false;
+    targetRows.forEach((row, index) => {
+      const form = row.validator;
+      if (form) {
+        const isActiveControl = form.get('isActive');
+        let isActive = isActiveControl.value;
+        if (isNotNil(sourceValue) && columnName !== 'isActive' && columnName !== 'basePortLocation') {
+          if (isNil(isActive)) {
+            isActive = VesselUseFeaturesIsActiveEnum.ACTIVE;
+            isActiveControl.patchValue(isActive, { emitEvent: false });
+            dirty = true;
+          }
+          // Prepare the form
+          this.onPrepareRowForm(form, { listenChanges: false });
+        }
+
+        const control = form.get(path);
+        if (control && (isActive === VesselUseFeaturesIsActiveEnum.ACTIVE || columnName === 'isActive' || columnName === 'basePortLocation')) {
+          control.patchValue(isNil(sourceValue) ? null : sourceValue, { emitEvent: true });
+          form.markAsDirty();
+          dirty = true;
+        } else {
+          console.debug(`- Skipping copy value to month ${index + 1}`);
+        }
+      }
+    });
+
+    if (dirty) {
+      this.markAsDirty({ emitEvent: false });
+      this.markForCheck();
+    }
+
+    return dirty;
   }
 }
