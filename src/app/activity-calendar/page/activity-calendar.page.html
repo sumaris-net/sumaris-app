@@ -195,6 +195,8 @@
         [requiredStrategy]="requiredStrategy$ | async"
         [strategyId]="(strategy$ | async)?.id"
         [timezone]="dbTimeZone"
+        [showGearColumn]="false"
+        [showMetierColumn]="true"
       ></app-gear-use-features-table>
     </mat-tab>
 

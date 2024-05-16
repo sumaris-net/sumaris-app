@@ -100,7 +100,7 @@ export class GearUseFeaturesValidatorService<O extends GearUseFeaturesValidatorO
 
     // Add gear
     if (opts.withGear) {
-      config.gear = this.getGearControl(data?.metier, { required: opts?.requiredGear !== false });
+      config.gear = this.getGearControl(data?.gear, { required: opts?.requiredGear !== false });
     }
 
     // Add fishing Ares

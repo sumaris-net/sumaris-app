@@ -84,6 +84,8 @@
           [strategyId]="filterForm | formGetValue: 'strategy' | mapGet: 'id'"
           [mobile]="true"
           [debug]="true"
+          [canAdd]="true"
+          [canDelete]="true"
         ></app-gear-use-features-table>
 
         <!-- buttons -->
@@ -135,6 +137,9 @@
           [requiredGear]="false"
           [mobile]="false"
           [debug]="true"
+          [canAdd]="true"
+          [canDelete]="true"
+          [year]="2024"
         ></app-gear-use-features-table>
 
         <!-- buttons -->

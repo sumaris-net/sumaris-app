@@ -80,38 +80,13 @@
       </td>
     </ng-container>
 
-    <!-- Métier -->
-    <ng-container matColumnDef="metier">
-      <th mat-header-cell *matHeaderCellDef>
-        <ion-label translate>ACTIVITY_CALENDAR.EDIT.METIER</ion-label>
-      </th>
-      <td mat-cell *matCellDef="let row">
-        @if (row.editing) {
-          <mat-autocomplete-field
-            floatLabel="never"
-            class="min-width-medium"
-            [autofocus]="row.editing && focusColumn === 'metier'"
-            [formControl]="row.validator.controls.metier"
-            [placeholder]="'ACTIVITY_CALENDAR.EDIT.METIER' | translate"
-            [config]="autocompleteFields.metier"
-          ></mat-autocomplete-field>
-        } @else if (mobile) {
-          <!-- readonly value (mobile)-->
-          {{ row.currentData.metier | referentialToString: autocompleteFields.metier.attributes }}
-        } @else {
-          <!-- readonly value (desktop)-->
-          {{ row.validator | formGetValue: 'metier' | referentialToString: autocompleteFields.metier.attributes }}
-        }
-      </td>
-    </ng-container>
-
     <!-- gear -->
     <ng-container matColumnDef="gear">
       <th mat-header-cell *matHeaderCellDef>
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.GEAR</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        @if (row.editing) {
+        @if (canEditGear) {
           <mat-autocomplete-field
             floatLabel="never"
             class="min-width-medium"
@@ -130,10 +105,35 @@
       </td>
     </ng-container>
 
+    <!-- Métier -->
+    <ng-container matColumnDef="metier">
+      <th mat-header-cell *matHeaderCellDef>
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.METIER</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        @if (canEditMetier) {
+          <mat-autocomplete-field
+            floatLabel="never"
+            class="min-width-medium"
+            [autofocus]="row.editing && focusColumn === 'metier'"
+            [formControl]="row.validator.controls.metier"
+            [placeholder]="'ACTIVITY_CALENDAR.EDIT.METIER' | translate"
+            [config]="autocompleteFields.metier"
+          ></mat-autocomplete-field>
+        } @else if (mobile) {
+          <!-- readonly value (mobile)-->
+          {{ row.currentData.metier | referentialToString: autocompleteFields.metier.attributes }}
+        } @else {
+          <!-- readonly value (desktop)-->
+          {{ row.validator | formGetValue: 'metier' | referentialToString: autocompleteFields.metier.attributes }}
+        }
+      </td>
+    </ng-container>
+
     <!-- Pmfms columns -->
     <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm" class="mat-column-pmfm">
-        <ion-label [innerHTML]="pmfm | pmfmName: { html: true }"></ion-label>
+        <ion-label [innerHTML]="pmfm | pmfmName: { html: true, withDetails: true }"></ion-label>
       </th>
       <td
         mat-cell
@@ -141,12 +141,13 @@
         class="mat-column-pmfm"
         [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
         [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
+        (click)="focusColumn = pmfm.id.toString()"
       >
         @if (row.editing) {
           <app-pmfm-field
             floatLabel="never"
             [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-            [autofocus]="focusColumn == pmfm.id"
+            [autofocus]="row.editing && focusColumn == pmfm.id"
             [pmfm]="pmfm"
             [compact]="true"
             [readonly]="pmfm.isComputed"
@@ -244,7 +245,11 @@
           <br />
           pmfms: {{ (pmfms$ | async)?.length }}
           <br />
-          initialPmfms: {{ initialPmfms$ | async | json }}
+          showMetier column: {{ showMetierColumn }}
+          <br />
+          showGear column: {{ showGearColumn }}
+          <br />
+          gearIds: {{ gearIds | json }}
         </ion-col>
 
         <ion-col *ngIf="memoryDataService">
