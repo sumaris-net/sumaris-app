@@ -3341,6 +3341,8 @@
       "REGISTRATION_LOCATION": "Quartier maritime",
       "IS_ACTIVE": "Actif ?",
       "OTHER_FEATURES": "Caractéristiques d'enquête :",
+      "VESSEL_FEATURES": "Caractéristiques des navires",
+      "VESSEL_REGISTRATIONS": "Historique des immatriculations navires",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
         "DISABLE": "Inactif",

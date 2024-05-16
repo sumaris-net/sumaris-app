@@ -39,7 +39,7 @@ import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
-import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
+import { VesselFeaturesFilter, VesselFilter, VesselRegistrationFilter } from '@app/vessel/services/filter/vessel.filter';
 import { PredefinedColors } from '@ionic/core';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
@@ -60,6 +60,8 @@ import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-mon
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { GearUseFeaturesTable } from '../metier/gear-use-features.table';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
+import { VesselFeaturesHistoryComponent } from '@app/vessel/page/vessel-features-history.component';
+import { VesselRegistrationHistoryComponent } from '@app/vessel/page/vessel-registration-history.component';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { IOutputAreaSizes } from 'angular-split/lib/interface';
 import { SplitComponent } from 'angular-split';
@@ -150,6 +152,8 @@ export class ActivityCalendarPage
   @ViewChild('tableMetier') tableMetier: GearUseFeaturesTable;
   @ViewChild('map') map: ActivityCalendarMapComponent;
   @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
+  @ViewChild('featuresHistoryTable') featuresHistoryTable: VesselFeaturesHistoryComponent;
+  @ViewChild('registrationHistoryTable') registrationHistoryTable: VesselRegistrationHistoryComponent;
 
   constructor(
     injector: Injector,
@@ -258,6 +262,20 @@ export class ActivityCalendarPage
     );
 
     this.restorePredocPanelSize();
+  }
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
+
+    this.registerSubscription(
+      this.onUpdateView.subscribe(() => {
+        if (isNotNilOrNaN(this.data.id)) {
+          this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), { emitEvent: true });
+          this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), {
+            emitEvent: true,
+          });
+        }
+      })
+    );
   }
 
   updateViewState(data: ActivityCalendar, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {

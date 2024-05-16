@@ -89,6 +89,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   static fromObject: (source: any, opts?: any) => VesselFeatures;
 
   name: string;
+  registrationCode: string = null;
   startDate: Moment;
   endDate: Moment;
   exteriorMarking: string;
@@ -110,7 +111,9 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   vesselId: number;
 
   get empty(): boolean {
-    return isNil(this.id) && isNilOrBlank(this.exteriorMarking) && isNilOrBlank(this.name) && isNil(this.startDate);
+    return (
+      isNil(this.id) && isNilOrBlank(this.exteriorMarking) && isNilOrBlank(this.name) && isNil(this.startDate) && isNilOrBlank(this.registrationCode)
+    );
   }
 
   constructor() {
@@ -156,6 +159,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   fromObject(source: any) {
     super.fromObject(source);
     this.vesselId = source.vesselId;
+    this.registrationCode = source.registrationCode;
     this.exteriorMarking = source.exteriorMarking;
     this.name = source.name;
     this.comments = source.comments || undefined;

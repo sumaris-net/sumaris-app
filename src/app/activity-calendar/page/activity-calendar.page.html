@@ -117,6 +117,27 @@
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
             <ion-col class="ion-padding">
+              <ion-grid class="ion-no-padding">
+                <ion-row>
+                  <ion-col>
+                    <app-vessel-features-history-table
+                      #featuresHistoryTable
+                      [compact]="true"
+                      [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES'"
+                    ></app-vessel-features-history-table>
+                  </ion-col>
+                </ion-row>
+                <ion-row>
+                  <ion-col>
+                    <app-vessel-registration-history-table
+                      #registrationHistoryTable
+                      [compact]="true"
+                      [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATIONS'"
+                    ></app-vessel-registration-history-table>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+              <br />
               <!-- base form -->
               <app-form-activity-calendar
                 #baseForm

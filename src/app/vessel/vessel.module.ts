@@ -52,6 +52,8 @@ import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-col
     VesselStatusToColorPipe,
 
     // Components
+    VesselFeaturesHistoryComponent,
+    VesselRegistrationHistoryComponent,
     VesselsTable,
     VesselPage,
     VesselsPage,

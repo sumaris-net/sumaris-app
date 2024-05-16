@@ -6,7 +6,7 @@
   </ion-item>
 
   <h3>
-    <ion-text translate>VESSEL.HISTORY.FEATURES</ion-text>
+    <ion-text translate>{{ title }}</ion-text>
   </h3>
 </div>
 
@@ -17,6 +17,16 @@
       <app-loading-spinner [loading]="loadingSubject | async"><ion-label>#</ion-label></app-loading-spinner>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
+  </ng-container>
+
+  <!-- Registration code column -->
+  <ng-container matColumnDef="registrationCode">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.registrationCode }}</ion-text>
+    </mat-cell>
   </ng-container>
 
   <!-- Start date column -->

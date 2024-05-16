@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { AccountService, AppTable, EntitiesTableDataSource, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
 import { VesselRegistrationService } from '../services/vessel-registration.service';
 import { VesselRegistrationPeriod } from '../services/model/vessel.model';
@@ -14,6 +14,8 @@ import { VesselRegistrationFilter } from '../services/filter/vessel.filter';
 export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrationPeriod, VesselRegistrationFilter> implements OnInit {
   referentialToString = referentialToString;
   isAdmin: boolean;
+  @Input() compact: boolean;
+  @Input() title: string;
 
   constructor(
     injector: Injector,
@@ -39,6 +41,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
+    this.title = 'VESSEL.HISTORY.REGISTRATIONS';
   }
 
   ngOnInit() {
