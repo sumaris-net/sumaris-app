@@ -596,12 +596,13 @@ export class CalendarComponent
   protected onMouseEnd(event: { colspan: number; rowspan: number }) {
     const columnName = this.resizingCell.columnName;
     const column = this.dynamicColumns?.find((c) => c.key === columnName);
-    console.debug(this.logPrefix + 'MouseEnd column: ', column);
-    const canCopy =
-      columnName === 'isActive' || columnName === 'basePortLocation' || PMFM_ID_REGEXP.test(columnName) || columnName.startsWith('metier');
     const path = column?.path || (PMFM_ID_REGEXP.test(columnName) && `measurementValues.${columnName}`) || columnName;
-    if (canCopy) {
-      if (event.colspan > 0 && event.rowspan === 1) {
+    console.debug(this.logPrefix + 'MouseEnd path: ', path);
+
+    if (event.colspan !== 0 && event.rowspan === 1) {
+      const canCopy =
+        columnName === 'isActive' || columnName === 'basePortLocation' || PMFM_ID_REGEXP.test(columnName) || columnName.startsWith('metier');
+      if (canCopy) {
         this.confirmEditCreate();
         const sourceRow = this.resizingCell.row;
         const sourceValue = getPropertyByPath(sourceRow.currentData, path);
@@ -617,7 +618,7 @@ export class CalendarComponent
           if (targetRow.validator) {
             const control = targetRow.validator.get(path);
             if (control) {
-              control.patchValue(sourceValue, { emitEvent: true });
+              control.patchValue(isNil(sourceValue) ? null : sourceValue, { emitEvent: true });
               targetRow.validator.markAsDirty();
             } else {
               console.warn('Control with path not exists: ' + path);
