@@ -1792,7 +1792,9 @@
     },
     "HISTORY": {
       "FEATURES": "Vessel features",
-      "REGISTRATIONS": "Registrations"
+      "REGISTRATIONS": "Registrations",
+      "FEATURES_ACTIVITY_CALENDAR": "Vessel features characteristics",
+      "REGISTRATIONS_ACTIVITY_CALENDAR": "History of Vessel features registrations"
     },
     "ACTION": {
       "EDIT": "Edit",
