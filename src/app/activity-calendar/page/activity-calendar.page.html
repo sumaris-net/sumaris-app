@@ -89,6 +89,19 @@
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
             <ion-col class="ion-padding">
+              <ion-grid class="ion-no-padding">
+                <ion-row>
+                  <ion-col>
+                    <app-vessel-features-history-table #featuresHistoryTable></app-vessel-features-history-table>
+                  </ion-col>
+                </ion-row>
+                <ion-row>
+                  <ion-col>
+                    <app-vessel-registration-history-table #registrationHistoryTable></app-vessel-registration-history-table>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+              <br />
               <!-- base form -->
               <app-form-activity-calendar
                 #baseForm

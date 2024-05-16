@@ -10,6 +10,7 @@ import { AppDataModule } from '@app/data/data.module';
 import { AppCalendarModule } from '@app/activity-calendar/calendar/calendar.module';
 import { AppActivityMapModule } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.module';
 import { AngularSplitModule } from 'angular-split';
+import { AppVesselModule } from '@app/vessel/vessel.module';
 
 @NgModule({
   imports: [
@@ -25,6 +26,7 @@ import { AngularSplitModule } from 'angular-split';
     AppActivityCalendarFormModule,
     AppCalendarModule,
     AppActivityMapModule,
+    AppVesselModule,
     AngularSplitModule,
   ],
   declarations: [ActivityCalendarPage],

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ActivityCalendarForm } from '../form/activity-calendar.form';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
@@ -15,6 +15,7 @@ import {
   fromDateISOString,
   HistoryPageReference,
   isNotNil,
+  isNotNilOrNaN,
   ReferentialRef,
   referentialToString,
   StatusIds,
@@ -31,7 +32,7 @@ import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
-import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
+import { VesselFeaturesFilter, VesselFilter, VesselRegistrationFilter } from '@app/vessel/services/filter/vessel.filter';
 import { PredefinedColors } from '@ionic/core';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
@@ -51,6 +52,8 @@ import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
+import { VesselFeaturesHistoryComponent } from '@app/vessel/page/vessel-features-history.component';
+import { VesselRegistrationHistoryComponent } from '@app/vessel/page/vessel-registration-history.component';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -90,7 +93,7 @@ export interface ActivityCalendarPageState extends RootDataEntityEditorState {
 })
 export class ActivityCalendarPage
   extends AppRootDataEntityEditor<ActivityCalendar, ActivityCalendarService, number, ActivityCalendarPageState>
-  implements OnInit
+  implements AfterViewInit, OnInit
 {
   static TABS = {
     GENERAL: 0,
@@ -125,6 +128,8 @@ export class ActivityCalendarPage
   @ViewChild('calendar') calendar: CalendarComponent;
   @ViewChild('map') map: ActivityCalendarMapComponent;
   @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
+  @ViewChild('featuresHistoryTable', { static: true }) private featuresHistoryTable: VesselFeaturesHistoryComponent;
+  @ViewChild('registrationHistoryTable', { static: true }) private registrationHistoryTable: VesselRegistrationHistoryComponent;
 
   constructor(
     injector: Injector,
@@ -220,6 +225,18 @@ export class ActivityCalendarPage
           })
         )
         .subscribe()
+    );
+  }
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
+
+    this.registerSubscription(
+      this.onUpdateView.subscribe(() => {
+        if (isNotNilOrNaN(this.data.id)) {
+          this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({ vesselId: this.data.id }), { emitEvent: true });
+          this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({ vesselId: this.data.id }), { emitEvent: true });
+        }
+      })
     );
   }
 
