@@ -472,6 +472,10 @@ export class LandingService
           this.computeRankOrderAndSort(entities, offset, total, afterSortBy, sortDirection, dataFilter as LandingFilter);
         }
 
+        if (opts?.mapFn) {
+          entities = opts.mapFn(entities);
+        }
+
         return { data: entities, total };
       })
     );

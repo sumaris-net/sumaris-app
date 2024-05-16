@@ -491,7 +491,7 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr
       mat-row
-      *matRowDef="let row; columns: displayedColumns"
+      *matRowDef="let row; columns: displayedColumns; when: isLanding"
       [class.mat-mdc-row-error]="row.validator?.invalid"
       [class.mat-mdc-row-dirty]="row.validator?.dirty"
       [class.mat-mdc-row-disabled]="!row.editing"
@@ -500,6 +500,19 @@
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
     ></tr>
+
+    <!-- Divider -->
+    <ng-container matColumnDef="divider" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
+      <td mat-cell colspan="4" *matCellDef="let row" class="divider">
+        <ion-text>PETS</ion-text>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="dividerColspan">
+      <td mat-cell colspan="999" *matCellDef="let row" class="divider"></td>
+    </ng-container>
+
+    <tr mat-row *matRowDef="let row; columns: ['divider', 'dividerColspan']; when: isDivider"></tr>
+
     <!-- footer -->
     <ng-container *ngIf="showFooter">
       <tr mat-footer-row *matFooterRowDef="footerColumns; sticky: useFooterSticky" [class.cdk-visually-hidden]="!totalRowCount"></tr>

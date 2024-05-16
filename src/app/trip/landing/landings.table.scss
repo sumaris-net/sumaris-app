@@ -67,5 +67,11 @@ mat-toolbar {
     &:hover .visible-hover {
       visibility: unset;
     }
+
+    .mat-mdc-cell.divider {
+      background-color: var(--ion-color-light, whitesmoke) !important;
+      font-weight: bold;
+      font-size: 12px !important;
+    }
   }
 }

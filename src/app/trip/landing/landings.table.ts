@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person, toBoolean } from '@sumaris-net/ngx-components';
+import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, JobUtils, Person, toBoolean } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
@@ -40,6 +40,8 @@ export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 export const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
 export const LANDING_I18N_PMFM_PREFIX = 'LANDING.PMFM.';
+
+class LandingDivider extends Landing {}
 
 @Component({
   selector: 'app-landings-table',
@@ -226,6 +228,9 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
         requiredGear: false,
         acquisitionLevel: AcquisitionLevelCodes.LANDING,
       },
+      watchAllOptions: {
+        mapFn: (landings) => this.mapLandings(landings),
+      },
     });
 
     this.readOnly = false; // Allow deletion
@@ -321,27 +326,29 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   }
 
   protected onPmfmsLoaded(pmfms: IPmfm[]) {
-    if (this.inlineEdition) {
-      const pmfmIds = pmfms.map((p) => p.id).filter(isNotNil);
-      // Listening on column 'IS_OBSERVED' value changes, to enable/disable column 'NON_OBSERVATION_REASON''
-      const hasIsObservedAndReasonPmfms = pmfmIds.includes(PmfmIds.IS_OBSERVED) && pmfmIds.includes(PmfmIds.NON_OBSERVATION_REASON);
-      if (hasIsObservedAndReasonPmfms) {
-        this.registerSubscription(
-          this.registerCellValueChanges('isObserved', `measurementValues.${PmfmIds.IS_OBSERVED}`, true).subscribe((isObservedValue) => {
-            if (!this.editedRow) return; // Should never occur
-            const row = this.editedRow;
-            const controls = (row.validator.get('measurementValues') as UntypedFormGroup).controls;
-            if (!isObservedValue) {
-              if (row.validator.enabled) controls[PmfmIds.NON_OBSERVATION_REASON].enable();
-              controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(Validators.required);
-              controls[PmfmIds.NON_OBSERVATION_REASON].updateValueAndValidity();
-            } else {
-              controls[PmfmIds.NON_OBSERVATION_REASON].disable();
-              controls[PmfmIds.NON_OBSERVATION_REASON].setValue(null);
-              controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(null);
-            }
-          })
-        );
+    if (this.isSaleDetailEditor) {
+      if (this.inlineEdition) {
+        const pmfmIds = pmfms.map((p) => p.id).filter(isNotNil);
+        // Listening on column 'IS_OBSERVED' value changes, to enable/disable column 'NON_OBSERVATION_REASON''
+        const hasIsObservedAndReasonPmfms = pmfmIds.includes(PmfmIds.IS_OBSERVED) && pmfmIds.includes(PmfmIds.NON_OBSERVATION_REASON);
+        if (hasIsObservedAndReasonPmfms) {
+          this.registerSubscription(
+            this.registerCellValueChanges('isObserved', `measurementValues.${PmfmIds.IS_OBSERVED}`, true).subscribe((isObservedValue) => {
+              if (!this.editedRow) return; // Should never occur
+              const row = this.editedRow;
+              const controls = (row.validator.get('measurementValues') as UntypedFormGroup).controls;
+              if (!isObservedValue) {
+                if (row.validator.enabled) controls[PmfmIds.NON_OBSERVATION_REASON].enable();
+                controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(Validators.required);
+                controls[PmfmIds.NON_OBSERVATION_REASON].updateValueAndValidity();
+              } else {
+                controls[PmfmIds.NON_OBSERVATION_REASON].disable();
+                controls[PmfmIds.NON_OBSERVATION_REASON].setValue(null);
+                controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(null);
+              }
+            })
+          );
+        }
       }
     }
   }
@@ -522,6 +529,39 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected updateFooter(rows: TableElement<Landing>[] | readonly TableElement<Landing>[]) {
     // Update observed count
     this.observedCount = (rows || []).map((row) => toBoolean(row.currentData.measurementValues[PmfmIds.IS_OBSERVED])).filter((val) => !!val).length;
+  }
+
+  isDivider(index: number, item: TableElement<Landing>): boolean {
+    console.log('isDivider', index, typeof item.currentData);
+    return !item.currentData.id;
+    // TODO JVF: return item.currentData instanceof LandingDivider;
+  }
+
+  isLanding(index: number, item: TableElement<Landing>): boolean {
+    console.log('isLanding', index, typeof item.currentData);
+    return !!item.currentData.id;
+    // TODO JVF: return !(item.currentData instanceof LandingDivider);
+  }
+
+  protected mapLandings(data: Landing[]): Landing[] {
+    // Split landings with pets from others
+    if (this.isSaleDetailEditor) {
+      const landingsWithPets = [];
+      const landingsWithoutPets = data.reduce((acc, landing) => {
+        if (toBoolean(landing.measurementValues[PmfmIds.IS_PETS])) {
+          landingsWithPets.push(landing);
+        } else {
+          acc.push(landing);
+        }
+        return acc;
+      }, []);
+
+      if (landingsWithPets.length > 0) {
+        landingsWithoutPets.push(new LandingDivider(), ...landingsWithPets);
+      }
+
+      return landingsWithoutPets;
+    }
   }
 
   protected markForCheck() {
