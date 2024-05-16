@@ -92,12 +92,20 @@
               <ion-grid class="ion-no-padding">
                 <ion-row>
                   <ion-col>
-                    <app-vessel-features-history-table #featuresHistoryTable></app-vessel-features-history-table>
+                    <app-vessel-features-history-table
+                      #featuresHistoryTable
+                      [compact]="true"
+                      [title]="'VESSEL.HISTORY.FEATURES_ACTIVITY_CALENDAR'"
+                    ></app-vessel-features-history-table>
                   </ion-col>
                 </ion-row>
                 <ion-row>
                   <ion-col>
-                    <app-vessel-registration-history-table #registrationHistoryTable></app-vessel-registration-history-table>
+                    <app-vessel-registration-history-table
+                      #registrationHistoryTable
+                      [compact]="true"
+                      [title]="'VESSEL.HISTORY.REGISTRATIONS_ACTIVITY_CALENDAR'"
+                    ></app-vessel-registration-history-table>
                   </ion-col>
                 </ion-row>
               </ion-grid>

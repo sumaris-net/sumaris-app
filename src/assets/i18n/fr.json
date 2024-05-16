@@ -1941,7 +1941,9 @@
     },
     "HISTORY": {
       "FEATURES": "Caractéristiques",
-      "REGISTRATIONS": "Immatriculations"
+      "REGISTRATIONS": "Immatriculations",
+      "FEATURES_ACTIVITY_CALENDAR": "Caractéristiques des navires",
+      "REGISTRATIONS_ACTIVITY_CALENDAR": "Historique des immatriculations navires"
     },
     "ACTION": {
       "EDIT": "Modifier",
