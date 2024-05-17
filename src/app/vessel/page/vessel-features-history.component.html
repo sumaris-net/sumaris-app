@@ -6,20 +6,11 @@
   </ion-item>
 
   <h3>
-    <ion-text translate>{{ title }}</ion-text>
+    <ion-text translate>VESSEL.HISTORY.FEATURES</ion-text>
   </h3>
 </div>
 
-<mat-table
-  #table
-  [dataSource]="dataSource"
-  matSort
-  matSortActive="startDate"
-  matSortDirection="desc"
-  matSortDisableClear
-  [trackBy]="trackByFn"
-  [class.compact]="compact"
->
+<mat-table #table [dataSource]="dataSource" matSort matSortActive="startDate" matSortDirection="desc" matSortDisableClear [trackBy]="trackByFn">
   <!-- Id Column -->
   <ng-container matColumnDef="id">
     <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">

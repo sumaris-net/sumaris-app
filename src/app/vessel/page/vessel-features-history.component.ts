@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, input } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit } from '@angular/core';
 import { AppTable } from '@sumaris-net/ngx-components';
 import { VesselFeatures } from '../services/model/vessel.model';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -21,8 +21,6 @@ import { VesselFeaturesFilter } from '../services/filter/vessel.filter';
 export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, VesselFeaturesFilter> implements OnInit {
   referentialToString = referentialToString;
   isAdmin: boolean;
-  @Input() compact: boolean;
-  @Input() title: string;
 
   constructor(
     injector: Injector,
@@ -61,7 +59,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
-    this.title = 'VESSEL.HISTORY.FEATURES';
+
     this.debug = !environment.production;
   }
 
