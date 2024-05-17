@@ -87,13 +87,21 @@
         <ion-label>{{ definition.label | translate }}</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn = definition.key">
-        <app-form-field
-          floatLabel="never"
-          [formControl]="row.validator.get(definition.key)"
-          [definition]="definition"
-          [autofocus]="row.editing && focusColumn === definition.key"
-          [compact]="true"
-        ></app-form-field>
+        @if (row.editing && row.validator | formGetControl: definition.key; as control) {
+          <app-form-field
+            floatLabel="never"
+            [formControl]="control"
+            [definition]="definition"
+            [autofocus]="focusColumn === definition.key"
+            [compact]="true"
+          ></app-form-field>
+        } @else {
+          @if (definition.autocomplete?.displayWith | isNotEmptyArray) {
+            <ion-text>{{ row.validator | formGetValue: definition.key | displayWith: definition.autocomplete.displayWith }}</ion-text>
+          } @else {
+            <ion-text>{{ row.currentData | propertyFormat: definition }}</ion-text>
+          }
+        }
       </td>
     </ng-container>
 

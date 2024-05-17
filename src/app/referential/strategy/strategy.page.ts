@@ -6,11 +6,13 @@ import {
   AccountService,
   Alerts,
   AppEntityEditor,
+  ConfigService,
   EntityServiceLoadOptions,
   firstNotNilPromise,
   HistoryPageReference,
   isNil,
   isNotNil,
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
@@ -26,6 +28,7 @@ import { ProgramRefService } from '../services/program-ref.service';
 import { TranscribingItemTable } from '@app/referential/transcribing/transcribing-item.table';
 import { PROGRAM_TABS } from '@app/referential/program/program.page';
 import { PROGRAMS_PAGE_PATH } from '@app/referential/program/programs.page';
+import { REFERENTIAL_CONFIG_OPTIONS } from '@app/referential/services/config/referential.config';
 
 @Component({
   selector: 'app-strategy',
@@ -39,6 +42,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
   $program = new BehaviorSubject<Program>(null);
   showImportModal = false;
+  showPmfmLabel = true;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
@@ -55,7 +59,8 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     dataService: StrategyService,
     protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected configService: ConfigService
   ) {
     super(injector, Strategy, dataService, {
       pathIdAttribute: 'strategyId',
@@ -137,9 +142,12 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     this.$program.next(program);
   }
 
-  protected setProgram(program: Program) {
-    this.markForCheck();
-    if (program && isNotNil(program.id)) {
+  protected async setProgram(program: Program) {
+    if (isNotNil(program?.id)) {
+      const config = await this.configService.ready();
+      console.log('TODO config loaded', config?.getPropertyAsBoolean(REFERENTIAL_CONFIG_OPTIONS.PMFM_LABEL_ENABLE));
+      this.showPmfmLabel = toBoolean(config?.getPropertyAsBoolean(REFERENTIAL_CONFIG_OPTIONS.PMFM_LABEL_ENABLE), true);
+
       const programPath = [PROGRAMS_PAGE_PATH, program.id].join('/');
       this.defaultBackHref = `${programPath}?tab=${PROGRAM_TABS.STRATEGIES}`;
       this.markAsReady();

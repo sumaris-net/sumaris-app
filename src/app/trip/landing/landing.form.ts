@@ -178,10 +178,10 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
   @Input() fishingAreaLocationLevelIds: number[] = null;
   @Input() disabledParent: boolean = null;
-  @RxStateProperty() @Input() showStrategy: boolean;
-  @RxStateProperty() @Input() canEditStrategy: boolean;
-  @RxStateProperty() @Input() showParent: boolean;
-  @RxStateProperty() @Input() parentAcquisitionLevel: AcquisitionLevelType;
+  @Input() @RxStateProperty() showStrategy: boolean;
+  @Input() @RxStateProperty() canEditStrategy: boolean;
+  @Input() @RxStateProperty() showParent: boolean;
+  @Input() @RxStateProperty() parentAcquisitionLevel: AcquisitionLevelType;
 
   @Input() set enableFishingAreaFilter(value: boolean) {
     this.setFieldFilterEnable('fishingArea', value);

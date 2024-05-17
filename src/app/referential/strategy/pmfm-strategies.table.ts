@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Injector, Input, OnInit, Output } from '@angular/core';
 import {
   AppFormUtils,
   AppInMemoryTable,
@@ -33,10 +33,12 @@ import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { PmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export interface PmfmStrategiesTableState {
   acquisitionLevels: IReferentialRef[];
   qualitativeValues: IReferentialRef[];
+  showPmfmLabel: boolean;
 }
 
 @Component({
@@ -47,18 +49,23 @@ export interface PmfmStrategiesTableState {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStrategyFilter> implements OnInit {
-  readonly acquisitionLevels$ = this.state.select('acquisitionLevels');
+  @RxStateRegister() protected readonly _state: RxState<PmfmStrategiesTableState> = inject(RxState, { self: true });
 
-  fieldDefinitions: FormFieldDefinitionMap = {};
-  columnDefinitions: FormFieldDefinition[] = [];
+  @RxStateSelect() protected readonly acquisitionLevels$: Observable<IReferentialRef[]>;
+  @RxStateSelect() protected readonly showPmfmLabel$: Observable<boolean>;
+
+  protected fieldDefinitions: FormFieldDefinitionMap = {};
+  protected columnDefinitions: FormFieldDefinition[] = [];
   filterCriteriaCount = 0;
+
+  @RxStateProperty() acquisitionLevels: IReferentialRef[];
 
   @Input() showToolbar = true;
   @Input() showPaginator = true;
   @Input() showHeaderRow = true;
   @Input() withDetails = true;
   @Input() pmfmFilter: PmfmFilter;
-  @Input() showPmfmLabel = true;
+  @Input() @RxStateProperty() showPmfmLabel = true;
   @Input() allowEmpty = false;
   @Input() canEdit = false;
   @Input() sticky = false;
@@ -116,20 +123,11 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     return this.filterCriteriaCount === 0;
   }
 
-  get acquisitionLevels(): IReferentialRef[] {
-    return this.state.get('acquisitionLevels');
-  }
-
-  get qualitativeValues(): IReferentialRef[] {
-    return this.state.get('qualitativeValues');
-  }
-
   constructor(
     protected injector: Injector,
     protected validatorService: PmfmStrategyValidatorService,
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService,
-    protected state: RxState<PmfmStrategiesTableState>,
     protected cd: ChangeDetectorRef
   ) {
     super(
@@ -169,12 +167,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.saveBeforeSort = true;
     this.saveBeforeFilter = true;
 
-    // Load acquisition levels
-    this.state.connect('acquisitionLevels', this.watchAcquisitionLevels());
-
-    // Load default qualitative value
-    this.state.connect('qualitativeValues', this.watchQualitativeValues());
-
     this.debug = !environment.production;
   }
 
@@ -182,13 +174,19 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     super.ngOnInit();
     this.validatorService.withDetails = this.withDetails;
 
+    // Load acquisition levels
+    this._state.connect('acquisitionLevels', this.watchAcquisitionLevels());
+
+    // Load default qualitative value
+    this._state.connect('qualitativeValues', this.watchQualitativeValues());
+
     // Acquisition level
     this.registerColumnDefinition({
       key: 'acquisitionLevel',
       type: 'entity',
       required: true,
       autocomplete: this.registerAutocompleteField('acquisitionLevel', {
-        items: this.state.select('acquisitionLevels'),
+        items: this.acquisitionLevels$,
         attributes: ['name'],
         showAllOnFocus: true,
         class: 'mat-autocomplete-panel-large-size',
@@ -205,40 +203,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     });
 
     // Pmfm
-    const basePmfmAttributes = !this.showPmfmLabel ? ['name'] : this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']);
-    const pmfmAttributes = basePmfmAttributes
-      .map((attr) => (attr === 'name' ? 'parameter.name' : attr))
-      .concat(['unit.label', 'matrix.name', 'fraction.name', 'method.name']);
-    const pmfmColumnNames = basePmfmAttributes
-      .map((attr) => 'REFERENTIAL.' + attr.toUpperCase())
-      .concat(['REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD']);
-    this.registerColumnDefinition({
-      key: 'pmfm',
-      type: 'entity',
-      required: false,
-      autocomplete: this.registerAutocompleteField('pmfm', {
-        suggestFn: (value, opts) => this.suggestPmfms(value, opts),
-        attributes: pmfmAttributes,
-        columnSizes: pmfmAttributes.map((attr) => {
-          switch (attr) {
-            case 'label':
-              return 2;
-            case 'name':
-              return 3;
-            case 'unit.label':
-              return 1;
-            case 'method.name':
-              return 4;
-            default:
-              return undefined;
-          }
-        }),
-        columnNames: pmfmColumnNames,
-        displayWith: (pmfm) => this.displayPmfm(pmfm, { withUnit: true, withDetails: true }),
-        showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-full-size',
-      }),
-    });
+    this.registerPmfmColumnDefinition(this.showPmfmLabel);
+    this._state.hold(this.showPmfmLabel$, (showPmfmLabel) => this.registerPmfmColumnDefinition(showPmfmLabel));
 
     // PMFM.PARAMETER
     const pmfmParameterAttributes = ['label', 'name'];
@@ -297,11 +263,50 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       type: 'entity',
       autocomplete: {
         attributes: qvAttributes,
-        items: this.state.select('qualitativeValues'),
+        items: this._state.select('qualitativeValues'),
         showAllOnFocus: true,
         class: 'mat-autocomplete-panel-large-size',
       },
       required: false,
+    });
+  }
+
+  protected registerPmfmColumnDefinition(showPmfmLabel: boolean) {
+    console.log('TODO register pmfm column definition', showPmfmLabel);
+
+    const basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']);
+    const pmfmAttributes = basePmfmAttributes
+      .map((attr) => (attr === 'label' && !showPmfmLabel ? 'parameter.label' : attr === 'name' ? 'parameter.name' : attr))
+      .concat(['unit.label', 'matrix.name', 'fraction.name', 'method.name']);
+    const pmfmColumnNames = basePmfmAttributes
+      .map((attr) => 'REFERENTIAL.' + attr.toUpperCase())
+      .concat(['REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD']);
+    this.registerColumnDefinition({
+      key: 'pmfm',
+      type: 'entity',
+      required: false,
+      autocomplete: this.registerAutocompleteField('pmfm', {
+        suggestFn: (value, opts) => this.suggestPmfms(value, opts),
+        attributes: pmfmAttributes,
+        columnSizes: pmfmAttributes.map((attr) => {
+          switch (attr) {
+            case 'label':
+              return 2;
+            case 'name':
+              return 3;
+            case 'unit.label':
+              return 1;
+            case 'method.name':
+              return 4;
+            default:
+              return undefined;
+          }
+        }),
+        columnNames: pmfmColumnNames,
+        displayWith: (pmfm) => this.displayPmfm(pmfm, { withUnit: true, withDetails: true }),
+        showAllOnFocus: false,
+        class: 'mat-mdc-autocomplete-panel-full-size',
+      }),
     });
   }
 
@@ -360,7 +365,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     }
 
     console.debug('[pmfm-strategy-table] Adapt loaded data to table...');
-    const entities = sources.map((source) => {
+    return sources.map((source) => {
       const target = PmfmStrategy.fromObject(source);
 
       // Convert acquisition level, from string to entity
@@ -377,8 +382,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
       return target;
     });
-
-    return entities;
   }
 
   protected async onRowCreated(row: TableElement<PmfmStrategy>): Promise<void> {
@@ -423,7 +426,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       label: this.i18nColumnPrefix + changeCaseToUnderscore(def.key).toUpperCase(),
       ...def,
     };
-    this.columnDefinitions.push(definition);
+    const index = this.columnDefinitions.findIndex((c) => c.key === def.key);
+    if (index === -1) this.columnDefinitions.push(definition);
+    else {
+      this.columnDefinitions[index] = definition;
+      this.markForCheck();
+    }
   }
 
   protected registerFieldDefinition(def: Partial<FormFieldDefinition> & { key: string }) {
@@ -541,7 +549,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<Pmfm>> {
     return this.pmfmService.suggest(value, {
       searchJoin: 'parameter',
-      searchAttribute: !this.showPmfmLabel ? 'name' : undefined /*label + name*/,
+      //searchAttribute: !this.showPmfmLabel ? 'name' : undefined /*label + name*/,
       ...this.pmfmFilter,
     });
   }
@@ -579,17 +587,15 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   ): string {
     if (!pmfm) return undefined;
 
-    let name = pmfm.parameter && pmfm.parameter.name;
-    if (opts && opts.withDetails) {
-      name = [name, pmfm.matrix && pmfm.matrix.name, pmfm.fraction && pmfm.fraction.name, pmfm.method && pmfm.method.name]
-        .filter(isNotNil)
-        .join(' - ');
+    let name = pmfm.parameter?.name;
+    if (opts?.withDetails) {
+      name = [name, pmfm.matrix?.name, pmfm.fraction?.name, pmfm.method?.name].filter(isNotNil).join(' - ');
     }
 
     // Append unit
-    const unitLabel = (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unit && pmfm.unit.label;
+    const unitLabel = (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unit?.label;
     if ((!opts || opts.withUnit !== false) && unitLabel) {
-      if (opts && opts.html) {
+      if (opts?.html) {
         name += `<small><br/>(${unitLabel})</small>`;
       } else {
         name += ` (${unitLabel})`;
