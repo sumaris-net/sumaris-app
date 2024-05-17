@@ -1940,10 +1940,8 @@
       "REGISTRATION_LOCATION": "Pavillon"
     },
     "HISTORY": {
-      "FEATURES": "Caractéristiques",
-      "REGISTRATIONS": "Immatriculations",
-      "FEATURES_ACTIVITY_CALENDAR": "Caractéristiques des navires",
-      "REGISTRATIONS_ACTIVITY_CALENDAR": "Historique des immatriculations navires"
+      "FEATURES": "Caratéristiques",
+      "REGISTRATIONS": "Immatriculations"
     },
     "ACTION": {
       "EDIT": "Modifier",
