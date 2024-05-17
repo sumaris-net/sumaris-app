@@ -7,7 +7,6 @@ import {
   ConfigService,
   DateUtils,
   FilesUtils,
-  fromDateISOString,
   HammerSwipeEvent,
   isEmptyArray,
   isNil,
@@ -24,6 +23,7 @@ import {
   slideUpDownAnimation,
   splitByProperty,
   StatusIds,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
@@ -50,6 +50,7 @@ import { BaseTableState } from '@app/shared/table/base.table';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { isMoment } from 'moment';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -81,7 +82,9 @@ export class ActivityCalendarsTable
   implements OnInit, OnDestroy
 {
   @RxStateSelect() protected title$: Observable<string>;
-  @RxStateSelect() protected years$: Observable<number>;
+  @RxStateSelect() protected years$: Observable<number[]>;
+
+  @RxStateProperty() protected years: number[];
 
   protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
@@ -94,14 +97,10 @@ export class ActivityCalendarsTable
   @Input() canOpenMap = false;
   @Input() registrationLocationLevelIds: number[] = null;
   @Input() basePortLocationLevelIds: number[] = null;
-  @RxStateProperty() @Input() title: string;
-
-  get filterDataQualityControl(): UntypedFormControl {
-    return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
-  }
+  @Input() @RxStateProperty() title: string;
 
   get filterYearControl(): UntypedFormControl {
-    return this.filterForm.controls.startDate as UntypedFormControl;
+    return this.filterForm.controls.year as UntypedFormControl;
   }
 
   constructor(
@@ -127,6 +126,7 @@ export class ActivityCalendarsTable
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
       vesselSnapshot: [null, SharedValidators.entity],
+      year: [null, SharedValidators.integer],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
       registrationLocations: [null],
@@ -156,8 +156,7 @@ export class ActivityCalendarsTable
 
     // Load years
     {
-      const years = new Array(10).fill(DateUtils.moment().year()).map((year, index) => year - index);
-      this._state.set({ years });
+      this.years = new Array(10).fill(DateUtils.moment().year()).map((year, index) => year - index);
     }
 
     // FOR DEV ONLY ----
@@ -256,13 +255,18 @@ export class ActivityCalendarsTable
 
   setFilter(filter: Partial<ActivityCalendarFilter>, opts?: { emitEvent: boolean }) {
     filter = filter || {};
-    filter.startDate = fromDateISOString(filter.startDate || DateUtils.moment().utc(false).add(-1, 'year')).startOf('year');
-    filter.endDate = filter.startDate?.clone().endOf('year');
+    if (isMoment(filter.year)) {
+      filter.year = filter.year.year();
+    } else if (isMoment(filter.startDate)) {
+      filter.year = filter.startDate.year();
+    } else {
+      filter.year = toNumber(filter.year, DateUtils.moment().year() - 1);
+    }
     super.setFilter(filter, opts);
   }
 
   protected countNotEmptyCriteria(filter: ActivityCalendarFilter): number {
-    const yearOffset = [filter?.startDate, filter?.endDate].filter(isNotNil).length;
+    const yearOffset = [filter?.year, filter?.startDate, filter?.endDate].filter(isNotNil).length;
     return super.countNotEmptyCriteria(filter) - yearOffset;
   }
 
@@ -419,20 +423,15 @@ export class ActivityCalendarsTable
     await this.router.navigate(['extraction', 'data'], { queryParams });
   }
 
-  clearFilterValue(key: keyof ActivityCalendarFilter, event?: Event) {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    this.filterForm.get(key).reset(null);
-  }
-
   /* -- protected methods -- */
 
   protected setFilterYear(year: number) {
-    const startDate = DateUtils.moment().utc(false).year(year).startOf('year');
-    this.setFilter({ startDate });
+    if (isNil(year)) {
+      this.filterYearControl.reset();
+      this.onRefresh.emit();
+    } else {
+      this.setFilter({ year, startDate: null, endDate: null });
+    }
   }
 
   protected markForCheck() {

@@ -11,6 +11,8 @@ import { AppCalendarModule } from '@app/activity-calendar/calendar/calendar.modu
 import { AppActivityMapModule } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.module';
 import { AngularSplitModule } from 'angular-split';
 import { AppGearUseFeaturesTableModule } from '../metier/gear-use-features.table.module';
+import { MatIcon } from '@angular/material/icon';
+import { MatIconButton } from '@angular/material/button';
 
 @NgModule({
   imports: [
@@ -28,6 +30,8 @@ import { AppGearUseFeaturesTableModule } from '../metier/gear-use-features.table
     AppCalendarModule,
     AppActivityMapModule,
     AngularSplitModule,
+    MatIcon,
+    MatIconButton,
   ],
   declarations: [ActivityCalendarPage],
   exports: [ActivityCalendarPage],

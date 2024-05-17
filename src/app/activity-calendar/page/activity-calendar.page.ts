@@ -7,6 +7,7 @@ import {
   AccountService,
   AppEditorOptions,
   AppTable,
+  chainPromises,
   CORE_CONFIG_OPTIONS,
   DateUtils,
   EntityServiceLoadOptions,
@@ -15,13 +16,16 @@ import {
   fadeInOutAnimation,
   fromDateISOString,
   HistoryPageReference,
+  isNotEmptyArray,
   isNotNil,
+  isNotNilOrNaN,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
   removeDuplicatesFromArray,
   StatusIds,
   toBoolean,
+  toNumber,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
@@ -50,21 +54,27 @@ import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorato
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 import { Moment } from 'moment';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
-import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
+import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { GearUseFeaturesTable } from '../metier/gear-use-features.table';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { IOutputAreaSizes } from 'angular-split/lib/interface';
+import { SplitComponent } from 'angular-split';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
   FEATURE_ID: OBSERVED_LOCATION_FEATURE_NAME,
+  PREDOC_PANEL_CONFIG: 'predocPanelConfig',
 };
 
 export interface ActivityCalendarPageState extends RootDataEntityEditorState {
   year: number;
   vesselCountryId: number;
   months: Moment[];
+  predocProgramLabels: string[];
 }
 
 @Component({
@@ -104,15 +114,18 @@ export class ActivityCalendarPage
   };
 
   @RxStateSelect() protected months$: Observable<Moment[]>;
+  @RxStateSelect() protected predocProgramLabels$: Observable<string[]>;
 
-  dbTimeZone = DateUtils.moment().tz();
-  allowAddNewVessel: boolean;
-  showRecorder = true;
-  showCalendar = true;
-  enableReport: boolean;
+  protected timezone = DateUtils.moment().tz();
+  protected allowAddNewVessel: boolean;
+  protected showRecorder = true;
+  protected showCalendar = true;
+  protected enableReport: boolean;
   protected showMap = true;
+  protected _predocPanelSize = 30;
+  protected _predocPanelVisible = false;
   protected mapPanelWidth = 30;
-  protected showMapPanel = true;
+  protected showMapPanel = true; // TODO enable
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
@@ -124,9 +137,13 @@ export class ActivityCalendarPage
   @Input() @RxStateProperty() year: number;
   @Input() @RxStateProperty() vesselCountryId: number;
   @Input() @RxStateProperty() months: Moment[];
+  @Input() @RxStateProperty() predocProgramLabels: string[] = null;
 
   @ViewChild('baseForm', { static: true }) baseForm: ActivityCalendarForm;
   @ViewChild('calendar') calendar: CalendarComponent;
+
+  @ViewChild('predocSplit') predocSplit: SplitComponent;
+  @ViewChild('predocCalendar') predocCalendar: CalendarComponent;
   @ViewChild('tableMetier') tableMetier: GearUseFeaturesTable;
   @ViewChild('map') map: ActivityCalendarMapComponent;
   @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
@@ -164,7 +181,7 @@ export class ActivityCalendarPage
       'months',
       this._state.select('year').pipe(
         filter(isNotNil),
-        map((year) => CalendarUtils.getMonths(year, this.dbTimeZone))
+        map((year) => CalendarUtils.getMonths(year, this.timezone))
       )
     );
 
@@ -172,7 +189,7 @@ export class ActivityCalendarPage
       this.configService.config.subscribe((config) => {
         if (!config) return;
         this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-        this.dbTimeZone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
+        this.timezone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
         this.markForCheck();
       })
     );
@@ -192,7 +209,7 @@ export class ActivityCalendarPage
       })
     );
 
-    // Listen first opening the metier tab
+    // Listen opening the metier tab
     this.registerSubscription(
       this.tabGroup.selectedTabChange.pipe(filter((event) => event.index === ActivityCalendarPage.TABS.METIER)).subscribe(async () => {
         console.debug(this.logPrefix + 'Updating metier table...');
@@ -209,20 +226,23 @@ export class ActivityCalendarPage
       })
     );
 
-    // Listen first opening the map tab
+    // Listen opening the map tab
     this.registerSubscription(
       this.tabGroup.selectedTabChange.pipe(filter((event) => this.showMap && event.index === ActivityCalendarPage.TABS.MAP)).subscribe(async () => {
         console.debug(this.logPrefix + 'Updating map calendar...');
         this.mapCalendar.markAsLoading();
         this.mapCalendar.markAsReady();
-        if (!(await this.saveTable(this.calendar))) {
+        const saved = await this.saveTable(this.calendar);
+        if (!saved) {
           this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
-          this.tableMetier.markAsLoaded();
+          this.mapCalendar.markAsLoaded();
           return;
         }
         this.mapCalendar.value = this.calendar.value;
       })
     );
+
+    this.restorePredocPanelSize();
   }
 
   updateViewState(data: ActivityCalendar, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -294,8 +314,7 @@ export class ActivityCalendarPage
 
     if (data && data[0] instanceof VesselSnapshot) {
       console.debug(this.logPrefix + 'Vessel selection modal result:', data);
-      const vessel = data[0] as VesselSnapshot;
-      return vessel;
+      return data[0] as VesselSnapshot;
     } else {
       console.debug(this.logPrefix + 'Vessel selection modal was cancelled');
     }
@@ -338,18 +357,19 @@ export class ActivityCalendarPage
       this.vesselCountryId = program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID);
       this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_CREATE_VESSEL_ENABLE);
       this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
+      this.predocProgramLabels = program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS);
 
       let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
       this.i18nContext.suffix = i18nSuffix;
 
       if (this.baseForm) {
-        this.baseForm.timezone = this.dbTimeZone;
+        this.baseForm.timezone = this.timezone;
         this.baseForm.allowAddNewVessel = this.allowAddNewVessel;
       }
       if (this.calendar) {
         this.calendar.i18nColumnSuffix = i18nSuffix;
-        this.calendar.timezone = this.dbTimeZone;
+        this.calendar.timezone = this.timezone;
         this.calendar.basePortLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS);
         this.calendar.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS);
         this.calendar.metierTaxonGroupIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS);
@@ -421,8 +441,8 @@ export class ActivityCalendarPage
       if (searchFilter.startDate) {
         this.year = fromDateISOString(searchFilter.startDate).year();
         data.year = this.year;
-        if (this.dbTimeZone) {
-          data.startDate = DateUtils.moment().tz(this.dbTimeZone).year(this.year).startOf('year');
+        if (this.timezone) {
+          data.startDate = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
         } else {
           data.startDate = DateUtils.moment().year(this.year).startOf('year');
         }
@@ -453,8 +473,8 @@ export class ActivityCalendarPage
     if (isNotNil(data.year)) {
       this.year = data.year;
 
-      if (this.dbTimeZone) {
-        data.startDate = DateUtils.moment().tz(this.dbTimeZone).year(this.year).startOf('year');
+      if (this.timezone) {
+        data.startDate = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
       } else {
         data.startDate = DateUtils.moment().year(this.year).startOf('year');
       }
@@ -476,7 +496,7 @@ export class ActivityCalendarPage
           })
           .pipe(
             map(({ acquisitionLevel, year, vesselCountryId }) => {
-              const startDate = DateUtils.moment().tz(this.dbTimeZone).utc(false).startOf('year');
+              const startDate = DateUtils.moment().tz(this.timezone).utc(false).startOf('year');
               const endDate = startDate.clone().endOf('year');
               return <Partial<StrategyFilter>>{
                 acquisitionLevel,
@@ -512,6 +532,11 @@ export class ActivityCalendarPage
 
     // Set metier table data
     this.tableMetier.value = this.getMetierValue(activityMonths, data.gearUseFeatures);
+
+    // Load predoc
+    if (this._predocPanelVisible) {
+      this.loadPredoc(data);
+    }
   }
 
   getMetierValue(activityMonths: ActivityMonth[], gearUseFeatures: GearUseFeatures[]) {
@@ -521,7 +546,7 @@ export class ActivityCalendarPage
       activityMonths.flatMap((month) => month.gearUseFeatures.map((guf) => guf.metier)),
       'id'
     );
-    const firstDayOfYear = DateUtils.moment().tz(this.dbTimeZone).year(this.year).startOf('year');
+    const firstDayOfYear = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
     const lastDayOfYear = firstDayOfYear.clone().endOf('year');
 
     const metiers = monthMetiers
@@ -529,8 +554,8 @@ export class ActivityCalendarPage
         const existingGuf = (gearUseFeatures || []).find((guf) => {
           //TODO MFA à voir avec ifremer comment filtrer les GUF qui sont à afficher dans le tableau des métiers
           return (
-            DateUtils.equals(firstDayOfYear, guf.startDate) &&
-            DateUtils.equals(lastDayOfYear, guf.endDate) &&
+            DateUtils.isSame(firstDayOfYear, guf.startDate, 'day') &&
+            DateUtils.isSame(lastDayOfYear, guf.endDate, 'day') &&
             ReferentialUtils.equals(guf.metier, metier)
           );
         });
@@ -550,7 +575,13 @@ export class ActivityCalendarPage
     const activityMonths = this.calendar.value;
     if (activityMonths) {
       value.vesselUseFeatures = activityMonths.map((m) => VesselUseFeatures.fromObject(m.asObject())).filter(VesselUseFeatures.isNotEmpty);
-      value.gearUseFeatures = activityMonths.flatMap((m) => m.gearUseFeatures).filter(GearUseFeatures.isNotEmpty);
+      value.gearUseFeatures = activityMonths.flatMap((m) =>
+        ((m.isActive === VesselUseFeaturesIsActiveEnum.ACTIVE && m.gearUseFeatures) || []).filter(GearUseFeatures.isNotEmpty).map((guf, index) => {
+          guf.rankOrder = index + 1;
+          guf.fishingAreas = guf.fishingAreas?.filter(FishingArea.isNotEmpty) || [];
+          return guf;
+        })
+      );
     }
 
     // Metiers
@@ -570,7 +601,7 @@ export class ActivityCalendarPage
   }
 
   protected registerForms() {
-    this.addForms([this.baseForm]);
+    this.addForms([this.baseForm, () => this.calendar]);
   }
 
   protected async computeTitle(data: ActivityCalendar): Promise<string> {
@@ -600,11 +631,6 @@ export class ActivityCalendarPage
 
   protected async onEntitySaved(data: ActivityCalendar): Promise<void> {
     await super.onEntitySaved(data);
-
-    // Save landings table, when editable
-    if (this.calendar?.dirty && this.calendar.canEdit) {
-      await this.calendar.save();
-    }
   }
 
   protected getFirstInvalidTabIndex(): number {
@@ -613,5 +639,88 @@ export class ActivityCalendarPage
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected async loadPredoc(entity: ActivityCalendar) {
+    // DEBUG
+    const now = Date.now();
+    console.debug(`${this.logPrefix}Loading predoc calendars...`);
+
+    const programLabels = await firstValueFrom(this.predocProgramLabels$);
+
+    const lastYearDefer = async () => {
+      const { data } = await this.dataService.loadAll(
+        0,
+        1,
+        'updateDate',
+        'desc',
+        <ActivityCalendarFilter>{
+          program: entity.program,
+          vesselId: entity.vesselSnapshot?.id,
+          year: entity.year - 1,
+        },
+        { fullLoad: true }
+      );
+      return data?.[0];
+    };
+    const otherProgramDefers = (programLabels || []).map((programLabel) => async () => {
+      const { data } = await this.dataService.loadAll(
+        0,
+        1,
+        'updateDate',
+        'desc',
+        <ActivityCalendarFilter>{
+          program: { label: programLabel },
+          vesselId: entity.vesselSnapshot?.id,
+          year: entity.year,
+        },
+        { fullLoad: true }
+      );
+      return data?.[0];
+    });
+
+    let predocCalendars = (await chainPromises<ActivityCalendar>([lastYearDefer, ...otherProgramDefers])).filter(isNotNil);
+    console.debug(`${this.logPrefix}${predocCalendars.length} predoc calendars loaded in ${Date.now() - now}ms`);
+
+    if (isNotEmptyArray(predocCalendars)) {
+      this.predocCalendar.markAsReady();
+
+      // DEBUG: simulate a previous calendar
+      if (this.debug && predocCalendars.length === 1) {
+        predocCalendars = predocCalendars.concat(predocCalendars[0]);
+      }
+
+      const predocMonths = predocCalendars.flatMap((ac) => ActivityMonthUtils.fromActivityCalendar(ac));
+      EntityUtils.sort(predocMonths, 'month', 'asc');
+      await this.predocCalendar.setValue(predocMonths);
+    }
+  }
+
+  protected toggleShowPredoc(event: Event) {
+    this._predocPanelVisible = !this._predocPanelVisible;
+    this.savePredocPanelSize();
+    this.markForCheck();
+
+    if (this._predocPanelVisible && !this.predocCalendar.loaded) {
+      setTimeout(() => this.loadPredoc(this.data), 500);
+    }
+  }
+
+  protected restorePredocPanelSize() {
+    const { size, visible } = this.settings.getPageSettings(this.settingsId, ActivityCalendarPageSettingsEnum.PREDOC_PANEL_CONFIG) || {};
+    this._predocPanelSize = isNotNilOrNaN(toNumber(size)) ? +size : this._predocPanelSize;
+    this._predocPanelVisible = toBoolean(visible, this._predocPanelVisible);
+  }
+
+  protected savePredocPanelSize(sizes?: IOutputAreaSizes) {
+    const previousConfig = this.settings.getPageSettings(this.settingsId, ActivityCalendarPageSettingsEnum.PREDOC_PANEL_CONFIG);
+
+    const config = {
+      size: isNotNilOrNaN(+sizes?.[1]) ? +sizes[1] : this._predocPanelSize,
+      visible: this._predocPanelVisible,
+    };
+    if (!equals(config, previousConfig)) {
+      this.settings.savePageSetting(this.settingsId, config, ActivityCalendarPageSettingsEnum.PREDOC_PANEL_CONFIG);
+    }
   }
 }

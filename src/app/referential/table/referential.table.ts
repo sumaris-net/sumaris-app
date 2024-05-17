@@ -51,7 +51,7 @@ import { TaxonName } from '@app/referential/services/model/taxon-name.model';
 import { Method } from '@app/referential/pmfm/method/method.model';
 import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
 import { MethodValidatorService } from '@app/referential/pmfm/method/method.validator';
-import { AppBaseTable } from '@app/shared/table/base.table';
+import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM } from '@app/shared/table/base.table';
 import { ReferentialFileService, ReferentialImportPolicy } from '@app/referential/table/referential-file.service';
 import { FullReferential } from '@app/referential/services/model/referential.model';
 import { ErrorCodes } from '@app/referential/services/errors';
@@ -61,8 +61,7 @@ import { ProgramService } from '@app/referential/services/program.service';
 export const BASE_REFERENTIAL_COLUMNS = ['label', 'name', 'parent', 'level', 'status', 'creationDate', 'updateDate', 'comments'];
 export const IGNORED_ENTITY_COLUMNS = ['__typename', 'entityName', 'id', 'statusId', 'levelId', 'properties', 'parentId'];
 export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
-  FILTER_KEY: 'filter',
-  COMPACT_ROWS_KEY: 'compactRows',
+  ...BASE_TABLE_SETTINGS_ENUM,
 };
 
 export const DATA_TYPE = new InjectionToken<new () => BaseReferential<any, any>>('dataType');
@@ -345,9 +344,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
           }),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          tap(
-            (json) => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, REFERENTIAL_TABLE_SETTINGS_ENUM.FILTER_KEY)
-          )
+          tap((json) => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, BASE_TABLE_SETTINGS_ENUM.FILTER_KEY))
         )
         .subscribe()
     );
@@ -365,7 +362,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
   async restoreFilterOrLoad() {
     this.markAsLoading();
 
-    const json = this.settings.getPageSettings(this.settingsId, REFERENTIAL_TABLE_SETTINGS_ENUM.FILTER_KEY);
+    const json = this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.FILTER_KEY);
     console.debug('[referentials] Restoring filter from settings...', json);
 
     if (json?.entityName) {
@@ -615,25 +612,6 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     const filter = this.asFilter(this.filterForm.value);
     this.setFilter(filter, { emitEvent: true });
     this.filterExpansionPanel.close();
-  }
-
-  restoreCompactMode(opts?: { emitEvent?: boolean }) {
-    if (!this.compact) {
-      const compact = this.settings.getPageSettings(this.settingsId, REFERENTIAL_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY) || false;
-      if (this.compact !== compact) {
-        this.compact = compact;
-
-        if (!opts || opts.emitEvent !== false) {
-          this.markForCheck();
-        }
-      }
-    }
-  }
-
-  toggleCompactMode() {
-    this.compact = !this.compact;
-    this.markForCheck();
-    this.settings.savePageSetting(this.settingsId, this.compact, REFERENTIAL_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY);
   }
 
   async exportToJson(event: Event) {

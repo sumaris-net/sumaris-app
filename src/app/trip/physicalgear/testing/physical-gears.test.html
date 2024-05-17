@@ -140,6 +140,7 @@
         <app-physical-gears-table
           #desktopTable
           [programLabel]="$programLabel | async"
+          [strategyId]="filterForm | formGetValue: 'strategy' | mapGet: 'id'"
           [allowChildrenGears]="true"
           [mobile]="false"
           [debug]="true"

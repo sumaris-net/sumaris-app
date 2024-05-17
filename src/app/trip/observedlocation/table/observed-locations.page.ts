@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
   Alerts,
@@ -83,10 +83,6 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     return this.filterForm.controls.observers as UntypedFormArray;
   }
 
-  get filterDataQualityControl(): UntypedFormControl {
-    return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
-  }
-
   @ViewChild('ion-segment', { static: true }) ionSegment: IonSegment;
 
   constructor(
@@ -120,6 +116,8 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
       recorderDepartment: [null, SharedValidators.entity],
       recorderPerson: [null, SharedValidators.entity],
       observers: formBuilder.array([[null, SharedValidators.entity]]),
+      dataQualityStatus: [null],
+      qualityFlagId: [null, SharedValidators.integer],
     });
     this.autoLoad = false;
     this.defaultSortBy = 'startDateTime';

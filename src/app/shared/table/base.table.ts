@@ -35,8 +35,8 @@ import { RxStateRegister } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
 
 export const BASE_TABLE_SETTINGS_ENUM = {
-  filterKey: 'filter',
-  compactRowsKey: 'compactRows',
+  FILTER_KEY: 'filter',
+  COMPACT_ROWS_KEY: 'compactRows',
 };
 
 export interface BaseTableState {}
@@ -79,6 +79,7 @@ export abstract class AppBaseTable<
 
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
 
+  @Input() usePageSettings = true;
   @Input() canGoBack = false;
   @Input() showTitle = true;
   @Input() showToolbar = true;
@@ -88,7 +89,7 @@ export abstract class AppBaseTable<
   @Input() toolbarColor: PredefinedColors = 'primary';
   @Input() sticky = false;
   @Input() stickyEnd = false;
-  @Input() compact = false;
+  @Input() compact: boolean = null;
   @Input() mobile = false;
   @Input() pressHighlightDuration = 10000; // 10s
   @Input() highlightedRowId: number;
@@ -545,9 +546,10 @@ export abstract class AppBaseTable<
       .map((source) => {
         switch (source) {
           case 'settings':
-            if (isNilOrBlank(this.settingsId)) return;
+            if (!this.usePageSettings || isNilOrBlank(this.settingsId)) return; // Skip if settings not usable
+
             console.debug(this.logPrefix + 'Restoring filter from settings...');
-            return this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.filterKey);
+            return this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.FILTER_KEY);
           case 'queryParams': {
             const { q } = this.route.snapshot.queryParams;
             if (q) {
@@ -566,11 +568,15 @@ export abstract class AppBaseTable<
       .find(isNotNil);
   }
 
-  restoreCompactMode() {
-    if (!this.compact && this.settingsId) {
-      const compact = this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.compactRowsKey) || false;
-      if (this.compact !== compact) {
-        this.compact = compact;
+  restoreCompactMode(opts?: { emitEvent?: boolean }) {
+    if (!this.usePageSettings || isNilOrBlank(this.settingsId) || isNotNil(this.compact)) return;
+
+    const compact = this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY) || false;
+    if (this.compact !== compact) {
+      this.compact = compact;
+
+      // Emit event
+      if (!opts || opts.emitEvent !== false) {
         this.markForCheck();
       }
     }
@@ -579,7 +585,9 @@ export abstract class AppBaseTable<
   toggleCompactMode() {
     this.compact = !this.compact;
     this.markForCheck();
-    this.settings.savePageSetting(this.settingsId, this.compact, BASE_TABLE_SETTINGS_ENUM.compactRowsKey);
+    if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) {
+      this.settings.savePageSetting(this.settingsId, this.compact, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY);
+    }
   }
 
   async openCommentPopover(event: Event, row: TableElement<SubBatch>) {
@@ -638,6 +646,15 @@ export abstract class AppBaseTable<
     return filter?.countNotEmptyCriteria() || 0;
   }
 
+  protected clearFilterValue(key: keyof F, event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    this.filterForm.get(key as string).reset(null);
+  }
+
   protected asEntity(source: Partial<T>): T {
     if (EntityUtils.isEntity(source)) return source as unknown as T;
     const target = new this.dataType();
@@ -686,6 +703,6 @@ export abstract class AppBaseTable<
   protected async devToggleDebug() {
     this.debug = !this.debug;
     this.markForCheck();
-    if (isNotNilOrBlank(this.settingsId)) await this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
+    if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) await this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
   }
 }
