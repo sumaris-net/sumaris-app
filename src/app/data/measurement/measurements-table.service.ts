@@ -138,13 +138,9 @@ export class MeasurementsTableEntitiesService<
         mergeMap((pmfms) => this.filterPmfms(pmfms)),
         filter(isNotNil),
         tap(() => this.markAsLoaded()),
-        filter((pmfms) => !equals(pmfms, this.pmfms)),
+        filter((pmfms) => !equals(pmfms, this.pmfms))
         // DEBUG
-        tap(
-          (
-            pmfms //this._debug &&
-          ) => console.debug(`${this._logPrefix}Filtered pmfms changed to:`, pmfms)
-        )
+        //tap((pmfms) => this._debug && console.debug(`${this._logPrefix}Filtered pmfms changed to:`, pmfms))
       )
     );
 
@@ -153,6 +149,7 @@ export class MeasurementsTableEntitiesService<
   }
 
   protected async ngOnStart(): Promise<IPmfm[]> {
+    console.log('TODO STARTING meas table service', this.programLabel);
     //if (this.stopped) throw Error('MeasurementService is not restartable!');
     try {
       return await firstNotNilPromise(this.pmfms$, { stop: this.stopSubject });
@@ -320,7 +317,7 @@ export class MeasurementsTableEntitiesService<
     try {
       // Map
       let filteredPmfms = pmfms;
-      if (this.options && this.options.mapPmfms) {
+      if (this.options?.mapPmfms) {
         filteredPmfms = await this.options.mapPmfms(pmfms);
       }
 

@@ -202,7 +202,8 @@ export abstract class BaseMeasurementsTable<
       this._state.select(['programLabel', 'acquisitionLevel', 'requiredStrategy', 'strategyId', 'strategyLabel', 'requiredGear', 'gearId'], (s) => s),
       (state) => {
         // DEBUG
-        //console.debug(this.logPrefix + 'Updating measurement-service state ', state.acquisitionLevel);
+        //console.debug(this.logPrefix + 'Updating measurement-service state:', state);
+
         this._dataService.set(state);
       }
     );
@@ -211,8 +212,8 @@ export abstract class BaseMeasurementsTable<
     this._state.set(<Partial<ST>>{
       strategyId: null,
       strategyLabel: null,
-      gearId: null,
       requiredGear,
+      gearId: requiredGear ? undefined : null,
       ...options?.initialState,
     });
 

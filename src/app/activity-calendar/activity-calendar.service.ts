@@ -1,4 +1,4 @@
-import { Inject, Injectable, Injector, Optional } from '@angular/core';
+import { Inject, Injectable, InjectionToken, Injector, Optional } from '@angular/core';
 import { gql } from '@apollo/client/core';
 import { map } from 'rxjs/operators';
 
