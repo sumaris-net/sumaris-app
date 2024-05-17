@@ -26,9 +26,8 @@ import {
   LoadResult,
   LocalSettingsService,
   MatAutocompleteFieldConfig,
-  Referential,
-  ReferentialRef,
   ReferentialUtils,
+  removeDuplicatesFromArray,
   sleep,
   splitById,
   StatusIds,
@@ -50,7 +49,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Observable, Subscription } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
 import { UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
@@ -63,6 +62,7 @@ import { Moment } from 'moment/moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
+import { Metier } from '@app/referential/metier/metier.model';
 
 const MAX_METIER_COUNT = 10;
 const MAX_FISHING_AREA_COUNT = 2;
@@ -677,6 +677,11 @@ export class CalendarComponent
     this.excludesColumns = this.excludesColumns.filter((columnName) => !dynamicColumnKeys.includes(columnName));
     this.metierCount = newMetierCount;
 
+    // Force to update the edited row
+    if (this.editedRow) {
+      this.onPrepareRowForm(this.editedRow.validator, { listenChanges: false });
+    }
+
     if (opts?.emitEvent !== false) {
       this.updateColumns();
     }
@@ -694,21 +699,32 @@ export class CalendarComponent
     }
   }
 
-  protected async suggestMetiers(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+  protected async suggestMetiers(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<Metier>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    // Get metiers to exclude (already existing)
+    const existingMetierIds =
+      this.editedRow && removeDuplicatesFromArray((this.editedRow.currentData?.gearUseFeatures || []).map((guf) => guf.metier?.id).filter(isNotNil));
+
     // eslint-disable-next-line prefer-const
-    let { data, total } = await this.referentialRefService.suggest(value, {
-      ...METIER_DEFAULT_FILTER,
-      ...filter,
-      searchJoin: 'TaxonGroup',
-      searchJoinLevelIds: this.metierTaxonGroupIds || [TaxonGroupTypeIds.NATIONAL_METIER],
-    });
-    if (isNotEmptyArray(data)) {
-      const ids = data.map((item) => item.id);
-      const sortBy = (filter?.searchAttribute || filter?.searchAttributes?.[0] || 'label') as keyof Referential;
-      data = await this.referentialRefService.loadAllByIds(ids, 'Metier', sortBy, 'asc');
-    }
-    return { data, total };
+    let { data, total } = await this.referentialRefService.suggest(
+      value,
+      {
+        ...METIER_DEFAULT_FILTER,
+        ...filter,
+        excludedIds: existingMetierIds,
+      },
+      null,
+      null,
+      {
+        toEntity: false, // convert manually
+        withProperties: true /* need to fill properties.gear */,
+      }
+    );
+    // Convert to Metier entities (using `properties.gear` to fill the gear)
+    const entities = ((data || []) as any[]).map((source) => Metier.fromObject({ ...source, ...source.properties }));
+
+    return { data: entities, total };
   }
 
   protected onPrepareRowForm(
@@ -722,7 +738,6 @@ export class CalendarComponent
     this.markAsDirty();
 
     const isActive = form.get('isActive').value;
-    console.debug(this.logPrefix + 'Preparing row form... isActive=' + isActive, form);
 
     opts = {
       withMetier: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
@@ -732,6 +747,8 @@ export class CalendarComponent
       isOnFieldMode: this.isOnFieldMode,
       ...opts,
     };
+
+    if (this.debug) console.debug(this.logPrefix + 'Updating row form...', opts);
     this.validatorService.updateFormGroup(form, opts);
 
     if (opts?.listenChanges !== false) {

@@ -131,7 +131,7 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
   `,
 };
 
-export const IMPORT_REFERENTIAL_ENTITIES = [
+export const IMPORT_REFERENTIAL_ENTITIES = Object.freeze([
   'Location',
   'Gear',
   'Metier',
@@ -142,7 +142,7 @@ export const IMPORT_REFERENTIAL_ENTITIES = [
   'QualityFlag',
   'SaleType',
   'VesselType',
-];
+]);
 
 export const WEIGHT_CONVERSION_ENTITIES = ['WeightLengthConversion', 'RoundWeightConversion'];
 
@@ -550,6 +550,7 @@ export class ReferentialRefService
     sortBy?: keyof Referential | 'rankOrder',
     sortDirection?: SortDirection,
     opts?: {
+      toEntity?: boolean;
       fetchPolicy?: FetchPolicy;
       withProperties?: boolean;
     }

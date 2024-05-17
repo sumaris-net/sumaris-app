@@ -5,18 +5,26 @@ import { CoreModule, SharedModule, TestingPage } from '@sumaris-net/ngx-componen
 import { TranslateModule } from '@ngx-translate/core';
 import { CalendarTestPage } from './calendar-test.page';
 import { AppCalendarModule } from '@app/activity-calendar/calendar/calendar.module';
+import { GearUseFeaturesTestPage } from '@app/activity-calendar/metier/testing/gear-use-features.test';
+import { AppGearUseFeaturesTableModule } from '@app/activity-calendar/metier/gear-use-features.table.module';
 
 export const ACTIVITY_CALENDAR_TESTING_PAGES: TestingPage[] = [
   { label: 'Activity calendar module', divider: true },
   { label: 'Calendar', page: '/testing/activity-calendar/calendar' },
+  { label: 'Gear Use Features', page: '/testing/activity-calendar/gearUseFeatures' },
 ];
 
 const routes: Routes = [
   {
     path: 'calendar',
     pathMatch: 'full',
-    component: CalendarTestPage
-  }
+    component: CalendarTestPage,
+  },
+  {
+    path: 'gearUseFeatures',
+    pathMatch: 'full',
+    component: GearUseFeaturesTestPage,
+  },
 ];
 
 @NgModule({
@@ -26,15 +34,10 @@ const routes: Routes = [
     CoreModule,
     TranslateModule.forChild(),
     RouterModule.forChild(routes),
-    AppCalendarModule
+    AppCalendarModule,
+    AppGearUseFeaturesTableModule,
   ],
-  declarations: [
-    CalendarTestPage
-  ],
-  exports: [
-    CalendarTestPage
-  ]
+  declarations: [CalendarTestPage, GearUseFeaturesTestPage],
+  exports: [CalendarTestPage, GearUseFeaturesTestPage],
 })
-export class CalendarTestingModule {
-
-}
+export class CalendarTestingModule {}
