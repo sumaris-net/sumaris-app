@@ -170,11 +170,12 @@ export interface ActivityCalendarServiceCopyOptions extends ActivityCalendarSave
 
 export interface ActivityCalendarWatchOptions extends EntitiesServiceWatchOptions {
   query?: any;
+  fullLoad?: boolean;
 }
 
 export interface ActivityCalendarControlOptions extends ActivityCalendarValidatorOptions, IProgressionOptions {}
 
-const ActivityCalendarQueries: BaseEntityGraphqlQueries = {
+const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any } = {
   // Load a activityCalendar
   load: gql`
     query ActivityCalendar($id: Int!) {
@@ -201,8 +202,24 @@ const ActivityCalendarQueries: BaseEntityGraphqlQueries = {
     ${ActivityCalendarFragments.lightActivityCalendar}
   `,
 
+  loadAllFull: gql`
+    query ActivityCalendarsFull(
+      $offset: Int
+      $size: Int
+      $sortBy: String
+      $sortDirection: String
+      $trash: Boolean
+      $filter: ActivityCalendarFilterVOInput
+    ) {
+      data: activityCalendars(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash) {
+        ...ActivityCalendarFragment
+      }
+    }
+    ${ActivityCalendarFragments.activityCalendar}
+  `,
+
   loadAllWithTotal: gql`
-    query ActivityCalendars(
+    query ActivityCalendarsWithTotal(
       $offset: Int
       $size: Int
       $sortBy: String
@@ -387,6 +404,7 @@ export class ActivityCalendarService
       query?: any;
       debug?: boolean;
       withTotal?: boolean;
+      fullLoad?: boolean;
     }
   ): Promise<LoadResult<ActivityCalendar>> {
     const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
@@ -394,7 +412,8 @@ export class ActivityCalendarService
       return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
     }
 
-    return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    const query = opts?.fullLoad ? ActivityCalendarQueries.loadAllFull : undefined;
+    return super.loadAll(offset, size, sortBy, sortDirection, filter, { query, ...opts });
   }
 
   async loadAllLocally(
@@ -456,8 +475,13 @@ export class ActivityCalendarService
       sortDirection = sortDirection || 'desc';
     }
 
+    const fullLoad = opts && opts.fullLoad === true; // false by default
+    const withTotal = !opts || opts.withTotal !== false;
+    const query = fullLoad ? ActivityCalendarQueries.loadAllFull : withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
+
     return super.watchAll(offset, size, sortBy, sortDirection, dataFilter as ActivityCalendarFilter, {
-      fetchPolicy: (opts && opts.fetchPolicy) || 'cache-and-network',
+      query,
+      fetchPolicy: opts?.fetchPolicy || 'cache-and-network',
       ...opts,
       variables: {
         ...opts?.variables,

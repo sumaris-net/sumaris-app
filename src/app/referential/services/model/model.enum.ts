@@ -2,6 +2,7 @@ import { changeCaseToUnderscore, underscoreToChangeCase } from '@sumaris-net/ngx
 
 export const ProgramLabel = {
   SIH: 'SIH', // Used for vessel's filter
+  SIH_ACTIPRED: 'SIH-ACTIPRED', // Used for activity calendar
 };
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 export const LocationLevelIds = {

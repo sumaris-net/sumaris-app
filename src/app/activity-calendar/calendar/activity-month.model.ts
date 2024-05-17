@@ -58,7 +58,7 @@ export class ActivityMonthFilter extends EntityFilter<ActivityMonthFilter, Activ
     const filterFns = super.buildFilter();
     if (isNotNil(this.month)) {
       const month = this.month;
-      filterFns.push((item) => item.month === month);
+      filterFns.push((item) => item.startDate?.month() === month);
     }
     return filterFns;
   }

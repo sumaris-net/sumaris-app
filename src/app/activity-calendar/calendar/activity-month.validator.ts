@@ -9,6 +9,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
+  ReferentialUtils,
   SharedFormArrayValidators,
   SharedFormGroupValidators,
   toBoolean,
@@ -30,6 +31,8 @@ import { debounceTime, filter, map, startWith } from 'rxjs/operators';
 import { FORM_VALIDATOR_OPTIONS_PROPERTY } from '@app/shared/service/base.validator.service';
 
 export interface ActivityMonthValidatorOptions extends GearUseFeaturesValidatorOptions {
+  required?: boolean;
+
   metierCount?: number;
   maxMetierCount?: number;
   fishingAreaCount?: number;
@@ -89,7 +92,7 @@ export class ActivityMonthValidatorService<
       month: [toNumber(data?.month, null), Validators.required],
       startDate: [data?.startDate || null, Validators.required],
       endDate: [data?.endDate || null, Validators.required],
-      isActive: [toNumber(data?.isActive, null), Validators.required],
+      isActive: [toNumber(data?.isActive, null), opts?.required ? Validators.required : undefined],
       basePortLocation: [data?.basePortLocation || null],
       measurementValues: this.formBuilder.group({}),
     });
@@ -111,7 +114,7 @@ export class ActivityMonthValidatorService<
       validators: [
         SharedFormGroupValidators.dateRange('startDate', 'endDate'),
         SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
-          predicate: (control) => control.value !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
+          predicate: (control) => control.value === VesselUseFeaturesIsActiveEnum.ACTIVE || control.value === VesselUseFeaturesIsActiveEnum.INACTIVE,
         }),
       ],
     };
@@ -128,6 +131,14 @@ export class ActivityMonthValidatorService<
 
     const enabled = form.enabled;
     const isActive = form.get('isActive').value;
+
+    // Is active
+    const isActiveControl = form.get('isActive');
+    if (opts.required && !isActiveControl.hasValidator(Validators.required)) {
+      isActiveControl.addValidators(Validators.required);
+    } else if (!opts.required && isActiveControl.hasValidator(Validators.required)) {
+      isActiveControl.removeValidators(Validators.required);
+    }
 
     // TODO update metier, gear, fishing areas
     let gufArray = form.get('gearUseFeatures') as AppFormArray<GearUseFeatures, UntypedFormGroup>;
@@ -225,6 +236,7 @@ export class ActivityMonthValidatorService<
   protected fillDefaultOptions(opts?: O): O {
     opts = super.fillDefaultOptions(opts);
 
+    opts.required = toBoolean(opts.required, true);
     opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY);
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, isNotEmptyArray(opts.pmfms) || isNotNil(opts.strategy));
@@ -255,7 +267,16 @@ export class ActivityMonthValidators {
         // Protected against loop
         tap(() => (computing = true)),
         debounceTime(toNumber(opts?.debounceTime, 0)),
-        map(() => (form.touched ? ActivityMonthValidators.computeAndValidate(form, { ...opts, emitEvent: false, onlySelf: false }) : undefined)),
+        map(() =>
+          form.touched
+            ? ActivityMonthValidators.computeAndValidate(form, {
+                ...form[FORM_VALIDATOR_OPTIONS_PROPERTY],
+                ...opts,
+                emitEvent: false,
+                onlySelf: false,
+              })
+            : undefined
+        ),
         tap((errors) => {
           computing = false;
           $errors.next(errors);
@@ -286,10 +307,9 @@ export class ActivityMonthValidators {
     console.debug('[activity-month-validator] Starting computation and validation...');
     let errors: any;
 
-    const fishingAreaCount = toNumber(opts?.fishingAreaCount, toNumber(opts?.maxFishingAreaCount, 1));
-
     const isActiveControl = form.get('isActive') as UntypedFormControl;
     const gearUseFeaturesArray = form.get('gearUseFeatures') as AppFormArray<GearUseFeatures, UntypedFormGroup>;
+    let dirty = false;
 
     // Get isActive value, and force  ACTIVE when having metier
     let isActive = isActiveControl.value;
@@ -299,6 +319,7 @@ export class ActivityMonthValidators {
       if (hasMetier) {
         isActive = VesselUseFeaturesIsActiveEnum.ACTIVE;
         isActiveControl.setValue(isActive, { emitEvent: false });
+        dirty = true;
       }
     }
 
@@ -309,7 +330,6 @@ export class ActivityMonthValidators {
       switch (isActive) {
         case VesselUseFeaturesIsActiveEnum.ACTIVE: {
           if (basePortLocationControl.disabled) basePortLocationControl.enable({ emitEvent: false });
-          //if (!basePortLocationControl.hasValidator(Validators.required)) basePortLocationControl.addValidators(Validators.required);
           if (measurementForm.disabled) measurementForm.enable({ emitEvent: false });
           if (gearUseFeaturesArray?.disabled) gearUseFeaturesArray.enable({ emitEvent: false });
 
@@ -318,9 +338,11 @@ export class ActivityMonthValidators {
             const faArray = gearUseFeaturesArray.get([index, 'fishingAreas']) as AppFormArray<any, any>;
             if (isNotNil(guf.metier?.id)) {
               if (faArray.disabled) faArray.enable({ emitEvent: false });
-              faArray.resize(fishingAreaCount, { emitEvent: false });
             } else {
               if (faArray.enabled) faArray.disable({ emitEvent: false });
+            }
+            if (isNotNil(opts?.fishingAreaCount)) {
+              faArray.resize(opts?.fishingAreaCount, { emitEvent: false });
             }
           });
           //const errorMetier =
@@ -328,22 +350,34 @@ export class ActivityMonthValidators {
           break;
         }
         case VesselUseFeaturesIsActiveEnum.INACTIVE: {
-          measurementForm.reset(null, { emitEvent: false });
           if (basePortLocationControl.disabled) basePortLocationControl.enable({ emitEvent: false });
-          //if (!basePortLocationControl.hasValidator(Validators.required)) basePortLocationControl.addValidators(Validators.required);
-          if (measurementForm.enabled) measurementForm.disable({ emitEvent: false });
+          if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
+            measurementForm.reset(null, { emitEvent: false });
+            dirty = true;
+          }
+          if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
           if (gearUseFeaturesArray?.enabled) gearUseFeaturesArray.disable({ emitEvent: false });
           break;
         }
         case VesselUseFeaturesIsActiveEnum.NOT_EXISTS: {
-          basePortLocationControl.reset(null, { emitEvent: false });
+          if (ReferentialUtils.isNotEmpty(basePortLocationControl.value)) {
+            basePortLocationControl.reset(null, { emitEvent: false });
+            dirty = true;
+          }
           if (basePortLocationControl.enabled) basePortLocationControl.disable({ emitEvent: false });
-          measurementForm.reset(null, { emitEvent: false });
-          if (measurementForm.enabled) measurementForm.disable({ emitEvent: false });
+          if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
+            measurementForm.reset(null, { emitEvent: false });
+            dirty = true;
+          }
+          if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
           if (gearUseFeaturesArray?.enabled) gearUseFeaturesArray.disable({ emitEvent: false });
           break;
         }
       }
+    }
+
+    if (dirty) {
+      form.markAsDirty();
     }
 
     if (opts?.markForCheck) {

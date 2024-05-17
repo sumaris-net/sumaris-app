@@ -1,5 +1,5 @@
 import { FormFieldDefinition, FormFieldType, isNilOrBlank, Property, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelGroups, LocationLevelIds, ProgramLabel, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
@@ -1087,6 +1087,12 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_ENABLE',
     defaultValue: 'true',
     type: 'boolean',
+  },
+  ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.predoc.program.labels',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS',
+    defaultValue: ProgramLabel.SIH_ACTIPRED,
+    type: 'string',
   },
 
   /* -- Extraction options -- */

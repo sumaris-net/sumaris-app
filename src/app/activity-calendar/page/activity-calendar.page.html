@@ -100,7 +100,7 @@
                 [mobile]="mobile"
                 [debug]="debug"
                 (onSubmit)="save($event)"
-                [timezone]="dbTimeZone"
+                [timezone]="timezone"
               ></app-form-activity-calendar>
             </ion-col>
 
@@ -144,8 +144,8 @@
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="calendar"></ion-icon></mat-icon>
         <ion-label
-          [matBadge]="calendar?.visibleRowCount"
-          [matBadgeHidden]="!calendar || calendar.invalid || !calendar.visibleRowCount"
+          [matBadge]="calendar?.validRowCount$ | push"
+          [matBadgeHidden]="!(calendar?.validRowCount$ | push)"
           matBadgeOverlap="false"
           matBadgeColor="primary"
           matBadgeSize="small"
@@ -155,23 +155,56 @@
         </ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="calendar.invalid"></ion-icon>
       </ng-template>
+      <as-split
+        #predocSplit
+        direction="vertical"
+        [useTransition]="true"
+        (dragEnd)="savePredocPanelSize($event.sizes)"
+        (transitionEnd)="savePredocPanelSize($event)"
+      >
+        <!-- Main calendar -->
+        <as-split-area [minSize]="20" size="*">
+          <!-- error -->
+          <ion-item *ngIf="calendar?.error" visible-xs visible-sm visible-mobile lines="none">
+            <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+            <ion-label color="danger" class="error" [innerHTML]="calendar.error | translate"></ion-label>
+          </ion-item>
 
-      <div class="ion-no-padding">
-        <!-- error -->
-        <ion-item *ngIf="calendar?.error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="calendar.error | translate"></ion-label>
-        </ion-item>
+          <app-calendar
+            #calendar
+            [programLabel]="programLabel$ | async"
+            [requiredStrategy]="requiredStrategy$ | async"
+            [strategyId]="(strategy$ | async)?.id"
+            [timezone]="timezone"
+            [debug]="debug"
+          ></app-calendar>
+        </as-split-area>
 
-        <app-calendar
-          #calendar
-          [programLabel]="programLabel$ | async"
-          [requiredStrategy]="requiredStrategy$ | async"
-          [strategyId]="(strategy$ | async)?.id"
-          [timezone]="dbTimeZone"
-          [debug]="debug"
-        ></app-calendar>
-      </div>
+        <!-- Predoc -->
+        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible">
+          <app-calendar
+            #predocCalendar
+            [title]="'ACTIVITY_CALENDAR.EDIT.PREDOC_TITLE'"
+            [pmfms]="calendar.pmfms$ | push"
+            [showVesselOwner]="false"
+            [showRegistrationLocation]="false"
+            [showToolbar]="true"
+            [usePageSettings]="false"
+            [toolbarColor]="'secondary'"
+            [timezone]="timezone"
+            [sticky]="true"
+            [canEdit]="false"
+            [readOnly]="true"
+            [disabled]="true"
+            [showToolbarOptions]="false"
+            [compact]="calendar.compact"
+            [debug]="debug"
+          >
+            <!-- toggle predoc -->
+            <div matToolbarStart *ngTemplateOutlet="togglePredocButton"></div>
+          </app-calendar>
+        </as-split-area>
+      </as-split>
     </mat-tab>
 
     <!-- TAB: Métiers -->
@@ -220,13 +253,15 @@
           <app-calendar
             #mapCalendar
             [style]="'accordion'"
-            [programLabel]="programLabel$ | async"
-            [requiredStrategy]="requiredStrategy$ | async"
-            [strategyId]="(strategy$ | async)?.id"
-            [timezone]="dbTimeZone"
+            [pmfms]="calendar.pmfms$ | push"
+            [timezone]="timezone"
             [showVesselOwner]="false"
             [showRegistrationLocation]="false"
-            [showMonth]="debug"
+            [showMonth]="false"
+            [showToolbar]="false"
+            [enableCellSelection]="false"
+            [usePageSettings]="false"
+            [compact]="true"
             [debug]="debug"
           ></app-calendar>
         </as-split-area>
@@ -234,6 +269,8 @@
     </mat-tab>
   </mat-tab-group>
 </ion-content>
+
+<!-- form bottom toolbar -->
 <ion-footer hidden-xs hidden-sm hidden-mobile>
   <app-form-buttons-bar
     (onCancel)="reloadWithConfirmation()"
@@ -241,6 +278,10 @@
     (onSave)="save($event)"
     [disabled]="!dirty || loading"
   >
+    @if (!_predocPanelVisible) {
+      <ng-container *ngTemplateOutlet="togglePredocButton"></ng-container>
+    }
+
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -262,6 +303,17 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<ng-template #togglePredocButton>
+  <button
+    mat-icon-button
+    [title]="(_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.BTN_HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.BTN_SHOW_PREDOC') | translate"
+    [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
+    (click)="toggleShowPredoc($event)"
+  >
+    <mat-icon>{{ _predocPanelVisible ? 'expand_more' : 'expand_less' }}</mat-icon>
+  </button>
+</ng-template>
 
 <ng-template #debugPanel>
   <app-debug title="Editor and Form">
@@ -289,7 +341,9 @@
           <br />
           editor.vesselCountryId: {{ vesselCountryId }}
           <br />
-          editor.dbTimeZone: {{ dbTimeZone }}
+          editor.timezone: {{ timezone }}
+          <br />
+          editor.predocProgramLabels: {{ (predocProgramLabels$ | async)?.join(',') }}
           <br />
         </ion-col>
         <ion-col>

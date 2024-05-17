@@ -245,10 +245,10 @@
             <ion-col>
               <mat-form-field>
                 <ion-icon matPrefix name="create"></ion-icon>
-                <mat-select [formControl]="control" [placeholder]="'TRIP.TABLE.QUALITY' | translate">
+                <mat-label>{{ 'TRIP.TABLE.QUALITY' | translate }}</mat-label>
+                <mat-select [formControl]="control">
                   <mat-select-trigger>
                     <span *ngIf="statusById | mapGet: control.value; let item">
-                      <ion-icon [name]="item.icon"></ion-icon>
                       {{ item.label | translate }}
                     </span>
                   </mat-select-trigger>
@@ -277,7 +277,8 @@
               [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'"
             >
               <mat-form-field>
-                <mat-select [formControl]="flagControl" [placeholder]="'TRIP.TABLE.FILTER.QUALITY_FLAG_ID' | translate">
+                <mat-label>{{ 'TRIP.TABLE.FILTER.QUALITY_FLAG_ID' | translate }}</mat-label>
+                <mat-select [formControl]="flagControl">
                   <mat-option
                     *ngFor="let item of qualityFlags | arrayFilter: excludeNotQualified"
                     style="background-color: var(--ion-color-{{ item.id | qualityFlagToColor }}); color: var(--ion-color-{{

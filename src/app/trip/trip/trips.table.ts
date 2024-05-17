@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TripComparators, TripService } from './trip.service';
 import { TripFilter, TripSynchroImportFilter } from './trip.filter';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 import {
   arrayDistinct,
   chainPromises,
@@ -71,10 +71,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
-  }
-
-  get filterDataQualityControl(): UntypedFormControl {
-    return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
 
   constructor(
@@ -465,15 +461,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
 
       return;
     }
-  }
-
-  clearFilterValue(key: keyof TripFilter, event?: Event) {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    this.filterForm.get(key).reset(null);
   }
 
   /* -- protected methods -- */

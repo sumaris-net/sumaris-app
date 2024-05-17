@@ -31,6 +31,7 @@ import {
   sleep,
   splitById,
   StatusIds,
+  toBoolean,
   toDateISOString,
   UsageMode,
   waitFor,
@@ -62,6 +63,7 @@ import { Moment } from 'moment/moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
+import { map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 
 const MAX_METIER_COUNT = 10;
@@ -119,6 +121,7 @@ export interface CalendarComponentState extends BaseMeasurementsTableState {
   vesselOwners: VesselOwner[];
   dynamicColumns: ColumnDefinition[];
   metierCount: number;
+  validRowCount: number;
 }
 
 export type CalendarComponentStyle = 'table' | 'accordion';
@@ -159,6 +162,7 @@ export class CalendarComponent
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
   @RxStateSelect() protected months$: Observable<Moment[]>;
+  @RxStateSelect() validRowCount$: Observable<number>;
   readonly isActiveList = IsActiveList;
   readonly isActiveMap = Object.freeze(splitById(IsActiveList));
 
@@ -176,17 +180,15 @@ export class CalendarComponent
   protected originalMouseX: number;
   protected _children: CalendarComponent[];
 
-  protected get resizing(): boolean {
-    return !!this.resizingCell;
-  }
-
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
   @RxStateProperty() metierCount: number;
+  @RxStateProperty() validRowCount: number;
 
   @Input() @RxStateProperty() months: Moment[];
 
+  @Input() title: string = null;
   @Input() locationDisplayAttributes: string[];
   @Input() basePortLocationLevelIds: number[];
   @Input() fishingAreaLocationLevelIds: number[];
@@ -195,8 +197,10 @@ export class CalendarComponent
   @Input() maxMetierCount = MAX_METIER_COUNT;
   @Input() maxFishingAreaCount = MAX_FISHING_AREA_COUNT;
   @Input() usageMode: UsageMode;
+  @Input() showToolbarOptions = true;
   @Input() showPmfmDetails = false;
   @Input() style: CalendarComponentStyle = 'table';
+  @Input() enableCellSelection: boolean;
 
   @Input() set month(value: number) {
     this.filter = ActivityMonthFilter.fromObject({ month: value });
@@ -306,19 +310,24 @@ export class CalendarComponent
         },
       }
     );
+    this.confirmBeforeCancel = false;
     this.inlineEdition = true;
     this.autoLoad = true;
     this.sticky = true;
+    this.compact = null;
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
     this.excludesColumns = [...DYNAMIC_COLUMNS];
+    this.toolbarColor = 'medium';
     this.logPrefix = '[activity-calendar] ';
-    this.undoableDeletion = true;
+    this.loadingSubject.next(true);
   }
 
   async ngOnInit() {
     super.ngOnInit();
 
     this.locationDisplayAttributes = this.locationDisplayAttributes || this.settings.getFieldDisplayAttributes('location');
+    this.inlineEdition = this.inlineEdition && this.canEdit;
+    this.enableCellSelection = this.inlineEdition && toBoolean(this.enableCellSelection, this.style === 'table' && this.canEdit);
 
     await this.referentialRefService.ready();
 
@@ -335,8 +344,8 @@ export class CalendarComponent
 
     this.registerAutocompleteField('metier', {
       suggestFn: (value, filter) => this.suggestMetiers(value, filter),
-      mobile: this.mobile,
       displayWith: (obj) => obj?.label || '',
+      mobile: this.mobile,
     });
 
     this.registerAutocompleteField('fishingAreaLocation', {
@@ -346,16 +355,26 @@ export class CalendarComponent
         entityName: 'Location',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      //attributes: this.locationDisplayAttributes,
       attributes: ['label'],
       mobile: this.mobile,
     });
 
-    //this.markAsReady();
+    this._state.connect(
+      'validRowCount',
+      this._dataSource.rowsSubject.pipe(
+        map((rows) => {
+          return rows.filter((row) => isNotNil(row.currentData?.isActive)).length;
+        })
+      )
+    );
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
+  }
+
+  protected generateTableId(): string {
+    return super.generateTableId();
   }
 
   initTableContainer(element: any) {
@@ -365,13 +384,13 @@ export class CalendarComponent
 
   markAsReady(opts?: { emitEvent?: boolean }) {
     if (this.style === 'accordion') {
-      this._children = this._children || (this.monthCalendars.length ? this.monthCalendars.toArray() : null);
-      if (isEmptyArray(this._children)) {
-        waitFor(() => this.monthCalendars.length > 0, { stop: this.destroySubject, stopError: false }).then(() => this.markAsReady(opts));
-        return;
-      }
-      this._children?.forEach((c) => c.markAsReady(opts));
-      super.markAsReady(opts);
+      // Set months
+      this.months = this.months || CalendarUtils.getMonths(DateUtils.moment().year(), this.timezone);
+
+      this.waitForChildren().then(() => {
+        this._children?.forEach((c) => c.markAsReady(opts));
+        super.markAsReady(opts);
+      });
     } else {
       super.markAsReady(opts);
     }
@@ -387,7 +406,7 @@ export class CalendarComponent
 
     switch (this.style) {
       // Table
-      case 'table':
+      case 'table': {
         // Set data service
         this.memoryDataService.value = data;
 
@@ -403,25 +422,33 @@ export class CalendarComponent
 
         // Load vessels
         if (isNotEmptyArray(data)) {
-          const year = data[0].startDate.year();
+          const year = data[0]?.startDate.year();
           const vesselId = data[0].vesselId;
           if (isNotNil(vesselId)) {
             await this.loadVessels(vesselId, year);
           }
         }
         break;
-
+      }
       // Accordion
-      case 'accordion':
+      case 'accordion': {
         await this.waitForChildren();
+        const firstDayOfYear = this.months?.[0];
         this._children.map((child, index) => {
           const month = child.month;
-          const filteredMonth = data.find((am) => am.month === month);
+          const filteredMonth =
+            data.find((am) => am.startDate?.month() === month) ||
+            <ActivityMonth>{
+              month: month,
+              startDate: firstDayOfYear.clone().month(month),
+              endDate: firstDayOfYear.clone().month(month).endOf('month'),
+            };
           child.value = [filteredMonth];
         });
         this.markAsLoaded();
         this.memoryDataService.value = []; // Not need
         break;
+      }
     }
   }
 
@@ -495,7 +522,8 @@ export class CalendarComponent
 
   async waitForChildren(opts?: WaitForOptions) {
     if (this.style === 'accordion' && isEmptyArray(this._children)) {
-      return waitFor(() => this.monthCalendars.length > 0, { stop: this.destroySubject, stopError: false, ...opts });
+      await waitFor(() => this.monthCalendars.length === 12, { stop: this.destroySubject, stopError: false, ...opts });
+      this._children = this.monthCalendars.toArray();
     }
   }
 
@@ -601,7 +629,7 @@ export class CalendarComponent
 
   protected onMouseEnd(event: { colspan: number; rowspan: number }) {
     // Vertical copy
-    if (this.canEdit && this.enabled && event.colspan !== 0 && event.rowspan === 1) {
+    if (event.colspan !== 0 && event.rowspan === 1) {
       return this.copyVertically(this.resizingCell.row, this.resizingCell.columnName, event.colspan);
     }
 
@@ -611,6 +639,7 @@ export class CalendarComponent
   clickRow(event: Event | undefined, row: TableElement<ActivityMonth>): boolean {
     if (this.resizingCell || event.defaultPrevented) return; // Skip
 
+    if (!this.canEdit) return false;
     return super.clickRow(event, row);
   }
 
@@ -664,6 +693,7 @@ export class CalendarComponent
           autocomplete: this.autocompleteFields.fishingAreaLocation,
           path: `${pathPrefix}fishingAreas.${faIndex}.location`,
           key: `metier${rankOrder}FishingArea${faRankOrder}`,
+          class: 'mat-column-fishingArea',
           treeIndent: '&nbsp;&nbsp;',
         };
       }),
@@ -740,6 +770,7 @@ export class CalendarComponent
     const isActive = form.get('isActive').value;
 
     opts = {
+      required: false,
       withMetier: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
       withFishingAreas: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
       metierCount: this.metierCount,
@@ -758,10 +789,15 @@ export class CalendarComponent
 
   protected startListenRowFormChanges(form: UntypedFormGroup) {
     this.rowSubscription?.unsubscribe();
+    console.debug(this.logPrefix + 'Listening row form...', form);
     this.rowSubscription = ActivityMonthValidators.startListenChanges(form, this.pmfms, {
       markForCheck: () => this.markForCheck(),
       debounceTime: 100,
     });
+    /*this.rowSubscription = form.valueChanges.subscribe((value) => {
+      this.onPrepareRowForm(form, { listenChanges: false });
+    });*/
+    this.rowSubscription.add(() => console.debug(this.logPrefix + 'Stop listening row form...', form));
   }
 
   protected configureValidator(opts: MeasurementsTableValidatorOptions) {
@@ -919,7 +955,8 @@ export class CalendarComponent
 
         const control = form.get(path);
         if (control && (isActive === VesselUseFeaturesIsActiveEnum.ACTIVE || columnName === 'isActive' || columnName === 'basePortLocation')) {
-          control.patchValue(isNil(sourceValue) ? null : sourceValue, { emitEvent: true });
+          control.setValue(isNil(sourceValue) ? null : sourceValue);
+          form.markAllAsTouched();
           form.markAsDirty();
           dirty = true;
         } else {
@@ -934,5 +971,10 @@ export class CalendarComponent
     }
 
     return dirty;
+  }
+
+  markAsDirty(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    if (this.loading) return; // Skip while loading
+    super.markAsDirty(opts);
   }
 }
