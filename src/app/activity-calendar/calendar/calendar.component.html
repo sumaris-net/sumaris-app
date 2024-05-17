@@ -46,7 +46,7 @@
     (ngInit)="initTableContainer(tableContainer)"
     [class.mobile]="mobile"
   >
-    <mat-table [dataSource]="dataSource" [class.resizing]="!!resizingCell">
+    <mat-table [dataSource]="dataSource" [class.resizing]="resizing">
       <!-- hidden columns (required by AppTable) -->
       <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
         <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
@@ -258,11 +258,11 @@
             class="{{ col.class }}"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
-            (mouseenter)="col.hidden && resizingCell && expandBlock($event, col.blockIndex)"
+            (mouseenter)="col.hidden && resizing && expandBlock($event, col.blockIndex)"
             (click)="col.hidden ? toggleBlock($event, col.blockIndex) : setFocusColumn(col.key)"
           >
             @if (!col.hidden) {
-              @if (!col.hidden && row.editing && row.validator | formGetControl: col.path; as control) {
+              @if (row.editing && row.validator | formGetControl: col.path; as control) {
                 <mat-autocomplete-field
                   [placeholder]="col.placeholder"
                   [formControl]="control"
@@ -272,7 +272,7 @@
                   [panelWidth]="!mobile && '500px'"
                 ></mat-autocomplete-field>
               } @else {
-                @if (!col.hidden && row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
+                @if (row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
                   <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
                 }
               }
@@ -289,20 +289,45 @@
         [style]="'mat-table'"
         class="mat-column-reset-background-color"
         (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
-        (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
         (backward)="confirmAndBackward($event.event, $event.row)"
         (forward)="confirmAndForward($event.event, $event.row)"
-        [canCancel]="true"
         [dirtyIcon]="true"
+        [cellTemplate]="cellInjection"
       >
         <!-- top left buttons -->
-        <ng-container matHeader *ngTemplateOutlet="metierButtons"></ng-container>
+        <div matHeader>
+          <ng-container *ngTemplateOutlet="metierButtons"></ng-container>
+        </div>
+        <ng-template #cellInjection let-row>
+          @if (inlineEdition && _enabled && !row.pending) {
+            <!-- cancel button -->
+            @if (row.editing && row.dirty) {
+              <button mat-icon-button [title]="'COMMON.BTN_CANCEL' | translate" (click)="cancelOrDelete($event, row)" tabIndex="-1">
+                <mat-icon>undo</mat-icon>
+              </button>
+            }
+
+            <!-- clear button -->
+            @if (row.validator | formGetValue: 'isActive' | isNotNil) {
+              <button
+                mat-icon-button
+                [class.cdk-visually-hidden]="resizing"
+                [class.visible-hover]="!row.editing"
+                [title]="'ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_MONTH' | translate"
+                (click)="clear($event, row)"
+                tabIndex="-1"
+              >
+                <ion-icon [color]="row.editing ? 'dark' : 'step-200'" name="close"></ion-icon>
+              </button>
+            }
+          }
+        </ng-template>
       </app-actions-column>
 
       <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
       <mat-row
         *matRowDef="let row; columns: displayedColumns"
-        [class.mat-mdc-row-error]="row.invalid"
+        [class.mat-mdc-row-error]="row.touched && row.invalid"
         [class.mat-mdc-row-dirty]="row.dirty"
         [class.mat-mdc-row-disabled]="!row.editing"
         [class.mat-mdc-row-selected]="row.editing"

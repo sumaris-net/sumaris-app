@@ -108,6 +108,16 @@
         display: none;
       }
     }
+
+    .visible-hover {
+      visibility: hidden;
+    }
+
+    .mat-mdc-row:hover {
+      .visible-hover {
+        visibility: unset;
+      }
+    }
   }
 
   .mat-mdc-cell .computed {
@@ -140,7 +150,8 @@
     input::-webkit-input-placeholder, /* Chrome/Opera/Safari */
     input::-moz-placeholder, /* Firefox 19+ */
     input:-ms-input-placeholder, /* IE 10+ */
-    input:-moz-placeholder { /* Firefox 18- */
+    input:-moz-placeholder {
+      /* Firefox 18- */
       color: transparent;
     }
   }

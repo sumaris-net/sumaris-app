@@ -12,8 +12,10 @@ import {
   ViewChildren,
 } from '@angular/core';
 import {
+  Alerts,
   DateUtils,
   EntityUtils,
+  getPropertyByPath,
   IEntitiesService,
   InMemoryEntitiesService,
   isEmptyArray,
@@ -59,6 +61,8 @@ import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measure
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { Moment } from 'moment/moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 
 const MAX_METIER_COUNT = 10;
 const MAX_FISHING_AREA_COUNT = 2;
@@ -171,6 +175,10 @@ export class CalendarComponent
   protected originalMouseY: number;
   protected originalMouseX: number;
   protected _children: CalendarComponent[];
+
+  protected get resizing(): boolean {
+    return !!this.resizingCell;
+  }
 
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
@@ -304,6 +312,7 @@ export class CalendarComponent
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
     this.excludesColumns = [...DYNAMIC_COLUMNS];
     this.logPrefix = '[activity-calendar] ';
+    this.undoableDeletion = true;
   }
 
   async ngOnInit() {
@@ -585,38 +594,17 @@ export class CalendarComponent
   }
 
   protected async validate(event: { colspan: number; rowspan: number }): Promise<boolean> {
-    // TODO display merge menu
+    // TODO display merge/opts menu
     await sleep(500);
     return true;
   }
 
   protected onMouseEnd(event: { colspan: number; rowspan: number }) {
-    const columnName = this.resizingCell.columnName;
-    switch (columnName) {
-      case 'basePortLocation':
-      case 'isActive': {
-        if (event.colspan > 0 && event.rowspan === 1) {
-          this.confirmEditCreate();
-          const sourceRow = this.resizingCell.row;
-          const sourceValue = sourceRow.currentData[columnName];
-          const minRowId = sourceRow.id + 1;
-          const maxRowId = sourceRow.id + (event.colspan - 1);
-
-          const targetRows = this.dataSource.getRows().filter((row) => row.id >= minRowId && row.id <= maxRowId);
-
-          // DEBUG
-          if (this.debug) console.debug(this.logPrefix + `Copying ${columnName} to ${targetRows.length} months ...`, targetRows);
-
-          targetRows.forEach((targetRow) => {
-            if (targetRow.validator) {
-              targetRow.validator.patchValue({ [columnName]: sourceValue });
-              targetRow.validator.markAsDirty();
-            }
-          });
-          this.markForCheck();
-        }
-      }
+    // Vertical copy
+    if (this.canEdit && this.enabled && event.colspan !== 0 && event.rowspan === 1) {
+      return this.copyVertically(this.resizingCell.row, this.resizingCell.columnName, event.colspan);
     }
+
     return true;
   }
 
@@ -626,12 +614,17 @@ export class CalendarComponent
     return super.clickRow(event, row);
   }
 
-  cancelOrDelete(event: Event, row: TableElement<ActivityMonth>, opts?: { interactive?: boolean; keepEditing?: boolean }) {
+  cancelOrDelete(event: Event, row: TableElement<ActivityMonth>, opts?: { interactive?: boolean; keepEditing?: boolean; emitEvent?: boolean }) {
     event?.preventDefault();
+    this.rowSubscription?.unsubscribe();
     super.cancelOrDelete(event, row, { ...opts, keepEditing: false });
-
-    // Update view
-    if (!row.editing) this.markForCheck();
+    // Listen changes, if still editing (e.g. when cannot cancel)
+    if (row.editing) this.startListenRowFormChanges(row.validator);
+    else {
+      row.validator.markAsPristine();
+      // Update view
+      if (opts?.emitEvent !== false) this.markForCheck();
+    }
   }
 
   addMetierBlock(event?: UIEvent, opts?: { emitEvent?: boolean }) {
@@ -726,6 +719,8 @@ export class CalendarComponent
   ) {
     if (!form || !this.validatorService) return;
 
+    this.markAsDirty();
+
     const isActive = form.get('isActive').value;
     console.debug(this.logPrefix + 'Preparing row form... isActive=' + isActive, form);
 
@@ -733,18 +728,23 @@ export class CalendarComponent
       withMetier: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
       withFishingAreas: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
       metierCount: this.metierCount,
-      fishingAreaCount: 1, //this.maxFishingAreaCount,
+      fishingAreaCount: this.maxFishingAreaCount,
       isOnFieldMode: this.isOnFieldMode,
       ...opts,
     };
     this.validatorService.updateFormGroup(form, opts);
 
     if (opts?.listenChanges !== false) {
-      this.rowSubscription?.unsubscribe();
-      this.rowSubscription = ActivityMonthValidators.startListenChanges(form, this.pmfms, {
-        markForCheck: () => this.markForCheck(),
-      });
+      this.startListenRowFormChanges(form);
     }
+  }
+
+  protected startListenRowFormChanges(form: UntypedFormGroup) {
+    this.rowSubscription?.unsubscribe();
+    this.rowSubscription = ActivityMonthValidators.startListenChanges(form, this.pmfms, {
+      markForCheck: () => this.markForCheck(),
+      debounceTime: 100,
+    });
   }
 
   protected configureValidator(opts: MeasurementsTableValidatorOptions) {
@@ -754,6 +754,59 @@ export class CalendarComponent
       maxMetierCount: this.maxMetierCount,
       maxFishingAreaCount: this.maxFishingAreaCount,
     };
+  }
+
+  confirmEditCreate(event?: Event, row?: TableElement<ActivityMonth>): boolean {
+    row = row || this.editedRow;
+    if (!row || !row.editing) return true; // no row to confirm
+
+    // If pristine, cancel instead of confirmed
+    if (row.validator.pristine && !row.validator.valid) {
+      this.cancelOrDelete(event, row);
+      return true;
+    }
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    return super.confirmEditCreate(event, row);
+  }
+
+  async clear(event?: Event, row?: TableElement<ActivityMonth>) {
+    row = row || this.editedRow;
+    if (!row || event.defaultPrevented) return true; // no row to confirm
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_MONTH', this.alertCtrl, this.translate);
+    if (!confirmed) return false; // User cancelled
+
+    if (this.debug) console.debug(this.logPrefix + 'Clear row', row);
+
+    const currentData = row.currentData;
+    if (ActivityMonth.isEmpty(currentData)) return true; // Nothing to clear
+
+    const { startDate, endDate } = currentData;
+    const data = ActivityMonth.fromObject({
+      startDate,
+      endDate,
+      measurementValues: MeasurementValuesUtils.normalizeValuesToForm({}, this.pmfms),
+      gearUseFeatures: new Array(this.maxMetierCount).fill({
+        startDate,
+        endDate,
+        fishingAreas: new Array(this.maxFishingAreaCount).fill({}),
+      }),
+    });
+
+    if (row.validator && row.editing) {
+      row.originalData = data;
+      this.cancelOrDelete(event, row, { keepEditing: true });
+    } else {
+      row.currentData = data;
+    }
+    this.markAsDirty({ emitEvent: false });
+    this.markForCheck();
   }
 
   toggleBlock(event: UIEvent, blockIndex: number) {
@@ -804,5 +857,65 @@ export class CalendarComponent
 
   protected setFocusColumn(key: string) {
     this.focusColumn = key;
+  }
+
+  protected copyVertically(sourceRow: TableElement<ActivityMonth>, columnName: string, colspan: number) {
+    if (!sourceRow || !columnName || colspan === 0 || !this.enabled) return false;
+
+    console.debug(this.logPrefix + `Copying vertically ${columnName} - colspan=${colspan}`);
+
+    // Get column
+    const dynamicColumns = this.dynamicColumns?.find((c) => c.key === columnName);
+    const validColumn = !!dynamicColumns || columnName === 'isActive' || columnName === 'basePortLocation' || PMFM_ID_REGEXP.test(columnName);
+    if (!validColumn) return false;
+
+    const path = dynamicColumns?.path || (PMFM_ID_REGEXP.test(columnName) ? `measurementValues.${columnName}` : columnName);
+
+    // Get target rows
+    const minRowId = colspan > 0 ? sourceRow.id + 1 : sourceRow.id + colspan + 1;
+    const maxRowId = colspan > 0 ? sourceRow.id + colspan - 1 : sourceRow.id - 1;
+    const targetRows = this.dataSource.getRows().filter((row) => row.id >= minRowId && row.id <= maxRowId);
+    if (isEmptyArray(targetRows)) return false; // Skip if empty
+
+    // DEBUG
+    if (this.debug) console.debug(this.logPrefix + `Copying vertically ${columnName} to ${targetRows.length} months ...`, targetRows);
+
+    // Get source value (after confirmed if row is editing)
+    this.confirmEditCreate(); // Row can be NOT confirmed, but it's OK
+    const sourceValue = getPropertyByPath(sourceRow.currentData, path);
+
+    let dirty = false;
+    targetRows.forEach((row, index) => {
+      const form = row.validator;
+      if (form) {
+        const isActiveControl = form.get('isActive');
+        let isActive = isActiveControl.value;
+        if (isNotNil(sourceValue) && columnName !== 'isActive' && columnName !== 'basePortLocation') {
+          if (isNil(isActive)) {
+            isActive = VesselUseFeaturesIsActiveEnum.ACTIVE;
+            isActiveControl.patchValue(isActive, { emitEvent: false });
+            dirty = true;
+          }
+          // Prepare the form
+          this.onPrepareRowForm(form, { listenChanges: false });
+        }
+
+        const control = form.get(path);
+        if (control && (isActive === VesselUseFeaturesIsActiveEnum.ACTIVE || columnName === 'isActive' || columnName === 'basePortLocation')) {
+          control.patchValue(isNil(sourceValue) ? null : sourceValue, { emitEvent: true });
+          form.markAsDirty();
+          dirty = true;
+        } else {
+          console.debug(`- Skipping copy value to month ${index + 1}`);
+        }
+      }
+    });
+
+    if (dirty) {
+      this.markAsDirty({ emitEvent: false });
+      this.markForCheck();
+    }
+
+    return dirty;
   }
 }
