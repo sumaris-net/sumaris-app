@@ -284,6 +284,12 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: TaxonomicLevelIds.SUBSPECIES,
   },
+  PMFM_LABEL_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.referential.Pmfm.label.enable',
+    label: 'CONFIGURATION.OPTIONS.REFERENTIAL.PMFM_LABEL_ENABLE',
+    type: 'boolean',
+    defaultValue: 'true',
+  },
   PMFM_NB_FISHERMEN_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.NB_FISHERMEN.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_NB_FISHERMEN_ID',

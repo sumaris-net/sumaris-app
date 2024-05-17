@@ -106,6 +106,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
   @Input() program: Program;
   @Input() showBaseForm = true;
   @Input() allowMultiple = false;
+  @Input() showPmfmLabel = true;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('acquisitionLevelList', { static: true }) acquisitionLevelList: AppListForm;
@@ -222,13 +223,13 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
 
       const json = await this.getJsonValueToSave();
       const data = Strategy.fromObject(json);
-      await this.updateView(data, { openTabIndex: -1, updateTabAndRoute: false });
+      await this.updateView(data, { openTabIndex: -1, updateRoute: false });
     }
 
     return true;
   }
 
-  async updateView(data: Strategy | null, opts?: { openTabIndex?: number; updateTabAndRoute?: boolean }) {
+  async updateView(data: Strategy | null, opts?: { openTabIndex?: number; updateRoute?: boolean }) {
     await super.updateView(data, { ...opts, updateRoute: false });
   }
 

@@ -58,10 +58,10 @@ export interface TranscribingItemTableState {
 export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem, TranscribingItemFilter> implements OnInit {
   @RxStateSelect() protected filterTypes$: Observable<TranscribingItemType[]>;
 
-  @RxStateProperty() @Input() transcribingSystemId: number;
-  @RxStateProperty() @Input() filterTypes: TranscribingItemType[];
-  @RxStateProperty() @Input() objectFilter: Partial<ReferentialRefFilter>;
-  @RxStateProperty() @Input() type: TranscribingItemType;
+  @Input() @RxStateProperty() transcribingSystemId: number;
+  @Input() @RxStateProperty() filterTypes: TranscribingItemType[];
+  @Input() @RxStateProperty() objectFilter: Partial<ReferentialRefFilter>;
+  @Input() @RxStateProperty() type: TranscribingItemType;
 
   @Input()
   set value(data: TranscribingItem[]) {

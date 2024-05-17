@@ -377,6 +377,9 @@
       },
       "ACCOUNT": {
         "READONLY": "Mon compte > Nom et prénom en lecture seule ?"
+      },
+      "REFERENTIAL": {
+        "PMFM_LABEL_ENABLE": "Référentiel > PSFM > Afficher le code (label) du PSFM ?"
       }
     },
     "CACHE": {

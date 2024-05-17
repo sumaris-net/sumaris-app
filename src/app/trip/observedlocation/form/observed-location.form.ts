@@ -98,7 +98,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     return this._withEndDateRequired;
   }
 
-  @RxStateProperty() @Input() showObservers: boolean;
+  @Input() @RxStateProperty() showObservers: boolean;
 
   get empty(): any {
     const value = this.value;
