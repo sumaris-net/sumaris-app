@@ -28,16 +28,6 @@
     <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
   </ng-container>
 
-  <!-- Registration code column -->
-  <ng-container matColumnDef="registrationCode">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <ion-text>{{ row.currentData.registrationCode }}</ion-text>
-    </mat-cell>
-  </ng-container>
-
   <!-- Start date column -->
   <ng-container matColumnDef="startDate">
     <mat-header-cell *matHeaderCellDef mat-sort-header>

@@ -45,7 +45,6 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
       // columns
       [
         'id',
-        'registrationCode',
         'startDate',
         'endDate',
         'exteriorMarking',
