@@ -1,7 +1,9 @@
-import { AppValidatorService, EntitiesTableDataSource, Entity } from '@sumaris-net/ngx-components';
+import { AppValidatorService, Entity } from '@sumaris-net/ngx-components';
 import { AbstractControlOptions, FormBuilder, FormGroup, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { Injector } from '@angular/core';
+
+export const FORM_VALIDATOR_OPTIONS_PROPERTY = '__validatorOpts';
 
 export class BaseValidatorService<E extends Entity<E, ID>, ID = number, O = any> extends AppValidatorService<E> {
   static create<E extends Entity<E, ID>, ID = number, O = any>(

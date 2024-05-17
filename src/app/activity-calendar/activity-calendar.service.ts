@@ -45,7 +45,7 @@ import {
 import { BehaviorSubject, Observable } from 'rxjs';
 import { IProgressionOptions, IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
+import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ActivityCalendarValidatorOptions, ActivityCalendarValidatorService } from './model/activity-calendar.validator';
 import { ActivityCalendar } from './model/activity-calendar.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
@@ -1146,7 +1146,7 @@ export class ActivityCalendarService
         // No program
         if (isNilOrBlank(programLabel)) {
           console.warn('[activity-calendar-service] [import] Cannot reducing importation (no program): can be long!');
-          opts.entityNames = [...IMPORT_REFERENTIAL_ENTITIES, ...WEIGHT_CONVERSION_ENTITIES];
+          opts.entityNames = [...IMPORT_REFERENTIAL_ENTITIES];
         }
 
         // Fill options using program
@@ -1156,19 +1156,18 @@ export class ActivityCalendarService
           opts.program = program;
           opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
 
-          // Limit locations (e.g. rectangle)
-          // TODO limit to location levels used in calendar
+          // Limit locations (e.g. rectangle, sub-rectangle)
+          // TODO limit to location levels used
           //opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
           if (isNotEmptyArray(opts.locationLevelIds))
             console.debug('[activity-calendar-service] [import] Location - level ids: ' + opts.locationLevelIds.join(','));
-
-          // TODO limit vessels (e.g. using PERSON_SESSION_VESSEL ?)
         }
       }),
 
       ...super.getImportJobs(filter, opts),
 
-      // TODO: import historical data ?
+      // TODO: import calendars ?
+      // TODO: import predoc calendars ?
     ];
   }
 

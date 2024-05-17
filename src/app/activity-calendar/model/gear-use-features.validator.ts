@@ -30,8 +30,11 @@ export interface GearUseFeaturesValidatorOptions extends DataRootEntityValidator
   pmfms?: IPmfm[];
 
   withMetier?: boolean;
+  requiredMetier?: boolean;
   withGear?: boolean; // false by default (not used in ActivityCalendar)
+  requiredGear?: boolean;
   withFishingAreas?: boolean;
+  requiredFishingAreas?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -89,17 +92,17 @@ export class GearUseFeaturesValidatorService<
 
     // Add metier
     if (opts.withMetier) {
-      config.metier = this.getMetierControl(data?.metier);
+      config.metier = this.getMetierControl(data?.metier, { required: opts?.requiredMetier !== false });
     }
 
     // Add gear
     if (opts.withGear) {
-      config.gear = this.getGearControl(data?.metier);
+      config.gear = this.getGearControl(data?.metier, { required: opts?.requiredGear !== false });
     }
 
     // Add fishing Ares
     if (opts.withFishingAreas) {
-      config.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, { required: true });
+      config.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, { required: opts?.requiredFishingAreas !== false });
     }
 
     return config;
