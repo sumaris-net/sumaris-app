@@ -24,6 +24,15 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
   @Input() compact: boolean;
   @Input() title: string;
 
+  @Input()
+  set showGrossTonnageGrtColumn(value: boolean) {
+    this.setShowColumn('grossTonnageGrt', value);
+  }
+
+  get showGrossTonnageGrtColumn(): boolean {
+    return this.getShowColumn('grossTonnageGrt');
+  }
+
   constructor(
     injector: Injector,
     protected accountService: AccountService,
@@ -43,6 +52,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'name',
         'administrativePower',
         'lengthOverAll',
+        'grossTonnageGrt',
         'grossTonnageGt',
         'constructionYear',
         'ircs',
@@ -58,7 +68,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     );
 
     this.i18nColumnPrefix = 'VESSEL.';
-
+    this.showGrossTonnageGrtColumn = false;
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
@@ -68,7 +78,6 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
 
   ngOnInit() {
     super.ngOnInit();
-    console.debug('icii data', this.dataSource);
     this.isAdmin = this.accountService.isAdmin();
   }
 

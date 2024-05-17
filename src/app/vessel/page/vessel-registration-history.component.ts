@@ -17,6 +17,15 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
   @Input() compact: boolean;
   @Input() title: string;
 
+  @Input()
+  set showRegistrationLocationColumn(value: boolean) {
+    this.setShowColumn('registrationLocation', value);
+  }
+
+  get showRegistrationLocationColumn(): boolean {
+    return this.getShowColumn('registrationLocation');
+  }
+
   constructor(
     injector: Injector,
     protected accountService: AccountService,
@@ -37,7 +46,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     );
 
     this.i18nColumnPrefix = 'VESSEL.';
-
+    this.showRegistrationLocationColumn = true;
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;

@@ -14,7 +14,6 @@ export const VesselFeaturesFragments = {
       id
       startDate
       endDate
-      registrationCode
       name
       exteriorMarking
       administrativePower

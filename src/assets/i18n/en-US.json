@@ -1792,9 +1792,7 @@
     },
     "HISTORY": {
       "FEATURES": "Vessel features",
-      "REGISTRATIONS": "Registrations",
-      "FEATURES_ACTIVITY_CALENDAR": "Vessel features characteristics",
-      "REGISTRATIONS_ACTIVITY_CALENDAR": "History of Vessel features registrations"
+      "REGISTRATIONS": "Registrations"
     },
     "ACTION": {
       "EDIT": "Edit",
@@ -3078,20 +3076,20 @@
       "VESSEL": "Vessel",
       "YEAR": "Year",
       "FILTER": {
-          "PROGRAM": "Data collection programme",
-          "REGISTRATION_LOCATION": "Registration location",
-          "BASE_PORT_LOCATION": "Base port / Operation.",
-          "DIRECT_SURVEY_INVESTIGATION": "Direct survey investigation objective?",
-          "ECONOMIC_SURVEY": "Economic survey?",
-          "RECORDER_PERSON": "Recorder",
-          "RECORDER_DEPARTMENT": "Recoder department(s)",
-          "VESSEL": "Vessel",
-          "YEAR": "Year"
+        "PROGRAM": "Data collection programme",
+        "REGISTRATION_LOCATION": "Registration location",
+        "BASE_PORT_LOCATION": "Base port / Operation.",
+        "DIRECT_SURVEY_INVESTIGATION": "Direct survey investigation objective?",
+        "ECONOMIC_SURVEY": "Economic survey?",
+        "RECORDER_PERSON": "Recorder",
+        "RECORDER_DEPARTMENT": "Recoder department(s)",
+        "VESSEL": "Vessel",
+        "YEAR": "Year"
       }
-  },
-  "NEW": {
+    },
+    "NEW": {
       "TITLE": "New activity calendar"
-  },
+    },
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Activity {{year}}",
       "BASE_PORT_LOCATION": "Base port / Operation.",
@@ -3121,16 +3119,17 @@
       "VESSEL_FEATURES": "Vessel features",
       "VESSEL_REGISTRATIONS": "Vessel features registration history",
       "IS_ACTIVE_ENUM": {
-          "ENABLE": "Active",
-          "DISABLE": "Inactive",
-          "NOT_EXISTS": "Non-existent"
-      },
-      "OFFLINE_MODAL": {
-          "TITLE": "Offline mode configuration"
-      },
-      "OPTIONS": {
-          "ENABLE": "Activity calendar > Enable?"
+        "ENABLE": "Active",
+        "DISABLE": "Inactive",
+        "NOT_EXISTS": "Non-existent"
       }
+    },
+    "OFFLINE_MODAL": {
+      "TITLE": "Offline mode configuration"
+    },
+    "OPTIONS": {
+      "ENABLE": "Activity calendar > Enable?"
+    }
   },
   "ERROR": {
     "ALERT_HEADER": "Error",

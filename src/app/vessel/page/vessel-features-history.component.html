@@ -98,6 +98,16 @@
     </mat-cell>
   </ng-container>
 
+  <!-- grossTonnageGrt column -->
+  <ng-container matColumnDef="grossTonnageGrt">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_FEATURES.GROSS_TONNAGE_GRT</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.grossTonnageGrt }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
   <!-- grossTonnageGt column -->
   <ng-container matColumnDef="grossTonnageGt">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
