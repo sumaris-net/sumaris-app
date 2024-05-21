@@ -154,7 +154,8 @@
     },
     "REPORT": {
       "SHARE_LINK_PLACEHOLDER": "Lien vers le rapport :",
-      "TYPE_DIVIDER": "Types de rapport"
+      "TYPE_DIVIDER": "Types de rapport",
+      "PAGE_NUMBER": "page {{ pageNumber }}"
     },
     "HELP": {
       "TITLE": "Aide en ligne"
@@ -1178,17 +1179,19 @@
           "TAXON_GROUP_PLACEHOLDER": "Espèce (FAO)",
           "TAXON_NAME_PLACEHOLDER": "Espèce scientifique"
         },
-        "ONBOARD_OBSERVATION": {
+        "OBSERVED_TRIP": {
           "TITLE": "Capture {{label}}",
           "TAXON_NAME_PLACEHOLDER": "Espèce scientifique"
         }
       },
       "TABLE": {
+        "TITLE": "Prélèvements",
         "TAB_SAMPLES": "Prélèvements",
         "TAB_SUB_SAMPLES": "Sous-prélèvements",
         "TAB_INDIVIDUAL_RELEASES": "Relâchés",
         "LABEL": "Libellé",
         "LABEL_PLACEHOLDER": "Libellé",
+        "RANK_ORDER": "#",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_GROUP_PLACEHOLDER": "Code espèce",
         "TAXON_NAME": "Espèce scientifique (FAO)",
@@ -1226,16 +1229,20 @@
           "IMAGES": "Photos"
         },
         "ACCIDENTAL_CATCH": {
+          "TITLE": "Captures accidentelles",
           "TAB_SAMPLES": "Mesures individuelles",
           "TAXON_NAME": "Espèce scientifique",
           "TAG_COUNT": "<b>{{tagCount}}</b> individu(s) marqué(s)"
         },
-        "ONBOARD_OBSERVATION": {
+        "OBSERVED_TRIP": {
+          "TITLE": "Captures accidentelles",
+          "RANK_ORDER": "N° ECH",
           "TAB_SAMPLES": "Mesures individuelles",
           "TAXON_NAME": "Espèce scientifique",
           "TAG_COUNT": "<b>{{tagCount}}</b> individu(s) marqué(s)"
         },
         "SURVIVAL_TEST": {
+          "TITLE": "Tests de survie",
           "TAB_SAMPLES": "Mesures individuelles",
           "TAB_SUB_SAMPLES": "Suivi individuel",
           "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel",
@@ -1270,7 +1277,7 @@
             "MEASURE_TIME": "Heure de remise à l'eau",
             "TAG_ID": "Référence de la marque"
           },
-          "ONBOARD_OBSERVATION": {
+          "OBSERVED_TRIP": {
             "MEASURE_TIME": "Heure de remise à l'eau",
             "TAG_ID": "Référence de la marque"
           }
@@ -1282,7 +1289,7 @@
         "SURVIVAL_TEST": {
           "TAG_ID": "Tag-ID"
         },
-        "ONBOARD_OBSERVATION": {
+        "OBSERVED_TRIP": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "IS_DEAD": "Mort ?",
           "TAG_ID": "Référence de la marque"
@@ -1403,7 +1410,7 @@
         },
         "OPERATION": {
           "TITLE": "FICHE OPERATIONS DE PECHE (recto)",
-          "COMMENTS_TITLE": "FICHE OPERATIONS DE PECHE (verso)",
+          "TITLE_VERSO": "FICHE OPERATIONS DE PECHE (verso)",
           "NB_OP": "Nombre total d'opérations de pêche effectuées pendant la marée :",
           "TABLE": {
             "OPERATION_START": "Début de l'opération",
@@ -1426,20 +1433,20 @@
           }
         },
         "PHYSICAL_GEAR": {
-          "TITLE": "FICHE ENGINS (page {{ pageNumber }})",
+          "TITLE": "FICHE ENGINS",
           "OPERATIONS": "N° OP associée(s) :"
         },
-        "ONBOARD_OBSERVATION": {
+        "OBSERVED_TRIP": {
           "TITLE": "Dossier d'observation en mer"
         },
         "PMFM": {
-          "ONBOARD_OBSERVATION": {
+          "OBSERVED_TRIP": {
             "HAS_INDIVIDUAL_MEASURES": "Échantillonnage"
           }
         },
         "BATCH": {
-          "TITLE_LANDING": "FICHE ECHANTILLONNAGE PARTIE RETENUE (page {{ pageNumber }})",
-          "TITLE_DISCARD": "FICHE ECHANTILLONNAGE PARTIE REJETÉE (page {{ pageNumber }})",
+          "TITLE_LANDING": "FICHE ECHANTILLONNAGE PARTIE RETENUE",
+          "TITLE_DISCARD": "FICHE ECHANTILLONNAGE PARTIE REJETÉE",
           "TAXON_GROUPS": "Espèces commerciales",
           "TAXON_NAMES": "Espèces scientifique",
           "SORT_CRITERIAS": "Critères de classement",
@@ -1455,27 +1462,11 @@
           "PNR_SAMPLING_WEIGHT": "Poids ECHANTILLONNE de la PNR (kg) :",
           "FRACTION_FIELD": "Fraction :",
           "TABLE_LEGEND": "Légende : Les lots dont la qualité est invalide sont en <span class=\"invalid\">rouge</span>, les valeurs calculées sont en <span class=\"computed\">bleu et italique</span>, les valeurs issues d'estimation terrain sont surlignées, les valeurs mesurées, pesées ou comptées sont en noir."
-        },
-        "ACCIDENTAL_CATCH": {
-          "TITLE": "Prélèvements (page {{ pageNumber }})",
-          "TAXON_NAME": "Espèce scientifique",
-          "NUM_SAMPLE": "N° ECH",
-          "SAMPLE_LABEL": "Libellé",
-          "TAXON_GROUPE": "Espèce commerciale",
-          "SURVIVAL_TEST": {
-            "TITLE": "Tests de survie (page {{ pageNumber }})"
-          },
-          "ACCIDENTAL_CATCH": {
-            "TITLE": "Captures accidentelles (page {{ pageNumber }})"
-          },
-          "OBSERVED_TRIP": {
-            "TITLE": "Captures accidentelles (page {{ pageNumber }})"
-          }
         }
       }
     },
     "PMFM": {
-      "ONBOARD_OBSERVATION": {
+      "OBSERVED_TRIP": {
         "NB_FISHERMEN": "Nombre de personnes à bord"
       }
     }
@@ -2374,7 +2365,7 @@
       "TRIP_REPORT_TYPE": "Marée > Rapport : Types de rapport :",
       "TRIP_REPORT_TYPE_LEGACY": "Par défaut",
       "TRIP_REPORT_TYPE_TRAWL_SELECTIVITY": "Sélectivité châlut",
-      "TRIP_REPORT_TYPE_ONBOARD_OBSERVATION": "Observation en mer",
+      "TRIP_REPORT_TYPE_OBSERVED_TRIP": "Observation des marées en mer",
       "TRIP_REPORT_TYPE_FORM": "Formulaire terrain",
       "TRIP_REPORT_TYPE_FORM_BLANK": "Formulaire terrain vierge",
       "TRIP_REPORT_FORM_SUBTITLE": "Marée > Rapport : Sous-titre du rapport",

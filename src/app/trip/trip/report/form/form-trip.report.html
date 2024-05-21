@@ -519,7 +519,7 @@
 
           <!-- Operation comments -->
           <section class="landscape">
-            <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE' }"></ng-content>
+            <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE_VERSO' }"></ng-content>
             <table class="table-full-width" [style.margin-top]="'50px'">
               <thead>
                 <tr>
@@ -646,17 +646,14 @@
       }
     }
 
-    <!-- Accidental catch by operation -->
+    <!-- Sample by operation -->
     @for (operation of data?.operations; track operation.id) {
       @if (operation?.samples | isNotEmptyArray) {
         <section *sectionDef>
           @for (samplesChunk of operation?.samples | splitArrayInChunks: 18; track operationChunkIndex; let operationChunkIndex = $index) {
             <section class="landscape">
               <ng-content
-                *ngTemplateOutlet="
-                  pageHeader;
-                  context: { title: 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.TITLE', titleParams: { pageNumber: operationChunkIndex + 1 } }
-                "
+                *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.SAMPLE.TABLE.TITLE', titleParams: { pageNumber: operationChunkIndex + 1 } }"
               ></ng-content>
               <ion-grid class="report-section ion-no-padding">
                 <ion-row class="section-title ion-margin-bottom">
@@ -675,26 +672,26 @@
                   <tr>
                     @if (stats.options.sampleLabelEnabled) {
                       <th class="col-compact font-medium">
-                        <div>{{ 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.SAMPLE_LABEL' | translate }}</div>
+                        <div>{{ 'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nContext.suffix }}</div>
                       </th>
                     } @else {
                       <th class="col-tiny font-medium text-vertical">
-                        <div>{{ 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.NUM_SAMPLE' | translate }}</div>
+                        <div>{{ 'TRIP.SAMPLE.TABLE.RANK_ORDER' | translateContext: i18nContext.suffix }}</div>
                       </th>
                     }
                     @if (stats.options.sampleTaxonNameEnabled) {
                       <th class="col-medium font-medium">
-                        <div>{{ 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.TAXON_NAME' | translate }}</div>
+                        <div>{{ 'TRIP.SAMPLE.TABLE.TAXON_NAME' | translateContext: i18nContext.suffix }}</div>
                       </th>
                     }
                     @if (stats.options.sampleTaxonGroupEnabled) {
                       <th class="col-medium font-medium">
-                        <div>{{ 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.TAXON_GROUPE' | translate }}</div>
+                        <div>{{ 'TRIP.SAMPLE.TABLE.TAXON_GROUP' | translateContext: i18nContext.suffix }}</div>
                       </th>
                     }
                     @for (pmfm of stats.pmfms.samples; track pmfm.id) {
                       <th class="col-compact ion-text-center font-medium">
-                        <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix }"></div>
+                        <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nContext: i18nContext.suffix }"></div>
                       </th>
                     }
                     <th class="col-extra-large font-medium">
@@ -761,10 +758,7 @@
           ) {
             <section class="landscape">
               <ng-content
-                *ngTemplateOutlet="
-                  pageHeader;
-                  context: { title: 'TRIP.REPORT.FORM.ACCIDENTAL_CATCH.TITLE', titleParams: { pageNumber: imagesChunkIndex + 1 } }
-                "
+                *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.SAMPLE.TABLE.TITLE', titleParams: { pageNumber: imagesChunkIndex + 1 } }"
               ></ng-content>
               <ion-grid class="report-section ion-no-padding">
                 <ion-row class="section-title ion-margin-bottom">
@@ -999,7 +993,12 @@
           </ion-grid>
         </ion-col>
         <ion-col>
-          <h2>{{ title | translateContext: i18nContext.suffix : titleParams }}</h2>
+          <h2>
+            {{ title | translateContext: i18nContext.suffix : titleParams }}
+            @if (titleParams?.pageNumber; as pageNumber) {
+              ({{ 'COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber } }})
+            }
+          </h2>
         </ion-col>
         <ion-col class="logo" size="auto">
           @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
