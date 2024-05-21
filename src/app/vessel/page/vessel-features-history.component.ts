@@ -33,6 +33,15 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     return this.getShowColumn('grossTonnageGrt');
   }
 
+  @Input()
+  set showfpcColumn(value: boolean) {
+    this.setShowColumn('grossTonnageGrt', value);
+  }
+
+  get showfpcColumn(): boolean {
+    return this.getShowColumn('grossTonnageGrt');
+  }
+
   constructor(
     injector: Injector,
     protected accountService: AccountService,
@@ -55,6 +64,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'grossTonnageGt',
         'constructionYear',
         'ircs',
+        'fpc',
         'basePortLocation',
         'comments',
       ],
@@ -68,6 +78,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
 
     this.i18nColumnPrefix = 'VESSEL.';
     this.showGrossTonnageGrtColumn = false;
+    this.showfpcColumn = false;
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;

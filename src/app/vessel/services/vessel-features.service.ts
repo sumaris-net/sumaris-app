@@ -22,6 +22,7 @@ export const VesselFeaturesFragments = {
       grossTonnageGrt
       constructionYear
       ircs
+      fpc
       hullMaterial {
         ...LightReferentialFragment
       }

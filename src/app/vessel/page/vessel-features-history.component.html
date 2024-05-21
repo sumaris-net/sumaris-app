@@ -128,6 +128,16 @@
     </mat-cell>
   </ng-container>
 
+  <!-- fpc column -->
+  <ng-container matColumnDef="fpc">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_FEATURES.FPC</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.fpc ? 'Oui' : 'Non' }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
   <!-- hull material -->
   <ng-container matColumnDef="hullMaterial">
     <mat-header-cell *matHeaderCellDef>

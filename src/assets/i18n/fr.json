@@ -1922,6 +1922,7 @@
       "EXTERIOR_MARKING": "Marquage extérieur",
       "CONSTRUCTION_YEAR": "Année de construction",
       "IRCS": "Indicatif radio (IRCS)",
+      "FPC": "FPC",
       "HULL_MATERIAL": "Matériau de la coque",
       "BASE_PORT_LOCATION": "Port d'attache",
       "GROSS_TONNAGE_GT": "Tonnage (UMS)",
