@@ -26,7 +26,7 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
-  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData" (click)="openReport()">
+  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || !data.controlDate" (click)="openReport()">
     <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
     <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
   </button>
