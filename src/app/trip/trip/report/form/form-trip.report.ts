@@ -83,7 +83,7 @@ export class FormTripReportStats extends BaseReportStats {
 @Component({
   selector: 'app-form-trip-report',
   templateUrl: './form-trip.report.html',
-  styleUrls: ['../trip.report.scss', './form-trip.report.scss', '../../../../data/report/base-report.scss'],
+  styleUrls: ['../trip.report.scss', './form-trip.report.scss', '../../../../data/report/base-form-report.scss'],
   providers: [{ provide: TripReportService, useClass: FormTripReportService }],
   encapsulation: ViewEncapsulation.None,
 })

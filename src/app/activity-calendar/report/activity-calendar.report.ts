@@ -1,8 +1,6 @@
 import { Component, Injector, ViewEncapsulation } from '@angular/core';
-import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
-import { Metier } from '@app/referential/metier/metier.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
@@ -41,7 +39,7 @@ export class ActivityCalendarReportStats extends BaseReportStats {
 @Component({
   selector: 'app-activity-calendar-report',
   templateUrl: './activity-calendar.report.html',
-  styleUrls: ['./activity-calendar.report.scss', '../../trip/trip/report/form/form-trip.report.scss', '../../data/report/base-report.scss'],
+  styleUrls: ['./activity-calendar.report.scss', '../../data/report/base-form-report.scss'],
   providers: [],
   encapsulation: ViewEncapsulation.None,
 })
