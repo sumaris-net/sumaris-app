@@ -1472,7 +1472,9 @@
       "UPDATE_CHILDREN_DATE_ERROR": "Error in copying the occasion date on children data.",
       "COUNT_SAMPLES_ERROR": "Error in counting observation samples.",
       "START_DATE_INVALID": "Must start a {{day}}",
-      "INVALID_LANDING": "Invalid landing"
+      "INVALID_LANDING": "Invalid landing",
+      "INVALID_LANDINGS": "Please observe or enter the reason for non-observation",
+      "INVALID_OBSERVED_COUNT": "Incorrect number of observed species. Please observe {{minObservedCount}} to {{maxObservedCount}} species"
     },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "The selected occasion is linked to individual measures.<br/><br/><b>Are you sure</b> you want to delete it?",
@@ -1561,6 +1563,7 @@
       "TAXON_NAME": "Scientific species",
       "BTN_OPEN_TRIP": "Open the trip",
       "BTN_OPEN_SALE": "Open the sale",
+      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> observed species (min.: {{minObservedCount}}, max.: {{maxObservedCount}})",
       "SAMPLING": {
         "STRATEGY": "Sampling strata",
         "SAMPLES_COUNT": "Samples count",

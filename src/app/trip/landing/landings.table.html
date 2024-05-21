@@ -31,7 +31,7 @@
 
   <ion-item *ngIf="!mobile && error; let error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate: errorDetails"></ion-label>
   </ion-item>
 
   <div class="toolbar-spacer"></div>
@@ -470,6 +470,24 @@
       </td>
     </ng-container>
 
+    <!-- *** FOOTER *** -->
+
+    <!-- Observed species count footer -->
+    <ng-container matColumnDef="footer-observedCount">
+      <td mat-footer-cell *matFooterCellDef [attr.colspan]="displayedColumns.length - 2" class="mat-mdc-cell-content-start-padding">
+        <ion-text
+          color="primary"
+          class="text-italic"
+          [innerHTML]="
+            'LANDING.TABLE.OBSERVED_SPECIES_COUNT'
+              | translateContext
+                : i18nColumnSuffix
+                : { observedCount: (observedCount$ | async), minObservedCount: minObservedSpeciesCount, maxObservedCount: maxObservedSpeciesCount }
+          "
+        ></ion-text>
+      </td>
+    </ng-container>
+
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr
       mat-row
@@ -482,6 +500,10 @@
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
     ></tr>
+    <!-- footer -->
+    <ng-container *ngIf="showFooter">
+      <tr mat-footer-row *matFooterRowDef="footerColumns; sticky: useFooterSticky" [class.cdk-visually-hidden]="!totalRowCount"></tr>
+    </ng-container>
   </table>
 
   <ng-container *ngIf="loadingSubject | async; else noResult">

@@ -30,6 +30,7 @@ import {
   NetworkService,
   Person,
   ProgressBarService,
+  toBoolean,
   toDateISOString,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -1010,6 +1011,8 @@ export class LandingService
 
       let errorsById: FormErrors = null;
 
+      let observedCount = 0;
+
       for (const entity of data) {
         opts = await this.fillControlOptions(entity, opts);
 
@@ -1034,9 +1037,28 @@ export class LandingService
 
         // increment, after save/terminate
         opts.progression.increment(progressionStep);
+
+        // Count observed species
+        observedCount += +toBoolean(entity.measurementValues[PmfmIds.IS_OBSERVED]);
       }
 
-      return errorsById;
+      let errorObservation = null;
+
+      if (opts?.program) {
+        const minObservedCount = opts.program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
+        const maxObservedCount = opts.program.getPropertyAsInt(ProgramProperties.LANDING_MAX_OBSERVED_SPECIES_COUNT);
+
+        // Error if observed count is not in range
+        if (observedCount < minObservedCount || observedCount > maxObservedCount) {
+          errorObservation = {
+            observedCount,
+            minObservedCount,
+            maxObservedCount,
+          };
+        }
+      }
+
+      return errorsById || errorObservation ? { landings: errorsById, observations: errorObservation } : null;
     } catch (err) {
       console.error((err && err.message) || err);
       throw err;
