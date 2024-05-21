@@ -3386,9 +3386,9 @@
       },
       "SELL_SECTION": {
         "TITLE": "Ventes",
-        "ENTIRELY_AUCTION": "Totalitée en criée",
+        "ENTIRELY_AUCTION": "Totalité en criée",
         "PARTIALLY_AUCTION": "Partiellement en criée",
-        "OUTSIDE_AUCTION": "Totalitée hoss criée"
+        "OUTSIDE_AUCTION": "Totalité hors criée"
       },
       "OBSERVER_SECTION": {
         "TITLE": "Observateur",

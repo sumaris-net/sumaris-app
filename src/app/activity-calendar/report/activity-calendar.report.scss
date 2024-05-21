@@ -12,6 +12,7 @@
       }
     }
     table {
+      table-layout: fixed;
       &.month-table {
         --row-title-height: var(--month-table-title-row-height);
         --row-height: var(--month-table-row-height);
@@ -23,6 +24,34 @@
           th {
             font-size: var(--font-compact);
             text-align: center;
+          }
+        }
+        tbody {
+          tr {
+            &.metier-row {
+              background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
+            }
+          }
+          td {
+            &.fit-one-line {
+              position: relative;
+              & > div {
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                & > div {
+                  margin-top: 0.2em;
+                  padding: 0 5px;
+                  text-overflow: ellipsis;
+                  overflow: hidden;
+                }
+              }
+            }
           }
         }
       }

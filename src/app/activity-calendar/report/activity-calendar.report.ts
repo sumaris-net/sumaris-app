@@ -34,12 +34,8 @@ export class ActivityCalendarReportStats extends BaseReportStats {
     physicalGear?: IPmfm[];
   };
   effortsTableRows?: { title: string; values: string[] }[];
-  metierTableChunks?: {
-    [key: number]: {
-      fishingAreasByIds: { [key: number]: FishingArea };
-      metier: Metier;
-    };
-  }[];
+  activityMonthColspan?: number[][];
+  metierTableChunks?: { gufId: number; fishingAreasIds: number[] }[][];
 }
 
 @Component({
@@ -143,7 +139,10 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
     stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL);
     stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL);
 
-    stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillNullGuf: true });
+    stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, fillEmptyFishingArea: true });
+
+    this.computeActivityMonthColspan(stats);
+
     stats.pmfm = {
       activityMonth: await this.programRefService.loadProgramPmfms(data.program.label, {
         acquisitionLevel: AcquisitionLevelCodes.MONTHLY_ACTIVITY,
@@ -207,119 +206,101 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
 
   protected computeMetierTableChunk(data: ActivityCalendar, stats: ActivityCalendarReportStats) {
     stats.metierTableChunks = [];
-    const metierChunks = [];
-    for (const item of data.gearUseFeatures) {
-      metierChunks.push([
-        item.id,
-        {
-          metier: item.metier,
-          fishingAreasByIds: item.fishingAreas.reduce((acc, fishingArea) => {
-            acc[fishingArea.id] = fishingArea;
-            return acc;
-          }, {}),
-        },
-      ]);
-    }
 
-    const availableHeightOnAllInOnePage = this.getAvailableSpaceForMetierBlockInTable(stats, {
-      withFirstPageItems: true,
-      withLastPageItems: true,
+    const metierChunks: { gufId: number; fishingAreasIds: number[] }[] = data.gearUseFeatures.map((guf) => {
+      return {
+        gufId: guf.id,
+        fishingAreasIds: guf.fishingAreas.map((fa) => fa.id),
+      };
     });
 
-    const availableHeightOnFirstPage = this.getAvailableSpaceForMetierBlockInTable(stats, {
-      withFirstPageItems: true,
-      withLastPageItems: false,
-    });
+    // Take the width because the page is a landscape
+    const totalAvailableHeightForContent =
+      this.pageDimensions.width -
+      this.pageDimensions.marginTop -
+      this.pageDimensions.marginBottom -
+      this.pageDimensions.headerHeight -
+      this.pageDimensions.footerHeight;
+    const heightOfEffortSection =
+      this.pageDimensions.sectionTitleHeight +
+      this.pageDimensions.monthTableRowHeight +
+      stats.effortsTableRows.length * this.pageDimensions.monthTableRowHeight +
+      this.pageDimensions.investigationQualificationSectionHeight;
+    const heightOfGearSection =
+      this.pageDimensions.marginTop +
+      this.pageDimensions.sectionTitleHeight +
+      this.pageDimensions.gearTableRowTitleHeight +
+      stats.pmfm.physicalGear.length * this.pageDimensions.gearTableRowHeight;
+    const heighOfMetierTableHead =
+      this.pageDimensions.marginTop + this.pageDimensions.sectionTitleHeight + this.pageDimensions.monthTableRowTitleHeight;
 
-    const availableHeightOnLastPage = this.getAvailableSpaceForMetierBlockInTable(stats, {
-      withFirstPageItems: false,
-      withLastPageItems: true,
-    });
-
-    const availableHeightOnMiddlePage = this.getAvailableSpaceForMetierBlockInTable(stats, {
-      withFirstPageItems: false,
-      withLastPageItems: false,
-    });
+    const availableHeightOnFirstPage = totalAvailableHeightForContent - heightOfEffortSection - heighOfMetierTableHead;
+    const availableHeightOnOtherPage = totalAvailableHeightForContent - heighOfMetierTableHead;
 
     const heightNeededByEachMetierChunk = metierChunks.map((chunk) => {
-      const nbOfFishingArea = Object.keys(chunk[1].fishingAreasByIds).length;
+      const nbOfFishingArea = chunk.fishingAreasIds.length;
       // `+ 1` to count the metier row
       return this.pageDimensions.monthTableRowHeight * (nbOfFishingArea + 1);
     });
 
-    const totalHeightNeededByAllMetierChunk = heightNeededByEachMetierChunk.reduce((r, i) => (r += i), 0);
-    // Check if all chunk can fit on one page
-    if (totalHeightNeededByAllMetierChunk <= availableHeightOnAllInOnePage) {
-      stats.metierTableChunks = [Object.fromEntries(metierChunks)];
-      return;
-    }
-
     let currentChunkItems = [];
     let availableHeight = availableHeightOnFirstPage;
     while (isNotEmptyArray(metierChunks)) {
-      // Case when that not have enough for metier table to fit on the first
-      // page : add empty section to create a page break
       const currentChunkHeight = heightNeededByEachMetierChunk.shift();
       // If not enoughs height to fit on current page
       if (currentChunkHeight > availableHeight) {
         let totalHeightNeededByRemainMetierChunk = heightNeededByEachMetierChunk.reduce((r, i) => (r += i), 0);
+        // In this case, it has not enoughs space on the first page to put
+        // a metier chunk
         if (isEmptyArray(currentChunkItems)) {
           stats.metierTableChunks.push(null);
-          // The chunk has not been consumed : re add its height
+          // As the chunk was not been consumed, re add its height
           totalHeightNeededByRemainMetierChunk += currentChunkHeight;
         } else {
-          stats.metierTableChunks.push(Object.fromEntries(currentChunkItems));
+          // Create new page
+          stats.metierTableChunks.push(currentChunkItems);
           currentChunkItems = [];
         }
-        availableHeight = totalHeightNeededByRemainMetierChunk <= availableHeightOnLastPage ? availableHeightOnLastPage : availableHeightOnMiddlePage;
+        availableHeight = availableHeightOnOtherPage;
       }
       currentChunkItems.push(metierChunks.shift());
       availableHeight -= currentChunkHeight;
     }
-    stats.metierTableChunks.push(Object.fromEntries(currentChunkItems));
-    // If has not enough height tu put chunk on the last page,
-    // add an empty empty metierTableChunks which will generate a new
-    // page that only contain gear table.
-    if (availableHeight > availableHeightOnLastPage) {
+    stats.metierTableChunks.push(currentChunkItems);
+    // If has not enoughs space to put physicalGear table,
+    // put it in a new page.
+    if (availableHeight - heightOfGearSection < 0) {
       stats.metierTableChunks.push(null);
     }
   }
 
-  protected getAvailableSpaceForMetierBlockInTable(
-    stats: ActivityCalendarReportStats,
-    opts?: { withFirstPageItems?: boolean; withLastPageItems?: boolean }
-  ) {
-    let firstPageItemHeight = 0;
-    let lastPageItemsHeight = 0;
+  protected computeActivityMonthColspan(stats: ActivityCalendarReportStats) {
+    stats.activityMonthColspan = stats.activityMonth.reduce((acc, month) => {
+      const result = {};
+      month.gearUseFeatures.forEach((_, idx) => (result[idx] = 1));
+      acc.push(result);
+      return acc;
+    }, []);
 
-    if (opts && opts?.withFirstPageItems) {
-      const effortsSectionHeight =
-        this.pageDimensions.sectionTitleHeight +
-        this.pageDimensions.monthTableRowHeight +
-        stats.effortsTableRows.length * this.pageDimensions.monthTableRowHeight;
-      firstPageItemHeight = effortsSectionHeight + this.pageDimensions.investigationQualificationSectionHeight;
+    for (let monthIdx = 0; monthIdx < stats.activityMonthColspan.length - 1; monthIdx++) {
+      const gufs = stats.activityMonth[monthIdx].gearUseFeatures;
+      for (let gufIdx = 0; gufIdx < gufs.length; gufIdx++) {
+        if (stats.activityMonthColspan[monthIdx][gufIdx] === 0) continue;
+        const guf = gufs[gufIdx];
+        let nextMonthIdx = monthIdx;
+        let colspanCount = 1;
+        do {
+          nextMonthIdx++;
+          // This is the last month
+          if (stats.activityMonth[nextMonthIdx] === undefined) break;
+          const nextMonthGuf = stats.activityMonth[nextMonthIdx].gearUseFeatures[gufIdx];
+          if (guf.id === nextMonthGuf.id) {
+            stats.activityMonthColspan[nextMonthIdx][gufIdx] = 0;
+            colspanCount++;
+          }
+        } while (stats.activityMonthColspan[nextMonthIdx][gufIdx] === 0);
+        stats.activityMonthColspan[monthIdx][gufIdx] = colspanCount;
+      }
     }
-
-    if (opts && opts?.withLastPageItems) {
-      const gearSectionHeight =
-        this.pageDimensions.marginTop +
-        this.pageDimensions.sectionTitleHeight +
-        this.pageDimensions.gearTableRowTitleHeight +
-        stats.pmfm.physicalGear.length * this.pageDimensions.gearTableRowHeight;
-      lastPageItemsHeight = gearSectionHeight;
-    }
-
-    // Take the width because the page is a landscape
-    let availableSpace = this.pageDimensions.width;
-    availableSpace -= this.pageDimensions.marginTop + this.pageDimensions.marginBottom;
-    availableSpace -= this.pageDimensions.headerHeight + this.pageDimensions.footerHeight;
-    availableSpace -= firstPageItemHeight + lastPageItemsHeight;
-
-    // Title for metier section
-    availableSpace -= this.pageDimensions.sectionTitleHeight;
-    // Title row for metier table
-    availableSpace -= this.pageDimensions.monthTableRowTitleHeight;
-
-    return availableSpace;
   }
 }

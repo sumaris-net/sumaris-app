@@ -6,7 +6,10 @@ import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.mo
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
 export class ActivityMonthUtils {
-  static fromActivityCalendar(data: ActivityCalendar, opts?: { fillNullGuf: boolean; timezone?: string }): ActivityMonth[] {
+  static fromActivityCalendar(
+    data: ActivityCalendar,
+    opts?: { fillEmptyGuf?: boolean; fillEmptyFishingArea?: boolean; timezone?: string }
+  ): ActivityMonth[] {
     data = ActivityCalendar.fromObject(data);
     const year = data?.year || DateUtils.moment().year() - 1;
     const monthStartDates = CalendarUtils.getMonths(year, opts?.timezone);
@@ -28,7 +31,7 @@ export class ActivityMonthUtils {
           ?.filter((guf) => DateUtils.isSame(startDate, guf.startDate, 'day') && DateUtils.isSame(endDate, guf.endDate, 'day'))
           .sort(GearUseFeaturesComparators.sortRankOrder)
           .map(GearUseFeatures.fromObject) || [];
-      if (opts && opts?.fillNullGuf) {
+      if (opts && opts?.fillEmptyGuf) {
         target.gearUseFeatures = [];
         for (let i = 0; i < data.gearUseFeatures.length; i++) {
           target.gearUseFeatures.push(GearUseFeatures.fromObject({}));
@@ -40,15 +43,17 @@ export class ActivityMonthUtils {
           target.gearUseFeatures[index] = guf;
         });
         // Fill empty fishing area
-        data.gearUseFeatures.forEach((guf, index) => {
-          const targetGuf = target.gearUseFeatures[index];
-          if (isNotEmptyArray(guf.fishingAreas) && isEmptyArray(targetGuf.fishingAreas)) {
-            targetGuf.fishingAreas = [];
-            for (let i = 0; i < guf.fishingAreas.length; i++) {
-              targetGuf.fishingAreas.push(FishingArea.fromObject({}));
+        if (opts?.fillEmptyFishingArea) {
+          data.gearUseFeatures.forEach((guf, index) => {
+            const targetGuf = target.gearUseFeatures[index];
+            if (isNotEmptyArray(guf.fishingAreas) && isEmptyArray(targetGuf.fishingAreas)) {
+              targetGuf.fishingAreas = [];
+              for (let i = 0; i < guf.fishingAreas.length; i++) {
+                targetGuf.fishingAreas.push(FishingArea.fromObject({}));
+              }
             }
-          }
-        });
+          });
+        }
       } else {
         target.gearUseFeatures = gearUseFeatures;
       }

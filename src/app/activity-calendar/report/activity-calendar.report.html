@@ -211,17 +211,31 @@
                 </tr>
               </thead>
               <tbody>
-                @for (gearUseFeaturesId of metierChunk | mapKeys; track gearUseFeaturesId; let gearUseFeatureIndex = $index) {
-                  <tr>
-                    <th>{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}</th>
-                    @for (month of stats.activityMonth; track month.id) {
-                      <td>
-                        {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['label'] }}
-                      </td>
+                @for (gearUseFeaturesId of metierChunk | arrayPluck: 'gufId'; track gearUseFeaturesId; let gearUseFeatureIndex = $index) {
+                  <tr class="metier-row">
+                    <th>
+                      {{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}
+                    </th>
+                    @for (month of stats.activityMonth; track month.id; let monthIndex = $index) {
+                      @if (stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] > 0) {
+                        <td
+                          [attr.colspan]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex]"
+                          [class.fit-one-line]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] > 0"
+                        >
+                          <div [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] === 0">
+                            <div>
+                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['label'] }}
+                            </div>
+                            <div [title]="month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['name']">
+                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['name'] }}
+                            </div>
+                          </div>
+                        </td>
+                      }
                     }
                   </tr>
                   @for (
-                    fishingAreaId of metierChunk | mapGet: gearUseFeaturesId | mapGet: 'fishingAreasByIds' | mapKeys;
+                    fishingAreaId of metierChunk[gearUseFeatureIndex] | mapGet: 'fishingAreasIds';
                     track fishingAreaId;
                     let fishingAreaIndex = $index
                   ) {
