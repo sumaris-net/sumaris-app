@@ -12,7 +12,7 @@ import { StrategyRefService } from '@app/referential/services/strategy-ref.servi
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
-import { TranslateContextService, isEmptyArray, isNotEmptyArray, isNotNil, referentialToString } from '@sumaris-net/ngx-components';
+import { TranslateContextService, isEmptyArray, isNotEmptyArray, isNotNil, referentialToString, sleep } from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityMonthUtils } from '../calendar/activity-month.utils';
@@ -97,6 +97,15 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
   computePrintHref(data: ActivityCalendar, stats: ActivityCalendarReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
     else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form');
+  }
+
+  async updateView() {
+    await super.updateView();
+
+    if (this.reveal.printing) {
+      await sleep(500);
+      await this.reveal.print();
+    }
   }
 
   protected async loadData(id: number, opts?: any): Promise<ActivityCalendar> {
