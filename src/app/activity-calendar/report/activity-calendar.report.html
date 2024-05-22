@@ -274,7 +274,7 @@
                             @for (labelMetier of data.gearUseFeatures | arrayPluck: 'metier.label'; track labelMetier) {
                               <th
                                 [style.--col-width]="
-                                  'calc((100% - ' + pageDimensions.gufTableColTitleWidth + 'px' + ') / ' + data.gearUseFeatures.length + ')'
+                                  'calc((100% - ' + pageDimensions.gufTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
                                 "
                               >
                                 {{ labelMetier }}
@@ -287,7 +287,13 @@
                             <tr [style.--col-width]="pageDimensions.gufTableColTitleWidth + 'px'">
                               <th>{{ pmfm.name }}</th>
                               @for (guf of data.gearUseFeatures; track guf.id) {
-                                <td>{{ guf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}</td>
+                                <td
+                                  [style.--col-width]="
+                                    'calc((100% - ' + pageDimensions.gufTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
+                                  "
+                                >
+                                  {{ guf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
+                                </td>
                               }
                             </tr>
                           }
