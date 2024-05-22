@@ -1,28 +1,15 @@
 import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
-import { ActivityCalendarReport } from './activity-calendar.report';
-import { ActivityCalendarReportModule } from './activity-calendar-report.module';
 
 const routes: Routes = [
   {
-    path: '',
-    pathMatch: 'full',
-    component: ActivityCalendarReport,
-  },
-  {
     path: 'form',
-    pathMatch: 'full',
-    component: ActivityCalendarReport,
-  },
-  {
-    path: 'blank-form',
-    data: { isBlankForm: true },
-    component: ActivityCalendarReport,
+    loadChildren: () => import('./form/form-activity-calendar-routing.module').then((m) => m.FormActivityCalendarRoutingModule),
   },
 ];
 
 @NgModule({
-  imports: [RouterModule.forChild(routes), ActivityCalendarReportModule],
+  imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
 })
 export class ActivityCalendarReportRoutingModule {}

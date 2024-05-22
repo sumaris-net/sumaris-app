@@ -11,9 +11,9 @@ export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 
-export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'blank-form';
+export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'form-blank';
 
-export type ActivityCalendarReportType = 'form' | 'blank-form';
+export type ActivityCalendarReportType = 'form' | 'form-blank';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
@@ -571,7 +571,7 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM',
       },
       {
-        key: <TripReportType>'blank-form',
+        key: <TripReportType>'form-blank',
         value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM_BLANK',
       },
     ],
@@ -1119,7 +1119,7 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_TYPE_FORM',
       },
       {
-        key: <ActivityCalendarReportType>'blank-form',
+        key: <ActivityCalendarReportType>'form-blank',
         value: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_TYPE_FORM_BLANK',
       },
     ],

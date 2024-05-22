@@ -348,7 +348,7 @@ export class ActivityCalendarPage
 
     if (!reportType) reportType = this.reportTypes.length === 1 ? <ActivityCalendarReportType>this.reportTypes[0].key : 'form';
 
-    const reportPath = reportType !== <ActivityCalendarReportType>'form' ? [reportType] : [];
+    const reportPath = reportType.split('-');
     return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...reportPath].join('/'));
   }
 

@@ -13,18 +13,18 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import { TranslateContextService, isEmptyArray, isNotEmptyArray, isNotNil, referentialToString, sleep } from '@sumaris-net/ngx-components';
-import { ActivityCalendarService } from '../activity-calendar.service';
-import { ActivityMonth } from '../calendar/activity-month.model';
-import { ActivityMonthUtils } from '../calendar/activity-month.utils';
-import { IsActiveList } from '../calendar/calendar.component';
-import { ActivityCalendar } from '../model/activity-calendar.model';
+import { ActivityCalendarService } from '../../activity-calendar.service';
+import { ActivityMonth } from '../../calendar/activity-month.model';
+import { ActivityMonthUtils } from '../../calendar/activity-month.utils';
+import { IsActiveList } from '../../calendar/calendar.component';
+import { ActivityCalendar } from '../../model/activity-calendar.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
-import { GearUseFeatures } from '../model/gear-use-features.model';
+import { GearUseFeatures } from '../../model/gear-use-features.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import moment from 'moment';
 
-export class ActivityCalendarReportStats extends BaseReportStats {
+export class FormActivityCalendarReportStats extends BaseReportStats {
   subtitle?: string;
   footerText?: string;
   logoHeadLeftUrl?: string;
@@ -42,19 +42,20 @@ export class ActivityCalendarReportStats extends BaseReportStats {
 }
 
 @Component({
-  selector: 'app-activity-calendar-report',
-  templateUrl: './activity-calendar.report.html',
-  styleUrls: ['./activity-calendar.report.scss', '../../data/report/base-form-report.scss'],
+  selector: 'app-form-activity-calendar-report',
+  templateUrl: './form-activity-calendar.report.html',
+  styleUrls: ['./form-activity-calendar.report.scss', '../../../data/report/base-form-report.scss'],
   providers: [],
   encapsulation: ViewEncapsulation.None,
 })
-export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar, number, ActivityCalendarReportStats> {
+export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCalendar, number, FormActivityCalendarReportStats> {
   readonly pmfmIdsMap = PmfmIds;
 
   public static readonly isBlankFormParam = 'isBlankForm';
 
   protected logPrefix = 'trip-form-report';
   protected isBlankForm: boolean;
+  protected subReportType: string;
 
   protected readonly ActivityCalendarService: ActivityCalendarService;
   protected readonly strategyRefService: StrategyRefService;
@@ -73,7 +74,7 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
     monthTableRowTitleHeight: 20,
     monthTableRowHeight: 30,
     gufTableRowTitleHeight: 20,
-    gufTableColTitleWidth: 120,
+    gufTableColTitleWidth: 200,
     gufTableRowHeight: 20,
     investigationQualificationSectionHeight: 60,
   });
@@ -83,20 +84,22 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
   }
 
   constructor(injector: Injector) {
-    super(injector, ActivityCalendar, ActivityCalendarReportStats);
+    super(injector, ActivityCalendar, FormActivityCalendarReportStats);
     this.ActivityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
     this.vesselSnapshotService = this.injector.get(VesselSnapshotService);
     this.translateContextService = this.injector.get(TranslateContextService);
 
-    this.isBlankForm = this.route.snapshot.data[ActivityCalendarReport.isBlankFormParam];
+    this.subReportType = this.route.snapshot.routeConfig.path;
+    this.isBlankForm = this.subReportType === 'blank';
     this.debug = !environment.production;
   }
 
-  computePrintHref(data: ActivityCalendar, stats: ActivityCalendarReportStats): URL {
+  computePrintHref(data: ActivityCalendar, stats: FormActivityCalendarReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
-    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form');
+    else
+      return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form/' + this.subReportType);
   }
 
   async updateView() {
@@ -125,7 +128,7 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
     return data;
   }
 
-  protected computeSlidesOptions(data: ActivityCalendar, stats: ActivityCalendarReportStats): Partial<IRevealExtendedOptions> {
+  protected computeSlidesOptions(data: ActivityCalendar, stats: FormActivityCalendarReportStats): Partial<IRevealExtendedOptions> {
     return {
       ...super.computeSlidesOptions(data, stats),
       width: this.pageDimensions.width,
@@ -134,8 +137,11 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
     };
   }
 
-  protected async computeStats(data: ActivityCalendar, opts?: IComputeStatsOpts<ActivityCalendarReportStats>): Promise<ActivityCalendarReportStats> {
-    const stats = new ActivityCalendarReportStats();
+  protected async computeStats(
+    data: ActivityCalendar,
+    opts?: IComputeStatsOpts<FormActivityCalendarReportStats>
+  ): Promise<FormActivityCalendarReportStats> {
+    const stats = new FormActivityCalendarReportStats();
 
     // Get program and options
     stats.program = await this.programRefService.loadByLabel(data.program.label);
@@ -215,7 +221,7 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
     return stats;
   }
 
-  protected async computeTitle(data: ActivityCalendar, stats: ActivityCalendarReportStats): Promise<string> {
+  protected async computeTitle(data: ActivityCalendar, stats: FormActivityCalendarReportStats): Promise<string> {
     return this.isBlankForm
       ? this.translate.instant('ACTIVITY_CALENDAR.REPORT.BLANK_TITLE')
       : this.translate.instant('COMMON.REPORT.REPORT') +
@@ -226,7 +232,7 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
           });
   }
 
-  protected computeDefaultBackHref(data: ActivityCalendar, stats: ActivityCalendarReportStats): string {
+  protected computeDefaultBackHref(data: ActivityCalendar, stats: FormActivityCalendarReportStats): string {
     return `/activity-calendar/${data.id}`;
   }
 
@@ -235,7 +241,7 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
     return 'activity-calendar/report';
   }
 
-  protected computeMetierTableChunk(data: ActivityCalendar, stats: ActivityCalendarReportStats) {
+  protected computeMetierTableChunk(data: ActivityCalendar, stats: FormActivityCalendarReportStats) {
     stats.metierTableChunks = [];
 
     const metierChunks: { gufId: number; fishingAreasIds: number[] }[] = data.gearUseFeatures.map((guf) => {
@@ -305,7 +311,7 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
     }
   }
 
-  protected computeActivityMonthColspan(stats: ActivityCalendarReportStats) {
+  protected computeActivityMonthColspan(stats: FormActivityCalendarReportStats) {
     stats.activityMonthColspan = stats.activityMonth.reduce((acc, month) => {
       const result = {};
       month.gearUseFeatures.forEach((_, idx) => (result[idx] = 1));

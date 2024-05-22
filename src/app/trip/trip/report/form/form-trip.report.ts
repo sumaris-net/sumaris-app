@@ -92,6 +92,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
 
   protected logPrefix = 'trip-form-report';
   protected isBlankForm: boolean;
+  protected subReportType: string;
   protected latLongPattern: LatLongPattern;
   protected readonly nbOfOpOnBlankPage = 9;
 
@@ -108,13 +109,15 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     this.latLongPattern = this.settings.latLongFormat;
     this.denormalizedBatchService = this.injector.get(DenormalizedBatchService);
 
-    this.isBlankForm = this.route.snapshot.data[FormTripReport.isBlankFormParam];
+    this.subReportType = this.route.snapshot.routeConfig.path;
+    this.isBlankForm = this.subReportType === 'blank';
+
     this.debug = !environment.production;
   }
 
   computePrintHref(data: Trip, stats: FormTripReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
-    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form');
+    return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form/' + this.subReportType);
   }
 
   async updateView() {
