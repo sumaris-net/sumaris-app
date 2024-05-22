@@ -64,8 +64,8 @@
           class="landscape"
           [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight + 'px'"
           [style.--month-table-row-height]="pageDimensions.monthTableRowHeight + 'px'"
-          [style.--gear-table-title-row-height]="pageDimensions.gearTableRowTitleHeight + 'px'"
-          [style.--gear-table-row-height]="pageDimensions.gearTableRowHeight + 'px'"
+          [style.--gear-table-title-row-height]="pageDimensions.gufTableRowTitleHeight + 'px'"
+          [style.--gear-table-row-height]="pageDimensions.gufTableRowHeight + 'px'"
           [style.--header-height]="pageDimensions.headerHeight + 'px'"
           [style.--section-title-height]="pageDimensions.sectionTitleHeight + 'px'"
         >
@@ -89,10 +89,10 @@
             </ion-row>
           </ion-grid>
           @if (firstPage) {
-            <ion-grid class="report-section ion-no-padding ion-padding-bottom font-compact">
+            <ion-grid class="report-section ion-no-padding font-compact">
               <ion-row>
                 <ion-col size="7" class="ion-padding-end">
-                  <ion-grid>
+                  <ion-grid class="ion-no-padding">
                     <ion-row class="section-title red-border-bottom">
                       <ion-col>
                         <h2>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.TITLE' | translate }}</h2>
@@ -126,10 +126,10 @@
                   </ion-grid>
                 </ion-col>
                 <ion-col size="5">
-                  <ion-grid>
+                  <ion-grid class="ion-no-padding">
                     <ion-row class="section-title red-border-bottom">
                       <ion-col>
-                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.INVESTIGATION_QUALIFICATION_SECTION.TITLE' | translate }}</h2>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.SURVEY_QUALIFICATION_SECTION.TITLE' | translate }}</h2>
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
@@ -192,7 +192,7 @@
             </table>
           }
           @if (metierChunk | isNotNil) {
-            <ion-grid class="report-section ion-no-padding ion-padding-top">
+            <ion-grid class="report-section ion-no-padding ion-padding-top" [style.--ion-padding]="'8px'">
               <ion-row class="ion-no-padding">
                 <ion-col>
                   <h2>{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.TITLE' | translate }}</h2>
@@ -257,31 +257,38 @@
             </table>
           }
           @if (lastPage) {
-            <ion-grid class="report-section ion-no-padding ion-padding-top font-compact">
+            <ion-grid class="report-section ion-no-padding ion-padding-top font-compact" [style.--ion-padding]="'8px'">
               <ion-row>
                 <ion-col size="7" class="ion-padding-end">
-                  <ion-grid>
+                  <ion-grid class="ion-no-padding">
                     <ion-row class="section-title">
                       <ion-col>
-                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GEAR_SECTION.TITLE' | translate }}</h2>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GUF_SECTION.TITLE' | translate }}</h2>
                       </ion-col>
                     </ion-row>
                     <ion-row>
-                      <table class="gear-table" [style.width]="'100%'">
+                      <table class="guf-table" [style.width]="'100%'">
                         <thead>
                           <tr>
-                            <th></th>
+                            <th [style.--col-width]="pageDimensions.gufTableColTitleWidth + 'px'"></th>
                             @for (labelMetier of data.gearUseFeatures | arrayPluck: 'metier.label'; track labelMetier) {
-                              <th>{{ labelMetier }}</th>
+                              <th
+                                [style.--col-width]="
+                                  'calc((100% - ' + pageDimensions.gufTableColTitleWidth + 'px' + ') / ' + data.gearUseFeatures.length + ')'
+                                "
+                              >
+                                {{ labelMetier }}
+                              </th>
                             }
                           </tr>
                         </thead>
                         <tbody>
                           @for (pmfm of stats.pmfm.physicalGear; track pmfm.id) {
-                            <tr>
+                            <tr [style.--col-width]="pageDimensions.gufTableColTitleWidth + 'px'">
                               <th>{{ pmfm.name }}</th>
-                              <td></td>
-                              <td></td>
+                              @for (guf of data.gearUseFeatures; track guf.id) {
+                                <td>{{ guf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}</td>
+                              }
                             </tr>
                           }
                         </tbody>
@@ -290,7 +297,7 @@
                   </ion-grid>
                 </ion-col>
                 <ion-col size="3" class="ion-padding-start">
-                  <ion-grid>
+                  <ion-grid class="ion-no-padding">
                     <ion-row class="section-title red-border-bottom">
                       <ion-col>
                         <h2>{{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.TITLE' | translate }}</h2>
@@ -330,15 +337,19 @@
                         <strong>
                           {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.LAST_NAME' | translate }}
                         </strong>
-                        &nbsp;
-                        {{ data.recorderPerson.lastName }}
+                        @if (!isBlankForm) {
+                          &nbsp;
+                          {{ data.recorderPerson.lastName }}
+                        }
                       </ion-col>
                       <ion-col size="12">
                         <strong>
                           {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.FIRST_NAME' | translate }}
                         </strong>
-                        &nbsp;
-                        {{ data.recorderPerson.firstName }}
+                        @if (!isBlankForm) {
+                          &nbsp;
+                          {{ data.recorderPerson.firstName }}
+                        }
                       </ion-col>
                     </ion-row>
                   </ion-grid>
@@ -346,7 +357,7 @@
               </ion-row>
             </ion-grid>
           }
-          <ng-content *ngTemplateOutlet="pageFooter; context: { help: 'ACTIVITY_CALENDAR.REPORT.FOOTER' }"></ng-content>
+          <ng-content *ngTemplateOutlet="pageFooter; context: { pageNumber: pageIndex + 1, pageTotal: stats.metierTableChunks.length }"></ng-content>
         </section>
       }
     </section>
@@ -372,7 +383,7 @@
     </ion-grid>
   </ng-template>
 
-  <ng-template #pageFooter let-help="help">
+  <ng-template #pageFooter let-help="help" let-pageNumber="pageNumber" let-pageTotal="pageTotal">
     <ion-grid class="report-footer ion-no-padding">
       @if (help | isNotNilOrBlank) {
         <ion-row class="footer-help">
@@ -381,8 +392,9 @@
           </ion-col>
         </ion-row>
       }
-      <ion-row class="footer-text">
-        <ion-col [innerHTML]="stats.footerText"></ion-col>
+      <ion-row class="footer-text ion-justify-content-between">
+        <ion-col size="auto" [innerHTML]="stats.footerText"></ion-col>
+        <ion-col size="auto">{{ 'COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber: pageNumber } }} / {{ pageTotal }}</ion-col>
       </ion-row>
     </ion-grid>
   </ng-template>

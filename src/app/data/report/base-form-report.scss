@@ -1,3 +1,5 @@
+@import './base-report.scss';
+
 html.print-pdf .reveal .slides section {
   display: flex !important;
 }
@@ -223,6 +225,7 @@ html.print-pdf .reveal .slides section {
         flex-direction: column;
         ion-row {
           &.footer-text {
+            width: 100%;
             margin: 5px 0;
           }
         }

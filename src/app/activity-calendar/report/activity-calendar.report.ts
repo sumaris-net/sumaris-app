@@ -18,6 +18,11 @@ import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityMonthUtils } from '../calendar/activity-month.utils';
 import { IsActiveList } from '../calendar/calendar.component';
 import { ActivityCalendar } from '../model/activity-calendar.model';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { GearUseFeatures } from '../model/gear-use-features.model';
+import { Metier } from '@app/referential/metier/metier.model';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import moment from 'moment';
 
 export class ActivityCalendarReportStats extends BaseReportStats {
   subtitle?: string;
@@ -67,9 +72,10 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
     sectionTitleHeight: 25,
     monthTableRowTitleHeight: 20,
     monthTableRowHeight: 30,
-    gearTableRowTitleHeight: 20,
-    gearTableRowHeight: 20,
-    investigationQualificationSectionHeight: 86,
+    gufTableRowTitleHeight: 20,
+    gufTableColTitleWidth: 120,
+    gufTableRowHeight: 20,
+    investigationQualificationSectionHeight: 60,
   });
 
   protected filterPmfmSurveyQualification(pmfm: IPmfm): boolean {
@@ -132,10 +138,24 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
       acquisitionLevels: [AcquisitionLevelCodes.ACTIVITY_CALENDAR, AcquisitionLevelCodes.MONTHLY_ACTIVITY],
     });
 
-    stats.subtitle = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_SUBTITLE);
-    stats.footerText = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_FOOTER);
-    stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL);
-    stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL);
+    stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER);
+    stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL);
+    stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL);
+
+    if (this.isBlankForm) {
+      const nbOfMetier = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER);
+      const nbOfFishingAreaPerMetier = stats.program.getPropertyAsInt(
+        ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER
+      );
+      data.gearUseFeatures = Array(nbOfMetier).fill(
+        GearUseFeatures.fromObject({
+          metier: Metier.fromObject({}),
+          fishingAreas: Array(nbOfFishingAreaPerMetier).fill(FishingArea.fromObject({})),
+        })
+      );
+      data.vesselSnapshot = VesselSnapshot.fromObject({});
+      data.year = moment().year();
+    }
 
     stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, fillEmptyFishingArea: true });
 
@@ -187,10 +207,14 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
   }
 
   protected async computeTitle(data: ActivityCalendar, stats: ActivityCalendarReportStats): Promise<string> {
-    return this.translateContextService.instant('ACTIVITY_CALENDAR.REPORT.TOOL_BAR_TITLE', this.i18nContext.suffix, {
-      year: data.year,
-      vessel: referentialToString(data.vesselSnapshot, ['exteriorMarking', 'name']),
-    });
+    return this.isBlankForm
+      ? this.translate.instant('ACTIVITY_CALENDAR.REPORT.BLANK_TITLE')
+      : this.translate.instant('COMMON.REPORT.REPORT') +
+          '&nbsp' +
+          this.translateContextService.instant('ACTIVITY_CALENDAR.EDIT.TITLE', this.i18nContext.suffix, {
+            year: data.year,
+            vessel: referentialToString(data.vesselSnapshot, ['exteriorMarking', 'name']),
+          });
   }
 
   protected computeDefaultBackHref(data: ActivityCalendar, stats: ActivityCalendarReportStats): string {
@@ -225,10 +249,10 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
       stats.effortsTableRows.length * this.pageDimensions.monthTableRowHeight +
       this.pageDimensions.investigationQualificationSectionHeight;
     const heightOfGearSection =
-      this.pageDimensions.marginTop +
+      this.pageDimensions.marginTop / 2 +
       this.pageDimensions.sectionTitleHeight +
-      this.pageDimensions.gearTableRowTitleHeight +
-      stats.pmfm.physicalGear.length * this.pageDimensions.gearTableRowHeight;
+      this.pageDimensions.gufTableRowTitleHeight +
+      stats.pmfm.physicalGear.length * this.pageDimensions.gufTableRowHeight;
     const heighOfMetierTableHead =
       this.pageDimensions.marginTop + this.pageDimensions.sectionTitleHeight + this.pageDimensions.monthTableRowTitleHeight;
 
@@ -280,24 +304,26 @@ export class ActivityCalendarReport extends AppDataEntityReport<ActivityCalendar
       return acc;
     }, []);
 
-    for (let monthIdx = 0; monthIdx < stats.activityMonthColspan.length - 1; monthIdx++) {
-      const gufs = stats.activityMonth[monthIdx].gearUseFeatures;
-      for (let gufIdx = 0; gufIdx < gufs.length; gufIdx++) {
-        if (stats.activityMonthColspan[monthIdx][gufIdx] === 0) continue;
-        const guf = gufs[gufIdx];
-        let nextMonthIdx = monthIdx;
-        let colspanCount = 1;
-        do {
-          nextMonthIdx++;
-          // This is the last month
-          if (stats.activityMonth[nextMonthIdx] === undefined) break;
-          const nextMonthGuf = stats.activityMonth[nextMonthIdx].gearUseFeatures[gufIdx];
-          if (guf.id === nextMonthGuf.id) {
-            stats.activityMonthColspan[nextMonthIdx][gufIdx] = 0;
-            colspanCount++;
-          }
-        } while (stats.activityMonthColspan[nextMonthIdx][gufIdx] === 0);
-        stats.activityMonthColspan[monthIdx][gufIdx] = colspanCount;
+    if (!this.isBlankForm) {
+      for (let monthIdx = 0; monthIdx < stats.activityMonthColspan.length - 1; monthIdx++) {
+        const gufs = stats.activityMonth[monthIdx].gearUseFeatures;
+        for (let gufIdx = 0; gufIdx < gufs.length; gufIdx++) {
+          if (stats.activityMonthColspan[monthIdx][gufIdx] === 0) continue;
+          const guf = gufs[gufIdx];
+          let nextMonthIdx = monthIdx;
+          let colspanCount = 1;
+          do {
+            nextMonthIdx++;
+            // This is the last month
+            if (stats.activityMonth[nextMonthIdx] === undefined) break;
+            const nextMonthGuf = stats.activityMonth[nextMonthIdx].gearUseFeatures[gufIdx];
+            if (guf.id === nextMonthGuf.id) {
+              stats.activityMonthColspan[nextMonthIdx][gufIdx] = 0;
+              colspanCount++;
+            }
+          } while (stats.activityMonthColspan[nextMonthIdx][gufIdx] === 0);
+          stats.activityMonthColspan[monthIdx][gufIdx] = colspanCount;
+        }
       }
     }
   }

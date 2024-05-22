@@ -9,6 +9,16 @@ const routes: Routes = [
     pathMatch: 'full',
     component: ActivityCalendarReport,
   },
+  {
+    path: 'form',
+    pathMatch: 'full',
+    component: ActivityCalendarReport,
+  },
+  {
+    path: 'blank-form',
+    data: { isBlankForm: true },
+    component: ActivityCalendarReport,
+  },
 ];
 
 @NgModule({

@@ -153,6 +153,7 @@
       "LINK": "Lien de partage"
     },
     "REPORT": {
+      "REPORT": "Rapport",
       "SHARE_LINK_PLACEHOLDER": "Lien vers le rapport :",
       "TYPE_DIVIDER": "Types de rapport",
       "PAGE_NUMBER": "page {{ pageNumber }}"
@@ -2299,6 +2300,15 @@
       "TAB_STRATEGIES": "Lignes de plan"
     },
     "OPTIONS": {
+      "ACTIVITY_CALENDAR_REPORT_ENABLE": "Calendrier d'activité > Rapport : Activer l'édition de rapport ?",
+      "ACTIVITY_CALENDAR_REPORT_TYPE": "Calendrier d'activité  > Rapport : Types de rapport :",
+      "ACTIVITY_CALENDAR_TYPE_FORM": "Calendrier d'activité",
+      "ACTIVITY_CALENDAR_TYPE_FORM_BLANK": "Calendrier d'activité vierge",
+      "ACTIVITY_CALENDAR_REPORT_FORM_FOOTER": "Calendrier d'activité > Rapport : Texte de pied de page",
+      "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Calendrier d'activité > Rapport : URL d'une image pour le log de gauche",
+      "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Calendrier d'activité > Rapport : URL d'une image pour le log de droite",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER": "Calendrier d'activité > Rapport : nombre de méter a faire figurer sur les formulaire vierge",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER": "Calendrier d'activité > Rapport : nombre de zone de pêche a par métier a faire figurer sur les formulaire vierge",
       "EXTRACTION_FORMATS": "Extraction > Formats disponibles:",
       "I18N_SUFFIX": "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY": "Par défaut",
@@ -3344,10 +3354,9 @@
       "ENABLE": "Calendrier d'activité > Activer ?"
     },
     "REPORT": {
-      "TOOL_BAR_TITLE": "<small>{{vessel}}<br></small>Rapport calendrier d'activité {{year}}",
       "TITLE": "Calendrier d'activité {{ year }}",
+      "BLANK_TITLE": "Raport d'activité vierge",
       "NAME": "Nom",
-      "FOOTER": "TODO",
       "VESSEL_OWNER": "Armateur",
       "REGISTRATION_LOCATION": "Quartier maritime",
       "IS_ACTIVE": "Actif ?",
@@ -3365,14 +3374,10 @@
         "REGISTRATION_LOCATION": "Lieux d'immat. :",
         "VESSEL_NAME": "Nom :"
       },
-      "INVESTIGATION_QUALIFICATION_SECTION": {
-        "TITLE": "Qualification de l'enquête",
-        "DIRECT": "Direct",
-        "INDIRECT": "Indirect",
-        "ESTIMATED": "Éstimée",
-        "NOT_REALIZABLE": "Non réalisable"
+      "SURVEY_QUALIFICATION_SECTION": {
+        "TITLE": "Qualification de l'enquête"
       },
-      "GEAR_SECTION": {
+      "GUF_SECTION": {
         "TITLE": "Caractéristiques engins"
       },
       "SELL_SECTION": {
