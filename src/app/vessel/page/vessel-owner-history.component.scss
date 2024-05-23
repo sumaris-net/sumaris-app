@@ -1,0 +1,20 @@
+.mat-mdc-table {
+  .mat-column-label {
+    min-width: 50px;
+    max-width: 150px;
+  }
+
+  .mat-column-status {
+    max-width: 110px;
+  }
+
+  .mat-column-comments {
+    max-width: 110px;
+  }
+
+  mat-mdc-header-cell.hidden,
+  mat-mdc-cell.hidden {
+    visibility: hidden;
+    display: none;
+  }
+}

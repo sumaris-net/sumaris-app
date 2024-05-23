@@ -1938,9 +1938,18 @@
       "INT_REGISTRATION_CODE": "Immatriculation internationale",
       "REGISTRATION_LOCATION": "Pavillon"
     },
+    "VESSEL_OWNER": {
+      "REGISTRATION_CODE": "Immatriculation",
+      "CODE_ARMATEUR": "Code armateur",
+      "ACTIVITY_START_DATE": "Debut armement",
+      "RETIRMENT_DATE": "Fin armement",
+      "FIRST_NAME": "Prénom",
+      "LAST_NAME": "Nom"
+    },
     "HISTORY": {
       "FEATURES": "Caratéristiques",
-      "REGISTRATIONS": "Immatriculations"
+      "REGISTRATIONS": "Immatriculations",
+      "OWNER": "Couples navires-armateurs"
     },
     "ACTION": {
       "EDIT": "Modifier",

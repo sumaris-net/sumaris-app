@@ -39,7 +39,7 @@ import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
-import { VesselFeaturesFilter, VesselFilter, VesselRegistrationFilter } from '@app/vessel/services/filter/vessel.filter';
+import { VesselFeaturesFilter, VesselFilter, VesselOwnerPeriodFilter, VesselRegistrationFilter } from '@app/vessel/services/filter/vessel.filter';
 import { PredefinedColors } from '@ionic/core';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
@@ -66,6 +66,8 @@ import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { IOutputAreaSizes } from 'angular-split/lib/interface';
 import { SplitComponent } from 'angular-split';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -154,6 +156,7 @@ export class ActivityCalendarPage
   @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
   @ViewChild('featuresHistoryTable') featuresHistoryTable: VesselFeaturesHistoryComponent;
   @ViewChild('registrationHistoryTable') registrationHistoryTable: VesselRegistrationHistoryComponent;
+  @ViewChild('ownerHistoryTable') ownerHistoryTable: VesselOwnerHistoryComponent;
 
   constructor(
     injector: Injector,
@@ -271,6 +274,9 @@ export class ActivityCalendarPage
         if (isNotNilOrNaN(this.data.id)) {
           this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), { emitEvent: true });
           this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), {
+            emitEvent: true,
+          });
+          this.ownerHistoryTable.setFilter(VesselOwnerPeriodFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), {
             emitEvent: true,
           });
         }

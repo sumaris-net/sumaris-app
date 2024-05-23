@@ -1,0 +1,110 @@
+<div class="ion-padding-start">
+  <!-- error -->
+  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  <h3>
+    <ion-text translate>{{ title }}</ion-text>
+  </h3>
+</div>
+
+<mat-table
+  #table
+  [dataSource]="dataSource"
+  matSort
+  matSortActive="startDate"
+  matSortDirection="desc"
+  matSortDisableClear
+  [trackBy]="trackByFn"
+  [class.compact]="compact"
+>
+  <!-- Id Column -->
+  <!-- <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
+      <app-loading-spinner [loading]="loadingSubject | async"><ion-label></ion-label></app-loading-spinner>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
+  </ng-container> -->
+  <!-- code armateur column -->
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.CODE_ARMATEUR</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.id }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- RegistrationCode column -->
+  <ng-container matColumnDef="registrationCode">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.REGISTRATION_CODE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.registrationCode }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- End date column -->
+  <!-- <ng-container matColumnDef="endDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.END_DATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.endDate | dateFormat: { time: false } }}</ion-text>
+    </mat-cell>
+  </ng-container> -->
+
+  <!-- ActivityStartDate column -->
+  <ng-container matColumnDef="activityStartDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.ACTIVITY_START_DATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.activityStartDate | dateFormat: { time: false } }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- RetirementDate column -->
+  <ng-container matColumnDef="retirementDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.RETIRMENT_DATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.retirementDate | dateFormat: { time: false } }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- FirstName column -->
+  <ng-container matColumnDef="firstName">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.FIRST_NAME</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.firstName }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- LastName column -->
+  <ng-container matColumnDef="lastName">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.LAST_NAME</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.lastName }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns" class="mat-mdc-row-disabled"></mat-row>
+</mat-table>
+
+<!--  <ion-row class="ion-no-padding">-->
+<!--    <ion-col></ion-col>-->
+<!--    <ion-col class="ion-no-padding" size="auto">-->
+<!--      <mat-paginator [length]="totalRowCount" [pageSize]="5" [pageSizeOptions]="[5, 10, 50]" showFirstLastButtons>-->
+<!--      </mat-paginator>-->
+<!--    </ion-col>-->
+<!--  </ion-row>-->

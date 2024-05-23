@@ -14,6 +14,7 @@ import {
 import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../model/vessel.model';
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import { Moment } from 'moment';
+import { VesselOwnerPeriod } from '../model/vessel-owner-period.model';
 
 @EntityClass({ typename: 'VesselFilterVO' })
 export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
@@ -175,6 +176,28 @@ export class VesselRegistrationFilter extends EntityFilter<VesselRegistrationFil
   protected buildFilter(): FilterFn<VesselRegistrationPeriod>[] {
     const filterFns = super.buildFilter();
 
+    if (isNotNil(this.vesselId)) {
+      const vesselId = this.vesselId;
+      filterFns.push((e) => e.vesselId === vesselId);
+    }
+
+    return filterFns;
+  }
+}
+
+@EntityClass({ typename: 'VesselOwnerPeriodFilterVO' })
+export class VesselOwnerPeriodFilter extends EntityFilter<VesselOwnerPeriodFilter, VesselOwnerPeriod> {
+  static fromObject: (source: any, opts?: any) => VesselOwnerPeriodFilter;
+
+  vesselId: number;
+
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+    this.vesselId = source.vesselId;
+  }
+
+  protected buildFilter(): FilterFn<VesselOwnerPeriod>[] {
+    const filterFns = super.buildFilter();
     if (isNotNil(this.vesselId)) {
       const vesselId = this.vesselId;
       filterFns.push((e) => e.vesselId === vesselId);
