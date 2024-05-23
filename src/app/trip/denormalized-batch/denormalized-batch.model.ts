@@ -16,6 +16,18 @@ export interface DenormalizedTripResult {
   jobStatusEnum: number;
 }
 
+export interface DenormalizedTripResult {
+  tripCount: number;
+  operationCount: number;
+  batchCount: number;
+
+  tripErrorCount: number;
+  invalidBatchCount: number;
+
+  message: string;
+  jobStatusEnum: number;
+}
+
 export interface DenormalizedBatchAsObjectOptions extends DataEntityAsObjectOptions {}
 
 export interface DenormalizedBatchFromObjectOptions {}
