@@ -66,7 +66,9 @@ import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { RESERVED_START_COLUMNS } from '../../../../ngx-sumaris-components/src/app/core/table/table.model';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
+const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
 const MAX_FISHING_AREA_COUNT = 2;
 const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
@@ -408,18 +410,37 @@ export class CalendarComponent
     switch (this.style) {
       // Table
       case 'table': {
+        // Get min metier count
+        const metierBlockCount = data.reduce(
+          (res, month) => Math.max(month.gearUseFeatures?.length || 0, res),
+          this.canEdit ? DEFAULT_METIER_COUNT : 0
+        );
+        console.debug(this.logPrefix + 'Metier block count=' + metierBlockCount);
+
+        // Fill metier block
+        data.forEach((month) => {
+          month.gearUseFeatures = month.gearUseFeatures || [];
+          if (month.gearUseFeatures.length < metierBlockCount) {
+            month.gearUseFeatures = month.gearUseFeatures.concat(
+              new Array(metierBlockCount - month.gearUseFeatures.length).fill({}).map(GearUseFeatures.fromObject)
+            );
+          }
+          month.gearUseFeatures.forEach((guf) => {
+            guf.fishingAreas = guf.fishingAreas || [];
+            if (guf.fishingAreas.length < this.maxFishingAreaCount) {
+              guf.fishingAreas = guf.fishingAreas.concat(
+                new Array(this.maxFishingAreaCount - guf.fishingAreas.length).fill({}).map(FishingArea.fromObject)
+              );
+            }
+          });
+        });
+
+        while (this.metierCount < metierBlockCount) {
+          this.addMetierBlock(null, { emitEvent: true, updateRows: false });
+        }
+
         // Set data service
         this.memoryDataService.value = data;
-
-        this.waitIdle({ stop: this.destroySubject }).then(() => {
-          const metierBlockCount = data.reduce((res, month) => Math.max(month.gearUseFeatures?.length || 0, res), 0);
-          // DEBUG
-          console.debug(this.logPrefix + 'Metier block count=' + metierBlockCount);
-
-          while (this.metierCount < metierBlockCount) {
-            this.addMetierBlock();
-          }
-        });
 
         // Load vessels
         if (isNotEmptyArray(data)) {
@@ -657,7 +678,7 @@ export class CalendarComponent
     }
   }
 
-  addMetierBlock(event?: UIEvent, opts?: { emitEvent?: boolean }) {
+  addMetierBlock(event?: UIEvent, opts?: { emitEvent?: boolean; updateRows?: boolean }) {
     // Skip if reach max
     if (this.metierCount >= this.maxMetierCount) {
       console.warn(this.logPrefix + 'Unable to add metier: max=' + this.maxMetierCount);
@@ -700,7 +721,10 @@ export class CalendarComponent
       }),
     ];
 
-    this.dataSource.getRows().forEach((row) => this.onPrepareRowForm(row.validator, { listenChanges: false }));
+    // Update rows validator
+    if (this.loaded && this.inlineEdition && opts?.updateRows !== false) {
+      this.dataSource.getRows().forEach((row) => this.onPrepareRowForm(row.validator, { listenChanges: false }));
+    }
 
     this.focusColumn = blockColumns[0].key;
     this.dynamicColumns = this.dynamicColumns ? [...this.dynamicColumns, ...blockColumns] : blockColumns;

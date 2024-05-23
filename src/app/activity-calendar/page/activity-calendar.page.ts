@@ -36,7 +36,7 @@ import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from '@ap
 import { ActivityCalendar } from '../model/activity-calendar.model';
 import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { BehaviorSubject, firstValueFrom, from, mergeMap, Observable } from 'rxjs';
+import { firstValueFrom, from, mergeMap, Observable } from 'rxjs';
 import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
@@ -142,7 +142,6 @@ export class ActivityCalendarPage
   protected mapPanelWidth = 30;
   protected showMapPanel = true; // TODO enable
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
-  protected readonly menuTitleSubject = new BehaviorSubject<string>(undefined);
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
@@ -759,19 +758,18 @@ export class ActivityCalendarPage
       return data?.[0];
     });
 
-    let predocCalendars = (await chainPromises<ActivityCalendar>([lastYearDefer, ...otherProgramDefers])).filter(isNotNil);
+    const predocCalendars = (await chainPromises<ActivityCalendar>([lastYearDefer, ...otherProgramDefers])).filter(isNotNil);
     console.debug(`${this.logPrefix}${predocCalendars.length} predoc calendars loaded in ${Date.now() - now}ms`);
 
     if (isNotEmptyArray(predocCalendars)) {
       this.predocCalendar.markAsReady();
 
       // DEBUG: simulate a previous calendar
-      if (this.debug && predocCalendars.length === 1) {
-        predocCalendars = predocCalendars.concat(predocCalendars[0]);
-      }
+      //if (this.debug && predocCalendars.length === 1) predocCalendars = predocCalendars.concat(predocCalendars[0].clone());
 
       const predocMonths = predocCalendars.flatMap((ac) => ActivityMonthUtils.fromActivityCalendar(ac));
       EntityUtils.sort(predocMonths, 'month', 'asc');
+
       await this.predocCalendar.setValue(predocMonths);
     }
   }
