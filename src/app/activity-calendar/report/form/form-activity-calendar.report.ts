@@ -332,7 +332,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
             // This is the last month
             if (stats.activityMonth[nextMonthIdx] === undefined) break;
             const nextMonthGuf = stats.activityMonth[nextMonthIdx].gearUseFeatures[gufIdx];
-            if (guf.id === nextMonthGuf.id) {
+            if (isNotNil(guf.id) && guf.id === nextMonthGuf.id) {
               stats.activityMonthColspan[nextMonthIdx][gufIdx] = 0;
               colspanCount++;
             }
