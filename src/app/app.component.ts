@@ -123,6 +123,11 @@ export class AppComponent implements OnInit {
           accent: config.properties['sumaris.color.accent'],
           danger: config.properties['sumaris.color.danger'],
         },
+        vars: {
+          '--app-form-field-background-color': config.getProperty(CORE_CONFIG_OPTIONS.FORM_FIELD_BACKGROUND_COLOR),
+          '--app-form-field-focus-background-color': config.getProperty(CORE_CONFIG_OPTIONS.FORM_FIELD_FOCUS_BACKGROUND_COLOR),
+          '--app-form-field-disabled-background-color': config.getProperty(CORE_CONFIG_OPTIONS.FORM_FIELD_DISABLED_BACKGROUND_COLOR),
+        },
       });
 
       this.cd.markForCheck();
@@ -192,12 +197,14 @@ export class AppComponent implements OnInit {
 
     // Set CSS vars
     if (options.vars) {
+      console.info('[app] Changing theme vars ', options.vars);
       Object.getOwnPropertyNames(options.vars).forEach((varName) => {
         // Set new value, if any
         const value = options.vars[varName];
         if (isNotNilOrBlank(value)) {
-          // Base color
           style.setProperty(varName, value);
+        } else {
+          style.removeProperty(varName);
         }
       });
     }
