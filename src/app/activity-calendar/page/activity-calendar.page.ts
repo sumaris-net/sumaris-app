@@ -71,6 +71,7 @@ import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
+import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -142,11 +143,13 @@ export class ActivityCalendarPage
   protected mapPanelWidth = 30;
   protected showMapPanel = true; // TODO enable
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
+  protected selectedSubTabIndex = 0;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
   @Input() showToolbar = true;
   @Input() showQualityForm = true;
+  @Input() showPictures = true;
   @Input() showOptionsMenu = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
 
@@ -156,16 +159,17 @@ export class ActivityCalendarPage
   @Input() @RxStateProperty() predocProgramLabels: string[] = null;
 
   @ViewChild('baseForm', { static: true }) baseForm: ActivityCalendarForm;
-  @ViewChild('calendar') calendar: CalendarComponent;
+  @ViewChild('calendar', { static: true }) calendar: CalendarComponent;
 
   @ViewChild('predocSplit') predocSplit: SplitComponent;
   @ViewChild('predocCalendar') predocCalendar: CalendarComponent;
   @ViewChild('tableMetier') tableMetier: GearUseFeaturesTable;
   @ViewChild('map') map: ActivityCalendarMapComponent;
   @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
-  @ViewChild('featuresHistoryTable') featuresHistoryTable: VesselFeaturesHistoryComponent;
-  @ViewChild('registrationHistoryTable') registrationHistoryTable: VesselRegistrationHistoryComponent;
-  @ViewChild('ownerHistoryTable') ownerHistoryTable: VesselOwnerHistoryComponent;
+  @ViewChild('featuresHistoryTable', { static: true }) featuresHistoryTable: VesselFeaturesHistoryComponent;
+  @ViewChild('registrationHistoryTable', { static: true }) registrationHistoryTable: VesselRegistrationHistoryComponent;
+  @ViewChild('ownerHistoryTable', { static: true }) ownerHistoryTable: VesselOwnerHistoryComponent;
+  @ViewChild('gallery', { static: true }) gallery: AppImageAttachmentGallery;
 
   constructor(
     injector: Injector,
@@ -314,6 +318,12 @@ export class ActivityCalendarPage
         }
       })
     );
+
+    // Manage tab group
+    {
+      const queryParams = this.route.snapshot.queryParams;
+      this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
+    }
   }
 
   updateViewState(data: ActivityCalendar, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -608,6 +618,11 @@ export class ActivityCalendarPage
     // Set metier table data
     this.tableMetier.value = this.getMetierValue(activityMonths, data.gearUseFeatures);
 
+    // Load pictures
+    if (this.showPictures) {
+      this.loadPictures(data);
+    }
+
     // Load predoc
     if (this._predocPanelVisible) {
       this.loadPredoc(data);
@@ -772,6 +787,17 @@ export class ActivityCalendarPage
 
       await this.predocCalendar.setValue(predocMonths);
     }
+  }
+
+  protected loadPictures(data: ActivityCalendar) {
+    const firstLoad = !this.gallery.loaded;
+
+    // TODO fetch images
+    this.gallery.value = [];
+
+    // TODO load images
+    // then add gallery into child form
+    if (firstLoad) this.addForms([this.gallery]);
   }
 
   protected toggleShowPredoc(event?: Event) {

@@ -167,42 +167,78 @@
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_VESSEL</ion-label>
       </ng-template>
 
-      <ion-grid class="ion-no-padding ion-padding-start">
-        <ion-row>
-          <ion-col>
-            <app-vessel-features-history-table
-              #featuresHistoryTable
-              [showGrossTonnageGrtColumn]="true"
-              [showHullMaterialColumn]="true"
-              [showFpcColumn]="true"
-              [showCommentsColumn]="false"
-              [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES_DIVIDER'"
-              [basePortLocationColumnTitle]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
-              [debug]="debug"
-            ></app-vessel-features-history-table>
-          </ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col>
-            <app-vessel-registration-history-table
-              #registrationHistoryTable
-              [showRegistrationLocationColumn]="true"
-              [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATION_DIVIDER'"
-              [registrationLocationColumnTitle]="'ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION' | translate"
-              [debug]="debug"
-            ></app-vessel-registration-history-table>
-          </ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col>
-            <app-vessel-owner-history-table
-              #ownerHistoryTable
-              [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER_DIVIDER'"
-              [debug]="debug"
-            ></app-vessel-owner-history-table>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+      <mat-tab-group
+        #tabGroup
+        class="mat-mdc-tab-fixed-content"
+        [class.mobile]="mobile"
+        [(selectedIndex)]="selectedSubTabIndex"
+        (selectedTabChange)="onSubTabChange($event)"
+        [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+        [dynamicHeight]="false"
+      >
+        <!-- TAB: vessel history -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>history</mat-icon>
+            &nbsp;
+            <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_HISTORY</ion-label>
+          </ng-template>
+
+          <ion-grid class="ion-no-padding ion-padding-start">
+            <ion-row>
+              <ion-col>
+                <app-vessel-features-history-table
+                  #featuresHistoryTable
+                  [showGrossTonnageGrtColumn]="true"
+                  [showHullMaterialColumn]="true"
+                  [showFpcColumn]="true"
+                  [showCommentsColumn]="false"
+                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES_DIVIDER'"
+                  [basePortLocationColumnTitle]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
+                  [debug]="debug"
+                ></app-vessel-features-history-table>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <app-vessel-registration-history-table
+                  #registrationHistoryTable
+                  [showRegistrationLocationColumn]="true"
+                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATION_DIVIDER'"
+                  [registrationLocationColumnTitle]="'ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION' | translate"
+                  [debug]="debug"
+                ></app-vessel-registration-history-table>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <app-vessel-owner-history-table
+                  #ownerHistoryTable
+                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER_DIVIDER'"
+                  [debug]="debug"
+                ></app-vessel-owner-history-table>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </mat-tab>
+
+        <!-- TAB: vessel photo -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
+            &nbsp;
+            <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_PHOTO</ion-label>
+          </ng-template>
+
+          <app-image-attachment-gallery
+            #gallery
+            [disabled]="disabled"
+            [showAddCardButton]="true"
+            [showFabButton]="mobile"
+            [debug]="debug"
+          ></app-image-attachment-gallery>
+        </mat-tab>
+      </mat-tab-group>
     </mat-tab>
 
     <!-- TAB: Calendar -->
