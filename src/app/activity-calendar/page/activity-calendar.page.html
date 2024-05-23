@@ -93,7 +93,7 @@
     <mat-tab
       [label]="'ACTIVITY_CALENDAR.EDIT.TAB_GENERAL' | translateContext: i18nContext.suffix"
       appSubMenuTab
-      [subMenuTitle]="(titleSubject | async | noHtml) || ''"
+      [subMenuTitle]="(titleMenu$ | async) || ''"
       [parentPath]="defaultBackHref"
     >
       <ng-template mat-tab-label>
