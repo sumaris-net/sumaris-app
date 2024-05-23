@@ -37,7 +37,7 @@
           </mat-panel-title>
 
           <mat-panel-description>
-            <!-- TODO OTBNEP -->
+            <!-- TODO display metier, or inactif -->
           </mat-panel-description>
         </mat-expansion-panel-header>
 
@@ -88,7 +88,7 @@
     #tableContainer
     class="table-container"
     [class.has-toolbar]="showToolbar"
-    *rxIf="pmfms$; let pmfms; strategy: 'native'"
+    *rxIf="pmfms$; let pmfms; strategy: 'immediate'"
     (ngInit)="initTableContainer(tableContainer)"
     [class.mobile]="mobile"
   >
