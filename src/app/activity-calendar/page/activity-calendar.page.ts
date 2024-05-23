@@ -36,7 +36,7 @@ import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from '@ap
 import { ActivityCalendar } from '../model/activity-calendar.model';
 import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { BehaviorSubject, firstValueFrom, from, mergeMap, Observable } from 'rxjs';
+import { firstValueFrom, from, mergeMap, Observable } from 'rxjs';
 import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
