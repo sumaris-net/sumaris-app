@@ -22,12 +22,10 @@
   [trackBy]="trackByFn"
   [class.compact]="compact"
 >
-  <!-- Id Column -->
-  <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
-      <app-loading-spinner [loading]="loadingSubject | async"><ion-label>#</ion-label></app-loading-spinner>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
+  <!-- hidden columns (required by AppTable) -->
+  <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
+    <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
+    <mat-cell *matCellDef="let row" class="cdk-visually-hidden"></mat-cell>
   </ng-container>
 
   <!-- Start date column -->
@@ -73,16 +71,43 @@
   <!-- Registration location -->
   <ng-container matColumnDef="registrationLocation">
     <mat-header-cell *matHeaderCellDef>
-      <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_LOCATION</span>
+      <span>{{ registrationLocationColumnTitle || 'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_LOCATION' }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       {{ row.currentData.registrationLocation | referentialToString }}
     </mat-cell>
   </ng-container>
 
-  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <!-- Actions column -->
+  <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd">
+    <mat-header-cell *matHeaderCellDef>
+      <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row"></mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns" class="mat-mdc-row-disabled"></mat-row>
 </mat-table>
+
+<!-- options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+  <!-- display columns -->
+  <button mat-menu-item (click)="openSelectColumnsModal($event)">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
+</mat-menu>
+
+@if (loadingSubject | async) {
+  <ion-item>
+    <ion-skeleton-text animated></ion-skeleton-text>
+  </ion-item>
+} @else if (totalRowCount === 0) {
+  <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+}
 
 <!--  <ion-row class="ion-no-padding">-->
 <!--    <ion-col></ion-col>-->

@@ -162,13 +162,8 @@
       </div>
     </mat-tab>
 
-    <!-- TAB: general -->
-    <mat-tab
-      [label]="'ACTIVITY_CALENDAR.EDIT.TAB_VESSEL' | translateContext: i18nContext.suffix"
-      appSubMenuTab
-      [subMenuTitle]="(titleSubject | async | noHtml) || ''"
-      [parentPath]="defaultBackHref"
-    >
+    <!-- TAB: Vessel -->
+    <mat-tab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_VESSEL' | translateContext: i18nContext.suffix" [disabled]="!showVesselTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon><ion-icon matPrefix slot="start" name="boat"></ion-icon></mat-icon>
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_VESSEL</ion-label>
@@ -179,10 +174,13 @@
           <ion-col>
             <app-vessel-features-history-table
               #featuresHistoryTable
-              [showIdColumn]="false"
               [showGrossTonnageGrtColumn]="true"
+              [showHullMaterialColumn]="true"
               [showFpcColumn]="true"
-              [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES'"
+              [showCommentsColumn]="false"
+              [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES_DIVIDER'"
+              [basePortLocationColumnTitle]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
+              [debug]="debug"
             ></app-vessel-features-history-table>
           </ion-col>
         </ion-row>
@@ -190,19 +188,23 @@
           <ion-col>
             <app-vessel-registration-history-table
               #registrationHistoryTable
-              [showIdColumn]="false"
-              [showRegistrationLocationColumn]="false"
-              [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATIONS'"
+              [showRegistrationLocationColumn]="true"
+              [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATION_DIVIDER'"
+              [registrationLocationColumnTitle]="'ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION' | translate"
+              [debug]="debug"
             ></app-vessel-registration-history-table>
           </ion-col>
         </ion-row>
         <ion-row>
           <ion-col>
-            <app-vessel-owner-history-table #ownerHistoryTable [showIdColumn]="false"></app-vessel-owner-history-table>
+            <app-vessel-owner-history-table
+              #ownerHistoryTable
+              [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER_DIVIDER'"
+              [debug]="debug"
+            ></app-vessel-owner-history-table>
           </ion-col>
         </ion-row>
       </ion-grid>
-      <br />
     </mat-tab>
 
     <!-- TAB: Calendar -->

@@ -22,12 +22,10 @@
   [trackBy]="trackByFn"
   [class.compact]="compact"
 >
-  <!-- Id Column -->
-  <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
-      <app-loading-spinner [loading]="loadingSubject | async"><ion-label>#</ion-label></app-loading-spinner>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id }}</mat-cell>
+  <!-- hidden columns (required by AppTable) -->
+  <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
+    <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
+    <mat-cell *matCellDef="let row" class="cdk-visually-hidden"></mat-cell>
   </ng-container>
 
   <!-- Start date column -->
@@ -136,23 +134,27 @@
       <span translate>VESSEL.VESSEL_FEATURES.FPC</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{ row.currentData.fpc ? 'Oui' : 'Non' }}</ion-text>
+      <ion-text translate>
+        {{ row.currentData.fpc | booleanFormat }}
+      </ion-text>
     </mat-cell>
   </ng-container>
 
   <!-- hull material -->
   <ng-container matColumnDef="hullMaterial">
-    <mat-header-cell *matHeaderCellDef>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
       <span translate>VESSEL.VESSEL_FEATURES.HULL_MATERIAL</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      {{ row.currentData.hullMaterial | referentialToString }}
+      <ion-label class="ion-text-nowrap">
+        {{ row.currentData.hullMaterial | referentialToString: ['name'] }}
+      </ion-label>
     </mat-cell>
   </ng-container>
 
   <!-- base port location -->
   <ng-container matColumnDef="basePortLocation">
-    <mat-header-cell *matHeaderCellDef>
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
       <span translate>VESSEL.VESSEL_FEATURES.BASE_PORT_LOCATION</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
@@ -168,9 +170,36 @@
     </mat-cell>
   </ng-container>
 
-  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <!-- Actions column -->
+  <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd">
+    <mat-header-cell *matHeaderCellDef>
+      <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row"></mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns" class="mat-mdc-row-disabled"></mat-row>
 </mat-table>
+
+<!-- options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+  <!-- display columns -->
+  <button mat-menu-item (click)="openSelectColumnsModal($event)">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
+</mat-menu>
+
+@if (loadingSubject | async) {
+  <ion-item>
+    <ion-skeleton-text animated></ion-skeleton-text>
+  </ion-item>
+} @else if (totalRowCount === 0) {
+  <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+}
 
 <!--  <ion-row class="ion-no-padding">-->
 <!--    <ion-col></ion-col>-->

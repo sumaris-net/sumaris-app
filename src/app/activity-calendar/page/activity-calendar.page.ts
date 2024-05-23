@@ -66,7 +66,6 @@ import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { IOutputAreaSizes } from 'angular-split/lib/interface';
 import { SplitComponent } from 'angular-split';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 
 export const ActivityCalendarPageSettingsEnum = {
