@@ -65,6 +65,7 @@ import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model'
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
+import { RESERVED_START_COLUMNS } from '../../../../ngx-sumaris-components/src/app/core/table/table.model';
 
 const MAX_METIER_COUNT = 10;
 const MAX_FISHING_AREA_COUNT = 2;
@@ -163,11 +164,11 @@ export class CalendarComponent
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() validRowCount$: Observable<number>;
-  readonly isActiveList = IsActiveList;
-  readonly isActiveMap = Object.freeze(splitById(IsActiveList));
+  protected readonly isActiveList = IsActiveList;
+  protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
+  protected readonly hiddenColumns = RESERVED_START_COLUMNS;
 
   protected rowSubscription: Subscription;
-  protected hiddenColumns = ['select', 'id'];
   protected resizingCell: {
     validating?: boolean;
     axis?: 'x' | 'y';

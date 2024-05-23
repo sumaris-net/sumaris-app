@@ -1,5 +1,13 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit } from '@angular/core';
-import { AccountService, AppTable, EntitiesTableDataSource, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import {
+  AccountService,
+  AppTable,
+  EntitiesTableDataSource,
+  LocalSettingsService,
+  referentialToString,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+} from '@sumaris-net/ngx-components';
 import { VesselRegistrationService } from '../services/vessel-registration.service';
 import { VesselRegistrationPeriod } from '../services/model/vessel.model';
 import { environment } from '@environments/environment';
@@ -12,8 +20,22 @@ import { VesselRegistrationFilter } from '../services/filter/vessel.filter';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrationPeriod, VesselRegistrationFilter> implements OnInit {
-  referentialToString = referentialToString;
-  isAdmin: boolean;
+  protected readonly hiddenColumns = RESERVED_START_COLUMNS;
+  protected referentialToString = referentialToString;
+
+  @Input() compact: boolean;
+  @Input() title: string;
+  @Input() registrationLocationColumnTitle = '';
+  @Input() stickyEnd = false;
+
+  @Input()
+  set showRegistrationLocationColumn(value: boolean) {
+    this.setShowColumn('registrationLocation', value);
+  }
+
+  get showRegistrationLocationColumn(): boolean {
+    return this.getShowColumn('registrationLocation');
+  }
 
   constructor(
     injector: Injector,
@@ -25,7 +47,9 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     super(
       injector,
       // columns
-      ['id', 'startDate', 'endDate', 'registrationCode', 'intRegistrationCode', 'registrationLocation'],
+      RESERVED_START_COLUMNS.concat(['startDate', 'endDate', 'registrationCode', 'intRegistrationCode', 'registrationLocation']).concat(
+        RESERVED_END_COLUMNS
+      ),
       new EntitiesTableDataSource<VesselRegistrationPeriod>(VesselRegistrationPeriod, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
@@ -34,17 +58,23 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
       null
     );
 
-    this.i18nColumnPrefix = 'VESSEL.';
-
+    this.i18nColumnPrefix = 'VESSEL.VESSEL_REGISTRATION_PERIOD.';
+    this.showRegistrationLocationColumn = true;
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
+    this.title = 'VESSEL.HISTORY.REGISTRATIONS';
   }
 
   ngOnInit() {
     super.ngOnInit();
+  }
 
-    this.isAdmin = this.accountService.isAdmin();
+  protected getI18nColumnName(columnName: string): string {
+    if (columnName === 'registrationLocation') {
+      return this.registrationLocationColumnTitle || super.getI18nColumnName(columnName);
+    }
+    return super.getI18nColumnName(columnName);
   }
 
   protected markForCheck() {
