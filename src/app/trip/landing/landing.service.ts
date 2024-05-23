@@ -71,12 +71,13 @@ import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measure
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -92,6 +93,7 @@ export declare interface LandingServiceWatchOptions extends EntitiesServiceWatch
   fullLoad?: boolean;
   toEntity?: boolean;
   withTotal?: boolean;
+  mapFn?: (landings: Landing[]) => Landing[];
 }
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
@@ -558,6 +560,9 @@ export class LandingService
   }
 
   async saveAll(entities: Landing[], opts?: LandingSaveOptions): Promise<Landing[]> {
+    // Filter dividers
+    entities = entities.filter((entity) => isNotNil(entity.id));
+
     if (!entities) return entities;
 
     const localEntities = entities.filter(
@@ -1003,12 +1008,18 @@ export class LandingService
     this.progressBarService.increase();
 
     try {
-      const { data } = await this.loadAllByObservedLocation(
+      let { data } = await this.loadAllByObservedLocation(
         LandingFilter.fromObject({
           observedLocationId: observedLocation.id,
         }),
         { fetchPolicy: 'no-cache' } // TODO BLA
       );
+
+      // Filter dividers
+      data = data.filter((entity) => isNotNil(entity.id));
+
+      // Do not control PETS
+      data = data.filter((entity) => !PmfmValueUtils.equals(entity.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN], QualitativeValueIds.PETS));
 
       if (isEmptyArray(data)) return undefined;
       const progressionStep = maxProgression / data.length / 2; // 2 steps by landing: control, then save

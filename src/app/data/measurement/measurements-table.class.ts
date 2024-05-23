@@ -296,9 +296,7 @@ export abstract class BaseMeasurementsTable<
     }
 
     // Listen row edition
-    if (this.inlineEdition) {
-      this.registerSubscription(this.onStartEditingRow.subscribe((row) => this._onRowEditing(row)));
-    }
+    this.registerSubscription(this.onStartEditingRow.subscribe((row) => this._onRowEditing(row)));
   }
 
   ngOnDestroy() {

@@ -162,6 +162,7 @@ export const PmfmIds = {
   SALE_TYPE: 503,
   IS_OBSERVED: 510,
   NON_OBSERVATION_REASON: 511,
+  SPECIES_LIST_ORIGIN: 512,
 
   /* ACTIFLOT */
   SURVEY_QUALIFICATION: 446,
@@ -215,6 +216,7 @@ export const QualitativeValueIds = {
     INV: 578, // Inerte et végétaux - TODO override by config
     EMV: 582, // TODO override by config
   },
+  PETS: 651,
 };
 
 export const MethodIds = {

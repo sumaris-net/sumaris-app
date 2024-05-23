@@ -4,7 +4,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, JobUtils, Person, toBoolean } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
-import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, QualitativeValueIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';
 import { Trip } from '../trip/trip.model';
@@ -23,6 +23,7 @@ import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms
 import { debounceTime, distinctUntilChanged, filter, Observable, Subscription, tap } from 'rxjs';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -41,8 +42,6 @@ export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 export const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
 export const LANDING_I18N_PMFM_PREFIX = 'LANDING.PMFM.';
 
-class LandingDivider extends Landing {}
-
 @Component({
   selector: 'app-landings-table',
   templateUrl: 'landings.table.html',
@@ -51,6 +50,8 @@ class LandingDivider extends Landing {}
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
+  readonly pmfmIdsMap = PmfmIds;
+
   private _parentDateTime: Moment;
   private _parentObservers: Person[];
   private _detailEditor: LandingEditor;
@@ -221,6 +222,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
       reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+      onPrepareRowForm: (form) => this.onPrepareRowForm(form),
       i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
       i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
       initialState: {
@@ -234,7 +236,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     });
 
     this.readOnly = false; // Allow deletion
-    this.inlineEdition = false;
+    this.inlineEdition = false; // TODO JVF: Passer à true pour que onPrepareRowForm fonctionne
     this.confirmBeforeDelete = true;
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
@@ -337,7 +339,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
               if (!this.editedRow) return; // Should never occur
               const row = this.editedRow;
               const controls = (row.validator.get('measurementValues') as UntypedFormGroup).controls;
-              if (!isObservedValue) {
+              if (!isObservedValue && !PmfmValueUtils.equals(controls[PmfmIds.SPECIES_LIST_ORIGIN].value, QualitativeValueIds.PETS)) {
                 if (row.validator.enabled) controls[PmfmIds.NON_OBSERVATION_REASON].enable();
                 controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(Validators.required);
                 controls[PmfmIds.NON_OBSERVATION_REASON].updateValueAndValidity();
@@ -357,6 +359,26 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
     // Keep selectivity device, if any
     return pmfms.filter((p) => p.required || includedPmfmIds?.includes(p.id));
+  }
+
+  onPrepareRowForm(form: UntypedFormGroup) {
+    // TODO JVF: On ne passe jamais ici car on n'a pas encore défini inlineEdition à true suffisamment tôt
+    // Disable observation controls if PETS
+    const measurementValuesForm = form.get('measurementValues');
+    if (
+      this.isSaleDetailEditor &&
+      measurementValuesForm &&
+      PmfmValueUtils.equals(measurementValuesForm.get(PmfmIds.SPECIES_LIST_ORIGIN.toString()).value, QualitativeValueIds.PETS)
+    ) {
+      const isObservedControl = measurementValuesForm.get(PmfmIds.IS_OBSERVED.toString());
+      const nonObservationReasonControl = measurementValuesForm.get(PmfmIds.NON_OBSERVATION_REASON.toString());
+      isObservedControl.disable();
+      isObservedControl.setValue(null);
+      isObservedControl.setValidators(null);
+      nonObservationReasonControl.disable();
+      nonObservationReasonControl.setValue(null);
+      nonObservationReasonControl.setValidators(null);
+    }
   }
 
   setParent(parent: ObservedLocation | Trip | undefined) {
@@ -528,40 +550,51 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   protected updateFooter(rows: TableElement<Landing>[] | readonly TableElement<Landing>[]) {
     // Update observed count
-    this.observedCount = (rows || []).map((row) => toBoolean(row.currentData.measurementValues[PmfmIds.IS_OBSERVED])).filter((val) => !!val).length;
+    this.observedCount = (rows || [])
+      .filter((row) => isNotNil(row.currentData.id)) // Filter dividers
+      .map((row) => toBoolean(row.currentData.measurementValues[PmfmIds.IS_OBSERVED]))
+      .filter((val) => !!val).length;
   }
 
   isDivider(index: number, item: TableElement<Landing>): boolean {
-    console.log('isDivider', index, typeof item.currentData);
-    return !item.currentData.id;
-    // TODO JVF: return item.currentData instanceof LandingDivider;
+    return isNil(item.currentData.id);
   }
 
   isLanding(index: number, item: TableElement<Landing>): boolean {
-    console.log('isLanding', index, typeof item.currentData);
-    return !!item.currentData.id;
-    // TODO JVF: return !(item.currentData instanceof LandingDivider);
+    return isNotNil(item.currentData.id);
   }
 
   protected mapLandings(data: Landing[]): Landing[] {
-    // Split landings with pets from others
     if (this.isSaleDetailEditor) {
-      const landingsWithPets = [];
-      const landingsWithoutPets = data.reduce((acc, landing) => {
-        if (toBoolean(landing.measurementValues[PmfmIds.IS_PETS])) {
-          landingsWithPets.push(landing);
-        } else {
-          acc.push(landing);
+      // Split landings with pets from others
+      const landingsGroups = [];
+
+      // Get distinct SPECIES_LIST_ORIGIN values
+      const speciesListOrigins = data.reduce((acc, landing) => {
+        const speciesListOrigin = landing.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN];
+        if (!acc.includes(speciesListOrigin)) {
+          // PETS first
+          if (speciesListOrigin === QualitativeValueIds.PETS.toString()) {
+            acc.unshift(speciesListOrigin);
+          } else {
+            acc.push(speciesListOrigin);
+          }
         }
         return acc;
       }, []);
 
-      if (landingsWithPets.length > 0) {
-        landingsWithoutPets.push(new LandingDivider(), ...landingsWithPets);
-      }
+      // Split landings with different SPECIES_LIST_ORIGIN values
+      speciesListOrigins.forEach((speciesListOrigin) => {
+        const landings = data.filter((landing) => PmfmValueUtils.equals(landing.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN], speciesListOrigin));
+        const divider = landings[0].clone();
+        divider.id = null;
+        landingsGroups.push(divider, ...landings);
+      });
 
-      return landingsWithoutPets;
+      return landingsGroups;
     }
+
+    return data;
   }
 
   protected markForCheck() {

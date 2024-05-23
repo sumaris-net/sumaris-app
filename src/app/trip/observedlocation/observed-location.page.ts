@@ -803,9 +803,6 @@ export class ObservedLocationPage
       };
       await this.landingsTable.addOrUpdateEntityToTable(landing2, { editing: false });
 
-      // Insert a divider for PETS
-      // await this.landingsTable.addDivider();
-
       const landing3 = new Landing();
       landing3.rankOrder = 3;
       landing3.vesselSnapshot = new VesselSnapshot();
