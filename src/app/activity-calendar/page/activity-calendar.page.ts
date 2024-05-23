@@ -19,6 +19,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
+  Property,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
