@@ -134,6 +134,7 @@ export class ActivityCalendarPage
   protected allowAddNewVessel: boolean;
   protected showRecorder = true;
   protected showCalendar = true;
+  protected showVesselTab = true;
   protected enableReport: boolean;
   protected showMap = true;
   protected _predocPanelSize = 30;
