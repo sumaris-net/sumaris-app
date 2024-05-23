@@ -99,6 +99,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     }
   }
 
+  @Input() dividerPmfmId: number;
+
   get detailEditor(): LandingEditor {
     return this._detailEditor;
   }
@@ -339,7 +341,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
               if (!this.editedRow) return; // Should never occur
               const row = this.editedRow;
               const controls = (row.validator.get('measurementValues') as UntypedFormGroup).controls;
-              if (!isObservedValue && !PmfmValueUtils.equals(controls[PmfmIds.SPECIES_LIST_ORIGIN].value, QualitativeValueIds.PETS)) {
+              if (!isObservedValue && !PmfmValueUtils.equals(controls[this.dividerPmfmId].value, QualitativeValueIds.PETS)) {
                 if (row.validator.enabled) controls[PmfmIds.NON_OBSERVATION_REASON].enable();
                 controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(Validators.required);
                 controls[PmfmIds.NON_OBSERVATION_REASON].updateValueAndValidity();
@@ -358,17 +360,25 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   mapPmfms(pmfms: IPmfm[]): IPmfm[] {
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
     // Keep selectivity device, if any
-    return pmfms.filter((p) => p.required || includedPmfmIds?.includes(p.id));
+    return pmfms
+      .filter((p) => p.required || includedPmfmIds?.includes(p.id))
+      .map((pmfm) => {
+        // Hide divider column
+        pmfm = pmfm.clone();
+        if (pmfm.id === this.dividerPmfmId) {
+          pmfm.hidden = true;
+        }
+        return pmfm;
+      });
   }
 
   onPrepareRowForm(form: UntypedFormGroup) {
-    // TODO JVF: On ne passe jamais ici car on n'a pas encore défini inlineEdition à true suffisamment tôt
     // Disable observation controls if PETS
     const measurementValuesForm = form.get('measurementValues');
     if (
       this.isSaleDetailEditor &&
       measurementValuesForm &&
-      PmfmValueUtils.equals(measurementValuesForm.get(PmfmIds.SPECIES_LIST_ORIGIN.toString()).value, QualitativeValueIds.PETS)
+      PmfmValueUtils.equals(measurementValuesForm.get(this.dividerPmfmId.toString()).value, QualitativeValueIds.PETS)
     ) {
       const isObservedControl = measurementValuesForm.get(PmfmIds.IS_OBSERVED.toString());
       const nonObservationReasonControl = measurementValuesForm.get(PmfmIds.NON_OBSERVATION_REASON.toString());
@@ -569,9 +579,9 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       // Split landings with pets from others
       const landingsGroups = [];
 
-      // Get distinct SPECIES_LIST_ORIGIN values
+      // Get distinct species list origin values
       const speciesListOrigins = data.reduce((acc, landing) => {
-        const speciesListOrigin = landing.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN];
+        const speciesListOrigin = landing.measurementValues[this.dividerPmfmId];
         if (!acc.includes(speciesListOrigin)) {
           // PETS first
           if (speciesListOrigin === QualitativeValueIds.PETS.toString()) {
@@ -583,9 +593,9 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
         return acc;
       }, []);
 
-      // Split landings with different SPECIES_LIST_ORIGIN values
+      // Split landings with different species list origin values
       speciesListOrigins.forEach((speciesListOrigin) => {
-        const landings = data.filter((landing) => PmfmValueUtils.equals(landing.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN], speciesListOrigin));
+        const landings = data.filter((landing) => PmfmValueUtils.equals(landing.measurementValues[this.dividerPmfmId], speciesListOrigin));
         const divider = landings[0].clone();
         divider.id = null;
         landingsGroups.push(divider, ...landings);

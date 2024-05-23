@@ -505,11 +505,9 @@
     <ng-container matColumnDef="divider" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
       <td mat-cell colspan="4" *matCellDef="let row" class="divider">
         @if (mobile) {
-          <ion-text [innerHTML]="row.currentData | propertyGet: ['measurementValues', pmfmIdsMap.SPECIES_LIST_ORIGIN, 'name']"></ion-text>
+          <ion-text [innerHTML]="row.currentData | propertyGet: ['measurementValues', dividerPmfmId, 'name']"></ion-text>
         } @else {
-          <ion-text
-            [innerHTML]="row.validator | formGetValue: 'measurementValues' | mapGet: pmfmIdsMap.SPECIES_LIST_ORIGIN | mapGet: 'name'"
-          ></ion-text>
+          <ion-text [innerHTML]="row.validator | formGetValue: 'measurementValues' | mapGet: dividerPmfmId | mapGet: 'name'"></ion-text>
         }
       </td>
     </ng-container>

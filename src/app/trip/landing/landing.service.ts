@@ -1018,9 +1018,6 @@ export class LandingService
       // Filter dividers
       data = data.filter((entity) => isNotNil(entity.id));
 
-      // Do not control PETS
-      data = data.filter((entity) => !PmfmValueUtils.equals(entity.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN], QualitativeValueIds.PETS));
-
       if (isEmptyArray(data)) return undefined;
       const progressionStep = maxProgression / data.length / 2; // 2 steps by landing: control, then save
 

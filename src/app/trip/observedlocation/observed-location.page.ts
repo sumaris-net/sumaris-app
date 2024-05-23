@@ -599,6 +599,7 @@ export class ObservedLocationPage
         landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
         landingsTable.minObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
         landingsTable.maxObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MAX_OBSERVED_SPECIES_COUNT);
+        landingsTable.dividerPmfmId = PmfmIds.SPECIES_LIST_ORIGIN;
         this.showLandingTab = true;
 
         if (landingsTable.inlineEdition) {
