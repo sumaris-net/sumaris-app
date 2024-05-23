@@ -153,7 +153,9 @@ export const PmfmIds = {
   DISCARD_TYPE: 408,
   IS_SAMPLING: 409,
   LANDING_CATEGORY: 436,
-  EMV_CATEGORY: 437, // TODO override by config
+  EMV_CATEGORY: 437,
+
+  //SIZE_UNLI_CAT: , TODO not used
 
   /* OBSVENTE */
   PETS: 502,
