@@ -1,14 +1,7 @@
-import {
-  DateUtils,
-  Entity,
-  EntityClass,
-  fromDateISOString,
-  ReferentialAsObjectOptions,
-  ReferentialRef,
-  toDateISOString,
-} from '@sumaris-net/ngx-components';
+import { DateUtils, Entity, EntityClass, fromDateISOString, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { VesselOwner } from './vessel-owner.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 @EntityClass({ typename: 'VesselOwnerPeriodVO' })
 export class VesselOwnerPeriod extends Entity<VesselOwnerPeriod> {
@@ -29,13 +22,14 @@ export class VesselOwnerPeriod extends Entity<VesselOwnerPeriod> {
     this.vesselId = source.vesselId;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
-    this.vesselOwner = source.vesselOwner;
+    this.vesselOwner = source.vesselOwner && VesselOwner.fromObject(source.vesselOwner);
   }
 
-  asObject(options?: ReferentialAsObjectOptions): any {
-    const target: any = super.asObject(options);
+  asObject(opts?: ReferentialAsObjectOptions): any {
+    const target: any = super.asObject(opts);
     target.startDate = toDateISOString(DateUtils.markTime(this.startDate));
     target.endDate = toDateISOString(DateUtils.markTime(this.endDate));
+    target.vesselOwner = this.vesselOwner?.asObject({ ...opts, ...NOT_MINIFY_OPTIONS });
     return target;
   }
 

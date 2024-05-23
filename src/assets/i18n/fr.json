@@ -1939,10 +1939,11 @@
       "REGISTRATION_LOCATION": "Pavillon"
     },
     "VESSEL_OWNER": {
-      "REGISTRATION_CODE": "Immatriculation",
-      "CODE_ARMATEUR": "Code armateur",
-      "ACTIVITY_START_DATE": "Debut armement",
-      "RETIRMENT_DATE": "Fin armement",
+      "REGISTRATION_CODE": "Code armateur",
+      "START_DATE": "Début armement",
+      "END_DATE": "Fin armement",
+      "ACTIVITY_START_DATE": "Début d'activité",
+      "RETIREMENT_DATE": "Date de la retraite",
       "FIRST_NAME": "Prénom",
       "LAST_NAME": "Nom"
     },
@@ -3344,6 +3345,7 @@
       "FISHING_AREA": "Zone de pêche",
       "FISHING_AREA_RANKED": "Zone de pêche #{{rankOrder}}",
       "TAB_GENERAL": "Général",
+      "TAB_VESSEL": "Navire",
       "TAB_CALENDAR": "Calendrier",
       "TAB_METIER": "Métiers",
       "TAB_MAP": "Carte",

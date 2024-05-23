@@ -1,13 +1,15 @@
-<div class="ion-padding-start">
+<div>
   <!-- error -->
   <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
-  <h3>
-    <ion-text translate>{{ title }}</ion-text>
-  </h3>
+  @if (title) {
+    <h3>
+      <ion-text translate>{{ title }}</ion-text>
+    </h3>
+  }
 </div>
 
 <mat-table

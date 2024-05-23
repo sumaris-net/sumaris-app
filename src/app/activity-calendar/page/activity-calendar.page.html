@@ -117,35 +117,6 @@
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
             <ion-col class="ion-padding">
-              <ion-grid class="ion-no-padding">
-                <ion-row>
-                  <ion-col>
-                    <app-vessel-features-history-table
-                      #featuresHistoryTable
-                      [compact]="true"
-                      [showGrossTonnageGrtColumn]="true"
-                      [showfpcColumn]="true"
-                      [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES'"
-                    ></app-vessel-features-history-table>
-                  </ion-col>
-                </ion-row>
-                <ion-row>
-                  <ion-col>
-                    <app-vessel-registration-history-table
-                      #registrationHistoryTable
-                      [compact]="true"
-                      [showRegistrationLocationColumn]="true"
-                      [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATIONS'"
-                    ></app-vessel-registration-history-table>
-                  </ion-col>
-                </ion-row>
-                <ion-row>
-                  <ion-col>
-                    <app-vessel-owner-history-table #ownerHistoryTable [compact]="true" [showFirstNameColumn]="true"></app-vessel-owner-history-table>
-                  </ion-col>
-                </ion-row>
-              </ion-grid>
-              <br />
               <!-- base form -->
               <app-form-activity-calendar
                 #baseForm
@@ -189,6 +160,49 @@
           </ion-row>
         </ion-grid>
       </div>
+    </mat-tab>
+
+    <!-- TAB: general -->
+    <mat-tab
+      [label]="'ACTIVITY_CALENDAR.EDIT.TAB_VESSEL' | translateContext: i18nContext.suffix"
+      appSubMenuTab
+      [subMenuTitle]="(titleSubject | async | noHtml) || ''"
+      [parentPath]="defaultBackHref"
+    >
+      <ng-template mat-tab-label>
+        <mat-icon><ion-icon matPrefix slot="start" name="boat"></ion-icon></mat-icon>
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_VESSEL</ion-label>
+      </ng-template>
+
+      <ion-grid class="ion-no-padding ion-padding-start">
+        <ion-row>
+          <ion-col>
+            <app-vessel-features-history-table
+              #featuresHistoryTable
+              [showIdColumn]="false"
+              [showGrossTonnageGrtColumn]="true"
+              [showFpcColumn]="true"
+              [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES'"
+            ></app-vessel-features-history-table>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <app-vessel-registration-history-table
+              #registrationHistoryTable
+              [showIdColumn]="false"
+              [showRegistrationLocationColumn]="false"
+              [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATIONS'"
+            ></app-vessel-registration-history-table>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <app-vessel-owner-history-table #ownerHistoryTable [showIdColumn]="false"></app-vessel-owner-history-table>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+      <br />
     </mat-tab>
 
     <!-- TAB: Calendar -->

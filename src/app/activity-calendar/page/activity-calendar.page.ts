@@ -114,9 +114,10 @@ export class ActivityCalendarPage
 {
   static TABS = {
     GENERAL: 0,
-    CALENDAR: 1,
-    METIER: 2,
-    MAP: 3,
+    VESSEL: 1,
+    CALENDAR: 2,
+    METIER: 3,
+    MAP: 4,
   };
 
   @RxStateSelect() protected months$: Observable<Moment[]>;
@@ -168,12 +169,13 @@ export class ActivityCalendarPage
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
       pathIdAttribute: 'calendarId',
-      tabCount: 4, // 3 is map is hidden
+      tabCount: 5, // 4 is map is hidden
       i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.',
       enableListenChanges: false, // TODO enable
       acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
       settingsId: ActivityCalendarPageSettingsEnum.PAGE_ID,
       canCopyLocally: accountService.isAdmin(),
+      autoOpenNextTab: false,
     });
     this.defaultBackHref = '/activity-calendar';
 

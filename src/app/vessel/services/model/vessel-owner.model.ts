@@ -1,5 +1,4 @@
 import {
-  DateUtils,
   Entity,
   EntityClass,
   fromDateISOString,
@@ -36,16 +35,19 @@ export class VesselOwner extends Entity<VesselOwner> {
     this.firstName = source.firstName;
     this.registrationCode = source.registration;
     this.activityStartDate = fromDateISOString(source.activityStartDate);
-    this.activityStartDate = fromDateISOString(source.activityStartDate);
+    this.retirementDate = fromDateISOString(source.retirementDate);
 
     this.program = source.program && ReferentialRef.fromObject(source.program);
   }
 
   asObject(options?: ReferentialAsObjectOptions): any {
     const target: any = super.asObject(options);
+    target.activityStartDate = toDateISOString(this.activityStartDate);
+    target.retirementDate = toDateISOString(this.retirementDate);
     target.program =
       (this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*always keep for table*/ } as ReferentialAsObjectOptions)) ||
       undefined;
+
     if (options?.minify) {
       if (target.program) delete target.program.entityName;
     }

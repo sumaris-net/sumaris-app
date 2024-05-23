@@ -1,9 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import { AppTable } from '@sumaris-net/ngx-components';
-import { AccountService } from '@sumaris-net/ngx-components';
-import { LocalSettingsService } from '@sumaris-net/ngx-components';
-import { EntitiesTableDataSource } from '@sumaris-net/ngx-components';
-import { referentialToString } from '@sumaris-net/ngx-components';
+import { AccountService, AppTable, EntitiesTableDataSource, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { VesselOwnerPeriodFilter } from '../services/filter/vessel.filter';
 import { VesselOwnerPeriod } from '../services/model/vessel-owner-period.model';
@@ -20,6 +16,15 @@ export class VesselOwnerHistoryComponent extends AppTable<VesselOwnerPeriod, Ves
   isAdmin: boolean;
   @Input() compact: boolean;
   @Input() title: string;
+
+  @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
+  }
 
   @Input()
   set showFirstNameColumn(value: boolean) {
@@ -40,7 +45,7 @@ export class VesselOwnerHistoryComponent extends AppTable<VesselOwnerPeriod, Ves
     super(
       injector,
       // columns
-      ['registrationCode', 'id', 'activityStartDate', 'retirementDate', 'lastName', 'firstName'],
+      ['id', 'startDate', 'endDate', 'registrationCode', 'lastName', 'firstName', 'activityStartDate', 'retirementDate'],
       new EntitiesTableDataSource<VesselOwnerPeriod>(VesselOwnerPeriod, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,

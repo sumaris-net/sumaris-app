@@ -1,14 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import { AppTable } from '@sumaris-net/ngx-components';
+import { AccountService, AppTable, EntitiesTableDataSource, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
 import { VesselFeatures } from '../services/model/vessel.model';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ModalController, Platform } from '@ionic/angular';
-import { Location } from '@angular/common';
-import { AccountService } from '@sumaris-net/ngx-components';
-import { LocalSettingsService } from '@sumaris-net/ngx-components';
-import { EntitiesTableDataSource } from '@sumaris-net/ngx-components';
 import { VesselFeaturesService } from '../services/vessel-features.service';
-import { referentialToString } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { VesselFeaturesFilter } from '../services/filter/vessel.filter';
 
@@ -25,6 +18,15 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
   @Input() title: string;
 
   @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
+  }
+
+  @Input()
   set showGrossTonnageGrtColumn(value: boolean) {
     this.setShowColumn('grossTonnageGrt', value);
   }
@@ -34,12 +36,12 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
   }
 
   @Input()
-  set showfpcColumn(value: boolean) {
-    this.setShowColumn('grossTonnageGrt', value);
+  set showFpcColumn(value: boolean) {
+    this.setShowColumn('fpc', value);
   }
 
-  get showfpcColumn(): boolean {
-    return this.getShowColumn('grossTonnageGrt');
+  get showFpcColumn(): boolean {
+    return this.getShowColumn('fpc');
   }
 
   constructor(
@@ -78,7 +80,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
 
     this.i18nColumnPrefix = 'VESSEL.';
     this.showGrossTonnageGrtColumn = false;
-    this.showfpcColumn = false;
+    this.showFpcColumn = false;
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;

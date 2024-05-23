@@ -18,6 +18,15 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
   @Input() title: string;
 
   @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
+  }
+
+  @Input()
   set showRegistrationLocationColumn(value: boolean) {
     this.setShowColumn('registrationLocation', value);
   }
