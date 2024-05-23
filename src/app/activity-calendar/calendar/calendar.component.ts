@@ -15,6 +15,7 @@ import {
   Alerts,
   DateUtils,
   EntityUtils,
+  fromDateISOString,
   getPropertyByPath,
   IEntitiesService,
   InMemoryEntitiesService,
@@ -32,7 +33,6 @@ import {
   splitById,
   StatusIds,
   toBoolean,
-  toDateISOString,
   UsageMode,
   waitFor,
   WaitForOptions,
@@ -479,11 +479,14 @@ export class CalendarComponent
   }
 
   async loadVessels(vesselId: number, year: number) {
+    const now = Date.now();
+    console.debug(this.logPrefix + `Loading vessel snapshots on ${year} ...`);
+
     const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
     const endDate = startDate.clone().endOf('year');
     const { data } = await this.vesselSnapshotService.loadAll(
       0,
-      12, // all
+      100, // all
       null,
       null,
       {
@@ -494,28 +497,15 @@ export class CalendarComponent
       },
       { withTotal: false, withDates: true }
     );
-    console.log('TODO vesselSnapshots loaded: ', data);
+    console.debug(this.logPrefix + `Vessel snapshots loaded in ${Date.now() - now}ms`, data);
+
+    data.forEach((vs) => console.debug(`${this.logPrefix} - ${fromDateISOString(vs.startDate)} - ${fromDateISOString(vs.endDate)}`));
 
     this.vesselSnapshots = await Promise.all(
-      CalendarUtils.MONTHS.map(async (_, month) => {
-        const date = startDate.clone().utc(false).month(month);
-
-        // DEBUG
-        if (this.debug) console.debug(this.logPrefix + `Loading vessel for month #${month} using date ${toDateISOString(date)}`);
-
-        const { data } = await this.vesselSnapshotService.loadAll(
-          0,
-          1,
-          null,
-          null,
-          {
-            vesselId,
-            date,
-            onlyWithRegistration: true,
-          },
-          { withTotal: false }
-        );
-        return data?.[0] || null;
+      CalendarUtils.MONTHS.map((_, month) => {
+        const monthStartDate = startDate.clone().month(month).startOf('day');
+        const monthEndDate = startDate.clone().month(month).endOf('day');
+        return data.find((v) => (!v.endDate || monthStartDate.isSameOrBefore(v.endDate)) && monthEndDate.isSameOrAfter(v.startDate));
       })
     );
   }
