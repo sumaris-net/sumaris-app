@@ -5,7 +5,7 @@
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
-  @if (title) {
+  @if (title | isNotNilOrBlank) {
     <h3>
       <ion-text translate>{{ title }}</ion-text>
     </h3>
@@ -28,10 +28,20 @@
     <mat-cell *matCellDef="let row" class="cdk-visually-hidden"></mat-cell>
   </ng-container>
 
+  <!-- RegistrationCode column -->
+  <ng-container matColumnDef="registrationCode">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.REGISTRATION_CODE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.registrationCode }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
   <!-- Start date column -->
   <ng-container matColumnDef="startDate">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.START_DATE</span>
+      <span translate>VESSEL.VESSEL_OWNER.START_DATE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.startDate | dateFormat: { time: false } }}</ion-text>
@@ -41,40 +51,50 @@
   <!-- End date column -->
   <ng-container matColumnDef="endDate">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.END_DATE</span>
+      <span translate>VESSEL.VESSEL_OWNER.END_DATE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.endDate | dateFormat: { time: false } }}</ion-text>
     </mat-cell>
   </ng-container>
 
-  <!-- Registration code column -->
-  <ng-container matColumnDef="registrationCode">
+  <!-- FirstName column -->
+  <ng-container matColumnDef="firstName">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE</span>
+      <span translate>VESSEL.VESSEL_OWNER.FIRST_NAME</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{ row.currentData.registrationCode }}</ion-text>
+      <ion-text>{{ row.currentData.vesselOwner.firstName }}</ion-text>
     </mat-cell>
   </ng-container>
 
-  <!-- Int Registration code column -->
-  <ng-container matColumnDef="intRegistrationCode">
+  <!-- LastName column -->
+  <ng-container matColumnDef="lastName">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.INT_REGISTRATION_CODE</span>
+      <span translate>VESSEL.VESSEL_OWNER.LAST_NAME</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{ row.currentData.intRegistrationCode }}</ion-text>
+      <ion-text>{{ row.currentData.vesselOwner.lastName }}</ion-text>
     </mat-cell>
   </ng-container>
 
-  <!-- Registration location -->
-  <ng-container matColumnDef="registrationLocation">
-    <mat-header-cell *matHeaderCellDef>
-      <span>{{ registrationLocationColumnTitle || 'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_LOCATION' }}</span>
+  <!-- Activity start date column -->
+  <ng-container matColumnDef="activityStartDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.ACTIVITY_START_DATE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      {{ row.currentData.registrationLocation | referentialToString }}
+      <ion-text>{{ row.currentData.vesselOwner.activityStartDate | dateFormat: { time: false } }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Retirement date column -->
+  <ng-container matColumnDef="retirementDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.RETIREMENT_DATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.retirementDate | dateFormat: { time: false } }}</ion-text>
     </mat-cell>
   </ng-container>
 

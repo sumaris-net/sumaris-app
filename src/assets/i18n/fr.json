@@ -1922,6 +1922,7 @@
       "EXTERIOR_MARKING": "Marquage extérieur",
       "CONSTRUCTION_YEAR": "Année de construction",
       "IRCS": "Indicatif radio (IRCS)",
+      "FPC": "FPC",
       "HULL_MATERIAL": "Matériau de la coque",
       "BASE_PORT_LOCATION": "Port d'attache",
       "GROSS_TONNAGE_GT": "Tonnage (UMS)",
@@ -1937,9 +1938,19 @@
       "INT_REGISTRATION_CODE": "Immatriculation internationale",
       "REGISTRATION_LOCATION": "Pavillon"
     },
+    "VESSEL_OWNER": {
+      "REGISTRATION_CODE": "Code armateur",
+      "START_DATE": "Début armement",
+      "END_DATE": "Fin armement",
+      "ACTIVITY_START_DATE": "Début d'activité",
+      "RETIREMENT_DATE": "Date de la retraite",
+      "FIRST_NAME": "Prénom",
+      "LAST_NAME": "Nom"
+    },
     "HISTORY": {
       "FEATURES": "Caratéristiques",
-      "REGISTRATIONS": "Immatriculations"
+      "REGISTRATIONS": "Immatriculations",
+      "OWNER": "Couples navires-armateurs"
     },
     "ACTION": {
       "EDIT": "Modifier",
@@ -3334,6 +3345,9 @@
       "FISHING_AREA": "Zone de pêche",
       "FISHING_AREA_RANKED": "Zone de pêche #{{rankOrder}}",
       "TAB_GENERAL": "Général",
+      "TAB_VESSEL": "Navire",
+      "TAB_HISTORY": "Historique",
+      "TAB_PHOTO": "Photos",
       "TAB_CALENDAR": "Calendrier",
       "TAB_METIER": "Métiers",
       "TAB_MAP": "Carte",
@@ -3341,6 +3355,9 @@
       "REGISTRATION_LOCATION": "Quartier maritime",
       "IS_ACTIVE": "Actif ?",
       "OTHER_FEATURES": "Caractéristiques d'enquête :",
+      "VESSEL_FEATURES_DIVIDER": "Caractéristiques navire",
+      "VESSEL_REGISTRATION_DIVIDER": "Immatriculations",
+      "VESSEL_OWNER_DIVIDER": "Armateurs",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
         "DISABLE": "Inactif",
