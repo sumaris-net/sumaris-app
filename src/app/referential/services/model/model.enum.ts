@@ -160,6 +160,9 @@ export const PmfmIds = {
   SALE_TYPE: 503,
   IS_OBSERVED: 510,
   NON_OBSERVATION_REASON: 511,
+
+  /* ACTIFLOT */
+  SURVEY_QUALIFICATION: 446,
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {

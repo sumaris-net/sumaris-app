@@ -19,6 +19,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
+  Property,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
@@ -31,7 +32,7 @@ import {
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from '@app/trip/observedlocation/vessels/select-vessel-for-data.modal';
 import { ActivityCalendar } from '../model/activity-calendar.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { firstValueFrom, mergeMap, Observable } from 'rxjs';
 import { filter, first, map, tap } from 'rxjs/operators';
@@ -73,6 +74,7 @@ export const ActivityCalendarPageSettingsEnum = {
 export interface ActivityCalendarPageState extends RootDataEntityEditorState {
   year: number;
   vesselCountryId: number;
+  reportTypes: Property[];
   months: Moment[];
   predocProgramLabels: string[];
 }
@@ -115,6 +117,7 @@ export class ActivityCalendarPage
 
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() protected predocProgramLabels$: Observable<string[]>;
+  @RxStateProperty() protected reportTypes: Property[];
 
   protected timezone = DateUtils.moment().tz();
   protected allowAddNewVessel: boolean;
@@ -176,6 +179,18 @@ export class ActivityCalendarPage
 
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
+
+    this._state.connect(
+      'reportTypes',
+      this.program$.pipe(
+        map((program) => {
+          return program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPE).map((key) => {
+            const values = ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPE.values as Property[];
+            return values.find((item) => item.key === key);
+          });
+        })
+      )
+    );
 
     this._state.connect(
       'months',
@@ -326,12 +341,16 @@ export class ActivityCalendarPage
     }
   }
 
-  async openReport() {
+  async openReport(reportType?: ActivityCalendarReportType) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+
+    if (!reportType) reportType = this.reportTypes.length === 1 ? <ActivityCalendarReportType>this.reportTypes[0].key : 'form';
+
+    const reportPath = reportType.split('-');
+    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...reportPath].join('/'));
   }
 
   async copyLocally() {

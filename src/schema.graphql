@@ -2408,10 +2408,7 @@ input AggregatedLandingFilterVOInput {
     dataQualityStatus: [DataQualityStatusEnum]
     endDate: Date
     locationId: Int
-<<<<<<< HEAD
     locationIds: [Int]
-=======
->>>>>>> 375652622 ([enh] FromTripReport: Denormalize batches before compute stats)
     observedLocationId: Int
     programIds: [Int]
     programLabel: String
@@ -2535,7 +2532,6 @@ input DataOriginVOInput {
 
 input DataValidateOptionsInput {
     withChildren: Boolean
-<<<<<<< HEAD
 }
 
 input DenormalizedBatchesFilterVOInput {
@@ -2548,8 +2544,6 @@ input DenormalizedBatchesFilterVOInput {
     recorderDepartmentId: Int
     saleId: Int
     tripId: Int
-=======
->>>>>>> 375652622 ([enh] FromTripReport: Denormalize batches before compute stats)
 }
 
 input DenormalizedBatchesFilterVOInput {
@@ -2562,6 +2556,19 @@ input DenormalizedBatchesFilterVOInput {
     recorderDepartmentId: Int
     saleId: Int
     tripId: Int
+}
+
+input DenormalizedBatchesFilterVOInput {
+  dataQualityStatus: [DataQualityStatusEnum]
+  isDiscard: Boolean
+  isLanding: Boolean
+  observedLocationId: Int
+  operationId: Int
+  operationIds: [Int]
+  qualityFlagIds: [Int]
+  recorderDepartmentId: Int
+  saleId: Int
+  tripId: Int
 }
 
 input DenormalizedPmfmStrategyVOInput {
@@ -3340,10 +3347,7 @@ input PhysicalGearFilterVOInput {
     excludeParentGearId: Int
     excludeTripId: Int
     locationId: Int
-<<<<<<< HEAD
     locationIds: [Int]
-=======
->>>>>>> 375652622 ([enh] FromTripReport: Denormalize batches before compute stats)
     parentGearId: Int
     programIds: [Int]
     programLabel: String
@@ -3679,10 +3683,7 @@ input SampleFilterVOInput {
     includedIds: [Int]
     landingId: Int
     locationId: Int
-<<<<<<< HEAD
     locationIds: [Int]
-=======
->>>>>>> 375652622 ([enh] FromTripReport: Denormalize batches before compute stats)
     observedLocationId: Int
     observedLocationIds: [Int]
     operationId: Int
@@ -4105,10 +4106,7 @@ input VesselFilterVOInput {
     excludedIds: [Int]
     includedIds: [Int]
     locationId: Int
-<<<<<<< HEAD
     locationIds: [Int]
-=======
->>>>>>> 375652622 ([enh] FromTripReport: Denormalize batches before compute stats)
     minUpdateDate: Date
     onlyWithRegistration: Boolean
     programIds: [Int]

@@ -18,14 +18,28 @@ const routes: Routes = [
   },
   {
     path: ':calendarId',
-    component: ActivityCalendarPage,
     runGuardsAndResolvers: 'pathParamsChange',
     canActivate: [AuthGuardService],
-    canDeactivate: [ComponentDirtyGuard],
     data: {
       profile: 'USER',
       pathIdParam: 'calendarId',
     },
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        component: ActivityCalendarPage,
+        canDeactivate: [ComponentDirtyGuard],
+        data: {
+          profile: 'USER',
+          pathIdParam: 'calendarId',
+        },
+      },
+      {
+        path: 'report',
+        loadChildren: () => import('./report/activity-calendar-report-routing.module').then((m) => m.ActivityCalendarReportRoutingModule),
+      },
+    ],
   },
 ];
 

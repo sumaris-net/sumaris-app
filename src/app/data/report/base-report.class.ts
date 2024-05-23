@@ -201,6 +201,10 @@ export abstract class AppBaseReport<
     return `${peerUrl.replace(/\/$/, '')}/share/`;
   }
 
+  get isPrinting(): boolean {
+    return this._printing;
+  }
+
   protected constructor(
     injector: Injector,
     protected dataType: new () => T,

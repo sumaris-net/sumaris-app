@@ -83,7 +83,7 @@ export class FormTripReportStats extends BaseReportStats {
 @Component({
   selector: 'app-form-trip-report',
   templateUrl: './form-trip.report.html',
-  styleUrls: ['../trip.report.scss', './form-trip.report.scss', '../../../../data/report/base-report.scss'],
+  styleUrls: ['../trip.report.scss', './form-trip.report.scss', '../../../../data/report/base-form-report.scss'],
   providers: [{ provide: TripReportService, useClass: FormTripReportService }],
   encapsulation: ViewEncapsulation.None,
 })
@@ -92,6 +92,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
 
   protected logPrefix = 'trip-form-report';
   protected isBlankForm: boolean;
+  protected subReportType: string;
   protected latLongPattern: LatLongPattern;
   protected readonly nbOfOpOnBlankPage = 9;
 
@@ -108,8 +109,15 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     this.latLongPattern = this.settings.latLongFormat;
     this.denormalizedBatchService = this.injector.get(DenormalizedBatchService);
 
-    this.isBlankForm = this.route.snapshot.data[FormTripReport.isBlankFormParam];
+    this.subReportType = this.route.snapshot.routeConfig.path;
+    this.isBlankForm = this.subReportType === 'blank';
+
     this.debug = !environment.production;
+  }
+
+  computePrintHref(data: Trip, stats: FormTripReportStats): URL {
+    if (this.uuid) return super.computePrintHref(data, stats);
+    return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form/' + this.subReportType);
   }
 
   async updateView() {
@@ -345,11 +353,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected computeShareBasePath(): string {
     // TODO
     return 'trips/report/form';
-  }
-
-  computePrintHref(data: Trip, stats: FormTripReportStats): URL {
-    if (this.uuid) return super.computePrintHref(data, stats);
-    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form');
   }
 
   protected computeI18nContext(stats: FormTripReportStats): IReportI18nContext {

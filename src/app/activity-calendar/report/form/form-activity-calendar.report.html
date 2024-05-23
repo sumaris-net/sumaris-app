@@ -1,0 +1,414 @@
+<ng-container *ngIf="showToolbar">
+  <app-toolbar *ngIf="!modal; else modalToolbar" [defaultBackHref]="$defaultBackHref | async" canGoBack="false">
+    <ion-title [innerHTML]="$title | async"></ion-title>
+
+    <ion-buttons slot="end">
+      <!-- Refresh -->
+      <ion-button *ngIf="uuid | isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH' | translate">
+        <mat-icon>refresh</mat-icon>
+      </ion-button>
+
+      <!-- Help button -->
+      <ion-button (click)="reveal.toggleHelp()">
+        <mat-icon>help_outline</mat-icon>
+      </ion-button>
+
+      <!-- Print -->
+      <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+        <!-- Print button -->
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- share menu -->
+      <button mat-icon-button matHeader [title]="'COMMON.SHARE.BTN_SHARE' | translate" [matMenuTriggerFor]="shareMenu">
+        <mat-icon>share</mat-icon>
+      </button>
+    </ion-buttons>
+  </app-toolbar>
+
+  <mat-menu #shareMenu="matMenu" xPosition="after">
+    <!-- Share popover -->
+    <button mat-menu-item (click)="showSharePopover($event)" [disabled]="(loadingSubject | async) || network.offline">
+      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS' | translate }}</ion-label>
+    </button>
+  </mat-menu>
+
+  <ng-template #modalToolbar>
+    <app-modal-toolbar *ngIf="showToolbar" [modalName]="modalName" [color]="'secondary'" (cancel)="cancel()" [canValidate]="false">
+      <ion-title [innerHTML]="$title | async"></ion-title>
+
+      <!-- Print button -->
+      <ion-button slot="end" (click)="reveal.print($event)">
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- Close button (on desktop screen) -->
+      <ion-button hidden-xs hidden-sm hidden-mobile slot="end" (click)="cancel()" (keyup.enter)="cancel()">
+        <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+      </ion-button>
+    </app-modal-toolbar>
+  </ng-template>
+</ng-container>
+
+<ion-content>
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
+    <section>
+      @for (metierChunk of stats.metierTableChunks; track pageIndex; let pageIndex = $index; let firstPage = $first; let lastPage = $last) {
+        <section
+          *sectionDef
+          class="landscape"
+          [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight + 'px'"
+          [style.--month-table-row-height]="pageDimensions.monthTableRowHeight + 'px'"
+          [style.--gear-table-title-row-height]="pageDimensions.gufTableRowTitleHeight + 'px'"
+          [style.--gear-table-row-height]="pageDimensions.gufTableRowHeight + 'px'"
+          [style.--header-height]="pageDimensions.headerHeight + 'px'"
+          [style.--section-title-height]="pageDimensions.sectionTitleHeight + 'px'"
+        >
+          <ion-grid class="report-header ion-no-padding">
+            <ion-row class="document-title">
+              <ion-col class="logo" size="2">
+                @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+                  <img [src]="stats.logoHeadLeftUrl" />
+                }
+              </ion-col>
+              <ion-col size="8">
+                <h1 class="ion-text-uppercase">
+                  {{ 'ACTIVITY_CALENDAR.REPORT.TITLE' | translateContext: i18nContext.suffix : { year: data.year } }}
+                </h1>
+              </ion-col>
+              <ion-col class="logo" size="2">
+                @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+                  <img [src]="stats.logoHeadRightUrl" />
+                }
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+          @if (firstPage) {
+            <ion-grid class="report-section ion-no-padding font-compact">
+              <ion-row>
+                <ion-col size="7" class="ion-padding-end">
+                  <ion-grid class="ion-no-padding">
+                    <ion-row class="section-title red-border-bottom">
+                      <ion-col>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
+                      <ion-col>
+                        <strong>
+                          {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_LOCATION' | translate }}
+                        </strong>
+                        &nbsp;
+                        @if (!isBlankForm) {
+                          {{ data.vesselSnapshot.registrationLocation | referentialToString: ['label', 'name'] }}
+                        }
+                      </ion-col>
+                      <ion-col>
+                        <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}</strong>
+                        &nbsp;
+                        @if (!isBlankForm) {
+                          {{ data.vesselSnapshot?.registrationCode || data.vesselSnapshot?.intRegistrationCode }}
+                        }
+                      </ion-col>
+                      <ion-col>
+                        <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.VESSEL_NAME' | translate }}</strong>
+                        &nbsp;
+                        @if (!isBlankForm) {
+                          {{ data.vesselSnapshot.exteriorMarking }}
+                        }
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+                <ion-col size="5">
+                  <ion-grid class="ion-no-padding">
+                    <ion-row class="section-title red-border-bottom">
+                      <ion-col>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.SURVEY_QUALIFICATION_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
+                      @for (
+                        qv of stats.pmfm.activityCalendar | arrayFilter: filterPmfmSurveyQualification | arrayFirst | mapGet: 'qualitativeValues';
+                        track qv.id
+                      ) {
+                        <ion-col size="3">
+                          <ion-icon
+                            [name]="
+                              (data.measurementValues
+                                | mapGet: pmfmIdsMap.SURVEY_QUALIFICATION
+                                | pmfmValue
+                                  : {
+                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmSurveyQualification | arrayFirst
+                                    }) === qv.name
+                                ? 'checkbox-outline'
+                                : 'square-outline'
+                            "
+                            class="font-compact"
+                          ></ion-icon>
+                          <strong>
+                            {{ qv.name }}
+                          </strong>
+                        </ion-col>
+                      }
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+            <ion-grid class="report-section ion-no-padding">
+              <ion-row class="ion-no-padding section-title">
+                <ion-col>
+                  <h2>{{ 'ACTIVITY_CALENDAR.REPORT.EFFORT_SECTION.TITLE' | translate }}</h2>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+            <table class="month-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  @for (month of stats.activityMonth; track month.id) {
+                    <th>
+                      {{ month.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of stats.effortsTableRows; track lineIndex; let lineIndex = $index) {
+                  <tr>
+                    <th [innerHTML]="row.title"></th>
+                    @for (value of row.values; track valueIndex; let valueIndex = $index) {
+                      <td [innerHTML]="value"></td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          @if (metierChunk | isNotNil) {
+            <ion-grid class="report-section ion-no-padding ion-padding-top" [style.--ion-padding]="'8px'">
+              <ion-row class="ion-no-padding">
+                <ion-col>
+                  <h2>{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.TITLE' | translate }}</h2>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+            <table class="month-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  @for (month of stats.activityMonth; track month.id) {
+                    <th>
+                      {{ month.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (gearUseFeaturesId of metierChunk | arrayPluck: 'gufId'; track gearUseFeaturesId; let gearUseFeatureIndex = $index) {
+                  <tr class="metier-row">
+                    <th>
+                      {{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}
+                    </th>
+                    @for (month of stats.activityMonth; track month.id; let monthIndex = $index) {
+                      @if (stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] > 0) {
+                        <td
+                          [attr.colspan]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex]"
+                          [class.fit-one-line]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] > 0"
+                        >
+                          <div [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] === 0">
+                            <div>
+                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['label'] }}
+                            </div>
+                            <div [title]="month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['name']">
+                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['name'] }}
+                            </div>
+                          </div>
+                        </td>
+                      }
+                    }
+                  </tr>
+                  @for (
+                    fishingAreaId of metierChunk[gearUseFeatureIndex] | mapGet: 'fishingAreasIds';
+                    track fishingAreaId;
+                    let fishingAreaIndex = $index
+                  ) {
+                    <tr>
+                      <th>{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_FISHING_AREA' | translate }}</th>
+                      @for (month of stats.activityMonth; track month.id) {
+                        <td>
+                          {{
+                            month['gearUseFeatures'][gearUseFeatureIndex]['fishingAreas'][fishingAreaIndex]
+                              | mapGet: 'location'
+                              | referentialToString: ['label']
+                          }}
+                        </td>
+                      }
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          }
+          @if (lastPage) {
+            <ion-grid class="report-section ion-no-padding ion-padding-top font-compact" [style.--ion-padding]="'8px'">
+              <ion-row>
+                <ion-col size="7" class="ion-padding-end">
+                  <ion-grid class="ion-no-padding">
+                    <ion-row class="section-title">
+                      <ion-col>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GUF_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row>
+                      <table class="guf-table" [style.width]="'100%'">
+                        <thead>
+                          <tr>
+                            <th [style.--col-width]="pageDimensions.gufTableColTitleWidth + 'px'"></th>
+                            @for (labelMetier of data.gearUseFeatures | arrayPluck: 'metier.label'; track labelMetier) {
+                              <th
+                                [style.--col-width]="
+                                  'calc((100% - ' + pageDimensions.gufTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
+                                "
+                              >
+                                {{ labelMetier }}
+                              </th>
+                            }
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (pmfm of stats.pmfm.physicalGear; track pmfm.id) {
+                            <tr [style.--col-width]="pageDimensions.gufTableColTitleWidth + 'px'">
+                              <th>{{ pmfm.name }}</th>
+                              @for (guf of data.gearUseFeatures; track guf.id) {
+                                <td
+                                  [style.--col-width]="
+                                    'calc((100% - ' + pageDimensions.gufTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
+                                  "
+                                >
+                                  {{ guf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
+                                </td>
+                              }
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+                <ion-col size="3" class="ion-padding-start">
+                  <ion-grid class="ion-no-padding">
+                    <ion-row class="section-title red-border-bottom">
+                      <ion-col>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
+                      <ion-col size="12">
+                        <ion-icon [name]="'square-outline'" class="font-compact"></ion-icon>
+                        <strong>
+                          {{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.ENTIRELY_AUCTION' | translate }}
+                        </strong>
+                      </ion-col>
+                      <ion-col size="12">
+                        <ion-icon [name]="'square-outline'" class="font-compact"></ion-icon>
+                        <strong>
+                          {{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.PARTIALLY_AUCTION' | translate }}
+                        </strong>
+                      </ion-col>
+                      <ion-col size="12">
+                        <ion-icon [name]="'square-outline'" class="font-compact"></ion-icon>
+                        <strong>
+                          {{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.OUTSIDE_AUCTION' | translate }}
+                        </strong>
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+                <ion-col size="2" class="ion-padding-start">
+                  <ion-grid>
+                    <ion-row class="section-title red-border-bottom">
+                      <ion-col>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
+                      <ion-col size="12" class="ion-padding-bottom">
+                        <strong>
+                          {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.LAST_NAME' | translate }}
+                        </strong>
+                        @if (!isBlankForm) {
+                          &nbsp;
+                          {{ data.recorderPerson.lastName }}
+                        }
+                      </ion-col>
+                      <ion-col size="12">
+                        <strong>
+                          {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.FIRST_NAME' | translate }}
+                        </strong>
+                        @if (!isBlankForm) {
+                          &nbsp;
+                          {{ data.recorderPerson.firstName }}
+                        }
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          }
+          <ng-content *ngTemplateOutlet="pageFooter; context: { pageNumber: pageIndex + 1, pageTotal: stats.metierTableChunks.length }"></ng-content>
+        </section>
+      }
+    </section>
+  </app-reveal>
+
+  <ng-template #pageHeader let-title="title" let-titleParams="titleParams">
+    <ion-grid class="report-header ion-no-padding">
+      <ion-row class="page-title">
+        <ion-col class="logo" size="auto">
+          @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+            <img [src]="stats.logoHeadLeftUrl" />
+          }
+        </ion-col>
+        <ion-col>
+          <h2>{{ title | translateContext: i18nContext.suffix : titleParams }}</h2>
+        </ion-col>
+        <ion-col class="logo" size="auto">
+          @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+            <img [src]="stats.logoHeadRightUrl" />
+          }
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-template>
+
+  <ng-template #pageFooter let-help="help" let-pageNumber="pageNumber" let-pageTotal="pageTotal">
+    <ion-grid class="report-footer ion-no-padding">
+      @if (help | isNotNilOrBlank) {
+        <ion-row class="footer-help">
+          <ion-col>
+            {{ help | translate }}
+          </ion-col>
+        </ion-row>
+      }
+      <ion-row class="footer-text ion-justify-content-between">
+        <ion-col size="auto" [innerHTML]="stats.footerText"></ion-col>
+        <ion-col size="auto">{{ 'COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber: pageNumber } }} / {{ pageTotal }}</ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-template>
+
+  <ng-template #loadingTemplate>
+    <div class="loader">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  </ng-template>
+</ion-content>
