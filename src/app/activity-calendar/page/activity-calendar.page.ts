@@ -241,7 +241,8 @@ export class ActivityCalendarPage
         this.tableMetier.markAsLoading();
 
         // Save calendar when opening the map tab (keep editor dirty)
-        if (!(await this.saveTable(this.calendar)) || !(await this.saveTable(this.tableMetier))) {
+        const dirty = this.calendar.dirty || this.tableMetier.dirty;
+        if (dirty && (!(await this.saveTable(this.calendar)) || !(await this.saveTable(this.tableMetier)))) {
           this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
           this.tableMetier.markAsLoaded();
           return;
