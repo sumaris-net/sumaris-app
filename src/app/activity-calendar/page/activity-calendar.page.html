@@ -256,6 +256,25 @@
       </mat-tab-group>
     </mat-tab>
 
+        <!-- TAB: vessel photo -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
+            &nbsp;
+            <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_PHOTO</ion-label>
+          </ng-template>
+
+          <app-image-attachment-gallery
+            #gallery
+            [disabled]="disabled"
+            [showAddCardButton]="true"
+            [showFabButton]="mobile"
+            [debug]="debug"
+          ></app-image-attachment-gallery>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-tab>
+
     <!-- TAB: Calendar -->
     <mat-tab
       #calendarTab
