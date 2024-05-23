@@ -307,7 +307,7 @@
     [disabled]="!dirty || loading"
   >
     @if (!_predocPanelVisible) {
-      <ng-container *ngTemplateOutlet="togglePredocButton"></ng-container>
+      <ng-container *ngTemplateOutlet="togglePredocButton; context: { label: 'ACTIVITY_CALENDAR.EDIT.BTN_SHOW_PREDOC' }"></ng-container>
     }
 
     <!-- error -->
@@ -332,15 +332,27 @@
   </ion-fab-button>
 </ion-fab>
 
-<ng-template #togglePredocButton>
-  <button
-    mat-icon-button
-    [title]="(_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.BTN_HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.BTN_SHOW_PREDOC') | translate"
-    [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
-    (click)="toggleShowPredoc($event)"
-  >
-    <mat-icon>{{ _predocPanelVisible ? 'expand_more' : 'expand_less' }}</mat-icon>
-  </button>
+<ng-template #togglePredocButton let-label="label">
+  @if (label) {
+    <ion-button
+      color="tertiary"
+      [title]="(_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate"
+      [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
+      (click)="toggleShowPredoc($event)"
+    >
+      <mat-label [innerHTML]="label | translate"></mat-label>
+      <mat-icon slot="end">{{ _predocPanelVisible ? 'expand_more' : 'expand_less' }}</mat-icon>
+    </ion-button>
+  } @else {
+    <button
+      mat-icon-button
+      [title]="(_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate"
+      [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
+      (click)="toggleShowPredoc($event)"
+    >
+      <mat-icon>{{ _predocPanelVisible ? 'expand_more' : 'expand_less' }}</mat-icon>
+    </button>
+  }
 </ng-template>
 
 <ng-template #debugPanel>

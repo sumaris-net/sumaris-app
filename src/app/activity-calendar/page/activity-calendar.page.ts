@@ -16,6 +16,7 @@ import {
   fadeInOutAnimation,
   fromDateISOString,
   HistoryPageReference,
+  Hotkeys,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
@@ -157,7 +158,8 @@ export class ActivityCalendarPage
     protected accountService: AccountService,
     protected vesselService: VesselService,
     protected translateContext: TranslateContextService,
-    protected activityCalendarContext: ActivityCalendarContextService
+    protected activityCalendarContext: ActivityCalendarContextService,
+    protected hotkeys: Hotkeys
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
       pathIdAttribute: 'calendarId',
@@ -256,6 +258,16 @@ export class ActivityCalendarPage
         this.mapCalendar.value = this.calendar.value;
       })
     );
+
+    /// Add desktop shortcuts
+    if (!this.mobile) {
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'control.p', description: 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC', preventDefault: true })
+          .pipe(filter(() => this.loaded))
+          .subscribe(() => this.toggleShowPredoc())
+      );
+    }
 
     this.restorePredocPanelSize();
   }
@@ -589,6 +601,8 @@ export class ActivityCalendarPage
   }
 
   async getValue(): Promise<ActivityCalendar> {
+    if (this.debug) console.debug(this.logPrefix + 'Getting editor value...');
+
     const value = await super.getValue();
 
     const activityMonths = this.calendar.value;
@@ -605,7 +619,7 @@ export class ActivityCalendarPage
 
     // Metiers
     const metierGearUseFeatures = this.tableMetier.value;
-    if (isNotNil(metierGearUseFeatures)) value.gearUseFeatures = [...value.gearUseFeatures, ...metierGearUseFeatures];
+    if (isNotEmptyArray(metierGearUseFeatures)) value.gearUseFeatures = [...value.gearUseFeatures, ...metierGearUseFeatures];
 
     return value;
   }
@@ -715,7 +729,7 @@ export class ActivityCalendarPage
     }
   }
 
-  protected toggleShowPredoc(event: Event) {
+  protected toggleShowPredoc(event?: Event) {
     this._predocPanelVisible = !this._predocPanelVisible;
     this.savePredocPanelSize();
     this.markForCheck();
