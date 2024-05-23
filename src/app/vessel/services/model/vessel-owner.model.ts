@@ -33,7 +33,7 @@ export class VesselOwner extends Entity<VesselOwner> {
     this.id = source.id;
     this.lastName = source.lastName;
     this.firstName = source.firstName;
-    this.registrationCode = source.registration;
+    this.registrationCode = source.registrationCode;
     this.activityStartDate = fromDateISOString(source.activityStartDate);
     this.retirementDate = fromDateISOString(source.retirementDate);
 
