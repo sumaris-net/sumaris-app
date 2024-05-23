@@ -14,6 +14,7 @@ import {
   EntityUtils,
   equals,
   fadeInOutAnimation,
+  firstNotNilPromise,
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
@@ -35,7 +36,7 @@ import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from '@ap
 import { ActivityCalendar } from '../model/activity-calendar.model';
 import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { firstValueFrom, mergeMap, Observable } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, from, mergeMap, Observable } from 'rxjs';
 import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
@@ -65,6 +66,8 @@ import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { IOutputAreaSizes } from 'angular-split/lib/interface';
 import { SplitComponent } from 'angular-split';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -78,6 +81,7 @@ export interface ActivityCalendarPageState extends RootDataEntityEditorState {
   reportTypes: Property[];
   months: Moment[];
   predocProgramLabels: string[];
+  titleMenu: string;
 }
 
 @Component({
@@ -118,7 +122,9 @@ export class ActivityCalendarPage
 
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() protected predocProgramLabels$: Observable<string[]>;
+  @RxStateSelect() protected titleMenu$: Observable<string>;
   @RxStateProperty() protected reportTypes: Property[];
+  @RxStateProperty() protected titleMenu: string;
 
   protected timezone = DateUtils.moment().tz();
   protected allowAddNewVessel: boolean;
@@ -130,6 +136,8 @@ export class ActivityCalendarPage
   protected _predocPanelVisible = false;
   protected mapPanelWidth = 30;
   protected showMapPanel = true; // TODO enable
+  protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
+  protected readonly menuTitleSubject = new BehaviorSubject<string>(undefined);
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
@@ -157,6 +165,7 @@ export class ActivityCalendarPage
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected vesselService: VesselService,
+    protected vesselSnapshotService: VesselSnapshotService,
     protected translateContext: TranslateContextService,
     protected activityCalendarContext: ActivityCalendarContextService,
     protected hotkeys: Hotkeys
@@ -257,6 +266,15 @@ export class ActivityCalendarPage
           return;
         }
         this.mapCalendar.value = this.calendar.value;
+      })
+    );
+
+    this.registerSubscription(
+      from(this.vesselSnapshotService.getAutocompleteFieldOptions()).subscribe((config) => {
+        this.vesselSnapshotAttributes = config.attributes;
+
+        // Reload the title
+        if (this.loaded) this.updateTitle(this.data);
       })
     );
 
@@ -641,24 +659,26 @@ export class ActivityCalendarPage
   protected async computeTitle(data: ActivityCalendar): Promise<string> {
     // new data
     if (this.isNewData) {
+      this.titleMenu = null;
       return firstValueFrom(this.translate.get('ACTIVITY_CALENDAR.NEW.TITLE'));
     }
+    const vessel = this.vesselToString(this.data.vesselSnapshot);
 
-    // Make sure page is ready (e.g. i18nContext has been loaded, in setProgram())
-    await this.ready();
+    this.titleMenu = this.translate.instant(`ACTIVITY_CALENDAR.EDIT.TITLE_MENU`, {
+      vessel,
+      year: this.data.year,
+    });
 
-    // Existing data
-    return firstValueFrom(
-      this.translateContext.get(`ACTIVITY_CALENDAR.EDIT.TITLE`, this.i18nContext.suffix, {
-        vessel: referentialToString(data.vesselSnapshot, ['exteriorMarking', 'name']),
-        year: data.year,
-      })
-    );
+    return this.translate.instant(`ACTIVITY_CALENDAR.EDIT.TITLE`, {
+      vessel,
+      year: data.year,
+    });
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return {
       ...(await super.computePageHistory(title)),
+      title: await firstNotNilPromise(this.titleMenu$),
       icon: 'calendar',
     };
   }
@@ -756,5 +776,9 @@ export class ActivityCalendarPage
     if (!equals(config, previousConfig)) {
       this.settings.savePageSetting(this.settingsId, config, ActivityCalendarPageSettingsEnum.PREDOC_PANEL_CONFIG);
     }
+  }
+
+  protected vesselToString(vessel: VesselSnapshot) {
+    return referentialToString(vessel, this.vesselSnapshotAttributes);
   }
 }
