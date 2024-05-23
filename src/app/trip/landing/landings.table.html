@@ -480,9 +480,7 @@
           class="text-italic"
           [innerHTML]="
             'LANDING.TABLE.OBSERVED_SPECIES_COUNT'
-              | translateContext
-                : i18nColumnSuffix
-                : { observedCount: (observedCount$ | async), minObservedCount: minObservedSpeciesCount, maxObservedCount: maxObservedSpeciesCount }
+              | translateContext: i18nColumnSuffix : { observedCount: (observedCount$ | async), minObservedCount: minObservedSpeciesCount }
           "
         ></ion-text>
       </td>

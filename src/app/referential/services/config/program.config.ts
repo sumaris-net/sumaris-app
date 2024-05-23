@@ -997,12 +997,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '15',
     type: 'integer',
   },
-  LANDING_MAX_OBSERVED_SPECIES_COUNT: <FormFieldDefinition>{
-    key: 'sumaris.landing.maxObservedSpeciesCount',
-    label: 'PROGRAM.OPTIONS.LANDING_MAX_OBSERVED_SPECIES_COUNT',
-    defaultValue: '30',
-    type: 'integer',
-  },
 
   /* -- Sale -- */
 

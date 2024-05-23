@@ -1058,14 +1058,12 @@ export class LandingService
 
       if (opts?.program) {
         const minObservedCount = opts.program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
-        const maxObservedCount = opts.program.getPropertyAsInt(ProgramProperties.LANDING_MAX_OBSERVED_SPECIES_COUNT);
 
         // Error if observed count is not in range
-        if (observedCount < minObservedCount || observedCount > maxObservedCount) {
+        if (observedCount < minObservedCount) {
           errorObservation = {
             observedCount,
             minObservedCount,
-            maxObservedCount,
           };
         }
       }

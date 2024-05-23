@@ -1640,7 +1640,7 @@
       "START_DATE_INVALID": "Doit commencer un {{day}}",
       "INVALID_LANDING": "Débarquement invalide",
       "INVALID_LANDINGS": "Veuillez observer ou saisir la raison de non observation",
-      "INVALID_OBSERVED_COUNT": "Nombre d'espèces observées incorrect. Veuillez observer entre {{minObservedCount}} et {{maxObservedCount}} espèces"
+      "INVALID_OBSERVED_COUNT": "Nombre d'espèces observées incorrect. Veuillez observer au moins {{minObservedCount}} espèces"
     },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "La sortie sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
@@ -1729,7 +1729,7 @@
       "TAXON_NAME": "Espèce scientifique",
       "BTN_OPEN_TRIP": "Ouvrir la marée",
       "BTN_OPEN_SALE": "Ouvrir la vente",
-      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> espèce(s) observée(s) (min. : {{minObservedCount}}, max. : {{maxObservedCount}})",
+      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> espèce(s) observée(s) (min. : {{minObservedCount}})",
       "SAMPLING": {
         "STRATEGY": "Ligne de plan",
         "SAMPLES_COUNT": "Nb. prélèvements",
