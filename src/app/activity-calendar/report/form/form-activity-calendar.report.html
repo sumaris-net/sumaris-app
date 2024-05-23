@@ -58,9 +58,10 @@
   </ion-item>
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
-    <section *sectionDef>
+    <section>
       @for (metierChunk of stats.metierTableChunks; track pageIndex; let pageIndex = $index; let firstPage = $first; let lastPage = $last) {
         <section
+          *sectionDef
           class="landscape"
           [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight + 'px'"
           [style.--month-table-row-height]="pageDimensions.monthTableRowHeight + 'px'"
