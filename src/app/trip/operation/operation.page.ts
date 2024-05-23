@@ -475,11 +475,10 @@ export class OperationPage<S extends OperationState = OperationState>
       );
     }
 
-    const queryParams = this.route.snapshot.queryParams;
     // Manage tab group
-    {
-      this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
-    }
+    const queryParams = this.route.snapshot.queryParams;
+    this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
+
     // Manage toolbar color
     if (isNotNilOrBlank(queryParams['color'])) {
       this.toolbarColor = queryParams['color'];
