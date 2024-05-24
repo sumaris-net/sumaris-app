@@ -5,13 +5,13 @@ import {
   EntitiesTableDataSource,
   LocalSettingsService,
   referentialToString,
+  RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
 } from '@sumaris-net/ngx-components';
 import { VesselFeatures } from '../services/model/vessel.model';
 import { VesselFeaturesService } from '../services/vessel-features.service';
 import { environment } from '@environments/environment';
 import { VesselFeaturesFilter } from '../services/filter/vessel.filter';
-import { RESERVED_END_COLUMNS } from '../../../../ngx-sumaris-components/src/app/core/table/table.model';
 
 @Component({
   selector: 'app-vessel-features-history-table',

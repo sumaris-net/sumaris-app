@@ -28,6 +28,7 @@ import {
   MatAutocompleteFieldConfig,
   ReferentialUtils,
   removeDuplicatesFromArray,
+  RESERVED_START_COLUMNS,
   sleep,
   splitById,
   StatusIds,
@@ -65,7 +66,6 @@ import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model'
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
-import { RESERVED_START_COLUMNS } from '../../../../ngx-sumaris-components/src/app/core/table/table.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
 const DEFAULT_METIER_COUNT = 2;
