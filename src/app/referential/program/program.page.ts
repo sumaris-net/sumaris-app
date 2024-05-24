@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { Program } from '../services/model/program.model';
@@ -29,6 +29,7 @@ import {
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
+  removeDuplicatesFromArray,
   SharedValidators,
   StatusIds,
   SuggestFn,
@@ -43,6 +44,8 @@ import { SamplingStrategiesTable } from '../strategy/sampling/sampling-strategie
 import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
 import { LocationLevels } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
+import { ReferentialImportPolicy } from '@app/referential/table/referential-file.service';
+import { PropertiesFileService } from '@app/referential/properties/properties-file.service';
 
 export const PROGRAM_TABS = {
   LOCATIONS: 1,
@@ -68,6 +71,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   readonly mobile: boolean;
 
   protected readonly strategiesTable$ = this._state.select('strategiesTables');
+  protected readonly importPolicies: ReferentialImportPolicy[] = ['insert-update', 'insert-only', 'update-only'];
 
   propertyDefinitions: FormFieldDefinition[];
   fieldDefinitions: FormFieldDefinitionMap = {};
@@ -75,6 +79,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   i18nFieldPrefix = 'PROGRAM.';
   strategyEditor: StrategyEditor = 'legacy';
   i18nTabStrategiesSuffix = '';
+
+  protected propertiesFileService: PropertiesFileService;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
@@ -90,6 +96,14 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   set strategiesTable(value: AppTable<Strategy>) {
     this._state.set('strategiesTables', () => value);
+  }
+
+  @Input() set propertiesImportPolicy(value: ReferentialImportPolicy) {
+    if (this.propertiesFileService && this.enabled) this.propertiesFileService.importPolicy = value;
+  }
+
+  get propertiesImportPolicy(): ReferentialImportPolicy {
+    return this.propertiesFileService?.importPolicy || 'insert-update';
   }
 
   constructor(
@@ -108,6 +122,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       tabCount: 5,
     });
     this.form = validatorService.getFormGroup();
+    this.propertiesFileService = new PropertiesFileService(this.injector);
 
     // default values
     this.mobile = this.settings.mobile;
@@ -332,9 +347,23 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // Re add label, because missing when field disable
     data.label = this.form.get('label').value;
 
-    // Transform properties
-    data.properties = this.propertiesForm.value;
-    data.properties
+    // Get properties
+    data.properties = this.getPropertiesValue();
+
+    // Users
+    if (this.personsTable.dirty) {
+      await this.personsTable.save();
+    }
+    data.persons = this.personsTable.value;
+
+    return data;
+  }
+
+  protected getPropertiesValue() {
+    const properties = this.propertiesForm.value;
+
+    // Serialize properties
+    properties
       .filter((property) => this.propertyDefinitions.find((def) => def.key === property.key && (def.type === 'entity' || def.type === 'entities')))
       .forEach((property) => {
         if (Array.isArray(property.value)) {
@@ -346,7 +375,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
           property.value = (property.value as any)?.id;
         }
       });
-    data.properties
+    properties
       .filter((property) => this.propertyDefinitions.find((def) => def.key === property.key && def.type === 'enums'))
       .forEach((property) => {
         if (Array.isArray(property.value)) {
@@ -358,14 +387,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
           property.value = (property.value as any)?.key;
         }
       });
-
-    // Users
-    if (this.personsTable.dirty) {
-      await this.personsTable.save();
-    }
-    data.persons = this.personsTable.value;
-
-    return data;
+    return properties;
   }
 
   protected computeTitle(data: Program): Promise<string> {
@@ -486,6 +508,32 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     const { data } = await modal.onDidDismiss();
 
     return data;
+  }
+
+  exportPropertiesToCsv() {
+    if (this.isNewData) return; // Skip if new
+    const properties = this.getPropertiesValue();
+    this.propertiesFileService.exportToCsv(properties, { context: { label: this.data.label } });
+  }
+
+  async uploadPropertiesFromCsv(event?: Event) {
+    const properties = await this.propertiesFileService.uploadPropertiesFromCsv(event);
+
+    switch (this.propertiesImportPolicy) {
+      case 'insert-update':
+        // Use imported properties first, and remove old
+        this.propertiesForm.value = removeDuplicatesFromArray([...properties, ...this.propertiesForm.value], 'key');
+        break;
+      case 'insert-only':
+        // Prefer existing properties, then insert new
+        this.propertiesForm.value = removeDuplicatesFromArray([...this.propertiesForm.value, ...properties], 'key');
+        break;
+      case 'update-only':
+        this.propertiesForm.value = (this.propertiesForm.value || []).map((target) => {
+          return properties.find((p) => p.key === target.key) || target;
+        });
+        break;
+    }
   }
 
   protected markForCheck() {

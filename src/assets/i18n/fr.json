@@ -2313,7 +2313,9 @@
       "TITLE": "Nouveau programme"
     },
     "EDIT": {
-      "TITLE": "Programme {{label}} - {{name}}"
+      "TITLE": "Programme {{label}} - {{name}}",
+      "BTN_DOWNLOAD_PROPERTIES_AS_CSV": "Télécharger les options (CSV)",
+      "BTN_IMPORT_PROPERTIES_FROM_CSV": "Importer des options (CSV)..."
     },
     "LIST": {
       "TITLE": "Programmes de collecte"
@@ -3242,6 +3244,15 @@
       "BROWSE": "Parcourir",
       "IMPORTING": "Importation en cours",
       "ERROR": "Erreur durant l'envoi de fichier"
+    },
+    "PROPERTIES": {
+      "CSV_FILENAME": "{{label}}-options.csv",
+      "LABEL_HEADER": "Code",
+      "VALUE_HEADER": "Valeur",
+      "DESCRIPTION_HEADER": "Description",
+      "ERROR": {
+        "IMPORT_ERROR": "Échec de l'importation:<br/>{{error}}"
+      }
     }
   },
   "IMAGE": {
