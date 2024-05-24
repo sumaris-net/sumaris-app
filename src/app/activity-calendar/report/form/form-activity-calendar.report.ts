@@ -13,13 +13,19 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import {
+  CORE_CONFIG_OPTIONS,
+  ConfigService,
+  DateUtils,
   EntityAsObjectOptions,
   TranslateContextService,
+  firstNotNilPromise,
   isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   referentialToString,
+  removeDuplicatesFromArray,
   sleep,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../../activity-calendar.service';
 import { ActivityMonth } from '../../calendar/activity-month.model';
@@ -32,6 +38,7 @@ import { Metier } from '@app/referential/metier/metier.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import moment from 'moment';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { ActivityCalendarUtils } from '@app/activity-calendar/activity-calendar.utils';
 
 export class FormActivityCalendarReportStats extends BaseReportStats {
   subtitle?: string;
@@ -43,11 +50,12 @@ export class FormActivityCalendarReportStats extends BaseReportStats {
   pmfm?: {
     activityMonth?: IPmfm[];
     activityCalendar?: IPmfm[];
-    physicalGear?: IPmfm[];
+    guf?: IPmfm[];
   };
   effortsTableRows?: { title: string; values: string[] }[];
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIds: number[] }[][];
+  gufUsedGufForTheYear?: GearUseFeatures[];
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -60,7 +68,7 @@ export class FormActivityCalendarReportStats extends BaseReportStats {
     this.pmfm = {
       activityMonth: source.pmfm.activityMonth.map(DenormalizedPmfmStrategy.fromObject),
       activityCalendar: source.pmfm.activityCalendar.map(DenormalizedPmfmStrategy.fromObject),
-      physicalGear: source.pmfm.physicalGear.map(DenormalizedPmfmStrategy.fromObject),
+      guf: source.pmfm.physicalGear.map(DenormalizedPmfmStrategy.fromObject),
     };
     this.effortsTableRows = source.effortsTableRows;
     this.activityMonthColspan = source.activityMonthColspan;
@@ -79,7 +87,7 @@ export class FormActivityCalendarReportStats extends BaseReportStats {
       pmfm: {
         activityMonth: this.pmfm.activityMonth.map((item) => item.asObject(opts)),
         activityCalendar: this.pmfm.activityCalendar.map((item) => item.asObject(opts)),
-        physicalGear: this.pmfm.physicalGear.map((item) => item.asObject(opts)),
+        physicalGear: this.pmfm.guf.map((item) => item.asObject(opts)),
       },
       effortsTableRows: this.effortsTableRows,
       activityMonthColspan: this.activityMonthColspan,
@@ -109,6 +117,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
   protected readonly programRefService: ProgramRefService;
   protected readonly vesselSnapshotService: VesselSnapshotService;
   protected readonly translateContextService: TranslateContextService;
+  protected readonly configService: ConfigService;
 
   protected readonly pageDimensions = Object.freeze({
     height: 297 * 4,
@@ -137,6 +146,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     this.programRefService = this.injector.get(ProgramRefService);
     this.vesselSnapshotService = this.injector.get(VesselSnapshotService);
     this.translateContextService = this.injector.get(TranslateContextService);
+    this.configService = this.injector.get(ConfigService);
 
     this.subReportType = this.route.snapshot.routeConfig.path;
     this.isBlankForm = this.subReportType === 'blank';
@@ -190,6 +200,9 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
   ): Promise<FormActivityCalendarReportStats> {
     const stats = new FormActivityCalendarReportStats();
 
+    const timezone = (await firstNotNilPromise(this.configService.config)).getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE) || DateUtils.moment().tz();
+    const gearIds = removeDuplicatesFromArray(data.gearUseFeatures.map((guf) => toNumber(guf.gear?.id, guf.metier?.gear?.id)));
+
     // Get program and options
     stats.program = await this.programRefService.loadByLabel(data.program.label);
     // TODO Need to get strategy resolution ?
@@ -232,11 +245,17 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
         acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
         strategyId: stats.strategy.id,
       }),
-      physicalGear: await this.programRefService.loadProgramPmfms(data.program.label, {
-        acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
-        strategyId: stats.strategy.id,
-      }),
+      guf: (
+        await this.programRefService.loadProgramPmfms(data.program.label, {
+          acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
+          strategyId: stats.strategy.id,
+        })
+      ).filter(
+        (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gearIds.includes(gearId))
+      ),
     };
+
+    stats.gufUsedGufForTheYear = ActivityCalendarUtils.getMetierValue(stats.activityMonth, data.gearUseFeatures, timezone, data.year);
 
     stats.effortsTableRows = [
       {
@@ -265,6 +284,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
 
     this.computeMetierTableChunk(data, stats);
 
+    console.debug('MYTEST computeStats', data, stats);
     return stats;
   }
 
@@ -313,7 +333,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
       this.pageDimensions.marginTop / 2 +
       this.pageDimensions.sectionTitleHeight +
       this.pageDimensions.gufTableRowTitleHeight +
-      stats.pmfm.physicalGear.length * this.pageDimensions.gufTableRowHeight;
+      stats.pmfm.guf.length * this.pageDimensions.gufTableRowHeight;
     const heighOfMetierTableHead =
       this.pageDimensions.marginTop + this.pageDimensions.sectionTitleHeight + this.pageDimensions.monthTableRowTitleHeight;
 

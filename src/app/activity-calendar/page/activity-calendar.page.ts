@@ -13,7 +13,6 @@ import {
   DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
-  Environment,
   equals,
   fadeInOutAnimation,
   firstNotNilPromise,
@@ -197,7 +196,7 @@ export class ActivityCalendarPage
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
       pathIdAttribute: 'calendarId',
       tabCount: 5, // 4 is map is hidden
-      i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.',
+      i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.://angular.io/guide/styleguide#style-05-16,
       enableListenChanges: false, // TODO enable
       acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
       settingsId: ActivityCalendarPageSettingsEnum.PAGE_ID,
