@@ -42,6 +42,13 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     if (opts?.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
       const pmfms = opts.strategy?.denormalizedPmfms || opts.program?.strategies?.[0]?.denormalizedPmfms || [];
+
+      // Override SALE_TYPE type to 'qualitative_value'
+      const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
+      if (saleTypePmfm) {
+        saleTypePmfm.type = 'qualitative_value';
+      }
+
       pmfms
         .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.LANDING)
         .forEach((p) => {

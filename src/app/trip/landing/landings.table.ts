@@ -357,8 +357,18 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     }
   }
 
-  mapPmfms(pmfms: IPmfm[]): IPmfm[] {
+  async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
+
+    const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
+
+    if (saleTypePmfm) {
+      console.debug(`[control] Setting pmfm ${saleTypePmfm.label} qualitative values`);
+      const saleTypes = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });
+      saleTypePmfm.type = 'qualitative_value';
+      saleTypePmfm.qualitativeValues = saleTypes.data;
+    }
+
     // Keep selectivity device, if any
     return pmfms
       .filter((p) => p.required || includedPmfmIds?.includes(p.id))
@@ -555,7 +565,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     // Update observed count
     this.observedCount = (rows || [])
       .filter((row) => isNotNil(row.currentData.id)) // Filter dividers
-      .filter((row) => !PmfmValueUtils.equals(row.currentData.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN], QualitativeValueIds.PETS)) // Filter PETS
+      .filter((row) => !PmfmValueUtils.equals(row.currentData.measurementValues[this.dividerPmfmId], QualitativeValueIds.PETS)) // Filter PETS
       .map((row) => toBoolean(row.currentData.measurementValues[PmfmIds.IS_OBSERVED]))
       .filter((val) => !!val).length;
   }
