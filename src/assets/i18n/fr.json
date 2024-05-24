@@ -3426,20 +3426,22 @@
     "REPORT": {
       "TITLE": "Calendrier d'activité {{ year }}",
       "BLANK_TITLE": "Raport d'activité vierge",
-      "NAME": "Nom",
-      "VESSEL_OWNER": "Armateur",
-      "REGISTRATION_LOCATION": "Quartier maritime",
-      "IS_ACTIVE": "Actif ?",
+      "BASE_PORT_LOCATION": "Port",
+      "PMFM": {
+        "DURATION_AT_SEA_DAYS": "Nb jours mer",
+        "FISHING_DURATION_DAYS": "Nb jours pêche",
+        "NB_FISHERMEN": "Nb pers. à bord"
+      },
       "EFFORT_SECTION": {
         "TITLE": "Effort de pêche"
       },
       "METIERS_SECTION": {
-        "TITLE": "Métiers",
+        "TITLE": "Métier",
         "ROW_METIER": "Métiers",
         "ROW_FISHING_AREA": "Zone/Gradient"
       },
       "VESSEL_SECTION": {
-        "TITLE": "Navire :",
+        "TITLE": "Navire",
         "REGISTRATION_CODE": "Immatriculation :",
         "REGISTRATION_LOCATION": "Lieux d'immat. :",
         "VESSEL_NAME": "Nom :"

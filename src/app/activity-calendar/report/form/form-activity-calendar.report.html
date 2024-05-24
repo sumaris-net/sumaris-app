@@ -181,11 +181,37 @@
                 </tr>
               </thead>
               <tbody>
-                @for (row of stats.effortsTableRows; track lineIndex; let lineIndex = $index) {
+                <!-- isActive row -->
+                <tr>
+                  <th>
+                    {{ 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate }}
+                  </th>
+                  @for (month of stats.activityMonth; track month.id) {
+                    <td>
+                      {{ isActiveMap[month.isActive] | mapGet: 'label' | translate }}
+                    </td>
+                  }
+                </tr>
+                <!-- basePortLocation row -->
+                <tr>
+                  <th>
+                    {{ 'ACTIVITY_CALENDAR.REPORT.BASE_PORT_LOCATION' | translate }}
+                  </th>
+                  @for (month of stats.activityMonth; track month.id) {
+                    <td class="fit-one-line">
+                      <div>
+                        <div [title]="month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] }">
+                          {{ month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] } }}
+                        </div>
+                      </div>
+                    </td>
+                  }
+                </tr>
+                @for (monthPmfm of stats.pmfm.activityMonth; track monthPmfm.id) {
                   <tr>
-                    <th [innerHTML]="row.title"></th>
-                    @for (value of row.values; track valueIndex; let valueIndex = $index) {
-                      <td [innerHTML]="value"></td>
+                    <th>{{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: false } }}</th>
+                    @for (month of stats.activityMonth; track month.id) {
+                      <td>{{ month | mapGet: 'measurementValues' | mapGet: monthPmfm.id | pmfmValue: { pmfm: monthPmfm } }}</td>
                     }
                   </tr>
                 }
@@ -224,11 +250,8 @@
                           [class.fit-one-line]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] > 0"
                         >
                           <div [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] === 0">
-                            <div>
-                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['label'] }}
-                            </div>
-                            <div [title]="month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['name']">
-                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['name'] }}
+                            <div [title]="month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['label', 'name']">
+                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['label', 'name'] }}
                             </div>
                           </div>
                         </td>
@@ -286,7 +309,7 @@
                         <tbody>
                           @for (pmfm of stats.pmfm.guf; track pmfm.id) {
                             <tr [style.--col-width]="pageDimensions.gufTableColTitleWidth + 'px'">
-                              <th>{{ pmfm | pmfmName }}</th>
+                              <th>{{ pmfm | pmfmName: { withDetails: false } }}</th>
                               @for (guf of stats.gufUsedGufForTheYear; track guf.id) {
                                 <td
                                   [style.--col-width]="

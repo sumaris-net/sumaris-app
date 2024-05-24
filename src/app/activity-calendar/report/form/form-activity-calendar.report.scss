@@ -13,25 +13,17 @@
     }
     table {
       table-layout: fixed;
+      border: 1px solid var(--text-color) !important;
       &.month-table {
         --row-title-height: var(--month-table-title-row-height);
         --row-height: var(--month-table-row-height);
         min-width: calc(100% - (var(--page-left-right-margin) * 2));
         max-width: calc(100% - (var(--page-left-right-margin) * 2));
-        border-top: solid 3px var(--section-title-color);
+        border-top: solid 3px var(--section-title-color) !important;
         --col-width: calc(100% / 13);
+        tbody,
         thead {
-          th {
-            font-size: var(--font-compact);
-            text-align: center;
-          }
-        }
-        tbody {
-          tr {
-            &.metier-row {
-              background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
-            }
-          }
+          th,
           td {
             &.fit-one-line {
               position: relative;
@@ -45,12 +37,25 @@
                 top: 0;
                 bottom: 0;
                 & > div {
-                  margin-top: 0.2em;
+                  margin-top: 0.3em;
                   padding: 0 5px;
                   text-overflow: ellipsis;
                   overflow: hidden;
                 }
               }
+            }
+          }
+        }
+        thead {
+          th {
+            font-size: var(--font-compact);
+            text-align: center;
+          }
+        }
+        tbody {
+          tr {
+            &.metier-row {
+              background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
             }
           }
         }

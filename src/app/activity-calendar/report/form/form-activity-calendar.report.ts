@@ -25,6 +25,7 @@ import {
   referentialToString,
   removeDuplicatesFromArray,
   sleep,
+  splitById,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../../activity-calendar.service';
@@ -52,7 +53,6 @@ export class FormActivityCalendarReportStats extends BaseReportStats {
     activityCalendar?: IPmfm[];
     guf?: IPmfm[];
   };
-  effortsTableRows?: { title: string; values: string[] }[];
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIds: number[] }[][];
   gufUsedGufForTheYear?: GearUseFeatures[];
@@ -70,7 +70,6 @@ export class FormActivityCalendarReportStats extends BaseReportStats {
       activityCalendar: source.pmfm.activityCalendar.map(DenormalizedPmfmStrategy.fromObject),
       guf: source.pmfm.physicalGear.map(DenormalizedPmfmStrategy.fromObject),
     };
-    this.effortsTableRows = source.effortsTableRows;
     this.activityMonthColspan = source.activityMonthColspan;
     this.metierTableChunks = source.metierTableChunks;
   }
@@ -89,7 +88,6 @@ export class FormActivityCalendarReportStats extends BaseReportStats {
         activityCalendar: this.pmfm.activityCalendar.map((item) => item.asObject(opts)),
         physicalGear: this.pmfm.guf.map((item) => item.asObject(opts)),
       },
-      effortsTableRows: this.effortsTableRows,
       activityMonthColspan: this.activityMonthColspan,
       metierTableChunks: this.metierTableChunks,
     };
@@ -119,6 +117,10 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
   protected readonly translateContextService: TranslateContextService;
   protected readonly configService: ConfigService;
 
+  protected readonly isActiveList = IsActiveList;
+  protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
+  protected readonly nbOfNonPmfmRowInEffortTable = 2;
+
   protected readonly pageDimensions = Object.freeze({
     height: 297 * 4,
     width: 210 * 4,
@@ -128,7 +130,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     footerHeight: 35,
     sectionTitleHeight: 25,
     monthTableRowTitleHeight: 20,
-    monthTableRowHeight: 30,
+    monthTableRowHeight: 20,
     gufTableRowTitleHeight: 20,
     gufTableColTitleWidth: 200,
     gufTableRowHeight: 20,
@@ -140,7 +142,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
   }
 
   constructor(injector: Injector) {
-    super(injector, ActivityCalendar, FormActivityCalendarReportStats);
+    super(injector, ActivityCalendar, FormActivityCalendarReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
     this.ActivityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
@@ -257,34 +259,8 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
 
     stats.gufUsedGufForTheYear = ActivityCalendarUtils.getMetierValue(stats.activityMonth, data.gearUseFeatures, timezone, data.year);
 
-    stats.effortsTableRows = [
-      {
-        title: this.translate.instant('ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER'),
-        values: new Array(12).fill('TODO'),
-      },
-      {
-        title: this.translate.instant('ACTIVITY_CALENDAR.REPORT.REGISTRATION_LOCATION'),
-        values: stats.activityMonth.map((_) => referentialToString(data.vesselSnapshot.registrationLocation, ['label', 'name'])),
-      },
-      {
-        title: this.translate.instant('ACTIVITY_CALENDAR.REPORT.IS_ACTIVE'),
-        values: stats.activityMonth.map((month) => {
-          const isActive = IsActiveList[month.isActive]?.label;
-          return isNotNil(isActive) ? this.translate.instant(isActive) : '';
-        }),
-      },
-    ].concat(
-      stats.pmfm.activityMonth.map((pmfm) => {
-        return {
-          title: PmfmUtils.getPmfmName(pmfm),
-          values: stats.activityMonth.map((month) => PmfmValueUtils.valueToString(month.measurementValues[pmfm.id], { pmfm, html: true })),
-        };
-      })
-    );
-
     this.computeMetierTableChunk(data, stats);
 
-    console.debug('MYTEST computeStats', data, stats);
     return stats;
   }
 
@@ -327,7 +303,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     const heightOfEffortSection =
       this.pageDimensions.sectionTitleHeight +
       this.pageDimensions.monthTableRowHeight +
-      stats.effortsTableRows.length * this.pageDimensions.monthTableRowHeight +
+      (stats.pmfm.activityMonth.length + this.nbOfNonPmfmRowInEffortTable) * this.pageDimensions.monthTableRowHeight +
       this.pageDimensions.investigationQualificationSectionHeight;
     const heightOfGearSection =
       this.pageDimensions.marginTop / 2 +

@@ -281,7 +281,7 @@ export abstract class AppBaseReport<
 
       this.markAsLoaded();
 
-      // Update the view: initialise reveal
+      // Update the view: initialize reveal
       await this.updateView();
     } catch (err) {
       console.error(err);
