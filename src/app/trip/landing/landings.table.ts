@@ -238,7 +238,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     });
 
     this.readOnly = false; // Allow deletion
-    this.inlineEdition = false; // TODO JVF: Passer à true pour que onPrepareRowForm fonctionne
+    this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
@@ -375,19 +375,12 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   onPrepareRowForm(form: UntypedFormGroup) {
     // Disable observation controls if PETS
     const measurementValuesForm = form.get('measurementValues');
-    if (
-      this.isSaleDetailEditor &&
-      measurementValuesForm &&
-      PmfmValueUtils.equals(measurementValuesForm.get(this.dividerPmfmId.toString()).value, QualitativeValueIds.PETS)
-    ) {
+    const dividerValue = measurementValuesForm.get(this.dividerPmfmId.toString()).value;
+    if (this.isSaleDetailEditor && measurementValuesForm && dividerValue && PmfmValueUtils.equals(dividerValue, QualitativeValueIds.PETS)) {
       const isObservedControl = measurementValuesForm.get(PmfmIds.IS_OBSERVED.toString());
       const nonObservationReasonControl = measurementValuesForm.get(PmfmIds.NON_OBSERVATION_REASON.toString());
       isObservedControl.disable();
-      isObservedControl.setValue(null);
-      isObservedControl.setValidators(null);
       nonObservationReasonControl.disable();
-      nonObservationReasonControl.setValue(null);
-      nonObservationReasonControl.setValidators(null);
     }
   }
 
