@@ -169,6 +169,7 @@ export class ActivityCalendarPage
   @ViewChild('featuresHistoryTable', { static: true }) featuresHistoryTable: VesselFeaturesHistoryComponent;
   @ViewChild('registrationHistoryTable', { static: true }) registrationHistoryTable: VesselRegistrationHistoryComponent;
   @ViewChild('ownerHistoryTable', { static: true }) ownerHistoryTable: VesselOwnerHistoryComponent;
+  @ViewChild('galleryHistory', { static: true }) galleryHistory: AppImageAttachmentGallery;
   @ViewChild('gallery', { static: true }) gallery: AppImageAttachmentGallery;
 
   constructor(
@@ -792,10 +793,11 @@ export class ActivityCalendarPage
   protected loadPictures(data: ActivityCalendar) {
     const firstLoad = !this.gallery.loaded;
 
+    if (firstLoad) this.gallery.markAsReady();
+
     // TODO fetch images
     this.gallery.value = [];
 
-    // TODO load images
     // then add gallery into child form
     if (firstLoad) this.addForms([this.gallery]);
   }

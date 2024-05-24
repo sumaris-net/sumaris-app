@@ -219,6 +219,19 @@
                 ></app-vessel-owner-history-table>
               </ion-col>
             </ion-row>
+            <ion-row>
+              <ion-col>
+                <h3>Photos</h3>
+                <app-image-attachment-gallery
+                  #galleryHistory
+                  [disabled]="disabled"
+                  [readOnly]="true"
+                  [showToolbar]="false"
+                  [mode]="'mosaic'"
+                  [debug]="debug"
+                ></app-image-attachment-gallery>
+              </ion-col>
+            </ion-row>
           </ion-grid>
         </mat-tab>
 
