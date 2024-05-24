@@ -46,7 +46,7 @@ export class ReferentialFileService<
   T extends IReferentialRef<T> = Referential,
   F extends BaseReferentialFilter<F, T> = BaseReferentialFilter<any, any>,
 > {
-  private readonly logPrefix = '[referential-csv-helper] ';
+  private readonly logPrefix = '[referential-file-service] ';
   private readonly translate: TranslateService;
   private readonly toastController: ToastController;
   private readonly popoverController: PopoverController;

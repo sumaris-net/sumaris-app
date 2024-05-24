@@ -48,6 +48,7 @@ import { ReferentialImportPolicy } from '@app/referential/table/referential-file
 import { PropertiesFileService } from '@app/referential/properties/properties-file.service';
 
 export const PROGRAM_TABS = {
+  GENERAL: 0,
   LOCATIONS: 1,
   STRATEGIES: 2,
   OPTIONS: 3,
@@ -510,29 +511,42 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     return data;
   }
 
-  exportPropertiesToCsv() {
+  protected exportPropertiesToCsv() {
     if (this.isNewData) return; // Skip if new
     const properties = this.getPropertiesValue();
     this.propertiesFileService.exportToCsv(properties, { context: { label: this.data.label } });
   }
 
-  async uploadPropertiesFromCsv(event?: Event) {
-    const properties = await this.propertiesFileService.uploadPropertiesFromCsv(event);
+  protected async uploadPropertiesFromCsv(event?: Event) {
+    if (!this.enabled || this.loading) return; // skip
 
-    switch (this.propertiesImportPolicy) {
-      case 'insert-update':
-        // Use imported properties first, and remove old
-        this.propertiesForm.value = removeDuplicatesFromArray([...properties, ...this.propertiesForm.value], 'key');
-        break;
-      case 'insert-only':
-        // Prefer existing properties, then insert new
-        this.propertiesForm.value = removeDuplicatesFromArray([...this.propertiesForm.value, ...properties], 'key');
-        break;
-      case 'update-only':
-        this.propertiesForm.value = (this.propertiesForm.value || []).map((target) => {
-          return properties.find((p) => p.key === target.key) || target;
-        });
-        break;
+    this.markAsLoading();
+
+    try {
+      const properties = await this.propertiesFileService.uploadPropertiesFromCsv(event);
+
+      switch (this.propertiesImportPolicy) {
+        case 'insert-update':
+          // Use imported properties first, and remove old
+          this.propertiesForm.value = removeDuplicatesFromArray([...properties, ...this.propertiesForm.value], 'key');
+          break;
+        case 'insert-only':
+          // Prefer existing properties, then insert new
+          this.propertiesForm.value = removeDuplicatesFromArray([...this.propertiesForm.value, ...properties], 'key');
+          break;
+        case 'update-only':
+          this.propertiesForm.value = (this.propertiesForm.value || []).map((target) => {
+            return properties.find((p) => p.key === target.key) || target;
+          });
+          break;
+      }
+
+      this.markAsDirty();
+    } catch (err) {
+      this.setError(err);
+      this.selectedTabIndex = PROGRAM_TABS.GENERAL;
+    } finally {
+      this.markAsLoaded();
     }
   }
 
