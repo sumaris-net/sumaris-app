@@ -10,23 +10,6 @@ const routes: Routes = [
       preload: false,
     },
   },
-  {
-    path: 'share/report',
-    children: [
-      {
-        path: 'observation/:uuid',
-        loadChildren: () =>
-          import('@app/trip/observedlocation/report/observed-location-report-routing.module').then((m) => m.AppObservedLocationReportRoutingModule),
-        data: {},
-      },
-    ],
-  },
-  {
-    path: 'report-observation',
-    loadChildren: () =>
-      import('@app/trip/observedlocation/report/observed-location-report-routing.module').then((m) => m.AppObservedLocationReportRoutingModule),
-    outlet: 'shareContent',
-  },
 ];
 
 @NgModule({

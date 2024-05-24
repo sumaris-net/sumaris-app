@@ -106,6 +106,38 @@ export class DenormalizedBatch<
     //   : undefined
     // ;
   }
+
+  asObject(opts?: O) {
+    return {
+      ...super.asObject(opts),
+      label: this.label,
+      weight: this.weight,
+      elevateWeight: this.elevateWeight,
+      indirectWeight: this.indirectWeight,
+      indirectRtpWeight: this.indirectRtpWeight,
+      elevateRtpWeight: this.elevateWeight,
+      elevateContextWeight: this.elevateContextWeight,
+      indirectContextWeight: this.indirectContextWeight,
+      individualCount: this.individualCount,
+      indirectIndividualCount: this.indirectIndividualCount,
+      elevateIndividualCount: this.elevateIndividualCount,
+      exhaustiveInventory: this.exhaustiveInventory,
+      treeLevel: this.treeLevel,
+      treeIndent: this.treeIndent,
+      sortingValuesText: this.sortingValuesText,
+      isDiscard: this.isDiscard,
+      isLanding: this.isLanding,
+      measurementValues: this.measurementValues,
+      samplingRatioText: this.samplingRatioText,
+      samplingRatio: this.samplingRatio,
+      parentId: this.parentId,
+      taxonGroup: this.taxonGroup?.asObject(opts),
+      taxonName: this.taxonName?.asObject(opts),
+      operationId: this.operationId,
+      children: null,
+      parent: null,
+    };
+  }
 }
 
 @EntityClass({ typename: 'DenormalizedBatchSortingValueVO', fromObjectReuseStrategy: 'clone' })

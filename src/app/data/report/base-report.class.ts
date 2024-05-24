@@ -323,7 +323,7 @@ export abstract class AppBaseReport<
     if (isNotNil(this.context.clipboard)) {
       clipboard = this.context.clipboard;
     } else if (isNotNilOrBlank(this.uuid)) {
-      if (this.debug) console.debug(`[${this.logPrefix}] fill clipboard by downloading shared ressource`);
+      if (this.debug) console.debug(`[${this.logPrefix}] fill clipboard by downloading shared resource`);
       const http = this.injector.get(HttpClient);
       const peerUrl = this.settings.settings.peerUrl;
       const sharedElement = await SharedResourceUtils.downloadByUuid(http, peerUrl, this.uuid);

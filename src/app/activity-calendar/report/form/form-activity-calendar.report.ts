@@ -12,7 +12,15 @@ import { StrategyRefService } from '@app/referential/services/strategy-ref.servi
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
-import { isEmptyArray, isNotEmptyArray, isNotNil, referentialToString, sleep, TranslateContextService } from '@sumaris-net/ngx-components';
+import {
+  EntityAsObjectOptions,
+  TranslateContextService,
+  isEmptyArray,
+  isNotEmptyArray,
+  isNotNil,
+  referentialToString,
+  sleep,
+} from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../../activity-calendar.service';
 import { ActivityMonth } from '../../calendar/activity-month.model';
 import { ActivityMonthUtils } from '../../calendar/activity-month.utils';
@@ -23,6 +31,7 @@ import { GearUseFeatures } from '../../model/gear-use-features.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import moment from 'moment';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 export class FormActivityCalendarReportStats extends BaseReportStats {
   subtitle?: string;
@@ -39,6 +48,44 @@ export class FormActivityCalendarReportStats extends BaseReportStats {
   effortsTableRows?: { title: string; values: string[] }[];
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIds: number[] }[][];
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.subtitle = source.subtitle;
+    this.footerText = source.footerText;
+    this.logoHeadLeftUrl = source.logoHeadLeftUrl;
+    this.logoHeadRightUrl = source.logoHeadRightUrl;
+    this.strategy = Strategy.fromObject(source.strategy);
+    this.activityMonth = source.activityMonth.map(ActivityMonth.fromObject);
+    this.pmfm = {
+      activityMonth: source.pmfm.activityMonth.map(DenormalizedPmfmStrategy.fromObject),
+      activityCalendar: source.pmfm.activityCalendar.map(DenormalizedPmfmStrategy.fromObject),
+      physicalGear: source.pmfm.physicalGear.map(DenormalizedPmfmStrategy.fromObject),
+    };
+    this.effortsTableRows = source.effortsTableRows;
+    this.activityMonthColspan = source.activityMonthColspan;
+    this.metierTableChunks = source.metierTableChunks;
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    return {
+      ...super.asObject(opts),
+      subtitle: this.subtitle,
+      footerText: this.footerText,
+      logoHeadRightUrl: this.logoHeadRightUrl,
+      logoHeadLeftUrl: this.logoHeadLeftUrl,
+      strategy: this.strategy.asObject(opts),
+      activityMonth: this.activityMonth.map((item) => item.asObject(opts)),
+      pmfm: {
+        activityMonth: this.pmfm.activityMonth.map((item) => item.asObject(opts)),
+        activityCalendar: this.pmfm.activityCalendar.map((item) => item.asObject(opts)),
+        physicalGear: this.pmfm.physicalGear.map((item) => item.asObject(opts)),
+      },
+      effortsTableRows: this.effortsTableRows,
+      activityMonthColspan: this.activityMonthColspan,
+      metierTableChunks: this.metierTableChunks,
+    };
+  }
 }
 
 @Component({
@@ -237,8 +284,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
   }
 
   protected computeShareBasePath(): string {
-    // TODO
-    return 'activity-calendar/report';
+    return 'activity-calendar/report/form';
   }
 
   protected computeMetierTableChunk(data: ActivityCalendar, stats: FormActivityCalendarReportStats) {
