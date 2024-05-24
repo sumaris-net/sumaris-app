@@ -349,7 +349,8 @@
     (onSave)="save($event)"
     [disabled]="!dirty || loading"
   >
-    @if (!_predocPanelVisible) {
+    <!-- Show predoc button -->
+    @if (!_predocPanelVisible && selectedTabIndex === 2) {
       <ng-container *ngTemplateOutlet="togglePredocButton; context: { label: 'ACTIVITY_CALENDAR.EDIT.BTN_SHOW_PREDOC' }"></ng-container>
     }
 
