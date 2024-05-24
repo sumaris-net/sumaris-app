@@ -142,10 +142,8 @@ export class ActivityCalendarPage
   protected _predocPanelVisible = false;
   protected mapPanelWidth = 30;
   protected showMapPanel = true; // TODO enable
-  protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
   protected selectedSubTabIndex = 0;
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
-  protected selectedSubTabIndex = 0;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
