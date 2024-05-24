@@ -1051,7 +1051,9 @@ export class LandingService
         opts.progression.increment(progressionStep);
 
         // Count observed species
-        observedCount += +toBoolean(entity.measurementValues[PmfmIds.IS_OBSERVED]);
+        if (!PmfmValueUtils.equals(entity.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN], QualitativeValueIds.PETS)) {
+          observedCount += +toBoolean(entity.measurementValues[PmfmIds.IS_OBSERVED]);
+        }
       }
 
       let errorObservation = null;

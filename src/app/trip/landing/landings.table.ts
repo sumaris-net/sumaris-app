@@ -562,6 +562,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     // Update observed count
     this.observedCount = (rows || [])
       .filter((row) => isNotNil(row.currentData.id)) // Filter dividers
+      .filter((row) => !PmfmValueUtils.equals(row.currentData.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN], QualitativeValueIds.PETS)) // Filter PETS
       .map((row) => toBoolean(row.currentData.measurementValues[PmfmIds.IS_OBSERVED]))
       .filter((val) => !!val).length;
   }
