@@ -310,7 +310,19 @@ const ActivityCalendarSubscriptions = {
     ${ActivityCalendarFragments.lightActivityCalendar}
   `,
 };
-
+const ActivityCalendarImages = {
+  loadByActivityCalendarId: gql`
+    query ActivityCalendarImages($id: Int!) {
+      data: activityCalendar(id: $id) {
+        id
+        images {
+          ...LightImageAttachmentFragment
+        }
+      }
+    }
+    ${ImageAttachmentFragments.light}
+  `,
+};
 @Injectable({ providedIn: 'root' })
 export class ActivityCalendarService
   extends RootDataSynchroService<ActivityCalendar, ActivityCalendarFilter, number, ActivityCalendarWatchOptions, ActivityCalendarLoadOptions>
@@ -563,22 +575,12 @@ export class ActivityCalendarService
   }
 
   async loadImages(id: number, opts?: ActivityCalendarLoadOptions): Promise<ImageAttachment[]> {
-    const res: any = await this.graphql.query({
-      query: gql`
-        query ActivityCalendarImages($id: Int!) {
-          data: activityCalendar(id: $id) {
-            id
-            images {
-              ...LightImageAttachmentFragment
-            }
-          }
-        }
-        ${ImageAttachmentFragments.light}
-      `,
+    const queryResult: any = await this.graphql.query({
+      query: ActivityCalendarImages.loadByActivityCalendarId,
       variables: { id },
       error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
     });
-    return res.data.images;
+    return queryResult.data.images;
   }
 
   async hasOfflineData(): Promise<boolean> {
