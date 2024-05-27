@@ -144,6 +144,9 @@ export const ActivityCalendarFragments = {
       gearUseFeatures {
         ...GearUseFeaturesFragment
       }
+      images {
+        ...LightImageAttachmentFragment
+      }
     }
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
@@ -154,6 +157,7 @@ export const ActivityCalendarFragments = {
     ${DataFragments.gearUseFeatures}
     ${DataCommonFragments.metier}
     ${DataFragments.fishingArea}
+    ${ImageAttachmentFragments.light}
   `,
 };
 
