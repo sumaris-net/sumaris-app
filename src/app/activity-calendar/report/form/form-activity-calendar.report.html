@@ -198,7 +198,7 @@
                     {{ 'ACTIVITY_CALENDAR.REPORT.BASE_PORT_LOCATION' | translate }}
                   </th>
                   @for (month of stats.activityMonth; track month.id) {
-                    <td class="fit-one-line">
+                    <td [class.activity-not-exists]="(month | mapGet: 'isActive') === 2" class="fit-one-line">
                       <div>
                         <div [title]="month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] }">
                           {{ month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] } }}
@@ -211,7 +211,12 @@
                   <tr>
                     <th>{{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: false } }}</th>
                     @for (month of stats.activityMonth; track month.id) {
-                      <td>{{ month | mapGet: 'measurementValues' | mapGet: monthPmfm.id | pmfmValue: { pmfm: monthPmfm } }}</td>
+                      <td
+                        [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
+                        [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
+                      >
+                        {{ month | mapGet: 'measurementValues' | mapGet: monthPmfm.id | pmfmValue: { pmfm: monthPmfm } }}
+                      </td>
                     }
                   </tr>
                 }
@@ -246,12 +251,14 @@
                     @for (month of stats.activityMonth; track month.id; let monthIndex = $index) {
                       @if (stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] > 0) {
                         <td
+                          [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
+                          [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
                           [attr.colspan]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex]"
                           [class.fit-one-line]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] > 0"
                         >
                           <div [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] === 0">
                             <div [title]="month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['label', 'name']">
-                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['label', 'name'] }}
+                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['name'] }}
                             </div>
                           </div>
                         </td>
@@ -266,7 +273,10 @@
                     <tr>
                       <th>{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_FISHING_AREA' | translate }}</th>
                       @for (month of stats.activityMonth; track month.id) {
-                        <td>
+                        <td
+                          [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
+                          [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
+                        >
                           {{
                             month['gearUseFeatures'][gearUseFeatureIndex]['fishingAreas'][fishingAreaIndex]
                               | mapGet: 'location'

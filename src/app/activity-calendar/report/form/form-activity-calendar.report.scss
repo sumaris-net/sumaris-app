@@ -25,6 +25,10 @@
         thead {
           th,
           td {
+            &.activity-not-exists,
+            &.activity-inactive {
+              background-color: rgba(var(--ion-color-medium-rgb), 0.8) !important;
+            }
             &.fit-one-line {
               position: relative;
               & > div {
