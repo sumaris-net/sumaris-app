@@ -681,6 +681,9 @@ export class ActivityCalendarPage
     const metierGearUseFeatures = this.tableMetier.value;
     if (isNotEmptyArray(metierGearUseFeatures)) value.gearUseFeatures = [...value.gearUseFeatures, ...metierGearUseFeatures];
 
+    // Photos
+    value.images = this.gallery.value;
+
     return value;
   }
 
@@ -790,14 +793,14 @@ export class ActivityCalendarPage
     }
   }
 
-  protected loadPictures(data: ActivityCalendar) {
+  protected async loadPictures(data: ActivityCalendar) {
     const firstLoad = !this.gallery.loaded;
 
     if (firstLoad) this.gallery.markAsReady();
 
     // TODO fetch images
-    this.gallery.value = [];
-
+    // this.gallery.value = await this.dataService.loadImages(data.id);
+    this.gallery.value = data.images;
     // then add gallery into child form
     if (firstLoad) this.addForms([this.gallery]);
   }
