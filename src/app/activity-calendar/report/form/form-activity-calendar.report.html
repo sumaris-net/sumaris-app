@@ -423,7 +423,7 @@
         </ion-row>
       }
       <ion-row class="footer-text ion-justify-content-between">
-        <ion-col size="auto" [innerHTML]="stats.footerText"></ion-col>
+        <ion-col size="auto" [innerHTML]="(stats.footerText | isNotNil) ? stats.footerText : (data | rootDataQualityToString)"></ion-col>
         <ion-col size="auto">{{ 'COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber: pageNumber } }} / {{ pageTotal }}</ion-col>
       </ion-row>
     </ion-grid>
