@@ -166,6 +166,10 @@ export const PmfmIds = {
 
   /* ACTIFLOT */
   SURVEY_QUALIFICATION: 446,
+  SURVEY_RELIABILITY: 447,
+  DURATION_AT_SEA_DAYS: 449,
+  FISHING_DURATION_DAYS: 450,
+  AUCTION_HABIT: 451,
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {

@@ -141,6 +141,10 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     return PmfmIds.SURVEY_QUALIFICATION === pmfm.id;
   }
 
+  protected filterPmfmAuctionHabit(pmfm: IPmfm): boolean {
+    return PmfmIds.AUCTION_HABIT === pmfm.id;
+  }
+
   constructor(injector: Injector) {
     super(injector, ActivityCalendar, FormActivityCalendarReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
     this.ActivityCalendarService = this.injector.get(ActivityCalendarService);

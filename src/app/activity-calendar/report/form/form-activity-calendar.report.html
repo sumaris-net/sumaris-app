@@ -344,24 +344,29 @@
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      <ion-col size="12">
-                        <ion-icon [name]="'square-outline'" class="font-compact"></ion-icon>
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.ENTIRELY_AUCTION' | translate }}
-                        </strong>
-                      </ion-col>
-                      <ion-col size="12">
-                        <ion-icon [name]="'square-outline'" class="font-compact"></ion-icon>
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.PARTIALLY_AUCTION' | translate }}
-                        </strong>
-                      </ion-col>
-                      <ion-col size="12">
-                        <ion-icon [name]="'square-outline'" class="font-compact"></ion-icon>
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.OUTSIDE_AUCTION' | translate }}
-                        </strong>
-                      </ion-col>
+                      @for (
+                        qv of stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst | mapGet: 'qualitativeValues';
+                        track qv.id
+                      ) {
+                        <ion-col size="12">
+                          <ion-icon
+                            [name]="
+                              (data.measurementValues
+                                | mapGet: pmfmIdsMap.AUCTION_HABIT
+                                | pmfmValue
+                                  : {
+                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst
+                                    }) === qv.name
+                                ? 'checkbox-outline'
+                                : 'square-outline'
+                            "
+                            class="font-compact"
+                          ></ion-icon>
+                          <strong>
+                            {{ qv.name }}
+                          </strong>
+                        </ion-col>
+                      }
                     </ion-row>
                   </ion-grid>
                 </ion-col>
