@@ -153,11 +153,9 @@
         <mat-autocomplete-field
           [formControl]="row.validator.controls.referencePerson"
           [placeholder]="'PROGRAM.PRIVILEGES.REFERENCE_PERSON' | translate"
-          [autofocus]="row.id === -1 && row.editing"
           [config]="autocompleteFields.person"
           [i18nPrefix]="'USER.'"
           floatLabel="never"
-          required
         ></mat-autocomplete-field>
       </td>
     </ng-container>

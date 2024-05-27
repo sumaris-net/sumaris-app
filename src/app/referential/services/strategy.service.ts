@@ -659,7 +659,7 @@ export class StrategyService
     return await this.saveAll(targets);
   }
 
-  async downloadAsJsonByIds(ids: number[], opts?: { keepRemoteId: boolean; program?: Program }) {
+  async exportToJsonByIds(ids: number[], opts?: { keepRemoteId: boolean; program?: Program }) {
     if (isEmptyArray(ids)) throw Error('Required not empty array of ids');
 
     // Load entities

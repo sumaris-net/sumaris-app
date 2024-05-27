@@ -88,6 +88,7 @@ export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem
     this.autoLoad = false; // Wait filter
     this.sticky = true;
     this.logPrefix = '[transcribing-item-table] ';
+    this.excludesColumns = ['description', 'comments', 'creationDate', 'entityName', 'validityStatusId', 'icon', 'parentId', 'levelId'];
   }
 
   ngOnInit() {

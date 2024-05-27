@@ -138,19 +138,19 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     this.selection.clear();
   }
 
-  protected async downloadSelectionAsJson(event?: Event, opts = { keepRemoteId: false }) {
+  protected async exportSelectionToJson(event?: Event, opts = { keepRemoteId: false }) {
     const ids = this.selection.hasValue()
       ? this.selection.selected.map((row) => row.currentData.id)
       : this.dataSource.getData().map((entity) => entity.id);
 
     console.info(this.logPrefix + `Download ${ids.length} strategies as JSON file...`);
 
-    await this.strategyService.downloadAsJsonByIds(ids, { ...opts, program: this._program });
+    await this.strategyService.exportToJsonByIds(ids, { ...opts, program: this._program });
 
     this.selection.clear();
   }
 
-  protected async importFromJson(event?: Event) {
+  protected async uploadFromJson(event?: Event) {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
       uniqueFile: true,
       fileExtension: '.json',
