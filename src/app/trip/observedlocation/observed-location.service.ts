@@ -931,15 +931,6 @@ export class ObservedLocationService
             },
           },
         };
-      } else if (errors.observations) {
-        return {
-          message: 'OBSERVED_LOCATION.ERROR.INVALID_OBSERVED_COUNT',
-          details: {
-            errors: {
-              observations: errors.observations,
-            },
-          },
-        };
       }
 
       if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [OK] in ${Date.now() - now}ms`);

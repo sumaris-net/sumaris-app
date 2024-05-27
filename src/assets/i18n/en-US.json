@@ -1473,7 +1473,9 @@
       "COUNT_SAMPLES_ERROR": "Error in counting observation samples.",
       "START_DATE_INVALID": "Must start a {{day}}",
       "INVALID_LANDING": "Invalid landing",
-      "INVALID_LANDINGS": "Please observe or enter the reason for non-observation",
+      "INVALID_LANDINGS": "Please observe or enter the reason for non-observation"
+    },
+    "WARNING": {
       "INVALID_OBSERVED_COUNT": "Incorrect number of observed species. Please observe at least {{minObservedCount}} species"
     },
     "CONFIRM": {

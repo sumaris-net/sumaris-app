@@ -29,10 +29,19 @@
     </button>
   </ng-template>
 
-  <ion-item *ngIf="!mobile && error; let error" lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate: errorDetails"></ion-label>
-  </ion-item>
+  @if (!mobile && error) {
+    <ion-item lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" class="error" [innerHTML]="error | translate: errorDetails"></ion-label>
+    </ion-item>
+  } @else if (!mobile && showObservedCount && observedCount < minObservedSpeciesCount) {
+    <ion-item lines="none">
+      <ion-icon color="warning" slot="start" name="alert-circle"></ion-icon>
+      <ion-label
+        [innerHTML]="'OBSERVED_LOCATION.WARNING.INVALID_OBSERVED_COUNT' | translate: { minObservedCount: minObservedSpeciesCount }"
+      ></ion-label>
+    </ion-item>
+  }
 
   <div class="toolbar-spacer"></div>
 
