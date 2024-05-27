@@ -144,9 +144,6 @@ export const ActivityCalendarFragments = {
       gearUseFeatures {
         ...GearUseFeaturesFragment
       }
-      images {
-        ...LightImageAttachmentFragment
-      }
     }
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
@@ -157,7 +154,6 @@ export const ActivityCalendarFragments = {
     ${DataFragments.gearUseFeatures}
     ${DataCommonFragments.metier}
     ${DataFragments.fishingArea}
-    ${ImageAttachmentFragments.light}
   `,
 };
 
@@ -563,7 +559,7 @@ export class ActivityCalendarService
   }
 
   async loadImages(id: number, opts?: ActivityCalendarLoadOptions): Promise<ImageAttachment[]> {
-    const res = await this.graphql.query({
+    const res: any = await this.graphql.query({
       query: gql`
         query ActivityCalendarImages($id: Int!) {
           data: activityCalendar(id: $id) {
@@ -575,9 +571,10 @@ export class ActivityCalendarService
         }
         ${ImageAttachmentFragments.light}
       `,
+      variables: { id },
+      error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
     });
-    console.log(res);
-    return [];
+    return res.data.images;
   }
 
   async hasOfflineData(): Promise<boolean> {
