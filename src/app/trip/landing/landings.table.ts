@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, JobUtils, Person, toBoolean } from '@sumaris-net/ngx-components';
+import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, QualitativeValueIds, VesselIds } from '@app/referential/services/model/model.enum';
@@ -578,6 +578,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     return isNotNil(item.currentData.id);
   }
 
+  trackByFn(index: number, row: TableElement<Landing>): number {
+    return toNumber(row.currentData.id, -1 * row.id);
+  }
+
   protected mapLandings(data: Landing[]): Landing[] {
     if (this.isSaleDetailEditor) {
       // Split landings with pets from others
@@ -600,8 +604,9 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       // Split landings with different species list origin values
       speciesListOrigins.forEach((speciesListOrigin) => {
         const landings = data.filter((landing) => PmfmValueUtils.equals(landing.measurementValues[this.dividerPmfmId], speciesListOrigin));
-        const divider = landings[0].clone();
+        const divider = new Landing();
         divider.id = null;
+        divider.measurementValues = { ...landings[0].measurementValues };
         landingsGroups.push(divider, ...landings);
       });
 
