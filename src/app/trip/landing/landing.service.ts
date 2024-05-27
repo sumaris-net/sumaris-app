@@ -561,7 +561,7 @@ export class LandingService
 
   async saveAll(entities: Landing[], opts?: LandingSaveOptions): Promise<Landing[]> {
     // Filter dividers
-    entities = entities.filter((entity) => isNotNil(entity.id));
+    entities = entities.filter((entity) => entity.__typename !== 'divider');
 
     if (!entities) return entities;
 
@@ -1016,7 +1016,7 @@ export class LandingService
       );
 
       // Filter dividers
-      data = data.filter((entity) => isNotNil(entity.id));
+      data = data.filter((entity) => entity.__typename !== 'divider');
 
       if (isEmptyArray(data)) return undefined;
       const progressionStep = maxProgression / data.length / 2; // 2 steps by landing: control, then save

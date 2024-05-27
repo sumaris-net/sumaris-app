@@ -775,12 +775,15 @@ export class ObservedLocationPage
       landing.location = new ReferentialRef();
       landing.location.id = 1;
       landing.location.name = `Location 1`;
+      landing.recorderDepartment = new Department();
+      landing.recorderDepartment.id = 1;
       // Update landings' observed location so it saves correctly
       landing.observedLocation = data;
       landing.observedLocationId = data.id;
       landing.measurementValues = {
         [PmfmIds.CONTROLLED_SPECIES]: 304, // LANGOUSTINE
-        [PmfmIds.IS_OBSERVED]: false,
+        [PmfmIds.IS_OBSERVED]: true,
+        [PmfmIds.SPECIES_LIST_ORIGIN]: 651,
       };
       await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
 
@@ -794,12 +797,15 @@ export class ObservedLocationPage
       landing2.location = new ReferentialRef();
       landing2.location.id = 1;
       landing2.location.name = `Location 1`;
+      landing2.recorderDepartment = new Department();
+      landing2.recorderDepartment.id = 1;
       // Update landings' observed location so it saves correctly
       landing2.observedLocation = data;
       landing2.observedLocationId = data.id;
       landing2.measurementValues = {
         [PmfmIds.CONTROLLED_SPECIES]: 300, // ANCHOIS
         [PmfmIds.IS_OBSERVED]: false,
+        [PmfmIds.SPECIES_LIST_ORIGIN]: 650,
       };
       await this.landingsTable.addOrUpdateEntityToTable(landing2, { editing: false });
 
@@ -813,12 +819,15 @@ export class ObservedLocationPage
       landing3.location = new ReferentialRef();
       landing3.location.id = 1;
       landing3.location.name = `Location 1`;
+      landing3.recorderDepartment = new Department();
+      landing3.recorderDepartment.id = 1;
       // Update landings' observed location so it saves correctly
       landing3.observedLocation = data;
       landing3.observedLocationId = data.id;
       landing3.measurementValues = {
         [PmfmIds.CONTROLLED_SPECIES]: 302, // BAR
         [PmfmIds.IS_OBSERVED]: false,
+        [PmfmIds.SPECIES_LIST_ORIGIN]: 650,
       };
       await this.landingsTable.addOrUpdateEntityToTable(landing3, { editing: false });
     }

@@ -564,18 +564,18 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected updateFooter(rows: TableElement<Landing>[] | readonly TableElement<Landing>[]) {
     // Update observed count
     this.observedCount = (rows || [])
-      .filter((row) => isNotNil(row.currentData.id)) // Filter dividers
+      .filter((row) => row.currentData.__typename !== 'divider') // Filter dividers
       .filter((row) => !PmfmValueUtils.equals(row.currentData.measurementValues[this.dividerPmfmId], QualitativeValueIds.PETS)) // Filter PETS
       .map((row) => toBoolean(row.currentData.measurementValues[PmfmIds.IS_OBSERVED]))
       .filter((val) => !!val).length;
   }
 
   isDivider(index: number, item: TableElement<Landing>): boolean {
-    return isNil(item.currentData.id);
+    return item.currentData.__typename === 'divider';
   }
 
   isLanding(index: number, item: TableElement<Landing>): boolean {
-    return isNotNil(item.currentData.id);
+    return item.currentData.__typename !== 'divider';
   }
 
   trackByFn(index: number, row: TableElement<Landing>): number {
@@ -605,7 +605,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       speciesListOrigins.forEach((speciesListOrigin) => {
         const landings = data.filter((landing) => PmfmValueUtils.equals(landing.measurementValues[this.dividerPmfmId], speciesListOrigin));
         const divider = new Landing();
-        divider.id = null;
+        divider.__typename = 'divider';
         divider.measurementValues = { ...landings[0].measurementValues };
         landingsGroups.push(divider, ...landings);
       });
