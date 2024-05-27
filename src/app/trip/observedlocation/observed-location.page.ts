@@ -11,6 +11,7 @@ import {
   AppTable,
   CORE_CONFIG_OPTIONS,
   DateUtils,
+  Department,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
