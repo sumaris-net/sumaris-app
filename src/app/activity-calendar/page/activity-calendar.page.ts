@@ -798,9 +798,9 @@ export class ActivityCalendarPage
 
     if (firstLoad) this.gallery.markAsReady();
 
-    // TODO fetch images
-    // this.gallery.value = await this.dataService.loadImages(data.id);
-    this.gallery.value = data.images;
+    // fetch images
+    this.gallery.value = await this.dataService.loadImages(data.id);
+
     // then add gallery into child form
     if (firstLoad) this.addForms([this.gallery]);
   }
