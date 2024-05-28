@@ -997,6 +997,20 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '15',
     type: 'integer',
   },
+  LANDING_TOP_PMFM_IDS: <FormFieldDefinition>{
+    key: 'sumaris.landing.topPmfmIds',
+    label: 'PROGRAM.OPTIONS.LANDING_TOP_PMFM_IDS',
+    defaultValue: null,
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['id', 'label', 'name'],
+      columnSizes: [2, 4, 6],
+    },
+  },
 
   /* -- Sale -- */
 

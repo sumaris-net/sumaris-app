@@ -52,6 +52,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import moment from 'moment';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export const ObservedLocationPageSettingsEnum = {
   PAGE_ID: 'observedLocation',
@@ -101,6 +102,7 @@ export class ObservedLocationPage
   showStrategyCard = false;
   enableReport: boolean;
   landingEditor: LandingEditor;
+  topPmfmIds: number[];
 
   @RxStateProperty() landingTableType: LandingTableType;
   @RxStateProperty() landingTable: ILandingsTable;
@@ -567,6 +569,7 @@ export class ObservedLocationPage
       this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
       this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
       this.showStrategyCard = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_STRATEGY_CARD_ENABLE);
+      this.topPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_TOP_PMFM_IDS);
 
       this.landingTableType = aggregatedLandings ? 'aggregated' : 'legacy';
 
@@ -599,7 +602,7 @@ export class ObservedLocationPage
         landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
         landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
         landingsTable.minObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
-        landingsTable.dividerPmfmId = PmfmIds.SPECIES_LIST_ORIGIN;
+        landingsTable.dividerPmfmId = PmfmIds.SPECIES_LIST_ORIGIN; // TODO JVF: Useless ?
         this.showLandingTab = true;
 
         if (landingsTable.inlineEdition) {
@@ -847,6 +850,17 @@ export class ObservedLocationPage
       : this.landingTable?.invalid
         ? ObservedLocationPage.TABS.LANDINGS
         : -1;
+  }
+
+  applyTopPmfmToLandings(pmfm: IPmfm) {
+    this.landingsTable.dataSource
+      .getRows()
+      .filter((landing) => landing.currentData.__typename !== 'divider') // Filter dividers
+      .forEach(async (landing) => {
+        const updatedLanding = landing.cloneData();
+        updatedLanding.measurementValues[pmfm.id] = this.observedLocationForm.measurementValuesForm.controls[pmfm.id].value;
+        await this.landingsTable.addOrUpdateEntityToTable(updatedLanding, { editing: false });
+      });
   }
 
   protected markForCheck() {
