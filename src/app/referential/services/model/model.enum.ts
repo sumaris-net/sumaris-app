@@ -216,7 +216,7 @@ export const QualitativeValueIds = {
     INV: 578, // Inerte et végétaux - TODO override by config
     EMV: 582, // TODO override by config
   },
-  PETS: 651,
+  PETS: 661,
 };
 
 export const MethodIds = {
