@@ -3390,6 +3390,7 @@
       "VESSEL_FEATURES_DIVIDER": "Caractéristiques navire",
       "VESSEL_REGISTRATION_DIVIDER": "Immatriculations",
       "VESSEL_OWNER_DIVIDER": "Armateurs",
+      "PHOTO": "Photos",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
         "DISABLE": "Inactif",

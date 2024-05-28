@@ -71,6 +71,8 @@ import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '@app/activity-calendar/activity-calendar.filter';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { OverlayEventDetail } from '@ionic/core';
+import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -108,49 +110,55 @@ export const ActivityCalendarFragments = {
     ${DataCommonFragments.location}
   `,
 
-  activityCalendar: gql`fragment ActivityCalendarFragment on ActivityCalendarVO {
-    id
-    program {
+  activityCalendar: gql`
+    fragment ActivityCalendarFragment on ActivityCalendarVO {
       id
-      label
+      program {
+        id
+        label
+      }
+      year
+      directSurveyInvestigation
+      economicSurvey
+      creationDate
+      updateDate
+      controlDate
+      validationDate
+      qualityFlagId
+      qualificationDate
+      qualificationComments
+      comments
+      measurementValues
+      vesselSnapshot {
+        ...LightVesselSnapshotFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      recorderPerson {
+        ...LightPersonFragment
+      }
+      vesselUseFeatures {
+        ...VesselUseFeaturesFragment
+      }
+      gearUseFeatures {
+        ...GearUseFeaturesFragment
+      }
+      images {
+        ...LightImageAttachmentFragment
+      }
     }
-    year
-    directSurveyInvestigation
-    economicSurvey
-    creationDate
-    updateDate
-    controlDate
-    validationDate
-    qualityFlagId
-    qualificationDate
-    qualificationComments
-    comments
-    measurementValues
-    vesselSnapshot {
-      ...LightVesselSnapshotFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    recorderPerson {
-      ...LightPersonFragment
-    }
-    vesselUseFeatures {
-      ...VesselUseFeaturesFragment
-    }
-    gearUseFeatures {
-      ...GearUseFeaturesFragment
-    }
-  }
-  ${DataCommonFragments.lightDepartment}
-  ${DataCommonFragments.lightPerson}
-  ${DataCommonFragments.referential}
-  ${DataCommonFragments.location}
-  ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${DataFragments.vesselUseFeatures}
-  ${DataFragments.gearUseFeatures}
-  ${DataCommonFragments.metier},
-  ${DataFragments.fishingArea}`,
+    ${DataCommonFragments.lightDepartment}
+    ${DataCommonFragments.lightPerson}
+    ${DataCommonFragments.referential}
+    ${DataCommonFragments.location}
+    ${VesselSnapshotFragments.lightVesselSnapshot}
+    ${DataFragments.vesselUseFeatures}
+    ${DataFragments.gearUseFeatures}
+    ${DataCommonFragments.metier}
+    ${DataFragments.fishingArea}
+    ${ImageAttachmentFragments.light}
+  `,
 };
 
 export interface ActivityCalendarLoadOptions extends EntityServiceLoadOptions {
@@ -552,6 +560,24 @@ export class ActivityCalendarService
     } finally {
       this.loading = false;
     }
+  }
+
+  async loadImages(id: number, opts?: ActivityCalendarLoadOptions): Promise<ImageAttachment[]> {
+    const res = await this.graphql.query({
+      query: gql`
+        query ActivityCalendarImages($id: Int!) {
+          data: activityCalendar(id: $id) {
+            id
+            images {
+              ...LightImageAttachmentFragment
+            }
+          }
+        }
+        ${ImageAttachmentFragments.light}
+      `,
+    });
+    console.log(res);
+    return [];
   }
 
   async hasOfflineData(): Promise<boolean> {
