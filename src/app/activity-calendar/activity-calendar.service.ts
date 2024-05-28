@@ -144,9 +144,6 @@ export const ActivityCalendarFragments = {
       gearUseFeatures {
         ...GearUseFeaturesFragment
       }
-      images {
-        ...LightImageAttachmentFragment
-      }
     }
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
@@ -157,7 +154,6 @@ export const ActivityCalendarFragments = {
     ${DataFragments.gearUseFeatures}
     ${DataCommonFragments.metier}
     ${DataFragments.fishingArea}
-    ${ImageAttachmentFragments.light}
   `,
 };
 
@@ -183,7 +179,7 @@ export interface ActivityCalendarWatchOptions extends EntitiesServiceWatchOption
 
 export interface ActivityCalendarControlOptions extends ActivityCalendarValidatorOptions, IProgressionOptions {}
 
-const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any } = {
+const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; loadImages: any } = {
   // Load a activityCalendar
   load: gql`
     query ActivityCalendar($id: Int!) {
@@ -241,6 +237,18 @@ const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any } =
       total: activityCalendarsCount(filter: $filter, trash: $trash)
     }
     ${ActivityCalendarFragments.lightActivityCalendar}
+  `,
+
+  loadImages: gql`
+    query ActivityCalendarImages($id: Int!) {
+      data: activityCalendar(id: $id) {
+        id
+        images {
+          ...LightImageAttachmentFragment
+        }
+      }
+    }
+    ${ImageAttachmentFragments.light}
   `,
 };
 
@@ -310,7 +318,6 @@ const ActivityCalendarSubscriptions = {
     ${ActivityCalendarFragments.lightActivityCalendar}
   `,
 };
-
 @Injectable({ providedIn: 'root' })
 export class ActivityCalendarService
   extends RootDataSynchroService<ActivityCalendar, ActivityCalendarFilter, number, ActivityCalendarWatchOptions, ActivityCalendarLoadOptions>
@@ -562,22 +569,13 @@ export class ActivityCalendarService
     }
   }
 
-  async loadImages(id: number, opts?: ActivityCalendarLoadOptions): Promise<ImageAttachment[]> {
-    const res = await this.graphql.query({
-      query: gql`
-        query ActivityCalendarImages($id: Int!) {
-          data: activityCalendar(id: $id) {
-            id
-            images {
-              ...LightImageAttachmentFragment
-            }
-          }
-        }
-        ${ImageAttachmentFragments.light}
-      `,
+  async loadImages(id: number, opts?: { toEntity?: boolean }): Promise<ImageAttachment[]> {
+    const { data } = await this.graphql.query<{ data: Partial<ActivityCalendar> }>({
+      query: ActivityCalendarQueries.loadImages,
+      variables: { id },
+      error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
     });
-    console.log(res);
-    return [];
+    return opts?.toEntity === false ? ((data?.images || []) as ImageAttachment[]) : data?.images?.map(ImageAttachment.fromObject) || [];
   }
 
   async hasOfflineData(): Promise<boolean> {
