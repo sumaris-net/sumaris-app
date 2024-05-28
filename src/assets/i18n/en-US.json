@@ -2290,6 +2290,7 @@
       "LANDING_SAMPLE_WEIGHT_UNIT": "Occasion > Landing > Individual measures: Weight unit",
       "LANDING_SAMPLE_LABEL_ENABLE": "Occasion > Landing > Individual measures: Enter label?",
       "LANDING_COLUMNS_PMFM_IDS": "Occasion > Landings: Additional column(s) (PMFM)",
+      "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Occasion > Landings: Min. number of observed species",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Fishing area: Location level(s)",
       "STRATEGY_EDITOR": "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
