@@ -157,6 +157,7 @@ export class ActivityCalendarPage
   @Input() showPictures = true;
   @Input() showOptionsMenu = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
+  @Input() yearHistory: number = 3;
 
   @Input() @RxStateProperty() year: number;
   @Input() @RxStateProperty() vesselCountryId: number;
@@ -801,15 +802,28 @@ export class ActivityCalendarPage
   }
 
   protected async loadPictures(data: ActivityCalendar) {
-    const firstLoad = !this.gallery.loaded;
+    const firstLoadGallery = !this.gallery.loaded;
+    const firstLoadHistory = !this.galleryHistory.loaded;
 
-    if (firstLoad) this.gallery.markAsReady();
+    if (firstLoadHistory) this.galleryHistory.markAsReady();
+    if (firstLoadGallery) this.gallery.markAsReady();
+
+    //Filter
+    const filter: Partial<ActivityCalendarFilter> = {
+      vesselId: data.vesselSnapshot.id,
+      program: data.program,
+      startDate: data.startDate.subtract(this.yearHistory, 'years').startOf('year'),
+    };
+
+    const imagesAttachment = await this.dataService.loadImages(0, 100, null, null, filter);
 
     // fetch images
-    this.gallery.value = await this.dataService.loadImages(data.id);
+    this.galleryHistory.value = imagesAttachment;
+    this.gallery.value = imagesAttachment.filter((img) => img.objectId === data.id);
 
     // then add gallery into child form
-    if (firstLoad) this.addForms([this.gallery]);
+    if (firstLoadGallery) this.addForms([this.gallery]);
+    if (firstLoadHistory) this.addForms([this.galleryHistory]);
   }
 
   protected toggleShowPredoc(event?: Event) {

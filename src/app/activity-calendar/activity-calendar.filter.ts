@@ -4,14 +4,17 @@ import {
   EntityAsObjectOptions,
   EntityClass,
   FilterFn,
+  fromDateISOString,
   isNil,
   isNotEmptyArray,
   isNotNil,
   ReferentialRef,
+  toDateISOString,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendar } from './model/activity-calendar.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-service.class';
+import { Moment } from 'moment';
 
 @EntityClass({ typename: 'ActivityCalendarFilterVO' })
 export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalendarFilter, ActivityCalendar> {
@@ -19,6 +22,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
 
   year: number = null;
 
+  startDate?: Moment = null;
   vesselId: number = null;
   vesselIds: number[] = null;
   vesselSnapshot: VesselSnapshot = null;
@@ -42,11 +46,12 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.basePortLocations = source.basePortLocations?.map(ReferentialRef.fromObject);
     this.includedIds = source.includedIds;
     this.excludedIds = source.excludedIds;
+    this.startDate = fromDateISOString(source.startDate);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
-
+    target.startDate = toDateISOString(this.startDate);
     if (opts && opts.minify) {
       // Vessel
       target.vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
