@@ -70,7 +70,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   @RxStateSelect() protected readonly observedCount$: Observable<number>;
   @RxStateProperty() protected observedCount: number;
   minObservedSpeciesCount: number;
-  maxObservedSpeciesCount: number;
 
   unknownVesselId = VesselIds.UNKNOWN;
 
@@ -416,6 +415,29 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     }
   }
 
+  toggleSelectRow(event, row) {
+    event.stopPropagation();
+    if (this.isLandingPets(row)) {
+      this.selection.toggle(row);
+    }
+  }
+
+  async masterToggle() {
+    if (this.loading) return;
+    if (this.isAllSelected()) {
+      this.selection.clear();
+    } else {
+      const rows = this._dataSource.getRows().filter((row) => this.isLandingPets(row)); // Filter PETS
+      this.selection.setSelection(...rows);
+    }
+  }
+
+  isAllSelected() {
+    return (
+      this.selection.selected.length === this.dataSource.getRows().filter((row) => this.isLandingPets(row)).length // Filter PETS
+    );
+  }
+
   async getMaxRankOrderOnVessel(vessel: VesselSnapshot): Promise<number> {
     const rows = this.dataSource.getRows();
     return rows
@@ -588,6 +610,14 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   isLanding(index: number, item: TableElement<Landing>): boolean {
     return item.currentData.__typename !== 'divider';
+  }
+
+  private isLandingPets(item: TableElement<Landing>): boolean {
+    const speciesListOrigin = item.currentData.measurementValues[this.dividerPmfmId];
+    if (isNotNil(speciesListOrigin)) {
+      return PmfmValueUtils.equals(speciesListOrigin, QualitativeValueIds.PETS);
+    }
+    return false;
   }
 
   trackByFn(index: number, row: TableElement<Landing>): number {
