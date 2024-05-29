@@ -47,7 +47,7 @@ import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-loca
 
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -787,7 +787,7 @@ export class ObservedLocationPage
       landing.measurementValues = {
         [PmfmIds.CONTROLLED_SPECIES]: 304, // LANGOUSTINE
         [PmfmIds.IS_OBSERVED]: true,
-        [PmfmIds.SPECIES_LIST_ORIGIN]: 651,
+        [PmfmIds.SPECIES_LIST_ORIGIN]: QualitativeValueIds.PETS,
       };
       await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
 
@@ -809,7 +809,7 @@ export class ObservedLocationPage
       landing2.measurementValues = {
         [PmfmIds.CONTROLLED_SPECIES]: 300, // ANCHOIS
         [PmfmIds.IS_OBSERVED]: false,
-        [PmfmIds.SPECIES_LIST_ORIGIN]: 650,
+        [PmfmIds.SPECIES_LIST_ORIGIN]: 660,
       };
       await this.landingsTable.addOrUpdateEntityToTable(landing2, { editing: false });
 
@@ -831,7 +831,7 @@ export class ObservedLocationPage
       landing3.measurementValues = {
         [PmfmIds.CONTROLLED_SPECIES]: 302, // BAR
         [PmfmIds.IS_OBSERVED]: false,
-        [PmfmIds.SPECIES_LIST_ORIGIN]: 650,
+        [PmfmIds.SPECIES_LIST_ORIGIN]: 660,
       };
       await this.landingsTable.addOrUpdateEntityToTable(landing3, { editing: false });
     }
