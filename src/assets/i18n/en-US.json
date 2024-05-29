@@ -899,7 +899,7 @@
       },
       "LIST": {
         "ID": "Number",
-        "TRIP_ID": "Trip",
+        "TRIP": "Trip",
         "PHYSICAL_GEAR": "Used gear",
         "METIER": "Metier",
         "TARGET_SPECIES": "Target species",
@@ -1442,6 +1442,7 @@
       "PROGRAM": "Program",
       "START_DATE_TIME": "Date/time",
       "QUALITY": "State",
+      "QUALITY_FILTER": "Filter by state:",
       "LOCATION": "Location",
       "OBSERVERS": "Observers",
       "RECORDER_PERSON": "Recorder",
@@ -1471,7 +1472,9 @@
       "UPDATE_CHILDREN_DATE_ERROR": "Error in copying the occasion date on children data.",
       "COUNT_SAMPLES_ERROR": "Error in counting observation samples.",
       "START_DATE_INVALID": "Must start a {{day}}",
-      "INVALID_LANDING": "Invalid landing"
+      "INVALID_LANDING": "Invalid landing",
+      "INVALID_LANDINGS": "Please observe or enter the reason for non-observation",
+      "INVALID_OBSERVED_COUNT": "Incorrect number of observed species. Please observe {{minObservedCount}} to {{maxObservedCount}} species"
     },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "The selected occasion is linked to individual measures.<br/><br/><b>Are you sure</b> you want to delete it?",
@@ -1560,6 +1563,7 @@
       "TAXON_NAME": "Scientific species",
       "BTN_OPEN_TRIP": "Open the trip",
       "BTN_OPEN_SALE": "Open the sale",
+      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> observed species (min.: {{minObservedCount}}, max.: {{maxObservedCount}})",
       "SAMPLING": {
         "STRATEGY": "Sampling strata",
         "SAMPLES_COUNT": "Samples count",
@@ -1771,6 +1775,7 @@
       "EXTERIOR_MARKING": "Exterior Marking",
       "CONSTRUCTION_YEAR": "Construction year",
       "IRCS": "International radio call sign (IRCS)",
+      "FPC": "FPC",
       "HULL_MATERIAL": "Hull material",
       "BASE_PORT_LOCATION": "Base port",
       "GROSS_TONNAGE_GT": "Gross tonnage (UMS)",
@@ -3059,6 +3064,72 @@
       "ERROR": {
         "CONNECTION_ERROR": "Failed to connect to ichthyometer '{{name}}'"
       }
+    }
+  },
+  "ACTIVITY_CALENDAR": {
+    "TABLE": {
+      "QUALITY": "State",
+      "PROGRAM": "Programme",
+      "RECORDER_PERSON": "Recorder",
+      "RECORDER_DEPARTMENT": "Recoder department(s)",
+      "DIRECT_SURVEY_INVESTIGATION": "Direct survey investigation objective?",
+      "ECONOMIC_SURVEY": "Economic survey?",
+      "VESSEL": "Vessel",
+      "YEAR": "Year",
+      "FILTER": {
+        "PROGRAM": "Data collection programme",
+        "REGISTRATION_LOCATION": "Registration location",
+        "BASE_PORT_LOCATION": "Base port / Operation.",
+        "DIRECT_SURVEY_INVESTIGATION": "Direct survey investigation objective?",
+        "ECONOMIC_SURVEY": "Economic survey?",
+        "RECORDER_PERSON": "Recorder",
+        "RECORDER_DEPARTMENT": "Recoder department(s)",
+        "VESSEL": "Vessel",
+        "YEAR": "Year"
+      }
+    },
+    "NEW": {
+      "TITLE": "New activity calendar"
+    },
+    "EDIT": {
+      "TITLE": "<small>{{vessel}}<br></small>Activity {{year}}",
+      "BASE_PORT_LOCATION": "Base port / Operation.",
+      "BTN_ADD_METIER_BLOCK": "Add a Metier block",
+      "BTN_REPORT": "Edit report",
+      "BTN_EXPAND_ALL": "Expand all",
+      "BTN_COLLAPSE_ALL": "Collapse all",
+      "BTN_CLEAR_MONTH": "Clear month",
+      "CONFIRM_CLEAR_MONTH": "<b>Are you sure</b> you want to clear this month?",
+      "YEAR": "Year:",
+      "VESSEL_SNAPSHOT": "Vessel",
+      "DIRECT_SURVEY_INVESTIGATION": "Direct survey investigation objective?",
+      "ECONOMIC_SURVEY": "Economic survey?",
+      "YEAR_PLACEHOLDER": "Year",
+      "METIER": "metier",
+      "METIER_RANKED": "Metier #{{rankOrder}}",
+      "FISHING_AREA": "Fishing area",
+      "FISHING_AREA_RANKED": "Fishing area #{{rankOrder}}",
+      "TAB_GENERAL": "Details",
+      "TAB_CALENDAR": "Activity Months",
+      "TAB_METIER": "Fishing Activities",
+      "TAB_MAP": "Activity Zones",
+      "VESSEL_OWNER": "Vessel owner",
+      "REGISTRATION_LOCATION": "Registration location",
+      "IS_ACTIVE": "Active?",
+      "OTHER_FEATURES": "Survey characteristics:",
+      "VESSEL_FEATURES": "Vessel features",
+      "VESSEL_REGISTRATIONS": "Vessel features registration history",
+      "IS_ACTIVE_ENUM": {
+        "ENABLE": "Active",
+        "DISABLE": "Inactive",
+        "NOT_EXISTS": "Non-existent"
+      }
+    },
+    "OFFLINE_MODAL": {
+      "TITLE": "Offline mode configuration"
+    },
+    "OPTIONS": {
+      "ENABLE": "Activity calendar > Enable?"
     }
   },
   "ERROR": {

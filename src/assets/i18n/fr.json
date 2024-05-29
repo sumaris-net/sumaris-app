@@ -153,8 +153,10 @@
       "LINK": "Lien de partage"
     },
     "REPORT": {
+      "REPORT": "Rapport",
       "SHARE_LINK_PLACEHOLDER": "Lien vers le rapport :",
-      "TYPE_DIVIDER": "Types de rapport"
+      "TYPE_DIVIDER": "Types de rapport",
+      "PAGE_NUMBER": "page {{ pageNumber }}"
     },
     "HELP": {
       "TITLE": "Aide en ligne"
@@ -202,6 +204,9 @@
       "FAVICON": "favicon",
       "GRAVATAR_URL": "Utilisateur > URL Gravatar (avec '{md5}')",
       "ENABLE_GRAVATAR": "Utilisateur > Utiliser Gravatar ?",
+      "FORM_FIELD_BACKGROUND_COLOR": "Thème > Couleur de fond > Champ de saisie",
+      "FORM_FIELD_FOCUS_BACKGROUND_COLOR": "Thème > Couleur de fond > Champ de saisie avec focus",
+      "FORM_FIELD_DISABLED_BACKGROUND_COLOR": "Thème > Couleur de fond > Champ de saisie inactif",
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
       "ACCESS_PROGRAM_IDS": "Saisie > Programmes de collecte autorisés",
@@ -256,9 +261,20 @@
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
-        "ACQUISITION_LEVEL_TRIP_LABEL": "Référentiel > Niveau d'acquisition > Marée",
-        "ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL": "Référentiel > Niveau d'acquisition > Engin physique",
+        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_LABEL": "Référentiel > Niveau d'acquisition > Calendrier d'activité",
+        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES_LABEL": "Référentiel > Niveau d'acquisition > Calendrier d'activité: Caratéristique physique engin",
+        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_USE_FEATURES_LABEL": "Référentiel > Niveau d'acquisition > Calendrier d'activité: Caratéristique mise en oeuvre engin",
+        "ACQUISITION_LEVEL_MONTHLY_ACTIVITY": "Référentiel > Niveau d'acquisition > Calendrier d'activité: Mois",
         "ACQUISITION_LEVEL_OPERATION_LABEL": "Référentiel > Niveau d'acquisition > Opération",
+        "ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL": "Référentiel > Niveau d'acquisition > Engin physique",
+        "ACQUISITION_LEVEL_PRODUCT_LABEL": "Référentiel > Niveau d'acquisition > Produit",
+        "ACQUISITION_LEVEL_PRODUCT_SALE_LABEL": "Référentiel > Niveau d'acquisition > Produit (d'une vente)",
+        "ACQUISITION_LEVEL_CATCH_BATCH_LABEL": "Référentiel > Niveau d'acquisition > Capture",
+        "ACQUISITION_LEVEL_SORTING_BATCH_LABEL": "Référentiel > Niveau d'acquisition > Lot espèce",
+        "ACQUISITION_LEVEL_SORTING_BATCH_INDIVIDUAL_LABEL": "Référentiel > Niveau d'acquisition > Mesure individuelle",
+        "ACQUISITION_LEVEL_SALE_LABEL": "Référentiel > Niveau d'acquisition > Vente",
+        "ACQUISITION_LEVEL_SAMPLE_LABEL": "Référentiel > Niveau d'acquisition > Échantillon",
+        "ACQUISITION_LEVEL_TRIP_LABEL": "Référentiel > Niveau d'acquisition > Marée",
         "LOCATION_LEVEL_COUNTRY_ID": "Référentiel > Niveau de lieu > Pays",
         "LOCATION_LEVEL_PORT_ID": "Référentiel > Niveau de lieu > Port",
         "LOCATION_LEVEL_MARITIME_DISTRICT_ID": "Référentiel > Niveau de lieu > Quartier maritime",
@@ -311,10 +327,15 @@
         "PMFM_SALE_RANK_ORDER_ID": "Référentiel > PSFM > Numéro d'ordre de la vente",
         "PMFM_LANDING_CATEGORY_ID": "Référentiel > PSFM > Destination du produit débarqué",
         "PMFM_IS_SAMPLING_ID": "Référentiel > PSFM > Lot est-il détaillé ou pas ?",
-        "PMFM_PETS_ID": "Référentiel > PSFM > PETS (Oui/Non) ?",
+        "PMFM_PETS_ID": "Référentiel > PSFM > Présence de PETS ? (Booléen)",
         "PMFM_SALE_TYPE_ID": "Référentiel > PSFM > Type de vente",
-        "PMFM_IS_OBSERVED_ID": "Référentiel > PSFM > Espèce observée (Oui/Non) ?",
+        "PMFM_IS_OBSERVED_ID": "Référentiel > PSFM > Espèce observée ? (Booléen)",
         "PMFM_NON_OBSERVATION_REASON_ID": "Référentiel > PSFM > Raison de non observation (d'une espèce)",
+        "PMFM_DISCARD_REASON_ID": "Référentiel > PSFM > Raison du rejet (lot)",
+        "PMFM_DISCARD_TYPE_ID": "Référentiel > PSFM > Type de rejet (lot)",
+        "PMFM_EMV_CATEGORY_ID": "Référentiel > PSFM > Catégorie EMV (lot)",
+        "PMFM_SIZE_CATEGORY_ID": "Référentiel > PSFM > Catégorie de tri (lot)",
+        "PMFM_SIZE_UNLI_CAT_ID": "Référentiel > PSFM > Catégorie de tri terrain (lot)",
         "PARAMETER_HULL_MATERIAL_ID": "Référentiel > Paramètres > Matériau de la coque",
         "PARAMETER_GROUP_SURVEY_ID": "Référentiel > Groupe de paramètres > Caractéristiques d'enquêtes",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Référentiel > Méthode > Mesuré par un observateur",
@@ -377,6 +398,9 @@
       },
       "ACCOUNT": {
         "READONLY": "Mon compte > Nom et prénom en lecture seule ?"
+      },
+      "REFERENTIAL": {
+        "PMFM_LABEL_ENABLE": "Référentiel > PSFM > Afficher le code (label) du PSFM ?"
       }
     },
     "CACHE": {
@@ -916,7 +940,7 @@
       },
       "LIST": {
         "ID": "Numéro",
-        "TRIP_ID": "Marée",
+        "TRIP": "Marée",
         "PHYSICAL_GEAR": "Engin utilisé",
         "METIER": "Métier",
         "TARGET_SPECIES": "Espèce cible",
@@ -1175,17 +1199,19 @@
           "TAXON_GROUP_PLACEHOLDER": "Espèce (FAO)",
           "TAXON_NAME_PLACEHOLDER": "Espèce scientifique"
         },
-        "ONBOARD_OBSERVATION": {
+        "OBSERVED_TRIP": {
           "TITLE": "Capture {{label}}",
           "TAXON_NAME_PLACEHOLDER": "Espèce scientifique"
         }
       },
       "TABLE": {
+        "TITLE": "Prélèvements",
         "TAB_SAMPLES": "Prélèvements",
         "TAB_SUB_SAMPLES": "Sous-prélèvements",
         "TAB_INDIVIDUAL_RELEASES": "Relâchés",
         "LABEL": "Libellé",
         "LABEL_PLACEHOLDER": "Libellé",
+        "RANK_ORDER": "#",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_GROUP_PLACEHOLDER": "Code espèce",
         "TAXON_NAME": "Espèce scientifique (FAO)",
@@ -1223,16 +1249,20 @@
           "IMAGES": "Photos"
         },
         "ACCIDENTAL_CATCH": {
+          "TITLE": "Captures accidentelles",
           "TAB_SAMPLES": "Mesures individuelles",
           "TAXON_NAME": "Espèce scientifique",
           "TAG_COUNT": "<b>{{tagCount}}</b> individu(s) marqué(s)"
         },
-        "ONBOARD_OBSERVATION": {
+        "OBSERVED_TRIP": {
+          "TITLE": "Captures accidentelles",
+          "RANK_ORDER": "N° ECH",
           "TAB_SAMPLES": "Mesures individuelles",
           "TAXON_NAME": "Espèce scientifique",
           "TAG_COUNT": "<b>{{tagCount}}</b> individu(s) marqué(s)"
         },
         "SURVIVAL_TEST": {
+          "TITLE": "Tests de survie",
           "TAB_SAMPLES": "Mesures individuelles",
           "TAB_SUB_SAMPLES": "Suivi individuel",
           "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel",
@@ -1267,7 +1297,7 @@
             "MEASURE_TIME": "Heure de remise à l'eau",
             "TAG_ID": "Référence de la marque"
           },
-          "ONBOARD_OBSERVATION": {
+          "OBSERVED_TRIP": {
             "MEASURE_TIME": "Heure de remise à l'eau",
             "TAG_ID": "Référence de la marque"
           }
@@ -1279,7 +1309,7 @@
         "SURVIVAL_TEST": {
           "TAG_ID": "Tag-ID"
         },
-        "ONBOARD_OBSERVATION": {
+        "OBSERVED_TRIP": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "IS_DEAD": "Mort ?",
           "TAG_ID": "Référence de la marque"
@@ -1400,14 +1430,13 @@
         },
         "OPERATION": {
           "TITLE": "FICHE OPERATIONS DE PECHE (recto)",
-          "COMMENTS_TITLE": "FICHE OPERATIONS DE PECHE (verso)",
+          "TITLE_VERSO": "FICHE OPERATIONS DE PECHE (verso)",
           "NB_OP": "Nombre total d'opérations de pêche effectuées pendant la marée :",
           "TABLE": {
             "OPERATION_START": "Début de l'opération",
             "OPERATION_END": "Fin de l'opération",
             "PARENT": "Filage (fin de mise à l’eau de l’engin)*",
             "CHILD": "Virage (début de remontée de l’engin)*",
-            "NUM_OP": "N° OP",
             "ECH_ON": "Échantillonnage (O/N)",
             "PROGRESS": "Déroulement normal ? (O/N)",
             "GEAR_SPECIES": "Engin* + Espèce(s) cible(s) si navire associé** (IMMAT du navire)",
@@ -1424,20 +1453,20 @@
           }
         },
         "PHYSICAL_GEAR": {
-          "TITLE": "FICHE ENGINS (page {{ pageNumber }})",
+          "TITLE": "FICHE ENGINS",
           "OPERATIONS": "N° OP associée(s) :"
         },
-        "ONBOARD_OBSERVATION": {
+        "OBSERVED_TRIP": {
           "TITLE": "Dossier d'observation en mer"
         },
         "PMFM": {
-          "ONBOARD_OBSERVATION": {
+          "OBSERVED_TRIP": {
             "HAS_INDIVIDUAL_MEASURES": "Échantillonnage"
           }
         },
         "BATCH": {
-          "TITLE_LANDING": "FICHE ECHANTILLONNAGE PARTIE RETENUE (page {{ pageNumber }})",
-          "TITLE_DISCARD": "FICHE ECHANTILLONNAGE PARTIE REJETÉE (page {{ pageNumber }})",
+          "TITLE_LANDING": "FICHE ECHANTILLONNAGE PARTIE RETENUE",
+          "TITLE_DISCARD": "FICHE ECHANTILLONNAGE PARTIE REJETÉE",
           "TAXON_GROUPS": "Espèces commerciales",
           "TAXON_NAMES": "Espèces scientifique",
           "SORT_CRITERIAS": "Critères de classement",
@@ -1457,7 +1486,7 @@
       }
     },
     "PMFM": {
-      "ONBOARD_OBSERVATION": {
+      "OBSERVED_TRIP": {
         "NB_FISHERMEN": "Nombre de personnes à bord"
       }
     }
@@ -1579,6 +1608,7 @@
       "PROGRAM": "Programme",
       "START_DATE_TIME": "Date/heure",
       "QUALITY": "État",
+      "QUALITY_FILTER": "Filtrer par état :",
       "LOCATION": "Lieu de la sortie",
       "OBSERVERS": "Observateurs",
       "RECORDER_PERSON": "Saisisseur",
@@ -1608,7 +1638,9 @@
       "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
       "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation.",
       "START_DATE_INVALID": "Doit commencer un {{day}}",
-      "INVALID_LANDING": "Débarquement invalide"
+      "INVALID_LANDING": "Débarquement invalide",
+      "INVALID_LANDINGS": "Veuillez observer ou saisir la raison de non observation",
+      "INVALID_OBSERVED_COUNT": "Nombre d'espèces observées incorrect. Veuillez observer entre {{minObservedCount}} et {{maxObservedCount}} espèces"
     },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "La sortie sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
@@ -1697,6 +1729,7 @@
       "TAXON_NAME": "Espèce scientifique",
       "BTN_OPEN_TRIP": "Ouvrir la marée",
       "BTN_OPEN_SALE": "Ouvrir la vente",
+      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> espèce(s) observée(s) (min. : {{minObservedCount}}, max. : {{maxObservedCount}})",
       "SAMPLING": {
         "STRATEGY": "Ligne de plan",
         "SAMPLES_COUNT": "Nb. prélèvements",
@@ -1908,6 +1941,7 @@
       "EXTERIOR_MARKING": "Marquage extérieur",
       "CONSTRUCTION_YEAR": "Année de construction",
       "IRCS": "Indicatif radio (IRCS)",
+      "FPC": "FPC",
       "HULL_MATERIAL": "Matériau de la coque",
       "BASE_PORT_LOCATION": "Port d'attache",
       "GROSS_TONNAGE_GT": "Tonnage (UMS)",
@@ -1923,9 +1957,19 @@
       "INT_REGISTRATION_CODE": "Immatriculation internationale",
       "REGISTRATION_LOCATION": "Pavillon"
     },
+    "VESSEL_OWNER": {
+      "REGISTRATION_CODE": "Code armateur",
+      "START_DATE": "Début armement",
+      "END_DATE": "Fin armement",
+      "ACTIVITY_START_DATE": "Début d'activité",
+      "RETIREMENT_DATE": "Date de la retraite",
+      "FIRST_NAME": "Prénom",
+      "LAST_NAME": "Nom"
+    },
     "HISTORY": {
       "FEATURES": "Caratéristiques",
-      "REGISTRATIONS": "Immatriculations"
+      "REGISTRATIONS": "Immatriculations",
+      "OWNER": "Couples navires-armateurs"
     },
     "ACTION": {
       "EDIT": "Modifier",
@@ -2269,7 +2313,9 @@
       "TITLE": "Nouveau programme"
     },
     "EDIT": {
-      "TITLE": "Programme {{label}} - {{name}}"
+      "TITLE": "Programme {{label}} - {{name}}",
+      "BTN_DOWNLOAD_PROPERTIES_AS_CSV": "Télécharger les options (CSV)",
+      "BTN_IMPORT_PROPERTIES_FROM_CSV": "Importer des options (CSV)..."
     },
     "LIST": {
       "TITLE": "Programmes de collecte"
@@ -2286,6 +2332,15 @@
       "TAB_STRATEGIES": "Lignes de plan"
     },
     "OPTIONS": {
+      "ACTIVITY_CALENDAR_REPORT_ENABLE": "Calendrier d'activité > Rapport : Activer l'édition de rapport ?",
+      "ACTIVITY_CALENDAR_REPORT_TYPE": "Calendrier d'activité  > Rapport : Types de rapport :",
+      "ACTIVITY_CALENDAR_TYPE_FORM": "Calendrier d'activité",
+      "ACTIVITY_CALENDAR_TYPE_FORM_BLANK": "Calendrier d'activité vierge",
+      "ACTIVITY_CALENDAR_REPORT_FORM_FOOTER": "Calendrier d'activité > Rapport : Texte de pied de page",
+      "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Calendrier d'activité > Rapport : URL d'une image pour le log de gauche",
+      "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Calendrier d'activité > Rapport : URL d'une image pour le log de droite",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER": "Calendrier d'activité > Rapport : nombre de méter a faire figurer sur les formulaire vierge",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER": "Calendrier d'activité > Rapport : nombre de zone de pêche a par métier a faire figurer sur les formulaire vierge",
       "EXTRACTION_FORMATS": "Extraction > Formats disponibles:",
       "I18N_SUFFIX": "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY": "Par défaut",
@@ -2352,12 +2407,13 @@
       "TRIP_REPORT_TYPE": "Marée > Rapport : Types de rapport :",
       "TRIP_REPORT_TYPE_LEGACY": "Par défaut",
       "TRIP_REPORT_TYPE_TRAWL_SELECTIVITY": "Sélectivité châlut",
-      "TRIP_REPORT_TYPE_FORM": "Formulaire terrain (validation)",
-      "TRIP_REPORT_TYPE_FORM_BLANK": "Formulaire terrain (vierge)",
-      "TRIP_REPORT_FORM_SUBTITLE": "Marée > Rapport formulaire : Sous-titre du rapport",
-      "TRIP_REPORT_FORM_FOOTER": "Marée > Rapport formulaire : Texte de pied de page",
-      "TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Marée > Rapport formulaire : Logo en haut à gauche (URL)",
-      "TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Marée > Rapport formulaire : Logo en haut à droite (URL)",
+      "TRIP_REPORT_TYPE_OBSERVED_TRIP": "Observation des marées en mer",
+      "TRIP_REPORT_TYPE_FORM": "Formulaire terrain",
+      "TRIP_REPORT_TYPE_FORM_BLANK": "Formulaire terrain vierge",
+      "TRIP_REPORT_FORM_SUBTITLE": "Marée > Rapport : Sous-titre du rapport",
+      "TRIP_REPORT_FORM_FOOTER": "Marée > Rapport : Texte de pied de page",
+      "TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Marée > Rapport : URL d'une image pour le log de gauche",
+      "TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Marée > Rapport : URL d'une image pour le log de droite",
       "TRIP_OPERATION_EDITOR": "Marée > Opération : Éditeur",
       "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
       "TRIP_OPERATION_EDITOR_TRAWL_SELECTIVITY": "Sélectivité châlut",
@@ -3188,6 +3244,15 @@
       "BROWSE": "Parcourir",
       "IMPORTING": "Importation en cours",
       "ERROR": "Erreur durant l'envoi de fichier"
+    },
+    "PROPERTIES": {
+      "CSV_FILENAME": "{{label}}-options.csv",
+      "LABEL_HEADER": "Code",
+      "VALUE_HEADER": "Valeur",
+      "DESCRIPTION_HEADER": "Description",
+      "ERROR": {
+        "IMPORT_ERROR": "Échec de l'importation:<br/>{{error}}"
+      }
     }
   },
   "IMAGE": {
@@ -3289,28 +3354,43 @@
     },
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Activité {{year}}",
+      "TITLE_MENU": "{{vessel}} ({{year}})",
+      "PREDOC_TITLE": "Prédocumentation",
       "BASE_PORT_LOCATION": "Port d'attache / exploit.",
       "BTN_ADD_METIER_BLOCK": "Ajouter un bloc métier",
       "BTN_REPORT": "Éditer un rapport...",
       "BTN_EXPAND_ALL": "Déplier tout",
       "BTN_COLLAPSE_ALL": "Replier tout",
+      "BTN_CLEAR_MONTH": "Vider le mois",
+      "HIDE_PREDOC": "Masquer la prédocumentation",
+      "SHOW_PREDOC": "Afficher la prédocumentation",
+      "BTN_SHOW_PREDOC": "<u>P</u>rédocumentation",
+      "CONFIRM_CLEAR_MONTH": "<b>Êtes-vous sûr</b> de vouloir vider ce mois ?",
       "YEAR": "Année :",
       "VESSEL_SNAPSHOT": "Navire",
       "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
       "ECONOMIC_SURVEY": "Enquête économique ?",
       "YEAR_PLACEHOLDER": "Année",
       "METIER": "Métier",
+      "GEAR": "Engin",
       "METIER_RANKED": "Métier #{{rankOrder}}",
       "FISHING_AREA": "Zone de pêche",
       "FISHING_AREA_RANKED": "Zone de pêche #{{rankOrder}}",
       "TAB_GENERAL": "Général",
-      "TAB_CALENDAR": "Mois d'activité",
+      "TAB_VESSEL": "Navire",
+      "TAB_HISTORY": "Historique",
+      "TAB_PHOTO": "Photos",
+      "TAB_CALENDAR": "Calendrier",
       "TAB_METIER": "Métiers",
-      "TAB_MAP": "Zones d'activité",
+      "TAB_MAP": "Carte",
       "VESSEL_OWNER": "Armateur",
       "REGISTRATION_LOCATION": "Quartier maritime",
       "IS_ACTIVE": "Actif ?",
       "OTHER_FEATURES": "Caractéristiques d'enquête :",
+      "VESSEL_FEATURES_DIVIDER": "Caractéristiques navire",
+      "VESSEL_REGISTRATION_DIVIDER": "Immatriculations",
+      "VESSEL_OWNER_DIVIDER": "Armateurs",
+      "PHOTO": "Photos",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
         "DISABLE": "Inactif",
@@ -3321,7 +3401,47 @@
       "TITLE": "Configuration du mode hors-ligne"
     },
     "OPTIONS": {
-      "ENABLE": "Calendrier d'activité > Activer ?"
+      "ENABLE": "Calendrier d'activité > Activer ?",
+      "NAME": "Calendrier d'activité > Titre (menu, etc.)"
+    },
+    "REPORT": {
+      "TITLE": "Calendrier d'activité {{ year }}",
+      "BLANK_TITLE": "Raport d'activité vierge",
+      "NAME": "Nom",
+      "VESSEL_OWNER": "Armateur",
+      "REGISTRATION_LOCATION": "Quartier maritime",
+      "IS_ACTIVE": "Actif ?",
+      "EFFORT_SECTION": {
+        "TITLE": "Effort de pêche"
+      },
+      "METIERS_SECTION": {
+        "TITLE": "Métiers",
+        "ROW_METIER": "Métiers",
+        "ROW_FISHING_AREA": "Zone/Gradient"
+      },
+      "VESSEL_SECTION": {
+        "TITLE": "Navire :",
+        "REGISTRATION_CODE": "Immatriculation :",
+        "REGISTRATION_LOCATION": "Lieux d'immat. :",
+        "VESSEL_NAME": "Nom :"
+      },
+      "SURVEY_QUALIFICATION_SECTION": {
+        "TITLE": "Qualification de l'enquête"
+      },
+      "GUF_SECTION": {
+        "TITLE": "Caractéristiques engins"
+      },
+      "SELL_SECTION": {
+        "TITLE": "Ventes",
+        "ENTIRELY_AUCTION": "Totalité en criée",
+        "PARTIALLY_AUCTION": "Partiellement en criée",
+        "OUTSIDE_AUCTION": "Totalité hors criée"
+      },
+      "OBSERVER_SECTION": {
+        "TITLE": "Observateur",
+        "LAST_NAME": "Nom :",
+        "FIRST_NAME": "Prénom :"
+      }
     }
   },
   "ERROR": {

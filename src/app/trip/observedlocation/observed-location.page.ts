@@ -16,6 +16,7 @@ import {
   fadeInOutAnimation,
   firstNotNilPromise,
   HistoryPageReference,
+  isNil,
   isNotNil,
   ReferentialRef,
   ReferentialUtils,
@@ -185,8 +186,23 @@ export class ObservedLocationPage
     // If errors in landings
     if (typeof error !== 'string' && error?.details?.errors?.landings) {
       // Show error in landing table
-      this.landingsTable.setError('OBSERVED_LOCATION.ERROR.INVALID_LANDING', {
+      this.landingsTable.setError('OBSERVED_LOCATION.ERROR.INVALID_LANDINGS', {
         showOnlyInvalidRows: true,
+      });
+
+      // Open the landing tab
+      this.tabGroup.selectedIndex = ObservedLocationPage.TABS.LANDINGS;
+
+      // Reset other errors
+      super.setError(undefined, opts);
+    }
+
+    // If other errors in landings
+    else if (typeof error !== 'string' && error?.details?.errors?.observations) {
+      // Show error in landing table
+      this.landingsTable.setError(error.message, {
+        showOnlyInvalidRows: false,
+        errorDetails: error.details.errors.observations,
       });
 
       // Open the landing tab
@@ -581,6 +597,8 @@ export class ObservedLocationPage
         landingsTable.showLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
         landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
         landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
+        landingsTable.minObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
+        landingsTable.maxObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MAX_OBSERVED_SPECIES_COUNT);
         this.showLandingTab = true;
 
         if (landingsTable.inlineEdition) {
@@ -744,7 +762,7 @@ export class ObservedLocationPage
   protected async onEntitySaved(data: ObservedLocation): Promise<void> {
     await super.onEntitySaved(data);
 
-    if (this.landingsTable?.isSaleDetailEditor && this.isNewData) {
+    if (this.landingEditor === 'sale' && isNil(this.previousDataId)) {
       // TODO JVF: Retrieve species based on data.samplingStrata
 
       const landing = new Landing();

@@ -22,6 +22,7 @@ import { PmfmValidators } from '@app/referential/services/validator/pmfm.validat
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
+import { ValidatorService } from '@e-is/ngx-material-table';
 
 export interface GearUseFeaturesValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
@@ -30,14 +31,18 @@ export interface GearUseFeaturesValidatorOptions extends DataRootEntityValidator
   pmfms?: IPmfm[];
 
   withMetier?: boolean;
+  requiredMetier?: boolean;
   withGear?: boolean; // false by default (not used in ActivityCalendar)
+  requiredGear?: boolean;
   withFishingAreas?: boolean;
+  requiredFishingAreas?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
-export class GearUseFeaturesValidatorService<
-  O extends GearUseFeaturesValidatorOptions = GearUseFeaturesValidatorOptions,
-> extends DataEntityValidatorService<GearUseFeatures, O> {
+export class GearUseFeaturesValidatorService<O extends GearUseFeaturesValidatorOptions = GearUseFeaturesValidatorOptions>
+  extends DataEntityValidatorService<GearUseFeatures, O>
+  implements ValidatorService
+{
   constructor(
     formBuilder: UntypedFormBuilder,
     translate: TranslateService,
@@ -53,11 +58,12 @@ export class GearUseFeaturesValidatorService<
 
     const form = super.getFormGroup(data, opts);
 
+    //todo mf  AcquisitionLevelCodes
     if (opts.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
       const pmfms = opts.pmfms || opts.strategy?.denormalizedPmfms || [];
       pmfms
-        .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR)
+        .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY)
         .forEach((p) => {
           const key = p.id.toString();
           const value = data && data.measurementValues && data.measurementValues[key];
@@ -89,17 +95,17 @@ export class GearUseFeaturesValidatorService<
 
     // Add metier
     if (opts.withMetier) {
-      config.metier = this.getMetierControl(data?.metier);
+      config.metier = this.getMetierControl(data?.metier, { required: opts?.requiredMetier !== false });
     }
 
     // Add gear
     if (opts.withGear) {
-      config.gear = this.getGearControl(data?.metier);
+      config.gear = this.getGearControl(data?.gear, { required: opts?.requiredGear !== false });
     }
 
     // Add fishing Ares
     if (opts.withFishingAreas) {
-      config.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, { required: true });
+      config.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, { required: opts?.requiredFishingAreas !== false });
     }
 
     return config;
@@ -173,8 +179,8 @@ export class GearUseFeaturesValidatorService<
     opts.withMetier = toBoolean(opts.withMetier, true);
     opts.withGear = toBoolean(opts.withGear, false); // Not used in activity calendar
     opts.withFishingAreas = toBoolean(opts.withFishingAreas, true);
-
-    opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR);
+    //todo mf  AcquisitionLevelCodes
+    opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY);
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, isNotEmptyArray(opts.pmfms) || isNotNil(opts.strategy));
     opts.withMeasurementTypename = toBoolean(opts.withMeasurementTypename, opts.withMeasurements);

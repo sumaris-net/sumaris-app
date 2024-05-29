@@ -1,5 +1,5 @@
 import { FormFieldDefinition, FormFieldType, isNilOrBlank, Property, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelGroups, LocationLevelIds, ProgramLabel, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
@@ -11,7 +11,9 @@ export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 
-export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'blank-form';
+export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'form-blank';
+
+export type ActivityCalendarReportType = 'form' | 'form-blank';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
@@ -569,7 +571,7 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM',
       },
       {
-        key: <TripReportType>'blank-form',
+        key: <TripReportType>'form-blank',
         value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM_BLANK',
       },
     ],
@@ -989,6 +991,18 @@ export const ProgramProperties = Object.freeze({
       columnSizes: [2, 4, 6],
     },
   },
+  LANDING_MIN_OBSERVED_SPECIES_COUNT: <FormFieldDefinition>{
+    key: 'sumaris.landing.minObservedSpeciesCount',
+    label: 'PROGRAM.OPTIONS.LANDING_MIN_OBSERVED_SPECIES_COUNT',
+    defaultValue: '15',
+    type: 'integer',
+  },
+  LANDING_MAX_OBSERVED_SPECIES_COUNT: <FormFieldDefinition>{
+    key: 'sumaris.landing.maxObservedSpeciesCount',
+    label: 'PROGRAM.OPTIONS.LANDING_MAX_OBSERVED_SPECIES_COUNT',
+    defaultValue: '30',
+    type: 'integer',
+  },
 
   /* -- Sale -- */
 
@@ -1087,6 +1101,61 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_ENABLE',
     defaultValue: 'true',
     type: 'boolean',
+  },
+  ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.predoc.program.labels',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS',
+    defaultValue: ProgramLabel.SIH_ACTIPRED,
+    type: 'string',
+  },
+
+  ACTIVITY_CALENDAR_REPORT_TYPE: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.type',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_TYPE',
+    type: 'enums',
+    values: [
+      {
+        key: <ActivityCalendarReportType>'form',
+        value: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_TYPE_FORM',
+      },
+      {
+        key: <ActivityCalendarReportType>'form-blank',
+        value: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_TYPE_FORM_BLANK',
+      },
+    ],
+    autocomplete: {
+      columnNames: ['key', 'value'],
+      columnSizes: [4, 8],
+      displayWith: (p) => p?.key,
+    },
+    defaultValue: <ActivityCalendarReportType>'form',
+  },
+  ACTIVITY_CALENDAR_REPORT_FORM_FOOTER: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.form.footer',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_FORM_FOOTER',
+    type: 'string',
+  },
+  ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.form.logo.head.left.url',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL',
+    type: 'string',
+  },
+  ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.form.logo.head.right.url',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL',
+    type: 'string',
+  },
+  ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.form.blank.nbMetier',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER',
+    type: 'integer',
+    defaultValue: 4,
+  },
+  ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.form.blank.nbMetier',
+    label: 'PROGRAM.OPTIONS.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER',
+    type: 'integer',
+    defaultValue: 2,
   },
 
   /* -- Extraction options -- */

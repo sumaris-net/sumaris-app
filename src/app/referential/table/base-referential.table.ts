@@ -173,7 +173,7 @@ export abstract class BaseReferentialTable<
           tap((json) => this.setFilter(json, { emitEvent: false })),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          tap((json) => this.settings.savePageSetting(this.settingsId, json, BASE_TABLE_SETTINGS_ENUM.filterKey))
+          tap((json) => this.settings.savePageSetting(this.settingsId, json, BASE_TABLE_SETTINGS_ENUM.FILTER_KEY))
         )
         .subscribe()
     );

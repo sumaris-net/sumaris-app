@@ -291,7 +291,7 @@ export class ProgramService
           withDepartmentsAndPersons: opts.withDepartmentsAndPersons,
         },
       },
-      error: { code: ErrorCodes.SAVE_PROGRAM_ERROR, message: 'ERROR.SAVE_PROGRAM_ERROR' },
+      error: { code: ErrorCodes.SAVE_PROGRAM_ERROR, message: 'PROGRAM.ERROR.SAVE_PROGRAM_ERROR' },
       update: (cache, { data }) => {
         // Update entity
         const savedEntity = data && data.data;

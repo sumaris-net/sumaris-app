@@ -16,6 +16,7 @@ import { SelectVesselsModal } from '@app/vessel/modal/select-vessel.modal';
 import { SharedModule } from '@sumaris-net/ngx-components';
 import { IonicModule } from '@ionic/angular';
 import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-color.pipe';
+import { VesselOwnerHistoryComponent } from './page/vessel-owner-history.component';
 
 @NgModule({
   imports: [
@@ -41,6 +42,7 @@ import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-col
     VesselModal,
     VesselFeaturesHistoryComponent,
     VesselRegistrationHistoryComponent,
+    VesselOwnerHistoryComponent,
     SelectVesselsModal,
     ToRegistrationCodeDirective,
   ],
@@ -52,6 +54,9 @@ import { VesselStatusToColorPipe } from '@app/vessel/status/vessel-status-to-col
     VesselStatusToColorPipe,
 
     // Components
+    VesselFeaturesHistoryComponent,
+    VesselRegistrationHistoryComponent,
+    VesselOwnerHistoryComponent,
     VesselsTable,
     VesselPage,
     VesselsPage,

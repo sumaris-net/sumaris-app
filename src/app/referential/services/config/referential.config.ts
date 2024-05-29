@@ -117,11 +117,77 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'string',
     defaultValue: AcquisitionLevelCodes.PHYSICAL_GEAR,
   },
+  ACQUISITION_LEVEL_CATCH_BATCH_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.CATCH_BATCH.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_CATCH_BATCH_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.CATCH_BATCH,
+  },
   ACQUISITION_LEVEL_OPERATION_LABEL: <FormFieldDefinition>{
     key: 'sumaris.enumeration.AcquisitionLevel.OPERATION.label',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_OPERATION_LABEL',
     type: 'string',
     defaultValue: AcquisitionLevelCodes.OPERATION,
+  },
+  ACQUISITION_LEVEL_SORTING_BATCH_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.SORTING_BATCH.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_SORTING_BATCH_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.SORTING_BATCH,
+  },
+  ACQUISITION_LEVEL_SORTING_BATCH_INDIVIDUAL_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.SORTING_BATCH_INDIVIDUAL.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_SORTING_BATCH_INDIVIDUAL_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
+  },
+  ACQUISITION_LEVEL_SALE_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.SALE.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_SALE_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.SALE,
+  },
+  ACQUISITION_LEVEL_SAMPLE_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.SAMPLE.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_SAMPLE_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.SAMPLE,
+  },
+  ACQUISITION_LEVEL_PRODUCT_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.PRODUCT.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_PRODUCT_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.PRODUCT,
+  },
+  ACQUISITION_LEVEL_PRODUCT_SALE_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.PRODUCT_SALE.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_PRODUCT_SALE_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.PRODUCT_SALE,
+  },
+  ACQUISITION_LEVEL_ACTIVITY_CALENDAR_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.ACTIVITY_CALENDAR.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_ACTIVITY_CALENDAR_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
+  },
+  ACQUISITION_LEVEL_MONTHLY_ACTIVITY_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.MONTHLY_ACTIVITY.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_MONTHLY_ACTIVITY_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.MONTHLY_ACTIVITY,
+  },
+  ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_USE_FEATURES_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.ACTIVITY_CALENDAR_GEAR_USE_FEATURES.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_USE_FEATURES_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_USE_FEATURES,
+  },
+  ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES_LABEL: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.AcquisitionLevel.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES.label',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES_LABEL',
+    type: 'string',
+    defaultValue: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
   },
 
   /* -- Location levels -- */
@@ -283,6 +349,12 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       },
     },
     defaultValue: TaxonomicLevelIds.SUBSPECIES,
+  },
+  PMFM_LABEL_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.referential.Pmfm.label.enable',
+    label: 'CONFIGURATION.OPTIONS.REFERENTIAL.PMFM_LABEL_ENABLE',
+    type: 'boolean',
+    defaultValue: 'true',
   },
   PMFM_NB_FISHERMEN_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.NB_FISHERMEN.id',

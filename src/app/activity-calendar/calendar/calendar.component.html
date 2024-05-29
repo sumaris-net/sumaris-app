@@ -15,38 +15,84 @@
   </button>
 </mat-menu>
 
+<!-- ********************************************************* -->
+<!-- ***********  Accordion                        *********** -->
+<!-- ********************************************************* -->
 @if (style === 'accordion') {
   <mat-accordion [multi]="false">
-    @for (month of months$ | push; track $index) {
-      <mat-expansion-panel style="--month-count: 1" #expansionPanel>
+    @for (startDate of months$ | push; track $index) {
+      <mat-expansion-panel style="--month-count: 1">
         <mat-expansion-panel-header>
-          {{ month | dateFormat: { pattern: 'MMMM' } | capitalize }}
+          <mat-panel-title>
+            <mat-label
+              [matBadge]="'!'"
+              [matBadgeHidden]="!monthCalendar.invalid"
+              matBadgeOverlap="false"
+              matBadgeColor="accent"
+              matBadgeSize="small"
+              matBadgePosition="above after"
+            >
+              {{ startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
+            </mat-label>
+          </mat-panel-title>
+
+          <mat-panel-description>
+            <!-- TODO OTBNEP -->
+          </mat-panel-description>
         </mat-expansion-panel-header>
 
-        <ng-template matExpansionPanelContent>
-          <app-calendar
-            #monthCalendar
-            [style]="'table'"
-            [pmfms]="pmfms$ | push"
-            [timezone]="timezone"
-            [showVesselOwner]="showVesselOwner"
-            [showRegistrationLocation]="showVesselOwner"
-            [showMonth]="showMonth"
-            [debug]="false"
-          ></app-calendar>
-        </ng-template>
+        <app-calendar
+          #monthCalendar
+          [style]="'table'"
+          [month]="startDate.month()"
+          [pmfms]="pmfms$ | push"
+          [timezone]="timezone"
+          [showVesselOwner]="showVesselOwner"
+          [showRegistrationLocation]="showRegistrationLocation"
+          [showToolbar]="false"
+          [showMonth]="showMonth"
+          [enableCellSelection]="enableCellSelection"
+          [usePageSettings]="false"
+          [compact]="compact"
+          [debug]="false"
+        ></app-calendar>
       </mat-expansion-panel>
     }
   </mat-accordion>
 } @else {
+  <!-- ********************************************************* -->
+  <!-- ***********  Table style                      *********** -->
+  <!-- ********************************************************* -->
+  @if (showToolbar) {
+    <mat-toolbar [color]="toolbarColor | matColor" class="{{ toolbarColor }}">
+      <!-- metier buttons -->
+      <ng-container *ngTemplateOutlet="metierButtons"></ng-container>
+
+      <!-- separator -->
+      <ion-text class="toolbar-spacer ion-text-center">
+        <!-- title -->
+        <span *ngIf="showTitle && title" [innerHTML]="title | translate"></span>
+      </ion-text>
+
+      <ng-content select="[matToolbarEnd]"></ng-content>
+
+      <!-- options -->
+      @if (showToolbarOptions) {
+        <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+      }
+    </mat-toolbar>
+  }
   <div
     #tableContainer
     class="table-container"
+    [class.has-toolbar]="showToolbar"
     *rxIf="pmfms$; let pmfms; strategy: 'native'"
     (ngInit)="initTableContainer(tableContainer)"
     [class.mobile]="mobile"
   >
-    <mat-table [dataSource]="dataSource" [class.resizing]="!!resizingCell">
+    <mat-table [dataSource]="dataSource" [class.resizing]="!!resizingCell" [class.large]="!compact">
       <!-- hidden columns (required by AppTable) -->
       <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
         <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
@@ -54,10 +100,11 @@
       </ng-container>
 
       <ng-container matColumnDef="month" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
-        <mat-header-cell *matHeaderCellDef>
-          <ion-label>&nbsp;</ion-label>
-          <!-- top left buttons -->
-          <ng-container *ngTemplateOutlet="metierButtons"></ng-container>
+        <mat-header-cell *matHeaderCellDef [class.toolbar-background-color]="!showToolbar">
+          @if (!showToolbar) {
+            <!-- metier buttons -->
+            <ng-container *ngTemplateOutlet="metierButtons"></ng-container>
+          }
         </mat-header-cell>
 
         <mat-header-cell *matCellDef="let row" [title]="errorSpan.innerText || ''" class="mat-column-reset-background-color">
@@ -129,7 +176,11 @@
           }
 
           <!-- resize handlers -->
-          <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false }"></ng-container>
+          @if (enableCellSelection) {
+            <ng-container
+              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false }"
+            ></ng-container>
+          }
         </mat-cell>
       </ng-container>
 
@@ -154,9 +205,11 @@
           }
 
           <!-- resize handlers -->
-          <ng-container
-            *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false }"
-          ></ng-container>
+          @if (enableCellSelection) {
+            <ng-container
+              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false }"
+            ></ng-container>
+          }
         </mat-cell>
       </ng-container>
 
@@ -223,9 +276,11 @@
             }
 
             <!-- resize handlers -->
-            <ng-container
-              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false }"
-            ></ng-container>
+            @if (enableCellSelection) {
+              <ng-container
+                *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false }"
+              ></ng-container>
+            }
           }
         </mat-cell>
       </ng-container>
@@ -262,7 +317,7 @@
             (click)="col.hidden ? toggleBlock($event, col.blockIndex) : setFocusColumn(col.key)"
           >
             @if (!col.hidden) {
-              @if (!col.hidden && row.editing && row.validator | formGetControl: col.path; as control) {
+              @if (row.editing && row.validator?.get(col.path) | formGetControl; as control) {
                 <mat-autocomplete-field
                   [placeholder]="col.placeholder"
                   [formControl]="control"
@@ -270,9 +325,14 @@
                   [autofocus]="focusColumn === col.key"
                   [class]="mobile && 'min-width-80vw'"
                   [panelWidth]="!mobile && '500px'"
+                  [floatLabel]="'never'"
                 ></mat-autocomplete-field>
+              } @else if (inlineEdition) {
+                @if (row.validator?.get(col.path) | formGetValue | referentialToString: col.autocomplete.attributes; as label) {
+                  <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
+                }
               } @else {
-                @if (!col.hidden && row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
+                @if (row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
                   <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
                 }
               }
@@ -289,23 +349,46 @@
         [style]="'mat-table'"
         class="mat-column-reset-background-color"
         (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
-        (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
         (backward)="confirmAndBackward($event.event, $event.row)"
         (forward)="confirmAndForward($event.event, $event.row)"
-        [canCancel]="true"
         [dirtyIcon]="true"
+        [cellTemplate]="cellInjection"
       >
-        <!-- top left buttons -->
-        <ng-container matHeader *ngTemplateOutlet="metierButtons"></ng-container>
+        <ng-template #cellInjection let-row>
+          @if (inlineEdition && _enabled && !row.pending) {
+            <!-- cancel button -->
+            @if (row.editing && row.dirty) {
+              <button mat-icon-button [title]="'COMMON.BTN_CANCEL' | translate" (click)="cancelOrDelete($event, row)" tabIndex="-1">
+                <mat-icon>undo</mat-icon>
+              </button>
+            }
+
+            <!-- clear button -->
+            @if (row.validator | formGetValue: 'isActive' | isNotNil) {
+              <button
+                mat-icon-button
+                [class.cdk-visually-hidden]="!!resizingCell"
+                [class.visible-hover]="!row.editing"
+                [title]="'ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_MONTH' | translate"
+                (click)="clear($event, row)"
+                tabIndex="-1"
+              >
+                <ion-icon [color]="row.editing ? 'dark' : 'medium'" name="close"></ion-icon>
+              </button>
+            }
+          }
+        </ng-template>
       </app-actions-column>
 
       <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
       <mat-row
         *matRowDef="let row; columns: displayedColumns"
-        [class.mat-mdc-row-error]="row.invalid"
+        [class.mat-mdc-row-error]="row.touched && row.invalid"
         [class.mat-mdc-row-dirty]="row.dirty"
         [class.mat-mdc-row-disabled]="!row.editing"
-        [class.mat-mdc-row-selected]="row.editing"
+        [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id"
+        [class.activity-inactive]="(row.validator | formGetValue: 'isActive') === 0"
+        [class.activity-not-exists]="(row.validator | formGetValue: 'isActive') === 2"
         (keydown.escape)="escapeEditingRow($event)"
         [cdkTrapFocus]="!row.valid"
         (click)="clickRow($event, row)"
@@ -315,38 +398,41 @@
   </div>
 
   <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y">
-    <div class="resize-handle-left" *ngIf="x !== false" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
-    <div class="resize-handle-right" *ngIf="x !== false" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
-    <div class="resize-handle-top" *ngIf="y !== false" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
-    <div
-      class="resize-handle-bottom"
-      *ngIf="y !== false"
-      (mousedown)="onMouseDown($event, cell, row, col.month, 'y')"
-      (mouseup)="onMouseUp($event)"
-    ></div>
-    <div
-      class="resize-handle-corner"
-      *ngIf="x !== false || y !== false"
-      (mousedown)="onMouseDown($event, cell, row, col.month)"
-      (mouseup)="onMouseUp($event)"
-    ></div>
+    @if (x !== false) {
+      <div class="resize-handle-left" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
+      <div class="resize-handle-right" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
+    }
+    @if (y !== false) {
+      <div class="resize-handle-top" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
+      <div class="resize-handle-bottom" (mousedown)="onMouseDown($event, cell, row, col.month, 'y')" (mouseup)="onMouseUp($event)"></div>
+    }
+    @if (x !== false || y !== false) {
+      <div class="resize-handle-corner" (mousedown)="onMouseDown($event, cell, row, col.month)" (mouseup)="onMouseUp($event)"></div>
+    }
   </ng-template>
 }
 
 <ng-template #metierButtons>
+  <ng-content select="[matToolbarStart]"></ng-content>
+
+  <!-- Add metier block -->
+  @if (canEdit && enabled) {
+    <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_ADD_METIER_BLOCK' | translate" (click)="addMetierBlock($event)">
+      <!--      <mat-icon>add</mat-icon>-->
+      <ion-icon name="add"></ion-icon>
+    </button>
+  }
+
   <!-- Expand all -->
   <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_EXPAND_ALL' | translate" (click)="expandAll($event)">
-    <mat-icon>unfold_more_double</mat-icon>
+    <!--    <mat-icon>unfold_more</mat-icon>-->
+    <ion-icon name="chevron-expand"></ion-icon>
   </button>
 
   <!-- Collapse all -->
   <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COLLAPSE_ALL' | translate" (click)="collapseAll($event)">
-    <mat-icon>unfold_less_double</mat-icon>
-  </button>
-
-  <!-- Add metier block -->
-  <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_ADD_METIER_BLOCK' | translate" (click)="addMetierBlock($event)">
-    <mat-icon>add</mat-icon>
+    <!--    <mat-icon>unfold_less</mat-icon>-->
+    <ion-icon name="chevron-collapse"></ion-icon>
   </button>
 </ng-template>
 
@@ -384,6 +470,8 @@
         <ion-col>
           <!--filter: {{ filter | json }}
           <br />-->
+          inlineEdition: {{ inlineEdition }} (has validator? {{ !!validatorService }})
+          <br />
           style: {{ style }}
           <br />
           timezone: {{ timezone }}

@@ -51,7 +51,7 @@
     <app-extraction-button
       *ngIf="canDownload"
       [programLabel]="filter?.levelLabel"
-      (downloadAsJson)="downloadSelectionAsJson($event)"
+      (downloadAsJson)="exportSelectionToJson($event)"
     ></app-extraction-button>
   </ng-template>
 
@@ -74,7 +74,7 @@
   <!-- Toolbar option menu -->
   <mat-menu #toolbarOptionsMenu="matMenu" xPosition="after">
     <!-- upload button -->
-    <button mat-menu-item [disabled]="!canUpload && debug" (click)="importFromJson($event)">
+    <button mat-menu-item [disabled]="!canUpload && debug" (click)="uploadFromJson($event)">
       <mat-icon>upload</mat-icon>
       <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
     </button>

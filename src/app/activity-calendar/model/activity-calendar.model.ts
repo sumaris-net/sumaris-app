@@ -4,6 +4,7 @@ import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils }
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { Moment } from 'moment';
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
 
 @EntityClass({ typename: 'ActivityCalendarVO' })
 export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
@@ -17,6 +18,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
   vesselUseFeatures: VesselUseFeatures[];
   gearUseFeatures: GearUseFeatures[];
+  images: ImageAttachment[];
 
   constructor() {
     super(ActivityCalendar.TYPENAME);
@@ -29,6 +31,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
     target.vesselUseFeatures = (this.vesselUseFeatures && this.vesselUseFeatures.map((vuf) => vuf.asObject(opts))) || undefined;
     target.gearUseFeatures = (this.gearUseFeatures && this.gearUseFeatures.map((guf) => guf.asObject(opts))) || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
+    target.images = (this.images && this.images.map((image) => image.asObject(opts))) || undefined;
     if (opts?.minify) {
       delete target.startDate;
     }
@@ -44,6 +47,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
     this.vesselUseFeatures = source.vesselUseFeatures?.map(VesselUseFeatures.fromObject) || undefined;
     this.gearUseFeatures = source.gearUseFeatures?.map(GearUseFeatures.fromObject) || undefined;
     this.measurementValues = { ...source.measurementValues }; // Copy values
+    this.images = (source.images && source.images.map(ImageAttachment.fromObject)) || undefined;
   }
 
   equals(other: ActivityCalendar): boolean {

@@ -11,7 +11,6 @@ import {
 } from '@angular/core';
 import { LandingsTable } from '../../landing/landings.table';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ModalController } from '@ionic/angular';
 import { Landing } from '../../landing/landing.model';

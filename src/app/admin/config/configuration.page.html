@@ -142,7 +142,7 @@
           <ion-icon matPrefix slot="start" name="notifications"></ion-icon>
         </mat-icon>
         <ion-label
-          [matBadge]="userEventsTable.totalRowCount"
+          [matBadge]="userEventsTable.totalRowCount | badgeNumber"
           [matBadgeHidden]="!userEventsTable.totalRowCount"
           matBadgeColor="primary"
           matBadgeOverlap="false"
@@ -162,7 +162,7 @@
         <mat-icon>schedule</mat-icon>
         <ion-label
           *rxLet="jobList.jobsCount$ as count"
-          [matBadge]="count"
+          [matBadge]="count | badgeNumber"
           [matBadgeHidden]="!count"
           matBadgeColor="primary"
           matBadgeOverlap="false"
@@ -183,9 +183,8 @@
           <ion-icon matPrefix slot="start" name="stats-chart"></ion-icon>
         </mat-icon>
         <ion-label
-          *rxLet="$cacheStatisticsCount as count"
-          [matBadge]="count"
-          [matBadgeHidden]="!count"
+          [matBadge]="$cacheStatisticsCount | push | badgeNumber"
+          [matBadgeHidden]="!($cacheStatisticsCount | push)"
           matBadgeColor="primary"
           matBadgeOverlap="false"
           matBadgeSize="small"
@@ -201,10 +200,7 @@
             <mat-icon>refresh</mat-icon>
           </button>
 
-          <!-- title -->
-          <ion-text class="toolbar-spacer ion-text-center">
-            <h3 translate>CONFIGURATION.CACHE_TITLE</h3>
-          </ion-text>
+          <span class="toolbar-spacer"></span>
 
           <button mat-icon-button *ngIf="enabled" [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.BTN_OPTIONS' | translate">
             <mat-icon>more_vert</mat-icon>
@@ -218,73 +214,71 @@
           </button>
         </mat-menu>
 
-        <div class="">
-          <ion-grid class="ion-no-padding cache">
-            <!-- header -->
-            <ion-row class="mat-mdc-header-row">
-              <ion-col size="12" size-lg="6" class="mat-mdc-header-cell">
-                <ion-label translate>CONFIGURATION.CACHE.NAME</ion-label>
-              </ion-col>
-              <ion-col class="mat-mdc-header-cell">
-                <ion-label translate>CONFIGURATION.CACHE.SIZE</ion-label>
-              </ion-col>
-              <ion-col class="mat-mdc-header-cell">
-                <ion-label translate>CONFIGURATION.CACHE.HEAP_SIZE</ion-label>
-              </ion-col>
-              <ion-col class="mat-mdc-header-cell">
-                <ion-label translate>CONFIGURATION.CACHE.OFF_HEAP_SIZE</ion-label>
-              </ion-col>
-              <ion-col class="mat-mdc-header-cell">
-                <ion-label translate>CONFIGURATION.CACHE.DISK_SIZE</ion-label>
-              </ion-col>
-              <ion-col size="1"></ion-col>
-            </ion-row>
+        <ion-grid class="ion-no-padding cache mat-mdc-table">
+          <!-- header -->
+          <ion-row class="mat-mdc-header-row">
+            <ion-col size="12" size-lg="6" class="mat-mdc-header-cell">
+              <ion-label translate>CONFIGURATION.CACHE.NAME</ion-label>
+            </ion-col>
+            <ion-col class="mat-mdc-header-cell">
+              <ion-label translate>CONFIGURATION.CACHE.SIZE</ion-label>
+            </ion-col>
+            <ion-col class="mat-mdc-header-cell">
+              <ion-label translate>CONFIGURATION.CACHE.HEAP_SIZE</ion-label>
+            </ion-col>
+            <ion-col class="mat-mdc-header-cell">
+              <ion-label translate>CONFIGURATION.CACHE.OFF_HEAP_SIZE</ion-label>
+            </ion-col>
+            <ion-col class="mat-mdc-header-cell">
+              <ion-label translate>CONFIGURATION.CACHE.DISK_SIZE</ion-label>
+            </ion-col>
+            <ion-col size="1"></ion-col>
+          </ion-row>
 
-            <!-- total -->
-            <ion-row *rxIf="$cacheStatisticTotal; let total" class="computed mat-mdc-row odd">
-              <ion-col size="12" size-lg="6">
-                <ion-label class="ion-text-wrap" translate>CONFIGURATION.CACHE.TOTAL</ion-label>
-              </ion-col>
-              <ion-col>
-                <ion-label>{{ total.size }}</ion-label>
-              </ion-col>
-              <ion-col>
-                <ion-label>{{ total.heapSize | fileSize }}</ion-label>
-              </ion-col>
-              <ion-col>
-                <ion-label>{{ total.offHeapSize | fileSize }}</ion-label>
-              </ion-col>
-              <ion-col>
-                <ion-label>{{ total.diskSize | fileSize }}</ion-label>
-              </ion-col>
-              <ion-col size="1"></ion-col>
-            </ion-row>
+          <!-- total -->
+          <ion-row *rxIf="$cacheStatisticTotal; let total" class="computed mat-mdc-row odd">
+            <ion-col size="12" size-lg="6">
+              <ion-label class="ion-text-wrap" translate>CONFIGURATION.CACHE.TOTAL</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{ total.size }}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{ total.heapSize | fileSize }}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{ total.offHeapSize | fileSize }}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{ total.diskSize | fileSize }}</ion-label>
+            </ion-col>
+            <ion-col size="1"></ion-col>
+          </ion-row>
 
-            <!-- details -->
-            <ion-row *rxFor="let stat of $cacheStatistics; odd as odd" class="mat-mdc-row" [class.odd]="odd">
-              <ion-col size="12" size-lg="6">
-                <ion-label class="ion-text-wrap">{{ stat.name }}</ion-label>
-              </ion-col>
-              <ion-col>
-                <ion-label>{{ stat.size }}</ion-label>
-              </ion-col>
-              <ion-col>
-                <ion-label>{{ stat.heapSize | fileSize }}</ion-label>
-              </ion-col>
-              <ion-col>
-                <ion-label>{{ stat.offHeapSize | fileSize }}</ion-label>
-              </ion-col>
-              <ion-col>
-                <ion-label>{{ stat.diskSize | fileSize }}</ion-label>
-              </ion-col>
-              <ion-col size="1">
-                <ion-button [title]="'COMMON.BTN_CLEAR' | translate" fill="clear" color="medium" (click)="clearCache($event, stat.name)">
-                  <ion-icon slot="icon-only" name="trash"></ion-icon>
-                </ion-button>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </div>
+          <!-- details -->
+          <ion-row *rxFor="let stat of $cacheStatistics; odd as odd" class="mat-mdc-row" [class.odd]="odd">
+            <ion-col size="12" size-lg="6">
+              <ion-label class="ion-text-wrap">{{ stat.name }}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{ stat.size }}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{ stat.heapSize | fileSize }}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{ stat.offHeapSize | fileSize }}</ion-label>
+            </ion-col>
+            <ion-col>
+              <ion-label>{{ stat.diskSize | fileSize }}</ion-label>
+            </ion-col>
+            <ion-col size="1">
+              <ion-button [title]="'COMMON.BTN_CLEAR' | translate" fill="clear" color="medium" (click)="clearCache($event, stat.name)">
+                <ion-icon slot="icon-only" name="trash"></ion-icon>
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
       </div>
     </mat-tab>
   </mat-tab-group>

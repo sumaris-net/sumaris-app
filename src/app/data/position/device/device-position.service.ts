@@ -199,7 +199,9 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     const maxProgression = (opts && opts.maxProgression) || 100;
     const data = await this.downloadAll(filter, { ...opts, maxProgression: maxProgression * 0.9 });
 
-    // Convert into CSV
+    // Prepare CSV options
+    const separator = CsvUtils.getLocalizedSeparator(this.translate);
+    const encoding = CsvUtils.getLocalizedEncoding(this.translate);
     const translations = this.translate.instant([
       'COMMON.DATE_TIME_PATTERN',
       'DEVICE_POSITION.MAP.EXPORT_CSV_FILENAME',
@@ -232,7 +234,7 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     });
 
     // Download as CSV
-    CsvUtils.exportToFile(rows, { filename, headers });
+    CsvUtils.exportToFile(rows, { filename, headers, separator, encoding });
 
     opts?.progression.next(maxProgression);
     console.info(`[device-position-service] Downloading ${data.length} rows, in ${Date.now() - now}ms`);

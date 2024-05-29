@@ -4,7 +4,16 @@
     &.mat-expanded {
       background-color: var(--ion-color-secondary100);
     }
+
+    ::ng-deep .mat-content {
+      overflow: visible !important; // To show mat badge
+    }
   }
+}
+
+mat-toolbar.secondary {
+  background-color: var(--ion-color-secondary);
+  color: var(--ion-color-secondary-contrast);
 }
 
 .table-container {
@@ -17,14 +26,8 @@
     --table-toolbar-height: var(--mat-toolbar-height);
   }
 
-  .visible-hover {
-    visibility: hidden;
-  }
-
-  .mat-mdc-row:hover {
-    .visible-hover {
-      visibility: unset;
-    }
+  .toolbar-background-color {
+    background-color: var(--ion-toolbar-background) !important;
   }
 }
 
@@ -33,15 +36,20 @@
   --col-min-size: 100px;
   --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / var(--month-count, 12)));
   --mat-cell-border-color-hover: var(--ion-color-secondary);
-  --mat-row-height: 35px !important;
-  --mat-row-max-height: 35px !important;
   --mat-cell-resizable-handle-size: 5px;
   --mat-cell-resizable-handle-color-hover: var(--ion-color-secondary);
   --mat-table-row-item-outline-width: 0px;
   --mat-column-actions-min-width: 100%;
+  --mat-row-height: 35px !important;
+  --mat-row-max-height: 35px !important;
 
   display: flex !important;
   flex-direction: row !important;
+
+  &.large {
+    --mat-row-height: 48px !important;
+    --mat-row-max-height: 48px !important;
+  }
 
   .mat-mdc-header-row {
     flex-direction: column !important;
@@ -59,6 +67,33 @@
     min-width: var(--col-size) !important;
     width: var(--col-size) !important;
     max-width: var(--col-size) !important;
+
+    /* Disable basePortLocation */
+    &.activity-not-exists .mat-mdc-cell {
+      &.mat-column-basePortLocation {
+        --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.8) !important;
+        background-color: var(--mat-table-background-color);
+        * {
+          display: none;
+          visibility: hidden;
+        }
+      }
+    }
+
+    /* Disable other columns */
+    &.activity-not-exists .mat-mdc-cell,
+    &.activity-inactive .mat-mdc-cell {
+      &.mat-column-pmfm,
+      &.mat-column-metier,
+      &.mat-column-fishingArea {
+        --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.8) !important;
+        background-color: var(--mat-table-background-color);
+        * {
+          display: none;
+          visibility: hidden;
+        }
+      }
+    }
   }
 
   .mat-mdc-header-row,
@@ -76,6 +111,16 @@
 
     &.tappable:hover {
       cursor: pointer;
+    }
+
+    &.mat-column-month {
+      //display: flex;
+      //flex-basis: 33%;
+      //button {
+      //  flex-shrink: 1 !important;
+      //  flex-grow: 1 !important;
+      //  flex-wrap: wrap;
+      //}
     }
   }
 
@@ -127,7 +172,8 @@
   }
 
   .mat-column-metier {
-    background-color: rgba(var(--ion-color-medium-rgb), 0.4);
+    --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.4) !important;
+    background-color: var(--mat-table-background-color);
   }
 
   .mat-column-reset-background-color,
@@ -140,8 +186,19 @@
     input::-webkit-input-placeholder, /* Chrome/Opera/Safari */
     input::-moz-placeholder, /* Firefox 19+ */
     input:-ms-input-placeholder, /* IE 10+ */
-    input:-moz-placeholder { /* Firefox 18- */
+    input:-moz-placeholder {
+      /* Firefox 18- */
       color: transparent;
+    }
+  }
+
+  .visible-hover {
+    visibility: hidden;
+  }
+
+  .mat-mdc-row:hover {
+    .visible-hover {
+      visibility: unset;
     }
   }
 
@@ -225,6 +282,10 @@
     .mat-mdc-row.mat-row-disabled:hover {
       background-color: unset;
       cursor: crosshair;
+    }
+
+    .visible-hover {
+      visibility: hidden !important;
     }
   }
 }

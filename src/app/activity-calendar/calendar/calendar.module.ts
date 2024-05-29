@@ -9,6 +9,8 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
 import { AppDataModule } from '@app/data/data.module';
+import { MatIcon } from '@angular/material/icon';
+import { MatIconButton } from '@angular/material/button';
 
 @NgModule({
   imports: [
@@ -25,6 +27,9 @@ import { AppDataModule } from '@app/data/data.module';
     AppPmfmFormFieldModule,
     AppIconModule,
     AppDataModule,
+    MatIcon,
+    MatIconButton,
+    MatIcon,
   ],
   declarations: [CalendarComponent],
   exports: [

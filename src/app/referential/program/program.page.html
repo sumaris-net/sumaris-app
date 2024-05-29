@@ -6,8 +6,61 @@
   [defaultBackHref]="defaultBackHref"
   [canGoBack]="true"
 >
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
+  <!-- options sub menu -->
+  <button slot="end" mat-icon-button *ngIf="_selectedTabIndex === 3" [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.BTN_OPTIONS' | translate">
+    <mat-icon>more_vert</mat-icon>
+  </button>
 </app-toolbar>
+
+<!-- options menu -->
+<mat-menu #optionsMenu="matMenu">
+  <button mat-menu-item [disabled]="loading" [matMenuTriggerFor]="downloadMenu">
+    <mat-icon>download</mat-icon>
+    <ion-label translate>COMMON.BTN_DOWNLOAD_DOTS</ion-label>
+  </button>
+  <button mat-menu-item [disabled]="loading" [matMenuTriggerFor]="importMenu">
+    <mat-icon>download</mat-icon>
+    <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
+  </button>
+</mat-menu>
+
+<!-- download menu -->
+<mat-menu #downloadMenu="matMenu">
+  <button mat-menu-item (click)="exportPropertiesToCsv()">
+    <ion-label translate>PROGRAM.EDIT.BTN_DOWNLOAD_PROPERTIES_AS_CSV</ion-label>
+  </button>
+</mat-menu>
+
+<!-- import menu -->
+<mat-menu #importMenu="matMenu">
+  <button mat-menu-item (click)="uploadPropertiesFromCsv($event)">
+    <ion-label translate>PROGRAM.EDIT.BTN_IMPORT_PROPERTIES_FROM_CSV</ion-label>
+  </button>
+
+  <!-- Import options button -->
+  <mat-divider></mat-divider>
+  <button mat-menu-item [matMenuTriggerFor]="importPolicyMenu">
+    <ion-label translate>REFERENTIAL.LIST.BTN_IMPORT_OPTIONS_DOTS</ion-label>
+  </button>
+</mat-menu>
+
+<!-- Import policy menu -->
+<mat-menu #importPolicyMenu="matMenu" class="ion-no-padding">
+  <ng-template matMenuContent>
+    <!-- header-->
+    <ion-row class="mat-menu-header ion-no-padding column">
+      <ion-col>
+        <ion-label translate>REFERENTIAL.LIST.IMPORT_POLICY.TITLE</ion-label>
+      </ion-col>
+    </ion-row>
+    @for (policy of importPolicies; track policy) {
+      <button mat-menu-item (click)="propertiesImportPolicy = policy">
+        <mat-icon>{{ propertiesImportPolicy === policy ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+        <ion-label>{{ 'REFERENTIAL.LIST.IMPORT_POLICY.' + policy | uppercase | translate }}</ion-label>
+      </button>
+    }
+  </ng-template>
+</mat-menu>
 
 <ion-content>
   <mat-tab-group
@@ -38,9 +91,15 @@
             <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
               <app-referential-form #referentialForm [form]="form" [showError]="false" [debug]="debug" (onSubmit)="save($event)">
-                <app-form-field [definition]="fieldDefinitions.taxonGroupType" [formControl]="form.controls.taxonGroupType"></app-form-field>
+                <app-form-field
+                  [definition]="fieldDefinitions.taxonGroupType"
+                  [formControl]="form | formGetControl: 'taxonGroupType'"
+                ></app-form-field>
 
-                <app-form-field [definition]="fieldDefinitions.gearClassification" [formControl]="form.controls.gearClassification"></app-form-field>
+                <app-form-field
+                  [definition]="fieldDefinitions.gearClassification"
+                  [formControl]="form | formGetControl: 'gearClassification'"
+                ></app-form-field>
 
                 <mat-form-field floatLabel="always">
                   <input matInput class="cdk-visually-hidden" type="text" [placeholder]="'PROGRAM.LOCATION_CLASSIFICATION' | translate" />
@@ -187,7 +246,7 @@
           <ion-icon matPrefix slot="start" name="people"></ion-icon>
         </mat-icon>
         <ion-label
-          [matBadge]="table.totalRowCount"
+          [matBadge]="table.totalRowCount | badgeNumber"
           [matBadgeHidden]="table.invalid || !table.totalRowCount"
           matBadgeColor="primary"
           matBadgeOverlap="false"

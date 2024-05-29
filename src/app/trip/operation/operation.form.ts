@@ -11,7 +11,6 @@ import {
   Output,
 } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { OperationValidatorOptions, OperationValidatorService } from './operation.validator';
 import moment, { Moment } from 'moment';
 import {
@@ -696,6 +695,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         gearIds,
         selectedOperation: parent,
         enableGeolocation: this.enableGeolocation,
+        allowMultiple: false,
+        allowParentOperation: this.allowParentOperation,
       },
       keyboardClose: true,
       cssClass: 'modal-large',

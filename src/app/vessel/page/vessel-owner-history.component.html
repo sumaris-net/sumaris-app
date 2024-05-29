@@ -1,0 +1,138 @@
+<div>
+  <!-- error -->
+  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  @if (title | isNotNilOrBlank) {
+    <h3>
+      <ion-text translate>{{ title }}</ion-text>
+    </h3>
+  }
+</div>
+
+<mat-table
+  #table
+  [dataSource]="dataSource"
+  matSort
+  matSortActive="startDate"
+  matSortDirection="desc"
+  matSortDisableClear
+  [trackBy]="trackByFn"
+  [class.compact]="compact"
+>
+  <!-- hidden columns (required by AppTable) -->
+  <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
+    <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
+    <mat-cell *matCellDef="let row" class="cdk-visually-hidden"></mat-cell>
+  </ng-container>
+
+  <!-- RegistrationCode column -->
+  <ng-container matColumnDef="registrationCode">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.REGISTRATION_CODE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.registrationCode }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Start date column -->
+  <ng-container matColumnDef="startDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.START_DATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.startDate | dateFormat: { time: false } }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- End date column -->
+  <ng-container matColumnDef="endDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.END_DATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.endDate | dateFormat: { time: false } }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- FirstName column -->
+  <ng-container matColumnDef="firstName">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.FIRST_NAME</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.firstName }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- LastName column -->
+  <ng-container matColumnDef="lastName">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.LAST_NAME</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.lastName }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Activity start date column -->
+  <ng-container matColumnDef="activityStartDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.ACTIVITY_START_DATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.activityStartDate | dateFormat: { time: false } }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Retirement date column -->
+  <ng-container matColumnDef="retirementDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>VESSEL.VESSEL_OWNER.RETIREMENT_DATE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>{{ row.currentData.vesselOwner.retirementDate | dateFormat: { time: false } }}</ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Actions column -->
+  <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd">
+    <mat-header-cell *matHeaderCellDef>
+      <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row"></mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns" class="mat-mdc-row-disabled"></mat-row>
+</mat-table>
+
+<!-- options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+  <!-- display columns -->
+  <button mat-menu-item (click)="openSelectColumnsModal($event)">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
+</mat-menu>
+
+@if (loadingSubject | async) {
+  <ion-item>
+    <ion-skeleton-text animated></ion-skeleton-text>
+  </ion-item>
+} @else if (totalRowCount === 0) {
+  <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+}
+
+<!--  <ion-row class="ion-no-padding">-->
+<!--    <ion-col></ion-col>-->
+<!--    <ion-col class="ion-no-padding" size="auto">-->
+<!--      <mat-paginator [length]="totalRowCount" [pageSize]="5" [pageSizeOptions]="[5, 10, 50]" showFirstLastButtons>-->
+<!--      </mat-paginator>-->
+<!--    </ion-col>-->
+<!--  </ion-row>-->

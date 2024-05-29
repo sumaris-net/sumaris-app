@@ -98,6 +98,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
   grossTonnageGrt: number;
   constructionYear: number;
   ircs: string;
+  fpc: boolean;
   hullMaterial: ReferentialRef;
   basePortLocation: ReferentialRef;
   creationDate: Moment;
@@ -167,6 +168,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     this.grossTonnageGrt = source.grossTonnageGrt;
     this.constructionYear = source.constructionYear;
     this.ircs = source.ircs;
+    this.fpc = source.fpc;
     this.hullMaterial = source.hullMaterial && ReferentialRef.fromObject(source.hullMaterial);
     this.basePortLocation = source.basePortLocation && ReferentialRef.fromObject(source.basePortLocation);
 

@@ -30,6 +30,7 @@ import {
   NetworkService,
   Person,
   ProgressBarService,
+  toBoolean,
   toDateISOString,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -321,8 +322,6 @@ export class LandingService
   extends RootDataSynchroService<Landing, LandingFilter, number, LandingServiceWatchOptions, LandingServiceLoadOptions>
   implements IEntitiesService<Landing, LandingFilter, LandingServiceWatchOptions>, IEntityService<Landing>
 {
-  protected loading = false;
-
   constructor(
     injector: Injector,
     protected network: NetworkService,
@@ -1003,13 +1002,16 @@ export class LandingService
       const { data } = await this.loadAllByObservedLocation(
         LandingFilter.fromObject({
           observedLocationId: observedLocation.id,
-        })
+        }),
+        { fetchPolicy: 'no-cache' } // TODO BLA
       );
 
       if (isEmptyArray(data)) return undefined;
       const progressionStep = maxProgression / data.length / 2; // 2 steps by landing: control, then save
 
       let errorsById: FormErrors = null;
+
+      let observedCount = 0;
 
       for (const entity of data) {
         opts = await this.fillControlOptions(entity, opts);
@@ -1035,9 +1037,28 @@ export class LandingService
 
         // increment, after save/terminate
         opts.progression.increment(progressionStep);
+
+        // Count observed species
+        observedCount += +toBoolean(entity.measurementValues[PmfmIds.IS_OBSERVED]);
       }
 
-      return errorsById;
+      let errorObservation = null;
+
+      if (opts?.program) {
+        const minObservedCount = opts.program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
+        const maxObservedCount = opts.program.getPropertyAsInt(ProgramProperties.LANDING_MAX_OBSERVED_SPECIES_COUNT);
+
+        // Error if observed count is not in range
+        if (observedCount < minObservedCount || observedCount > maxObservedCount) {
+          errorObservation = {
+            observedCount,
+            minObservedCount,
+            maxObservedCount,
+          };
+        }
+      }
+
+      return errorsById || errorObservation ? { landings: errorsById, observations: errorObservation } : null;
     } catch (err) {
       console.error((err && err.message) || err);
       throw err;

@@ -35,6 +35,8 @@ type ActivityCalendarVO {
     economicSurvey: Boolean
     gearUseFeatures: [GearUseFeaturesVO]
     id: Int
+    "Get activity calendar's images"
+    images: [ImageAttachmentVO]
     "Get measurement values (as a key/value map, using pmfmId as key)"
     measurementValues: Map_Integer_StringScalar
     program: ProgramVO
@@ -69,6 +71,7 @@ type AggregationStrataVO {
     comments: String
     creationDate: Date
     description: String
+    entityName: String
     id: Int
     isDefault: Boolean
     label: String
@@ -152,6 +155,7 @@ type ConfigurationVO {
     comments: String
     creationDate: Date
     description: String
+    entityName: String
     id: Int
     label: String
     largeLogo: String
@@ -266,6 +270,17 @@ type DenormalizedPmfmStrategyVO {
     updateDate: Date
 }
 
+type DenormalizedTripResultVO {
+    batchCount: Long!
+    executionTime: Long!
+    invalidBatchCount: Long!
+    message: String
+    operationCount: Long!
+    status: JobStatusEnum
+    tripCount: Long!
+    tripErrorCount: Long!
+}
+
 type DepartmentVO {
     comments: String
     creationDate: Date
@@ -336,6 +351,7 @@ type ExtractionProductVO {
     description: String
     docUrl: String
     documentation: String
+    entityName: String
     filterContent: String
     format: String
     hiddenColumnNames: Map_String_Set_StringScalar
@@ -386,6 +402,7 @@ type ExtractionTableVO {
     defaultSpaceColumn: String
     defaultTechColumn: String
     description: String
+    entityName: String
     id: Int
     isSpatial: Boolean
     label: String
@@ -1244,6 +1261,7 @@ type ProgramVO {
     creationDate: Date
     departments: [ProgramDepartmentVO]
     description: String
+    entityName: String
     "Get program's gear classification"
     gearClassification: ReferentialVO
     gearClassificationId: Int
@@ -1326,6 +1344,8 @@ type Query {
         "Should included all enumerations values in properties ?"
         inherited: Boolean = true
     ): ConfigurationVO
+    "Check if trip has been denormalized or not"
+    denormalizeTrip(id: Int!): DenormalizedTripResultVO
     "Get denormalized batches"
     denormalizedBatches(filter: DenormalizedBatchesFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [DenormalizedBatchVO]
     "Get a department"
@@ -1503,6 +1523,8 @@ type Query {
     ): VesselVO
     "Get vessel features history"
     vesselFeaturesHistory(filter: VesselFeaturesFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselFeaturesVO]
+    "Get vessel owner history"
+    vesselOwnerHistory(filter: VesselOwnerFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselOwnerPeriodVO]
     "Get vessel registration history"
     vesselRegistrationHistory(filter: VesselRegistrationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselRegistrationPeriodVO]
     "Search in vessel snapshots"
@@ -1680,6 +1702,7 @@ type SoftwareVO {
     comments: String
     creationDate: Date
     description: String
+    entityName: String
     id: Int
     label: String
     name: String
@@ -1706,6 +1729,7 @@ type StrategyVO {
     denormalizedPmfms: [DenormalizedPmfmStrategyVO]
     departments: [StrategyDepartmentVO]
     description: String
+    entityName: String
     gearIds: [Int]
     "Get strategy's gears"
     gears: [ReferentialVO]
@@ -2014,6 +2038,7 @@ type VesselFeaturesVO {
     hullMaterial: ReferentialVO
     id: Int
     ircs: String
+    isFpc: Boolean
     lengthOverAll: Float
     measurementValues: Map_Integer_StringScalar
     measurements: [MeasurementVO]
@@ -2029,6 +2054,43 @@ type VesselFeaturesVO {
     updateDate: Date
     validationDate: Date
     vessel: VesselVO
+}
+
+type VesselOwnerPeriodId {
+    startDate: Date
+    vesselId: Int
+    vesselOwnerId: Int
+}
+
+"Vessel owner period"
+type VesselOwnerPeriodVO {
+    endDate: Date
+    id: VesselOwnerPeriodId
+    startDate: Date
+    vessel: VesselVO
+    vesselId: Int
+    vesselOwner: VesselOwnerVO
+    vesselOwnerId: Int
+}
+
+type VesselOwnerVO {
+    activityStartDate: Date
+    city: String
+    countryLocation: LocationVO
+    dateOfBirth: Date
+    email: String
+    faxNumber: String
+    firstName: String
+    id: Int
+    lastName: String
+    mobileNumber: String
+    phoneNumber: String
+    program: ProgramVO
+    registrationCode: String
+    retirementDate: Date
+    street: String
+    updateDate: Date
+    zipCode: String
 }
 
 type VesselPositionVO {
@@ -2303,6 +2365,7 @@ input ActivityCalendarFilterVOInput {
     startDate: Date
     vesselId: Int
     vesselIds: [Int]
+    year: Int
 }
 
 input ActivityCalendarVOInput {
@@ -2314,6 +2377,7 @@ input ActivityCalendarVOInput {
     economicSurvey: Boolean
     gearUseFeatures: [GearUseFeaturesVOInput]
     id: Int
+    images: [ImageAttachmentVOInput]
     measurementValues: Map_Integer_StringScalar
     program: ProgramVOInput
     qualificationComments: String
@@ -2359,6 +2423,7 @@ input AggregationStrataVOInput {
     comments: String
     creationDate: Date
     description: String
+    entityName: String
     id: Int
     isDefault: Boolean
     label: String
@@ -2426,6 +2491,7 @@ input ConfigurationVOInput {
     comments: String
     creationDate: Date
     description: String
+    entityName: String
     id: Int
     label: String
     largeLogo: String
@@ -2618,6 +2684,7 @@ input ExtractionProductVOInput {
     description: String
     docUrl: String
     documentation: String
+    entityName: String
     filterContent: String
     format: String
     id: Int
@@ -2656,6 +2723,7 @@ input ExtractionTableVOInput {
     defaultSpaceColumn: String
     defaultTechColumn: String
     description: String
+    entityName: String
     id: Int
     isSpatial: Boolean
     label: String
@@ -3440,6 +3508,7 @@ input ProgramVOInput {
     creationDate: Date
     departments: [ProgramDepartmentVOInput]
     description: String
+    entityName: String
     gearClassification: ReferentialVOInput
     gearClassificationId: Int
     id: Int
@@ -3667,6 +3736,7 @@ input SoftwareVOInput {
     comments: String
     creationDate: Date
     description: String
+    entityName: String
     id: Int
     label: String
     name: String
@@ -3722,6 +3792,7 @@ input StrategyVOInput {
     denormalizedPmfms: [DenormalizedPmfmStrategyVOInput]
     departments: [StrategyDepartmentVOInput]
     description: String
+    entityName: String
     gearIds: [Int]
     gears: [ReferentialVOInput]
     id: Int
@@ -3983,6 +4054,7 @@ input VesselFeaturesVOInput {
     hullMaterial: ReferentialVOInput
     id: Int
     ircs: String
+    isFpc: Boolean
     lengthOverAll: Float
     measurementValues: Map_Integer_StringScalar
     measurements: [MeasurementVOInput]
@@ -4027,6 +4099,18 @@ input VesselFilterVOInput {
     vesselTypeIds: [Int]
 }
 
+input VesselOwnerFilterVOInput {
+    endDate: Date
+    programIds: [Int]
+    programLabel: String
+    searchAttribute: String
+    searchAttributes: [String]
+    searchText: String
+    startDate: Date
+    vesselId: Int
+    vesselOwnerId: Int
+}
+
 input VesselPositionVOInput {
     controlDate: Date
     dateTime: Date
@@ -4042,6 +4126,9 @@ input VesselPositionVOInput {
 }
 
 input VesselRegistrationFilterVOInput {
+    endDate: Date
+    registrationLocationIds: [Int]
+    startDate: Date
     vesselId: Int
 }
 

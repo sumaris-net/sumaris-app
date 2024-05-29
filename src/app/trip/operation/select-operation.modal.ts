@@ -5,6 +5,7 @@ import { Operation } from '@app/trip/trip/trip.model';
 import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { TableElement } from '@e-is/ngx-material-table';
 import { SelectOperationByTripTable } from '@app/trip/operation/select-operation-by-trip.table';
+
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 export interface ISelectOperationModalOptions {
@@ -13,6 +14,8 @@ export interface ISelectOperationModalOptions {
   enableGeolocation?: boolean;
   gearIds?: number[];
   selectedOperation?: Operation;
+  allowParentOperation: boolean;
+  allowMultiple: boolean;
 }
 
 @Component({
@@ -30,6 +33,8 @@ export class SelectOperationModal implements OnInit, ISelectOperationModalOption
   @Input() enableGeolocation: boolean;
   @Input() gearIds: number[];
   @Input() selectedOperation: Operation;
+  @Input() allowMultiple: boolean;
+  @Input() allowParentOperation: boolean;
 
   get loading(): boolean {
     return this.table && this.table.loading;

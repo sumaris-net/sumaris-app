@@ -26,10 +26,18 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
-  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || !data.controlDate" (click)="openReport()">
-    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
-    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
-  </button>
+  <ng-container *ngIf="enableReport">
+    <button mat-menu-item *ngIf="isNewData || reportTypes.length < 2; else reportsMenuBtn" [disabled]="isNewData" (click)="openReport()">
+      <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+      <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
+    </button>
+    <ng-template #reportsMenuBtn>
+      <button mat-menu-item [matMenuTriggerFor]="reportsMenu">
+        <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
+      </button>
+    </ng-template>
+  </ng-container>
 
   <!-- reset -->
   <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
@@ -51,6 +59,21 @@
   <app-data-editor-debug-button></app-data-editor-debug-button>
 </mat-menu>
 
+<mat-menu #reportsMenu="matMenu" class="ion-no-padding">
+  <!-- header-->
+  <ion-row class="mat-menu-header ion-no-padding column">
+    <ion-col>
+      <ion-label>{{ 'COMMON.REPORT.TYPE_DIVIDER' | translate }}</ion-label>
+    </ion-col>
+  </ion-row>
+
+  <ng-container *ngFor="let item of reportTypes">
+    <button mat-menu-item (click)="openReport(item.key)">
+      <ion-label>{{ item.value | translate }}</ion-label>
+    </button>
+  </ng-container>
+</mat-menu>
+
 <ion-content>
   <mat-tab-group
     #tabGroup
@@ -65,7 +88,7 @@
     <mat-tab
       [label]="'ACTIVITY_CALENDAR.EDIT.TAB_GENERAL' | translateContext: i18nContext.suffix"
       appSubMenuTab
-      [subMenuTitle]="(titleSubject | async | noHtml) || ''"
+      [subMenuTitle]="(titleMenu$ | async) || ''"
       [parentPath]="defaultBackHref"
     >
       <ng-template mat-tab-label>
@@ -97,10 +120,13 @@
                 [requiredStrategy]="requiredStrategy$ | async"
                 [strategyId]="strategy$ | async | mapGet: 'id'"
                 [showError]="false"
+                [showProgram]="isNewData"
+                [showVessel]="isNewData"
+                [showYear]="isNewData"
                 [mobile]="mobile"
                 [debug]="debug"
                 (onSubmit)="save($event)"
-                [timezone]="dbTimeZone"
+                [timezone]="timezone"
               ></app-form-activity-calendar>
             </ion-col>
 
@@ -134,6 +160,102 @@
       </div>
     </mat-tab>
 
+    <!-- TAB: Vessel -->
+    <mat-tab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_VESSEL' | translateContext: i18nContext.suffix" [disabled]="!showVesselTab" appSubMenuTab>
+      <ng-template mat-tab-label>
+        <mat-icon><ion-icon matPrefix slot="start" name="boat"></ion-icon></mat-icon>
+        <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_VESSEL</ion-label>
+      </ng-template>
+
+      <mat-tab-group
+        #tabGroup
+        class="mat-mdc-tab-fixed-content"
+        [class.mobile]="mobile"
+        [(selectedIndex)]="selectedSubTabIndex"
+        (selectedTabChange)="onSubTabChange($event)"
+        [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+        [dynamicHeight]="false"
+      >
+        <!-- TAB: vessel history -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon>history</mat-icon>
+            &nbsp;
+            <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_HISTORY</ion-label>
+          </ng-template>
+
+          <ion-grid class="ion-no-padding ion-padding-start">
+            <ion-row>
+              <ion-col>
+                <app-vessel-features-history-table
+                  #featuresHistoryTable
+                  [showGrossTonnageGrtColumn]="true"
+                  [showHullMaterialColumn]="true"
+                  [showFpcColumn]="true"
+                  [showCommentsColumn]="false"
+                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES_DIVIDER'"
+                  [basePortLocationColumnTitle]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
+                  [debug]="debug"
+                ></app-vessel-features-history-table>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <app-vessel-registration-history-table
+                  #registrationHistoryTable
+                  [showRegistrationLocationColumn]="true"
+                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATION_DIVIDER'"
+                  [registrationLocationColumnTitle]="'ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION' | translate"
+                  [debug]="debug"
+                ></app-vessel-registration-history-table>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <app-vessel-owner-history-table
+                  #ownerHistoryTable
+                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER_DIVIDER'"
+                  [debug]="debug"
+                ></app-vessel-owner-history-table>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <h3>
+                  <ion-label translate>ACTIVITY_CALENDAR.EDIT.PHOTO</ion-label>
+                </h3>
+                <app-image-attachment-gallery
+                  #galleryHistory
+                  [disabled]="disabled"
+                  [readOnly]="true"
+                  [showToolbar]="false"
+                  [mode]="'mosaic'"
+                  [debug]="debug"
+                ></app-image-attachment-gallery>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </mat-tab>
+
+        <!-- TAB: vessel photo -->
+        <mat-tab>
+          <ng-template mat-tab-label>
+            <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
+            &nbsp;
+            <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_PHOTO</ion-label>
+          </ng-template>
+
+          <app-image-attachment-gallery
+            #gallery
+            [disabled]="disabled"
+            [showAddCardButton]="true"
+            [showFabButton]="mobile"
+            [debug]="debug"
+          ></app-image-attachment-gallery>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-tab>
+
     <!-- TAB: Calendar -->
     <mat-tab
       #calendarTab
@@ -144,8 +266,8 @@
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="calendar"></ion-icon></mat-icon>
         <ion-label
-          [matBadge]="calendar?.visibleRowCount"
-          [matBadgeHidden]="!calendar || calendar.invalid || !calendar.visibleRowCount"
+          [matBadge]="calendar?.validRowCount$ | push"
+          [matBadgeHidden]="!(calendar?.validRowCount$ | push)"
           matBadgeOverlap="false"
           matBadgeColor="primary"
           matBadgeSize="small"
@@ -155,33 +277,82 @@
         </ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="calendar.invalid"></ion-icon>
       </ng-template>
+      <as-split
+        #predocSplit
+        direction="vertical"
+        [useTransition]="true"
+        (dragEnd)="savePredocPanelSize($event.sizes)"
+        (transitionEnd)="savePredocPanelSize($event)"
+      >
+        <!-- Main calendar -->
+        <as-split-area [minSize]="20" size="*">
+          <!-- error -->
+          <ion-item *ngIf="calendar?.error" visible-xs visible-sm visible-mobile lines="none">
+            <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+            <ion-label color="danger" class="error" [innerHTML]="calendar.error | translate"></ion-label>
+          </ion-item>
 
-      <div class="ion-no-padding">
-        <!-- error -->
-        <ion-item *ngIf="calendar?.error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="calendar.error | translate"></ion-label>
-        </ion-item>
+          <app-calendar
+            #calendar
+            [programLabel]="programLabel$ | async"
+            [requiredStrategy]="requiredStrategy$ | async"
+            [strategyId]="(strategy$ | async)?.id"
+            [timezone]="timezone"
+            [debug]="debug"
+          ></app-calendar>
+        </as-split-area>
 
-        <app-calendar
-          #calendar
-          [programLabel]="programLabel$ | async"
-          [requiredStrategy]="requiredStrategy$ | async"
-          [strategyId]="(strategy$ | async)?.id"
-          [timezone]="dbTimeZone"
-          [debug]="debug"
-        ></app-calendar>
-      </div>
+        <!-- Predoc -->
+        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible">
+          <app-calendar
+            #predocCalendar
+            [title]="'ACTIVITY_CALENDAR.EDIT.PREDOC_TITLE'"
+            [pmfms]="calendar.pmfms$ | push"
+            [showVesselOwner]="false"
+            [showRegistrationLocation]="false"
+            [showToolbar]="true"
+            [usePageSettings]="false"
+            [toolbarColor]="'secondary'"
+            [timezone]="timezone"
+            [sticky]="true"
+            [canEdit]="false"
+            [readOnly]="true"
+            [disabled]="true"
+            [showToolbarOptions]="false"
+            [compact]="calendar.compact"
+            [debug]="debug"
+          >
+            <!-- toggle predoc -->
+            <div matToolbarStart *ngTemplateOutlet="togglePredocButton"></div>
+          </app-calendar>
+        </as-split-area>
+      </as-split>
     </mat-tab>
 
     <!-- TAB: Métiers -->
     <mat-tab #metierTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_METIER' | translateContext: i18nContext.suffix" [disabled]="!showMap" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="settings"></ion-icon></mat-icon>
-        <ion-label>
+        <ion-label
+          [matBadge]="tableMetier?.visibleRowCount"
+          [matBadgeHidden]="!tableMetier || tableMetier.invalid || !tableMetier.visibleRowCount"
+          matBadgeOverlap="false"
+          matBadgeColor="primary"
+          matBadgeSize="small"
+          matBadgePosition="above after"
+        >
           {{ metierTab.textLabel }}
         </ion-label>
       </ng-template>
+      <app-gear-use-features-table
+        #tableMetier
+        [programLabel]="programLabel$ | async"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="(strategy$ | async)?.id"
+        [timezone]="timezone"
+        [showGearColumn]="false"
+        [showMetierColumn]="true"
+      ></app-gear-use-features-table>
     </mat-tab>
 
     <!-- TAB: Map -->
@@ -204,13 +375,15 @@
           <app-calendar
             #mapCalendar
             [style]="'accordion'"
-            [programLabel]="programLabel$ | async"
-            [requiredStrategy]="requiredStrategy$ | async"
-            [strategyId]="(strategy$ | async)?.id"
-            [timezone]="dbTimeZone"
+            [pmfms]="calendar.pmfms$ | push"
+            [timezone]="timezone"
             [showVesselOwner]="false"
             [showRegistrationLocation]="false"
-            [showMonth]="debug"
+            [showMonth]="false"
+            [showToolbar]="false"
+            [enableCellSelection]="false"
+            [usePageSettings]="false"
+            [compact]="true"
             [debug]="debug"
           ></app-calendar>
         </as-split-area>
@@ -219,6 +392,7 @@
   </mat-tab-group>
 </ion-content>
 
+<!-- form bottom toolbar -->
 <ion-footer hidden-xs hidden-sm hidden-mobile>
   <app-form-buttons-bar
     (onCancel)="reloadWithConfirmation()"
@@ -226,6 +400,11 @@
     (onSave)="save($event)"
     [disabled]="!dirty || loading"
   >
+    <!-- Show predoc button -->
+    @if (!_predocPanelVisible && selectedTabIndex === 2) {
+      <ng-container *ngTemplateOutlet="togglePredocButton; context: { label: 'ACTIVITY_CALENDAR.EDIT.BTN_SHOW_PREDOC' }"></ng-container>
+    }
+
     <!-- error -->
     <ion-item *ngIf="error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -247,6 +426,29 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<ng-template #togglePredocButton let-label="label">
+  @if (label) {
+    <ion-button
+      color="tertiary"
+      [title]="(_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate"
+      [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
+      (click)="toggleShowPredoc($event)"
+    >
+      <mat-label [innerHTML]="label | translate"></mat-label>
+      <mat-icon slot="end">{{ _predocPanelVisible ? 'expand_more' : 'expand_less' }}</mat-icon>
+    </ion-button>
+  } @else {
+    <button
+      mat-icon-button
+      [title]="(_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate"
+      [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
+      (click)="toggleShowPredoc($event)"
+    >
+      <mat-icon>{{ _predocPanelVisible ? 'expand_more' : 'expand_less' }}</mat-icon>
+    </button>
+  }
+</ng-template>
 
 <ng-template #debugPanel>
   <app-debug title="Editor and Form">
@@ -274,7 +476,9 @@
           <br />
           editor.vesselCountryId: {{ vesselCountryId }}
           <br />
-          editor.dbTimeZone: {{ dbTimeZone }}
+          editor.timezone: {{ timezone }}
+          <br />
+          editor.predocProgramLabels: {{ (predocProgramLabels$ | async)?.join(',') }}
           <br />
         </ion-col>
         <ion-col>

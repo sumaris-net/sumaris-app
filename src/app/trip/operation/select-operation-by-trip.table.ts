@@ -56,10 +56,13 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   @Input() showToolbar = true;
   @Input() showPaginator = false;
   @Input() showFilter = true;
+  @Input() showTripId: boolean;
   @Input() sticky = true;
   @Input() enableGeolocation = false;
   @Input() gearIds: number[];
   @Input() selectedOperation: Operation;
+  @Input() allowMultiple: boolean = false;
+  @Input() allowParentOperation: boolean = false;
 
   get sortActive(): string {
     const sortActive = super.sortActive;
@@ -70,7 +73,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
           return 'physicalGear.gear.' + this.displayAttributes.gear[0];
         case 'targetSpecies':
           return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
-        case 'tripId':
+        case 'quality':
           return 'trip';
         default:
           return sortActive;
@@ -81,7 +84,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
       switch (sortActive) {
         case 'targetSpecies':
           return 'metier';
-        case 'tripId':
+        case 'quality':
           return 'trip';
         default:
           return sortActive;
@@ -91,6 +94,24 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
 
   get sortByDistance(): boolean {
     return this.enableGeolocation && (this.sortActive === 'startPosition' || this.sortActive === 'endPosition');
+  }
+
+  @Input()
+  set showSelectColumn(value: boolean) {
+    this.setShowColumn('select', value);
+  }
+
+  get showSelectColumn(): boolean {
+    return this.getShowColumn('select');
+  }
+
+  @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
   }
 
   constructor(
@@ -107,7 +128,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     super(
       injector,
       RESERVED_START_COLUMNS.concat([
-        'tripId',
+        'quality',
         'physicalGear',
         'targetSpecies',
         'startDateTime',
@@ -145,11 +166,11 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
     this.autoLoad = false; // waiting selectedOperation to be loaded
+    this.showTripId = false; //this.accountService.isAdmin();
 
     this.defaultPageSize = -1; // Do not use paginator
     this.defaultSortBy = this.mobile ? 'startDateTime' : 'endDateTime';
     this.defaultSortDirection = this.mobile ? 'desc' : 'asc';
-    this.excludesColumns = ['select'];
 
     this.filterForm = formBuilder.group({
       startDate: null,
@@ -182,6 +203,10 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
 
   ngOnInit() {
     super.ngOnInit();
+
+    if (!this.allowMultiple) {
+      this.showSelectColumn = false;
+    }
 
     // Apply filter value
     const filter = this.filter;

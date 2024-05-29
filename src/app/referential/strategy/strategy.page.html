@@ -41,7 +41,7 @@
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>PROGRAM.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && strategyForm.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && referentialForm.invalid"></ion-icon>
       </ng-template>
 
       <div class="ion-padding">
@@ -78,7 +78,7 @@
         </ion-item>
 
         <!-- strategy details-->
-        <app-strategy-form #strategyForm [showBaseForm]="false" [program]="$program | async"></app-strategy-form>
+        <app-strategy-form #strategyForm [showBaseForm]="false" [showPmfmLabel]="showPmfmLabel" [program]="$program | async"></app-strategy-form>
       </div>
     </mat-tab>
 

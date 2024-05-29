@@ -49,7 +49,7 @@
 
       <!-- select year -->
       <ion-button fill="solid" color="accent" [matMenuTriggerFor]="selectYearMenu">
-        <ion-label>{{ (filterYearControl?.value | dateFormat: { pattern: 'YYYY' }) || ('COMMON.EMPTY_OPTION' | translate) }}</ion-label>
+        <ion-label>{{ filterYearControl?.value || ('COMMON.EMPTY_OPTION' | translate) }}</ion-label>
         <mat-icon slot="end">arrow_drop_down</mat-icon>
       </ion-button>
 
@@ -94,7 +94,7 @@
 <!-- select year menu  -->
 <mat-menu #selectYearMenu="matMenu" xPosition="after">
   <ng-template matMenuContent>
-    <button mat-menu-item (click)="filterYearControl.reset()">
+    <button mat-menu-item (click)="setFilterYear(null)">
       <ion-label translate>COMMON.EMPTY_OPTION</ion-label>
     </button>
     <button mat-menu-item *rxFor="let year of years$" (click)="setFilterYear(year)">
@@ -161,11 +161,15 @@
 
           <!-- Year -->
           <ion-col size="12" size-lg="3">
-            <mat-date-short-field
-              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.YEAR' | translate"
-              formControlName="startDate"
-              [clearable]="true"
-            ></mat-date-short-field>
+            <mat-form-field floatLabel="auto">
+              <mat-label>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.YEAR' | translate }}</mat-label>
+              <mat-select formControlName="year">
+                <mat-option [value]="">{{ 'COMMON.EMPTY_OPTION' | translate }}</mat-option>
+                <mat-option *ngFor="let year of years" [value]="year">
+                  {{ year }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
           </ion-col>
         </ion-row>
 
@@ -254,10 +258,10 @@
           <ion-col>
             <mat-form-field>
               <ion-icon matPrefix name="create"></ion-icon>
-              <mat-select [formControl]="control" [placeholder]="'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate">
+              <mat-label>{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</mat-label>
+              <mat-select [formControl]="control">
                 <mat-select-trigger>
                   <span *ngIf="statusById | mapGet: control.value; let item">
-                    <ion-icon [name]="item.icon"></ion-icon>
                     {{ item.label | translate }}
                   </span>
                 </mat-select-trigger>
@@ -486,8 +490,8 @@
           <ion-label translate>ACTIVITY_CALENDAR.TABLE.ECONOMIC_SURVEY</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          <ion-text>
-            {{ (row.currentData.economicSurvey === true && 'COMMON.YES') || (row.currentData.economicSurvey === false && 'COMMON.NO') | translate }}
+          <ion-text translate>
+            {{ (row.currentData.economicSurvey === true && 'COMMON.YES') || (row.currentData.economicSurvey === false && 'COMMON.NO') || '' }}
           </ion-text>
         </td>
       </ng-container>

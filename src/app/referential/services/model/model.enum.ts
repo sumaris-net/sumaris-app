@@ -2,6 +2,7 @@ import { changeCaseToUnderscore, underscoreToChangeCase } from '@sumaris-net/ngx
 
 export const ProgramLabel = {
   SIH: 'SIH', // Used for vessel's filter
+  SIH_ACTIPRED: 'SIH-ACTIPRED', // Used for activity calendar
 };
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 export const LocationLevelIds = {
@@ -152,13 +153,18 @@ export const PmfmIds = {
   DISCARD_TYPE: 408,
   IS_SAMPLING: 409,
   LANDING_CATEGORY: 436,
-  EMV_CATEGORY: 437, // TODO override by config
+  EMV_CATEGORY: 437,
+
+  //SIZE_UNLI_CAT: , TODO not used
 
   /* OBSVENTE */
   PETS: 502,
   SALE_TYPE: 503,
   IS_OBSERVED: 510,
   NON_OBSERVATION_REASON: 511,
+
+  /* ACTIFLOT */
+  SURVEY_QUALIFICATION: 446,
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
@@ -469,7 +475,9 @@ export declare type AcquisitionLevelType =
   | 'ICE_EXPENSE'
   | 'CHILD_OPERATION'
   | 'ACTIVITY_CALENDAR'
-  | 'MONTHLY_ACTIVITY';
+  | 'MONTHLY_ACTIVITY'
+  | 'ACTIVITY_CALENDAR_GEAR_USE_FEATURES'
+  | 'ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES';
 
 export const AcquisitionLevelCodes = {
   TRIP: <AcquisitionLevelType>'TRIP',
@@ -496,6 +504,8 @@ export const AcquisitionLevelCodes = {
   CHILD_OPERATION: <AcquisitionLevelType>'CHILD_OPERATION',
   ACTIVITY_CALENDAR: <AcquisitionLevelType>'ACTIVITY_CALENDAR',
   MONTHLY_ACTIVITY: <AcquisitionLevelType>'MONTHLY_ACTIVITY',
+  ACTIVITY_CALENDAR_GEAR_USE_FEATURES: <AcquisitionLevelType>'ACTIVITY_CALENDAR_GEAR_USE_FEATURES',
+  ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES: <AcquisitionLevelType>'ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES',
 };
 
 export const SaleTypeIds = {

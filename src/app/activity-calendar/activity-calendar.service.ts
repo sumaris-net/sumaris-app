@@ -45,7 +45,7 @@ import {
 import { BehaviorSubject, Observable } from 'rxjs';
 import { IProgressionOptions, IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
+import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ActivityCalendarValidatorOptions, ActivityCalendarValidatorService } from './model/activity-calendar.validator';
 import { ActivityCalendar } from './model/activity-calendar.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
@@ -71,6 +71,8 @@ import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '@app/activity-calendar/activity-calendar.filter';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { OverlayEventDetail } from '@ionic/core';
+import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -108,49 +110,51 @@ export const ActivityCalendarFragments = {
     ${DataCommonFragments.location}
   `,
 
-  activityCalendar: gql`fragment ActivityCalendarFragment on ActivityCalendarVO {
-    id
-    program {
+  activityCalendar: gql`
+    fragment ActivityCalendarFragment on ActivityCalendarVO {
       id
-      label
+      program {
+        id
+        label
+      }
+      year
+      directSurveyInvestigation
+      economicSurvey
+      creationDate
+      updateDate
+      controlDate
+      validationDate
+      qualityFlagId
+      qualificationDate
+      qualificationComments
+      comments
+      measurementValues
+      vesselSnapshot {
+        ...LightVesselSnapshotFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      recorderPerson {
+        ...LightPersonFragment
+      }
+      vesselUseFeatures {
+        ...VesselUseFeaturesFragment
+      }
+      gearUseFeatures {
+        ...GearUseFeaturesFragment
+      }
     }
-    year
-    directSurveyInvestigation
-    economicSurvey
-    creationDate
-    updateDate
-    controlDate
-    validationDate
-    qualityFlagId
-    qualificationDate
-    qualificationComments
-    comments
-    measurementValues
-    vesselSnapshot {
-      ...LightVesselSnapshotFragment
-    }
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-    recorderPerson {
-      ...LightPersonFragment
-    }
-    vesselUseFeatures {
-      ...VesselUseFeaturesFragment
-    }
-    gearUseFeatures {
-      ...GearUseFeaturesFragment
-    }
-  }
-  ${DataCommonFragments.lightDepartment}
-  ${DataCommonFragments.lightPerson}
-  ${DataCommonFragments.referential}
-  ${DataCommonFragments.location}
-  ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${DataFragments.vesselUseFeatures}
-  ${DataFragments.gearUseFeatures}
-  ${DataCommonFragments.metier},
-  ${DataFragments.fishingArea}`,
+    ${DataCommonFragments.lightDepartment}
+    ${DataCommonFragments.lightPerson}
+    ${DataCommonFragments.referential}
+    ${DataCommonFragments.location}
+    ${VesselSnapshotFragments.lightVesselSnapshot}
+    ${DataFragments.vesselUseFeatures}
+    ${DataFragments.gearUseFeatures}
+    ${DataCommonFragments.metier}
+    ${DataFragments.fishingArea}
+  `,
 };
 
 export interface ActivityCalendarLoadOptions extends EntityServiceLoadOptions {
@@ -170,11 +174,12 @@ export interface ActivityCalendarServiceCopyOptions extends ActivityCalendarSave
 
 export interface ActivityCalendarWatchOptions extends EntitiesServiceWatchOptions {
   query?: any;
+  fullLoad?: boolean;
 }
 
 export interface ActivityCalendarControlOptions extends ActivityCalendarValidatorOptions, IProgressionOptions {}
 
-const ActivityCalendarQueries: BaseEntityGraphqlQueries = {
+const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; loadImages: any } = {
   // Load a activityCalendar
   load: gql`
     query ActivityCalendar($id: Int!) {
@@ -201,8 +206,24 @@ const ActivityCalendarQueries: BaseEntityGraphqlQueries = {
     ${ActivityCalendarFragments.lightActivityCalendar}
   `,
 
+  loadAllFull: gql`
+    query ActivityCalendarsFull(
+      $offset: Int
+      $size: Int
+      $sortBy: String
+      $sortDirection: String
+      $trash: Boolean
+      $filter: ActivityCalendarFilterVOInput
+    ) {
+      data: activityCalendars(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash) {
+        ...ActivityCalendarFragment
+      }
+    }
+    ${ActivityCalendarFragments.activityCalendar}
+  `,
+
   loadAllWithTotal: gql`
-    query ActivityCalendars(
+    query ActivityCalendarsWithTotal(
       $offset: Int
       $size: Int
       $sortBy: String
@@ -216,6 +237,18 @@ const ActivityCalendarQueries: BaseEntityGraphqlQueries = {
       total: activityCalendarsCount(filter: $filter, trash: $trash)
     }
     ${ActivityCalendarFragments.lightActivityCalendar}
+  `,
+
+  loadImages: gql`
+    query ActivityCalendarImages($id: Int!) {
+      data: activityCalendar(id: $id) {
+        id
+        images {
+          ...LightImageAttachmentFragment
+        }
+      }
+    }
+    ${ImageAttachmentFragments.light}
   `,
 };
 
@@ -285,7 +318,6 @@ const ActivityCalendarSubscriptions = {
     ${ActivityCalendarFragments.lightActivityCalendar}
   `,
 };
-
 @Injectable({ providedIn: 'root' })
 export class ActivityCalendarService
   extends RootDataSynchroService<ActivityCalendar, ActivityCalendarFilter, number, ActivityCalendarWatchOptions, ActivityCalendarLoadOptions>
@@ -387,6 +419,7 @@ export class ActivityCalendarService
       query?: any;
       debug?: boolean;
       withTotal?: boolean;
+      fullLoad?: boolean;
     }
   ): Promise<LoadResult<ActivityCalendar>> {
     const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
@@ -394,7 +427,8 @@ export class ActivityCalendarService
       return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
     }
 
-    return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    const query = opts?.fullLoad ? ActivityCalendarQueries.loadAllFull : undefined;
+    return super.loadAll(offset, size, sortBy, sortDirection, filter, { query, ...opts });
   }
 
   async loadAllLocally(
@@ -456,8 +490,13 @@ export class ActivityCalendarService
       sortDirection = sortDirection || 'desc';
     }
 
+    const fullLoad = opts && opts.fullLoad === true; // false by default
+    const withTotal = !opts || opts.withTotal !== false;
+    const query = fullLoad ? ActivityCalendarQueries.loadAllFull : withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
+
     return super.watchAll(offset, size, sortBy, sortDirection, dataFilter as ActivityCalendarFilter, {
-      fetchPolicy: (opts && opts.fetchPolicy) || 'cache-and-network',
+      query,
+      fetchPolicy: opts?.fetchPolicy || 'cache-and-network',
       ...opts,
       variables: {
         ...opts?.variables,
@@ -528,6 +567,15 @@ export class ActivityCalendarService
     } finally {
       this.loading = false;
     }
+  }
+
+  async loadImages(id: number, opts?: { toEntity?: boolean }): Promise<ImageAttachment[]> {
+    const { data } = await this.graphql.query<{ data: Partial<ActivityCalendar> }>({
+      query: ActivityCalendarQueries.loadImages,
+      variables: { id },
+      error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
+    });
+    return opts?.toEntity === false ? ((data?.images || []) as ImageAttachment[]) : data?.images?.map(ImageAttachment.fromObject) || [];
   }
 
   async hasOfflineData(): Promise<boolean> {
@@ -1146,7 +1194,7 @@ export class ActivityCalendarService
         // No program
         if (isNilOrBlank(programLabel)) {
           console.warn('[activity-calendar-service] [import] Cannot reducing importation (no program): can be long!');
-          opts.entityNames = [...IMPORT_REFERENTIAL_ENTITIES, ...WEIGHT_CONVERSION_ENTITIES];
+          opts.entityNames = [...IMPORT_REFERENTIAL_ENTITIES];
         }
 
         // Fill options using program
@@ -1156,19 +1204,18 @@ export class ActivityCalendarService
           opts.program = program;
           opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
 
-          // Limit locations (e.g. rectangle)
-          // TODO limit to location levels used in calendar
+          // Limit locations (e.g. rectangle, sub-rectangle)
+          // TODO limit to location levels used
           //opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
           if (isNotEmptyArray(opts.locationLevelIds))
             console.debug('[activity-calendar-service] [import] Location - level ids: ' + opts.locationLevelIds.join(','));
-
-          // TODO limit vessels (e.g. using PERSON_SESSION_VESSEL ?)
         }
       }),
 
       ...super.getImportJobs(filter, opts),
 
-      // TODO: import historical data ?
+      // TODO: import calendars ?
+      // TODO: import predoc calendars ?
     ];
   }
 

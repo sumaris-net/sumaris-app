@@ -1,4 +1,27 @@
+<app-debug [title]="'Image gallery'" *ngIf="debug">
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      <ion-col>
+        ready: {{ readySubject | async }}
+        <br />
+        loading: {{ loading }}
+        <br />
+        enabled: {{ enabled }}
+        <br />
+        dirty: {{ dirty }}
+        <br />
+        valid: {{ valid }}
+      </ion-col>
+      <ion-col>
+        error: {{ errorSubject | async }}
+        <br />
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</app-debug>
+
 <app-image-gallery
+  #gallery
   [dataSource]="galleryDataSource"
   [mobile]="mobile"
   [disabled]="disabled"
@@ -10,4 +33,5 @@
   [showFabButton]="showFabButton"
   (onAfterAddRows)="onAfterAddRows($event)"
   (onAfterEditRow)="onAfterEditRow($event)"
+  [debug]="debug"
 ></app-image-gallery>

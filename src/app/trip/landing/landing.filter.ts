@@ -153,4 +153,13 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
 
     return filterFns;
   }
+
+  protected isCriteriaNotEmpty(key: string, value: any): boolean {
+    switch (key) {
+      case 'observedLocationId':
+        return false; // Ignore observedLocationId
+      default:
+        return super.isCriteriaNotEmpty(key, value);
+    }
+  }
 }

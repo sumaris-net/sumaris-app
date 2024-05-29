@@ -20,13 +20,17 @@ export class FishingArea extends DataEntity<FishingArea> {
     );
   }
 
-  static isEmpty(value: Partial<FishingArea>): boolean {
+  static isNotEmpty(o: Partial<FishingArea>): boolean {
+    return !FishingArea.isEmpty(o);
+  }
+
+  static isEmpty(o: Partial<FishingArea>): boolean {
     return (
-      !value ||
-      (ReferentialUtils.isEmpty(value.location) &&
-        ReferentialUtils.isEmpty(value.distanceToCoastGradient) &&
-        ReferentialUtils.isEmpty(value.depthGradient) &&
-        ReferentialUtils.isEmpty(value.nearbySpecificArea))
+      !o ||
+      (ReferentialUtils.isEmpty(o.location) &&
+        ReferentialUtils.isEmpty(o.distanceToCoastGradient) &&
+        ReferentialUtils.isEmpty(o.depthGradient) &&
+        ReferentialUtils.isEmpty(o.nearbySpecificArea))
     );
   }
 

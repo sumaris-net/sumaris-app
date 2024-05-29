@@ -1,12 +1,15 @@
 import { Injectable } from '@angular/core';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import {
   AppFormArray,
+  equals,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
+  ReferentialUtils,
   SharedFormArrayValidators,
   SharedFormGroupValidators,
   toBoolean,
@@ -25,12 +28,16 @@ import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { Subject, Subscription, tap } from 'rxjs';
 import { debounceTime, filter, map, startWith } from 'rxjs/operators';
+import { FORM_VALIDATOR_OPTIONS_PROPERTY } from '@app/shared/service/base.validator.service';
 
 export interface ActivityMonthValidatorOptions extends GearUseFeaturesValidatorOptions {
+  required?: boolean;
+
   metierCount?: number;
   maxMetierCount?: number;
   fishingAreaCount?: number;
   maxFishingAreaCount?: number;
+  debounceTime?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -85,7 +92,7 @@ export class ActivityMonthValidatorService<
       month: [toNumber(data?.month, null), Validators.required],
       startDate: [data?.startDate || null, Validators.required],
       endDate: [data?.endDate || null, Validators.required],
-      isActive: [toNumber(data?.isActive, null), Validators.required],
+      isActive: [toNumber(data?.isActive, null), opts?.required ? Validators.required : undefined],
       basePortLocation: [data?.basePortLocation || null],
       measurementValues: this.formBuilder.group({}),
     });
@@ -106,9 +113,9 @@ export class ActivityMonthValidatorService<
     return <AbstractControlOptions>{
       validators: [
         SharedFormGroupValidators.dateRange('startDate', 'endDate'),
-        /*SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
-          predicate: (control) => control.value !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
-        }),*/
+        SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
+          predicate: (control) => control.value === VesselUseFeaturesIsActiveEnum.ACTIVE || control.value === VesselUseFeaturesIsActiveEnum.INACTIVE,
+        }),
       ],
     };
   }
@@ -116,7 +123,22 @@ export class ActivityMonthValidatorService<
   updateFormGroup(form: UntypedFormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
 
+    // Update form group validators
+    const previousOpts = form[FORM_VALIDATOR_OPTIONS_PROPERTY];
+
+    // Remember new options
+    form[FORM_VALIDATOR_OPTIONS_PROPERTY] = opts;
+
     const enabled = form.enabled;
+    const isActive = form.get('isActive').value;
+
+    // Is active
+    const isActiveControl = form.get('isActive');
+    if (opts.required && !isActiveControl.hasValidator(Validators.required)) {
+      isActiveControl.addValidators(Validators.required);
+    } else if (!opts.required && isActiveControl.hasValidator(Validators.required)) {
+      isActiveControl.removeValidators(Validators.required);
+    }
 
     // TODO update metier, gear, fishing areas
     let gufArray = form.get('gearUseFeatures') as AppFormArray<GearUseFeatures, UntypedFormGroup>;
@@ -135,38 +157,41 @@ export class ActivityMonthValidatorService<
       // Set start/end date, and fishing area
       const startDate = form.get('startDate').value;
       const endDate = form.get('endDate').value;
+      const gufEnabled = enabled && isActive === VesselUseFeaturesIsActiveEnum.ACTIVE;
       gufArray.forEach((guf) => {
         // Init fishing areas
+        let faArray = guf.get('fishingAreas') as AppFormArray<FishingArea, UntypedFormGroup>;
         if (opts?.withFishingAreas) {
-          let faArray = guf.get('fishingAreas') as AppFormArray<FishingArea, UntypedFormGroup>;
           if (!faArray) {
             faArray = this.getFishingAreaArray(null, { required: !opts.isOnFieldMode });
-            guf.addControl('fishingAreas', faArray);
+            guf.addControl('fishingAreas', faArray, { emitEvent: false });
           }
-          if (!faArray.length && isNotNil(opts?.fishingAreaCount)) {
-            faArray.resize(opts.fishingAreaCount);
+          if (isNotNil(opts?.fishingAreaCount)) {
+            faArray.resize(opts.fishingAreaCount, { emitEvent: false });
           }
-          if (enabled && !faArray.enabled) faArray.enable();
-          else if (!enabled && faArray.enabled) faArray.disable();
+          if (gufEnabled && faArray.disabled) faArray.enable({ emitEvent: false });
+          else if (!gufEnabled && faArray.enabled) faArray.disable({ emitEvent: false });
         } else {
-          //if (guf.controls.fishingAreas) guf.removeControl('fishingAreas');
-          if (guf.controls.fishingAreas) guf.controls.fishingAreas.disable();
+          //if (faArray) guf.removeControl('fishingAreas');
+          if (faArray) faArray.disable({ emitEvent: false });
         }
 
         // Init start/end date
         guf.patchValue({ startDate, endDate }, { emitEvent: false });
 
-        if (enabled && !guf.enabled) guf.enable();
-        else if (!enabled && guf.enabled) guf.disable();
+        if (gufEnabled && !guf.enabled) guf.enable({ emitEvent: false });
+        else if (!gufEnabled && guf.enabled) guf.disable({ emitEvent: false });
       });
     } else {
       //if (gufArray) form.removeControl('gearUseFeatures');
-      if (gufArray?.enabled) gufArray.disable();
+      if (gufArray?.enabled) gufArray.disable({ emitEvent: false, onlySelf: true });
     }
 
-    // Update form group validators
-    const formValidators = this.getFormGroupOptions(null, opts)?.validators;
-    form.setValidators(formValidators);
+    // Update form group validators (if changes)
+    if (!equals(previousOpts, opts)) {
+      const formValidators = this.getFormGroupOptions(null, opts)?.validators;
+      form.setValidators(formValidators);
+    }
   }
 
   getI18nError(errorKey: string, errorContent?: any): any {
@@ -177,7 +202,7 @@ export class ActivityMonthValidatorService<
   getGearUseFeaturesArray(data?: GearUseFeatures[], opts?: GearUseFeaturesValidatorOptions & { required?: boolean }) {
     const required = !opts || opts.required !== false;
     const formArray = new AppFormArray(
-      (fa) => this.gearUseFeaturesValidator.getFormGroup(fa, opts),
+      (fa) => this.gearUseFeaturesValidator.getFormGroup(fa, { ...opts, requiredMetier: false, requiredFishingAreas: false }),
       GearUseFeatures.equals,
       GearUseFeatures.isEmpty,
       {
@@ -211,6 +236,7 @@ export class ActivityMonthValidatorService<
   protected fillDefaultOptions(opts?: O): O {
     opts = super.fillDefaultOptions(opts);
 
+    opts.required = toBoolean(opts.required, true);
     opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY);
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, isNotEmptyArray(opts.pmfms) || isNotNil(opts.strategy));
@@ -224,7 +250,7 @@ export class ActivityMonthValidatorService<
 }
 
 export class ActivityMonthValidators {
-  static startListenChanges(form: UntypedFormGroup, pmfms: IPmfm[], opts?: { markForCheck: () => void }): Subscription {
+  static startListenChanges(form: UntypedFormGroup, pmfms: IPmfm[], opts?: { markForCheck: () => void; debounceTime?: number }): Subscription {
     if (!form) {
       console.warn("Argument 'form' required");
       return null;
@@ -240,8 +266,17 @@ export class ActivityMonthValidators {
         filter(() => !computing),
         // Protected against loop
         tap(() => (computing = true)),
-        debounceTime(50),
-        map(() => ActivityMonthValidators.computeAndValidate(form, { ...opts, emitEvent: false, onlySelf: false })),
+        debounceTime(toNumber(opts?.debounceTime, 0)),
+        map(() =>
+          form.touched
+            ? ActivityMonthValidators.computeAndValidate(form, {
+                ...form[FORM_VALIDATOR_OPTIONS_PROPERTY],
+                ...opts,
+                emitEvent: false,
+                onlySelf: false,
+              })
+            : undefined
+        ),
         tap((errors) => {
           computing = false;
           $errors.next(errors);
@@ -272,37 +307,77 @@ export class ActivityMonthValidators {
     console.debug('[activity-month-validator] Starting computation and validation...');
     let errors: any;
 
-    const isActiveControl = form.get('isActive');
-    const isActive = isActiveControl.value;
+    const isActiveControl = form.get('isActive') as UntypedFormControl;
+    const gearUseFeaturesArray = form.get('gearUseFeatures') as AppFormArray<GearUseFeatures, UntypedFormGroup>;
+    let dirty = false;
 
-    // Disable computed pmfms
+    // Get isActive value, and force  ACTIVE when having metier
+    let isActive = isActiveControl.value;
+    if (isNil(isActive)) {
+      // Check each gear use features
+      const hasMetier = (gearUseFeaturesArray.value as any[]).some((guf) => isNotNil(guf.metier?.id));
+      if (hasMetier) {
+        isActive = VesselUseFeaturesIsActiveEnum.ACTIVE;
+        isActiveControl.setValue(isActive, { emitEvent: false });
+        dirty = true;
+      }
+    }
+
+    // Check isActive
     if (isNotNil(isActive)) {
       const measurementForm = form.get('measurementValues');
       const basePortLocationControl = form.get('basePortLocation');
-      let gearUseFeatures = form.get('gearUseFeatures');
       switch (isActive) {
         case VesselUseFeaturesIsActiveEnum.ACTIVE: {
           if (basePortLocationControl.disabled) basePortLocationControl.enable({ emitEvent: false });
           if (measurementForm.disabled) measurementForm.enable({ emitEvent: false });
-          if (gearUseFeatures?.disabled) gearUseFeatures.enable({ emitEvent: false });
+          if (gearUseFeaturesArray?.disabled) gearUseFeaturesArray.enable({ emitEvent: false });
+
+          // Check each gear use features
+          (gearUseFeaturesArray.value as any[]).forEach((guf, index) => {
+            const faArray = gearUseFeaturesArray.get([index, 'fishingAreas']) as AppFormArray<any, any>;
+            if (isNotNil(guf.metier?.id)) {
+              if (faArray.disabled) faArray.enable({ emitEvent: false });
+            } else {
+              if (faArray.enabled) faArray.disable({ emitEvent: false });
+            }
+            if (isNotNil(opts?.fishingAreaCount)) {
+              faArray.resize(opts?.fishingAreaCount, { emitEvent: false });
+            }
+          });
+          //const errorMetier =
+
           break;
         }
         case VesselUseFeaturesIsActiveEnum.INACTIVE: {
-          measurementForm.reset(null, { emitEvent: false });
           if (basePortLocationControl.disabled) basePortLocationControl.enable({ emitEvent: false });
-          if (measurementForm.enabled) measurementForm.disable({ emitEvent: false });
-          if (gearUseFeatures?.enabled) gearUseFeatures.disable({ emitEvent: false });
+          if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
+            measurementForm.reset(null, { emitEvent: false });
+            dirty = true;
+          }
+          if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
+          if (gearUseFeaturesArray?.enabled) gearUseFeaturesArray.disable({ emitEvent: false });
           break;
         }
         case VesselUseFeaturesIsActiveEnum.NOT_EXISTS: {
-          basePortLocationControl.reset(null, { emitEvent: false });
+          if (ReferentialUtils.isNotEmpty(basePortLocationControl.value)) {
+            basePortLocationControl.reset(null, { emitEvent: false });
+            dirty = true;
+          }
           if (basePortLocationControl.enabled) basePortLocationControl.disable({ emitEvent: false });
-          measurementForm.reset(null, { emitEvent: false });
-          if (measurementForm.enabled) measurementForm.disable({ emitEvent: false });
-          if (gearUseFeatures?.enabled) gearUseFeatures.disable({ emitEvent: false });
+          if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
+            measurementForm.reset(null, { emitEvent: false });
+            dirty = true;
+          }
+          if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
+          if (gearUseFeaturesArray?.enabled) gearUseFeaturesArray.disable({ emitEvent: false });
           break;
         }
       }
+    }
+
+    if (dirty) {
+      form.markAsDirty();
     }
 
     if (opts?.markForCheck) {

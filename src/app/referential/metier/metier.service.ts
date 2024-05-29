@@ -3,10 +3,6 @@ import { ReferentialService } from '@app/referential/services/referential.servic
 import { AccountService, GraphqlService, LocalSettingsService, MINIFY_ENTITY_FOR_POD, ReferentialRef } from '@sumaris-net/ngx-components';
 import { Metier } from '@app/referential/metier/metier.model';
 
-const MetierQueries = {
-  load: '',
-};
-
 @Injectable({ providedIn: 'root' })
 export class MetierService extends ReferentialService<Metier> {
   constructor(

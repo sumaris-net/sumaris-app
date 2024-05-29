@@ -12,8 +12,10 @@ import {
   ViewChildren,
 } from '@angular/core';
 import {
+  Alerts,
   DateUtils,
   EntityUtils,
+  getPropertyByPath,
   IEntitiesService,
   InMemoryEntitiesService,
   isEmptyArray,
@@ -24,12 +26,13 @@ import {
   LoadResult,
   LocalSettingsService,
   MatAutocompleteFieldConfig,
-  Referential,
-  ReferentialRef,
   ReferentialUtils,
+  removeDuplicatesFromArray,
+  RESERVED_START_COLUMNS,
   sleep,
   splitById,
   StatusIds,
+  toBoolean,
   toDateISOString,
   UsageMode,
   waitFor,
@@ -48,7 +51,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Observable, Subscription } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
 import { UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
@@ -59,7 +62,13 @@ import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measure
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { Moment } from 'moment/moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
+import { map } from 'rxjs/operators';
+import { Metier } from '@app/referential/metier/metier.model';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
+const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
 const MAX_FISHING_AREA_COUNT = 2;
 const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
@@ -115,6 +124,7 @@ export interface CalendarComponentState extends BaseMeasurementsTableState {
   vesselOwners: VesselOwner[];
   dynamicColumns: ColumnDefinition[];
   metierCount: number;
+  validRowCount: number;
 }
 
 export type CalendarComponentStyle = 'table' | 'accordion';
@@ -155,11 +165,12 @@ export class CalendarComponent
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
   @RxStateSelect() protected months$: Observable<Moment[]>;
-  readonly isActiveList = IsActiveList;
-  readonly isActiveMap = Object.freeze(splitById(IsActiveList));
+  @RxStateSelect() validRowCount$: Observable<number>;
+  protected readonly isActiveList = IsActiveList;
+  protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
+  protected readonly hiddenColumns = RESERVED_START_COLUMNS;
 
   protected rowSubscription: Subscription;
-  protected hiddenColumns = ['select', 'id'];
   protected resizingCell: {
     validating?: boolean;
     axis?: 'x' | 'y';
@@ -176,9 +187,11 @@ export class CalendarComponent
   @RxStateProperty() vesselOwners: VesselOwner[];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
   @RxStateProperty() metierCount: number;
+  @RxStateProperty() validRowCount: number;
 
   @Input() @RxStateProperty() months: Moment[];
 
+  @Input() title: string = null;
   @Input() locationDisplayAttributes: string[];
   @Input() basePortLocationLevelIds: number[];
   @Input() fishingAreaLocationLevelIds: number[];
@@ -187,8 +200,10 @@ export class CalendarComponent
   @Input() maxMetierCount = MAX_METIER_COUNT;
   @Input() maxFishingAreaCount = MAX_FISHING_AREA_COUNT;
   @Input() usageMode: UsageMode;
+  @Input() showToolbarOptions = true;
   @Input() showPmfmDetails = false;
   @Input() style: CalendarComponentStyle = 'table';
+  @Input() enableCellSelection: boolean;
 
   @Input() set month(value: number) {
     this.filter = ActivityMonthFilter.fromObject({ month: value });
@@ -298,18 +313,24 @@ export class CalendarComponent
         },
       }
     );
+    this.confirmBeforeCancel = false;
     this.inlineEdition = true;
     this.autoLoad = true;
     this.sticky = true;
+    this.compact = null;
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
     this.excludesColumns = [...DYNAMIC_COLUMNS];
+    this.toolbarColor = 'medium';
     this.logPrefix = '[activity-calendar] ';
+    this.loadingSubject.next(true);
   }
 
   async ngOnInit() {
     super.ngOnInit();
 
     this.locationDisplayAttributes = this.locationDisplayAttributes || this.settings.getFieldDisplayAttributes('location');
+    this.inlineEdition = this.inlineEdition && this.canEdit;
+    this.enableCellSelection = this.inlineEdition && toBoolean(this.enableCellSelection, this.style === 'table' && this.canEdit);
 
     await this.referentialRefService.ready();
 
@@ -326,8 +347,8 @@ export class CalendarComponent
 
     this.registerAutocompleteField('metier', {
       suggestFn: (value, filter) => this.suggestMetiers(value, filter),
-      mobile: this.mobile,
       displayWith: (obj) => obj?.label || '',
+      mobile: this.mobile,
     });
 
     this.registerAutocompleteField('fishingAreaLocation', {
@@ -337,16 +358,26 @@ export class CalendarComponent
         entityName: 'Location',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      //attributes: this.locationDisplayAttributes,
       attributes: ['label'],
       mobile: this.mobile,
     });
 
-    //this.markAsReady();
+    this._state.connect(
+      'validRowCount',
+      this._dataSource.rowsSubject.pipe(
+        map((rows) => {
+          return rows.filter((row) => isNotNil(row.currentData?.isActive)).length;
+        })
+      )
+    );
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
+  }
+
+  protected generateTableId(): string {
+    return super.generateTableId();
   }
 
   initTableContainer(element: any) {
@@ -356,13 +387,13 @@ export class CalendarComponent
 
   markAsReady(opts?: { emitEvent?: boolean }) {
     if (this.style === 'accordion') {
-      this._children = this._children || (this.monthCalendars.length ? this.monthCalendars.toArray() : null);
-      if (isEmptyArray(this._children)) {
-        waitFor(() => this.monthCalendars.length > 0, { stop: this.destroySubject, stopError: false }).then(() => this.markAsReady(opts));
-        return;
-      }
-      this._children?.forEach((c) => c.markAsReady(opts));
-      super.markAsReady(opts);
+      // Set months
+      this.months = this.months || CalendarUtils.getMonths(DateUtils.moment().year(), this.timezone);
+
+      this.waitForChildren().then(() => {
+        this._children?.forEach((c) => c.markAsReady(opts));
+        super.markAsReady(opts);
+      });
     } else {
       super.markAsReady(opts);
     }
@@ -378,41 +409,68 @@ export class CalendarComponent
 
     switch (this.style) {
       // Table
-      case 'table':
+      case 'table': {
+        // Get min metier count
+        const metierBlockCount = data.reduce(
+          (res, month) => Math.max(month.gearUseFeatures?.length || 0, res),
+          this.canEdit ? DEFAULT_METIER_COUNT : 0
+        );
+        console.debug(this.logPrefix + 'Metier block count=' + metierBlockCount);
+
+        // Fill metier block
+        data.forEach((month) => {
+          month.gearUseFeatures = month.gearUseFeatures || [];
+          if (month.gearUseFeatures.length < metierBlockCount) {
+            month.gearUseFeatures = month.gearUseFeatures.concat(
+              new Array(metierBlockCount - month.gearUseFeatures.length).fill({}).map(GearUseFeatures.fromObject)
+            );
+          }
+          month.gearUseFeatures.forEach((guf) => {
+            guf.fishingAreas = guf.fishingAreas || [];
+            if (guf.fishingAreas.length < this.maxFishingAreaCount) {
+              guf.fishingAreas = guf.fishingAreas.concat(
+                new Array(this.maxFishingAreaCount - guf.fishingAreas.length).fill({}).map(FishingArea.fromObject)
+              );
+            }
+          });
+        });
+
+        while (this.metierCount < metierBlockCount) {
+          this.addMetierBlock(null, { emitEvent: true, updateRows: false });
+        }
+
         // Set data service
         this.memoryDataService.value = data;
 
-        this.waitIdle({ stop: this.destroySubject }).then(() => {
-          const metierBlockCount = data.reduce((res, month) => Math.max(month.gearUseFeatures?.length || 0, res), 0);
-          // DEBUG
-          console.debug(this.logPrefix + 'Metier block count=' + metierBlockCount);
-
-          while (this.metierCount < metierBlockCount) {
-            this.addMetierBlock();
-          }
-        });
-
         // Load vessels
         if (isNotEmptyArray(data)) {
-          const year = data[0].startDate.year();
+          const year = data[0]?.startDate.year();
           const vesselId = data[0].vesselId;
           if (isNotNil(vesselId)) {
             await this.loadVessels(vesselId, year);
           }
         }
         break;
-
+      }
       // Accordion
-      case 'accordion':
+      case 'accordion': {
         await this.waitForChildren();
+        const firstDayOfYear = this.months?.[0];
         this._children.map((child, index) => {
           const month = child.month;
-          const filteredMonth = data.find((am) => am.month === month);
+          const filteredMonth =
+            data.find((am) => am.startDate?.month() === month) ||
+            <ActivityMonth>{
+              month: month,
+              startDate: firstDayOfYear.clone().month(month),
+              endDate: firstDayOfYear.clone().month(month).endOf('month'),
+            };
           child.value = [filteredMonth];
         });
         this.markAsLoaded();
         this.memoryDataService.value = []; // Not need
         break;
+      }
     }
   }
 
@@ -486,7 +544,8 @@ export class CalendarComponent
 
   async waitForChildren(opts?: WaitForOptions) {
     if (this.style === 'accordion' && isEmptyArray(this._children)) {
-      return waitFor(() => this.monthCalendars.length > 0, { stop: this.destroySubject, stopError: false, ...opts });
+      await waitFor(() => this.monthCalendars.length === 12, { stop: this.destroySubject, stopError: false, ...opts });
+      this._children = this.monthCalendars.toArray();
     }
   }
 
@@ -585,56 +644,41 @@ export class CalendarComponent
   }
 
   protected async validate(event: { colspan: number; rowspan: number }): Promise<boolean> {
-    // TODO display merge menu
+    // TODO display merge/opts menu
     await sleep(500);
     return true;
   }
 
   protected onMouseEnd(event: { colspan: number; rowspan: number }) {
-    const columnName = this.resizingCell.columnName;
-    switch (columnName) {
-      case 'basePortLocation':
-      case 'isActive': {
-        if (event.colspan > 0 && event.rowspan === 1) {
-          this.confirmEditCreate();
-          const sourceRow = this.resizingCell.row;
-          const sourceValue = sourceRow.currentData[columnName];
-          const minRowId = sourceRow.id + 1;
-          const maxRowId = sourceRow.id + (event.colspan - 1);
-
-          const targetRows = this.dataSource.getRows().filter((row) => row.id >= minRowId && row.id <= maxRowId);
-
-          // DEBUG
-          if (this.debug) console.debug(this.logPrefix + `Copying ${columnName} to ${targetRows.length} months ...`, targetRows);
-
-          targetRows.forEach((targetRow) => {
-            if (targetRow.validator) {
-              targetRow.validator.patchValue({ [columnName]: sourceValue });
-              targetRow.validator.markAsDirty();
-            }
-          });
-          this.markForCheck();
-        }
-      }
+    // Vertical copy
+    if (event.colspan !== 0 && event.rowspan === 1) {
+      return this.copyVertically(this.resizingCell.row, this.resizingCell.columnName, event.colspan);
     }
+
     return true;
   }
 
   clickRow(event: Event | undefined, row: TableElement<ActivityMonth>): boolean {
     if (this.resizingCell || event.defaultPrevented) return; // Skip
 
+    if (!this.canEdit) return false;
     return super.clickRow(event, row);
   }
 
-  cancelOrDelete(event: Event, row: TableElement<ActivityMonth>, opts?: { interactive?: boolean; keepEditing?: boolean }) {
+  cancelOrDelete(event: Event, row: TableElement<ActivityMonth>, opts?: { interactive?: boolean; keepEditing?: boolean; emitEvent?: boolean }) {
     event?.preventDefault();
+    this.rowSubscription?.unsubscribe();
     super.cancelOrDelete(event, row, { ...opts, keepEditing: false });
-
-    // Update view
-    if (!row.editing) this.markForCheck();
+    // Listen changes, if still editing (e.g. when cannot cancel)
+    if (row.editing) this.startListenRowFormChanges(row.validator);
+    else {
+      row.validator.markAsPristine();
+      // Update view
+      if (opts?.emitEvent !== false) this.markForCheck();
+    }
   }
 
-  addMetierBlock(event?: UIEvent, opts?: { emitEvent?: boolean }) {
+  addMetierBlock(event?: UIEvent, opts?: { emitEvent?: boolean; updateRows?: boolean }) {
     // Skip if reach max
     if (this.metierCount >= this.maxMetierCount) {
       console.warn(this.logPrefix + 'Unable to add metier: max=' + this.maxMetierCount);
@@ -671,18 +715,27 @@ export class CalendarComponent
           autocomplete: this.autocompleteFields.fishingAreaLocation,
           path: `${pathPrefix}fishingAreas.${faIndex}.location`,
           key: `metier${rankOrder}FishingArea${faRankOrder}`,
+          class: 'mat-column-fishingArea',
           treeIndent: '&nbsp;&nbsp;',
         };
       }),
     ];
 
-    this.dataSource.getRows().forEach((row) => this.onPrepareRowForm(row.validator, { listenChanges: false }));
+    // Update rows validator
+    if (this.loaded && this.inlineEdition && opts?.updateRows !== false) {
+      this.dataSource.getRows().forEach((row) => this.onPrepareRowForm(row.validator, { listenChanges: false }));
+    }
 
     this.focusColumn = blockColumns[0].key;
     this.dynamicColumns = this.dynamicColumns ? [...this.dynamicColumns, ...blockColumns] : blockColumns;
     const dynamicColumnKeys = this.dynamicColumns.map((col) => col.key);
     this.excludesColumns = this.excludesColumns.filter((columnName) => !dynamicColumnKeys.includes(columnName));
     this.metierCount = newMetierCount;
+
+    // Force to update the edited row
+    if (this.editedRow) {
+      this.onPrepareRowForm(this.editedRow.validator, { listenChanges: false });
+    }
 
     if (opts?.emitEvent !== false) {
       this.updateColumns();
@@ -701,21 +754,32 @@ export class CalendarComponent
     }
   }
 
-  protected async suggestMetiers(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+  protected async suggestMetiers(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<Metier>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    // Get metiers to exclude (already existing)
+    const existingMetierIds =
+      this.editedRow && removeDuplicatesFromArray((this.editedRow.currentData?.gearUseFeatures || []).map((guf) => guf.metier?.id).filter(isNotNil));
+
     // eslint-disable-next-line prefer-const
-    let { data, total } = await this.referentialRefService.suggest(value, {
-      ...METIER_DEFAULT_FILTER,
-      ...filter,
-      searchJoin: 'TaxonGroup',
-      searchJoinLevelIds: this.metierTaxonGroupIds || [TaxonGroupTypeIds.NATIONAL_METIER],
-    });
-    if (isNotEmptyArray(data)) {
-      const ids = data.map((item) => item.id);
-      const sortBy = (filter?.searchAttribute || filter?.searchAttributes?.[0] || 'label') as keyof Referential;
-      data = await this.referentialRefService.loadAllByIds(ids, 'Metier', sortBy, 'asc');
-    }
-    return { data, total };
+    let { data, total } = await this.referentialRefService.suggest(
+      value,
+      {
+        ...METIER_DEFAULT_FILTER,
+        ...filter,
+        excludedIds: existingMetierIds,
+      },
+      null,
+      null,
+      {
+        toEntity: false, // convert manually
+        withProperties: true /* need to fill properties.gear */,
+      }
+    );
+    // Convert to Metier entities (using `properties.gear` to fill the gear)
+    const entities = ((data || []) as any[]).map((source) => Metier.fromObject({ ...source, ...source.properties }));
+
+    return { data: entities, total };
   }
 
   protected onPrepareRowForm(
@@ -726,25 +790,39 @@ export class CalendarComponent
   ) {
     if (!form || !this.validatorService) return;
 
+    this.markAsDirty();
+
     const isActive = form.get('isActive').value;
-    console.debug(this.logPrefix + 'Preparing row form... isActive=' + isActive, form);
 
     opts = {
+      required: false,
       withMetier: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
       withFishingAreas: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
       metierCount: this.metierCount,
-      fishingAreaCount: 1, //this.maxFishingAreaCount,
+      fishingAreaCount: this.maxFishingAreaCount,
       isOnFieldMode: this.isOnFieldMode,
       ...opts,
     };
+
+    if (this.debug) console.debug(this.logPrefix + 'Updating row form...', opts);
     this.validatorService.updateFormGroup(form, opts);
 
     if (opts?.listenChanges !== false) {
-      this.rowSubscription?.unsubscribe();
-      this.rowSubscription = ActivityMonthValidators.startListenChanges(form, this.pmfms, {
-        markForCheck: () => this.markForCheck(),
-      });
+      this.startListenRowFormChanges(form);
     }
+  }
+
+  protected startListenRowFormChanges(form: UntypedFormGroup) {
+    this.rowSubscription?.unsubscribe();
+    console.debug(this.logPrefix + 'Listening row form...', form);
+    this.rowSubscription = ActivityMonthValidators.startListenChanges(form, this.pmfms, {
+      markForCheck: () => this.markForCheck(),
+      debounceTime: 100,
+    });
+    /*this.rowSubscription = form.valueChanges.subscribe((value) => {
+      this.onPrepareRowForm(form, { listenChanges: false });
+    });*/
+    this.rowSubscription.add(() => console.debug(this.logPrefix + 'Stop listening row form...', form));
   }
 
   protected configureValidator(opts: MeasurementsTableValidatorOptions) {
@@ -754,6 +832,59 @@ export class CalendarComponent
       maxMetierCount: this.maxMetierCount,
       maxFishingAreaCount: this.maxFishingAreaCount,
     };
+  }
+
+  confirmEditCreate(event?: Event, row?: TableElement<ActivityMonth>): boolean {
+    row = row || this.editedRow;
+    if (!row || !row.editing) return true; // no row to confirm
+
+    // If pristine, cancel instead of confirmed
+    if (row.validator.pristine && !row.validator.valid) {
+      this.cancelOrDelete(event, row);
+      return true;
+    }
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    return super.confirmEditCreate(event, row);
+  }
+
+  async clear(event?: Event, row?: TableElement<ActivityMonth>) {
+    row = row || this.editedRow;
+    if (!row || event.defaultPrevented) return true; // no row to confirm
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_MONTH', this.alertCtrl, this.translate);
+    if (!confirmed) return false; // User cancelled
+
+    if (this.debug) console.debug(this.logPrefix + 'Clear row', row);
+
+    const currentData = row.currentData;
+    if (ActivityMonth.isEmpty(currentData)) return true; // Nothing to clear
+
+    const { startDate, endDate } = currentData;
+    const data = ActivityMonth.fromObject({
+      startDate,
+      endDate,
+      measurementValues: MeasurementValuesUtils.normalizeValuesToForm({}, this.pmfms),
+      gearUseFeatures: new Array(this.maxMetierCount).fill({
+        startDate,
+        endDate,
+        fishingAreas: new Array(this.maxFishingAreaCount).fill({}),
+      }),
+    });
+
+    if (row.validator && row.editing) {
+      row.originalData = data;
+      this.cancelOrDelete(event, row, { keepEditing: true });
+    } else {
+      row.currentData = data;
+    }
+    this.markAsDirty({ emitEvent: false });
+    this.markForCheck();
   }
 
   toggleBlock(event: UIEvent, blockIndex: number) {
@@ -804,5 +935,71 @@ export class CalendarComponent
 
   protected setFocusColumn(key: string) {
     this.focusColumn = key;
+  }
+
+  protected copyVertically(sourceRow: TableElement<ActivityMonth>, columnName: string, colspan: number) {
+    if (!sourceRow || !columnName || colspan === 0 || !this.enabled) return false;
+
+    console.debug(this.logPrefix + `Copying vertically ${columnName} - colspan=${colspan}`);
+
+    // Get column
+    const dynamicColumns = this.dynamicColumns?.find((c) => c.key === columnName);
+    const validColumn = !!dynamicColumns || columnName === 'isActive' || columnName === 'basePortLocation' || PMFM_ID_REGEXP.test(columnName);
+    if (!validColumn) return false;
+
+    const path = dynamicColumns?.path || (PMFM_ID_REGEXP.test(columnName) ? `measurementValues.${columnName}` : columnName);
+
+    // Get target rows
+    const minRowId = colspan > 0 ? sourceRow.id + 1 : sourceRow.id + colspan + 1;
+    const maxRowId = colspan > 0 ? sourceRow.id + colspan - 1 : sourceRow.id - 1;
+    const targetRows = this.dataSource.getRows().filter((row) => row.id >= minRowId && row.id <= maxRowId);
+    if (isEmptyArray(targetRows)) return false; // Skip if empty
+
+    // DEBUG
+    if (this.debug) console.debug(this.logPrefix + `Copying vertically ${columnName} to ${targetRows.length} months ...`, targetRows);
+
+    // Get source value (after confirmed if row is editing)
+    this.confirmEditCreate(); // Row can be NOT confirmed, but it's OK
+    const sourceValue = getPropertyByPath(sourceRow.currentData, path);
+
+    let dirty = false;
+    targetRows.forEach((row, index) => {
+      const form = row.validator;
+      if (form) {
+        const isActiveControl = form.get('isActive');
+        let isActive = isActiveControl.value;
+        if (isNotNil(sourceValue) && columnName !== 'isActive' && columnName !== 'basePortLocation') {
+          if (isNil(isActive)) {
+            isActive = VesselUseFeaturesIsActiveEnum.ACTIVE;
+            isActiveControl.patchValue(isActive, { emitEvent: false });
+            dirty = true;
+          }
+          // Prepare the form
+          this.onPrepareRowForm(form, { listenChanges: false });
+        }
+
+        const control = form.get(path);
+        if (control && (isActive === VesselUseFeaturesIsActiveEnum.ACTIVE || columnName === 'isActive' || columnName === 'basePortLocation')) {
+          control.setValue(isNil(sourceValue) ? null : sourceValue);
+          form.markAllAsTouched();
+          form.markAsDirty();
+          dirty = true;
+        } else {
+          console.debug(`- Skipping copy value to month ${index + 1}`);
+        }
+      }
+    });
+
+    if (dirty) {
+      this.markAsDirty({ emitEvent: false });
+      this.markForCheck();
+    }
+
+    return dirty;
+  }
+
+  markAsDirty(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    if (this.loading) return; // Skip while loading
+    super.markAsDirty(opts);
   }
 }

@@ -27,6 +27,7 @@
 
   .mat-column-pmfm {
     min-width: 250px;
+    max-width: unset;
   }
 
   .mat-column-minValue,
@@ -36,11 +37,15 @@
   }
 
   .mat-column-defaultValue {
-    min-width: 100px;
+    min-width: 50px;
+    max-width: 110px;
   }
 
   .mat-column-isMandatory {
     max-width: 40px;
+  }
+  .mat-column-conditions {
+    max-width: 50px;
   }
 
   .mat-mdc-header-cell.hidden,

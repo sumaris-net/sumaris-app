@@ -1,4 +1,3 @@
-
 // --------------------------------------------------
 // Theme Colors
 // --------------------------------------------------
@@ -7,7 +6,7 @@
 $primary: #144391;
 $primary100: #718dbc;
 $primary900: #0e2e63;
-$secondary: #75C4FD;
+$secondary: #75c4fd;
 $secondary50: #d2edfe;
 $secondary100: #abdbfe;
 $secondary900: #5086ad;
@@ -57,13 +56,14 @@ $app-form-color-disabled: rgba(0, 0, 0, 0.57);
 $app-form-color-computed: var(--ion-color-tertiary, #{$tertiary});
 
 // Form's field background
-$app-form-field-background-color: rgb(245,245,245) !default;
+$app-form-field-background-color: rgb(245, 245, 245) !default;
+$app-form-field-focus-background-color: #fafafa !default;
 $app-form-field-disabled-background-color: #fafafa !default;
 
 // Form fields background : transparent
 //$app-form-field-background-color: transparent !default;
+//$app-form-field-focus-background-color: transparent !default;
 //$app-form-field-disabled-background-color: transparent !default;
 
-
 // Load defaults
-@import "@sumaris-net/ngx-components/src/theme/globals";
+@import '@sumaris-net/ngx-components/src/theme/globals';

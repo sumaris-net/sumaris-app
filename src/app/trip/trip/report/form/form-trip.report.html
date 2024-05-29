@@ -58,6 +58,7 @@
   </ion-item>
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
+    <!-- Trip card -->
     <section *sectionDef class="portrait">
       <ion-grid class="report-header ion-no-padding">
         <ion-row class="document-title">
@@ -293,7 +294,7 @@
     <!-- Operations table -->
     @if (data.operations | isNotEmptyArray) {
       <section *sectionDef>
-        @for (ops of data.operations | splitArrayInChunks: maxLinePeerTable; track $index) {
+        @for (ops of data.operations | splitArrayInChunks: 9; track $index) {
           <section class="landscape">
             <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE' }"></ng-content>
             <ion-grid class="report-section ion-no-padding">
@@ -333,7 +334,7 @@
                 </tr>
                 <tr>
                   <th class="col-tiny font-medium text-vertical">
-                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.NUM_OP' | translate }}</div>
+                    <div>{{ 'TRIP.REPORT.FORM.NUM_OP' | translate }}</div>
                   </th>
                   <th class="col-tiny font-small text-vertical">
                     <div class="text-vertical">
@@ -518,7 +519,7 @@
 
           <!-- Operation comments -->
           <section class="landscape">
-            <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE' }"></ng-content>
+            <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE_VERSO' }"></ng-content>
             <table class="table-full-width" [style.margin-top]="'50px'">
               <thead>
                 <tr>
@@ -554,7 +555,7 @@
     <!-- Physical gears -->
     @if (data.gears | isNotEmptyArray) {
       <section *sectionDef>
-        @for (physicalGears of data.gears | splitArrayInChunks: maxGearPeepPage; track physicalGearSplitIndex; let physicalGearSplitIndex = $index) {
+        @for (physicalGears of data.gears | splitArrayInChunks: 3; track physicalGearSplitIndex; let physicalGearSplitIndex = $index) {
           <section class="portrait">
             <ng-content
               *ngTemplateOutlet="
@@ -613,33 +614,185 @@
       </section>
     }
 
-    <!-- Iterate over all batches by operation ids -->
-    @for (opId of stats.denormalizedBatchesByOp | mapKeys; track opId) {
-      <section *sectionDef>
-        <!-- Iterate over all types of batches (landing/discard) -->
-        @for (batchType of stats.denormalizedBatchesByOp | mapGet: opId | mapKeys; track $index) {
-          <ng-content
-            *ngTemplateOutlet="
-              batchesTable;
-              context: {
-                batchType: batchType,
-                opId: opId,
-                batches: stats.denormalizedBatchesByOp | mapGet: opId | mapGet: batchType
-              }
-            "
-          ></ng-content>
-        }
-      </section>
+    <!-- Batch section by operation -->
+    @for (opId of stats.denormalizedBatchByOp | mapKeys; track opId) {
+      @if (stats.denormalizedBatchByOp | mapGet: opId; as batchesByType) {
+        <section *sectionDef>
+          @if (batchesByType | mapGet: 'landing' | isNotEmptyArray) {
+            <ng-content
+              *ngTemplateOutlet="
+                batchesTable;
+                context: {
+                  $implicit: (batchesByType | mapGet: 'landing'),
+                  batchType: 'landing',
+                  opId: opId
+                }
+              "
+            ></ng-content>
+          }
+          @if (batchesByType | mapGet: 'discard' | isNotEmptyArray) {
+            <ng-content
+              *ngTemplateOutlet="
+                batchesTable;
+                context: {
+                  $implicit: batchesByType | mapGet: 'discard',
+                  batchType: 'discard',
+                  opId: opId
+                }
+              "
+            ></ng-content>
+          }
+        </section>
+      }
+    }
+
+    <!-- Sample by operation -->
+    @for (operation of data?.operations; track operation.id) {
+      @if (operation?.samples | isNotEmptyArray) {
+        <section *sectionDef>
+          @for (samplesChunk of operation?.samples | splitArrayInChunks: 18; track operationChunkIndex; let operationChunkIndex = $index) {
+            <section class="landscape">
+              <ng-content
+                *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.SAMPLE.TABLE.TITLE', titleParams: { pageNumber: operationChunkIndex + 1 } }"
+              ></ng-content>
+              <ion-grid class="report-section ion-no-padding">
+                <ion-row class="section-title ion-margin-bottom">
+                  <ion-col size="auto">
+                    <h3>{{ 'TRIP.REPORT.FORM.NUM_OP' | translate }}</h3>
+                  </ion-col>
+                  <ion-col class="title-value ion-text-center font-large" size="auto">
+                    @if (!isBlankForm) {
+                      {{ operation.rankOrder }}
+                    }
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+              <table [style.--row-height]="'30px'">
+                <thead>
+                  <tr>
+                    @if (stats.options.sampleLabelEnabled) {
+                      <th class="col-compact font-medium">
+                        <div>{{ 'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nContext.suffix }}</div>
+                      </th>
+                    } @else {
+                      <th class="col-tiny font-medium text-vertical">
+                        <div>{{ 'TRIP.SAMPLE.TABLE.RANK_ORDER' | translateContext: i18nContext.suffix }}</div>
+                      </th>
+                    }
+                    @if (stats.options.sampleTaxonNameEnabled) {
+                      <th class="col-medium font-medium">
+                        <div>{{ 'TRIP.SAMPLE.TABLE.TAXON_NAME' | translateContext: i18nContext.suffix }}</div>
+                      </th>
+                    }
+                    @if (stats.options.sampleTaxonGroupEnabled) {
+                      <th class="col-medium font-medium">
+                        <div>{{ 'TRIP.SAMPLE.TABLE.TAXON_GROUP' | translateContext: i18nContext.suffix }}</div>
+                      </th>
+                    }
+                    @for (pmfm of stats.pmfms.samples; track pmfm.id) {
+                      <th class="col-compact ion-text-center font-medium">
+                        <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nContext: i18nContext.suffix }"></div>
+                      </th>
+                    }
+                    <th class="col-extra-large font-medium">
+                      <div>
+                        {{ 'TRIP.REPORT.FORM.COMMENTS' | translate }}
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (sample of samplesChunk; track sample.id) {
+                    <tr>
+                      @if (stats.options.sampleLabelEnabled) {
+                        <td class="col-compact font-medium">
+                          <div>
+                            <b>{{ sample.label }}</b>
+                          </div>
+                        </td>
+                      } @else {
+                        <td class="col-tiny ion-text-center font-medium" [style.padding]="0">
+                          <div>
+                            <b>{{ sample.rankOrder }}</b>
+                          </div>
+                        </td>
+                      }
+                      @if (stats.options.sampleTaxonNameEnabled) {
+                        <td class="col-medium">
+                          {{ sample.taxonName | referentialToString }}
+                        </td>
+                      }
+                      @if (stats.options.sampleTaxonGroupEnabled) {
+                        <td class="col-medium">
+                          {{ sample.taxonGroup | referentialToString }}
+                        </td>
+                      }
+                      @for (pmfm of stats.pmfms.samples; track pmfm.id) {
+                        <td
+                          class="col-compact ion-text-center"
+                          [innerHtml]="
+                            sample.measurementValues
+                              | mapGet: pmfm.id
+                              | pmfmValue
+                                : {
+                                    pmfm: stats.pmfmsByIds.samples | mapGet: pmfm.id,
+                                    propertyNames: ['label', 'name']
+                                  }
+                          "
+                        ></td>
+                      }
+                      <td class="col-extra-large">
+                        {{ sample.comments }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
+            </section>
+          }
+          @for (
+            imagesChunk of stats.sampleImagesByOperationIds | mapGet: operation.id | splitArrayInChunks: 6;
+            track imagesChunkIndex;
+            let imagesChunkIndex = $index
+          ) {
+            <section class="landscape">
+              <ng-content
+                *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.SAMPLE.TABLE.TITLE', titleParams: { pageNumber: imagesChunkIndex + 1 } }"
+              ></ng-content>
+              <ion-grid class="report-section ion-no-padding">
+                <ion-row class="section-title ion-margin-bottom">
+                  <ion-col size="auto">
+                    <h3>{{ 'TRIP.REPORT.FORM.NUM_OP' | translate }}</h3>
+                  </ion-col>
+                  <ion-col class="title-value ion-text-center font-large" size="auto">
+                    @if (!isBlankForm) {
+                      {{ operation.rankOrder }}
+                    }
+                  </ion-col>
+                </ion-row>
+                <ion-row class="gallery">
+                  @for (image of imagesChunk; track $index) {
+                    <ion-col size="auto">
+                      <figure>
+                        <img [src]="image.url || image.dataUrl" [alt]="image.title" />
+                        <figcaption>{{ image.title }}</figcaption>
+                      </figure>
+                    </ion-col>
+                  }
+                </ion-row>
+              </ion-grid>
+              <ng-content *ngTemplateOutlet="pageFooter"></ng-content>
+            </section>
+          }
+        </section>
+      }
     }
   </app-reveal>
 
   <!-- "type" can be 'landing' or 'discard' -->
-  <ng-template #batchesTable let-batchType="batchType" let-opId="opId" let-batches="batches">
-    @for (
-      batchesChunk of (batches | arrayFilter: isNotTreeBatchRootElement | arrayFilter: isNotSamplingBatch) | splitArrayInChunks:maxBatchesLinesPeerTable;
-      track $index;
-      let isLastBatchesChunk = $last , isFirstBatchesChunk = $first
-    ) {
+  <ng-template #batchesTable let-batches let-batchType="batchType" let-opId="opId">
+    @for (batchesChunk of batches | splitArrayInChunks: 24; track $index; let isLastBatchesChunk = $last , isFirstBatchesChunk = $first) {
       <section class="portrait">
         <ng-content
           *ngTemplateOutlet="
@@ -742,13 +895,9 @@
                 <td class="col-medium">{{ batch.taxonGroup | referentialToString }}</td>
                 <td class="col-medium">{{ batch.taxonName | referentialToString }}</td>
                 <td class="col-extra-large no-margin no-padding">
-                  <div class="denormalized-batch-sorting-values-text">
-                    <div class="denormalized-batch-tree-indent">
-                      @for (component of batch | denormalizedBatchGetTreeIndentComponents: { cleanRootElement: true }; track $index) {
-                        <div [class]="component"></div>
-                      }
-                    </div>
-                    <div>
+                  <div class="denormalized-batch-sorting-values">
+                    <div class="denormalized-batch-tree-indent" [innerHtml]="batch.treeIndent"></div>
+                    <div class="denormalized-batch-sorting-values-text">
                       @if (batch.qualityFlagId | qualityFlagInvalid) {
                         <ion-icon [name]="batch.qualityFlagId | qualityFlagToIcon" color="danger"></ion-icon>
                       }
@@ -772,9 +921,6 @@
                           }
                         }
                       </b>
-                      <!-- {{ batch.treeLevel }}<br/> -->
-                      <!-- {{ batch.label }}<br/> -->
-                      <!-- {{ batch | denormalizedBatchGetTreeIndentComponents: {cleanRootElement: true, cleanSamplingElement: true} | json}} -->
                     </div>
                   </div>
                 </td>
@@ -788,15 +934,13 @@
                     {{ batch.elevateIndividualCount }}
                   }
                 </td>
-                @if (batch | denormalizeBatchSamplingChildOrSelf: batches; as samplingBatch) {
-                  <td class="col-small ion-text-right">{{ samplingBatch.samplingRatioText || samplingBatch.samplingRatio }}</td>
-                  <td class="col-small ion-text-right" [class.computed]="samplingBatch.weight | isNil">
-                    {{ samplingBatch.weight || samplingBatch.indirectWeight }}
-                  </td>
-                  <td class="col-small ion-text-right" [class.computed]="samplingBatch.individualCount | isNil">
-                    {{ samplingBatch.individualCount || samplingBatch.indirectIndividualCount }}
-                  </td>
-                }
+                <td class="col-small ion-text-right">{{ batch.samplingRatioText || batch.samplingRatio }}</td>
+                <td class="col-small ion-text-right" [class.computed]="batch.weight | isNil">
+                  {{ batch.weight || batch.indirectWeight }}
+                </td>
+                <td class="col-small ion-text-right" [class.computed]="batch.individualCount | isNil">
+                  {{ batch.individualCount || batch.indirectIndividualCount }}
+                </td>
               </tr>
             }
           </tbody>
@@ -849,7 +993,12 @@
           </ion-grid>
         </ion-col>
         <ion-col>
-          <h2>{{ title | translate: titleParams }}</h2>
+          <h2>
+            {{ title | translateContext: i18nContext.suffix : titleParams }}
+            @if (titleParams?.pageNumber; as pageNumber) {
+              ({{ 'COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber } }})
+            }
+          </h2>
         </ion-col>
         <ion-col class="logo" size="auto">
           @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {

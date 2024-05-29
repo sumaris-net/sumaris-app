@@ -75,9 +75,12 @@ export abstract class BaseMeasurementsTable<
   private _autoLoadAfterPmfm = true;
   private _addingRow = false;
 
+  protected generateTableIdWithProgramLabel = true;
+
   protected readonly programRefService = inject(ProgramRefService);
   protected readonly pmfmNamePipe = inject(PmfmNamePipe);
   protected readonly formBuilder = inject(UntypedFormBuilder);
+  @RxStateSelect() protected programLabel$: Observable<string>;
   @RxStateSelect() protected acquisitionLevel$: Observable<AcquisitionLevelType>;
   @RxStateSelect() protected initialPmfms$: Observable<IPmfm[]>;
   @RxStateSelect() protected filteredPmfms$: Observable<IPmfm[]>;
@@ -202,7 +205,8 @@ export abstract class BaseMeasurementsTable<
       this._state.select(['programLabel', 'acquisitionLevel', 'requiredStrategy', 'strategyId', 'strategyLabel', 'requiredGear', 'gearId'], (s) => s),
       (state) => {
         // DEBUG
-        //console.debug(this.logPrefix + 'Updating measurement-service state ', state.acquisitionLevel);
+        //console.debug(this.logPrefix + 'Updating measurement-service state:', state);
+
         this._dataService.set(state);
       }
     );
@@ -211,8 +215,8 @@ export abstract class BaseMeasurementsTable<
     this._state.set(<Partial<ST>>{
       strategyId: null,
       strategyLabel: null,
-      gearId: null,
       requiredGear,
+      gearId: requiredGear ? undefined : null,
       ...options?.initialState,
     });
 
@@ -264,7 +268,9 @@ export abstract class BaseMeasurementsTable<
         }
 
         // Update the settings id, as program could have changed
-        this.settingsId = this.generateTableId();
+        if (this.generateTableIdWithProgramLabel) {
+          this.settingsId = this.generateTableId();
+        }
 
         // Add pmfm columns
         this.updateColumns();
@@ -281,6 +287,14 @@ export abstract class BaseMeasurementsTable<
       })
     );
 
+    if (this.generateTableIdWithProgramLabel) {
+      this._state.hold(this.programLabel$, () => {
+        // Update the settings id, as program could have changed
+        this.settingsId = this.generateTableId();
+        this.restoreCompactMode();
+      });
+    }
+
     // Listen row edition
     if (this.inlineEdition) {
       this.registerSubscription(this.onStartEditingRow.subscribe((row) => this._onRowEditing(row)));
@@ -290,6 +304,11 @@ export abstract class BaseMeasurementsTable<
   ngOnDestroy() {
     super.ngOnDestroy();
     this._dataService?.stop();
+  }
+
+  restoreCompactMode(opts?: { emitEvent?: boolean }) {
+    if (!this.programLabel) return;
+    super.restoreCompactMode(opts);
   }
 
   protected configureValidator(opts?: MeasurementsTableValidatorOptions) {
@@ -312,8 +331,11 @@ export abstract class BaseMeasurementsTable<
   }
 
   protected generateTableId(): string {
-    // Append the program, if any
-    return [super.generateTableId(), this.programLabel].filter(isNotNil).join('-');
+    if (this.generateTableIdWithProgramLabel) {
+      // Append the program, if any
+      return [super.generateTableId(), this.programLabel].filter(isNotNil).join('-');
+    }
+    return super.generateTableId();
   }
 
   protected getDisplayColumns(): string[] {

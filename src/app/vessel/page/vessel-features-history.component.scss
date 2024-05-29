@@ -11,6 +11,13 @@
   .mat-column-comments {
     max-width: 110px;
   }
+  .mat-column-fpc {
+    max-width: 50px;
+  }
+
+  .mat-column-basePortLocation {
+    min-width: 150px;
+  }
 
   mat-mdc-header-cell.hidden,
   mat-mdc-cell.hidden {

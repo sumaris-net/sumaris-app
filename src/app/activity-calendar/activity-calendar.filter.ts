@@ -4,13 +4,11 @@ import {
   EntityAsObjectOptions,
   EntityClass,
   FilterFn,
-  fromDateISOString,
   isNil,
   isNotEmptyArray,
   isNotNil,
   ReferentialRef,
 } from '@sumaris-net/ngx-components';
-import { Moment } from 'moment';
 import { ActivityCalendar } from './model/activity-calendar.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-service.class';
@@ -19,13 +17,13 @@ import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-se
 export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalendarFilter, ActivityCalendar> {
   static fromObject: (source: any, opts?: any) => ActivityCalendarFilter;
 
+  year: number = null;
+
   vesselId: number = null;
   vesselIds: number[] = null;
   vesselSnapshot: VesselSnapshot = null;
   registrationLocations: ReferentialRef[] = null;
   basePortLocations: ReferentialRef[] = null;
-  startDate: Moment = null;
-  endDate: Moment = null;
   includedIds: number[];
   excludedIds: number[];
 
@@ -36,11 +34,10 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
+    this.year = source.year;
     this.vesselId = source.vesselId;
     this.vesselIds = source.vesselIds;
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
-    this.startDate = fromDateISOString(source.startDate);
-    this.endDate = fromDateISOString(source.endDate);
     this.registrationLocations = source.registrationLocations?.map(ReferentialRef.fromObject);
     this.basePortLocations = source.basePortLocations?.map(ReferentialRef.fromObject);
     this.includedIds = source.includedIds;
@@ -104,14 +101,20 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
       );
     }
 
-    // Start/end period
-    if (this.startDate) {
-      const startYear = this.startDate.year();
-      filterFns.push((t) => startYear <= t.year);
-    }
-    if (this.endDate) {
-      const endYear = this.endDate.year();
-      filterFns.push((t) => endYear >= t.year);
+    // Year
+    if (isNotNil(this.year)) {
+      const year = this.year;
+      filterFns.push((t) => t.year === year);
+    } else {
+      // Start/end period
+      if (this.startDate) {
+        const startYear = this.startDate.year();
+        filterFns.push((t) => startYear <= t.year);
+      }
+      if (this.endDate) {
+        const endYear = this.endDate.year();
+        filterFns.push((t) => endYear >= t.year);
+      }
     }
 
     return filterFns;

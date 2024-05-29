@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person } from '@sumaris-net/ngx-components';
+import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person, toBoolean } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
@@ -19,8 +19,10 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { RxState } from '@rx-angular/state';
-import { UntypedFormGroup, Validators } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, tap } from 'rxjs';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, filter, Observable, Subscription, tap } from 'rxjs';
+import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -50,13 +52,31 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   private _parentDateTime: Moment;
   private _parentObservers: Person[];
   private _detailEditor: LandingEditor;
+  private _footerRowsSubscription: Subscription;
 
   protected vesselSnapshotService: VesselSnapshotService;
   protected referentialRefService: ReferentialRefService;
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
 
+  protected footerColumns: string[] = [];
+  protected showObservedCount: boolean;
+  @RxStateSelect() protected readonly observedCount$: Observable<number>;
+  @RxStateProperty() protected observedCount: number;
+  minObservedSpeciesCount: number;
+  maxObservedSpeciesCount: number;
+
   unknownVesselId = VesselIds.UNKNOWN;
+
+  showRowError = false;
+  errorDetails: any;
+
+  statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
+  statusById = DataQualityStatusEnum;
+  readonly filterForm: UntypedFormGroup = this.formBuilder.group({
+    observedLocationId: [null],
+    dataQualityStatus: [null],
+  });
 
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
@@ -66,6 +86,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   @Input() canDelete = true;
   @Input() showFabButton = false;
   @Input() includedPmfmIds: number[] = null;
+  @Input() useFooterSticky = true;
 
   @Input() set detailEditor(value: LandingEditor) {
     if (value !== this._detailEditor) {
@@ -181,6 +202,14 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.setParent(value);
   }
 
+  get showQualityColumn(): boolean {
+    return this.getShowColumn('quality');
+  }
+
+  get filterDataQualityControl(): UntypedFormControl {
+    return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
+  }
+
   constructor(
     injector: Injector,
     protected accountService: AccountService,
@@ -250,6 +279,9 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
         .pipe(debounceTime(250))
         .subscribe()
     );
+
+    // Add footer listener
+    this.registerSubscription(this.pmfms$.subscribe((pmfms) => this.addFooterListener(pmfms)));
   }
 
   ngOnDestroy() {
@@ -260,10 +292,27 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   }
 
   // Change visibility to public
-  setError(error: string, opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean }) {
+  setError(error: string, opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean; errorDetails?: any }) {
     super.setError(error, opts);
+    this.errorDetails = opts?.errorDetails;
 
-    // TODO: Use showOnlyInvalidRows to filter and invalidate rows
+    // If error
+    if (error) {
+      // Add filter on invalid rows (= not controlled)
+      if (!opts || opts.showOnlyInvalidRows !== false) {
+        this.showRowError = true;
+        const filter = this.filter || new LandingFilter();
+        filter.dataQualityStatus = 'MODIFIED'; // = not controlled landings
+        this.setFilter(filter);
+      }
+    }
+    // No errors
+    else {
+      // Remove filter on invalid rows
+      if (!opts || opts.showOnlyInvalidRows !== true) {
+        this.showRowError = false;
+      }
+    }
   }
 
   // Change visibility to public
@@ -417,6 +466,62 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     // When connected user is in observed location observers
     return this._parentObservers?.some((o) => o.id === personId) || false;
+  }
+
+  resetFilter(value?: any, opts?: { emitEvent: boolean }) {
+    super.resetFilter(<LandingFilter>{ ...value, observedLocationId: this.context.observedLocation.id }, opts);
+    this.resetError();
+  }
+
+  clearFilterValue(key: keyof LandingFilter, event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    this.filterForm.get(key).reset(null);
+  }
+
+  protected addFooterListener(pmfms: IPmfm[]) {
+    this.showObservedCount = this.isSaleDetailEditor && !!(pmfms && pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_OBSERVED));
+
+    // Should display observed count: add column to footer
+    if (this.showObservedCount && !this.footerColumns.includes('footer-observedCount')) {
+      this.footerColumns = [...this.footerColumns, 'footer-observedCount'];
+    }
+    // If observed count not displayed
+    else if (!this.showObservedCount) {
+      // Remove from footer columns
+      this.footerColumns = this.footerColumns.filter((column) => column !== 'footer-observedCount');
+
+      // Reset counter
+      this.observedCount = 0;
+    }
+
+    this.showFooter = this.footerColumns.length > 0;
+
+    // DEBUG
+    console.debug('[landings-table] Show footer ?', this.showFooter);
+
+    // Remove previous rows listener
+    if (!this.showFooter && this._footerRowsSubscription) {
+      this.unregisterSubscription(this._footerRowsSubscription);
+      this._footerRowsSubscription.unsubscribe();
+      this._footerRowsSubscription = null;
+    } else if (this.showFooter && !this._footerRowsSubscription) {
+      this._footerRowsSubscription = this.dataSource
+        .connect(null)
+        .pipe(
+          debounceTime(500),
+          filter((_) => !this.filterCriteriaCount) // Only if no filter criteria
+        )
+        .subscribe((rows) => this.updateFooter(rows));
+    }
+  }
+
+  protected updateFooter(rows: TableElement<Landing>[] | readonly TableElement<Landing>[]) {
+    // Update observed count
+    this.observedCount = (rows || []).map((row) => toBoolean(row.currentData.measurementValues[PmfmIds.IS_OBSERVED])).filter((val) => !!val).length;
   }
 
   protected markForCheck() {
