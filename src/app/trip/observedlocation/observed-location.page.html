@@ -180,7 +180,7 @@
                 <!-- pmfms -->
                 <ng-container *rxFor="let pmfm of pmfms; trackBy: observedLocationForm.trackPmfmFn; strategy: 'immediate'; index as i">
                   <ng-container *ngIf="topPmfmIds | arrayIncludes: pmfm.id">
-                    <ion-col size="11" size-md="5">
+                    <ion-col size="11" size-md="5" class="ion-padding-end">
                       <app-pmfm-field [pmfm]="pmfm" [controlName]="pmfm | pmfmIdString"></app-pmfm-field>
                     </ion-col>
 
