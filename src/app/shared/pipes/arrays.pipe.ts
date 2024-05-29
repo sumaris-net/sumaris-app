@@ -4,7 +4,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   name: 'splitArrayInChunks',
 })
 export class SplitArrayInChunksPipe implements PipeTransform {
-  transform<T>(value: T[], chunkSize: number): T[][] {
+  transform<T = any>(value: T[], chunkSize: number): T[][] {
     if (!value?.length) return [];
     if (chunkSize === -1) return [value]; // Only one page
     if (!chunkSize || isNaN(chunkSize) || chunkSize < 1) {

@@ -12,7 +12,7 @@ import { StrategyRefService } from '@app/referential/services/strategy-ref.servi
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
-import { TranslateContextService, isEmptyArray, isNotEmptyArray, isNotNil, referentialToString, sleep } from '@sumaris-net/ngx-components';
+import { isEmptyArray, isNotEmptyArray, isNotNil, referentialToString, sleep, TranslateContextService } from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../../activity-calendar.service';
 import { ActivityMonth } from '../../calendar/activity-month.model';
 import { ActivityMonthUtils } from '../../calendar/activity-month.utils';
@@ -186,7 +186,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
         strategyId: stats.strategy.id,
       }),
       physicalGear: await this.programRefService.loadProgramPmfms(data.program.label, {
-        acquisitionLevel: AcquisitionLevelCodes.PHYSICAL_GEAR,
+        acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
         strategyId: stats.strategy.id,
       }),
     };

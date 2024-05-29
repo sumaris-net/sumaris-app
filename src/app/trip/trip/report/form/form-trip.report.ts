@@ -43,7 +43,7 @@ export class FormTripReportStats extends BaseReportStats {
   strategy: Strategy;
   operationRankOrderByOperationIds: { [key: number]: number };
   operationsRankByGears: { [key: number]: number[] };
-  pmfmByGearsId: { [key: number]: number[] };
+  pmfmByGearsId: { [key: number]: IPmfm[] };
   denormalizedBatchByOp: {
     [key: number]: {
       landing?: DenormalizedBatch[];
@@ -361,4 +361,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       pmfmPrefix: 'TRIP.REPORT.FORM.PMFM.',
     };
   }
+
+  protected readonly DenormalizedBatch = DenormalizedBatch;
 }

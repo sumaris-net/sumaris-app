@@ -286,7 +286,7 @@
                         <tbody>
                           @for (pmfm of stats.pmfm.physicalGear; track pmfm.id) {
                             <tr [style.--col-width]="pageDimensions.gufTableColTitleWidth + 'px'">
-                              <th>{{ pmfm.name }}</th>
+                              <th>{{ pmfm | pmfmName }}</th>
                               @for (guf of data.gearUseFeatures; track guf.id) {
                                 <td
                                   [style.--col-width]="

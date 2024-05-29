@@ -614,30 +614,30 @@
       </section>
     }
 
-    <!-- Batch card by operation -->
+    <!-- Batch section by operation -->
     @for (opId of stats.denormalizedBatchByOp | mapKeys; track opId) {
-      @if (stats.denormalizedBatchByOp | mapGet: 'opId' | mapGet: 'hasSample') {
+      @if (stats.denormalizedBatchByOp | mapGet: opId; as batchesByType) {
         <section *sectionDef>
-          @if (stats.denormalizedBatchByOp | mapGet: 'landing' | isNotEmptyArray) {
+          @if (batchesByType | mapGet: 'landing' | isNotEmptyArray) {
             <ng-content
               *ngTemplateOutlet="
                 batchesTable;
                 context: {
+                  $implicit: (batchesByType | mapGet: 'landing'),
                   batchType: 'landing',
-                  opId: opId,
-                  batches: stats.denormalizedBatchByOp | mapGet: opId | mapGet: batchType
+                  opId: opId
                 }
               "
             ></ng-content>
           }
-          @if (stats.denormalizedBatchByOp | mapGet: 'discard' | isNotEmptyArray) {
+          @if (batchesByType | mapGet: 'discard' | isNotEmptyArray) {
             <ng-content
               *ngTemplateOutlet="
                 batchesTable;
                 context: {
+                  $implicit: batchesByType | mapGet: 'discard',
                   batchType: 'discard',
-                  opId: opId,
-                  batches: stats.denormalizedBatchByOp | mapGet: opId | mapGet: batchType
+                  opId: opId
                 }
               "
             ></ng-content>
@@ -791,7 +791,7 @@
   </app-reveal>
 
   <!-- "type" can be 'landing' or 'discard' -->
-  <ng-template #batchesTable let-batchType="batchType" let-opId="opId" let-batches="batches">
+  <ng-template #batchesTable let-batches let-batchType="batchType" let-opId="opId">
     @for (batchesChunk of batches | splitArrayInChunks: 24; track $index; let isLastBatchesChunk = $last , isFirstBatchesChunk = $first) {
       <section class="portrait">
         <ng-content
@@ -887,7 +887,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (batch of batchesChunk; track batch.id; let isLast = $last) {
+            @for (batch of batchesChunk; track batch.id) {
               <tr>
                 <td class="col-tiny no-margin no-padding ion-text-center font-large">
                   <ion-icon [style.font-size]="'1.1em'" [name]="batch.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
