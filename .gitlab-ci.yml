@@ -430,6 +430,8 @@ gitlab-release:
     - cd ${CI_PROJECT_DIR}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
   artifacts:
+    paths:
+      - www
     reports:
       dotenv: ${ENV_FILE}
     expire_in: 24 hours
