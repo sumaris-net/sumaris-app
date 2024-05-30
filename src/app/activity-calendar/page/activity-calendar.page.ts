@@ -180,8 +180,7 @@ export class ActivityCalendarPage
   @ViewChild('registrationHistoryTable', { static: true }) registrationHistoryTable: VesselRegistrationHistoryComponent;
   @ViewChild('ownerHistoryTable', { static: true }) ownerHistoryTable: VesselOwnerHistoryComponent;
   @ViewChild('galleryHistory', { static: true }) galleryHistory: AppImageAttachmentGallery;
-  @ViewChild('gallery', { static: true }) gallery: AppImageAttachmentGallery;
-  @ViewChild('vesselPhotoTab', { static: true }) vesselPhotoTab: MatTab;
+  @ViewChild('gallery', { static: false }) gallery: AppImageAttachmentGallery;
 
   constructor(
     injector: Injector,
@@ -812,12 +811,6 @@ export class ActivityCalendarPage
   }
 
   protected async loadPictures(data: ActivityCalendar) {
-    const firstLoadGallery = !this.gallery.loaded;
-    const firstLoadHistory = !this.galleryHistory.loaded;
-
-    if (firstLoadHistory) this.galleryHistory.markAsReady();
-    if (firstLoadGallery) this.gallery.markAsReady();
-
     //Filter
     const filter: Partial<ActivityCalendarFilter> = {
       vesselId: data.vesselSnapshot.id,
@@ -826,20 +819,22 @@ export class ActivityCalendarPage
     };
 
     const imagesAttachment = await this.dataService.loadImages(0, 100, null, null, filter);
+    const firstLoadHistory = !this.galleryHistory.loaded;
+    const firstLoadGallery = isNotNil(this.gallery) ? !this.gallery.loaded : false;
+
+    if (firstLoadHistory) this.galleryHistory.markAsReady();
+    if (firstLoadGallery) this.gallery.markAsReady();
 
     // fetch images
     if (this.canEdit) {
       this.galleryHistory.value = imagesAttachment.filter((img) => img.objectId != data.id);
       this.gallery.value = imagesAttachment.filter((img) => img.objectId === data.id);
     } else {
-      this.vesselPhotoTab.disabled = true;
       this.galleryHistory.value = imagesAttachment;
-      this.gallery.value = [];
     }
-
     // then add gallery into child form
-    if (firstLoadGallery) this.addForms([this.gallery]);
     if (firstLoadHistory) this.addForms([this.galleryHistory]);
+    if (firstLoadGallery) this.addForms([this.gallery]);
   }
 
   protected toggleShowPredoc(event?: Event) {

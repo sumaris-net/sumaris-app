@@ -237,31 +237,33 @@
           </ion-grid>
         </mat-tab>
 
-        <!-- TAB: vessel photo -->
-        <mat-tab #vesselPhotoTab>
-          <ng-template mat-tab-label>
-            <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
-            &nbsp;
-            <ion-label
-              [matBadge]="gallery.value.length"
-              [matBadgeHidden]="gallery.value.length === 0"
-              matBadgeOverlap="false"
-              matBadgeColor="primary"
-              matBadgeSize="small"
-              matBadgePosition="above after"
-            >
-              <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_PHOTO</ion-label>
-            </ion-label>
-          </ng-template>
+        @if (canEdit) {
+          <!-- TAB: vessel photo -->
+          <mat-tab #vesselPhotoTab>
+            <ng-template mat-tab-label>
+              <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
+              &nbsp;
+              <ion-label
+                [matBadge]="gallery.value.length"
+                [matBadgeHidden]="gallery.value.length === 0"
+                matBadgeOverlap="false"
+                matBadgeColor="primary"
+                matBadgeSize="small"
+                matBadgePosition="above after"
+              >
+                <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_PHOTO</ion-label>
+              </ion-label>
+            </ng-template>
 
-          <app-image-attachment-gallery
-            #gallery
-            [disabled]="disabled"
-            [showAddCardButton]="true"
-            [showFabButton]="mobile"
-            [debug]="debug"
-          ></app-image-attachment-gallery>
-        </mat-tab>
+            <app-image-attachment-gallery
+              #gallery
+              [disabled]="disabled"
+              [showAddCardButton]="true"
+              [showFabButton]="mobile"
+              [debug]="debug"
+            ></app-image-attachment-gallery>
+          </mat-tab>
+        }
       </mat-tab-group>
     </mat-tab>
 
