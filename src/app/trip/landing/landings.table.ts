@@ -83,6 +83,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     dataQualityStatus: [null],
   });
 
+  protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
+    return this.isSaleDetailEditor && !this.isLandingPets(item);
+  };
+
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
   @Output() openSale = new EventEmitter<TableElement<Landing>>();
@@ -416,26 +420,37 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   }
 
   toggleSelectRow(event, row) {
-    event.stopPropagation();
-    if (this.isLandingPets(row)) {
-      this.selection.toggle(row);
+    if (this.isSaleDetailEditor) {
+      event.stopPropagation();
+      if (this.isLandingPets(row)) {
+        this.selection.toggle(row);
+      }
+    } else {
+      super.toggleSelectRow(event, row);
     }
   }
 
   async masterToggle() {
-    if (this.loading) return;
-    if (this.isAllSelected()) {
-      this.selection.clear();
+    if (this.isSaleDetailEditor) {
+      if (this.loading) return;
+      if (this.isAllSelected()) {
+        this.selection.clear();
+      } else {
+        const rows = this._dataSource.getRows().filter((row) => this.isLandingPets(row)); // Filter PETS
+        this.selection.setSelection(...rows);
+      }
     } else {
-      const rows = this._dataSource.getRows().filter((row) => this.isLandingPets(row)); // Filter PETS
-      this.selection.setSelection(...rows);
+      await super.masterToggle();
     }
   }
 
   isAllSelected() {
-    return (
-      this.selection.selected.length === this.dataSource.getRows().filter((row) => this.isLandingPets(row)).length // Filter PETS
-    );
+    if (this.isSaleDetailEditor) {
+      return (
+        this.selection.selected.length === this.dataSource.getRows().filter((row) => this.isLandingPets(row)).length // Filter PETS
+      );
+    }
+    return super.isAllSelected();
   }
 
   async getMaxRankOrderOnVessel(vessel: VesselSnapshot): Promise<number> {
