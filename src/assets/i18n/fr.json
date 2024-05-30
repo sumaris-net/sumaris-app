@@ -1145,7 +1145,9 @@
         "ACCIDENTAL_CATCH": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "IS_DEAD": "Mort ?",
-          "TAG_ID": "Référence de la marque"
+          "TAG_ID": "Référence de la marque",
+          "WEIGHT_ESTIMATED_TOTAL_KG": "Poids estimé",
+          "BATCH_ESTIMATED_WEIGHT": "Poids estimé"
         },
         "AUCTION_CONTROL": {
           "SAMPLE_MEASURED_WEIGHT": "Poids échantillon",
@@ -1870,6 +1872,9 @@
       "DESCRIPTION": "description",
       "IS_CALCULATED": "Calulée ?",
       "IS_ESTIMATED": "Est estimée ?",
+      "NEW": {
+        "TITLE": "Nouvelle méthode de collecte"
+      },
       "EDIT": {
         "TITLE": "Méthode {{label}} - {{name}}"
       }
