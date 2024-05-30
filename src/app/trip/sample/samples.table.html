@@ -296,7 +296,9 @@
         ></mat-autocomplete-field>
 
         <!-- readonly -->
-        <ng-template #readonlyCell></ng-template>
+        <ng-template #readonlyCell>
+          {{ row.validator | formGetValue: 'taxonGroup' | referentialToString: autocompleteFields.taxonGroup.attributes }}
+        </ng-template>
       </td>
     </ng-container>
 
@@ -307,6 +309,7 @@
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn = 'taxonName'">
         <mat-autocomplete-field
+          *ngIf="row.editing; else readonlyCell"
           floatLabel="never"
           class="min-width-medium"
           [readonly]="!row.editing"
@@ -316,6 +319,10 @@
           [config]="autocompleteFields.taxonName"
           [required]="showTaxonNameColumn"
         ></mat-autocomplete-field>
+        <!-- readonly -->
+        <ng-template #readonlyCell>
+          {{ row.validator | formGetValue: 'taxonName' | referentialToString: autocompleteFields.taxonName.attributes }}
+        </ng-template>
       </td>
     </ng-container>
 
@@ -332,7 +339,6 @@
           [autofocus]="row.editing && focusColumn === 'sampleDate'"
           [placeholder]="'TRIP.SAMPLE.TABLE.SAMPLE_DATE_PLACEHOLDER' | translateContext: i18nColumnSuffix"
           [compact]="compactFields"
-          [readonly]="!row.editing"
           [required]="true"
         ></mat-date-time-field>
       </td>

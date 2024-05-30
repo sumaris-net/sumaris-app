@@ -438,6 +438,9 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
 
+    this.showLabelColumn = toBoolean(this.showLabelColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_LABEL_ENABLE));
+    this.showImagesColumn = toBoolean(this.showImagesColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_IMAGES_ENABLE));
+
     this.samplesTable.showTaxonGroupColumn = toBoolean(
       this.showTaxonGroupColumn,
       program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE)
@@ -450,8 +453,8 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
       this.showSampleDateColumn,
       program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_DATE_TIME_ENABLE)
     );
-    this.samplesTable.showLabelColumn = toBoolean(this.showLabelColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_LABEL_ENABLE));
-    this.samplesTable.showImagesColumn = toBoolean(this.showImagesColumn, program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_IMAGES_ENABLE));
+    this.samplesTable.showLabelColumn = this.showLabelColumn;
+    this.samplesTable.showImagesColumn = this.showImagesColumn;
     this.samplesTable.programLabel = program.label;
     this.samplesTable.defaultLatitudeSign = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     this.samplesTable.defaultLongitudeSign = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
