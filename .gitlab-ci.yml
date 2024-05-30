@@ -143,11 +143,14 @@ build:env:
         - package-lock.json
     - when: manual
 
-build:env:tags:
+build:env:skip:
   stage: environment
   script:
-    - echo "Skipping build anv (not need)"
-  when: tags
+    - echo "Skipping build env (will use existing build image)"
+  only:
+    - tags
+    - /^feature\/.*/
+    - /^features\/.*/
 
 # ---------------------------------------------------------------
 # Build jobs
