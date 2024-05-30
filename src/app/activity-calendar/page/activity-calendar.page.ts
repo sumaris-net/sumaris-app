@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ActivityCalendarForm } from '../form/activity-calendar.form';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
@@ -19,6 +19,7 @@ import {
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
@@ -73,6 +74,7 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
+import { MatTab } from '@angular/material/tabs';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -158,6 +160,8 @@ export class ActivityCalendarPage
   @Input() showOptionsMenu = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
   @Input() yearHistory: number = 3;
+  @Input() autoNameImage: boolean = true;
+  @Input() canEdit: boolean = true;
 
   @Input() @RxStateProperty() year: number;
   @Input() @RxStateProperty() vesselCountryId: number;
@@ -177,6 +181,7 @@ export class ActivityCalendarPage
   @ViewChild('ownerHistoryTable', { static: true }) ownerHistoryTable: VesselOwnerHistoryComponent;
   @ViewChild('galleryHistory', { static: true }) galleryHistory: AppImageAttachmentGallery;
   @ViewChild('gallery', { static: true }) gallery: AppImageAttachmentGallery;
+  @ViewChild('vesselPhotoTab', { static: true }) vesselPhotoTab: MatTab;
 
   constructor(
     injector: Injector,
@@ -199,7 +204,6 @@ export class ActivityCalendarPage
       autoOpenNextTab: false,
     });
     this.defaultBackHref = '/activity-calendar';
-
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
   }
@@ -690,7 +694,13 @@ export class ActivityCalendarPage
     if (isNotEmptyArray(metierGearUseFeatures)) value.gearUseFeatures = [...value.gearUseFeatures, ...metierGearUseFeatures];
 
     // Photos
-    value.images = this.gallery.value;
+    if (this.canEdit) value.images = this.gallery.value;
+
+    if (this.autoNameImage) {
+      value.images.map((img) => {
+        if (isNil(img.comments)) img.comments = value.year.toString();
+      });
+    }
 
     return value;
   }
@@ -818,8 +828,14 @@ export class ActivityCalendarPage
     const imagesAttachment = await this.dataService.loadImages(0, 100, null, null, filter);
 
     // fetch images
-    this.galleryHistory.value = imagesAttachment;
-    this.gallery.value = imagesAttachment.filter((img) => img.objectId === data.id);
+    if (this.canEdit) {
+      this.galleryHistory.value = imagesAttachment.filter((img) => img.objectId != data.id);
+      this.gallery.value = imagesAttachment.filter((img) => img.objectId === data.id);
+    } else {
+      this.vesselPhotoTab.disabled = true;
+      this.galleryHistory.value = imagesAttachment;
+      this.gallery.value = [];
+    }
 
     // then add gallery into child form
     if (firstLoadGallery) this.addForms([this.gallery]);
