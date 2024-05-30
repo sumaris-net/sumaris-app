@@ -146,21 +146,20 @@
         [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
         (click)="focusColumn = pmfm.id.toString()"
       >
-        <app-pmfm-field
-          *ngIf="row.editing; else readonlyPmfmField"
-          floatLabel="never"
-          [pmfm]="pmfm"
-          [i18nPrefix]="i18nPmfmPrefix"
-          [i18nSuffix]="i18nColumnSuffix"
-          [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-          [autofocus]="focusColumn == pmfm.id"
-          [defaultLatitudeSign]="defaultLatitudeSign"
-          [defaultLongitudeSign]="defaultLongitudeSign"
-          [compact]="compactFields"
-        ></app-pmfm-field>
-
-        <!-- readonly value-->
-        <ng-template #readonlyPmfmField>
+        @if (row.editing) {
+          <app-pmfm-field
+            floatLabel="never"
+            [pmfm]="pmfm"
+            [i18nPrefix]="i18nPmfmPrefix"
+            [i18nSuffix]="i18nColumnSuffix"
+            [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+            [autofocus]="focusColumn == pmfm.id"
+            [defaultLatitudeSign]="defaultLatitudeSign"
+            [defaultLongitudeSign]="defaultLongitudeSign"
+            [compact]="compactFields"
+          ></app-pmfm-field>
+        } @else {
+          <!-- readonly value-->
           <ion-label
             [innerHTML]="
               row.validator
@@ -168,7 +167,7 @@
                 | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
             "
           ></ion-label>
-        </ng-template>
+        }
       </td>
     </ng-container>
 
