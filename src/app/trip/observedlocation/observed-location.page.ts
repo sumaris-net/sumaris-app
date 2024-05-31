@@ -807,7 +807,7 @@ export class ObservedLocationPage
       landing.measurementValues = {
         [PmfmIds.CONTROLLED_SPECIES]: 304, // LANGOUSTINE
         [PmfmIds.IS_OBSERVED]: true,
-        [PmfmIds.SPECIES_LIST_ORIGIN]: QualitativeValueIds.PETS,
+        [PmfmIds.SPECIES_LIST_ORIGIN]: QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS,
       };
       await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
 
@@ -829,7 +829,7 @@ export class ObservedLocationPage
       landing2.measurementValues = {
         [PmfmIds.CONTROLLED_SPECIES]: 300, // ANCHOIS
         [PmfmIds.IS_OBSERVED]: false,
-        [PmfmIds.SPECIES_LIST_ORIGIN]: 660,
+        [PmfmIds.SPECIES_LIST_ORIGIN]: QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM,
       };
       await this.landingsTable.addOrUpdateEntityToTable(landing2, { editing: false });
 
