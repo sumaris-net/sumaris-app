@@ -631,9 +631,9 @@ deploy:webext:release:tags:
 
 docker:develop:
   extends: .docker-build
+  needs: [build]
   variables:
     IMAGE_TAG: develop
-  needs: [build]
   only:
     - develop
 
@@ -649,9 +649,9 @@ docker:feature:
 
 docker:release:
   extends: .docker-build
+  needs: [release]
   variables:
     IMAGE_TAG: ${APP_VERSION}
-  needs: [release]
   only:
     - develop
 
