@@ -335,7 +335,9 @@ export class ObservedLocationPage
       // Create landing without vessel selection
       else {
         const rankOrder = ((await this.landingsTable.getMaxRankOrder()) || 0) + 1;
-        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?rankOrder=${rankOrder}`);
+        await this.router.navigateByUrl(
+          `/observations/${this.data.id}/${this.landingEditor}/new?rankOrder=${rankOrder}&parent=${this.acquisitionLevel}`
+        );
       }
     } finally {
       this.markAsLoaded();
@@ -368,7 +370,7 @@ export class ObservedLocationPage
     const saved =
       this.isOnFieldMode && this.dirty
         ? // If on field mode: try to save silently
-          await this.save(undefined)
+          await this.save()
         : // If desktop mode: ask before save
           await this.saveIfDirtyAndConfirm();
 
@@ -386,8 +388,26 @@ export class ObservedLocationPage
     }
   }
 
-  async onNewSale(event?: any) {
-    await this.onNewLanding(event);
+  async onNewSale<T extends Landing>(row: TableElement<T>) {
+    const saved =
+      this.isOnFieldMode && this.dirty
+        ? // If on field mode: try to save silently
+          await this.save()
+        : // If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm();
+
+    if (!saved) return; // Cannot save
+
+    this.markAsLoading();
+
+    try {
+      const landing = row.currentData;
+      await this.router.navigateByUrl(
+        `/observations/${this.data.id}/${this.landingEditor}/new?parent=${this.acquisitionLevel}&vessel=${landing.vesselSnapshot.id}&landing=${landing.id}`
+      );
+    } finally {
+      this.markAsLoaded();
+    }
   }
 
   async onOpenTrip<T extends Landing>(row: TableElement<T>) {
@@ -687,7 +707,7 @@ export class ObservedLocationPage
 
     // Set contextual program, if any
     if (!data.program) {
-      const contextualProgram = this.context.getValue('program') as Program;
+      const contextualProgram = this.context?.program;
       if (contextualProgram?.label) {
         data.program = ReferentialRef.fromObject(contextualProgram);
       }

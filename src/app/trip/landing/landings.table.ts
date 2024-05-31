@@ -54,9 +54,9 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   private _parentDateTime: Moment;
   private _parentObservers: Person[];
-  private _detailEditor: LandingEditor;
   private _footerRowsSubscription: Subscription;
 
+  protected _detailEditor: LandingEditor;
   protected vesselSnapshotService: VesselSnapshotService;
   protected referentialRefService: ReferentialRefService;
   protected qualitativeValueAttributes: string[];

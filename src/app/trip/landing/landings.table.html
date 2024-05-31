@@ -419,7 +419,7 @@
       <td mat-cell *matCellDef="let row">
         <ion-spinner *ngIf="row.validator?.pending" name="dots" [ngClass]="{ center: true }"></ion-spinner>
 
-        <ng-container *ngIf="row.editing; else notEditing">
+        @if (row.editing) {
           <!-- undo or delete -->
           <button
             mat-icon-button
@@ -441,41 +441,32 @@
           >
             <mat-icon>check</mat-icon>
           </button>
-        </ng-container>
-
-        <ng-template #notEditing>
+        } @else if (row.id === -1 || (enabled && singleSelectedRow === row && canCancelOrDelete(row))) {
           <!-- Delete row button -->
-          <button
-            mat-icon-button
-            *ngIf="enabled && singleSelectedRow === row && canCancelOrDelete(row); else otherButtons"
-            [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="cancelOrDelete($event, row)"
-          >
+          <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="cancelOrDelete($event, row)">
             <mat-icon>delete</mat-icon>
           </button>
-
-          <!-- Edit buttons (trip or sale) -->
-          <ng-template #otherButtons>
-            <button
-              mat-icon-button
-              *ngIf="row.id !== -1 && isTripDetailEditor"
-              [color]="row.currentData.tripId ? 'primary' : 'medium'"
-              [title]="'LANDING.TABLE.BTN_OPEN_TRIP' | translate"
-              (click)="confirmAndEditTrip($event, row)"
-            >
-              <ion-icon name="boat" slot="icon-only"></ion-icon>
-            </button>
-            <button
-              mat-icon-button
-              *ngIf="row.id !== -1 && isSaleDetailEditor"
-              [color]="(row.currentData.saleIds | isArrayLength: { equals: 1 }) ? 'primary' : 'dark'"
-              [title]="'LANDING.TABLE.BTN_OPEN_SALE' | translate"
-              (click)="confirmAndEditSale($event, row)"
-            >
-              <ion-icon name="pricetag" slot="icon-only"></ion-icon>
-            </button>
-          </ng-template>
-        </ng-template>
+        } @else if (detailEditor === 'trip') {
+          <!-- Open trip page -->
+          <button
+            mat-icon-button
+            [color]="row.currentData.tripId ? 'primary' : 'medium'"
+            [title]="'LANDING.TABLE.BTN_OPEN_TRIP' | translate"
+            (click)="confirmAndEditTrip($event, row)"
+          >
+            <ion-icon name="boat" slot="icon-only"></ion-icon>
+          </button>
+        } @else if (detailEditor === 'sale') {
+          <!-- Open sale page -->
+          <button
+            mat-icon-button
+            [color]="(row.currentData.saleIds | isArrayLength: { equals: 1 }) ? 'primary' : 'dark'"
+            [title]="'LANDING.TABLE.BTN_OPEN_SALE' | translate"
+            (click)="confirmAndEditSale($event, row)"
+          >
+            <ion-icon name="pricetag" slot="icon-only"></ion-icon>
+          </button>
+        }
       </td>
     </ng-container>
 
