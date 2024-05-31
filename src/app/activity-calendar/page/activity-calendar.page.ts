@@ -74,7 +74,6 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
-import { MatTab } from '@angular/material/tabs';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -818,7 +817,7 @@ export class ActivityCalendarPage
       startDate: data.startDate.subtract(this.yearHistory, 'years').startOf('year'),
     };
 
-    const imagesAttachment = await this.dataService.loadImages(0, 100, null, null, filter);
+    const imageAttachments = await this.dataService.loadImages(0, 100, null, null, filter);
     const firstLoadHistory = !this.galleryHistory.loaded;
     const firstLoadGallery = isNotNil(this.gallery) ? !this.gallery.loaded : false;
 
@@ -827,10 +826,10 @@ export class ActivityCalendarPage
 
     // fetch images
     if (this.canEdit) {
-      this.galleryHistory.value = imagesAttachment.filter((img) => img.objectId != data.id);
-      this.gallery.value = imagesAttachment.filter((img) => img.objectId === data.id);
+      this.galleryHistory.value = imageAttachments.filter((img) => img.objectId != data.id);
+      this.gallery.value = imageAttachments.filter((img) => img.objectId === data.id);
     } else {
-      this.galleryHistory.value = imagesAttachment;
+      this.galleryHistory.value = imageAttachments;
     }
     // then add gallery into child form
     if (firstLoadHistory) this.addForms([this.galleryHistory]);
