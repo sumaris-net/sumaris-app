@@ -628,11 +628,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   }
 
   private isLandingPets(item: TableElement<Landing>): boolean {
-    const speciesListOrigin = item.currentData.measurementValues[this.dividerPmfmId];
-    if (isNotNil(speciesListOrigin)) {
-      return PmfmValueUtils.equals(speciesListOrigin, QualitativeValueIds.PETS);
-    }
-    return false;
+    return MeasurementValuesUtils.hasPmfmValue(item.currentData.measurementValues, this.dividerPmfmId, QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS);
   }
 
   trackByFn(index: number, row: TableElement<Landing>): number {
