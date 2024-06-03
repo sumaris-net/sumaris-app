@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild 
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { Program } from '../services/model/program.model';
-import { ProgramService } from '../services/program.service';
+import { ProgramSaveOptions, ProgramService } from '../services/program.service';
 import { ReferentialForm } from '../form/referential.form';
 import { ProgramValidatorService } from '../services/validator/program.validator';
 import { StrategiesTable } from '../strategy/strategies.table';
@@ -80,6 +80,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   i18nFieldPrefix = 'PROGRAM.';
   strategyEditor: StrategyEditor = 'legacy';
   i18nTabStrategiesSuffix = '';
+  privilegesEditionEnabled = false;
 
   protected propertiesFileService: PropertiesFileService;
 
@@ -202,6 +203,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     return super.load(id, { ...opts, fetchPolicy: 'network-only' });
   }
 
+  async save(event?: Event, opts?: ProgramSaveOptions): Promise<boolean> {
+    return super.save(event, { ...opts, withDepartmentsAndPersons: this.privilegesEditionEnabled });
+  }
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
 
@@ -265,6 +269,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     // Users
     this.personsTable.setValue(data.persons || []);
+
+    this.privilegesEditionEnabled = data.getPropertyAsBoolean(ProgramProperties.PROGRAM_PRIVILEGE_EDITION_ENABLE);
+    this.personsTable.readOnly = !this.privilegesEditionEnabled;
 
     this.markForCheck();
   }
