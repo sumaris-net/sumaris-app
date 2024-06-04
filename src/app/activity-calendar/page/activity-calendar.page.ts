@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ActivityCalendarForm } from '../form/activity-calendar.form';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
@@ -18,6 +18,7 @@ import {
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
@@ -72,6 +73,7 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
+import { CopyUtils } from '@app/shared/copy-tool/copy.utils';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -299,10 +301,22 @@ export class ActivityCalendarPage
           .pipe(filter(() => this.loaded))
           .subscribe(() => this.toggleShowPredoc())
       );
+
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'control.v', description: 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC', preventDefault: true })
+          .pipe(filter(() => this.loaded))
+          .subscribe(() => this.pasteCell())
+      );
     }
 
     this.restorePredocPanelSize();
   }
+
+  protected pasteCell() {
+    console.log('this.calendar', this.calendar);
+  }
+
   ngAfterViewInit() {
     super.ngAfterViewInit();
 

@@ -64,9 +64,11 @@ import { Moment } from 'moment/moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { map } from 'rxjs/operators';
+import { map, filter } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { CopyUtils, ValueCopied } from '@app/shared/copy-tool/copy.utils';
+import { ActivityCalendarContextService } from '../activity-calendar-context.service';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -80,8 +82,8 @@ const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
         ...new Array<string>(MAX_FISHING_AREA_COUNT).fill(null).flatMap((_, faIndex) => <string[]>[`metier${index + 1}FishingArea${faIndex + 1}`]),
       ]
   );
-const ACTIVITY_MONTH_START_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
-const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
+export const ACTIVITY_MONTH_START_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
+export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
 
 export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
   {
@@ -182,6 +184,7 @@ export class CalendarComponent
   protected originalMouseY: number;
   protected originalMouseX: number;
   protected _children: CalendarComponent[];
+  protected copyUtils = new CopyUtils();
 
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
@@ -284,6 +287,7 @@ export class CalendarComponent
 
   constructor(
     injector: Injector,
+    protected activityCalendarContext: ActivityCalendarContextService,
     private element: ElementRef
   ) {
     super(
@@ -331,7 +335,6 @@ export class CalendarComponent
     this.locationDisplayAttributes = this.locationDisplayAttributes || this.settings.getFieldDisplayAttributes('location');
     this.inlineEdition = this.inlineEdition && this.canEdit;
     this.enableCellSelection = this.inlineEdition && toBoolean(this.enableCellSelection, this.style === 'table' && this.canEdit);
-
     await this.referentialRefService.ready();
 
     this.registerAutocompleteField('basePortLocation', {
@@ -369,6 +372,18 @@ export class CalendarComponent
           return rows.filter((row) => isNotNil(row.currentData?.isActive)).length;
         })
       )
+    );
+    this.registerSubscription(
+      this.hotkeys
+        .addShortcut({ keys: 'control.c', description: 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC', preventDefault: true })
+        .pipe(filter(() => this.loaded))
+        .subscribe(() => this.copyCell())
+    );
+    this.registerSubscription(
+      this.hotkeys
+        .addShortcut({ keys: 'control.v', description: 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC', preventDefault: true })
+        .pipe(filter(() => this.loaded))
+        .subscribe(() => this.multiplePasteCells())
     );
   }
 
@@ -630,6 +645,7 @@ export class CalendarComponent
           const validate = await this.validate(event);
           if (validate) {
             console.debug(`Applying colspan=${colspan} rowspan=${rowspan}`);
+            this.multipleCopyCells(rowspan, colspan);
             this.onMouseEnd(event);
           }
         } catch (err) {
@@ -642,6 +658,66 @@ export class CalendarComponent
     this.originalMouseY = null;
     this.originalMouseX = null;
   }
+
+  protected multipleCopyCells(rowspan: number, colspan: number) {
+    const columnName = this.resizingCell.columnName;
+    const columnId = this.resizingCell.row.id;
+    const data = this.memoryDataService.value;
+    const columnMaxCopy = columnId + colspan;
+    const pmfmList = this.copyUtils.getPmfmListName(data[columnId]);
+    const tableCopyProperties = this.copyUtils.getArrayForMultiCopy(rowspan, pmfmList, columnName);
+
+    console.log('tableCopyProperties', tableCopyProperties);
+
+    const datasCopies: any = [];
+    let arrayIndividualColumn = [];
+    let i = columnId;
+    const boucleCondition = columnMaxCopy <= 0 ? columnMaxCopy + 2 : columnMaxCopy;
+    while (i < boucleCondition) {
+      const dataCopy = data[i];
+      console.log('dataCopy', dataCopy);
+      for (const attributes of tableCopyProperties) {
+        const result: any = this.copyUtils.copyValue(dataCopy, attributes);
+        arrayIndividualColumn.push(result);
+      }
+      datasCopies.push(arrayIndividualColumn);
+      arrayIndividualColumn = [];
+      i++;
+    }
+    console.log(pmfmList, data[columnId]);
+    console.log('datasCopies', datasCopies);
+    this.activityCalendarContext.clipboard = {
+      valueMultiCopied: datasCopies,
+      valueCopied: null,
+    };
+  }
+  protected multiplePasteCells() {
+    const copyValue: ValueCopied[][] = this.activityCalendarContext.clipboard.valueMultiCopied;
+    console.log('copyeValue', copyValue);
+    const numberObjToPaste = copyValue.length;
+    // const focusColumnName = this.focusColumn;
+    // const data = this.memoryDataService.value;
+    const rowSelectedId = this.editedRow.originalData.month - 1;
+    const columnMaxCopy = rowSelectedId + numberObjToPaste;
+
+    console.log('copyeValue', copyValue);
+    let i = rowSelectedId;
+    let j = 0;
+    while (i < columnMaxCopy) {
+      const formGroup = this.dataSource.getRow(i).validator;
+
+      copyValue[j].forEach((element) => {
+        console.debug(element.focusColumn, element.type, element.value, element.focusColumn);
+        const control = this.copyUtils.getControlByFocusName(element.focusColumn, formGroup);
+        this.copyUtils.pasteMultiValue(control, element.type, element, element.focusColumn);
+      });
+
+      j++;
+      i++;
+    }
+  }
+
+  protected pastMode() {}
 
   protected async validate(event: { colspan: number; rowspan: number }): Promise<boolean> {
     // TODO display merge/opts menu
@@ -1001,5 +1077,27 @@ export class CalendarComponent
   markAsDirty(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     if (this.loading) return; // Skip while loading
     super.markAsDirty(opts);
+  }
+
+  protected copyCell() {
+    const data = this.editedRow.originalData;
+    const focusColumn = this.focusColumn;
+    this.activityCalendarContext.clipboard = {
+      valueCopied: this.copyUtils.copyValue(data, focusColumn),
+      valueMultiCopied: null,
+    };
+  }
+
+  protected pasteCell() {
+    const copyValue: ValueCopied = this.activityCalendarContext.clipboard.valueCopied;
+
+    const data = this.editedRow.originalData;
+    const focusColumnName = this.focusColumn;
+    const formGroup = this.editedRow.validator;
+
+    const focusType = this.copyUtils.getTypeOfFocus(focusColumnName, data);
+    const control = this.copyUtils.getControlByFocusName(focusColumnName, formGroup);
+
+    this.copyUtils.pasteValue(control, focusType, copyValue, focusColumnName);
   }
 }
