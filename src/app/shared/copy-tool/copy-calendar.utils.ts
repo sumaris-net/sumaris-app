@@ -1,6 +1,8 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { ACTIVITY_MONTH_END_COLUMNS, ACTIVITY_MONTH_START_COLUMNS } from '@app/activity-calendar/calendar/calendar.component';
+import { isNotNil } from '@sumaris-net/ngx-components';
+import { spec } from 'node:test/reporters';
 
 export interface ValueCopied {
   value: any;
@@ -9,41 +11,49 @@ export interface ValueCopied {
   specificColumn?: { name: string; id: string }[];
 }
 
-export class CopyUtils {
-  public specificCopy(input: string): { name: string; id: string }[] {
+type pmfmType = 'PMFM';
+type propertyType = 'PROPERTY';
+type specificType = 'SPECIFIC';
+
+const PMFM: pmfmType = 'PMFM';
+const PROPERTY: propertyType = 'PROPERTY';
+const SPECIFIC: specificType = 'SPECIFIC';
+
+export class CopyCalendarUtils {
+  static specificCopy(input: string): { name: string; id: string }[] {
     const regex = /([a-zA-Z]+)(\d+)/g;
     let match;
     const result = [];
 
     while ((match = regex.exec(input)) !== null) {
       const name = match[1];
-      const id = parseInt(match[2], 10) - 1;
+      const id = +match[2] - 1;
       result.push({ name, id });
     }
 
     return result;
   }
 
-  public isNumeric(input: string): boolean {
+  static isNumeric(input: string): boolean {
     return /^\d+$/.test(input);
   }
 
-  public getTypeOfFocus(paramName: string, obj: any): string {
+  static getTypeFocus(paramName: string, obj: any): pmfmType | propertyType | specificType {
     if (this.isNumeric(paramName)) {
-      return 'PMFM';
+      return PMFM;
     } else if (Object.prototype.hasOwnProperty.call(obj, paramName)) {
-      return 'PROPERTY';
+      return PROPERTY;
     } else {
-      return 'SPECIFIC';
+      return SPECIFIC;
     }
   }
 
-  public getControlByFocusName(focusColumnName: string, formGroup: FormGroup) {
-    const typeOfFocusColumn = this.getTypeOfFocus(focusColumnName, formGroup.value);
+  static getControlByFocusName(focusColumnName: string, formGroup: FormGroup) {
+    const typeFocus = this.getTypeFocus(focusColumnName, formGroup.value);
 
-    if (typeOfFocusColumn === 'PMFM') {
+    if (typeFocus === PMFM) {
       return formGroup.get('measurementValues').get(focusColumnName);
-    } else if (typeOfFocusColumn === 'PROPERTY') {
+    } else if (typeFocus === PROPERTY) {
       return formGroup.get(focusColumnName);
     } else {
       const specificCopy = this.specificCopy(focusColumnName);
@@ -58,46 +68,51 @@ export class CopyUtils {
       }
     }
   }
-  public getPmfmListName(data: any) {
+  static getPmfmList(data: any) {
     const pmfmList = data.measurementValues;
     const propertyList = Object.keys(pmfmList);
     propertyList.pop();
     return propertyList;
   }
-  public getColumnIndex(array: string[], columnName: string): number {
+  static getColumnIndex(array: string[], columnName: string): number {
     return array.indexOf(columnName);
   }
 
-  public copyValue(data: ActivityMonth, focusColumn: string): ValueCopied {
-    const focusType = this.getTypeOfFocus(focusColumn, data);
-    let copyValue: ValueCopied = null;
-    if (focusType === 'PMFM') {
-      copyValue = { value: data?.measurementValues[focusColumn], type: 'PMFM', focusColumn: focusColumn, specificColumn: null };
-    } else if (focusType === 'PROPERTY') {
-      copyValue = { value: data[focusColumn], type: 'PROPERTY', focusColumn: focusColumn, specificColumn: null };
-    } else {
+  static copyValue(data: ActivityMonth, focusColumn: string): ValueCopied {
+    const focusType = this.getTypeFocus(focusColumn, data);
+    let copyValue: ValueCopied;
+
+    if (focusType === PMFM) {
+      copyValue = { value: data?.measurementValues[focusColumn], type: PMFM, focusColumn: focusColumn, specificColumn: null };
+    } else if (focusType === PROPERTY) {
+      copyValue = { value: data[focusColumn], type: PROPERTY, focusColumn: focusColumn, specificColumn: null };
+    } else if (focusType === SPECIFIC) {
       const specificColumn = this.specificCopy(focusColumn);
       copyValue = {
         value:
           specificColumn.length === 1 ? data.gearUseFeatures[specificColumn[0].id].metier : data.gearUseFeatures[specificColumn[0].id].fishingAreas,
-        type: 'SPECIFIC',
+        type: SPECIFIC,
         focusColumn: focusColumn,
         specificColumn: specificColumn,
       };
+    } else {
+      copyValue = null;
+      console.error('Type de focus non reconnu');
     }
+
     return copyValue;
   }
 
-  // TODO MF trop d'arguments
-  public pasteValue(control: AbstractControl, focusType: string, copyvalue: ValueCopied, focusColumnName: string) {
+  static pasteValue(control: AbstractControl, focusType: string, copyvalue: ValueCopied, focusColumnName: string) {
     if (copyvalue.type === focusType) {
       if (copyvalue.focusColumn === focusColumnName) {
-        if (copyvalue.type === 'PMFM') {
+        if (copyvalue.type === PMFM) {
           control.setValue(copyvalue.value);
-        } else if (copyvalue.type === 'PROPERTY') {
+        } else if (copyvalue.type === PROPERTY) {
           control.setValue(copyvalue.value);
         }
       }
+
       if (copyvalue.specificColumn && Array.isArray(copyvalue.specificColumn)) {
         if (copyvalue.specificColumn.length === 1) {
           control.setValue(copyvalue.value);
@@ -108,10 +123,10 @@ export class CopyUtils {
     }
   }
 
-  public pasteMultiValue(control: AbstractControl, focusType: string, copyvalue: ValueCopied, focusColumnName: string) {
-    if (focusType === 'PMFM') {
+  static pasteMultiValue(control: AbstractControl, focusType: string, copyvalue: ValueCopied, focusColumnName: string) {
+    if (focusType === PMFM) {
       control.setValue(copyvalue.value);
-    } else if (focusType === 'PROPERTY') {
+    } else if (focusType === PROPERTY) {
       control.setValue(copyvalue.value);
     }
 
@@ -124,7 +139,7 @@ export class CopyUtils {
     }
   }
 
-  public getArrayForMultiCopy(rowspan: number, pmfmList: string[], columnName: string) {
+  static getArrayForMultiCopy(rowspan: number, pmfmList: string[], columnName: string) {
     const startCoulumn = ACTIVITY_MONTH_START_COLUMNS.slice(-2); //todo chercher à automatiser
     //pmfm ordre a check , pas bon
     const columnRowOrder = startCoulumn.concat(pmfmList).concat(ACTIVITY_MONTH_END_COLUMNS);
@@ -133,21 +148,3 @@ export class CopyUtils {
     return columnRowOrder.slice(columnsIndexstart, columnsIndexEnd + 1);
   }
 }
-
-// if (copyValue.type === focusType) {
-//   if (copyValue.focusColumn === focusColumnName) {
-//     if (copyValue.type === 'PMFM') {
-//       control.setValue(copyValue.value);
-//     } else if (copyValue.type === 'PROPERTY') {
-//       control.setValue(copyValue.value);
-//     }
-//   }
-
-//   if (copyValue.specificColumn && Array.isArray(copyValue.specificColumn)) {
-//     if (copyValue.specificColumn.length === 1) {
-//       control.setValue(copyValue.value);
-//     } else {
-//       control.setValue(copyValue.value[copyValue.specificColumn[1].id.toString()].location);
-//     }
-//   }
-// }

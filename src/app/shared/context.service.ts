@@ -6,7 +6,7 @@ import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
-import { ValueCopied } from './copy-tool/copy.utils';
+import { ValueCopied } from './copy-tool/copy-calendar.utils';
 
 export interface Clipboard<T = any> {
   data?: T;
