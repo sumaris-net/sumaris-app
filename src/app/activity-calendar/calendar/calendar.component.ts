@@ -68,7 +68,7 @@ import { map, filter } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
-import { CopyCalendarUtils, ValueCopied } from '@app/shared/copy-tool/copy-calendar.utils';
+import { CopyCalendarUtils, CopiedValue } from '@app/shared/copy-tool/copy-calendar.utils';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -382,14 +382,21 @@ export class CalendarComponent
       this.hotkeys
         .addShortcut({ keys: 'control.v', description: 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC', preventDefault: true })
         .pipe(filter(() => this.loaded))
-        .subscribe(() => this.multiplePasteCells())
+        .subscribe(() => this.selectPasteMode())
     );
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
   }
-
+  // TODO MF temporaire pour daily
+  protected selectPasteMode() {
+    if (isNotNil(this.activityCalendarContext.clipboard.copiedValue)) {
+      this.pasteCell();
+    } else {
+      this.multiplePasteCells();
+    }
+  }
   protected generateTableId(): string {
     return super.generateTableId();
   }
@@ -662,60 +669,52 @@ export class CalendarComponent
     const columnName = this.resizingCell.columnName;
     const columnId = this.resizingCell.row.id;
     const data = this.memoryDataService.value;
-    const idLastObjet = columnId + colspan;
-    const pmfmList = CopyCalendarUtils.getPmfmList(data[columnId]);
-    const tableCopyProperties = CopyCalendarUtils.getArrayForMultiCopy(rowspan, pmfmList, columnName);
+    let lastSelectedColumnIndex = columnId + Math.abs(colspan);
+    const pmfmList = CopyCalendarUtils.getPmfmList(this.pmfms);
+    const columnNamesToCopy = CopyCalendarUtils.getCopyableColumnNames(rowspan, pmfmList, columnName);
+    console.log('tableCopyProperties', columnNamesToCopy);
 
-    const datasCopies: any = [];
-    let arrayIndividualColumn = [];
-    let i = columnId;
+    const copiedValueGroup: CopiedValue[][] = [];
+    let copiedValues: CopiedValue[] = [];
+    let firstSelectedColumnIndex = columnId;
 
-    const maxColumnToCpy = idLastObjet <= 0 ? idLastObjet + 2 : idLastObjet;
-
-    while (i < maxColumnToCpy) {
-      const dataCopy = data[i];
-      console.log('dataCopy', dataCopy);
-      for (const attributes of tableCopyProperties) {
-        const result: any = CopyCalendarUtils.copyValue(dataCopy, attributes);
-        arrayIndividualColumn.push(result);
-      }
-      datasCopies.push(arrayIndividualColumn);
-      arrayIndividualColumn = [];
-      i++;
+    // if selection from left to right
+    if (colspan < 0) {
+      firstSelectedColumnIndex = columnId + colspan + 1;
+      lastSelectedColumnIndex = columnId + 1;
     }
+
+    const columnsToCopy = data.slice(firstSelectedColumnIndex, lastSelectedColumnIndex);
+    columnsToCopy.forEach((dataToCopy) => {
+      console.log('dataCopy', dataToCopy);
+      for (const columnName of columnNamesToCopy) {
+        const result = CopyCalendarUtils.copyValue(dataToCopy, columnName);
+        copiedValues.push(result);
+      }
+      copiedValueGroup.push(copiedValues);
+      copiedValues = [];
+    });
+
     this.activityCalendarContext.clipboard = {
-      valueMultiCopied: datasCopies,
-      valueCopied: null,
+      copiedValues: copiedValueGroup,
+      copiedValue: null,
     };
-    console.log('datasCopies', datasCopies);
   }
   protected multiplePasteCells() {
-    const copyValue: ValueCopied[][] = this.activityCalendarContext.clipboard.valueMultiCopied;
-    console.log('copyeValue', copyValue);
+    const copyValue = this.activityCalendarContext.clipboard.copiedValues;
     const numberObjToPaste = copyValue.length;
-    // const focusColumnName = this.focusColumn;
-    // const data = this.memoryDataService.value;
     const rowSelectedId = this.editedRow.originalData.month - 1;
     const columnMaxCopy = rowSelectedId + numberObjToPaste;
+    const rows = this.dataSource.getRows();
 
-    console.log('copyeValue', copyValue);
-    let i = rowSelectedId;
-    let j = 0;
-    while (i < columnMaxCopy) {
-      const formGroup = this.dataSource.getRow(i).validator;
-
-      copyValue[j].forEach((element) => {
-        console.debug(element.focusColumn, element.type, element.value, element.focusColumn);
+    rows.slice(rowSelectedId, columnMaxCopy).forEach((row, index) => {
+      const formGroup = row.validator;
+      copyValue[index].forEach((element) => {
         const control = CopyCalendarUtils.getControlByFocusName(element.focusColumn, formGroup);
         CopyCalendarUtils.pasteMultiValue(control, element.type, element, element.focusColumn);
       });
-
-      j++;
-      i++;
-    }
+    });
   }
-
-  protected pastMode() {}
 
   protected async validate(event: { colspan: number; rowspan: number }): Promise<boolean> {
     // TODO display merge/opts menu
@@ -1081,13 +1080,13 @@ export class CalendarComponent
     const data = this.editedRow.originalData;
     const focusColumn = this.focusColumn;
     this.activityCalendarContext.clipboard = {
-      valueCopied: CopyCalendarUtils.copyValue(data, focusColumn),
-      valueMultiCopied: null,
+      copiedValue: CopyCalendarUtils.copyValue(data, focusColumn),
+      copiedValues: null,
     };
   }
 
   protected pasteCell() {
-    const dataTopaste: ValueCopied = this.activityCalendarContext.clipboard.valueCopied;
+    const dataTopaste: CopiedValue = this.activityCalendarContext.clipboard.copiedValue;
     const data = this.editedRow.originalData;
     const focusColumnName = this.focusColumn;
     const formGroup = this.editedRow.validator;

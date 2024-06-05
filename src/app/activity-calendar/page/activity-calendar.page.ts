@@ -73,6 +73,7 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
+import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -202,6 +203,7 @@ export class ActivityCalendarPage
   ngOnInit() {
     super.ngOnInit();
 
+    console.log('iciii', this.calendar);
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
