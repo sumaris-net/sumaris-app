@@ -1,7 +1,17 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  AppValidatorService,
+  DateUtils,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  Person,
+  toBoolean,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, QualitativeValueIds, VesselIds } from '@app/referential/services/model/model.enum';
@@ -403,6 +413,24 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     }
   }
 
+  protected async onNewEntity(data: Landing): Promise<void> {
+    console.debug('[landings-table] Initializing new row data...');
+
+    await super.onNewEntity(data);
+
+    if (this.isSaleDetailEditor) {
+      const petsValue = await this.referentialRefService.loadById(QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS, 'QualitativeValue');
+      const vesselSnapshot = await this.vesselSnapshotService.load(VesselIds.UNKNOWN, { fetchPolicy: 'cache-first' });
+      data.program = this.context.program;
+      data.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN] = petsValue;
+      data.measurementValues[PmfmIds.IS_OBSERVED] = true;
+      data.vesselSnapshot = vesselSnapshot;
+      data.dateTime = DateUtils.moment();
+      data.location = this.context.observedLocation.location;
+      data.observedLocationId = this.context.observedLocation.id;
+    }
+  }
+
   setParent(parent: ObservedLocation | Trip | undefined) {
     if (isNil(parent?.id)) {
       this._parentDateTime = undefined;
@@ -462,6 +490,13 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   async getMaxRankOrder(): Promise<number> {
     // Expose as public (was protected)
+
+    if (this.isSaleDetailEditor) {
+      // Max on PETS species only
+      const rows = this.dataSource.getRows().filter((row) => this.isLandingPets(row)) || [];
+      return Math.max(0, ...rows.map((row) => row.currentData.rankOrder || 0));
+    }
+
     return super.getMaxRankOrder();
   }
 
