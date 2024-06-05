@@ -10,7 +10,6 @@ import { CopiedValue } from './copy-tool/copy-calendar.utils';
 
 export interface Clipboard<T = any> {
   data?: T;
-  copiedValue?: CopiedValue;
   copiedValues?: CopiedValue[][];
   pasteFlags?: number;
   updateDate?: Moment;

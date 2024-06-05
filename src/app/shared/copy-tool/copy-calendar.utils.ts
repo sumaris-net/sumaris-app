@@ -1,10 +1,7 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { ACTIVITY_MONTH_END_COLUMNS, ACTIVITY_MONTH_START_COLUMNS } from '@app/activity-calendar/calendar/calendar.component';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { isNotNil } from '@sumaris-net/ngx-components';
-import { spec } from 'node:test/reporters';
 
 export interface CopiedValue {
   value: any;
@@ -16,7 +13,7 @@ export interface CopiedValue {
 type FocusType = 'PMFM' | 'PROPERTY' | 'SPECIFIC';
 
 export class CopyCalendarUtils {
-  static specificCopy(input: string): { name: string; id: string }[] {
+  static specificCellToCopy(input: string): { name: string; id: string }[] {
     const regex = /([a-zA-Z]+)(\d+)/g;
     let match;
     const result = [];
@@ -53,7 +50,7 @@ export class CopyCalendarUtils {
       return formGroup.get(focusColumnName);
     } else {
       const control = formGroup.get('gearUseFeatures');
-      const specificCopy = this.specificCopy(focusColumnName);
+      const specificCopy = this.specificCellToCopy(focusColumnName);
       const controlGuf = control.get(specificCopy[0].id.toString());
       if (specificCopy.length === 1) {
         return controlGuf.get(specificCopy[0].name);
@@ -63,7 +60,7 @@ export class CopyCalendarUtils {
     }
   }
 
-  //retourne la liste des pmfm ordonnée
+  // Returns the sorted list of pmfm
   static getPmfmList(pmfm: IPmfm[]) {
     pmfm.sort((a, b) => a.rankOrder - b.rankOrder);
     const extractedAttributes = pmfm.map((obj) => obj.id.toString());
@@ -82,7 +79,7 @@ export class CopyCalendarUtils {
     } else if (focusType === 'PROPERTY') {
       copyValue = { value: data[focusColumn], type: 'PROPERTY', focusColumn: focusColumn, specificColumn: null };
     } else if (focusType === 'SPECIFIC') {
-      const specificColumn = this.specificCopy(focusColumn);
+      const specificColumn = this.specificCellToCopy(focusColumn);
       copyValue = {
         value:
           specificColumn.length === 1 ? data.gearUseFeatures[specificColumn[0].id].metier : data.gearUseFeatures[specificColumn[0].id].fishingAreas,
@@ -92,12 +89,13 @@ export class CopyCalendarUtils {
       };
     } else {
       copyValue = null;
-      console.error('Type de focus non reconnu');
+      console.error('Unrecognized focus type');
     }
 
     return copyValue;
   }
 
+  //Handles the value switch between specific columns
   static pasteValue(control: AbstractControl, focusType: FocusType, copyvalue: CopiedValue, focusColumnName: string) {
     if (copyvalue.type === focusType) {
       if (copyvalue.focusColumn === focusColumnName) {
@@ -118,7 +116,7 @@ export class CopyCalendarUtils {
     }
   }
 
-  static pasteMultiValue(control: AbstractControl, focusType: FocusType, copyvalue: CopiedValue, focusColumnName: string) {
+  static pasteValues(control: AbstractControl, focusType: FocusType, copyvalue: CopiedValue) {
     if (focusType === 'PMFM') {
       control.setValue(copyvalue.value);
     } else if (focusType === 'PROPERTY') {
@@ -136,7 +134,7 @@ export class CopyCalendarUtils {
 
   static getCopyableColumnNames(rowspan: number, pmfmList: string[], columnName: string) {
     let columnsIndexEnd = null;
-    const startColumns = ACTIVITY_MONTH_START_COLUMNS.slice(-2); //todo chercher à automatiser
+    const startColumns = ACTIVITY_MONTH_START_COLUMNS.slice(-2); //TODO MF try to automate
     const columnRowOrder = startColumns.concat(pmfmList).concat(ACTIVITY_MONTH_END_COLUMNS);
 
     let columnsIndexstart = this.getColumnIndex(columnRowOrder, columnName);

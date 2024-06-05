@@ -202,8 +202,6 @@ export class ActivityCalendarPage
 
   ngOnInit() {
     super.ngOnInit();
-
-    console.log('iciii', this.calendar);
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 

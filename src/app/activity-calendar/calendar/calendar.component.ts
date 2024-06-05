@@ -382,21 +382,14 @@ export class CalendarComponent
       this.hotkeys
         .addShortcut({ keys: 'control.v', description: 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC', preventDefault: true })
         .pipe(filter(() => this.loaded))
-        .subscribe(() => this.selectPasteMode())
+        .subscribe(() => this.pasteCells())
     );
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
   }
-  // TODO MF temporaire pour daily
-  protected selectPasteMode() {
-    if (isNotNil(this.activityCalendarContext.clipboard.copiedValue)) {
-      this.pasteCell();
-    } else {
-      this.multiplePasteCells();
-    }
-  }
+
   protected generateTableId(): string {
     return super.generateTableId();
   }
@@ -697,10 +690,9 @@ export class CalendarComponent
 
     this.activityCalendarContext.clipboard = {
       copiedValues: copiedValueGroup,
-      copiedValue: null,
     };
   }
-  protected multiplePasteCells() {
+  protected pasteCells() {
     const copyValue = this.activityCalendarContext.clipboard.copiedValues;
     const numberObjToPaste = copyValue.length;
     const rowSelectedId = this.editedRow.originalData.month - 1;
@@ -711,7 +703,7 @@ export class CalendarComponent
       const formGroup = row.validator;
       copyValue[index].forEach((element) => {
         const control = CopyCalendarUtils.getControlByFocusName(element.focusColumn, formGroup);
-        CopyCalendarUtils.pasteMultiValue(control, element.type, element, element.focusColumn);
+        CopyCalendarUtils.pasteValues(control, element.type, element);
       });
     });
   }
@@ -1080,20 +1072,7 @@ export class CalendarComponent
     const data = this.editedRow.originalData;
     const focusColumn = this.focusColumn;
     this.activityCalendarContext.clipboard = {
-      copiedValue: CopyCalendarUtils.copyValue(data, focusColumn),
-      copiedValues: null,
+      copiedValues: [[CopyCalendarUtils.copyValue(data, focusColumn)]],
     };
-  }
-
-  protected pasteCell() {
-    const dataTopaste: CopiedValue = this.activityCalendarContext.clipboard.copiedValue;
-    const data = this.editedRow.originalData;
-    const focusColumnName = this.focusColumn;
-    const formGroup = this.editedRow.validator;
-
-    const focusType = CopyCalendarUtils.getTypeFocus(focusColumnName, data);
-    const control = CopyCalendarUtils.getControlByFocusName(focusColumnName, formGroup);
-
-    CopyCalendarUtils.pasteValue(control, focusType, dataTopaste, focusColumnName);
   }
 }
