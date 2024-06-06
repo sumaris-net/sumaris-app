@@ -391,6 +391,16 @@ export class CalendarComponent
       attributes: ['label'],
       mobile: this.mobile,
     });
+    this.registerAutocompleteField('distanceToCoastGradient', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
+      filter: {
+        entityName: 'DistanceToCoastGradient',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      attributes: ['label', 'name'],
+      mobile: this.mobile,
+    });
 
     this._state.connect(
       'validRowCount',
@@ -900,6 +910,21 @@ export class CalendarComponent
           key: `metier${rankOrder}FishingArea${faRankOrder}`,
           class: 'mat-column-fishingArea',
           treeIndent: '&nbsp;&nbsp;',
+        };
+      }),
+      ...new Array(newFishingAreaCount).fill(null).map((_, faIndex) => {
+        const faRankOrder = faIndex + 1;
+        return {
+          blockIndex: index,
+          index: faIndex,
+          rankOrder: faRankOrder,
+          label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.COAST_GRADIENT'),
+          placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.COAST_GRADIENT'),
+          autocomplete: this.autocompleteFields.distanceToCoastGradient,
+          path: `${pathPrefix}fishingAreas.${faIndex}.distanceToCoastGradient`,
+          key: `metier${rankOrder}FishingArea${faRankOrder}CoastGradient`,
+          class: 'mat-column-fishingArea',
+          treeIndent: '&nbsp;&nbsp;&nbsp;',
         };
       }),
     ];
