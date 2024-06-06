@@ -644,7 +644,7 @@ export class CalendarComponent
           const validate = await this.validate(event);
           if (validate) {
             console.debug(`Applying colspan=${colspan} rowspan=${rowspan}`);
-            this.multipleCopyCells(rowspan, colspan);
+            this.copyCells(rowspan, colspan);
             this.onMouseEnd(event);
           }
         } catch (err) {
@@ -658,15 +658,13 @@ export class CalendarComponent
     this.originalMouseX = null;
   }
 
-  protected multipleCopyCells(rowspan: number, colspan: number) {
+  protected copyCells(rowspan: number, colspan: number) {
     const columnName = this.resizingCell.columnName;
     const columnId = this.resizingCell.row.id;
     const data = this.memoryDataService.value;
     let lastSelectedColumnIndex = columnId + Math.abs(colspan);
     const pmfmList = CopyCalendarUtils.getPmfmList(this.pmfms);
     const columnNamesToCopy = CopyCalendarUtils.getCopyableColumnNames(rowspan, pmfmList, columnName);
-    console.log('tableCopyProperties', columnNamesToCopy);
-
     const copiedValueGroup: CopiedValue[][] = [];
     let copiedValues: CopiedValue[] = [];
     let firstSelectedColumnIndex = columnId;
