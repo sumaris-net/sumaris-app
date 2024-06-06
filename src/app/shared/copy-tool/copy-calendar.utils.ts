@@ -2,6 +2,7 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { ACTIVITY_MONTH_END_COLUMNS, ACTIVITY_MONTH_START_COLUMNS } from '@app/activity-calendar/calendar/calendar.component';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { isNil } from '@sumaris-net/ngx-components';
 
 export interface CopiedValue {
   value: any;
@@ -13,28 +14,27 @@ export interface CopiedValue {
 type FocusType = 'PMFM' | 'PROPERTY' | 'SPECIFIC';
 
 export class CopyCalendarUtils {
-  static specificCellToCopy(input: string): { name: string; id: string }[] {
-    const regex = /([a-zA-Z]+)(\d+)/g;
-    let match;
+  static specificCellToCopy(input: string): { name: string; id: string | null }[] {
+    const regex = /([a-zA-Z]+)(\d+)?/g;
+    let match: RegExpExecArray | null;
     const result = [];
 
     while ((match = regex.exec(input)) !== null) {
       const name = match[1];
-      const id = +match[2] - 1;
+      const id = match[2] ? +match[2] - 1 : null;
       result.push({ name, id });
     }
-
     return result;
   }
 
   static isNumeric(input: string): boolean {
-    return /^\d+$/.test(input);
+    return !isNaN(Number(input));
   }
 
   static getTypeFocus(paramName: string, obj: any): FocusType {
     if (this.isNumeric(paramName)) {
       return 'PMFM';
-    } else if (Object.prototype.hasOwnProperty.call(obj, paramName)) {
+    } else if (paramName in obj) {
       return 'PROPERTY';
     } else {
       return 'SPECIFIC';
