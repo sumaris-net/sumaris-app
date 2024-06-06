@@ -13,6 +13,7 @@ import {
   DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
+  Environment,
   equals,
   fadeInOutAnimation,
   firstNotNilPromise,
@@ -62,8 +63,6 @@ import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
-import { GearUseFeaturesTable } from '../metier/gear-use-features.table';
-import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { VesselFeaturesHistoryComponent } from '@app/vessel/page/vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from '@app/vessel/page/vessel-registration-history.component';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
@@ -74,6 +73,11 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
+import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.table';
+import { ActivityMonth } from '../calendar/activity-month.model';
+import { GearPhysicalFeatures } from '../model/gear-physical-features.model';
+import { TableElement } from '@e-is/ngx-material-table';
+import { environment } from '@environments/environment';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -172,7 +176,7 @@ export class ActivityCalendarPage
 
   @ViewChild('predocSplit') predocSplit: SplitComponent;
   @ViewChild('predocCalendar') predocCalendar: CalendarComponent;
-  @ViewChild('tableMetier') tableMetier: GearUseFeaturesTable;
+  @ViewChild('tableMetier') tableMetier: GearPhysicalFeaturesTable;
   @ViewChild('map') map: ActivityCalendarMapComponent;
   @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
   @ViewChild('featuresHistoryTable', { static: true }) featuresHistoryTable: VesselFeaturesHistoryComponent;
@@ -204,6 +208,7 @@ export class ActivityCalendarPage
     this.defaultBackHref = '/activity-calendar';
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -271,7 +276,7 @@ export class ActivityCalendarPage
           return;
         }
 
-        this.tableMetier.value = this.getMetierValue(this.calendar.value, this.tableMetier.value);
+        this.tableMetier.value = this.getPhysicalFeatures(this.calendar.value, this.tableMetier.value);
       })
     );
 
@@ -357,7 +362,7 @@ export class ActivityCalendarPage
     if (!table.confirmEditCreate()) return false;
     if (table.dirty) {
       this.markAsDirty();
-      return await table.save();
+      return table.save();
     }
     return true;
   }
@@ -627,7 +632,7 @@ export class ActivityCalendarPage
     this.calendar.value = activityMonths;
 
     // Set metier table data
-    this.tableMetier.value = this.getMetierValue(activityMonths, data.gearUseFeatures);
+    this.tableMetier.value = this.getPhysicalFeatures(activityMonths, data.gearPhysicalFeatures);
 
     // Load pictures
     if (this.showPictures && !isNewData) {
@@ -640,30 +645,43 @@ export class ActivityCalendarPage
     }
   }
 
-  getMetierValue(activityMonths: ActivityMonth[], gearUseFeatures: GearUseFeatures[]) {
+  getPhysicalFeatures(activityMonths: ActivityMonth[], gearPhysicalFeature: GearPhysicalFeatures[]): GearPhysicalFeatures[] {
     // Set metier table data
     // TODO sort by startDate ?
     const monthMetiers = removeDuplicatesFromArray(
       activityMonths.flatMap((month) => month.gearUseFeatures.map((guf) => guf.metier)),
       'id'
     );
+    const monthMetierIds = monthMetiers.map((metier) => metier.id);
+
+    // Keep in GearPhysicalFeatures only metier present in calendar
+    gearPhysicalFeature = gearPhysicalFeature.filter((gph) => monthMetierIds.includes(gph.metier.id));
+
     const firstDayOfYear = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
     const lastDayOfYear = firstDayOfYear.clone().endOf('year');
 
     const metiers = monthMetiers
       .map((metier, index) => {
-        const existingGuf = (gearUseFeatures || []).find((guf) => {
-          //TODO MFA à voir avec ifremer comment filtrer les GUF qui sont à afficher dans le tableau des métiers
+        const existingGph = (gearPhysicalFeature || []).find((guf) => {
           return (
             DateUtils.isSame(firstDayOfYear, guf.startDate, 'day') &&
             DateUtils.isSame(lastDayOfYear, guf.endDate, 'day') &&
             ReferentialUtils.equals(guf.metier, metier)
           );
         });
-        if (existingGuf) existingGuf.rankOrder = index + 1;
-        return existingGuf || { startDate: firstDayOfYear, endDate: lastDayOfYear, metier, rankOrder: index + 1 };
+        if (existingGph) existingGph.rankOrder = index + 1;
+        return (
+          existingGph || {
+            activityCalendarId: this.data.id,
+            startDate: firstDayOfYear,
+            endDate: lastDayOfYear,
+            metier,
+            rankOrder: index + 1,
+            gear: metier.gear,
+          }
+        );
       })
-      .map(GearUseFeatures.fromObject);
+      .map(GearPhysicalFeatures.fromObject);
 
     // DEBUG
     console.debug(this.logPrefix + 'Loaded metiers: ', metiers);
@@ -688,8 +706,7 @@ export class ActivityCalendarPage
     }
 
     // Metiers
-    const metierGearUseFeatures = this.tableMetier.value;
-    if (isNotEmptyArray(metierGearUseFeatures)) value.gearUseFeatures = [...value.gearUseFeatures, ...metierGearUseFeatures];
+    value.gearPhysicalFeatures = this.tableMetier.value;
 
     // Photos
     if (this.canEdit) value.images = this.gallery.value;

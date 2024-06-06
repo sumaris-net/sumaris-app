@@ -5,6 +5,7 @@ import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-featu
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { Moment } from 'moment';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
+import { GearPhysicalFeatures } from './gear-physical-features.model';
 
 @EntityClass({ typename: 'ActivityCalendarVO' })
 export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
@@ -18,6 +19,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
   vesselUseFeatures: VesselUseFeatures[];
   gearUseFeatures: GearUseFeatures[];
+  gearPhysicalFeatures: GearPhysicalFeatures[];
   images: ImageAttachment[];
 
   constructor() {
@@ -30,6 +32,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
     target.year = target.year || this.startDate?.year() || null;
     target.vesselUseFeatures = (this.vesselUseFeatures && this.vesselUseFeatures.map((vuf) => vuf.asObject(opts))) || undefined;
     target.gearUseFeatures = (this.gearUseFeatures && this.gearUseFeatures.map((guf) => guf.asObject(opts))) || undefined;
+    target.gearPhysicalFeatures = (this.gearPhysicalFeatures && this.gearPhysicalFeatures.map((gpf) => gpf.asObject(opts))) || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
     target.images = (this.images && this.images.map((image) => image.asObject(opts))) || undefined;
     if (opts?.minify) {
@@ -46,6 +49,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
     this.economicSurvey = source.economicSurvey;
     this.vesselUseFeatures = source.vesselUseFeatures?.map(VesselUseFeatures.fromObject) || undefined;
     this.gearUseFeatures = source.gearUseFeatures?.map(GearUseFeatures.fromObject) || undefined;
+    this.gearPhysicalFeatures = source.gearPhysicalFeatures?.map(GearPhysicalFeatures.fromObject) || undefined;
     this.measurementValues = { ...source.measurementValues }; // Copy values
     this.images = (source.images && source.images.map(ImageAttachment.fromObject)) || undefined;
   }
