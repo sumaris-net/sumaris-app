@@ -691,6 +691,8 @@ export class CalendarComponent
     };
   }
   protected pasteCells() {
+    // if clipboard is empty, do nothing
+    if (!this.activityCalendarContext.clipboard) return;
     const copyValue = this.activityCalendarContext.clipboard.copiedValues;
     const numberObjToPaste = copyValue.length;
     const rowSelectedId = this.editedRow.originalData.month - 1;
