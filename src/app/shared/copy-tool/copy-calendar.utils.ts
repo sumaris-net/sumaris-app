@@ -30,6 +30,7 @@ export class CopyCalendarUtils {
     return !isNaN(Number(input));
   }
 
+  // TODO MF ASK THE QUESTION TO BENOIOT TO KNOW IF HE HAS A METHOD TO DETECT IF IT'S A PMFM
   static getTypeFocus(paramName: string, obj: any): FocusType {
     if (this.isNumeric(paramName)) {
       return 'PMFM';
@@ -92,27 +93,6 @@ export class CopyCalendarUtils {
     }
 
     return copyValue;
-  }
-
-  //Handles the value switch between specific columns
-  static pasteValue(control: AbstractControl, focusType: FocusType, copyvalue: CopiedValue, focusColumnName: string) {
-    if (copyvalue.type === focusType) {
-      if (copyvalue.focusColumn === focusColumnName) {
-        if (copyvalue.type === 'PMFM') {
-          control.setValue(copyvalue.value);
-        } else if (copyvalue.type === 'PROPERTY') {
-          control.setValue(copyvalue.value);
-        }
-      }
-
-      if (copyvalue.specificColumn && Array.isArray(copyvalue.specificColumn)) {
-        if (copyvalue.specificColumn.length === 1) {
-          control.setValue(copyvalue.value);
-        } else {
-          control.setValue(copyvalue.value[copyvalue.specificColumn[1].id.toString()].location);
-        }
-      }
-    }
   }
 
   static pasteValues(control: AbstractControl, focusType: FocusType, copyvalue: CopiedValue) {
