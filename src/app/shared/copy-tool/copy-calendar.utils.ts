@@ -147,4 +147,24 @@ export class CopyCalendarUtils {
 
     return columnRowOrder.slice(columnsIndexstart, columnsIndexEnd);
   }
+
+  static checkCopyCompatible(selectedFocusColumn: string, copyFocusColumn: string) {
+    const selectedFocusColumns = CopyCalendarUtils.specificCellToCopy(selectedFocusColumn);
+    const copyFocusColumns = CopyCalendarUtils.specificCellToCopy(copyFocusColumn);
+
+    if (selectedFocusColumns.length !== copyFocusColumns.length) {
+      return false;
+    }
+
+    for (let i = 0; i < selectedFocusColumns.length; i++) {
+      const selectedColumn = selectedFocusColumns[i];
+      const copyColumn = copyFocusColumns[i];
+
+      if (selectedColumn.name !== copyColumn.name) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }

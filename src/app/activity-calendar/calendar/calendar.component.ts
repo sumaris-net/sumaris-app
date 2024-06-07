@@ -702,7 +702,13 @@ export class CalendarComponent
     rows.slice(rowSelectedId, columnMaxCopy).forEach((row, index) => {
       const formGroup = row.validator;
       copyValue[index].forEach((element) => {
-        const control = CopyCalendarUtils.getControlByFocusName(element.focusColumn, formGroup);
+        let control = null;
+        // To allow copying between fields of the same type (e.g. fishingArea)
+        if (copyValue[index].length === 1 && CopyCalendarUtils.checkCopyCompatible(this.focusColumn, element.focusColumn)) {
+          control = CopyCalendarUtils.getControlByFocusName(this.focusColumn, formGroup);
+        } else {
+          control = CopyCalendarUtils.getControlByFocusName(element.focusColumn, formGroup);
+        }
         CopyCalendarUtils.pasteValues(control, element.type, element);
       });
     });
