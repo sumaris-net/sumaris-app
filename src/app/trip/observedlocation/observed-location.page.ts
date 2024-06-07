@@ -812,7 +812,7 @@ export class ObservedLocationPage
       await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
 
       const landing2 = new Landing();
-      landing2.rankOrder = 2;
+      landing2.rankOrder = 101;
       landing2.vesselSnapshot = new VesselSnapshot();
       landing2.vesselSnapshot.id = 1;
       landing2.vesselSnapshot.name = `Vessel 1`;
@@ -834,7 +834,7 @@ export class ObservedLocationPage
       await this.landingsTable.addOrUpdateEntityToTable(landing2, { editing: false });
 
       const landing3 = new Landing();
-      landing3.rankOrder = 3;
+      landing3.rankOrder = 102;
       landing3.vesselSnapshot = new VesselSnapshot();
       landing3.vesselSnapshot.id = 1;
       landing3.vesselSnapshot.name = `Vessel 1`;
@@ -851,7 +851,7 @@ export class ObservedLocationPage
       landing3.measurementValues = {
         [PmfmIds.CONTROLLED_SPECIES]: 302, // BAR
         [PmfmIds.IS_OBSERVED]: false,
-        [PmfmIds.SPECIES_LIST_ORIGIN]: 660,
+        [PmfmIds.SPECIES_LIST_ORIGIN]: QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM,
       };
       await this.landingsTable.addOrUpdateEntityToTable(landing3, { editing: false });
     }

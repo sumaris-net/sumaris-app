@@ -418,7 +418,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     await super.onNewEntity(data);
 
-    if (this.isSaleDetailEditor) {
+    if (this.isSaleDetailEditor && isNil(data.program)) {
       const petsValue = await this.referentialRefService.loadById(QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS, 'QualitativeValue');
       const vesselSnapshot = await this.vesselSnapshotService.load(VesselIds.UNKNOWN, { fetchPolicy: 'cache-first' });
       data.program = this.context.program;
