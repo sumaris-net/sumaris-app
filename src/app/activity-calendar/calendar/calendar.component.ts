@@ -677,7 +677,6 @@ export class CalendarComponent
 
     const columnsToCopy = data.slice(firstSelectedColumnIndex, lastSelectedColumnIndex);
     columnsToCopy.forEach((dataToCopy) => {
-      console.log('dataCopy', dataToCopy);
       for (const columnName of columnNamesToCopy) {
         const result = CopyCalendarUtils.copyValue(dataToCopy, columnName);
         copiedValues.push(result);

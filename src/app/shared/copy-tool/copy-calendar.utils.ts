@@ -2,7 +2,6 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { ACTIVITY_MONTH_END_COLUMNS, ACTIVITY_MONTH_START_COLUMNS } from '@app/activity-calendar/calendar/calendar.component';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { isNil } from '@sumaris-net/ngx-components';
 
 export interface CopiedValue {
   value: any;
