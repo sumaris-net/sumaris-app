@@ -82,7 +82,7 @@ const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
         ...new Array<string>(MAX_FISHING_AREA_COUNT).fill(null).flatMap((_, faIndex) => <string[]>[`metier${index + 1}FishingArea${faIndex + 1}`]),
       ]
   );
-export const ACTIVITY_MONTH_START_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
+const ACTIVITY_MONTH_START_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
 export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
 
 export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
@@ -664,7 +664,8 @@ export class CalendarComponent
     const data = this.memoryDataService.value;
     let lastSelectedColumnIndex = columnId + Math.abs(colspan);
     const pmfmList = CopyCalendarUtils.getPmfmList(this.pmfms);
-    const columnNamesToCopy = CopyCalendarUtils.getCopyableColumnNames(rowspan, pmfmList, columnName);
+    const filterDisplayedColumns = ACTIVITY_MONTH_START_COLUMNS.filter((column) => this.getShowColumn(column));
+    const columnNamesToCopy = CopyCalendarUtils.getCopyableColumnNames(filterDisplayedColumns, rowspan, pmfmList, columnName);
     const copiedValueGroup: CopiedValue[][] = [];
     let copiedValues: CopiedValue[] = [];
     let firstSelectedColumnIndex = columnId;

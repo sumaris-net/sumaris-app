@@ -1,6 +1,6 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
-import { ACTIVITY_MONTH_END_COLUMNS, ACTIVITY_MONTH_START_COLUMNS } from '@app/activity-calendar/calendar/calendar.component';
+import { ACTIVITY_MONTH_END_COLUMNS } from '@app/activity-calendar/calendar/calendar.component';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export interface CopiedValue {
@@ -111,9 +111,9 @@ export class CopyCalendarUtils {
     }
   }
 
-  static getCopyableColumnNames(rowspan: number, pmfmList: string[], columnName: string) {
+  static getCopyableColumnNames(filterDisplayedColumns: string[], rowspan: number, pmfmList: string[], columnName: string) {
     let columnsIndexEnd = null;
-    const startColumns = ACTIVITY_MONTH_START_COLUMNS.slice(-2); //TODO MF try to automate
+    const startColumns = filterDisplayedColumns.slice(-2); //TODO MF try to automate
     const columnRowOrder = startColumns.concat(pmfmList).concat(ACTIVITY_MONTH_END_COLUMNS);
 
     let columnsIndexstart = this.getColumnIndex(columnRowOrder, columnName);
