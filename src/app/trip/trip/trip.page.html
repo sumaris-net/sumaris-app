@@ -316,6 +316,57 @@
         [defaultSortDirection]="mobile ? 'desc' : 'asc'"
       ></app-operations-table>
     </mat-tab>
+
+    <!-- TAB: expenses -->
+    <mat-tab [label]="'TRIP.TAB_EXPENSES' | translate" [disabled]="!showExpensesTab" appSubMenuTab>
+      <ng-template mat-tab-label>
+        <ion-icon slot="start" name="card"></ion-icon>
+        <ion-label translate>TRIP.TAB_EXPENSES</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && expenseForm.invalid"></ion-icon>
+      </ng-template>
+
+      <app-expense-form
+        #expenseForm
+        entityName="VesselUseMeasurement"
+        acquisitionLevel="EXPENSE"
+        [programLabel]="programLabel$ | async"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="strategy$ | async | mapGet: 'id'"
+        [forceOptional]="usageMode | isOnField"
+        [showError]="true"
+        [debug]="debug"
+        (selectedTabChange)="onSubTabChange($event)"
+      ></app-expense-form>
+    </mat-tab>
+
+    <!-- TAB: landing -->
+    <mat-tab [label]="'TRIP.TAB_LANDING' | translate" [disabled]="!showLandingTab" appSubMenuTab>
+      <ng-template mat-tab-label>
+        <mat-icon>anchor</mat-icon>
+        <ion-label translate>TRIP.TAB_LANDING</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && landingEditor.invalid"></ion-icon>
+      </ng-template>
+
+      <app-landed-trip-page
+        #landingEditor
+        programLabel="SIH-OBSDEB"
+        [showToolbar]="false"
+        [showFooter]="false"
+        [showGeneralTab]="true"
+        [showProgram]="false"
+        [showVessel]="false"
+        [showDeparture]="false"
+        [showReturn]="false"
+        [showOperationGroupTab]="true"
+        [showCatchTab]="true"
+        [showSaleTab]="true"
+        [showExpenseTab]="false"
+        [queryTabIndexParamName]="'subtab'"
+        [selectedTabIndex]="+(queryParams['subtab'] || 1)"
+        [usageMode]="usageMode"
+        [debug]="debug"
+      ></app-landed-trip-page>
+    </mat-tab>
   </mat-tab-group>
 </ion-content>
 

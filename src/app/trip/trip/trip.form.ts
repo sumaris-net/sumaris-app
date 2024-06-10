@@ -82,6 +82,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   protected canFilterMetier = false;
   protected readonly mobile = this.settings.mobile;
 
+  @Input() showProgram: boolean = true;
+  @Input() showVessel: boolean = true;
+  @Input() showDeparture: boolean = true;
+  @Input() showReturn: boolean = true;
   @Input() showComment = true;
   @Input() allowAddNewVessel = true;
   @Input() showError = true;

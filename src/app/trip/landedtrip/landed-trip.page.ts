@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { AcquisitionLevelCodes, SaleTypeIds } from '@app/referential/services/model/model.enum';
@@ -16,13 +16,15 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrNaN,
   PromiseEvent,
   ReferentialRef,
+  toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { TripForm } from '../trip/trip.form';
 import { firstValueFrom, Observable, tap } from 'rxjs';
-import { TripSaveOptions, TripService } from '../trip/trip.service';
+import { TripLoadOptions, TripSaveOptions, TripService } from '../trip/trip.service';
 import { ObservedLocationService } from '../observedlocation/observed-location.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { OperationGroupTable } from '../operationgroup/operation-groups.table';
@@ -56,6 +58,13 @@ export interface LandedTripPageState extends RootDataEntityEditorState {
   operationGroups: OperationGroup[];
   productFilter: ProductFilter;
   packetFilter: PacketFilter;
+  showToolbar: boolean;
+  showFooter: boolean;
+  showGeneralTab: boolean;
+  showOperationGroupTab: boolean;
+  showCatchTab: boolean;
+  showSaleTab: boolean;
+  showExpenseTab: boolean;
 }
 
 @Component({
@@ -82,10 +91,7 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
   @RxStateSelect() protected packetFilter$: Observable<PacketFilter[]>;
 
   protected observedLocationId: number;
-  protected showOperationGroupTab = false;
-  protected showCatchTab = false;
-  protected showSaleTab = false;
-  protected showExpenseTab = false;
+
   protected showCatchFilter = false;
   // List of trip's operation groups, use to populate product filter
   protected catchFilterForm: UntypedFormGroup;
@@ -96,6 +102,26 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
   @RxStateProperty() operationGroups: OperationGroup[];
   @RxStateProperty() productFilter: ProductFilter;
   @RxStateProperty() packetFilter: PacketFilter;
+  @Input() @RxStateProperty() programLabel: string;
+  @Input() @RxStateProperty() showGeneralTab: boolean = true;
+  @Input() @RxStateProperty() showOperationGroupTab = false;
+  @Input() @RxStateProperty() showCatchTab = false;
+  @Input() @RxStateProperty() showSaleTab = false;
+  @Input() @RxStateProperty() showExpenseTab = false;
+  @Input() @RxStateProperty() showToolbar: boolean = true;
+  @Input() @RxStateProperty() showFooter: boolean = true;
+  @Input() showProgram: boolean = true;
+  @Input() showVessel: boolean = true;
+  @Input() showDeparture: boolean = true;
+  @Input() showReturn: boolean = true;
+
+  @Input()
+  get usageMode(): UsageMode {
+    return super.usageMode;
+  }
+  set usageMode(value: UsageMode) {
+    super.usageMode = value;
+  }
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -125,6 +151,7 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
       settingsId: 'landedTrip',
       canCopyLocally: accountService.isAdmin(),
       acquisitionLevel: AcquisitionLevelCodes.TRIP,
+      autoLoad: false, // FIXME: add autoload as input, in ngx-components
     });
     this.showCatchFilter = !this.mobile;
 
@@ -269,14 +296,15 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
     return super.load(id, { isLandedTrip: true, ...options });
   }
 
-  protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: Trip, options?: TripLoadOptions & { observedLocationId?: number | string }): Promise<void> {
     // DEBUG
     //console.debug(options);
 
     // Read options and query params
-    if (options && options.observedLocationId) {
+    const observedLocationId = toNumber(+options.observedLocationId);
+    if (isNotNilOrNaN(observedLocationId)) {
       console.debug(this.logPrefix + 'New entity: settings defaults...');
-      this.observedLocationId = parseInt(options.observedLocationId);
+      this.observedLocationId = observedLocationId;
       const observedLocation = await this.getObservedLocationById(this.observedLocationId);
 
       // Fill default values
@@ -303,10 +331,11 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
         }
       }
     } else {
-      throw new Error(this.logPrefix + 'the observedLocationId must be present');
+      console.warn(this.logPrefix + 'the observedLocationId must be present');
+      //throw new Error(this.logPrefix + 'the observedLocationId must be present');
     }
 
-    const queryParams = this.route.snapshot.queryParams;
+    const queryParams = { ...this.route.snapshot.queryParams, ...options };
     // Load the vessel, if any
     if (isNotNil(queryParams['vessel'])) {
       const vesselId = +queryParams['vessel'];
@@ -371,10 +400,14 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
   updateViewState(data: Trip) {
     super.updateViewState(data);
 
-    if (this.isNewData) {
-      this.hideTabs();
-    } else {
-      this.showTabs();
+    // FIXME : This is only mandatory for the POC
+    //         Need to do this in more reliable way
+    if (this.showGeneralTab) {
+      // if (this.isNewData) {
+      //   this.hideTabs();
+      // } else {
+      //   this.showTabs();
+      // }
     }
   }
 

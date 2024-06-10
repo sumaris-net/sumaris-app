@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { TripTable } from './trips.table';
 import { TripPage } from './trip.page';
-import { TripForm } from './trip.form';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppDataModule } from '@app/data/data.module';
 import { TranslateModule } from '@ngx-translate/core';
@@ -17,7 +16,9 @@ import { AppOperationModule } from '@app/trip/operation/operation.module';
 import { AppSaleModule } from '@app/trip/sale/sale.module';
 import { AppSocialModule } from '@app/social/social.module';
 import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
-import { MatTabsModule } from '@angular/material/tabs';
+import { AppExpenseModule } from '@app/trip/expense/expense.module';
+import { AppLandedTripModule } from '@app/trip/landedtrip/landed-trip.module';
+import { AppTripFormModule } from '@app/trip/trip/trip-form.module';
 
 @NgModule({
   imports: [
@@ -35,18 +36,19 @@ import { MatTabsModule } from '@angular/material/tabs';
     AppExtractionButtonModule,
 
     // Functional modules
+    AppTripFormModule,
     AppMeasurementModule,
     AppPhysicalGearModule,
     AppOperationModule,
     AppSaleModule,
-    MatTabsModule,
+    AppExpenseModule,
+    AppLandedTripModule,
   ],
-  declarations: [TripTable, TripForm, TripPage, TripTrashModal, TripOfflineModal],
+  declarations: [TripTable, TripPage, TripTrashModal, TripOfflineModal],
   exports: [
     // Components
     TripTable,
     TripPage,
-    TripForm,
   ],
 })
 export class AppTripModule {

@@ -42,7 +42,6 @@ import { Operation, Trip } from './trip.model';
 import { ISelectPhysicalGearModalOptions, SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
 import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
-import { OperationEditor, ProgramProperties, TripReportType } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap, throttleTime } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -66,6 +65,8 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { OperationEditor, ProgramProperties, TripReportType } from '@app/referential/services/config/program.config';
+import { LandedTripPage } from '@app/trip/landedtrip/landed-trip.page';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -77,6 +78,8 @@ export interface TripPageState extends RootDataEntityEditorState {
   departureLocation: ReferentialRef;
   reportTypes: Property[];
   returnDateTime: Moment;
+  showLandingTab: boolean;
+  showExpensesTab: boolean;
 }
 
 @Component({
@@ -109,8 +112,12 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   private _measurementSubscription: Subscription;
 
   @RxStateSelect() protected returnDateTime$: Observable<Moment>;
+  @RxStateSelect() private readonly showLandingTab$: Observable<boolean>;
+  @RxStateSelect() private readonly showExpensesTab$: Observable<boolean>;
 
   @RxStateProperty() protected reportTypes: Property[];
+  @RxStateProperty() protected showLandingTab: boolean;
+  @RxStateProperty() protected showExpensesTab: boolean;
 
   showSaleForm = false;
   showGearTable = false;
@@ -128,6 +135,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   @ViewChild('physicalGearsTable', { static: true }) physicalGearsTable: PhysicalGearTable;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
   @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
+
+  @ViewChild('landingEditor', { static: true }) landingEditor: LandedTripPage;
 
   get dirty(): boolean {
     return (
@@ -391,6 +400,16 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     // But enable anyway, when parent operation allowed
     this.showOperationTable = this.showOperationTable || allowParentOperation;
 
+    // FIXME use program option ?
+    this.showExpensesTab = true;
+    this.showLandingTab = true;
+    this.tabCount = 3 + (this.showExpensesTab ? 1 : 0) + (this.showLandingTab ? 1 : 0);
+    if (this.showLandingTab) {
+      this.addForms([this.landingEditor]);
+      this.landingEditor.programLabel = 'SIH-OBSDEB'; // TODO from program option
+      if (this.enabled) this.landingEditor.enable();
+    }
+
     this.markAsReady();
     this.markForCheck();
 
@@ -578,6 +597,20 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
       // Operations table
       if (!isNewData && this.operationsTable) this.operationsTable.setTripId(data.id);
+
+      if (!isNewData) {
+        const landedTrip: Trip = Trip.fromObject({
+          ...data.asObject(),
+          id: null,
+          measurements: null,
+          gears: null,
+          operations: null,
+          program: { label: 'SIH-OBSDEB' },
+        });
+        console.log('TODO', landedTrip.asObject({}));
+        await this.landingEditor.updateView(landedTrip, { openTabIndex: 1 }); // Pass the landedTrip id, if exists (from LinkedItem)
+        this.landingEditor.markAsLoaded();
+      }
 
       await Promise.all(jobs);
 

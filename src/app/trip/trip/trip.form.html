@@ -7,7 +7,7 @@
 
   <ion-grid>
     <!-- PROGRAM -->
-    <ion-row>
+    <ion-row *ngIf="showProgram">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -45,7 +45,7 @@
     }
 
     <!-- VESSEL -->
-    <ion-row>
+    <ion-row *ngIf="showVessel">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -76,7 +76,7 @@
     </ion-row>
 
     <!-- DEPARTURE -->
-    <ion-row>
+    <ion-row *ngIf="showDeparture">
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.DEPARTURE</ion-label>
       </ion-col>
@@ -102,7 +102,7 @@
     </ion-row>
 
     <!-- RETURN -->
-    <ion-row>
+    <ion-row *ngIf="showReturn">
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.RETURN</ion-label>
       </ion-col>

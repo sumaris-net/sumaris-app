@@ -676,6 +676,7 @@
     "TAB_CATCHES": "Captures débarquées",
     "TAB_SALES": "Ventes",
     "TAB_EXPENSES": "Dépenses",
+    "TAB_LANDING": "Débarquement",
     "NEW": {
       "TITLE": "Nouvelle marée",
       "ACCESS_OPERATIONS_HELP": "Veuillez <b>sauvegarder la marée</b>, afin de pouvoir accéder à la saisie des opérations"

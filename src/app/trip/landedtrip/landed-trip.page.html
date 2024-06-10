@@ -1,24 +1,26 @@
-<app-toolbar
-  [title]="$title | async"
-  color="primary"
-  [hasValidate]="!loading && (dirty || saving)"
-  [hasClose]="!loading && !dirty && !saving"
-  (onValidate)="save($event)"
-  (onValidateAndClose)="saveAndClose($event)"
-  (onClose)="close($event)"
-  [defaultBackHref]="defaultBackHref"
-  [canGoBack]="true"
->
-  <button
-    slot="end"
-    mat-icon-button
-    *ngIf="(enabled && !isNewData) || debug"
-    [matMenuTriggerFor]="optionsMenu"
-    [title]="'COMMON.BTN_OPTIONS' | translate"
+@if (showToolbar) {
+  <app-toolbar
+    [title]="titleSubject | async"
+    color="primary"
+    [hasValidate]="!loading && (dirty || saving)"
+    [hasClose]="!loading && !dirty && !saving"
+    (onValidate)="save($event)"
+    (onValidateAndClose)="saveAndClose($event)"
+    (onClose)="close($event)"
+    [defaultBackHref]="defaultBackHref"
+    [canGoBack]="true"
   >
-    <mat-icon>more_vert</mat-icon>
-  </button>
-</app-toolbar>
+    <button
+      slot="end"
+      mat-icon-button
+      *ngIf="(enabled && !isNewData) || debug"
+      [matMenuTriggerFor]="optionsMenu"
+      [title]="'COMMON.BTN_OPTIONS' | translate"
+    >
+      <mat-icon>more_vert</mat-icon>
+    </button>
+  </app-toolbar>
+}
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
@@ -56,6 +58,7 @@
     <!-- TAB: general -->
     <mat-tab
       [label]="'TRIP.TAB_GENERAL' | translate"
+      [disabled]="!showGeneralTab"
       appSubMenuTab
       [subMenuTitle]="(titleSubject | async | noHtml) || ''"
       [parentPath]="defaultBackHref"
@@ -92,7 +95,17 @@
           <ion-row class="ion-no-padding">
             <ion-col class="ion-padding">
               <!-- trip -->
-              <app-form-trip #tripForm (onSubmit)="save($event)" [showError]="false" [allowAddNewVessel]="false" [returnFieldsRequired]="true">
+              <app-form-trip
+                #tripForm
+                (onSubmit)="save($event)"
+                [showError]="false"
+                [allowAddNewVessel]="false"
+                [returnFieldsRequired]="true"
+                [showProgram]="showProgram"
+                [showVessel]="showVessel"
+                [showDeparture]="showDeparture"
+                [showReturn]="showReturn"
+              >
                 <!-- Main fishing area  -->
                 <app-fishing-area-form
                   #fishingAreaForm
@@ -101,10 +114,11 @@
                   [showNearbySpecificArea]="false"
                   [required]="false"
                   [debug]="debug"
+                  beforeObservers
                 ></app-fishing-area-form>
 
                 <!-- Other features (Measurements) -->
-                <ion-grid class="ion-no-padding ion-padding-top">
+                <ion-grid class="ion-no-padding ion-padding-top form-container" afterObservers>
                   <ion-row>
                     <ion-col size="12" size-md="2" size-lg="3">
                       <ion-label class="ion-float-end" translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
@@ -297,20 +311,22 @@
   </mat-tab-group>
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
-  <app-form-buttons-bar
-    (onCancel)="reloadWithConfirmation()"
-    [disabledCancel]="!dirty || loading"
-    (onSave)="save($event)"
-    [disabled]="!dirty || loading"
-  >
-    <!-- error -->
-    <ion-item *ngIf="error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-    </ion-item>
-  </app-form-buttons-bar>
-</ion-footer>
+@if (showFooter) {
+  <ion-footer hidden-xs hidden-sm hidden-mobile>
+    <app-form-buttons-bar
+      (onCancel)="reloadWithConfirmation()"
+      [disabledCancel]="!dirty || loading"
+      (onSave)="save($event)"
+      [disabled]="!dirty || loading"
+    >
+      <!-- error -->
+      <ion-item *ngIf="error" lines="none">
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+        <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
+      </ion-item>
+    </app-form-buttons-bar>
+  </ion-footer>
+}
 
 <!-- FAB button -->
 <ion-fab
@@ -337,6 +353,8 @@
           editor.ready: {{ readySubject | async }}
           <br />
           editor.loading: {{ loading }}
+          <br />
+          editor.enabled: {{ enabled }}
           <br />
           editor.dirty: {{ dirty }}
           <br />
