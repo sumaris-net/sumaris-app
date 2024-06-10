@@ -519,6 +519,12 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
       // Force modal
       return this.openNewRowDetail(event);
+    } else if (this.isSaleDetailEditor) {
+      // Insert row after the last PETS landing
+      const rows = this.dataSource.getRows();
+      const lastPETSLanding = [...rows].reverse().find((row) => this.isLandingPets(row));
+      const insertAt = lastPETSLanding ? rows.lastIndexOf(lastPETSLanding) + 1 : null;
+      return super.addRow(event, insertAt);
     }
 
     // default behavior
