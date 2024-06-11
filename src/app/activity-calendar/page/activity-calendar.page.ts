@@ -323,7 +323,7 @@ export class ActivityCalendarPage
     // Manage tab group
     {
       const queryParams = this.route.snapshot.queryParams;
-      this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
+      this.selectedSubTabIndex = toNumber(queryParams['subtab'], 0);
     }
   }
 
@@ -524,8 +524,8 @@ export class ActivityCalendarPage
       }
 
       // Year
-      if (searchFilter.startDate) {
-        this.year = fromDateISOString(searchFilter.startDate).year();
+      this.year = searchFilter.year || fromDateISOString(searchFilter.startDate)?.year();
+      if (this.year) {
         data.year = this.year;
         if (this.timezone) {
           data.startDate = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
@@ -537,7 +537,7 @@ export class ActivityCalendarPage
 
     // Set contextual program, if any
     if (!data.program) {
-      const contextualProgram = this.context.program;
+      const contextualProgram = this.context?.program;
       if (contextualProgram?.label) {
         data.program = ReferentialRef.fromObject(contextualProgram);
       }

@@ -44,15 +44,14 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
         (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms) ||
         [];
 
-      // Override SALE_TYPE type to 'qualitative_value'
-      const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
-      if (saleTypePmfm) {
-        saleTypePmfm.type = 'qualitative_value';
-      }
-
       pmfms
         .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION)
         .forEach((p) => {
+          // Override SALE_TYPE type to 'qualitative_value'
+          if (p.id === PmfmIds.SALE_TYPE) {
+            p.type = 'qualitative_value';
+          }
+
           const key = p.id.toString();
           const value = data?.measurementValues?.[key];
           measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));

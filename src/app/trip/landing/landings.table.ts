@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person, toBoolean } from '@sumaris-net/ngx-components';
+import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
-import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, QualitativeValueIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';
 import { Trip } from '../trip/trip.model';
@@ -19,10 +19,13 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { RxState } from '@rx-angular/state';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, Observable, Subscription, tap } from 'rxjs';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { first } from 'rxjs/operators';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -49,11 +52,14 @@ export const LANDING_I18N_PMFM_PREFIX = 'LANDING.PMFM.';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
+  readonly pmfmIdsMap = PmfmIds;
+
   private _parentDateTime: Moment;
   private _parentObservers: Person[];
-  private _detailEditor: LandingEditor;
   private _footerRowsSubscription: Subscription;
+  private _rowSubscription: Subscription;
 
+  protected _detailEditor: LandingEditor;
   protected vesselSnapshotService: VesselSnapshotService;
   protected referentialRefService: ReferentialRefService;
   protected qualitativeValueAttributes: string[];
@@ -85,6 +91,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   @Input() canDelete = true;
   @Input() showFabButton = false;
+  @Input() showCancelRowButton = false;
+  @Input() showConfirmRowButton = false;
   @Input() includedPmfmIds: number[] = null;
   @Input() useFooterSticky = true;
 
@@ -95,6 +103,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       this.inlineEdition = value === 'trip' || value === 'sale';
     }
   }
+
+  @Input() dividerPmfmId: number;
 
   get detailEditor(): LandingEditor {
     return this._detailEditor;
@@ -219,12 +229,16 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
       reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+      onPrepareRowForm: (form) => this.onPrepareRowForm(form),
       i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
       i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
       initialState: {
         requiredStrategy: true,
         requiredGear: false,
         acquisitionLevel: AcquisitionLevelCodes.LANDING,
+      },
+      watchAllOptions: {
+        mapFn: (landings) => this.mapLandings(landings),
       },
     });
 
@@ -321,7 +335,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   }
 
   protected onPmfmsLoaded(pmfms: IPmfm[]) {
-    if (this.inlineEdition) {
+    if (this.inlineEdition && this.isSaleDetailEditor) {
       const pmfmIds = pmfms.map((p) => p.id).filter(isNotNil);
       // Listening on column 'IS_OBSERVED' value changes, to enable/disable column 'NON_OBSERVATION_REASON''
       const hasIsObservedAndReasonPmfms = pmfmIds.includes(PmfmIds.IS_OBSERVED) && pmfmIds.includes(PmfmIds.NON_OBSERVATION_REASON);
@@ -329,27 +343,61 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
         this.registerSubscription(
           this.registerCellValueChanges('isObserved', `measurementValues.${PmfmIds.IS_OBSERVED}`, true).subscribe((isObservedValue) => {
             if (!this.editedRow) return; // Should never occur
+
             const row = this.editedRow;
-            const controls = (row.validator.get('measurementValues') as UntypedFormGroup).controls;
-            if (!isObservedValue) {
-              if (row.validator.enabled) controls[PmfmIds.NON_OBSERVATION_REASON].enable();
-              controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(Validators.required);
-              controls[PmfmIds.NON_OBSERVATION_REASON].updateValueAndValidity();
-            } else {
-              controls[PmfmIds.NON_OBSERVATION_REASON].disable();
-              controls[PmfmIds.NON_OBSERVATION_REASON].setValue(null);
-              controls[PmfmIds.NON_OBSERVATION_REASON].setValidators(null);
-            }
+            this.validatorService.updateFormGroup(row.validator, { pmfms });
+
+            if (row.validator.dirty) this.markAsDirty();
           })
         );
       }
     }
   }
 
-  mapPmfms(pmfms: IPmfm[]): IPmfm[] {
+  async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
+
+    const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
+
+    if (saleTypePmfm) {
+      console.debug(`[control] Setting pmfm ${saleTypePmfm.label} qualitative values`);
+      const saleTypes = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });
+      saleTypePmfm.type = 'qualitative_value';
+      saleTypePmfm.qualitativeValues = saleTypes.data;
+    }
+
     // Keep selectivity device, if any
-    return pmfms.filter((p) => p.required || includedPmfmIds?.includes(p.id));
+    return pmfms
+      .filter((p) => p.required || includedPmfmIds?.includes(p.id))
+      .map((pmfm) => {
+        // Hide divider column
+        pmfm = pmfm.clone();
+        if (pmfm.id === this.dividerPmfmId) {
+          pmfm.hidden = true;
+        }
+        return pmfm;
+      });
+  }
+
+  onPrepareRowForm(form: UntypedFormGroup) {
+    // Update measurement form
+    if (this.isSaleDetailEditor) {
+      this.validatorService.updateFormGroup(form, { pmfms: this.pmfms });
+    }
+
+    // Mark as dirty if row changes
+    if (!this.showConfirmRowButton && this.canEdit && !this.dirty) {
+      this._rowSubscription?.unsubscribe();
+      const subscription = form.valueChanges
+        .pipe(
+          filter(() => form.dirty),
+          first()
+        )
+        .subscribe(() => this.markAsDirty());
+      subscription.add(() => this.unregisterSubscription(subscription));
+      this.registerSubscription(subscription);
+      this._rowSubscription = subscription;
+    }
   }
 
   setParent(parent: ObservedLocation | Trip | undefined) {
@@ -521,7 +569,63 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   protected updateFooter(rows: TableElement<Landing>[] | readonly TableElement<Landing>[]) {
     // Update observed count
-    this.observedCount = (rows || []).map((row) => toBoolean(row.currentData.measurementValues[PmfmIds.IS_OBSERVED])).filter((val) => !!val).length;
+    this.observedCount = (rows || [])
+      // Exclude divider rows
+      .filter((row) => row.currentData.__typename !== 'divider')
+      .map((row) => row.currentData.measurementValues)
+      // Keep random selected species
+      .filter(
+        (measurementValues) =>
+          isNil(this.dividerPmfmId) ||
+          MeasurementValuesUtils.hasPmfmValue(measurementValues, this.dividerPmfmId, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM)
+      )
+      .filter((measurementValues) => toBoolean(measurementValues[PmfmIds.IS_OBSERVED], true)).length;
+  }
+
+  isDivider(index: number, item: TableElement<Landing>): boolean {
+    return item.currentData.__typename === 'divider';
+  }
+
+  isLanding(index: number, item: TableElement<Landing>): boolean {
+    return item.currentData.__typename !== 'divider';
+  }
+
+  trackByFn(index: number, row: TableElement<Landing>): number {
+    return toNumber(row.currentData.id, -1 * row.id);
+  }
+
+  protected mapLandings(data: Landing[]): Landing[] {
+    if (this.isSaleDetailEditor) {
+      // Split landings with pets from others
+      const landingsGroups = [];
+
+      // Get distinct species list origin values
+      const speciesListOrigins = data.reduce((acc, landing) => {
+        const speciesListOrigin = landing.measurementValues[this.dividerPmfmId];
+        if (!acc.includes(speciesListOrigin)) {
+          // RANDOM at last
+          if (speciesListOrigin === QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM.toString()) {
+            acc.push(speciesListOrigin);
+          } else {
+            acc.unshift(speciesListOrigin);
+          }
+        }
+        return acc;
+      }, []);
+
+      // Split landings with different species list origin values
+      speciesListOrigins.forEach((speciesListOrigin) => {
+        const landings = data.filter((landing) => PmfmValueUtils.equals(landing.measurementValues[this.dividerPmfmId], speciesListOrigin));
+        const divider = new Landing();
+        divider.__typename = 'divider';
+        divider.measurementValues = { ...landings[0].measurementValues };
+        landingsGroups.push(divider, ...landings);
+      });
+
+      return landingsGroups;
+    }
+
+    return data;
   }
 
   protected markForCheck() {

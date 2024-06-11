@@ -650,6 +650,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.NON_OBSERVATION_REASON,
   },
+  PMFM_SPECIES_LIST_ORIGIN_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SPECIES_LIST_ORIGIN.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SPECIES_LIST_ORIGIN_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.SPECIES_LIST_ORIGIN,
+  },
 
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',
