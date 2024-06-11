@@ -69,20 +69,24 @@ export class CopyCalendarUtils {
   static getColumnIndex(array: string[], columnName: string): number {
     return array.indexOf(columnName);
   }
-
-  static copyValue(data: ActivityMonth, focusColumn: string): CopiedValue {
-    const focusType = this.getTypeFocus(focusColumn, data);
+  static copyValues(focusColumn: string, formControl: any, data: any) {
     let copyValue: CopiedValue;
+    let control = CopyCalendarUtils.getControlByFocusName(focusColumn, formControl);
+    const focusType = this.getTypeFocus(focusColumn, data);
 
     if (focusType === 'PMFM') {
-      copyValue = { value: data?.measurementValues[focusColumn], type: 'PMFM', focusColumn: focusColumn, specificColumn: null };
+      copyValue = { value: control.value, type: 'PMFM', focusColumn: focusColumn, specificColumn: null };
     } else if (focusType === 'PROPERTY') {
-      copyValue = { value: data[focusColumn], type: 'PROPERTY', focusColumn: focusColumn, specificColumn: null };
+      copyValue = { value: control.value, type: 'PROPERTY', focusColumn: focusColumn, specificColumn: null };
     } else if (focusType === 'SPECIFIC') {
       const specificColumn = this.specificCellToCopy(focusColumn);
+      if (specificColumn.length === 1) {
+        control = formControl.get('gearUseFeatures').get(specificColumn[0].id.toString()).get('metier');
+      } else {
+        control = formControl.get('gearUseFeatures').get(specificColumn[0].id.toString()).get('fishingAreas');
+      }
       copyValue = {
-        value:
-          specificColumn.length === 1 ? data.gearUseFeatures[specificColumn[0].id].metier : data.gearUseFeatures[specificColumn[0].id].fishingAreas,
+        value: control.value,
         type: 'SPECIFIC',
         focusColumn: focusColumn,
         specificColumn: specificColumn,
@@ -91,9 +95,33 @@ export class CopyCalendarUtils {
       copyValue = null;
       console.error('Unrecognized focus type');
     }
-
     return copyValue;
   }
+
+  // static copyValue(data: ActivityMonth, focusColumn: string): CopiedValue {
+  //   const focusType = this.getTypeFocus(focusColumn, data);
+  //   let copyValue: CopiedValue;
+
+  //   if (focusType === 'PMFM') {
+  //     copyValue = { value: data?.measurementValues[focusColumn], type: 'PMFM', focusColumn: focusColumn, specificColumn: null };
+  //   } else if (focusType === 'PROPERTY') {
+  //     copyValue = { value: data[focusColumn], type: 'PROPERTY', focusColumn: focusColumn, specificColumn: null };
+  //   } else if (focusType === 'SPECIFIC') {
+  //     const specificColumn = this.specificCellToCopy(focusColumn);
+  //     copyValue = {
+  //       value:
+  //         specificColumn.length === 1 ? data.gearUseFeatures[specificColumn[0].id].metier : data.gearUseFeatures[specificColumn[0].id].fishingAreas,
+  //       type: 'SPECIFIC',
+  //       focusColumn: focusColumn,
+  //       specificColumn: specificColumn,
+  //     };
+  //   } else {
+  //     copyValue = null;
+  //     console.error('Unrecognized focus type');
+  //   }
+
+  //   return copyValue;
+  // }
 
   static pasteValues(control: AbstractControl, focusType: FocusType, copyvalue: CopiedValue) {
     if (focusType === 'PMFM') {
