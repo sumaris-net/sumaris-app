@@ -32,7 +32,7 @@ import { Landing } from '../landing/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Observable, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
+import { filter, first, mergeMap, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationsPageSettingsEnum } from './table/observed-locations.page';
@@ -82,7 +82,6 @@ export class ObservedLocationPage
   static TABS = {
     GENERAL: 0,
     LANDINGS: 1,
-    PETS: 2,
   };
 
   private _measurementSubscription: Subscription;
@@ -93,7 +92,6 @@ export class ObservedLocationPage
 
   allowAddNewVessel: boolean;
   showLandingTab = false;
-  showPETSTab = false;
   showVesselType: boolean;
   showVesselBasePortLocation: boolean;
   addLandingUsingHistoryModal: boolean;
@@ -239,24 +237,6 @@ export class ObservedLocationPage
     this._measurementSubscription = new Subscription();
 
     const formGroup = this.observedLocationForm?.measurementValuesForm as UntypedFormGroup;
-
-    // If PMFM "PETS" exists, then use to enable/disable PETS tab
-    const petsControl = formGroup?.controls[PmfmIds.PETS];
-    if (isNotNil(petsControl)) {
-      this._measurementSubscription.add(
-        petsControl.valueChanges
-          .pipe(debounceTime(400), startWith<any, any>(petsControl.value), filter(isNotNil), distinctUntilChanged())
-          .subscribe((value) => {
-            if (this.debug) console.debug('[observed-location-page] Enable/Disable PETS tab, because PETS=' + value);
-
-            // Enable tab, when has PETS
-            this.showPETSTab = value;
-            this.tabCount = this.showPETSTab ? 3 : 2;
-
-            this.markForCheck();
-          })
-      );
-    }
   }
 
   updateView(data: ObservedLocation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }): Promise<void> {

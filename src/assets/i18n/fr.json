@@ -1579,7 +1579,6 @@
       "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
       "FISHING_AREAS": "Zones de pêche :",
       "LANDINGS": "Débarquement(s)",
-      "TAB_PETS": "Autres espèces (PETS)",
       "AUCTION_CONTROL": {
         "TITLE": "{{location}} - Contrôle du {{dateTime}}",
         "TAB_LANDINGS": "Navires contrôlés"
