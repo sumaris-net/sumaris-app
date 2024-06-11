@@ -498,6 +498,7 @@
       [class.cdk-visually-hidden]="loadingSubject | async"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
+      (keydown.escape)="escapeEditingRow($event)"
     ></tr>
 
     <!-- Divider -->
