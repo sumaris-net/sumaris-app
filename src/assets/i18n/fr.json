@@ -1639,8 +1639,10 @@
       "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation.",
       "START_DATE_INVALID": "Doit commencer un {{day}}",
       "INVALID_LANDING": "Débarquement invalide",
-      "INVALID_LANDINGS": "Veuillez observer ou saisir la raison de non observation",
-      "INVALID_OBSERVED_COUNT": "Nombre d'espèces observées incorrect. Veuillez observer entre {{minObservedCount}} et {{maxObservedCount}} espèces"
+      "INVALID_LANDINGS": "Veuillez observer ou saisir la raison de non observation"
+    },
+    "WARNING": {
+      "INVALID_OBSERVED_COUNT": "Nombre d'espèces observées incorrect. Veuillez observer au moins {{minObservedCount}} espèces"
     },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "La sortie sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
@@ -1729,7 +1731,7 @@
       "TAXON_NAME": "Espèce scientifique",
       "BTN_OPEN_TRIP": "Ouvrir la marée",
       "BTN_OPEN_SALE": "Ouvrir la vente",
-      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> espèce(s) observée(s) (min. : {{minObservedCount}}, max. : {{maxObservedCount}})",
+      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> espèce(s) observée(s) (min. : {{minObservedCount}})",
       "SAMPLING": {
         "STRATEGY": "Ligne de plan",
         "SAMPLES_COUNT": "Nb. prélèvements",
@@ -2479,6 +2481,8 @@
       "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Mesures : Unité de poids",
       "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
       "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
+      "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Sortie > Débarquements : Nombre min. d'espèces à observer",
+      "LANDING_TOP_PMFM_IDS": "Sortie > Débarquements : PSFM(s) en en-tête",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {

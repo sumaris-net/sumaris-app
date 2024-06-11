@@ -307,7 +307,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Update the context
     if (this.tripContext.program !== program) {
-      this.tripContext.setValue('program', program);
+      this.tripContext.program = program;
     }
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
