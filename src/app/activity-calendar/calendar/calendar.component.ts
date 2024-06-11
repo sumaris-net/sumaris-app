@@ -185,6 +185,10 @@ export class CalendarComponent
   protected originalMouseX: number;
   protected _children: CalendarComponent[];
 
+  shadowElement: HTMLDivElement;
+  copyCoordinates: { rowspan: number; colspan: number };
+  copyResizingCell: any;
+
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -376,7 +380,7 @@ export class CalendarComponent
       this.hotkeys
         .addShortcut({ keys: 'control.c', description: 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC', preventDefault: true })
         .pipe(filter(() => this.loaded))
-        .subscribe(() => this.copyCell())
+        .subscribe(() => this.getCopyMethod())
     );
     this.registerSubscription(
       this.hotkeys
@@ -581,6 +585,7 @@ export class CalendarComponent
     this.originalMouseX = event.clientX;
     this.originalMouseY = event.clientY;
     const shadowElement = document.createElement('div');
+    shadowElement.classList.add('shadow-element');
     shadowElement.style.position = 'fixed';
     shadowElement.style.zIndex = '9999';
     shadowElement.style.backgroundColor = 'rgba(var(--ion-color-secondary-rgb), 0.4)';
@@ -644,14 +649,16 @@ export class CalendarComponent
           const validate = await this.validate(event);
           if (validate) {
             console.debug(`Applying colspan=${colspan} rowspan=${rowspan}`);
-            this.copyCells(rowspan, colspan);
+            this.copyCoordinates = { rowspan: rowspan, colspan: colspan };
+            this.copyResizingCell = this.resizingCell;
             this.onMouseEnd(event);
           }
         } catch (err) {
           console.error(err);
         }
       }
-      shadowElement.remove();
+      this.shadowElement = shadowElement;
+      //shadowElement.remove();
     }
     this.resizingCell = null;
     this.originalMouseY = null;
@@ -659,8 +666,8 @@ export class CalendarComponent
   }
 
   protected copyCells(rowspan: number, colspan: number) {
-    const columnName = this.resizingCell.columnName;
-    const columnId = this.resizingCell.row.id;
+    const columnName = this.copyResizingCell.columnName;
+    const columnId = this.copyResizingCell.row.id;
     const data = this.memoryDataService.value;
     let lastSelectedColumnIndex = columnId + Math.abs(colspan);
     const pmfmList = CopyCalendarUtils.getPmfmList(this.pmfms);
@@ -731,8 +738,8 @@ export class CalendarComponent
 
   clickRow(event: Event | undefined, row: TableElement<ActivityMonth>): boolean {
     if (this.resizingCell || event.defaultPrevented) return; // Skip
-
     if (!this.canEdit) return false;
+    if (this.shadowElement) this.shadowElement?.remove();
     return super.clickRow(event, row);
   }
 
@@ -1074,6 +1081,19 @@ export class CalendarComponent
     super.markAsDirty(opts);
   }
 
+  protected getCopyMethod() {
+    if (this.shadowElement) {
+      const shadow = document.querySelector('.shadow-element') as HTMLDivElement;
+      shadow.style.border = '1px dotted red';
+      setInterval(() => {
+        shadow.style.border = shadow.style.border ? '' : '1px dotted red';
+      }, 500);
+      console.log(this.copyCoordinates.rowspan, this.copyCoordinates.colspan);
+      this.copyCells(this.copyCoordinates.rowspan, this.copyCoordinates.colspan);
+    } else {
+      this.copyCell();
+    }
+  }
   protected copyCell() {
     const data = this.editedRow.originalData;
     const focusColumn = this.focusColumn;
