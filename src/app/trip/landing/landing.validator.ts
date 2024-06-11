@@ -162,6 +162,16 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     // Update form
     this.updateMeasurementValuesForm(form, opts);
 
+    // Add non observation reason required validators
+    const requiredPmfms = [PmfmIds.NON_OBSERVATION_REASON];
+    requiredPmfms.forEach((pmfmId) => {
+      const control = form.get(pmfmId.toString());
+      if (control && !control.hasValidator(Validators.required)) {
+        control.addValidators(Validators.required);
+        control.updateValueAndValidity();
+      }
+    });
+
     return form;
   }
 
