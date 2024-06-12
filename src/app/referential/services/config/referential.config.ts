@@ -664,27 +664,6 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.SURVEY_QUALIFICATION,
   },
-  PMFM_SURVEY_RELIABILITY_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.Pmfm.SURVEY_RELIABILITY.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SURVEY_RELIABILITY_ID',
-    type: 'entity',
-    autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.SURVEY_RELIABILITY,
-  },
-  PMFM_DURATION_AT_SEA_DAYS_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.Pmfm.DURATION_AT_SEA_DAYS.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DURATION_AT_SEA_DAYS_ID',
-    type: 'entity',
-    autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.DURATION_AT_SEA_DAYS,
-  },
-  PMFM_FISHING_DURATION_DAYS_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.Pmfm.FISHING_DURATION_DAYS.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_FISHING_DURATION_DAYS_ID',
-    type: 'entity',
-    autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.FISHING_DURATION_DAYS,
-  },
   PMFM_AUCTION_HABIT_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AUCTION_HABIT.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AUCTION_HABIT_ID',
