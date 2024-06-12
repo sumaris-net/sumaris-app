@@ -2,7 +2,6 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { ACTIVITY_MONTH_END_COLUMNS, ACTIVITY_MONTH_START_COLUMNS } from '@app/activity-calendar/calendar/calendar.component';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { isNil } from '@sumaris-net/ngx-components';
 
 export interface CopiedValue {
   value: any;
@@ -137,14 +136,14 @@ export class CopyCalendarUtils {
     const startColumns = ACTIVITY_MONTH_START_COLUMNS.slice(-2); //TODO MF try to automate
     const columnRowOrder = startColumns.concat(pmfmList).concat(ACTIVITY_MONTH_END_COLUMNS);
 
-    let columnsIndexstart = this.getColumnIndex(columnRowOrder, columnName);
-    columnsIndexEnd = columnsIndexstart + rowspan;
+    let columnsIndexStart = this.getColumnIndex(columnRowOrder, columnName);
+    columnsIndexEnd = columnsIndexStart + rowspan;
     if (rowspan < 0) {
-      columnsIndexstart = columnsIndexstart + rowspan + 1;
+      columnsIndexStart = columnsIndexStart + rowspan + 1;
       columnsIndexEnd = Math.abs(columnsIndexEnd);
-      columnsIndexEnd = columnsIndexstart - rowspan;
+      columnsIndexEnd = columnsIndexStart - rowspan;
     }
 
-    return columnRowOrder.slice(columnsIndexstart, columnsIndexEnd);
+    return columnRowOrder.slice(columnsIndexStart, columnsIndexEnd);
   }
 }

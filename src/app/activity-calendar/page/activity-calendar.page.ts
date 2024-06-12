@@ -13,7 +13,6 @@ import {
   DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
-  Environment,
   equals,
   fadeInOutAnimation,
   firstNotNilPromise,
@@ -76,7 +75,6 @@ import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gall
 import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.table';
 import { ActivityMonth } from '../calendar/activity-month.model';
 import { GearPhysicalFeatures } from '../model/gear-physical-features.model';
-import { TableElement } from '@e-is/ngx-material-table';
 import { environment } from '@environments/environment';
 
 export const ActivityCalendarPageSettingsEnum = {

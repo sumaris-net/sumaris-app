@@ -450,7 +450,7 @@
     }
     @if (y !== false && enabled) {
       <div class="resize-handle-top" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
-      <div class="resize-handle-bottom" (mousedown)="onMouseDown($event, cell, row, col.month, 'y')" (mouseup)="onMouseUp($event)"></div>
+      <div class="resize-handle-bottom" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
     }
     @if (x !== false || y !== false) {
       <div class="resize-handle-corner" (mousedown)="onMouseDown($event, cell, row, col)" (mouseup)="onMouseUp($event)"></div>
