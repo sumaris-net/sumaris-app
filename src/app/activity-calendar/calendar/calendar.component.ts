@@ -740,8 +740,13 @@ export class CalendarComponent
   }
 
   clickRow(event: Event | undefined, row: TableElement<ActivityMonth>): boolean {
+    const shadow = document.querySelector('.shadow-element') as HTMLDivElement;
     if (this.resizingCell || event.defaultPrevented) return; // Skip
     if (!this.canEdit) return false;
+    //TODO MF TO BE OPTIMIZE
+    if (shadow.style.border != '1px dotted red') {
+      if (this.shadowElement) this.shadowElement?.remove();
+    }
     return super.clickRow(event, row);
   }
 
@@ -1083,6 +1088,7 @@ export class CalendarComponent
     super.markAsDirty(opts);
   }
 
+  //TODO MF TO BE OPTIMIZE
   protected getCopyMethod() {
     if (this.shadowElement) {
       const shadow = document.querySelector('.shadow-element') as HTMLDivElement;
