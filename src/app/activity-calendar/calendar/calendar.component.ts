@@ -661,7 +661,6 @@ export class CalendarComponent
         }
       }
       this.shadowElement = shadowElement;
-      //shadowElement.remove();
     }
     this.resizingCell = null;
     this.originalMouseY = null;
@@ -690,7 +689,7 @@ export class CalendarComponent
     columnsToCopy.forEach((dataToCopy) => {
       for (const columnName of columnNamesToCopy) {
         const formControl = this.dataSource.getRow(dataToCopy.month - 1).validator;
-        const result = CopyCalendarUtils.copyValues(columnName, formControl, dataToCopy);
+        const result = CopyCalendarUtils.copyValue(columnName, formControl, dataToCopy);
         copiedValues.push(result);
       }
       copiedValueGroup.push(copiedValues);
@@ -701,6 +700,7 @@ export class CalendarComponent
       copiedValues: copiedValueGroup,
     };
   }
+
   protected pasteCells() {
     // if clipboard is empty, do nothing
     if (this.shadowElement) this.shadowElement?.remove();
@@ -721,7 +721,7 @@ export class CalendarComponent
         } else {
           control = CopyCalendarUtils.getControlByFocusName(element.focusColumn, formGroup);
         }
-        CopyCalendarUtils.pasteValues(control, element.type, element);
+        CopyCalendarUtils.pasteValue(control, element.type, element);
       });
     });
   }
@@ -745,10 +745,8 @@ export class CalendarComponent
     const shadow = document.querySelector('.shadow-element') as HTMLDivElement;
     if (this.resizingCell || event.defaultPrevented) return; // Skip
     if (!this.canEdit) return false;
-    //TODO MF TO BE OPTIMIZE
     if (!this.isCopied) {
       if (this.shadowElement) this.shadowElement?.remove();
-      this.isCopied = false;
     }
     return super.clickRow(event, row);
   }
@@ -1096,25 +1094,18 @@ export class CalendarComponent
     if (this.shadowElement) {
       this.isCopied = true;
       const shadow = document.querySelector('.shadow-element') as HTMLDivElement;
+
+      // Add css style effect
       shadow.style.border = '1px dotted red';
       shadow.style.animation = 'linearGradientMove  .3s infinite linear';
-      shadow.style.background = `
-        linear-gradient(90deg, red 50%, transparent 0) repeat-x,
-        linear-gradient(90deg, red 50%, transparent 0) repeat-x,
-        linear-gradient(0deg, red 50%, transparent 0) repeat-y,
-        linear-gradient(0deg, red 50%, transparent 0) repeat-y
-      `;
+      shadow.style.background = CopyCalendarUtils.copyAnimationBackground;
       shadow.style.backgroundSize = '4px 1px, 4px 1px, 1px 4px, 1px 4px';
       shadow.style.backgroundPosition = '0 0, 0 100%, 0 0, 100% 0';
       shadow.style.backgroundColor = 'rgba(var(--ion-color-secondary-rgb), 0.4)';
 
       // Add keyframe
       const styleSheet = document.styleSheets[0];
-      const keyframes = `@keyframes linearGradientMove   {
-          100% {
-        background-position: 4px 0, -4px 100%, 0 -4px, 100% 4px;
-        }
-        }`;
+      const keyframes = CopyCalendarUtils.keyframes;
       styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
 
       this.copyCells(this.copyCoordinates.rowspan, this.copyCoordinates.colspan);
@@ -1127,7 +1118,7 @@ export class CalendarComponent
     const focusColumn = this.focusColumn;
     const formControl = this.dataSource.getRow(data.month - 1).validator;
     this.activityCalendarContext.clipboard = {
-      copiedValues: [[CopyCalendarUtils.copyValues(focusColumn, formControl, data)]],
+      copiedValues: [[CopyCalendarUtils.copyValue(focusColumn, formControl, data)]],
     };
   }
 }

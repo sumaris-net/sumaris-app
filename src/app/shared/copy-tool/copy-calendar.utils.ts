@@ -13,6 +13,14 @@ export interface CopiedValue {
 type FocusType = 'PMFM' | 'PROPERTY' | 'SPECIFIC';
 
 export class CopyCalendarUtils {
+  static copyAnimationBackground = `
+  linear-gradient(90deg, red 50%, transparent 0) repeat-x,
+  linear-gradient(90deg, red 50%, transparent 0) repeat-x,
+  linear-gradient(0deg, red 50%, transparent 0) repeat-y,
+  linear-gradient(0deg, red 50%, transparent 0) repeat-y
+`;
+  static keyframes = `@keyframes linearGradientMove { 100% { background-position: 4px 0, -4px 100%, 0 -4px, 100% 4px; }}`;
+
   static specificCellToCopy(input: string): { name: string; id: string | null }[] {
     const regex = /([a-zA-Z]+)(\d+)?/g;
     let match: RegExpExecArray | null;
@@ -66,10 +74,8 @@ export class CopyCalendarUtils {
     const extractedAttributes = pmfm.map((obj) => obj.id.toString());
     return extractedAttributes;
   }
-  static getColumnIndex(array: string[], columnName: string): number {
-    return array.indexOf(columnName);
-  }
-  static copyValues(focusColumn: string, formControl: any, data: any) {
+
+  static copyValue(focusColumn: string, formControl: any, data: any) {
     let copyValue: CopiedValue;
     let control = CopyCalendarUtils.getControlByFocusName(focusColumn, formControl);
     const focusType = this.getTypeFocus(focusColumn, data);
@@ -98,32 +104,7 @@ export class CopyCalendarUtils {
     return copyValue;
   }
 
-  // static copyValue(data: ActivityMonth, focusColumn: string): CopiedValue {
-  //   const focusType = this.getTypeFocus(focusColumn, data);
-  //   let copyValue: CopiedValue;
-
-  //   if (focusType === 'PMFM') {
-  //     copyValue = { value: data?.measurementValues[focusColumn], type: 'PMFM', focusColumn: focusColumn, specificColumn: null };
-  //   } else if (focusType === 'PROPERTY') {
-  //     copyValue = { value: data[focusColumn], type: 'PROPERTY', focusColumn: focusColumn, specificColumn: null };
-  //   } else if (focusType === 'SPECIFIC') {
-  //     const specificColumn = this.specificCellToCopy(focusColumn);
-  //     copyValue = {
-  //       value:
-  //         specificColumn.length === 1 ? data.gearUseFeatures[specificColumn[0].id].metier : data.gearUseFeatures[specificColumn[0].id].fishingAreas,
-  //       type: 'SPECIFIC',
-  //       focusColumn: focusColumn,
-  //       specificColumn: specificColumn,
-  //     };
-  //   } else {
-  //     copyValue = null;
-  //     console.error('Unrecognized focus type');
-  //   }
-
-  //   return copyValue;
-  // }
-
-  static pasteValues(control: AbstractControl, focusType: FocusType, copyvalue: CopiedValue) {
+  static pasteValue(control: AbstractControl, focusType: FocusType, copyvalue: CopiedValue) {
     if (focusType === 'PMFM') {
       control.setValue(copyvalue.value);
     } else if (focusType === 'PROPERTY') {
@@ -144,7 +125,7 @@ export class CopyCalendarUtils {
     const startColumns = filterDisplayedColumns.slice(-2); //TODO MF try to automate
     const columnRowOrder = startColumns.concat(pmfmList).concat(ACTIVITY_MONTH_END_COLUMNS);
 
-    let columnsIndexstart = this.getColumnIndex(columnRowOrder, columnName);
+    let columnsIndexstart = columnRowOrder.indexOf(columnName);
     columnsIndexEnd = columnsIndexstart + rowspan;
     if (rowspan < 0) {
       columnsIndexstart = columnsIndexstart + rowspan + 1;
