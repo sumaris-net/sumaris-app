@@ -680,7 +680,6 @@ export class ActivityCalendarPage
             startDate: firstDayOfYear,
             endDate: lastDayOfYear,
             metier,
-            rankOrder: index + 1,
             gear: metier.gear,
           }
         );
@@ -714,7 +713,7 @@ export class ActivityCalendarPage
     }
 
     // Metiers
-    value.gearPhysicalFeatures = this.tableMetier.value;
+    value.gearPhysicalFeatures = this.getPhysicalFeatures(this.calendar.value, this.tableMetier.value);
 
     // Photos
     if (this.canEdit) value.images = this.gallery.value;
