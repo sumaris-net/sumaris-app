@@ -856,6 +856,7 @@ export class ObservedLocationPage
     this.landingsTable.dataSource
       .getRows()
       .filter((landing) => landing.currentData.__typename !== 'divider') // Filter dividers
+      .filter((landing) => pmfm.id !== PmfmIds.SALE_TYPE || toBoolean(landing.currentData.measurementValues[PmfmIds.IS_OBSERVED])) // Do not apply SALE_TYPE if IS_OBSERVED is false
       .forEach(async (landing) => {
         const updatedLanding = landing.cloneData();
         updatedLanding.measurementValues[pmfm.id] = this.observedLocationForm.measurementValuesForm.controls[pmfm.id].value;
