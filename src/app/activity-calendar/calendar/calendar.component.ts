@@ -9,6 +9,7 @@ import {
   Input,
   OnInit,
   QueryList,
+  ViewChild,
   ViewChildren,
 } from '@angular/core';
 import {
@@ -69,6 +70,7 @@ import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
 import { CopyCalendarUtils, CopiedValue } from '@app/shared/copy-tool/copy-calendar.utils';
+import { MatMenuTrigger } from '@angular/material/menu';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -288,6 +290,7 @@ export class CalendarComponent
   }
 
   @ViewChildren('monthCalendar', { read: CalendarComponent }) monthCalendars!: QueryList<CalendarComponent>;
+  @ViewChild('menuTrigger') menuTrigger: MatMenuTrigger;
 
   constructor(
     injector: Injector,
@@ -742,7 +745,6 @@ export class CalendarComponent
   }
 
   clickRow(event: Event | undefined, row: TableElement<ActivityMonth>): boolean {
-    const shadow = document.querySelector('.shadow-element') as HTMLDivElement;
     if (this.resizingCell || event.defaultPrevented) return; // Skip
     if (!this.canEdit) return false;
     if (!this.isCopied) {
@@ -1096,7 +1098,6 @@ export class CalendarComponent
       const shadow = document.querySelector('.shadow-element') as HTMLDivElement;
 
       // Add css style effect
-      shadow.style.border = '1px dotted red';
       shadow.style.animation = 'linearGradientMove  .3s infinite linear';
       shadow.style.background = CopyCalendarUtils.copyAnimationBackground;
       shadow.style.backgroundSize = '4px 1px, 4px 1px, 1px 4px, 1px 4px';
@@ -1120,5 +1121,23 @@ export class CalendarComponent
     this.activityCalendarContext.clipboard = {
       copiedValues: [[CopyCalendarUtils.copyValue(focusColumn, formControl, data)]],
     };
+  }
+  onRightClick(event: MouseEvent) {
+    event.preventDefault();
+    this.menuTrigger.openMenu();
+    const contextMenu = document.querySelector('.context-menu') as HTMLElement;
+    contextMenu.style.position = 'fixed';
+    contextMenu.style.left = `${event.clientX}px`;
+    contextMenu.style.top = `${event.clientY}px`;
+  }
+
+  copy() {
+    console.log('Copier sélectionné');
+    // Ajouter ici la logique de copie
+  }
+
+  paste() {
+    console.log('Coller sélectionné');
+    // Ajouter ici la logique de collage
   }
 }

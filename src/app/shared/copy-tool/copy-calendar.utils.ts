@@ -1,5 +1,4 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
-import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { ACTIVITY_MONTH_END_COLUMNS } from '@app/activity-calendar/calendar/calendar.component';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
@@ -14,10 +13,10 @@ type FocusType = 'PMFM' | 'PROPERTY' | 'SPECIFIC';
 
 export class CopyCalendarUtils {
   static copyAnimationBackground = `
-  linear-gradient(90deg, red 50%, transparent 0) repeat-x,
-  linear-gradient(90deg, red 50%, transparent 0) repeat-x,
-  linear-gradient(0deg, red 50%, transparent 0) repeat-y,
-  linear-gradient(0deg, red 50%, transparent 0) repeat-y
+  linear-gradient(90deg, rgba(var(--ion-color-primary-rgb), 1) 50%, transparent 0) repeat-x,
+  linear-gradient(90deg, rgba(var(--ion-color-primary-rgb), 1) 50%, transparent 0) repeat-x,
+  linear-gradient(0deg, rgba(var(--ion-color-primary-rgb), 1) 50%, transparent 0) repeat-y,
+  linear-gradient(0deg, rgba(var(--ion-color-primary-rgb), 1) 50%, transparent 0) repeat-y
 `;
   static keyframes = `@keyframes linearGradientMove { 100% { background-position: 4px 0, -4px 100%, 0 -4px, 100% 4px; }}`;
 

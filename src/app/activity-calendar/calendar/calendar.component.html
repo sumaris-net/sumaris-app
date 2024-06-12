@@ -15,6 +15,21 @@
   </button>
 </mat-menu>
 
+<!-- Déclencheur invisible pour le mat-menu -->
+<button mat-button [matMenuTriggerFor]="contextMenu" #menuTrigger="matMenuTrigger" style="display: none"></button>
+
+<!-- Définition du mat-menu -->
+<mat-menu #contextMenu="matMenu" class="context-menu ion-no-padding">
+  <button mat-menu-item (click)="copy()">
+    <mat-icon>content_copy</mat-icon>
+    <ion-label translate>COMMON.BTN_COPY</ion-label>
+  </button>
+  <button mat-menu-item (click)="paste()">
+    <mat-icon>content_paste</mat-icon>
+    <ion-label translate>COMMON.BTN_PASTE</ion-label>
+  </button>
+</mat-menu>
+
 <!-- ********************************************************* -->
 <!-- ***********  Accordion                        *********** -->
 <!-- ********************************************************* -->
@@ -90,6 +105,7 @@
     [class.has-toolbar]="showToolbar"
     *rxIf="pmfms$; let pmfms; strategy: 'native'"
     (ngInit)="initTableContainer(tableContainer)"
+    (contextmenu)="onRightClick($event)"
     [class.mobile]="mobile"
   >
     <mat-table [dataSource]="dataSource" [class.resizing]="!!resizingCell" [class.large]="!compact">
