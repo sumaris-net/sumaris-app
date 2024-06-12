@@ -64,6 +64,9 @@ export const LANDING_I18N_PMFM_PREFIX = 'LANDING.PMFM.';
 export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
   readonly pmfmIdsMap = PmfmIds;
 
+  /** Offset to apply to SPECIES_LIST_ORIGIN.RANDOM landings (sale editor). */
+  readonly randomLandingsRankOrderOffset = 100;
+
   private _parentDateTime: Moment;
   private _parentObservers: Person[];
   private _footerRowsSubscription: Subscription;
