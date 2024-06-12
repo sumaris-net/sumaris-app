@@ -647,7 +647,6 @@ export class ActivityCalendarPage
 
   getPhysicalFeatures(activityMonths: ActivityMonth[], gearPhysicalFeature: GearPhysicalFeatures[]): GearPhysicalFeatures[] {
     // Set metier table data
-    // TODO sort by startDate ?
     const monthMetiers = removeDuplicatesFromArray(
       activityMonths.flatMap((month) => month.gearUseFeatures.map((guf) => guf.metier)),
       'id'
@@ -660,7 +659,7 @@ export class ActivityCalendarPage
     const firstDayOfYear = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
     const lastDayOfYear = firstDayOfYear.clone().endOf('year');
 
-    const metiers = monthMetiers
+    const gearPhysicalFeatures = monthMetiers
       .map((metier, index) => {
         const existingGph = (gearPhysicalFeature || []).find((guf) => {
           return (
@@ -676,16 +675,19 @@ export class ActivityCalendarPage
             startDate: firstDayOfYear,
             endDate: lastDayOfYear,
             metier,
-            rankOrder: index + 1,
             gear: metier.gear,
           }
         );
       })
       .map(GearPhysicalFeatures.fromObject);
 
-    // DEBUG
-    console.debug(this.logPrefix + 'Loaded metiers: ', metiers);
-    return metiers;
+    // Re index PhysicalGearFeature rankOrder depending on monthMetiers order.
+    // Must be done in last because PhysicalGearFeature can be deleted
+    monthMetiers.forEach((metier, index) => {
+      gearPhysicalFeatures.find((gpf) => gpf.metier.id == metier.id).rankOrder = index;
+    });
+    console.debug(this.logPrefix + 'Loaded metiers: ', gearPhysicalFeatures);
+    return gearPhysicalFeatures;
   }
 
   async getValue(): Promise<ActivityCalendar> {
@@ -706,7 +708,7 @@ export class ActivityCalendarPage
     }
 
     // Metiers
-    value.gearPhysicalFeatures = this.tableMetier.value;
+    value.gearPhysicalFeatures = this.getPhysicalFeatures(this.calendar.value, this.tableMetier.value);
 
     // Photos
     if (this.canEdit) value.images = this.gallery.value;
