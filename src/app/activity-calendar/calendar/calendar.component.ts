@@ -188,7 +188,7 @@ export class CalendarComponent
   shadowElement: HTMLDivElement;
   copyCoordinates: { rowspan: number; colspan: number };
   copyResizingCell: any;
-  isCopy: boolean;
+  isCopied: boolean;
 
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
@@ -651,7 +651,7 @@ export class CalendarComponent
           if (validate) {
             console.debug(`Applying colspan=${colspan} rowspan=${rowspan}`);
             this.copyCoordinates = { rowspan: rowspan, colspan: colspan };
-            this.isCopy = false;
+            this.isCopied = false;
             this.copyResizingCell = this.resizingCell;
             if (this.shadowElement) this.shadowElement?.remove();
             this.onMouseEnd(event);
@@ -746,9 +746,9 @@ export class CalendarComponent
     if (this.resizingCell || event.defaultPrevented) return; // Skip
     if (!this.canEdit) return false;
     //TODO MF TO BE OPTIMIZE
-    if (!this.isCopy) {
+    if (!this.isCopied) {
       if (this.shadowElement) this.shadowElement?.remove();
-      this.isCopy = false;
+      this.isCopied = false;
     }
     return super.clickRow(event, row);
   }
@@ -1094,7 +1094,7 @@ export class CalendarComponent
   //TODO MF TO BE OPTIMIZE
   protected getCopyMethod() {
     if (this.shadowElement) {
-      this.isCopy = true;
+      this.isCopied = true;
       const shadow = document.querySelector('.shadow-element') as HTMLDivElement;
       shadow.style.border = '1px dotted red';
       shadow.style.animation = 'linearGradientMove  .3s infinite linear';
