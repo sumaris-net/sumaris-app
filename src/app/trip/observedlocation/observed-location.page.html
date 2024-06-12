@@ -146,8 +146,8 @@
         <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
         <ng-container *rxIf="landingTable$; let table; suspense: suspense">
           <ion-label
-            [matBadge]="table.visibleRowCount"
-            [matBadgeHidden]="table.invalid || !table.visibleRowCount || !!table.error"
+            [matBadge]="table.totalRowCount"
+            [matBadgeHidden]="table.invalid || !table.totalRowCount || !!table.error"
             matBadgeOverlap="false"
             matBadgeColor="primary"
             matBadgeSize="small"
