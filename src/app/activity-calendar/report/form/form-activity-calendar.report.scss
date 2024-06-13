@@ -41,7 +41,7 @@
                 top: 0;
                 bottom: 0;
                 & > div {
-                  margin-top: 0.3em;
+                  margin-top: 0.1em;
                   padding: 0 5px;
                   text-overflow: ellipsis;
                   overflow: hidden;
@@ -60,6 +60,7 @@
           tr {
             &.metier-row {
               background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
+              height: var(--month-table-metier-row-height);
             }
           }
         }

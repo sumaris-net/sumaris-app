@@ -65,6 +65,7 @@
           class="landscape"
           [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight + 'px'"
           [style.--month-table-row-height]="pageDimensions.monthTableRowHeight + 'px'"
+          [style.--month-table-metier-row-height]="pageDimensions.monthTableMetierRowHeight + 'px'"
           [style.--gear-table-title-row-height]="pageDimensions.gpfTableRowTitleHeight + 'px'"
           [style.--gear-table-row-height]="pageDimensions.gpfTableRowHeight + 'px'"
           [style.--header-height]="pageDimensions.headerHeight + 'px'"
@@ -256,9 +257,15 @@
                           [attr.colspan]="stats.activityMonthColspan[monthIndex][metierIndex]"
                           [class.fit-one-line]="stats.activityMonthColspan[monthIndex][metierIndex] > 0"
                         >
-                          <div [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][metierIndex] === 0">
-                            <div [title]="month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label', 'name']">
-                              {{ month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label', 'name'] }}
+                          <div
+                            [title]="month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label', 'name']"
+                            [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][metierIndex] === 0"
+                          >
+                            <div>
+                              {{ month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label'] }}
+                            </div>
+                            <div>
+                              {{ month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['name'] }}
                             </div>
                           </div>
                         </td>

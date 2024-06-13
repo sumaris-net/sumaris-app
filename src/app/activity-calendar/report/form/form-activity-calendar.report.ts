@@ -127,6 +127,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     sectionTitleHeight: 25,
     monthTableRowTitleHeight: 20,
     monthTableRowHeight: 20,
+    monthTableMetierRowHeight: 30,
     gpfTableRowTitleHeight: 20,
     gpfTableColTitleWidth: 200,
     gpfTableRowHeight: 20,
@@ -321,8 +322,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
 
     const heightNeededByEachMetierChunk = metierChunks.map((chunk) => {
       const nbOfFishingArea = chunk.fishingAreasIndexes.length;
-      // `+ 1` to count the metier row
-      return this.pageDimensions.monthTableRowHeight * (nbOfFishingArea + 1);
+      return this.pageDimensions.monthTableMetierRowHeight + this.pageDimensions.monthTableRowHeight * nbOfFishingArea;
     });
 
     let currentChunkItems = [];
