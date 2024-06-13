@@ -204,7 +204,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     const stats = new FormActivityCalendarReportStats();
 
     const timezone = (await firstNotNilPromise(this.configService.config)).getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE) || DateUtils.moment().tz();
-    const gearIds = data.gearPhysicalFeatures.map((gph) => gph.gear.id);
+    const gearIds = data.gearPhysicalFeatures?.map((gph) => gph.gear.id) || [];
 
     // Get program and options
     stats.program = await this.programRefService.loadByLabel(data.program.label);
