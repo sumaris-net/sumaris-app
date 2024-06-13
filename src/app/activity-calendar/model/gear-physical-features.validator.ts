@@ -1,11 +1,9 @@
 import { Injectable } from '@angular/core';
 import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import {
-  AppFormArray,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
-  SharedFormArrayValidators,
   SharedFormGroupValidators,
   SharedValidators,
   toBoolean,
@@ -13,9 +11,8 @@ import {
 } from '@sumaris-net/ngx-components';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
-import { FishingAreaValidatorOptions, FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
+import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { TranslateService } from '@ngx-translate/core';
-import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';

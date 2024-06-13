@@ -65,8 +65,8 @@
           class="landscape"
           [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight + 'px'"
           [style.--month-table-row-height]="pageDimensions.monthTableRowHeight + 'px'"
-          [style.--gear-table-title-row-height]="pageDimensions.gufTableRowTitleHeight + 'px'"
-          [style.--gear-table-row-height]="pageDimensions.gufTableRowHeight + 'px'"
+          [style.--gear-table-title-row-height]="pageDimensions.gpfTableRowTitleHeight + 'px'"
+          [style.--gear-table-row-height]="pageDimensions.gpfTableRowHeight + 'px'"
           [style.--header-height]="pageDimensions.headerHeight + 'px'"
           [style.--section-title-height]="pageDimensions.sectionTitleHeight + 'px'"
         >
@@ -243,33 +243,29 @@
                 </tr>
               </thead>
               <tbody>
-                @for (gearUseFeaturesId of metierChunk | arrayPluck: 'gufId'; track gearUseFeaturesId; let gearUseFeatureIndex = $index) {
+                @for (metierIndex of metierChunk | arrayPluck: 'metierIndex'; track metierIndex; let metierChunkIndex = $index) {
                   <tr class="metier-row">
                     <th>
                       {{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}
                     </th>
                     @for (month of stats.activityMonth; track month.id; let monthIndex = $index) {
-                      @if (stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] > 0) {
+                      @if (stats.activityMonthColspan[monthIndex][metierIndex] > 0) {
                         <td
                           [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
                           [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
-                          [attr.colspan]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex]"
-                          [class.fit-one-line]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] > 0"
+                          [attr.colspan]="stats.activityMonthColspan[monthIndex][metierIndex]"
+                          [class.fit-one-line]="stats.activityMonthColspan[monthIndex][metierIndex] > 0"
                         >
-                          <div [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] === 0">
-                            <div [title]="month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['label', 'name']">
-                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['name'] }}
+                          <div [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][metierIndex] === 0">
+                            <div [title]="month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label', 'name']">
+                              {{ month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label', 'name'] }}
                             </div>
                           </div>
                         </td>
                       }
                     }
                   </tr>
-                  @for (
-                    fishingAreaId of metierChunk[gearUseFeatureIndex] | mapGet: 'fishingAreasIds';
-                    track fishingAreaId;
-                    let fishingAreaIndex = $index
-                  ) {
+                  @for (fishingAreasIndex of metierChunk[metierChunkIndex] | mapGet: 'fishingAreasIndexes'; track fishingAreasIndex) {
                     <tr>
                       <th>{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_FISHING_AREA' | translate }}</th>
                       @for (month of stats.activityMonth; track month.id) {
@@ -278,7 +274,7 @@
                           [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
                         >
                           {{
-                            month['gearUseFeatures'][gearUseFeatureIndex]['fishingAreas'][fishingAreaIndex]
+                            month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]
                               | mapGet: 'location'
                               | referentialToString: ['label']
                           }}
@@ -301,14 +297,14 @@
                       </ion-col>
                     </ion-row>
                     <ion-row>
-                      <table class="guf-table" [style.width]="'100%'">
+                      <table class="gpf-table" [style.width]="'100%'">
                         <thead>
                           <tr>
-                            <th [style.--col-width]="pageDimensions.gufTableColTitleWidth + 'px'"></th>
-                            @for (labelMetier of stats.gufUsedGufForTheYear | arrayPluck: 'metier.label'; track labelMetier) {
+                            <th [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'"></th>
+                            @for (labelMetier of data.gearPhysicalFeatures | arrayPluck: 'metier.label'; track labelMetier) {
                               <th
                                 [style.--col-width]="
-                                  'calc((100% - ' + pageDimensions.gufTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
+                                  'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
                                 "
                               >
                                 {{ labelMetier }}
@@ -317,16 +313,16 @@
                           </tr>
                         </thead>
                         <tbody>
-                          @for (pmfm of stats.pmfm.guf; track pmfm.id) {
-                            <tr [style.--col-width]="pageDimensions.gufTableColTitleWidth + 'px'">
+                          @for (pmfm of stats.pmfm.gpf; track pmfm.id) {
+                            <tr [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
                               <th>{{ pmfm | pmfmName: { withDetails: false } }}</th>
-                              @for (guf of stats.gufUsedGufForTheYear; track guf.id) {
+                              @for (gpf of data.gearPhysicalFeatures; track gpf.id) {
                                 <td
                                   [style.--col-width]="
-                                    'calc((100% - ' + pageDimensions.gufTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
+                                    'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
                                   "
                                 >
-                                  {{ guf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
+                                  {{ gpf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
                                 </td>
                               }
                             </tr>
