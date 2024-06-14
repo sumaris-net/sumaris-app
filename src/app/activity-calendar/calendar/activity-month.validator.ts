@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import {
   AbstractControlOptions,
+  FormArray,
+  FormGroup,
   UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
@@ -127,6 +129,7 @@ export class ActivityMonthValidatorService<
   getFormGroupOptions(data?: ActivityMonth, opts?: O): AbstractControlOptions {
     return <AbstractControlOptions>{
       validators: [
+        ActivityMonthValidators.uniqueMetier,
         SharedFormGroupValidators.dateRange('startDate', 'endDate'),
         SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
           predicate: (control) => control.value === VesselUseFeaturesIsActiveEnum.ACTIVE || control.value === VesselUseFeaturesIsActiveEnum.INACTIVE,
@@ -376,6 +379,30 @@ export class ActivityMonthValidators {
     console.debug(`[activity-month-validator] Computing finished [OK] in ${Date.now() - now}ms`);
 
     return errors;
+  }
+
+  static uniqueMetier(formGroup: FormGroup): ValidationErrors | null {
+    const control = formGroup.get('gearUseFeatures') as FormArray;
+
+    if (!control || !(control instanceof FormArray)) {
+      return null;
+    }
+
+    const groups = control.controls as FormGroup[];
+
+    const checkMetiers = new Set<string>();
+    let hasDuplicates = false;
+
+    groups.forEach((group) => {
+      const metier = group.get('metier').value;
+      if (checkMetiers.has(metier)) {
+        hasDuplicates = true;
+      } else {
+        checkMetiers.add(metier);
+      }
+    });
+
+    return hasDuplicates ? { duplicateMetier: true } : null;
   }
 }
 
