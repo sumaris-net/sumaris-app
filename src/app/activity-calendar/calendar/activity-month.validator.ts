@@ -389,7 +389,6 @@ export class ActivityMonthValidators {
     }
 
     const groups = control.controls as FormGroup[];
-
     const checkMetiers = new Set<string>();
 
     const hasDuplicates = groups.some((group) => {
@@ -403,10 +402,10 @@ export class ActivityMonthValidators {
       }
     });
 
-    return hasDuplicates ? { metierDoublons: ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS.metierDoublons } : null;
+    return hasDuplicates ? { duplicateMetier: ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS.duplicateMetier } : null;
   }
 }
 
 export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
-  metierDoublons: 'ACTIVITY_CALENDAR.ERROR.METIER_DOUBLONS_ERROR',
+  duplicateMetier: 'ACTIVITY_CALENDAR.ERROR.DUPLICATE_METIER_ERROR',
 };
