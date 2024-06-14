@@ -1190,7 +1190,15 @@ export class CalendarComponent
 
     // Show/Hide sub columns
     blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
+
+    // Expanded state for all columns to fix divergences states
+    blockColumns.forEach((col) => {
+      if (isNotNil(col.expanded)) {
+        col.expanded = masterColumn.expanded;
+      }
+    });
   }
+
   toggleCoastGradientBlock(event: UIEvent, rankOrder: number, faRankOrder: number) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
