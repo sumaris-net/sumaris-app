@@ -391,14 +391,14 @@ export class ActivityMonthValidators {
     const groups = control.controls as FormGroup[];
 
     const checkMetiers = new Set<string>();
-    let hasDuplicates = false;
 
-    groups.forEach((group) => {
+    const hasDuplicates = groups.some((group) => {
       const metier = group.get('metier').value;
       if (checkMetiers.has(metier)) {
-        hasDuplicates = true;
+        return true;
       } else {
         checkMetiers.add(metier);
+        return false;
       }
     });
 
