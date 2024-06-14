@@ -136,6 +136,7 @@ export interface ColumnDefinition {
   //click?: (event?: UIEvent) => void,
   treeIndent?: string;
   hidden?: boolean;
+  toggle?: (event: UIEvent) => void;
 }
 
 export interface CalendarComponentState extends BaseMeasurementsTableState {
@@ -922,6 +923,7 @@ export class CalendarComponent
         key: `metier${rankOrder}`,
         class: 'mat-column-metier',
         expanded: true,
+        toggle: (event: UIEvent) => this.toggleBlock(event, `metier${rankOrder}`),
       },
       ...new Array(newFishingAreaCount).fill(null).flatMap((_, faIndex) => {
         const faRankOrder = faIndex + 1;
@@ -938,6 +940,7 @@ export class CalendarComponent
             class: 'mat-column-fishingArea',
             treeIndent: '&nbsp;&nbsp;',
             expanded: true,
+            toggle: (event: UIEvent) => this.toggleBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
           },
           {
             blockIndex: index,
@@ -951,7 +954,7 @@ export class CalendarComponent
             class: 'mat-column-distanceToCoastGradient',
             treeIndent: '&nbsp;&nbsp;&nbsp',
             expanded: true,
-            children: [`metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`, `metier${rankOrder}FishingArea${faRankOrder}depthGradient`],
+            toggle: (event: UIEvent) => this.toggleCoastGradientBlock(event, rankOrder, faRankOrder),
           },
           {
             blockIndex: index,
@@ -1170,17 +1173,39 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  toggleBlock(event: UIEvent, blockIndex: number) {
+  toggleBlock(event: UIEvent, key: string) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
-    const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
+    const blockColumns = this.dynamicColumns.filter((col) => col.key.startsWith(key));
     if (isEmptyArray(blockColumns)) return; // Skip
 
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
-    console.debug(this.logPrefix + 'Toggling block #' + blockIndex);
+    console.debug(this.logPrefix + 'Toggling block #' + key);
+
+    // Toggle expanded
+    masterColumn.expanded = !masterColumn.expanded;
+
+    // Show/Hide sub columns
+    blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
+  }
+  toggleCoastGradientBlock(event: UIEvent, rankOrder: number, faRankOrder: number) {
+    if (event?.defaultPrevented) return; // Skip^
+    event?.preventDefault();
+
+    const columnsToggle = [
+      `metier${rankOrder}FishingArea${faRankOrder}distanceToCoastGradient`,
+      `metier${rankOrder}FishingArea${faRankOrder}depthGradient`,
+      `metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`,
+    ];
+
+    const blockColumns = this.dynamicColumns.filter((col) => columnsToggle.some((toggle) => col.key.includes(toggle)));
+    if (isEmptyArray(blockColumns)) return; // Skip
+
+    const masterColumn = blockColumns[0];
+    if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
     // Toggle expanded
     masterColumn.expanded = !masterColumn.expanded;
