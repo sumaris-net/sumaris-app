@@ -923,7 +923,7 @@ export class CalendarComponent
         key: `metier${rankOrder}`,
         class: 'mat-column-metier',
         expanded: true,
-        toggle: (event: UIEvent) => this.toggleBlock(event, `metier${rankOrder}`),
+        toggle: (event: UIEvent) => this.toggleMainBlock(event, `metier${rankOrder}`),
       },
       ...new Array(newFishingAreaCount).fill(null).flatMap((_, faIndex) => {
         const faRankOrder = faIndex + 1;
@@ -940,7 +940,7 @@ export class CalendarComponent
             class: 'mat-column-fishingArea',
             treeIndent: '&nbsp;&nbsp;',
             expanded: true,
-            toggle: (event: UIEvent) => this.toggleBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
+            toggle: (event: UIEvent) => this.toggleMainBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
           },
           {
             blockIndex: index,
@@ -1173,7 +1173,7 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  toggleBlock(event: UIEvent, key: string) {
+  toggleMainBlock(event: UIEvent, key: string) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
