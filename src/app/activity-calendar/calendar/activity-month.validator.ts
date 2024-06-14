@@ -394,6 +394,7 @@ export class ActivityMonthValidators {
 
     const hasDuplicates = groups.some((group) => {
       const metier = group.get('metier').value;
+      if (isNil(metier)) return false;
       if (checkMetiers.has(metier)) {
         return true;
       } else {
@@ -402,10 +403,10 @@ export class ActivityMonthValidators {
       }
     });
 
-    return hasDuplicates ? { duplicateMetier: true } : null;
+    return hasDuplicates ? { metierDoublons: ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS.metierDoublons } : null;
   }
 }
 
 export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
-  // TODO
+  metierDoublons: 'ACTIVITY_CALENDAR.ERROR.METIER_DOUBLONS_ERROR',
 };

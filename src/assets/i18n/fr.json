@@ -3383,6 +3383,9 @@
     "NEW": {
       "TITLE": "Nouveau calendrier d'activité"
     },
+    "ERROR": {
+      "METIER_DOUBLONS_ERROR": "Métier : doublon(s) détecté(s)"
+    },
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Activité {{year}}",
       "TITLE_MENU": "{{vessel}} ({{year}})",
