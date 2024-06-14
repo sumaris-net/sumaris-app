@@ -3384,7 +3384,7 @@
       "TITLE": "Nouveau calendrier d'activité"
     },
     "ERROR": {
-      "METIER_DOUBLONS_ERROR": "Métier : doublon(s) détecté(s)"
+      "DUPLICATE_METIER_ERROR": "Erreur : Métier en double détecté."
     },
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Activité {{year}}",
