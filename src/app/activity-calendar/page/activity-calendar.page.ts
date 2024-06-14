@@ -211,6 +211,7 @@ export class ActivityCalendarPage
 
   ngOnInit() {
     super.ngOnInit();
+
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
@@ -315,7 +316,6 @@ export class ActivityCalendarPage
 
     this.restorePredocPanelSize();
   }
-
   ngAfterViewInit() {
     super.ngAfterViewInit();
 

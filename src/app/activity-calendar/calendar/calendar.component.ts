@@ -90,7 +90,13 @@ const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
         ...new Array<string>(MAX_FISHING_AREA_COUNT)
           .fill(null)
           .flatMap(
-            (_, faIndex) => <string[]>[`metier${index + 1}FishingArea${faIndex + 1}`, `metier${index + 1}FishingArea${faIndex + 1}CoastGradient`]
+            (_, faIndex) =>
+              <string[]>[
+                `metier${index + 1}FishingArea${faIndex + 1}`,
+                `metier${index + 1}FishingArea${faIndex + 1}distanceToCoastGradient`,
+                `metier${index + 1}FishingArea${faIndex + 1}depthGradient`,
+                `metier${index + 1}FishingArea${faIndex + 1}nearbySpecificArea`,
+              ]
           ),
       ]
   );
@@ -396,6 +402,26 @@ export class CalendarComponent
         this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
       filter: {
         entityName: 'DistanceToCoastGradient',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      attributes: ['label', 'name'],
+      mobile: this.mobile,
+    });
+    this.registerAutocompleteField('depthGradient', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
+      filter: {
+        entityName: 'DepthGradient',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      attributes: ['label', 'name'],
+      mobile: this.mobile,
+    });
+    this.registerAutocompleteField('nearbySpecificArea', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
+      filter: {
+        entityName: 'NearbySpecificArea',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
       attributes: ['label', 'name'],
@@ -897,35 +923,61 @@ export class CalendarComponent
         class: 'mat-column-metier',
         expanded: true,
       },
-      ...new Array(newFishingAreaCount).fill(null).map((_, faIndex) => {
+      ...new Array(newFishingAreaCount).fill(null).flatMap((_, faIndex) => {
         const faRankOrder = faIndex + 1;
-        return {
-          blockIndex: index,
-          index: faIndex,
-          rankOrder: faRankOrder,
-          label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA_RANKED', { rankOrder: faRankOrder }),
-          placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA'),
-          autocomplete: this.autocompleteFields.fishingAreaLocation,
-          path: `${pathPrefix}fishingAreas.${faIndex}.location`,
-          key: `metier${rankOrder}FishingArea${faRankOrder}`,
-          class: 'mat-column-fishingArea',
-          treeIndent: '&nbsp;&nbsp;',
-        };
-      }),
-      ...new Array(newFishingAreaCount).fill(null).map((_, faIndex) => {
-        const faRankOrder = faIndex + 1;
-        return {
-          blockIndex: index,
-          index: faIndex,
-          rankOrder: faRankOrder,
-          label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.COAST_GRADIENT'),
-          placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.COAST_GRADIENT'),
-          autocomplete: this.autocompleteFields.distanceToCoastGradient,
-          path: `${pathPrefix}fishingAreas.${faIndex}.distanceToCoastGradient`,
-          key: `metier${rankOrder}FishingArea${faRankOrder}CoastGradient`,
-          class: 'mat-column-fishingArea',
-          treeIndent: '&nbsp;&nbsp;&nbsp;',
-        };
+        return [
+          {
+            blockIndex: index,
+            index: faIndex,
+            rankOrder: faRankOrder,
+            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA_RANKED', { rankOrder: faRankOrder }),
+            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA'),
+            autocomplete: this.autocompleteFields.fishingAreaLocation,
+            path: `${pathPrefix}fishingAreas.${faIndex}.location`,
+            key: `metier${rankOrder}FishingArea${faRankOrder}`,
+            class: 'mat-column-fishingArea',
+            treeIndent: '&nbsp;&nbsp;',
+            expanded: true,
+          },
+          {
+            blockIndex: index,
+            index: faIndex,
+            rankOrder: faRankOrder,
+            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DISTANCE_TO_COAST_GRADIENT'),
+            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DISTANCE_TO_COAST_GRADIENT'),
+            autocomplete: this.autocompleteFields.distanceToCoastGradient,
+            path: `${pathPrefix}fishingAreas.${faIndex}.distanceToCoastGradient`,
+            key: `metier${rankOrder}FishingArea${faRankOrder}distanceToCoastGradient`,
+            class: 'mat-column-distanceToCoastGradient',
+            treeIndent: '&nbsp;&nbsp;&nbsp',
+            expanded: true,
+            children: [`metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`, `metier${rankOrder}FishingArea${faRankOrder}depthGradient`],
+          },
+          {
+            blockIndex: index,
+            index: faIndex,
+            rankOrder: faRankOrder,
+            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DEPTH_GRADIENT'),
+            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DEPTH_GRADIENT'),
+            autocomplete: this.autocompleteFields.depthGradient,
+            path: `${pathPrefix}fishingAreas.${faIndex}.depthGradient`,
+            key: `metier${rankOrder}FishingArea${faRankOrder}depthGradient`,
+            class: 'mat-column-depthGradient',
+            treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+          },
+          {
+            blockIndex: index,
+            index: faIndex,
+            rankOrder: faRankOrder,
+            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.NEARBY_SPECIFIC_AREA'),
+            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.NEARBY_SPECIFIC_AREA'),
+            autocomplete: this.autocompleteFields.nearbySpecificArea,
+            path: `${pathPrefix}fishingAreas.${faIndex}.nearbySpecificArea`,
+            key: `metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`,
+            class: 'mat-column-nearbySpecificArea',
+            treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+          },
+        ];
       }),
     ];
 
