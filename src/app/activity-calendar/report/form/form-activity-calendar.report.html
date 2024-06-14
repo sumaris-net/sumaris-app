@@ -258,7 +258,7 @@
                           [class.fit-one-line]="stats.activityMonthColspan[monthIndex][metierIndex] > 0"
                         >
                           <div
-                            [title]="month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label', 'name']"
+                            [title]="(month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label', 'name']) || ''"
                             [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][metierIndex] === 0"
                           >
                             <div>

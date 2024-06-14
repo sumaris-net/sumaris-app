@@ -17,9 +17,7 @@ export class ActivityMonthUtils {
 
     let metiersIdToIndex: { [key: number]: number };
     if (opts && opts?.fillEmptyGuf) {
-      metiersIdToIndex = removeDuplicatesFromArray(
-        data.gearUseFeatures.sort((a, b) => (a.rankOrder < b.rankOrder ? -1 : 1)).map((guf) => guf.metier.id)
-      ).reduce((acc, metierId, index) => {
+      metiersIdToIndex = removeDuplicatesFromArray(data.gearUseFeatures.map((guf) => guf.metier.id)).reduce((acc, metierId, index) => {
         acc[metierId] = index;
         return acc;
       }, {});
