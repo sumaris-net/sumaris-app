@@ -394,10 +394,10 @@ export class ActivityMonthValidators {
     const hasDuplicates = groups.some((group) => {
       const metier = group.get('metier').value;
       if (isNil(metier)) return false;
-      if (checkMetiers.has(metier)) {
+      if (checkMetiers.has(metier.label)) {
         return true;
       } else {
-        checkMetiers.add(metier);
+        checkMetiers.add(metier.label);
         return false;
       }
     });
