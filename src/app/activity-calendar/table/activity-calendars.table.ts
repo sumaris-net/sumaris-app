@@ -131,12 +131,13 @@ export class ActivityCalendarsTable
       endDate: [null, SharedValidators.validDate],
       registrationLocations: [null],
       basePortLocations: [null],
-      directSurveyInvestigation: [null],
       synchronizationStatus: [null],
       recorderDepartment: [null, SharedValidators.entity],
       recorderPerson: [null, SharedValidators.entity],
       dataQualityStatus: [null],
       qualityFlagId: [null, SharedValidators.integer],
+      economicSurvey: [null],
+      directSurveyInvestigation: [null],
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()

@@ -226,6 +226,23 @@
         </ion-row>-->
 
         <!-- Recorder criteria -->
+        <ion-row>
+          <ion-col>
+            <!-- Direct Survey Investigation -->
+            <mat-boolean-field
+              formControlName="directSurveyInvestigation"
+              [placeholder]="'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION' | translate"
+            ></mat-boolean-field>
+          </ion-col>
+          <ion-col>
+            <!-- Economic Survey -->
+            <mat-boolean-field
+              [placeholder]="'ACTIVITY_CALENDAR.EDIT.ECONOMIC_SURVEY' | translate"
+              formControlName="economicSurvey"
+            ></mat-boolean-field>
+          </ion-col>
+        </ion-row>
+        <!-- Recorder criteria -->
         <ion-row *ngIf="showRecorder">
           <ion-col>
             <!-- Recorder department -->
