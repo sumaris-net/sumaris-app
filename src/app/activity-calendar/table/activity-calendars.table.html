@@ -16,7 +16,7 @@
 
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
       <!-- Add -->
-      <button mat-icon-button *ngIf="canEdit && !mobile" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
+      <button [style.visibility]="'hidden'" mat-icon-button *ngIf="canEdit && !mobile" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
         <mat-icon>add</mat-icon>
       </button>
 
