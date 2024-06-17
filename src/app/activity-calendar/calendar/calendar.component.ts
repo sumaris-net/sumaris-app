@@ -939,7 +939,6 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}`,
             class: 'mat-column-fishingArea',
             treeIndent: '&nbsp;&nbsp;',
-            expanded: true,
             toggle: (event: UIEvent) => this.toggleMainBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
           },
           {
@@ -953,7 +952,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}distanceToCoastGradient`,
             class: 'mat-column-distanceToCoastGradient',
             treeIndent: '&nbsp;&nbsp;&nbsp',
-            expanded: true,
+            expanded: false,
             toggle: (event: UIEvent) => this.toggleCoastGradientBlock(event, rankOrder, faRankOrder),
           },
           {
@@ -967,6 +966,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}depthGradient`,
             class: 'mat-column-depthGradient',
             treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+            hidden: true,
           },
           {
             blockIndex: index,
@@ -979,6 +979,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`,
             class: 'mat-column-nearbySpecificArea',
             treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+            hidden: true,
           },
         ];
       }),
