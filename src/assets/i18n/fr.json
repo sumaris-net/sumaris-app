@@ -700,7 +700,7 @@
       "RETURN_DATE_TIME": "Date de retour",
       "RETURN_LOCATION": "Port de retour",
       "QUALITY": "État",
-      "OBSERVERS": "Observateurs",
+      "OBSERVERS": "Observateur(s)",
       "RECORDER_PERSON": "Saisisseur",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
@@ -716,7 +716,7 @@
         "SYNCHRONIZATION_STATUS": "Etat de la données",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "RECORDER_PERSON": "Saisisseur",
-        "OBSERVERS": "Observateurs",
+        "OBSERVERS": "Observateur(s)",
         "QUALITY_FLAG_ID": "Niveau de qualité"
       },
       "SYNCHRONIZATION_STATUS": {
@@ -1523,7 +1523,7 @@
     "TABLE": {
       "VESSEL": "Navire",
       "START_DATE_TIME": "Date/heure",
-      "OBSERVERS": "Observateurs",
+      "OBSERVERS": "Observateur(s)",
       "COMMENTS": "Commentaires"
     },
     "BATCH": {
@@ -1722,7 +1722,7 @@
       "PROGRAM": "Programme",
       "STRATEGY": "Stratégie",
       "LOCATION": "Port de débarquement",
-      "OBSERVERS": "Observateurs",
+      "OBSERVERS": "Observateur(s)",
       "COMMENTS": "Commentaire",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON": "Saisisseur",
@@ -3342,6 +3342,8 @@
       "ECONOMIC_SURVEY": "Enquête éco ?",
       "VESSEL": "Navire",
       "YEAR": "Année",
+      "COMMENTS": "Commentaires",
+      "NO_LOCAL_RESULT": "Aucun résultat (parmi les calendriers <b>non envoyées</b>)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "REGISTRATION_LOCATION": "Quartier maritime",
