@@ -18,16 +18,20 @@
 <!-- Déclencheur invisible pour le mat-menu -->
 <button mat-button [matMenuTriggerFor]="contextMenu" #menuTrigger="matMenuTrigger" style="display: none"></button>
 
-<!-- Définition du mat-menu -->
-<mat-menu #contextMenu="matMenu" class="context-menu ion-no-padding">
-  <button mat-menu-item (click)="copy()">
-    <mat-icon>content_copy</mat-icon>
-    <ion-label translate>COMMON.BTN_COPY</ion-label>
-  </button>
-  <button mat-menu-item (click)="paste()">
-    <mat-icon>content_paste</mat-icon>
-    <ion-label translate>COMMON.BTN_PASTE</ion-label>
-  </button>
+<!-- Cell contextual menu  -->
+<mat-menu #contextMenu="matMenu" class="context-menu ion-no-padding" [hasBackdrop]="!canEdit">
+  <ng-template matMenuContent>
+    <button mat-menu-item (click)="copy()" [disabled]="!cellSelection">
+      <mat-icon>content_copy</mat-icon>
+      <ion-label translate>COMMON.BTN_COPY</ion-label>
+    </button>
+    @if (enabled) {
+      <button mat-menu-item (click)="paste()" [disabled]="!hasClipboard">
+        <mat-icon>content_paste</mat-icon>
+        <ion-label translate>COMMON.BTN_PASTE</ion-label>
+      </button>
+    }
+  </ng-template>
 </mat-menu>
 
 <!-- ********************************************************* -->
@@ -105,10 +109,17 @@
     [class.has-toolbar]="showToolbar"
     *rxIf="pmfms$; let pmfms; strategy: 'native'"
     (ngInit)="initTableContainer(tableContainer)"
-    (contextmenu)="onRightClick($event)"
     [class.mobile]="mobile"
   >
-    <mat-table [dataSource]="dataSource" [class.resizing]="!!resizingCell" [class.large]="!compact">
+    <div
+      #cellSelectionRect
+      class="cell-selection"
+      [class.cdk-visually-hidden]="!cellSelection"
+      (contextmenu)="cellSelection && onContextMenu($event, cellSelection?.cellElement, cellSelection.row, cellSelection.columnName)"
+    ></div>
+    <div #cellClipboardRect class="cell-clipboard" [class.cdk-visually-hidden]="!cellClipboard"></div>
+
+    <mat-table [dataSource]="dataSource" [class.resizing]="cellSelection?.resizing" [class.large]="!compact">
       <!-- hidden columns (required by AppTable) -->
       <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
         <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
@@ -133,6 +144,11 @@
               matBadgeSize="small"
             >
               {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
+              @if (debug) {
+                <br />
+                {{ row.valid ? 'V' : row.pending ? 'P' : 'I' }}
+                {{ row.editing ? '*' : '' }}
+              }
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
@@ -169,7 +185,13 @@
         <mat-header-cell *matHeaderCellDef>
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.IS_ACTIVE</ion-label>
         </mat-header-cell>
-        <mat-cell *matCellDef="let row" class="mat-mdc-cell-resizable" #cell (click)="focusColumn = 'isActive'">
+        <mat-cell
+          *matCellDef="let row"
+          class="mat-mdc-cell-resizable"
+          #cell
+          (click)="focusColumn = 'isActive'"
+          (contextmenu)="onContextMenu($event, cell, row, 'isActive')"
+        >
           @if (row.editing && row.validator | formGetControl: 'isActive'; as control) {
             <mat-form-field>
               <mat-select
@@ -205,7 +227,13 @@
         <mat-header-cell *matHeaderCellDef class="odd">
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION</ion-label>
         </mat-header-cell>
-        <mat-cell *matCellDef="let row" class="odd mat-mdc-cell-resizable" #cell (click)="focusColumn = 'basePortLocation'">
+        <mat-cell
+          *matCellDef="let row"
+          class="odd mat-mdc-cell-resizable"
+          #cell
+          (click)="focusColumn = 'basePortLocation'"
+          (contextmenu)="onContextMenu($event, cell, row, 'basePortLocation')"
+        >
           @if (row.editing) {
             <mat-autocomplete-field
               [formControl]="row.validator | formGetControl: 'basePortLocation'"
@@ -262,6 +290,7 @@
           [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
           [class.odd]="odd"
           (click)="focusColumn = (pmfm.id || index).toString()"
+          (contextmenu)="onContextMenu($event, cell, row, (pmfm.id || index).toString())"
         >
           @if (mobile) {
             <!-- readonly (mobile) -->
@@ -329,8 +358,9 @@
             class="{{ col.class }}"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
-            (mouseenter)="col.hidden && resizingCell && expandBlock($event, col.blockIndex)"
+            (mouseenter)="col.hidden && cellSelection && expandBlock($event, col.blockIndex)"
             (click)="col.hidden ? toggleBlock($event, col.blockIndex) : setFocusColumn(col.key)"
+            (contextmenu)="onContextMenu($event, cell, row, col.key)"
           >
             @if (!col.hidden) {
               @if (row.editing && row.validator?.get(col.path) | formGetControl; as control) {
@@ -383,13 +413,13 @@
             @if (row.validator | formGetValue: 'isActive' | isNotNil) {
               <button
                 mat-icon-button
-                [class.cdk-visually-hidden]="!!resizingCell"
+                [class.cdk-visually-hidden]="!!cellSelection"
                 [class.visible-hover]="!row.editing"
                 [title]="'ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_MONTH' | translate"
                 (click)="clear($event, row)"
                 tabIndex="-1"
               >
-                <ion-icon [color]="row.editing ? 'dark' : 'medium'" name="close"></ion-icon>
+                <mat-icon [style.color]="row.editing ? 'var(--ion-color-dark)' : 'var(--ion-color-medium)'">delete</mat-icon>
               </button>
             }
           }
@@ -414,11 +444,11 @@
   </div>
 
   <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y">
-    @if (x !== false) {
+    @if (x !== false && enabled) {
       <div class="resize-handle-left" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
       <div class="resize-handle-right" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
     }
-    @if (y !== false) {
+    @if (y !== false && enabled) {
       <div class="resize-handle-top" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
       <div class="resize-handle-bottom" (mousedown)="onMouseDown($event, cell, row, col.month, 'y')" (mouseup)="onMouseUp($event)"></div>
     }
@@ -482,6 +512,7 @@
           <br />
           pmfms: {{ (pmfms$ | async)?.length }}
           <br />
+          <ion-button (click)="showDebugValue = !showDebugValue">{{ showDebugValue ? 'Hide' : 'Show' }} value</ion-button>
         </ion-col>
         <ion-col>
           <!--filter: {{ filter | json }}
@@ -495,12 +526,26 @@
           excludesColumns: {{ excludesColumns?.length }}
           <br />
           visibleMonthCount: {{ visibleRowCount || 0 }}
-          <!--          <br />-->
-          <!--          children.length: {{ _children?.length || 0 }}-->
-          <!--          <br />-->
-          <!--          _dataService.started: {{ _dataService.started }}-->
-          <!--          <br />-->
-          <!--          _dataService.loading: {{ _dataService.loading$ | push }}-->
+          <br />
+          children.length: {{ _children?.length || 0 }}
+          <br />
+          <br />
+          dataService.started: {{ _dataService.started }}
+          <br />
+          dataService.loading: {{ _dataService.loading$ | push }}
+          <br />
+          dataService.program: {{ _dataService.programLabel }}
+          <br />
+          dataService.strategy{{ _dataService.requiredStrategy ? ' (required)' : '' }}: {{ _dataService.strategyLabel }}
+          <br />
+          dataService.acquisitionLevel: {{ _dataService.acquisitionLevel }}
+          <br />
+          dataService.pmfms: {{ (_dataService.pmfms$ | push)?.length }}
+        </ion-col>
+      </ion-row>
+      <ion-row *ngIf="showDebugValue">
+        <ion-col size="12">
+          <pre>{{ value | json }}</pre>
         </ion-col>
       </ion-row>
     </ion-grid>

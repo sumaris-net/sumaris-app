@@ -30,7 +30,7 @@ import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } 
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { AppBaseTable2 } from '@app/shared/table/base.table2';
-import { AsyncTableElement } from '@e-is/ngx-material-table/src/app/ngx-material-table/async/async-table-element';
+import { AsyncTableElement } from '@e-is/ngx-material-table';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix

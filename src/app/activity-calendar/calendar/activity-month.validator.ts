@@ -19,7 +19,12 @@ import { FishingAreaValidatorOptions } from '@app/data/fishing-area/fishing-area
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
-import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import {
+  MeasurementFormValues,
+  MeasurementModelValues,
+  MeasurementValuesTypes,
+  MeasurementValuesUtils,
+} from '@app/data/measurement/measurement.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { GearUseFeaturesValidatorOptions, GearUseFeaturesValidatorService } from '@app/activity-calendar/model/gear-use-features.validator';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
@@ -66,7 +71,7 @@ export class ActivityMonthValidatorService<
         .filter((p) => !PmfmUtils.isDenormalizedPmfm(p) || p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY)
         .forEach((p) => {
           const key = p.id.toString();
-          const value = data && data.measurementValues && data.measurementValues[key];
+          const value = data?.measurementValues?.[key];
           measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
         });
     }
@@ -195,7 +200,8 @@ export class ActivityMonthValidatorService<
   }
 
   getI18nError(errorKey: string, errorContent?: any): any {
-    console.log('TODO translate error: ' + errorKey);
+    if (ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS[errorKey])
+      return this.translate.instant(ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS[errorKey], errorContent);
     return super.getI18nError(errorKey, errorContent);
   }
 
@@ -230,6 +236,7 @@ export class ActivityMonthValidatorService<
     }
   ) {
     const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
+    console.log('TODO measurementValues.__typename=' + measurementValues.__typename);
     return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
   }
 
@@ -264,9 +271,9 @@ export class ActivityMonthValidators {
       .pipe(
         startWith<any, any>(form.value),
         filter(() => !computing),
+        debounceTime(toNumber(opts?.debounceTime, 0)),
         // Protected against loop
         tap(() => (computing = true)),
-        debounceTime(toNumber(opts?.debounceTime, 0)),
         map(() =>
           form.touched
             ? ActivityMonthValidators.computeAndValidate(form, {
@@ -280,7 +287,7 @@ export class ActivityMonthValidators {
         tap((errors) => {
           computing = false;
           $errors.next(errors);
-          if (opts.markForCheck) opts.markForCheck();
+          if (opts?.markForCheck) opts.markForCheck();
         })
       )
       .subscribe();
@@ -290,7 +297,7 @@ export class ActivityMonthValidators {
       $errors.next(null);
       $errors.complete();
       form.clearAsyncValidators();
-      if (opts.markForCheck) opts.markForCheck();
+      if (opts?.markForCheck) opts.markForCheck();
     });
 
     return subscription;
@@ -301,10 +308,11 @@ export class ActivityMonthValidators {
     opts?: ActivityMonthValidatorOptions & {
       emitEvent?: boolean;
       onlySelf?: boolean;
-      markForCheck?: () => void;
     }
   ): ValidationErrors | null {
+    const now = Date.now();
     console.debug('[activity-month-validator] Starting computation and validation...');
+
     let errors: any;
 
     const isActiveControl = form.get('isActive') as UntypedFormControl;
@@ -352,7 +360,7 @@ export class ActivityMonthValidators {
         case VesselUseFeaturesIsActiveEnum.INACTIVE: {
           if (basePortLocationControl.disabled) basePortLocationControl.enable({ emitEvent: false });
           if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
-            measurementForm.reset(null, { emitEvent: false });
+            measurementForm.reset(<MeasurementFormValues>{ __typename: MeasurementValuesTypes.MeasurementFormValue }, { emitEvent: false });
             dirty = true;
           }
           if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
@@ -366,7 +374,7 @@ export class ActivityMonthValidators {
           }
           if (basePortLocationControl.enabled) basePortLocationControl.disable({ emitEvent: false });
           if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
-            measurementForm.reset(null, { emitEvent: false });
+            measurementForm.reset(<MeasurementFormValues>{ __typename: MeasurementValuesTypes.MeasurementFormValue }, { emitEvent: false });
             dirty = true;
           }
           if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
@@ -380,10 +388,8 @@ export class ActivityMonthValidators {
       form.markAsDirty();
     }
 
-    if (opts?.markForCheck) {
-      //console.debug("[activity-month-validator] calling MarkForCheck...");
-      opts.markForCheck();
-    }
+    // DEBUG
+    console.debug(`[activity-month-validator] Computation and validation finished in ${Date.now() - now}ms`);
 
     return errors;
   }

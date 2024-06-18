@@ -107,6 +107,10 @@ export abstract class AppBaseTable2<
     return this._dataSource?.getSingleEditingRow();
   }
 
+  get tableContainerElement(): HTMLElement {
+    return this.tableContainerRef?.nativeElement as HTMLElement;
+  }
+
   @ViewChild('tableContainer', { read: ElementRef }) tableContainerRef: ElementRef;
   @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
@@ -214,11 +218,11 @@ export abstract class AppBaseTable2<
     this._state?.ngOnDestroy();
   }
 
-  initTableContainer(element: any) {
+  initTableContainer(element: any, opts?: { defaultShortcuts?: boolean }) {
     if (!element) return; // Skip if already done
 
-    if (!this.mobile) {
-      // Add shortcuts
+    // Add shortcuts
+    if (!this.mobile && opts?.defaultShortcuts !== false) {
       console.debug(this.logPrefix + 'Add table shortcuts');
       this.registerSubscription(
         this.hotkeys

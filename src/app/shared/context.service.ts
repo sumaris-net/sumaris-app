@@ -8,6 +8,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
 
 export interface Clipboard<TData = any> {
+  source?: any;
   data?: TData;
   pasteFlags?: number;
   updateDate?: Moment;

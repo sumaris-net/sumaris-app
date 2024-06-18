@@ -1,4 +1,13 @@
-import { DateUtils, EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, IEntity, isNotNil } from '@sumaris-net/ngx-components';
+import {
+  DateUtils,
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter,
+  FilterFn,
+  IEntity,
+  isNotNil,
+  ReferentialUtils,
+} from '@sumaris-net/ngx-components';
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { StoreObject } from '@apollo/client/core';
@@ -8,7 +17,10 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
   static fromObject: (source: any, options?: any) => ActivityMonth;
 
   static equals(o1: ActivityMonth, o2: ActivityMonth) {
-    return (isNotNil(o1.id) && o1.id === o2.id) || (DateUtils.isSame(o1.startDate, o2.startDate) && DateUtils.isSame(o1.startDate, o2.startDate));
+    return (
+      (isNotNil(o1.id) && o1.id === o2.id) ||
+      (DateUtils.isSame(o1.startDate, o2.startDate) && DateUtils.isSame(o1.endDate, o2.endDate) && ReferentialUtils.equals(o1.program, o2.program))
+    );
   }
 
   static isEmpty(o: ActivityMonth) {
