@@ -32,7 +32,7 @@ import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { Subject, Subscription, tap } from 'rxjs';
-import { debounceTime, filter, map, startWith } from 'rxjs/operators';
+import { debounceTime, map, startWith } from 'rxjs/operators';
 import { FORM_VALIDATOR_OPTIONS_PROPERTY } from '@app/shared/service/base.validator.service';
 
 export interface ActivityMonthValidatorOptions extends GearUseFeaturesValidatorOptions {
@@ -270,10 +270,12 @@ export class ActivityMonthValidators {
     const subscription = form.valueChanges
       .pipe(
         startWith<any, any>(form.value),
-        filter(() => !computing),
         debounceTime(toNumber(opts?.debounceTime, 0)),
+
         // Protected against loop
+        //filter(() => !computing),
         tap(() => (computing = true)),
+
         map(() =>
           form.touched
             ? ActivityMonthValidators.computeAndValidate(form, {

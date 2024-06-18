@@ -830,7 +830,7 @@ export class CalendarComponent
     if (this.cellSelection?.resizing) return false;
 
     // Reset cell selection
-    if (this.cellSelection) this.clearCellSelection();
+    //if (this.cellSelection) this.clearCellSelection();
 
     return super.clickRow(event, row);
   }
@@ -1014,7 +1014,7 @@ export class CalendarComponent
         )
         .subscribe(() => {
           this.clearCellSelection();
-          this.clearClipboard();
+          this.clearClipboard(null, { clearContext: !!this.cellClipboard });
           if (form.dirty) this.markAsDirty();
         })
     );
