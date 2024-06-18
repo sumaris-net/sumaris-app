@@ -35,7 +35,12 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
 
   asObject(opts?: EntityAsObjectOptions): StoreObject {
     const target = super.asObject(opts);
-    target.gearUseFeatures = this.gearUseFeatures?.map((guf) => guf.asObject(opts));
+    target.gearUseFeatures = this.gearUseFeatures?.map((guf) => {
+      const targetGuf = guf.asObject(opts);
+      targetGuf.startDate = targetGuf.startDate || target.startDate;
+      targetGuf.endDate = targetGuf.endDate || target.endDate;
+      return targetGuf;
+    });
     if (opts?.minify) {
       delete target.month;
     }

@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, HostListener, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ActivityCalendarForm } from '../form/activity-calendar.form';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
+  AppAsyncTable,
   AppEditorOptions,
   AppTable,
   chainPromises,
@@ -18,7 +19,6 @@ import {
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
-  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
@@ -73,7 +73,6 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -345,7 +344,7 @@ export class ActivityCalendarPage
     }
   }
 
-  async saveTable(table: AppTable<any>) {
+  async saveTable(table: AppTable<any> | AppAsyncTable<any>) {
     if (!table.confirmEditCreate()) return false;
     if (table.dirty) {
       this.markAsDirty();
