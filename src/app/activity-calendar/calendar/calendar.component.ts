@@ -951,7 +951,7 @@ export class CalendarComponent
             path: `${pathPrefix}fishingAreas.${faIndex}.distanceToCoastGradient`,
             key: `metier${rankOrder}FishingArea${faRankOrder}distanceToCoastGradient`,
             class: 'mat-column-distanceToCoastGradient',
-            treeIndent: '&nbsp;&nbsp;&nbsp',
+            treeIndent: '&nbsp;&nbsp',
             expanded: false,
             toggle: (event: UIEvent) => this.toggleCoastGradientBlock(event, rankOrder, faRankOrder),
           },
