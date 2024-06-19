@@ -1,26 +1,29 @@
 <!-- readonly -->
-<mat-form-field *ngIf="readonly; else writable">
-  <input matInput hidden type="text" readonly="true" [formControl]="formControl" />
-  <ion-label>{{ value | displayWith: displayWith }}</ion-label>
-</mat-form-field>
-
-<ng-template #writable>
-  <ng-container [ngSwitch]="style">
-    <!-- Autocomplete combo -->
-    <ng-container *ngSwitchCase="'autocomplete'">
+@if (readonly) {
+  <mat-form-field [floatLabel]="floatLabel | asFloatLabelType" [appearance]="appearance" [subscriptSizing]="subscriptSizing">
+    @if (placeholder && floatLabel !== 'never') {
+      <mat-label>{{ placeholder }}</mat-label>
+    }
+    <input matInput hidden type="text" readonly="true" [formControl]="formControl" />
+    <ion-label>{{ value | displayWith: displayWith }}</ion-label>
+  </mat-form-field>
+} @else {
+  @switch (style) {
+    <!-- autocomplete -->
+    @case ('autocomplete') {
       <mat-form-field
         [floatLabel]="floatLabel | asFloatLabelType"
         [appearance]="appearance"
         [class.mat-form-field-disabled]="disabled"
         [title]="_displayValue"
       >
-        @if (placeholder && floatLabel !== 'never') {
-          <mat-label>{{ placeholder }}</mat-label>
-        }
-
         <div matPrefix>
           <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
         </div>
+
+        @if (placeholder && floatLabel !== 'never') {
+          <mat-label>{{ placeholder }}</mat-label>
+        }
 
         <input
           matInput
@@ -49,14 +52,24 @@
           <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
         </div>
 
-        <mat-error *ngIf="formControl.errors | mapKeys | arrayFirst; let errorKey" [ngSwitch]="errorKey">
-          <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-          <span *ngSwitchCase="'entity'" translate>ERROR.FIELD_INVALID</span>
-          <span *ngSwitchCase="'msg'">
-            {{ formControl.errors.msg?.key || formControl.errors.msg | translate: formControl.errors.msg?.params }}
-          </span>
-        </mat-error>
-        <ng-content select="[matError]"></ng-content>
+        @if (formControl.touched && formControl.errors | mapKeys | arrayFirst; as errorKey) {
+          @switch (errorKey) {
+            @case ('required') {
+              <mat-error translate>ERROR.FIELD_REQUIRED</mat-error>
+            }
+            @case ('entity') {
+              <mat-error translate>ERROR.FIELD_INVALID</mat-error>
+            }
+            @case ('msg') {
+              <mat-error>
+                {{ formControl.errors.msg?.key || formControl.errors.msg | translate: formControl.errors.msg?.params }}
+              </mat-error>
+            }
+            @default {
+              <ng-container *ngTemplateOutlet="matErrorTemplate"></ng-container>
+            }
+          }
+        }
       </mat-form-field>
 
       <!-- combo -->
@@ -77,134 +90,160 @@
           </ion-row>
         </mat-option>
       </mat-autocomplete>
-    </ng-container>
+    }
 
-    <!-- Basic select -->
-    <mat-form-field *ngSwitchCase="'select'" [floatLabel]="floatLabel" [appearance]="appearance" [title]="_displayValue">
-      @if (placeholder && floatLabel !== 'never') {
-        <mat-label>{{ placeholder }}</mat-label>
-      }
-      <mat-select
-        #matInput
-        [required]="required"
-        [placeholder]="floatLabel === 'never' && placeholder"
-        [formControl]="formControl"
-        (focus)="filterMatSelectFocusEvent($event)"
-        (blur)="filterMatSelectBlurEvent($event)"
-        [tabindex]="_tabindex"
-        [compareWith]="compareWith"
-      >
-        <mat-select-trigger>{{ value | displayWith: displayWith }}</mat-select-trigger>
+    <!-- select combo -->
+    @case ('select') {
+      <mat-form-field [floatLabel]="floatLabel" [appearance]="appearance" [subscriptSizing]="subscriptSizing" [title]="_displayValue">
+        @if (placeholder && floatLabel !== 'never') {
+          <mat-label>{{ placeholder }}</mat-label>
+        }
+        <mat-select
+          #matInput
+          [required]="required"
+          [placeholder]="floatLabel === 'never' && placeholder"
+          [formControl]="formControl"
+          (focus)="filterMatSelectFocusEvent($event)"
+          (blur)="filterMatSelectBlurEvent($event)"
+          [tabindex]="_tabindex"
+          [compareWith]="compareWith"
+        >
+          <mat-select-trigger>{{ value | displayWith: displayWith }}</mat-select-trigger>
 
-        <!-- header -->
-        <ion-row class="mat-select-header ion-no-padding column">
-          <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
-            <ion-col size="3" *ngSwitchCase="'label'">
-              <ion-label translate>REFERENTIAL.LABEL</ion-label>
-            </ion-col>
-            <ion-col *ngSwitchCase="'name'">
-              <ion-label translate>REFERENTIAL.NAME</ion-label>
-            </ion-col>
-          </ng-container>
-        </ion-row>
-
-        <!-- None option -->
-        <mat-option *ngIf="!required" class="ion-no-padding">
-          <ion-row class="ion-no-padding">
-            <ion-col *ngIf="compact" size="3"></ion-col>
-            <ion-col *ngIf="!compact" size="3" size-lg="2"></ion-col>
-            <ion-col class="ion-no-padding">
-              <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
-            </ion-col>
-          </ion-row>
-        </mat-option>
-
-        <!-- options -->
-        <mat-option *ngFor="let item of sortedQualitativeValues" [value]="item" class="ion-no-padding">
-          <ion-row class="ion-no-padding">
+          <!-- header -->
+          <ion-row class="mat-select-header ion-no-padding column">
             <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
-              <ng-container *ngSwitchCase="'label'">
-                <ion-col *ngIf="compact" size="3">{{ item.label }}</ion-col>
-                <ion-col *ngIf="!compact" size="3" size-lg="2">{{ item.label }}</ion-col>
-              </ng-container>
+              <ion-col size="3" *ngSwitchCase="'label'">
+                <ion-label translate>REFERENTIAL.LABEL</ion-label>
+              </ion-col>
               <ion-col *ngSwitchCase="'name'">
-                <ion-label>{{ item.name }}</ion-label>
+                <ion-label translate>REFERENTIAL.NAME</ion-label>
               </ion-col>
             </ng-container>
           </ion-row>
-        </mat-option>
-      </mat-select>
 
-      <div matSuffix>
-        <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
-      </div>
+          <!-- None option -->
+          <mat-option *ngIf="!required" class="ion-no-padding">
+            <ion-row class="ion-no-padding">
+              <ion-col *ngIf="compact" size="3"></ion-col>
+              <ion-col *ngIf="!compact" size="3" size-lg="2"></ion-col>
+              <ion-col class="ion-no-padding">
+                <ion-label><i translate>COMMON.EMPTY_OPTION</i></ion-label>
+              </ion-col>
+            </ion-row>
+          </mat-option>
 
-      <mat-error *ngIf="formControl.errors | mapKeys | arrayFirst; let errorKey">
-        <ng-container [ngSwitch]="errorKey">
-          <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-          <span *ngSwitchCase="'entity'" translate>ERROR.FIELD_INVALID</span>
-          <span *ngSwitchCase="'msg'">
-            {{ formControl.errors.msg?.key || formControl.errors.msg | translate: formControl.errors.msg?.params }}
-          </span>
-        </ng-container>
-      </mat-error>
-    </mat-form-field>
+          <!-- options -->
+          <mat-option *ngFor="let item of sortedQualitativeValues" [value]="item" class="ion-no-padding">
+            <ion-row class="ion-no-padding">
+              <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
+                <ng-container *ngSwitchCase="'label'">
+                  <ion-col *ngIf="compact" size="3">{{ item.label }}</ion-col>
+                  <ion-col *ngIf="!compact" size="3" size-lg="2">{{ item.label }}</ion-col>
+                </ng-container>
+                <ion-col *ngSwitchCase="'name'">
+                  <ion-label>{{ item.name }}</ion-label>
+                </ion-col>
+              </ng-container>
+            </ion-row>
+          </mat-option>
+        </mat-select>
+
+        <div matSuffix>
+          <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+        </div>
+
+        @if (formControl.touched && formControl.errors | mapKeys | arrayFirst; as errorKey) {
+          @switch (errorKey) {
+            @case ('required') {
+              <mat-error translate>ERROR.FIELD_REQUIRED</mat-error>
+            }
+            @case ('entity') {
+              <mat-error translate>ERROR.FIELD_INVALID</mat-error>
+            }
+            @case ('msg') {
+              <mat-error>
+                {{ formControl.errors.msg?.key || formControl.errors.msg | translate: formControl.errors.msg?.params }}
+              </mat-error>
+            }
+            @default {
+              <ng-container *ngTemplateOutlet="matErrorTemplate"></ng-container>
+            }
+          }
+        }
+      </mat-form-field>
+    }
 
     <!-- Buttons -->
-    <mat-form-field *ngSwitchCase="'button'" [floatLabel]="floatLabel | asFloatLabelType">
-      <mat-label>{{ placeholder }}</mat-label>
-      <input matInput type="text" hidden [formControl]="formControl" [required]="required" />
-      <div
-        class="mat-form-field-buttons"
-        *ngIf="formControl.enabled || formControl.value != null; else emptyLabel"
-        [style.--buttons-col-count]="buttonsColCount"
-      >
-        <ng-container *ngFor="let item of sortedQualitativeValues; index as i; trackBy: getQvId">
-          <ion-button
-            #button
-            *ngIf="showAllButtons || selectedIndex === i || i < maxVisibleButtons"
-            [disabled]="disabled"
-            [class.cdk-visually-hidden]="selectedIndex !== i && item.statusId === 0"
-            class="mat-form-field-button ion-text-wrap"
-            [tabindex]="_tabindex && _tabindex + i"
-            [color]="selectedIndex === -1 ? 'tertiary' : selectedIndex === i ? 'accent' : 'light'"
-            (click)="writeValue(item)"
-            (keyup.enter)="writeValue(item, $event)"
-          >
-            {{ item.name || item.label }}
-          </ion-button>
-        </ng-container>
-      </div>
-      <ng-template #emptyLabel>
-        <ion-label translate>COMMON.EMPTY_OPTION</ion-label>
-      </ng-template>
+    @case ('button') {
+      <mat-form-field [floatLabel]="'always'" [appearance]="appearance" [subscriptSizing]="subscriptSizing">
+        @if (floatLabel !== 'never' && !!placeholder) {
+          <mat-label [title]="placeholder">{{ placeholder }}</mat-label>
+        } @else {
+          <mat-label>&nbsp;</mat-label>
+        }
 
-      <div matSuffix>
-        <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
-      </div>
+        <input matInput type="text" hidden [formControl]="formControl" [required]="required" />
 
-      <ion-fab-button
-        matSuffix
-        color="light"
-        size="small"
-        *ngIf="!compact && maxVisibleButtons !== 999"
-        [class.hidden]="disabled"
-        (click)="showAllButtons = !showAllButtons"
-      >
-        <ion-icon [name]="(showAllButtons && 'chevron-up-outline') || 'chevron-down-outline'"></ion-icon>
-      </ion-fab-button>
+        @if (formControl.enabled || formControl.value != null) {
+          <div class="mat-form-field-buttons" [style.--buttons-col-count]="buttonsColCount">
+            <ng-container *ngFor="let item of sortedQualitativeValues; index as i; trackBy: getQvId">
+              <ion-button
+                #button
+                *ngIf="showAllButtons || selectedIndex === i || i < maxVisibleButtons"
+                [disabled]="disabled"
+                [class.cdk-visually-hidden]="selectedIndex !== i && item.statusId === 0"
+                class="mat-form-field-button ion-text-wrap"
+                [tabindex]="_tabindex && _tabindex + i"
+                [color]="selectedIndex === -1 ? 'tertiary' : selectedIndex === i ? 'accent' : 'light'"
+                (click)="writeValue(item)"
+                (keyup.enter)="writeValue(item, $event)"
+              >
+                {{ item.name || item.label }}
+              </ion-button>
+            </ng-container>
+          </div>
+        } @else {
+          <ion-label translate>COMMON.EMPTY_OPTION</ion-label>
+        }
 
-      <mat-error *ngIf="formControl.errors | mapKeys | arrayFirst; let errorKey">
-        <ng-container [ngSwitch]="errorKey">
-          <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-          <span *ngSwitchCase="'msg'">
-            {{ formControl.errors.msg?.key || formControl.errors.msg | translate: formControl.errors.msg?.params }}
-          </span>
-        </ng-container>
-      </mat-error>
-    </mat-form-field>
-  </ng-container>
-</ng-template>
+        <div matSuffix>
+          <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+        </div>
+
+        <ion-fab-button
+          matSuffix
+          color="light"
+          size="small"
+          *ngIf="!compact && maxVisibleButtons !== 999"
+          [class.hidden]="disabled"
+          (click)="showAllButtons = !showAllButtons"
+        >
+          <ion-icon [name]="(showAllButtons && 'chevron-up-outline') || 'chevron-down-outline'"></ion-icon>
+        </ion-fab-button>
+
+        @if (formControl.touched && formControl.errors | mapKeys | arrayFirst; as errorKey) {
+          @switch (errorKey) {
+            @case ('required') {
+              <mat-error translate>ERROR.FIELD_REQUIRED</mat-error>
+            }
+            @case ('entity') {
+              <mat-error translate>ERROR.FIELD_INVALID</mat-error>
+            }
+            @case ('msg') {
+              <mat-error>
+                {{ formControl.errors.msg?.key || formControl.errors.msg | translate: formControl.errors.msg?.params }}
+              </mat-error>
+            }
+            @default {
+              <ng-container *ngTemplateOutlet="matErrorTemplate"></ng-container>
+            }
+          }
+        }
+      </mat-form-field>
+    }
+  }
+}
 
 <ng-template #matPrefixTemplate>
   <ng-content select="[matPrefix]"></ng-content>
@@ -212,4 +251,8 @@
 
 <ng-template #matSuffixTemplate>
   <ng-content select="[matSuffix]"></ng-content>
+</ng-template>
+
+<ng-template #matErrorTemplate>
+  <ng-content select="mat-error,[matError]"></ng-content>
 </ng-template>
