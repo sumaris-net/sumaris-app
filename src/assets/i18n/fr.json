@@ -701,7 +701,7 @@
       "RETURN_DATE_TIME": "Date de retour",
       "RETURN_LOCATION": "Port de retour",
       "QUALITY": "État",
-      "OBSERVERS": "Observateurs",
+      "OBSERVERS": "Observateur(s)",
       "RECORDER_PERSON": "Saisisseur",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
@@ -1608,11 +1608,13 @@
     },
     "TABLE": {
       "PROGRAM": "Programme",
-      "START_DATE_TIME": "Date/heure",
+      "DATE_TIME": "Date/Heure",
+      "START_DATE_TIME": "Date de début",
+      "END_DATE_TIME": "Date de fin",
       "QUALITY": "État",
       "QUALITY_FILTER": "Filtrer par état :",
       "LOCATION": "Lieu de la sortie",
-      "OBSERVERS": "Observateurs",
+      "OBSERVERS": "Observateur(s)",
       "RECORDER_PERSON": "Saisisseur",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les sorties <b>non envoyées</b>)",
@@ -1621,7 +1623,10 @@
         "STRATEGY": "Stratégie",
         "LOCATION": "Lieu de la sortie",
         "START_DATE": "Début de période",
-        "END_DATE": "Fin de période"
+        "END_DATE": "Fin de période",
+        "RECORDER_PERSON": "Saisisseur",
+        "RECORDER_DEPARTMENT": "Organisme saisisseur",
+        "OBSERVERS": "Observateurs"
       }
     },
     "PMFM": {},
@@ -3343,6 +3348,9 @@
       "ECONOMIC_SURVEY": "Enquête éco ?",
       "VESSEL": "Navire",
       "YEAR": "Année",
+      "NO_LOCAL_RESULT": "Aucun résultat (parmi les calendriers <b>non synchronisés</b>)",
+      "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
+      "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "REGISTRATION_LOCATION": "Quartier maritime",
