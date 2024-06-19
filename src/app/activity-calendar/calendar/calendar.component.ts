@@ -207,7 +207,7 @@ export class CalendarComponent
   protected referentialRefService = inject(ReferentialRefService);
 
   @RxStateSelect() protected vesselSnapshots$: Observable<VesselSnapshot[]>;
-  @RxStateSelect() protected vesselOwners$: Observable<VesselOwnerPeriod[]>;
+  @RxStateSelect() protected vesselOwnerPeriods$: Observable<VesselOwnerPeriod[]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() validRowCount$: Observable<number>;
@@ -224,7 +224,7 @@ export class CalendarComponent
   protected editedRowFocusedElement: HTMLElement;
 
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
-  @RxStateProperty() vesselOwners: VesselOwnerPeriod[];
+  @RxStateProperty() vesselOwnerPeriods: VesselOwnerPeriod[];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
   @RxStateProperty() metierCount: number;
   @RxStateProperty() validRowCount: number;
@@ -636,7 +636,7 @@ export class CalendarComponent
 
     const vesselOwnerPeriods = await this.vesselOwnerPeriodService.getVesselOwnerPeriodsByFilter(filter);
     const vesselOwnerPeriodsByMonthCovered = CalendarUtils.vesselOwnerPeriodsByMonthCovered(vesselOwnerPeriods);
-    this.vesselOwners = vesselOwnerPeriodsByMonthCovered;
+    this.vesselOwnerPeriods = vesselOwnerPeriodsByMonthCovered;
   }
 
   async loadVessels(vesselId: number, year: number) {

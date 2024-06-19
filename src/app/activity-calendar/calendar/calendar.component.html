@@ -186,8 +186,8 @@
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row" class="mat-column-reset-background-color">
-          <ion-label *rxIf="vesselOwners$; let vesselOwners; suspense: skeletonText80" class="computed">
-            {{ vesselOwners | mapGet: row.currentData.month | propertyGet: 'vesselOwner' | referentialToString: ['lastName', 'firstName'] }}
+          <ion-label *rxIf="vesselOwnerPeriods$; let VesselOwnerPeriods; suspense: skeletonText80" class="computed">
+            {{ VesselOwnerPeriods | mapGet: row.currentData.month | propertyGet: 'vesselOwner' | referentialToString: ['lastName', 'firstName'] }}
           </ion-label>
         </mat-cell>
       </ng-container>

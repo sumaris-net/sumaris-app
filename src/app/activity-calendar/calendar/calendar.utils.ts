@@ -18,9 +18,9 @@ export class CalendarUtils {
     );
   }
 
-  static vesselOwnerPeriodsByMonthCovered(VesselOwnerPeriod: VesselOwnerPeriod[]): VesselOwnerPeriod[] {
+  static vesselOwnerPeriodsByMonthCovered(VesselOwnerPeriods: VesselOwnerPeriod[]): VesselOwnerPeriod[] {
     // Calculate the months covered by each period
-    const VesselOwnerPeriodsWithMonths = VesselOwnerPeriod.map((period) => {
+    const VesselOwnerPeriodsWithMonths = VesselOwnerPeriods.map((period) => {
       const coveredMonths: number[] = [];
       const currentMonth = period.startDate.clone().startOf('month');
 
