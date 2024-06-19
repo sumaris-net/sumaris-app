@@ -5,6 +5,7 @@ import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/fo
 import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
+  AppAsyncTable,
   AppEditorOptions,
   AppTable,
   chainPromises,
@@ -86,6 +87,7 @@ export interface ActivityCalendarPageState extends RootDataEntityEditorState {
   months: Moment[];
   predocProgramLabels: string[];
   titleMenu: string;
+  hasClipboard: boolean;
 }
 
 @Component({
@@ -128,8 +130,11 @@ export class ActivityCalendarPage
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() protected predocProgramLabels$: Observable<string[]>;
   @RxStateSelect() protected titleMenu$: Observable<string>;
+  @RxStateSelect() protected hasClipboard$: Observable<boolean>;
+
   @RxStateProperty() protected reportTypes: Property[];
   @RxStateProperty() protected titleMenu: string;
+  @RxStateProperty() protected hasClipboard: boolean;
 
   protected timezone = DateUtils.moment().tz();
   protected allowAddNewVessel: boolean;
@@ -179,7 +184,7 @@ export class ActivityCalendarPage
     protected vesselService: VesselService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected translateContext: TranslateContextService,
-    protected activityCalendarContext: ActivityCalendarContextService,
+    protected context: ActivityCalendarContextService,
     protected hotkeys: Hotkeys
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
@@ -200,7 +205,6 @@ export class ActivityCalendarPage
 
   ngOnInit() {
     super.ngOnInit();
-
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
@@ -223,6 +227,8 @@ export class ActivityCalendarPage
         map((year) => CalendarUtils.getMonths(year, this.timezone))
       )
     );
+
+    this._state.connect('hasClipboard', this.context.select('clipboard', 'data').pipe(map(isNotNil)));
 
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
@@ -303,6 +309,7 @@ export class ActivityCalendarPage
 
     this.restorePredocPanelSize();
   }
+
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
@@ -343,7 +350,7 @@ export class ActivityCalendarPage
     }
   }
 
-  async saveTable(table: AppTable<any>) {
+  async saveTable(table: AppTable<any> | AppAsyncTable<any>) {
     if (!table.confirmEditCreate()) return false;
     if (table.dirty) {
       this.markAsDirty();
@@ -433,8 +440,8 @@ export class ActivityCalendarPage
     await super.setProgram(program);
 
     // Update the context
-    if (this.activityCalendarContext.program !== program) {
-      this.activityCalendarContext.program = program;
+    if (this.context.program !== program) {
+      this.context.program = program;
     }
 
     try {
@@ -483,9 +490,9 @@ export class ActivityCalendarPage
     await super.setStrategy(strategy);
 
     // Update the context
-    if (this.activityCalendarContext.strategy !== strategy) {
+    if (this.context.strategy !== strategy) {
       if (this.debug) console.debug(this.logPrefix + "Update context's strategy...", strategy);
-      this.activityCalendarContext.strategy = strategy;
+      this.context.strategy = strategy;
     }
   }
 
@@ -697,7 +704,7 @@ export class ActivityCalendarPage
   }
 
   protected registerForms() {
-    this.addForms([this.baseForm, () => this.calendar]);
+    this.addForms([this.baseForm]);
   }
 
   protected async computeTitle(data: ActivityCalendar): Promise<string> {
@@ -819,6 +826,12 @@ export class ActivityCalendarPage
     const { size, visible } = this.settings.getPageSettings(this.settingsId, ActivityCalendarPageSettingsEnum.PREDOC_PANEL_CONFIG) || {};
     this._predocPanelSize = isNotNilOrNaN(toNumber(size)) ? +size : this._predocPanelSize;
     this._predocPanelVisible = toBoolean(visible, this._predocPanelVisible);
+  }
+
+  protected onPredocResize(sizes?: IOutputAreaSizes) {
+    this.predocCalendar.onResize();
+
+    this.savePredocPanelSize(sizes);
   }
 
   protected savePredocPanelSize(sizes?: IOutputAreaSizes) {

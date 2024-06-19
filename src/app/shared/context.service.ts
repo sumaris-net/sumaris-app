@@ -7,13 +7,15 @@ import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
 
-export interface Clipboard<T = any> {
-  data?: T;
+export interface Clipboard<TData = any> {
+  source?: any;
+  data?: TData;
   pasteFlags?: number;
   updateDate?: Moment;
 }
-export interface Context<T = any> {
-  clipboard?: Clipboard<T>;
+
+export interface Context<TClipboardData = any> {
+  clipboard?: Clipboard<TClipboardData>;
   program?: Program;
   strategy?: Strategy;
 
@@ -26,13 +28,19 @@ export const APP_MAIN_CONTEXT_SERVICE = new InjectionToken<ContextService>('Cont
 export const CONTEXT_DEFAULT_STATE = new InjectionToken<Record<string, any>>('ContextDefaultState');
 
 @Injectable()
-export class ContextService<S extends Context<T> = Context<any>, T = any> extends RxState<S> {
+export class ContextService<S extends Context<TClipboardData> = Context<any>, TClipboardData = any> extends RxState<S> {
   private static ID_SEQUENCE = 1;
   readonly id: number = ContextService.ID_SEQUENCE++;
+
   @RxStateProperty() program: Program;
   @RxStateProperty() strategy: Strategy;
-  @RxStateProperty('clipboard', (_, value) => <T>{ ...value, updateDate: DateUtils.moment() }) clipboard: Clipboard<T>;
+  @RxStateProperty('clipboard', (_, value) => <S['clipboard']>{ ...value, updateDate: DateUtils.moment() })
+  clipboard: S['clipboard'];
   @RxStateProperty() children: ContextService<any>[];
+
+  get empty(): boolean {
+    return equals(this.defaultState || {}, this.get());
+  }
 
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: Partial<S>) {
     super();
@@ -56,20 +64,31 @@ export class ContextService<S extends Context<T> = Context<any>, T = any> extend
     return this.get(key);
   }
 
+  getValueAsDate<K extends keyof S>(key: K): Moment {
+    return fromDateISOString(this.getValue(key));
+  }
+
   resetValue<K extends keyof S>(key: K) {
     this.set(key, () => this.defaultState[key]);
   }
 
-  reset(): void {
-    this.children?.forEach((child) => child.reset());
+  reset(opts?: { onlySelf?: boolean }): void {
+    // Cascade to children
+    if (opts?.onlySelf !== false) {
+      this.children?.forEach((child) => child.reset(opts));
+    }
 
+    // Reset to default state
     this.set(this.defaultState);
-
-    this.children = null;
   }
 
-  getValueAsDate<K extends keyof S>(key: K): Moment {
-    return fromDateISOString(this.getValue(key));
+  resetClipboard(opts?: { onlySelf?: boolean }) {
+    // Cascade to children
+    if (opts?.onlySelf !== false) {
+      this.children?.forEach((child) => child.resetClipboard(opts));
+    }
+
+    this.set('clipboard', () => null);
   }
 
   registerChild(child: ContextService<any>) {
@@ -77,10 +96,8 @@ export class ContextService<S extends Context<T> = Context<any>, T = any> extend
     console.debug(`[context#${this.id}] Registering child context#${child.id}`);
     this.set('children', (s) => removeDuplicatesFromArray((s.children || []).concat(child), 'id'));
   }
+
   unregisterChild(child: ContextService<any>) {
     this.set('children', (s) => (s.children || []).filter((c) => c !== child));
-  }
-  get empty(): boolean {
-    return equals(this.defaultState || {}, this.get());
   }
 }
