@@ -142,16 +142,19 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     );
 
     // Listen year
-    const yearControl = this.form.get('year');
     this.registerSubscription(
-      merge(yearControl.valueChanges, this.form.get('startDate').valueChanges.pipe(map((startDate) => fromDateISOString(startDate)?.year())))
+      merge(
+        this.yearControl.valueChanges,
+        this.form.get('startDate').valueChanges.pipe(map((startDate) => fromDateISOString(startDate)?.utc(false).year()))
+      )
         .pipe(filter(isNotNil), distinctUntilChanged())
         .subscribe((year) => {
           console.debug(this._logPrefix + 'Year changes to: ' + year);
-          if (yearControl.value !== year) {
-            yearControl.setValue(year, { emitEvent: false });
+          if (this.isNewData && this.yearControl.value !== year) {
+            this.yearControl.setValue(year, { emitEvent: false });
+            this.yearChanges.next(year);
           }
-          this.yearChanges.next(year);
+
           // Warning if year is in the future
           this.isYearInTheFuture = isNotNil(year) && year > DateUtils.moment().year();
           this.markForCheck();
