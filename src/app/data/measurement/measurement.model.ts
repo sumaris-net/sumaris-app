@@ -513,14 +513,19 @@ export class MeasurementValuesUtils {
 
   static isEmpty(measurementValues: MeasurementModelValues | MeasurementFormValues) {
     return (
-      isNil(measurementValues) || Object.getOwnPropertyNames(measurementValues).every((pmfmId) => PmfmValueUtils.isEmpty(measurementValues[pmfmId]))
+      isNil(measurementValues) ||
+      Object.getOwnPropertyNames(measurementValues)
+        .filter((p) => p !== '__typename')
+        .every((pmfmId) => PmfmValueUtils.isEmpty(measurementValues[pmfmId]))
     );
   }
 
   static isNotEmpty(measurementValues: MeasurementModelValues | MeasurementFormValues) {
     return (
       isNotNil(measurementValues) &&
-      Object.getOwnPropertyNames(measurementValues).some((pmfmId) => PmfmValueUtils.isNotEmpty(measurementValues[pmfmId]))
+      Object.getOwnPropertyNames(measurementValues)
+        .filter((p) => p !== '__typename')
+        .some((pmfmId) => PmfmValueUtils.isNotEmpty(measurementValues[pmfmId]))
     );
   }
 }

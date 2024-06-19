@@ -11,9 +11,56 @@
   }
 }
 
-mat-toolbar.secondary {
-  background-color: var(--ion-color-secondary);
-  color: var(--ion-color-secondary-contrast);
+mat-toolbar {
+  position: relative;
+  z-index: 50;
+  &.secondary {
+    background-color: var(--ion-color-secondary);
+    color: var(--ion-color-secondary-contrast);
+  }
+}
+
+.cell-selection {
+  position: fixed;
+  background-color: rgba(var(--ion-color-secondary-rgb), 0.4);
+  border: 2px solid var(--ion-color-secondary);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* -- cell clipboard -- */
+@keyframes linearGradientMove {
+  100% {
+    background-position:
+      4px 0,
+      -4px 100%,
+      0 -4px,
+      100% 4px;
+  }
+}
+.cell-clipboard {
+  --border-color: var(--ion-color-accent, gray);
+  position: fixed;
+  z-index: 5;
+  border: 1px dotted var(--border-color);
+  animation: linearGradientMove 0.3s infinite linear;
+  background:
+    linear-gradient(90deg, var(--border-color) 50%, transparent 0) repeat-x,
+    linear-gradient(90deg, var(--border-color) 50%, transparent 0) repeat-x,
+    linear-gradient(0deg, var(--border-color) 50%, transparent 0) repeat-y,
+    linear-gradient(0deg, var(--border-color) 50%, transparent 0) repeat-y;
+  background-size:
+    4px 2px,
+    4px 2px,
+    2px 4px,
+    2px 4px;
+  background-position:
+    0 0,
+    0 100%,
+    0 0,
+    100% 0;
+  background-color: unset;
+  pointer-events: none;
 }
 
 .table-container {
@@ -21,6 +68,7 @@ mat-toolbar.secondary {
   height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
   min-width: 100%;
   overflow: auto;
+  z-index: 10;
 
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);

@@ -26,6 +26,13 @@ export class TripContextService<C extends TripContext = TripContext> extends Dat
       // Connect program/strategy to the main context
       this.connect('program', this.context.select('program'));
       this.connect('strategy', this.context.select('strategy'));
+
+      this.context.registerChild(this);
     }
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.context?.unregisterChild(this);
   }
 }

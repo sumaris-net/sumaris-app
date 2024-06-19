@@ -281,8 +281,8 @@
         #predocSplit
         direction="vertical"
         [useTransition]="true"
-        (dragEnd)="savePredocPanelSize($event.sizes)"
-        (transitionEnd)="savePredocPanelSize($event)"
+        (dragEnd)="onPredocResize($event.sizes)"
+        (transitionEnd)="onPredocResize($event)"
       >
         <!-- Main calendar -->
         <as-split-area [minSize]="20" size="*">
@@ -303,7 +303,7 @@
         </as-split-area>
 
         <!-- Predoc -->
-        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible">
+        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible" [style.z-index]="110">
           <app-calendar
             #predocCalendar
             [title]="'ACTIVITY_CALENDAR.EDIT.PREDOC_TITLE'"
@@ -317,6 +317,7 @@
             [sticky]="true"
             [canEdit]="false"
             [readOnly]="true"
+            [enableCellSelection]="true"
             [disabled]="true"
             [showToolbarOptions]="false"
             [compact]="calendar.compact"
@@ -396,7 +397,8 @@
 <ion-footer hidden-xs hidden-sm hidden-mobile>
   <app-form-buttons-bar
     (onCancel)="reloadWithConfirmation()"
-    [disabledCancel]="!dirty || loading"
+    [disabledCancel]="!dirty || loading || (hasClipboard$ | push)"
+    [disabledEscape]="hasClipboard$ | push"
     (onSave)="save($event)"
     [disabled]="!dirty || loading"
   >
@@ -413,7 +415,7 @@
   </app-form-buttons-bar>
 </ion-footer>
 
-<!-- FAB button: add landing -->
+<!-- FAB button: add metier block -->
 <ion-fab
   *ngIf="mobile && selectedTabIndex === 1"
   vertical="bottom"

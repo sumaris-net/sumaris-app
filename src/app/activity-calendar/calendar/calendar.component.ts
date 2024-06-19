@@ -9,10 +9,13 @@ import {
   Input,
   OnInit,
   QueryList,
+  ViewChild,
   ViewChildren,
 } from '@angular/core';
 import {
   Alerts,
+  AppFormArray,
+  changeCaseToUnderscore,
   DateUtils,
   EntityUtils,
   getPropertyByPath,
@@ -20,25 +23,28 @@ import {
   InMemoryEntitiesService,
   isEmptyArray,
   isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   IStatus,
+  lastArrayValue,
   LoadResult,
   LocalSettingsService,
   MatAutocompleteFieldConfig,
   ReferentialUtils,
   removeDuplicatesFromArray,
   RESERVED_START_COLUMNS,
-  sleep,
+  setPropertyByPath,
   splitById,
   StatusIds,
+  Toasts,
   toBoolean,
   toDateISOString,
+  toNumber,
   UsageMode,
   waitFor,
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
-import { TableElement } from '@e-is/ngx-material-table';
 import { ActivityMonth, ActivityMonthFilter } from '@app/activity-calendar/calendar/activity-month.model';
 import {
   ActivityMonthValidatorOptions,
@@ -49,7 +55,7 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { RxState } from '@rx-angular/state';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { Observable, Subscription } from 'rxjs';
+import { fromEvent, Observable, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
@@ -57,16 +63,20 @@ import { UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
+import { BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { Moment } from 'moment/moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { map } from 'rxjs/operators';
+import { debounceTime, filter, map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { ActivityCalendarContextService } from '../activity-calendar-context.service';
+import { MatMenuTrigger } from '@angular/material/menu';
+import { BaseMeasurementsTable2 } from '@app/data/measurement/measurements-table2.class';
+import { AsyncTableElement } from '@e-is/ngx-material-table';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -81,21 +91,21 @@ const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
       ]
   );
 const ACTIVITY_MONTH_START_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
-const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
+export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
 
 export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
   {
-    id: 1,
+    id: VesselUseFeaturesIsActiveEnum.ACTIVE,
     icon: 'checkmark',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.ENABLE',
   },
   {
-    id: 0,
+    id: VesselUseFeaturesIsActiveEnum.INACTIVE,
     icon: 'close',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.DISABLE',
   },
   {
-    id: 2,
+    id: VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
     icon: 'close',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.NOT_EXISTS',
   },
@@ -125,10 +135,25 @@ export interface CalendarComponentState extends BaseMeasurementsTableState {
   dynamicColumns: ColumnDefinition[];
   metierCount: number;
   validRowCount: number;
+  hasClipboard: boolean;
 }
 
 export type CalendarComponentStyle = 'table' | 'accordion';
 
+export interface TableCellSelection<T = any> {
+  row: AsyncTableElement<T>;
+  columnName: string;
+  cellElement: HTMLTableCellElement;
+  cellRect: { top: number; left: number; width: number; height: number };
+  divElement: HTMLDivElement;
+
+  validating?: boolean;
+  resizing?: boolean;
+
+  axis?: 'x' | 'y';
+  rowspan?: number;
+  colspan?: number;
+}
 @Component({
   selector: 'app-calendar',
   templateUrl: './calendar.component.html',
@@ -147,7 +172,7 @@ export type CalendarComponentStyle = 'table' | 'accordion';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarComponent
-  extends BaseMeasurementsTable<
+  extends BaseMeasurementsTable2<
     ActivityMonth,
     ActivityMonthFilter,
     IEntitiesService<ActivityMonth, ActivityMonthFilter>,
@@ -166,28 +191,25 @@ export class CalendarComponent
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() validRowCount$: Observable<number>;
+  @RxStateSelect() hasClipboard$: Observable<boolean>;
   protected readonly isActiveList = IsActiveList;
   protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
 
   protected rowSubscription: Subscription;
-  protected resizingCell: {
-    validating?: boolean;
-    axis?: 'x' | 'y';
-    row: TableElement<ActivityMonth>;
-    columnName: string;
-    cellRect: { top: number; left: number; width: number; height: number };
-    shadowElement: HTMLDivElement;
-  };
+  protected cellSelection: TableCellSelection<ActivityMonth>;
+  protected cellClipboard: TableCellSelection<ActivityMonth>;
   protected originalMouseY: number;
   protected originalMouseX: number;
   protected _children: CalendarComponent[];
+  protected showDebugValue = false;
 
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
   @RxStateProperty() metierCount: number;
   @RxStateProperty() validRowCount: number;
+  @RxStateProperty() hasClipboard: boolean;
 
   @Input() @RxStateProperty() months: Moment[];
 
@@ -281,10 +303,13 @@ export class CalendarComponent
   }
 
   @ViewChildren('monthCalendar', { read: CalendarComponent }) monthCalendars!: QueryList<CalendarComponent>;
+  @ViewChild('menuTrigger') menuTrigger: MatMenuTrigger;
+  @ViewChild('cellSelectionRect', { read: ElementRef }) cellSelectionDiv: ElementRef;
+  @ViewChild('cellClipboardRect', { read: ElementRef }) cellClipboardDiv: ElementRef;
 
   constructor(
     injector: Injector,
-    private element: ElementRef
+    protected context: ActivityCalendarContextService
   ) {
     super(
       injector,
@@ -330,8 +355,9 @@ export class CalendarComponent
 
     this.locationDisplayAttributes = this.locationDisplayAttributes || this.settings.getFieldDisplayAttributes('location');
     this.inlineEdition = this.inlineEdition && this.canEdit;
-    this.enableCellSelection = this.inlineEdition && toBoolean(this.enableCellSelection, this.style === 'table' && this.canEdit);
+    this.enableCellSelection = toBoolean(this.enableCellSelection, this.inlineEdition && this.style === 'table' && this.canEdit);
 
+    // Wait enumerations to be set
     await this.referentialRefService.ready();
 
     this.registerAutocompleteField('basePortLocation', {
@@ -366,9 +392,20 @@ export class CalendarComponent
       'validRowCount',
       this._dataSource.rowsSubject.pipe(
         map((rows) => {
-          return rows.filter((row) => isNotNil(row.currentData?.isActive)).length;
+          return rows.map((row) => row.currentData?.isActive).filter(isNotNil).length;
         })
       )
+    );
+
+    // Reset cell clipboard, when clipboard cleared or updated
+    this.registerSubscription(
+      this.context
+        .select('clipboard')
+        .pipe(
+          tap((clipboard) => (this.hasClipboard = isNotEmptyArray(clipboard?.data?.months))),
+          filter((clipboard) => isNotEmptyArray(clipboard?.data?.months) && clipboard.source !== this)
+        )
+        .subscribe(() => this.clearClipboard(null, { clearContext: false }))
     );
   }
 
@@ -376,13 +413,57 @@ export class CalendarComponent
     super.ngAfterViewInit();
   }
 
-  protected generateTableId(): string {
-    return super.generateTableId();
-  }
-
   initTableContainer(element: any) {
     if (this.style === 'accordion') return; // Skip
-    super.initTableContainer(element);
+
+    super.initTableContainer(element, { defaultShortcuts: false });
+
+    // Add shortcuts
+    if (!this.mobile) {
+      console.debug(this.logPrefix + 'Add table shortcuts');
+
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'control.c', description: 'COMMON.BTN_COPY', preventDefault: true })
+          .pipe(filter(() => this.loaded && !!this.cellSelection))
+          .subscribe((event) => this.copy(event))
+      );
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'control.v', description: 'COMMON.BTN_PASTE', preventDefault: true })
+          .pipe(filter(() => !this.disabled && this.canEdit))
+          .subscribe(() => this.pasteFromClipboard())
+      );
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'escape', description: 'COMMON.BTN_CLEAR_CLIPBOARD', preventDefault: true })
+          .pipe(filter((e) => !!this.cellClipboard))
+          .subscribe((event) => this.clearClipboard(event))
+      );
+
+      this.registerSubscription(
+        fromEvent(element, 'scroll')
+          .pipe(
+            //debounceTime(150),
+            map((event: Event) => event.target as HTMLElement)
+          )
+          .subscribe((container: HTMLElement) => {
+            // DEBUG
+            //console.debug(`${this.logPrefix} scrollTop: ${container.scrollTop} scrollLeft: ${container.scrollLeft}`);
+
+            {
+              const rectElement = this.cellSelectionDiv.nativeElement;
+              rectElement.style.marginTop = -1 * (container.scrollTop || 0) + 'px';
+              rectElement.style.marginLeft = -1 * (container.scrollLeft || 0) + 'px';
+            }
+            {
+              const rectElement = this.cellClipboardDiv.nativeElement;
+              rectElement.style.marginTop = -1 * (container.scrollTop || 0) + 'px';
+              rectElement.style.marginLeft = -1 * (container.scrollLeft || 0) + 'px';
+            }
+          })
+      );
+    }
   }
 
   markAsReady(opts?: { emitEvent?: boolean }) {
@@ -549,129 +630,225 @@ export class CalendarComponent
     }
   }
 
-  onMouseDown(event: MouseEvent, cellElement: HTMLTableCellElement, row: TableElement<any>, columnName: string, axis?: 'x' | 'y') {
-    if (!cellElement) throw new Error('Missing rectangle element');
-    if (this.resizingCell) return; // Skip if already resizing
+  async onMouseDown(event: MouseEvent, cellElement: HTMLTableCellElement, row: AsyncTableElement<any>, columnName: string, axis?: 'x' | 'y') {
+    if (!cellElement) throw new Error('Missing cell element');
 
     event.preventDefault();
     event.stopPropagation();
 
-    const parentRect = this.element.nativeElement.getBoundingClientRect();
-    const rect = cellElement.getBoundingClientRect();
+    // DEBUG
+    console.debug(`${this.logPrefix}Start cell selection... [confirm edited row}`);
+
+    // Confirmed previous edited row
+    const confirmed = await this.confirmEditCreate();
+    if (!confirmed) {
+      console.debug(this.logPrefix + 'Cannot confirmed row !');
+      //this.cancelOrDelete(null);
+    }
+
+    if (this.cellSelection) this.clearCellSelection();
+
+    // DEBUG
+    console.debug(`${this.logPrefix}Start cell selection... [row confirmed}`);
+
+    const containerElement = this.tableContainerElement;
+    const containerRect = containerElement.getBoundingClientRect();
+    const relativeCellRect = cellElement.getBoundingClientRect();
     const cellRect = {
-      top: rect.y,
-      left: rect.x - parentRect.left,
-      width: rect.width,
-      height: rect.height,
+      top: relativeCellRect.top + (containerElement.scrollTop || 0),
+      left: relativeCellRect.left + (containerElement.scrollLeft || 0) - containerRect.left,
+      width: relativeCellRect.width,
+      height: relativeCellRect.height,
     };
     this.originalMouseX = event.clientX;
     this.originalMouseY = event.clientY;
-    const shadowElement = document.createElement('div');
-    shadowElement.style.position = 'fixed';
-    shadowElement.style.zIndex = '9999';
-    shadowElement.style.backgroundColor = 'rgba(var(--ion-color-secondary-rgb), 0.4)';
-    shadowElement.style.top = cellRect.top + 'px';
-    shadowElement.style.left = cellRect.left + 'px';
-    shadowElement.style.width = cellRect.width + 'px';
-    shadowElement.style.height = cellRect.height + 'px';
-    cellElement.prepend(shadowElement);
-    this.resizingCell = { shadowElement, row, columnName, cellRect, axis };
+    const divElement = this.cellSelectionDiv.nativeElement as HTMLDivElement;
+    divElement.style.marginTop = -1 * (containerElement.scrollTop || 0) + 'px';
+    divElement.style.marginLeft = -1 * (containerElement.scrollLeft || 0) + 'px';
+    divElement.style.top = cellRect.top + 'px';
+    divElement.style.left = cellRect.left + 'px';
+    divElement.style.width = cellRect.width + 'px';
+    divElement.style.height = cellRect.height + 'px';
+
+    this.cellSelection = { cellElement, cellRect, divElement, row, columnName, axis, resizing: true };
+    this.markForCheck();
+    return true;
   }
 
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
-    const shadowElement = this.resizingCell?.shadowElement;
-    if (!shadowElement) return;
+    // Resizing the cell selection (and not validating)
+    if (this.cellSelection?.resizing && !this.cellSelection.validating) {
+      const rectElement = this.cellSelection.divElement;
 
-    // Ignore if waiting validation
-    if (this.resizingCell.validating) return;
+      const axis = this.cellSelection.axis;
+      const movementX = axis !== 'y' ? event.clientX - this.originalMouseX : 0;
+      const movementY = axis !== 'x' ? event.clientY - this.originalMouseY : 0;
+      const rect = this.cellSelection.cellRect;
+      const newWidth = rect.width + Math.abs(movementX);
+      const snapWidth = Math.max(rect.width, Math.round(newWidth / rect.width) * rect.width);
+      const newHeight = rect.height + Math.abs(movementY);
+      const snapHeight = Math.max(rect.height, Math.round(newHeight / rect.height) * rect.height);
+      let left = rect.left;
+      let top = rect.top;
+      if (movementX < 0) {
+        left = rect.left + rect.width - snapWidth;
+      }
+      if (movementY < 0) {
+        top = rect.top + rect.height - snapHeight;
+      }
 
-    const axis = this.resizingCell.axis;
-    const movementX = axis !== 'y' ? event.clientX - this.originalMouseX : 0;
-    const movementY = axis !== 'x' ? event.clientY - this.originalMouseY : 0;
-    const originalRect = this.resizingCell.cellRect;
-    const newWidth = originalRect.width + Math.abs(movementX);
-    const snapWidth = Math.max(originalRect.width, Math.round(newWidth / originalRect.width) * originalRect.width);
-    const newHeight = originalRect.height + Math.abs(movementY);
-    const snapHeight = Math.max(originalRect.height, Math.round(newHeight / originalRect.height) * originalRect.height);
-    let left = originalRect.left;
-    let top = originalRect.top;
-    if (movementX < 0) {
-      left = originalRect.left + originalRect.width - snapWidth;
+      // Resize the shadow element
+      rectElement.style.top = top + 'px';
+      rectElement.style.left = left + 'px';
+      rectElement.style.width = snapWidth + 'px';
+      rectElement.style.height = snapHeight + 'px';
     }
-    if (movementY < 0) {
-      top = originalRect.top + originalRect.height - snapHeight;
-    }
-
-    // Resize the shadow element
-    shadowElement.style.left = left + 'px';
-    shadowElement.style.width = snapWidth + 'px';
-    shadowElement.style.top = top + 'px';
-    shadowElement.style.height = snapHeight + 'px';
   }
 
   @HostListener('document:mouseup', ['$event'])
   async onMouseUp(event: MouseEvent) {
-    const shadowElement = this.resizingCell?.shadowElement;
-    const originalRect = this.resizingCell?.cellRect;
-    if (shadowElement && originalRect) {
-      event.preventDefault();
-      event.stopPropagation();
-      if (this.resizingCell.validating) return; // Waiting validation end
-      this.resizingCell.validating = true;
-      const movementX = this.resizingCell.axis !== 'y' ? event.clientX - this.originalMouseX : 0;
-      const movementY = this.resizingCell.axis !== 'x' ? event.clientY - this.originalMouseY : 0;
-      const actualRect = shadowElement.getBoundingClientRect();
-      const colspan = (actualRect.width / originalRect.width) * (movementX >= 0 ? 1 : -1);
-      const rowspan = (actualRect.height / originalRect.height) * (movementY >= 0 ? 1 : -1);
-      if (colspan !== 1 || rowspan !== 1) {
-        const event = { colspan, rowspan, columnName: this.resizingCell.columnName, row: this.resizingCell.row };
-        try {
-          const validate = await this.validate(event);
-          if (validate) {
-            console.debug(`Applying colspan=${colspan} rowspan=${rowspan}`);
-            this.onMouseEnd(event);
+    // End of cell selection
+    if (this.cellSelection) {
+      const rectElement = this.cellSelection.divElement;
+      const originalRect = this.cellSelection.cellRect;
+      if (rectElement && originalRect) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (this.cellSelection.validating) return; // Waiting validation end
+
+        this.cellSelection.validating = true;
+        setTimeout(() => {
+          this.cellSelection.resizing = false;
+        }, 100);
+
+        const movementX = this.cellSelection.axis !== 'y' ? event.clientX - this.originalMouseX : 0;
+        const movementY = this.cellSelection.axis !== 'x' ? event.clientY - this.originalMouseY : 0;
+        const actualRect = rectElement.getBoundingClientRect();
+        const colspan = (actualRect.width / originalRect.width) * (movementX >= 0 ? 1 : -1);
+        const rowspan = (actualRect.height / originalRect.height) * (movementY >= 0 ? 1 : -1);
+        if (colspan !== 0 || rowspan !== 0) {
+          this.cellSelection.colspan = colspan;
+          this.cellSelection.rowspan = rowspan;
+          const event = { colspan, rowspan, columnName: this.cellSelection.columnName, row: this.cellSelection.row };
+          try {
+            const validate = await this.validate(event);
+            if (validate) {
+              console.debug(`Applying colspan=${colspan} rowspan=${rowspan}`);
+              this.onMouseEnd(event);
+              return;
+            }
+          } catch (err) {
+            console.error(err);
           }
-        } catch (err) {
-          console.error(err);
         }
       }
-      shadowElement.remove();
+
+      this.clearCellSelection();
     }
-    this.resizingCell = null;
-    this.originalMouseY = null;
-    this.originalMouseX = null;
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.resizeCellSelection(this.cellSelection, 'cell');
+    this.resizeCellSelection(this.cellClipboard, 'clipboard');
+  }
+
+  protected resizeCellSelection(cellSelection: TableCellSelection, name: string) {
+    if (!cellSelection) return;
+    // DEBUG
+    console.debug(`${this.logPrefix}Resizing ${name} selection...`);
+
+    const cellElement = cellSelection.cellElement;
+    const divElement = cellSelection.divElement;
+    const originalRect = cellSelection.cellRect;
+    if (cellElement && divElement && originalRect) {
+      const colspan = cellSelection.colspan;
+      const rowspan = cellSelection.rowspan;
+      const containerElement = this.tableContainerElement;
+      const containerRect = containerElement.getBoundingClientRect();
+      const cellRect = cellElement.getBoundingClientRect();
+
+      const newWidth = cellRect.width * Math.abs(colspan);
+      const newHeight = cellRect.height * Math.abs(rowspan);
+
+      let left = cellRect.left + (containerElement.scrollLeft || 0) - containerRect.left;
+      let top = cellRect.top + (containerElement.scrollTop || 0);
+      if (colspan < 0) {
+        left = cellRect.left + cellRect.width - newWidth;
+      }
+      if (rowspan < 0) {
+        top = cellRect.top + cellRect.height - newHeight;
+      }
+
+      // DEBUG
+      console.debug(`${this.logPrefix}Resizing to top=${top} left=${left} width=${newWidth} height=${newHeight}`);
+
+      // Resize the shadow element
+      divElement.style.top = top + 'px';
+      divElement.style.left = left + 'px';
+      divElement.style.width = newWidth + 'px';
+      divElement.style.height = newHeight + 'px';
+
+      // this.cellSelection.rect = {
+      //   top: cellRect.top + (containerElement.scrollTop || 0),
+      //   left: cellRect.left + (containerElement.scrollLeft || 0) - containerRect.left,
+      //   width: cellRect.width,
+      //   height: cellRect.height,
+      // };
+    }
   }
 
   protected async validate(event: { colspan: number; rowspan: number }): Promise<boolean> {
+    // const confirmed = this.confirmEditCreate();
+    // if (!confirmed) return false;
+
     // TODO display merge/opts menu
-    await sleep(500);
+    //await sleep(100);
+
     return true;
   }
 
   protected onMouseEnd(event: { colspan: number; rowspan: number }) {
     // Vertical copy
-    if (event.colspan !== 0 && event.rowspan === 1) {
-      return this.copyVertically(this.resizingCell.row, this.resizingCell.columnName, event.colspan);
+    if (event.rowspan === 1 && event.colspan > 1 && this.cellSelection.axis === 'x') {
+      return this.copyVertically(this.cellSelection?.row, this.cellSelection.columnName, event.colspan);
     }
 
     return true;
   }
 
-  clickRow(event: Event | undefined, row: TableElement<ActivityMonth>): boolean {
-    if (this.resizingCell || event.defaultPrevented) return; // Skip
+  async clickRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+    this.closeContextMenu();
 
-    if (!this.canEdit) return false;
+    if (event?.defaultPrevented || !this.canEdit) return false; // Skip
+
+    // DEBUG
+    console.debug(`${this.logPrefix}Click on a row [resizing=${this.cellSelection?.resizing || false}]`);
+
+    // If cell selection is resizing: skip
+    if (this.cellSelection?.resizing) return false;
+
     return super.clickRow(event, row);
   }
 
-  cancelOrDelete(event: Event, row: TableElement<ActivityMonth>, opts?: { interactive?: boolean; keepEditing?: boolean; emitEvent?: boolean }) {
+  async cancelOrDelete(
+    event: Event,
+    row: AsyncTableElement<ActivityMonth>,
+    opts?: { interactive?: boolean; keepEditing?: boolean; emitEvent?: boolean }
+  ): Promise<void> {
     event?.preventDefault();
-    this.rowSubscription?.unsubscribe();
-    super.cancelOrDelete(event, row, { ...opts, keepEditing: false });
-    // Listen changes, if still editing (e.g. when cannot cancel)
-    if (row.editing) this.startListenRowFormChanges(row.validator);
-    else {
+    if (row === this.editedRow) this.rowSubscription?.unsubscribe();
+
+    await super.cancelOrDelete(event, row, { ...opts, keepEditing: false });
+
+    // Restart listen changes, if still editing (e.g. cannot cancel)
+    if (row.editing) {
+      // DEBUG
+      console.debug(`${this.logPrefix} Cannot cancel or delete the row!`);
+
+      this.startListenRowFormChanges(row.validator);
+    } else {
       row.validator.markAsPristine();
       // Update view
       if (opts?.emitEvent !== false) this.markForCheck();
@@ -813,15 +990,31 @@ export class CalendarComponent
   }
 
   protected startListenRowFormChanges(form: UntypedFormGroup) {
+    // Stop previous listener
     this.rowSubscription?.unsubscribe();
-    console.debug(this.logPrefix + 'Listening row form...', form);
-    this.rowSubscription = ActivityMonthValidators.startListenChanges(form, this.pmfms, {
-      markForCheck: () => this.markForCheck(),
-      debounceTime: 100,
-    });
-    /*this.rowSubscription = form.valueChanges.subscribe((value) => {
-      this.onPrepareRowForm(form, { listenChanges: false });
-    });*/
+
+    // DEBUG
+    console.debug(this.logPrefix + 'Start listening row form...', form);
+
+    this.rowSubscription = new Subscription();
+    this.rowSubscription.add(
+      ActivityMonthValidators.startListenChanges(form, this.pmfms, {
+        markForCheck: () => this.markForCheck(),
+        debounceTime: 100,
+      })
+    );
+    this.rowSubscription.add(
+      form.valueChanges
+        .pipe(
+          debounceTime(250),
+          filter(() => form.touched)
+        )
+        .subscribe(() => {
+          this.clearCellSelection();
+          this.clearClipboard(null, { clearContext: !!this.cellClipboard });
+          if (form.dirty) this.markAsDirty();
+        })
+    );
     this.rowSubscription.add(() => console.debug(this.logPrefix + 'Stop listening row form...', form));
   }
 
@@ -834,23 +1027,29 @@ export class CalendarComponent
     };
   }
 
-  confirmEditCreate(event?: Event, row?: TableElement<ActivityMonth>): boolean {
+  async confirmEditCreate(event?: Event, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
     row = row || this.editedRow;
-    if (!row || !row.editing) return true; // no row to confirm
+    if (!row || !row.editing) return true; // nothing to confirmed
 
     // If pristine, cancel instead of confirmed
     if (row.validator.pristine && !row.validator.valid) {
-      this.cancelOrDelete(event, row);
+      await this.cancelOrDelete(event, row);
+
+      this.focusColumn = undefined;
+
       return true;
     }
 
     event?.preventDefault();
     event?.stopPropagation();
 
-    return super.confirmEditCreate(event, row);
+    const confirmed = await super.confirmEditCreate(event, row);
+    if (confirmed) this.focusColumn = undefined;
+
+    return confirmed;
   }
 
-  async clear(event?: Event, row?: TableElement<ActivityMonth>) {
+  async clear(event?: Event, row?: AsyncTableElement<ActivityMonth>) {
     row = row || this.editedRow;
     if (!row || event.defaultPrevented) return true; // no row to confirm
 
@@ -879,7 +1078,7 @@ export class CalendarComponent
 
     if (row.validator && row.editing) {
       row.originalData = data;
-      this.cancelOrDelete(event, row, { keepEditing: true });
+      await this.cancelOrDelete(event, row, { keepEditing: true });
     } else {
       row.currentData = data;
     }
@@ -920,6 +1119,11 @@ export class CalendarComponent
     this.setBlockExpanded(blockIndex, false);
   }
 
+  markAsDirty(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    if (this.loading) return; // Skip while loading
+    super.markAsDirty(opts);
+  }
+
   protected setBlockExpanded(blockIndex: number, expanded: boolean) {
     const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return;
@@ -937,17 +1141,39 @@ export class CalendarComponent
     this.focusColumn = key;
   }
 
-  protected copyVertically(sourceRow: TableElement<ActivityMonth>, columnName: string, colspan: number) {
+  protected getColumnPath(key: string): string | undefined {
+    // Get column
+    const dynamicColumn = this.dynamicColumns?.find((c) => c.key === key);
+    const validColumn = !!dynamicColumn || key === 'isActive' || key === 'basePortLocation' || PMFM_ID_REGEXP.test(key);
+    if (!validColumn) return undefined;
+
+    return dynamicColumn?.path || (PMFM_ID_REGEXP.test(key) ? `measurementValues.${key}` : key);
+  }
+
+  protected getI18nColumnName(key: string): string | undefined {
+    if (isNilOrBlank(key)) throw new Error('Missing column key');
+    // Get column
+    const dynamicColumn = this.dynamicColumns?.find((c) => c.key === key);
+    const validColumn = !!dynamicColumn || key === 'isActive' || key === 'basePortLocation' || PMFM_ID_REGEXP.test(key);
+    if (!validColumn) return undefined;
+
+    if (dynamicColumn?.label) return dynamicColumn.label;
+    if (PMFM_ID_REGEXP.test(key)) {
+      const pmfm = this.pmfms?.find((p) => p.id.toString() === key);
+      if (pmfm) return this.getI18nPmfmName(pmfm);
+    }
+
+    return this.translate.instant(this.i18nColumnPrefix + changeCaseToUnderscore(key).toUpperCase());
+  }
+
+  protected async copyVertically(sourceRow: AsyncTableElement<ActivityMonth>, columnName: string, colspan: number) {
     if (!sourceRow || !columnName || colspan === 0 || !this.enabled) return false;
 
     console.debug(this.logPrefix + `Copying vertically ${columnName} - colspan=${colspan}`);
 
-    // Get column
-    const dynamicColumns = this.dynamicColumns?.find((c) => c.key === columnName);
-    const validColumn = !!dynamicColumns || columnName === 'isActive' || columnName === 'basePortLocation' || PMFM_ID_REGEXP.test(columnName);
-    if (!validColumn) return false;
-
-    const path = dynamicColumns?.path || (PMFM_ID_REGEXP.test(columnName) ? `measurementValues.${columnName}` : columnName);
+    // Get column path
+    const path = this.getColumnPath(columnName);
+    if (isNilOrBlank(path)) return false;
 
     // Get target rows
     const minRowId = colspan > 0 ? sourceRow.id + 1 : sourceRow.id + colspan + 1;
@@ -959,7 +1185,7 @@ export class CalendarComponent
     if (this.debug) console.debug(this.logPrefix + `Copying vertically ${columnName} to ${targetRows.length} months ...`, targetRows);
 
     // Get source value (after confirmed if row is editing)
-    this.confirmEditCreate(); // Row can be NOT confirmed, but it's OK
+    await this.confirmEditCreate(); // Row can be NOT confirmed, but it's OK
     const sourceValue = getPropertyByPath(sourceRow.currentData, path);
 
     let dirty = false;
@@ -998,8 +1224,255 @@ export class CalendarComponent
     return dirty;
   }
 
-  markAsDirty(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    if (this.loading) return; // Skip while loading
-    super.markAsDirty(opts);
+  protected async copy(event?: Event) {
+    //if (event?.defaultPrevented) return;
+    //event?.stopPropagation();
+
+    console.debug(`${this.logPrefix}Copy event`, event);
+
+    if (this.cellSelection && (this.cellSelection?.colspan !== 0 || this.cellSelection?.rowspan !== 0)) {
+      // Copy to clipboard
+      await this.copyCellSelectionToClipboard(this.cellSelection);
+
+      this.clearCellSelection();
+
+      this.markForCheck();
+    } else {
+      this.copyCellToClipboard(this.editedRow, this.focusColumn);
+    }
+  }
+
+  protected async copyCellSelectionToClipboard(cellSelection?: TableCellSelection): Promise<boolean> {
+    cellSelection = cellSelection || this.cellSelection;
+    if (!cellSelection) return false; // Nothing to copy
+
+    const { row, columnName, rowspan, colspan } = cellSelection;
+    if (!row || !columnName) return false; // Missing row or columnName
+
+    console.debug(`${this.logPrefix}Copy cell selection to clipboard`);
+
+    // Find selected months
+    const startRowIndex = colspan >= 0 ? row.id : row.id + colspan + 1;
+    const endRowIndex = colspan >= 0 ? startRowIndex + colspan : row.id + 1;
+    const sourceMonths = this.dataSource
+      .getRows()
+      .slice(startRowIndex, endRowIndex)
+      .map((row) => row.currentData);
+
+    // Find selected paths
+    const focusColumnIndex = this.displayedColumns.findIndex((columnName) => columnName === cellSelection.columnName);
+    const startColumnIndex = rowspan > 0 ? focusColumnIndex : focusColumnIndex + rowspan;
+    const endColumnIndex = rowspan > 0 ? startColumnIndex + rowspan : focusColumnIndex + 1;
+    const sourcePaths = this.displayedColumns
+      .slice(startColumnIndex, endColumnIndex)
+      .map((columnName) => this.getColumnPath(columnName))
+      .filter(isNotNil);
+
+    // DEBUG
+    console.debug(`${this.logPrefix}Source months:`, sourceMonths);
+    console.debug(`${this.logPrefix}Source paths`, sourcePaths);
+
+    // Clone months, on selected paths
+    const targetMonths = sourceMonths.map((source) => {
+      const form = this.validatorService.getFormGroup();
+      form.enable();
+      sourcePaths.forEach((path) => {
+        const sourceValue = getPropertyByPath(source, path);
+        const control = this.findOrCreateControl(form, path);
+        control.setValue(sourceValue, { emitEvent: false });
+      });
+      return form.value;
+    });
+    console.debug(`${this.logPrefix}Target months:`, targetMonths);
+
+    this.context.clipboard = {
+      data: {
+        months: targetMonths,
+        paths: sourcePaths,
+      },
+    };
+
+    const rectElement = this.cellClipboardDiv.nativeElement;
+    rectElement.style.top = cellSelection.divElement.style.top;
+    rectElement.style.left = cellSelection.divElement.style.left;
+    rectElement.style.width = cellSelection.divElement.style.width;
+    rectElement.style.height = cellSelection.divElement.style.height;
+
+    this.cellClipboard = {
+      cellElement: cellSelection.cellElement,
+      divElement: rectElement,
+      cellRect: cellSelection.cellRect,
+      row,
+      columnName,
+      rowspan,
+      colspan,
+    };
+    this.markForCheck();
+  }
+
+  protected copyCellToClipboard(sourceRow: AsyncTableElement<ActivityMonth>, columnName: string) {
+    if (!sourceRow || !columnName) return; // Skip
+
+    console.debug(`${this.logPrefix}Copying cell '${columnName}' to clipboard`);
+
+    // Get column path
+    const path = this.getColumnPath(columnName);
+    if (isNilOrBlank(path)) return false;
+
+    const data = sourceRow.currentData;
+
+    const value = getPropertyByPath(data, path);
+    const source = setPropertyByPath({}, path, value);
+    const monthForm = this.validatorService.getRowValidator();
+    monthForm.patchValue(source);
+
+    console.debug(`${this.logPrefix}Copy data to clipboard`, source);
+
+    this.context.clipboard = {
+      data: {
+        months: [monthForm.value],
+        paths: [path],
+      },
+      source: this,
+    };
+  }
+
+  protected findOrCreateControl(form: UntypedFormGroup, path: string) {
+    let control = form.get(path);
+    if (control) return control;
+
+    const pathParts = path.split('.');
+    let i = 0;
+    while (i < pathParts.length) {
+      const property = pathParts[i++];
+      if (control instanceof AppFormArray && /\d/.test(property)) {
+        const index = +property;
+        control.resize(index + 1);
+        control = control.at(index);
+      } else {
+        control = (control || form)?.get(property);
+      }
+    }
+    return control;
+  }
+
+  protected paste(event?: Event) {
+    return this.pasteFromClipboard(event);
+  }
+
+  protected async pasteFromClipboard(event?: Event) {
+    const months = this.context.clipboard?.data?.months;
+    const paths = this.context.clipboard?.data?.paths;
+    if (isEmptyArray(months) || isEmptyArray(paths)) return false; // Empty clipboard
+
+    const targetRow = this.cellSelection?.row || this.editedRow;
+    const targetColumnName = this.cellSelection?.columnName || this.focusColumn;
+    if (!targetRow || isNilOrBlank(targetColumnName)) return false; // Unknown cell target
+
+    const startRowIndex = targetRow.id;
+    const endRowIndex = startRowIndex + months.length;
+
+    // DEBUG
+    console.debug(`${this.logPrefix}Paste ${months.length} month(s) from clipboard... start=${startRowIndex}, end=${endRowIndex}`, paths);
+
+    const confirmed = await this.confirmEditCreate(null, targetRow);
+    if (!confirmed) {
+      await this.cancelOrDelete(null, targetRow);
+    }
+
+    // Check target column is compatible
+    const sourcePath = paths[0];
+    const sourcePathSuffix = lastArrayValue(sourcePath.split('.'));
+    const targetPathSuffix = lastArrayValue(this.getColumnPath(targetColumnName)?.split('.'));
+    if (sourcePathSuffix !== targetPathSuffix) {
+      Toasts.show(this.toastController, this.translate, {
+        type: 'error',
+        message: 'ACTIVITY_CALENDAR.ERROR.CANNOT_PASTE_HERE',
+      });
+      return;
+    }
+
+    const targetRows = this.dataSource.getRows().slice(startRowIndex, endRowIndex);
+    for (let i = 0; i < targetRows.length; i++) {
+      const source = months[i];
+      const row = targetRows[i];
+      const form = this.validatorService.getFormGroup(row.currentData);
+      this.onPrepareRowForm(form, { listenChanges: false });
+      const isActiveControl = form.get('isActive');
+      let isActive = toNumber(source.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
+      paths.forEach((path) => {
+        const sourceValue = getPropertyByPath(source, path);
+        isActive = isActive || (isNotNil(sourceValue) && path !== 'isActive' && path !== 'basePortLocation');
+        if (isActive) {
+          // TODO enable
+          isActiveControl.enable({ emitEvent: false });
+          isActiveControl.setValue(VesselUseFeaturesIsActiveEnum.ACTIVE, { emitEvent: false });
+          this.onPrepareRowForm(form, { listenChanges: false });
+        }
+        const control = this.findOrCreateControl(form, path);
+        control.enable({ emitEvent: false });
+        control.setValue(sourceValue);
+      });
+      //await AppFormUtils.waitWhilePending(form);
+      await this.updateEntityToTable(form.value, row, { confirmEdit: true });
+    }
+
+    // DEBUG
+    console.debug(`${this.logPrefix}Paste clipboard [OK]`);
+
+    this.markAsDirty({ emitEvent: false });
+    this.markForCheck();
+  }
+
+  protected clearCellSelection() {
+    this.cellSelection = null;
+    this.originalMouseY = null;
+    this.originalMouseX = null;
+  }
+
+  protected clearClipboard(event?: Event, opts?: { clearContext?: boolean }) {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    this.cellClipboard = null;
+    if (opts?.clearContext !== false) {
+      this.context.clipboard = null;
+    }
+    this.markForCheck();
+  }
+
+  protected async onContextMenu(
+    event: MouseEvent,
+    cell?: HTMLElement | HTMLTableCellElement,
+    row?: AsyncTableElement<ActivityMonth>,
+    columnName?: string
+  ) {
+    row = row || this.dataSource?.getSingleEditingRow();
+    columnName = columnName || this.focusColumn;
+    if (!row || !columnName) {
+      event.preventDefault();
+      return; // Skip
+    }
+
+    event.preventDefault();
+
+    // Select current cell
+    if (this.cellSelection?.row !== row || this.cellSelection?.columnName !== columnName) {
+      this.clearCellSelection();
+      await this.onMouseDown(event, cell as HTMLTableCellElement, row, columnName);
+      await this.onMouseUp(event);
+    }
+
+    this.menuTrigger.openMenu();
+    const contextMenu = document.querySelector('.context-menu') as HTMLElement;
+    contextMenu.style.position = 'fixed';
+    contextMenu.style.left = `${event.clientX}px`;
+    contextMenu.style.top = `${event.clientY}px`;
+  }
+
+  protected closeContextMenu() {
+    if (this.menuTrigger.menuOpened) {
+      this.menuTrigger.closeMenu();
+    }
   }
 }
