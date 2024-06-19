@@ -19,6 +19,7 @@ import {
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
@@ -157,6 +158,9 @@ export class ActivityCalendarPage
   @Input() showPictures = true;
   @Input() showOptionsMenu = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
+  @Input() yearHistory: number = 3;
+  @Input() autoNameImage: boolean = true;
+  @Input() canEdit: boolean = true;
 
   @Input() @RxStateProperty() year: number;
   @Input() @RxStateProperty() vesselCountryId: number;
@@ -175,7 +179,7 @@ export class ActivityCalendarPage
   @ViewChild('registrationHistoryTable', { static: true }) registrationHistoryTable: VesselRegistrationHistoryComponent;
   @ViewChild('ownerHistoryTable', { static: true }) ownerHistoryTable: VesselOwnerHistoryComponent;
   @ViewChild('galleryHistory', { static: true }) galleryHistory: AppImageAttachmentGallery;
-  @ViewChild('gallery', { static: true }) gallery: AppImageAttachmentGallery;
+  @ViewChild('gallery', { static: false }) gallery: AppImageAttachmentGallery;
 
   constructor(
     injector: Injector,
@@ -198,7 +202,6 @@ export class ActivityCalendarPage
       autoOpenNextTab: false,
     });
     this.defaultBackHref = '/activity-calendar';
-
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
   }
@@ -689,7 +692,13 @@ export class ActivityCalendarPage
     if (isNotEmptyArray(metierGearUseFeatures)) value.gearUseFeatures = [...value.gearUseFeatures, ...metierGearUseFeatures];
 
     // Photos
-    value.images = this.gallery.value;
+    if (this.canEdit) value.images = this.gallery.value;
+
+    if (this.autoNameImage) {
+      value.images.map((img) => {
+        if (isNil(img.comments)) img.comments = value.year.toString();
+      });
+    }
 
     return value;
   }
@@ -801,15 +810,30 @@ export class ActivityCalendarPage
   }
 
   protected async loadPictures(data: ActivityCalendar) {
-    const firstLoad = !this.gallery.loaded;
+    //Filter
+    const filter: Partial<ActivityCalendarFilter> = {
+      vesselId: data.vesselSnapshot.id,
+      program: data.program,
+      startDate: data.startDate.subtract(this.yearHistory, 'years').startOf('year'),
+    };
 
-    if (firstLoad) this.gallery.markAsReady();
+    const imageAttachments = await this.dataService.loadImages(0, 100, null, null, filter);
+    const firstLoadHistory = !this.galleryHistory.loaded;
+    const firstLoadGallery = isNotNil(this.gallery) && !this.gallery.loaded;
+
+    if (firstLoadHistory) this.galleryHistory.markAsReady();
+    if (firstLoadGallery) this.gallery.markAsReady();
 
     // fetch images
-    this.gallery.value = await this.dataService.loadImages(data.id);
-
+    if (this.canEdit) {
+      this.galleryHistory.value = imageAttachments.filter((img) => img.objectId != data.id);
+      this.gallery.value = imageAttachments.filter((img) => img.objectId === data.id);
+    } else {
+      this.galleryHistory.value = imageAttachments;
+    }
     // then add gallery into child form
-    if (firstLoad) this.addForms([this.gallery]);
+    if (firstLoadHistory) this.addForms([this.galleryHistory]);
+    if (firstLoadGallery) this.addForms([this.gallery]);
   }
 
   protected toggleShowPredoc(event?: Event) {
