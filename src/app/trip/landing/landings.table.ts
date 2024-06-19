@@ -107,6 +107,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   @Output() newSale = new EventEmitter<TableElement<Landing>>();
 
   @Input() canDelete = true;
+  @Input() canAdd = true;
   @Input() showFabButton = false;
   @Input() showCancelRowButton = false;
   @Input() showConfirmRowButton = false;

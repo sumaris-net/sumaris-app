@@ -6,7 +6,7 @@
 <mat-toolbar *ngIf="showToolbar" [class.expanded]="filterExpansionPanel.expanded">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
-    <button mat-icon-button *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
+    <button mat-icon-button *ngIf="!mobile && enabled && canAdd" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
 
