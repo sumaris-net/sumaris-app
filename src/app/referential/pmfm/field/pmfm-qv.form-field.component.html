@@ -30,7 +30,6 @@
           #matInput
           type="text"
           [formControl]="formControl"
-          [placeholder]="floatLabel === 'never' && placeholder"
           [matAutocomplete]="autoCombo"
           [appAutofocus]="autofocus"
           (click)="_onClick($event)"
@@ -52,24 +51,24 @@
           <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
         </div>
 
-        @if (formControl.touched && formControl.errors | mapKeys | arrayFirst; as errorKey) {
+        <mat-error *ngIf="formControl.touched && formControl.errors | mapKeys | arrayFirst; let errorKey">
           @switch (errorKey) {
             @case ('required') {
-              <mat-error translate>ERROR.FIELD_REQUIRED</mat-error>
+              <span translate>ERROR.FIELD_REQUIRED</span>
             }
             @case ('entity') {
-              <mat-error translate>ERROR.FIELD_INVALID</mat-error>
+              <span translate>ERROR.FIELD_INVALID</span>
             }
             @case ('msg') {
-              <mat-error>
+              <span>
                 {{ formControl.errors.msg?.key || formControl.errors.msg | translate: formControl.errors.msg?.params }}
-              </mat-error>
+              </span>
             }
             @default {
               <ng-container *ngTemplateOutlet="matErrorTemplate"></ng-container>
             }
           }
-        }
+        </mat-error>
       </mat-form-field>
 
       <!-- combo -->
@@ -101,7 +100,6 @@
         <mat-select
           #matInput
           [required]="required"
-          [placeholder]="floatLabel === 'never' && placeholder"
           [formControl]="formControl"
           (focus)="filterMatSelectFocusEvent($event)"
           (blur)="filterMatSelectBlurEvent($event)"
@@ -153,24 +151,24 @@
           <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
         </div>
 
-        @if (formControl.touched && formControl.errors | mapKeys | arrayFirst; as errorKey) {
+        <mat-error *ngIf="formControl.touched && formControl.errors | mapKeys | arrayFirst; let errorKey">
           @switch (errorKey) {
             @case ('required') {
-              <mat-error translate>ERROR.FIELD_REQUIRED</mat-error>
+              <span translate>ERROR.FIELD_REQUIRED</span>
             }
             @case ('entity') {
-              <mat-error translate>ERROR.FIELD_INVALID</mat-error>
+              <span translate>ERROR.FIELD_INVALID</span>
             }
             @case ('msg') {
-              <mat-error>
+              <span>
                 {{ formControl.errors.msg?.key || formControl.errors.msg | translate: formControl.errors.msg?.params }}
-              </mat-error>
+              </span>
             }
             @default {
               <ng-container *ngTemplateOutlet="matErrorTemplate"></ng-container>
             }
           }
-        }
+        </mat-error>
       </mat-form-field>
     }
 
@@ -222,24 +220,24 @@
           <ion-icon [name]="(showAllButtons && 'chevron-up-outline') || 'chevron-down-outline'"></ion-icon>
         </ion-fab-button>
 
-        @if (formControl.touched && formControl.errors | mapKeys | arrayFirst; as errorKey) {
+        <mat-error *ngIf="formControl.touched && formControl.errors | mapKeys | arrayFirst; let errorKey">
           @switch (errorKey) {
             @case ('required') {
-              <mat-error translate>ERROR.FIELD_REQUIRED</mat-error>
+              <span translate>ERROR.FIELD_REQUIRED</span>
             }
             @case ('entity') {
-              <mat-error translate>ERROR.FIELD_INVALID</mat-error>
+              <span translate>ERROR.FIELD_INVALID</span>
             }
             @case ('msg') {
-              <mat-error>
+              <span>
                 {{ formControl.errors.msg?.key || formControl.errors.msg | translate: formControl.errors.msg?.params }}
-              </mat-error>
+              </span>
             }
             @default {
               <ng-container *ngTemplateOutlet="matErrorTemplate"></ng-container>
             }
           }
-        }
+        </mat-error>
       </mat-form-field>
     }
   }
