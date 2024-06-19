@@ -73,7 +73,6 @@ import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragme
 import { OverlayEventDetail } from '@ionic/core';
 import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
-import { query } from '@angular/animations';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -241,7 +240,7 @@ const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; lo
   `,
 
   loadImages: gql`
-    query ActivityCalendars(
+    query ActivityCalendarImages(
       $offset: Int
       $size: Int
       $sortBy: String

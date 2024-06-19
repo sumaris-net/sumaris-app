@@ -14,7 +14,6 @@ import {
 import { ActivityCalendar } from './model/activity-calendar.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-service.class';
-import { Moment } from 'moment';
 
 @EntityClass({ typename: 'ActivityCalendarFilterVO' })
 export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalendarFilter, ActivityCalendar> {
@@ -22,7 +21,6 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
 
   year: number = null;
 
-  startDate?: Moment = null;
   vesselId: number = null;
   vesselIds: number[] = null;
   vesselSnapshot: VesselSnapshot = null;
@@ -47,11 +45,13 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.includedIds = source.includedIds;
     this.excludedIds = source.excludedIds;
     this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
     target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
     if (opts && opts.minify) {
       // Vessel
       target.vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;

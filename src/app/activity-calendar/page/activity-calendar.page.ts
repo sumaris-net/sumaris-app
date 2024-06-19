@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ActivityCalendarForm } from '../form/activity-calendar.form';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
@@ -819,7 +819,7 @@ export class ActivityCalendarPage
 
     const imageAttachments = await this.dataService.loadImages(0, 100, null, null, filter);
     const firstLoadHistory = !this.galleryHistory.loaded;
-    const firstLoadGallery = isNotNil(this.gallery) ? !this.gallery.loaded : false;
+    const firstLoadGallery = isNotNil(this.gallery) && !this.gallery.loaded;
 
     if (firstLoadHistory) this.galleryHistory.markAsReady();
     if (firstLoadGallery) this.gallery.markAsReady();
