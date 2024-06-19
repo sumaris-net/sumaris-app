@@ -630,12 +630,12 @@ export class ActivityCalendarPage
     this.tableMetier.value = this.getMetierValue(activityMonths, data.gearUseFeatures);
 
     // Load pictures
-    if (this.showPictures) {
+    if (this.showPictures && !isNewData) {
       this.loadPictures(data);
     }
 
     // Load predoc
-    if (this._predocPanelVisible) {
+    if (this._predocPanelVisible && !isNewData) {
       this.loadPredoc(data);
     }
   }
