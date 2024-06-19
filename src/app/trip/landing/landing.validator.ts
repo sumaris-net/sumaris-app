@@ -49,6 +49,12 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
         saleTypePmfm.type = 'qualitative_value';
       }
 
+      // Override TAXON_GROUP_ID type to 'qualitative_value'
+      const taxonGroupIdPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
+      if (taxonGroupIdPmfm) {
+        taxonGroupIdPmfm.type = 'qualitative_value';
+      }
+
       pmfms
         .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.LANDING)
         .forEach((p) => {

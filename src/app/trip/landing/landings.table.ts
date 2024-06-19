@@ -65,7 +65,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   readonly pmfmIdsMap = PmfmIds;
 
   /** Offset to apply to SPECIES_LIST_ORIGIN.RANDOM landings (sale editor). */
-  readonly randomLandingsRankOrderOffset = 100;
+  static readonly RANDOM_LANDINGS_RANK_ORDER_OFFSET = 100;
+  readonly randomLandingsRankOrderOffset = LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET;
 
   private _parentDateTime: Moment;
   private _parentObservers: Person[];
@@ -380,6 +381,15 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       const saleTypes = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });
       saleTypePmfm.type = 'qualitative_value';
       saleTypePmfm.qualitativeValues = saleTypes.data;
+    }
+
+    const taxonGroupIdPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
+
+    if (taxonGroupIdPmfm) {
+      console.debug(`[control] Setting pmfm ${taxonGroupIdPmfm.label} qualitative values`);
+      const taxonGroups = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'TaxonGroup' }, { withTotal: false });
+      taxonGroupIdPmfm.type = 'qualitative_value';
+      taxonGroupIdPmfm.qualitativeValues = taxonGroups.data;
     }
 
     // Keep selectivity device, if any
