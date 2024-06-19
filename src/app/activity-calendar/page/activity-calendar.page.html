@@ -303,7 +303,7 @@
         </as-split-area>
 
         <!-- Predoc -->
-        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible">
+        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible" [style.z-index]="110">
           <app-calendar
             #predocCalendar
             [title]="'ACTIVITY_CALENDAR.EDIT.PREDOC_TITLE'"
@@ -406,8 +406,6 @@
     @if (!_predocPanelVisible && selectedTabIndex === 2) {
       <ng-container *ngTemplateOutlet="togglePredocButton; context: { label: 'ACTIVITY_CALENDAR.EDIT.BTN_SHOW_PREDOC' }"></ng-container>
     }
-
-    <ion-label>hasClipboard? {{ hasClipboard$ | async }}</ion-label>
 
     <!-- error -->
     <ion-item *ngIf="error" lines="none">

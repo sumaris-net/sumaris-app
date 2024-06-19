@@ -1,6 +1,14 @@
 import { Injectable } from '@angular/core';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
+import {
+  AbstractControlOptions,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import {
   AppFormArray,
@@ -10,6 +18,7 @@ import {
   isNotNil,
   LocalSettingsService,
   ReferentialUtils,
+  SharedAsyncValidators,
   SharedFormArrayValidators,
   SharedFormGroupValidators,
   toBoolean,
@@ -31,8 +40,7 @@ import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.mo
 import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
-import { Subject, Subscription, tap } from 'rxjs';
-import { debounceTime, map, startWith } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 import { FORM_VALIDATOR_OPTIONS_PROPERTY } from '@app/shared/service/base.validator.service';
 
 export interface ActivityMonthValidatorOptions extends GearUseFeaturesValidatorOptions {
@@ -257,52 +265,25 @@ export class ActivityMonthValidatorService<
 }
 
 export class ActivityMonthValidators {
-  static startListenChanges(form: UntypedFormGroup, pmfms: IPmfm[], opts?: { markForCheck: () => void; debounceTime?: number }): Subscription {
+  static startListenChanges(
+    form: UntypedFormGroup,
+    pmfms: IPmfm[],
+    opts?: { markForCheck?: () => void; debounceTime?: number; debug?: boolean }
+  ): Subscription {
     if (!form) {
       console.warn("Argument 'form' required");
       return null;
     }
+    return SharedAsyncValidators.registerAsyncValidator(form, ActivityMonthValidators.validator(form[FORM_VALIDATOR_OPTIONS_PROPERTY]), opts);
+  }
 
-    const $errors = new Subject<ValidationErrors | null>();
-    form.setAsyncValidators((control) => $errors);
-
-    let computing = false;
-    const subscription = form.valueChanges
-      .pipe(
-        startWith<any, any>(form.value),
-        debounceTime(toNumber(opts?.debounceTime, 0)),
-
-        // Protected against loop
-        //filter(() => !computing),
-        tap(() => (computing = true)),
-
-        map(() =>
-          form.touched
-            ? ActivityMonthValidators.computeAndValidate(form, {
-                ...form[FORM_VALIDATOR_OPTIONS_PROPERTY],
-                ...opts,
-                emitEvent: false,
-                onlySelf: false,
-              })
-            : undefined
-        ),
-        tap((errors) => {
-          computing = false;
-          $errors.next(errors);
-          if (opts?.markForCheck) opts.markForCheck();
-        })
-      )
-      .subscribe();
-
-    // When unsubscribe, remove async validator
-    subscription.add(() => {
-      $errors.next(null);
-      $errors.complete();
-      form.clearAsyncValidators();
-      if (opts?.markForCheck) opts.markForCheck();
-    });
-
-    return subscription;
+  static validator(opts?: ActivityMonthValidatorOptions): ValidatorFn {
+    return (form) =>
+      ActivityMonthValidators.computeAndValidate(form as UntypedFormGroup, {
+        ...opts,
+        emitEvent: false,
+        onlySelf: false,
+      });
   }
 
   static computeAndValidate(
@@ -313,7 +294,7 @@ export class ActivityMonthValidators {
     }
   ): ValidationErrors | null {
     const now = Date.now();
-    console.debug('[activity-month-validator] Starting computation and validation...');
+    console.debug(`[activity-month-validator] Computing...`);
 
     let errors: any;
 
@@ -386,12 +367,12 @@ export class ActivityMonthValidators {
       }
     }
 
-    if (dirty) {
-      form.markAsDirty();
+    if (dirty && !form.dirty) {
+      form.markAsDirty(opts);
     }
 
     // DEBUG
-    console.debug(`[activity-month-validator] Computation and validation finished in ${Date.now() - now}ms`);
+    console.debug(`[activity-month-validator] Computing finished [OK] in ${Date.now() - now}ms`);
 
     return errors;
   }

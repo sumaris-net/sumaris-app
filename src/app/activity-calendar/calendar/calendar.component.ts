@@ -449,7 +449,7 @@ export class CalendarComponent
           )
           .subscribe((container: HTMLElement) => {
             // DEBUG
-            console.debug(`${this.logPrefix} scrollTop: ${container.scrollTop} scrollLeft: ${container.scrollLeft}`);
+            //console.debug(`${this.logPrefix} scrollTop: ${container.scrollTop} scrollLeft: ${container.scrollLeft}`);
 
             {
               const rectElement = this.cellSelectionDiv.nativeElement;
@@ -829,9 +829,6 @@ export class CalendarComponent
     // If cell selection is resizing: skip
     if (this.cellSelection?.resizing) return false;
 
-    // Reset cell selection
-    //if (this.cellSelection) this.clearCellSelection();
-
     return super.clickRow(event, row);
   }
 
@@ -993,11 +990,11 @@ export class CalendarComponent
   }
 
   protected startListenRowFormChanges(form: UntypedFormGroup) {
-    // DEBUG
-    console.debug(this.logPrefix + 'Start listening row form...', form);
-
     // Stop previous listener
     this.rowSubscription?.unsubscribe();
+
+    // DEBUG
+    console.debug(this.logPrefix + 'Start listening row form...', form);
 
     this.rowSubscription = new Subscription();
     this.rowSubscription.add(
