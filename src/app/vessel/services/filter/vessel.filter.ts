@@ -190,10 +190,14 @@ export class VesselOwnerPeriodFilter extends EntityFilter<VesselOwnerPeriodFilte
   static fromObject: (source: any, opts?: any) => VesselOwnerPeriodFilter;
 
   vesselId: number;
+  startDate: Moment;
+  endDate: Moment;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.vesselId = source.vesselId;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
   }
 
   protected buildFilter(): FilterFn<VesselOwnerPeriod>[] {
@@ -203,6 +207,21 @@ export class VesselOwnerPeriodFilter extends EntityFilter<VesselOwnerPeriodFilte
       filterFns.push((e) => e.vesselId === vesselId);
     }
 
+    // StartDate Filter
+    if (isNotNil(this.startDate)) {
+      const filterStartDate = this.startDate;
+      filterFns.push((e) => {
+        return e.startDate && filterStartDate.isSameOrBefore(e.startDate, 'day');
+      });
+    }
+
+    // EndDate Filter
+    if (isNotNil(this.endDate)) {
+      const filterEndDate = this.endDate;
+      filterFns.push((e) => {
+        return e.endDate && filterEndDate.isSameOrAfter(e.endDate, 'day');
+      });
+    }
     return filterFns;
   }
 }

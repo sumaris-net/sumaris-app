@@ -79,6 +79,9 @@ import { ActivityCalendarContextService } from '../activity-calendar-context.ser
 import { MatMenuTrigger } from '@angular/material/menu';
 import { BaseMeasurementsTable2 } from '@app/data/measurement/measurements-table2.class';
 import { AsyncTableElement } from '@e-is/ngx-material-table';
+import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
+import { VesselOwnerPeriod } from '@app/vessel/services/model/vessel-owner-period.model';
+import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -146,7 +149,7 @@ export interface ColumnDefinition {
 export interface CalendarComponentState extends BaseMeasurementsTableState {
   metierLevelId: number;
   vesselSnapshots: VesselSnapshot[];
-  vesselOwners: VesselOwner[];
+  vesselOwners: VesselOwnerPeriod[];
   dynamicColumns: ColumnDefinition[];
   metierCount: number;
   validRowCount: number;
@@ -204,7 +207,7 @@ export class CalendarComponent
   protected referentialRefService = inject(ReferentialRefService);
 
   @RxStateSelect() protected vesselSnapshots$: Observable<VesselSnapshot[]>;
-  @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[]>;
+  @RxStateSelect() protected vesselOwners$: Observable<VesselOwnerPeriod[]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() validRowCount$: Observable<number>;
@@ -221,7 +224,7 @@ export class CalendarComponent
   protected editedRowFocusedElement: HTMLElement;
 
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
-  @RxStateProperty() vesselOwners: VesselOwner[];
+  @RxStateProperty() vesselOwners: VesselOwnerPeriod[];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
   @RxStateProperty() metierCount: number;
   @RxStateProperty() validRowCount: number;
@@ -325,7 +328,9 @@ export class CalendarComponent
 
   constructor(
     injector: Injector,
-    protected context: ActivityCalendarContextService
+    protected context: ActivityCalendarContextService,
+    private vesselOwnerPeriodService: VesselOwnerPeridodService,
+    private element: ElementRef
   ) {
     super(
       injector,
@@ -561,6 +566,15 @@ export class CalendarComponent
             await this.loadVessels(vesselId, year);
           }
         }
+
+        // load vesselOwner
+        if (isNotEmptyArray(data)) {
+          const year = data[0]?.startDate.year();
+          const vesselId = data[0].vesselId;
+          if (isNotNil(vesselId)) {
+            await this.loadVesselOwner(vesselId, year);
+          }
+        }
         break;
       }
       // Accordion
@@ -609,6 +623,20 @@ export class CalendarComponent
         return this._children?.flatMap((child) => child.value) || <ActivityMonth[]>[];
       }
     }
+  }
+
+  async loadVesselOwner(vesselId: number, year: number) {
+    const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
+    const endDate = startDate.clone().endOf('year');
+    const filter: Partial<VesselOwnerPeriodFilter> = {
+      vesselId: vesselId,
+      startDate: startDate,
+      endDate: endDate,
+    };
+
+    const vesselOwnerPeriods = await this.vesselOwnerPeriodService.getVesselOwnerPeriodsByFilter(filter);
+    const vesselOwnerPeriodsByMonthCovered = CalendarUtils.vesselOwnerPeriodsByMonthCovered(vesselOwnerPeriods);
+    this.vesselOwners = vesselOwnerPeriodsByMonthCovered;
   }
 
   async loadVessels(vesselId: number, year: number) {

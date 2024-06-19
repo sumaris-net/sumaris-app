@@ -187,7 +187,7 @@
         </mat-header-cell>
         <mat-cell *matCellDef="let row" class="mat-column-reset-background-color">
           <ion-label *rxIf="vesselOwners$; let vesselOwners; suspense: skeletonText80" class="computed">
-            <!--          {{ vesselOwners | mapGet: row.currentData.month | propertyGet: 'vesselOwner' | referentialToString: locationDisplayAttributes }}-->
+            {{ vesselOwners | mapGet: row.currentData.month | propertyGet: 'vesselOwner' | referentialToString: ['lastName', 'firstName'] }}
           </ion-label>
         </mat-cell>
       </ng-container>

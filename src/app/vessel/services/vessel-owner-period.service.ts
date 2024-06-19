@@ -61,5 +61,15 @@ export class VesselOwnerPeridodService
     return isNotNil(total) ? total : (data || []).length;
   }
 
+  async getVesselOwnerPeriodsByFilter(filter: Partial<VesselOwnerPeriodFilter>, opts?: { fetchPolicy?: FetchPolicy }): Promise<VesselOwnerPeriod[]> {
+    try {
+      const { data } = await this.loadAll(0, 100, null, null, filter, opts);
+      return data;
+    } catch (error) {
+      console.error('[Vessel-Owner-Peridod-Service] Error fetching data:', error);
+      throw error;
+    }
+  }
+
   /* -- protected methods -- */
 }
