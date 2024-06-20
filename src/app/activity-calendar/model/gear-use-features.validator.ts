@@ -58,12 +58,11 @@ export class GearUseFeaturesValidatorService<O extends GearUseFeaturesValidatorO
 
     const form = super.getFormGroup(data, opts);
 
-    //todo mf  AcquisitionLevelCodes
     if (opts.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
       const pmfms: IPmfm[] = opts.pmfms || opts.strategy?.denormalizedPmfms || [];
       pmfms
-        .filter((p) => !PmfmUtils.isDenormalizedPmfm(p) || p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES)
+        .filter((p) => !PmfmUtils.isDenormalizedPmfm(p) || p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_USE_FEATURES)
         .forEach((p) => {
           const key = p.id.toString();
           const value = data && data.measurementValues && data.measurementValues[key];
