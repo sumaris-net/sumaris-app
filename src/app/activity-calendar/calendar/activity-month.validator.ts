@@ -244,7 +244,6 @@ export class ActivityMonthValidatorService<
     }
   ) {
     const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
-    console.log('TODO measurementValues.__typename=' + measurementValues.__typename);
     return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
   }
 
@@ -252,7 +251,11 @@ export class ActivityMonthValidatorService<
     opts = super.fillDefaultOptions(opts);
 
     opts.required = toBoolean(opts.required, true);
-    opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY);
+    opts.pmfms =
+      opts.pmfms ||
+      (opts.strategy?.denormalizedPmfms || []).filter(
+        (p) => !PmfmUtils.isDenormalizedPmfm(p) || p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY
+      );
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, isNotEmptyArray(opts.pmfms) || isNotNil(opts.strategy));
     opts.withMeasurementTypename = toBoolean(opts.withMeasurementTypename, opts.withMeasurements);
@@ -265,11 +268,7 @@ export class ActivityMonthValidatorService<
 }
 
 export class ActivityMonthValidators {
-  static startListenChanges(
-    form: UntypedFormGroup,
-    pmfms: IPmfm[],
-    opts?: { markForCheck?: () => void; debounceTime?: number; debug?: boolean }
-  ): Subscription {
+  static startListenChanges(form: UntypedFormGroup, opts?: { markForCheck?: () => void; debounceTime?: number; debug?: boolean }): Subscription {
     if (!form) {
       console.warn("Argument 'form' required");
       return null;

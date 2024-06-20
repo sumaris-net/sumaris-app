@@ -87,10 +87,20 @@ const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
     (_, index) =>
       <string[]>[
         `metier${index + 1}`,
-        ...new Array<string>(MAX_FISHING_AREA_COUNT).fill(null).flatMap((_, faIndex) => <string[]>[`metier${index + 1}FishingArea${faIndex + 1}`]),
+        ...new Array<string>(MAX_FISHING_AREA_COUNT)
+          .fill(null)
+          .flatMap(
+            (_, faIndex) =>
+              <string[]>[
+                `metier${index + 1}FishingArea${faIndex + 1}`,
+                `metier${index + 1}FishingArea${faIndex + 1}distanceToCoastGradient`,
+                `metier${index + 1}FishingArea${faIndex + 1}depthGradient`,
+                `metier${index + 1}FishingArea${faIndex + 1}nearbySpecificArea`,
+              ]
+          ),
       ]
   );
-const ACTIVITY_MONTH_START_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
+export const ACTIVITY_MONTH_START_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
 export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
 
 export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
@@ -126,6 +136,7 @@ export interface ColumnDefinition {
   //click?: (event?: UIEvent) => void,
   treeIndent?: string;
   hidden?: boolean;
+  toggle?: (event: Event) => void;
 }
 
 export interface CalendarComponentState extends BaseMeasurementsTableState {
@@ -385,6 +396,36 @@ export class CalendarComponent
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
       attributes: ['label'],
+      mobile: this.mobile,
+    });
+    this.registerAutocompleteField('distanceToCoastGradient', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
+      filter: {
+        entityName: 'DistanceToCoastGradient',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      attributes: ['label', 'name'],
+      mobile: this.mobile,
+    });
+    this.registerAutocompleteField('depthGradient', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
+      filter: {
+        entityName: 'DepthGradient',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      attributes: ['label', 'name'],
+      mobile: this.mobile,
+    });
+    this.registerAutocompleteField('nearbySpecificArea', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
+      filter: {
+        entityName: 'NearbySpecificArea',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      attributes: ['label', 'name'],
       mobile: this.mobile,
     });
 
@@ -857,7 +898,7 @@ export class CalendarComponent
     }
   }
 
-  addMetierBlock(event?: UIEvent, opts?: { emitEvent?: boolean; updateRows?: boolean }) {
+  addMetierBlock(event?: Event, opts?: { emitEvent?: boolean; updateRows?: boolean }) {
     // Skip if reach max
     if (this.metierCount >= this.maxMetierCount) {
       console.warn(this.logPrefix + 'Unable to add metier: max=' + this.maxMetierCount);
@@ -882,21 +923,64 @@ export class CalendarComponent
         key: `metier${rankOrder}`,
         class: 'mat-column-metier',
         expanded: true,
+        toggle: (event) => this.toggleMainBlock(event, `metier${rankOrder}`),
       },
-      ...new Array(newFishingAreaCount).fill(null).map((_, faIndex) => {
+      ...new Array<ColumnDefinition>(newFishingAreaCount).fill(null).flatMap((_, faIndex) => {
         const faRankOrder = faIndex + 1;
-        return {
-          blockIndex: index,
-          index: faIndex,
-          rankOrder: faRankOrder,
-          label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA_RANKED', { rankOrder: faRankOrder }),
-          placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA'),
-          autocomplete: this.autocompleteFields.fishingAreaLocation,
-          path: `${pathPrefix}fishingAreas.${faIndex}.location`,
-          key: `metier${rankOrder}FishingArea${faRankOrder}`,
-          class: 'mat-column-fishingArea',
-          treeIndent: '&nbsp;&nbsp;',
-        };
+        return [
+          {
+            blockIndex: index,
+            index: faIndex,
+            rankOrder: faRankOrder,
+            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA_RANKED', { rankOrder: faRankOrder }),
+            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA'),
+            autocomplete: this.autocompleteFields.fishingAreaLocation,
+            path: `${pathPrefix}fishingAreas.${faIndex}.location`,
+            key: `metier${rankOrder}FishingArea${faRankOrder}`,
+            class: 'mat-column-fishingArea',
+            treeIndent: '&nbsp;&nbsp;',
+          },
+          {
+            blockIndex: index,
+            index: faIndex,
+            rankOrder: faRankOrder,
+            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DISTANCE_TO_COAST_GRADIENT'),
+            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DISTANCE_TO_COAST_GRADIENT'),
+            autocomplete: this.autocompleteFields.distanceToCoastGradient,
+            path: `${pathPrefix}fishingAreas.${faIndex}.distanceToCoastGradient`,
+            key: `metier${rankOrder}FishingArea${faRankOrder}distanceToCoastGradient`,
+            class: 'mat-column-distanceToCoastGradient',
+            treeIndent: '&nbsp;&nbsp',
+            expanded: false,
+            toggle: (event: Event) => this.toggleCoastGradientBlock(event, rankOrder, faRankOrder),
+          },
+          {
+            blockIndex: index,
+            index: faIndex,
+            rankOrder: faRankOrder,
+            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DEPTH_GRADIENT'),
+            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DEPTH_GRADIENT'),
+            autocomplete: this.autocompleteFields.depthGradient,
+            path: `${pathPrefix}fishingAreas.${faIndex}.depthGradient`,
+            key: `metier${rankOrder}FishingArea${faRankOrder}depthGradient`,
+            class: 'mat-column-depthGradient',
+            treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+            hidden: true,
+          },
+          {
+            blockIndex: index,
+            index: faIndex,
+            rankOrder: faRankOrder,
+            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.NEARBY_SPECIFIC_AREA'),
+            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.NEARBY_SPECIFIC_AREA'),
+            autocomplete: this.autocompleteFields.nearbySpecificArea,
+            path: `${pathPrefix}fishingAreas.${faIndex}.nearbySpecificArea`,
+            key: `metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`,
+            class: 'mat-column-nearbySpecificArea',
+            treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+            hidden: true,
+          },
+        ];
       }),
     ];
 
@@ -921,7 +1005,7 @@ export class CalendarComponent
     }
   }
 
-  protected expandAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
+  protected expandAll(event?: Event, opts?: { emitEvent?: boolean }) {
     for (let i = 0; i < this.metierCount; i++) {
       this.expandBlock(null, i);
     }
@@ -1000,7 +1084,7 @@ export class CalendarComponent
 
     this.rowSubscription = new Subscription();
     this.rowSubscription.add(
-      ActivityMonthValidators.startListenChanges(form, this.pmfms, {
+      ActivityMonthValidators.startListenChanges(form, {
         markForCheck: () => this.markForCheck(),
         debounceTime: 100,
       })
@@ -1089,17 +1173,47 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  toggleBlock(event: UIEvent, blockIndex: number) {
+  toggleMainBlock(event: Event, key: string) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
-    const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
+    const blockColumns = this.dynamicColumns.filter((col) => col.key.startsWith(key));
     if (isEmptyArray(blockColumns)) return; // Skip
 
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
-    console.debug(this.logPrefix + 'Toggling block #' + blockIndex);
+    console.debug(this.logPrefix + 'Toggling block #' + key);
+
+    // Toggle expanded
+    masterColumn.expanded = !masterColumn.expanded;
+
+    // Show/Hide sub columns
+    blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
+
+    // Expanded state for all columns to fix divergences states
+    blockColumns.forEach((col) => {
+      if (isNotNil(col.expanded)) {
+        col.expanded = masterColumn.expanded;
+      }
+    });
+  }
+
+  toggleCoastGradientBlock(event: Event, rankOrder: number, faRankOrder: number) {
+    if (event?.defaultPrevented) return; // Skip
+    event?.preventDefault();
+
+    const columnsToggle = [
+      `metier${rankOrder}FishingArea${faRankOrder}distanceToCoastGradient`,
+      `metier${rankOrder}FishingArea${faRankOrder}depthGradient`,
+      `metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`,
+    ];
+
+    const blockColumns = this.dynamicColumns.filter((col) => columnsToggle.some((toggle) => col.key.includes(toggle)));
+    if (isEmptyArray(blockColumns)) return; // Skip
+
+    const masterColumn = blockColumns[0];
+    if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
     // Toggle expanded
     masterColumn.expanded = !masterColumn.expanded;
@@ -1108,14 +1222,14 @@ export class CalendarComponent
     blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
   }
 
-  expandBlock(event: UIEvent, blockIndex: number) {
+  expandBlock(event: Event, blockIndex: number) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
     this.setBlockExpanded(blockIndex, true);
   }
 
-  collapseBlock(event: UIEvent, blockIndex: number) {
+  collapseBlock(event: Event, blockIndex: number) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
