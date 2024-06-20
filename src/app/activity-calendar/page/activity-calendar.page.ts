@@ -13,7 +13,6 @@ import {
   DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
-  Environment,
   equals,
   fadeInOutAnimation,
   firstNotNilPromise,
@@ -76,7 +75,6 @@ import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gall
 import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.table';
 import { ActivityMonth } from '../calendar/activity-month.model';
 import { GearPhysicalFeatures } from '../model/gear-physical-features.model';
-import { TableElement } from '@e-is/ngx-material-table';
 import { environment } from '@environments/environment';
 
 export const ActivityCalendarPageSettingsEnum = {
@@ -213,6 +211,7 @@ export class ActivityCalendarPage
 
   ngOnInit() {
     super.ngOnInit();
+
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
@@ -317,7 +316,6 @@ export class ActivityCalendarPage
 
     this.restorePredocPanelSize();
   }
-
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
@@ -418,9 +416,7 @@ export class ActivityCalendarPage
   }
 
   addMetier(event: UIEvent) {
-    if (this.calendar) {
-      this.calendar.addMetierBlock(event);
-    }
+    this.calendar?.addMetierBlock(event);
   }
 
   async openReport(reportType?: ActivityCalendarReportType) {

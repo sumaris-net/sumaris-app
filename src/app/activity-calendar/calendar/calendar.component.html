@@ -338,7 +338,7 @@
             class="{{ col.class }}"
             [class.collapsed]="col.hidden"
             [class.tappable]="col.expanded !== undefined"
-            (click)="(col.expanded !== undefined || col.hidden) && toggleBlock($event, col.blockIndex)"
+            (click)="(col.expanded !== undefined || col.hidden) && col.toggle($event)"
           >
             <ion-label>
               @if (col.treeIndent) {
@@ -347,7 +347,7 @@
               {{ col.label }}
             </ion-label>
             @if (col.expanded | isNotNil) {
-              <ion-button fill="clear" size="small" shape="round" (click)="toggleBlock($event, col.blockIndex)">
+              <ion-button fill="clear" size="small" shape="round" (click)="col.toggle($event)">
                 <mat-icon slot="icon-only" class="mat-icon-rtl-mirror">{{ col.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
               </ion-button>
             }
@@ -359,7 +359,7 @@
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
             (mouseenter)="col.hidden && cellSelection && expandBlock($event, col.blockIndex)"
-            (click)="col.hidden ? toggleBlock($event, col.blockIndex) : setFocusColumn(col.key)"
+            (click)="col.hidden ? col.toggle($event) : setFocusColumn(col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
           >
             @if (!col.hidden) {
@@ -450,7 +450,7 @@
     }
     @if (y !== false && enabled) {
       <div class="resize-handle-top" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
-      <div class="resize-handle-bottom" (mousedown)="onMouseDown($event, cell, row, col.month, 'y')" (mouseup)="onMouseUp($event)"></div>
+      <div class="resize-handle-bottom" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
     }
     @if (x !== false || y !== false) {
       <div class="resize-handle-corner" (mousedown)="onMouseDown($event, cell, row, col)" (mouseup)="onMouseUp($event)"></div>
