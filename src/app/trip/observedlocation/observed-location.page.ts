@@ -51,7 +51,6 @@ import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/refere
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Strategy } from '@app/referential/services/model/strategy.model';
-import moment from 'moment';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
@@ -84,6 +83,8 @@ export class ObservedLocationPage
     GENERAL: 0,
     LANDINGS: 1,
   };
+
+  private readonly priorityLevelPETS = 1;
 
   private _measurementSubscription: Subscription;
 
@@ -788,29 +789,32 @@ export class ObservedLocationPage
     await super.onEntitySaved(data);
 
     if (this.landingEditor === 'sale' && isNil(this.previousDataId)) {
-      let i = 0;
-      for (const taxonGroupStrategy of this.strategy.taxonGroups) {
-        i++;
+      const taxonGroups = toBoolean(data.measurementValues[PmfmIds.PETS])
+        ? this.strategy.taxonGroups
+        : this.strategy.taxonGroups.filter((tg) => tg.priorityLevel !== this.priorityLevelPETS);
+      for (let i = 1; i < taxonGroups.length; i++) {
+        const taxonGroupStrategy = taxonGroups[i];
+        const isPriorityLevelPETS = taxonGroupStrategy.priorityLevel === this.priorityLevelPETS;
         const landing = new Landing();
         landing.rankOrder = LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET + i;
         landing.vesselSnapshot = new VesselSnapshot();
         landing.vesselSnapshot.id = 5;
         landing.vesselSnapshot.name = `Unknown vessel`;
         landing.program = this.program;
-        landing.dateTime = moment();
-        landing.location = new ReferentialRef();
-        landing.location.id = 1;
-        landing.location.name = `Location 1`;
-        landing.recorderDepartment = new Department();
-        landing.recorderDepartment.id = 1;
-        // Update landings' observed location so it saves correctly
+        landing.dateTime = DateUtils.moment();
+        landing.location = data.location;
+        landing.location.id = data.location.id;
+        landing.location.name = data.location.name;
+        landing.recorderDepartment = data.recorderDepartment;
+        landing.recorderDepartment.id = data.recorderDepartment.id;
         landing.observedLocation = data;
         landing.observedLocationId = data.id;
         landing.measurementValues = {
           [PmfmIds.TAXON_GROUP_ID]: taxonGroupStrategy.taxonGroup.id,
-          [PmfmIds.IS_OBSERVED]: taxonGroupStrategy.priorityLevel === 1,
-          [PmfmIds.SPECIES_LIST_ORIGIN]:
-            taxonGroupStrategy.priorityLevel === 1 ? QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS : QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM,
+          [PmfmIds.IS_OBSERVED]: isPriorityLevelPETS,
+          [PmfmIds.SPECIES_LIST_ORIGIN]: isPriorityLevelPETS
+            ? QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS
+            : QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM,
         };
         await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
       }
