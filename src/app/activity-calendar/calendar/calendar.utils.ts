@@ -18,9 +18,9 @@ export class CalendarUtils {
     );
   }
 
-  static vesselOwnerPeriodsByMonthCovered(VesselOwnerPeriods: VesselOwnerPeriod[]): VesselOwnerPeriod[] {
+  static vesselOwnerPeriodsByMonthCovered(vesselOwnerPeriods: VesselOwnerPeriod[]): VesselOwnerPeriod[] {
     // Calculate the months covered by each period
-    const VesselOwnerPeriodsWithMonths = VesselOwnerPeriods.map((period) => {
+    const vesselOwnerPeriodsWithMonths = vesselOwnerPeriods.map((period) => {
       const coveredMonths: number[] = [];
       const currentMonth = period.startDate.clone().startOf('month');
 
@@ -37,15 +37,15 @@ export class CalendarUtils {
     });
 
     // Sort the periods based on the first covered month
-    VesselOwnerPeriodsWithMonths.sort((a, b) => a.months[0] - b.months[0]);
+    vesselOwnerPeriodsWithMonths.sort((a, b) => a.months[0] - b.months[0]);
 
     // Remap the sorted objects to an array of periods
-    const VesselOwnerPeriodSortWithMotnh = VesselOwnerPeriodsWithMonths.map((item) => item.period);
+    const vesselOwnerPeriodSortWithMotnh = vesselOwnerPeriodsWithMonths.map((item) => item.period);
 
     const reindexedPeriods: (VesselOwnerPeriod | null)[] = new Array(12).fill(null);
 
     // Reindex the periods taking into account the covered months
-    VesselOwnerPeriodSortWithMotnh.forEach((period) => {
+    vesselOwnerPeriodSortWithMotnh.forEach((period) => {
       const currentMonth = period.startDate.clone().startOf('month');
 
       // Iterate through all the months until the end of the period
