@@ -636,6 +636,8 @@ export class CalendarComponent
     event.preventDefault();
     event.stopPropagation();
 
+    this.closeContextMenu();
+
     // DEBUG
     console.debug(`${this.logPrefix}Start cell selection... [confirm edited row}`);
 
