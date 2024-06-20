@@ -376,7 +376,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
 
     const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
-
     if (saleTypePmfm) {
       console.debug(`[control] Setting pmfm ${saleTypePmfm.label} qualitative values`);
       const saleTypes = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });
@@ -385,12 +384,14 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     }
 
     const taxonGroupIdPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
-
     if (taxonGroupIdPmfm) {
       console.debug(`[control] Setting pmfm ${taxonGroupIdPmfm.label} qualitative values`);
-      const taxonGroups = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'TaxonGroup' }, { withTotal: false });
+      const taxonGroups = await this.referentialRefService.loadAllByIds(
+        this.context.strategy.taxonGroups.map((tg) => tg.taxonGroup.id),
+        'TaxonGroup'
+      );
       taxonGroupIdPmfm.type = 'qualitative_value';
-      taxonGroupIdPmfm.qualitativeValues = taxonGroups.data;
+      taxonGroupIdPmfm.qualitativeValues = taxonGroups;
     }
 
     // Keep selectivity device, if any
