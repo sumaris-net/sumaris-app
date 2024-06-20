@@ -40,12 +40,12 @@ export class CalendarUtils {
     vesselOwnerPeriodsWithMonths.sort((a, b) => a.months[0] - b.months[0]);
 
     // Remap the sorted objects to an array of periods
-    const vesselOwnerPeriodSortWithMotnh = vesselOwnerPeriodsWithMonths.map((item) => item.period);
+    const vesselOwnerPeriodSortWithMonth = vesselOwnerPeriodsWithMonths.map((item) => item.period);
 
     const reindexedPeriods: (VesselOwnerPeriod | null)[] = new Array(12).fill(null);
 
     // Reindex the periods taking into account the covered months
-    vesselOwnerPeriodSortWithMotnh.forEach((period) => {
+    vesselOwnerPeriodSortWithMonth.forEach((period) => {
       const currentMonth = period.startDate.clone().startOf('month');
 
       // Iterate through all the months until the end of the period
