@@ -87,6 +87,7 @@ export class ActivityMonthValidatorService<
     if (opts.withMetier) {
       const gufArray = this.getGearUseFeaturesArray(data?.gearUseFeatures, {
         ...opts,
+        pmfms: [],
         required: data?.isActive === VesselUseFeaturesIsActiveEnum.ACTIVE,
         withMetier: true,
         withGear: false,
