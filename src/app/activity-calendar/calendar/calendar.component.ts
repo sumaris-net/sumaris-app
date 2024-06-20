@@ -486,8 +486,8 @@ export class CalendarComponent
       );
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'delete', description: 'COMMON.BTN_CLEAR_SELECTION', preventDefault: true })
-          .subscribe(() => this.clearCellSelection())
+          .addShortcut({ keys: 'delete', description: 'COMMON.BTN_CLEAR_CLIPBOARD', preventDefault: true })
+          .subscribe(() => this.deleteCellSelection())
       );
 
       this.registerSubscription(fromEvent(element, 'scroll').subscribe(() => this.onResize()));
@@ -1500,6 +1500,51 @@ export class CalendarComponent
     //console.debug(`${this.logPrefix} Selected paths`, paths);
 
     return { rows, paths };
+  }
+
+  protected async deleteCellSelection(cellSelection?: TableCellSelection): Promise<boolean> {
+    cellSelection = cellSelection || this.cellSelection;
+    if (!cellSelection) return false;
+
+    const { row, columnName, rowspan, colspan } = cellSelection;
+    if (!row || !columnName) return false;
+
+    console.debug(`${this.logPrefix}Suppression de la sélection des cellules`);
+
+    const startRowIndex = colspan >= 0 ? row.id : row.id + colspan + 1;
+    const endRowIndex = colspan >= 0 ? startRowIndex + colspan : row.id + 1;
+
+    const targetRows = this.dataSource.getRows().slice(startRowIndex, endRowIndex);
+
+    const focusColumnIndex = this.displayedColumns.findIndex((colName) => colName === cellSelection.columnName);
+    const startColumnIndex = rowspan > 0 ? focusColumnIndex : focusColumnIndex + rowspan;
+    const endColumnIndex = rowspan > 0 ? startColumnIndex + rowspan : focusColumnIndex + 1;
+
+    const sourcePaths = this.displayedColumns
+      .slice(startColumnIndex, endColumnIndex)
+      .map((colName) => this.getColumnPath(colName))
+      .filter(isNotNil);
+
+    for (const row of targetRows) {
+      const form = this.validatorService.getFormGroup(row.currentData);
+      form.enable();
+
+      sourcePaths.forEach((path) => {
+        setPropertyByPath(row.currentData, path, null);
+        const control = this.findOrCreateControl(form, path);
+        if (control) {
+          control.setValue(null, { emitEvent: false });
+        }
+      });
+
+      await this.updateEntityToTable(form.value, row, { confirmEdit: true });
+    }
+
+    console.debug(`${this.logPrefix}Les cellules sélectionnées ont été supprimées.`);
+
+    this.markAsDirty({ emitEvent: false });
+    this.markForCheck();
+    return true;
   }
 
   protected copyCellToClipboard(sourceRow: AsyncTableElement<ActivityMonth>, columnName: string) {
