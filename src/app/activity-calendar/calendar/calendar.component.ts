@@ -1083,6 +1083,7 @@ export class CalendarComponent
       await this.cancelOrDelete(event, row, { keepEditing: true });
     } else {
       row.currentData = data;
+      this.onCancelOrDeleteRow.next(row);
     }
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();

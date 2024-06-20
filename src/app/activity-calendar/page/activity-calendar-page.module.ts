@@ -10,8 +10,8 @@ import { AppDataModule } from '@app/data/data.module';
 import { AppCalendarModule } from '@app/activity-calendar/calendar/calendar.module';
 import { AppActivityMapModule } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.module';
 import { AngularSplitModule } from 'angular-split';
-import { AppGearUseFeaturesTableModule } from '../metier/gear-use-features.table.module';
 import { AppVesselModule } from '@app/vessel/vessel.module';
+import { AppGearPhysicalFeaturesTableModule } from '../metier/gear-physical-features.table.module';
 
 @NgModule({
   imports: [
@@ -22,7 +22,7 @@ import { AppVesselModule } from '@app/vessel/vessel.module';
     AppReferentialPipesModule,
     AppPmfmFormFieldModule,
     AppEntityQualityModule,
-    AppGearUseFeaturesTableModule,
+    AppGearPhysicalFeaturesTableModule,
 
     // Sub modules
     AppActivityCalendarFormModule,

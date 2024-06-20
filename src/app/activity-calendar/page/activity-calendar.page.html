@@ -310,6 +310,7 @@
             [strategyId]="(strategy$ | async)?.id"
             [timezone]="timezone"
             [debug]="debug"
+            (onCancelOrDeleteRow)="onCalendarChanges()"
           ></app-calendar>
         </as-split-area>
 
@@ -342,7 +343,7 @@
     </mat-tab>
 
     <!-- TAB: Métiers -->
-    <mat-tab #metierTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_METIER' | translateContext: i18nContext.suffix" [disabled]="!showMap" appSubMenuTab>
+    <mat-tab #metierTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_METIER' | translateContext: i18nContext.suffix" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="settings"></ion-icon></mat-icon>
         <ion-label
@@ -356,7 +357,7 @@
           {{ metierTab.textLabel }}
         </ion-label>
       </ng-template>
-      <app-gear-use-features-table
+      <app-gear-physical-features-table
         #tableMetier
         [programLabel]="programLabel$ | async"
         [requiredStrategy]="requiredStrategy$ | async"
@@ -364,7 +365,9 @@
         [timezone]="timezone"
         [showGearColumn]="false"
         [showMetierColumn]="true"
-      ></app-gear-use-features-table>
+        [canAdd]="false"
+        [canDelete]="false"
+      ></app-gear-physical-features-table>
     </mat-tab>
 
     <!-- TAB: Map -->
