@@ -144,6 +144,9 @@ export const ActivityCalendarFragments = {
       gearUseFeatures {
         ...GearUseFeaturesFragment
       }
+      gearPhysicalFeatures {
+        ...GearPhysicalFeaturesFragment
+      }
     }
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
@@ -152,6 +155,7 @@ export const ActivityCalendarFragments = {
     ${VesselSnapshotFragments.lightVesselSnapshot}
     ${DataFragments.vesselUseFeatures}
     ${DataFragments.gearUseFeatures}
+    ${DataFragments.gearPhysicalFeatures}
     ${DataCommonFragments.metier}
     ${DataFragments.fishingArea}
   `,
@@ -1121,6 +1125,14 @@ export class ActivityCalendarService
             EntityUtils.copyIdAndUpdateDate(savedFishingArea, entity);
           });
         }
+      });
+    }
+
+    // Update GPF
+    if (source.gearPhysicalFeatures && target.gearPhysicalFeatures) {
+      target.gearPhysicalFeatures.forEach((targetGpf) => {
+        const sourceGpf = source.gearPhysicalFeatures.find((f) => targetGpf.equals(f));
+        EntityUtils.copyIdAndUpdateDate(sourceGpf, targetGpf);
       });
     }
   }

@@ -2,7 +2,7 @@ import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.
 import { MeasurementModelValues } from '@app/data/measurement/measurement.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
+import { isNotNil } from '@sumaris-net/ngx-components';
 
 export class GearUseFeaturesTestUtils {
   static EXAMPLES = ['default', 'empty'];
