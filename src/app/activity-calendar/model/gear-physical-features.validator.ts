@@ -11,11 +11,10 @@ import {
 } from '@sumaris-net/ngx-components';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
-import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { ValidatorService } from '@e-is/ngx-material-table';
@@ -42,7 +41,6 @@ export class GearPhysicalFeaturesValidatorService<O extends GearPhysicalFeatures
     formBuilder: UntypedFormBuilder,
     translate: TranslateService,
     settings: LocalSettingsService,
-    protected fishingAreaValidator: FishingAreaValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, translate, settings);
@@ -55,14 +53,14 @@ export class GearPhysicalFeaturesValidatorService<O extends GearPhysicalFeatures
 
     if (opts.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
-      const pmfms = opts.pmfms || opts.strategy?.denormalizedPmfms || [];
-      pmfms
-        .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES)
-        .forEach((p) => {
-          const key = p.id.toString();
-          const value = data && data.measurementValues && data.measurementValues[key];
-          measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
-        });
+      const pmfms =
+        opts.pmfms ||
+        (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES);
+      pmfms.forEach((p) => {
+        const key = p.id.toString();
+        const value = data && data.measurementValues && data.measurementValues[key];
+        measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
+      });
     }
 
     return form;
@@ -150,8 +148,11 @@ export class GearPhysicalFeaturesValidatorService<O extends GearPhysicalFeatures
 
     opts.withMetier = toBoolean(opts.withMetier, true);
     opts.withGear = toBoolean(opts.withGear, false); // Not used in activity calendar
-    //todo mf  AcquisitionLevelCodes
-    opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY);
+    opts.pmfms =
+      opts.pmfms ||
+      (opts.strategy?.denormalizedPmfms || []).filter(
+        (p) => !PmfmUtils.isDenormalizedPmfm(p) || p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES
+      );
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, isNotEmptyArray(opts.pmfms) || isNotNil(opts.strategy));
     opts.withMeasurementTypename = toBoolean(opts.withMeasurementTypename, opts.withMeasurements);

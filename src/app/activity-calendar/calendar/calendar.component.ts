@@ -136,7 +136,7 @@ export interface ColumnDefinition {
   //click?: (event?: UIEvent) => void,
   treeIndent?: string;
   hidden?: boolean;
-  toggle?: (event: UIEvent) => void;
+  toggle?: (event: Event) => void;
 }
 
 export interface CalendarComponentState extends BaseMeasurementsTableState {
@@ -898,7 +898,7 @@ export class CalendarComponent
     }
   }
 
-  addMetierBlock(event?: UIEvent, opts?: { emitEvent?: boolean; updateRows?: boolean }) {
+  addMetierBlock(event?: Event, opts?: { emitEvent?: boolean; updateRows?: boolean }) {
     // Skip if reach max
     if (this.metierCount >= this.maxMetierCount) {
       console.warn(this.logPrefix + 'Unable to add metier: max=' + this.maxMetierCount);
@@ -923,9 +923,9 @@ export class CalendarComponent
         key: `metier${rankOrder}`,
         class: 'mat-column-metier',
         expanded: true,
-        toggle: (event: UIEvent) => this.toggleMainBlock(event, `metier${rankOrder}`),
+        toggle: (event) => this.toggleMainBlock(event, `metier${rankOrder}`),
       },
-      ...new Array(newFishingAreaCount).fill(null).flatMap((_, faIndex) => {
+      ...new Array<ColumnDefinition>(newFishingAreaCount).fill(null).flatMap((_, faIndex) => {
         const faRankOrder = faIndex + 1;
         return [
           {
@@ -939,7 +939,6 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}`,
             class: 'mat-column-fishingArea',
             treeIndent: '&nbsp;&nbsp;',
-            toggle: (event: UIEvent) => this.toggleMainBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
           },
           {
             blockIndex: index,
@@ -953,7 +952,7 @@ export class CalendarComponent
             class: 'mat-column-distanceToCoastGradient',
             treeIndent: '&nbsp;&nbsp',
             expanded: false,
-            toggle: (event: UIEvent) => this.toggleCoastGradientBlock(event, rankOrder, faRankOrder),
+            toggle: (event: Event) => this.toggleCoastGradientBlock(event, rankOrder, faRankOrder),
           },
           {
             blockIndex: index,
@@ -1006,7 +1005,7 @@ export class CalendarComponent
     }
   }
 
-  protected expandAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
+  protected expandAll(event?: Event, opts?: { emitEvent?: boolean }) {
     for (let i = 0; i < this.metierCount; i++) {
       this.expandBlock(null, i);
     }
@@ -1085,7 +1084,7 @@ export class CalendarComponent
 
     this.rowSubscription = new Subscription();
     this.rowSubscription.add(
-      ActivityMonthValidators.startListenChanges(form, this.pmfms, {
+      ActivityMonthValidators.startListenChanges(form, {
         markForCheck: () => this.markForCheck(),
         debounceTime: 100,
       })
@@ -1174,7 +1173,7 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  toggleMainBlock(event: UIEvent, key: string) {
+  toggleMainBlock(event: Event, key: string) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
@@ -1200,8 +1199,8 @@ export class CalendarComponent
     });
   }
 
-  toggleCoastGradientBlock(event: UIEvent, rankOrder: number, faRankOrder: number) {
-    if (event?.defaultPrevented) return; // Skip^
+  toggleCoastGradientBlock(event: Event, rankOrder: number, faRankOrder: number) {
+    if (event?.defaultPrevented) return; // Skip
     event?.preventDefault();
 
     const columnsToggle = [
@@ -1223,14 +1222,14 @@ export class CalendarComponent
     blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
   }
 
-  expandBlock(event: UIEvent, blockIndex: number) {
+  expandBlock(event: Event, blockIndex: number) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
     this.setBlockExpanded(blockIndex, true);
   }
 
-  collapseBlock(event: UIEvent, blockIndex: number) {
+  collapseBlock(event: Event, blockIndex: number) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 

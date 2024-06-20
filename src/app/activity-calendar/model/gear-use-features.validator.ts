@@ -60,14 +60,14 @@ export class GearUseFeaturesValidatorService<O extends GearUseFeaturesValidatorO
 
     if (opts.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
-      const pmfms: IPmfm[] = opts.pmfms || opts.strategy?.denormalizedPmfms || [];
-      pmfms
-        .filter((p) => !PmfmUtils.isDenormalizedPmfm(p) || p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_USE_FEATURES)
-        .forEach((p) => {
-          const key = p.id.toString();
-          const value = data && data.measurementValues && data.measurementValues[key];
-          measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
-        });
+      const pmfms: IPmfm[] =
+        opts.pmfms ||
+        (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_USE_FEATURES);
+      pmfms.forEach((p) => {
+        const key = p.id.toString();
+        const value = data && data.measurementValues && data.measurementValues[key];
+        measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
+      });
     }
 
     return form;
@@ -179,7 +179,11 @@ export class GearUseFeaturesValidatorService<O extends GearUseFeaturesValidatorO
     opts.withGear = toBoolean(opts.withGear, false); // Not used in activity calendar
     opts.withFishingAreas = toBoolean(opts.withFishingAreas, true);
     //todo mf  AcquisitionLevelCodes
-    opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY);
+    opts.pmfms =
+      opts.pmfms ||
+      (opts.strategy?.denormalizedPmfms || []).filter(
+        (p) => !PmfmUtils.isDenormalizedPmfm(p) || p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_USE_FEATURES
+      );
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, isNotEmptyArray(opts.pmfms) || isNotNil(opts.strategy));
     opts.withMeasurementTypename = toBoolean(opts.withMeasurementTypename, opts.withMeasurements);

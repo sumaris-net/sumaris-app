@@ -416,9 +416,7 @@ export class ActivityCalendarPage
   }
 
   addMetier(event: UIEvent) {
-    if (this.calendar) {
-      this.calendar.addMetierBlock(event);
-    }
+    this.calendar?.addMetierBlock(event);
   }
 
   async openReport(reportType?: ActivityCalendarReportType) {
