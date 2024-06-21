@@ -486,8 +486,8 @@ export class CalendarComponent
       );
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'delete', description: 'COMMON.BTN_CLEAR_CLIPBOARD', preventDefault: true })
-          .subscribe(() => this.deleteCellSelection())
+          .addShortcut({ keys: 'delete', description: 'COMMON.BTN_CLEAR_SELECTION', preventDefault: true })
+          .subscribe(() => this.clearCellSelection())
       );
 
       this.registerSubscription(fromEvent(element, 'scroll').subscribe(() => this.onResize()));
@@ -1502,49 +1502,60 @@ export class CalendarComponent
     return { rows, paths };
   }
 
-  protected async deleteCellSelection(cellSelection?: TableCellSelection): Promise<boolean> {
+  protected async clearCellSelection(cellSelection?: TableCellSelection): Promise<boolean> {
     cellSelection = cellSelection || this.cellSelection;
     if (!cellSelection) return false;
 
-    const { row, columnName, rowspan, colspan } = cellSelection;
-    if (!row || !columnName) return false;
+    console.debug(`${this.logPrefix}Clearing cell selection...`);
 
-    console.debug(`${this.logPrefix}Suppression de la sélection des cellules`);
+    const { rows, paths } = this.getRowsFromSelection(cellSelection);
 
-    const startRowIndex = colspan >= 0 ? row.id : row.id + colspan + 1;
-    const endRowIndex = colspan >= 0 ? startRowIndex + colspan : row.id + 1;
-
-    const targetRows = this.dataSource.getRows().slice(startRowIndex, endRowIndex);
-
-    const focusColumnIndex = this.displayedColumns.findIndex((colName) => colName === cellSelection.columnName);
-    const startColumnIndex = rowspan > 0 ? focusColumnIndex : focusColumnIndex + rowspan;
-    const endColumnIndex = rowspan > 0 ? startColumnIndex + rowspan : focusColumnIndex + 1;
-
-    const sourcePaths = this.displayedColumns
-      .slice(startColumnIndex, endColumnIndex)
-      .map((colName) => this.getColumnPath(colName))
-      .filter(isNotNil);
-
-    for (const row of targetRows) {
-      const form = this.validatorService.getFormGroup(row.currentData);
-      form.enable();
-
-      sourcePaths.forEach((path) => {
-        setPropertyByPath(row.currentData, path, null);
-        const control = this.findOrCreateControl(form, path);
-        if (control) {
-          control.setValue(null, { emitEvent: false });
-        }
+    for (const row of rows) {
+      paths.forEach((path) => {
+        setPropertyByPath(row, path, null);
+        const control = this.findOrCreateControl(row.validator, path);
+        if (control) control.setValue(null);
       });
-
-      await this.updateEntityToTable(form.value, row, { confirmEdit: true });
     }
 
-    console.debug(`${this.logPrefix}Les cellules sélectionnées ont été supprimées.`);
+    console.debug(`${this.logPrefix}Clearing cell selection [OK]`);
 
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
     return true;
+  }
+
+  protected getDataFromSelection(cellSelection: TableCellSelection): { months: ActivityMonth[]; paths: string[] } {
+    const { rows, paths } = this.getRowsFromSelection(cellSelection);
+    return {
+      months: rows.map((row) => row.currentData),
+      paths,
+    };
+  }
+
+  protected getRowsFromSelection(cellSelection: TableCellSelection): { rows: AsyncTableElement<ActivityMonth>[]; paths: string[] } {
+    const { row, columnName, rowspan, colspan } = cellSelection;
+    if (!row || !columnName) throw new Error('Invalid cell selection');
+
+    // Find selected months
+    const startRowIndex = colspan >= 0 ? row.id : row.id + colspan + 1;
+    const endRowIndex = colspan >= 0 ? startRowIndex + colspan : row.id + 1;
+    const rows = this.dataSource.getRows().slice(startRowIndex, endRowIndex);
+
+    // Find selected paths
+    const focusColumnIndex = this.displayedColumns.findIndex((columnName) => columnName === cellSelection.columnName);
+    const startColumnIndex = rowspan > 0 ? focusColumnIndex : focusColumnIndex + rowspan;
+    const endColumnIndex = rowspan > 0 ? startColumnIndex + rowspan : focusColumnIndex + 1;
+    const paths = this.displayedColumns
+      .slice(startColumnIndex, endColumnIndex)
+      .map((columnName) => this.getColumnPath(columnName))
+      .filter(isNotNil);
+
+    // DEBUG
+    //console.debug(`${this.logPrefix} Selected rows:`, rows);
+    //console.debug(`${this.logPrefix} Selected paths`, paths);
+
+    return { rows, paths };
   }
 
   protected copyCellToClipboard(sourceRow: AsyncTableElement<ActivityMonth>, columnName: string) {
