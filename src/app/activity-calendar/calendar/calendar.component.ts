@@ -1189,9 +1189,20 @@ export class CalendarComponent
 
     // Toggle expanded
     masterColumn.expanded = !masterColumn.expanded;
+    const subColumns = blockColumns.slice(1);
+
+    // If close: remove the selection
+    if (!masterColumn.expanded && this.cellSelection) {
+      const { paths: cellPaths } = this.getRowsFromSelection(this.cellSelection);
+      const shouldHideCellSelection = subColumns.some((c) => cellPaths.includes(c.path));
+      if (shouldHideCellSelection) this.removeCellSelection();
+      const { paths: clipboardPaths } = this.getRowsFromSelection(this.cellClipboard);
+      const shouldHideClipboard = subColumns.some((c) => clipboardPaths.includes(c.path));
+      if (shouldHideClipboard) this.clearClipboard(null, { clearContext: false });
+    }
 
     // Show/Hide sub columns
-    blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
+    subColumns.forEach((col) => (col.hidden = !masterColumn.expanded));
 
     // Expanded state for all columns to fix divergences states
     blockColumns.forEach((col) => {
@@ -1199,19 +1210,21 @@ export class CalendarComponent
         col.expanded = masterColumn.expanded;
       }
     });
+
+    this.markForCheck();
   }
 
   toggleCoastGradientBlock(event: Event, rankOrder: number, faRankOrder: number) {
     if (event?.defaultPrevented) return; // Skip
     event?.preventDefault();
 
-    const columnsToggle = [
+    const blockColumnNames = [
       `metier${rankOrder}FishingArea${faRankOrder}distanceToCoastGradient`,
       `metier${rankOrder}FishingArea${faRankOrder}depthGradient`,
       `metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`,
     ];
+    const blockColumns = this.dynamicColumns.filter((col) => blockColumnNames.some((key) => col.key.includes(key)));
 
-    const blockColumns = this.dynamicColumns.filter((col) => columnsToggle.some((toggle) => col.key.includes(toggle)));
     if (isEmptyArray(blockColumns)) return; // Skip
 
     const masterColumn = blockColumns[0];
@@ -1220,8 +1233,22 @@ export class CalendarComponent
     // Toggle expanded
     masterColumn.expanded = !masterColumn.expanded;
 
+    const subColumns = blockColumns.slice(1);
+
+    // If close: remove the selection
+    if (!masterColumn.expanded && this.cellSelection) {
+      const { paths: cellPaths } = this.getRowsFromSelection(this.cellSelection);
+      const shouldHideCellSelection = subColumns.some((c) => cellPaths.includes(c.path));
+      if (shouldHideCellSelection) this.removeCellSelection();
+      const { paths: clipboardPaths } = this.getRowsFromSelection(this.cellClipboard);
+      const shouldHideClipboard = subColumns.some((c) => clipboardPaths.includes(c.path));
+      if (shouldHideClipboard) this.clearClipboard(null, { clearContext: false });
+    }
+
     // Show/Hide sub columns
-    blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
+    subColumns.forEach((col) => (col.hidden = !masterColumn.expanded));
+
+    this.markForCheck();
   }
 
   expandBlock(event: Event, blockIndex: number) {
@@ -1254,6 +1281,13 @@ export class CalendarComponent
 
     // Update sub columns
     blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
+
+    // Expanded state for all columns to fix divergences states
+    blockColumns.forEach((col) => {
+      if (isNotNil(col.expanded)) {
+        col.expanded = masterColumn.expanded;
+      }
+    });
   }
 
   protected setFocusColumn(key: string) {
@@ -1443,6 +1477,7 @@ export class CalendarComponent
   }
 
   protected getRowsFromSelection(cellSelection: TableCellSelection): { rows: AsyncTableElement<ActivityMonth>[]; paths: string[] } {
+    if (!cellSelection) return { paths: [], rows: [] };
     const { row, columnName, rowspan, colspan } = cellSelection;
     if (!row || !columnName) throw new Error('Invalid cell selection');
 
