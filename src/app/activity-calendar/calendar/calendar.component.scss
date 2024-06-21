@@ -1,3 +1,9 @@
+:host {
+  --mat-cell-border-color-hover: var(--ion-color-secondary);
+  --mat-cell-resizable-handle-size: 5px;
+  --mat-cell-resizable-handle-color-hover: var(--ion-color-secondary);
+}
+
 .mat-accordion {
   --expansion-panel-padding: 0;
   .mat-expansion-panel-header {
@@ -23,9 +29,23 @@ mat-toolbar {
 .cell-selection {
   position: fixed;
   background-color: rgba(var(--ion-color-secondary-rgb), 0.4);
-  border: 2px solid var(--ion-color-secondary);
+  border: 2px solid var(--mat-cell-border-color-hover);
   z-index: 10;
   pointer-events: none;
+
+  &:has(.debug) {
+    align-content: end;
+  }
+
+  .debug {
+    --ion-padding: 2px;
+    padding-inline-start: var(--ion-padding);
+    padding-inline-end: var(--ion-padding);
+    color: var(--ion-color-tertiary);
+    font-style: italic;
+    font-size: 12px;
+    background-color: rgba(var(--ion-background-color-rgb, 255, 255, 255), 0.7);
+  }
 }
 
 /* -- cell clipboard -- */
@@ -83,9 +103,6 @@ mat-toolbar {
   --col-header-size: 150px;
   --col-min-size: 100px;
   --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / var(--month-count, 12)));
-  --mat-cell-border-color-hover: var(--ion-color-secondary);
-  --mat-cell-resizable-handle-size: 5px;
-  --mat-cell-resizable-handle-color-hover: var(--ion-color-secondary);
   --mat-table-row-item-outline-width: 0px;
   --mat-column-actions-min-width: 100%;
   --mat-row-height: 35px !important;
