@@ -635,7 +635,7 @@ export class CalendarComponent
     };
 
     const vesselOwnerPeriods = await this.vesselOwnerPeriodService.getVesselOwnerPeriodsByFilter(filter);
-    const vesselOwnerPeriodsByMonthCovered = CalendarUtils.vesselOwnerPeriodsByMonthCovered(vesselOwnerPeriods);
+    const vesselOwnerPeriodsByMonthCovered = CalendarUtils.getVesselOwnerPeriodsIndexed(vesselOwnerPeriods);
     this.vesselOwnerPeriods = vesselOwnerPeriodsByMonthCovered;
   }
 

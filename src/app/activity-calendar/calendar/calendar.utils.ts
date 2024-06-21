@@ -18,46 +18,20 @@ export class CalendarUtils {
     );
   }
 
-  static vesselOwnerPeriodsByMonthCovered(vesselOwnerPeriods: VesselOwnerPeriod[]): VesselOwnerPeriod[] {
-    // Calculate the months covered by each period
-    const vesselOwnerPeriodsWithMonths = vesselOwnerPeriods.map((period) => {
-      const coveredMonths: number[] = [];
-      const currentMonth = period.startDate.clone().startOf('month');
-
-      // Iterate through all the months until the end of the period
-      while (currentMonth.isBefore(period.endDate) || currentMonth.isSame(period.endDate, 'month')) {
-        coveredMonths.push(currentMonth.month());
-        currentMonth.add(1, 'month');
-      }
-
-      return {
-        period,
-        months: coveredMonths,
-      };
-    });
-
-    // Sort the periods based on the first covered month
-    vesselOwnerPeriodsWithMonths.sort((a, b) => a.months[0] - b.months[0]);
-
-    // Remap the sorted objects to an array of periods
-    const vesselOwnerPeriodSortWithMonth = vesselOwnerPeriodsWithMonths.map((item) => item.period);
-
-    const reindexedPeriods: (VesselOwnerPeriod | null)[] = new Array(12).fill(null);
+  static getVesselOwnerPeriodsIndexed(vesselOwnerPeriods: VesselOwnerPeriod[]): VesselOwnerPeriod[] {
+    const vesselOwnerPeriodsIndexed: (VesselOwnerPeriod | null)[] = new Array(12).fill(null);
 
     // Reindex the periods taking into account the covered months
-    vesselOwnerPeriodSortWithMonth.forEach((period) => {
-      const currentMonth = period.startDate.clone().startOf('month');
+    vesselOwnerPeriods.forEach((vesselOwnerPeriod) => {
+      const firstMonth = vesselOwnerPeriod.startDate.clone().startOf('month');
 
-      // Iterate through all the months until the end of the period
-      while (currentMonth.isBefore(period.endDate) || currentMonth.isSame(period.endDate, 'month')) {
-        const monthIndex = currentMonth.month() + 1;
-
-        // Place the period in the reindexing array
-        reindexedPeriods[monthIndex] = period;
-        currentMonth.add(1, 'month');
+      while (firstMonth.isBefore(vesselOwnerPeriod.endDate) || firstMonth.isSame(vesselOwnerPeriod.endDate, 'month')) {
+        const monthIndex = firstMonth.month() + 1;
+        vesselOwnerPeriodsIndexed[monthIndex] = vesselOwnerPeriod;
+        firstMonth.add(1, 'month');
       }
     });
 
-    return reindexedPeriods;
+    return vesselOwnerPeriodsIndexed;
   }
 }
