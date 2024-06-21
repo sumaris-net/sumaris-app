@@ -1518,7 +1518,7 @@ export class CalendarComponent
   }
 
   protected async pasteFromClipboard(event?: Event) {
-    const sourceMonths = this.context.clipboard?.data?.months;
+    let sourceMonths = this.context.clipboard?.data?.months;
     let sourcePaths = this.context.clipboard?.data?.paths;
     if (isEmptyArray(sourceMonths) || isEmptyArray(sourcePaths)) return false; // Empty clipboard
 
@@ -1536,7 +1536,8 @@ export class CalendarComponent
         resizing: false,
       };
 
-    // Update increase the rowspan
+    // Maximize the targeted cells
+    targetCellSelection.colspan = Math.max(targetCellSelection.colspan, sourceMonths.length);
     targetCellSelection.rowspan = sourcePaths.length;
 
     const { rows: targetRows, paths: targetPaths } = this.getRowsFromSelection(targetCellSelection);
@@ -1561,10 +1562,15 @@ export class CalendarComponent
       return false;
     }
 
-    // Reduce source paths to maximum
+    // Limit paths to maximum allowed
     if (targetPaths.length < sourcePaths.length) {
       sourcePaths = sourcePaths.slice(0, targetPaths.length);
       targetCellSelection.rowspan = sourcePaths.length;
+    }
+    // Reduce rows to maximum allowed
+    if (targetRows.length < sourceMonths.length) {
+      sourceMonths = sourceMonths.slice(0, targetRows.length);
+      targetCellSelection.colspan = targetRows.length;
     }
 
     for (let i = 0; i < targetRows.length; i++) {
