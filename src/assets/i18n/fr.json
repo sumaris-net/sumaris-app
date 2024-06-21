@@ -3348,6 +3348,7 @@
       "ECONOMIC_SURVEY": "Enquête éco ?",
       "VESSEL": "Navire",
       "YEAR": "Année",
+      "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les calendriers <b>non synchronisés</b>)",
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
