@@ -1519,7 +1519,7 @@ export class CalendarComponent
 
   protected async pasteFromClipboard(event?: Event) {
     const sourceMonths = this.context.clipboard?.data?.months;
-    const sourcePaths = this.context.clipboard?.data?.paths;
+    let sourcePaths = this.context.clipboard?.data?.paths;
     if (isEmptyArray(sourceMonths) || isEmptyArray(sourcePaths)) return false; // Empty clipboard
 
     // DEBUG
@@ -1533,9 +1533,12 @@ export class CalendarComponent
         divElement: this.cellSelectionDivRef.nativeElement,
         cellElement: this.getCellElement(event),
         colspan: 1,
-        rowspan: sourcePaths.length,
         resizing: false,
       };
+
+    // Update increase the rowspan
+    targetCellSelection.rowspan = sourcePaths.length;
+
     const { rows: targetRows, paths: targetPaths } = this.getRowsFromSelection(targetCellSelection);
 
     // Empty target rows
@@ -1558,42 +1561,57 @@ export class CalendarComponent
       return false;
     }
 
+    // Reduce source paths to maximum
+    if (targetPaths.length < sourcePaths.length) {
+      sourcePaths = sourcePaths.slice(0, targetPaths.length);
+      targetCellSelection.rowspan = sourcePaths.length;
+    }
+
     for (let i = 0; i < targetRows.length; i++) {
       const targetRow = targetRows[i];
-      const source = sourceMonths[i % sourceMonths.length];
-      const form = this.validatorService.getFormGroup(targetRow.currentData);
-      this.onPrepareRowForm(form, { listenChanges: false });
-      const isActiveControl = form.get('isActive');
-      let isActive = toNumber(source.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
-      sourcePaths.forEach((path) => {
-        const sourceValue = getPropertyByPath(source, path);
-        isActive = isActive || (isNotNil(sourceValue) && path !== 'isActive' && path !== 'basePortLocation');
-        if (isActive) {
-          // TODO enable
+      const sourceMonth = sourceMonths[i % sourceMonths.length];
+
+      // Creating a form
+      const targetForm = this.validatorService.getFormGroup(targetRow.currentData);
+      this.onPrepareRowForm(targetForm, { listenChanges: false });
+      const isActiveControl = targetForm.get('isActive');
+      let isActive = toNumber(sourceMonth.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
+
+      sourcePaths.forEach((sourcePath, index) => {
+        const sourceValue = getPropertyByPath(sourceMonth, sourcePath);
+        isActive = isActive || (isNotNil(sourceValue) && sourcePath !== 'isActive' && sourcePath !== 'basePortLocation');
+
+        // Force IsActive = true, if need
+        if (isActive && isActiveControl.value !== VesselUseFeaturesIsActiveEnum.ACTIVE) {
           isActiveControl.enable({ emitEvent: false });
           isActiveControl.setValue(VesselUseFeaturesIsActiveEnum.ACTIVE, { emitEvent: false });
-          this.onPrepareRowForm(form, { listenChanges: false });
+
+          // Update the form (should enable more controls - e.g. metier, fishing areas)
+          this.onPrepareRowForm(targetForm, { listenChanges: false });
         }
-        const control = this.findOrCreateControl(form, path);
-        control.enable({ emitEvent: false });
-        control.setValue(sourceValue);
+
+        // Update control from the path
+        const targetPath = targetPaths[index];
+        const control = targetPath && this.findOrCreateControl(targetForm, targetPath);
+        if (control) {
+          control.enable({ emitEvent: false });
+          control.setValue(sourceValue);
+        }
       });
 
-      await this.updateEntityToTable(form.value, targetRow, { confirmEdit: true });
+      await this.updateEntityToTable(targetForm.value, targetRow, { confirmEdit: true });
     }
 
     // DEBUG
     console.debug(`${this.logPrefix}Paste clipboard [OK]`);
 
-    // Update the target cell selection
-    if (!this.editedRow) {
-      if (targetCellSelection.cellElement) {
-        targetCellSelection.rowspan = sourcePaths.length;
-        this.resizeCellSelection(targetCellSelection, 'cell', { emitEvent: false });
-        this.cellSelection = targetCellSelection;
-      } else {
-        this.removeCellSelection({ emitEvent: false });
-      }
+    // Select targeted cells, if possible
+    if (!this.editedRow && targetCellSelection.cellElement) {
+      // Resize, and display cell selection
+      this.resizeCellSelection(targetCellSelection, 'cell', { emitEvent: false });
+      this.cellSelection = targetCellSelection;
+    } else {
+      this.removeCellSelection({ emitEvent: false });
     }
 
     this.markAsDirty({ emitEvent: false });
