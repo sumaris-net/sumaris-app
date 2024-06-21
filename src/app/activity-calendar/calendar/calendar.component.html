@@ -19,7 +19,7 @@
 <button mat-button [matMenuTriggerFor]="contextMenu" #menuTrigger="matMenuTrigger" style="display: none"></button>
 
 <!-- Cell contextual menu  -->
-<mat-menu #contextMenu="matMenu" class="context-menu ion-no-padding" [hasBackdrop]="!canEdit">
+<mat-menu #contextMenu="matMenu" class="context-menu ion-no-padding" [hasBackdrop]="disabled">
   <ng-template matMenuContent>
     <button mat-menu-item (click)="copy()" [disabled]="!cellSelection">
       <mat-icon>content_copy</mat-icon>
@@ -112,12 +112,36 @@
     [class.mobile]="mobile"
   >
     <div
-      #cellSelectionRect
+      #cellSelectionDiv
       class="cell-selection"
       [class.cdk-visually-hidden]="!cellSelection"
       (contextmenu)="cellSelection && onContextMenu($event, cellSelection?.cellElement, cellSelection.row, cellSelection.columnName)"
-    ></div>
-    <div #cellClipboardRect class="cell-clipboard" [class.cdk-visually-hidden]="!cellClipboard"></div>
+      style="align-content: end"
+    >
+      <div class="resize-handle-corner"></div>
+
+      <!-- debug -->
+      <ion-text *ngIf="debug && cellSelection" class="debug" color="tertiary">
+        <span>
+          DIV: marginTop:{{ cellSelectionDiv.style.marginTop }} marginLeft:{{ cellSelectionDiv.style.marginLeft }} top:{{
+            cellSelectionDiv.style.top
+          }}
+          left:{{ cellSelectionDiv.style.left }}
+          <br />
+        </span>
+        <span *ngIf="cellSelection.cellRect; let cellRect">
+          (RECT: top:{{ cellRect.top }} left:{{ cellRect.left }})
+          <br />
+        </span>
+        @if (cellSelection.resizing) {
+          resizing:true
+        }
+        @if (cellSelection.colspan || cellSelection.rowspan) {
+          colspan:{{ cellSelection.colspan }} rowspan:{{ cellSelection.rowspan }}
+        }
+      </ion-text>
+    </div>
+    <div #cellClipboardDiv class="cell-clipboard" [class.cdk-visually-hidden]="!cellClipboard"></div>
 
     <mat-table [dataSource]="dataSource" [class.resizing]="cellSelection?.resizing" [class.large]="!compact">
       <!-- hidden columns (required by AppTable) -->
@@ -144,8 +168,9 @@
               matBadgeSize="small"
             >
               {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
-              @if (debug) {
+              @if (debug && canEdit) {
                 <br />
+                {{ row.id }}
                 {{ row.valid ? 'V' : row.pending ? 'P' : 'I' }}
                 {{ row.editing ? '*' : '' }}
               }
@@ -462,7 +487,7 @@
   <ng-content select="[matToolbarStart]"></ng-content>
 
   <!-- Add metier block -->
-  @if (canEdit && enabled) {
+  @if (enabled) {
     <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_ADD_METIER_BLOCK' | translate" (click)="addMetierBlock($event)">
       <!--      <mat-icon>add</mat-icon>-->
       <ion-icon name="add"></ion-icon>
