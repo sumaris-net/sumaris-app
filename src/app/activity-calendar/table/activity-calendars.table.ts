@@ -23,6 +23,7 @@ import {
   slideUpDownAnimation,
   splitByProperty,
   StatusIds,
+  toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -98,6 +99,7 @@ export class ActivityCalendarsTable
   @Input() registrationLocationLevelIds: number[] = null;
   @Input() basePortLocationLevelIds: number[] = null;
   @Input() @RxStateProperty() title: string;
+  @Input() canAdd: boolean;
 
   get filterYearControl(): UntypedFormControl {
     return this.filterForm.controls.year as UntypedFormControl;
@@ -166,6 +168,8 @@ export class ActivityCalendarsTable
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.canAdd = toBoolean(this.canAdd, this.isAdmin);
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
