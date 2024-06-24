@@ -139,7 +139,7 @@ export interface ColumnDefinition {
   //click?: (event?: UIEvent) => void,
   treeIndent?: string;
   hidden?: boolean;
-  toggle?: (event: Event) => void;
+  toggle?: (event?: Event) => void;
 }
 
 export interface CalendarComponentState extends BaseMeasurementsTableState {
@@ -679,12 +679,13 @@ export class CalendarComponent
     if (this.cellSelection) {
       if (this.cellSelection.validating) return false;
 
-      // Reuse the existing selection
+      // If action comes from the bottom-right cell, then extend the current selection
       if (this.isRightAndBottomCellSelected(this.cellSelection, row, columnName)) {
         this.cellSelection.resizing = true;
         return true;
       }
 
+      // Else, remove the previous cell selection
       this.removeCellSelection({ emitEvent: false });
     }
 
@@ -733,15 +734,20 @@ export class CalendarComponent
     if (movementY < 0 && rowspan > 1) rowspan = -1 * (rowspan - 1);
 
     // Check limits
+    const rowIndex = row.id;
     if (colspan >= 0) {
-      colspan = Math.min(colspan, this.visibleRowCount - row.id);
+      // Upper limit
+      colspan = Math.min(colspan, this.visibleRowCount - rowIndex);
     } else {
-      colspan = Math.max(colspan, -1 * (row.id + 1));
+      // Lower limit
+      colspan = Math.max(colspan, -1 * (rowIndex + 1));
     }
     const columnIndex = this.displayedColumns.indexOf(cellSelection.columnName);
-    if (rowspan > 0) {
+    if (rowspan >= 0) {
+      // Upper limit
       rowspan = Math.min(rowspan, this.displayedColumns.length - RESERVED_END_COLUMNS.length - columnIndex);
     } else {
+      // Lower limit
       rowspan = Math.max(rowspan, -1 * (columnIndex + 1 - RESERVED_START_COLUMNS.length - ACTIVITY_MONTH_READONLY_COLUMNS.length));
     }
 
@@ -783,8 +789,82 @@ export class CalendarComponent
     }
   }
 
+  onMouseShiftClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): boolean {
+    row = row || this.editedRow;
+    columnName = columnName || this.focusColumn;
+
+    if (!row || !columnName) return false; // Skip
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    // DEBUG
+    //console.debug(`${this.logPrefix}Shift+click`, event, row, columnName);
+
+    // Extend existing cell selection to target cell
+    if (this.cellSelection) {
+      const { row: sourceRow, columnName: sourceColumnName } = this.cellSelection;
+      const sourceRowIndex = sourceRow.id;
+      const sourceColumnNameIndex = this.displayedColumns.indexOf(sourceColumnName);
+      const targetRowIndex = row.id;
+      const targetColumnIndex = this.displayedColumns.indexOf(columnName);
+
+      this.cellSelection.colspan = targetRowIndex > sourceRowIndex ? targetRowIndex - sourceRowIndex + 1 : targetRowIndex - sourceRowIndex - 1;
+      this.cellSelection.rowspan =
+        targetColumnIndex > sourceColumnNameIndex ? targetColumnIndex - sourceColumnNameIndex + 1 : targetColumnIndex - sourceColumnNameIndex - 1;
+    } else {
+      const cellElement = this.getCellElement(event);
+      if (!cellElement) return false;
+      this.cellSelection = {
+        divElement: this.cellSelectionDivRef.nativeElement,
+        cellElement,
+        row,
+        columnName,
+        colspan: 1,
+        rowspan: 1,
+        resizing: false,
+      };
+    }
+
+    // Expand blocks if need
+    const { paths: selectedPaths } = this.getRowsFromSelection(this.cellSelection);
+    this.dynamicColumns.filter((col) => col.toggle && !col.expanded && selectedPaths.includes(col.path)).forEach((col) => col.toggle(event));
+
+    this.resizeCellSelection(this.cellSelection, 'cell');
+
+    return true;
+  }
+
+  onMouseCtrlClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): boolean {
+    row = row || this.editedRow;
+    columnName = columnName || this.focusColumn;
+
+    if (!row || !columnName) return false; // Skip
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    // DEBUG
+    //console.debug(`${this.logPrefix}Ctrl+click`, event, row, columnName);
+
+    // Select the targeted cell
+    const cellElement = this.getCellElement(event);
+    if (!cellElement) return false;
+    this.cellSelection = {
+      divElement: this.cellSelectionDivRef.nativeElement,
+      cellElement,
+      row,
+      columnName,
+      colspan: 1,
+      rowspan: 1,
+      resizing: false,
+    };
+    this.resizeCellSelection(this.cellSelection, 'cell');
+  }
+
   @HostListener('window:resize')
   onResize() {
+    this.closeContextMenu();
     this.resizeCellSelection(this.cellSelection, 'cell', { emitEvent: false });
     this.resizeCellSelection(this.cellClipboard, 'clipboard', { emitEvent: false });
     this.markForCheck();
@@ -856,14 +936,20 @@ export class CalendarComponent
   }
 
   async clickRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>): Promise<boolean> {
-    if (event?.defaultPrevented || this.disabled) return false; // Skip
+    if (event?.defaultPrevented) return false; // Skip
 
     this.closeContextMenu();
 
     // If cell selection is resizing: skip
-    if (this.cellSelection?.resizing || this.cellSelection?.validating) {
-      return false;
+    if (this.cellSelection?.resizing || this.cellSelection?.validating) return false;
+
+    // If Click+Shift
+    if (event instanceof MouseEvent) {
+      if (event.shiftKey === true) return this.onMouseShiftClick(event, row, this.focusColumn);
+      if (event.ctrlKey === true) return this.onMouseCtrlClick(event, row, this.focusColumn);
     }
+
+    if (this.disabled) return false; // Skip
 
     return super.clickRow(event, row);
   }
@@ -916,7 +1002,7 @@ export class CalendarComponent
         key: `metier${rankOrder}`,
         class: 'mat-column-metier',
         expanded: true,
-        toggle: (event) => this.toggleMainBlock(event, `metier${rankOrder}`),
+        toggle: (event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
       },
       ...new Array<ColumnDefinition>(newFishingAreaCount).fill(null).flatMap((_, faIndex) => {
         const faRankOrder = faIndex + 1;
@@ -945,7 +1031,7 @@ export class CalendarComponent
             class: 'mat-column-distanceToCoastGradient',
             treeIndent: '&nbsp;&nbsp',
             expanded: false,
-            toggle: (event: Event) => this.toggleCoastGradientBlock(event, rankOrder, faRankOrder),
+            toggle: (event: Event) => this.toggleGradientBlock(event, rankOrder, faRankOrder),
           },
           {
             blockIndex: index,
@@ -1175,7 +1261,7 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  toggleMainBlock(event: Event, key: string) {
+  toggleMetierBlock(event: Event, key: string) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
@@ -1214,7 +1300,7 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  toggleCoastGradientBlock(event: Event, rankOrder: number, faRankOrder: number) {
+  toggleGradientBlock(event: Event, rankOrder: number, faRankOrder: number) {
     if (event?.defaultPrevented) return; // Skip
     event?.preventDefault();
 
@@ -1290,7 +1376,7 @@ export class CalendarComponent
     });
   }
 
-  protected setFocusColumn(key: string) {
+  protected setFocusColumn(event: Event | undefined, key: string) {
     this.focusColumn = key;
   }
 
@@ -1416,6 +1502,7 @@ export class CalendarComponent
       return form.value;
     });
     console.debug(`${this.logPrefix}Target months:`, targetMonths);
+    console.debug(`${this.logPrefix}Target paths:`, sourcePaths);
 
     this.context.clipboard = {
       data: {
@@ -1722,19 +1809,17 @@ export class CalendarComponent
   }
 
   protected closeContextMenu() {
-    if (this.menuTrigger.menuOpened) {
+    if (this.menuTrigger?.menuOpened) {
       this.menuTrigger.closeMenu();
     }
   }
 
   protected getCellElement(event: Event): HTMLElement {
-    if (event instanceof KeyboardEvent) {
-      let element = event.target as HTMLElement;
-      while (element && !element.classList.contains('mat-mdc-cell')) {
-        element = element.parentElement;
-      }
-      return element;
+    if (!event?.target) return undefined;
+    let element = event.target as HTMLElement;
+    while (element && !element.classList.contains('mat-mdc-cell')) {
+      element = element.parentElement;
     }
-    return undefined;
+    return element;
   }
 }

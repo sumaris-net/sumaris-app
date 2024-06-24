@@ -383,8 +383,8 @@
             class="{{ col.class }}"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
-            (mouseenter)="col.hidden && cellSelection && expandBlock($event, col.blockIndex)"
-            (click)="col.hidden ? col.toggle($event) : setFocusColumn(col.key)"
+            (mouseenter)="col.hidden && cellSelection?.resizing && expandBlock($event, col.blockIndex)"
+            (click)="col.hidden ? col.toggle($event) : setFocusColumn($event, col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
           >
             @if (!col.hidden) {
@@ -438,7 +438,7 @@
             @if (row.validator | formGetValue: 'isActive' | isNotNil) {
               <button
                 mat-icon-button
-                [class.cdk-visually-hidden]="!!cellSelection"
+                [class.cdk-visually-hidden]="cellSelection?.resizing"
                 [class.visible-hover]="!row.editing"
                 [title]="'ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_MONTH' | translate"
                 (click)="clear($event, row)"
