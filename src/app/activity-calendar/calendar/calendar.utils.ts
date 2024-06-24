@@ -18,7 +18,7 @@ export class CalendarUtils {
     );
   }
 
-  static getVesselOwnerPeriodsIndexed(vesselOwnerPeriods: VesselOwnerPeriod[]): VesselOwnerPeriod[] {
+  static getVesselOwnerPeriodsIndexed(vesselOwnerPeriods: VesselOwnerPeriod[], year: number): VesselOwnerPeriod[] {
     const vesselOwnerPeriodsIndexed: (VesselOwnerPeriod | null)[] = new Array(12).fill(null);
 
     // Reindex the periods taking into account the covered months
@@ -27,7 +27,9 @@ export class CalendarUtils {
 
       while (firstMonth.isBefore(vesselOwnerPeriod.endDate) || firstMonth.isSame(vesselOwnerPeriod.endDate, 'month')) {
         const monthIndex = firstMonth.month() + 1;
-        vesselOwnerPeriodsIndexed[monthIndex] = vesselOwnerPeriod;
+        if (firstMonth.year() === year) {
+          vesselOwnerPeriodsIndexed[monthIndex] = vesselOwnerPeriod;
+        }
         firstMonth.add(1, 'month');
       }
     });
