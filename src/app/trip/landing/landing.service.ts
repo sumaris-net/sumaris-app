@@ -71,12 +71,13 @@ import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measure
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -92,6 +93,7 @@ export declare interface LandingServiceWatchOptions extends EntitiesServiceWatch
   fullLoad?: boolean;
   toEntity?: boolean;
   withTotal?: boolean;
+  mapFn?: (landings: Landing[]) => Landing[];
 }
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
@@ -472,6 +474,10 @@ export class LandingService
           this.computeRankOrderAndSort(entities, offset, total, afterSortBy, sortDirection, dataFilter as LandingFilter);
         }
 
+        if (opts?.mapFn) {
+          entities = opts.mapFn(entities);
+        }
+
         return { data: entities, total };
       })
     );
@@ -554,6 +560,9 @@ export class LandingService
   }
 
   async saveAll(entities: Landing[], opts?: LandingSaveOptions): Promise<Landing[]> {
+    // Filter dividers
+    entities = entities.filter((entity) => entity.__typename !== 'divider');
+
     if (!entities) return entities;
 
     const localEntities = entities.filter(
@@ -999,19 +1008,20 @@ export class LandingService
     this.progressBarService.increase();
 
     try {
-      const { data } = await this.loadAllByObservedLocation(
+      let { data } = await this.loadAllByObservedLocation(
         LandingFilter.fromObject({
           observedLocationId: observedLocation.id,
         }),
         { fetchPolicy: 'no-cache' } // TODO BLA
       );
 
+      // Filter dividers
+      data = data.filter((entity) => entity.__typename !== 'divider');
+
       if (isEmptyArray(data)) return undefined;
       const progressionStep = maxProgression / data.length / 2; // 2 steps by landing: control, then save
 
       let errorsById: FormErrors = null;
-
-      let observedCount = 0;
 
       for (const entity of data) {
         opts = await this.fillControlOptions(entity, opts);
@@ -1037,28 +1047,9 @@ export class LandingService
 
         // increment, after save/terminate
         opts.progression.increment(progressionStep);
-
-        // Count observed species
-        observedCount += +toBoolean(entity.measurementValues[PmfmIds.IS_OBSERVED]);
       }
 
-      let errorObservation = null;
-
-      if (opts?.program) {
-        const minObservedCount = opts.program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
-        const maxObservedCount = opts.program.getPropertyAsInt(ProgramProperties.LANDING_MAX_OBSERVED_SPECIES_COUNT);
-
-        // Error if observed count is not in range
-        if (observedCount < minObservedCount || observedCount > maxObservedCount) {
-          errorObservation = {
-            observedCount,
-            minObservedCount,
-            maxObservedCount,
-          };
-        }
-      }
-
-      return errorsById || errorObservation ? { landings: errorsById, observations: errorObservation } : null;
+      return errorsById ? { landings: errorsById } : null;
     } catch (err) {
       console.error((err && err.message) || err);
       throw err;

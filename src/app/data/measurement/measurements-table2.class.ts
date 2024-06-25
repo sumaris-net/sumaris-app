@@ -1,10 +1,8 @@
 import { Directive, inject, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { TableElement } from '@e-is/ngx-material-table';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import {
   Alerts,
-  AppFormUtils,
   Entity,
   EntityFilter,
   filterNotNil,
@@ -26,39 +24,17 @@ import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/mode
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { mergeMap } from 'rxjs/operators';
-import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MeasurementsTableEntitiesService } from './measurements-table.service';
 import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from './measurements-table.validator';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-
-export interface BaseMeasurementsTableState {
-  programLabel: string;
-  acquisitionLevel: AcquisitionLevelType;
-  requiredStrategy: boolean;
-  strategyLabel: string;
-  strategyId: number;
-  requiredGear: boolean;
-  gearId: number;
-
-  initialPmfms: IPmfm[];
-  filteredPmfms: IPmfm[];
-  hasPmfms: boolean;
-}
-
-export interface BaseMeasurementsTableConfig<T extends IEntityWithMeasurement<T>, ST extends BaseMeasurementsTableState = BaseMeasurementsTableState>
-  extends BaseTableConfig<T, number, ST> {
-  onRowCreated?: undefined; // IMPORTANT: leave 'undefined'. subclasses should use onPrepareRowForm instead
-  reservedStartColumns?: string[];
-  reservedEndColumns?: string[];
-  onPrepareRowForm?: (form: UntypedFormGroup) => void | Promise<void>;
-  mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
-  i18nPmfmPrefix?: string;
-}
+import { BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
+import { AppBaseTable2 } from '@app/shared/table/base.table2';
+import { AsyncTableElement } from '@e-is/ngx-material-table';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class BaseMeasurementsTable<
+export abstract class BaseMeasurementsTable2<
     T extends IEntityWithMeasurement<T>,
     F extends EntityFilter<any, T, any>,
     S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
@@ -69,7 +45,7 @@ export abstract class BaseMeasurementsTable<
     MS extends MeasurementsTableEntitiesService<T, F, S> = MeasurementsTableEntitiesService<T, F, S>,
     MV extends MeasurementsTableValidatorService<T, V, number, VO> = MeasurementsTableValidatorService<T, V, number, VO>,
   >
-  extends AppBaseTable<T, F, MS, MV, number, ST, O>
+  extends AppBaseTable2<T, F, MS, MV, number, ST, O>
   implements OnInit, OnDestroy
 {
   private _autoLoadAfterPmfm = true;
@@ -188,7 +164,7 @@ export abstract class BaseMeasurementsTable<
       {
         ...options,
         // IMPORTANT: Always use our private function onRowCreated()
-        onRowCreated: (row: TableElement<T>) => this._onRowCreated(row),
+        onRowCreated: (row: AsyncTableElement<T>) => this._onRowCreated(row),
       }
     );
     this.memoryDataService = dataService instanceof InMemoryEntitiesService ? (dataService as InMemoryEntitiesService<T, F, number>) : null;
@@ -324,7 +300,7 @@ export abstract class BaseMeasurementsTable<
     super.setFilter(filterData, opts);
   }
 
-  trackByFn(index: number, row: TableElement<T>): any {
+  trackByFn(index: number, row: AsyncTableElement<T>): any {
     return row.id;
   }
 
@@ -408,7 +384,7 @@ export abstract class BaseMeasurementsTable<
    * @param row
    * @param clone
    */
-  toEntity(row: TableElement<T>, clone?: boolean): T {
+  toEntity(row: AsyncTableElement<T>, clone?: boolean): T {
     // If no validator, use currentData
     const currentData = row.currentData;
 
@@ -427,7 +403,7 @@ export abstract class BaseMeasurementsTable<
 
   duplicateRow(
     event?: Event,
-    row?: TableElement<T>,
+    row?: AsyncTableElement<T>,
     opts?: {
       skipProperties?: string[];
     }
@@ -466,7 +442,7 @@ export abstract class BaseMeasurementsTable<
     return Math.max(0, ...data.map((entity) => entity.rankOrder || 0));
   }
 
-  protected async existsRankOrder(rankOrder: number, excludedRows?: TableElement<T>[]): Promise<boolean> {
+  protected async existsRankOrder(rankOrder: number, excludedRows?: AsyncTableElement<T>[]): Promise<boolean> {
     const rows = this.dataSource.getRows();
     return rows.some((row) => (!excludedRows || !excludedRows.includes(row)) && row.currentData.rankOrder === rankOrder);
   }
@@ -483,7 +459,7 @@ export abstract class BaseMeasurementsTable<
     return true;
   }
 
-  protected async canUpdateEntity(data: T, row: TableElement<T>): Promise<boolean> {
+  protected async canUpdateEntity(data: T, row: AsyncTableElement<T>): Promise<boolean> {
     // Before using the given rankOrder, check if not already exists
     if (this.canEditRankOrder && isNotNil(data.rankOrder)) {
       if (await this.existsRankOrder(data.rankOrder, [row])) {
@@ -505,7 +481,10 @@ export abstract class BaseMeasurementsTable<
    * @param data the entity to insert.
    * @param opts
    */
-  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; editing?: boolean; emitEvent?: boolean }): Promise<TableElement<T>> {
+  protected async addEntityToTable(
+    data: T,
+    opts?: { confirmCreate?: boolean; editing?: boolean; emitEvent?: boolean }
+  ): Promise<AsyncTableElement<T>> {
     // Check entity can be added
     const canAdd = await this.canAddEntity(data);
     if (!canAdd) {
@@ -541,19 +520,9 @@ export abstract class BaseMeasurementsTable<
       // Set row's data
       row.currentData = data;
 
-      if (row.editing) {
-        // Confirm the created row
-        if (!opts || opts.confirmCreate !== false) {
-          if (row.pending) {
-            await AppFormUtils.waitWhilePending(row.validator);
-          }
-          const confirmed = this.confirmEditCreate(null, row);
-          this.editedRow = confirmed ? null : row /*confirmation failed*/;
-        }
-        // Keep editing
-        else {
-          this.editedRow = row;
-        }
+      // Confirm the created row
+      if (row.editing && (!opts || opts.confirmCreate !== false)) {
+        await this.confirmEditCreate(null, row);
       } else if (!opts || opts.emitEvent !== false) {
         this.markForCheck();
       }
@@ -579,7 +548,7 @@ export abstract class BaseMeasurementsTable<
    * @param row the row to update
    * @param opts
    */
-  protected updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmEdit?: boolean }): Promise<TableElement<T>> {
+  protected updateEntityToTable(data: T, row: AsyncTableElement<T>, opts?: { confirmEdit?: boolean }): Promise<AsyncTableElement<T>> {
     return super.updateEntityToTable(data, row, opts);
   }
 
@@ -604,7 +573,7 @@ export abstract class BaseMeasurementsTable<
 
   protected normalizeEntityToRow(
     data: T,
-    row: TableElement<T>,
+    row: AsyncTableElement<T>,
     opts?: {
       keepOtherExistingPmfms?: boolean;
       onlyExistingPmfms?: boolean;
@@ -624,7 +593,7 @@ export abstract class BaseMeasurementsTable<
    * @param row
    * @private
    */
-  private async _onRowCreated(row: TableElement<T>) {
+  private async _onRowCreated(row: AsyncTableElement<T>) {
     // WARN: must be called BEFORE row.validator.patchValue(), to be able to add group's validators
     if (row.validator && this.options.onPrepareRowForm) {
       await this.options.onPrepareRowForm(row.validator);
@@ -654,7 +623,7 @@ export abstract class BaseMeasurementsTable<
     }
   }
 
-  private async _onRowEditing(row: TableElement<T>) {
+  private async _onRowEditing(row: AsyncTableElement<T>) {
     if (row.id === -1) return; // Skip new row, because already processed by onRowCreated()
 
     if (row.validator && this.options.onPrepareRowForm) {

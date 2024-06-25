@@ -237,22 +237,33 @@
           </ion-grid>
         </mat-tab>
 
-        <!-- TAB: vessel photo -->
-        <mat-tab>
-          <ng-template mat-tab-label>
-            <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
-            &nbsp;
-            <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_PHOTO</ion-label>
-          </ng-template>
+        @if (canEdit) {
+          <!-- TAB: vessel photo -->
+          <mat-tab #vesselPhotoTab>
+            <ng-template mat-tab-label>
+              <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
+              &nbsp;
+              <ion-label
+                [matBadge]="gallery.value.length"
+                [matBadgeHidden]="!gallery.value.length"
+                matBadgeOverlap="false"
+                matBadgeColor="primary"
+                matBadgeSize="small"
+                matBadgePosition="above after"
+              >
+                <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_PHOTO</ion-label>
+              </ion-label>
+            </ng-template>
 
-          <app-image-attachment-gallery
-            #gallery
-            [disabled]="disabled"
-            [showAddCardButton]="true"
-            [showFabButton]="mobile"
-            [debug]="debug"
-          ></app-image-attachment-gallery>
-        </mat-tab>
+            <app-image-attachment-gallery
+              #gallery
+              [disabled]="disabled"
+              [showAddCardButton]="true"
+              [showFabButton]="mobile"
+              [debug]="debug"
+            ></app-image-attachment-gallery>
+          </mat-tab>
+        }
       </mat-tab-group>
     </mat-tab>
 
@@ -281,8 +292,8 @@
         #predocSplit
         direction="vertical"
         [useTransition]="true"
-        (dragEnd)="savePredocPanelSize($event.sizes)"
-        (transitionEnd)="savePredocPanelSize($event)"
+        (dragEnd)="onPredocResize($event.sizes)"
+        (transitionEnd)="onPredocResize($event)"
       >
         <!-- Main calendar -->
         <as-split-area [minSize]="20" size="*">
@@ -303,7 +314,7 @@
         </as-split-area>
 
         <!-- Predoc -->
-        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible">
+        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible" [style.z-index]="110">
           <app-calendar
             #predocCalendar
             [title]="'ACTIVITY_CALENDAR.EDIT.PREDOC_TITLE'"
@@ -317,6 +328,7 @@
             [sticky]="true"
             [canEdit]="false"
             [readOnly]="true"
+            [enableCellSelection]="true"
             [disabled]="true"
             [showToolbarOptions]="false"
             [compact]="calendar.compact"
@@ -330,7 +342,7 @@
     </mat-tab>
 
     <!-- TAB: Métiers -->
-    <mat-tab #metierTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_METIER' | translateContext: i18nContext.suffix" [disabled]="!showMap" appSubMenuTab>
+    <mat-tab #metierTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_METIER' | translateContext: i18nContext.suffix" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="settings"></ion-icon></mat-icon>
         <ion-label
@@ -344,7 +356,7 @@
           {{ metierTab.textLabel }}
         </ion-label>
       </ng-template>
-      <app-gear-use-features-table
+      <app-gear-physical-features-table
         #tableMetier
         [programLabel]="programLabel$ | async"
         [requiredStrategy]="requiredStrategy$ | async"
@@ -352,7 +364,9 @@
         [timezone]="timezone"
         [showGearColumn]="false"
         [showMetierColumn]="true"
-      ></app-gear-use-features-table>
+        [canAdd]="false"
+        [canDelete]="false"
+      ></app-gear-physical-features-table>
     </mat-tab>
 
     <!-- TAB: Map -->
@@ -396,7 +410,8 @@
 <ion-footer hidden-xs hidden-sm hidden-mobile>
   <app-form-buttons-bar
     (onCancel)="reloadWithConfirmation()"
-    [disabledCancel]="!dirty || loading"
+    [disabledCancel]="!dirty || loading || (hasClipboard$ | push)"
+    [disabledEscape]="hasClipboard$ | push"
     (onSave)="save($event)"
     [disabled]="!dirty || loading"
   >
@@ -413,7 +428,7 @@
   </app-form-buttons-bar>
 </ion-footer>
 
-<!-- FAB button: add landing -->
+<!-- FAB button: add metier block -->
 <ion-fab
   *ngIf="mobile && selectedTabIndex === 1"
   vertical="bottom"

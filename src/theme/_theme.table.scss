@@ -86,4 +86,10 @@ app-toolbar app-named-filter-selector {
     --mdc-icon-button-icon-color: var(--ion-color-contrast);
     --mdc-icon-button-disabled-icon-color: var(--ion-color-contrast);
   }
+
+  // Hide subscript wrapper (will hide hint)
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+    visibility: hidden;
+  }
 }

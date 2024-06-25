@@ -33,6 +33,7 @@ type ActivityCalendarVO {
     creationDate: Date
     directSurveyInvestigation: Boolean
     economicSurvey: Boolean
+    gearPhysicalFeatures: [GearPhysicalFeaturesVO]
     gearUseFeatures: [GearUseFeaturesVO]
     id: Int
     "Get activity calendar's images"
@@ -169,6 +170,7 @@ type ConfigurationVO {
 
 type DataOriginVO {
     acquisitionLevel: String
+    gearPhysicalFeaturesId: Int
     gearUseFeaturesId: Int
     program: ProgramVO
     programId: Int
@@ -454,6 +456,36 @@ type FishingAreaVO {
     qualityFlagId: Int
     sale: SaleVO
     saleId: Int
+}
+
+type GearPhysicalFeaturesVO {
+    activityCalendarId: Int
+    comments: String
+    controlDate: Date
+    creationDate: Date
+    dataOrigins: [DataOriginVO]
+    endDate: Date
+    gear: ReferentialVO
+    id: Int
+    measurementValues: Map_Integer_StringScalar
+    metier: MetierVO
+    otherGear: ReferentialVO
+    program: ProgramVO
+    qualificationComments: String
+    qualificationDate: Date
+    qualityFlag: Int
+    qualityFlagId: Int
+    rankOrder: Short
+    recorderDepartment: DepartmentVO
+    recorderDepartmentId: Int
+    recorderPersonId: Int
+    startDate: Date
+    trip: TripVO
+    updateDate: Date
+    validationDate: Date
+    vessel: VesselSnapshotVO
+    vesselId: Int
+    vesselSnapshot: VesselSnapshotVO
 }
 
 type GearUseFeaturesVO {
@@ -2126,6 +2158,7 @@ type VesselSnapshotVO {
     controlDate: Date
     countryRegistrationLocation: LocationVO
     creationDate: Date
+    empty(bean: VesselSnapshotVOInput, ignoredProperties: [String]): Boolean!
     endDate: Date
     exteriorMarking: String
     grossTonnageGrt: Float
@@ -2375,6 +2408,7 @@ input ActivityCalendarVOInput {
     creationDate: Date
     directSurveyInvestigation: Boolean
     economicSurvey: Boolean
+    gearPhysicalFeatures: [GearPhysicalFeaturesVOInput]
     gearUseFeatures: [GearUseFeaturesVOInput]
     id: Int
     images: [ImageAttachmentVOInput]
@@ -2517,6 +2551,7 @@ input DataFetchOptionsInput {
 
 input DataOriginVOInput {
     acquisitionLevel: String
+    gearPhysicalFeaturesId: Int
     gearUseFeaturesId: Int
     program: ProgramVOInput
     programId: Int
@@ -2796,6 +2831,36 @@ input FishingAreaVOInput {
     qualityFlagId: Int
     sale: SaleVOInput
     saleId: Int
+}
+
+input GearPhysicalFeaturesVOInput {
+    activityCalendarId: Int
+    comments: String
+    controlDate: Date
+    creationDate: Date
+    dataOrigins: [DataOriginVOInput]
+    endDate: Date
+    gear: ReferentialVOInput
+    id: Int
+    measurementValues: Map_Integer_StringScalar
+    metier: MetierVOInput
+    otherGear: ReferentialVOInput
+    program: ProgramVOInput
+    qualificationComments: String
+    qualificationDate: Date
+    qualityFlag: Int
+    qualityFlagId: Int
+    rankOrder: Short
+    recorderDepartment: DepartmentVOInput
+    recorderDepartmentId: Int
+    recorderPersonId: Int
+    startDate: Date
+    trip: TripVOInput
+    updateDate: Date
+    validationDate: Date
+    vessel: VesselSnapshotVOInput
+    vesselId: Int
+    vesselSnapshot: VesselSnapshotVOInput
 }
 
 input GearUseFeaturesVOInput {

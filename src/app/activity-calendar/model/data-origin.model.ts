@@ -9,6 +9,7 @@ export class DataOrigin extends Entity<DataOrigin> {
   acquisitionLevel: string;
   vesselUseFeaturesId: number;
   gearUseFeaturesId: number;
+  gearPhysicalFeatureId: number;
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target: any = super.asObject(opts);
@@ -22,5 +23,6 @@ export class DataOrigin extends Entity<DataOrigin> {
     this.acquisitionLevel = source.acquisitionLevel;
     this.vesselUseFeaturesId = source.vesselUseFeaturesId;
     this.gearUseFeaturesId = source.gearUseFeaturesId;
+    this.gearPhysicalFeatureId = source.gearPhysicalFeatureId;
   }
 }

@@ -1,9 +1,9 @@
 import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
-  AppTable,
+  AppAsyncTable,
   changeCaseToUnderscore,
+  EntitiesAsyncTableDataSource,
   EntitiesServiceWatchOptions,
-  EntitiesTableDataSource,
   EntitiesTableDataSourceConfig,
   Entity,
   EntityUtils,
@@ -20,7 +20,7 @@ import {
   RESERVED_START_COLUMNS,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
-import { TableElement } from '@e-is/ngx-material-table';
+import { AsyncTableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
@@ -56,7 +56,7 @@ export interface BaseTableConfig<
 export type AppBaseTableFilterRestoreSource = 'settings' | 'queryParams';
 
 @Directive()
-export abstract class AppBaseTable<
+export abstract class AppBaseTable2<
     T extends Entity<T, ID>,
     F extends IEntityFilter<F, T, any>,
     S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
@@ -65,7 +65,7 @@ export abstract class AppBaseTable<
     ST extends BaseTableState = BaseTableState,
     O extends BaseTableConfig<T, ID, ST> = BaseTableConfig<T, ID, ST>,
   >
-  extends AppTable<T, F, ID>
+  extends AppAsyncTable<T, F, ID>
   implements OnInit, AfterViewInit
 {
   private _canEdit: boolean;
@@ -103,6 +103,14 @@ export abstract class AppBaseTable<
     return this._canEdit && !this.readOnly;
   }
 
+  get editedRow(): AsyncTableElement<T> {
+    return this._dataSource?.getSingleEditingRow();
+  }
+
+  get tableContainerElement(): HTMLElement {
+    return this.tableContainerRef?.nativeElement as HTMLElement;
+  }
+
   @ViewChild('tableContainer', { read: ElementRef }) tableContainerRef: ElementRef;
   @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
@@ -130,7 +138,7 @@ export abstract class AppBaseTable<
     super(
       injector,
       RESERVED_START_COLUMNS.concat(columnNames).concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<T, F, ID>(dataType, _dataService, validatorService, {
+      new EntitiesAsyncTableDataSource<T, F, ID>(dataType, _dataService, validatorService, {
         prependNewElements: false,
         restoreOriginalDataOnCancel: false,
         suppressErrors: environment.production,
@@ -189,12 +197,12 @@ export abstract class AppBaseTable<
     // Enable permanent selection (to keep selected rows after reloading)
     // (only on desktop, if not already done)
     if (!this.mobile && !this.permanentSelection) {
-      this.initPermanentSelection();
+      // TODO: enable this
+      //this.initPermanentSelection();
+      this['initPermanentSelection']();
     }
 
-    if (this.options?.restoreCompactMode !== false) {
-      this.restoreCompactMode();
-    }
+    this.restoreCompactMode();
   }
 
   ngAfterViewInit() {
@@ -210,17 +218,17 @@ export abstract class AppBaseTable<
     this._state?.ngOnDestroy();
   }
 
-  initTableContainer(element: any) {
+  initTableContainer(element: any, opts?: { defaultShortcuts?: boolean }) {
     if (!element) return; // Skip if already done
 
-    if (!this.mobile) {
-      // Add shortcuts
+    // Add shortcuts
+    if (!this.mobile && opts?.defaultShortcuts !== false) {
       console.debug(this.logPrefix + 'Add table shortcuts');
       this.registerSubscription(
         this.hotkeys
           .addShortcut({ keys: 'control.a', element, preventDefault: false /*will prevent default only if no row editing */ })
           .pipe(
-            filter(() => this.canEdit && !this.focusColumn && !this.editedRow),
+            filter(() => this.canEdit && !this.focusColumn && !this.dataSource.hasSomeEditingRow()),
             tap((event: Event) => event?.preventDefault()),
             map(() => this.dataSource?.getRows()),
             filter(isNotEmptyArray)
@@ -293,14 +301,14 @@ export abstract class AppBaseTable<
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
-  clickRow(event: Event | undefined, row: TableElement<T>): boolean {
+  clickRow(event: Event | undefined, row: AsyncTableElement<T>): Promise<boolean> {
     if (!this.inlineEdition) this.highlightedRowId = row?.id;
 
     //console.debug('[base-table] click row');
     return super.clickRow(event, row);
   }
 
-  pressRow(event: Event | undefined, row: TableElement<T>): boolean {
+  pressRow(event: Event | undefined, row: AsyncTableElement<T>): Promise<boolean> {
     if (!this.mobile) return; // Skip if inline edition, or not mobile
 
     event?.preventDefault();
@@ -355,9 +363,9 @@ export abstract class AppBaseTable<
     }
   }
 
-  escapeEditingRow(event?: Event, row?: TableElement<T>) {
-    super.escapeEditingRow(event, row);
-    if (!this.editedRow) this.focusColumn = null;
+  async escapeEditingRow(event?: Event, row?: AsyncTableElement<T>): Promise<void> {
+    await super.escapeEditingRow(event, row);
+    if (!this.dataSource.hasSomeEditingRow()) this.focusColumn = null;
   }
 
   /**
@@ -375,7 +383,7 @@ export abstract class AppBaseTable<
     return Promise.resolve(true);
   }
 
-  protected canUpdateEntity(data: T, row: TableElement<T>): Promise<boolean> {
+  protected canUpdateEntity(data: T, row: AsyncTableElement<T>): Promise<boolean> {
     return Promise.resolve(true);
   }
 
@@ -389,7 +397,7 @@ export abstract class AppBaseTable<
    * @param data the entity to insert.
    * @param opts
    */
-  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; editing?: boolean }): Promise<TableElement<T>> {
+  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; editing?: boolean }): Promise<AsyncTableElement<T>> {
     if (!data) throw new Error('Missing data to add');
     if (this.debug) console.debug('[measurement-table] Adding new entity', data);
 
@@ -414,10 +422,7 @@ export abstract class AppBaseTable<
 
     // Confirm the created row
     if (row.editing && (!opts || opts.confirmCreate !== false)) {
-      const confirmed = this.confirmEditCreate(null, row);
-      if (confirmed) this.editedRow = null; // Forget the edited row
-    } else {
-      this.editedRow = row;
+      await this.confirmEditCreate(null, row);
     }
 
     this.markAsDirty();
@@ -429,7 +434,7 @@ export abstract class AppBaseTable<
     // Can be overrided by subclasses
   }
 
-  protected async addEntitiesToTable(data: T[], opts?: { editing?: boolean; emitEvent?: boolean }): Promise<TableElement<T>[]> {
+  protected async addEntitiesToTable(data: T[], opts?: { editing?: boolean; emitEvent?: boolean }): Promise<AsyncTableElement<T>[]> {
     if (!data) throw new Error('Missing data to add');
     if (this.debug) console.debug('[measurement-table] Adding new entities', data);
 
@@ -478,7 +483,7 @@ export abstract class AppBaseTable<
    * @param row the row to update
    * @param opts
    */
-  protected async updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmEdit?: boolean }): Promise<TableElement<T>> {
+  protected async updateEntityToTable(data: T, row: AsyncTableElement<T>, opts?: { confirmEdit?: boolean }): Promise<AsyncTableElement<T>> {
     if (!data || !row) throw new Error('Missing data, or table row to update');
     if (this.debug) console.debug('[measurement-table] Updating entity to an existing row', data);
 
@@ -497,11 +502,8 @@ export abstract class AppBaseTable<
     }
 
     // Confirm the created row
-    if (!opts || opts.confirmEdit !== false) {
-      this.confirmEditCreate(null, row);
-      this.editedRow = null;
-    } else if (this.inlineEdition) {
-      this.editedRow = row;
+    if (row.editing && (!opts || opts.confirmEdit !== false)) {
+      await this.confirmEditCreate(null, row);
     }
 
     this.markAsDirty();
@@ -594,7 +596,7 @@ export abstract class AppBaseTable<
     }
   }
 
-  async openCommentPopover(event: Event, row: TableElement<SubBatch>) {
+  async openCommentPopover(event: Event, row: AsyncTableElement<SubBatch>) {
     // Avoid to autofocus
     event?.preventDefault();
 
@@ -624,7 +626,7 @@ export abstract class AppBaseTable<
 
   /* -- protected functions -- */
 
-  protected async onDefaultRowCreated(row: TableElement<T>) {
+  protected async onDefaultRowCreated(row: AsyncTableElement<T>) {
     if (row.validator) {
       row.validator.patchValue(this.defaultNewRowValue());
     } else {
@@ -666,7 +668,7 @@ export abstract class AppBaseTable<
     return target;
   }
 
-  protected async findRowByEntity(data: T): Promise<TableElement<T>> {
+  protected async findRowByEntity(data: T): Promise<AsyncTableElement<T>> {
     if (!data) throw new Error('Missing argument data');
 
     // Make sure using an entity class, to be able to use equals()
@@ -675,7 +677,7 @@ export abstract class AppBaseTable<
     return this.dataSource.getRows().find((r) => data.equals(r.currentData));
   }
 
-  protected normalizeEntityToRow(data: T, row: TableElement<T>, opts?: any) {
+  protected normalizeEntityToRow(data: T, row: AsyncTableElement<T>, opts?: any) {
     // Can be override by subclasses
   }
 
