@@ -121,23 +121,22 @@
       <div class="resize-handle-corner"></div>
 
       <!-- debug -->
-      <ion-text *ngIf="debug && cellSelection" class="debug" color="tertiary">
-        <span>
-          DIV: marginTop:{{ cellSelectionDiv.style.marginTop }} marginLeft:{{ cellSelectionDiv.style.marginLeft }} top:{{
-            cellSelectionDiv.style.top
-          }}
-          left:{{ cellSelectionDiv.style.left }}
-          <br />
-        </span>
-        <span *ngIf="cellSelection.cellRect; let cellRect">
-          (RECT: top:{{ cellRect.top }} left:{{ cellRect.left }})
-          <br />
-        </span>
+      <ion-text *ngIf="debug && !!cellSelection" class="debug" color="tertiary">
         @if (cellSelection.resizing) {
-          resizing:true
-        }
-        @if (cellSelection.colspan || cellSelection.rowspan) {
+          Resizing...
+        } @else {
           colspan:{{ cellSelection.colspan }} rowspan:{{ cellSelection.rowspan }}
+          <br />
+          <b>div:</b>
+          top:{{ cellSelectionDiv.style.top }} left:{{ cellSelectionDiv.style.left }}
+          <br />
+          <b>container:</b>
+          scroll-top:{{ tableContainer.scrollTop }} scroll-left:{{ tableContainer.scrollLeft }}
+          @if (cellSelection.cellRect; as cellRect) {
+            <br />
+            <b>cell rect</b>
+            : top:{{ cellRect.top }} left:{{ cellRect.left }})
+          }
         }
       </ion-text>
     </div>
@@ -168,12 +167,12 @@
               matBadgeSize="small"
             >
               {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
-              @if (debug && canEdit) {
+              <!--@if (debug && canEdit) {
                 <br />
                 {{ row.id }}
                 {{ row.valid ? 'V' : row.pending ? 'P' : 'I' }}
                 {{ row.editing ? '*' : '' }}
-              }
+              }-->
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
@@ -383,8 +382,8 @@
             class="{{ col.class }}"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
-            (mouseenter)="col.hidden && cellSelection && expandBlock($event, col.blockIndex)"
-            (click)="col.hidden ? col.toggle($event) : setFocusColumn(col.key)"
+            (mouseenter)="col.hidden && cellSelection?.resizing && col.expand($event)"
+            (click)="col.hidden ? col.expand($event) : setFocusColumn($event, row, col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
           >
             @if (!col.hidden) {
@@ -438,7 +437,7 @@
             @if (row.validator | formGetValue: 'isActive' | isNotNil) {
               <button
                 mat-icon-button
-                [class.cdk-visually-hidden]="!!cellSelection"
+                [class.cdk-visually-hidden]="cellSelection?.resizing"
                 [class.visible-hover]="!row.editing"
                 [title]="'ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_MONTH' | translate"
                 (click)="clear($event, row)"
