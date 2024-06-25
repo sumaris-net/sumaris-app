@@ -162,7 +162,6 @@ export const PmfmIds = {
   SALE_TYPE: 503,
   IS_OBSERVED: 510,
   NON_OBSERVATION_REASON: 511,
-  SPECIES_LIST_ORIGIN: 512,
 
   /* ACTIFLOT */
   SURVEY_QUALIFICATION: 446,
@@ -215,10 +214,6 @@ export const QualitativeValueIds = {
     ANI: 577, // Animaux - TODO override by config
     INV: 578, // Inerte et végétaux - TODO override by config
     EMV: 582, // TODO override by config
-  },
-  SPECIES_LIST_ORIGIN: {
-    RANDOM: 660,
-    PETS: 661, // TODO remove - should not be used
   },
 };
 

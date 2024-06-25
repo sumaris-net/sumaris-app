@@ -18,7 +18,7 @@ import { merge, Observable, of } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 
 import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormControl, Validators } from '@angular/forms';
-import { MatFormFieldAppearance, SubscriptSizing } from '@angular/material/form-field';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
 
 import {
   AppFloatLabelType,
@@ -94,7 +94,6 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() placeholder: string;
   @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() appearance: MatFormFieldAppearance;
-  @Input() subscriptSizing: SubscriptSizing;
   @Input() required: boolean;
   @Input() readonly = false;
   @Input() compact = false;

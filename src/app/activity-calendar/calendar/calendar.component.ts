@@ -9,13 +9,10 @@ import {
   Input,
   OnInit,
   QueryList,
-  ViewChild,
   ViewChildren,
 } from '@angular/core';
 import {
   Alerts,
-  AppFormArray,
-  changeCaseToUnderscore,
   DateUtils,
   EntityUtils,
   getPropertyByPath,
@@ -23,30 +20,25 @@ import {
   InMemoryEntitiesService,
   isEmptyArray,
   isNil,
-  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   IStatus,
-  lastArrayValue,
   LoadResult,
   LocalSettingsService,
   MatAutocompleteFieldConfig,
   ReferentialUtils,
   removeDuplicatesFromArray,
-  RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  setPropertyByPath,
   sleep,
   splitById,
   StatusIds,
-  Toasts,
   toBoolean,
   toDateISOString,
-  toNumber,
   UsageMode,
   waitFor,
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
+import { TableElement } from '@e-is/ngx-material-table';
 import { ActivityMonth, ActivityMonthFilter } from '@app/activity-calendar/calendar/activity-month.model';
 import {
   ActivityMonthValidatorOptions,
@@ -57,7 +49,7 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { RxState } from '@rx-angular/state';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { fromEvent, Observable, Subscription, tap } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
@@ -65,20 +57,16 @@ import { UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { Moment } from 'moment/moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { debounceTime, filter, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
-import { ActivityCalendarContextService } from '../activity-calendar-context.service';
-import { MatMenuTrigger } from '@angular/material/menu';
-import { BaseMeasurementsTable2 } from '@app/data/measurement/measurements-table2.class';
-import { AsyncTableElement } from '@e-is/ngx-material-table';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -89,36 +77,25 @@ const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
     (_, index) =>
       <string[]>[
         `metier${index + 1}`,
-        ...new Array<string>(MAX_FISHING_AREA_COUNT)
-          .fill(null)
-          .flatMap(
-            (_, faIndex) =>
-              <string[]>[
-                `metier${index + 1}FishingArea${faIndex + 1}`,
-                `metier${index + 1}FishingArea${faIndex + 1}distanceToCoastGradient`,
-                `metier${index + 1}FishingArea${faIndex + 1}depthGradient`,
-                `metier${index + 1}FishingArea${faIndex + 1}nearbySpecificArea`,
-              ]
-          ),
+        ...new Array<string>(MAX_FISHING_AREA_COUNT).fill(null).flatMap((_, faIndex) => <string[]>[`metier${index + 1}FishingArea${faIndex + 1}`]),
       ]
   );
-export const ACTIVITY_MONTH_READONLY_COLUMNS = ['month', 'vesselOwner', 'registrationLocation'];
-export const ACTIVITY_MONTH_START_COLUMNS = [...ACTIVITY_MONTH_READONLY_COLUMNS, 'isActive', 'basePortLocation'];
-export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
+const ACTIVITY_MONTH_START_COLUMNS = ['month', 'vesselOwner', 'registrationLocation', 'isActive', 'basePortLocation'];
+const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
 
 export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
   {
-    id: VesselUseFeaturesIsActiveEnum.ACTIVE,
+    id: 1,
     icon: 'checkmark',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.ENABLE',
   },
   {
-    id: VesselUseFeaturesIsActiveEnum.INACTIVE,
+    id: 0,
     icon: 'close',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.DISABLE',
   },
   {
-    id: VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
+    id: 2,
     icon: 'close',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.NOT_EXISTS',
   },
@@ -139,8 +116,6 @@ export interface ColumnDefinition {
   //click?: (event?: UIEvent) => void,
   treeIndent?: string;
   hidden?: boolean;
-  toggle?: (event?: Event) => void;
-  expand?: (event?: Event) => void;
 }
 
 export interface CalendarComponentState extends BaseMeasurementsTableState {
@@ -150,27 +125,10 @@ export interface CalendarComponentState extends BaseMeasurementsTableState {
   dynamicColumns: ColumnDefinition[];
   metierCount: number;
   validRowCount: number;
-  hasClipboard: boolean;
 }
 
 export type CalendarComponentStyle = 'table' | 'accordion';
 
-export interface TableCellSelection<T = any> {
-  row: AsyncTableElement<T>;
-  columnName: string;
-  rowspan: number;
-  colspan: number;
-
-  cellElement: HTMLElement;
-  divElement: HTMLDivElement;
-
-  axis?: 'x' | 'y';
-  cellRect?: { top: number; left: number; width: number; height: number };
-  originalMouseX?: number;
-  originalMouseY?: number;
-  validating?: boolean;
-  resizing?: boolean;
-}
 @Component({
   selector: 'app-calendar',
   templateUrl: './calendar.component.html',
@@ -189,7 +147,7 @@ export interface TableCellSelection<T = any> {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarComponent
-  extends BaseMeasurementsTable2<
+  extends BaseMeasurementsTable<
     ActivityMonth,
     ActivityMonthFilter,
     IEntitiesService<ActivityMonth, ActivityMonthFilter>,
@@ -208,24 +166,28 @@ export class CalendarComponent
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() validRowCount$: Observable<number>;
-  @RxStateSelect() hasClipboard$: Observable<boolean>;
   protected readonly isActiveList = IsActiveList;
   protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
 
   protected rowSubscription: Subscription;
-  protected cellSelection: TableCellSelection<ActivityMonth>;
-  protected cellClipboard: TableCellSelection<ActivityMonth>;
+  protected resizingCell: {
+    validating?: boolean;
+    axis?: 'x' | 'y';
+    row: TableElement<ActivityMonth>;
+    columnName: string;
+    cellRect: { top: number; left: number; width: number; height: number };
+    shadowElement: HTMLDivElement;
+  };
+  protected originalMouseY: number;
+  protected originalMouseX: number;
   protected _children: CalendarComponent[];
-  protected showDebugValue = false;
-  protected editedRowFocusedElement: HTMLElement;
 
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
   @RxStateProperty() metierCount: number;
   @RxStateProperty() validRowCount: number;
-  @RxStateProperty() hasClipboard: boolean;
 
   @Input() @RxStateProperty() months: Moment[];
 
@@ -319,13 +281,10 @@ export class CalendarComponent
   }
 
   @ViewChildren('monthCalendar', { read: CalendarComponent }) monthCalendars!: QueryList<CalendarComponent>;
-  @ViewChild('menuTrigger') menuTrigger: MatMenuTrigger;
-  @ViewChild('cellSelectionDiv', { read: ElementRef }) cellSelectionDivRef: ElementRef;
-  @ViewChild('cellClipboardDiv', { read: ElementRef }) cellClipboardDivRef: ElementRef;
 
   constructor(
     injector: Injector,
-    protected context: ActivityCalendarContextService
+    private element: ElementRef
   ) {
     super(
       injector,
@@ -371,9 +330,8 @@ export class CalendarComponent
 
     this.locationDisplayAttributes = this.locationDisplayAttributes || this.settings.getFieldDisplayAttributes('location');
     this.inlineEdition = this.inlineEdition && this.canEdit;
-    this.enableCellSelection = toBoolean(this.enableCellSelection, this.inlineEdition && this.style === 'table' && this.canEdit);
+    this.enableCellSelection = this.inlineEdition && toBoolean(this.enableCellSelection, this.style === 'table' && this.canEdit);
 
-    // Wait enumerations to be set
     await this.referentialRefService.ready();
 
     this.registerAutocompleteField('basePortLocation', {
@@ -403,55 +361,14 @@ export class CalendarComponent
       attributes: ['label'],
       mobile: this.mobile,
     });
-    this.registerAutocompleteField('distanceToCoastGradient', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
-      filter: {
-        entityName: 'DistanceToCoastGradient',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
-      attributes: ['label', 'name'],
-      mobile: this.mobile,
-    });
-    this.registerAutocompleteField('depthGradient', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
-      filter: {
-        entityName: 'DepthGradient',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
-      attributes: ['label', 'name'],
-      mobile: this.mobile,
-    });
-    this.registerAutocompleteField('nearbySpecificArea', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
-      filter: {
-        entityName: 'NearbySpecificArea',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
-      attributes: ['label', 'name'],
-      mobile: this.mobile,
-    });
 
     this._state.connect(
       'validRowCount',
       this._dataSource.rowsSubject.pipe(
         map((rows) => {
-          return rows.map((row) => row.currentData?.isActive).filter(isNotNil).length;
+          return rows.filter((row) => isNotNil(row.currentData?.isActive)).length;
         })
       )
-    );
-
-    // Reset cell clipboard, when clipboard cleared or updated
-    this.registerSubscription(
-      this.context
-        .select('clipboard')
-        .pipe(
-          tap((clipboard) => (this.hasClipboard = isNotEmptyArray(clipboard?.data?.months))),
-          filter((clipboard) => isNotEmptyArray(clipboard?.data?.months) && clipboard.source !== this)
-        )
-        .subscribe(() => this.clearClipboard(null, { clearContext: false }))
     );
   }
 
@@ -459,41 +376,13 @@ export class CalendarComponent
     super.ngAfterViewInit();
   }
 
+  protected generateTableId(): string {
+    return super.generateTableId();
+  }
+
   initTableContainer(element: any) {
     if (this.style === 'accordion') return; // Skip
-
-    super.initTableContainer(element, { defaultShortcuts: false });
-
-    // Add shortcuts
-    if (!this.mobile) {
-      console.debug(this.logPrefix + 'Add table shortcuts');
-
-      this.registerSubscription(
-        this.hotkeys
-          .addShortcut({ keys: 'control.c', description: 'COMMON.BTN_COPY', preventDefault: false /*keep copy in <input>*/ })
-          .pipe(filter(() => this.loaded && !!this.cellSelection))
-          .subscribe((event) => this.copy(event))
-      );
-      this.registerSubscription(
-        this.hotkeys
-          .addShortcut({ keys: 'control.v', description: 'COMMON.BTN_PASTE', preventDefault: false /*keep past in <input>*/ })
-          .pipe(filter(() => !this.disabled && this.canEdit))
-          .subscribe((event) => this.pasteFromClipboard(event))
-      );
-      this.registerSubscription(
-        this.hotkeys
-          .addShortcut({ keys: 'escape', description: 'COMMON.BTN_CLEAR_CLIPBOARD', preventDefault: true })
-          .pipe(filter((e) => !!this.cellClipboard))
-          .subscribe((event) => this.clearClipboard(event))
-      );
-      this.registerSubscription(
-        this.hotkeys
-          .addShortcut({ keys: 'delete', description: 'COMMON.BTN_CLEAR_SELECTION', preventDefault: false /*keep delete in <input>*/ })
-          .subscribe((event) => this.clearCellSelection(event))
-      );
-
-      this.registerSubscription(fromEvent(element, 'scroll').subscribe(() => this.onResize()));
-    }
+    super.initTableContainer(element);
   }
 
   markAsReady(opts?: { emitEvent?: boolean }) {
@@ -660,379 +549,136 @@ export class CalendarComponent
     }
   }
 
-  async onMouseDown(event: MouseEvent, cellElement: HTMLTableCellElement, row: AsyncTableElement<any>, columnName: string, axis?: 'x' | 'y') {
-    if (!cellElement) throw new Error('Missing cell element');
+  onMouseDown(event: MouseEvent, cellElement: HTMLTableCellElement, row: TableElement<any>, columnName: string, axis?: 'x' | 'y') {
+    if (!cellElement) throw new Error('Missing rectangle element');
+    if (this.resizingCell) return; // Skip if already resizing
 
     event.preventDefault();
     event.stopPropagation();
 
-    const divElement = this.cellSelectionDivRef.nativeElement as HTMLDivElement;
-    if (!divElement) return false;
-
-    this.closeContextMenu();
-
-    // DEBUG
-    console.debug(`${this.logPrefix}Start cell selection... [confirm edited row}`);
-
-    // Confirmed previous edited row
-    const confirmed = await this.confirmEditCreate();
-    if (!confirmed) return false;
-
-    if (this.cellSelection) {
-      if (this.cellSelection.validating) return false;
-
-      // If action comes from the bottom-right cell, then extend the current selection
-      if (this.isRightAndBottomCellSelected(this.cellSelection, row, columnName)) {
-        this.cellSelection.resizing = true;
-        return true;
-      }
-
-      // Else, remove the previous cell selection
-      this.removeCellSelection({ emitEvent: false });
-    }
-
-    // DEBUG
-    console.debug(`${this.logPrefix}Start cell selection... [row confirmed}`);
-
-    this.cellSelection = {
-      divElement,
-      cellElement,
-      row,
-      columnName,
-      axis,
-      originalMouseX: event.clientX,
-      originalMouseY: event.clientY,
-      colspan: 1,
-      rowspan: 1,
-      resizing: true,
+    const parentRect = this.element.nativeElement.getBoundingClientRect();
+    const rect = cellElement.getBoundingClientRect();
+    const cellRect = {
+      top: rect.y,
+      left: rect.x - parentRect.left,
+      width: rect.width,
+      height: rect.height,
     };
-
-    this.resizeCellSelection(this.cellSelection, 'cell');
-
-    return true;
+    this.originalMouseX = event.clientX;
+    this.originalMouseY = event.clientY;
+    const shadowElement = document.createElement('div');
+    shadowElement.style.position = 'fixed';
+    shadowElement.style.zIndex = '9999';
+    shadowElement.style.backgroundColor = 'rgba(var(--ion-color-secondary-rgb), 0.4)';
+    shadowElement.style.top = cellRect.top + 'px';
+    shadowElement.style.left = cellRect.left + 'px';
+    shadowElement.style.width = cellRect.width + 'px';
+    shadowElement.style.height = cellRect.height + 'px';
+    cellElement.prepend(shadowElement);
+    this.resizingCell = { shadowElement, row, columnName, cellRect, axis };
   }
 
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
-    const cellSelection = this.cellSelection;
+    const shadowElement = this.resizingCell?.shadowElement;
+    if (!shadowElement) return;
 
-    if (!cellSelection?.resizing || cellSelection.validating || event.defaultPrevented) return; // Ignore
+    // Ignore if waiting validation
+    if (this.resizingCell.validating) return;
 
-    // DEBUG
-    //console.debug(this.logPrefix + 'Moving cell selection validating=' + (cellSelection?.validating || false));
-
-    const { axis, cellRect, row } = cellSelection;
-    if (!cellRect) return; // Missing cellRect
-
-    const movementX = axis !== 'y' ? event.clientX - cellSelection.originalMouseX : 0;
-    const movementY = axis !== 'x' ? event.clientY - cellSelection.originalMouseY : 0;
-
-    let colspan = Math.max(cellRect.width, Math.round((cellRect.width + Math.abs(movementX)) / cellRect.width) * cellRect.width) / cellRect.width;
-    let rowspan =
-      Math.max(cellRect.height, Math.round((cellRect.height + Math.abs(movementY)) / cellRect.height) * cellRect.height) / cellRect.height;
-
-    // Manage negative
-    if (movementX < 0 && colspan > 1) colspan = -1 * (colspan - 1);
-    if (movementY < 0 && rowspan > 1) rowspan = -1 * (rowspan - 1);
-
-    // Check limits
-    const rowIndex = row.id;
-    if (colspan >= 0) {
-      // Upper limit
-      colspan = Math.min(colspan, this.visibleRowCount - rowIndex);
-    } else {
-      // Lower limit
-      colspan = Math.max(colspan, -1 * (rowIndex + 1));
+    const axis = this.resizingCell.axis;
+    const movementX = axis !== 'y' ? event.clientX - this.originalMouseX : 0;
+    const movementY = axis !== 'x' ? event.clientY - this.originalMouseY : 0;
+    const originalRect = this.resizingCell.cellRect;
+    const newWidth = originalRect.width + Math.abs(movementX);
+    const snapWidth = Math.max(originalRect.width, Math.round(newWidth / originalRect.width) * originalRect.width);
+    const newHeight = originalRect.height + Math.abs(movementY);
+    const snapHeight = Math.max(originalRect.height, Math.round(newHeight / originalRect.height) * originalRect.height);
+    let left = originalRect.left;
+    let top = originalRect.top;
+    if (movementX < 0) {
+      left = originalRect.left + originalRect.width - snapWidth;
     }
-    const columnIndex = this.displayedColumns.indexOf(cellSelection.columnName);
-    if (rowspan >= 0) {
-      // Upper limit
-      rowspan = Math.min(rowspan, this.displayedColumns.length - RESERVED_END_COLUMNS.length - columnIndex);
-    } else {
-      // Lower limit
-      rowspan = Math.max(rowspan, -1 * (columnIndex + 1 - RESERVED_START_COLUMNS.length - ACTIVITY_MONTH_READONLY_COLUMNS.length));
+    if (movementY < 0) {
+      top = originalRect.top + originalRect.height - snapHeight;
     }
 
-    cellSelection.colspan = colspan;
-    cellSelection.rowspan = rowspan;
-
-    this.resizeCellSelection(cellSelection);
+    // Resize the shadow element
+    shadowElement.style.left = left + 'px';
+    shadowElement.style.width = snapWidth + 'px';
+    shadowElement.style.top = top + 'px';
+    shadowElement.style.height = snapHeight + 'px';
   }
 
   @HostListener('document:mouseup', ['$event'])
-  async onMouseUp(event?: MouseEvent) {
-    const cellSelection = this.cellSelection;
-    if (!cellSelection?.resizing || cellSelection.validating || event?.defaultPrevented) return false;
-
-    const { divElement, cellRect } = cellSelection;
-    if (!divElement || !cellRect) return false;
-
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    // DEBUG
-    console.debug(`${this.logPrefix}Validating cell selection`);
-    cellSelection.validating = true;
-    cellSelection.resizing = false;
-
-    try {
-      // Stop if selection is empty
-      if (cellSelection.colspan === 0 || cellSelection.rowspan === 0) {
-        this.removeCellSelection();
-        return;
+  async onMouseUp(event: MouseEvent) {
+    const shadowElement = this.resizingCell?.shadowElement;
+    const originalRect = this.resizingCell?.cellRect;
+    if (shadowElement && originalRect) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.resizingCell.validating) return; // Waiting validation end
+      this.resizingCell.validating = true;
+      const movementX = this.resizingCell.axis !== 'y' ? event.clientX - this.originalMouseX : 0;
+      const movementY = this.resizingCell.axis !== 'x' ? event.clientY - this.originalMouseY : 0;
+      const actualRect = shadowElement.getBoundingClientRect();
+      const colspan = (actualRect.width / originalRect.width) * (movementX >= 0 ? 1 : -1);
+      const rowspan = (actualRect.height / originalRect.height) * (movementY >= 0 ? 1 : -1);
+      if (colspan !== 1 || rowspan !== 1) {
+        const event = { colspan, rowspan, columnName: this.resizingCell.columnName, row: this.resizingCell.row };
+        try {
+          const validate = await this.validate(event);
+          if (validate) {
+            console.debug(`Applying colspan=${colspan} rowspan=${rowspan}`);
+            this.onMouseEnd(event);
+          }
+        } catch (err) {
+          console.error(err);
+        }
       }
-
-      await this.onMouseEnd(cellSelection);
-
-      await sleep(250);
-    } finally {
-      // Mark as not validating
-      cellSelection.validating = false;
+      shadowElement.remove();
     }
+    this.resizingCell = null;
+    this.originalMouseY = null;
+    this.originalMouseX = null;
   }
 
-  async onMouseShiftClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
-    row = row || this.editedRow;
-    columnName = columnName || this.focusColumn;
-    if (!row || !columnName || event?.defaultPrevented) return false; // Skip
-
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    // DEBUG
-    //console.debug(`${this.logPrefix}Shift+click`, event, row, columnName);
-    let cellSelection = this.cellSelection;
-
-    // No existing selection, but edited Row
-    const editedRow = this.editedRow;
-    if (!cellSelection && editedRow) {
-      // Get edited cell
-      const editedCell = this.getEditedCell();
-      if (editedCell) {
-        // Confirmed
-        const confirmed = await this.confirmEditCreate();
-        if (!confirmed) return false;
-
-        const { cellElement, columnName: sourceColumnName } = editedCell;
-        // Creating a selection
-        cellSelection = {
-          divElement: this.cellSelectionDivRef.nativeElement,
-          cellElement,
-          row: editedRow,
-          columnName: sourceColumnName,
-          colspan: 1, // Will be update later (see below)
-          rowspan: 1, // Will be update later (see below)
-          resizing: false,
-        };
-      }
-    }
-
-    // No existing selection
-    if (!cellSelection) {
-      const cellElement = this.getEventCellElement(event);
-      if (!cellElement) return false;
-
-      // Creating new selection
-      cellSelection = {
-        divElement: this.cellSelectionDivRef.nativeElement,
-        cellElement,
-        row,
-        columnName,
-        colspan: 1,
-        rowspan: 1,
-        resizing: false,
-      };
-    }
-    // Extend existing cell selection to target cell
-    else {
-      const { row: sourceRow, columnName: sourceColumnName } = cellSelection;
-      const sourceRowIndex = sourceRow.id;
-      const sourceColumnNameIndex = this.displayedColumns.indexOf(sourceColumnName);
-      const targetRowIndex = row.id;
-      const targetColumnIndex = this.displayedColumns.indexOf(columnName);
-
-      cellSelection.colspan = targetRowIndex > sourceRowIndex ? targetRowIndex - sourceRowIndex + 1 : targetRowIndex - sourceRowIndex - 1;
-      cellSelection.rowspan =
-        targetColumnIndex > sourceColumnNameIndex ? targetColumnIndex - sourceColumnNameIndex + 1 : targetColumnIndex - sourceColumnNameIndex - 1;
-    }
-
-    // Expand blocks if need
-    const { paths: selectedPaths } = this.getRowsFromSelection(cellSelection);
-
-    // Expand some column, if need
-    const collapsedColumns = this.dynamicColumns.filter((col) => col.toggle && !col.expanded && selectedPaths.includes(col.path));
-    if (isNotEmptyArray(collapsedColumns)) {
-      collapsedColumns.forEach((col) => col.toggle());
-      await sleep(100); // Wait end of expansion
-    }
-
-    this.cellSelection = cellSelection;
-    this.resizeCellSelection(cellSelection, 'cell');
-
+  protected async validate(event: { colspan: number; rowspan: number }): Promise<boolean> {
+    // TODO display merge/opts menu
+    await sleep(500);
     return true;
   }
 
-  async onMouseCtrlClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
-    row = row || this.editedRow;
-    columnName = columnName || this.focusColumn;
-
-    if (!row || !columnName) return false; // Skip
-
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    // DEBUG
-    //console.debug(`${this.logPrefix}Ctrl+click`, event, row, columnName);
-
-    const confirmed = await this.confirmEditCreate();
-    if (!confirmed) return false;
-
-    // Select the targeted cell
-    const cellElement = this.getEventCellElement(event);
-    if (!cellElement) return false;
-    this.cellSelection = {
-      divElement: this.cellSelectionDivRef.nativeElement,
-      cellElement,
-      row,
-      columnName,
-      colspan: 1,
-      rowspan: 1,
-      resizing: false,
-    };
-    this.resizeCellSelection(this.cellSelection, 'cell');
-  }
-
-  @HostListener('window:resize')
-  onResize() {
-    this.closeContextMenu();
-    this.resizeCellSelection(this.cellSelection, 'cell', { emitEvent: false });
-    this.resizeCellSelection(this.cellClipboard, 'clipboard', { emitEvent: false });
-    this.markForCheck();
-  }
-
-  protected resizeCellSelection(cellSelection: TableCellSelection, name?: string, opts?: { emitEvent?: boolean }) {
-    if (!cellSelection) return;
-
-    const containerElement = this.tableContainerElement;
-    if (!containerElement) return;
-
-    const { cellElement, divElement } = cellSelection;
-    if (!cellElement || !divElement) return;
-
-    // DEBUG
-    //console.debug(`${this.logPrefix}Resizing ${name || 'cell'} selection...`);
-
-    const containerRect = containerElement.getBoundingClientRect();
-    const relativeCellRect = cellElement.getBoundingClientRect();
-    const divRect = divElement.getBoundingClientRect();
-
-    const previousCellRect = cellSelection.cellRect;
-    cellSelection.cellRect = {
-      top: relativeCellRect.top,
-      left: relativeCellRect.left - containerRect.left,
-      width: relativeCellRect.width,
-      height: relativeCellRect.height,
-    };
-
-    const colspan = toNumber(cellSelection.colspan, divRect.width / toNumber(previousCellRect?.width, relativeCellRect.width));
-    const rowspan = toNumber(cellSelection.rowspan, divRect.height / toNumber(previousCellRect?.height, relativeCellRect.width));
-
-    let top = relativeCellRect.top;
-    let left = relativeCellRect.left + (containerElement.scrollLeft || 0) - containerRect.left;
-    const width = relativeCellRect.width * Math.abs(colspan);
-    const height = relativeCellRect.height * Math.abs(rowspan);
-
-    if (rowspan < 0) {
-      top = relativeCellRect.top + relativeCellRect.height - height;
-    }
-    if (colspan < 0) {
-      left = relativeCellRect.left + relativeCellRect.width - width - containerRect.left + (containerElement.scrollLeft || 0);
-    }
-
-    // TODO - Check top limit
-    /*const maxTop = containerElement.offsetTop - containerElement.scrollTop;
-    //console.log('TODO maxTop=' + maxTop);
-    if (top < maxTop) {
-      //height -= maxTop - top;
-      //top = containerElement.offsetTop + containerElement.scrollTop;
-    }
-    // Check height limit
-    if (top + height > containerElement.clientHeight) {
-      //height = top + containerElement.clientHeight;
-    }*/
-
-    // DEBUG
-    //console.debug(`${this.logPrefix}Resizing to top=${top} left=${left} width=${width} height=${height}`);
-
-    // Resize the shadow element
-    divElement.style.position = 'fixed';
-    divElement.style.top = top + 'px';
-    divElement.style.left = left + 'px';
-    divElement.style.width = width + 'px';
-    divElement.style.height = height + 'px';
-
-    if (opts?.emitEvent !== false) {
-      this.markForCheck();
-    }
-  }
-
-  protected async onMouseEnd(cellSelection?: TableCellSelection) {
+  protected onMouseEnd(event: { colspan: number; rowspan: number }) {
     // Vertical copy
-    if (cellSelection.axis === 'x' && cellSelection?.rowspan === 1 && cellSelection.colspan > 1) {
-      const done = await this.copyVertically(cellSelection.row, cellSelection.columnName, cellSelection.colspan);
-
-      // Reset axis to allow cell selection resize
-      this.cellSelection.axis = null;
-
-      return done;
+    if (event.colspan !== 0 && event.rowspan === 1) {
+      return this.copyVertically(this.resizingCell.row, this.resizingCell.columnName, event.colspan);
     }
 
     return true;
   }
 
-  async clickRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>): Promise<boolean> {
-    if (event?.defaultPrevented) return false; // Skip
+  clickRow(event: Event | undefined, row: TableElement<ActivityMonth>): boolean {
+    if (this.resizingCell || event.defaultPrevented) return; // Skip
 
-    this.closeContextMenu();
-
-    // If cell selection is resizing: skip
-    if (this.cellSelection?.resizing || this.cellSelection?.validating) return false;
-
-    // If Click+Shift
-    if (event instanceof MouseEvent) {
-      if (event.shiftKey === true) return this.onMouseShiftClick(event, row, this.focusColumn);
-      if (event.ctrlKey === true) return this.onMouseCtrlClick(event, row, this.focusColumn);
-    }
-
-    if (this.disabled) return false; // Skip
-
+    if (!this.canEdit) return false;
     return super.clickRow(event, row);
   }
 
-  async cancelOrDelete(
-    event: Event,
-    row: AsyncTableElement<ActivityMonth>,
-    opts?: { interactive?: boolean; keepEditing?: boolean; emitEvent?: boolean }
-  ): Promise<void> {
+  cancelOrDelete(event: Event, row: TableElement<ActivityMonth>, opts?: { interactive?: boolean; keepEditing?: boolean; emitEvent?: boolean }) {
     event?.preventDefault();
-    if (row === this.editedRow) this.rowSubscription?.unsubscribe();
-
-    await super.cancelOrDelete(event, row, { ...opts, keepEditing: false });
-
-    // Restart listen changes, if still editing (e.g. cannot cancel)
-    if (row.editing) {
-      // DEBUG
-      console.debug(`${this.logPrefix} Cannot cancel or delete the row!`);
-
-      this.startListenRow(row.validator);
-    } else {
+    this.rowSubscription?.unsubscribe();
+    super.cancelOrDelete(event, row, { ...opts, keepEditing: false });
+    // Listen changes, if still editing (e.g. when cannot cancel)
+    if (row.editing) this.startListenRowFormChanges(row.validator);
+    else {
       row.validator.markAsPristine();
       // Update view
       if (opts?.emitEvent !== false) this.markForCheck();
     }
   }
 
-  addMetierBlock(event?: Event, opts?: { emitEvent?: boolean; updateRows?: boolean }) {
+  addMetierBlock(event?: UIEvent, opts?: { emitEvent?: boolean; updateRows?: boolean }) {
     // Skip if reach max
     if (this.metierCount >= this.maxMetierCount) {
       console.warn(this.logPrefix + 'Unable to add metier: max=' + this.maxMetierCount);
@@ -1041,8 +687,9 @@ export class CalendarComponent
 
     console.debug(this.logPrefix + 'Adding new metier block...');
     const index = this.metierCount;
-    const fishingAreaCount = toNumber(this.maxFishingAreaCount, MAX_FISHING_AREA_COUNT);
-    const rankOrder = index + 1;
+    const newMetierCount = index + 1;
+    const newFishingAreaCount = this.maxFishingAreaCount || 2;
+    const rankOrder = newMetierCount;
     const pathPrefix = `gearUseFeatures.${index}.`;
     const blockColumns: ColumnDefinition[] = [
       {
@@ -1056,68 +703,21 @@ export class CalendarComponent
         key: `metier${rankOrder}`,
         class: 'mat-column-metier',
         expanded: true,
-        toggle: (event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
       },
-      ...new Array<ColumnDefinition>(fishingAreaCount).fill(null).flatMap((_, faIndex) => {
+      ...new Array(newFishingAreaCount).fill(null).map((_, faIndex) => {
         const faRankOrder = faIndex + 1;
-        return [
-          {
-            blockIndex: index,
-            index: faIndex,
-            rankOrder: faRankOrder,
-            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA_RANKED', { rankOrder: faRankOrder }),
-            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA'),
-            autocomplete: this.autocompleteFields.fishingAreaLocation,
-            path: `${pathPrefix}fishingAreas.${faIndex}.location`,
-            key: `metier${rankOrder}FishingArea${faRankOrder}`,
-            class: 'mat-column-fishingArea',
-            treeIndent: '&nbsp;&nbsp;',
-            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
-          },
-          {
-            blockIndex: index,
-            index: faIndex,
-            rankOrder: faRankOrder,
-            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DISTANCE_TO_COAST_GRADIENT'),
-            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DISTANCE_TO_COAST_GRADIENT'),
-            autocomplete: this.autocompleteFields.distanceToCoastGradient,
-            path: `${pathPrefix}fishingAreas.${faIndex}.distanceToCoastGradient`,
-            key: `metier${rankOrder}FishingArea${faRankOrder}distanceToCoastGradient`,
-            class: 'mat-column-distanceToCoastGradient',
-            treeIndent: '&nbsp;&nbsp',
-            expanded: false,
-            toggle: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
-            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
-          },
-          {
-            blockIndex: index,
-            index: faIndex,
-            rankOrder: faRankOrder,
-            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DEPTH_GRADIENT'),
-            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.DEPTH_GRADIENT'),
-            autocomplete: this.autocompleteFields.depthGradient,
-            path: `${pathPrefix}fishingAreas.${faIndex}.depthGradient`,
-            key: `metier${rankOrder}FishingArea${faRankOrder}depthGradient`,
-            class: 'mat-column-depthGradient',
-            treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
-            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
-            hidden: true,
-          },
-          {
-            blockIndex: index,
-            index: faIndex,
-            rankOrder: faRankOrder,
-            label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.NEARBY_SPECIFIC_AREA'),
-            placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.NEARBY_SPECIFIC_AREA'),
-            autocomplete: this.autocompleteFields.nearbySpecificArea,
-            path: `${pathPrefix}fishingAreas.${faIndex}.nearbySpecificArea`,
-            key: `metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`,
-            class: 'mat-column-nearbySpecificArea',
-            treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
-            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
-            hidden: true,
-          },
-        ];
+        return {
+          blockIndex: index,
+          index: faIndex,
+          rankOrder: faRankOrder,
+          label: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA_RANKED', { rankOrder: faRankOrder }),
+          placeholder: this.translate.instant('ACTIVITY_CALENDAR.EDIT.FISHING_AREA'),
+          autocomplete: this.autocompleteFields.fishingAreaLocation,
+          path: `${pathPrefix}fishingAreas.${faIndex}.location`,
+          key: `metier${rankOrder}FishingArea${faRankOrder}`,
+          class: 'mat-column-fishingArea',
+          treeIndent: '&nbsp;&nbsp;',
+        };
       }),
     ];
 
@@ -1130,7 +730,7 @@ export class CalendarComponent
     this.dynamicColumns = this.dynamicColumns ? [...this.dynamicColumns, ...blockColumns] : blockColumns;
     const dynamicColumnKeys = this.dynamicColumns.map((col) => col.key);
     this.excludesColumns = this.excludesColumns.filter((columnName) => !dynamicColumnKeys.includes(columnName));
-    this.metierCount = index + 1;
+    this.metierCount = newMetierCount;
 
     // Force to update the edited row
     if (this.editedRow) {
@@ -1142,15 +742,15 @@ export class CalendarComponent
     }
   }
 
-  protected expandAll(event?: Event, opts?: { emitEvent?: boolean }) {
+  protected expandAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
     for (let i = 0; i < this.metierCount; i++) {
-      this.expandMetierBlock(null, i);
+      this.expandBlock(null, i);
     }
   }
 
   protected collapseAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
     for (let i = 0; i < this.metierCount; i++) {
-      this.collapseMetierBlock(null, i);
+      this.collapseBlock(null, i);
     }
   }
 
@@ -1190,6 +790,8 @@ export class CalendarComponent
   ) {
     if (!form || !this.validatorService) return;
 
+    this.markAsDirty();
+
     const isActive = form.get('isActive').value;
 
     opts = {
@@ -1206,50 +808,21 @@ export class CalendarComponent
     this.validatorService.updateFormGroup(form, opts);
 
     if (opts?.listenChanges !== false) {
-      this.startListenRow(form);
+      this.startListenRowFormChanges(form);
     }
   }
 
-  protected startListenRow(form: UntypedFormGroup) {
-    // Stop previous listener
+  protected startListenRowFormChanges(form: UntypedFormGroup) {
     this.rowSubscription?.unsubscribe();
-
-    // DEBUG
-    console.debug(this.logPrefix + 'Start listening row form...', form);
-
-    this.rowSubscription = new Subscription();
-    this.rowSubscription.add(
-      ActivityMonthValidators.startListenChanges(form, {
-        markForCheck: () => this.markForCheck(),
-        debounceTime: 100,
-      })
-    );
-    this.rowSubscription.add(
-      form.valueChanges
-        .pipe(
-          debounceTime(250),
-          filter(() => form.touched)
-        )
-        .subscribe(() => {
-          // Clear the clipboard, if content changed
-          if (this.isCellSelected(this.cellClipboard, this.editedRow, this.focusColumn)) {
-            this.clearClipboard(null, { clearContext: !!this.cellClipboard });
-          }
-
-          if (form.dirty) this.markAsDirty();
-        })
-    );
-    // DEBUG
-    this.rowSubscription.add(() => console.debug(this.logPrefix + 'Stop listening row form'));
-
-    // Listen row focused element
-    this.rowSubscription.add(this.startListenFocusedElement());
-  }
-
-  protected async editRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, opts?: { focusColumn?: string }): Promise<boolean> {
-    const editing = await super.editRow(event, row, opts);
-    if (editing) this.removeCellSelection();
-    return editing;
+    console.debug(this.logPrefix + 'Listening row form...', form);
+    this.rowSubscription = ActivityMonthValidators.startListenChanges(form, this.pmfms, {
+      markForCheck: () => this.markForCheck(),
+      debounceTime: 100,
+    });
+    /*this.rowSubscription = form.valueChanges.subscribe((value) => {
+      this.onPrepareRowForm(form, { listenChanges: false });
+    });*/
+    this.rowSubscription.add(() => console.debug(this.logPrefix + 'Stop listening row form...', form));
   }
 
   protected configureValidator(opts: MeasurementsTableValidatorOptions) {
@@ -1261,29 +834,23 @@ export class CalendarComponent
     };
   }
 
-  async confirmEditCreate(event?: Event, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+  confirmEditCreate(event?: Event, row?: TableElement<ActivityMonth>): boolean {
     row = row || this.editedRow;
-    if (!row || !row.editing) return true; // nothing to confirmed
+    if (!row || !row.editing) return true; // no row to confirm
 
     // If pristine, cancel instead of confirmed
     if (row.validator.pristine && !row.validator.valid) {
-      await this.cancelOrDelete(event, row);
-
-      this.focusColumn = undefined;
-
+      this.cancelOrDelete(event, row);
       return true;
     }
 
     event?.preventDefault();
     event?.stopPropagation();
 
-    const confirmed = await super.confirmEditCreate(event, row);
-    if (confirmed) this.focusColumn = undefined;
-
-    return confirmed;
+    return super.confirmEditCreate(event, row);
   }
 
-  async clear(event?: Event, row?: AsyncTableElement<ActivityMonth>) {
+  async clear(event?: Event, row?: TableElement<ActivityMonth>) {
     row = row || this.editedRow;
     if (!row || event.defaultPrevented) return true; // no row to confirm
 
@@ -1312,107 +879,48 @@ export class CalendarComponent
 
     if (row.validator && row.editing) {
       row.originalData = data;
-      await this.cancelOrDelete(event, row, { keepEditing: true });
+      this.cancelOrDelete(event, row, { keepEditing: true });
     } else {
       row.currentData = data;
-      this.onCancelOrDeleteRow.next(row);
     }
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
   }
 
-  toggleMetierBlock(event: Event, key: string) {
+  toggleBlock(event: UIEvent, blockIndex: number) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
-    const blockColumns = this.dynamicColumns.filter((col) => col.key.startsWith(key));
+    const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return; // Skip
 
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
-    console.debug(this.logPrefix + 'Toggling block #' + key);
-
-    // Toggle expanded
-    masterColumn.expanded = !masterColumn.expanded;
-    const subColumns = blockColumns.slice(1);
-
-    // If close: remove the selection
-    if (!masterColumn.expanded && this.cellSelection) {
-      const { paths: cellPaths } = this.getRowsFromSelection(this.cellSelection);
-      const shouldHideCellSelection = subColumns.some((c) => cellPaths.includes(c.path));
-      if (shouldHideCellSelection) this.removeCellSelection();
-      const { paths: clipboardPaths } = this.getRowsFromSelection(this.cellClipboard);
-      const shouldHideClipboard = subColumns.some((c) => clipboardPaths.includes(c.path));
-      if (shouldHideClipboard) this.clearClipboard(null, { clearContext: false });
-    }
-
-    // Show/Hide sub columns
-    subColumns.forEach((col) => (col.hidden = !masterColumn.expanded));
-
-    // Expanded state for all columns to fix divergences states
-    blockColumns.forEach((col) => {
-      if (isNotNil(col.expanded)) {
-        col.expanded = masterColumn.expanded;
-      }
-    });
-
-    this.markForCheck();
-  }
-
-  toggleGradientBlock(event: Event, keyPrefix: string) {
-    if (event?.defaultPrevented) return; // Skip
-    event?.preventDefault();
-
-    const blockColumnNames = [`${keyPrefix}distanceToCoastGradient`, `${keyPrefix}depthGradient`, `${keyPrefix}nearbySpecificArea`];
-    const blockColumns = this.dynamicColumns.filter((col) => blockColumnNames.includes(col.key));
-
-    if (isEmptyArray(blockColumns)) return; // Skip
-
-    const masterColumn = blockColumns[0];
-    if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
+    console.debug(this.logPrefix + 'Toggling block #' + blockIndex);
 
     // Toggle expanded
     masterColumn.expanded = !masterColumn.expanded;
 
-    const subColumns = blockColumns.slice(1);
-
-    // If close: remove the selection
-    if (!masterColumn.expanded && this.cellSelection) {
-      const { paths: cellPaths } = this.getRowsFromSelection(this.cellSelection);
-      const shouldHideCellSelection = subColumns.some((c) => cellPaths.includes(c.path));
-      if (shouldHideCellSelection) this.removeCellSelection();
-      const { paths: clipboardPaths } = this.getRowsFromSelection(this.cellClipboard);
-      const shouldHideClipboard = subColumns.some((c) => clipboardPaths.includes(c.path));
-      if (shouldHideClipboard) this.clearClipboard(null, { clearContext: false });
-    }
-
     // Show/Hide sub columns
-    subColumns.forEach((col) => (col.hidden = !masterColumn.expanded));
-
-    this.markForCheck();
+    blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
   }
 
-  expandMetierBlock(event: Event, blockIndex: number) {
+  expandBlock(event: UIEvent, blockIndex: number) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
-    this.setMetierBlockExpanded(blockIndex, true);
+    this.setBlockExpanded(blockIndex, true);
   }
 
-  collapseMetierBlock(event: Event, blockIndex: number) {
+  collapseBlock(event: UIEvent, blockIndex: number) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
-    this.setMetierBlockExpanded(blockIndex, false);
+    this.setBlockExpanded(blockIndex, false);
   }
 
-  markAsDirty(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    if (this.loading) return; // Skip while loading
-    super.markAsDirty(opts);
-  }
-
-  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean) {
+  protected setBlockExpanded(blockIndex: number, expanded: boolean) {
     const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return;
 
@@ -1422,57 +930,24 @@ export class CalendarComponent
     masterColumn.expanded = expanded;
 
     // Update sub columns
-    blockColumns.slice(1).forEach((col) => {
-      col.hidden = !expanded;
-
-      // Expanded state for all columns to fix divergences states
-      if (isNotNil(col.expanded)) {
-        col.expanded = expanded;
-      }
-    });
+    blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
   }
 
-  protected setFocusColumn(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, columnName: string) {
-    if (!row.editing) {
-      // DEBUG
-      console.debug(`${this.logPrefix}setFocusColumn() => ${columnName}`);
-      this.focusColumn = columnName;
-    }
+  protected setFocusColumn(key: string) {
+    this.focusColumn = key;
   }
 
-  protected getColumnPath(key: string): string | undefined {
-    // Get column
-    const dynamicColumn = this.dynamicColumns?.find((c) => c.key === key);
-    const validColumn = !!dynamicColumn || key === 'isActive' || key === 'basePortLocation' || PMFM_ID_REGEXP.test(key);
-    if (!validColumn) return undefined;
-
-    return dynamicColumn?.path || (PMFM_ID_REGEXP.test(key) ? `measurementValues.${key}` : key);
-  }
-
-  protected getI18nColumnName(key: string): string | undefined {
-    if (isNilOrBlank(key)) throw new Error('Missing column key');
-    // Get column
-    const dynamicColumn = this.dynamicColumns?.find((c) => c.key === key);
-    const validColumn = !!dynamicColumn || key === 'isActive' || key === 'basePortLocation' || PMFM_ID_REGEXP.test(key);
-    if (!validColumn) return undefined;
-
-    if (dynamicColumn?.label) return dynamicColumn.label;
-    if (PMFM_ID_REGEXP.test(key)) {
-      const pmfm = this.pmfms?.find((p) => p.id.toString() === key);
-      if (pmfm) return this.getI18nPmfmName(pmfm);
-    }
-
-    return this.translate.instant(this.i18nColumnPrefix + changeCaseToUnderscore(key).toUpperCase());
-  }
-
-  protected async copyVertically(sourceRow: AsyncTableElement<ActivityMonth>, columnName: string, colspan: number) {
+  protected copyVertically(sourceRow: TableElement<ActivityMonth>, columnName: string, colspan: number) {
     if (!sourceRow || !columnName || colspan === 0 || !this.enabled) return false;
 
     console.debug(this.logPrefix + `Copying vertically ${columnName} - colspan=${colspan}`);
 
-    // Get column path
-    const path = this.getColumnPath(columnName);
-    if (isNilOrBlank(path)) return false;
+    // Get column
+    const dynamicColumns = this.dynamicColumns?.find((c) => c.key === columnName);
+    const validColumn = !!dynamicColumns || columnName === 'isActive' || columnName === 'basePortLocation' || PMFM_ID_REGEXP.test(columnName);
+    if (!validColumn) return false;
+
+    const path = dynamicColumns?.path || (PMFM_ID_REGEXP.test(columnName) ? `measurementValues.${columnName}` : columnName);
 
     // Get target rows
     const minRowId = colspan > 0 ? sourceRow.id + 1 : sourceRow.id + colspan + 1;
@@ -1484,7 +959,7 @@ export class CalendarComponent
     if (this.debug) console.debug(this.logPrefix + `Copying vertically ${columnName} to ${targetRows.length} months ...`, targetRows);
 
     // Get source value (after confirmed if row is editing)
-    await this.confirmEditCreate(); // Row can be NOT confirmed, but it's OK
+    this.confirmEditCreate(); // Row can be NOT confirmed, but it's OK
     const sourceValue = getPropertyByPath(sourceRow.currentData, path);
 
     let dirty = false;
@@ -1523,445 +998,8 @@ export class CalendarComponent
     return dirty;
   }
 
-  protected async copy(event?: Event) {
-    if (event?.defaultPrevented) return;
-
-    console.debug(`${this.logPrefix}Copy event`, event);
-
-    if (this.cellSelection && (this.cellSelection?.colspan !== 0 || this.cellSelection?.rowspan !== 0)) {
-      event?.preventDefault();
-      event?.stopPropagation();
-
-      // Copy to clipboard
-      await this.copyCellSelectionToClipboard(this.cellSelection);
-
-      this.removeCellSelection();
-
-      this.markForCheck();
-    } else {
-      if (this.editedRowFocusedElement) {
-        // Continue
-      } else {
-        event?.preventDefault();
-        event?.stopPropagation();
-        await this.copyCellToClipboard(this.editedRow, this.focusColumn);
-      }
-    }
-  }
-
-  protected async copyCellSelectionToClipboard(cellSelection?: TableCellSelection): Promise<boolean> {
-    cellSelection = cellSelection || this.cellSelection;
-    if (!cellSelection) return false; // Nothing to copy
-
-    console.debug(`${this.logPrefix}Copy cell selection to clipboard`);
-
-    // Find selected months
-    const { months: sourceMonths, paths: sourcePaths } = this.getDataFromSelection(cellSelection);
-
-    // Clone months, on selected paths
-    const targetMonths = sourceMonths.map((source) => {
-      const form = this.validatorService.getFormGroup();
-      form.enable();
-      sourcePaths.forEach((path) => {
-        const sourceValue = getPropertyByPath(source, path);
-        const control = this.findOrCreateControl(form, path);
-        control.setValue(sourceValue, { emitEvent: false });
-      });
-      return form.value;
-    });
-    console.debug(`${this.logPrefix}Target months:`, targetMonths);
-    console.debug(`${this.logPrefix}Target paths:`, sourcePaths);
-
-    this.context.clipboard = {
-      data: {
-        months: targetMonths,
-        paths: sourcePaths,
-      },
-    };
-
-    this.cellClipboard = {
-      ...cellSelection,
-      divElement: this.cellClipboardDivRef.nativeElement,
-    };
-    this.resizeCellSelection(this.cellClipboard, 'clipboard');
-  }
-
-  protected async clearCellSelection(event: Event | undefined, cellSelection?: TableCellSelection): Promise<boolean> {
-    cellSelection = cellSelection || this.cellSelection;
-    if (!cellSelection || event.defaultPrevented) return false;
-
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    console.debug(`${this.logPrefix}Clearing cell selection...`);
-
-    const { rows, paths } = this.getRowsFromSelection(cellSelection);
-
-    for (const row of rows) {
-      paths.forEach((path) => {
-        setPropertyByPath(row, path, null);
-        const control = this.findOrCreateControl(row.validator, path);
-        if (control) control.setValue(null);
-      });
-    }
-
-    console.debug(`${this.logPrefix}Clearing cell selection [OK]`);
-
-    this.markAsDirty({ emitEvent: false });
-    this.markForCheck();
-    return true;
-  }
-
-  protected isCellSelected(cellSelection: TableCellSelection, row: AsyncTableElement<ActivityMonth>, columnName: string) {
-    if (!cellSelection || !row || !columnName) return false;
-    const path = this.getColumnPath(columnName);
-    const { rows, paths } = this.getRowsFromSelection(cellSelection);
-    return paths.includes(path) && rows.includes(row);
-  }
-
-  protected isRightAndBottomCellSelected(cellSelection: TableCellSelection, row: AsyncTableElement<ActivityMonth>, columnName: string) {
-    if (!cellSelection || !row || !columnName) return false;
-    const path = this.getColumnPath(columnName);
-    const { rows, paths } = this.getRowsFromSelection(cellSelection);
-    return lastArrayValue(paths) === path && lastArrayValue(rows) === row;
-  }
-
-  protected getDataFromSelection(cellSelection: TableCellSelection): { months: ActivityMonth[]; paths: string[] } {
-    const { rows, paths } = this.getRowsFromSelection(cellSelection);
-    return {
-      months: rows.map((row) => row.currentData),
-      paths,
-    };
-  }
-
-  protected getRowsFromSelection(cellSelection: TableCellSelection): { rows: AsyncTableElement<ActivityMonth>[]; paths: string[] } {
-    if (!cellSelection) return { paths: [], rows: [] };
-    const { row, columnName, rowspan, colspan } = cellSelection;
-    if (!row || !columnName) throw new Error('Invalid cell selection');
-
-    // Find selected months
-    const startRowIndex = colspan >= 0 ? row.id : row.id + colspan + 1;
-    const endRowIndex = colspan >= 0 ? startRowIndex + colspan : row.id + 1;
-    const rows = this.dataSource.getRows().slice(startRowIndex, endRowIndex);
-
-    // Find selected paths
-    const focusColumnIndex = this.displayedColumns.findIndex((columnName) => columnName === cellSelection.columnName);
-    const startColumnIndex = rowspan > 0 ? focusColumnIndex : focusColumnIndex + rowspan;
-    const endColumnIndex = rowspan > 0 ? startColumnIndex + rowspan : focusColumnIndex + 1;
-    const paths = this.displayedColumns
-      .slice(startColumnIndex, endColumnIndex)
-      .map((columnName) => this.getColumnPath(columnName))
-      .filter(isNotNil);
-
-    // DEBUG
-    //console.debug(`${this.logPrefix} Selected rows:`, rows);
-    //console.debug(`${this.logPrefix} Selected paths`, paths);
-
-    return { rows, paths };
-  }
-
-  protected async copyCellToClipboard(sourceRow: AsyncTableElement<ActivityMonth>, columnName: string): Promise<boolean> {
-    if (!sourceRow || !columnName) return false; // Skip
-
-    console.debug(`${this.logPrefix}Copying cell '${columnName}' to clipboard`);
-
-    // Get column path
-    const path = this.getColumnPath(columnName);
-    if (isNilOrBlank(path)) return false;
-
-    const data = sourceRow.currentData;
-
-    const value = getPropertyByPath(data, path);
-    const source = setPropertyByPath({}, path, value);
-    const monthForm = this.validatorService.getRowValidator();
-    monthForm.patchValue(source);
-
-    console.debug(`${this.logPrefix}Copy data to clipboard`, source);
-
-    this.context.clipboard = {
-      data: {
-        months: [monthForm.value],
-        paths: [path],
-      },
-      source: this,
-    };
-    return true;
-  }
-
-  protected findOrCreateControl(form: UntypedFormGroup, path: string) {
-    let control = form.get(path);
-    if (control) return control;
-
-    const pathParts = path.split('.');
-    let i = 0;
-    while (i < pathParts.length) {
-      const property = pathParts[i++];
-      if (control instanceof AppFormArray && /\d/.test(property)) {
-        const index = +property;
-        control.resize(index + 1);
-        control = control.at(index);
-      } else {
-        control = (control || form)?.get(property);
-      }
-    }
-    return control;
-  }
-
-  protected paste(event?: Event) {
-    return this.pasteFromClipboard(event);
-  }
-
-  protected async pasteFromClipboard(event?: Event) {
-    let sourceMonths = this.context.clipboard?.data?.months;
-    let sourcePaths = this.context.clipboard?.data?.paths;
-    if (isEmptyArray(sourceMonths) || isEmptyArray(sourcePaths)) return false; // Empty clipboard
-
-    // DEBUG
-    console.debug(`${this.logPrefix}Paste ${sourceMonths.length} month(s) from clipboard...`, sourcePaths, event);
-
-    const targetCellSelection =
-      this.cellSelection ||
-      <TableCellSelection>{
-        row: this.editedRow,
-        columnName: this.focusColumn,
-        divElement: this.cellSelectionDivRef.nativeElement,
-        cellElement: this.getEventCellElement(event),
-        colspan: 1,
-        resizing: false,
-      };
-
-    // Maximize the targeted cells
-    targetCellSelection.colspan = Math.max(targetCellSelection.colspan, sourceMonths.length);
-    targetCellSelection.rowspan = sourcePaths.length;
-
-    const { rows: targetRows, paths: targetPaths } = this.getRowsFromSelection(targetCellSelection);
-
-    // Empty target rows
-    if (isEmptyArray(targetRows) || isEmptyArray(targetPaths)) return false;
-
-    // Confirm (or cancel) all targeted rows
-    for (const row of targetRows.filter((row) => row.editing)) {
-      const confirmed = await this.confirmEditCreate(null, row);
-      if (!confirmed) await this.cancelOrDelete(null, row);
-    }
-
-    // Check target path is compatible
-    const sourcePathSuffix = lastArrayValue(sourcePaths[0].split('.'));
-    const targetPathSuffix = lastArrayValue(targetPaths[0].split('.'));
-    if (sourcePathSuffix !== targetPathSuffix) {
-      Toasts.show(this.toastController, this.translate, {
-        type: 'error',
-        message: 'ACTIVITY_CALENDAR.ERROR.CANNOT_PASTE_HERE',
-      });
-      return false;
-    }
-
-    // Limit paths to maximum allowed
-    if (targetPaths.length < sourcePaths.length) {
-      sourcePaths = sourcePaths.slice(0, targetPaths.length);
-      targetCellSelection.rowspan = sourcePaths.length;
-    }
-    // Reduce rows to maximum allowed
-    if (targetRows.length < sourceMonths.length) {
-      sourceMonths = sourceMonths.slice(0, targetRows.length);
-      targetCellSelection.colspan = targetRows.length;
-    }
-
-    for (let i = 0; i < targetRows.length; i++) {
-      const targetRow = targetRows[i];
-      const sourceMonth = sourceMonths[i % sourceMonths.length];
-
-      // Creating a form
-      const targetForm = this.validatorService.getFormGroup(targetRow.currentData);
-      this.onPrepareRowForm(targetForm, { listenChanges: false });
-      const isActiveControl = targetForm.get('isActive');
-      let isActive = toNumber(sourceMonth.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
-
-      sourcePaths.forEach((sourcePath, index) => {
-        const sourceValue = getPropertyByPath(sourceMonth, sourcePath);
-        isActive = isActive || (isNotNil(sourceValue) && sourcePath !== 'isActive' && sourcePath !== 'basePortLocation');
-
-        // Force IsActive = true, if need
-        if (isActive && isActiveControl.value !== VesselUseFeaturesIsActiveEnum.ACTIVE) {
-          isActiveControl.enable({ emitEvent: false });
-          isActiveControl.setValue(VesselUseFeaturesIsActiveEnum.ACTIVE, { emitEvent: false });
-
-          // Update the form (should enable more controls - e.g. metier, fishing areas)
-          this.onPrepareRowForm(targetForm, { listenChanges: false });
-        }
-
-        // Update control from the path
-        const targetPath = targetPaths[index];
-        const control = targetPath && this.findOrCreateControl(targetForm, targetPath);
-        if (control) {
-          control.enable({ emitEvent: false });
-          control.setValue(sourceValue);
-        }
-      });
-
-      await this.updateEntityToTable(targetForm.value, targetRow, { confirmEdit: true });
-    }
-
-    // DEBUG
-    console.debug(`${this.logPrefix}Paste clipboard [OK]`);
-
-    // Select targeted cells, if possible
-    if (!this.editedRow && targetCellSelection.cellElement) {
-      // Resize, and display cell selection
-      this.resizeCellSelection(targetCellSelection, 'cell', { emitEvent: false });
-      this.cellSelection = targetCellSelection;
-    } else {
-      this.removeCellSelection({ emitEvent: false });
-    }
-
-    this.markAsDirty({ emitEvent: false });
-    this.markForCheck();
-  }
-
-  protected removeCellSelection(opts?: { emitEvent?: boolean }) {
-    if (!this.cellSelection) return;
-    const { divElement, cellRect } = this.cellSelection;
-    if (!divElement || !cellRect) return;
-
-    // Forget the current selection
-    this.cellSelection = null;
-
-    // Reset the div size
-    divElement.style.width = cellRect.width + 'px';
-    divElement.style.height = cellRect.height + 'px';
-
-    if (opts?.emitEvent !== false) {
-      this.markForCheck();
-    }
-  }
-
-  protected clearClipboard(event?: Event, opts?: { clearContext?: boolean }) {
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    if (this.cellClipboard) {
-      this.cellClipboard = null;
-      this.markForCheck();
-    }
-
-    if (opts?.clearContext !== false) {
-      this.context.clipboard = null;
-    }
-  }
-
-  protected async onContextMenu(
-    event: MouseEvent,
-    cell?: HTMLElement | HTMLTableCellElement,
-    row?: AsyncTableElement<ActivityMonth>,
-    columnName?: string
-  ) {
-    row = row || this.editedRow;
-    columnName = columnName || this.focusColumn;
-    if (!row || !columnName) {
-      event.preventDefault();
-      return; // Skip
-    }
-
-    event.preventDefault();
-
-    // Select current cell
-    if (this.cellSelection?.row !== row || this.cellSelection?.columnName !== columnName) {
-      if (!this.isCellSelected(this.cellSelection, row, columnName)) {
-        this.removeCellSelection();
-        await this.onMouseDown(event, cell as HTMLTableCellElement, row, columnName);
-        await this.onMouseUp(event);
-      }
-    }
-
-    this.menuTrigger.openMenu();
-    const contextMenu = document.querySelector('.context-menu') as HTMLElement;
-    contextMenu.style.position = 'fixed';
-    contextMenu.style.left = `${event.clientX}px`;
-    contextMenu.style.top = `${event.clientY}px`;
-  }
-
-  protected closeContextMenu() {
-    if (this.menuTrigger?.menuOpened) {
-      this.menuTrigger.closeMenu();
-    }
-  }
-
-  protected getEventCellElement(event: Event): HTMLElement {
-    if (!event?.target) return undefined;
-    const element = event.target as HTMLElement;
-    return this.getParentCellElement(element);
-  }
-
-  protected getParentCellElement(element: HTMLElement): HTMLElement {
-    while (element && !element.classList.contains('mat-mdc-cell')) {
-      element = element.parentElement;
-    }
-    return element;
-  }
-
-  protected getEditedRowElement(): HTMLElement {
-    if (!this.editedRow) return undefined;
-    return this.tableContainerElement?.querySelector(`mat-row.mat-mdc-row-selected`);
-  }
-
-  protected getEditedCell(): { cellElement: HTMLElement; columnName: string } {
-    let cellElement: HTMLElement;
-    let columnName: string;
-    if (this.editedRowFocusedElement) {
-      cellElement = this.getParentCellElement(this.editedRowFocusedElement);
-      const columnClass = (cellElement?.classList.value.split(' ') || []).find(
-        (clazz) => clazz.startsWith('cdk-column-') || clazz.startsWith('mat-column-')
-      );
-      columnName = lastArrayValue(columnClass?.split('-'));
-    } else if (this.focusColumn) {
-      const rowElement = this.getEditedRowElement();
-      cellElement = rowElement?.querySelector(`.mat-mdc-cell.mat-column-${this.focusColumn}`);
-      columnName = this.focusColumn;
-    }
-
-    if (!cellElement || !columnName) return undefined; // Parent cell not found
-
-    return { cellElement, columnName };
-  }
-
-  startListenFocusedElement(): Subscription {
-    const subscription = new Subscription();
-
-    let rowElement: HTMLElement;
-    waitFor(
-      () => {
-        rowElement = rowElement || this.getEditedRowElement();
-        return !!rowElement || subscription.closed;
-      },
-      { dueTime: 250, timeout: 1000, stopError: false, stop: this.destroySubject }
-    ).then(() => {
-      if (subscription.closed) return; // Edited row changed
-
-      // DEBUG
-      console.debug(`${this.logPrefix}Start listening row focused element...`);
-      this.editedRowFocusedElement = this.focusColumn && rowElement?.querySelector(`.mat-mdc-cell.mat-column-${this.focusColumn}`);
-
-      subscription.add(
-        fromEvent(rowElement, 'focusin').subscribe((event: Event) => {
-          if (rowElement?.contains(event.target as Node)) {
-            if (this.editedRowFocusedElement !== event.target) {
-              // DEBUG
-              //console.debug(`${this.logPrefix}Focused element is now:`, event.target);
-              this.editedRowFocusedElement = event.target as HTMLElement;
-            }
-          } else {
-            this.editedRowFocusedElement = null;
-          }
-        })
-      );
-      subscription.add(() => {
-        // DEBUG
-        console.debug(`${this.logPrefix}Stop listening row focused element`);
-        // Forget the focused element
-        this.editedRowFocusedElement = null;
-      });
-    }); // Delay to skip the first focus (should be the focusColumn)
-
-    return subscription;
+  markAsDirty(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    if (this.loading) return; // Skip while loading
+    super.markAsDirty(opts);
   }
 }

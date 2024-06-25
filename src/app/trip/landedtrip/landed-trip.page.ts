@@ -18,7 +18,6 @@ import {
   isNotNil,
   PromiseEvent,
   ReferentialRef,
-  toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { TripForm } from '../trip/trip.form';
@@ -161,17 +160,17 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
     // Read the selected tab index, from path query params
     this.registerSubscription(
       this.route.queryParams.pipe(first()).subscribe((queryParams) => {
-        const tabIndex = toNumber(queryParams['tab'], 0);
-        const subTabIndex = toNumber(queryParams['subtab'], 0);
+        const tabIndex = (queryParams['tab'] && parseInt(queryParams['tab'])) || 0;
+        const subTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
 
         // Update catch tab index
-        if (this.catchTabGroup && tabIndex === LandedTripPage.TABS.CATCH) {
+        if (this.catchTabGroup && tabIndex === 2) {
           this.catchTabGroup.selectedIndex = subTabIndex;
           this.catchTabGroup.realignInkBar();
         }
 
         // Update expenses tab group index
-        if (this.expenseForm && tabIndex === LandedTripPage.TABS.EXPENSE) {
+        if (this.expenseForm && tabIndex === 4) {
           this.expenseForm.selectedTabIndex = subTabIndex;
           this.expenseForm.realignInkBar();
         }
@@ -271,12 +270,11 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
   }
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
-    const queryParams = this.route.snapshot.queryParams;
     // DEBUG
     //console.debug(options);
 
     // Read options and query params
-    if (isNotNil(options?.observedLocationId)) {
+    if (options && options.observedLocationId) {
       console.debug(this.logPrefix + 'New entity: settings defaults...');
       this.observedLocationId = parseInt(options.observedLocationId);
       const observedLocation = await this.getObservedLocationById(this.observedLocationId);
@@ -308,6 +306,7 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
       throw new Error(this.logPrefix + 'the observedLocationId must be present');
     }
 
+    const queryParams = this.route.snapshot.queryParams;
     // Load the vessel, if any
     if (isNotNil(queryParams['vessel'])) {
       const vesselId = +queryParams['vessel'];

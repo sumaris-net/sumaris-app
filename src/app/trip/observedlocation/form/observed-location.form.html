@@ -70,12 +70,10 @@
           required
         >
           <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
-          @if (isStartDateInTheFuture) {
-            <ion-text matHint color="accent">
-              <mat-icon>warning</mat-icon>
-              <span translate>WARNING.DATE_IN_THE_FUTURE</span>
-            </ion-text>
-          }
+          <mat-hint *ngIf="isStartDateInTheFuture">
+            <mat-icon color="warn">warning</mat-icon>
+            {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
+          </mat-hint>
         </mat-date-time-field>
         <ng-template #startDateOnly>
           <mat-date-field

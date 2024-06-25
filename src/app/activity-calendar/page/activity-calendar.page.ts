@@ -5,7 +5,6 @@ import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/fo
 import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
-  AppAsyncTable,
   AppEditorOptions,
   AppTable,
   chainPromises,
@@ -19,7 +18,6 @@ import {
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
-  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
@@ -62,6 +60,8 @@ import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
+import { GearUseFeaturesTable } from '../metier/gear-use-features.table';
+import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { VesselFeaturesHistoryComponent } from '@app/vessel/page/vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from '@app/vessel/page/vessel-registration-history.component';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
@@ -72,10 +72,6 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
-import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.table';
-import { ActivityMonth } from '../calendar/activity-month.model';
-import { GearPhysicalFeatures } from '../model/gear-physical-features.model';
-import { environment } from '@environments/environment';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -90,7 +86,6 @@ export interface ActivityCalendarPageState extends RootDataEntityEditorState {
   months: Moment[];
   predocProgramLabels: string[];
   titleMenu: string;
-  hasClipboard: boolean;
 }
 
 @Component({
@@ -133,11 +128,8 @@ export class ActivityCalendarPage
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() protected predocProgramLabels$: Observable<string[]>;
   @RxStateSelect() protected titleMenu$: Observable<string>;
-  @RxStateSelect() protected hasClipboard$: Observable<boolean>;
-
   @RxStateProperty() protected reportTypes: Property[];
   @RxStateProperty() protected titleMenu: string;
-  @RxStateProperty() protected hasClipboard: boolean;
 
   protected timezone = DateUtils.moment().tz();
   protected allowAddNewVessel: boolean;
@@ -160,9 +152,6 @@ export class ActivityCalendarPage
   @Input() showPictures = true;
   @Input() showOptionsMenu = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
-  @Input() yearHistory: number = 3;
-  @Input() autoNameImage: boolean = true;
-  @Input() canEdit: boolean = true;
 
   @Input() @RxStateProperty() year: number;
   @Input() @RxStateProperty() vesselCountryId: number;
@@ -174,14 +163,14 @@ export class ActivityCalendarPage
 
   @ViewChild('predocSplit') predocSplit: SplitComponent;
   @ViewChild('predocCalendar') predocCalendar: CalendarComponent;
-  @ViewChild('tableMetier') tableMetier: GearPhysicalFeaturesTable;
+  @ViewChild('tableMetier') tableMetier: GearUseFeaturesTable;
   @ViewChild('map') map: ActivityCalendarMapComponent;
   @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
   @ViewChild('featuresHistoryTable', { static: true }) featuresHistoryTable: VesselFeaturesHistoryComponent;
   @ViewChild('registrationHistoryTable', { static: true }) registrationHistoryTable: VesselRegistrationHistoryComponent;
   @ViewChild('ownerHistoryTable', { static: true }) ownerHistoryTable: VesselOwnerHistoryComponent;
   @ViewChild('galleryHistory', { static: true }) galleryHistory: AppImageAttachmentGallery;
-  @ViewChild('gallery', { static: false }) gallery: AppImageAttachmentGallery;
+  @ViewChild('gallery', { static: true }) gallery: AppImageAttachmentGallery;
 
   constructor(
     injector: Injector,
@@ -190,7 +179,7 @@ export class ActivityCalendarPage
     protected vesselService: VesselService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected translateContext: TranslateContextService,
-    protected context: ActivityCalendarContextService,
+    protected activityCalendarContext: ActivityCalendarContextService,
     protected hotkeys: Hotkeys
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
@@ -204,9 +193,9 @@ export class ActivityCalendarPage
       autoOpenNextTab: false,
     });
     this.defaultBackHref = '/activity-calendar';
+
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
-    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -234,8 +223,6 @@ export class ActivityCalendarPage
         map((year) => CalendarUtils.getMonths(year, this.timezone))
       )
     );
-
-    this._state.connect('hasClipboard', this.context.select('clipboard', 'data').pipe(map(isNotNil)));
 
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
@@ -275,7 +262,7 @@ export class ActivityCalendarPage
           return;
         }
 
-        this.tableMetier.value = this.getPhysicalFeatures(this.calendar.value, this.tableMetier.value);
+        this.tableMetier.value = this.getMetierValue(this.calendar.value, this.tableMetier.value);
       })
     );
 
@@ -336,7 +323,7 @@ export class ActivityCalendarPage
     // Manage tab group
     {
       const queryParams = this.route.snapshot.queryParams;
-      this.selectedSubTabIndex = toNumber(queryParams['subtab'], 0);
+      this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
     }
   }
 
@@ -356,11 +343,11 @@ export class ActivityCalendarPage
     }
   }
 
-  async saveTable(table: AppTable<any> | AppAsyncTable<any>) {
+  async saveTable(table: AppTable<any>) {
     if (!table.confirmEditCreate()) return false;
     if (table.dirty) {
       this.markAsDirty();
-      return table.save();
+      return await table.save();
     }
     return true;
   }
@@ -416,7 +403,9 @@ export class ActivityCalendarPage
   }
 
   addMetier(event: UIEvent) {
-    this.calendar?.addMetierBlock(event);
+    if (this.calendar) {
+      this.calendar.addMetierBlock(event);
+    }
   }
 
   async openReport(reportType?: ActivityCalendarReportType) {
@@ -444,8 +433,8 @@ export class ActivityCalendarPage
     await super.setProgram(program);
 
     // Update the context
-    if (this.context.program !== program) {
-      this.context.program = program;
+    if (this.activityCalendarContext.program !== program) {
+      this.activityCalendarContext.program = program;
     }
 
     try {
@@ -494,9 +483,9 @@ export class ActivityCalendarPage
     await super.setStrategy(strategy);
 
     // Update the context
-    if (this.context.strategy !== strategy) {
+    if (this.activityCalendarContext.strategy !== strategy) {
       if (this.debug) console.debug(this.logPrefix + "Update context's strategy...", strategy);
-      this.context.strategy = strategy;
+      this.activityCalendarContext.strategy = strategy;
     }
   }
 
@@ -535,8 +524,8 @@ export class ActivityCalendarPage
       }
 
       // Year
-      this.year = searchFilter.year || fromDateISOString(searchFilter.startDate)?.year();
-      if (this.year) {
+      if (searchFilter.startDate) {
+        this.year = fromDateISOString(searchFilter.startDate).year();
         data.year = this.year;
         if (this.timezone) {
           data.startDate = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
@@ -548,7 +537,7 @@ export class ActivityCalendarPage
 
     // Set contextual program, if any
     if (!data.program) {
-      const contextualProgram = this.context?.program;
+      const contextualProgram = this.context.program;
       if (contextualProgram?.label) {
         data.program = ReferentialRef.fromObject(contextualProgram);
       }
@@ -560,14 +549,6 @@ export class ActivityCalendarPage
 
     // Enable forms (do not wait for program load)
     if (!programLabel) this.markAsReady();
-  }
-
-  devToggleDebug() {
-    super.devToggleDebug();
-    setTimeout(() => {
-      this.calendar?.onResize();
-      this.predocCalendar?.onResize();
-    }, 250);
   }
 
   protected async onEntityLoaded(data: ActivityCalendar, options?: EntityServiceLoadOptions): Promise<void> {
@@ -636,62 +617,47 @@ export class ActivityCalendarPage
     this.calendar.value = activityMonths;
 
     // Set metier table data
-    this.tableMetier.value = this.getPhysicalFeatures(activityMonths, data.gearPhysicalFeatures);
+    this.tableMetier.value = this.getMetierValue(activityMonths, data.gearUseFeatures);
 
     // Load pictures
-    if (this.showPictures && !isNewData) {
+    if (this.showPictures) {
       this.loadPictures(data);
     }
 
     // Load predoc
-    if (this._predocPanelVisible && !isNewData) {
+    if (this._predocPanelVisible) {
       this.loadPredoc(data);
     }
   }
 
-  getPhysicalFeatures(activityMonths: ActivityMonth[], gearPhysicalFeature: GearPhysicalFeatures[]): GearPhysicalFeatures[] {
+  getMetierValue(activityMonths: ActivityMonth[], gearUseFeatures: GearUseFeatures[]) {
     // Set metier table data
+    // TODO sort by startDate ?
     const monthMetiers = removeDuplicatesFromArray(
       activityMonths.flatMap((month) => month.gearUseFeatures.map((guf) => guf.metier)),
       'id'
     );
-    const monthMetierIds = monthMetiers.map((metier) => metier.id);
-
-    // Keep in GearPhysicalFeatures only metier present in calendar
-    gearPhysicalFeature = gearPhysicalFeature.filter((gph) => monthMetierIds.includes(gph.metier.id));
-
     const firstDayOfYear = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
     const lastDayOfYear = firstDayOfYear.clone().endOf('year');
 
-    const gearPhysicalFeatures = monthMetiers
+    const metiers = monthMetiers
       .map((metier, index) => {
-        const existingGph = (gearPhysicalFeature || []).find((guf) => {
+        const existingGuf = (gearUseFeatures || []).find((guf) => {
+          //TODO MFA à voir avec ifremer comment filtrer les GUF qui sont à afficher dans le tableau des métiers
           return (
             DateUtils.isSame(firstDayOfYear, guf.startDate, 'day') &&
             DateUtils.isSame(lastDayOfYear, guf.endDate, 'day') &&
             ReferentialUtils.equals(guf.metier, metier)
           );
         });
-        if (existingGph) existingGph.rankOrder = index + 1;
-        return (
-          existingGph || {
-            activityCalendarId: this.data.id,
-            startDate: firstDayOfYear,
-            endDate: lastDayOfYear,
-            metier,
-            gear: metier.gear,
-          }
-        );
+        if (existingGuf) existingGuf.rankOrder = index + 1;
+        return existingGuf || { startDate: firstDayOfYear, endDate: lastDayOfYear, metier, rankOrder: index + 1 };
       })
-      .map(GearPhysicalFeatures.fromObject);
+      .map(GearUseFeatures.fromObject);
 
-    // Re index PhysicalGearFeature rankOrder depending on monthMetiers order.
-    // Must be done in last because PhysicalGearFeature can be deleted
-    monthMetiers.forEach((metier, index) => {
-      gearPhysicalFeatures.find((gpf) => gpf.metier.id == metier.id).rankOrder = index;
-    });
-    console.debug(this.logPrefix + 'Loaded metiers: ', gearPhysicalFeatures);
-    return gearPhysicalFeatures;
+    // DEBUG
+    console.debug(this.logPrefix + 'Loaded metiers: ', metiers);
+    return metiers;
   }
 
   async getValue(): Promise<ActivityCalendar> {
@@ -712,16 +678,11 @@ export class ActivityCalendarPage
     }
 
     // Metiers
-    value.gearPhysicalFeatures = this.getPhysicalFeatures(this.calendar.value, this.tableMetier.value);
+    const metierGearUseFeatures = this.tableMetier.value;
+    if (isNotEmptyArray(metierGearUseFeatures)) value.gearUseFeatures = [...value.gearUseFeatures, ...metierGearUseFeatures];
 
     // Photos
-    if (this.canEdit) value.images = this.gallery.value;
-
-    if (this.autoNameImage) {
-      value.images.map((img) => {
-        if (isNil(img.comments)) img.comments = value.year.toString();
-      });
-    }
+    value.images = this.gallery.value;
 
     return value;
   }
@@ -736,7 +697,7 @@ export class ActivityCalendarPage
   }
 
   protected registerForms() {
-    this.addForms([this.baseForm]);
+    this.addForms([this.baseForm, () => this.calendar]);
   }
 
   protected async computeTitle(data: ActivityCalendar): Promise<string> {
@@ -833,30 +794,15 @@ export class ActivityCalendarPage
   }
 
   protected async loadPictures(data: ActivityCalendar) {
-    //Filter
-    const filter: Partial<ActivityCalendarFilter> = {
-      vesselId: data.vesselSnapshot.id,
-      program: data.program,
-      startDate: data.startDate.subtract(this.yearHistory, 'years').startOf('year'),
-    };
+    const firstLoad = !this.gallery.loaded;
 
-    const imageAttachments = await this.dataService.loadImages(0, 100, null, null, filter);
-    const firstLoadHistory = !this.galleryHistory.loaded;
-    const firstLoadGallery = isNotNil(this.gallery) && !this.gallery.loaded;
-
-    if (firstLoadHistory) this.galleryHistory.markAsReady();
-    if (firstLoadGallery) this.gallery.markAsReady();
+    if (firstLoad) this.gallery.markAsReady();
 
     // fetch images
-    if (this.canEdit) {
-      this.galleryHistory.value = imageAttachments.filter((img) => img.objectId != data.id);
-      this.gallery.value = imageAttachments.filter((img) => img.objectId === data.id);
-    } else {
-      this.galleryHistory.value = imageAttachments;
-    }
+    this.gallery.value = await this.dataService.loadImages(data.id);
+
     // then add gallery into child form
-    if (firstLoadHistory) this.addForms([this.galleryHistory]);
-    if (firstLoadGallery) this.addForms([this.gallery]);
+    if (firstLoad) this.addForms([this.gallery]);
   }
 
   protected toggleShowPredoc(event?: Event) {
@@ -873,12 +819,6 @@ export class ActivityCalendarPage
     const { size, visible } = this.settings.getPageSettings(this.settingsId, ActivityCalendarPageSettingsEnum.PREDOC_PANEL_CONFIG) || {};
     this._predocPanelSize = isNotNilOrNaN(toNumber(size)) ? +size : this._predocPanelSize;
     this._predocPanelVisible = toBoolean(visible, this._predocPanelVisible);
-  }
-
-  protected onPredocResize(sizes?: IOutputAreaSizes) {
-    this.predocCalendar.onResize();
-
-    this.savePredocPanelSize(sizes);
   }
 
   protected savePredocPanelSize(sizes?: IOutputAreaSizes) {

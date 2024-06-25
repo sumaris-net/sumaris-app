@@ -32,9 +32,10 @@
               [tabindex]="tabindex + 1"
             >
               <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
-              @if (isYearInTheFuture) {
-                <mat-icon matSuffix color="accent" [title]="'WARNING.DATE_IN_THE_FUTURE' | translate">warning</mat-icon>
-              }
+              <mat-hint *ngIf="isYearInTheFuture">
+                <mat-icon color="warn">warning</mat-icon>
+                {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
+              </mat-hint>
             </mat-date-short-field>
           </ion-col>
         }

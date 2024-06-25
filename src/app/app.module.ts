@@ -111,7 +111,6 @@ import {
 } from '@app/activity-calendar/activity-calendar.config';
 import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar/testing/calendar.testing.module';
 import { NamedFilterService } from '@app/shared/service/named-filter.service';
-import { ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS } from '@app/activity-calendar/calendar/activity-month.validator';
 
 @NgModule({
   declarations: [AppComponent],
@@ -277,7 +276,6 @@ import { ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS } from '@app/activity-calendar
         ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
         ...BATCH_VALIDATOR_I18N_ERROR_KEYS,
         ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS,
-        ...ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS,
       },
     },
 

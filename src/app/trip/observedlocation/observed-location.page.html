@@ -169,33 +169,6 @@
           <ion-label color="danger" class="error" [innerHTML]="(landingTable$ | async)?.error | translate"></ion-label>
         </ion-item>
 
-        @if (topPmfmIds | isNotEmptyArray) {
-          <form
-            *rxIf="observedLocationForm.pmfms$; let pmfms; strategy: 'immediate'; else: measurementSkeletons"
-            class="form-container ion-padding ion-no-padding-bottom"
-            [formGroup]="observedLocationForm.measurementValuesForm"
-          >
-            <ion-grid class="ion-no-padding">
-              <ion-row class="ion-no-padding">
-                <!-- pmfms -->
-                <ng-container *rxFor="let pmfm of pmfms; trackBy: observedLocationForm.trackPmfmFn; strategy: 'immediate'; index as i">
-                  <ng-container *ngIf="topPmfmIds | arrayIncludes: pmfm.id">
-                    <ion-col size="11" size-md="5" class="ion-padding-end">
-                      <app-pmfm-field [pmfm]="pmfm" [controlName]="pmfm | pmfmIdString"></app-pmfm-field>
-                    </ion-col>
-
-                    <ion-col size="auto" class="ion-col-button">
-                      <ion-button mat-button color="primary" tabindex="-1" (click)="applyTopPmfmToLandings(pmfm)">
-                        <ion-text translate>COMMON.BTN_APPLY</ion-text>
-                      </ion-button>
-                    </ion-col>
-                  </ng-container>
-                </ng-container>
-              </ion-row>
-            </ion-grid>
-          </form>
-        }
-
         <ng-container *rxIf="landingTableType$; let type">
           <ng-container [ngSwitch]="type">
             <!-- aggregated landings -->
@@ -290,23 +263,6 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
-
-<ng-template #measurementSkeletons>
-  <ion-grid class="form-container ion-padding">
-    <ion-row class="ion-no-padding">
-      <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
-    </ion-row>
-  </ion-grid>
-</ng-template>
-
-<ng-template #measurementSkeleton>
-  <ion-col size="12" size-md="6">
-    <mat-form-field class="mat-form-field-disabled">
-      <input matInput hidden />
-      <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
-    </mat-form-field>
-  </ion-col>
-</ng-template>
 
 <ng-template #debugPanel>
   <app-debug title="Editor and Form">

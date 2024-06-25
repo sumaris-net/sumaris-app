@@ -192,17 +192,13 @@ export abstract class AppBaseTable<
       this.initPermanentSelection();
     }
 
-    if (this.options?.restoreCompactMode !== false) {
-      this.restoreCompactMode();
-    }
+    this.restoreCompactMode();
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    if (this.tableContainerRef) {
-      this.initTableContainer(this.tableContainerRef?.nativeElement);
-    }
+    this.initTableContainer(this.tableContainerRef?.nativeElement);
   }
 
   ngOnDestroy() {

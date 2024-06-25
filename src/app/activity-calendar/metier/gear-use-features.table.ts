@@ -15,13 +15,14 @@ import {
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, GearLevelIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, GearLevelIds, PmfmIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 import { RxState } from '@rx-angular/state';
 import { GearUseFeatures } from '../model/gear-use-features.model';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { GearUseFeaturesFilter } from '../model/gear-use-features-filter';
 import { GearUseFeaturesValidatorService } from '../model/gear-use-features.validator';
+import { ActivityCalendarContextService } from '../activity-calendar-context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -79,7 +80,8 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
   constructor(
     injector: Injector,
     validatorService: GearUseFeaturesValidatorService,
-    private referentialRefService: ReferentialRefService
+    private referentialRefService: ReferentialRefService,
+    protected context: ActivityCalendarContextService
   ) {
     super(
       injector,

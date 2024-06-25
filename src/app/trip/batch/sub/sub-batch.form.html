@@ -103,67 +103,64 @@
 
     <!-- Taxon name (mobile: use buttons) -->
     <ng-template #taxonNameMobile>
-      @if (taxonNames$ | async; as taxonNames) {
-        <mat-form-field floatLabel="always" [class.computed]="taxonNames.length === 1">
-          @if (floatLabel !== 'never') {
-            <mat-label translate>TRIP.BATCH.EDIT.TAXON_NAME</mat-label>
-          } @else {
-            <mat-label>&nbsp;</mat-label>
-          }
-          <input
-            matInput
-            type="text"
-            hidden
-            tabindex="-1"
-            formControlName="taxonName"
-            [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME' | translate"
-            required
-          />
+      <mat-form-field
+        floatLabel="always"
+        *ngIf="taxonNames$ | async as taxonNames; else loadingTaxonNames"
+        [class.computed]="taxonNames.length === 1"
+      >
+        <input
+          matInput
+          type="text"
+          hidden
+          tabindex="-1"
+          formControlName="taxonName"
+          [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME' | translate"
+          required
+        />
 
-          @if (taxonNames | isArrayLength: { greaterThan: 1 }) {
-            <div
-              class="mat-form-field-buttons"
-              [style.--buttons-col-count]="(taxonNames | isArrayLength: { greaterThan: 2 }) ? 3 : taxonNames.length"
-            >
-              <ion-button
-                class="mat-form-field-button"
-                *ngFor="let item of taxonNames; index as i"
-                [color]="selectedTaxonNameIndex === -1 ? 'tertiary' : selectedTaxonNameIndex === i ? 'accent' : 'light'"
-                (click)="onTaxonNameButtonClick($event, item, tabindex + 19)"
-                (keyup.enter)="onTaxonNameButtonClick($event, item, tabindex + 19)"
-                [tabindex]="tabindex + 3 + i"
-              >
-                {{ item.name || item.label }}
-              </ion-button>
-            </div>
-          } @else if (taxonNames.length === 1) {
-            <ion-label>{{ taxonNames[0].name || taxonNames[0].label }}</ion-label>
-          } @else {
-            <ion-label translate>COMMON.EMPTY_OPTION</ion-label>
-          }
+        <div
+          class="mat-form-field-buttons"
+          *ngIf="taxonNames | isArrayLength: { greaterThan: 1 }; else defaultTaxonName"
+          [style.--buttons-col-count]="(taxonNames | isArrayLength: { greaterThan: 2 }) ? 3 : taxonNames.length"
+        >
+          <ion-button
+            class="mat-form-field-button"
+            *ngFor="let item of taxonNames; index as i"
+            [color]="selectedTaxonNameIndex === -1 ? 'tertiary' : selectedTaxonNameIndex === i ? 'accent' : 'light'"
+            (click)="onTaxonNameButtonClick($event, item, tabindex + 19)"
+            (keyup.enter)="onTaxonNameButtonClick($event, item, tabindex + 19)"
+            [tabindex]="tabindex + 3 + i"
+          >
+            {{ item.name || item.label }}
+          </ion-button>
+        </div>
 
-          <!-- Options menu -->
-          <button mat-icon-button matSuffix [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="taxonNameMenu">
-            <mat-icon>more_vert</mat-icon>
+        <ng-template #defaultTaxonName>
+          <ion-label>{{ taxonNames[0].name || taxonNames[0].label }}</ion-label>
+        </ng-template>
+
+        <!-- Options menu -->
+        <button mat-icon-button matSuffix [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="taxonNameMenu">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+
+        <!-- Freeze QV or taxon name menu -->
+        <mat-menu #taxonNameMenu="matMenu" xPosition="before">
+          <button mat-menu-item (click)="freezeTaxonName = !freezeTaxonName">
+            <mat-icon *ngIf="freezeTaxonName">check_box</mat-icon>
+            <mat-icon *ngIf="!freezeTaxonName">check_box_outline_blank</mat-icon>
+            <ion-label translate>COMMON.BTN_FREEZE_VALUE</ion-label>
           </button>
+        </mat-menu>
 
-          <!-- Freeze QV or taxon name menu -->
-          <mat-menu #taxonNameMenu="matMenu" xPosition="before">
-            <button mat-menu-item (click)="freezeTaxonName = !freezeTaxonName">
-              <mat-icon *ngIf="freezeTaxonName">check_box</mat-icon>
-              <mat-icon *ngIf="!freezeTaxonName">check_box_outline_blank</mat-icon>
-              <ion-label translate>COMMON.BTN_FREEZE_VALUE</ion-label>
-            </button>
-          </mat-menu>
+        <mat-error *ngIf="form.controls.taxonName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+      </mat-form-field>
 
-          <mat-error *ngIf="form.controls.taxonName.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-      } @else {
+      <ng-template #loadingTaxonNames>
         <mat-form-field floatLabel="auto">
-          <mat-label translate>TRIP.BATCH.EDIT.TAXON_NAME</mat-label>
-          <input matInput type="text" tabindex="-1" required />
+          <input matInput type="text" tabindex="-1" [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME' | translate" required />
         </mat-form-field>
-      }
+      </ng-template>
     </ng-template>
   </div>
 

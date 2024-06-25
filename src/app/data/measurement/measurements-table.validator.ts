@@ -53,10 +53,6 @@ export class MeasurementsTableValidatorService<
     this.measurementsValidatorService = injector.get(MeasurementsValidatorService);
   }
 
-  getFormGroup(data?: T, opts?: O) {
-    return this.getRowValidator(data, opts);
-  }
-
   getRowValidator(data?: T, opts?: O): UntypedFormGroup {
     const form = this._delegate.getRowValidator(data, {
       ...(this._delegateOptions || {}),

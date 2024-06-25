@@ -286,37 +286,6 @@ export const DataFragments = {
       __typename
     }
   `,
-
-  gearPhysicalFeatures: gql`
-    fragment GearPhysicalFeaturesFragment on GearPhysicalFeaturesVO {
-      id
-      vesselId
-      startDate
-      endDate
-      rankOrder
-      measurementValues
-      comments
-      metier {
-        ...MetierFragment
-      }
-      gear {
-        ...LightReferentialFragment
-      }
-      creationDate
-      updateDate
-      controlDate
-      validationDate
-      qualityFlagId
-      qualificationDate
-      qualificationComments
-      recorderDepartmentId
-      recorderPersonId
-      # - Parent link (not need)
-      #activityCalendarId
-      #dailyActivityCalendarId
-      __typename
-    }
-  `,
 };
 export const PhysicalGearFragments = {
   physicalGear: gql`

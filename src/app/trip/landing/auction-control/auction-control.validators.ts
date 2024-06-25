@@ -37,14 +37,14 @@ export class AuctionControlValidators {
       .pipe(
         startWith<any, any>(form.value),
         filter(() => !computing),
-        debounceTime(250),
         // Protected against loop
         tap(() => (computing = true)),
+        debounceTime(250),
         map(() => AuctionControlValidators.computeAndValidate(form, pmfms, { ...opts, emitEvent: false, onlySelf: false })),
         tap((errors) => {
           computing = false;
           $errors.next(errors);
-          if (opts?.markForCheck) opts.markForCheck();
+          if (opts.markForCheck) opts.markForCheck();
         })
       )
       .subscribe();
@@ -54,7 +54,7 @@ export class AuctionControlValidators {
       $errors.next(null);
       $errors.complete();
       form.clearAsyncValidators();
-      if (opts?.markForCheck) opts.markForCheck();
+      if (opts.markForCheck) opts.markForCheck();
     });
 
     return subscription;
@@ -73,12 +73,10 @@ export class AuctionControlValidators {
     opts?: {
       emitEvent?: boolean;
       onlySelf?: boolean;
+      markForCheck: () => void;
     }
   ): ValidationErrors | null {
-    // DEBUG
-    const now = Date.now();
     console.debug('[auction-control-validator] Starting computation and validation...');
-
     let errors: any;
 
     // Read pmfms
@@ -243,9 +241,10 @@ export class AuctionControlValidators {
       }
     }
 
-    // DEBUG
-    console.debug(`[auction-control-validator] Computation and validation finished in ${Date.now() - now}ms`);
-
+    if (opts?.markForCheck) {
+      //console.debug("[auction-control-validator] calling MarkForCheck...");
+      opts.markForCheck();
+    }
     return errors;
   }
 }

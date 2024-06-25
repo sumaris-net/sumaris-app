@@ -22,7 +22,6 @@ import {
   ReferentialUtils,
   removeDuplicatesFromArray,
   ServerErrorCodes,
-  toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { LandingForm } from './landing.form';
@@ -173,10 +172,8 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     );
 
     // Manage sub tab group
-    {
-      const queryParams = this.route.snapshot.queryParams;
-      this.selectedSubTabIndex = toNumber(queryParams['subtab'], 0);
-    }
+    const queryParams = this.route.snapshot.queryParams;
+    this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
   }
 
   canUserWrite(data: Landing, opts?: any): boolean {

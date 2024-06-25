@@ -12,7 +12,6 @@
     "BTN_BURST_INPUT": "Mode rafale",
     "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
     "BTN_COPY": "Copier",
-    "BTN_PASTE": "Coller",
     "BTN_CLEAR": "Vider",
     "BTN_CLOSE": "Fermer",
     "BTN_COMPACT_ROWS": "Compacter les lignes",
@@ -70,8 +69,6 @@
     "BTN_SHOW_TRASH_DOTS": "Ouvrir la corbeille...",
     "BTN_CLEAN_TRASH": "Vider la corbeille",
     "BTN_RESTORE": "Restaurer",
-    "BTN_CLEAR_CLIPBOARD": "Vider le presse-papier",
-    "BTN_CLEAR_SELECTION": "Vider les cellules",
     "BTN_LOGOUT": "Quitter",
     "CREATED_ON": "Créé le",
     "COMMENTS": "Commentaires",
@@ -702,7 +699,7 @@
       "RETURN_DATE_TIME": "Date de retour",
       "RETURN_LOCATION": "Port de retour",
       "QUALITY": "État",
-      "OBSERVERS": "Observateur(s)",
+      "OBSERVERS": "Observateurs",
       "RECORDER_PERSON": "Saisisseur",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
@@ -1609,13 +1606,11 @@
     },
     "TABLE": {
       "PROGRAM": "Programme",
-      "DATE_TIME": "Date/Heure",
-      "START_DATE_TIME": "Date de début",
-      "END_DATE_TIME": "Date de fin",
+      "START_DATE_TIME": "Date/heure",
       "QUALITY": "État",
       "QUALITY_FILTER": "Filtrer par état :",
       "LOCATION": "Lieu de la sortie",
-      "OBSERVERS": "Observateur(s)",
+      "OBSERVERS": "Observateurs",
       "RECORDER_PERSON": "Saisisseur",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les sorties <b>non envoyées</b>)",
@@ -1624,10 +1619,7 @@
         "STRATEGY": "Stratégie",
         "LOCATION": "Lieu de la sortie",
         "START_DATE": "Début de période",
-        "END_DATE": "Fin de période",
-        "RECORDER_PERSON": "Saisisseur",
-        "RECORDER_DEPARTMENT": "Organisme saisisseur",
-        "OBSERVERS": "Observateurs"
+        "END_DATE": "Fin de période"
       }
     },
     "PMFM": {},
@@ -1647,10 +1639,8 @@
       "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation.",
       "START_DATE_INVALID": "Doit commencer un {{day}}",
       "INVALID_LANDING": "Débarquement invalide",
-      "INVALID_LANDINGS": "Veuillez observer ou saisir la raison de non observation"
-    },
-    "WARNING": {
-      "INVALID_OBSERVED_COUNT": "Nombre d'espèces observées incorrect. Veuillez observer au moins {{minObservedCount}} espèces"
+      "INVALID_LANDINGS": "Veuillez observer ou saisir la raison de non observation",
+      "INVALID_OBSERVED_COUNT": "Nombre d'espèces observées incorrect. Veuillez observer entre {{minObservedCount}} et {{maxObservedCount}} espèces"
     },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "La sortie sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
@@ -1739,7 +1729,7 @@
       "TAXON_NAME": "Espèce scientifique",
       "BTN_OPEN_TRIP": "Ouvrir la marée",
       "BTN_OPEN_SALE": "Ouvrir la vente",
-      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> espèce(s) observée(s) (min. : {{minObservedCount}})",
+      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> espèce(s) observée(s) (min. : {{minObservedCount}}, max. : {{maxObservedCount}})",
       "SAMPLING": {
         "STRATEGY": "Ligne de plan",
         "SAMPLES_COUNT": "Nb. prélèvements",
@@ -1920,7 +1910,7 @@
       "GOOD": "Bonne",
       "OUT_STATS": "Hors statistiques",
       "DOUBTFUL": "Douteuse",
-      "BAD": "Fausse",
+      "BAD": "Mauvaise",
       "FIXED": "Corrigée",
       "NOT_COMPLETED": "Incomplète",
       "MISSING": "Absente"
@@ -2489,8 +2479,6 @@
       "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Mesures : Unité de poids",
       "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
       "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
-      "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Sortie > Débarquements : Nombre min. d'espèces à observer",
-      "LANDING_TOP_PMFM_IDS": "Sortie > Débarquements : PSFM(s) en en-tête",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
@@ -3349,10 +3337,6 @@
       "ECONOMIC_SURVEY": "Enquête éco ?",
       "VESSEL": "Navire",
       "YEAR": "Année",
-      "COMMENTS": "Commentaires",
-      "NO_LOCAL_RESULT": "Aucun résultat (parmi les calendriers <b>non synchronisés</b>)",
-      "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
-      "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "REGISTRATION_LOCATION": "Quartier maritime",
@@ -3392,9 +3376,6 @@
       "METIER_RANKED": "Métier #{{rankOrder}}",
       "FISHING_AREA": "Zone de pêche",
       "FISHING_AREA_RANKED": "Zone de pêche #{{rankOrder}}",
-      "DISTANCE_TO_COAST_GRADIENT": "Gradient côte",
-      "DEPTH_GRADIENT": "Profondeur",
-      "NEARBY_SPECIFIC_AREA": "Zone proche",
       "TAB_GENERAL": "Général",
       "TAB_VESSEL": "Navire",
       "TAB_HISTORY": "Historique",
@@ -3461,9 +3442,6 @@
         "LAST_NAME": "Nom :",
         "FIRST_NAME": "Prénom :"
       }
-    },
-    "ERROR": {
-      "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici."
     }
   },
   "ERROR": {

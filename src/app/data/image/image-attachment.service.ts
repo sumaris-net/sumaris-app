@@ -16,7 +16,6 @@ export const ImageAttachmentFragments = {
   light: gql`
     fragment LightImageAttachmentFragment on ImageAttachmentVO {
       id
-      objectId
       url
       comments
       creationDate

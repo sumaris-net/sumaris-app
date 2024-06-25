@@ -477,7 +477,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Manage tab group
     const queryParams = this.route.snapshot.queryParams;
-    this.selectedSubTabIndex = toNumber(queryParams['subtab'], 0);
+    this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
 
     // Manage toolbar color
     if (isNotNilOrBlank(queryParams['color'])) {

@@ -144,9 +144,6 @@ export const ActivityCalendarFragments = {
       gearUseFeatures {
         ...GearUseFeaturesFragment
       }
-      gearPhysicalFeatures {
-        ...GearPhysicalFeaturesFragment
-      }
     }
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
@@ -155,7 +152,6 @@ export const ActivityCalendarFragments = {
     ${VesselSnapshotFragments.lightVesselSnapshot}
     ${DataFragments.vesselUseFeatures}
     ${DataFragments.gearUseFeatures}
-    ${DataFragments.gearPhysicalFeatures}
     ${DataCommonFragments.metier}
     ${DataFragments.fishingArea}
   `,
@@ -244,15 +240,8 @@ const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; lo
   `,
 
   loadImages: gql`
-    query ActivityCalendarImages(
-      $offset: Int
-      $size: Int
-      $sortBy: String
-      $sortDirection: String
-      $trash: Boolean
-      $filter: ActivityCalendarFilterVOInput
-    ) {
-      data: activityCalendars(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, trash: $trash) {
+    query ActivityCalendarImages($id: Int!) {
+      data: activityCalendar(id: $id) {
         id
         images {
           ...LightImageAttachmentFragment
@@ -580,31 +569,13 @@ export class ActivityCalendarService
     }
   }
 
-  async loadImages(
-    offset?: number,
-    size?: number,
-    sortBy?: string,
-    sortDirection?: SortDirection,
-    filter?: Partial<ActivityCalendarFilter>,
-    opts?: ActivityCalendarLoadOptions
-  ): Promise<ImageAttachment[]> {
-    filter = this.asFilter(filter);
-    const variables = {
-      filter: filter && filter.asPodObject(),
-      offset: offset || 0,
-      size: size >= 0 ? size : 1000,
-      sortBy: isNotNil(sortBy) ? sortBy : null,
-      sortDirection: isNotNil(sortDirection) ? sortDirection : null,
-    };
-
-    const { data } = await this.graphql.query<{ data: Partial<ActivityCalendar[]> }>({
+  async loadImages(id: number, opts?: { toEntity?: boolean }): Promise<ImageAttachment[]> {
+    const { data } = await this.graphql.query<{ data: Partial<ActivityCalendar> }>({
       query: ActivityCalendarQueries.loadImages,
-      variables,
+      variables: { id },
       error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
     });
-    const images = data.flatMap((activityCalendar) => activityCalendar.images);
-
-    return opts?.toEntity === false ? ((images || []) as ImageAttachment[]) : images.map(ImageAttachment.fromObject) || [];
+    return opts?.toEntity === false ? ((data?.images || []) as ImageAttachment[]) : data?.images?.map(ImageAttachment.fromObject) || [];
   }
 
   async hasOfflineData(): Promise<boolean> {
@@ -1125,14 +1096,6 @@ export class ActivityCalendarService
             EntityUtils.copyIdAndUpdateDate(savedFishingArea, entity);
           });
         }
-      });
-    }
-
-    // Update GPF
-    if (source.gearPhysicalFeatures && target.gearPhysicalFeatures) {
-      target.gearPhysicalFeatures.forEach((targetGpf) => {
-        const sourceGpf = source.gearPhysicalFeatures.find((f) => targetGpf.equals(f));
-        EntityUtils.copyIdAndUpdateDate(sourceGpf, targetGpf);
       });
     }
   }

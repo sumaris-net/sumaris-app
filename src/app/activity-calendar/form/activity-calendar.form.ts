@@ -44,8 +44,8 @@ export interface ActivityCalendarFormState extends MeasurementsFormState {
 })
 export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar, ActivityCalendarFormState> implements OnInit {
   private _lastValidatorOpts: any;
-  private _readonlyControlNames: (keyof ActivityCalendar)[] = ['program', 'year', 'startDate', 'directSurveyInvestigation', 'economicSurvey', 'year'];
   protected isYearInTheFuture = false;
+  private _readonlyControlNames: (keyof ActivityCalendar)[] = ['program', 'year', 'startDate', 'directSurveyInvestigation', 'economicSurvey', 'year'];
 
   @Input() required = true;
   @Input() showError = true;
@@ -144,17 +144,13 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     // Listen year
     this.registerSubscription(
       merge(
-        this.yearControl.valueChanges,
-        this.form.get('startDate').valueChanges.pipe(map((startDate) => fromDateISOString(startDate)?.utc(false).year()))
+        this.form.get('year').valueChanges,
+        this.form.get('startDate').valueChanges.pipe(map((startDate) => fromDateISOString(startDate)?.year()))
       )
         .pipe(filter(isNotNil), distinctUntilChanged())
         .subscribe((year) => {
           console.debug(this._logPrefix + 'Year changes to: ' + year);
-          if (this.isNewData && this.yearControl.value !== year) {
-            this.yearControl.setValue(year, { emitEvent: false });
-            this.yearChanges.next(year);
-          }
-
+          this.yearChanges.next(year);
           // Warning if year is in the future
           this.isYearInTheFuture = isNotNil(year) && year > DateUtils.moment().year();
           this.markForCheck();

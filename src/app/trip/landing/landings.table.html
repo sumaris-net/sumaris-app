@@ -29,19 +29,10 @@
     </button>
   </ng-template>
 
-  @if (!mobile && error) {
-    <ion-item lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" class="error" [innerHTML]="error | translate: errorDetails"></ion-label>
-    </ion-item>
-  } @else if (!mobile && showObservedCount && observedCount < minObservedSpeciesCount) {
-    <ion-item lines="none">
-      <ion-icon color="warning" slot="start" name="alert-circle"></ion-icon>
-      <ion-label
-        [innerHTML]="'OBSERVED_LOCATION.WARNING.INVALID_OBSERVED_COUNT' | translate: { minObservedCount: minObservedSpeciesCount }"
-      ></ion-label>
-    </ion-item>
-  }
+  <ion-item *ngIf="!mobile && error; let error" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate: errorDetails"></ion-label>
+  </ion-item>
 
   <div class="toolbar-spacer"></div>
 
@@ -338,11 +329,11 @@
       >
         @if (row.editing) {
           <app-pmfm-field
-            floatLabel="never"
             [pmfm]="pmfm"
             [formControl]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
             [compact]="pmfm?.type === 'boolean'"
             [autofocus]="row.editing && focusColumn == pmfm.id"
+            floatLabel="never"
           ></app-pmfm-field>
         } @else if (mobile) {
           <ion-text
@@ -417,52 +408,65 @@
         </button>
       </th>
       <td mat-cell *matCellDef="let row">
-        @if (row.editing && (showCancelRowButton || showConfirmRowButton)) {
-          <!-- validate row -->
-          @if (showConfirmRowButton && row.validator?.valid && row.id !== -1) {
-            <button mat-icon-button color="light" [title]="'COMMON.BTN_VALIDATE' | translate" (click)="confirmEditCreate($event, row)">
-              <mat-icon>check</mat-icon>
-            </button>
-          } @else if (showCancelRowButton && row.validator?.invalid && canCancelOrDelete(row)) {
-            <!-- undo or delete -->
-            <button
-              mat-icon-button
-              color="light"
-              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO' : 'COMMON.BTN_DELETE') | translate"
-              (click)="cancelOrDelete($event, row)"
-            >
-              <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-              <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-            </button>
-          } @else if (row.validator?.pending) {
-            <ion-spinner name="dots" [ngClass]="{ center: true }"></ion-spinner>
-          }
-        } @else if (row.id === -1 || (enabled && singleSelectedRow === row && canCancelOrDelete(row))) {
+        <ion-spinner *ngIf="row.validator?.pending" name="dots" [ngClass]="{ center: true }"></ion-spinner>
+
+        <ng-container *ngIf="row.editing; else notEditing">
+          <!-- undo or delete -->
+          <button
+            mat-icon-button
+            color="light"
+            *ngIf="row.validator?.invalid && canCancelOrDelete(row)"
+            [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO' : 'COMMON.BTN_DELETE') | translate"
+            (click)="cancelOrDelete($event, row)"
+          >
+            <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+            <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+          </button>
+          <!-- validate -->
+          <button
+            mat-icon-button
+            color="light"
+            *ngIf="row.validator?.valid && row.id !== -1"
+            [title]="'COMMON.BTN_VALIDATE' | translate"
+            (click)="confirmEditCreate($event, row)"
+          >
+            <mat-icon>check</mat-icon>
+          </button>
+        </ng-container>
+
+        <ng-template #notEditing>
           <!-- Delete row button -->
-          <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="cancelOrDelete($event, row)">
+          <button
+            mat-icon-button
+            *ngIf="enabled && singleSelectedRow === row && canCancelOrDelete(row); else otherButtons"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="cancelOrDelete($event, row)"
+          >
             <mat-icon>delete</mat-icon>
           </button>
-        } @else if (detailEditor === 'trip') {
-          <!-- Open trip page -->
-          <button
-            mat-icon-button
-            [color]="row.currentData.tripId ? 'primary' : 'medium'"
-            [title]="'LANDING.TABLE.BTN_OPEN_TRIP' | translate"
-            (click)="confirmAndEditTrip($event, row)"
-          >
-            <ion-icon name="boat" slot="icon-only"></ion-icon>
-          </button>
-        } @else if (detailEditor === 'sale') {
-          <!-- Open sale page -->
-          <button
-            mat-icon-button
-            [color]="(row.currentData.saleIds | isArrayLength: { equals: 1 }) ? 'primary' : 'dark'"
-            [title]="'LANDING.TABLE.BTN_OPEN_SALE' | translate"
-            (click)="confirmAndEditSale($event, row)"
-          >
-            <ion-icon name="pricetag" slot="icon-only"></ion-icon>
-          </button>
-        }
+
+          <!-- Edit buttons (trip or sale) -->
+          <ng-template #otherButtons>
+            <button
+              mat-icon-button
+              *ngIf="row.id !== -1 && isTripDetailEditor"
+              [color]="row.currentData.tripId ? 'primary' : 'medium'"
+              [title]="'LANDING.TABLE.BTN_OPEN_TRIP' | translate"
+              (click)="confirmAndEditTrip($event, row)"
+            >
+              <ion-icon name="boat" slot="icon-only"></ion-icon>
+            </button>
+            <button
+              mat-icon-button
+              *ngIf="row.id !== -1 && isSaleDetailEditor"
+              [color]="(row.currentData.saleIds | isArrayLength: { equals: 1 }) ? 'primary' : 'dark'"
+              [title]="'LANDING.TABLE.BTN_OPEN_SALE' | translate"
+              (click)="confirmAndEditSale($event, row)"
+            >
+              <ion-icon name="pricetag" slot="icon-only"></ion-icon>
+            </button>
+          </ng-template>
+        </ng-template>
       </td>
     </ng-container>
 
@@ -476,7 +480,9 @@
           class="text-italic"
           [innerHTML]="
             'LANDING.TABLE.OBSERVED_SPECIES_COUNT'
-              | translateContext: i18nColumnSuffix : { observedCount: (observedCount$ | async), minObservedCount: minObservedSpeciesCount }
+              | translateContext
+                : i18nColumnSuffix
+                : { observedCount: (observedCount$ | async), minObservedCount: minObservedSpeciesCount, maxObservedCount: maxObservedSpeciesCount }
           "
         ></ion-text>
       </td>
@@ -485,7 +491,7 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr
       mat-row
-      *matRowDef="let row; columns: displayedColumns; when: isLanding"
+      *matRowDef="let row; columns: displayedColumns"
       [class.mat-mdc-row-error]="row.validator?.invalid"
       [class.mat-mdc-row-dirty]="row.validator?.dirty"
       [class.mat-mdc-row-disabled]="!row.editing"
@@ -494,23 +500,6 @@
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
     ></tr>
-
-    <!-- Divider -->
-    <ng-container matColumnDef="divider" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
-      <td mat-cell colspan="4" *matCellDef="let row" class="divider">
-        @if (mobile) {
-          <ion-text [innerHTML]="row.currentData | propertyGet: ['measurementValues', dividerPmfmId, 'name']"></ion-text>
-        } @else {
-          <ion-text [innerHTML]="row.validator | formGetValue: 'measurementValues' | mapGet: dividerPmfmId | mapGet: 'name'"></ion-text>
-        }
-      </td>
-    </ng-container>
-    <ng-container matColumnDef="dividerColspan">
-      <td mat-cell colspan="999" *matCellDef="let row" class="divider"></td>
-    </ng-container>
-
-    <tr mat-row *matRowDef="let row; columns: ['divider', 'dividerColspan']; when: isDivider"></tr>
-
     <!-- footer -->
     <ng-container *ngIf="showFooter">
       <tr mat-footer-row *matFooterRowDef="footerColumns; sticky: useFooterSticky" [class.cdk-visually-hidden]="!totalRowCount"></tr>

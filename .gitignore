@@ -25,7 +25,6 @@ npm-debug.log*
 .gitlab-ci-local
 coverage/
 dist/
-node_modules
 node_modules/
 **/node_modules/
 tmp/

@@ -63,7 +63,7 @@
             class="ion-padding-end"
             *ngVar="pmfm | pmfmFieldStyle: maxItemCountForButtons as style"
             size="12"
-            [sizeMd]="pmfm.isMultiple || (pmfm.isQualitative && style === 'button') ? 12 : 6"
+            [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6"
           >
             <app-pmfm-field
               #matInput
