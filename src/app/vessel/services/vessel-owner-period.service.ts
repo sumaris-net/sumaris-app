@@ -1,9 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
-import { BaseEntityService, GraphqlService } from '@sumaris-net/ngx-components';
-import { IEntitiesService } from '@sumaris-net/ngx-components';
-import { PlatformService } from '@sumaris-net/ngx-components';
-import { isNotNil } from '@sumaris-net/ngx-components';
+import { BaseEntityService, GraphqlService, IEntitiesService, isNotNil, PlatformService } from '@sumaris-net/ngx-components';
 import { VesselOwnerPeriodFilter } from './filter/vessel.filter';
 import { VesselOwnerPeriod } from './model/vessel-owner-period.model';
 
@@ -48,7 +45,9 @@ export class VesselOwnerPeridodService
     super(graphql, platform, VesselOwnerPeriod, VesselOwnerPeriodFilter, {
       queries: VesselOwnerPeriodQueries,
       defaultSortBy: 'startDate',
+      defaultSortDirection: 'desc',
     });
+    this._logPrefix = '[vessel-owner-period-service] ';
   }
 
   async count(

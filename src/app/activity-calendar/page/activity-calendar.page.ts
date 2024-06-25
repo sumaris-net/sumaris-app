@@ -41,7 +41,12 @@ import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
-import { VesselFeaturesFilter, VesselFilter, VesselOwnerPeriodFilter, VesselRegistrationFilter } from '@app/vessel/services/filter/vessel.filter';
+import {
+  VesselFeaturesFilter,
+  VesselFilter,
+  VesselOwnerPeriodFilter,
+  VesselRegistrationPeriodFilter,
+} from '@app/vessel/services/filter/vessel.filter';
 import { PredefinedColors } from '@ionic/core';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
@@ -322,7 +327,7 @@ export class ActivityCalendarPage
       this.onUpdateView.subscribe(() => {
         if (isNotNilOrNaN(this.data.id)) {
           this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), { emitEvent: true });
-          this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), {
+          this.registrationHistoryTable.setFilter(VesselRegistrationPeriodFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), {
             emitEvent: true,
           });
           this.ownerHistoryTable.setFilter(VesselOwnerPeriodFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), {
