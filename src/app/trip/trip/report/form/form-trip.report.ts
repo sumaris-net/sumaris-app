@@ -9,6 +9,7 @@ import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import {
+  EntityAsObjectOptions,
   ImageAttachment,
   isNil,
   isNotEmptyArray,
@@ -65,7 +66,6 @@ export class FormTripReportStats extends BaseReportStats {
   pmfmsByIds?: {
     trip?: { [key: number]: IPmfm };
     operation?: { [key: number]: IPmfm };
-    gears?: IPmfm[];
     denormalizedBatch?: { [key: number]: IPmfm };
     samples: { [key: number]: IPmfm };
   };
@@ -78,6 +78,112 @@ export class FormTripReportStats extends BaseReportStats {
     sampleTaxonNameEnabled: boolean;
     sampleTaxonGroupEnabled: boolean;
   };
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.subtitle = source.subtitle;
+    this.footerText = source.footerText;
+    this.logoHeadLeftUrl = source.logoHeadLeftUrl;
+    this.logoHeadRightUrl = source.logoHeadRightUrl;
+    this.strataEnabled = source.strataEnabled;
+    this.saleTypes = source.saleTypes;
+    this.strategy = Strategy.fromObject(source.strategy);
+    this.operationRankOrderByOperationIds = source.operationRankOrderByOperationIds;
+    this.operationsRankByGears = source.operationsRankByGears;
+    this.pmfmByGearsId = source.pmfmsByIds;
+    this.denormalizedBatchByOp = Object.keys(source.denormalizedBatchByOp).reduce((acc, key) => {
+      acc[key] = {
+        landing: source.denormalizedBatchByOp[key]?.landing.map(DenormalizedBatch.fromObject),
+        discard: source.denormalizedBatchByOp[key]?.discard.map(DenormalizedBatch.fromObject),
+      };
+      return acc;
+    }, {});
+    this.measurementValues = {
+      trip: source.measurementValues.trip,
+      operations: source.measurementValues.operations,
+      gears: source.measurementValues.gears,
+    };
+    this.pmfms = {
+      trip: source.pmfms.trip?.map(DenormalizedPmfmStrategy.fromObject),
+      operation: source.pmfms.operation?.map(DenormalizedPmfmStrategy.fromObject),
+      gears: source.pmfms.gears?.map(DenormalizedPmfmStrategy.fromObject),
+      denormalizedBatch: source.pmfms.denormalizedBatch?.map(DenormalizedPmfmStrategy.fromObject),
+      samples: source.pmfms.samples?.map(DenormalizedPmfmStrategy.fromObject),
+    };
+    this.pmfmsByIds = {
+      trip: Object.keys(source.pmfmsByIds.trip).reduce((acc, key) => {
+        acc[key] = DenormalizedPmfmStrategy.fromObject(source.pmfmsByIds.trip[key]);
+        return acc;
+      }, {}),
+      operation: Object.keys(source.pmfmsByIds.operation).reduce((acc, key) => {
+        acc[key] = DenormalizedPmfmStrategy.fromObject(source.pmfmsByIds.operation[key]);
+        return acc;
+      }, {}),
+      denormalizedBatch: Object.keys(source.pmfmsByIds.denormalizedBatch).reduce((acc, key) => {
+        acc[key] = DenormalizedPmfmStrategy.fromObject(source.pmfmsByIds.denormalizedBatch[key]);
+        return acc;
+      }, {}),
+      samples: Object.keys(source.pmfmsByIds.samples).reduce((acc, key) => {
+        acc[key] = DenormalizedPmfmStrategy.fromObject(source.pmfmsByIds.samples[key]);
+        return acc;
+      }, {}),
+    };
+    this.sampleImagesByOperationIds = Object.keys(source.sampleImagesByOperationIds).reduce((acc, key) => {
+      acc[key] = source.sampleImagesByOperationIds[key]?.map(ImageAttachment.fromObject);
+      return acc;
+    }, {});
+    this.options = {
+      showFishingStartDateTime: source.showFishingStartDateTime,
+      showFishingEndDateTime: source.showFishingEndDateTime,
+      showEndDate: source.showEndDate,
+      sampleLabelEnabled: source.sampleLabelEnabled,
+      sampleTaxonNameEnabled: source.sampleTaxonNameEnabled,
+      sampleTaxonGroupEnabled: source.sampleTaxonGroupEnabled,
+    };
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    return {
+      ...super.asObject(opts),
+      subtitle: this.subtitle,
+      footerText: this.footerText,
+      logoHeadLeftUrl: this.logoHeadLeftUrl,
+      logoHeadRightUrl: this.logoHeadRightUrl,
+      strataEnabled: this.strataEnabled,
+      saleType: this.saleTypes,
+      strategy: this.strategy.asObject(opts),
+      operationRankOrderByOperationIds: this.operationRankOrderByOperationIds,
+      operationsRankByGears: this.operationsRankByGears,
+      pmfmByGearsId: this.pmfmByGearsId,
+      denormalizedBatchByOp: Object.keys(this.denormalizedBatchByOp).reduce((acc, key) => {
+        acc[key] = {
+          landing: this.denormalizedBatchByOp[key].landing.map((item) => item.asObject(opts)),
+          discard: this.denormalizedBatchByOp[key].discard.map((item) => item.asObject(opts)),
+        };
+        return acc;
+      }, {}),
+      measurementValues: this.measurementValues,
+      pmfms: {
+        trip: this.pmfms.trip.map((item) => item.asObject(opts)),
+        operation: this.pmfms.operation.map((item) => item.asObject(opts)),
+        gears: this.pmfms.gears.map((item) => item.asObject(opts)),
+        denormalizedBatchByOp: this.pmfms.denormalizedBatch.map((item) => item.asObject(opts)),
+        samples: this.pmfms.denormalizedBatch.map((item) => item.asObject(opts)),
+      },
+      pmfmsByIds: Object.keys(this.pmfmsByIds).reduce((acc, key) => {
+        acc[key] = Object.keys(this.pmfmsByIds[key]).reduce((subAcc, id) => {
+          subAcc[id] = this.pmfmsByIds[key][id].asObject(opts);
+          return subAcc;
+        }, {});
+        return acc;
+      }, {}),
+      sampleImagesByOperationIds: Object.keys(this.sampleImagesByOperationIds).reduce((acc, key) => {
+        acc[key] = this.sampleImagesByOperationIds[key].map((item) => item.asObject(opts));
+        return acc;
+      }, {}),
+      options: this.options,
+    };
+  }
 }
 
 @Component({

@@ -26,8 +26,6 @@ import {
   Property,
   ReferentialRef,
   referentialToString,
-  ReferentialUtils,
-  removeDuplicatesFromArray,
   StatusIds,
   toBoolean,
   toNumber,
@@ -73,9 +71,8 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
 import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.table';
-import { ActivityMonth } from '../calendar/activity-month.model';
-import { GearPhysicalFeatures } from '../model/gear-physical-features.model';
 import { environment } from '@environments/environment';
+import { GearPhysicalFeaturesUtils } from '../model/gear-physical-features.utils';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -275,7 +272,9 @@ export class ActivityCalendarPage
           return;
         }
 
-        this.tableMetier.value = this.getPhysicalFeatures(this.calendar.value, this.tableMetier.value);
+        this.tableMetier.value = GearPhysicalFeaturesUtils.updateFromActivityMonths(this.data, this.calendar.value, this.tableMetier.value, {
+          timezone: this.timezone,
+        });
       })
     );
 
@@ -632,11 +631,10 @@ export class ActivityCalendarPage
     this.baseForm.value = data;
 
     // Set data to calendar
-    const activityMonths = ActivityMonthUtils.fromActivityCalendar(data);
-    this.calendar.value = activityMonths;
+    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, timezone: this.timezone });
 
     // Set metier table data
-    this.tableMetier.value = this.getPhysicalFeatures(activityMonths, data.gearPhysicalFeatures);
+    this.tableMetier.value = GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone: this.timezone });
 
     // Load pictures
     if (this.showPictures && !isNewData) {
@@ -647,51 +645,6 @@ export class ActivityCalendarPage
     if (this._predocPanelVisible && !isNewData) {
       this.loadPredoc(data);
     }
-  }
-
-  getPhysicalFeatures(activityMonths: ActivityMonth[], gearPhysicalFeature: GearPhysicalFeatures[]): GearPhysicalFeatures[] {
-    // Set metier table data
-    const monthMetiers = removeDuplicatesFromArray(
-      activityMonths.flatMap((month) => month.gearUseFeatures.map((guf) => guf.metier)),
-      'id'
-    );
-    const monthMetierIds = monthMetiers.map((metier) => metier.id);
-
-    // Keep in GearPhysicalFeatures only metier present in calendar
-    gearPhysicalFeature = gearPhysicalFeature.filter((gph) => monthMetierIds.includes(gph.metier.id));
-
-    const firstDayOfYear = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
-    const lastDayOfYear = firstDayOfYear.clone().endOf('year');
-
-    const gearPhysicalFeatures = monthMetiers
-      .map((metier, index) => {
-        const existingGph = (gearPhysicalFeature || []).find((guf) => {
-          return (
-            DateUtils.isSame(firstDayOfYear, guf.startDate, 'day') &&
-            DateUtils.isSame(lastDayOfYear, guf.endDate, 'day') &&
-            ReferentialUtils.equals(guf.metier, metier)
-          );
-        });
-        if (existingGph) existingGph.rankOrder = index + 1;
-        return (
-          existingGph || {
-            activityCalendarId: this.data.id,
-            startDate: firstDayOfYear,
-            endDate: lastDayOfYear,
-            metier,
-            gear: metier.gear,
-          }
-        );
-      })
-      .map(GearPhysicalFeatures.fromObject);
-
-    // Re index PhysicalGearFeature rankOrder depending on monthMetiers order.
-    // Must be done in last because PhysicalGearFeature can be deleted
-    monthMetiers.forEach((metier, index) => {
-      gearPhysicalFeatures.find((gpf) => gpf.metier.id == metier.id).rankOrder = index;
-    });
-    console.debug(this.logPrefix + 'Loaded metiers: ', gearPhysicalFeatures);
-    return gearPhysicalFeatures;
   }
 
   async getValue(): Promise<ActivityCalendar> {
@@ -712,7 +665,7 @@ export class ActivityCalendarPage
     }
 
     // Metiers
-    value.gearPhysicalFeatures = this.getPhysicalFeatures(this.calendar.value, this.tableMetier.value);
+    value.gearPhysicalFeatures = GearPhysicalFeaturesUtils.updateFromCalendar(value, this.tableMetier.value, { timezone: this.timezone });
 
     // Photos
     if (this.canEdit) value.images = this.gallery.value;
@@ -825,7 +778,7 @@ export class ActivityCalendarPage
       // DEBUG: simulate a previous calendar
       //if (this.debug && predocCalendars.length === 1) predocCalendars = predocCalendars.concat(predocCalendars[0].clone());
 
-      const predocMonths = predocCalendars.flatMap((ac) => ActivityMonthUtils.fromActivityCalendar(ac));
+      const predocMonths = predocCalendars.flatMap((ac) => ActivityMonthUtils.fromActivityCalendar(ac, { fillEmptyGuf: true }));
       EntityUtils.sort(predocMonths, 'month', 'asc');
 
       await this.predocCalendar.setValue(predocMonths);

@@ -3,7 +3,6 @@ import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
-import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -12,7 +11,20 @@ import { StrategyRefService } from '@app/referential/services/strategy-ref.servi
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
-import { isEmptyArray, isNotEmptyArray, isNotNil, referentialToString, sleep, TranslateContextService } from '@sumaris-net/ngx-components';
+import {
+  CORE_CONFIG_OPTIONS,
+  ConfigService,
+  DateUtils,
+  EntityAsObjectOptions,
+  TranslateContextService,
+  firstNotNilPromise,
+  isEmptyArray,
+  isNotEmptyArray,
+  isNotNil,
+  referentialToString,
+  sleep,
+  splitById,
+} from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../../activity-calendar.service';
 import { ActivityMonth } from '../../calendar/activity-month.model';
 import { ActivityMonthUtils } from '../../calendar/activity-month.utils';
@@ -23,6 +35,8 @@ import { GearUseFeatures } from '../../model/gear-use-features.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import moment from 'moment';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
 
 export class FormActivityCalendarReportStats extends BaseReportStats {
   subtitle?: string;
@@ -34,11 +48,46 @@ export class FormActivityCalendarReportStats extends BaseReportStats {
   pmfm?: {
     activityMonth?: IPmfm[];
     activityCalendar?: IPmfm[];
-    physicalGear?: IPmfm[];
+    gpf?: IPmfm[];
   };
-  effortsTableRows?: { title: string; values: string[] }[];
   activityMonthColspan?: number[][];
-  metierTableChunks?: { gufId: number; fishingAreasIds: number[] }[][];
+  metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.subtitle = source.subtitle;
+    this.footerText = source.footerText;
+    this.logoHeadLeftUrl = source.logoHeadLeftUrl;
+    this.logoHeadRightUrl = source.logoHeadRightUrl;
+    this.strategy = Strategy.fromObject(source.strategy);
+    this.activityMonth = source.activityMonth.map(ActivityMonth.fromObject);
+    this.pmfm = {
+      activityMonth: source.pmfm.activityMonth.map(DenormalizedPmfmStrategy.fromObject),
+      activityCalendar: source.pmfm.activityCalendar.map(DenormalizedPmfmStrategy.fromObject),
+      gpf: source.pmfm.physicalGear.map(DenormalizedPmfmStrategy.fromObject),
+    };
+    this.activityMonthColspan = source.activityMonthColspan;
+    this.metierTableChunks = source.metierTableChunks;
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    return {
+      ...super.asObject(opts),
+      subtitle: this.subtitle,
+      footerText: this.footerText,
+      logoHeadRightUrl: this.logoHeadRightUrl,
+      logoHeadLeftUrl: this.logoHeadLeftUrl,
+      strategy: this.strategy.asObject(opts),
+      activityMonth: this.activityMonth.map((item) => item.asObject(opts)),
+      pmfm: {
+        activityMonth: this.pmfm.activityMonth.map((item) => item.asObject(opts)),
+        activityCalendar: this.pmfm.activityCalendar.map((item) => item.asObject(opts)),
+        physicalGear: this.pmfm.gpf.map((item) => item.asObject(opts)),
+      },
+      activityMonthColspan: this.activityMonthColspan,
+      metierTableChunks: this.metierTableChunks,
+    };
+  }
 }
 
 @Component({
@@ -62,6 +111,11 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
   protected readonly programRefService: ProgramRefService;
   protected readonly vesselSnapshotService: VesselSnapshotService;
   protected readonly translateContextService: TranslateContextService;
+  protected readonly configService: ConfigService;
+
+  protected readonly isActiveList = IsActiveList;
+  protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
+  protected readonly nbOfNonPmfmRowInEffortTable = 2;
 
   protected readonly pageDimensions = Object.freeze({
     height: 297 * 4,
@@ -72,10 +126,11 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     footerHeight: 35,
     sectionTitleHeight: 25,
     monthTableRowTitleHeight: 20,
-    monthTableRowHeight: 30,
-    gufTableRowTitleHeight: 20,
-    gufTableColTitleWidth: 200,
-    gufTableRowHeight: 20,
+    monthTableRowHeight: 20,
+    monthTableMetierRowHeight: 30,
+    gpfTableRowTitleHeight: 20,
+    gpfTableColTitleWidth: 200,
+    gpfTableRowHeight: 20,
     investigationQualificationSectionHeight: 60,
   });
 
@@ -83,13 +138,18 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     return PmfmIds.SURVEY_QUALIFICATION === pmfm.id;
   }
 
+  protected filterPmfmAuctionHabit(pmfm: IPmfm): boolean {
+    return PmfmIds.AUCTION_HABIT === pmfm.id;
+  }
+
   constructor(injector: Injector) {
-    super(injector, ActivityCalendar, FormActivityCalendarReportStats);
+    super(injector, ActivityCalendar, FormActivityCalendarReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
     this.ActivityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
     this.vesselSnapshotService = this.injector.get(VesselSnapshotService);
     this.translateContextService = this.injector.get(TranslateContextService);
+    this.configService = this.injector.get(ConfigService);
 
     this.subReportType = this.route.snapshot.routeConfig.path;
     this.isBlankForm = this.subReportType === 'blank';
@@ -143,6 +203,9 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
   ): Promise<FormActivityCalendarReportStats> {
     const stats = new FormActivityCalendarReportStats();
 
+    const timezone = (await firstNotNilPromise(this.configService.config)).getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE) || DateUtils.moment().tz();
+    const gearIds = data.gearPhysicalFeatures?.map((gph) => gph.gear.id) || [];
+
     // Get program and options
     stats.program = await this.programRefService.loadByLabel(data.program.label);
     // TODO Need to get strategy resolution ?
@@ -161,6 +224,11 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
       const nbOfMetier = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER);
       const nbOfFishingAreaPerMetier = stats.program.getPropertyAsInt(
         ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER
+      );
+      data.gearPhysicalFeatures = Array(nbOfMetier).fill(
+        GearPhysicalFeatures.fromObject({
+          metier: Metier.fromObject({}),
+        })
       );
       data.gearUseFeatures = Array(nbOfMetier).fill(
         GearUseFeatures.fromObject({
@@ -185,36 +253,15 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
         acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
         strategyId: stats.strategy.id,
       }),
-      physicalGear: await this.programRefService.loadProgramPmfms(data.program.label, {
-        acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
-        strategyId: stats.strategy.id,
-      }),
+      gpf: (
+        await this.programRefService.loadProgramPmfms(data.program.label, {
+          acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
+          strategyId: stats.strategy.id,
+        })
+      ).filter(
+        (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gearIds.includes(gearId))
+      ),
     };
-
-    stats.effortsTableRows = [
-      {
-        title: this.translate.instant('ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER'),
-        values: new Array(12).fill('TODO'),
-      },
-      {
-        title: this.translate.instant('ACTIVITY_CALENDAR.REPORT.REGISTRATION_LOCATION'),
-        values: stats.activityMonth.map((_) => referentialToString(data.vesselSnapshot.registrationLocation, ['label', 'name'])),
-      },
-      {
-        title: this.translate.instant('ACTIVITY_CALENDAR.REPORT.IS_ACTIVE'),
-        values: stats.activityMonth.map((month) => {
-          const isActive = IsActiveList[month.isActive]?.label;
-          return isNotNil(isActive) ? this.translate.instant(isActive) : '';
-        }),
-      },
-    ].concat(
-      stats.pmfm.activityMonth.map((pmfm) => {
-        return {
-          title: PmfmUtils.getPmfmName(pmfm),
-          values: stats.activityMonth.map((month) => PmfmValueUtils.valueToString(month.measurementValues[pmfm.id], { pmfm, html: true })),
-        };
-      })
-    );
 
     this.computeMetierTableChunk(data, stats);
 
@@ -237,17 +284,16 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
   }
 
   protected computeShareBasePath(): string {
-    // TODO
-    return 'activity-calendar/report';
+    return 'activity-calendar/report/form';
   }
 
   protected computeMetierTableChunk(data: ActivityCalendar, stats: FormActivityCalendarReportStats) {
     stats.metierTableChunks = [];
 
-    const metierChunks: { gufId: number; fishingAreasIds: number[] }[] = data.gearUseFeatures.map((guf) => {
+    const metierChunks: { metierIndex: number; fishingAreasIndexes: number[] }[] = stats.activityMonth[0].gearUseFeatures.map((guf, index) => {
       return {
-        gufId: guf.id,
-        fishingAreasIds: guf.fishingAreas.map((fa) => fa.id),
+        metierIndex: index,
+        fishingAreasIndexes: guf.fishingAreas.map((_, index) => index),
       };
     });
 
@@ -261,13 +307,13 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     const heightOfEffortSection =
       this.pageDimensions.sectionTitleHeight +
       this.pageDimensions.monthTableRowHeight +
-      stats.effortsTableRows.length * this.pageDimensions.monthTableRowHeight +
+      (stats.pmfm.activityMonth.length + this.nbOfNonPmfmRowInEffortTable) * this.pageDimensions.monthTableRowHeight +
       this.pageDimensions.investigationQualificationSectionHeight;
     const heightOfGearSection =
       this.pageDimensions.marginTop / 2 +
       this.pageDimensions.sectionTitleHeight +
-      this.pageDimensions.gufTableRowTitleHeight +
-      stats.pmfm.physicalGear.length * this.pageDimensions.gufTableRowHeight;
+      this.pageDimensions.gpfTableRowTitleHeight +
+      stats.pmfm.gpf.length * this.pageDimensions.gpfTableRowHeight;
     const heighOfMetierTableHead =
       this.pageDimensions.marginTop + this.pageDimensions.sectionTitleHeight + this.pageDimensions.monthTableRowTitleHeight;
 
@@ -275,9 +321,8 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     const availableHeightOnOtherPage = totalAvailableHeightForContent - heighOfMetierTableHead;
 
     const heightNeededByEachMetierChunk = metierChunks.map((chunk) => {
-      const nbOfFishingArea = chunk.fishingAreasIds.length;
-      // `+ 1` to count the metier row
-      return this.pageDimensions.monthTableRowHeight * (nbOfFishingArea + 1);
+      const nbOfFishingArea = chunk.fishingAreasIndexes.length;
+      return this.pageDimensions.monthTableMetierRowHeight + this.pageDimensions.monthTableRowHeight * nbOfFishingArea;
     });
 
     let currentChunkItems = [];
@@ -332,7 +377,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
             // This is the last month
             if (stats.activityMonth[nextMonthIdx] === undefined) break;
             const nextMonthGuf = stats.activityMonth[nextMonthIdx].gearUseFeatures[gufIdx];
-            if (isNotNil(guf.id) && guf.id === nextMonthGuf.id) {
+            if (isNotNil(guf.metier?.id) && guf.metier?.id === nextMonthGuf.metier?.id) {
               stats.activityMonthColspan[nextMonthIdx][gufIdx] = 0;
               colspanCount++;
             }
