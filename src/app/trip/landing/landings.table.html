@@ -6,7 +6,7 @@
 <mat-toolbar *ngIf="showToolbar" [class.expanded]="filterExpansionPanel.expanded">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
-    <button mat-icon-button *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
+    <button mat-icon-button *ngIf="!mobile && enabled && canAdd" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
 
@@ -211,7 +211,12 @@
           [title]="rowError || ''"
         >
           <ion-label matBadge="!" [matBadgeHidden]="!rowError && !showRowError" matBadgeOverlap="false" matBadgeColor="accent" matBadgeSize="small">
-            {{ row.currentData.rankOrder || (row.currentData.id | mathAbs) }}
+            @if (row.currentData.rankOrder && (row | check: isRowNotSelectable)) {
+              <!-- Offset on RANDOM landings -->
+              {{ row.currentData.rankOrder - randomLandingsRankOrderOffset }}
+            } @else {
+              {{ row.currentData.rankOrder || (row.currentData.id | mathAbs) }}
+            }
           </ion-label>
         </td>
       </ng-container>
@@ -498,6 +503,7 @@
       [class.cdk-visually-hidden]="loadingSubject | async"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
+      (keydown.escape)="escapeEditingRow($event)"
     ></tr>
 
     <!-- Divider -->

@@ -55,8 +55,8 @@ export abstract class PmfmValueUtils {
     if (!isNaN(+pv1) && +pv1 === +pv2) return true;
 
     // Serialize ReferentialRef to id
-    const v1 = typeof pv1 === 'object' && isNotNil(pv1.id) ? pv1.id : pv1;
-    const v2 = typeof pv2 === 'object' && isNotNil(pv2.id) ? pv2.id : pv2;
+    const v1 = typeof pv1 === 'object' && isNotNil(pv1?.id) ? pv1.id : pv1;
+    const v2 = typeof pv2 === 'object' && isNotNil(pv2?.id) ? pv2.id : pv2;
 
     // Test match
     // WARN: use '==' a NOT '===' because number can be serialized as string

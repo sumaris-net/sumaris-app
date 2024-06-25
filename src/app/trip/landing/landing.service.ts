@@ -67,7 +67,7 @@ import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-loca
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 import { LandingValidatorOptions, LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { IProgressionOptions } from '@app/data/services/data-quality-service.class';
-import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
+import { MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
@@ -1467,7 +1467,13 @@ export class LandingService
       data
         .slice()
         .sort(sortByDateOrIdFn)
-        .forEach((o) => (o.rankOrder = rankOrder++));
+        .forEach((o) => {
+          if (MeasurementValuesUtils.hasPmfmValue(o.measurementValues, PmfmIds.SPECIES_LIST_ORIGIN, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM)) {
+            // TODO JVF: o.rankOrder -= 100;
+          } else {
+            o.rankOrder = rankOrder++;
+          }
+        });
 
       // Sort by rankOrder (even if 'id' because never used)
       if (!sortBy || sortBy === 'rankOrder' || sortBy === 'id' || sortBy === 'dateTime') {

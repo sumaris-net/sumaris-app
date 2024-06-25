@@ -1,7 +1,17 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { AccountService, AppValidatorService, isNil, isNotEmptyArray, isNotNil, Person, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  AppValidatorService,
+  DateUtils,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  Person,
+  toBoolean,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { LandingService } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, QualitativeValueIds, VesselIds } from '@app/referential/services/model/model.enum';
@@ -54,6 +64,10 @@ export const LANDING_I18N_PMFM_PREFIX = 'LANDING.PMFM.';
 export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
   readonly pmfmIdsMap = PmfmIds;
 
+  /** Offset to apply to SPECIES_LIST_ORIGIN.RANDOM landings (sale editor). */
+  static readonly RANDOM_LANDINGS_RANK_ORDER_OFFSET = 100;
+  readonly randomLandingsRankOrderOffset = LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET;
+
   private _parentDateTime: Moment;
   private _parentObservers: Person[];
   private _footerRowsSubscription: Subscription;
@@ -93,6 +107,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   @Output() newSale = new EventEmitter<TableElement<Landing>>();
 
   @Input() canDelete = true;
+  @Input() canAdd = true;
   @Input() showFabButton = false;
   @Input() showCancelRowButton = false;
   @Input() showConfirmRowButton = false;
@@ -361,12 +376,22 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
 
     const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
-
     if (saleTypePmfm) {
       console.debug(`[control] Setting pmfm ${saleTypePmfm.label} qualitative values`);
       const saleTypes = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });
       saleTypePmfm.type = 'qualitative_value';
       saleTypePmfm.qualitativeValues = saleTypes.data;
+    }
+
+    const taxonGroupIdPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
+    if (taxonGroupIdPmfm) {
+      console.debug(`[control] Setting pmfm ${taxonGroupIdPmfm.label} qualitative values`);
+      const taxonGroups = await this.referentialRefService.loadAllByIds(
+        this.context.strategy.taxonGroups.map((tg) => tg.taxonGroup.id),
+        'TaxonGroup'
+      );
+      taxonGroupIdPmfm.type = 'qualitative_value';
+      taxonGroupIdPmfm.qualitativeValues = taxonGroups;
     }
 
     // Keep selectivity device, if any
@@ -400,6 +425,24 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       subscription.add(() => this.unregisterSubscription(subscription));
       this.registerSubscription(subscription);
       this._rowSubscription = subscription;
+    }
+  }
+
+  protected async onNewEntity(data: Landing): Promise<void> {
+    console.debug('[landings-table] Initializing new row data...');
+
+    await super.onNewEntity(data);
+
+    if (this.isSaleDetailEditor && isNil(data.program)) {
+      const petsValue = await this.referentialRefService.loadById(QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS, 'QualitativeValue');
+      const vesselSnapshot = await this.vesselSnapshotService.load(VesselIds.UNKNOWN, { fetchPolicy: 'cache-first' });
+      data.program = this.context.program;
+      data.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN] = petsValue;
+      data.measurementValues[PmfmIds.IS_OBSERVED] = true;
+      data.vesselSnapshot = vesselSnapshot;
+      data.dateTime = DateUtils.moment();
+      data.location = this.context.observedLocation.location;
+      data.observedLocationId = this.context.observedLocation.id;
     }
   }
 
@@ -462,6 +505,13 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   async getMaxRankOrder(): Promise<number> {
     // Expose as public (was protected)
+
+    if (this.isSaleDetailEditor) {
+      // Max on PETS species only
+      const rows = this.dataSource.getRows().filter((row) => this.isLandingPets(row)) || [];
+      return Math.max(0, ...rows.map((row) => row.currentData.rankOrder || 0));
+    }
+
     return super.getMaxRankOrder();
   }
 
@@ -484,6 +534,12 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
       // Force modal
       return this.openNewRowDetail(event);
+    } else if (this.isSaleDetailEditor) {
+      // Insert row after the last PETS landing
+      const rows = this.dataSource.getRows();
+      const lastPETSLanding = [...rows].reverse().find((row) => this.isLandingPets(row));
+      const insertAt = lastPETSLanding ? rows.lastIndexOf(lastPETSLanding) + 1 : null;
+      return super.addRow(event, insertAt);
     }
 
     // default behavior

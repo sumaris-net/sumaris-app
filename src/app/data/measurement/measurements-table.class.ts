@@ -528,7 +528,8 @@ export abstract class BaseMeasurementsTable<
       if (
         this.hasRankOrder &&
         // Do NOT override if can edit it and set
-        (!this.canEditRankOrder || isNil(data.rankOrder))
+        (!this.canEditRankOrder || isNil(data.rankOrder)) &&
+        isNotNil(row.currentData.rankOrder)
       ) {
         data.rankOrder = row.currentData.rankOrder;
       }

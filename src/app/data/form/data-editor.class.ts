@@ -302,11 +302,11 @@ export abstract class AppDataEntityEditor<
     return true;
   }
 
-  protected async loadStrategy(strategyFilter: Partial<StrategyFilter>) {
+  protected async loadStrategy(strategyFilter: Partial<StrategyFilter>, fullLoad = false) {
     if (this.debug) console.debug(this.logPrefix + 'Loading strategy... using filter:', strategyFilter);
     try {
       const strategy = await this.strategyRefService.loadByFilter(strategyFilter, {
-        fullLoad: false, // Not need anymore all pmfms
+        fullLoad: fullLoad,
         failIfMissing: this.requiredStrategy,
         debug: this.debug,
       });

@@ -51,8 +51,8 @@ import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/refere
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Strategy } from '@app/referential/services/model/strategy.model';
-import moment from 'moment';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 export const ObservedLocationPageSettingsEnum = {
   PAGE_ID: 'observedLocation',
@@ -82,8 +82,9 @@ export class ObservedLocationPage
   static TABS = {
     GENERAL: 0,
     LANDINGS: 1,
-    PETS: 2,
   };
+
+  private readonly priorityLevelPETS = 1;
 
   private _measurementSubscription: Subscription;
 
@@ -93,7 +94,7 @@ export class ObservedLocationPage
 
   allowAddNewVessel: boolean;
   showLandingTab = false;
-  showPETSTab = false;
+  canAddLandings = true;
   showVesselType: boolean;
   showVesselBasePortLocation: boolean;
   addLandingUsingHistoryModal: boolean;
@@ -240,20 +241,17 @@ export class ObservedLocationPage
 
     const formGroup = this.observedLocationForm?.measurementValuesForm as UntypedFormGroup;
 
-    // If PMFM "PETS" exists, then use to enable/disable PETS tab
+    // If PMFM "PETS" exists, then use to enable/disable add button on the landings table
     const petsControl = formGroup?.controls[PmfmIds.PETS];
     if (isNotNil(petsControl)) {
       this._measurementSubscription.add(
         petsControl.valueChanges
           .pipe(debounceTime(400), startWith<any, any>(petsControl.value), filter(isNotNil), distinctUntilChanged())
           .subscribe((value) => {
-            if (this.debug) console.debug('[observed-location-page] Enable/Disable PETS tab, because PETS=' + value);
+            if (this.debug) console.debug('[observed-location-page] Enable/Disable add button on landings tab, because PETS=' + value);
 
-            // Enable tab, when has PETS
-            this.showPETSTab = value;
-            this.tabCount = this.showPETSTab ? 3 : 2;
-
-            this.markForCheck();
+            // Enable add button, when has PETS
+            this.canAddLandings = value;
           })
       );
     }
@@ -644,6 +642,10 @@ export class ObservedLocationPage
     }
   }
 
+  protected async loadStrategy(strategyFilter: Partial<StrategyFilter>): Promise<Strategy> {
+    return await super.loadStrategy(strategyFilter, this.landingEditor === 'sale'); // Need taxon names when sale editor
+  }
+
   protected async setStrategy(strategy: Strategy): Promise<void> {
     await super.setStrategy(strategy);
 
@@ -787,73 +789,35 @@ export class ObservedLocationPage
     await super.onEntitySaved(data);
 
     if (this.landingEditor === 'sale' && isNil(this.previousDataId)) {
-      // TODO JVF: Retrieve species based on data.samplingStrata
-
-      const landing = new Landing();
-      landing.rankOrder = 1;
-      landing.vesselSnapshot = new VesselSnapshot();
-      landing.vesselSnapshot.id = 5;
-      landing.vesselSnapshot.name = `Unknown vessel`;
-      landing.program = this.program;
-      landing.dateTime = moment();
-      landing.location = new ReferentialRef();
-      landing.location.id = 1;
-      landing.location.name = `Location 1`;
-      landing.recorderDepartment = new Department();
-      landing.recorderDepartment.id = 1;
-      // Update landings' observed location so it saves correctly
-      landing.observedLocation = data;
-      landing.observedLocationId = data.id;
-      landing.measurementValues = {
-        [PmfmIds.CONTROLLED_SPECIES]: 304, // LANGOUSTINE
-        [PmfmIds.IS_OBSERVED]: true,
-        [PmfmIds.SPECIES_LIST_ORIGIN]: QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS,
-      };
-      await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
-
-      const landing2 = new Landing();
-      landing2.rankOrder = 2;
-      landing2.vesselSnapshot = new VesselSnapshot();
-      landing2.vesselSnapshot.id = 1;
-      landing2.vesselSnapshot.name = `Vessel 1`;
-      landing2.program = this.program;
-      landing2.dateTime = moment();
-      landing2.location = new ReferentialRef();
-      landing2.location.id = 1;
-      landing2.location.name = `Location 1`;
-      landing2.recorderDepartment = new Department();
-      landing2.recorderDepartment.id = 1;
-      // Update landings' observed location so it saves correctly
-      landing2.observedLocation = data;
-      landing2.observedLocationId = data.id;
-      landing2.measurementValues = {
-        [PmfmIds.CONTROLLED_SPECIES]: 300, // ANCHOIS
-        [PmfmIds.IS_OBSERVED]: false,
-        [PmfmIds.SPECIES_LIST_ORIGIN]: QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM,
-      };
-      await this.landingsTable.addOrUpdateEntityToTable(landing2, { editing: false });
-
-      const landing3 = new Landing();
-      landing3.rankOrder = 3;
-      landing3.vesselSnapshot = new VesselSnapshot();
-      landing3.vesselSnapshot.id = 1;
-      landing3.vesselSnapshot.name = `Vessel 1`;
-      landing3.program = this.program;
-      landing3.dateTime = moment();
-      landing3.location = new ReferentialRef();
-      landing3.location.id = 1;
-      landing3.location.name = `Location 1`;
-      landing3.recorderDepartment = new Department();
-      landing3.recorderDepartment.id = 1;
-      // Update landings' observed location so it saves correctly
-      landing3.observedLocation = data;
-      landing3.observedLocationId = data.id;
-      landing3.measurementValues = {
-        [PmfmIds.CONTROLLED_SPECIES]: 302, // BAR
-        [PmfmIds.IS_OBSERVED]: false,
-        [PmfmIds.SPECIES_LIST_ORIGIN]: 660,
-      };
-      await this.landingsTable.addOrUpdateEntityToTable(landing3, { editing: false });
+      const taxonGroups = toBoolean(data.measurementValues[PmfmIds.PETS])
+        ? this.strategy.taxonGroups
+        : this.strategy.taxonGroups.filter((tg) => tg.priorityLevel !== this.priorityLevelPETS);
+      for (let i = 1; i < taxonGroups.length; i++) {
+        const taxonGroupStrategy = taxonGroups[i];
+        const isPriorityLevelPETS = taxonGroupStrategy.priorityLevel === this.priorityLevelPETS;
+        const landing = new Landing();
+        landing.rankOrder = LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET + i;
+        landing.vesselSnapshot = new VesselSnapshot();
+        landing.vesselSnapshot.id = 5;
+        landing.vesselSnapshot.name = `Unknown vessel`;
+        landing.program = this.program;
+        landing.dateTime = DateUtils.moment();
+        landing.location = data.location;
+        landing.location.id = data.location.id;
+        landing.location.name = data.location.name;
+        landing.recorderDepartment = data.recorderDepartment;
+        landing.recorderDepartment.id = data.recorderDepartment.id;
+        landing.observedLocation = data;
+        landing.observedLocationId = data.id;
+        landing.measurementValues = {
+          [PmfmIds.TAXON_GROUP_ID]: taxonGroupStrategy.taxonGroup.id,
+          [PmfmIds.IS_OBSERVED]: isPriorityLevelPETS,
+          [PmfmIds.SPECIES_LIST_ORIGIN]: isPriorityLevelPETS
+            ? QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS
+            : QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM,
+        };
+        await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
+      }
     }
 
     // Save landings table, when editable
@@ -876,6 +840,7 @@ export class ObservedLocationPage
     this.landingsTable.dataSource
       .getRows()
       .filter((landing) => landing.currentData.__typename !== 'divider') // Filter dividers
+      .filter((landing) => pmfm.id !== PmfmIds.SALE_TYPE || toBoolean(landing.currentData.measurementValues[PmfmIds.IS_OBSERVED])) // Do not apply SALE_TYPE if IS_OBSERVED is false
       .forEach(async (landing) => {
         const updatedLanding = landing.cloneData();
         updatedLanding.measurementValues[pmfm.id] = this.observedLocationForm.measurementValuesForm.controls[pmfm.id].value;
