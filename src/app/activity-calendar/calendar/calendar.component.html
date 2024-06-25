@@ -168,12 +168,12 @@
               matBadgeSize="small"
             >
               {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
-              @if (debug && canEdit) {
+              <!--@if (debug && canEdit) {
                 <br />
                 {{ row.id }}
                 {{ row.valid ? 'V' : row.pending ? 'P' : 'I' }}
                 {{ row.editing ? '*' : '' }}
-              }
+              }-->
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>

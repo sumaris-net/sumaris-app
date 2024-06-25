@@ -217,6 +217,7 @@ export class CalendarComponent
   protected cellClipboard: TableCellSelection<ActivityMonth>;
   protected _children: CalendarComponent[];
   protected showDebugValue = false;
+  protected editedRowFocusedElement: HTMLElement;
 
   @RxStateProperty() vesselSnapshots: VesselSnapshot[];
   @RxStateProperty() vesselOwners: VesselOwner[];
@@ -468,13 +469,13 @@ export class CalendarComponent
 
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.c', description: 'COMMON.BTN_COPY', preventDefault: true })
+          .addShortcut({ keys: 'control.c', description: 'COMMON.BTN_COPY', preventDefault: false /*keep copy in <input>*/ })
           .pipe(filter(() => this.loaded && !!this.cellSelection))
           .subscribe((event) => this.copy(event))
       );
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.v', description: 'COMMON.BTN_PASTE', preventDefault: true })
+          .addShortcut({ keys: 'control.v', description: 'COMMON.BTN_PASTE', preventDefault: false /*keep past in <input>*/ })
           .pipe(filter(() => !this.disabled && this.canEdit))
           .subscribe((event) => this.pasteFromClipboard(event))
       );
@@ -486,8 +487,8 @@ export class CalendarComponent
       );
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'delete', description: 'COMMON.BTN_CLEAR_SELECTION', preventDefault: true })
-          .subscribe(() => this.clearCellSelection())
+          .addShortcut({ keys: 'delete', description: 'COMMON.BTN_CLEAR_SELECTION', preventDefault: false /*keep delete in <input>*/ })
+          .subscribe((event) => this.clearCellSelection(event))
       );
 
       this.registerSubscription(fromEvent(element, 'scroll').subscribe(() => this.onResize()));
@@ -789,33 +790,49 @@ export class CalendarComponent
     }
   }
 
-  onMouseShiftClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): boolean {
+  async onMouseShiftClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
-
-    if (!row || !columnName) return false; // Skip
+    if (!row || !columnName || event?.defaultPrevented) return false; // Skip
 
     event?.preventDefault();
     event?.stopPropagation();
 
     // DEBUG
     //console.debug(`${this.logPrefix}Shift+click`, event, row, columnName);
+    let cellSelection = this.cellSelection;
 
-    // Extend existing cell selection to target cell
-    if (this.cellSelection) {
-      const { row: sourceRow, columnName: sourceColumnName } = this.cellSelection;
-      const sourceRowIndex = sourceRow.id;
-      const sourceColumnNameIndex = this.displayedColumns.indexOf(sourceColumnName);
-      const targetRowIndex = row.id;
-      const targetColumnIndex = this.displayedColumns.indexOf(columnName);
+    // No existing selection, but edited Row
+    const editedRow = this.editedRow;
+    if (!cellSelection && editedRow) {
+      // Get edited cell
+      const editedCell = this.getEditedCell();
+      if (editedCell) {
+        // Confirmed
+        const confirmed = await this.confirmEditCreate();
+        if (!confirmed) return false;
 
-      this.cellSelection.colspan = targetRowIndex > sourceRowIndex ? targetRowIndex - sourceRowIndex + 1 : targetRowIndex - sourceRowIndex - 1;
-      this.cellSelection.rowspan =
-        targetColumnIndex > sourceColumnNameIndex ? targetColumnIndex - sourceColumnNameIndex + 1 : targetColumnIndex - sourceColumnNameIndex - 1;
-    } else {
-      const cellElement = this.getCellElement(event);
+        const { cellElement, columnName: sourceColumnName } = editedCell;
+        // Creating a selection
+        cellSelection = {
+          divElement: this.cellSelectionDivRef.nativeElement,
+          cellElement,
+          row: editedRow,
+          columnName: sourceColumnName,
+          colspan: 1, // Will be update later (see below)
+          rowspan: 1, // Will be update later (see below)
+          resizing: false,
+        };
+      }
+    }
+
+    // No existing selection
+    if (!cellSelection) {
+      const cellElement = this.getEventCellElement(event);
       if (!cellElement) return false;
-      this.cellSelection = {
+
+      // Creating new selection
+      cellSelection = {
         divElement: this.cellSelectionDivRef.nativeElement,
         cellElement,
         row,
@@ -825,17 +842,36 @@ export class CalendarComponent
         resizing: false,
       };
     }
+    // Extend existing cell selection to target cell
+    else {
+      const { row: sourceRow, columnName: sourceColumnName } = cellSelection;
+      const sourceRowIndex = sourceRow.id;
+      const sourceColumnNameIndex = this.displayedColumns.indexOf(sourceColumnName);
+      const targetRowIndex = row.id;
+      const targetColumnIndex = this.displayedColumns.indexOf(columnName);
+
+      cellSelection.colspan = targetRowIndex > sourceRowIndex ? targetRowIndex - sourceRowIndex + 1 : targetRowIndex - sourceRowIndex - 1;
+      cellSelection.rowspan =
+        targetColumnIndex > sourceColumnNameIndex ? targetColumnIndex - sourceColumnNameIndex + 1 : targetColumnIndex - sourceColumnNameIndex - 1;
+    }
 
     // Expand blocks if need
-    const { paths: selectedPaths } = this.getRowsFromSelection(this.cellSelection);
-    this.dynamicColumns.filter((col) => col.toggle && !col.expanded && selectedPaths.includes(col.path)).forEach((col) => col.toggle(event));
+    const { paths: selectedPaths } = this.getRowsFromSelection(cellSelection);
 
-    this.resizeCellSelection(this.cellSelection, 'cell');
+    // Expand some column, if need
+    const collapsedColumns = this.dynamicColumns.filter((col) => col.toggle && !col.expanded && selectedPaths.includes(col.path));
+    if (isNotEmptyArray(collapsedColumns)) {
+      collapsedColumns.forEach((col) => col.toggle());
+      await sleep(100); // Wait end of expansion
+    }
+
+    this.cellSelection = cellSelection;
+    this.resizeCellSelection(cellSelection, 'cell');
 
     return true;
   }
 
-  onMouseCtrlClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): boolean {
+  async onMouseCtrlClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
 
@@ -847,8 +883,11 @@ export class CalendarComponent
     // DEBUG
     //console.debug(`${this.logPrefix}Ctrl+click`, event, row, columnName);
 
+    const confirmed = await this.confirmEditCreate();
+    if (!confirmed) return false;
+
     // Select the targeted cell
-    const cellElement = this.getCellElement(event);
+    const cellElement = this.getEventCellElement(event);
     if (!cellElement) return false;
     this.cellSelection = {
       divElement: this.cellSelectionDivRef.nativeElement,
@@ -897,29 +936,39 @@ export class CalendarComponent
     const colspan = toNumber(cellSelection.colspan, divRect.width / toNumber(previousCellRect?.width, relativeCellRect.width));
     const rowspan = toNumber(cellSelection.rowspan, divRect.height / toNumber(previousCellRect?.height, relativeCellRect.width));
 
+    let top = relativeCellRect.top;
+    let left = relativeCellRect.left + (containerElement.scrollLeft || 0) - containerRect.left;
     const width = relativeCellRect.width * Math.abs(colspan);
     const height = relativeCellRect.height * Math.abs(rowspan);
 
-    let top = relativeCellRect.top + (containerElement.scrollTop || 0);
-    let left = relativeCellRect.left + (containerElement.scrollLeft || 0) - containerRect.left;
-
     if (rowspan < 0) {
-      top = relativeCellRect.top + relativeCellRect.height - height + (containerElement.scrollTop || 0);
+      top = relativeCellRect.top + relativeCellRect.height - height;
     }
     if (colspan < 0) {
       left = relativeCellRect.left + relativeCellRect.width - width - containerRect.left + (containerElement.scrollLeft || 0);
     }
 
+    // TODO - Check top limit
+    /*const maxTop = containerElement.offsetTop - containerElement.scrollTop;
+    //console.log('TODO maxTop=' + maxTop);
+    if (top < maxTop) {
+      //height -= maxTop - top;
+      //top = containerElement.offsetTop + containerElement.scrollTop;
+    }
+    // Check height limit
+    if (top + height > containerElement.clientHeight) {
+      //height = top + containerElement.clientHeight;
+    }*/
+
     // DEBUG
     //console.debug(`${this.logPrefix}Resizing to top=${top} left=${left} width=${width} height=${height}`);
 
     // Resize the shadow element
+    divElement.style.position = 'fixed';
     divElement.style.top = top + 'px';
     divElement.style.left = left + 'px';
     divElement.style.width = width + 'px';
     divElement.style.height = height + 'px';
-    divElement.style.marginTop = -1 * (containerElement.scrollTop || 0) + 'px';
-    divElement.style.marginLeft = -1 * (containerElement.scrollLeft || 0) + 'px';
 
     if (opts?.emitEvent !== false) {
       this.markForCheck();
@@ -969,7 +1018,7 @@ export class CalendarComponent
       // DEBUG
       console.debug(`${this.logPrefix} Cannot cancel or delete the row!`);
 
-      this.startListenRowFormChanges(row.validator);
+      this.startListenRow(row.validator);
     } else {
       row.validator.markAsPristine();
       // Update view
@@ -1132,8 +1181,6 @@ export class CalendarComponent
   ) {
     if (!form || !this.validatorService) return;
 
-    //this.markAsDirty();
-
     const isActive = form.get('isActive').value;
 
     opts = {
@@ -1150,11 +1197,11 @@ export class CalendarComponent
     this.validatorService.updateFormGroup(form, opts);
 
     if (opts?.listenChanges !== false) {
-      this.startListenRowFormChanges(form);
+      this.startListenRow(form);
     }
   }
 
-  protected startListenRowFormChanges(form: UntypedFormGroup) {
+  protected startListenRow(form: UntypedFormGroup) {
     // Stop previous listener
     this.rowSubscription?.unsubscribe();
 
@@ -1183,11 +1230,15 @@ export class CalendarComponent
           if (form.dirty) this.markAsDirty();
         })
     );
-    this.rowSubscription.add(() => console.debug(this.logPrefix + 'Stop listening row form...', form));
+    // DEBUG
+    this.rowSubscription.add(() => console.debug(this.logPrefix + 'Stop listening row form'));
+
+    // Listen row focused element
+    this.rowSubscription.add(this.startListenFocusedElement());
   }
 
-  protected editRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, opts?: { focusColumn?: string }): Promise<boolean> {
-    const editing = super.editRow(event, row, opts);
+  protected async editRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, opts?: { focusColumn?: string }): Promise<boolean> {
+    const editing = await super.editRow(event, row, opts);
     if (editing) this.removeCellSelection();
     return editing;
   }
@@ -1464,12 +1515,14 @@ export class CalendarComponent
   }
 
   protected async copy(event?: Event) {
-    //if (event?.defaultPrevented) return;
-    //event?.stopPropagation();
+    if (event?.defaultPrevented) return;
 
     console.debug(`${this.logPrefix}Copy event`, event);
 
     if (this.cellSelection && (this.cellSelection?.colspan !== 0 || this.cellSelection?.rowspan !== 0)) {
+      event?.preventDefault();
+      event?.stopPropagation();
+
       // Copy to clipboard
       await this.copyCellSelectionToClipboard(this.cellSelection);
 
@@ -1477,7 +1530,13 @@ export class CalendarComponent
 
       this.markForCheck();
     } else {
-      this.copyCellToClipboard(this.editedRow, this.focusColumn);
+      if (this.editedRowFocusedElement) {
+        // Continue
+      } else {
+        event?.preventDefault();
+        event?.stopPropagation();
+        await this.copyCellToClipboard(this.editedRow, this.focusColumn);
+      }
     }
   }
 
@@ -1518,9 +1577,12 @@ export class CalendarComponent
     this.resizeCellSelection(this.cellClipboard, 'clipboard');
   }
 
-  protected async clearCellSelection(cellSelection?: TableCellSelection): Promise<boolean> {
+  protected async clearCellSelection(event: Event | undefined, cellSelection?: TableCellSelection): Promise<boolean> {
     cellSelection = cellSelection || this.cellSelection;
-    if (!cellSelection) return false;
+    if (!cellSelection || event.defaultPrevented) return false;
+
+    event?.preventDefault();
+    event?.stopPropagation();
 
     console.debug(`${this.logPrefix}Clearing cell selection...`);
 
@@ -1589,8 +1651,8 @@ export class CalendarComponent
     return { rows, paths };
   }
 
-  protected copyCellToClipboard(sourceRow: AsyncTableElement<ActivityMonth>, columnName: string) {
-    if (!sourceRow || !columnName) return; // Skip
+  protected async copyCellToClipboard(sourceRow: AsyncTableElement<ActivityMonth>, columnName: string): Promise<boolean> {
+    if (!sourceRow || !columnName) return false; // Skip
 
     console.debug(`${this.logPrefix}Copying cell '${columnName}' to clipboard`);
 
@@ -1614,6 +1676,7 @@ export class CalendarComponent
       },
       source: this,
     };
+    return true;
   }
 
   protected findOrCreateControl(form: UntypedFormGroup, path: string) {
@@ -1653,7 +1716,7 @@ export class CalendarComponent
         row: this.editedRow,
         columnName: this.focusColumn,
         divElement: this.cellSelectionDivRef.nativeElement,
-        cellElement: this.getCellElement(event),
+        cellElement: this.getEventCellElement(event),
         colspan: 1,
         resizing: false,
       };
@@ -1814,12 +1877,82 @@ export class CalendarComponent
     }
   }
 
-  protected getCellElement(event: Event): HTMLElement {
+  protected getEventCellElement(event: Event): HTMLElement {
     if (!event?.target) return undefined;
-    let element = event.target as HTMLElement;
+    const element = event.target as HTMLElement;
+    return this.getParentCellElement(element);
+  }
+
+  protected getParentCellElement(element: HTMLElement): HTMLElement {
     while (element && !element.classList.contains('mat-mdc-cell')) {
       element = element.parentElement;
     }
     return element;
+  }
+
+  protected getEditedRowElement(): HTMLElement {
+    if (!this.editedRow) return undefined;
+    return this.tableContainerElement?.querySelector(`mat-row.mat-mdc-row-selected`);
+  }
+
+  protected getEditedCell(): { cellElement: HTMLElement; columnName: string } {
+    let cellElement: HTMLElement;
+    let columnName: string;
+    if (this.editedRowFocusedElement) {
+      cellElement = this.getParentCellElement(this.editedRowFocusedElement);
+      const columnClass = (cellElement?.classList.value.split(' ') || []).find(
+        (clazz) => clazz.startsWith('cdk-column-') || clazz.startsWith('mat-column-')
+      );
+      columnName = lastArrayValue(columnClass?.split('-'));
+    } else if (this.focusColumn) {
+      const rowElement = this.getEditedRowElement();
+      cellElement = rowElement?.querySelector(`.mat-mdc-cell.mat-column-${this.focusColumn}`);
+      columnName = this.focusColumn;
+    }
+
+    if (!cellElement || !columnName) return undefined; // Parent cell not found
+
+    return { cellElement, columnName };
+  }
+
+  startListenFocusedElement(): Subscription {
+    const subscription = new Subscription();
+
+    let rowElement: HTMLElement;
+    waitFor(
+      () => {
+        rowElement = rowElement || this.getEditedRowElement();
+        return !!rowElement || subscription.closed;
+      },
+      { dueTime: 250, timeout: 1000, stopError: false, stop: this.destroySubject }
+    ).then(() => {
+      if (subscription.closed) return; // Edited row changed
+
+      // DEBUG
+      console.debug(`${this.logPrefix}Start listening row focused element...`);
+      this.editedRowFocusedElement = this.focusColumn && rowElement?.querySelector(`.mat-mdc-cell.mat-column-${this.focusColumn}`);
+
+      subscription.add(
+        fromEvent(rowElement, 'focusin').subscribe((event: Event) => {
+          if (rowElement?.contains(event.target as Node)) {
+            if (this.editedRowFocusedElement !== event.target) {
+              // DEBUG
+              //console.debug(`${this.logPrefix}Focused element is now:`, event.target);
+              this.editedRowFocusedElement = event.target as HTMLElement;
+            }
+          } else {
+            this.editedRowFocusedElement = null;
+          }
+        })
+      );
+      subscription.add(() => {
+        // DEBUG
+        console.debug(`${this.logPrefix}Stop listening row focused element`);
+        // Forget the focused element
+        this.editedRowFocusedElement = null;
+      });
+    }); // Delay to skip the first focus (should be the focusColumn)
+
+    return subscription;
   }
 }
