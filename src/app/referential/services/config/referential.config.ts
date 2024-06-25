@@ -657,6 +657,20 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.SPECIES_LIST_ORIGIN,
   },
+  PMFM_SURVEY_QUALIFICATION_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SURVEY_QUALIFICATION.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SURVEY_QUALIFICATION_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.SURVEY_QUALIFICATION,
+  },
+  PMFM_AUCTION_HABIT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.AUCTION_HABIT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AUCTION_HABIT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.AUCTION_HABIT,
+  },
 
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',

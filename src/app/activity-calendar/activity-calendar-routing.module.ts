@@ -41,6 +41,11 @@ const routes: Routes = [
       },
     ],
   },
+  // Shared report
+  {
+    path: 'report',
+    loadChildren: () => import('./report/activity-calendar-report-routing.module').then((m) => m.ActivityCalendarReportRoutingModule),
+  },
 ];
 
 @NgModule({

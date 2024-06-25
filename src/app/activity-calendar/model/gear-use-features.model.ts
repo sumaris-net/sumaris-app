@@ -19,7 +19,10 @@ import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
 export class GearUseFeaturesComparators {
-  static sortRankOrder(n1: GearUseFeatures, n2: GearUseFeatures): number {
+  static sortByDateAndRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
+    return DateUtils.compare(n1.startDate, n2.startDate) || GearUseFeaturesComparators.sortByRankOrderFn(n1, n2);
+  }
+  static sortByRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
     const d1 = toNumber(n1.rankOrder, 9999);
     const d2 = toNumber(n2.rankOrder, 9999);
     return d1 === d2 ? 0 : d1 > d2 ? 1 : -1;

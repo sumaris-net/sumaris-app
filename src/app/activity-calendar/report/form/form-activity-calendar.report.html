@@ -65,8 +65,9 @@
           class="landscape"
           [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight + 'px'"
           [style.--month-table-row-height]="pageDimensions.monthTableRowHeight + 'px'"
-          [style.--gear-table-title-row-height]="pageDimensions.gufTableRowTitleHeight + 'px'"
-          [style.--gear-table-row-height]="pageDimensions.gufTableRowHeight + 'px'"
+          [style.--month-table-metier-row-height]="pageDimensions.monthTableMetierRowHeight + 'px'"
+          [style.--gear-table-title-row-height]="pageDimensions.gpfTableRowTitleHeight + 'px'"
+          [style.--gear-table-row-height]="pageDimensions.gpfTableRowHeight + 'px'"
           [style.--header-height]="pageDimensions.headerHeight + 'px'"
           [style.--section-title-height]="pageDimensions.sectionTitleHeight + 'px'"
         >
@@ -113,14 +114,14 @@
                         <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}</strong>
                         &nbsp;
                         @if (!isBlankForm) {
-                          {{ data.vesselSnapshot?.registrationCode || data.vesselSnapshot?.intRegistrationCode }}
+                          {{ data.vesselSnapshot.registrationCode || data.vesselSnapshot.intRegistrationCode }}
                         }
                       </ion-col>
                       <ion-col>
                         <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.VESSEL_NAME' | translate }}</strong>
                         &nbsp;
                         @if (!isBlankForm) {
-                          {{ data.vesselSnapshot.exteriorMarking }}
+                          {{ data.vesselSnapshot.name }}
                         }
                       </ion-col>
                     </ion-row>
@@ -181,11 +182,42 @@
                 </tr>
               </thead>
               <tbody>
-                @for (row of stats.effortsTableRows; track lineIndex; let lineIndex = $index) {
+                <!-- isActive row -->
+                <tr>
+                  <th>
+                    {{ 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate }}
+                  </th>
+                  @for (month of stats.activityMonth; track month.id) {
+                    <td>
+                      {{ isActiveMap[month.isActive] | mapGet: 'label' | translate }}
+                    </td>
+                  }
+                </tr>
+                <!-- basePortLocation row -->
+                <tr>
+                  <th>
+                    {{ 'ACTIVITY_CALENDAR.REPORT.BASE_PORT_LOCATION' | translate }}
+                  </th>
+                  @for (month of stats.activityMonth; track month.id) {
+                    <td [class.activity-not-exists]="(month | mapGet: 'isActive') === 2" class="fit-one-line">
+                      <div>
+                        <div [title]="month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] }">
+                          {{ month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] } }}
+                        </div>
+                      </div>
+                    </td>
+                  }
+                </tr>
+                @for (monthPmfm of stats.pmfm.activityMonth; track monthPmfm.id) {
                   <tr>
-                    <th [innerHTML]="row.title"></th>
-                    @for (value of row.values; track valueIndex; let valueIndex = $index) {
-                      <td [innerHTML]="value"></td>
+                    <th>{{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: false } }}</th>
+                    @for (month of stats.activityMonth; track month.id) {
+                      <td
+                        [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
+                        [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
+                      >
+                        {{ month | mapGet: 'measurementValues' | mapGet: monthPmfm.id | pmfmValue: { pmfm: monthPmfm } }}
+                      </td>
                     }
                   </tr>
                 }
@@ -212,40 +244,44 @@
                 </tr>
               </thead>
               <tbody>
-                @for (gearUseFeaturesId of metierChunk | arrayPluck: 'gufId'; track gearUseFeaturesId; let gearUseFeatureIndex = $index) {
+                @for (metierIndex of metierChunk | arrayPluck: 'metierIndex'; track metierIndex; let metierChunkIndex = $index) {
                   <tr class="metier-row">
                     <th>
                       {{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}
                     </th>
                     @for (month of stats.activityMonth; track month.id; let monthIndex = $index) {
-                      @if (stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] > 0) {
+                      @if (stats.activityMonthColspan[monthIndex][metierIndex] > 0) {
                         <td
-                          [attr.colspan]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex]"
-                          [class.fit-one-line]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] > 0"
+                          [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
+                          [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
+                          [attr.colspan]="stats.activityMonthColspan[monthIndex][metierIndex]"
+                          [class.fit-one-line]="stats.activityMonthColspan[monthIndex][metierIndex] > 0"
                         >
-                          <div [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][gearUseFeatureIndex] === 0">
+                          <div
+                            [title]="(month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label', 'name']) || ''"
+                            [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][metierIndex] === 0"
+                          >
                             <div>
-                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['label'] }}
+                              {{ month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label'] }}
                             </div>
-                            <div [title]="month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['name']">
-                              {{ month['gearUseFeatures'][gearUseFeatureIndex] | mapGet: 'metier' | referentialToString: ['name'] }}
+                            <div>
+                              {{ month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['name'] }}
                             </div>
                           </div>
                         </td>
                       }
                     }
                   </tr>
-                  @for (
-                    fishingAreaId of metierChunk[gearUseFeatureIndex] | mapGet: 'fishingAreasIds';
-                    track fishingAreaId;
-                    let fishingAreaIndex = $index
-                  ) {
+                  @for (fishingAreasIndex of metierChunk[metierChunkIndex] | mapGet: 'fishingAreasIndexes'; track fishingAreasIndex) {
                     <tr>
                       <th>{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_FISHING_AREA' | translate }}</th>
                       @for (month of stats.activityMonth; track month.id) {
-                        <td>
+                        <td
+                          [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
+                          [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
+                        >
                           {{
-                            month['gearUseFeatures'][gearUseFeatureIndex]['fishingAreas'][fishingAreaIndex]
+                            month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]
                               | mapGet: 'location'
                               | referentialToString: ['label']
                           }}
@@ -260,7 +296,7 @@
           @if (lastPage) {
             <ion-grid class="report-section ion-no-padding ion-padding-top font-compact" [style.--ion-padding]="'8px'">
               <ion-row>
-                <ion-col size="7" class="ion-padding-end">
+                <ion-col size="8" class="ion-padding-end">
                   <ion-grid class="ion-no-padding">
                     <ion-row class="section-title">
                       <ion-col>
@@ -268,14 +304,14 @@
                       </ion-col>
                     </ion-row>
                     <ion-row>
-                      <table class="guf-table" [style.width]="'100%'">
+                      <table class="gpf-table" [style.width]="'100%'">
                         <thead>
                           <tr>
-                            <th [style.--col-width]="pageDimensions.gufTableColTitleWidth + 'px'"></th>
-                            @for (labelMetier of data.gearUseFeatures | arrayPluck: 'metier.label'; track labelMetier) {
+                            <th [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'"></th>
+                            @for (labelMetier of data.gearPhysicalFeatures | arrayPluck: 'metier.label'; track labelMetier) {
                               <th
                                 [style.--col-width]="
-                                  'calc((100% - ' + pageDimensions.gufTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
+                                  'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
                                 "
                               >
                                 {{ labelMetier }}
@@ -284,16 +320,16 @@
                           </tr>
                         </thead>
                         <tbody>
-                          @for (pmfm of stats.pmfm.physicalGear; track pmfm.id) {
-                            <tr [style.--col-width]="pageDimensions.gufTableColTitleWidth + 'px'">
-                              <th>{{ pmfm | pmfmName }}</th>
-                              @for (guf of data.gearUseFeatures; track guf.id) {
+                          @for (pmfm of stats.pmfm.gpf; track pmfm.id) {
+                            <tr [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
+                              <th>{{ pmfm | pmfmName: { withDetails: false } }}</th>
+                              @for (gpf of data.gearPhysicalFeatures; track gpf.id) {
                                 <td
                                   [style.--col-width]="
-                                    'calc((100% - ' + pageDimensions.gufTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
+                                    'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
                                   "
                                 >
-                                  {{ guf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
+                                  {{ gpf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
                                 </td>
                               }
                             </tr>
@@ -303,7 +339,7 @@
                     </ion-row>
                   </ion-grid>
                 </ion-col>
-                <ion-col size="3" class="ion-padding-start">
+                <ion-col size="2" class="ion-padding-start">
                   <ion-grid class="ion-no-padding">
                     <ion-row class="section-title red-border-bottom">
                       <ion-col>
@@ -311,24 +347,29 @@
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      <ion-col size="12">
-                        <ion-icon [name]="'square-outline'" class="font-compact"></ion-icon>
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.ENTIRELY_AUCTION' | translate }}
-                        </strong>
-                      </ion-col>
-                      <ion-col size="12">
-                        <ion-icon [name]="'square-outline'" class="font-compact"></ion-icon>
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.PARTIALLY_AUCTION' | translate }}
-                        </strong>
-                      </ion-col>
-                      <ion-col size="12">
-                        <ion-icon [name]="'square-outline'" class="font-compact"></ion-icon>
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.OUTSIDE_AUCTION' | translate }}
-                        </strong>
-                      </ion-col>
+                      @for (
+                        qv of stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst | mapGet: 'qualitativeValues';
+                        track qv.id
+                      ) {
+                        <ion-col size="12">
+                          <ion-icon
+                            [name]="
+                              (data.measurementValues
+                                | mapGet: pmfmIdsMap.AUCTION_HABIT
+                                | pmfmValue
+                                  : {
+                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst
+                                    }) === qv.name
+                                ? 'checkbox-outline'
+                                : 'square-outline'
+                            "
+                            class="font-compact"
+                          ></ion-icon>
+                          <strong>
+                            {{ qv.name }}
+                          </strong>
+                        </ion-col>
+                      }
                     </ion-row>
                   </ion-grid>
                 </ion-col>
@@ -400,7 +441,7 @@
         </ion-row>
       }
       <ion-row class="footer-text ion-justify-content-between">
-        <ion-col size="auto" [innerHTML]="stats.footerText"></ion-col>
+        <ion-col size="auto" [innerHTML]="(stats.footerText | isNotNil) ? stats.footerText : (data | rootDataQualityToString)"></ion-col>
         <ion-col size="auto">{{ 'COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber: pageNumber } }} / {{ pageTotal }}</ion-col>
       </ion-row>
     </ion-grid>
