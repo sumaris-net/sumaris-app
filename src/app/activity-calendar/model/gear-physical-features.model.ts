@@ -7,7 +7,6 @@ import {
   ReferentialRef,
   ReferentialUtils,
   toDateISOString,
-  toNumber,
 } from '@sumaris-net/ngx-components';
 import { DataOrigin } from '@app/activity-calendar/model/data-origin.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
@@ -16,15 +15,6 @@ import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Metier } from '@app/referential/metier/metier.model';
 import { IWithProgramEntity } from '@app/data/services/model/model.utils';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
-import { Trip } from '@app/trip/trip/trip.model';
-
-export class GearPhysicalFeaturesComparators {
-  static sortRankOrder(n1: GearPhysicalFeatures, n2: GearPhysicalFeatures): number {
-    const d1 = toNumber(n1.rankOrder, 9999);
-    const d2 = toNumber(n2.rankOrder, 9999);
-    return d1 === d2 ? 0 : d1 > d2 ? 1 : -1;
-  }
-}
 
 @EntityClass({ typename: 'GearPhysicalFeaturesVO' })
 export class GearPhysicalFeatures extends DataEntity<GearPhysicalFeatures> implements IWithProgramEntity<GearPhysicalFeatures> {
@@ -48,7 +38,6 @@ export class GearPhysicalFeatures extends DataEntity<GearPhysicalFeatures> imple
   endDate: Moment = null;
   rankOrder: number = null;
   metier: Metier = null;
-  trip: Trip = null;
   gear: ReferentialRef = null;
   otherGear: ReferentialRef = null;
   dataOrigins: DataOrigin[] = null;
@@ -68,8 +57,6 @@ export class GearPhysicalFeatures extends DataEntity<GearPhysicalFeatures> imple
     target.metier =
       (this.metier && this.metier.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/ })) ||
       undefined;
-    target.trip =
-      (this.trip && this.trip.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/ })) || undefined;
     target.gear = (this.gear && this.gear.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
     target.otherGear = (this.otherGear && this.otherGear.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
     if (target.gear && !target.gear.entityName) {
@@ -89,7 +76,6 @@ export class GearPhysicalFeatures extends DataEntity<GearPhysicalFeatures> imple
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.metier = source.metier && Metier.fromObject(source.metier);
-    this.trip = source.trip && Trip.fromObject(source.metier);
     this.gear = source.gear && ReferentialRef.fromObject(source.gear);
     this.otherGear = source.otherGear && ReferentialRef.fromObject(source.otherGear);
     this.rankOrder = source.rankOrder;
@@ -110,8 +96,6 @@ export class GearPhysicalFeatures extends DataEntity<GearPhysicalFeatures> imple
         DateUtils.equals(this.endDate, other.endDate) &&
         // Same rankOrder
         this.rankOrder === other.rankOrder &&
-        // Same parent (activity calendar or daily activity calendar)
-        //((!this.activityCalendarId && !other.activityCalendarId) || this.activityCalendarId === other.activityCalendarId) &&
         // Same program
         ReferentialUtils.equals(this.program, other.program) &&
         // Same measurementsValues
