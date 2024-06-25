@@ -48,7 +48,7 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
         .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION)
         .forEach((p) => {
           // Override SALE_TYPE type to 'qualitative_value'
-          if (p.id === PmfmIds.SALE_TYPE) {
+          if (p.id === PmfmIds.SALE_TYPE_ID) {
             p.type = 'qualitative_value';
           }
 

@@ -11,7 +11,6 @@ import {
   AppTable,
   CORE_CONFIG_OPTIONS,
   DateUtils,
-  Department,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
@@ -239,19 +238,19 @@ export class ObservedLocationPage
     this._measurementSubscription?.unsubscribe();
     this._measurementSubscription = new Subscription();
 
-    const formGroup = this.observedLocationForm?.measurementValuesForm as UntypedFormGroup;
+    const measurementValuesForm = this.observedLocationForm?.measurementValuesForm as UntypedFormGroup;
 
     // If PMFM "PETS" exists, then use to enable/disable add button on the landings table
-    const petsControl = formGroup?.controls[PmfmIds.PETS];
-    if (isNotNil(petsControl)) {
+    const hasPetsControl = measurementValuesForm?.get(PmfmIds.HAS_PETS.toString());
+    if (hasPetsControl) {
       this._measurementSubscription.add(
-        petsControl.valueChanges
-          .pipe(debounceTime(400), startWith<any, any>(petsControl.value), filter(isNotNil), distinctUntilChanged())
-          .subscribe((value) => {
-            if (this.debug) console.debug('[observed-location-page] Enable/Disable add button on landings tab, because PETS=' + value);
+        hasPetsControl.valueChanges
+          .pipe(debounceTime(400), startWith<any, any>(hasPetsControl.value), filter(isNotNil), distinctUntilChanged())
+          .subscribe((hasPets) => {
+            if (this.debug) console.debug('[observed-location-page] Enable/Disable add button on landings tab, because PETS=' + hasPets);
 
             // Enable add button, when has PETS
-            this.canAddLandings = value;
+            this.canAddLandings = hasPets !== false;
           })
       );
     }
@@ -789,7 +788,7 @@ export class ObservedLocationPage
     await super.onEntitySaved(data);
 
     if (this.landingEditor === 'sale' && isNil(this.previousDataId)) {
-      const taxonGroups = toBoolean(data.measurementValues[PmfmIds.PETS])
+      const taxonGroups = toBoolean(data.measurementValues[PmfmIds.HAS_PETS])
         ? this.strategy.taxonGroups
         : this.strategy.taxonGroups.filter((tg) => tg.priorityLevel !== this.priorityLevelPETS);
       for (let i = 1; i < taxonGroups.length; i++) {
@@ -840,7 +839,7 @@ export class ObservedLocationPage
     this.landingsTable.dataSource
       .getRows()
       .filter((landing) => landing.currentData.__typename !== 'divider') // Filter dividers
-      .filter((landing) => pmfm.id !== PmfmIds.SALE_TYPE || toBoolean(landing.currentData.measurementValues[PmfmIds.IS_OBSERVED])) // Do not apply SALE_TYPE if IS_OBSERVED is false
+      .filter((landing) => pmfm.id !== PmfmIds.SALE_TYPE_ID || toBoolean(landing.currentData.measurementValues[PmfmIds.IS_OBSERVED])) // Do not apply SALE_TYPE if IS_OBSERVED is false
       .forEach(async (landing) => {
         const updatedLanding = landing.cloneData();
         updatedLanding.measurementValues[pmfm.id] = this.observedLocationForm.measurementValuesForm.controls[pmfm.id].value;

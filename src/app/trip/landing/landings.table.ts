@@ -375,7 +375,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
 
-    const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
+    const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE_ID);
     if (saleTypePmfm) {
       console.debug(`[control] Setting pmfm ${saleTypePmfm.label} qualitative values`);
       const saleTypes = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });

@@ -364,7 +364,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     if (!pmfms) return; // Skip if empty
 
-    const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
+    const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE_ID);
 
     if (saleTypePmfm) {
       console.debug(`[control] Setting pmfm ${saleTypePmfm.label} qualitative values`);

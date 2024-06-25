@@ -44,7 +44,7 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
       const pmfms = opts.strategy?.denormalizedPmfms || opts.program?.strategies?.[0]?.denormalizedPmfms || [];
 
       // Override SALE_TYPE type to 'qualitative_value'
-      const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE);
+      const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE_ID);
       if (saleTypePmfm) {
         saleTypePmfm.type = 'qualitative_value';
       }
@@ -189,7 +189,7 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     if (isObservedControl) {
       const speciesListOriginControl = measurementValuesForm.get(PmfmIds.SPECIES_LIST_ORIGIN.toString());
       const nonObservationReasonControl = measurementValuesForm.get(PmfmIds.NON_OBSERVATION_REASON.toString());
-      const saleTypeControl = measurementValuesForm.get(PmfmIds.SALE_TYPE.toString());
+      const saleTypeControl = measurementValuesForm.get(PmfmIds.SALE_TYPE_ID.toString());
       // Observed
       if (isObservedControl.value) {
         // Disabled non observation reason
