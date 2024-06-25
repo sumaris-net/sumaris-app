@@ -1,9 +1,6 @@
 import { Injectable } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
-import { BaseEntityService, GraphqlService } from '@sumaris-net/ngx-components';
-import { IEntitiesService } from '@sumaris-net/ngx-components';
-import { PlatformService } from '@sumaris-net/ngx-components';
-import { isNotNil } from '@sumaris-net/ngx-components';
+import { BaseEntityService, GraphqlService, IEntitiesService, isNotNil, PlatformService } from '@sumaris-net/ngx-components';
 import { VesselOwnerPeriodFilter } from './filter/vessel.filter';
 import { VesselOwnerPeriod } from './model/vessel-owner-period.model';
 
@@ -48,7 +45,9 @@ export class VesselOwnerPeridodService
     super(graphql, platform, VesselOwnerPeriod, VesselOwnerPeriodFilter, {
       queries: VesselOwnerPeriodQueries,
       defaultSortBy: 'startDate',
+      defaultSortDirection: 'desc',
     });
+    this._logPrefix = '[vessel-owner-period-service] ';
   }
 
   async count(
@@ -59,17 +58,6 @@ export class VesselOwnerPeridodService
   ): Promise<number> {
     const { data, total } = await this.loadAll(0, 100, null, null, filter, opts);
     return isNotNil(total) ? total : (data || []).length;
-  }
-
-  async getVesselOwnerPeriodsByFilter(filter: Partial<VesselOwnerPeriodFilter>, opts?: { fetchPolicy?: FetchPolicy }): Promise<VesselOwnerPeriod[]> {
-    try {
-      const { data } = await this.loadAll(0, 100, 'startDate', null, filter, opts);
-      console.debug('[Vessel-Owner-Peridod-Service] Data fetched:', data);
-      return data;
-    } catch (error) {
-      console.error('[Vessel-Owner-Peridod-Service] Error fetching data:', error);
-      throw error;
-    }
   }
 
   /* -- protected methods -- */

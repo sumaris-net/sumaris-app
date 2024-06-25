@@ -31,6 +31,7 @@ import {
   LoadResult,
   LocalSettingsService,
   MatAutocompleteFieldConfig,
+  ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
@@ -41,7 +42,6 @@ import {
   StatusIds,
   Toasts,
   toBoolean,
-  toDateISOString,
   toNumber,
   UsageMode,
   waitFor,
@@ -53,14 +53,11 @@ import {
   ActivityMonthValidators,
   ActivityMonthValidatorService,
 } from '@app/activity-calendar/calendar/activity-month.validator';
-import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { RxState } from '@rx-angular/state';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { fromEvent, Observable, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
-import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
 import { UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -80,8 +77,10 @@ import { MatMenuTrigger } from '@angular/material/menu';
 import { BaseMeasurementsTable2 } from '@app/data/measurement/measurements-table2.class';
 import { AsyncTableElement } from '@e-is/ngx-material-table';
 import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
-import { VesselOwnerPeriod } from '@app/vessel/services/model/vessel-owner-period.model';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
+import { IUseFeaturesUtils } from '@app/activity-calendar/model/use-features.model';
+import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
+import { VesselRegistrationPeriodService } from '@app/vessel/services/vessel-registration-period.service';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -148,8 +147,8 @@ export interface ColumnDefinition {
 
 export interface CalendarComponentState extends BaseMeasurementsTableState {
   metierLevelId: number;
-  vesselSnapshots: VesselSnapshot[];
-  vesselOwners: VesselOwnerPeriod[];
+  vesselRegistrations: ReferentialRef[][];
+  vesselOwners: VesselOwner[][];
   dynamicColumns: ColumnDefinition[];
   metierCount: number;
   validRowCount: number;
@@ -203,11 +202,11 @@ export class CalendarComponent
   >
   implements OnInit, AfterViewInit
 {
-  protected vesselSnapshotService = inject(VesselSnapshotService);
+  protected vesselRegistrationPeriodService = inject(VesselRegistrationPeriodService);
   protected referentialRefService = inject(ReferentialRefService);
 
-  @RxStateSelect() protected vesselSnapshots$: Observable<VesselSnapshot[]>;
-  @RxStateSelect() protected vesselOwnerPeriods$: Observable<VesselOwnerPeriod[]>;
+  @RxStateSelect() protected vesselRegistrations$: Observable<ReferentialRef[][]>;
+  @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() validRowCount$: Observable<number>;
@@ -223,8 +222,8 @@ export class CalendarComponent
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
 
-  @RxStateProperty() vesselSnapshots: VesselSnapshot[];
-  @RxStateProperty() vesselOwnerPeriods: VesselOwnerPeriod[];
+  @RxStateProperty() vesselRegistrations: ReferentialRef[][];
+  @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
   @RxStateProperty() metierCount: number;
   @RxStateProperty() validRowCount: number;
@@ -236,6 +235,7 @@ export class CalendarComponent
   @Input() locationDisplayAttributes: string[];
   @Input() basePortLocationLevelIds: number[];
   @Input() fishingAreaLocationLevelIds: number[];
+  @Input() vesselOwnerDisplayAttributes: string[];
   @Input() metierTaxonGroupIds: number[];
   @Input() timezone: string = DateUtils.moment().tz();
   @Input() maxMetierCount = MAX_METIER_COUNT;
@@ -329,8 +329,7 @@ export class CalendarComponent
   constructor(
     injector: Injector,
     protected context: ActivityCalendarContextService,
-    private vesselOwnerPeriodService: VesselOwnerPeridodService,
-    private element: ElementRef
+    private vesselOwnerPeriodService: VesselOwnerPeridodService
   ) {
     super(
       injector,
@@ -375,6 +374,8 @@ export class CalendarComponent
     super.ngOnInit();
 
     this.locationDisplayAttributes = this.locationDisplayAttributes || this.settings.getFieldDisplayAttributes('location');
+    this.vesselOwnerDisplayAttributes =
+      this.vesselOwnerDisplayAttributes || this.settings.getFieldDisplayAttributes('vesselOwner', ['lastName', 'firstName']);
     this.inlineEdition = this.inlineEdition && this.canEdit;
     this.enableCellSelection = toBoolean(this.enableCellSelection, this.inlineEdition && this.style === 'table' && this.canEdit);
 
@@ -559,22 +560,11 @@ export class CalendarComponent
         this.memoryDataService.value = data;
 
         // Load vessels
-        if (isNotEmptyArray(data)) {
-          const year = data[0]?.startDate.year();
-          const vesselId = data[0].vesselId;
-          if (isNotNil(vesselId)) {
-            await this.loadVessels(vesselId, year);
-          }
-        }
+        await this.loadVessels(data);
 
         // load vesselOwner
-        if (isNotEmptyArray(data)) {
-          const year = data[0]?.startDate.year();
-          const vesselId = data[0].vesselId;
-          if (isNotNil(vesselId)) {
-            await this.loadVesselOwner(vesselId, year);
-          }
-        }
+        await this.loadVesselOwner(data);
+
         break;
       }
       // Accordion
@@ -625,8 +615,36 @@ export class CalendarComponent
     }
   }
 
-  async loadVesselOwner(vesselId: number, year: number) {
-    const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
+  async loadVessels(months: ActivityMonth[]) {
+    if (isEmptyArray(months)) {
+      this.vesselRegistrations = [];
+      return;
+    }
+    const vesselId = months[0].vesselId;
+    const startDate = months[0]?.startDate.clone().startOf('year');
+    const endDate = startDate.clone().endOf('year');
+    const { data } = await this.vesselRegistrationPeriodService.loadAll(
+      0,
+      100, // all
+      'startDate',
+      'desc',
+      {
+        vesselId,
+        startDate,
+        endDate,
+      }
+    );
+
+    this.vesselRegistrations = months.map((month) => IUseFeaturesUtils.filterByPeriod(data, month).map((vrp) => vrp.registrationLocation));
+  }
+
+  async loadVesselOwner(months: ActivityMonth[]) {
+    if (isEmptyArray(months)) {
+      this.vesselOwners = null;
+      return;
+    }
+    const vesselId = months[0].vesselId;
+    const startDate = months[0]?.startDate.clone().startOf('year');
     const endDate = startDate.clone().endOf('year');
     const filter: Partial<VesselOwnerPeriodFilter> = {
       vesselId: vesselId,
@@ -634,51 +652,9 @@ export class CalendarComponent
       endDate: endDate,
     };
 
-    const vesselOwnerPeriods = await this.vesselOwnerPeriodService.getVesselOwnerPeriodsByFilter(filter);
-    const vesselOwnerPeriodsByMonthCovered = CalendarUtils.getVesselOwnerPeriodsIndexed(vesselOwnerPeriods, startDate.year());
-    this.vesselOwnerPeriods = vesselOwnerPeriodsByMonthCovered;
-  }
+    const { data } = await this.vesselOwnerPeriodService.loadAll(0, 100, 'startDate', 'desc', filter);
 
-  async loadVessels(vesselId: number, year: number) {
-    const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
-    const endDate = startDate.clone().endOf('year');
-    const { data } = await this.vesselSnapshotService.loadAll(
-      0,
-      12, // all
-      null,
-      null,
-      {
-        vesselId,
-        startDate,
-        endDate,
-        onlyWithRegistration: true, // TODO Est-ce utilisé ?
-      },
-      { withTotal: false, withDates: true }
-    );
-    console.log('TODO vesselSnapshots loaded: ', data);
-
-    this.vesselSnapshots = await Promise.all(
-      CalendarUtils.MONTHS.map(async (_, month) => {
-        const date = startDate.clone().utc(false).month(month);
-
-        // DEBUG
-        if (this.debug) console.debug(this.logPrefix + `Loading vessel for month #${month} using date ${toDateISOString(date)}`);
-
-        const { data } = await this.vesselSnapshotService.loadAll(
-          0,
-          1,
-          null,
-          null,
-          {
-            vesselId,
-            date,
-            onlyWithRegistration: true,
-          },
-          { withTotal: false }
-        );
-        return data?.[0] || null;
-      })
-    );
+    this.vesselOwners = months.map((month) => IUseFeaturesUtils.filterByPeriod(data, month).map((vop) => vop.vesselOwner));
   }
 
   async waitForChildren(opts?: WaitForOptions) {

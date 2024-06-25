@@ -8,10 +8,10 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
 } from '@sumaris-net/ngx-components';
-import { VesselRegistrationService } from '../services/vessel-registration.service';
+import { VesselRegistrationPeriodService } from '../services/vessel-registration-period.service';
 import { VesselRegistrationPeriod } from '../services/model/vessel.model';
 import { environment } from '@environments/environment';
-import { VesselRegistrationFilter } from '../services/filter/vessel.filter';
+import { VesselRegistrationPeriodFilter } from '../services/filter/vessel.filter';
 
 @Component({
   selector: 'app-vessel-registration-history-table',
@@ -19,7 +19,7 @@ import { VesselRegistrationFilter } from '../services/filter/vessel.filter';
   styleUrls: ['./vessel-registration-history.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrationPeriod, VesselRegistrationFilter> implements OnInit {
+export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrationPeriod, VesselRegistrationPeriodFilter> implements OnInit {
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
   protected referentialToString = referentialToString;
 
@@ -41,7 +41,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
     injector: Injector,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
-    dataService: VesselRegistrationService,
+    dataService: VesselRegistrationPeriodService,
     protected cd: ChangeDetectorRef
   ) {
     super(

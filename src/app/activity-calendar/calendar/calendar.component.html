@@ -186,9 +186,19 @@
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row" class="mat-column-reset-background-color">
-          <ion-label *rxIf="vesselOwnerPeriods$; let VesselOwnerPeriods; suspense: skeletonText80" class="computed">
-            {{ VesselOwnerPeriods | mapGet: row.currentData.month | propertyGet: 'vesselOwner' | referentialToString: ['lastName', 'firstName'] }}
-          </ion-label>
+          <ng-container *rxIf="vesselOwners$; let items; suspense: skeletonText80">
+            @if (items[row.id]; as owners) {
+              <ion-label
+                class="ion-text-nowrap computed"
+                [title]="owners | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: '\n' }"
+              >
+                {{ owners | arrayLast | referentialToString: vesselOwnerDisplayAttributes }}
+                @if (owners | isArrayLength: { greaterThan: 1 }) {
+                  <span class="details">(+{{ owners.length - 1 }})</span>
+                }
+              </ion-label>
+            }
+          </ng-container>
         </mat-cell>
       </ng-container>
 
@@ -197,11 +207,19 @@
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row" class="odd mat-column-reset-background-color">
-          <ion-label *rxIf="vesselSnapshots$; let vesselSnapshots; suspense: skeletonText80" class="computed">
-            {{
-              vesselSnapshots | mapGet: row.currentData.month | propertyGet: 'registrationLocation' | referentialToString: locationDisplayAttributes
-            }}
-          </ion-label>
+          <ng-container *rxIf="vesselRegistrations$; let items; suspense: skeletonText80">
+            @if (items[row.id]; as locations) {
+              <ion-label
+                class="ion-text-nowrap computed"
+                [title]="locations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }"
+              >
+                {{ locations | arrayLast | referentialToString: locationDisplayAttributes }}
+                @if (locations | isArrayLength: { greaterThan: 1 }) {
+                  <span class="details">(+{{ locations.length - 1 }})</span>
+                }
+              </ion-label>
+            }
+          </ng-container>
         </mat-cell>
       </ng-container>
 

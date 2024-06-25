@@ -23,9 +23,9 @@ import { UntypedFormGroup, Validators } from '@angular/forms';
 
 import { VesselFeaturesHistoryComponent } from './vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from './vessel-registration-history.component';
-import { VesselFeaturesFilter, VesselFilter, VesselRegistrationFilter } from '../services/filter/vessel.filter';
+import { VesselFeaturesFilter, VesselFilter, VesselRegistrationPeriodFilter } from '../services/filter/vessel.filter';
 import { VesselFeaturesService } from '../services/vessel-features.service';
-import { VesselRegistrationService } from '../services/vessel-registration.service';
+import { VesselRegistrationPeriodService } from '../services/vessel-registration-period.service';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import moment from 'moment';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
@@ -79,7 +79,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     private network: NetworkService,
     private accountService: AccountService,
     private vesselFeaturesService: VesselFeaturesService,
-    private vesselRegistrationService: VesselRegistrationService,
+    private vesselRegistrationService: VesselRegistrationPeriodService,
     private dateAdapter: MomentDateAdapter,
     private modalCtrl: ModalController,
     private configService: ConfigService
@@ -115,7 +115,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
       this.onUpdateView.subscribe(() => {
         if (isNotNilOrNaN(this.data.id)) {
           this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({ vesselId: this.data.id }), { emitEvent: true });
-          this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({ vesselId: this.data.id }), { emitEvent: true });
+          this.registrationHistoryTable.setFilter(VesselRegistrationPeriodFilter.fromObject({ vesselId: this.data.id }), { emitEvent: true });
         }
       })
     );

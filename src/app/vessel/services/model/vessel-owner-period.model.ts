@@ -3,8 +3,10 @@ import { Moment } from 'moment';
 import { VesselOwner } from './vessel-owner.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
+import { IVesselPeriodEntity } from '@app/vessel/services/model/vessel.utils';
+
 @EntityClass({ typename: 'VesselOwnerPeriodVO' })
-export class VesselOwnerPeriod extends Entity<VesselOwnerPeriod> {
+export class VesselOwnerPeriod extends Entity<VesselOwnerPeriod> implements IVesselPeriodEntity<VesselOwnerPeriod> {
   static ENTITY_NAME = 'VesselOwnerPeriod';
   static fromObject: (source: any, opts?: any) => VesselOwnerPeriod;
 

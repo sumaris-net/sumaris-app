@@ -15,6 +15,8 @@ import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../model/vesse
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import { Moment } from 'moment';
 import { VesselOwnerPeriod } from '../model/vessel-owner-period.model';
+import { StoreObject } from '@apollo/client/core';
+import { IVesselPeriodEntity } from '@app/vessel/services/model/vessel.utils';
 
 @EntityClass({ typename: 'VesselFilterVO' })
 export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
@@ -135,60 +137,7 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
   }
 }
 
-@EntityClass({ typename: 'VesselFeaturesFilterVO' })
-export class VesselFeaturesFilter extends EntityFilter<VesselFeaturesFilter, VesselFeatures> {
-  static fromObject: (source: any, opts?: any) => VesselFeaturesFilter;
-
-  vesselId: number;
-
-  fromObject(source: any, opts?: any) {
-    super.fromObject(source, opts);
-    this.vesselId = source.vesselId;
-  }
-
-  protected buildFilter(): FilterFn<VesselFeatures>[] {
-    const filterFns = super.buildFilter();
-    if (isNotNil(this.vesselId)) {
-      filterFns.push((e) => e.vesselId === this.vesselId);
-    }
-
-    return filterFns;
-  }
-}
-
-@EntityClass({ typename: 'VesselRegistrationFilterVO' })
-export class VesselRegistrationFilter extends EntityFilter<VesselRegistrationFilter, VesselRegistrationPeriod> {
-  static fromObject: (source: any, opts?: any) => VesselRegistrationFilter;
-
-  vesselId: number;
-
-  fromObject(source: any, opts?: any) {
-    super.fromObject(source, opts);
-    this.vesselId = source.vesselId;
-  }
-
-  asObject(opts?: EntityAsObjectOptions): any {
-    return {
-      vesselId: this.vesselId,
-    };
-  }
-
-  protected buildFilter(): FilterFn<VesselRegistrationPeriod>[] {
-    const filterFns = super.buildFilter();
-
-    if (isNotNil(this.vesselId)) {
-      const vesselId = this.vesselId;
-      filterFns.push((e) => e.vesselId === vesselId);
-    }
-
-    return filterFns;
-  }
-}
-
-@EntityClass({ typename: 'VesselOwnerPeriodFilterVO' })
-export class VesselOwnerPeriodFilter extends EntityFilter<VesselOwnerPeriodFilter, VesselOwnerPeriod> {
-  static fromObject: (source: any, opts?: any) => VesselOwnerPeriodFilter;
-
+export abstract class BaseVesselWithPeriodFilter<F extends EntityFilter<F, T>, T extends IVesselPeriodEntity<T>> extends EntityFilter<F, T> {
   vesselId: number;
   startDate: Moment;
   endDate: Moment;
@@ -200,7 +149,14 @@ export class VesselOwnerPeriodFilter extends EntityFilter<VesselOwnerPeriodFilte
     this.endDate = fromDateISOString(source.endDate);
   }
 
-  protected buildFilter(): FilterFn<VesselOwnerPeriod>[] {
+  asObject(opts?: EntityAsObjectOptions): StoreObject {
+    const target = super.asObject(opts);
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
+    return target;
+  }
+
+  protected buildFilter(): FilterFn<T>[] {
     const filterFns = super.buildFilter();
     if (isNotNil(this.vesselId)) {
       const vesselId = this.vesselId;
@@ -209,19 +165,34 @@ export class VesselOwnerPeriodFilter extends EntityFilter<VesselOwnerPeriodFilte
 
     // StartDate Filter
     if (isNotNil(this.startDate)) {
-      const filterStartDate = this.startDate;
-      filterFns.push((e) => {
-        return e.startDate && filterStartDate.isSameOrBefore(e.startDate, 'day');
+      const startDate = this.startDate;
+      filterFns.push((period) => {
+        return (period.endDate && startDate.isSameOrBefore(period.endDate)) || (period.startDate && startDate.isSameOrBefore(period.startDate));
       });
     }
 
     // EndDate Filter
     if (isNotNil(this.endDate)) {
-      const filterEndDate = this.endDate;
-      filterFns.push((e) => {
-        return e.endDate && filterEndDate.isSameOrAfter(e.endDate, 'day');
+      const endDate = this.endDate;
+      filterFns.push((period) => {
+        return (period.endDate && endDate.isSameOrAfter(period.endDate)) || (period.startDate && endDate.isSameOrAfter(period.startDate));
       });
     }
     return filterFns;
   }
+}
+
+@EntityClass({ typename: 'VesselFeaturesFilterVO' })
+export class VesselFeaturesFilter extends BaseVesselWithPeriodFilter<VesselFeaturesFilter, VesselFeatures> {
+  static fromObject: (source: any, opts?: any) => VesselFeaturesFilter;
+}
+
+@EntityClass({ typename: 'VesselRegistrationPeriodFilterVO' })
+export class VesselRegistrationPeriodFilter extends BaseVesselWithPeriodFilter<VesselRegistrationPeriodFilter, VesselRegistrationPeriod> {
+  static fromObject: (source: any, opts?: any) => VesselRegistrationPeriodFilter;
+}
+
+@EntityClass({ typename: 'VesselOwnerPeriodFilterVO' })
+export class VesselOwnerPeriodFilter extends BaseVesselWithPeriodFilter<VesselOwnerPeriodFilter, VesselOwnerPeriod> {
+  static fromObject: (source: any, opts?: any) => VesselOwnerPeriodFilter;
 }
