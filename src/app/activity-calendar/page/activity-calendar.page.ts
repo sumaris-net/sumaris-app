@@ -71,10 +71,8 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
 import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.table';
-import { ActivityMonth } from '../calendar/activity-month.model';
-import { GearPhysicalFeatures } from '../model/gear-physical-features.model';
 import { environment } from '@environments/environment';
-import { ActivityCalendarUtils } from '../activity-calendar.utils';
+import { GearPhysicalFeaturesUtils } from '../model/gear-physical-features.utils';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -274,13 +272,9 @@ export class ActivityCalendarPage
           return;
         }
 
-        this.tableMetier.value = ActivityCalendarUtils.getPhysicalFeatures(
-          this.calendar.value,
-          this.tableMetier.value,
-          this.year,
-          this.data.id,
-          this.timezone
-        );
+        this.tableMetier.value = GearPhysicalFeaturesUtils.updateFromActivityMonths(this.data, this.calendar.value, this.tableMetier.value, {
+          timezone: this.timezone,
+        });
       })
     );
 
@@ -637,11 +631,10 @@ export class ActivityCalendarPage
     this.baseForm.value = data;
 
     // Set data to calendar
-    const activityMonths = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true });
-    this.calendar.value = activityMonths;
+    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, timezone: this.timezone });
 
     // Set metier table data
-    this.tableMetier.value = ActivityCalendarUtils.getPhysicalFeatures(activityMonths, data.gearPhysicalFeatures, data.year, data.id, this.timezone);
+    this.tableMetier.value = GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone: this.timezone });
 
     // Load pictures
     if (this.showPictures && !isNewData) {
@@ -672,13 +665,7 @@ export class ActivityCalendarPage
     }
 
     // Metiers
-    value.gearPhysicalFeatures = ActivityCalendarUtils.getPhysicalFeatures(
-      this.calendar.value,
-      this.tableMetier.value,
-      this.year,
-      this.data.id,
-      this.timezone
-    );
+    value.gearPhysicalFeatures = GearPhysicalFeaturesUtils.updateFromCalendar(value, this.tableMetier.value, { timezone: this.timezone });
 
     // Photos
     if (this.canEdit) value.images = this.gallery.value;

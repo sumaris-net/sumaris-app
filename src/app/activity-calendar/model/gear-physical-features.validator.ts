@@ -11,7 +11,6 @@ import {
 } from '@sumaris-net/ngx-components';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
-import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
@@ -42,7 +41,6 @@ export class GearPhysicalFeaturesValidatorService<O extends GearPhysicalFeatures
     formBuilder: UntypedFormBuilder,
     translate: TranslateService,
     settings: LocalSettingsService,
-    protected fishingAreaValidator: FishingAreaValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, translate, settings);
@@ -53,7 +51,6 @@ export class GearPhysicalFeaturesValidatorService<O extends GearPhysicalFeatures
 
     const form = super.getFormGroup(data, opts);
 
-    //todo mf  AcquisitionLevelCodes
     if (opts.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
       const pmfms =
