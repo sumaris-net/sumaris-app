@@ -29,7 +29,11 @@ import {
 import { map } from 'rxjs/operators';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { VesselFeatureQueries, VesselFeaturesFragments, VesselFeaturesService } from './vessel-features.service';
-import { VesselRegistrationFragments, VesselRegistrationService, VesselRegistrationsQueries } from './vessel-registration.service';
+import {
+  VesselRegistrationPeriodFragments,
+  VesselRegistrationPeriodQueries,
+  VesselRegistrationPeriodService,
+} from './vessel-registration-period.service';
 import { Vessel } from './model/vessel.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { SortDirection } from '@angular/material/sort';
@@ -129,7 +133,7 @@ const VesselQueries: BaseEntityGraphqlQueries & { importSiopFile: any } = {
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
-    ${VesselRegistrationFragments.registration}
+    ${VesselRegistrationPeriodFragments.registration}
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
@@ -145,7 +149,7 @@ const VesselQueries: BaseEntityGraphqlQueries & { importSiopFile: any } = {
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
-    ${VesselRegistrationFragments.registration}
+    ${VesselRegistrationPeriodFragments.registration}
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
@@ -160,7 +164,7 @@ const VesselQueries: BaseEntityGraphqlQueries & { importSiopFile: any } = {
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
-    ${VesselRegistrationFragments.registration}
+    ${VesselRegistrationPeriodFragments.registration}
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
@@ -186,7 +190,7 @@ const VesselMutations: BaseRootEntityGraphqlMutations & { replaceAll: any } = {
     }
     ${VesselFragments.vessel}
     ${VesselFeaturesFragments.vesselFeatures}
-    ${VesselRegistrationFragments.registration}
+    ${VesselRegistrationPeriodFragments.registration}
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
@@ -220,7 +224,7 @@ export class VesselService
   constructor(
     injector: Injector,
     private vesselFeatureService: VesselFeaturesService,
-    private vesselRegistrationService: VesselRegistrationService,
+    private vesselRegistrationService: VesselRegistrationPeriodService,
     private landingService: LandingService,
     private tripService: TripService,
     private operationService: OperationService,
@@ -360,7 +364,7 @@ export class VesselService
         if (opts && opts.isNewRegistration) {
           const lastRegistration = entities[entities.length - 1].vesselRegistrationPeriod;
           this.vesselRegistrationService.insertIntoMutableCachedQueries(proxy, {
-            query: VesselRegistrationsQueries.loadAll,
+            query: VesselRegistrationPeriodQueries.loadAll,
             data: lastRegistration,
           });
         }

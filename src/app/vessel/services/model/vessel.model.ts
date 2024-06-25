@@ -17,6 +17,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { IVesselPeriodEntity } from '@app/vessel/services/model/vessel.utils';
 
 @EntityClass({ typename: 'VesselVO' })
 export class Vessel extends RootDataEntity<Vessel> {
@@ -85,7 +86,7 @@ export class Vessel extends RootDataEntity<Vessel> {
 }
 
 @EntityClass({ typename: 'VesselFeaturesVO' })
-export class VesselFeatures extends Entity<VesselFeatures> {
+export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPeriodEntity<VesselFeatures> {
   static fromObject: (source: any, opts?: any) => VesselFeatures;
 
   name: string;
@@ -180,7 +181,7 @@ export class VesselFeatures extends Entity<VesselFeatures> {
 }
 
 @EntityClass({ typename: 'VesselRegistrationPeriodVO' })
-export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> {
+export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> implements IVesselPeriodEntity<VesselRegistrationPeriod> {
   static fromObject: (source: any, opts?: any) => VesselRegistrationPeriod;
 
   vesselId: number = null;

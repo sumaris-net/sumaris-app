@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { VesselRegistrationPeriod } from './model/vessel.model';
-import { BaseEntityService, GraphqlService } from '@sumaris-net/ngx-components';
+import { BaseEntityService, GraphqlService, isNotNil, PlatformService } from '@sumaris-net/ngx-components';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
-import { PlatformService } from '@sumaris-net/ngx-components';
-import { VesselRegistrationFilter } from './filter/vessel.filter';
-import { isNotNil } from '@sumaris-net/ngx-components';
+import { VesselRegistrationPeriodFilter } from './filter/vessel.filter';
 
-export const VesselRegistrationFragments = {
+export const VesselRegistrationPeriodFragments = {
   registration: gql`
     fragment VesselRegistrationPeriodFragment on VesselRegistrationPeriodVO {
       id
@@ -22,29 +20,30 @@ export const VesselRegistrationFragments = {
   `,
 };
 
-export const VesselRegistrationsQueries = {
+export const VesselRegistrationPeriodQueries = {
   loadAll: gql`
     query VesselRegistrationHistory($filter: VesselRegistrationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
       data: vesselRegistrationHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
         ...VesselRegistrationPeriodFragment
       }
     }
-    ${VesselRegistrationFragments.registration}
+    ${VesselRegistrationPeriodFragments.registration}
     ${ReferentialFragments.location}
   `,
 };
 
 @Injectable({ providedIn: 'root' })
-export class VesselRegistrationService extends BaseEntityService<VesselRegistrationPeriod, VesselRegistrationFilter> {
+export class VesselRegistrationPeriodService extends BaseEntityService<VesselRegistrationPeriod, VesselRegistrationPeriodFilter> {
   constructor(graphql: GraphqlService, platform: PlatformService) {
-    super(graphql, platform, VesselRegistrationPeriod, VesselRegistrationFilter, {
-      queries: VesselRegistrationsQueries,
+    super(graphql, platform, VesselRegistrationPeriod, VesselRegistrationPeriodFilter, {
+      queries: VesselRegistrationPeriodQueries,
       defaultSortBy: 'startDate',
+      defaultSortDirection: 'desc',
     });
   }
 
   async count(
-    filter: Partial<VesselRegistrationFilter> & { vesselId: number },
+    filter: Partial<VesselRegistrationPeriodFilter> & { vesselId: number },
     opts?: {
       fetchPolicy?: FetchPolicy;
     }
