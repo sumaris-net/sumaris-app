@@ -140,6 +140,7 @@ export interface ColumnDefinition {
   treeIndent?: string;
   hidden?: boolean;
   toggle?: (event?: Event) => void;
+  expand?: (event?: Event) => void;
 }
 
 export interface CalendarComponentState extends BaseMeasurementsTableState {
@@ -1035,9 +1036,8 @@ export class CalendarComponent
 
     console.debug(this.logPrefix + 'Adding new metier block...');
     const index = this.metierCount;
-    const newMetierCount = index + 1;
-    const newFishingAreaCount = this.maxFishingAreaCount || 2;
-    const rankOrder = newMetierCount;
+    const fishingAreaCount = toNumber(this.maxFishingAreaCount, MAX_FISHING_AREA_COUNT);
+    const rankOrder = index + 1;
     const pathPrefix = `gearUseFeatures.${index}.`;
     const blockColumns: ColumnDefinition[] = [
       {
@@ -1053,7 +1053,7 @@ export class CalendarComponent
         expanded: true,
         toggle: (event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
       },
-      ...new Array<ColumnDefinition>(newFishingAreaCount).fill(null).flatMap((_, faIndex) => {
+      ...new Array<ColumnDefinition>(fishingAreaCount).fill(null).flatMap((_, faIndex) => {
         const faRankOrder = faIndex + 1;
         return [
           {
@@ -1067,6 +1067,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}`,
             class: 'mat-column-fishingArea',
             treeIndent: '&nbsp;&nbsp;',
+            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
           },
           {
             blockIndex: index,
@@ -1080,7 +1081,8 @@ export class CalendarComponent
             class: 'mat-column-distanceToCoastGradient',
             treeIndent: '&nbsp;&nbsp',
             expanded: false,
-            toggle: (event: Event) => this.toggleGradientBlock(event, rankOrder, faRankOrder),
+            toggle: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
+            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
           },
           {
             blockIndex: index,
@@ -1093,6 +1095,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}depthGradient`,
             class: 'mat-column-depthGradient',
             treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
             hidden: true,
           },
           {
@@ -1106,6 +1109,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`,
             class: 'mat-column-nearbySpecificArea',
             treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
+            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
             hidden: true,
           },
         ];
@@ -1121,7 +1125,7 @@ export class CalendarComponent
     this.dynamicColumns = this.dynamicColumns ? [...this.dynamicColumns, ...blockColumns] : blockColumns;
     const dynamicColumnKeys = this.dynamicColumns.map((col) => col.key);
     this.excludesColumns = this.excludesColumns.filter((columnName) => !dynamicColumnKeys.includes(columnName));
-    this.metierCount = newMetierCount;
+    this.metierCount = index + 1;
 
     // Force to update the edited row
     if (this.editedRow) {
@@ -1135,13 +1139,13 @@ export class CalendarComponent
 
   protected expandAll(event?: Event, opts?: { emitEvent?: boolean }) {
     for (let i = 0; i < this.metierCount; i++) {
-      this.expandBlock(null, i);
+      this.expandMetierBlock(null, i);
     }
   }
 
   protected collapseAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
     for (let i = 0; i < this.metierCount; i++) {
-      this.collapseBlock(null, i);
+      this.collapseMetierBlock(null, i);
     }
   }
 
@@ -1351,16 +1355,12 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  toggleGradientBlock(event: Event, rankOrder: number, faRankOrder: number) {
+  toggleGradientBlock(event: Event, keyPrefix: string) {
     if (event?.defaultPrevented) return; // Skip
     event?.preventDefault();
 
-    const blockColumnNames = [
-      `metier${rankOrder}FishingArea${faRankOrder}distanceToCoastGradient`,
-      `metier${rankOrder}FishingArea${faRankOrder}depthGradient`,
-      `metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`,
-    ];
-    const blockColumns = this.dynamicColumns.filter((col) => blockColumnNames.some((key) => col.key.includes(key)));
+    const blockColumnNames = [`${keyPrefix}distanceToCoastGradient`, `${keyPrefix}depthGradient`, `${keyPrefix}nearbySpecificArea`];
+    const blockColumns = this.dynamicColumns.filter((col) => blockColumnNames.includes(col.key));
 
     if (isEmptyArray(blockColumns)) return; // Skip
 
@@ -1388,18 +1388,18 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  expandBlock(event: Event, blockIndex: number) {
+  expandMetierBlock(event: Event, blockIndex: number) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
-    this.setBlockExpanded(blockIndex, true);
+    this.setMetierBlockExpanded(blockIndex, true);
   }
 
-  collapseBlock(event: Event, blockIndex: number) {
+  collapseMetierBlock(event: Event, blockIndex: number) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
-    this.setBlockExpanded(blockIndex, false);
+    this.setMetierBlockExpanded(blockIndex, false);
   }
 
   markAsDirty(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -1407,7 +1407,7 @@ export class CalendarComponent
     super.markAsDirty(opts);
   }
 
-  protected setBlockExpanded(blockIndex: number, expanded: boolean) {
+  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean) {
     const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return;
 
@@ -1417,18 +1417,22 @@ export class CalendarComponent
     masterColumn.expanded = expanded;
 
     // Update sub columns
-    blockColumns.slice(1).forEach((col) => (col.hidden = !masterColumn.expanded));
+    blockColumns.slice(1).forEach((col) => {
+      col.hidden = !expanded;
 
-    // Expanded state for all columns to fix divergences states
-    blockColumns.forEach((col) => {
+      // Expanded state for all columns to fix divergences states
       if (isNotNil(col.expanded)) {
-        col.expanded = masterColumn.expanded;
+        col.expanded = expanded;
       }
     });
   }
 
-  protected setFocusColumn(event: Event | undefined, key: string) {
-    this.focusColumn = key;
+  protected setFocusColumn(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, columnName: string) {
+    if (!row.editing) {
+      // DEBUG
+      console.debug(`${this.logPrefix}setFocusColumn() => ${columnName}`);
+      this.focusColumn = columnName;
+    }
   }
 
   protected getColumnPath(key: string): string | undefined {
