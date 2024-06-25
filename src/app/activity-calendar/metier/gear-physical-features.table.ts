@@ -18,10 +18,11 @@ import {
 import { AcquisitionLevelCodes, GearLevelIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 import { RxState } from '@rx-angular/state';
-import { GearUseFeatures } from '../model/gear-use-features.model';
+import { GearPhysicalFeatures } from '../model/gear-physical-features.model';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
-import { GearUseFeaturesFilter } from '../model/gear-use-features-filter';
-import { GearUseFeaturesValidatorService } from '../model/gear-use-features.validator';
+import { GearPhysicalFeaturesFilter } from '../model/gear-physical-features-filter';
+import { GearPhysicalFeaturesValidatorService } from '../model/gear-physical-features.validator';
+import { ActivityCalendarContextService } from '../activity-calendar-context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -32,14 +33,14 @@ import { UntypedFormGroup } from '@angular/forms';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear', 'metier'];
 @Component({
-  selector: 'app-gear-use-features-table',
-  templateUrl: 'gear-use-features.table.html',
-  styleUrls: ['./gear-use-features.table.scss'],
+  selector: 'app-gear-physical-features-table',
+  templateUrl: 'gear-physical-features.table.html',
+  styleUrls: ['./gear-physical-features.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [slideUpDownAnimation],
-  providers: [{ provide: AppValidatorService, useExisting: GearUseFeaturesValidatorService }, RxState],
+  providers: [{ provide: AppValidatorService, useExisting: GearPhysicalFeaturesValidatorService }, RxState],
 })
-export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures, GearUseFeaturesFilter> implements OnInit, OnDestroy {
+export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysicalFeatures, GearPhysicalFeaturesFilter> implements OnInit, OnDestroy {
   protected gearIds: number[];
   protected _initialPmfms: IPmfm[];
   @Input() metierTaxonGroupIds: number[];
@@ -68,26 +69,27 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
     return this.getShowColumn('gear');
   }
 
-  set value(data: GearUseFeatures[]) {
+  set value(data: GearPhysicalFeatures[]) {
     this.setValue(data);
   }
 
-  get value(): GearUseFeatures[] {
+  get value(): GearPhysicalFeatures[] {
     return this.getValue();
   }
 
   constructor(
     injector: Injector,
-    validatorService: GearUseFeaturesValidatorService,
-    private referentialRefService: ReferentialRefService
+    validatorService: GearPhysicalFeaturesValidatorService,
+    private referentialRefService: ReferentialRefService,
+    protected context: ActivityCalendarContextService
   ) {
     super(
       injector,
-      GearUseFeatures,
-      GearUseFeaturesFilter,
-      new InMemoryEntitiesService<GearUseFeatures, GearUseFeaturesFilter>(GearUseFeatures, GearUseFeaturesFilter, {
+      GearPhysicalFeatures,
+      GearPhysicalFeaturesFilter,
+      new InMemoryEntitiesService<GearPhysicalFeatures, GearPhysicalFeaturesFilter>(GearPhysicalFeatures, GearPhysicalFeaturesFilter, {
         sortByReplacement: { id: 'rankOrder' },
-        equals: GearUseFeatures.equals,
+        equals: GearPhysicalFeatures.equals,
       }),
       validatorService,
       {
@@ -110,7 +112,7 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES;
-    this.logPrefix = '[gear-use-features-table] ';
+    this.logPrefix = '[gear-physical-features-table] ';
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
 
@@ -154,12 +156,12 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
       displayWith: (obj) => obj?.label || '',
     });
   }
-  setValue(data: GearUseFeatures[]) {
-    this.gearIds = removeDuplicatesFromArray(data.map((guf) => toNumber(guf.gear?.id, guf.metier?.gear?.id)));
+  setValue(data: GearPhysicalFeatures[]) {
+    this.gearIds = removeDuplicatesFromArray(data.map((gph) => toNumber(gph.gear?.id, gph.metier?.gear?.id)));
     if (this._initialPmfms) this.pmfms = this.mapPmfms(this._initialPmfms);
-    const dataWithGear = data.map((guf) => {
-      guf.gear = guf.metier.gear;
-      return guf;
+    const dataWithGear = data.map((gph) => {
+      gph.gear = gph.metier.gear;
+      return gph;
     });
     this.memoryDataService.value = dataWithGear;
   }
@@ -176,7 +178,7 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
   /* -- protected methods -- */
   /*-------------------------*/
 
-  protected async onNewEntity(data: GearUseFeatures): Promise<void> {
+  protected async onNewEntity(data: GearPhysicalFeatures): Promise<void> {
     console.debug(this.logPrefix, ' Initializing new row data...');
 
     await super.onNewEntity(data);

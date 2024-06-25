@@ -13,6 +13,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrNaN,
   ReferentialRef,
   ReferentialUtils,
   toNumber,
@@ -39,7 +40,7 @@ import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/se
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import { SaleFilter } from './sale.filter';
 
-import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution } from '@app/data/form/data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
@@ -156,7 +157,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     // Manage sub tab group
     const queryParams = this.route.snapshot.queryParams;
-    this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
+    this.selectedSubTabIndex = toNumber(queryParams['subtab'], 0);
   }
 
   canUserWrite(data: Sale, opts?: any): boolean {
@@ -171,7 +172,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
     console.debug(this.logPrefix + 'watchStrategyFilter', this.acquisitionLevel);
-    if (this.strategyResolution === 'user-select') {
+    if (this.strategyResolution === DataStrategyResolutions.USER_SELECT) {
       return this._state
         .select(['acquisitionLevel', 'strategyLabel'], (s) => s)
         .pipe(
@@ -270,7 +271,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     const queryParams = this.route.snapshot.queryParams;
 
     // DEBUG
-    //console.debug('DEV - Creating new sale entity');
+    console.debug(`${this._logPrefix}Creating new Sale entity`);
 
     // Mask quality cards
     this.showEntityMetadata = false;
@@ -281,8 +282,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
     }
 
     // Fill parent ids
-    data.tripId = toNumber(options?.tripId, undefined);
-    data.landingId = toNumber(options?.landingId, undefined);
+    data.tripId = toNumber(options?.tripId, toNumber(this.queryParams['trip']));
+    data.landingId = toNumber(options?.landingId, toNumber(this.queryParams['landing']));
 
     // Set rankOrder
     if (isNotNil(queryParams['rankOrder'])) {
@@ -539,10 +540,10 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected async loadParent(data: Sale): Promise<Landing | Trip> {
     let parent: Landing | Trip;
 
-    if (isNotNil(data.tripId)) {
+    if (isNotNilOrNaN(data.tripId)) {
       console.debug(`[sale-page] Loading parent trip #${data.tripId} ...`);
       parent = await this.tripService.load(data.tripId, { fetchPolicy: 'cache-first' });
-    } else if (isNotNil(data.landingId)) {
+    } else if (isNotNilOrNaN(data.landingId)) {
       console.debug(`[sale-page] Loading parent landing #${data.landingId} ...`);
       parent = await this.landingService.load(data.landingId, { fetchPolicy: 'cache-first' });
     }

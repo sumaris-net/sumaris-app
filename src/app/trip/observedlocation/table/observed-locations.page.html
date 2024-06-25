@@ -226,7 +226,7 @@
           <ion-col>
             <!-- Recorder department -->
             <mat-autocomplete-field
-              [placeholder]="'TRIP.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
+              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
               formControlName="recorderDepartment"
               [config]="autocompleteFields.department"
               [clearable]="true"
@@ -238,7 +238,7 @@
           <ion-col>
             <!-- Recorder person -->
             <mat-autocomplete-field
-              [placeholder]="'TRIP.TABLE.FILTER.RECORDER_PERSON' | translate"
+              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.RECORDER_PERSON' | translate"
               formControlName="recorderPerson"
               [config]="autocompleteFields.person"
               [i18nPrefix]="'USER.'"
@@ -253,7 +253,7 @@
           <!-- Observers criteria -->
           <ion-col *ngIf="showObservers">
             <mat-autocomplete-field
-              [placeholder]="'TRIP.TABLE.FILTER.OBSERVERS' | translate"
+              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.OBSERVERS' | translate"
               [formControl]="filterObserversForm.at(0)"
               [config]="autocompleteFields.observers"
               [i18nPrefix]="'USER.'"
@@ -453,13 +453,25 @@
         </td>
       </ng-container>
 
-      <!-- date time  -->
+      <!-- start date time  -->
       <ng-container matColumnDef="startDateTime">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
-          <ion-label translate>OBSERVED_LOCATION.TABLE.START_DATE_TIME</ion-label>
+          <ion-label translate>
+            {{ showEndDateTimeColumn ? 'OBSERVED_LOCATION.TABLE.START_DATE_TIME' : 'OBSERVED_LOCATION.TABLE.DATE_TIME' }}
+          </ion-label>
         </th>
         <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
           <ion-text>{{ row.currentData.startDateTime | dateFormat: { time: true } }}</ion-text>
+        </td>
+      </ng-container>
+
+      <!-- end date time  -->
+      <ng-container matColumnDef="endDateTime">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
+          <ion-label translate>OBSERVED_LOCATION.TABLE.END_DATE_TIME</ion-label>
+        </th>
+        <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
+          <ion-text>{{ row.currentData.endDateTime | dateFormat: { time: true } }}</ion-text>
         </td>
       </ng-container>
 

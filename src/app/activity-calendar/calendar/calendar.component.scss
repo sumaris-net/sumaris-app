@@ -1,3 +1,9 @@
+:host {
+  --mat-cell-border-color-hover: var(--ion-color-secondary);
+  --mat-cell-resizable-handle-size: 5px;
+  --mat-cell-resizable-handle-color-hover: var(--ion-color-secondary);
+}
+
 .mat-accordion {
   --expansion-panel-padding: 0;
   .mat-expansion-panel-header {
@@ -11,9 +17,13 @@
   }
 }
 
-mat-toolbar.secondary {
-  background-color: var(--ion-color-secondary);
-  color: var(--ion-color-secondary-contrast);
+mat-toolbar {
+  position: relative;
+  z-index: 50;
+  &.secondary {
+    background-color: var(--ion-color-secondary);
+    color: var(--ion-color-secondary-contrast);
+  }
 }
 
 .table-container {
@@ -21,6 +31,7 @@ mat-toolbar.secondary {
   height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
   min-width: 100%;
   overflow: auto;
+  z-index: 10;
 
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
@@ -35,9 +46,6 @@ mat-toolbar.secondary {
   --col-header-size: 150px;
   --col-min-size: 100px;
   --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / var(--month-count, 12)));
-  --mat-cell-border-color-hover: var(--ion-color-secondary);
-  --mat-cell-resizable-handle-size: 5px;
-  --mat-cell-resizable-handle-color-hover: var(--ion-color-secondary);
   --mat-table-row-item-outline-width: 0px;
   --mat-column-actions-min-width: 100%;
   --mat-row-height: 35px !important;
@@ -59,6 +67,7 @@ mat-toolbar.secondary {
     width: var(--col-header-size) !important;
     max-width: var(--col-header-size) !important;
   }
+
   .mat-mdc-row {
     display: flex !important;
     flex-direction: column !important;
@@ -73,6 +82,7 @@ mat-toolbar.secondary {
       &.mat-column-basePortLocation {
         --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.8) !important;
         background-color: var(--mat-table-background-color);
+
         * {
           display: none;
           visibility: hidden;
@@ -88,6 +98,7 @@ mat-toolbar.secondary {
       &.mat-column-fishingArea {
         --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.8) !important;
         background-color: var(--mat-table-background-color);
+
         * {
           display: none;
           visibility: hidden;
@@ -105,6 +116,7 @@ mat-toolbar.secondary {
 
   .mat-mdc-header-cell {
     padding: 0;
+
     ion-label {
       width: 100%;
     }
@@ -148,6 +160,7 @@ mat-toolbar.secondary {
 
     &.collapsed {
       --mat-row-height: 3px !important;
+
       * {
         visibility: hidden;
         display: none;
@@ -201,7 +214,14 @@ mat-toolbar.secondary {
       visibility: unset;
     }
   }
+}
 
+/* ------------------------------------
+ * Cell selection and cell clipboard
+ * ------------------------------------ */
+
+.mat-mdc-table {
+  // Enable cell selection on a cell
   .mat-mdc-cell-resizable {
     position: relative;
 
@@ -270,6 +290,7 @@ mat-toolbar.secondary {
     }
   }
 
+  // When a cell cell selection has been starting
   &.resizing {
     --mat-cell-resizable-handle-color-hover: transparent;
 
@@ -288,4 +309,65 @@ mat-toolbar.secondary {
       visibility: hidden !important;
     }
   }
+}
+
+// Cell selection div
+.cell-selection {
+  position: fixed;
+  background-color: rgba(var(--ion-color-secondary-rgb), 0.4);
+  border: 2px solid var(--mat-cell-border-color-hover);
+  z-index: 10;
+  pointer-events: none;
+
+  &:has(.debug) {
+    align-content: end;
+  }
+
+  .debug {
+    --ion-padding: 2px;
+    padding-inline-start: var(--ion-padding);
+    padding-inline-end: var(--ion-padding);
+    color: var(--ion-color-tertiary);
+    font-style: italic;
+    font-size: 12px;
+    background-color: rgba(var(--ion-background-color-rgb, 255, 255, 255), 0.7);
+    display: inline-block;
+  }
+}
+
+// Cell clipboard border animation
+@keyframes linearGradientMove {
+  100% {
+    background-position:
+      4px 0,
+      -4px 100%,
+      0 -4px,
+      100% 4px;
+  }
+}
+
+// Cell clipboard div
+.cell-clipboard {
+  --border-color: var(--ion-color-accent, gray);
+  position: fixed;
+  z-index: 5;
+  border: 1px dotted var(--border-color);
+  animation: linearGradientMove 0.3s infinite linear;
+  background:
+    linear-gradient(90deg, var(--border-color) 50%, transparent 0) repeat-x,
+    linear-gradient(90deg, var(--border-color) 50%, transparent 0) repeat-x,
+    linear-gradient(0deg, var(--border-color) 50%, transparent 0) repeat-y,
+    linear-gradient(0deg, var(--border-color) 50%, transparent 0) repeat-y;
+  background-size:
+    4px 2px,
+    4px 2px,
+    2px 4px,
+    2px 4px;
+  background-position:
+    0 0,
+    0 100%,
+    0 0,
+    100% 0;
+  background-color: unset;
+  pointer-events: none;
 }
