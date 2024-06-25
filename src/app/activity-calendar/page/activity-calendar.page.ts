@@ -562,6 +562,14 @@ export class ActivityCalendarPage
     if (!programLabel) this.markAsReady();
   }
 
+  devToggleDebug() {
+    super.devToggleDebug();
+    setTimeout(() => {
+      this.calendar?.onResize();
+      this.predocCalendar?.onResize();
+    }, 250);
+  }
+
   protected async onEntityLoaded(data: ActivityCalendar, options?: EntityServiceLoadOptions): Promise<void> {
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
