@@ -174,7 +174,7 @@
           <ion-label class="ion-text-center">
             <ion-text
               matBadge="!"
-              [matBadgeHidden]="!row.editing || !row.invalid"
+              [matBadgeHidden]="(row.currentData.qualityFlagId | qualityFlagValid) && (!row.editing || !row.invalid)"
               matBadgeOverlap="false"
               matBadgeColor="accent"
               matBadgeSize="small"

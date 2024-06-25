@@ -58,8 +58,9 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { distinctUntilChanged, fromEvent, Observable, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
-import { UntypedFormGroup } from '@angular/forms';
+import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
+import { FormArray, UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
@@ -1053,6 +1054,7 @@ export class CalendarComponent
       return false;
     }
 
+    this.setQualityFlags();
     return super.clickRow(event, row);
   }
 
@@ -1864,6 +1866,7 @@ export class CalendarComponent
 
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
+    this.setQualityFlags();
   }
 
   protected removeCellSelection(opts?: { emitEvent?: boolean }) {
@@ -2011,5 +2014,16 @@ export class CalendarComponent
     }); // Delay to skip the first focus (should be the focusColumn)
 
     return subscription;
+  }
+  protected async setQualityFlags() {
+    const rows = this.dataSource.getRows();
+    let qualityFlagId;
+
+    for (const row of rows) {
+      const form = this.validatorService.getRowValidator(row.currentData);
+      qualityFlagId = isNotNil(form.errors) ? QualityFlagIds.BAD : QualityFlagIds.GOOD;
+      form.get('qualityFlagId').setValue(qualityFlagId);
+      await this.updateEntityToTable(form.value, row, { confirmEdit: true });
+    }
   }
 }
