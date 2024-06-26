@@ -4,11 +4,14 @@ import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { ProgramPrivilegeEnum } from '@app/referential/services/model/model.enum';
+import { IUseFeaturesUtils } from '@app/activity-calendar/model/use-features.model';
+import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
 
 export class ActivityMonthUtils {
   static fromActivityCalendar(
     data: ActivityCalendar,
-    opts?: { fillEmptyGuf?: boolean; fillEmptyFishingArea?: boolean; fishingAreaCount?: number; timezone?: string }
+    opts?: { fillEmptyGuf?: boolean; fillEmptyFishingArea?: boolean; fishingAreaCount?: number; timezone?: string; isAdmin?: boolean }
   ): ActivityMonth[] {
     data = ActivityCalendar.fromObject(data);
     const year = data?.year || DateUtils.moment().year() - 1;
@@ -17,6 +20,8 @@ export class ActivityMonthUtils {
     const gearUseFeatures = (data.gearUseFeatures || []).map(GearUseFeatures.fromObject).sort(GearUseFeaturesComparators.sortByDateAndRankOrderFn);
     const metierIds = removeDuplicatesFromArray(gearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)).concat(undefined);
     const fishingAreaCount = opts?.fishingAreaCount || 2;
+    const registrationPeriods: VesselRegistrationPeriod[] = Object.values(data.vesselRegistrationPeriodsByPrivileges).flatMap((values) => values);
+    const writablePeriods = opts?.isAdmin ? registrationPeriods : data.vesselRegistrationPeriodsByPrivileges?.[ProgramPrivilegeEnum.OBSERVER] || [];
 
     let metierBlockCount = 0;
     return monthStartDates.map((startDate) => {
@@ -50,6 +55,11 @@ export class ActivityMonthUtils {
       target.vesselId = vesselId;
       target.month = startDate.month() + 1;
       target.endDate = endDate;
+
+      target.canEdit = IUseFeaturesUtils.isInPeriods(target, writablePeriods);
+      target.registrationLocations = registrationPeriods
+        .filter((period) => IUseFeaturesUtils.isInPeriods(target, [period]))
+        .map((vrp) => vrp.registrationLocation);
       return target;
     });
   }

@@ -207,19 +207,11 @@
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row" class="odd mat-column-reset-background-color">
-          <ng-container *rxIf="vesselRegistrations$; let items; suspense: skeletonText80">
-            @if (items[row.id]; as locations) {
-              <ion-label
-                class="ion-text-nowrap computed"
-                [title]="locations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }"
-              >
-                {{ locations | arrayLast | referentialToString: locationDisplayAttributes }}
-                @if (locations | isArrayLength: { greaterThan: 1 }) {
-                  <span class="details">(+{{ locations.length - 1 }})</span>
-                }
-              </ion-label>
-            }
-          </ng-container>
+          @if (inlineEdition && row.validator | formGetValue: 'registrationLocations'; as items) {
+            <ng-container *ngTemplateOutlet="registrationLocations; context: { $implicit: items }"></ng-container>
+          } @else {
+            <ng-container *ngTemplateOutlet="registrationLocations; context: { $implicit: row.currentData.registrationLocations }"></ng-container>
+          }
         </mat-cell>
       </ng-container>
 
@@ -477,6 +469,7 @@
         [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id"
         [class.activity-inactive]="(row.validator | formGetValue: 'isActive') === 0"
         [class.activity-not-exists]="(row.validator | formGetValue: 'isActive') === 2"
+        [class.readonly]="!(row.validator | formGetValue: 'canEdit')"
         (keydown.escape)="escapeEditingRow($event)"
         [cdkTrapFocus]="!row.valid"
         (click)="clickRow($event, row)"
@@ -524,6 +517,14 @@
   </button>
 </ng-template>
 
+<ng-template #registrationLocations let-registrationLocations>
+  <ion-label class="computed" [title]="registrationLocations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }">
+    {{ registrationLocations | arrayLast | referentialToString: locationDisplayAttributes }}
+    @if (registrationLocations | isArrayLength: { greaterThan: 1 }) {
+      <span class="count">(+{{ registrationLocations.length - 1 }})</span>
+    }
+  </ion-label>
+</ng-template>
 <ng-template #skeletonText80>
   <ion-label style="width: 80%">
     <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>

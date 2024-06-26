@@ -2,7 +2,6 @@ import {
   Department,
   EntityAsObjectOptions,
   IEntity,
-  isNotNilOrNaN,
   ITreeItemEntity,
   Person,
   Referential,

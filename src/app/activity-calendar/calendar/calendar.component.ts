@@ -31,7 +31,6 @@ import {
   LoadResult,
   LocalSettingsService,
   MatAutocompleteFieldConfig,
-  ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
@@ -72,15 +71,15 @@ import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { BaseMeasurementsTable2 } from '@app/data/measurement/measurements-table2.class';
 import { AsyncTableElement } from '@e-is/ngx-material-table';
 import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
-import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
-import { IUseFeaturesUtils } from '@app/activity-calendar/model/use-features.model';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
-import { VesselRegistrationPeriodService } from '@app/vessel/services/vessel-registration-period.service';
+import { IUseFeaturesUtils } from '../model/use-features.model';
+import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -147,7 +146,6 @@ export interface ColumnDefinition {
 
 export interface CalendarComponentState extends BaseMeasurementsTableState {
   metierLevelId: number;
-  vesselRegistrations: ReferentialRef[][];
   vesselOwners: VesselOwner[][];
   dynamicColumns: ColumnDefinition[];
   metierCount: number;
@@ -202,10 +200,8 @@ export class CalendarComponent
   >
   implements OnInit, AfterViewInit
 {
-  protected vesselRegistrationPeriodService = inject(VesselRegistrationPeriodService);
   protected referentialRefService = inject(ReferentialRefService);
 
-  @RxStateSelect() protected vesselRegistrations$: Observable<ReferentialRef[][]>;
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
   @RxStateSelect() protected months$: Observable<Moment[]>;
@@ -222,7 +218,6 @@ export class CalendarComponent
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
 
-  @RxStateProperty() vesselRegistrations: ReferentialRef[][];
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
   @RxStateProperty() metierCount: number;
@@ -559,12 +554,8 @@ export class CalendarComponent
         // Set data service
         this.memoryDataService.value = data;
 
-        // Load vessels
-        await this.loadVessels(data);
-
         // load vesselOwner
         await this.loadVesselOwner(data);
-
         break;
       }
       // Accordion
@@ -613,29 +604,6 @@ export class CalendarComponent
         return this._children?.flatMap((child) => child.value) || <ActivityMonth[]>[];
       }
     }
-  }
-
-  async loadVessels(months: ActivityMonth[]) {
-    if (isEmptyArray(months)) {
-      this.vesselRegistrations = [];
-      return;
-    }
-    const vesselId = months[0].vesselId;
-    const startDate = months[0]?.startDate.clone().startOf('year');
-    const endDate = startDate.clone().endOf('year');
-    const { data } = await this.vesselRegistrationPeriodService.loadAll(
-      0,
-      100, // all
-      'startDate',
-      'desc',
-      {
-        vesselId,
-        startDate,
-        endDate,
-      }
-    );
-
-    this.vesselRegistrations = months.map((month) => IUseFeaturesUtils.filterByPeriod(data, month).map((vrp) => vrp.registrationLocation));
   }
 
   async loadVesselOwner(months: ActivityMonth[]) {
@@ -1251,7 +1219,12 @@ export class CalendarComponent
   }
 
   protected async editRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, opts?: { focusColumn?: string }): Promise<boolean> {
-    const editing = await super.editRow(event, row, opts);
+    if (!row.currentData.canEdit) {
+      // TODO check if need
+      this.confirmEditCreate();
+      return false;
+    }
+    const editing = super.editRow(event, row, opts);
     if (editing) this.removeCellSelection();
     return editing;
   }
@@ -1481,7 +1454,9 @@ export class CalendarComponent
     // Get target rows
     const minRowId = colspan > 0 ? sourceRow.id + 1 : sourceRow.id + colspan + 1;
     const maxRowId = colspan > 0 ? sourceRow.id + colspan - 1 : sourceRow.id - 1;
-    const targetRows = this.dataSource.getRows().filter((row) => row.id >= minRowId && row.id <= maxRowId);
+    const targetRows = this.dataSource.getRows().filter((row) => {
+      return row.id >= minRowId && row.id <= maxRowId;
+    });
     if (isEmptyArray(targetRows)) return false; // Skip if empty
 
     // DEBUG
