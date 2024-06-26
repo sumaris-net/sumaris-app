@@ -76,7 +76,6 @@ import { ImageAttachmentFragments } from '@app/data/image/image-attachment.servi
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { ProgramPrivilegeEnum } from '@app/referential/services/model/model.enum';
 import { ActivityCalendarUtils } from './activity-calendar.utils';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -173,7 +172,7 @@ export interface ActivityCalendarLoadOptions extends EntityServiceLoadOptions {
 
 export interface ActivityCalendarSaveOptions extends RootDataEntitySaveOptions {
   enableOptimisticResponse?: boolean; // True by default
-  skipAutoMergeOnConflict?: boolean;
+  allowAutoMergeOnConflict?: boolean;
 }
 
 export interface ActivityCalendarServiceCopyOptions extends ActivityCalendarSaveOptions {
@@ -770,24 +769,14 @@ export class ActivityCalendarService
         },
       });
     } catch (err) {
-      if (err.code == ServerErrorCodes.BAD_UPDATE_DATE && !opts?.skipAutoMergeOnConflict) {
+      if (err.code == ServerErrorCodes.BAD_UPDATE_DATE && opts?.allowAutoMergeOnConflict !== false) {
         // Reload then try to merge
         const remoteEntity = await this.load(entity.id, { fetchPolicy: 'no-cache' });
-        entity = ActivityCalendarUtils.merge(entity, remoteEntity);
-        // If has no conflictual months we can save the merged calendar
-        if (!ActivityCalendarUtils.hasUseFeatureConflicts(entity)) {
-          // use skipAutoMergeOnConflict to avoid infinite loop on unexpected case
-          return this.save(entity, { ...opts, skipAutoMergeOnConflict: true });
-        }
-        const program = await this.programRefService.loadByLabel(entity.program.label);
-        // If calendar merge conflict has enabled, the merged entity was returned
-        // else throw the BAD_UPDATE_DATE error
-        if (!program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE)) {
-          throw err;
-        }
-      } else {
-        throw err;
+        const mergedEntity = ActivityCalendarUtils.merge(entity, remoteEntity);
+        return this.save(mergedEntity, { ...opts, allowAutoMergeOnConflict: false });
       }
+
+      throw err;
     }
 
     if (!opts || opts.emitEvent !== false) {

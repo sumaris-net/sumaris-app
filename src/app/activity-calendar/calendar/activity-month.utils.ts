@@ -5,9 +5,9 @@ import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
-import { ProgramPrivilegeEnum, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { IUseFeaturesUtils } from '@app/activity-calendar/model/use-features.model';
 import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
+import { ProgramPrivilegeEnum, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Moment } from 'moment';
 
 export class ActivityMonthUtils {
@@ -104,6 +104,9 @@ export class ActivityMonthUtils {
     }
   ): ActivityMonth[] {
     const fishingAreaCount = opts?.fishingAreaCount || 2;
+    const registrationPeriods: VesselRegistrationPeriod[] = Object.values(data.vesselRegistrationPeriodsByPrivileges).flatMap((values) => values);
+    const writablePeriods = opts?.isAdmin ? registrationPeriods : data.vesselRegistrationPeriodsByPrivileges?.[ProgramPrivilegeEnum.OBSERVER] || [];
+
     let metierBlockCount = 0;
     return monthStartDates.map((startDate) => {
       const endDate = startDate.clone().endOf('month');

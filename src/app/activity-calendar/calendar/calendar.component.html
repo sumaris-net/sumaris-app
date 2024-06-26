@@ -585,11 +585,11 @@
 
 <ng-template #registrationLocations let-registrationLocations>
   <ion-label class="computed" [title]="registrationLocations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }">
-    {{ registrationLocations | arrayLast | referentialToString: locationDisplayAttributes }}
-    @if (registrationLocations | isArrayLength: { greaterThan: 1 }) {
-      <span class="count">(+{{ registrationLocations.length - 1 }})</span>
-    }
+    {{ registrationLocations | arrayFirst | referentialToString: locationDisplayAttributes }}
   </ion-label>
+  @if (registrationLocations | isArrayLength: { greaterThan: 1 }) {
+    <ion-label class="details computed">(+{{ registrationLocations.length - 1 }})</ion-label>
+  }
 </ng-template>
 <ng-template #skeletonText80>
   <ion-label style="width: 80%">

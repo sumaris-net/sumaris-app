@@ -117,10 +117,12 @@ mat-toolbar {
       }
     }
 
+    // readonly month
     &.readonly .mat-mdc-cell {
       color: var(--mat-table-row-disabled-item-label-text-color);
     }
 
+    // Predoc month
     &.SIH-ACTIPRED {
       --mat-table-background-color: rgba(var(--ion-color-secondary-rgb), 0.1) !important;
       background-color: var(--mat-table-background-color);

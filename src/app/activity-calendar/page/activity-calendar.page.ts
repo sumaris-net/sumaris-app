@@ -444,6 +444,15 @@ export class ActivityCalendarPage
     await this.dataService.copyLocallyById(this.data.id, { withLanding: true, displaySuccessToast: true });
   }
 
+  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }): void {
+    // if (typeof error === 'object' && error?.code === ServerErrorCodes.BAD_UPDATE_DATE) {
+    //   if (error?.details) {
+    //     if (isNotEmptyArray(error?.details?.vesselUseFeatures)
+    //   }
+    // }
+    super.setError(error, opts);
+  }
+
   /* -- protected methods -- */
 
   protected async setProgram(program: Program) {

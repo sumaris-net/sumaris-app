@@ -33,7 +33,6 @@ import {
   LoadResult,
   LocalSettingsService,
   MatAutocompleteFieldConfig,
-  ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
@@ -80,15 +79,16 @@ import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { BaseMeasurementsTable2 } from '@app/data/measurement/measurements-table2.class';
 import { AsyncTableElement } from '@e-is/ngx-material-table';
 import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
-import { SelectionModel } from '@angular/cdk/collections';
 import { IUseFeaturesUtils } from '../model/use-features.model';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
+import { SelectionModel } from '@angular/cdk/collections';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
