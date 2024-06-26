@@ -44,7 +44,7 @@ export class IUseFeaturesUtils {
     return (
       source.startDate &&
       source.startDate.isSameOrBefore(period.endDate, granularity) &&
-      (isNil(source.endDate) || source.endDate.isSameOrAfter(period.startDate, granularity))
+      (isNil(source.endDate) || source.endDate.isSameOrAfter(period.startDate.startOf('day'), granularity))
     );
   }
 
