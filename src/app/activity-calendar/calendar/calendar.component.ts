@@ -2016,13 +2016,14 @@ export class CalendarComponent
   }
   protected async setQualityFlags() {
     const rows = this.dataSource.getRows();
-    let qualityFlagId;
 
     for (const row of rows) {
       const form = this.validatorService.getRowValidator(row.currentData);
-      qualityFlagId = isNotNil(form.errors) ? QualityFlagIds.BAD : QualityFlagIds.GOOD;
-      form.get('qualityFlagId').setValue(qualityFlagId);
-      await this.updateEntityToTable(form.value, row, { confirmEdit: true });
+      const qualityFlagId = isNotNil(form.errors) ? QualityFlagIds.BAD : QualityFlagIds.GOOD;
+      if (form.get('qualityFlagId').value !== qualityFlagId) {
+        form.get('qualityFlagId').setValue(qualityFlagId);
+        await this.updateEntityToTable(form.value, row, { confirmEdit: true });
+      }
     }
   }
 }
