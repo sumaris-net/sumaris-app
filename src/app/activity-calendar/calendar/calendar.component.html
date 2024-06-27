@@ -206,10 +206,11 @@
                 [title]="owners | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: '\n' }"
               >
                 {{ owners | arrayLast | referentialToString: vesselOwnerDisplayAttributes }}
-                @if (owners | isArrayLength: { greaterThan: 1 }) {
-                  <span class="details">(+{{ owners.length - 1 }})</span>
-                }
               </ion-label>
+
+              @if (owners | isArrayLength: { greaterThan: 1 }) {
+                <ion-label class="details computed">(+{{ owners.length - 1 }})</ion-label>
+              }
             }
           </ng-container>
         </mat-cell>
@@ -238,10 +239,10 @@
                 [title]="locations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }"
               >
                 {{ locations | arrayLast | referentialToString: locationDisplayAttributes }}
-                @if (locations | isArrayLength: { greaterThan: 1 }) {
-                  <span class="details">(+{{ locations.length - 1 }})</span>
-                }
               </ion-label>
+              @if (locations | isArrayLength: { greaterThan: 1 }) {
+                <ion-label class="details computed">(+{{ locations.length - 1 }})</ion-label>
+              }
             }
           </ng-container>
         </mat-cell>
