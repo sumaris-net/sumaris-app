@@ -30,6 +30,10 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 export class Landing extends DataRootVesselEntity<Landing> implements IWithObserversEntity<Landing> {
   static fromObject: (source: any, opts?: any) => Landing;
 
+  static isDivider(source: any | Landing) {
+    return source?.__typename === 'divider';
+  }
+
   strategy: ReferentialRef = null;
   dateTime: Moment = null;
   location: ReferentialRef = null;

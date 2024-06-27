@@ -18,6 +18,7 @@ import {
   isNotNilOrBlank,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
+  toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -82,7 +83,8 @@ export abstract class AppBaseTable<
   @Input() usePageSettings = true;
   @Input() canGoBack = false;
   @Input() showTitle = true;
-  @Input() showToolbar = true;
+  @Input() mobile = false;
+  @Input() showToolbar: boolean;
   @Input() showPaginator = true;
   @Input() showFooter = true;
   @Input() showError = true;
@@ -90,7 +92,6 @@ export abstract class AppBaseTable<
   @Input() sticky = false;
   @Input() stickyEnd = false;
   @Input() compact: boolean = null;
-  @Input() mobile = false;
   @Input() pressHighlightDuration = 10000; // 10s
   @Input() highlightedRowId: number;
   @Input() filterPanelFloating = true;
@@ -156,6 +157,9 @@ export abstract class AppBaseTable<
   }
 
   ngOnInit() {
+    // Set defaults
+    this.showToolbar = toBoolean(this.showToolbar, !this.mobile);
+
     super.ngOnInit();
 
     // Propagate dirty state of the in-memory service
@@ -213,7 +217,7 @@ export abstract class AppBaseTable<
   initTableContainer(element: any) {
     if (!element) return; // Skip if already done
 
-    if (!this.mobile) {
+    if (!this.mobile /* && opts?.defaultShortcuts !== false*/) {
       // Add shortcuts
       console.debug(this.logPrefix + 'Add table shortcuts');
       this.registerSubscription(
@@ -365,17 +369,18 @@ export abstract class AppBaseTable<
    * is.s physical gear table can check is the rankOrder
    *
    * @param data
+   * @param opts
    * @protected
    */
-  protected canAddEntity(data: T): Promise<boolean> {
+  protected canAddEntity(data: T, opts?: { interactive?: boolean }): Promise<boolean> {
     return Promise.resolve(true);
   }
 
-  protected canAddEntities(data: T[]): Promise<boolean> {
-    return Promise.resolve(true);
+  protected async canAddEntities(data: T[], opts?: { interactive?: boolean }): Promise<boolean> {
+    return (await Promise.all((data || []).map((e) => this.canAddEntity(e, opts)))).every((res) => res === true);
   }
 
-  protected canUpdateEntity(data: T, row: TableElement<T>): Promise<boolean> {
+  protected canUpdateEntity(data: T, row: TableElement<T>, opts?: { interactive?: boolean }): Promise<boolean> {
     return Promise.resolve(true);
   }
 
@@ -426,7 +431,7 @@ export abstract class AppBaseTable<
   }
 
   protected async onNewEntity(data: T): Promise<void> {
-    // Can be overrided by subclasses
+    // Can be override by subclasses
   }
 
   protected async addEntitiesToTable(data: T[], opts?: { editing?: boolean; emitEvent?: boolean }): Promise<TableElement<T>[]> {

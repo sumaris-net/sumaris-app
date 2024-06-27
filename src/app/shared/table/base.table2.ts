@@ -202,7 +202,9 @@ export abstract class AppBaseTable2<
       this['initPermanentSelection']();
     }
 
-    this.restoreCompactMode();
+    if (this.options?.restoreCompactMode !== false) {
+      this.restoreCompactMode();
+    }
   }
 
   ngAfterViewInit() {
@@ -373,14 +375,15 @@ export abstract class AppBaseTable2<
    * is.s physical gear table can check is the rankOrder
    *
    * @param data
+   * @param opts
    * @protected
    */
-  protected canAddEntity(data: T): Promise<boolean> {
+  protected canAddEntity(data: T, opts?: { interactive?: boolean }): Promise<boolean> {
     return Promise.resolve(true);
   }
 
-  protected canAddEntities(data: T[]): Promise<boolean> {
-    return Promise.resolve(true);
+  protected async canAddEntities(data: T[], opts?: { interactive?: boolean }): Promise<boolean> {
+    return (await Promise.all((data || []).map((e) => this.canAddEntity(e, opts)))).every((res) => res === true);
   }
 
   protected canUpdateEntity(data: T, row: AsyncTableElement<T>): Promise<boolean> {

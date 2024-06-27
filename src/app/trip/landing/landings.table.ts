@@ -5,16 +5,27 @@ import {
   AccountService,
   AppValidatorService,
   DateUtils,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
+  LoadResult,
   Person,
+  ReferentialUtils,
+  removeDuplicatesFromArray,
   toBoolean,
   toNumber,
+  UsageMode,
 } from '@sumaris-net/ngx-components';
-import { LandingService } from './landing.service';
+import { LandingService, LandingServiceWatchOptions } from './landing.service';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
-import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, QualitativeValueIds, VesselIds } from '@app/referential/services/model/model.enum';
+import {
+  AcquisitionLevelCodes,
+  LocationLevelIds,
+  PmfmIds,
+  QualitativeValueIds,
+  StrategyTaxonPriorityLevels,
+} from '@app/referential/services/model/model.enum';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';
 import { Trip } from '../trip/trip.model';
@@ -36,6 +47,9 @@ import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorato
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { first } from 'rxjs/operators';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -83,23 +97,20 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected showObservedCount: boolean;
   @RxStateSelect() protected readonly observedCount$: Observable<number>;
   @RxStateProperty() protected observedCount: number;
-  minObservedSpeciesCount: number;
+  protected showRowError = false;
+  protected errorDetails: any;
+  protected dividerPmfm: IPmfm;
 
-  unknownVesselId = VesselIds.UNKNOWN;
+  protected statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
+  protected statusById = DataQualityStatusEnum;
+  protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
+    return this.isSaleDetailEditor && !this.isLandingPets(item);
+  };
 
-  showRowError = false;
-  errorDetails: any;
-
-  statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
-  statusById = DataQualityStatusEnum;
   readonly filterForm: UntypedFormGroup = this.formBuilder.group({
     observedLocationId: [null],
     dataQualityStatus: [null],
   });
-
-  protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
-    return this.isSaleDetailEditor && !this.isLandingPets(item);
-  };
 
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
@@ -108,11 +119,16 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   @Input() canDelete = true;
   @Input() canAdd = true;
+  @Input() canAddOnUnknownVessel = false;
   @Input() showFabButton = false;
   @Input() showCancelRowButton = false;
   @Input() showConfirmRowButton = false;
+  @Input() showAutoFillButton = false;
   @Input() includedPmfmIds: number[] = null;
   @Input() useFooterSticky = true;
+  @Input() usageMode: UsageMode;
+  @Input() minObservedSpeciesCount: number;
+  @Input() unknownVesselId: number;
 
   @Input() set detailEditor(value: LandingEditor) {
     if (value !== this._detailEditor) {
@@ -230,12 +246,29 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.setParent(value);
   }
 
+  get parent(): ObservedLocation | Trip | undefined {
+    return this.context.observedLocation || this.context.trip;
+  }
+
   get showQualityColumn(): boolean {
     return this.getShowColumn('quality');
   }
 
   get filterDataQualityControl(): UntypedFormControl {
     return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
+  }
+
+  @Input()
+  set showTaxonGroupColumn(value: boolean) {
+    this.setShowColumn(PmfmIds.TAXON_GROUP_ID.toString(), value);
+  }
+
+  get showTaxonGroupColumn(): boolean {
+    return this.getShowColumn(PmfmIds.TAXON_GROUP_ID.toString());
+  }
+
+  get isOnFieldMode() {
+    return this.usageMode === 'FIELD';
   }
 
   constructor(
@@ -255,8 +288,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
         requiredGear: false,
         acquisitionLevel: AcquisitionLevelCodes.LANDING,
       },
-      watchAllOptions: {
-        mapFn: (landings) => this.mapLandings(landings),
+      watchAllOptions: <LandingServiceWatchOptions>{
+        mapResult: (res: LoadResult<Landing>) => this.mapLandings(res),
       },
     });
 
@@ -375,17 +408,19 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
 
-    const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE_ID);
-    if (saleTypePmfm) {
-      console.debug(`[control] Setting pmfm ${saleTypePmfm.label} qualitative values`);
-      const saleTypes = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });
-      saleTypePmfm.type = 'qualitative_value';
-      saleTypePmfm.qualitativeValues = saleTypes.data;
-    }
+    // TODO remove
+    // const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE_ID);
+    // if (saleTypePmfm) {
+    //   console.debug(`${this.logPrefix}Setting pmfm ${saleTypePmfm.label} qualitative values`);
+    //   const { data: saleTypes } = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });
+    //   saleTypePmfm.type = 'qualitative_value';
+    //   saleTypePmfm.qualitativeValues = saleTypes;
+    // }
 
     const taxonGroupIdPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
     if (taxonGroupIdPmfm) {
-      console.debug(`[control] Setting pmfm ${taxonGroupIdPmfm.label} qualitative values`);
+      console.debug(`${this.logPrefix}Setting pmfm ${taxonGroupIdPmfm.label} qualitative values`);
+      // TODO BLA review this, to limit to program's taxon group
       const taxonGroups = await this.referentialRefService.loadAllByIds(
         this.context.strategy.taxonGroups.map((tg) => tg.taxonGroup.id),
         'TaxonGroup'
@@ -394,17 +429,25 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       taxonGroupIdPmfm.qualitativeValues = taxonGroups;
     }
 
-    // Keep selectivity device, if any
-    return pmfms
-      .filter((p) => p.required || includedPmfmIds?.includes(p.id))
-      .map((pmfm) => {
-        // Hide divider column
-        pmfm = pmfm.clone();
-        if (pmfm.id === this.dividerPmfmId) {
-          pmfm.hidden = true;
-        }
-        return pmfm;
-      });
+    // Reset divider (will be set below)
+    this.dividerPmfm = null;
+
+    return (
+      pmfms
+        // Keep required pmfms, and included (forced) pmfms
+        .filter((p) => p.required || includedPmfmIds?.includes(p.id))
+        .map((pmfm) => {
+          // Hide the pmfm use for divider
+          if (pmfm.id === this.dividerPmfmId) {
+            pmfm = pmfm.clone();
+            pmfm.hidden = true;
+
+            // Remember the divider pmfm (will be used later)
+            this.dividerPmfm = pmfm;
+          }
+          return pmfm;
+        })
+    );
   }
 
   onPrepareRowForm(form: UntypedFormGroup) {
@@ -429,34 +472,84 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   }
 
   protected async onNewEntity(data: Landing): Promise<void> {
-    console.debug('[landings-table] Initializing new row data...');
+    console.debug(`${this.logPrefix}Initializing new row data...`);
 
     await super.onNewEntity(data);
 
-    if (this.isSaleDetailEditor && isNil(data.program)) {
-      const petsValue = await this.referentialRefService.loadById(QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS, 'QualitativeValue');
-      const vesselSnapshot = await this.vesselSnapshotService.load(VesselIds.UNKNOWN, { fetchPolicy: 'cache-first' });
-      data.program = this.context.program;
-      data.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN] = petsValue;
-      data.measurementValues[PmfmIds.IS_OBSERVED] = true;
-      data.vesselSnapshot = vesselSnapshot;
-      data.dateTime = DateUtils.moment();
-      data.location = this.context.observedLocation.location;
-      data.observedLocationId = this.context.observedLocation.id;
+    // Fill vessel
+    if (isNil(data.vesselSnapshot?.id) && isNotNil(this.unknownVesselId)) {
+      data.vesselSnapshot = VesselSnapshot.fromObject({
+        id: this.unknownVesselId,
+        name: this.translate.instant('LANDING.TABLE.UNKNOWN_VESSEL_NAME'),
+      });
+    }
+
+    data.measurementValues = data.measurementValues || {};
+
+    // Set divider value
+    if (isNotNil(this.dividerPmfm) && isNil(data.measurementValues[this.dividerPmfmId])) {
+      const defaultValueId = isNotNil(this.dividerPmfm.defaultValue) ? this.dividerPmfm.defaultValue : QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS;
+      data.measurementValues[this.dividerPmfmId] = this.dividerPmfm.qualitativeValues?.find((qv) => PmfmValueUtils.equals(qv.id, defaultValueId));
+    }
+
+    // Set IS_OBSERVED value
+    // - use default value if exists,
+    // - or 'true' if PETS ,
+    // - or 'false' otherwise
+    const isObservedPmfm = this.pmfms?.find((p) => p.id === PmfmIds.IS_OBSERVED);
+    if (isObservedPmfm && isNil(data.measurementValues[PmfmIds.IS_OBSERVED])) {
+      data.measurementValues[PmfmIds.IS_OBSERVED] = isNotNil(isObservedPmfm.defaultValue)
+        ? isObservedPmfm.defaultValue
+        : PmfmValueUtils.equals(data.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN], QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS);
+    }
+
+    const parent = this.parent || this.context.observedLocation || this.context.trip;
+
+    // Fill program
+    if (isNil(data.program)) {
+      data.program = this.context.program || parent.program;
+    }
+
+    // Inherited values from parent
+    if (parent instanceof Trip) {
+      if (isNil(data.dateTime) && !this.showDateTimeColumn) {
+        data.dateTime = data.dateTime || (this.isOnFieldMode ? DateUtils.moment() : parent.returnDateTime || parent.departureDateTime);
+      }
+      if (isNil(data.location) && !this.showLocationColumn) {
+        data.location = data.location || parent.returnLocation || parent.departureLocation;
+      }
+      if (isNil(data.tripId)) {
+        data.tripId = parent.id;
+      }
+    } else if (parent instanceof ObservedLocation) {
+      if (isNil(data.dateTime) && !this.showDateTimeColumn) {
+        data.dateTime = data.dateTime || (this.isOnFieldMode ? DateUtils.moment() : parent.startDateTime);
+      }
+      if (isNil(data.location) && !this.showLocationColumn) {
+        data.location = data.location || parent.location;
+      }
+      if (isNil(data.observedLocationId)) {
+        data.observedLocationId = parent.id;
+      }
     }
   }
 
   setParent(parent: ObservedLocation | Trip | undefined) {
+    console.debug(`${this.logPrefix}setParent()`, parent);
     if (isNil(parent?.id)) {
       this._parentDateTime = undefined;
+      this.context.trip = undefined;
+      this.context.observedLocation = undefined;
       this.setFilter(LandingFilter.fromObject({}));
     } else if (parent instanceof ObservedLocation) {
       this._parentDateTime = parent.startDateTime;
       this._parentObservers = parent.observers;
+      this.context.trip = null;
       this.context.observedLocation = parent;
       this.setFilter(LandingFilter.fromObject({ observedLocationId: parent.id }), { emitEvent: true /*refresh*/ });
     } else if (parent instanceof Trip) {
       this._parentDateTime = parent.departureDateTime;
+      this.context.observedLocation = null;
       this.context.trip = parent;
       this.setFilter(LandingFilter.fromObject({ tripId: parent.id }), { emitEvent: true /*refresh*/ });
     }
@@ -642,29 +735,135 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.showFooter = this.footerColumns.length > 0;
 
     // DEBUG
-    console.debug('[landings-table] Show footer ?', this.showFooter);
+    console.debug(`${this.logPrefix}Show footer ?`, this.showFooter);
 
     // Remove previous rows listener
-    if (!this.showFooter && this._footerRowsSubscription) {
-      this.unregisterSubscription(this._footerRowsSubscription);
-      this._footerRowsSubscription.unsubscribe();
+    if (!this.showFooter) {
+      this._footerRowsSubscription?.unsubscribe();
       this._footerRowsSubscription = null;
-    } else if (this.showFooter && !this._footerRowsSubscription) {
-      this._footerRowsSubscription = this.dataSource
+    }
+    // Create footer subscription
+    else if (!this._footerRowsSubscription) {
+      const footerRowsSubscription = this.dataSource
         .connect(null)
         .pipe(
           debounceTime(500),
           filter((_) => !this.filterCriteriaCount) // Only if no filter criteria
         )
         .subscribe((rows) => this.updateFooter(rows));
+      footerRowsSubscription.add(() => this.unregisterSubscription(footerRowsSubscription));
+      this._footerRowsSubscription = footerRowsSubscription;
     }
+  }
+
+  async autoFillTable(): Promise<boolean> {
+    console.debug(`${this.logPrefix}autoFillTable()`);
+
+    const confirmed = await this.confirmEditCreate();
+    if (!confirmed) return false; // Cannot add if some row are still editing
+
+    const parent = this.parent;
+    if (this.showTaxonGroupColumn && parent instanceof ObservedLocation) {
+      // Get available taxon groups
+      const availableTaxonGroups = (await this.programRefService.loadTaxonGroups(this.programLabel, { strategyId: this.strategyId }))
+        // Exclude the absolute priority (e.g. =PETS in SIH-OBSVENTE)
+        .filter((tg) => tg.priority !== StrategyTaxonPriorityLevels.ABSOLUTE);
+
+      const data = this.dataSource.getData().filter(DataEntityUtils.isNotDivider);
+      const existingTaxonGroups = removeDuplicatesFromArray(
+        data.map((landing) => landing.measurementValues[PmfmIds.TAXON_GROUP_ID]).filter(isNotNil),
+        'id'
+      )
+        .map((taxonGroup) => availableTaxonGroups.find((tg) => ReferentialUtils.equals(tg, taxonGroup)))
+        .filter(isNotNil);
+
+      const taxonGroupsToAdd = availableTaxonGroups
+        // Exclude if already exists
+        .filter((taxonGroup) => !existingTaxonGroups.some((tg) => ReferentialUtils.equals(tg, taxonGroup)));
+
+      // DEBUG
+      console.debug(`${this.logPrefix}autoFillTable() existingTaxonGroups`, existingTaxonGroups);
+      console.debug(`${this.logPrefix}autoFillTable() taxonGroupsToAdd`, taxonGroupsToAdd);
+
+      // Create useful functions
+      let rankOrder = (await this.getMaxRankOrder()) + 1;
+      const isRandomTaxon = (taxonNameOrGroup: TaxonGroupRef | TaxonNameRef) => {
+        return taxonNameOrGroup?.priority > StrategyTaxonPriorityLevels.ABSOLUTE;
+      };
+      const nextRankOrder = (taxonNameOrGroup: TaxonGroupRef | TaxonNameRef) => {
+        return isRandomTaxon(taxonNameOrGroup)
+          ? // Random species
+            LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET + (taxonNameOrGroup.priority - StrategyTaxonPriorityLevels.ABSOLUTE)
+          : rankOrder++;
+      };
+      let dirty = false;
+
+      if (isNotEmptyArray(existingTaxonGroups)) {
+        for (const taxonGroup of existingTaxonGroups) {
+          if (isRandomTaxon(taxonGroup)) {
+            const rankOrder = nextRankOrder(taxonGroup);
+            const existingLandings = data.filter((landing) =>
+              PmfmValueUtils.equals(taxonGroup.id, landing.measurementValues[PmfmIds.TAXON_GROUP_ID])
+            );
+
+            for (const entity of existingLandings) {
+              if (entity.rankOrder !== rankOrder) {
+                entity.rankOrder = rankOrder;
+                await this.addOrUpdateEntityToTable(entity, { confirmEditCreate: true, editing: false });
+                // Mark as dirty
+                dirty = true;
+              }
+            }
+          }
+        }
+      }
+
+      // Insert taxon groups that not exists yet
+      if (isNotEmptyArray(taxonGroupsToAdd)) {
+        const entities = [];
+        for (const taxonGroup of taxonGroupsToAdd) {
+          const entity = new Landing();
+
+          // Set rankOrder
+          entity.rankOrder = nextRankOrder(taxonGroup);
+
+          entity.measurementValues = entity.measurementValues || {};
+
+          // Set taxon group
+          entity.measurementValues[PmfmIds.TAXON_GROUP_ID] = taxonGroup;
+
+          // Set divider
+          if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && taxonGroup.priority > StrategyTaxonPriorityLevels.ABSOLUTE) {
+            entity.measurementValues[this.dividerPmfmId] = QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM.toString();
+          }
+
+          // Initialize entity
+          await this.onNewEntity(entity);
+
+          entities.push(entity);
+        }
+
+        await this.addEntitiesToTable(entities, { emitEvent: false });
+        dirty = true;
+      }
+
+      // Mark as dirty
+      if (dirty) {
+        this.markAsLoading();
+        await this.save({ keepEditing: false });
+        this.emitRefresh();
+        this.markAsDirty({ emitEvent: false /* done in markAsLoaded() */ });
+      }
+    }
+
+    return true;
   }
 
   protected updateFooter(rows: TableElement<Landing>[] | readonly TableElement<Landing>[]) {
     // Update observed count
     this.observedCount = (rows || [])
       // Exclude divider rows
-      .filter((row) => row.currentData.__typename !== 'divider')
+      .filter((row) => DataEntityUtils.isNotDivider(row.currentData))
       .map((row) => row.currentData.measurementValues)
       // Keep random selected species
       .filter(
@@ -683,46 +882,45 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     return item.currentData.__typename !== 'divider';
   }
 
-  private isLandingPets(item: TableElement<Landing>): boolean {
-    return MeasurementValuesUtils.hasPmfmValue(item.currentData.measurementValues, this.dividerPmfmId, QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS);
+  private isLandingPets(row: TableElement<Landing>): boolean {
+    return MeasurementValuesUtils.hasPmfmValue(row.currentData.measurementValues, this.dividerPmfmId, QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS);
   }
 
   trackByFn(index: number, row: TableElement<Landing>): number {
     return toNumber(row.currentData.id, -1 * row.id);
   }
 
-  protected mapLandings(data: Landing[]): Landing[] {
-    if (this.isSaleDetailEditor) {
-      // Split landings with pets from others
-      const landingsGroups = [];
+  protected mapLandings(res: LoadResult<Landing>): LoadResult<Landing> {
+    if (isNil(this.dividerPmfmId) || !res?.total) return res;
 
-      // Get distinct species list origin values
-      const speciesListOrigins = data.reduce((acc, landing) => {
-        const speciesListOrigin = landing.measurementValues[this.dividerPmfmId];
-        if (!acc.includes(speciesListOrigin)) {
-          // RANDOM at last
-          if (speciesListOrigin === QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM.toString()) {
-            acc.push(speciesListOrigin);
-          } else {
-            acc.unshift(speciesListOrigin);
-          }
-        }
-        return acc;
-      }, []);
+    // Get distinct pmfm values
+    const dividerValues =
+      this.dividerPmfm?.qualitativeValues ||
+      removeDuplicatesFromArray(res.data.map((landing) => landing.measurementValues?.[this.dividerPmfmId]).filter(isNotNil));
 
-      // Split landings with different species list origin values
-      speciesListOrigins.forEach((speciesListOrigin) => {
-        const landings = data.filter((landing) => PmfmValueUtils.equals(landing.measurementValues[this.dividerPmfmId], speciesListOrigin));
-        const divider = new Landing();
-        divider.__typename = 'divider';
-        divider.measurementValues = { ...landings[0].measurementValues };
-        landingsGroups.push(divider, ...landings);
-      });
-
-      return landingsGroups;
+    // Make sure to put random value at the end (if present)
+    if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN) {
+      const randomValueIndex = dividerValues.findIndex((qv) => PmfmValueUtils.equals(qv, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM));
+      if (randomValueIndex !== -1) {
+        const randomValue = dividerValues.splice(randomValueIndex, 1)[0];
+        dividerValues.push(randomValue);
+      }
     }
 
-    return data;
+    // Concat each divider and landings
+    const entities = dividerValues.reduce((acc, dividerValue) => {
+      const divider = Landing.fromObject({
+        measurementValues: { [this.dividerPmfmId]: dividerValue },
+      });
+      DataEntityUtils.markAsDivider(divider);
+      const landings = res.data.filter((landing: Landing) => PmfmValueUtils.equals(landing.measurementValues[this.dividerPmfmId], dividerValue));
+      if (isEmptyArray(landings)) {
+        acc.concat(divider);
+      }
+      return acc.concat([divider, ...landings]);
+    }, []);
+
+    return { data: entities, total: res.total };
   }
 
   protected markForCheck() {

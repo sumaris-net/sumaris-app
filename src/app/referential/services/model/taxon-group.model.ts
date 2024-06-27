@@ -1,16 +1,6 @@
 import { Entity, EntityClass, IReferentialRef, ReferentialAsObjectOptions } from '@sumaris-net/ngx-components';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
-export const TaxonGroupTypeIds = {
-  FAO: 2,
-  METIER_DCF_5: 3,
-  METIER_NATIONAL: 4,
-};
-
-export const TaxonGroupLabels = {
-  FISH: 'MZZ',
-};
-
 @EntityClass({ typename: 'TaxonGroupVO' })
 export class TaxonGroupRef extends Entity<TaxonGroupRef, number, ReferentialAsObjectOptions> implements IReferentialRef<TaxonGroupRef> {
   static ENTITY_NAME = 'TaxonGroup';

@@ -59,6 +59,10 @@ export const TaxonGroupTypeIds = {
   NATIONAL_METIER: 4,
 };
 
+export const TaxonGroupLabels = {
+  FISH: 'MZZ',
+};
+
 export const TaxonomicLevelIds = {
   ORDO: 13,
   FAMILY: 17,
@@ -334,6 +338,11 @@ export const ParameterLabelGroups = {
 
   DRESSING: ['DRESSING'], // Use by round weight conversion
   PRESERVATION: ['PRESERVATION'],
+};
+
+export const StrategyTaxonPriorityLevels = {
+  ABSOLUTE: 0, // Max priority (e.g. =PETS in ObsVentes)
+  MAXIMUM: 1,
 };
 
 export abstract class Parameters {

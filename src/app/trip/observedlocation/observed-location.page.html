@@ -169,7 +169,7 @@
           <ion-label color="danger" class="error" [innerHTML]="(landingTable$ | async)?.error | translate"></ion-label>
         </ion-item>
 
-        @if (topPmfmIds | isNotEmptyArray) {
+        <!--@if (topPmfmIds | isNotEmptyArray) {
           <form
             *rxIf="observedLocationForm.pmfms$; let pmfms; strategy: 'immediate'; else: measurementSkeletons"
             class="form-container ion-padding ion-no-padding-bottom"
@@ -177,7 +177,7 @@
           >
             <ion-grid class="ion-no-padding">
               <ion-row class="ion-no-padding">
-                <!-- pmfms -->
+                &lt;!&ndash; pmfms &ndash;&gt;
                 <ng-container *rxFor="let pmfm of pmfms; trackBy: observedLocationForm.trackPmfmFn; strategy: 'immediate'; index as i">
                   <ng-container *ngIf="topPmfmIds | arrayIncludes: pmfm.id">
                     <ion-col size="11" size-md="5" class="ion-padding-end">
@@ -194,7 +194,7 @@
               </ion-row>
             </ion-grid>
           </form>
-        }
+        }-->
 
         <ng-container *rxIf="landingTableType$; let type">
           <ng-container [ngSwitch]="type">
@@ -217,6 +217,7 @@
               [programLabel]="programLabel$ | async"
               [requiredStrategy]="requiredStrategy$ | async"
               [strategyId]="strategy$ | async | mapGet: 'id'"
+              [usageMode]="usageMode"
               [showObserversColumn]="false"
               [showDateTimeColumn]="false"
               [showToolbar]="!mobile"

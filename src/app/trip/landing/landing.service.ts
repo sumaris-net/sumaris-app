@@ -30,7 +30,6 @@ import {
   NetworkService,
   Person,
   ProgressBarService,
-  toBoolean,
   toDateISOString,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -77,7 +76,6 @@ import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragme
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
-import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -93,7 +91,7 @@ export declare interface LandingServiceWatchOptions extends EntitiesServiceWatch
   fullLoad?: boolean;
   toEntity?: boolean;
   withTotal?: boolean;
-  mapFn?: (landings: Landing[]) => Landing[];
+  mapResult?: (result: LoadResult<Landing>) => LoadResult<Landing>;
 }
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
@@ -474,12 +472,9 @@ export class LandingService
           this.computeRankOrderAndSort(entities, offset, total, afterSortBy, sortDirection, dataFilter as LandingFilter);
         }
 
-        if (opts?.mapFn) {
-          entities = opts.mapFn(entities);
-        }
-
         return { data: entities, total };
-      })
+      }),
+      map((result) => (opts?.mapResult ? opts.mapResult(result) : result))
     );
   }
 

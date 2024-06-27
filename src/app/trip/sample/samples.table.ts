@@ -1088,18 +1088,21 @@ export class SamplesTable
     this.showFooter = this.footerColumns.length > 1;
 
     // DEBUG
-    console.debug('[samples-table] Show footer ?', this.showFooter);
+    console.debug(`${this.logPrefix}Show footer ?`, this.showFooter);
 
     // Remove previous rows listener
-    if (!this.showFooter && this._footerRowsSubscription) {
-      this.unregisterSubscription(this._footerRowsSubscription);
-      this._footerRowsSubscription.unsubscribe();
+    if (!this.showFooter) {
+      this._footerRowsSubscription?.unsubscribe();
       this._footerRowsSubscription = null;
-    } else if (this.showFooter && !this._footerRowsSubscription) {
-      this._footerRowsSubscription = this.dataSource
+    }
+    // Create rows listener
+    else if (!this._footerRowsSubscription) {
+      const footerRowsSubscription = this.dataSource
         .connect(null)
         .pipe(debounceTime(500))
         .subscribe((rows) => this.updateFooter(rows));
+      footerRowsSubscription.add(() => this.unregisterSubscription(footerRowsSubscription));
+      this._footerRowsSubscription = footerRowsSubscription;
     }
   }
 
