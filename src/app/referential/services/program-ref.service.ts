@@ -5,7 +5,6 @@ import { distinctUntilChanged, filter, finalize, map } from 'rxjs/operators';
 import { ErrorCodes } from './errors';
 import { ReferentialFragments } from './referential.fragments';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   AccountService,
   arrayDistinct,
@@ -39,7 +38,7 @@ import {
   Toasts,
   UserProfileLabel,
 } from '@sumaris-net/ngx-components';
-import { TaxonGroupRef, TaxonGroupTypeIds } from './model/taxon-group.model';
+import { TaxonGroupRef } from './model/taxon-group.model';
 import { CacheService } from 'ionic-cache';
 import { ReferentialRefService } from './referential-ref.service';
 import { Program } from './model/program.model';
@@ -63,7 +62,7 @@ import { SortDirection } from '@angular/material/sort';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { DenormalizedPmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
-import { ProgramPrivilege, ProgramPrivilegeEnum } from '@app/referential/services/model/model.enum';
+import { ProgramPrivilege, ProgramPrivilegeEnum, StrategyTaxonPriorityLevels, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
 import { ProgramPrivilegeUtils } from '@app/referential/services/model/model.utils';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -214,7 +213,7 @@ const ProgramRefCacheKeys = {
   TAXON_GROUPS: 'programTaxonGroups',
   TAXON_GROUP_ENTITIES: 'programTaxonGroupEntities',
   TAXON_NAME_BY_GROUP: 'programTaxonNameByGroup',
-  TAXON_NAMES: 'taxonNameByGroup',
+  TAXON_NAMES: 'programTaxonNames',
 };
 
 const noopFilter = () => true;
@@ -845,7 +844,7 @@ export class ProgramRefService
             propertiesPathComparator(
               ['priorityLevel', 'taxonGroup.label', 'taxonGroup.name'],
               // Use default values, because priorityLevel can be null in the DB
-              [1, 'ZZZ', 'ZZZ']
+              [StrategyTaxonPriorityLevels.MAXIMUM, 'ZZZ', 'ZZZ']
             )
           )
           // Merge priority into taxonGroup
@@ -863,7 +862,17 @@ export class ProgramRefService
   /**
    * Load program taxon groups
    */
-  loadTaxonGroups(programLabel: string, opts?: { toEntity?: boolean }): Promise<TaxonGroupRef[]> {
+  loadTaxonGroups(
+    programLabel: string,
+    opts?: {
+      acquisitionLevel?: string;
+      acquisitionLevels?: string[];
+      strategyId?: number;
+      strategyLabel?: string;
+      toEntity?: boolean;
+      cache?: boolean;
+    }
+  ): Promise<TaxonGroupRef[]> {
     return firstNotNilPromise(this.watchTaxonGroups(programLabel, opts));
   }
 
@@ -887,6 +896,91 @@ export class ProgramRefService
       entityName: 'TaxonGroup',
       levelId: TaxonGroupTypeIds.FAO,
     });
+  }
+
+  /**
+   * Watch program taxon names
+   */
+  watchTaxonNames(
+    programLabel: string,
+    opts?: {
+      acquisitionLevel?: string;
+      acquisitionLevels?: string[];
+      strategyId?: number;
+      strategyLabel?: string;
+      toEntity?: boolean;
+      cache?: boolean;
+    }
+  ): Observable<TaxonNameRef[]> {
+    // Use cache (enable by default)
+    if (!opts || opts.cache !== false) {
+      const cacheKey = [ProgramRefCacheKeys.TAXON_NAMES, programLabel, JSON.stringify({ ...opts, cache: undefined, toEntity: undefined })].join('|');
+      return this.cache
+        .loadFromObservable(
+          cacheKey,
+          defer(() => this.watchTaxonNames(programLabel, { ...opts, cache: false, toEntity: false })),
+          ProgramRefCacheKeys.CACHE_GROUP
+        )
+        .pipe(map((data) => (!opts || opts.toEntity !== false ? (data || []).map(TaxonNameRef.fromObject) : ((data || []) as TaxonNameRef[]))));
+    }
+
+    // Watch program
+    const acquisitionLevels = opts?.acquisitionLevels || (opts?.acquisitionLevel && [opts.acquisitionLevel]);
+    return this.watchByLabel(programLabel, {
+      toEntity: false,
+      withStrategies: true,
+      strategyFilter: opts && {
+        includedIds: isNotNil(opts.strategyId) ? [opts.strategyId] : undefined,
+        label: opts.strategyLabel,
+        acquisitionLevels,
+      },
+    }).pipe(
+      // Get strategies
+      map((program) => program.strategies || []),
+      // Get taxon groups strategies
+      map((strategies) =>
+        arrayDistinct(
+          strategies.flatMap((strategy) => strategy.taxonNames || []),
+          ['priorityLevel', 'taxonName.id']
+        )
+      ),
+      // Sort taxonGroupStrategies, on priorityLevel
+      map((data) =>
+        data
+          .sort(
+            propertiesPathComparator(
+              ['priorityLevel', 'taxonName.label', 'taxonName.name'],
+              // Use default values, because priorityLevel can be null in the DB
+              [StrategyTaxonPriorityLevels.MAXIMUM, 'ZZZ', 'ZZZ']
+            )
+          )
+          // Merge priority into taxonGroup
+          .map((v) => <any>{ ...v.taxonName, priority: v.priorityLevel })
+      ),
+      map((data) => {
+        if (this._debug) console.debug(`[program-ref-service] Found ${data.length} taxon names on program {${programLabel}}`);
+
+        // Convert into entities
+        return !opts || opts.toEntity !== false ? data.map(TaxonNameRef.fromObject) : (data as TaxonNameRef[]);
+      })
+    );
+  }
+
+  /**
+   * Load program taxon groups
+   */
+  loadTaxonNames(
+    programLabel: string,
+    opts?: {
+      acquisitionLevel?: string;
+      acquisitionLevels?: string[];
+      strategyId?: number;
+      strategyLabel?: string;
+      toEntity?: boolean;
+      cache?: boolean;
+    }
+  ): Promise<TaxonNameRef[]> {
+    return firstNotNilPromise(this.watchTaxonNames(programLabel, opts));
   }
 
   /**

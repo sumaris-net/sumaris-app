@@ -1413,7 +1413,6 @@
       "FISHING_AREA_PLACEHOLDER": "Fishing area #",
       "FISHING_AREAS": "Fishing areas:",
       "LANDINGS": "Landing(s)",
-      "TAB_PETS": "Other species (PETS)",
       "AUCTION_CONTROL": {
         "TITLE": "{{location}} - Control of {{dateTime}}",
         "TAB_LANDINGS": "Controlled vessels"

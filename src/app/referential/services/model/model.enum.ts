@@ -59,6 +59,10 @@ export const TaxonGroupTypeIds = {
   NATIONAL_METIER: 4,
 };
 
+export const TaxonGroupLabels = {
+  FISH: 'MZZ',
+};
+
 export const TaxonomicLevelIds = {
   ORDO: 13,
   FAMILY: 17,
@@ -158,11 +162,12 @@ export const PmfmIds = {
   //SIZE_UNLI_CAT: , TODO not used
 
   /* OBSVENTE */
-  PETS: 502,
-  SALE_TYPE: 503,
+  HAS_PETS: 502,
+  SALE_TYPE_ID: 503,
   IS_OBSERVED: 510,
   NON_OBSERVATION_REASON: 511,
   SPECIES_LIST_ORIGIN: 512,
+  TAXON_GROUP_ID: 513,
 
   /* ACTIFLOT */
   SURVEY_QUALIFICATION: 446,
@@ -333,6 +338,11 @@ export const ParameterLabelGroups = {
 
   DRESSING: ['DRESSING'], // Use by round weight conversion
   PRESERVATION: ['PRESERVATION'],
+};
+
+export const StrategyTaxonPriorityLevels = {
+  ABSOLUTE: 0, // Max priority (e.g. =PETS in ObsVentes)
+  MAXIMUM: 1,
 };
 
 export abstract class Parameters {

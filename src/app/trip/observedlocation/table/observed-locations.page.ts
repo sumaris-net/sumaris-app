@@ -132,6 +132,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     this.autoLoad = false;
     this.defaultSortBy = 'startDateTime';
     this.defaultSortDirection = 'desc';
+    this.showToolbar = true;
 
     this.settingsId = ObservedLocationsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureName = ObservedLocationsPageSettingsEnum.FEATURE_NAME;

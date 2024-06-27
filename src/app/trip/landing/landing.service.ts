@@ -30,7 +30,6 @@ import {
   NetworkService,
   Person,
   ProgressBarService,
-  toBoolean,
   toDateISOString,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -67,7 +66,7 @@ import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-loca
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 import { LandingValidatorOptions, LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { IProgressionOptions } from '@app/data/services/data-quality-service.class';
-import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
+import { MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
@@ -77,7 +76,6 @@ import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragme
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
-import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -93,7 +91,7 @@ export declare interface LandingServiceWatchOptions extends EntitiesServiceWatch
   fullLoad?: boolean;
   toEntity?: boolean;
   withTotal?: boolean;
-  mapFn?: (landings: Landing[]) => Landing[];
+  mapResult?: (result: LoadResult<Landing>) => LoadResult<Landing>;
 }
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
@@ -474,12 +472,9 @@ export class LandingService
           this.computeRankOrderAndSort(entities, offset, total, afterSortBy, sortDirection, dataFilter as LandingFilter);
         }
 
-        if (opts?.mapFn) {
-          entities = opts.mapFn(entities);
-        }
-
         return { data: entities, total };
-      })
+      }),
+      map((result) => (opts?.mapResult ? opts.mapResult(result) : result))
     );
   }
 
@@ -1467,7 +1462,13 @@ export class LandingService
       data
         .slice()
         .sort(sortByDateOrIdFn)
-        .forEach((o) => (o.rankOrder = rankOrder++));
+        .forEach((o) => {
+          if (MeasurementValuesUtils.hasPmfmValue(o.measurementValues, PmfmIds.SPECIES_LIST_ORIGIN, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM)) {
+            // TODO JVF: o.rankOrder -= 100;
+          } else {
+            o.rankOrder = rankOrder++;
+          }
+        });
 
       // Sort by rankOrder (even if 'id' because never used)
       if (!sortBy || sortBy === 'rankOrder' || sortBy === 'id' || sortBy === 'dateTime') {
