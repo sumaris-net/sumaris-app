@@ -149,7 +149,6 @@ export class MeasurementsTableEntitiesService<
   }
 
   protected async ngOnStart(): Promise<IPmfm[]> {
-    console.log('TODO STARTING meas table service', this.programLabel);
     //if (this.stopped) throw Error('MeasurementService is not restartable!');
     try {
       return await firstNotNilPromise(this.pmfms$, { stop: this.stopSubject });

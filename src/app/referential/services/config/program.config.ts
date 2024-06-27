@@ -1,12 +1,19 @@
 import { FormFieldDefinition, FormFieldType, isNilOrBlank, Property, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds, ProgramLabel, UnitLabel } from '../model/model.enum';
-import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
+import { LocationLevelGroups, LocationLevelIds, PmfmIds, ProgramLabel, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling' | 'sale';
+export const LandingEditors = Object.freeze({
+  LANDING: 'landing',
+  CONTROL: 'control',
+  TRIP: 'trip',
+  SAMPLING: 'sampling',
+  SALE: 'sale',
+});
+
 export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
@@ -654,7 +661,7 @@ export const ProgramProperties = Object.freeze({
       },
       attributes: ['name'],
     },
-    defaultValue: TaxonGroupTypeIds.METIER_DCF_5.toString(),
+    defaultValue: TaxonGroupTypeIds.DCF_METIER_LVL_5.toString(),
   },
   TRIP_OPERATION_FISHING_START_DATE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.fishingStartDateEnable',
@@ -835,6 +842,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  OBSERVED_LOCATION_LANDING_AUTO_FILL: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.landing.autoFill',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_LANDING_AUTO_FILL',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
 
   VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.vessel.type.enable',
@@ -994,15 +1007,38 @@ export const ProgramProperties = Object.freeze({
   LANDING_MIN_OBSERVED_SPECIES_COUNT: <FormFieldDefinition>{
     key: 'sumaris.landing.minObservedSpeciesCount',
     label: 'PROGRAM.OPTIONS.LANDING_MIN_OBSERVED_SPECIES_COUNT',
+    type: 'integer',
     defaultValue: '15',
-    type: 'integer',
   },
-  LANDING_MAX_OBSERVED_SPECIES_COUNT: <FormFieldDefinition>{
-    key: 'sumaris.landing.maxObservedSpeciesCount',
-    label: 'PROGRAM.OPTIONS.LANDING_MAX_OBSERVED_SPECIES_COUNT',
-    defaultValue: '30',
-    type: 'integer',
+  LANDING_ROWS_DIVIDER_PMFM_ID: <FormFieldDefinition>{
+    key: 'sumaris.landing.rows.divider.pmfmId',
+    label: 'PROGRAM.OPTIONS.LANDING_ROWS_DIVIDER_PMFM_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['id', 'label', 'name'],
+      columnSizes: [2, 4, 6],
+    },
+    defaultValue: PmfmIds.SPECIES_LIST_ORIGIN,
   },
+  // TODO remove
+  /*LANDING_TOP_PMFM_IDS: <FormFieldDefinition>{
+    key: 'sumaris.landing.topPmfmIds',
+    label: 'PROGRAM.OPTIONS.LANDING_TOP_PMFM_IDS',
+    defaultValue: null,
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['id', 'label', 'name'],
+      columnSizes: [2, 4, 6],
+    },
+  },*/
 
   /* -- Sale -- */
 
@@ -1081,7 +1117,7 @@ export const ProgramProperties = Object.freeze({
       },
       attributes: ['name'],
     },
-    defaultValue: TaxonGroupTypeIds.METIER_NATIONAL.toString(),
+    defaultValue: TaxonGroupTypeIds.NATIONAL_METIER.toString(),
   },
   ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.fishingArea.location.level.ids',
@@ -1301,7 +1337,7 @@ export class ProgramPropertiesUtils {
     ProgramProperties.STRATEGY_EDITOR_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.DIVISION_ICES.toString();
     ProgramProperties.TRIP_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.RECTANGLE_ICES.toString();
-    ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.METIER_DCF_5.toString();
+    ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.DCF_METIER_LVL_5.toString();
     ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.RECTANGLE_ICES.toString();
     ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.join(',');
@@ -1309,7 +1345,7 @@ export class ProgramPropertiesUtils {
     ProgramProperties.ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
     ProgramProperties.ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.join(',');
-    ProgramProperties.ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.METIER_NATIONAL.toString();
+    ProgramProperties.ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.NATIONAL_METIER.toString();
   }
 
   static getPropertiesByType(type: FormFieldType | FormFieldType[]): FormFieldDefinition[] {

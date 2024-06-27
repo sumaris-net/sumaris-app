@@ -6,12 +6,13 @@ import { MeasurementsValidatorService } from '@app/data/measurement/measurement.
 import { Landing } from './landing.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
 import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { ControlUpdateOnType } from '@app/data/services/validator/data-entity.validator';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export interface LandingValidatorOptions extends DataRootEntityValidatorOptions {
   withObservedLocation?: boolean;
@@ -41,6 +42,19 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     if (opts?.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
       const pmfms = opts.strategy?.denormalizedPmfms || opts.program?.strategies?.[0]?.denormalizedPmfms || [];
+
+      // Override SALE_TYPE type to 'qualitative_value'
+      const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE_ID);
+      if (saleTypePmfm) {
+        saleTypePmfm.type = 'qualitative_value';
+      }
+
+      // Override TAXON_GROUP_ID type to 'qualitative_value'
+      const taxonGroupIdPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
+      if (taxonGroupIdPmfm) {
+        taxonGroupIdPmfm.type = 'qualitative_value';
+      }
+
       pmfms
         .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.LANDING)
         .forEach((p) => {
@@ -127,6 +141,9 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
       if (form.controls.observers) form.removeControl('observers');
     }
 
+    // Update measurement values form
+    this.updateMeasurementValuesForm(form.get('measurementValues') as UntypedFormGroup, opts);
+
     // Update form group validators
     const formValidators = this.getFormGroupOptions(null, opts)?.validators;
     form.setValidators(formValidators);
@@ -148,12 +165,59 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
     const form = this.measurementsValidatorService.getFormGroup(measurementValues, opts);
 
-    // Add non-observation reason validator if non observed
-    if (!measurementValues[PmfmIds.IS_OBSERVED]) {
-      form.controls[PmfmIds.NON_OBSERVATION_REASON].addValidators(Validators.required);
-      form.controls[PmfmIds.NON_OBSERVATION_REASON].updateValueAndValidity();
-    }
+    // Update form
+    this.updateMeasurementValuesForm(form, opts);
+
+    // Add non observation reason required validators
+    const requiredPmfms = [PmfmIds.NON_OBSERVATION_REASON];
+    requiredPmfms.forEach((pmfmId) => {
+      const control = form.get(pmfmId.toString());
+      if (control && !control.hasValidator(Validators.required)) {
+        control.addValidators(Validators.required);
+        control.updateValueAndValidity();
+      }
+    });
 
     return form;
+  }
+
+  protected updateMeasurementValuesForm(measurementValuesForm: UntypedFormGroup, opts?: { pmfms?: IPmfm[] }) {
+    if (!measurementValuesForm) return; // Skip
+
+    const enabled = measurementValuesForm.enabled;
+    const isObservedControl = measurementValuesForm.get(PmfmIds.IS_OBSERVED.toString());
+    if (isObservedControl) {
+      const speciesListOriginControl = measurementValuesForm.get(PmfmIds.SPECIES_LIST_ORIGIN.toString());
+      const nonObservationReasonControl = measurementValuesForm.get(PmfmIds.NON_OBSERVATION_REASON.toString());
+      const saleTypeControl = measurementValuesForm.get(PmfmIds.SALE_TYPE_ID.toString());
+      // Observed
+      if (isObservedControl.value) {
+        // Disabled non observation reason
+        nonObservationReasonControl.disable({ emitEvent: false });
+        nonObservationReasonControl.setValue(null);
+
+        // Enable sale type (if exists)
+        if (saleTypeControl) {
+          if (enabled) saleTypeControl.enable();
+        }
+      }
+
+      // Not observed
+      else {
+        // Enable non observation reason, if random species list
+        if (speciesListOriginControl && PmfmValueUtils.equals(speciesListOriginControl.value, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM)) {
+          if (enabled) nonObservationReasonControl.enable();
+        } else {
+          nonObservationReasonControl.disable({ emitEvent: false });
+          nonObservationReasonControl.setValue(null);
+        }
+
+        // Disable sale type
+        if (saleTypeControl) {
+          saleTypeControl.disable({ emitEvent: false });
+          saleTypeControl.setValue(null);
+        }
+      }
+    }
   }
 }

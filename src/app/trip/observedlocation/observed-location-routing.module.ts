@@ -5,7 +5,6 @@ import { ObservedLocationsPage } from './table/observed-locations.page';
 import { ObservedLocationPage } from './observed-location.page';
 import { LandedTripPage } from '../landedtrip/landed-trip.page';
 import { AppObservedLocationModule } from '@app/trip/observedlocation/observed-location.module';
-import { AppSalePageModule } from '@app/trip/sale/sale-routing.module';
 
 const routes: Routes = [
   // table
@@ -18,17 +17,47 @@ const routes: Routes = [
       profile: 'USER',
     },
   },
-
   // Landings
   {
     path: 'landings',
+    pathMatch: 'full',
     loadChildren: () => import('../landing/landings-routing.module').then((m) => m.AppLandingsRoutingModule),
     canActivate: [AuthGuardService],
     data: {
       profile: 'USER',
     },
   },
-
+  // Shared report
+  // (must always be before the route that matches the entity id otherwise the route will never be selected)
+  {
+    path: 'report',
+    pathMatch: 'full',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadChildren: () => import('./report/observed-location-report-routing.module').then((m) => m.AppObservedLocationReportRoutingModule),
+      },
+      {
+        path: 'landing',
+        pathMatch: 'full',
+        loadChildren: () => import('@app/trip/landing/report/landing-report-routing.module').then((m) => m.LandingReportRoutingModule),
+      },
+      {
+        path: 'control',
+        pathMatch: 'full',
+        loadChildren: () =>
+          import('@app/trip/landing/auction-control/report/auction-control-report-routing.module').then((m) => m.AuctionControlReportRoutingModule),
+      },
+      {
+        path: 'sampling',
+        pathMatch: 'full',
+        loadChildren: () =>
+          import('@app/trip/landing/sampling/report/sampling-landing-report-routing.module').then((m) => m.SamplingReportRoutingModule),
+      },
+    ],
+  },
+  // Load by id
   {
     path: ':observedLocationId',
     runGuardsAndResolvers: 'pathParamsChange',
@@ -79,35 +108,6 @@ const routes: Routes = [
       {
         path: 'report',
         loadChildren: () => import('./report/observed-location-report-routing.module').then((m) => m.AppObservedLocationReportRoutingModule),
-      },
-    ],
-  },
-
-  // Shared report
-  {
-    path: 'report',
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        loadChildren: () => import('./report/observed-location-report-routing.module').then((m) => m.AppObservedLocationReportRoutingModule),
-      },
-      {
-        path: 'landing',
-        pathMatch: 'full',
-        loadChildren: () => import('@app/trip/landing/report/landing-report-routing.module').then((m) => m.LandingReportRoutingModule),
-      },
-      {
-        path: 'control',
-        pathMatch: 'full',
-        loadChildren: () =>
-          import('@app/trip/landing/auction-control/report/auction-control-report-routing.module').then((m) => m.AuctionControlReportRoutingModule),
-      },
-      {
-        path: 'sampling',
-        pathMatch: 'full',
-        loadChildren: () =>
-          import('@app/trip/landing/sampling/report/sampling-landing-report-routing.module').then((m) => m.SamplingReportRoutingModule),
       },
     ],
   },

@@ -18,11 +18,13 @@ import { DataRootVesselEntityValidatorService } from '@app/data/services/validat
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { ControlUpdateOnType } from '@app/data/services/validator/data-entity.validator';
 import { GearUseFeaturesValidatorService } from '@app/activity-calendar/model/gear-use-features.validator';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
+import { GearPhysicalFeaturesValidatorService } from './gear-physical-features.validator';
+import { GearPhysicalFeatures } from './gear-physical-features.model';
 
 export interface ActivityCalendarValidatorOptions extends DataRootEntityValidatorOptions {
   timezone?: string;
@@ -30,6 +32,7 @@ export interface ActivityCalendarValidatorOptions extends DataRootEntityValidato
   withMeasurements?: boolean;
   withMeasurementTypename?: boolean;
   withGearUseFeatures?: boolean;
+  withGearPhysicalFeatures?: boolean;
   withVesselUseFeatures?: boolean;
 
   pmfms?: IPmfm[];
@@ -47,6 +50,7 @@ export class ActivityCalendarValidatorService<
     translate: TranslateService,
     settings: LocalSettingsService,
     protected gearUseFeaturesValidatorService: GearUseFeaturesValidatorService,
+    protected gearPhysicalFeaturesValidatorService: GearPhysicalFeaturesValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, translate, settings);
@@ -59,9 +63,9 @@ export class ActivityCalendarValidatorService<
 
     if (opts.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
-      const pmfms = opts.pmfms || opts.strategy?.denormalizedPmfms || [];
+      const pmfms: IPmfm[] = opts.pmfms || opts.strategy?.denormalizedPmfms || [];
       pmfms
-        .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR)
+        .filter((p) => !PmfmUtils.isDenormalizedPmfm(p) || p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR)
         .forEach((p) => {
           const key = p.id.toString();
           const value = data && data.measurementValues && data.measurementValues[key];
@@ -95,6 +99,12 @@ export class ActivityCalendarValidatorService<
     if (opts.withGearUseFeatures) {
       config.gearUseFeatures = this.getGearUseFeaturesArray(data?.gearUseFeatures);
     }
+
+    // Add gear physical features
+    if (opts.withGearPhysicalFeatures) {
+      config.gearPhysicalFeatures = this.getGearPhysicalFeaturesArray(data?.gearPhysicalFeatures);
+    }
+
     //
     // // Add fishing Ares
     // if (opts.withFishingAreas) {
@@ -145,6 +155,22 @@ export class ActivityCalendarValidatorService<
   getGearUseFeaturesArray(data?: GearUseFeatures[], opts?: { maxLength?: number }) {
     const formArray = new AppFormArray<GearUseFeatures, UntypedFormGroup>(
       (guf) => this.gearUseFeaturesValidatorService.getFormGroup(guf),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: true,
+        validators: opts?.maxLength ? SharedFormArrayValidators.arrayMaxLength(opts.maxLength) : null,
+      }
+    );
+    if (data) {
+      formArray.patchValue(data);
+    }
+    return formArray;
+  }
+
+  getGearPhysicalFeaturesArray(data?: GearPhysicalFeatures[], opts?: { maxLength?: number }) {
+    const formArray = new AppFormArray<GearPhysicalFeatures, UntypedFormGroup>(
+      (gpf) => this.gearPhysicalFeaturesValidatorService.getFormGroup(gpf),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {

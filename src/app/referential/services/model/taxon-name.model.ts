@@ -109,6 +109,8 @@ export class TaxonNameRef extends Entity<TaxonNameRef, number, ReferentialAsObje
 
   referenceTaxonId: number;
 
+  priority?: number;
+
   constructor() {
     super(TaxonNameRef.TYPENAME);
     this.entityName = TaxonNameRef.ENTITY_NAME;
@@ -124,7 +126,8 @@ export class TaxonNameRef extends Entity<TaxonNameRef, number, ReferentialAsObje
     const target: any = super.asObject(options);
     if (options && options.keepEntityName !== true) delete target.entityName; // delete by default
 
-    delete target.taxonGroupIds; // Not need by pod here (should be in TaxonGroupHistoryRecord)
+    if (options?.keepLocalId) delete target.taxonGroupIds; // Not need by pod here (should be in TaxonGroupHistoryRecord)
+    delete target.priority;
     return target;
   }
 

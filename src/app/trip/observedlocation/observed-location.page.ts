@@ -46,11 +46,11 @@ import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-loca
 
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Strategy } from '@app/referential/services/model/strategy.model';
-import moment from 'moment';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 export const ObservedLocationPageSettingsEnum = {
   PAGE_ID: 'observedLocation',
@@ -58,7 +58,10 @@ export const ObservedLocationPageSettingsEnum = {
 };
 
 type LandingTableType = 'legacy' | 'aggregated';
-type ILandingsTable = AppTable<any> & { setParent: (value: ObservedLocation | undefined) => void };
+type ILandingsTable = AppTable<any> & {
+  setParent: (value: ObservedLocation | undefined) => void;
+  autoFill?: () => Promise<void>;
+};
 
 export interface ObservedLocationPageState extends RootDataEntityEditorState {
   landingTableType: LandingTableType;
@@ -80,7 +83,6 @@ export class ObservedLocationPage
   static TABS = {
     GENERAL: 0,
     LANDINGS: 1,
-    PETS: 2,
   };
 
   private _measurementSubscription: Subscription;
@@ -91,15 +93,19 @@ export class ObservedLocationPage
 
   allowAddNewVessel: boolean;
   showLandingTab = false;
-  showPETSTab = false;
+  canAddLandings = true;
   showVesselType: boolean;
   showVesselBasePortLocation: boolean;
   addLandingUsingHistoryModal: boolean;
+  autoFillLandings: boolean;
   showRecorder = true;
   showObservers = true;
   showStrategyCard = false;
   enableReport: boolean;
   landingEditor: LandingEditor;
+
+  // TODO remove
+  //topPmfmIds: number[];
 
   @RxStateProperty() landingTableType: LandingTableType;
   @RxStateProperty() landingTable: ILandingsTable;
@@ -235,22 +241,19 @@ export class ObservedLocationPage
     this._measurementSubscription?.unsubscribe();
     this._measurementSubscription = new Subscription();
 
-    const formGroup = this.observedLocationForm?.measurementValuesForm as UntypedFormGroup;
+    const measurementValuesForm = this.observedLocationForm?.measurementValuesForm as UntypedFormGroup;
 
-    // If PMFM "PETS" exists, then use to enable/disable PETS tab
-    const petsControl = formGroup?.controls[PmfmIds.PETS];
-    if (isNotNil(petsControl)) {
+    // If PMFM "PETS" exists, then use to enable/disable add button on the landings table
+    const hasPetsControl = measurementValuesForm?.get(PmfmIds.HAS_PETS.toString());
+    if (hasPetsControl) {
       this._measurementSubscription.add(
-        petsControl.valueChanges
-          .pipe(debounceTime(400), startWith<any, any>(petsControl.value), filter(isNotNil), distinctUntilChanged())
-          .subscribe((value) => {
-            if (this.debug) console.debug('[observed-location-page] Enable/Disable PETS tab, because PETS=' + value);
+        hasPetsControl.valueChanges
+          .pipe(debounceTime(400), startWith<any, any>(hasPetsControl.value), filter(isNotNil), distinctUntilChanged())
+          .subscribe((hasPets) => {
+            if (this.debug) console.debug('[observed-location-page] Enable/Disable add button on landings tab, because PETS=' + hasPets);
 
-            // Enable tab, when has PETS
-            this.showPETSTab = value;
-            this.tabCount = this.showPETSTab ? 3 : 2;
-
-            this.markForCheck();
+            // Enable add button, when has PETS
+            this.canAddLandings = hasPets !== false;
           })
       );
     }
@@ -332,7 +335,9 @@ export class ObservedLocationPage
       // Create landing without vessel selection
       else {
         const rankOrder = ((await this.landingsTable.getMaxRankOrder()) || 0) + 1;
-        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?rankOrder=${rankOrder}`);
+        await this.router.navigateByUrl(
+          `/observations/${this.data.id}/${this.landingEditor}/new?rankOrder=${rankOrder}&parent=${this.acquisitionLevel}`
+        );
       }
     } finally {
       this.markAsLoaded();
@@ -365,7 +370,7 @@ export class ObservedLocationPage
     const saved =
       this.isOnFieldMode && this.dirty
         ? // If on field mode: try to save silently
-          await this.save(undefined)
+          await this.save()
         : // If desktop mode: ask before save
           await this.saveIfDirtyAndConfirm();
 
@@ -383,8 +388,27 @@ export class ObservedLocationPage
     }
   }
 
-  async onNewSale(event?: any) {
-    await this.onNewLanding(event);
+  async onNewSale<T extends Landing>(row: TableElement<T>) {
+    const saved =
+      this.isOnFieldMode && this.dirty
+        ? // If on field mode: try to save silently
+          await this.save()
+        : // If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm();
+
+    if (!saved) return; // Cannot save
+
+    this.markAsLoading();
+
+    try {
+      const landing = row.currentData;
+      const vesselId = landing.vesselSnapshot && landing.vesselSnapshot?.id !== VesselIds.UNKNOWN ? landing.vesselSnapshot.id : undefined;
+      await this.router.navigateByUrl(
+        `/observations/${this.data.id}/${this.landingEditor}/new?parent=${this.acquisitionLevel}${isNotNil(vesselId) ? '&vessel=' + vesselId : ''}&landing=${landing.id}`
+      );
+    } finally {
+      this.markAsLoaded();
+    }
   }
 
   async onOpenTrip<T extends Landing>(row: TableElement<T>) {
@@ -556,6 +580,8 @@ export class ObservedLocationPage
       }
       this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
       this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
+      this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
+      this.autoFillLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_LANDING_AUTO_FILL);
 
       let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -566,6 +592,9 @@ export class ObservedLocationPage
       this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
       this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
       this.showStrategyCard = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_STRATEGY_CARD_ENABLE);
+
+      // TODO remove
+      //this.topPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_TOP_PMFM_IDS);
 
       this.landingTableType = aggregatedLandings ? 'aggregated' : 'legacy';
 
@@ -598,19 +627,20 @@ export class ObservedLocationPage
         landingsTable.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
         landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
         landingsTable.minObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
-        landingsTable.maxObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MAX_OBSERVED_SPECIES_COUNT);
+        landingsTable.dividerPmfmId = program.getPropertyAsInt(ProgramProperties.LANDING_ROWS_DIVIDER_PMFM_ID);
+        landingsTable.showAutoFillButton = this.autoFillLandings;
+        landingsTable.unknownVesselId = VesselIds.UNKNOWN;
         this.showLandingTab = true;
-
-        if (landingsTable.inlineEdition) {
-          // Set landings table as child when inline edition is enabled, so it saves correctly
-          this.addChildForm(landingsTable);
-        }
       }
 
       // If new data: update trip form (need to update validator, with showObservers)
-      if (this.isNewData) this.observedLocationForm.updateFormGroup();
+      if (this.isNewData) {
+        this.observedLocationForm.updateFormGroup();
+      }
 
-      this.addChildForm(() => table);
+      // Add table as child, to save it
+      this.addForms([table]);
+
       this.markAsReady();
 
       // Listen program, to reload if changes
@@ -618,6 +648,10 @@ export class ObservedLocationPage
     } catch (err) {
       this.setError(err);
     }
+  }
+
+  protected async loadStrategy(strategyFilter: Partial<StrategyFilter>): Promise<Strategy> {
+    return await super.loadStrategy(strategyFilter); // Need taxon names when sale editor
   }
 
   protected async setStrategy(strategy: Strategy): Promise<void> {
@@ -683,7 +717,7 @@ export class ObservedLocationPage
 
     // Set contextual program, if any
     if (!data.program) {
-      const contextualProgram = this.context.getValue('program') as Program;
+      const contextualProgram = this.context?.program;
       if (contextualProgram?.label) {
         data.program = ReferentialRef.fromObject(contextualProgram);
       }
@@ -715,7 +749,7 @@ export class ObservedLocationPage
 
     if (!this.isNewData) {
       // Propagate to table parent
-      this.landingTable?.setParent(data);
+      this.ready().then(() => this.landingTable?.setParent(data));
     }
   }
 
@@ -762,72 +796,19 @@ export class ObservedLocationPage
   protected async onEntitySaved(data: ObservedLocation): Promise<void> {
     await super.onEntitySaved(data);
 
-    if (this.landingEditor === 'sale' && isNil(this.previousDataId)) {
-      // TODO JVF: Retrieve species based on data.samplingStrata
-
-      const landing = new Landing();
-      landing.rankOrder = 1;
-      landing.vesselSnapshot = new VesselSnapshot();
-      landing.vesselSnapshot.id = 5;
-      landing.vesselSnapshot.name = `Unknown vessel`;
-      landing.program = this.program;
-      landing.dateTime = moment();
-      landing.location = new ReferentialRef();
-      landing.location.id = 1;
-      landing.location.name = `Location 1`;
-      // Update landings' observed location so it saves correctly
-      landing.observedLocation = data;
-      landing.observedLocationId = data.id;
-      landing.measurementValues = {
-        [PmfmIds.CONTROLLED_SPECIES]: 304, // LANGOUSTINE
-        [PmfmIds.IS_OBSERVED]: false,
-      };
-      await this.landingsTable.addOrUpdateEntityToTable(landing, { editing: false });
-
-      const landing2 = new Landing();
-      landing2.rankOrder = 2;
-      landing2.vesselSnapshot = new VesselSnapshot();
-      landing2.vesselSnapshot.id = 1;
-      landing2.vesselSnapshot.name = `Vessel 1`;
-      landing2.program = this.program;
-      landing2.dateTime = moment();
-      landing2.location = new ReferentialRef();
-      landing2.location.id = 1;
-      landing2.location.name = `Location 1`;
-      // Update landings' observed location so it saves correctly
-      landing2.observedLocation = data;
-      landing2.observedLocationId = data.id;
-      landing2.measurementValues = {
-        [PmfmIds.CONTROLLED_SPECIES]: 300, // ANCHOIS
-        [PmfmIds.IS_OBSERVED]: false,
-      };
-      await this.landingsTable.addOrUpdateEntityToTable(landing2, { editing: false });
-
-      const landing3 = new Landing();
-      landing3.rankOrder = 3;
-      landing3.vesselSnapshot = new VesselSnapshot();
-      landing3.vesselSnapshot.id = 1;
-      landing3.vesselSnapshot.name = `Vessel 1`;
-      landing3.program = this.program;
-      landing3.dateTime = moment();
-      landing3.location = new ReferentialRef();
-      landing3.location.id = 1;
-      landing3.location.name = `Location 1`;
-      // Update landings' observed location so it saves correctly
-      landing3.observedLocation = data;
-      landing3.observedLocationId = data.id;
-      landing3.measurementValues = {
-        [PmfmIds.CONTROLLED_SPECIES]: 302, // BAR
-        [PmfmIds.IS_OBSERVED]: false,
-      };
-      await this.landingsTable.addOrUpdateEntityToTable(landing3, { editing: false });
-    }
-
     // Save landings table, when editable
     if (this.landingsTable?.dirty && this.landingsTable.canEdit) {
+      console.log('TODO warning saving landing table ??');
       await this.landingsTable.save();
     } else if (this.aggregatedLandingsTable?.dirty) {
       await this.aggregatedLandingsTable.save();
+    }
+
+    // Auto fill landings, if enable
+    const isFirstSave = isNil(this.previousDataId);
+    if (isFirstSave && this.landingsTable && this.autoFillLandings) {
+      this.landingsTable.setParent(data);
+      await this.landingsTable.autoFillTable();
     }
   }
 
@@ -838,6 +819,19 @@ export class ObservedLocationPage
         ? ObservedLocationPage.TABS.LANDINGS
         : -1;
   }
+
+  // TODO remove
+  /*protected applyTopPmfmToLandings(pmfm: IPmfm) {
+    this.landingsTable.dataSource
+      .getRows()
+      .filter((landing) => landing.currentData.__typename !== 'divider') // Filter dividers
+      .filter((landing) => pmfm.id !== PmfmIds.SALE_TYPE_ID || toBoolean(landing.currentData.measurementValues[PmfmIds.IS_OBSERVED])) // Do not apply SALE_TYPE if IS_OBSERVED is false
+      .forEach(async (landing) => {
+        const updatedLanding = landing.cloneData();
+        updatedLanding.measurementValues[pmfm.id] = this.observedLocationForm.measurementValuesForm.controls[pmfm.id].value;
+        await this.landingsTable.addOrUpdateEntityToTable(updatedLanding, { editing: false });
+      });
+  }*/
 
   protected markForCheck() {
     this.cd.markForCheck();

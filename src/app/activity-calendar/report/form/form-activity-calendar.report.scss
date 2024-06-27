@@ -13,26 +13,22 @@
     }
     table {
       table-layout: fixed;
+      border: 1px solid var(--text-color) !important;
       &.month-table {
         --row-title-height: var(--month-table-title-row-height);
         --row-height: var(--month-table-row-height);
         min-width: calc(100% - (var(--page-left-right-margin) * 2));
         max-width: calc(100% - (var(--page-left-right-margin) * 2));
-        border-top: solid 3px var(--section-title-color);
+        border-top: solid 3px var(--section-title-color) !important;
         --col-width: calc(100% / 13);
+        tbody,
         thead {
-          th {
-            font-size: var(--font-compact);
-            text-align: center;
-          }
-        }
-        tbody {
-          tr {
-            &.metier-row {
-              background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
-            }
-          }
+          th,
           td {
+            &.activity-not-exists,
+            &.activity-inactive {
+              background-color: rgba(var(--ion-color-medium-rgb), 0.8) !important;
+            }
             &.fit-one-line {
               position: relative;
               & > div {
@@ -45,7 +41,7 @@
                 top: 0;
                 bottom: 0;
                 & > div {
-                  margin-top: 0.2em;
+                  margin-top: 0.1em;
                   padding: 0 5px;
                   text-overflow: ellipsis;
                   overflow: hidden;
@@ -54,8 +50,22 @@
             }
           }
         }
+        thead {
+          th {
+            font-size: var(--font-compact);
+            text-align: center;
+          }
+        }
+        tbody {
+          tr {
+            &.metier-row {
+              background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
+              height: var(--month-table-metier-row-height);
+            }
+          }
+        }
       }
-      &.guf-table {
+      &.gpf-table {
         --row-title-height: var(--gear-table-title-row-height);
         --row-height: var(--gear-table-row-height);
         width: 100%;

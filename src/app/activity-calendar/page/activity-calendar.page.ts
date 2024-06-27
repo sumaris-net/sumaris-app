@@ -5,6 +5,7 @@ import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/fo
 import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
+  AppAsyncTable,
   AppEditorOptions,
   AppTable,
   chainPromises,
@@ -18,14 +19,13 @@ import {
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
   Property,
   ReferentialRef,
   referentialToString,
-  ReferentialUtils,
-  removeDuplicatesFromArray,
   StatusIds,
   toBoolean,
   toNumber,
@@ -41,7 +41,12 @@ import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
-import { VesselFeaturesFilter, VesselFilter, VesselOwnerPeriodFilter, VesselRegistrationFilter } from '@app/vessel/services/filter/vessel.filter';
+import {
+  VesselFeaturesFilter,
+  VesselFilter,
+  VesselOwnerPeriodFilter,
+  VesselRegistrationPeriodFilter,
+} from '@app/vessel/services/filter/vessel.filter';
 import { PredefinedColors } from '@ionic/core';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
@@ -60,8 +65,6 @@ import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
-import { GearUseFeaturesTable } from '../metier/gear-use-features.table';
-import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { VesselFeaturesHistoryComponent } from '@app/vessel/page/vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from '@app/vessel/page/vessel-registration-history.component';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
@@ -72,6 +75,9 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
+import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.table';
+import { environment } from '@environments/environment';
+import { GearPhysicalFeaturesUtils } from '../model/gear-physical-features.utils';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -86,6 +92,7 @@ export interface ActivityCalendarPageState extends RootDataEntityEditorState {
   months: Moment[];
   predocProgramLabels: string[];
   titleMenu: string;
+  hasClipboard: boolean;
 }
 
 @Component({
@@ -128,8 +135,11 @@ export class ActivityCalendarPage
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() protected predocProgramLabels$: Observable<string[]>;
   @RxStateSelect() protected titleMenu$: Observable<string>;
+  @RxStateSelect() protected hasClipboard$: Observable<boolean>;
+
   @RxStateProperty() protected reportTypes: Property[];
   @RxStateProperty() protected titleMenu: string;
+  @RxStateProperty() protected hasClipboard: boolean;
 
   protected timezone = DateUtils.moment().tz();
   protected allowAddNewVessel: boolean;
@@ -152,6 +162,9 @@ export class ActivityCalendarPage
   @Input() showPictures = true;
   @Input() showOptionsMenu = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
+  @Input() yearHistory: number = 3;
+  @Input() autoNameImage: boolean = true;
+  @Input() canEdit: boolean = true;
 
   @Input() @RxStateProperty() year: number;
   @Input() @RxStateProperty() vesselCountryId: number;
@@ -163,14 +176,14 @@ export class ActivityCalendarPage
 
   @ViewChild('predocSplit') predocSplit: SplitComponent;
   @ViewChild('predocCalendar') predocCalendar: CalendarComponent;
-  @ViewChild('tableMetier') tableMetier: GearUseFeaturesTable;
+  @ViewChild('tableMetier') tableMetier: GearPhysicalFeaturesTable;
   @ViewChild('map') map: ActivityCalendarMapComponent;
   @ViewChild('mapCalendar') mapCalendar: CalendarComponent;
   @ViewChild('featuresHistoryTable', { static: true }) featuresHistoryTable: VesselFeaturesHistoryComponent;
   @ViewChild('registrationHistoryTable', { static: true }) registrationHistoryTable: VesselRegistrationHistoryComponent;
   @ViewChild('ownerHistoryTable', { static: true }) ownerHistoryTable: VesselOwnerHistoryComponent;
   @ViewChild('galleryHistory', { static: true }) galleryHistory: AppImageAttachmentGallery;
-  @ViewChild('gallery', { static: true }) gallery: AppImageAttachmentGallery;
+  @ViewChild('gallery', { static: false }) gallery: AppImageAttachmentGallery;
 
   constructor(
     injector: Injector,
@@ -179,7 +192,7 @@ export class ActivityCalendarPage
     protected vesselService: VesselService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected translateContext: TranslateContextService,
-    protected activityCalendarContext: ActivityCalendarContextService,
+    protected context: ActivityCalendarContextService,
     protected hotkeys: Hotkeys
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
@@ -193,9 +206,9 @@ export class ActivityCalendarPage
       autoOpenNextTab: false,
     });
     this.defaultBackHref = '/activity-calendar';
-
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -223,6 +236,8 @@ export class ActivityCalendarPage
         map((year) => CalendarUtils.getMonths(year, this.timezone))
       )
     );
+
+    this._state.connect('hasClipboard', this.context.select('clipboard', 'data').pipe(map(isNotNil)));
 
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
@@ -262,7 +277,9 @@ export class ActivityCalendarPage
           return;
         }
 
-        this.tableMetier.value = this.getMetierValue(this.calendar.value, this.tableMetier.value);
+        this.tableMetier.value = GearPhysicalFeaturesUtils.updateFromActivityMonths(this.data, this.calendar.value, this.tableMetier.value, {
+          timezone: this.timezone,
+        });
       })
     );
 
@@ -310,7 +327,7 @@ export class ActivityCalendarPage
       this.onUpdateView.subscribe(() => {
         if (isNotNilOrNaN(this.data.id)) {
           this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), { emitEvent: true });
-          this.registrationHistoryTable.setFilter(VesselRegistrationFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), {
+          this.registrationHistoryTable.setFilter(VesselRegistrationPeriodFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), {
             emitEvent: true,
           });
           this.ownerHistoryTable.setFilter(VesselOwnerPeriodFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), {
@@ -323,7 +340,7 @@ export class ActivityCalendarPage
     // Manage tab group
     {
       const queryParams = this.route.snapshot.queryParams;
-      this.selectedSubTabIndex = (queryParams['subtab'] && parseInt(queryParams['subtab'])) || 0;
+      this.selectedSubTabIndex = toNumber(queryParams['subtab'], 0);
     }
   }
 
@@ -343,11 +360,11 @@ export class ActivityCalendarPage
     }
   }
 
-  async saveTable(table: AppTable<any>) {
+  async saveTable(table: AppTable<any> | AppAsyncTable<any>) {
     if (!table.confirmEditCreate()) return false;
     if (table.dirty) {
       this.markAsDirty();
-      return await table.save();
+      return table.save();
     }
     return true;
   }
@@ -403,9 +420,7 @@ export class ActivityCalendarPage
   }
 
   addMetier(event: UIEvent) {
-    if (this.calendar) {
-      this.calendar.addMetierBlock(event);
-    }
+    this.calendar?.addMetierBlock(event);
   }
 
   async openReport(reportType?: ActivityCalendarReportType) {
@@ -433,8 +448,8 @@ export class ActivityCalendarPage
     await super.setProgram(program);
 
     // Update the context
-    if (this.activityCalendarContext.program !== program) {
-      this.activityCalendarContext.program = program;
+    if (this.context.program !== program) {
+      this.context.program = program;
     }
 
     try {
@@ -483,9 +498,9 @@ export class ActivityCalendarPage
     await super.setStrategy(strategy);
 
     // Update the context
-    if (this.activityCalendarContext.strategy !== strategy) {
+    if (this.context.strategy !== strategy) {
       if (this.debug) console.debug(this.logPrefix + "Update context's strategy...", strategy);
-      this.activityCalendarContext.strategy = strategy;
+      this.context.strategy = strategy;
     }
   }
 
@@ -524,8 +539,8 @@ export class ActivityCalendarPage
       }
 
       // Year
-      if (searchFilter.startDate) {
-        this.year = fromDateISOString(searchFilter.startDate).year();
+      this.year = searchFilter.year || fromDateISOString(searchFilter.startDate)?.year();
+      if (this.year) {
         data.year = this.year;
         if (this.timezone) {
           data.startDate = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
@@ -537,7 +552,7 @@ export class ActivityCalendarPage
 
     // Set contextual program, if any
     if (!data.program) {
-      const contextualProgram = this.context.program;
+      const contextualProgram = this.context?.program;
       if (contextualProgram?.label) {
         data.program = ReferentialRef.fromObject(contextualProgram);
       }
@@ -549,6 +564,14 @@ export class ActivityCalendarPage
 
     // Enable forms (do not wait for program load)
     if (!programLabel) this.markAsReady();
+  }
+
+  devToggleDebug() {
+    super.devToggleDebug();
+    setTimeout(() => {
+      this.calendar?.onResize();
+      this.predocCalendar?.onResize();
+    }, 250);
   }
 
   protected async onEntityLoaded(data: ActivityCalendar, options?: EntityServiceLoadOptions): Promise<void> {
@@ -613,51 +636,20 @@ export class ActivityCalendarPage
     this.baseForm.value = data;
 
     // Set data to calendar
-    const activityMonths = ActivityMonthUtils.fromActivityCalendar(data);
-    this.calendar.value = activityMonths;
+    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, timezone: this.timezone });
 
     // Set metier table data
-    this.tableMetier.value = this.getMetierValue(activityMonths, data.gearUseFeatures);
+    this.tableMetier.value = GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone: this.timezone });
 
     // Load pictures
-    if (this.showPictures) {
+    if (this.showPictures && !isNewData) {
       this.loadPictures(data);
     }
 
     // Load predoc
-    if (this._predocPanelVisible) {
+    if (this._predocPanelVisible && !isNewData) {
       this.loadPredoc(data);
     }
-  }
-
-  getMetierValue(activityMonths: ActivityMonth[], gearUseFeatures: GearUseFeatures[]) {
-    // Set metier table data
-    // TODO sort by startDate ?
-    const monthMetiers = removeDuplicatesFromArray(
-      activityMonths.flatMap((month) => month.gearUseFeatures.map((guf) => guf.metier)),
-      'id'
-    );
-    const firstDayOfYear = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
-    const lastDayOfYear = firstDayOfYear.clone().endOf('year');
-
-    const metiers = monthMetiers
-      .map((metier, index) => {
-        const existingGuf = (gearUseFeatures || []).find((guf) => {
-          //TODO MFA à voir avec ifremer comment filtrer les GUF qui sont à afficher dans le tableau des métiers
-          return (
-            DateUtils.isSame(firstDayOfYear, guf.startDate, 'day') &&
-            DateUtils.isSame(lastDayOfYear, guf.endDate, 'day') &&
-            ReferentialUtils.equals(guf.metier, metier)
-          );
-        });
-        if (existingGuf) existingGuf.rankOrder = index + 1;
-        return existingGuf || { startDate: firstDayOfYear, endDate: lastDayOfYear, metier, rankOrder: index + 1 };
-      })
-      .map(GearUseFeatures.fromObject);
-
-    // DEBUG
-    console.debug(this.logPrefix + 'Loaded metiers: ', metiers);
-    return metiers;
   }
 
   async getValue(): Promise<ActivityCalendar> {
@@ -678,11 +670,16 @@ export class ActivityCalendarPage
     }
 
     // Metiers
-    const metierGearUseFeatures = this.tableMetier.value;
-    if (isNotEmptyArray(metierGearUseFeatures)) value.gearUseFeatures = [...value.gearUseFeatures, ...metierGearUseFeatures];
+    value.gearPhysicalFeatures = GearPhysicalFeaturesUtils.updateFromCalendar(value, this.tableMetier.value, { timezone: this.timezone });
 
     // Photos
-    value.images = this.gallery.value;
+    if (this.canEdit) value.images = this.gallery.value;
+
+    if (this.autoNameImage) {
+      value.images.map((img) => {
+        if (isNil(img.comments)) img.comments = value.year.toString();
+      });
+    }
 
     return value;
   }
@@ -697,7 +694,7 @@ export class ActivityCalendarPage
   }
 
   protected registerForms() {
-    this.addForms([this.baseForm, () => this.calendar]);
+    this.addForms([this.baseForm]);
   }
 
   protected async computeTitle(data: ActivityCalendar): Promise<string> {
@@ -786,7 +783,7 @@ export class ActivityCalendarPage
       // DEBUG: simulate a previous calendar
       //if (this.debug && predocCalendars.length === 1) predocCalendars = predocCalendars.concat(predocCalendars[0].clone());
 
-      const predocMonths = predocCalendars.flatMap((ac) => ActivityMonthUtils.fromActivityCalendar(ac));
+      const predocMonths = predocCalendars.flatMap((ac) => ActivityMonthUtils.fromActivityCalendar(ac, { fillEmptyGuf: true }));
       EntityUtils.sort(predocMonths, 'month', 'asc');
 
       await this.predocCalendar.setValue(predocMonths);
@@ -794,15 +791,30 @@ export class ActivityCalendarPage
   }
 
   protected async loadPictures(data: ActivityCalendar) {
-    const firstLoad = !this.gallery.loaded;
+    //Filter
+    const filter: Partial<ActivityCalendarFilter> = {
+      vesselId: data.vesselSnapshot.id,
+      program: data.program,
+      startDate: data.startDate.subtract(this.yearHistory, 'years').startOf('year'),
+    };
 
-    if (firstLoad) this.gallery.markAsReady();
+    const imageAttachments = await this.dataService.loadImages(0, 100, null, null, filter);
+    const firstLoadHistory = !this.galleryHistory.loaded;
+    const firstLoadGallery = isNotNil(this.gallery) && !this.gallery.loaded;
+
+    if (firstLoadHistory) this.galleryHistory.markAsReady();
+    if (firstLoadGallery) this.gallery.markAsReady();
 
     // fetch images
-    this.gallery.value = await this.dataService.loadImages(data.id);
-
+    if (this.canEdit) {
+      this.galleryHistory.value = imageAttachments.filter((img) => img.objectId != data.id);
+      this.gallery.value = imageAttachments.filter((img) => img.objectId === data.id);
+    } else {
+      this.galleryHistory.value = imageAttachments;
+    }
     // then add gallery into child form
-    if (firstLoad) this.addForms([this.gallery]);
+    if (firstLoadHistory) this.addForms([this.galleryHistory]);
+    if (firstLoadGallery) this.addForms([this.gallery]);
   }
 
   protected toggleShowPredoc(event?: Event) {
@@ -819,6 +831,12 @@ export class ActivityCalendarPage
     const { size, visible } = this.settings.getPageSettings(this.settingsId, ActivityCalendarPageSettingsEnum.PREDOC_PANEL_CONFIG) || {};
     this._predocPanelSize = isNotNilOrNaN(toNumber(size)) ? +size : this._predocPanelSize;
     this._predocPanelVisible = toBoolean(visible, this._predocPanelVisible);
+  }
+
+  protected onPredocResize(sizes?: IOutputAreaSizes) {
+    this.predocCalendar.onResize();
+
+    this.savePredocPanelSize(sizes);
   }
 
   protected savePredocPanelSize(sizes?: IOutputAreaSizes) {

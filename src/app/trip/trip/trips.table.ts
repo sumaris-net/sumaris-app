@@ -117,6 +117,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     this.defaultSortDirection = 'desc';
     this.confirmBeforeDelete = true;
     this.canEdit = this.accountService.isUser();
+    this.showToolbar = true;
 
     const showAdvancedFeatures = this.accountService.isAdmin();
     this.canDownload = showAdvancedFeatures;

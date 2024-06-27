@@ -79,6 +79,15 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     return this.getShowColumn('program');
   }
 
+  @Input()
+  set showEndDateTimeColumn(value: boolean) {
+    this.setShowColumn('endDateTime', value);
+  }
+
+  get showEndDateTimeColumn(): boolean {
+    return this.getShowColumn('endDateTime');
+  }
+
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
   }
@@ -101,11 +110,12 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
       injector,
       ObservedLocation,
       ObservedLocationFilter,
-      ['quality', 'program', 'location', 'startDateTime', 'observers', 'recorderPerson', 'comments'],
+      ['quality', 'program', 'location', 'startDateTime', 'endDateTime', 'observers', 'recorderPerson', 'comments'],
       _dataService,
       null
     );
     this.inlineEdition = false;
+    this.excludesColumns = ['endDateTime']; // Hide by default
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
@@ -122,6 +132,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     this.autoLoad = false;
     this.defaultSortBy = 'startDateTime';
     this.defaultSortDirection = 'desc';
+    this.showToolbar = true;
 
     this.settingsId = ObservedLocationsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureName = ObservedLocationsPageSettingsEnum.FEATURE_NAME;
@@ -394,6 +405,9 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nColumnSuffix = i18nSuffix;
 
+    // Show endDateTime column, if enable
+    this.showEndDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
+
     // Title
     const landingsTitle = this.translateContext.instant(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE', this.i18nColumnSuffix);
     this.landingsTitleSubject.next(landingsTitle);
@@ -404,6 +418,9 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
 
     // I18n suffix
     this.i18nColumnSuffix = '';
+
+    // Show endDateTime
+    this.showEndDateTimeColumn = false;
 
     // Title
     this.landingsTitleSubject.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');

@@ -1413,7 +1413,6 @@
       "FISHING_AREA_PLACEHOLDER": "Fishing area #",
       "FISHING_AREAS": "Fishing areas:",
       "LANDINGS": "Landing(s)",
-      "TAB_PETS": "Other species (PETS)",
       "AUCTION_CONTROL": {
         "TITLE": "{{location}} - Control of {{dateTime}}",
         "TAB_LANDINGS": "Controlled vessels"
@@ -1473,8 +1472,10 @@
       "COUNT_SAMPLES_ERROR": "Error in counting observation samples.",
       "START_DATE_INVALID": "Must start a {{day}}",
       "INVALID_LANDING": "Invalid landing",
-      "INVALID_LANDINGS": "Please observe or enter the reason for non-observation",
-      "INVALID_OBSERVED_COUNT": "Incorrect number of observed species. Please observe {{minObservedCount}} to {{maxObservedCount}} species"
+      "INVALID_LANDINGS": "Please observe or enter the reason for non-observation"
+    },
+    "WARNING": {
+      "INVALID_OBSERVED_COUNT": "Incorrect number of observed species. Please observe at least {{minObservedCount}} species"
     },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "The selected occasion is linked to individual measures.<br/><br/><b>Are you sure</b> you want to delete it?",
@@ -1563,7 +1564,7 @@
       "TAXON_NAME": "Scientific species",
       "BTN_OPEN_TRIP": "Open the trip",
       "BTN_OPEN_SALE": "Open the sale",
-      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> observed species (min.: {{minObservedCount}}, max.: {{maxObservedCount}})",
+      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> observed species (min.: {{minObservedCount}})",
       "SAMPLING": {
         "STRATEGY": "Sampling strata",
         "SAMPLES_COUNT": "Samples count",
@@ -2288,6 +2289,8 @@
       "LANDING_SAMPLE_WEIGHT_UNIT": "Occasion > Landing > Individual measures: Weight unit",
       "LANDING_SAMPLE_LABEL_ENABLE": "Occasion > Landing > Individual measures: Enter label?",
       "LANDING_COLUMNS_PMFM_IDS": "Occasion > Landings: Additional column(s) (PMFM)",
+      "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Occasion > Landings: Min. number of observed species",
+      "LANDING_TOP_PMFM_IDS": "Occasion > Landings: Top PMFM(s)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Fishing area: Location level(s)",
       "STRATEGY_EDITOR": "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {

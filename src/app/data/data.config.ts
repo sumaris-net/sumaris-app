@@ -62,6 +62,12 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: false,
   },
+  ACTIVITY_CALENDAR_HASH_OPTIMIZATION: <FormFieldDefinition>{
+    key: 'sumaris.persistence.activityCalendar.hashOptimization',
+    label: 'CONFIGURATION.OPTIONS.ACTIVITY_CALENDAR_HASH_OPTIMIZATION',
+    type: 'boolean',
+    defaultValue: false,
+  },
   ACCESS_PROGRAM_IDS: <FormFieldDefinition>{
     key: 'sumaris.data.program.ids',
     label: 'CONFIGURATION.OPTIONS.ACCESS_PROGRAM_IDS',

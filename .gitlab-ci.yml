@@ -141,17 +141,9 @@ build:env:
         - scripts/**/*
         - package.json
         - package-lock.json
-    - when: manual
-
-build:env:skip:
-  stage: environment
-  tags: [sih_public_runner]
-  script:
-    - echo "Skipping build env (will use existing build image)"
-  only:
-    - tags
-    - /^feature\/.*/
-    - /^features\/.*/
+    - if: '$CI_COMMIT_BRANCH =~ /^features?\/.*/ || $CI_MERGE_REQUEST_ID'
+      when: manual
+    - when: never
 
 # ---------------------------------------------------------------
 # Build jobs
@@ -631,9 +623,9 @@ deploy:webext:release:tags:
 
 docker:develop:
   extends: .docker-build
+  needs: [build]
   variables:
     IMAGE_TAG: develop
-  needs: [build]
   only:
     - develop
 
@@ -649,9 +641,9 @@ docker:feature:
 
 docker:release:
   extends: .docker-build
+  needs: [release]
   variables:
     IMAGE_TAG: ${APP_VERSION}
-  needs: [release]
   only:
     - develop
 

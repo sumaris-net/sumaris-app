@@ -19,7 +19,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { ValidatorService } from '@e-is/ngx-material-table';
@@ -58,17 +58,16 @@ export class GearUseFeaturesValidatorService<O extends GearUseFeaturesValidatorO
 
     const form = super.getFormGroup(data, opts);
 
-    //todo mf  AcquisitionLevelCodes
     if (opts.withMeasurements) {
       const measForm = form.get('measurementValues') as UntypedFormGroup;
-      const pmfms = opts.pmfms || opts.strategy?.denormalizedPmfms || [];
-      pmfms
-        .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY)
-        .forEach((p) => {
-          const key = p.id.toString();
-          const value = data && data.measurementValues && data.measurementValues[key];
-          measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
-        });
+      const pmfms: IPmfm[] =
+        opts.pmfms ||
+        (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_USE_FEATURES);
+      pmfms.forEach((p) => {
+        const key = p.id.toString();
+        const value = data && data.measurementValues && data.measurementValues[key];
+        measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
+      });
     }
 
     return form;
@@ -180,7 +179,11 @@ export class GearUseFeaturesValidatorService<O extends GearUseFeaturesValidatorO
     opts.withGear = toBoolean(opts.withGear, false); // Not used in activity calendar
     opts.withFishingAreas = toBoolean(opts.withFishingAreas, true);
     //todo mf  AcquisitionLevelCodes
-    opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY);
+    opts.pmfms =
+      opts.pmfms ||
+      (opts.strategy?.denormalizedPmfms || []).filter(
+        (p) => !PmfmUtils.isDenormalizedPmfm(p) || p.acquisitionLevel === AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_USE_FEATURES
+      );
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, isNotEmptyArray(opts.pmfms) || isNotNil(opts.strategy));
     opts.withMeasurementTypename = toBoolean(opts.withMeasurementTypename, opts.withMeasurements);

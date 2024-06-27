@@ -53,30 +53,7 @@ const routes: Routes = [
   // Shared report
   {
     path: 'report',
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        loadChildren: () => import('./report/trip-report-routing.module').then((m) => m.TripReportRoutingModule),
-      },
-      {
-        path: 'selectivity',
-        pathMatch: 'full',
-        loadChildren: () => import('./report/selectivity/selectivity-trip-report-routing.module').then((m) => m.SelectivityTripReportRoutingModule),
-      },
-      {
-        path: 'form',
-        pathMatch: 'full',
-        data: { isBlankForm: false },
-        loadChildren: () => import('./report/form/form-trip-report-routing.module').then((m) => m.FormTripReportRoutingModule),
-      },
-      {
-        path: 'blank-form',
-        pathMatch: 'full',
-        data: { isBlankForm: true },
-        loadChildren: () => import('./report/form/form-trip-report-routing.module').then((m) => m.FormTripReportRoutingModule),
-      },
-    ],
+    loadChildren: () => import('./report/trip-report-routing.module').then((m) => m.TripReportRoutingModule),
   },
 ];
 
