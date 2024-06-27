@@ -219,4 +219,22 @@ export abstract class DataEntityUtils {
   static isWithObservers<T extends IEntity<any, any> = IEntity<any, any>>(entity: T | undefined): entity is T & IWithObserversEntity<T> {
     return isNotNil(entity?.['observers']);
   }
+
+  static isDivider(source: DataEntity<any, any> | undefined): boolean {
+    return source && source.__typename === 'divider';
+  }
+
+  static isNotDivider(source: DataEntity<any, any> | undefined): boolean {
+    return source && source.__typename !== 'divider';
+  }
+
+  static markAsDivider(source: DataEntity<any, any>) {
+    if (!source) throw Error("Missing required argument 'source'");
+    source.__typename = 'divider';
+  }
+
+  static getMaxRankOrder<T extends IEntity<T> & { rankOrder?: number }>(data?: T[]): number {
+    if (!data) return 0;
+    return Math.max(0, ...data.map((entity) => entity?.rankOrder || 0));
+  }
 }

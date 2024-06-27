@@ -343,7 +343,7 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
 
       if (isEmptyArray(data.observers)) {
         const user = this.accountService.account.asPerson();
-        data.observers.push(user);
+        data.observers = [user];
       }
     }
   }

@@ -1,7 +1,9 @@
-
 /** Ionic CSS Variables **/
 html {
   @include css-variables-to-root();
+  &.plt-mobile {
+    @include css-variables-to-root-mobile();
+  }
 
   --ion-color-step-50: #f3f3f3;
   --ion-color-step-100: #e7e7e7;
@@ -32,7 +34,7 @@ html.dark {
   --ion-color-primary-shade: #3a7be0;
   --ion-color-primary-tint: #5598ff;
 
-  --ion-color-secondary: #75C4FD;
+  --ion-color-secondary: #75c4fd;
   --ion-color-secondary-rgb: 117, 196, 253;
   --ion-color-secondary-contrast: #ffffff;
   --ion-color-secondary-contrast-rgb: 255, 255, 255;
@@ -53,12 +55,12 @@ html.dark {
   --ion-color-success-shade: #29c467;
   --ion-color-success-tint: #44e283;
 
-  --ion-color-warning: #FF6434;
+  --ion-color-warning: #ff6434;
   --ion-color-warning-rgb: 255, 100, 52;
   --ion-color-warning-contrast: #000000;
   --ion-color-warning-contrast-rgb: 0, 0, 0;
-  --ion-color-warning-shade: #E0BB4B;
-  --ion-color-warning-tint: #FFDA48;
+  --ion-color-warning-shade: #e0bb4b;
+  --ion-color-warning-tint: #ffda48;
 
   --ion-color-danger: #fa0021;
   --ion-color-danger-rgb: 255, 0, 33;
@@ -88,7 +90,6 @@ html.dark {
   --ion-color-light-contrast-rgb: 255, 255, 255;
   --ion-color-light-shade: #1e2023;
   --ion-color-light-tint: #383a3e;
-
 }
 
 html.md.dark {

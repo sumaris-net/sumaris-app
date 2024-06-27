@@ -6,8 +6,7 @@ import { MetierValidatorService } from '@app/referential/metier/metier.validator
 import { MetierService } from '@app/referential/metier/metier.service';
 import { Metier } from '@app/referential/metier/metier.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
-import { GearLevelIds } from '@app/referential/services/model/model.enum';
+import { GearLevelIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
 
 @Component({
   selector: 'app-metier',
@@ -50,7 +49,7 @@ export class MetierPage extends AppReferentialEditor<Metier, MetierService> {
         filter: <ReferentialRefFilter>{
           entityName: 'TaxonGroup',
           statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-          levelIds: [TaxonGroupTypeIds.METIER_DCF_5, TaxonGroupTypeIds.METIER_NATIONAL],
+          levelIds: [TaxonGroupTypeIds.DCF_METIER_LVL_5, TaxonGroupTypeIds.NATIONAL_METIER],
         },
       },
     });

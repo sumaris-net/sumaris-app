@@ -13,6 +13,8 @@ export const environment = Object.freeze(<AppEnvironment>{
   defaultLatLongFormat: 'DDMM',
   apolloFetchPolicy: 'cache-first',
 
+  // Environment
+  externalEnvironmentUrl: 'assets/environments/environment.json',
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
   peerMinVersion: '2.9.0',
 

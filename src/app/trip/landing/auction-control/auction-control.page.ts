@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit } from '@angular/core';
-import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, TaxonGroupLabels } from '@app/referential/services/model/model.enum';
 import { LandingPage } from '../landing.page';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import { BehaviorSubject, firstValueFrom, Observable, Subscription } from 'rxjs';
@@ -30,7 +30,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../observedlocation/observed-location.model';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { TaxonGroupLabels, TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { Sample } from '@app/trip/sample/sample.model';
@@ -120,7 +120,12 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
         map((pmfms) =>
           pmfms.map((pmfm) => {
             // Controlled species PMFM
-            if (pmfm.id === PmfmIds.CONTROLLED_SPECIES || pmfm.label === 'TAXON_GROUP') {
+            if (
+              pmfm.id === PmfmIds.CONTROLLED_SPECIES ||
+              pmfm.id === PmfmIds.TAXON_GROUP_ID ||
+              pmfm.label === 'TAXON_GROUP' ||
+              pmfm.label === 'TAXON_GROUP_ID'
+            ) {
               console.debug(`[control] Replacing pmfm ${pmfm.label} qualitative values`);
 
               this.controlledSpeciesPmfmId = pmfm.id;

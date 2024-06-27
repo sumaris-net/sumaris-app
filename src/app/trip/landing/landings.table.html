@@ -6,13 +6,17 @@
 <mat-toolbar *ngIf="showToolbar" [class.expanded]="filterExpansionPanel.expanded">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
-    <button mat-icon-button *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
+    <button mat-icon-button *ngIf="!mobile && enabled && canAdd" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
 
     <!-- Refresh -->
     <button *ngIf="!mobile" mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
+    </button>
+
+    <button *ngIf="_enabled && showAutoFillButton" mat-icon-button [title]="'LANDING.TABLE.BTN_AUTO_FILL' | translate" (click)="autoFillTable()">
+      <mat-icon>control_point_duplicate</mat-icon>
     </button>
   </ng-container>
 
@@ -29,18 +33,21 @@
     </button>
   </ng-template>
 
-  @if (!mobile && error) {
-    <ion-item lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" class="error" [innerHTML]="error | translate: errorDetails"></ion-label>
-    </ion-item>
-  } @else if (!mobile && showObservedCount && observedCount < minObservedSpeciesCount) {
-    <ion-item lines="none">
-      <ion-icon color="warning" slot="start" name="alert-circle"></ion-icon>
-      <ion-label
-        [innerHTML]="'OBSERVED_LOCATION.WARNING.INVALID_OBSERVED_COUNT' | translate: { minObservedCount: minObservedSpeciesCount }"
-      ></ion-label>
-    </ion-item>
+  @if (!mobile) {
+    @if (showError && error) {
+      <ion-item lines="none">
+        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+        <ion-label color="danger" class="error" [innerHTML]="error | translate: errorDetails"></ion-label>
+      </ion-item>
+    } @else if (showObservedCount && observedCount < minObservedSpeciesCount) {
+      <ion-item lines="none" class="warning">
+        <ion-icon color="tertiary" slot="start" name="warning"></ion-icon>
+        <ion-label
+          color="tertiary"
+          [innerHTML]="'OBSERVED_LOCATION.WARNING.INVALID_OBSERVED_COUNT' | translate: { minObservedCount: minObservedSpeciesCount }"
+        ></ion-label>
+      </ion-item>
+    }
   }
 
   <div class="toolbar-spacer"></div>
@@ -67,14 +74,24 @@
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
-  <!--<mat-divider></mat-divider>-->
+  <!-- Display columns -->
+  <button mat-menu-item (click)="openSelectColumnsModal($event)">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
 
-  <!-- trash
-  <button mat-menu-item
-          (click)="openTrashModal($event)">
-    <mat-icon>delete_sweep</mat-icon>
-    <ion-label translate>COMMON.BTN_SHOW_TRASH_DOTS</ion-label>
-  </button> -->
+  @if (!inlineEdition) {
+    <mat-divider></mat-divider>
+
+    <!-- Compact mode -->
+    <button mat-menu-item (click)="toggleCompactMode()">
+      <mat-icon *ngIf="compact; else notCompactIcon">check_box</mat-icon>
+      <ng-template #notCompactIcon>
+        <mat-icon>check_box_outline_blank</mat-icon>
+      </ng-template>
+      <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
+    </button>
+  }
 </mat-menu>
 
 <!-- error -->
@@ -172,6 +189,7 @@
     mat-table
     matSort
     matSortDisableClear
+    [class.compact]="compact"
     [dataSource]="dataSource"
     [matSortActive]="defaultSortBy"
     [matSortDirection]="defaultSortDirection"
@@ -186,7 +204,11 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit || (mobile && !showToolbar)">
-        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
+        <mat-checkbox
+          [class.cdk-visually-hidden]="row | check: isRowNotSelectable"
+          (click)="toggleSelectRow($event, row)"
+          [checked]="selection.isSelected(row)"
+        ></mat-checkbox>
       </td>
     </ng-container>
 
@@ -206,7 +228,12 @@
           [title]="rowError || ''"
         >
           <ion-label matBadge="!" [matBadgeHidden]="!rowError && !showRowError" matBadgeOverlap="false" matBadgeColor="accent" matBadgeSize="small">
-            {{ row.currentData.rankOrder || (row.currentData.id | mathAbs) }}
+            @if (row.currentData.rankOrder && (row | check: isRowNotSelectable)) {
+              <!-- Offset on RANDOM landings -->
+              {{ row.currentData.rankOrder - randomLandingsRankOrderOffset }}
+            } @else {
+              {{ row.currentData.rankOrder || (row.currentData.id | mathAbs) }}
+            }
           </ion-label>
         </td>
       </ng-container>
@@ -229,8 +256,8 @@
         <ion-label translate>LANDING.TABLE.VESSEL</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ion-label *ngIf="row?.currentData?.vesselSnapshot?.id !== unknownVesselId">
-          {{ row.currentData?.vesselSnapshot | referentialToString: vesselSnapshotAttributes }}
+        <ion-label *ngIf="row.currentData.vesselSnapshot?.id !== unknownVesselId">
+          {{ row.currentData.vesselSnapshot | referentialToString: vesselSnapshotAttributes }}
         </ion-label>
       </td>
     </ng-container>
@@ -412,7 +439,8 @@
     <!-- Actions buttons column -->
     <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || singleSelectedRow">
       <th mat-header-cell *matHeaderCellDef>
-        <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS' | translate" (click)="openSelectColumnsModal($event)">
+        <!-- option menu -->
+        <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
           <mat-icon>more_vert</mat-icon>
         </button>
       </th>
@@ -493,6 +521,7 @@
       [class.cdk-visually-hidden]="loadingSubject | async"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
+      (keydown.escape)="escapeEditingRow($event)"
     ></tr>
 
     <!-- Divider -->
