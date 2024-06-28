@@ -153,6 +153,7 @@ export class ActivityCalendarPage
   protected showMapPanel = true; // TODO enable
   protected selectedSubTabIndex = 0;
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
+  protected isAdmin = this.accountService.isAdmin();
   protected warning: string = null;
 
   @Input() showVesselType = false;
@@ -213,7 +214,6 @@ export class ActivityCalendarPage
 
   ngOnInit() {
     super.ngOnInit();
-
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
@@ -867,5 +867,8 @@ export class ActivityCalendarPage
 
   protected vesselToString(vessel: VesselSnapshot) {
     return referentialToString(vessel, this.vesselSnapshotAttributes);
+  }
+  protected async clearCalendar() {
+    await this.calendar.clearAll();
   }
 }

@@ -3443,6 +3443,7 @@
       "VESSEL_REGISTRATION_DIVIDER": "Immatriculations",
       "VESSEL_OWNER_DIVIDER": "Armateurs",
       "PHOTO": "Photos",
+      "BTN_CLEAR": "Vider le calendrier",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
         "DISABLE": "Inactif",
