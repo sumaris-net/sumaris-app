@@ -79,6 +79,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'endDate',
         'exteriorMarking',
         'name',
+        'fpc',
         'administrativePower',
         'lengthOverAll',
         'grossTonnageGrt',
@@ -86,7 +87,6 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'hullMaterial',
         'ircs',
         'basePortLocation',
-        'fpc',
         'comments',
       ]).concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<VesselFeatures>(VesselFeatures, dataService, null, {
