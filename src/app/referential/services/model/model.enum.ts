@@ -442,6 +442,7 @@ export const UnitLabelGroups = {
 };
 
 export const QualityFlagIds = {
+  CONFLICTUAL: -1,
   NOT_QUALIFIED: 0,
   GOOD: 1,
   OUT_STATS: 2,

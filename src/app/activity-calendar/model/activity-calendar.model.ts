@@ -83,6 +83,11 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
         this.vesselSnapshot.id === other.vesselSnapshot.id &&
         // Same year
         this.year === other.year &&
+        // TODO: This needed to test equality when merge conflicts
+        // // Same qualityFlag
+        // this.qualityFlagId === other.qualityFlagId &&
+        // // Same comments
+        // this.comments === other.comments &&
         // Same program
         ReferentialUtils.equals(this.program, other.program) &&
         // Same measurement values

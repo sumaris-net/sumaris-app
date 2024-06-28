@@ -769,14 +769,16 @@ export class ActivityCalendarService
         },
       });
     } catch (err) {
-      if (err.code == ServerErrorCodes.BAD_UPDATE_DATE && opts?.allowAutoMergeOnConflict !== false) {
+      // TODO How get opts.allowAutoMergeOnConflict
+      if (err.code == ServerErrorCodes.BAD_UPDATE_DATE && isNotNil(opts?.allowAutoMergeOnConflict) && opts?.allowAutoMergeOnConflict !== false) {
         // Reload then try to merge
         const remoteEntity = await this.load(entity.id, { fetchPolicy: 'no-cache' });
-        const mergedEntity = ActivityCalendarUtils.merge(entity, remoteEntity);
-        return this.save(mergedEntity, { ...opts, allowAutoMergeOnConflict: false });
+        entity = ActivityCalendarUtils.merge(entity, remoteEntity);
+        // TODO Check if has conflictual data and else save data
+        // return this.save(mergedEntity, { ...opts, allowAutoMergeOnConflict: false });
+      } else {
+        throw err;
       }
-
-      throw err;
     }
 
     if (!opts || opts.emitEvent !== false) {
