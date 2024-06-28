@@ -10,6 +10,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
+  ObjectMap,
   Person,
   ReferentialRef,
   ReferentialUtils,
@@ -101,11 +102,15 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected showRowError = false;
   protected errorDetails: any;
   protected dividerPmfm: IPmfm;
+  protected includedQualitativeValuesMap: ObjectMap<number[]> = {};
 
   protected statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
   protected statusById = DataQualityStatusEnum;
   protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
     return this.isSaleDetailEditor && !this.isLandingPets(item);
+  };
+  protected readonly isRowSelectable = (item: TableElement<Landing>): boolean => {
+    return this.isSaleDetailEditor && this.isLandingPets(item);
   };
 
   readonly filterForm: UntypedFormGroup = this.formBuilder.group({
@@ -409,15 +414,29 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
 
-    // Load taxon groups
     const hasTaxonGroupId = pmfms.some((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
-    let taxonGroups: ReferentialRef[];
-    if (hasTaxonGroupId) {
-      // TODO BLA review this, to limit to program's taxon group
+    // Load taxon groups
+    let taxonGroups: ReferentialRef[] = [];
+    if (hasTaxonGroupId && isNotEmptyArray(this.context.strategy?.taxonGroups)) {
+      const taxonGroupIds = this.context.strategy.taxonGroups
+        .map((tg) => tg.taxonGroup.id).filter(isNotNil);
       taxonGroups = await this.referentialRefService.loadAllByIds(
-        this.context.strategy.taxonGroups.map((tg) => tg.taxonGroup.id),
+        taxonGroupIds,
         'TaxonGroup'
       );
+
+      // Disable taxon group that are selected randomly
+      const disableRandomTaxonGroups = this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && pmfms.some((pmfm) => pmfm.id === PmfmIds.SPECIES_LIST_ORIGIN);
+      if (disableRandomTaxonGroups) {
+        const randomTaxonGroupIds = this.context.strategy.taxonGroups.filter(tg => tg.priorityLevel > StrategyTaxonPriorityLevels.ABSOLUTE);
+        taxonGroups = taxonGroups.map(tg => {
+          if (randomTaxonGroupIds.includes(tg.id)) {
+            tg = tg.clone();
+            tg.statusId = StatusIds.DISABLE;
+          }
+          return tg
+        });
+      }
     }
 
     // Reset divider (will be set below)
@@ -785,7 +804,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       // Create useful functions
       let rankOrder = (await this.getMaxRankOrder()) + 1;
       const isRandomTaxon = (taxonNameOrGroup: TaxonGroupRef | TaxonNameRef) => {
-        return taxonNameOrGroup?.priority > StrategyTaxonPriorityLevels.ABSOLUTE;
+        return taxonNameOrGroup?.priority !== StrategyTaxonPriorityLevels.ABSOLUTE;
       };
       const nextRankOrder = (taxonNameOrGroup: TaxonGroupRef | TaxonNameRef) => {
         return isRandomTaxon(taxonNameOrGroup)
@@ -918,6 +937,14 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     }, []);
 
     return { data: entities, total: res.total };
+  }
+
+  updateQualitativeValues() {
+    // Only PETS species for taxon group selection
+    this.includedQualitativeValuesMap = {};
+    this.includedQualitativeValuesMap[PmfmIds.TAXON_GROUP_ID] = this.context.strategy.taxonGroups
+      .filter((tg) => tg.priorityLevel === StrategyTaxonPriorityLevels.ABSOLUTE)
+      .map((tg) => tg.taxonGroup.id);
   }
 
   protected markForCheck() {

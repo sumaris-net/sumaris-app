@@ -686,6 +686,9 @@ export class ObservedLocationPage
     if (this.observedLocationContext.strategy !== strategy) {
       if (this.debug) console.debug(this.logPrefix + "Update context's strategy...", strategy);
       this.observedLocationContext.strategy = strategy;
+
+      // Update available qualitative values for pmfms
+      this.landingsTable?.updateQualitativeValues();
     }
   }
 
