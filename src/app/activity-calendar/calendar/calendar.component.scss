@@ -122,6 +122,11 @@ mat-toolbar {
       color: var(--mat-table-row-disabled-item-label-text-color);
     }
 
+    // Conflict
+    &.conflictual {
+      background-color: var(--ion-color-warning-tint);
+    }
+
     // Predoc month
     &.SIH-ACTIPRED {
       --mat-table-background-color: rgba(var(--ion-color-secondary-rgb), 0.1) !important;

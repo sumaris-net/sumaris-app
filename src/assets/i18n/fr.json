@@ -1651,7 +1651,8 @@
       "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
       "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation.",
       "START_DATE_INVALID": "Doit commencer un {{day}}",
-      "INVALID_LANDINGS": "Veuillez corriger les données invalides ci-dessous"
+      "INVALID_LANDING": "Débarquement invalide",
+      "INVALID_LANDINGS": "Veuillez observer ou saisir la raison de non observation"
     },
     "WARNING": {
       "INVALID_OBSERVED_COUNT": "Nombre d'espèces observées incorrect. Veuillez observer au moins {{minObservedCount}} espèces"
@@ -2365,7 +2366,7 @@
       "TAB_STRATEGIES": "Lignes de plan"
     },
     "OPTIONS": {
-      "ACTIVITY_CALENDAR_CALENDAR_MERGE_CONFLICT_ENABLE": "Calendrier d'activité > Activer la gersion des conflicts de sauvegarde du calendrier",
+      "ACTIVITY_CALENDAR_CALENDAR_MERGE_CONFLICT_ENABLE": "Calendrier d'activité > Activer la gestion des conflicts de sauvegarde du calendrier",
       "ACTIVITY_CALENDAR_REPORT_ENABLE": "Calendrier d'activité > Rapport : Activer l'édition de rapport ?",
       "ACTIVITY_CALENDAR_REPORT_TYPE": "Calendrier d'activité  > Rapport : Types de rapport :",
       "ACTIVITY_CALENDAR_TYPE_FORM": "Calendrier d'activité",
@@ -3417,10 +3418,6 @@
       "HIDE_PREDOC": "Masquer la prédocumentation",
       "SHOW_PREDOC": "Afficher la prédocumentation",
       "BTN_SHOW_PREDOC": "<u>P</u>rédocumentation",
-      "CONFIRM_CLEAR_MONTH": "<b>Êtes-vous sûr</b> de vouloir vider ce mois ?",
-      "CONFIRM_CLEAR_CALENDAR": "<b>Êtes-vous sûr</b> de vouloir vider le calendrier ?",
-      "CONFIRM_SOLVE_CONFLICT": "<b>Êtest vous sûr</b> de vouloir marquer ce confclit comme résolus ?",
-      "CONFIRM_KEEP_REMOTE": "<b>Êtest vous sûr</b> de vouloir concerver les données distantes ?",
       "YEAR": "Année :",
       "VESSEL_SNAPSHOT": "Navire",
       "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
@@ -3513,8 +3510,15 @@
         "FIRST_NAME": "Prénom :"
       }
     },
+    "CONFIRM": {
+      "CONFIRM_CLEAR_MONTH": "<b>Êtes-vous sûr</b> de vouloir vider ce mois ?",
+      "CONFIRM_CLEAR_CALENDAR": "<b>Êtes-vous sûr</b> de vouloir vider le calendrier ?",
+      "CONFIRM_SOLVE_CONFLICT": "<b>Êtest vous sûr</b> de vouloir marquer ce confclit comme résolus ?",
+      "CONFIRM_KEEP_REMOTE": "<b>Êtest vous sûr</b> de vouloir conserver les données distantes ?"
+    },
     "ERROR": {
-      "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici",
+      "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici.",
+      "CONFLICTUAL_MONTH": "Conflit détécté lors de la sauvegarde du calendrier",
       "DUPLICATED_METIER": "Métier(s) en doublon: {{metiers}}"
     },
     "WARNING": {
