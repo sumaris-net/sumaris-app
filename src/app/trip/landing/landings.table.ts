@@ -10,6 +10,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
+  ObjectMap,
   Person,
   ReferentialUtils,
   removeDuplicatesFromArray,
@@ -100,11 +101,15 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   protected showRowError = false;
   protected errorDetails: any;
   protected dividerPmfm: IPmfm;
+  protected includedQualitativeValuesMap: ObjectMap<number[]> = {};
 
   protected statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
   protected statusById = DataQualityStatusEnum;
   protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
     return this.isSaleDetailEditor && !this.isLandingPets(item);
+  };
+  protected readonly isRowSelectable = (item: TableElement<Landing>): boolean => {
+    return this.isSaleDetailEditor && this.isLandingPets(item);
   };
 
   readonly filterForm: UntypedFormGroup = this.formBuilder.group({
@@ -420,7 +425,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     const taxonGroupIdPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
     if (taxonGroupIdPmfm) {
       console.debug(`${this.logPrefix}Setting pmfm ${taxonGroupIdPmfm.label} qualitative values`);
-      // TODO BLA review this, to limit to program's taxon group
       const taxonGroups = await this.referentialRefService.loadAllByIds(
         this.context.strategy.taxonGroups.map((tg) => tg.taxonGroup.id),
         'TaxonGroup'
@@ -921,6 +925,14 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     }, []);
 
     return { data: entities, total: res.total };
+  }
+
+  updateQualitativeValues() {
+    // Only PETS species for taxon group selection
+    this.includedQualitativeValuesMap = {};
+    this.includedQualitativeValuesMap[PmfmIds.TAXON_GROUP_ID] = this.context.strategy.taxonGroups
+      .filter((tg) => tg.priorityLevel === StrategyTaxonPriorityLevels.ABSOLUTE)
+      .map((tg) => tg.taxonGroup.id);
   }
 
   protected markForCheck() {

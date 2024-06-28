@@ -106,6 +106,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() maxVisibleButtons: number;
   @Input() buttonsColCount: number;
   @Input() showButtonIcons: boolean;
+  @Input() includedQualitativeValuesIds: number[];
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -161,6 +162,10 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
     // Exclude disabled values
     this._qualitativeValues = qualitativeValues.filter((qv) => qv.statusId !== StatusIds.DISABLE);
+
+    if (isNotNil(this.includedQualitativeValuesIds)) {
+      this._qualitativeValues = this._qualitativeValues.filter((qv) => this.includedQualitativeValuesIds.includes(qv.id));
+    }
 
     this.required = toBoolean(this.required, this.pmfm.required || false);
 
