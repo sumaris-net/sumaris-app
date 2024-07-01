@@ -181,7 +181,7 @@ build:feature:
   image: ${CI_BUILD_IMAGE}
   script:
     # Install deps, because it may have changed since the last build image (build from develop)
-    - npm install
+    - npm install --force
     # Build
     - npm run build:${BUILD_ENVIRONMENT}
   only:
