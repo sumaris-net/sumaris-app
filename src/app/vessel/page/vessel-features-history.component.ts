@@ -95,18 +95,17 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
       dataService,
       null,
       {
-        prependNewElements: false,
         saveOnlyDirtyRows: true,
       }
     );
 
+    this.title = 'VESSEL.HISTORY.FEATURES';
     this.i18nColumnPrefix = 'VESSEL.VESSEL_FEATURES.';
     // Default column to hide
     this.excludesColumns = ['grossTonnageGrt', 'hullMaterial', 'isFpc'];
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
-    this.title = 'VESSEL.HISTORY.FEATURES';
     this.debug = !environment.production;
   }
 

@@ -1,17 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import {
-  AccountService,
-  AppTable,
-  EntitiesTableDataSource,
-  LocalSettingsService,
-  referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-} from '@sumaris-net/ngx-components';
+import { AccountService, LocalSettingsService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { VesselOwnerPeriodFilter } from '../services/filter/vessel.filter';
 import { VesselOwnerPeriod } from '../services/model/vessel-owner-period.model';
 import { VesselOwnerPeridodService } from '../services/vessel-owner-period.service';
+import { AppBaseTable } from '@app/shared/table/base.table';
 
 @Component({
   selector: 'app-vessel-owner-history-table',
@@ -19,7 +12,7 @@ import { VesselOwnerPeridodService } from '../services/vessel-owner-period.servi
   styleUrls: ['./vessel-owner-history.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VesselOwnerHistoryComponent extends AppTable<VesselOwnerPeriod, VesselOwnerPeriodFilter> implements OnInit {
+export class VesselOwnerHistoryComponent extends AppBaseTable<VesselOwnerPeriod, VesselOwnerPeriodFilter> implements OnInit {
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
   protected referentialToString = referentialToString;
 
@@ -45,22 +38,15 @@ export class VesselOwnerHistoryComponent extends AppTable<VesselOwnerPeriod, Ves
   ) {
     super(
       injector,
+      VesselOwnerPeriod,
+      VesselOwnerPeriodFilter,
       // columns
-      RESERVED_START_COLUMNS.concat([
-        'startDate',
-        'endDate',
-        'registrationCode',
-        'lastName',
-        'firstName',
-        'activityStartDate',
-        'retirementDate',
-      ]).concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<VesselOwnerPeriod>(VesselOwnerPeriod, dataService, null, {
-        prependNewElements: false,
-        suppressErrors: environment.production,
+      ['startDate', 'endDate', 'registrationCode', 'lastName', 'firstName', 'activityStartDate', 'retirementDate'],
+      dataService,
+      null,
+      {
         saveOnlyDirtyRows: true,
-      }),
-      null
+      }
     );
 
     this.i18nColumnPrefix = 'VESSEL.VESSEL_OWNER.';
