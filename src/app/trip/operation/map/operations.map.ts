@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, In
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { L } from '@app/shared/map/leaflet';
 import { MapOptions, PathOptions } from 'leaflet';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import {
   ConfigService,
