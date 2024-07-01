@@ -1196,12 +1196,6 @@ export class CalendarComponent
     }
   }
 
-  protected collapseAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
-    for (let i = 0; i < this.metierCount; i++) {
-      this.collapseMetierBlock(null, i);
-    }
-  }
-
   protected async suggestMetiers(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<Metier>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
@@ -1368,6 +1362,11 @@ export class CalendarComponent
     }
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
+  }
+  collapseAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
+    for (let i = 0; i < this.metierCount; i++) {
+      this.collapseMetierBlock(null, i);
+    }
   }
 
   toggleMetierBlock(event: Event, key: string) {
@@ -1821,7 +1820,10 @@ export class CalendarComponent
       const sourceMonth = sourceMonths[i % sourceMonths.length];
 
       // Creating a form
-      const targetForm = this.validatorService.getFormGroup(targetRow.currentData);
+      const targetForm = this.validatorService.getFormGroup(targetRow.currentData, { withMeasurements: true, pmfms: this.pmfms });
+      //TODO getFormGroup does not return the pmfms, to be fixed with BL
+      targetForm.get('measurementValues')?.patchValue(targetRow.currentData.measurementValues);
+
       this.onPrepareRowForm(targetForm, { listenChanges: false });
       const isActiveControl = targetForm.get('isActive');
       let isActive = toNumber(sourceMonth.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
@@ -1838,7 +1840,6 @@ export class CalendarComponent
           // Update the form (should enable more controls - e.g. metier, fishing areas)
           this.onPrepareRowForm(targetForm, { listenChanges: false });
         }
-
         // Update control from the path
         const targetPath = targetPaths[index];
         const control = targetPath && this.findOrCreateControl(targetForm, targetPath);
@@ -1847,7 +1848,6 @@ export class CalendarComponent
           control.setValue(sourceValue);
         }
       });
-
       await this.updateEntityToTable(targetForm.value, targetRow, { confirmEdit: true });
     }
 
@@ -2015,8 +2015,8 @@ export class CalendarComponent
     return subscription;
   }
   protected async setQualityFlags() {
+    //MF to be update for check only row update and not all rows
     const rows = this.dataSource.getRows();
-
     for (const row of rows) {
       const form = this.validatorService.getRowValidator(row.currentData);
       const qualityFlagId = isNotNil(form.errors) ? QualityFlagIds.BAD : QualityFlagIds.GOOD;
