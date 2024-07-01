@@ -13,6 +13,7 @@ import {
   DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
+  equals,
   fadeInOutAnimation,
   firstNotNilPromise,
   HistoryPageReference,
@@ -31,7 +32,7 @@ import { Landing } from '../landing/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Observable, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationsPageSettingsEnum } from './table/observed-locations.page';
@@ -44,12 +45,13 @@ import { VesselService } from '@app/vessel/services/vessel-service';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
 
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import { AcquisitionLevelCodes, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Strategy } from '@app/referential/services/model/strategy.model';
+import { Moment } from 'moment';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 export const ObservedLocationPageSettingsEnum = {
@@ -66,6 +68,9 @@ type ILandingsTable = AppTable<any> & {
 export interface ObservedLocationPageState extends RootDataEntityEditorState {
   landingTableType: LandingTableType;
   landingTable: ILandingsTable;
+
+  location: ReferentialRef;
+  departureDateTime: Moment;
 }
 
 @Component({
@@ -144,6 +149,9 @@ export class ObservedLocationPage
 
   ngOnInit() {
     super.ngOnInit();
+
+    this._state.connect('location', this.observedLocationForm.locationChanges);
+    this._state.connect('departureDateTime', this.observedLocationForm.departureDateTimeChanges);
 
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
@@ -810,6 +818,35 @@ export class ObservedLocationPage
     if (isFirstSave && this.landingsTable && this.autoFillLandings) {
       this.landingsTable.setParent(data);
       await this.landingsTable.autoFillTable();
+    }
+  }
+
+  protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
+    console.debug(this.logPrefix + 'Computing strategy filter, using resolution: ' + this.strategyResolution);
+
+    switch (this.strategyResolution) {
+      // Spatio-temporal
+      case DataStrategyResolutions.SPATIO_TEMPORAL:
+        return this._state
+          .select(['acquisitionLevel', 'departureDateTime', 'location'], (_) => _, {
+            acquisitionLevel: equals,
+            departureDateTime: DateUtils.equals,
+            location: ReferentialUtils.equals,
+          })
+          .pipe(
+            map(({ acquisitionLevel, location, departureDateTime }) => {
+              return <Partial<StrategyFilter>>{
+                acquisitionLevel,
+                programId: program.id,
+                startDate: departureDateTime,
+                location: location,
+              };
+            }),
+            // DEBUG
+            tap((values) => console.debug(this.logPrefix + 'Strategy filter changed:', values))
+          );
+      default:
+        return super.watchStrategyFilter(program);
     }
   }
 
