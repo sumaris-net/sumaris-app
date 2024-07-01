@@ -8,7 +8,6 @@ image: node:18-slim
 stages:
   - environment
   - build
-  - alt_build
   - package
   - release
   - deploy
@@ -190,21 +189,6 @@ build:feature:
     - /^features\/.*/
   when: manual
 
-# failsafe-build:
-#   extends: .build
-#   stage: alt_build
-#   when: on_failure
-#   before_script:
-#     # Install global dependencies
-#     - npm install -g @ionic/cli@${IONIC_CLI_VERSION} @angular/cli@${ANGULAR_CLI_VERSION}
-#     # Update project dependencies
-#     - npm install --unsafe-perm --force --silent
-#     # Build
-#     - npm run build:${BUILD_ENVIRONMENT}
-#   only:
-#     - develop
-#     - /^feature\/.*/
-#     - /^features\/.*/
 
 # ---------------------------------------------------------------
 # Package jobs
