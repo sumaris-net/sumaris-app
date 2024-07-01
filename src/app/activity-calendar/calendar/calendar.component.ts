@@ -221,6 +221,7 @@ export class CalendarComponent
   protected _children: CalendarComponent[];
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
+  protected tableScrollLeft = 0;
 
   @RxStateProperty() vesselRegistrations: ReferentialRef[][];
   @RxStateProperty() vesselOwners: VesselOwner[][];
@@ -498,7 +499,12 @@ export class CalendarComponent
           .subscribe((event) => this.clearCellSelection(event))
       );
 
-      this.registerSubscription(fromEvent(element, 'scroll').subscribe(() => this.onResize()));
+      this.registerSubscription(
+        fromEvent(element, 'scroll').subscribe(() => {
+          this.tableScrollLeft = element.scrollLeft;
+          return this.onResize();
+        })
+      );
     }
   }
 

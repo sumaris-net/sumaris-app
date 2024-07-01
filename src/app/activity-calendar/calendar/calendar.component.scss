@@ -51,6 +51,8 @@ mat-toolbar {
   --mat-row-height: 35px !important;
   --mat-row-max-height: 35px !important;
 
+  padding-top: var(--mat-row-max-height);
+
   display: flex !important;
   flex-direction: row !important;
 
@@ -182,6 +184,14 @@ mat-toolbar {
 
   .mat-column-month {
     font-weight: var(--mat-table-header-headline-weight, 500);
+    &.mat-mdc-header-cell {
+      position: fixed !important;
+      z-index: 999 !important;
+      width: calc(var(--col-span, 1) * var(--col-size));
+      left: calc(150px + var(--col-size) * var(--col-index, 0)) !important;
+      top: calc(var(--table-container-offset, 0px) + var(--table-toolbar-height) + 109px);
+      margin-left: var(--table-scroll-left, 0);
+    }
   }
 
   .mat-column-metier {

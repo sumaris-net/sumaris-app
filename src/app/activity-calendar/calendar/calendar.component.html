@@ -110,6 +110,8 @@
     *rxIf="pmfms$; let pmfms; strategy: 'native'"
     (ngInit)="initTableContainer(tableContainer)"
     [class.mobile]="mobile"
+    [style.--table-scroll-left]="-tableScrollLeft + 'px'"
+    [style.--table-container-offset]="debug ? '48px' : '0px'"
   >
     <div
       #cellSelectionDiv
@@ -157,7 +159,12 @@
           }
         </mat-header-cell>
 
-        <mat-header-cell *matCellDef="let row" [title]="errorSpan.innerText || ''" class="mat-column-reset-background-color">
+        <mat-header-cell
+          *matCellDef="let row"
+          [title]="errorSpan.innerText || ''"
+          class="mat-column-reset-background-color"
+          [style.--col-index]="row.id"
+        >
           <ion-label class="ion-text-center">
             <ion-text
               matBadge="!"
