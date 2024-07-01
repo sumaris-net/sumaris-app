@@ -31,7 +31,7 @@
   <!-- Start date column -->
   <ng-container matColumnDef="startDate">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.START_DATE</span>
+      <span>{{ 'VESSEL.VESSEL_REGISTRATION_PERIOD.START_DATE' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.startDate | dateFormat: { time: false } }}</ion-text>
@@ -41,7 +41,7 @@
   <!-- End date column -->
   <ng-container matColumnDef="endDate">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.END_DATE</span>
+      <span>{{ 'VESSEL.VESSEL_REGISTRATION_PERIOD.END_DATE' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.endDate | dateFormat: { time: false } }}</ion-text>
@@ -51,7 +51,7 @@
   <!-- Registration code column -->
   <ng-container matColumnDef="registrationCode">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE</span>
+      <span>{{ 'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.registrationCode }}</ion-text>
@@ -61,7 +61,7 @@
   <!-- Int Registration code column -->
   <ng-container matColumnDef="intRegistrationCode">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.INT_REGISTRATION_CODE</span>
+      <span>{{ 'VESSEL.VESSEL_REGISTRATION_PERIOD.INT_REGISTRATION_CODE' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.intRegistrationCode }}</ion-text>
@@ -71,7 +71,7 @@
   <!-- Registration location -->
   <ng-container matColumnDef="registrationLocation">
     <mat-header-cell *matHeaderCellDef>
-      <span>{{ registrationLocationColumnTitle || 'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_LOCATION' }}</span>
+      <span>{{ 'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_LOCATION' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       {{ row.currentData.registrationLocation | referentialToString }}

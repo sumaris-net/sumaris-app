@@ -99,7 +99,7 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
   grossTonnageGrt: number;
   constructionYear: number;
   ircs: string;
-  fpc: boolean;
+  isFpc: boolean;
   hullMaterial: ReferentialRef;
   basePortLocation: ReferentialRef;
   creationDate: Moment;
@@ -169,7 +169,7 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
     this.grossTonnageGrt = source.grossTonnageGrt;
     this.constructionYear = source.constructionYear;
     this.ircs = source.ircs;
-    this.fpc = source.fpc;
+    this.isFpc = source.isFpc;
     this.hullMaterial = source.hullMaterial && ReferentialRef.fromObject(source.hullMaterial);
     this.basePortLocation = source.basePortLocation && ReferentialRef.fromObject(source.basePortLocation);
 

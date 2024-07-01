@@ -1954,21 +1954,27 @@
       "EXTERIOR_MARKING": "Marquage extérieur",
       "CONSTRUCTION_YEAR": "Année de construction",
       "IRCS": "Indicatif radio (IRCS)",
-      "FPC": "FPC",
+      "IS_FPC": "FPC ?",
       "HULL_MATERIAL": "Matériau de la coque",
       "BASE_PORT_LOCATION": "Port d'attache",
       "GROSS_TONNAGE_GT": "Tonnage (UMS)",
       "GROSS_TONNAGE_GRT": "Tonnage jauge brute (TJB)",
       "ADMINISTRATIVE_POWER": "Puissance administrative (kW)",
       "LENGTH_OVER_ALL": "Longueur hors tout (m)",
-      "COMMENTS": "Commentaires"
+      "COMMENTS": "Commentaires",
+      "ACTIVITY_CALENDAR": {
+        "BASE_PORT_LOCATION": "Port d'exploitation"
+      }
     },
     "VESSEL_REGISTRATION_PERIOD": {
       "START_DATE": "Début immatriculation",
       "END_DATE": "Fin immatriculation",
       "REGISTRATION_CODE": "Immatriculation",
       "INT_REGISTRATION_CODE": "Immatriculation internationale",
-      "REGISTRATION_LOCATION": "Pavillon"
+      "REGISTRATION_LOCATION": "Pavillon",
+      "ACTIVITY_CALENDAR": {
+        "REGISTRATION_LOCATION": "Lieu d'immatriculation"
+      }
     },
     "VESSEL_OWNER": {
       "REGISTRATION_CODE": "Code armateur",
@@ -1980,7 +1986,7 @@
       "LAST_NAME": "Nom"
     },
     "HISTORY": {
-      "FEATURES": "Caratéristiques",
+      "FEATURES": "Caractéristiques",
       "REGISTRATIONS": "Immatriculations",
       "OWNER": "Couples navires-armateurs"
     },
@@ -3361,7 +3367,7 @@
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "REGISTRATION_LOCATION": "Quartier maritime",
-        "BASE_PORT_LOCATION": "Port d'attache / exploit.",
+        "BASE_PORT_LOCATION": "Port d'exploitation",
         "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
         "ECONOMIC_SURVEY": "Enquête économique ?",
         "RECORDER_PERSON": "Saisisseur",
@@ -3377,7 +3383,7 @@
       "TITLE": "<small>{{vessel}}<br></small>Activité {{year}}",
       "TITLE_MENU": "{{vessel}} ({{year}})",
       "PREDOC_TITLE": "Prédocumentation",
-      "BASE_PORT_LOCATION": "Port d'attache / exploit.",
+      "BASE_PORT_LOCATION": "Port d'exploitation",
       "BTN_ADD_METIER_BLOCK": "Ajouter un bloc métier",
       "BTN_REPORT": "Éditer un rapport...",
       "BTN_EXPAND_ALL": "Déplier tout",
@@ -3408,7 +3414,7 @@
       "TAB_METIER": "Métiers",
       "TAB_MAP": "Carte",
       "VESSEL_OWNER": "Armateur",
-      "REGISTRATION_LOCATION": "Quartier maritime",
+      "REGISTRATION_LOCATION": "Lieu d'immatriculation",
       "IS_ACTIVE": "Actif ?",
       "OTHER_FEATURES": "Caractéristiques d'enquête :",
       "VESSEL_FEATURES_DIVIDER": "Caractéristiques navire",

@@ -25,7 +25,6 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
 
   @Input() compact: boolean;
   @Input() title: string;
-  @Input() registrationLocationColumnTitle = '';
   @Input() stickyEnd = false;
 
   @Input()
@@ -68,13 +67,6 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
 
   ngOnInit() {
     super.ngOnInit();
-  }
-
-  protected getI18nColumnName(columnName: string): string {
-    if (columnName === 'registrationLocation') {
-      return this.registrationLocationColumnTitle || super.getI18nColumnName(columnName);
-    }
-    return super.getI18nColumnName(columnName);
   }
 
   protected markForCheck() {
