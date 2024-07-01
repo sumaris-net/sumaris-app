@@ -28,7 +28,7 @@ export const environment = Object.freeze(<Environment>{
   // FIXME: enable cache
   persistCache: false,
 
-  peerMinVersion: '2.9.0',
+  peerMinVersion: '2.9.19',
 
   checkAppVersionIntervalInSeconds: 0, // Not need for DEV
 
@@ -47,16 +47,16 @@ export const environment = Object.freeze(<Environment>{
     },
     {
       host: 'server.e-is.pro',
-      port: 8080
+      port: 8080,
     },
     {
       host: 'test.sumaris.net',
-      port: 443
+      port: 443,
     },
     {
       host: 'obsmer.sumaris.net',
-      port: 443
-    }
+      port: 443,
+    },
   ],
 
   defaultAppName: 'SUMARiS',
@@ -68,7 +68,7 @@ export const environment = Object.freeze(<Environment>{
 
   // Storage
   storage: {
-    driverOrder: [StorageDrivers.IndexedDB, StorageDrivers.LocalStorage]
+    driverOrder: [StorageDrivers.IndexedDB, StorageDrivers.LocalStorage],
   },
 
   account: {
@@ -88,12 +88,13 @@ export const environment = Object.freeze(<Environment>{
 
   defaultAuthValues: {
     pubkey: 'GEj5KLU3NoHPEW7hEmrbTc3srqnGgtr7KehAt8YVbsbP',
-    token: 'GEj5KLU3NoHPEW7hEmrbTc3srqnGgtr7KehAt8YVbsbP:9C4B3A4560F52BDB1E3DACDEC973C077AE7A8FE8E005F3683BE52ADC718BC818|Jktzj/MYewXGWSIbw+MXq0QgzzduSat0ODsgHpDLRonxfipReplp2Y9xPUfsCD6Y1cEvW4JxNtHIsi7c7GOWAA=='
+    token:
+      'GEj5KLU3NoHPEW7hEmrbTc3srqnGgtr7KehAt8YVbsbP:9C4B3A4560F52BDB1E3DACDEC973C077AE7A8FE8E005F3683BE52ADC718BC818|Jktzj/MYewXGWSIbw+MXq0QgzzduSat0ODsgHpDLRonxfipReplp2Y9xPUfsCD6Y1cEvW4JxNtHIsi7c7GOWAA==',
   },
 
   menu: {
     subMenu: {
-      enable: true
-    }
-  }
+      enable: true,
+    },
+  },
 });
