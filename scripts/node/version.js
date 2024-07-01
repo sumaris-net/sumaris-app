@@ -6,7 +6,7 @@ const utils = require('./utils')
 
 const PROJECT_DIR = path.resolve(__dirname, '../..');
 const LOG_PREFIX = `[${path.basename(__filename)}]`;
-const VERSION_PATTERN = '[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}(-(alpha|beta|rc)[0-9]{1,2})?';
+const VERSION_PATTERN = '[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,2}(((-(alpha|beta|rc))|[.])[0-9]{1,2})?';
 
 function checkVersion(version) {
   const regexp = new RegExp(`^${VERSION_PATTERN}$`);
