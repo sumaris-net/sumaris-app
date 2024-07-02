@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
-import { FetchPolicy, gql } from '@apollo/client/core';
 import { VesselFeatures } from './model/vessel.model';
-import { BaseEntityService, GraphqlService, IEntitiesService, isNotNil, PlatformService } from '@sumaris-net/ngx-components';
+import { BaseEntityService, GraphqlService, IEntitiesService, isNotNil, LoadResult, PlatformService } from '@sumaris-net/ngx-components';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { VesselFeaturesFilter } from './filter/vessel.filter';
+import { SortDirection } from '@angular/material/sort';
+import { map, Observable } from 'rxjs';
+import { FetchPolicy, gql } from '@apollo/client/core';
+import { VesselUtils } from './model/vessel.utils';
 
 export const VesselFeaturesFragments = {
   vesselFeatures: gql`
@@ -64,6 +67,26 @@ export class VesselFeaturesService
       queries: VesselFeatureQueries,
       defaultSortBy: 'startDate',
     });
+  }
+
+  watchAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    dataFilter?: VesselFeaturesFilter,
+    opts?: any
+  ): Observable<LoadResult<VesselFeatures>> {
+    return super.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts).pipe(
+      map(({ data, total }) => {
+        const result = { data: data || [], total };
+        const resultat = result.data;
+        const a = VesselUtils.mergeContiguousVesselFeature(resultat.reverse());
+        result.data = a;
+
+        return result;
+      })
+    );
   }
 
   async count(
