@@ -69,6 +69,7 @@ export class VesselFeaturesService
     });
   }
 
+  //todo mf tobe fixe sortDirection
   watchAll(
     offset: number,
     size: number,
@@ -81,8 +82,8 @@ export class VesselFeaturesService
       map(({ data, total }) => {
         const result = { data: data || [], total };
         const resultat = result.data;
-        const a = VesselUtils.mergeContiguousVesselFeature(resultat.reverse());
-        result.data = a;
+        const VesselFeaturesFiltered = VesselUtils.mergeContiguousVesselFeature(resultat.reverse());
+        result.data = VesselFeaturesFiltered;
 
         return result;
       })
