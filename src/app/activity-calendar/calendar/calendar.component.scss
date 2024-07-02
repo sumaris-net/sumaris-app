@@ -3,7 +3,10 @@
   --mat-cell-resizable-handle-size: 5px;
   --mat-cell-resizable-handle-color-hover: var(--ion-color-secondary);
 }
-
+.no-scroll {
+  height: initial;
+  overflow: initial;
+}
 .mat-accordion {
   --expansion-panel-padding: 0;
   .mat-expansion-panel-header {
