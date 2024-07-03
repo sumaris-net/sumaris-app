@@ -189,12 +189,13 @@
               <ion-col>
                 <app-vessel-features-history-table
                   #featuresHistoryTable
+                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES_DIVIDER'"
+                  [i18nColumnSuffix]="'.ACTIVITY_CALENDAR'"
                   [showGrossTonnageGrtColumn]="true"
                   [showHullMaterialColumn]="true"
-                  [showFpcColumn]="true"
+                  [showIsFpcColumn]="true"
                   [showCommentsColumn]="false"
-                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES_DIVIDER'"
-                  [basePortLocationColumnTitle]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
+                  [showIrcsColumn]="false"
                   [debug]="debug"
                 ></app-vessel-features-history-table>
               </ion-col>
@@ -203,9 +204,9 @@
               <ion-col>
                 <app-vessel-registration-history-table
                   #registrationHistoryTable
-                  [showRegistrationLocationColumn]="true"
                   [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATION_DIVIDER'"
-                  [registrationLocationColumnTitle]="'ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION' | translate"
+                  [i18nColumnSuffix]="'.ACTIVITY_CALENDAR'"
+                  [showRegistrationLocationColumn]="true"
                   [debug]="debug"
                 ></app-vessel-registration-history-table>
               </ion-col>
@@ -215,6 +216,7 @@
                 <app-vessel-owner-history-table
                   #ownerHistoryTable
                   [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER_DIVIDER'"
+                  [i18nColumnSuffix]="'.ACTIVITY_CALENDAR'"
                   [debug]="debug"
                 ></app-vessel-owner-history-table>
               </ion-col>

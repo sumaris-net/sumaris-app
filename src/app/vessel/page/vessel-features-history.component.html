@@ -31,7 +31,7 @@
   <!-- Start date column -->
   <ng-container matColumnDef="startDate">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.START_DATE</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.START_DATE' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.startDate | dateFormat: { time: false } }}</ion-text>
@@ -41,7 +41,7 @@
   <!-- End date column -->
   <ng-container matColumnDef="endDate">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.END_DATE</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.END_DATE' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.endDate | dateFormat: { time: false } }}</ion-text>
@@ -51,7 +51,7 @@
   <!-- Exterior marking column -->
   <ng-container matColumnDef="exteriorMarking">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.EXTERIOR_MARKING</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.EXTERIOR_MARKING' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.exteriorMarking }}</ion-text>
@@ -61,7 +61,7 @@
   <!-- Name column -->
   <ng-container matColumnDef="name">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.NAME</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.NAME' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.name }}</ion-text>
@@ -71,7 +71,7 @@
   <!-- administrativePower column -->
   <ng-container matColumnDef="administrativePower">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.ADMINISTRATIVE_POWER</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.ADMINISTRATIVE_POWER' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.administrativePower }}</ion-text>
@@ -81,7 +81,7 @@
   <!-- lengthOverAll column -->
   <ng-container matColumnDef="lengthOverAll">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.LENGTH_OVER_ALL</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.LENGTH_OVER_ALL' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.lengthOverAll }}</ion-text>
@@ -91,7 +91,7 @@
   <!-- grossTonnageGrt column -->
   <ng-container matColumnDef="grossTonnageGrt">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.GROSS_TONNAGE_GRT</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.GROSS_TONNAGE_GRT' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.grossTonnageGrt }}</ion-text>
@@ -101,7 +101,7 @@
   <!-- grossTonnageGt column -->
   <ng-container matColumnDef="grossTonnageGt">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.GROSS_TONNAGE_GT</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.GROSS_TONNAGE_GT' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.grossTonnageGt }}</ion-text>
@@ -111,7 +111,7 @@
   <!-- construction year column -->
   <ng-container matColumnDef="constructionYear">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.CONSTRUCTION_YEAR</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.CONSTRUCTION_YEAR' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.constructionYear }}</ion-text>
@@ -121,7 +121,7 @@
   <!-- ircs column -->
   <ng-container matColumnDef="ircs">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.IRCS</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.IRCS' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text>{{ row.currentData.ircs }}</ion-text>
@@ -129,13 +129,13 @@
   </ng-container>
 
   <!-- fpc column -->
-  <ng-container matColumnDef="fpc">
+  <ng-container matColumnDef="isFpc">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.FPC</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.IS_FPC' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-text translate>
-        {{ row.currentData.fpc | booleanFormat }}
+        {{ row.currentData.isFpc | booleanFormat }}
       </ion-text>
     </mat-cell>
   </ng-container>
@@ -143,7 +143,7 @@
   <!-- hull material -->
   <ng-container matColumnDef="hullMaterial">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.HULL_MATERIAL</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.HULL_MATERIAL' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <ion-label class="ion-text-nowrap">
@@ -155,7 +155,7 @@
   <!-- base port location -->
   <ng-container matColumnDef="basePortLocation">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>VESSEL.VESSEL_FEATURES.BASE_PORT_LOCATION</span>
+      <span>{{ 'VESSEL.VESSEL_FEATURES.BASE_PORT_LOCATION' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       {{ row.currentData.basePortLocation | referentialToString }}

@@ -8,7 +8,6 @@ image: node:18-slim
 stages:
   - environment
   - build
-  - alt_build
   - package
   - release
   - deploy
@@ -100,7 +99,6 @@ variables:
   tags: [sih_public_runner]
   before_script:
     - if [[ -n ${APP_VERSION} ]]; then git fetch origin ; git checkout ${APP_VERSION} ; fi
-    - npm install
     - npm run electron:install
     - npm version
     # TODO : dirty fix to solve incompatibility between minimatch and @type/minimatch
@@ -181,8 +179,6 @@ build:feature:
   extends: .build
   image: ${CI_BUILD_IMAGE}
   script:
-    # Install deps, because it may have changed since the last build image (build from develop)
-    - npm install
     # Build
     - npm run build:${BUILD_ENVIRONMENT}
   only:
@@ -190,25 +186,10 @@ build:feature:
     - /^features\/.*/
   when: manual
 
-# failsafe-build:
-#   extends: .build
-#   stage: alt_build
-#   when: on_failure
-#   before_script:
-#     # Install global dependencies
-#     - npm install -g @ionic/cli@${IONIC_CLI_VERSION} @angular/cli@${ANGULAR_CLI_VERSION}
-#     # Update project dependencies
-#     - npm install --unsafe-perm --force --silent
-#     # Build
-#     - npm run build:${BUILD_ENVIRONMENT}
-#   only:
-#     - develop
-#     - /^feature\/.*/
-#     - /^features\/.*/
 
 # ---------------------------------------------------------------
 # Package jobs
-# ---------------------------------------------------------------
+#  : add force for npm install on build:feature---------------------------------------------------------------
 package:android:
   <<: *android-setup
   stage: package
@@ -390,7 +371,6 @@ gitlab-release:
     - '[ -d "${BUILD_CACHE_DIR}" ] || mkdir "${BUILD_CACHE_DIR}"'
     - ls -artl "${BUILD_CACHE_DIR}"
     - ln -s "${BUILD_CACHE_DIR}/node_modules" node_modules
-    - npm install
     - npm run release:create --token=${CI_JOB_TOKEN} "Release ${CI_PROJECT_NAME}-${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}"
   only:
     - tags

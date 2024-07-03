@@ -98,12 +98,21 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: 'false',
   },
+  /* -- Program options -- */
+
   PROGRAM_SIH_LABEL: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Program.SIH.label',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PROGRAM_SIH_LABEL',
     type: 'string',
     defaultValue: ProgramLabel.SIH,
   },
+  PROGRAM_PRIVILEGE_READONLY: <FormFieldDefinition>{
+    key: 'sumaris.program.privilege.readonly',
+    label: 'PROGRAM.OPTIONS.PROGRAM_PRIVILEGE_READONLY',
+    type: 'boolean',
+    defaultValue: 'false',
+  },
+
   /* -- Acquisition levels -- */
   ACQUISITION_LEVEL_TRIP_LABEL: <FormFieldDefinition>{
     key: 'sumaris.enumeration.AcquisitionLevel.TRIP.label',

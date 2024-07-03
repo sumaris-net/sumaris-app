@@ -387,7 +387,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.';
       // Add a i18n suffix (e.g. in Biological sampling program)
       const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-      this.i18nColumnPrefix += (i18nSuffix !== 'legacy' && i18nSuffix) || '';
+      this.i18nColumnSuffix += (i18nSuffix !== 'legacy' && i18nSuffix) || '';
 
       // Restore filter from settings, or load all
       this.restoreFilterOrLoad(program.id);

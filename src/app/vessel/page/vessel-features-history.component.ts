@@ -1,17 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import {
-  AccountService,
-  AppTable,
-  EntitiesTableDataSource,
-  LocalSettingsService,
-  referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-} from '@sumaris-net/ngx-components';
+import { AccountService, LocalSettingsService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
 import { VesselFeatures } from '../services/model/vessel.model';
 import { VesselFeaturesService } from '../services/vessel-features.service';
 import { environment } from '@environments/environment';
 import { VesselFeaturesFilter } from '../services/filter/vessel.filter';
+import { AppBaseTable } from '@app/shared/table/base.table';
 
 @Component({
   selector: 'app-vessel-features-history-table',
@@ -19,13 +12,12 @@ import { VesselFeaturesFilter } from '../services/filter/vessel.filter';
   styleUrls: ['./vessel-features-history.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, VesselFeaturesFilter> implements OnInit {
+export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures, VesselFeaturesFilter> implements OnInit {
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
   protected referentialToString = referentialToString;
 
   @Input() compact: boolean;
   @Input() title: string;
-  @Input() basePortLocationColumnTitle: string;
   @Input() stickyEnd: boolean = false;
 
   @Input()
@@ -47,12 +39,12 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
   }
 
   @Input()
-  set showFpcColumn(value: boolean) {
-    this.setShowColumn('fpc', value);
+  set showIsFpcColumn(value: boolean) {
+    this.setShowColumn('isFpc', value);
   }
 
-  get showFpcColumn(): boolean {
-    return this.getShowColumn('fpc');
+  get showIsFpcColumn(): boolean {
+    return this.getShowColumn('isFpc');
   }
 
   @Input()
@@ -64,6 +56,15 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
     return this.getShowColumn('comments');
   }
 
+  @Input()
+  set showIrcsColumn(value: boolean) {
+    this.setShowColumn('ircs', value);
+  }
+
+  get showIrcsColumn(): boolean {
+    return this.getShowColumn('ircs');
+  }
+
   constructor(
     injector: Injector,
     protected accountService: AccountService,
@@ -73,12 +74,15 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
   ) {
     super(
       injector,
+      VesselFeatures,
+      VesselFeaturesFilter,
       // columns
-      RESERVED_START_COLUMNS.concat([
+      [
         'startDate',
         'endDate',
         'exteriorMarking',
         'name',
+        'isFpc',
         'administrativePower',
         'lengthOverAll',
         'grossTonnageGrt',
@@ -86,25 +90,22 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'hullMaterial',
         'ircs',
         'basePortLocation',
-        'fpc',
         'comments',
-      ]).concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<VesselFeatures>(VesselFeatures, dataService, null, {
-        prependNewElements: false,
-        suppressErrors: environment.production,
+      ],
+      dataService,
+      null,
+      {
         saveOnlyDirtyRows: true,
-      }),
-      null
+      }
     );
 
+    this.title = 'VESSEL.HISTORY.FEATURES';
     this.i18nColumnPrefix = 'VESSEL.VESSEL_FEATURES.';
-    this.showGrossTonnageGrtColumn = false;
-    this.showHullMaterialColumn = false;
-    this.showFpcColumn = false;
+    // Default column to hide
+    this.excludesColumns = ['grossTonnageGrt', 'hullMaterial', 'isFpc'];
     this.autoLoad = false;
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
-    this.title = 'VESSEL.HISTORY.FEATURES';
     this.debug = !environment.production;
   }
 
@@ -114,12 +115,5 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
 
   protected markForCheck() {
     this.cd.markForCheck();
-  }
-
-  protected getI18nColumnName(columnName: string): string {
-    if (columnName === 'basePortLocation') {
-      return this.basePortLocationColumnTitle || super.getI18nColumnName(columnName);
-    }
-    return super.getI18nColumnName(columnName);
   }
 }
