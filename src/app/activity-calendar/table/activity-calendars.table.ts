@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
-import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
   ConfigService,
@@ -100,11 +100,16 @@ export class ActivityCalendarsTable
   @Input() registrationLocationLevelIds: number[] = null;
   @Input() basePortLocationLevelIds: number[] = null;
   @Input() @RxStateProperty() title: string;
+  @Input() showObservers = true;
   @Input() canAdd: boolean;
   protected timezone = DateUtils.moment().tz();
 
   get filterYearControl(): UntypedFormControl {
     return this.filterForm.controls.year as UntypedFormControl;
+  }
+
+  get filterObserversForm(): UntypedFormArray {
+    return this.filterForm.controls.observers as UntypedFormArray;
   }
 
   constructor(
@@ -122,7 +127,7 @@ export class ActivityCalendarsTable
       injector,
       ActivityCalendar,
       ActivityCalendarFilter,
-      ['quality', 'program', 'vessel', 'year', 'directSurveyInvestigation', 'economicSurvey', 'recorderPerson', 'comments'],
+      ['quality', 'program', 'vessel', 'year', 'directSurveyInvestigation', 'economicSurvey', 'observers', 'recorderPerson', 'comments'],
       _dataService,
       null
     );
@@ -142,6 +147,7 @@ export class ActivityCalendarsTable
       qualityFlagId: [null, SharedValidators.integer],
       directSurveyInvestigation: [null],
       economicSurvey: [null],
+      observers: formBuilder.array([[null, SharedValidators.entity]]),
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()
@@ -225,6 +231,17 @@ export class ActivityCalendarsTable
       mobile: this.mobile,
     });
 
+    // Combo: observers
+    this.registerAutocompleteField('observers', {
+      service: this.personService,
+      filter: {
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+      },
+      attributes: personAttributes,
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile,
+    });
+
     this.registerSubscription(
       this.configService.config.pipe(filter(isNotNil)).subscribe((config) => {
         console.info(`${this.logPrefix}Init from config`, config);
@@ -245,6 +262,11 @@ export class ActivityCalendarsTable
         // Recorder
         this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
         this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
+
+        // Observer
+        this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
+        console.debug('MYTEST this.showObservers', this.showObservers);
+        this.setShowColumn('observers', this.showObservers, { emitEvent: false });
 
         // Locations combo (filter)
         this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_IDS);

@@ -8,6 +8,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
+  Person,
   ReferentialRef,
   toDateISOString,
 } from '@sumaris-net/ngx-components';
@@ -30,6 +31,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
   excludedIds: number[];
   directSurveyInvestigation: boolean;
   economicSurvey: boolean;
+  observers?: Person[];
 
   constructor() {
     super();
@@ -50,6 +52,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.endDate = fromDateISOString(source.endDate);
     this.directSurveyInvestigation = source.directSurveyInvestigation;
     this.economicSurvey = source.economicSurvey;
+    this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -69,10 +72,15 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
       // Registration locations
       target.basePortLocationIds = this.basePortLocations?.map((l) => l.id) || undefined;
       delete target.basePortLocations;
+
+      // Observers
+      target.observerPersonIds = (this.observers && this.observers.map((o) => o && o.id).filter(isNotNil)) || undefined;
+      delete target.observers;
     } else {
       target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject(opts)) || undefined;
       target.registrationLocations = this.registrationLocations?.map((l) => l.asObject(opts)) || undefined;
       target.basePortLocations = this.basePortLocations?.map((l) => l.asObject(opts)) || undefined;
+      target.observers = (this.observers && this.observers.map((o) => o && o.asObject(opts)).filter(isNotNil)) || undefined;
     }
     return target;
   }
@@ -131,6 +139,12 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
         const endYear = this.endDate.year();
         filterFns.push((t) => endYear >= t.year);
       }
+    }
+
+    // Observers
+    const observerIds = this.observers && this.observers.map((o) => o && o.id).filter(isNotNil);
+    if (isNotEmptyArray(observerIds)) {
+      filterFns.push((t) => t.observers && t.observers.findIndex((o) => o && observerIds.includes(o.id)) !== -1);
     }
 
     return filterFns;

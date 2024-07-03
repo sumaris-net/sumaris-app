@@ -2160,6 +2160,7 @@
       "TAB_STRATEGIES": "Sampling stratum"
     },
     "OPTIONS": {
+      "ACTIVITY_CALENDAR_OBSERVERS_ENABLE": "Activity Calendar: Enter inspector?",
       "EXTRACTION_FORMATS": "Extraction > Available formats:",
       "I18N_SUFFIX": "Thematic dictionary",
       "I18N_SUFFIX_LEGACY": "By default",
@@ -3088,6 +3089,7 @@
       "ECONOMIC_SURVEY": "Economic survey?",
       "VESSEL": "Vessel",
       "YEAR": "Year",
+      "OBSERVERS": "Inspector",
       "FILTER": {
         "PROGRAM": "Data collection programme",
         "REGISTRATION_LOCATION": "Registration location",
@@ -3097,7 +3099,8 @@
         "RECORDER_PERSON": "Recorder",
         "RECORDER_DEPARTMENT": "Recoder department(s)",
         "VESSEL": "Vessel",
-        "YEAR": "Year"
+        "YEAR": "Year",
+        "OBSERVERS": "Inspector"
       }
     },
     "NEW": {
@@ -3131,6 +3134,8 @@
       "OTHER_FEATURES": "Survey characteristics:",
       "VESSEL_FEATURES": "Vessel features",
       "VESSEL_REGISTRATIONS": "Vessel features registration history",
+      "OBSERVERS": "Inspector",
+      "OBSERVER_PLACEHOLDER": "Inspector #",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Active",
         "DISABLE": "Inactive",

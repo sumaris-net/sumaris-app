@@ -25,6 +25,7 @@ import { GearUseFeaturesValidatorService } from '@app/activity-calendar/model/ge
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { GearPhysicalFeaturesValidatorService } from './gear-physical-features.validator';
 import { GearPhysicalFeatures } from './gear-physical-features.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export interface ActivityCalendarValidatorOptions extends DataRootEntityValidatorOptions {
   timezone?: string;
@@ -36,9 +37,6 @@ export interface ActivityCalendarValidatorOptions extends DataRootEntityValidato
   withVesselUseFeatures?: boolean;
 
   pmfms?: IPmfm[];
-
-  // Unused
-  showObservers?: false;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -105,6 +103,11 @@ export class ActivityCalendarValidatorService<
       config.gearPhysicalFeatures = this.getGearPhysicalFeaturesArray(data?.gearPhysicalFeatures);
     }
 
+    // Add observers
+    if (opts.withObservers) {
+      config.observers = this.getObserversFormArray(data?.observers);
+    }
+
     //
     // // Add fishing Ares
     // if (opts.withFishingAreas) {
@@ -137,13 +140,21 @@ export class ActivityCalendarValidatorService<
 
   updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
-
-    //const enabled = form.enabled;
+    const enabled = form.enabled;
 
     // TODO update pmfms, depending on metier/gear ?
     // E.g. compute pmfms from initialPmfms, by filtering on metier/gear ?
 
     // TODO enable/disable gearUseFeatures ? e.g. when VUF.isActive = false ?
+
+    // Observers
+    if (opts?.withObservers) {
+      if (!form.controls.observers) form.addControl('observers', this.getObserversFormArray([null], { required: true }));
+      if (enabled) form.controls.observers.enable();
+      else form.controls.observers.disable();
+    } else {
+      if (form.controls.observers) form.removeControl('observers');
+    }
 
     // Update form group validators
     const formValidators = this.getFormGroupOptions(null, opts)?.validators;
@@ -204,6 +215,14 @@ export class ActivityCalendarValidatorService<
 
     opts.withVesselUseFeatures = toBoolean(opts.withVesselUseFeatures, true);
     opts.withGearUseFeatures = toBoolean(opts.withGearUseFeatures, true);
+
+    opts.withObservers = toBoolean(
+      opts.withObservers,
+      toBoolean(
+        opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE),
+        ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE.defaultValue === 'true'
+      )
+    );
 
     opts.withMeasurements = toBoolean(opts.withMeasurements, isNotEmptyArray(opts.pmfms) || isNotNil(opts.strategy));
     opts.withMeasurementTypename = toBoolean(opts.withMeasurementTypename, opts.withMeasurements);

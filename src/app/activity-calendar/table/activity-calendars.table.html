@@ -217,6 +217,36 @@
             </mat-autocomplete-field>
           </ion-col>
 
+          <ion-col>
+            <!-- Recorder person -->
+            <mat-autocomplete-field
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate"
+              formControlName="recorderPerson"
+              [config]="autocompleteFields.person"
+              [i18nPrefix]="'USER.'"
+              [clearable]="true"
+            >
+              <ion-icon matPrefix name="person"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+        </ion-row>
+
+        <ion-row *ngIf="showObservers">
+          <!-- Observers criteria -->
+          <ion-col>
+            <mat-autocomplete-field
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.OBSERVERS' | translate"
+              [formControl]="filterObserversForm.at(0)"
+              [config]="autocompleteFields.observers"
+              [i18nPrefix]="'USER.'"
+              [clearable]="true"
+            >
+              <ion-icon matPrefix name="person"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+        </ion-row>
+
+        <ion-row *ngIf="showQuality && filterForm | formGetControl: 'dataQualityStatus'; let control">
           <!-- Data quality status -->
           <ng-container *ngIf="showQuality && filterForm | formGetControl: 'dataQualityStatus'; let control">
             <ion-col size="12" [sizeLg]="control.value !== 'QUALIFIED' ? 6 : 3">
@@ -529,6 +559,16 @@
           <ng-template #recorderDepartment>
             {{ row.currentData.recorderDepartment?.label }}
           </ng-template>
+        </td>
+      </ng-container>
+
+      <!-- Observers -->
+      <ng-container matColumnDef="observers">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.OBSERVERS</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>{{ row.currentData.observers | personToString }}</ion-text>
         </td>
       </ng-container>
 

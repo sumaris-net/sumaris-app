@@ -2387,6 +2387,7 @@
       "ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE": "Calendrier d'activité > Activer la résolution des conflits ?",
       "ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS": "Calendrier d'activité > Prédocumentation : Code(s) programme(s)",
       "ACTIVITY_CALENDAR_IMAGES_ENABLE": "Calendrier d'activité > Activer les photos ?",
+      "ACTIVITY_CALENDAR_OBSERVERS_ENABLE": "Calendrier d'activité: Saisir les observateurs ?",
       "EXTRACTION_FORMATS": "Extraction > Formats disponibles:",
       "I18N_SUFFIX": "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY": "Par défaut",
@@ -2551,7 +2552,6 @@
         "NONE": "Aucune"
       }
     },
-
     "STRATEGY": {
       "ACQUISITION_LEVELS": "Niveaux d'acquisition",
       "LOCATIONS": "Lieux",
@@ -3391,6 +3391,7 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les calendriers <b>non synchronisés</b>)",
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
+      "OBSERVERS": "Enquêteur(s)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "REGISTRATION_LOCATION": "Quartier maritime",
@@ -3399,7 +3400,8 @@
         "ECONOMIC_SURVEY": "Enquête économique ?",
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
-        "VESSEL": "Navire",
+        "VESSEL": "Navire",,
+        "OBSERVERS": "Enquêteur",
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "YEAR": "Année"
       }
@@ -3450,6 +3452,8 @@
       "VESSEL_REGISTRATION_DIVIDER": "Immatriculations",
       "VESSEL_OWNER_DIVIDER": "Armateurs",
       "PHOTO": "Photos",
+      "OBSERVERS": "Enquêteur",
+      "OBSERVER_PLACEHOLDER": "Enquêteur #",
       "BTN_DELETE_CALENDAR": "Supprimer",
       "BTN_CLEAR_CALENDAR": "Vider le calendrier",
       "BTN_DELETE_CONFLICT": "Supprimer ce mois en conflit",
