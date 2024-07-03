@@ -80,7 +80,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   i18nFieldPrefix = 'PROGRAM.';
   strategyEditor: StrategyEditor = 'legacy';
   i18nTabStrategiesSuffix = '';
-  privilegesEditionEnabled = false;
+  readOnlyPrivileges = false;
 
   protected propertiesFileService: PropertiesFileService;
 
@@ -204,8 +204,13 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   async save(event?: Event, opts?: ProgramSaveOptions): Promise<boolean> {
-    return super.save(event, { ...opts, withDepartmentsAndPersons: this.privilegesEditionEnabled });
+    return super.save(event, {
+      ...opts,
+      // Include privileges only if NOT readonly
+      withDepartmentsAndPersons: !this.readOnlyPrivileges,
+    });
   }
+
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
 
@@ -256,6 +261,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   setValue(data: Program) {
     data = data || new Program();
 
+    this.readOnlyPrivileges = data.getPropertyAsBoolean(ProgramProperties.PROGRAM_PRIVILEGE_READONLY);
+
     this.form.patchValue({ ...data, properties: [], locationClassifications: [], strategies: [], persons: [] }, { emitEvent: false });
 
     // Program properties
@@ -270,8 +277,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // Users
     this.personsTable.setValue(data.persons || []);
 
-    this.privilegesEditionEnabled = data.getPropertyAsBoolean(ProgramProperties.PROGRAM_PRIVILEGE_EDITION_ENABLE);
-    this.personsTable.readOnly = !this.privilegesEditionEnabled;
+    this.personsTable.readOnly = this.readOnlyPrivileges;
 
     this.markForCheck();
   }

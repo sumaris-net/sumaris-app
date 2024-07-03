@@ -1222,9 +1222,9 @@ export const ProgramProperties = Object.freeze({
 
   /* -- Program / Privilege options -- */
 
-  PROGRAM_PRIVILEGE_EDITION_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.program.privilege.edition.enable',
-    label: 'PROGRAM.OPTIONS.PROGRAM_PRIVILEGE_EDITION_ENABLE',
+  PROGRAM_PRIVILEGE_READONLY: <FormFieldDefinition>{
+    key: 'sumaris.program.privilege.readonly',
+    label: 'PROGRAM.OPTIONS.PROGRAM_PRIVILEGE_READONLY',
     type: 'boolean',
     defaultValue: 'true',
   },

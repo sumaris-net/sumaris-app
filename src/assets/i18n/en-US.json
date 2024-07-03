@@ -1388,7 +1388,7 @@
     "TITLE": "Occasion",
     "SAMPLING_SCHEME": "Sampling scheme:",
     "SAMPLING_STRATA": "Sampling strata reference",
-    "SAMPLING_SCHEME_LABEL": "Sampling program",
+    "SAMPLING_SCHEME_LABEL": "Sampling scheme program",
     "NEW": {
       "TITLE": "New occasion"
     },
@@ -2292,7 +2292,7 @@
       "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Occasion > Landings: Min. number of observed species",
       "LANDING_TOP_PMFM_IDS": "Occasion > Landings: Top PMFM(s)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Fishing area: Location level(s)",
-      "PROGRAM_PRIVILEGE_EDITION_ENABLE": "Program > enable privileges edition",
+      "PROGRAM_PRIVILEGE_READONLY": "Program > Access rights: read only?",
       "STRATEGY_EDITOR": "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Default",
