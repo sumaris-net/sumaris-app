@@ -2503,7 +2503,7 @@
       "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Sortie > Débarquements : Nombre min. d'espèces à observer",
       "LANDING_TOP_PMFM_IDS": "Sortie > Débarquements : PSFM(s) en en-tête",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
-      "PROGRAM_PRIVILEGE_READONLY": "Programme > Droits d'accès : En lecture seule ?",
+      "PROGRAM_PRIVILEGE_READONLY": "Programme > Droits d'accès : Lecture seule ?",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",

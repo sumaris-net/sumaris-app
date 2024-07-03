@@ -70,7 +70,12 @@
           <!-- search text -->
           <mat-form-field>
             <ion-icon matPrefix name="search"></ion-icon>
-            <input matInput formControlName="searchText" autocomplete="off" [placeholder]="i18nColumnPrefix + 'LABEL' | translate" />
+            <input
+              matInput
+              formControlName="searchText"
+              autocomplete="off"
+              [placeholder]="i18nColumnPrefix + 'LABEL' | translateContext: i18nColumnSuffix"
+            />
             <button
               mat-icon-button
               matSuffix
@@ -87,7 +92,7 @@
         <ion-col>
           <!-- Analytic reference -->
           <mat-autocomplete-field
-            [placeholder]="i18nColumnPrefix + 'ANALYTIC_REFERENCE' | translate"
+            [placeholder]="i18nColumnPrefix + 'ANALYTIC_REFERENCE' | translateContext: i18nColumnSuffix"
             formControlName="analyticReference"
             [config]="autocompleteFields.analyticReference"
             [clearable]="true"
@@ -101,7 +106,7 @@
         <ion-col>
           <!-- department -->
           <mat-autocomplete-field
-            [placeholder]="i18nColumnPrefix + 'RECORDER_DEPARTMENTS' | translate"
+            [placeholder]="i18nColumnPrefix + 'RECORDER_DEPARTMENTS' | translateContext: i18nColumnSuffix"
             formControlName="department"
             [config]="autocompleteFields.department"
             [clearable]="true"
@@ -113,7 +118,7 @@
         <ion-col>
           <!-- taxonName -->
           <mat-autocomplete-field
-            [placeholder]="i18nColumnPrefix + 'TAXON_NAMES' | translate"
+            [placeholder]="i18nColumnPrefix + 'TAXON_NAMES' | translateContext: i18nColumnSuffix"
             formControlName="taxonName"
             [config]="autocompleteFields.taxonName"
             [clearable]="true"
@@ -126,7 +131,7 @@
         <ion-col>
           <!-- location -->
           <mat-autocomplete-field
-            [placeholder]="i18nColumnPrefix + 'LOCATIONS' | translate"
+            [placeholder]="i18nColumnPrefix + 'LOCATIONS' | translateContext: i18nColumnSuffix"
             formControlName="location"
             [config]="autocompleteFields.location"
             [clearable]="true"
@@ -141,7 +146,7 @@
             <mat-label>{{ 'PROGRAM.STRATEGY.TABLE.SAMPLING.PARAMETERS_DOTS' | translate }}</mat-label>
             <input matInput hidden />
             <mat-checkbox *ngFor="let parameterGroupLabel of parameterGroupLabels; last as last" [formControlName]="parameterGroupLabel">
-              {{ i18nColumnPrefix + parameterGroupLabel | translate }}
+              {{ i18nColumnPrefix + parameterGroupLabel | uppercase | translateContext: i18nColumnSuffix }}
               <span *ngIf="!last">&nbsp;</span>
             </mat-checkbox>
           </mat-form-field>
@@ -151,7 +156,11 @@
       <ion-row>
         <!-- Start date -->
         <ion-col size="3">
-          <mat-date-short-field formControlName="startDate" [placeholder]="i18nColumnPrefix + 'START_YEAR' | translate" [clearable]="true">
+          <mat-date-short-field
+            formControlName="startDate"
+            [placeholder]="i18nColumnPrefix + 'START_YEAR' | translateContext: i18nColumnSuffix"
+            [clearable]="true"
+          >
             <ion-icon matPrefix name="calendar-outline"></ion-icon>
           </mat-date-short-field>
         </ion-col>
@@ -160,7 +169,7 @@
         <ion-col size="3">
           <mat-date-short-field
             formControlName="endDate"
-            [placeholder]="i18nColumnPrefix + 'END_YEAR' | translate"
+            [placeholder]="i18nColumnPrefix + 'END_YEAR' | translateContext: i18nColumnSuffix"
             [clearable]="true"
           ></mat-date-short-field>
         </ion-col>
@@ -171,7 +180,7 @@
             <mat-label>{{ 'PROGRAM.STRATEGY.TABLE.SAMPLING.QUARTERS_DOTS' | translate }}</mat-label>
             <input matInput hidden />
             <mat-checkbox *ngFor="let quarter of quarters; last as last" [formControlName]="quarter.toString()">
-              {{ i18nColumnPrefix + 'EFFORT_Q' + quarter | translate }}
+              {{ i18nColumnPrefix + 'EFFORT_Q' + quarter | translateContext: i18nColumnSuffix }}
               <span *ngIf="!last">&nbsp;</span>
             </mat-checkbox>
           </mat-form-field>
@@ -267,7 +276,7 @@
     <!-- label column -->
     <ng-container matColumnDef="label" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span>{{ i18nColumnPrefix + 'LABEL' | translate }}</span>
+        <span>{{ i18nColumnPrefix + 'LABEL' | translateContext: i18nColumnSuffix }}</span>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-label class="ion-text-wrap">{{ row.currentData.label }}</ion-label>
@@ -277,7 +286,7 @@
     <!-- analyticReference column -->
     <ng-container matColumnDef="analyticReference">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span>{{ i18nColumnPrefix + 'ANALYTIC_REFERENCE' | translate }}</span>
+        <span>{{ i18nColumnPrefix + 'ANALYTIC_REFERENCE' | translateContext: i18nColumnSuffix }}</span>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-label>{{ row.currentData.analyticReference }}</ion-label>
@@ -287,7 +296,7 @@
     <!-- Departments column -->
     <ng-container matColumnDef="recorderDepartments">
       <th mat-header-cell *matHeaderCellDef>
-        <span>{{ i18nColumnPrefix + 'RECORDER_DEPARTMENTS' | translate }}</span>
+        <span>{{ i18nColumnPrefix + 'RECORDER_DEPARTMENTS' | translateContext: i18nColumnSuffix }}</span>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text class="ion-text-nowrap" [title]="departments.innerText">
@@ -299,7 +308,7 @@
     <!-- Applied strategies (location) column -->
     <ng-container matColumnDef="locations">
       <th mat-header-cell *matHeaderCellDef>
-        <span>{{ i18nColumnPrefix + 'LOCATIONS' | translate }}</span>
+        <span>{{ i18nColumnPrefix + 'LOCATIONS' | translateContext: i18nColumnSuffix }}</span>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text class="ion-text-nowrap" [title]="locationsSpan.innerText">
@@ -318,7 +327,7 @@
     <!-- Taxon names column -->
     <ng-container matColumnDef="taxonNames">
       <th mat-header-cell *matHeaderCellDef>
-        <span>{{ i18nColumnPrefix + 'TAXON_NAMES' | translate }}</span>
+        <span>{{ i18nColumnPrefix + 'TAXON_NAMES' | translateContext: i18nColumnSuffix }}</span>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text class="ion-text-nowrap" [title]="taxonNameSpan.innerText">
@@ -345,12 +354,12 @@
     <!-- Parameters column -->
     <ng-container matColumnDef="parameterGroups">
       <th mat-header-cell *matHeaderCellDef>
-        <span>{{ i18nColumnPrefix + 'PARAMETERS' | translate }}</span>
+        <span>{{ i18nColumnPrefix + 'PARAMETERS' | translateContext: i18nColumnSuffix }}</span>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text>
           <ng-container *ngFor="let groupName of row.currentData.parameterGroups; index as i; last as last">
-            <span>{{ i18nColumnPrefix + groupName | uppercase | translate }}</span>
+            <span>{{ i18nColumnPrefix + groupName | uppercase | translateContext: i18nColumnSuffix }}</span>
             <span *ngIf="!last">,</span>
           </ng-container>
         </ion-text>
@@ -361,7 +370,7 @@
     <ng-container *ngFor="let quarter of quarters">
       <ng-container [matColumnDef]="'effortQ' + quarter">
         <th mat-header-cell *matHeaderCellDef>
-          <span>{{ i18nColumnPrefix + 'EFFORT_Q' + quarter | translate }}</span>
+          <span>{{ i18nColumnPrefix + 'EFFORT_Q' + quarter | translateContext: i18nColumnSuffix }}</span>
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-text *ngIf="row.currentData.effortByQuarter | mapGet: quarter; let effort">

@@ -225,7 +225,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       ...opts,
       // Save privileges only if NOT readonly
       withPersons: !this.readOnlyPrivileges,
-      withDepartments: !this.readOnlyPrivileges,
+      // Department privileges not implemented
+      withDepartments: false,
     });
   }
 
@@ -266,13 +267,14 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     this.strategyEditor = (data && data.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR)) || 'legacy';
     this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? 'SAMPLING.' : '';
+    this.readOnlyPrivilegesByProgram = data.getPropertyAsBoolean(ProgramProperties.PROGRAM_PRIVILEGE_READONLY);
 
     this.cd.detectChanges();
     this.markAsReady();
   }
 
   protected async onEntitySaved(data: Program): Promise<void> {
-    await this.loadEntityProperties(data);
+    await this.onEntityLoaded(data);
     await super.onEntitySaved(data);
   }
 

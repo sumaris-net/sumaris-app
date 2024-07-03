@@ -535,6 +535,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   protected async setProgram(program: Program, opts?: { emitEvent?: boolean }) {
     if (program && this.program !== program) {
       this.i18nFieldPrefix = 'PROGRAM.STRATEGY.EDIT.';
+      // TODO : use instead translateContext: i18nSuffix
       const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX) || '';
       this.i18nFieldPrefix += (i18nSuffix !== 'legacy' && i18nSuffix) || '';
 
