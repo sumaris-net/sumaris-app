@@ -82,8 +82,3 @@ export class VesselUtils {
     return contiguousItems;
   }
 }
-// if (vesselFeature.endDate.diff(vf.startDate, 'days') <= 1 && vesselFeature.endDate.diff(vf.startDate, 'days') >= -1) {
-// vesselFeature.endDate.isSame(vf.startDate) ||
-// vesselFeature.endDate.clone().add(1, 'days').isSame(vf.startDate) ||
-// vesselFeature.startDate.isSame(vf.endDate) ||
-// vesselFeature.startDate.clone().add(1, 'days').isSame(vf.endDate)

@@ -19,7 +19,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
   @Input() compact: boolean;
   @Input() title: string;
   @Input() stickyEnd: boolean = false;
-  @Input() canMerge: boolean = true;
+  @Input() mergeContigousVessel: boolean = false;
 
   @Input()
   set showGrossTonnageGrtColumn(value: boolean) {
@@ -120,7 +120,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
   }
 
   mergeContigous(): boolean {
-    return this.canMerge;
+    return this.mergeContigousVessel;
   }
 
   protected markForCheck() {
