@@ -129,8 +129,8 @@ export class ObservedLocationValidatorService extends DataRootEntityValidatorSer
     opts.withObservers = toBoolean(
       opts.withObservers,
       toBoolean(
-        opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
-        ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === 'true'
+        opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_OBSERVERS_ENABLE),
+        ProgramProperties.OBSERVED_LOCATION_OBSERVERS_ENABLE.defaultValue === 'true'
       )
     );
 
