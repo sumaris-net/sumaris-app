@@ -36,7 +36,8 @@ import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 export interface ProgramSaveOptions extends EntitySaveOptions {
   withStrategies?: boolean; // False by default
-  withDepartmentsAndPersons?: boolean; // True by default
+  withDepartments?: boolean; // True by default
+  withPersons?: boolean; // True by default
 }
 
 const ProgramQueries: BaseEntityGraphqlQueries = {
@@ -273,9 +274,9 @@ export class ProgramService
     this.fillDefaultProperties(entity);
 
     // Transform into json
-    const json = this.asObject(entity);
+    const json = this.asObject(entity, { withDepartments: opts.withDepartments, withPersons: opts.withPersons });
 
-    const isNew = this.isNewFn(json);
+    const isNew = this.isNew(json);
 
     const now = Date.now();
     if (this._debug) console.debug(this._logPrefix + `Saving ${this._logTypeName}...`, json);
@@ -288,7 +289,8 @@ export class ProgramService
         data: json,
         options: {
           withStrategies: opts.withStrategies,
-          withDepartmentsAndPersons: opts.withDepartmentsAndPersons,
+          withDepartments: opts.withDepartments,
+          withPersons: opts.withPersons,
         },
       },
       error: { code: ErrorCodes.SAVE_PROGRAM_ERROR, message: 'PROGRAM.ERROR.SAVE_PROGRAM_ERROR' },
@@ -363,11 +365,16 @@ export class ProgramService
 
   /* -- protected methods -- */
 
-  protected asObject(source: Program, opts?: ReferentialAsObjectOptions): any {
-    return source.asObject(<ReferentialAsObjectOptions>{
+  protected asObject(source: Program, opts?: ReferentialAsObjectOptions & { withPersons?: boolean; withDepartments?: boolean }): any {
+    const target = source.asObject(<ReferentialAsObjectOptions>{
       ...opts,
       ...NOT_MINIFY_OPTIONS, // Force NOT minify, because program is a referential that can be minify in just an ID
     });
+
+    if (opts.withPersons === false) delete target.persons;
+    if (opts.withDepartments === false) delete target.departments;
+
+    return target;
   }
 
   protected fillDefaultProperties(program: Program) {

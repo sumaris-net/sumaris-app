@@ -14,6 +14,7 @@ import {
   AppPropertiesForm,
   AppTable,
   changeCaseToUnderscore,
+  ConfigService,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
@@ -25,6 +26,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  OnReady,
   Property,
   ReferentialRef,
   referentialToString,
@@ -33,6 +35,7 @@ import {
   SharedValidators,
   StatusIds,
   SuggestFn,
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
@@ -46,6 +49,7 @@ import { LocationLevels } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 import { ReferentialImportPolicy } from '@app/referential/table/referential-file.service';
 import { PropertiesFileService } from '@app/referential/properties/properties-file.service';
+import { REFERENTIAL_CONFIG_OPTIONS } from '@app/referential/services/config/referential.config';
 
 export const PROGRAM_TABS = {
   GENERAL: 0,
@@ -67,20 +71,21 @@ export interface ProgramPageState {
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
+export class ProgramPage extends AppEntityEditor<Program, ProgramService> implements OnInit, OnReady {
   readonly TABS = PROGRAM_TABS;
   readonly mobile: boolean;
 
   protected readonly strategiesTable$ = this._state.select('strategiesTables');
   protected readonly importPolicies: ReferentialImportPolicy[] = ['insert-update', 'insert-only', 'update-only'];
 
-  propertyDefinitions: FormFieldDefinition[];
-  fieldDefinitions: FormFieldDefinitionMap = {};
-  form: UntypedFormGroup;
-  i18nFieldPrefix = 'PROGRAM.';
-  strategyEditor: StrategyEditor = 'legacy';
-  i18nTabStrategiesSuffix = '';
-  readOnlyPrivileges = false;
+  protected propertyDefinitions: FormFieldDefinition[];
+  protected fieldDefinitions: FormFieldDefinitionMap = {};
+  protected form: UntypedFormGroup;
+  protected i18nFieldPrefix = 'PROGRAM.';
+  protected strategyEditor: StrategyEditor = 'legacy';
+  protected i18nTabStrategiesSuffix = '';
+  protected readOnlyPrivilegesByConfig = toBoolean(REFERENTIAL_CONFIG_OPTIONS.PROGRAM_PRIVILEGE_READONLY.defaultValue);
+  protected readOnlyPrivilegesByProgram = toBoolean(ProgramProperties.PROGRAM_PRIVILEGE_READONLY.defaultValue);
 
   protected propertiesFileService: PropertiesFileService;
 
@@ -91,6 +96,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   @ViewChild('samplingStrategiesTable', { static: true }) samplingStrategiesTable: SamplingStrategiesTable;
   @ViewChild('personsTable', { static: true }) personsTable: PersonPrivilegesTable;
   @ViewChild('locationList', { static: true }) locationList: AppListForm<ReferentialRef>;
+
+  get readOnlyPrivileges(): boolean {
+    return this.readOnlyPrivilegesByConfig || this.readOnlyPrivilegesByProgram;
+  }
 
   get strategiesTable(): AppTable<Strategy> {
     return this._state.get('strategiesTables');
@@ -116,6 +125,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     protected validatorService: ProgramValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
+    protected configService: ConfigService,
     protected _state: RxState<ProgramPageState>
   ) {
     super(injector, Program, programService, {
@@ -198,6 +208,13 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.markAsReady();
   }
 
+  async ngOnReady() {
+    if (this.debug) console.debug(`${this._logPrefix} Page is ready!`);
+    const config = await this.configService.ready();
+
+    this.readOnlyPrivilegesByConfig = config.getPropertyAsBoolean(REFERENTIAL_CONFIG_OPTIONS.PROGRAM_PRIVILEGE_READONLY);
+  }
+
   load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
     return super.load(id, { ...opts, fetchPolicy: 'network-only' });
@@ -206,8 +223,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   async save(event?: Event, opts?: ProgramSaveOptions): Promise<boolean> {
     return super.save(event, {
       ...opts,
-      // Include privileges only if NOT readonly
-      withDepartmentsAndPersons: !this.readOnlyPrivileges,
+      // Save privileges only if NOT readonly
+      withPersons: !this.readOnlyPrivileges,
+      withDepartments: !this.readOnlyPrivileges,
     });
   }
 
@@ -261,8 +279,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   setValue(data: Program) {
     data = data || new Program();
 
-    this.readOnlyPrivileges = data.getPropertyAsBoolean(ProgramProperties.PROGRAM_PRIVILEGE_READONLY);
-
     this.form.patchValue({ ...data, properties: [], locationClassifications: [], strategies: [], persons: [] }, { emitEvent: false });
 
     // Program properties
@@ -276,8 +292,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     // Users
     this.personsTable.setValue(data.persons || []);
-
-    this.personsTable.readOnly = this.readOnlyPrivileges;
 
     this.markForCheck();
   }
@@ -407,11 +421,11 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   protected computeTitle(data: Program): Promise<string> {
     // new data
     if (!data || isNil(data.id)) {
-      return this.translate.get('PROGRAM.NEW.TITLE').toPromise();
+      return this.translate.instant('PROGRAM.NEW.TITLE');
     }
 
     // Existing data
-    return this.translate.get('PROGRAM.EDIT.TITLE', data).toPromise();
+    return this.translate.instant('PROGRAM.EDIT.TITLE', data);
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
@@ -424,12 +438,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   protected getFirstInvalidTabIndex(): number {
-    if (this.referentialForm.invalid) return 0;
-    if (this.locationList.invalid) return 1;
-    if (this.strategiesTable?.invalid) return 2;
-    if (this.propertiesForm.invalid) return 3;
-    if (this.personsTable.invalid) return 4;
-    return 0;
+    if (this.referentialForm.invalid) return PROGRAM_TABS.GENERAL;
+    if (this.locationList.invalid) return PROGRAM_TABS.LOCATIONS;
+    if (this.strategiesTable?.invalid) return PROGRAM_TABS.STRATEGIES;
+    if (this.propertiesForm.invalid) return PROGRAM_TABS.OPTIONS;
+    if (this.personsTable.invalid) return PROGRAM_TABS.PERSONS;
+    return PROGRAM_TABS.GENERAL;
   }
 
   async addLocationClassification() {

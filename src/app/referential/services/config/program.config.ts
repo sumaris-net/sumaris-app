@@ -1226,7 +1226,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.program.privilege.readonly',
     label: 'PROGRAM.OPTIONS.PROGRAM_PRIVILEGE_READONLY',
     type: 'boolean',
-    defaultValue: 'true',
+    defaultValue: 'false',
   },
 
   /* -- Program / Strategy options -- */
