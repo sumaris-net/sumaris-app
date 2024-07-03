@@ -258,7 +258,12 @@
       </ng-template>
 
       <div style="height: var(--mat-tab-body-content-height)">
-        <app-person-privileges-table #personsTable [title]="'PROGRAM.PRIVILEGES.TITLE' | translate" [canEdit]="enabled"></app-person-privileges-table>
+        <app-person-privileges-table
+          #personsTable
+          [title]="'PROGRAM.PRIVILEGES.TITLE' | translate"
+          [canEdit]="enabled"
+          [readOnly]="readOnlyPrivileges"
+        ></app-person-privileges-table>
       </div>
     </mat-tab>
   </mat-tab-group>

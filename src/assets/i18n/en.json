@@ -2292,6 +2292,7 @@
       "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Occasion > Landings: Min. number of observed species",
       "LANDING_TOP_PMFM_IDS": "Occasion > Landings: Top PMFM(s)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Fishing area: Location level(s)",
+      "PROGRAM_PRIVILEGE_READONLY": "Program > Access rights: read only?",
       "STRATEGY_EDITOR": "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Default",
