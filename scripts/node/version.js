@@ -6,7 +6,7 @@ const utils = require('./utils')
 
 const PROJECT_DIR = path.resolve(__dirname, '../..');
 const LOG_PREFIX = `[${path.basename(__filename)}]`;
-const VERSION_PATTERN = '[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,2}(((-(alpha|beta|rc))|[.])[0-9]{1,2})?';
+const VERSION_PATTERN = '[0-9]{1,2}.[0-9]{1,2}.[0-9]{1,2}(?:(?:(?:-(?:alpha|beta|rc))|[.])[0-9]{1,2})?';
 
 function checkVersion(version) {
   const regexp = new RegExp(`^${VERSION_PATTERN}$`);
@@ -68,7 +68,7 @@ function updateVersion(version) {
 }
 
 function updateElectronBuilderVersion(version) {
-  const regexp = new RegExp('(^\\s+"artifactName":\\s"\\$\\{name\\}-)(' + VERSION_PATTERN + ')');
+  const regexp = new RegExp('(^\\s+"artifactName":\\s"\\$\\{name\\}-)(' + VERSION_PATTERN + ')(-.+$)');
   [
     path.join(PROJECT_DIR, 'electron', 'electron-builder.config.json'),
   ].forEach(file => {
@@ -76,7 +76,7 @@ function updateElectronBuilderVersion(version) {
       utils.replaceTextInFile(file, [
         {
           searchValue: regexp,
-          replaceValue: `$1${version}$4`,
+          replaceValue: `$1${version}$3`,
         },
       ])
     });
