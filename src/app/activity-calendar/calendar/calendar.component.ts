@@ -121,6 +121,7 @@ export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
     icon: 'close',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.DISABLE',
   },
+  // The value 'Nonexistent' is not relevant.
   {
     id: VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
     icon: 'close',
