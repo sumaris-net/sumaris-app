@@ -9,7 +9,7 @@ export interface IVesselPeriodEntity<T extends IEntity<T> = IEntity<any>> extend
 }
 
 export class VesselUtils {
-  static mergeContiguousVesselFeature(vesselFeatures: VesselFeatures[]) {
+  static mergeContiguousVesselFeatures(vesselFeatures: VesselFeatures[]) {
     return vesselFeatures.reduce((accumulator, vesselFeature) => {
       const filteredVesselFeatures = vesselFeatures.filter((vf) => vf.id != vesselFeature.id);
 

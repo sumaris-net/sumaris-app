@@ -20,6 +20,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
   @Input() title: string;
   @Input() stickyEnd: boolean = false;
   @Input() mergeContigousVessel: boolean = false;
+  @Input() showPagination: boolean = false;
 
   @Input()
   set showGrossTonnageGrtColumn(value: boolean) {
@@ -98,7 +99,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
 
       {
         watchAllOptions: <VesselFeaturesServiceWatchOptions>{
-          mergeContigous: () => this.mergeContigous(),
+          mergeContigousVessel: () => this.mergeContigousVesselFeatures(),
         },
 
         saveOnlyDirtyRows: true,
@@ -119,7 +120,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
     super.ngOnInit();
   }
 
-  mergeContigous(): boolean {
+  mergeContigousVesselFeatures(): boolean {
     return this.mergeContigousVessel;
   }
 

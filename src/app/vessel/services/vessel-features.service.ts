@@ -16,7 +16,7 @@ import { map, Observable } from 'rxjs';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { VesselUtils } from './model/vessel.utils';
 export declare interface VesselFeaturesServiceWatchOptions extends EntitiesServiceWatchOptions {
-  mergeContigous?: () => boolean;
+  mergeContigousVessel?: () => boolean;
 }
 export const VesselFeaturesFragments = {
   vesselFeatures: gql`
@@ -79,7 +79,6 @@ export class VesselFeaturesService
     });
   }
 
-  //todo mf tobe fixe sortDirection
   watchAll(
     offset: number,
     size: number,
@@ -88,13 +87,14 @@ export class VesselFeaturesService
     dataFilter?: VesselFeaturesFilter,
     opts?: VesselFeaturesServiceWatchOptions
   ): Observable<LoadResult<VesselFeatures>> {
-    return super.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts).pipe(
+    return super.watchAll(offset, null, sortBy, sortDirection, dataFilter, opts).pipe(
       map(({ data, total }) => {
         const result = { data: data || [], total };
-        if (opts?.mergeContigous()) {
-          result.data = VesselUtils.mergeContiguousVesselFeature(result.data);
+        if (opts?.mergeContigousVessel()) {
+          result.data = VesselUtils.mergeContiguousVesselFeatures(result.data);
         }
-
+        result.total = offset + result.data.length;
+        result.data = result.data.slice(0, size);
         return result;
       })
     );
