@@ -1022,7 +1022,6 @@ export const ProgramProperties = Object.freeze({
       attributes: ['id', 'label', 'name'],
       columnSizes: [2, 4, 6],
     },
-    defaultValue: PmfmIds.SPECIES_LIST_ORIGIN,
   },
   // TODO remove
   /*LANDING_TOP_PMFM_IDS: <FormFieldDefinition>{
