@@ -22,6 +22,12 @@ export class GearUseFeaturesComparators {
   static sortByDateAndRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
     return DateUtils.compare(n1.startDate, n2.startDate) || GearUseFeaturesComparators.sortByRankOrderFn(n1, n2);
   }
+  static sortByMonthAndRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
+    return (
+      DateUtils.compare(n1.startDate, n2.startDate?.clone().year(n1.startDate.year()), 'month') ||
+      GearUseFeaturesComparators.sortByRankOrderFn(n1, n2)
+    );
+  }
   static sortByRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
     const d1 = toNumber(n1.rankOrder, 9999);
     const d2 = toNumber(n2.rankOrder, 9999);

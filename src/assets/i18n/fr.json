@@ -134,7 +134,7 @@
       "HAS_ERROR": "Veuillez corriger des erreurs dans le formulaire"
     },
     "PAGINATOR": {
-      "ITEMS_PER_PAGE": "Nombre de lignes",
+      "ITEMS_PER_PAGE": "Nombre de lignes affichées",
       "NEXT_PAGE": "Page suivante",
       "PREVIOUS_PAGE": "Page précédente",
       "OF": "sur"
@@ -3388,6 +3388,8 @@
       "TITLE_MENU": "{{vessel}} ({{year}})",
       "PREDOC_TITLE": "Prédocumentation",
       "BASE_PORT_LOCATION": "Port d'exploitation",
+      "SOURCE": "Source",
+      "SOURCE_PREDOC": "",
       "BTN_ADD_METIER_BLOCK": "Ajouter un bloc métier",
       "BTN_REPORT": "Éditer un rapport...",
       "BTN_EXPAND_ALL": "Déplier tout",
@@ -3429,6 +3431,12 @@
         "ENABLE": "Actif",
         "DISABLE": "Inactif",
         "NOT_EXISTS": "Inexistant"
+      },
+      "SIH-ACTIFLOT": {
+        "SOURCE_PREDOC": "Enquête N-1"
+      },
+      "SIH-ACTIPRED": {
+        "SOURCE_PREDOC": "SACROIS-OBSDEB"
       }
     },
     "OFFLINE_MODAL": {
@@ -3481,6 +3489,9 @@
     },
     "ERROR": {
       "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici."
+    },
+    "WARNING": {
+      "VALUE_INCONSISTENT_WITH_DIRECT_OBJECTIVE_INVESTIGATION": "Valeur incohérente avec l'objectif directe de l'enquête"
     }
   },
   "ERROR": {

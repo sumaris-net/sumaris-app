@@ -29,4 +29,12 @@ app-entity-metadata {
       display: unset;
     }
   }
+  ion-text.warning {
+    font-size: 12px !important;
+    color: var(--ion-color-tertiary);
+
+    p {
+      font-size: inherit;
+    }
+  }
 }

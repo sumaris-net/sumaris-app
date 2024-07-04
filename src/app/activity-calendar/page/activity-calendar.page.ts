@@ -26,6 +26,7 @@ import {
   Property,
   ReferentialRef,
   referentialToString,
+  removeDuplicatesFromArray,
   StatusIds,
   toBoolean,
   toNumber,
@@ -53,7 +54,7 @@ import { ActivityCalendarContextService } from '../activity-calendar-context.ser
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { CalendarComponent } from '@app/activity-calendar/calendar/calendar.component';
@@ -62,12 +63,9 @@ import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorato
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 import { Moment } from 'moment';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
-import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
-import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { VesselFeaturesHistoryComponent } from '@app/vessel/page/vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from '@app/vessel/page/vessel-registration-history.component';
-import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { IOutputAreaSizes } from 'angular-split/lib/interface';
 import { SplitComponent } from 'angular-split';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
@@ -76,8 +74,9 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
 import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.table';
-import { environment } from '@environments/environment';
 import { GearPhysicalFeaturesUtils } from '../model/gear-physical-features.utils';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-calendar.utils';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -154,6 +153,7 @@ export class ActivityCalendarPage
   protected showMapPanel = true; // TODO enable
   protected selectedSubTabIndex = 0;
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
+  protected warning: string = null;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
@@ -206,9 +206,9 @@ export class ActivityCalendarPage
       autoOpenNextTab: false,
     });
     this.defaultBackHref = '/activity-calendar';
+
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
-    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -650,6 +650,17 @@ export class ActivityCalendarPage
     if (this._predocPanelVisible && !isNewData) {
       this.loadPredoc(data);
     }
+
+    const pmfmSurveyQualification = (await firstNotNilPromise(this.baseForm.pmfms$)).find((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION);
+    const valueSurveyQualification = PmfmValueUtils.valueToString(data.measurementValues?.[PmfmIds.SURVEY_QUALIFICATION], {
+      pmfm: pmfmSurveyQualification,
+      propertyNames: ['label'],
+    });
+
+    this.warning =
+      data.directSurveyInvestigation && valueSurveyQualification != 'DIR'
+        ? 'ACTIVITY_CALENDAR.WARNING.VALUE_INCONSISTENT_WITH_DIRECT_OBJECTIVE_INVESTIGATION'
+        : null;
   }
 
   async getValue(): Promise<ActivityCalendar> {
@@ -658,16 +669,7 @@ export class ActivityCalendarPage
     const value = await super.getValue();
 
     const activityMonths = this.calendar.value;
-    if (activityMonths) {
-      value.vesselUseFeatures = activityMonths.map((m) => VesselUseFeatures.fromObject(m.asObject())).filter(VesselUseFeatures.isNotEmpty);
-      value.gearUseFeatures = activityMonths.flatMap((m) =>
-        ((m.isActive === VesselUseFeaturesIsActiveEnum.ACTIVE && m.gearUseFeatures) || []).filter(GearUseFeatures.isNotEmpty).map((guf, index) => {
-          guf.rankOrder = index + 1;
-          guf.fishingAreas = guf.fishingAreas?.filter(FishingArea.isNotEmpty) || [];
-          return guf;
-        })
-      );
-    }
+    if (activityMonths) ActivityMonthUtils.fillActivityCalendar(value, activityMonths);
 
     // Metiers
     value.gearPhysicalFeatures = GearPhysicalFeaturesUtils.updateFromCalendar(value, this.tableMetier.value, { timezone: this.timezone });
@@ -743,7 +745,7 @@ export class ActivityCalendarPage
 
     const programLabels = await firstValueFrom(this.predocProgramLabels$);
 
-    const lastYearDefer = async () => {
+    const loadPreviousYearCalendar = async () => {
       const { data } = await this.dataService.loadAll(
         0,
         1,
@@ -758,7 +760,7 @@ export class ActivityCalendarPage
       );
       return data?.[0];
     };
-    const otherProgramDefers = (programLabels || []).map((programLabel) => async () => {
+    const loadPredocProgramCalendars = (programLabels || []).map((programLabel) => async () => {
       const { data } = await this.dataService.loadAll(
         0,
         1,
@@ -774,19 +776,30 @@ export class ActivityCalendarPage
       return data?.[0];
     });
 
-    const predocCalendars = (await chainPromises<ActivityCalendar>([lastYearDefer, ...otherProgramDefers])).filter(isNotNil);
-    console.debug(`${this.logPrefix}${predocCalendars.length} predoc calendars loaded in ${Date.now() - now}ms`);
+    let data = (await chainPromises<ActivityCalendar>([loadPreviousYearCalendar, ...loadPredocProgramCalendars])).filter(isNotNil);
 
-    if (isNotEmptyArray(predocCalendars)) {
-      this.predocCalendar.markAsReady();
+    // DEBUG: simulate a N-1 calendar
+    if (this.debug && data.length === 1) {
+      const fakeCalendar = data[0].clone();
+      ActivityCalendarUtils.setYear(fakeCalendar, entity.year - 1);
+      ActivityCalendarUtils.setProgram(fakeCalendar, entity.program);
+      data = [fakeCalendar, data[0]];
+    }
 
-      // DEBUG: simulate a previous calendar
-      //if (this.debug && predocCalendars.length === 1) predocCalendars = predocCalendars.concat(predocCalendars[0].clone());
+    this.predocCalendar.pmfms = await firstNotNilPromise(this.calendar.pmfms$);
+    this.predocCalendar.availablePrograms = removeDuplicatesFromArray(data.map((ac) => ac.program).filter(isNotNil), 'label');
+    this.predocCalendar.markAsReady();
 
-      const predocMonths = predocCalendars.flatMap((ac) => ActivityMonthUtils.fromActivityCalendar(ac, { fillEmptyGuf: true }));
-      EntityUtils.sort(predocMonths, 'month', 'asc');
+    if (isNotEmptyArray(data)) {
+      console.debug(`${this.logPrefix}${data.length} predoc calendars loaded in ${Date.now() - now}ms`);
 
-      await this.predocCalendar.setValue(predocMonths);
+      // Convert to months, then sort
+      const months = ActivityMonthUtils.fromActivityCalendars(data, { fillEmptyGuf: true, timezone: this.timezone });
+      EntityUtils.sort(months, 'month', 'asc');
+
+      await this.predocCalendar.setValue(months || []);
+    } else {
+      await this.predocCalendar.setValue([]);
     }
   }
 

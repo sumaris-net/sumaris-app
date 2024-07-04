@@ -153,6 +153,14 @@
 
                 <!-- quality process -->
                 <app-entity-quality-form></app-entity-quality-form>
+
+                <!-- value inconsistent with direct objective investigation (warning) -->
+                <ion-text class="ion-text-wrap warning" *ngIf="warning">
+                  <p>
+                    <ion-icon name="warning"></ion-icon>
+                    &nbsp;{{ warning | translate }}
+                  </p>
+                </ion-text>
               </app-entity-metadata>
             </ion-col>
           </ion-row>
@@ -320,10 +328,12 @@
           <app-calendar
             #predocCalendar
             [title]="'ACTIVITY_CALENDAR.EDIT.PREDOC_TITLE'"
-            [pmfms]="calendar.pmfms$ | push"
+            [showToolbar]="true"
             [showVesselOwner]="false"
             [showRegistrationLocation]="false"
-            [showToolbar]="true"
+            [showProgram]="true"
+            [programLabel]="programLabel"
+            [programHeaderLabel]="'ACTIVITY_CALENDAR.EDIT.SOURCE'"
             [usePageSettings]="false"
             [toolbarColor]="'secondary'"
             [timezone]="timezone"

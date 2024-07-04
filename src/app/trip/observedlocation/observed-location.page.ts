@@ -130,8 +130,8 @@ export class ObservedLocationPage
     super(injector, ObservedLocation, injector.get(ObservedLocationService), {
       pathIdAttribute: 'observedLocationId',
       tabCount: 2,
-      i18nPrefix: 'OBSERVED_LOCATION.EDIT.',
       enableListenChanges: true,
+      i18nPrefix: 'OBSERVED_LOCATION.EDIT.',
       acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION,
       settingsId: ObservedLocationPageSettingsEnum.PAGE_ID,
       canCopyLocally: accountService.isAdmin(),
@@ -215,6 +215,7 @@ export class ObservedLocationPage
       this.tabGroup.selectedIndex = ObservedLocationPage.TABS.LANDINGS;
 
       // Reset other errors
+      this.landingsTable.resetError(opts);
       super.setError(undefined, opts);
     }
 

@@ -3142,6 +3142,9 @@
     },
     "OPTIONS": {
       "ENABLE": "Activity calendar > Enable?"
+    },
+    "WARNING": {
+      "VALUE_INCONSISTENT_WITH_DIRECT_OBJECTIVE_INVESTIGATION": "Value inconsistent with the direct objective of the investigation"
     }
   },
   "ERROR": {
