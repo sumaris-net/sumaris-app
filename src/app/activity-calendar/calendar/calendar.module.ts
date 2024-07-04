@@ -11,6 +11,7 @@ import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-fi
 import { AppDataModule } from '@app/data/data.module';
 import { MatIcon } from '@angular/material/icon';
 import { MatIconButton } from '@angular/material/button';
+import { AppSharedModule } from '@app/shared/shared.module';
 
 @NgModule({
   imports: [
@@ -30,6 +31,7 @@ import { MatIconButton } from '@angular/material/button';
     MatIcon,
     MatIconButton,
     MatIcon,
+    AppSharedModule,
   ],
   declarations: [CalendarComponent],
   exports: [

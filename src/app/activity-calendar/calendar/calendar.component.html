@@ -95,6 +95,14 @@
 
       <ng-content select="[matToolbarEnd]"></ng-content>
 
+      <!-- filter programs -->
+      @if (availablePrograms$ | async; as programs) {
+        @for (program of programs; track program.label) {
+          <mat-checkbox (change)="$event ? programSelection.toggle(program) : null" [checked]="programSelection.isSelected(program)">
+            <mat-label>{{ 'ACTIVITY_CALENDAR.EDIT.SOURCE_PREDOC' | translateContext: program.label }}</mat-label>
+          </mat-checkbox>
+        }
+      }
       <!-- options -->
       @if (showToolbarOptions) {
         <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
@@ -142,7 +150,12 @@
     </div>
     <div #cellClipboardDiv class="cell-clipboard" [class.cdk-visually-hidden]="!cellClipboard"></div>
 
-    <mat-table [dataSource]="dataSource" [class.resizing]="cellSelection?.resizing" [class.large]="!compact">
+    <mat-table
+      [dataSource]="dataSource"
+      [class.resizing]="cellSelection?.resizing"
+      [class.large]="!compact"
+      [class.cdk-visually-hidden]="totalRowCount === 0"
+    >
       <!-- hidden columns (required by AppTable) -->
       <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
         <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
@@ -199,6 +212,17 @@
               </ion-label>
             }
           </ng-container>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="program">
+        <mat-header-cell *matHeaderCellDef class="odd">
+          <ion-label>{{ programHeaderLabel | translate }}</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row" class="odd mat-column-reset-background-color">
+          <ion-label class="ion-text-nowrap computed" [title]="content.innerText">
+            <span #content>{{ 'ACTIVITY_CALENDAR.EDIT.SOURCE_PREDOC' | translateContext: row.currentData.program?.label }}</span>
+          </ion-label>
         </mat-cell>
       </ng-container>
 
@@ -316,6 +340,7 @@
                   : {
                       html: false,
                       withDetails: showPmfmDetails,
+                      withUnit: false,
                       i18nPrefix: i18nPmfmPrefix,
                       i18nContext: i18nColumnSuffix
                     }
@@ -477,12 +502,19 @@
         [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id"
         [class.activity-inactive]="(row.validator | formGetValue: 'isActive') === 0"
         [class.activity-not-exists]="(row.validator | formGetValue: 'isActive') === 2"
+        [class]="row.validator | formGetValue: 'program' | mapGet: 'label'"
         (keydown.escape)="escapeEditingRow($event)"
         [cdkTrapFocus]="!row.valid"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></mat-row>
     </mat-table>
+
+    @if (totalRowCount === 0 && loaded) {
+      <ion-item>
+        <ion-text color="danger" class="text-italic">{{ 'COMMON.NO_RESULT' | translate }}</ion-text>
+      </ion-item>
+    }
   </div>
 
   <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y">

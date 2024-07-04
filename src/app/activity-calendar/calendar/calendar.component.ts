@@ -18,6 +18,7 @@ import {
   changeCaseToUnderscore,
   DateUtils,
   EntityUtils,
+  equals,
   getPropertyByPath,
   IEntitiesService,
   InMemoryEntitiesService,
@@ -55,7 +56,7 @@ import {
 } from '@app/activity-calendar/calendar/activity-month.validator';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { fromEvent, Observable, Subscription, tap } from 'rxjs';
+import { distinctUntilChanged, fromEvent, Observable, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { UntypedFormGroup } from '@angular/forms';
@@ -81,6 +82,7 @@ import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filt
 import { IUseFeaturesUtils } from '@app/activity-calendar/model/use-features.model';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
 import { VesselRegistrationPeriodService } from '@app/vessel/services/vessel-registration-period.service';
+import { SelectionModel } from '@angular/cdk/collections';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -104,7 +106,7 @@ const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
           ),
       ]
   );
-export const ACTIVITY_MONTH_READONLY_COLUMNS = ['month', 'vesselOwner', 'registrationLocation'];
+export const ACTIVITY_MONTH_READONLY_COLUMNS = ['month', 'program', 'vesselOwner', 'registrationLocation'];
 export const ACTIVITY_MONTH_START_COLUMNS = [...ACTIVITY_MONTH_READONLY_COLUMNS, 'isActive', 'basePortLocation'];
 export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
 
@@ -153,6 +155,7 @@ export interface CalendarComponentState extends BaseMeasurementsTableState {
   metierCount: number;
   validRowCount: number;
   hasClipboard: boolean;
+  availablePrograms: ReferentialRef[];
 }
 
 export type CalendarComponentStyle = 'table' | 'accordion';
@@ -211,6 +214,7 @@ export class CalendarComponent
   @RxStateSelect() protected months$: Observable<Moment[]>;
   @RxStateSelect() validRowCount$: Observable<number>;
   @RxStateSelect() hasClipboard$: Observable<boolean>;
+  @RxStateSelect() availablePrograms$: Observable<ReferentialRef[]>;
   protected readonly isActiveList = IsActiveList;
   protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
@@ -221,6 +225,7 @@ export class CalendarComponent
   protected _children: CalendarComponent[];
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
+  protected programSelection = new SelectionModel<ReferentialRef>(true);
 
   @RxStateProperty() vesselRegistrations: ReferentialRef[][];
   @RxStateProperty() vesselOwners: VesselOwner[][];
@@ -228,6 +233,7 @@ export class CalendarComponent
   @RxStateProperty() metierCount: number;
   @RxStateProperty() validRowCount: number;
   @RxStateProperty() hasClipboard: boolean;
+  @RxStateProperty() availablePrograms: ReferentialRef[];
 
   @Input() @RxStateProperty() months: Moment[];
 
@@ -245,9 +251,10 @@ export class CalendarComponent
   @Input() showPmfmDetails = false;
   @Input() style: CalendarComponentStyle = 'table';
   @Input() enableCellSelection: boolean;
+  @Input() programHeaderLabel: string;
 
   @Input() set month(value: number) {
-    this.filter = ActivityMonthFilter.fromObject({ month: value });
+    this.filter = ActivityMonthFilter.fromObject({ ...this.filter, month: value });
   }
   get month(): number {
     return this.filter?.month;
@@ -265,6 +272,12 @@ export class CalendarComponent
   }
   get showRegistrationLocation(): boolean {
     return this.getShowColumn('registrationLocation');
+  }
+  @Input() set showProgram(value: boolean) {
+    this.setShowColumn('program', value);
+  }
+  get showProgram(): boolean {
+    return this.getShowColumn('program');
   }
   @Input() set showMonth(value: boolean) {
     this.setShowColumn('month', value);
@@ -364,7 +377,7 @@ export class CalendarComponent
     this.sticky = true;
     this.compact = null;
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
-    this.excludesColumns = [...DYNAMIC_COLUMNS];
+    this.excludesColumns = ['program', ...DYNAMIC_COLUMNS];
     this.toolbarColor = 'medium';
     this.logPrefix = '[activity-calendar] ';
     this.loadingSubject.next(true);
@@ -447,6 +460,31 @@ export class CalendarComponent
           return rows.map((row) => row.currentData?.isActive).filter(isNotNil).length;
         })
       )
+    );
+
+    this._state.hold(this.availablePrograms$, (programs: ReferentialRef[]) => {
+      this.programSelection.clear(false);
+      if (isNotEmptyArray(programs)) this.programSelection.select(...programs);
+    });
+
+    this.registerSubscription(
+      this.programSelection.changed
+        .pipe(
+          debounceTime(250),
+          map(() => this.programSelection.selected?.map((p) => p?.label).filter(isNotNil)),
+          distinctUntilChanged(equals)
+        )
+        .subscribe((programLabels) => {
+          const filter = this.filter || new ActivityMonthFilter();
+          if (!equals(filter.programLabels, programLabels)) {
+            filter.programLabels = programLabels;
+            this.setFilter(filter);
+
+            // Hide cell selection, because some columns can have disappeared
+            this.removeCellSelection();
+            this.clearClipboard(null, { clearContext: false });
+          }
+        })
     );
 
     // Reset cell clipboard, when clipboard cleared or updated
@@ -676,7 +714,7 @@ export class CalendarComponent
     this.closeContextMenu();
 
     // DEBUG
-    console.debug(`${this.logPrefix}Start cell selection... [confirm edited row}`);
+    if (this.debug) console.debug(`${this.logPrefix}Start cell selection... [confirm edited row}`);
 
     // Confirmed previous edited row
     const confirmed = await this.confirmEditCreate();
@@ -696,7 +734,7 @@ export class CalendarComponent
     }
 
     // DEBUG
-    console.debug(`${this.logPrefix}Start cell selection... [row confirmed}`);
+    if (this.debug) console.debug(`${this.logPrefix}Start cell selection... [row confirmed}`);
 
     this.cellSelection = {
       divElement,
@@ -723,7 +761,7 @@ export class CalendarComponent
     if (!cellSelection?.resizing || cellSelection.validating || event.defaultPrevented) return; // Ignore
 
     // DEBUG
-    //console.debug(this.logPrefix + 'Moving cell selection validating=' + (cellSelection?.validating || false));
+    if (this.debug) console.debug(this.logPrefix + 'Moving cell selection validating=' + (cellSelection?.validating || false));
 
     const { axis, cellRect, row } = cellSelection;
     if (!cellRect) return; // Missing cellRect
@@ -775,7 +813,8 @@ export class CalendarComponent
     event?.stopPropagation();
 
     // DEBUG
-    console.debug(`${this.logPrefix}Validating cell selection`);
+    if (this.debug) console.debug(`${this.logPrefix}Validating cell selection`);
+
     cellSelection.validating = true;
     cellSelection.resizing = false;
 
@@ -1008,7 +1047,11 @@ export class CalendarComponent
       if (event.ctrlKey === true) return this.onMouseCtrlClick(event, row, this.focusColumn);
     }
 
-    if (this.disabled) return false; // Skip
+    // Not editable: forget the cell selection
+    if (this.disabled) {
+      this.removeCellSelection();
+      return false;
+    }
 
     return super.clickRow(event, row);
   }
@@ -1026,7 +1069,7 @@ export class CalendarComponent
     // Restart listen changes, if still editing (e.g. cannot cancel)
     if (row.editing) {
       // DEBUG
-      console.debug(`${this.logPrefix} Cannot cancel or delete the row!`);
+      if (this.debug) console.debug(`${this.logPrefix} Cannot cancel or delete the row!`);
 
       this.startListenRow(row.validator);
     } else {
@@ -1219,7 +1262,7 @@ export class CalendarComponent
     this.rowSubscription?.unsubscribe();
 
     // DEBUG
-    console.debug(this.logPrefix + 'Start listening row form...', form);
+    if (this.debug) console.debug(this.logPrefix + 'Start listening row form...', form);
 
     this.rowSubscription = new Subscription();
     this.rowSubscription.add(
@@ -1243,8 +1286,9 @@ export class CalendarComponent
           if (form.dirty) this.markAsDirty();
         })
     );
+
     // DEBUG
-    this.rowSubscription.add(() => console.debug(this.logPrefix + 'Stop listening row form'));
+    if (this.debug) this.rowSubscription.add(() => console.debug(this.logPrefix + 'Stop listening row form'));
 
     // Listen row focused element
     this.rowSubscription.add(this.startListenFocusedElement());
@@ -1439,7 +1483,7 @@ export class CalendarComponent
   protected setFocusColumn(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, columnName: string) {
     if (!row.editing) {
       // DEBUG
-      console.debug(`${this.logPrefix}setFocusColumn() => ${columnName}`);
+      //if (this.debug) console.debug(`${this.logPrefix}setFocusColumn() => ${columnName}`);
       this.focusColumn = columnName;
     }
   }
@@ -1721,7 +1765,7 @@ export class CalendarComponent
     if (isEmptyArray(sourceMonths) || isEmptyArray(sourcePaths)) return false; // Empty clipboard
 
     // DEBUG
-    console.debug(`${this.logPrefix}Paste ${sourceMonths.length} month(s) from clipboard...`, sourcePaths, event);
+    if (this.debug) console.debug(`${this.logPrefix}Paste ${sourceMonths.length} month(s) from clipboard...`, sourcePaths, event);
 
     const targetCellSelection =
       this.cellSelection ||
@@ -1960,7 +2004,7 @@ export class CalendarComponent
       );
       subscription.add(() => {
         // DEBUG
-        console.debug(`${this.logPrefix}Stop listening row focused element`);
+        //console.debug(`${this.logPrefix}Stop listening row focused element`);
         // Forget the focused element
         this.editedRowFocusedElement = null;
       });

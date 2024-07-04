@@ -6,6 +6,7 @@ import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.
 import { Moment } from 'moment';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { GearPhysicalFeatures } from './gear-physical-features.model';
+import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 
 @EntityClass({ typename: 'ActivityCalendarVO' })
 export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {

@@ -5,6 +5,7 @@ import {
   EntityFilter,
   FilterFn,
   IEntity,
+  isNotEmptyArray,
   isNotNil,
   ReferentialUtils,
 } from '@sumaris-net/ngx-components';
@@ -65,17 +66,34 @@ export class ActivityMonthFilter extends EntityFilter<ActivityMonthFilter, Activ
   static fromObject: (source: any, opts?: any) => ActivityMonthFilter;
 
   month: number;
+  programLabels: string[];
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.month = source.month;
+    this.programLabels = source.programLabels;
+  }
+
+  asObject(opts?: EntityAsObjectOptions): StoreObject {
+    const target = super.asObject(opts);
+    target.month = this.month;
+    target.programLabels = this.programLabels;
+    return target;
   }
 
   protected buildFilter(): FilterFn<ActivityMonth>[] {
     const filterFns = super.buildFilter();
+
+    // Month
     if (isNotNil(this.month)) {
       const month = this.month;
       filterFns.push((item) => item.startDate?.month() === month);
+    }
+
+    // Programs
+    if (isNotEmptyArray(this.programLabels)) {
+      const programLabels = this.programLabels;
+      filterFns.push((item) => !item.program || programLabels.includes(item.program.label));
     }
     return filterFns;
   }

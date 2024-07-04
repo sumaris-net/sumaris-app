@@ -102,8 +102,9 @@ export class ActivityMonthValidatorService<
   getFormGroupConfig(data?: ActivityMonth, opts?: O): { [key: string]: any } {
     const config = Object.assign(super.getFormGroupConfig(data, opts), {
       __typename: [VesselUseFeatures.TYPENAME],
-      vesselId: [toNumber(data?.vesselId, null)],
       month: [toNumber(data?.month, null), Validators.required],
+      vesselId: [toNumber(data?.vesselId, null)],
+      program: [data?.program || null],
       startDate: [data?.startDate || null, Validators.required],
       endDate: [data?.endDate || null, Validators.required],
       isActive: [toNumber(data?.isActive, null), opts?.required ? Validators.required : undefined],

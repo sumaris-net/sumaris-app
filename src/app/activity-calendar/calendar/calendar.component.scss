@@ -21,8 +21,15 @@ mat-toolbar {
   position: relative;
   z-index: 50;
   &.secondary {
+    --mat-toolbar-container-text-color: var(--ion-color-secondary-contrast);
+    --mdc-form-field-label-text-color: var(--ion-color-secondary-contrast);
     background-color: var(--ion-color-secondary);
     color: var(--ion-color-secondary-contrast);
+    mat-checkbox input,
+    mat-label {
+      --mdc-form-field-label-text-color: var(--ion-color-secondary-contrast);
+      color: var(--ion-color-secondary-contrast);
+    }
   }
 }
 
@@ -44,7 +51,7 @@ mat-toolbar {
 
 .mat-mdc-table {
   --col-header-size: 150px;
-  --col-min-size: 100px;
+  --col-min-size: 120px;
   --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / var(--month-count, 12)));
   --mat-table-row-item-outline-width: 0px;
   --mat-column-actions-min-width: 100%;
@@ -95,7 +102,10 @@ mat-toolbar {
     &.activity-inactive .mat-mdc-cell {
       &.mat-column-pmfm,
       &.mat-column-metier,
-      &.mat-column-fishingArea {
+      &.mat-column-fishingArea,
+      &.mat-column-distanceToCoastGradient,
+      &.mat-column-depthGradient,
+      &.mat-column-nearbySpecificArea {
         --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.8) !important;
         background-color: var(--mat-table-background-color);
 
@@ -103,6 +113,15 @@ mat-toolbar {
           display: none;
           visibility: hidden;
         }
+      }
+    }
+
+    &.SIH-ACTIPRED {
+      --mat-table-background-color: rgba(var(--ion-color-secondary-rgb), 0.1) !important;
+      background-color: var(--mat-table-background-color);
+
+      &.mat-column-reset-background-color {
+        --mat-table-background-color: var(--ion-color-step-100) !important;
       }
     }
   }
