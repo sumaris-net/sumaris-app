@@ -67,6 +67,21 @@ function updateVersion(version) {
     });
 }
 
+function updateElectronBuilderVersion(version) {
+  const regexp = new RegExp('(^\\s+"artifactName":\\s"\\$\\{name\\}-)(' + VERSION_PATTERN + ')');
+  [
+    path.join(PROJECT_DIR, 'electron', 'electron-builder.config.json'),
+  ].forEach(file => {
+      console.info(`${LOG_PREFIX} update version standard in ${file}`);
+      utils.replaceTextInFile(file, [
+        {
+          searchValue: regexp,
+          replaceValue: `$1${version}$4`,
+        },
+      ])
+    });
+}
+
 function updateWebExtVersion(versionCode, versionName) {
   const regexpVersionCode = /(^\s+"version":)(\s+"[^"]+",$)/;
   const regexpVersionName = /(^\s+"version_name":)(\s+"[^"]+",$)/;
@@ -142,6 +157,7 @@ async function main() {
 
   if (options.set) {
     updateVersion(version);
+    updateElectronBuilderVersion(version);
     updateWebExtVersion(versionWebext, version);
     updateAndroidVersion(versionAndroid, version);
     updateInstallSh(version);

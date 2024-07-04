@@ -86,7 +86,7 @@ variables:
     - if [[ "$BUILD_ENVIRONMENT" == "prod" && "_${ANDROID_STORE_PASSWORD}" == "_" ]]; then echo "Missing required variable ANDROID_STORE_PASSWORD. This variable is only available on protected branch."; exit 1; fi
     - if [[ "$BUILD_ENVIRONMENT" == "prod" && "_${ANDROID_KEY_ALIAS}" == "_" ]]; then echo "Missing required variable ANDROID_KEY_ALIAS"; exit 1; fi
     - if [[ "$BUILD_ENVIRONMENT" == "prod" && "_${ANDROID_KEY_PASSWORD}" == "_" ]]; then echo "Missing required variable ANDROID_KEY_PASSWORD"; exit 1; fi
-    - echo "storeFile=Cesium.keystore" > android/app/release-signing.properties
+    - echo "storeFile=Sumaris.keystore" > android/app/release-signing.properties
     - echo "storePassword=${ANDROID_STORE_PASSWORD}" >> android/app/release-signing.properties
     - echo "keyAlias=${ANDROID_KEY_ALIAS}" >> android/app/release-signing.properties
     - echo "keyPassword=${ANDROID_KEY_PASSWORD}" >> android/app/release-signing.properties
