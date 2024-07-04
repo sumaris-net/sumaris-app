@@ -18,6 +18,7 @@ workflow:
   rules:
     - changes:
         - scripts/docker/**/Dockerfile
+        - scripts/node/*
         - src/**/*
         - android/**/*
         - .gitlab-ci.yml
