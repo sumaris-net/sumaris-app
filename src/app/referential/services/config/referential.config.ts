@@ -919,6 +919,21 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: QualitativeValueIds.SEX.UNSEXED,
   },
 
+  QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_PETS_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.SPECIES_LIST_ORIGIN_PETS.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_PETS_ID',
+    type: 'entity',
+    autocomplete: QualitativeValueAutocompleteConfig,
+    defaultValue: QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS,
+  },
+  QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_RANDOM_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.SPECIES_LIST_ORIGIN_RANDOM.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_RANDOM_ID',
+    type: 'entity',
+    autocomplete: QualitativeValueAutocompleteConfig,
+    defaultValue: QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM,
+  },
+
   QUALITY_FLAG_NOT_COMPLETED_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualityFlag.NOT_COMPLETED.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITY_FLAG_NOT_COMPLETED_ID',
