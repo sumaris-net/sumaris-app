@@ -1,5 +1,5 @@
-import { DateUtils, IEntity, equals, isNotNil } from '@sumaris-net/ngx-components';
-import { Moment } from 'moment/moment';
+import { DateUtils, equals, IEntity, isNotEmptyArray, lastArrayValue, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
+import { Moment, unitOfTime } from 'moment/moment';
 import { VesselFeatures } from './vessel.model';
 
 export interface IVesselPeriodEntity<T extends IEntity<T> = IEntity<any>> extends IEntity<T> {
@@ -8,74 +8,50 @@ export interface IVesselPeriodEntity<T extends IEntity<T> = IEntity<any>> extend
   endDate?: Moment;
 }
 
-export class VesselUtils {
-  static mergeContiguousVesselFeatures(vesselFeatures: VesselFeatures[]) {
-    return vesselFeatures.reduce((accumulator, vesselFeature) => {
-      const filteredVesselFeatures = vesselFeatures.filter((vf) => vf.id != vesselFeature.id);
+export class VesselFeaturesUtils {
+  static reduceVesselFeatures(vesselFeatures: VesselFeatures[], opts?: { fillHighlightedProperties?: boolean }): VesselFeatures[] {
+    return vesselFeatures.reduce(
+      (res, current) => {
+        let previous = lastArrayValue(res);
 
-      const vesselClone = vesselFeature.clone();
-      const duplicateVesselFeatures = this.getDuplicateVesselFeatures(vesselClone, filteredVesselFeatures);
-      const contiguousItems = this.getContiguousVesselFeatures(vesselFeature, duplicateVesselFeatures);
+        // If contiguous AND same content
+        const canMerge =
+          previous &&
+          VesselFeaturesUtils.isContiguousPeriod(previous, current, 24, 'hours') &&
+          VesselFeatures.equals(previous, current, { withId: false, withDates: false });
+        // Merge: keep previous with an extended period
+        if (canMerge) {
+          previous = previous.clone(); // Keep original item unchanged
+          previous.startDate = DateUtils.min(previous.startDate, current.startDate);
+          previous.endDate = DateUtils.max(previous.endDate, current.endDate);
+          return res
+            .slice(0, res.length - 1) // remove previous
+            .concat(previous); // Reinsert previous
+        }
 
-      // If there are contiguous items, update the original feature
-      if (contiguousItems.length > 0) {
-        const maxEndDate = contiguousItems.reduce((max, item) => (item.endDate > max ? item.endDate : max), vesselFeature.endDate);
-        const minStartDate = contiguousItems.reduce((min, item) => (item.startDate < min ? item.startDate : min), vesselFeature.startDate);
-        vesselFeature.startDate = minStartDate;
-        vesselFeature.endDate = maxEndDate;
-      }
-
-      // check if data is not already in the accumulator with a bigger end date
-      const accumulatorItem = this.getDuplicateVesselFeatures(vesselClone, accumulator);
-
-      if (accumulatorItem.length > 0) {
-        for (const item of accumulatorItem) {
-          if (vesselFeature.startDate.isSameOrAfter(item.startDate) && vesselFeature.endDate.isSameOrBefore(item.endDate)) {
-            //if the data is already in the accumulator with a bigger end date, we remove it
-            accumulator.splice(accumulator.indexOf(item), 1);
-            return accumulator;
+        // previous != current
+        if (previous && opts?.fillHighlightedProperties) {
+          let highlightedProperties = Object.keys(current)
+            .filter((key) => !['id', 'startDate', 'endDate', 'creationDate', 'updateDate', 'recorderPerson', 'recorderDepartment'].includes(key))
+            .filter((key) => !equals(previous[key], current[key]));
+          if (isNotEmptyArray(highlightedProperties)) {
+            highlightedProperties = removeDuplicatesFromArray([...(current.__highlightedProperties || []), ...highlightedProperties]);
+            current = current.clone();
+            current.__highlightedProperties = highlightedProperties;
+            console.log('TODO __highlightedProperties=', highlightedProperties);
           }
         }
-      }
-      accumulator.push(vesselFeature);
-      return accumulator;
-    }, []);
+
+        return res.concat(current);
+      },
+      <VesselFeatures[]>[]
+    );
   }
 
-  static getDuplicateVesselFeatures(vesselClone: VesselFeatures, vesselFeatures: VesselFeatures[]): VesselFeatures[] {
-    delete vesselClone.id;
-    delete vesselClone.startDate;
-    delete vesselClone.endDate;
-    delete vesselClone.updateDate;
-
-    // Check if there are vessel features that have the same values as the current vesselFeature
-    const duplicateVesselFeatures = vesselFeatures.filter((vf) => {
-      const vfClone = vf.clone();
-      delete vfClone.id;
-      delete vfClone.startDate;
-      delete vfClone.endDate;
-      delete vfClone.updateDate;
-      return equals(vesselClone, vfClone);
-    });
-
-    return duplicateVesselFeatures;
-  }
-
-  static getContiguousVesselFeatures(vesselFeature: VesselFeatures, duplicateVesselFeatures: VesselFeatures[]): VesselFeatures[] {
-    // Check if there are identical vessel features that are contiguous
-    const contiguousItems = [];
-    if (isNotNil(vesselFeature.endDate) && isNotNil(vesselFeature.startDate)) {
-      duplicateVesselFeatures.forEach((vf) => {
-        if (
-          vesselFeature.endDate.isSame(vf.startDate) ||
-          vesselFeature.endDate.clone().add(1, 'days').isSame(vf.startDate) ||
-          vesselFeature.startDate.isSame(vf.endDate) ||
-          vesselFeature.startDate.clone().add(1, 'days').isSame(vf.endDate)
-        ) {
-          contiguousItems.push(vf);
-        }
-      });
-    }
-    return contiguousItems;
+  static isContiguousPeriod(o1: IVesselPeriodEntity, o2: IVesselPeriodEntity, maxDelta: number = 24, deltaUnit: unitOfTime.Base = 'hours') {
+    return (
+      (o1.endDate && DateUtils.moment.duration(o1.endDate.diff(o2.startDate)).abs().as(deltaUnit) <= maxDelta) ||
+      (o2.endDate && DateUtils.moment.duration(o1.startDate.diff(o2.endDate)).abs().as(deltaUnit) <= maxDelta)
+    );
   }
 }

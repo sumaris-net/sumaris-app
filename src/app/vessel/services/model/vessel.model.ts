@@ -89,6 +89,10 @@ export class Vessel extends RootDataEntity<Vessel> {
 export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPeriodEntity<VesselFeatures> {
   static fromObject: (source: any, opts?: any) => VesselFeatures;
 
+  static equals(o1: VesselFeatures | any, o2: VesselFeatures | any, opts?: { withId?: boolean; withDates?: boolean }): boolean {
+    return (!o1 && !o2) || (o1 && VesselFeatures.fromObject(o1).equals(o2, opts));
+  }
+
   name: string;
   startDate: Moment;
   endDate: Moment;
@@ -110,6 +114,9 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
 
   // Parent
   vesselId: number;
+
+  // UI properties
+  __highlightedProperties: string[];
 
   get empty(): boolean {
     return isNil(this.id) && isNilOrBlank(this.exteriorMarking) && isNilOrBlank(this.name) && isNil(this.startDate);
@@ -152,6 +159,12 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
     target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.asObject(options)) || undefined;
     target.recorderPerson = (this.recorderPerson && this.recorderPerson.asObject(options)) || undefined;
     target.qualityFlagId = isNotNil(this.qualityFlagId) ? this.qualityFlagId : undefined;
+    target.__highlightedProperties = this.__highlightedProperties;
+
+    // Clean technical properties, before sending to POD
+    if (options?.minify) {
+      delete target.__highlightedProperties;
+    }
     return target;
   }
 
@@ -177,6 +190,30 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
     this.creationDate = fromDateISOString(source.creationDate);
     this.qualityFlagId = source.qualityFlagId;
+    this.__highlightedProperties = source.__highlightedProperties;
+  }
+
+  equals(other: VesselFeatures, opts?: { withId?: boolean; withDates?: boolean }): boolean {
+    return (
+      (opts?.withId !== false && super.equals(other) && isNotNil(this.id)) || // Same date
+      ((opts?.withDates === false || (DateUtils.equals(this.startDate, other.startDate) && DateUtils.equals(this.endDate, other.endDate))) &&
+        // Same hullMaterial
+        ReferentialUtils.equals(this.hullMaterial, other.hullMaterial) &&
+        // Same basePortLocation
+        ReferentialUtils.equals(this.basePortLocation, other.basePortLocation) &&
+        // Same other simple properties
+        this.vesselId === other.vesselId &&
+        this.exteriorMarking === other.exteriorMarking &&
+        this.name === other.name &&
+        this.comments === other.comments &&
+        this.administrativePower === other.administrativePower &&
+        this.lengthOverAll === other.lengthOverAll &&
+        this.grossTonnageGt === other.grossTonnageGt &&
+        this.grossTonnageGrt === other.grossTonnageGrt &&
+        this.constructionYear === other.constructionYear &&
+        this.ircs === other.ircs &&
+        this.isFpc === other.isFpc)
+    );
   }
 }
 

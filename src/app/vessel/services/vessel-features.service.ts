@@ -3,6 +3,7 @@ import { VesselFeatures } from './model/vessel.model';
 import {
   BaseEntityService,
   EntitiesServiceWatchOptions,
+  EntityUtils,
   GraphqlService,
   IEntitiesService,
   isNotNil,
@@ -14,9 +15,10 @@ import { VesselFeaturesFilter } from './filter/vessel.filter';
 import { SortDirection } from '@angular/material/sort';
 import { map, Observable } from 'rxjs';
 import { FetchPolicy, gql } from '@apollo/client/core';
-import { VesselUtils } from './model/vessel.utils';
+import { VesselFeaturesUtils } from './model/vessel.utils';
+
 export declare interface VesselFeaturesServiceWatchOptions extends EntitiesServiceWatchOptions {
-  mergeContigousVessel?: () => boolean;
+  mergeSameAndContiguous?: (() => boolean) | boolean;
 }
 export const VesselFeaturesFragments = {
   vesselFeatures: gql`
@@ -87,17 +89,28 @@ export class VesselFeaturesService
     dataFilter?: VesselFeaturesFilter,
     opts?: VesselFeaturesServiceWatchOptions
   ): Observable<LoadResult<VesselFeatures>> {
-    return super.watchAll(offset, null, sortBy, sortDirection, dataFilter, opts).pipe(
-      map(({ data, total }) => {
-        const result = { data: data || [], total };
-        if (opts?.mergeContigousVessel()) {
-          result.data = VesselUtils.mergeContiguousVesselFeatures(result.data);
-        }
-        result.total = offset + result.data.length;
-        result.data = result.data.slice(0, size);
-        return result;
-      })
-    );
+    // Merge items
+    const mergeSameAndContiguous = typeof opts?.mergeSameAndContiguous === 'function' ? opts.mergeSameAndContiguous() : opts?.mergeSameAndContiguous;
+    if (mergeSameAndContiguous) {
+      // Get all items, ordered from last to older
+      return super.watchAll(offset, null, 'startDate', 'asc', dataFilter, opts).pipe(
+        map(({ data }) => {
+          // Merge
+          data = VesselFeaturesUtils.reduceVesselFeatures(data, { fillHighlightedProperties: true });
+          const total = data.length;
+
+          // Apply expected sort
+          data = EntityUtils.sort(data, sortBy, sortDirection);
+
+          // Apply offset/size
+          data = data.slice(offset, offset + size);
+
+          return { data, total };
+        })
+      );
+    }
+
+    return super.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts);
   }
 
   async count(

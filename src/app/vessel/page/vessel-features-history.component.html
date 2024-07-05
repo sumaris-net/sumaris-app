@@ -54,7 +54,9 @@
       <span>{{ 'VESSEL.VESSEL_FEATURES.EXTERIOR_MARKING' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{ row.currentData.exteriorMarking }}</ion-text>
+      <ion-text [class.text-bold]="row.currentData.__highlightedProperties | arrayIncludes: 'exteriorMarking'">
+        {{ row.currentData.exteriorMarking }}
+      </ion-text>
     </mat-cell>
   </ng-container>
 
@@ -64,7 +66,7 @@
       <span>{{ 'VESSEL.VESSEL_FEATURES.NAME' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{ row.currentData.name }}</ion-text>
+      <ion-text [class.text-bold]="row.currentData.__highlightedProperties | arrayIncludes: 'name'">{{ row.currentData.name }}</ion-text>
     </mat-cell>
   </ng-container>
 
@@ -74,7 +76,9 @@
       <span>{{ 'VESSEL.VESSEL_FEATURES.ADMINISTRATIVE_POWER' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{ row.currentData.administrativePower }}</ion-text>
+      <ion-text [class.text-bold]="row.currentData.__highlightedProperties | arrayIncludes: 'administrativePower'">
+        {{ row.currentData.administrativePower }}
+      </ion-text>
     </mat-cell>
   </ng-container>
 
@@ -84,7 +88,9 @@
       <span>{{ 'VESSEL.VESSEL_FEATURES.LENGTH_OVER_ALL' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-text>{{ row.currentData.lengthOverAll }}</ion-text>
+      <ion-text [class.text-bold]="row.currentData.__highlightedProperties | arrayIncludes: 'lengthOverAll'">
+        {{ row.currentData.lengthOverAll }}
+      </ion-text>
     </mat-cell>
   </ng-container>
 
@@ -183,9 +189,6 @@
   <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns" class="mat-mdc-row-disabled"></mat-row>
 </mat-table>
-@if (showPagination) {
-  <mat-paginator #paginator [length]="totalRowCount" [pageSize]="5" [pageSizeOptions]="[5, 10, 50]" showFirstLastButtons></mat-paginator>
-}
 <!-- options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
   <!-- display columns -->
@@ -203,10 +206,12 @@
   <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
 }
 
-<!--  <ion-row class="ion-no-padding">-->
-<!--    <ion-col></ion-col>-->
-<!--    <ion-col class="ion-no-padding" size="auto">-->
-<!--      <mat-paginator [length]="totalRowCount" [pageSize]="5" [pageSizeOptions]="[5, 10, 50]" showFirstLastButtons>-->
-<!--      </mat-paginator>-->
-<!--    </ion-col>-->
-<!--  </ion-row>-->
+@if (showPagination) {
+  <mat-paginator
+    #paginator
+    [length]="totalRowCount"
+    [pageSize]="defaultPageSize"
+    [pageSizeOptions]="defaultPageSizeOptions"
+    showFirstLastButtons
+  ></mat-paginator>
+}

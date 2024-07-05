@@ -19,7 +19,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
   @Input() compact: boolean;
   @Input() title: string;
   @Input() stickyEnd: boolean = false;
-  @Input() mergeContigousVessel: boolean = false;
+  @Input() mergeSameAndContiguous: boolean = false;
   @Input() showPagination: boolean = false;
 
   @Input()
@@ -99,7 +99,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
 
       {
         watchAllOptions: <VesselFeaturesServiceWatchOptions>{
-          mergeContigousVessel: () => this.mergeContigousVesselFeatures(),
+          mergeSameAndContiguous: () => this.mergeSameAndContiguous,
         },
 
         saveOnlyDirtyRows: true,
@@ -118,10 +118,6 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
 
   ngOnInit() {
     super.ngOnInit();
-  }
-
-  mergeContigousVesselFeatures(): boolean {
-    return this.mergeContigousVessel;
   }
 
   protected markForCheck() {
