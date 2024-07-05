@@ -19,6 +19,7 @@ export class VesselOwnerHistoryComponent extends AppBaseTable<VesselOwnerPeriod,
   @Input() compact: boolean;
   @Input() title: string;
   @Input() stickyEnd: boolean = false;
+  @Input() showPagination = false;
 
   @Input()
   set showFirstNameColumn(value: boolean) {

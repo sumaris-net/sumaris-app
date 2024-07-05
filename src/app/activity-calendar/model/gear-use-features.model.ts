@@ -40,7 +40,7 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
   static fromObject: (source: any, options?: any) => GearUseFeatures;
 
   static equals(o1: GearUseFeatures, o2: GearUseFeatures) {
-    return (!o1 && !o2) || (o1 && o1.equals(o2));
+    return (!o1 && !o2) || (o1 && GearUseFeatures.fromObject(o1).equals(o2));
   }
 
   static isNotEmpty(o: GearUseFeatures) {

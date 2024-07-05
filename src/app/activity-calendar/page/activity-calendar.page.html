@@ -204,6 +204,10 @@
                   [showIsFpcColumn]="true"
                   [showCommentsColumn]="false"
                   [showIrcsColumn]="false"
+                  [mergeSameAndContiguous]="true"
+                  [showPagination]="true"
+                  [defaultPageSize]="5"
+                  [defaultPageSizeOptions]="[5, 10, 50]"
                   [debug]="debug"
                 ></app-vessel-features-history-table>
               </ion-col>
@@ -215,6 +219,9 @@
                   [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATION_DIVIDER'"
                   [i18nColumnSuffix]="'.ACTIVITY_CALENDAR'"
                   [showRegistrationLocationColumn]="true"
+                  [showPagination]="true"
+                  [defaultPageSize]="5"
+                  [defaultPageSizeOptions]="[5, 10, 50]"
                   [debug]="debug"
                 ></app-vessel-registration-history-table>
               </ion-col>
@@ -225,6 +232,9 @@
                   #ownerHistoryTable
                   [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER_DIVIDER'"
                   [i18nColumnSuffix]="'.ACTIVITY_CALENDAR'"
+                  [showPagination]="true"
+                  [defaultPageSize]="5"
+                  [defaultPageSizeOptions]="[5, 10, 50]"
                   [debug]="debug"
                 ></app-vessel-owner-history-table>
               </ion-col>

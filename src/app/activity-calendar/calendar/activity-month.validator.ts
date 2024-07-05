@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import {
   AbstractControlOptions,
+  FormArray,
+  FormGroup,
   UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
@@ -127,6 +129,7 @@ export class ActivityMonthValidatorService<
   getFormGroupOptions(data?: ActivityMonth, opts?: O): AbstractControlOptions {
     return <AbstractControlOptions>{
       validators: [
+        ActivityMonthValidators.uniqueMetier,
         SharedFormGroupValidators.dateRange('startDate', 'endDate'),
         SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
           predicate: (control) => control.value === VesselUseFeaturesIsActiveEnum.ACTIVE || control.value === VesselUseFeaturesIsActiveEnum.INACTIVE,
@@ -210,8 +213,9 @@ export class ActivityMonthValidatorService<
   }
 
   getI18nError(errorKey: string, errorContent?: any): any {
-    if (ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS[errorKey])
+    if (ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS[errorKey]) {
       return this.translate.instant(ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS[errorKey], errorContent);
+    }
     return super.getI18nError(errorKey, errorContent);
   }
 
@@ -377,8 +381,36 @@ export class ActivityMonthValidators {
 
     return errors;
   }
+
+  static uniqueMetier(formGroup: FormGroup): ValidationErrors | null {
+    const control = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!control || !(control instanceof FormArray)) {
+      return null;
+    }
+
+    // Make sure month is active
+    const isActiveControl = formGroup.get('isActive');
+    const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
+    if (!isActive) return null;
+
+    const metierLabels: number[] = [];
+    const duplicatedMetierLabels = (control.controls as UntypedFormGroup[]).reduce((res, group) => {
+      const metier = group.get('metier').value;
+      if (ReferentialUtils.isEmpty(metier)) return res;
+      // If already includes: we have a duplication: stop here
+      if (metierLabels.includes(metier.label)) {
+        if (!res.includes(metier.label)) return res.concat(metier.label);
+        return res;
+      }
+
+      metierLabels.push(metier.label);
+      return res;
+    }, []);
+
+    return isNotEmptyArray(duplicatedMetierLabels) ? { uniqueMetier: { metiers: duplicatedMetierLabels.join(',') } } : null;
+  }
 }
 
 export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
-  // TODO
+  uniqueMetier: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_METIER',
 };
