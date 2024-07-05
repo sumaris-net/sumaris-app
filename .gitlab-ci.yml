@@ -26,6 +26,13 @@ workflow:
         - package-lock.json
         - tsconfig*.json
         - angular.json
+        - electron/src/**/*
+        - electron/src/*
+        - electron/package.json
+        - electron/package-lock.json
+        - electron/electron-builder.config.json 
+
+
 
 # ---------------------------------------------------------------
 # Global variables
