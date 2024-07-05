@@ -113,8 +113,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     return this.form.controls.observers as AppFormArray<Person, UntypedFormControl>;
   }
 
-  @Output() departureDateTimeChanges = new EventEmitter<Moment>();
   @Output() locationChanges = new EventEmitter<ReferentialRef>();
+  @Output() startDateTimeChanges = new EventEmitter<Moment>();
 
   constructor(
     injector: Injector,
@@ -240,6 +240,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         .subscribe((startDateTime) => {
           startDateTime = fromDateISOString(startDateTime)?.clone();
           if (!startDateTime) return; // Skip
+
+          // Set timezone
           if (this.timezone) startDateTime.tz(this.timezone);
 
           // Compute the end date time
@@ -255,11 +257,10 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
             endDateTimeControl.patchValue(toDateISOString(endDate), { emitEvent: false });
           }
 
+          this.startDateTimeChanges.next(startDateTime);
+
           // Warning if date is in the future
           this.isStartDateInTheFuture = startDateTime.isAfter();
-
-          this.departureDateTimeChanges.next(startDateTime);
-
           this.markForCheck();
         })
     );

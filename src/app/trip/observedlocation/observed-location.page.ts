@@ -70,7 +70,7 @@ export interface ObservedLocationPageState extends RootDataEntityEditorState {
   landingTable: ILandingsTable;
 
   location: ReferentialRef;
-  departureDateTime: Moment;
+  startDateTime: Moment;
 }
 
 @Component({
@@ -150,8 +150,8 @@ export class ObservedLocationPage
   ngOnInit() {
     super.ngOnInit();
 
+    this._state.connect('startDateTime', this.observedLocationForm.startDateTimeChanges);
     this._state.connect('location', this.observedLocationForm.locationChanges);
-    this._state.connect('departureDateTime', this.observedLocationForm.departureDateTimeChanges);
 
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
@@ -200,7 +200,7 @@ export class ObservedLocationPage
     // If errors in landings
     if (typeof error !== 'string' && error?.details?.errors?.landings) {
       // Show error in landing table
-      this.landingsTable.setError('OBSERVED_LOCATION.ERROR.INVALID_LANDINGS', {
+      this.landingsTable.setError(error.message || 'OBSERVED_LOCATION.ERROR.INVALID_LANDINGS', {
         showOnlyInvalidRows: true,
       });
 
@@ -208,22 +208,6 @@ export class ObservedLocationPage
       this.tabGroup.selectedIndex = ObservedLocationPage.TABS.LANDINGS;
 
       // Reset other errors
-      super.setError(undefined, opts);
-    }
-
-    // If other errors in landings
-    else if (typeof error !== 'string' && error?.details?.errors?.observations) {
-      // Show error in landing table
-      this.landingsTable.setError(error.message, {
-        showOnlyInvalidRows: false,
-        errorDetails: error.details.errors.observations,
-      });
-
-      // Open the landing tab
-      this.tabGroup.selectedIndex = ObservedLocationPage.TABS.LANDINGS;
-
-      // Reset other errors
-      this.landingsTable.resetError(opts);
       super.setError(undefined, opts);
     }
 
@@ -558,6 +542,8 @@ export class ObservedLocationPage
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
+
+    // Important: should load the strategy resolution
     await super.setProgram(program);
 
     // Update the context
@@ -651,11 +637,41 @@ export class ObservedLocationPage
       this.addForms([table]);
 
       this.markAsReady();
+      this.markForCheck();
 
       // Listen program, to reload if changes
       if (this.network.online) this.startListenProgramRemoteChanges(program);
     } catch (err) {
       this.setError(err);
+    }
+  }
+
+  protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
+    console.debug(this.logPrefix + 'Computing strategy filter, using resolution: ' + this.strategyResolution);
+
+    switch (this.strategyResolution) {
+      // Spatio-temporal
+      case DataStrategyResolutions.SPATIO_TEMPORAL:
+        return this._state
+          .select(['acquisitionLevel', 'startDateTime', 'location'], (_) => _, {
+            acquisitionLevel: equals,
+            startDateTime: DateUtils.equals,
+            location: ReferentialUtils.equals,
+          })
+          .pipe(
+            map(({ acquisitionLevel, location, startDateTime }) => {
+              return <Partial<StrategyFilter>>{
+                acquisitionLevel,
+                programId: program.id,
+                startDate: startDateTime,
+                location: location,
+              };
+            }),
+            // DEBUG
+            tap((values) => console.debug(this.logPrefix + 'Strategy filter changed:', values))
+          );
+      default:
+        return super.watchStrategyFilter(program);
     }
   }
 
@@ -743,6 +759,8 @@ export class ObservedLocationPage
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
+
+    this._state.set({ startDateTime: data.startDateTime, location: data.location });
   }
 
   async setValue(data: ObservedLocation) {
@@ -818,35 +836,6 @@ export class ObservedLocationPage
     if (isFirstSave && this.landingsTable && this.autoFillLandings) {
       this.landingsTable.setParent(data);
       await this.landingsTable.autoFillTable();
-    }
-  }
-
-  protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
-    console.debug(this.logPrefix + 'Computing strategy filter, using resolution: ' + this.strategyResolution);
-
-    switch (this.strategyResolution) {
-      // Spatio-temporal
-      case DataStrategyResolutions.SPATIO_TEMPORAL:
-        return this._state
-          .select(['acquisitionLevel', 'departureDateTime', 'location'], (_) => _, {
-            acquisitionLevel: equals,
-            departureDateTime: DateUtils.equals,
-            location: ReferentialUtils.equals,
-          })
-          .pipe(
-            map(({ acquisitionLevel, location, departureDateTime }) => {
-              return <Partial<StrategyFilter>>{
-                acquisitionLevel,
-                programId: program.id,
-                startDate: departureDateTime,
-                location: location,
-              };
-            }),
-            // DEBUG
-            tap((values) => console.debug(this.logPrefix + 'Strategy filter changed:', values))
-          );
-      default:
-        return super.watchStrategyFilter(program);
     }
   }
 

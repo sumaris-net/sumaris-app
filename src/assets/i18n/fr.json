@@ -1651,8 +1651,7 @@
       "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
       "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation.",
       "START_DATE_INVALID": "Doit commencer un {{day}}",
-      "INVALID_LANDING": "Débarquement invalide",
-      "INVALID_LANDINGS": "Veuillez observer ou saisir la raison de non observation"
+      "INVALID_LANDINGS": "Veuillez corriger les données invalides ci-dessous"
     },
     "WARNING": {
       "INVALID_OBSERVED_COUNT": "Nombre d'espèces observées incorrect. Veuillez observer au moins {{minObservedCount}} espèces"
