@@ -147,7 +147,7 @@
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
         <ion-row>
-          <ion-col>
+          <ion-col [class.cdk-visually-hidden]="!showProgram">
             <!-- Program -->
             <mat-autocomplete-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate"
@@ -444,10 +444,10 @@
 
       <!-- Program Column -->
       <ng-container matColumnDef="program">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!showProgram">
           <ion-label translate>ACTIVITY_CALENDAR.TABLE.PROGRAM</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row">
+        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showProgram">
           <ion-label>{{ row.currentData.program | referentialToString: ['label'] }}</ion-label>
         </td>
       </ng-container>

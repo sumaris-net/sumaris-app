@@ -28,7 +28,7 @@ import {
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, ProgramLabel, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
@@ -51,6 +51,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 import { isMoment } from 'moment';
+import { Program } from '@app/referential/services/model/program.model';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -90,6 +91,7 @@ export class ActivityCalendarsTable
   protected statusById = DataQualityStatusEnum;
   protected qualityFlags: ReferentialRef[];
   protected qualityFlagsById: { [id: number]: ReferentialRef };
+  protected _defaultFilterProgram: Program;
 
   @Input() showRecorder = true;
   @Input() canDownload = false;
@@ -101,6 +103,10 @@ export class ActivityCalendarsTable
 
   get filterYearControl(): UntypedFormControl {
     return this.filterForm.controls.year as UntypedFormControl;
+  }
+
+  get showProgram(): boolean {
+    return isNil(this._defaultFilterProgram);
   }
 
   constructor(
@@ -190,6 +196,7 @@ export class ActivityCalendarsTable
       suggestFn: (value, filter) =>
         this.referentialRefService.suggest(value, { ...filter, levelIds: this.registrationLocationLevelIds || [LocationLevelIds.COUNTRY] }),
     });
+
     // Combo: base port locations
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('basePortLocation', {
       ...locationConfig,
@@ -249,6 +256,17 @@ export class ActivityCalendarsTable
       })
     );
 
+    // Show Program
+    if (!this.isAdmin) {
+      this.programRefService.loadAll(null, null, null, null, ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER).then((result) => {
+        const programs = result?.data.filter((program) => program.label !== ProgramLabel.SIH_ACTIPRED);
+        if (isNotEmptyArray(programs) && programs.length === 1) {
+          this._defaultFilterProgram = programs[0];
+          this.setFilter(this.filter);
+        }
+      });
+    }
+
     // Clear the existing activityCalendar context
     this.resetContext();
   }
@@ -262,12 +280,22 @@ export class ActivityCalendarsTable
     } else {
       filter.year = toNumber(filter.year, DateUtils.moment().year() - 1);
     }
+    if (isNotNil(this._defaultFilterProgram)) {
+      this.filter.program = this._defaultFilterProgram;
+    }
+
     super.setFilter(filter, opts);
+  }
+
+  resetFilter(value?: any, opts?: { emitEvent: boolean }): void {
+    const filter = isNotNil(this._defaultFilterProgram) ? { program: this._defaultFilterProgram } : {};
+    super.resetFilter(filter, opts);
   }
 
   protected countNotEmptyCriteria(filter: ActivityCalendarFilter): number {
     const yearOffset = [filter?.year, filter?.startDate, filter?.endDate].filter(isNotNil).length;
-    return super.countNotEmptyCriteria(filter) - yearOffset;
+    const count = super.countNotEmptyCriteria(filter) - yearOffset;
+    return count - (this.showProgram ? 0 : 1);
   }
 
   /**
