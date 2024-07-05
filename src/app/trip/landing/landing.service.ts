@@ -1043,7 +1043,12 @@ export class LandingService
         } else {
           if (opts.progression?.cancelled) return; // Cancel
           // Need to exclude data that already validated (else got exception when pod control already validated data)
-          if (isNil(entity.validationDate)) await this.terminate(entity);
+          if (isNil(entity.validationDate)) {
+            // reset previous error
+            entity.qualificationComments = null;
+
+            await this.terminate(entity);
+          }
         }
 
         // increment, after save/terminate
