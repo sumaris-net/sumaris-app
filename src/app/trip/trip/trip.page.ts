@@ -133,7 +133,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     return (
       this.dirtySubject.value ||
       // Ignore operation table, when computing dirty state
-      this.children?.filter((form) => form !== this.operationsTable).findIndex((c) => c.dirty) !== -1
+      this.children?.filter((form) => form !== this.operationsTable).some((c) => c.dirty)
     );
   }
 
@@ -170,9 +170,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     super.ngOnInit();
 
     // Listen some field
+    this._state.connect('departureLocation', this.tripForm.departureLocationChanges);
     this._state.connect('departureDateTime', this.tripForm.departureDateTimeChanges.pipe(filter((d) => d?.isValid())));
     this._state.connect('returnDateTime', this.tripForm.maxDateChanges.pipe(filter((d) => d?.isValid())));
-    this._state.connect('departureLocation', this.tripForm.departureLocationChanges);
     this._state.connect(
       'reportTypes',
       this.program$.pipe(
@@ -251,7 +251,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     // If errors in operations
     if (typeof error !== 'string' && error?.details?.errors?.operations) {
       // Show error in operation table
-      this.operationsTable.setError('TRIP.ERROR.INVALID_OPERATIONS', {
+      this.operationsTable.setError(error.message || 'TRIP.ERROR.INVALID_OPERATIONS', {
         showOnlyInvalidRows: true,
       });
 
