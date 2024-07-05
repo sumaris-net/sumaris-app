@@ -96,13 +96,16 @@ export class VesselFeaturesService
       return super.watchAll(offset, null, 'startDate', 'asc', dataFilter, opts).pipe(
         map(({ data }) => {
           // Merge
-          data = VesselFeaturesUtils.reduceVesselFeatures(data, { fillHighlightedProperties: true });
-          const total = data.length;
+          data = VesselFeaturesUtils.mergeSameAndContiguous(data);
+
+          // Fill changed properties
+          data = VesselFeaturesUtils.fillChangedProperties(data);
 
           // Apply expected sort
           data = EntityUtils.sort(data, sortBy, sortDirection);
 
           // Apply offset/size
+          const total = data.length;
           data = data.slice(offset, offset + size);
 
           return { data, total };

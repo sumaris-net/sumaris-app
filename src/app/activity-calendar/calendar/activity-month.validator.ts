@@ -213,8 +213,9 @@ export class ActivityMonthValidatorService<
   }
 
   getI18nError(errorKey: string, errorContent?: any): any {
-    if (ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS[errorKey])
+    if (ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS[errorKey]) {
       return this.translate.instant(ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS[errorKey], errorContent);
+    }
     return super.getI18nError(errorKey, errorContent);
   }
 
@@ -382,30 +383,34 @@ export class ActivityMonthValidators {
   }
 
   static uniqueMetier(formGroup: FormGroup): ValidationErrors | null {
-    const control = formGroup.get('gearUseFeatures') as FormArray;
-
+    const control = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
     if (!control || !(control instanceof FormArray)) {
       return null;
     }
 
-    const groups = control.controls as FormGroup[];
-    const checkMetiers = new Set<string>();
+    // Make sure month is active
+    const isActiveControl = formGroup.get('isActive');
+    const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
+    if (!isActive) return null;
 
-    const hasDuplicates = groups.some((group) => {
+    const metierLabels: number[] = [];
+    const duplicatedMetierLabels = (control.controls as UntypedFormGroup[]).reduce((res, group) => {
       const metier = group.get('metier').value;
-      if (isNil(metier)) return false;
-      if (checkMetiers.has(metier.label)) {
-        return true;
-      } else {
-        checkMetiers.add(metier.label);
-        return false;
+      if (ReferentialUtils.isEmpty(metier)) return res;
+      // If already includes: we have a duplication: stop here
+      if (metierLabels.includes(metier.label)) {
+        if (!res.includes(metier.label)) return res.concat(metier.label);
+        return res;
       }
-    });
 
-    return hasDuplicates ? { duplicateMetier: ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS.duplicateMetier } : null;
+      metierLabels.push(metier.label);
+      return res;
+    }, []);
+
+    return isNotEmptyArray(duplicatedMetierLabels) ? { uniqueMetier: { metiers: duplicatedMetierLabels.join(',') } } : null;
   }
 }
 
 export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
-  duplicateMetier: 'ACTIVITY_CALENDAR.ERROR.DUPLICATE_METIER_ERROR',
+  uniqueMetier: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_METIER',
 };

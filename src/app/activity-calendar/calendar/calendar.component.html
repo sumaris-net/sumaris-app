@@ -174,22 +174,22 @@
           <ion-label class="ion-text-center">
             <ion-text
               matBadge="!"
-              [matBadgeHidden]="(row.currentData.qualityFlagId | qualityFlagValid) && (!row.editing || !row.invalid)"
+              [matBadgeHidden]="errorSpan.innerText | isNilOrBlank"
               matBadgeOverlap="false"
               matBadgeColor="accent"
               matBadgeSize="small"
             >
               {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
-              <!--@if (debug && canEdit) {
+              <!-- @if (debug && canEdit) {
                 <br />
-                {{ row.id }}
+                &lt;!&ndash;{{ row.id }}
                 {{ row.valid ? 'V' : row.pending ? 'P' : 'I' }}
-                {{ row.editing ? '*' : '' }}
+                {{ row.editing ? '*' : '' }}&ndash;&gt;
               }-->
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            {{ row.editing && row.validator | translateFormError: errorTranslatorOptions }}
+            {{ (row.enabled && row.validator | translateFormError: errorTranslatorOptions) || row.currentData.qualificationComments }}
           </span>
         </mat-header-cell>
       </ng-container>

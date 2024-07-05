@@ -41,11 +41,10 @@ export class IUseFeaturesUtils {
     period: { startDate: Moment; endDate: Moment },
     granularity?: unitOfTime.StartOf
   ): boolean {
-    const periodStartDate = period.startDate.clone().startOf('day');
     return (
       source.startDate &&
       source.startDate.isSameOrBefore(period.endDate, granularity) &&
-      (isNil(source.endDate) || source.endDate.isSameOrAfter(periodStartDate, granularity))
+      (isNil(source.endDate) || source.endDate.isSameOrAfter(period.startDate, granularity))
     );
   }
 

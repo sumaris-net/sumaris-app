@@ -58,7 +58,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { distinctUntilChanged, fromEvent, Observable, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -673,7 +673,7 @@ export class CalendarComponent
       }
     );
 
-    this.vesselRegistrations = months.map((month) => IUseFeaturesUtils.filterByPeriod(data, month).map((vrp) => vrp.registrationLocation));
+    this.vesselRegistrations = months.map((month) => IUseFeaturesUtils.filterByPeriod(data, month, 'day').map((vrp) => vrp.registrationLocation));
   }
 
   async loadVesselOwner(months: ActivityMonth[]) {
@@ -1053,7 +1053,6 @@ export class CalendarComponent
       return false;
     }
 
-    this.setQualityFlags();
     return super.clickRow(event, row);
   }
 
@@ -1278,7 +1277,10 @@ export class CalendarComponent
             this.clearClipboard(null, { clearContext: !!this.cellClipboard });
           }
 
-          if (form.dirty) this.markAsDirty();
+          if (form.dirty) {
+            form.get('qualificationComments').setValue(null);
+            this.markAsDirty();
+          }
         })
     );
 
@@ -1367,6 +1369,8 @@ export class CalendarComponent
     for (let i = 0; i < this.metierCount; i++) {
       this.collapseMetierBlock(null, i);
     }
+    this.removeCellSelection();
+    this.clearClipboard(null, { clearContext: false });
   }
 
   toggleMetierBlock(event: Event, key: string) {
@@ -1848,6 +1852,18 @@ export class CalendarComponent
           control.setValue(sourceValue);
         }
       });
+
+      // Update quality flag
+      const entity = targetForm.value;
+      if (targetForm.invalid) {
+        const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, {
+          ...this.errorTranslatorOptions,
+        });
+        entity.controlDate = null;
+        entity.qualificationComments = errorMessage;
+      }
+
+      // Update the row
       await this.updateEntityToTable(targetForm.value, targetRow, { confirmEdit: true });
     }
 
@@ -1865,7 +1881,6 @@ export class CalendarComponent
 
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
-    this.setQualityFlags();
   }
 
   protected removeCellSelection(opts?: { emitEvent?: boolean }) {
@@ -2013,17 +2028,5 @@ export class CalendarComponent
     }); // Delay to skip the first focus (should be the focusColumn)
 
     return subscription;
-  }
-  protected async setQualityFlags() {
-    //MF to be update for check only row update and not all rows
-    const rows = this.dataSource.getRows();
-    for (const row of rows) {
-      const form = this.validatorService.getRowValidator(row.currentData);
-      const qualityFlagId = isNotNil(form.errors) ? QualityFlagIds.BAD : QualityFlagIds.GOOD;
-      if (form.get('qualityFlagId').value !== qualityFlagId) {
-        form.get('qualityFlagId').setValue(qualityFlagId);
-        await this.updateEntityToTable(form.value, row, { confirmEdit: true });
-      }
-    }
   }
 }

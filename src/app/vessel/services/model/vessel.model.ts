@@ -116,7 +116,7 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
   vesselId: number;
 
   // UI properties
-  __highlightedProperties: string[];
+  __changedProperties: string[];
 
   get empty(): boolean {
     return isNil(this.id) && isNilOrBlank(this.exteriorMarking) && isNilOrBlank(this.name) && isNil(this.startDate);
@@ -159,11 +159,11 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
     target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.asObject(options)) || undefined;
     target.recorderPerson = (this.recorderPerson && this.recorderPerson.asObject(options)) || undefined;
     target.qualityFlagId = isNotNil(this.qualityFlagId) ? this.qualityFlagId : undefined;
-    target.__highlightedProperties = this.__highlightedProperties;
+    target.__changedProperties = this.__changedProperties;
 
     // Clean technical properties, before sending to POD
     if (options?.minify) {
-      delete target.__highlightedProperties;
+      delete target.__changedProperties;
     }
     return target;
   }
@@ -190,7 +190,7 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
     this.creationDate = fromDateISOString(source.creationDate);
     this.qualityFlagId = source.qualityFlagId;
-    this.__highlightedProperties = source.__highlightedProperties;
+    this.__changedProperties = source.__changedProperties;
   }
 
   equals(other: VesselFeatures, opts?: { withId?: boolean; withDates?: boolean }): boolean {
