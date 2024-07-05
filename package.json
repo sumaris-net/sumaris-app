@@ -82,7 +82,6 @@
     "@awesome-cordova-plugins/core": "~6.4.0",
     "@awesome-cordova-plugins/network": "~6.4.0",
     "@bepo65/leaflet.fullscreen": "~2.0.2",
-    "@capacitor-community/electron": "^5.0.1",
     "@capacitor-community/native-audio": "~4.0.0-0",
     "@capacitor/android": "~4.8.1",
     "@capacitor/app": "~4.1.1",
