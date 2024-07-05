@@ -30,10 +30,7 @@ export class VesselUtils {
 
       if (accumulatorItem.length > 0) {
         for (const item of accumulatorItem) {
-          if (
-            DateUtils.moment(vesselFeature.startDate).isSameOrAfter(item.startDate) &&
-            DateUtils.moment(vesselFeature.endDate).isSameOrBefore(item.endDate)
-          ) {
+          if (vesselFeature.startDate.isSameOrAfter(item.startDate) && vesselFeature.endDate.isSameOrBefore(item.endDate)) {
             //if the data is already in the accumulator with a bigger end date, we remove it
             accumulator.splice(accumulator.indexOf(item), 1);
             return accumulator;
