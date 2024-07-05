@@ -147,8 +147,10 @@ export class ActivityCalendarPage
   protected showVesselTab = true;
   protected enableReport: boolean;
   protected showMap = true;
-  protected _predocPanelSize = 30;
+  protected _predocPanelSize = 0;
   protected _predocPanelVisible = false;
+  protected _predocTitle = '';
+  protected _predocToolbarColor = 'secondary';
   protected mapPanelWidth = 30;
   protected showMapPanel = true; // TODO enable
   protected selectedSubTabIndex = 0;

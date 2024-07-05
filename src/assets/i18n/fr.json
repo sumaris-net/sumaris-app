@@ -1957,27 +1957,21 @@
       "EXTERIOR_MARKING": "Marquage extérieur",
       "CONSTRUCTION_YEAR": "Année de construction",
       "IRCS": "Indicatif radio (IRCS)",
-      "IS_FPC": "FPC ?",
+      "FPC": "FPC",
       "HULL_MATERIAL": "Matériau de la coque",
       "BASE_PORT_LOCATION": "Port d'attache",
       "GROSS_TONNAGE_GT": "Tonnage (UMS)",
       "GROSS_TONNAGE_GRT": "Tonnage jauge brute (TJB)",
       "ADMINISTRATIVE_POWER": "Puissance administrative (kW)",
       "LENGTH_OVER_ALL": "Longueur hors tout (m)",
-      "COMMENTS": "Commentaires",
-      "ACTIVITY_CALENDAR": {
-        "BASE_PORT_LOCATION": "Port d'exploitation"
-      }
+      "COMMENTS": "Commentaires"
     },
     "VESSEL_REGISTRATION_PERIOD": {
       "START_DATE": "Début immatriculation",
       "END_DATE": "Fin immatriculation",
       "REGISTRATION_CODE": "Immatriculation",
       "INT_REGISTRATION_CODE": "Immatriculation internationale",
-      "REGISTRATION_LOCATION": "Pavillon",
-      "ACTIVITY_CALENDAR": {
-        "REGISTRATION_LOCATION": "Lieu d'immatriculation"
-      }
+      "REGISTRATION_LOCATION": "Pavillon"
     },
     "VESSEL_OWNER": {
       "REGISTRATION_CODE": "Code armateur",
@@ -1989,7 +1983,7 @@
       "LAST_NAME": "Nom"
     },
     "HISTORY": {
-      "FEATURES": "Caractéristiques",
+      "FEATURES": "Caratéristiques",
       "REGISTRATIONS": "Immatriculations",
       "OWNER": "Couples navires-armateurs"
     },
@@ -2506,7 +2500,6 @@
       "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Sortie > Débarquements : Nombre min. d'espèces à observer",
       "LANDING_TOP_PMFM_IDS": "Sortie > Débarquements : PSFM(s) en en-tête",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
-      "PROGRAM_PRIVILEGE_READONLY": "Programme > Droits d'accès : Lecture seule ?",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",
@@ -3371,7 +3364,7 @@
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "REGISTRATION_LOCATION": "Quartier maritime",
-        "BASE_PORT_LOCATION": "Port d'exploitation",
+        "BASE_PORT_LOCATION": "Port d'attache / exploit.",
         "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
         "ECONOMIC_SURVEY": "Enquête économique ?",
         "RECORDER_PERSON": "Saisisseur",
@@ -3420,7 +3413,7 @@
       "TAB_METIER": "Métiers",
       "TAB_MAP": "Carte",
       "VESSEL_OWNER": "Armateur",
-      "REGISTRATION_LOCATION": "Lieu d'immatriculation",
+      "REGISTRATION_LOCATION": "Quartier maritime",
       "IS_ACTIVE": "Actif ?",
       "OTHER_FEATURES": "Caractéristiques d'enquête :",
       "VESSEL_FEATURES_DIVIDER": "Caractéristiques navire",

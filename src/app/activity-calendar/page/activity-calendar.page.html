@@ -324,10 +324,10 @@
         </as-split-area>
 
         <!-- Predoc -->
-        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible" [style.z-index]="110">
+        <as-split-area [minSize]="10" [size]="_predocPanelSize" [visible]="_predocPanelVisible" [style.z-index]="110">
           <app-calendar
             #predocCalendar
-            [title]="'ACTIVITY_CALENDAR.EDIT.PREDOC_TITLE'"
+            [title]="_predocTitle"
             [showToolbar]="true"
             [showVesselOwner]="false"
             [showRegistrationLocation]="false"
@@ -335,7 +335,7 @@
             [programLabel]="programLabel"
             [programHeaderLabel]="'ACTIVITY_CALENDAR.EDIT.SOURCE'"
             [usePageSettings]="false"
-            [toolbarColor]="'secondary'"
+            [toolbarColor]="_predocToolbarColor"
             [timezone]="timezone"
             [sticky]="true"
             [canEdit]="false"
