@@ -3488,7 +3488,8 @@
       }
     },
     "ERROR": {
-      "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici."
+      "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici",
+      "DUPLICATED_METIER": "Métier(s) en doublon: {{metiers}}"
     },
     "WARNING": {
       "VALUE_INCONSISTENT_WITH_DIRECT_OBJECTIVE_INVESTIGATION": "Valeur incohérente avec l'objectif directe de l'enquête"

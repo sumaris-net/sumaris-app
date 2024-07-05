@@ -174,22 +174,22 @@
           <ion-label class="ion-text-center">
             <ion-text
               matBadge="!"
-              [matBadgeHidden]="!row.editing || !row.invalid"
+              [matBadgeHidden]="errorSpan.innerText | isNilOrBlank"
               matBadgeOverlap="false"
               matBadgeColor="accent"
               matBadgeSize="small"
             >
               {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
-              <!--@if (debug && canEdit) {
+              <!-- @if (debug && canEdit) {
                 <br />
-                {{ row.id }}
+                &lt;!&ndash;{{ row.id }}
                 {{ row.valid ? 'V' : row.pending ? 'P' : 'I' }}
-                {{ row.editing ? '*' : '' }}
+                {{ row.editing ? '*' : '' }}&ndash;&gt;
               }-->
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            {{ row.editing && row.validator | translateFormError: errorTranslatorOptions }}
+            {{ (row.enabled && row.validator | translateFormError: errorTranslatorOptions) || row.currentData.qualificationComments }}
           </span>
         </mat-header-cell>
       </ng-container>
@@ -206,10 +206,11 @@
                 [title]="owners | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: '\n' }"
               >
                 {{ owners | arrayLast | referentialToString: vesselOwnerDisplayAttributes }}
-                @if (owners | isArrayLength: { greaterThan: 1 }) {
-                  <span class="details">(+{{ owners.length - 1 }})</span>
-                }
               </ion-label>
+
+              @if (owners | isArrayLength: { greaterThan: 1 }) {
+                <ion-label class="details computed">(+{{ owners.length - 1 }})</ion-label>
+              }
             }
           </ng-container>
         </mat-cell>
@@ -238,10 +239,10 @@
                 [title]="locations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }"
               >
                 {{ locations | arrayLast | referentialToString: locationDisplayAttributes }}
-                @if (locations | isArrayLength: { greaterThan: 1 }) {
-                  <span class="details">(+{{ locations.length - 1 }})</span>
-                }
               </ion-label>
+              @if (locations | isArrayLength: { greaterThan: 1 }) {
+                <ion-label class="details computed">(+{{ locations.length - 1 }})</ion-label>
+              }
             }
           </ng-container>
         </mat-cell>

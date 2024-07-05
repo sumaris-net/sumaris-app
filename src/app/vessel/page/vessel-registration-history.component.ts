@@ -18,6 +18,7 @@ export class VesselRegistrationHistoryComponent extends AppBaseTable<VesselRegis
   @Input() compact: boolean;
   @Input() title: string;
   @Input() stickyEnd = false;
+  @Input() showPagination = false;
 
   @Input()
   set showRegistrationLocationColumn(value: boolean) {

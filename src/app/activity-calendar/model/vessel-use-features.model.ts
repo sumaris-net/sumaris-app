@@ -26,7 +26,7 @@ export const VesselUseFeaturesIsActiveEnum = {
 export class VesselUseFeatures extends DataEntity<VesselUseFeatures> implements IWithProgramEntity<VesselUseFeatures> {
   static fromObject: (source: any, options?: any) => VesselUseFeatures;
   static equals(o1: VesselUseFeatures, o2: VesselUseFeatures) {
-    return (!o1 && !o2) || (o1 && o1.equals(o2));
+    return (!o1 && !o2) || (o1 && VesselUseFeatures.fromObject(o1).equals(o2));
   }
   static isNotEmpty(o: VesselUseFeatures): boolean {
     return !VesselUseFeatures.isEmpty(o);

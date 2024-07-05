@@ -673,7 +673,7 @@ export class CalendarComponent
       }
     );
 
-    this.vesselRegistrations = months.map((month) => IUseFeaturesUtils.filterByPeriod(data, month).map((vrp) => vrp.registrationLocation));
+    this.vesselRegistrations = months.map((month) => IUseFeaturesUtils.filterByPeriod(data, month, 'day').map((vrp) => vrp.registrationLocation));
   }
 
   async loadVesselOwner(months: ActivityMonth[]) {
@@ -1195,12 +1195,6 @@ export class CalendarComponent
     }
   }
 
-  protected collapseAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
-    for (let i = 0; i < this.metierCount; i++) {
-      this.collapseMetierBlock(null, i);
-    }
-  }
-
   protected async suggestMetiers(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<Metier>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
@@ -1283,7 +1277,10 @@ export class CalendarComponent
             this.clearClipboard(null, { clearContext: !!this.cellClipboard });
           }
 
-          if (form.dirty) this.markAsDirty();
+          if (form.dirty) {
+            form.get('qualificationComments').setValue(null);
+            this.markAsDirty();
+          }
         })
     );
 
@@ -1367,6 +1364,13 @@ export class CalendarComponent
     }
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
+  }
+  collapseAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
+    for (let i = 0; i < this.metierCount; i++) {
+      this.collapseMetierBlock(null, i);
+    }
+    this.removeCellSelection();
+    this.clearClipboard(null, { clearContext: false });
   }
 
   toggleMetierBlock(event: Event, key: string) {
@@ -1820,7 +1824,10 @@ export class CalendarComponent
       const sourceMonth = sourceMonths[i % sourceMonths.length];
 
       // Creating a form
-      const targetForm = this.validatorService.getFormGroup(targetRow.currentData);
+      const targetForm = this.validatorService.getFormGroup(targetRow.currentData, { withMeasurements: true, pmfms: this.pmfms });
+      //TODO getFormGroup does not return the pmfms, to be fixed with BL
+      targetForm.get('measurementValues')?.patchValue(targetRow.currentData.measurementValues);
+
       this.onPrepareRowForm(targetForm, { listenChanges: false });
       const isActiveControl = targetForm.get('isActive');
       let isActive = toNumber(sourceMonth.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
@@ -1837,7 +1844,6 @@ export class CalendarComponent
           // Update the form (should enable more controls - e.g. metier, fishing areas)
           this.onPrepareRowForm(targetForm, { listenChanges: false });
         }
-
         // Update control from the path
         const targetPath = targetPaths[index];
         const control = targetPath && this.findOrCreateControl(targetForm, targetPath);
@@ -1847,6 +1853,17 @@ export class CalendarComponent
         }
       });
 
+      // Update quality flag
+      const entity = targetForm.value;
+      if (targetForm.invalid) {
+        const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, {
+          ...this.errorTranslatorOptions,
+        });
+        entity.controlDate = null;
+        entity.qualificationComments = errorMessage;
+      }
+
+      // Update the row
       await this.updateEntityToTable(targetForm.value, targetRow, { confirmEdit: true });
     }
 
