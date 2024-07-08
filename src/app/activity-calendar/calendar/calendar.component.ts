@@ -1329,15 +1329,18 @@ export class CalendarComponent
     return confirmed;
   }
 
-  async clear(event?: Event, row?: AsyncTableElement<ActivityMonth>, needEdit: boolean = true) {
-    if (needEdit) {
+  async clear(event?: Event, row?: AsyncTableElement<ActivityMonth>, askConfirmation: boolean = true) {
+    if (askConfirmation) {
       row = row || this.editedRow;
-      if (!row || event.defaultPrevented) return true; // no row to confirm
+      if (!row || event?.defaultPrevented) return true; // no row to confirm
+      event?.preventDefault();
+      event?.stopPropagation();
       const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_MONTH', this.alertCtrl, this.translate);
       if (!confirmed) return false; // User cancelled
+    } else {
+      event?.preventDefault();
+      event?.stopPropagation();
     }
-    event?.preventDefault();
-    event?.stopPropagation();
     if (this.debug) console.debug(this.logPrefix + 'Clear row', row);
 
     const currentData = row.currentData;

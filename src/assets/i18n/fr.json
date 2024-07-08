@@ -2374,6 +2374,8 @@
       "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Calendrier d'activité > Rapport : URL d'une image pour le log de droite",
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER": "Calendrier d'activité > Rapport : nombre de méter a faire figurer sur les formulaire vierge",
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER": "Calendrier d'activité > Rapport : nombre de zone de pêche a par métier a faire figurer sur les formulaire vierge",
+      "ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS": "Calendrier d'activité > Métier : Type(s) d'espèce",
+      "ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID": "Calendrier d'activité > Pays d'immatriculation des navires",
       "EXTRACTION_FORMATS": "Extraction > Formats disponibles:",
       "I18N_SUFFIX": "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY": "Par défaut",
