@@ -138,8 +138,8 @@ export class ActivityCalendarsTable
       recorderPerson: [null, SharedValidators.entity],
       dataQualityStatus: [null],
       qualityFlagId: [null, SharedValidators.integer],
-      economicSurvey: [null],
       directSurveyInvestigation: [null],
+      economicSurvey: [null],
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()

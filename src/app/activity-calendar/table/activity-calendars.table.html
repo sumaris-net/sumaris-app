@@ -279,31 +279,25 @@
           </ng-container>
         </ion-row>
 
-        <!--<ion-row>
-          &lt;!&ndash; Direct survey investigation ? &ndash;&gt;
-          <ion-col>
-            <mat-boolean-field
-              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.DIRECT_SURVEY_INVESTIGATION' | translate"
-              formControlName="directSurveyInvestigation">
-              <mat-icon matPrefix>room</mat-icon>
-            </mat-boolean-field>
-          </ion-col>
-        </ion-row>-->
-
-        <!-- Recorder criteria -->
         <ion-row>
+          <!-- Direct Survey Investigation -->
           <ion-col>
-            <!-- Direct Survey Investigation -->
             <mat-boolean-field
               formControlName="directSurveyInvestigation"
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION' | translate"
+              [clearable]="true"
             >
               <ion-icon matPrefix name="help-outline"></ion-icon>
             </mat-boolean-field>
           </ion-col>
+
+          <!-- Economic Survey -->
           <ion-col>
-            <!-- Economic Survey -->
-            <mat-boolean-field [placeholder]="'ACTIVITY_CALENDAR.TABLE.ECONOMIC_SURVEY' | translate" formControlName="economicSurvey">
+            <mat-boolean-field
+              formControlName="economicSurvey"
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.ECONOMIC_SURVEY' | translate"
+              [clearable]="true"
+            >
               <ion-icon matPrefix name="help-outline"></ion-icon>
             </mat-boolean-field>
           </ion-col>
