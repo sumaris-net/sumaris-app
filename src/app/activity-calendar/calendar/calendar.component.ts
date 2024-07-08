@@ -1329,18 +1329,20 @@ export class CalendarComponent
     return confirmed;
   }
 
-  async clear(event?: Event, row?: AsyncTableElement<ActivityMonth>, askConfirmation: boolean = true) {
-    if (askConfirmation) {
-      row = row || this.editedRow;
-      if (!row || event?.defaultPrevented) return true; // no row to confirm
-      event?.preventDefault();
-      event?.stopPropagation();
+  async clear(event?: Event, row?: AsyncTableElement<ActivityMonth>, opts?: { interactive?: boolean }) {
+    if (event?.defaultPrevented) return false; // skip
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    row = row || this.editedRow;
+    if (!row) return true; // no row to clear
+
+    // Ask user confirmation
+    if (opts?.interactive !== false) {
       const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_MONTH', this.alertCtrl, this.translate);
       if (!confirmed) return false; // User cancelled
-    } else {
-      event?.preventDefault();
-      event?.stopPropagation();
     }
+
     if (this.debug) console.debug(this.logPrefix + 'Clear row', row);
 
     const currentData = row.currentData;
@@ -1376,11 +1378,22 @@ export class CalendarComponent
     this.clearClipboard(null, { clearContext: false });
   }
 
-  clearAll(event?: Event) {
+  async clearAll(event?: Event, opts?: { interactive?: boolean }) {
+    if (event?.defaultPrevented) return; // Skip
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    //Ask user confirmation
+    if (opts?.interactive !== false) {
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_CALENDAR', this.alertCtrl, this.translate);
+      if (!confirmed) return false; // User cancelled
+    }
+
     const rows = this.dataSource.getRows();
     for (const row of rows) {
-      const form = this.validatorService.getRowValidator(row.currentData)?.get('isActive');
-      if (isNotNil(form?.value)) this.clear(event, row, false);
+      const isActive = row.currentData.isActive;
+      if (isNotNil(isActive)) await this.clear(event, row, { interactive: false });
     }
   }
 
