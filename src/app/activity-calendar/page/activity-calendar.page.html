@@ -49,18 +49,23 @@
 
   <mat-divider></mat-divider>
 
+  <!-- clean calendar -->
+  <button mat-menu-item [disabled]="isNewData || disabled" (click)="clearCalendar($event)">
+    <mat-icon><ion-icon color="medium" name="calendar"></ion-icon></mat-icon>
+    <mat-icon color="warn" class="icon-secondary" style="left: 26px; top: 5px; font-weight: bold">close</mat-icon>
+    <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_CALENDAR</ion-label>
+  </button>
+
   <!-- delete -->
   @if (isAdmin) {
+    <mat-divider></mat-divider>
+
     <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
-      <mat-icon>delete</mat-icon>
-      <ion-label translate>COMMON.BTN_DELETE</ion-label>
+      <mat-icon color="warn">delete</mat-icon>
+      <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_DELETE_CALENDAR</ion-label>
     </button>
   }
-  <!-- clean Calendar -->
-  <button mat-menu-item [disabled]="isNewData || disabled" (click)="clearCalendar()">
-    <mat-icon>close-outline</mat-icon>
-    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_CLEAR</ion-label>
-  </button>
+
   <!-- DEV only -->
   <app-data-editor-debug-button></app-data-editor-debug-button>
 </mat-menu>

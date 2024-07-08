@@ -868,7 +868,8 @@ export class ActivityCalendarPage
   protected vesselToString(vessel: VesselSnapshot) {
     return referentialToString(vessel, this.vesselSnapshotAttributes);
   }
-  protected async clearCalendar() {
-    await this.calendar.clearAll();
+
+  protected async clearCalendar(event?: Event) {
+    await this.calendar.clearAll(event);
   }
 }
