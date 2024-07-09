@@ -39,6 +39,9 @@ export class GearPhysicalFeaturesUtils {
     data = ActivityCalendar.fromObject(data);
     const timezone = opts?.timezone;
     const year = data?.year || DateUtils.moment().year() - 1;
+
+    // Excluded metier without gear (e.g. aquaculture)
+    sortedMetiers = sortedMetiers.filter((metier, index) => ReferentialUtils.isNotEmpty(metier.gear));
     const sortedMetierIds: number[] = EntityUtils.collectById(sortedMetiers);
 
     // Keep GearPhysicalFeatures with a metier that exists in GUF
@@ -70,10 +73,11 @@ export class GearPhysicalFeaturesUtils {
       })
       .map(GearPhysicalFeatures.fromObject);
 
-    // Re index PhysicalGearFeature rankOrder depending on monthMetiers order.
+    // Re index GearPhysicalFeatures rankOrder depending on monthMetiers order.
     // Must be done in last because PhysicalGearFeature can be deleted
     sortedMetiers.forEach((metier, index) => {
-      target.find((gpf) => gpf.metier.id == metier.id).rankOrder = index;
+      const gpf = target.find((gpf) => gpf.metier.id == metier.id);
+      gpf.rankOrder = index;
     });
     console.debug(GearPhysicalFeaturesUtils.logPrefix + 'Loaded :  gearPhysicalFeatures', target);
     return target;

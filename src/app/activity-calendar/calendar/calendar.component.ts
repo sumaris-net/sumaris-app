@@ -27,6 +27,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   IStatus,
   lastArrayValue,
   LoadResult,
@@ -110,22 +111,28 @@ export const ACTIVITY_MONTH_READONLY_COLUMNS = ['month', 'program', 'vesselOwner
 export const ACTIVITY_MONTH_START_COLUMNS = [...ACTIVITY_MONTH_READONLY_COLUMNS, 'isActive', 'basePortLocation'];
 export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
 
-export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
+export interface IIsActive extends IStatus {
+  statusId: number;
+}
+export const IsActiveList: Readonly<IIsActive[]> = Object.freeze([
   {
     id: VesselUseFeaturesIsActiveEnum.ACTIVE,
     icon: 'checkmark',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.ENABLE',
+    statusId: StatusIds.ENABLE,
   },
   {
     id: VesselUseFeaturesIsActiveEnum.INACTIVE,
     icon: 'close',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.DISABLE',
+    statusId: StatusIds.ENABLE,
   },
   // The value 'Nonexistent' is not relevant.
   {
     id: VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
     icon: 'close',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.NOT_EXISTS',
+    statusId: StatusIds.DISABLE,
   },
 ]);
 
@@ -1266,6 +1273,8 @@ export class CalendarComponent
         debounceTime: 100,
       })
     );
+
+    const qualificationCommentsControl = form.get('qualificationComments');
     this.rowSubscription.add(
       form.valueChanges
         .pipe(
@@ -1278,8 +1287,8 @@ export class CalendarComponent
             this.clearClipboard(null, { clearContext: !!this.cellClipboard });
           }
 
-          if (form.dirty) {
-            form.get('qualificationComments').setValue(null);
+          if (form.dirty && isNotNilOrBlank(qualificationCommentsControl.value)) {
+            form.get('qualificationComments').setValue(null, { emitEvent: false });
             this.markAsDirty();
           }
         })
