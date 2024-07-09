@@ -127,7 +127,22 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
+      this.registerAutocompleteField('vesselSnapshot', {
+        ...opts,
+        suggestFn: (value, filter) => {
+          const year = this.yearControl.value;
+          if (isNotNil(year)) {
+            const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
+            filter = {
+              ...filter,
+              date: startDate,
+            };
+          }
+          return this.vesselSnapshotService.suggest(value, filter);
+        },
+      });
+    });
 
     // Propagate program
     this.registerSubscription(
@@ -145,7 +160,15 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     this.registerSubscription(
       merge(
         this.yearControl.valueChanges,
-        this.form.get('startDate').valueChanges.pipe(map((startDate) => fromDateISOString(startDate)?.utc(false).year()))
+        this.form.get('startDate').valueChanges.pipe(
+          // Convert startDate to year
+          map(fromDateISOString),
+          map((startDate) => {
+            if (!startDate) return null;
+            if (this.timezone) startDate = startDate.tz(this.timezone);
+            return startDate.year();
+          })
+        )
       )
         .pipe(filter(isNotNil), distinctUntilChanged())
         .subscribe((year) => {

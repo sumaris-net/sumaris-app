@@ -226,6 +226,9 @@ export const QualitativeValueIds = {
     RANDOM: 660,
     PETS: 661, // TODO remove - should not be used
   },
+  SURVEY_QUALIFICATION: {
+    DIRECT: 586,
+  },
 };
 
 export const MethodIds = {

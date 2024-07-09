@@ -3144,7 +3144,7 @@
       "ENABLE": "Activity calendar > Enable?"
     },
     "WARNING": {
-      "VALUE_INCONSISTENT_WITH_DIRECT_OBJECTIVE_INVESTIGATION": "Value inconsistent with the direct objective of the investigation"
+      "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Survey qualification <b>{{surveyQualification}}</b> inconsistent with the objective."
     }
   },
   "ERROR": {

@@ -27,6 +27,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   IStatus,
   lastArrayValue,
   LoadResult,
@@ -110,21 +111,28 @@ export const ACTIVITY_MONTH_READONLY_COLUMNS = ['month', 'program', 'vesselOwner
 export const ACTIVITY_MONTH_START_COLUMNS = [...ACTIVITY_MONTH_READONLY_COLUMNS, 'isActive', 'basePortLocation'];
 export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
 
-export const IsActiveList: Readonly<IStatus[]> = Object.freeze([
+export interface IIsActive extends IStatus {
+  statusId: number;
+}
+export const IsActiveList: Readonly<IIsActive[]> = Object.freeze([
   {
     id: VesselUseFeaturesIsActiveEnum.ACTIVE,
     icon: 'checkmark',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.ENABLE',
+    statusId: StatusIds.ENABLE,
   },
   {
     id: VesselUseFeaturesIsActiveEnum.INACTIVE,
     icon: 'close',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.DISABLE',
+    statusId: StatusIds.ENABLE,
   },
+  // The value 'Nonexistent' is not relevant.
   {
     id: VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
     icon: 'close',
     label: 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE_ENUM.NOT_EXISTS',
+    statusId: StatusIds.DISABLE,
   },
 ]);
 
@@ -633,8 +641,8 @@ export class CalendarComponent
       case 'table': {
         const months = this.memoryDataService.value;
 
-        // Clear empty block
-        months.forEach((month) => {
+        // Clear empty blocks
+        (months || []).forEach((month) => {
           if (month.isActive === VesselUseFeaturesIsActiveEnum.ACTIVE) {
             month.gearUseFeatures = month.gearUseFeatures?.filter(GearUseFeatures.isNotEmpty);
           } else {
@@ -1265,6 +1273,8 @@ export class CalendarComponent
         debounceTime: 100,
       })
     );
+
+    const qualificationCommentsControl = form.get('qualificationComments');
     this.rowSubscription.add(
       form.valueChanges
         .pipe(
@@ -1277,8 +1287,8 @@ export class CalendarComponent
             this.clearClipboard(null, { clearContext: !!this.cellClipboard });
           }
 
-          if (form.dirty) {
-            form.get('qualificationComments').setValue(null);
+          if (form.dirty && isNotNilOrBlank(qualificationCommentsControl.value)) {
+            form.get('qualificationComments').setValue(null, { emitEvent: false });
             this.markAsDirty();
           }
         })
@@ -1328,15 +1338,19 @@ export class CalendarComponent
     return confirmed;
   }
 
-  async clear(event?: Event, row?: AsyncTableElement<ActivityMonth>) {
-    row = row || this.editedRow;
-    if (!row || event.defaultPrevented) return true; // no row to confirm
-
+  async clear(event?: Event, row?: AsyncTableElement<ActivityMonth>, opts?: { interactive?: boolean }) {
+    if (event?.defaultPrevented) return false; // skip
     event?.preventDefault();
     event?.stopPropagation();
 
-    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_MONTH', this.alertCtrl, this.translate);
-    if (!confirmed) return false; // User cancelled
+    row = row || this.editedRow;
+    if (!row) return true; // no row to clear
+
+    // Ask user confirmation
+    if (opts?.interactive !== false) {
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_MONTH', this.alertCtrl, this.translate);
+      if (!confirmed) return false; // User cancelled
+    }
 
     if (this.debug) console.debug(this.logPrefix + 'Clear row', row);
 
@@ -1373,9 +1387,30 @@ export class CalendarComponent
     this.clearClipboard(null, { clearContext: false });
   }
 
-  toggleMetierBlock(event: Event, key: string) {
-    if (event?.defaultPrevented) return; // Skip^
+  async clearAll(event?: Event, opts?: { interactive?: boolean }) {
+    if (event?.defaultPrevented) return; // Skip
+
     event?.preventDefault();
+    event?.stopPropagation();
+
+    //Ask user confirmation
+    if (opts?.interactive !== false) {
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_CALENDAR', this.alertCtrl, this.translate);
+      if (!confirmed) return false; // User cancelled
+    }
+
+    const rows = this.dataSource.getRows();
+    for (const row of rows) {
+      const isActive = row.currentData.isActive;
+      if (isNotNil(isActive)) await this.clear(event, row, { interactive: false });
+    }
+  }
+
+  toggleMetierBlock(event: Event | undefined, key: string) {
+    if (event?.defaultPrevented) return; // Skip
+    event?.preventDefault();
+
+    if (this.debug) console.debug(this.logPrefix + 'Toggling block #' + key);
 
     const blockColumns = this.dynamicColumns.filter((col) => col.key.startsWith(key));
     if (isEmptyArray(blockColumns)) return; // Skip
@@ -1383,27 +1418,17 @@ export class CalendarComponent
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
-    console.debug(this.logPrefix + 'Toggling block #' + key);
+    // If will close: check if allow
+    const subColumns = blockColumns.slice(1);
+    if (masterColumn.expanded && !this.onWillHideColumns(subColumns)) return;
 
     // Toggle expanded
     masterColumn.expanded = !masterColumn.expanded;
-    const subColumns = blockColumns.slice(1);
 
-    // If close: remove the selection
-    if (!masterColumn.expanded && this.cellSelection) {
-      const { paths: cellPaths } = this.getRowsFromSelection(this.cellSelection);
-      const shouldHideCellSelection = subColumns.some((c) => cellPaths.includes(c.path));
-      if (shouldHideCellSelection) this.removeCellSelection();
-      const { paths: clipboardPaths } = this.getRowsFromSelection(this.cellClipboard);
-      const shouldHideClipboard = subColumns.some((c) => clipboardPaths.includes(c.path));
-      if (shouldHideClipboard) this.clearClipboard(null, { clearContext: false });
-    }
-
-    // Show/Hide sub columns
-    subColumns.forEach((col) => (col.hidden = !masterColumn.expanded));
-
-    // Expanded state for all columns to fix divergences states
-    blockColumns.forEach((col) => {
+    subColumns.forEach((col) => {
+      // Show/Hide sub columns
+      col.hidden = !masterColumn.expanded;
+      // Expanded state for all columns to fix divergences states
       if (isNotNil(col.expanded)) {
         col.expanded = masterColumn.expanded;
       }
@@ -1424,20 +1449,12 @@ export class CalendarComponent
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
+    // If will close: check if allow
+    const subColumns = blockColumns.slice(1);
+    if (masterColumn.expanded && !this.onWillHideColumns(subColumns)) return;
+
     // Toggle expanded
     masterColumn.expanded = !masterColumn.expanded;
-
-    const subColumns = blockColumns.slice(1);
-
-    // If close: remove the selection
-    if (!masterColumn.expanded && this.cellSelection) {
-      const { paths: cellPaths } = this.getRowsFromSelection(this.cellSelection);
-      const shouldHideCellSelection = subColumns.some((c) => cellPaths.includes(c.path));
-      if (shouldHideCellSelection) this.removeCellSelection();
-      const { paths: clipboardPaths } = this.getRowsFromSelection(this.cellClipboard);
-      const shouldHideClipboard = subColumns.some((c) => clipboardPaths.includes(c.path));
-      if (shouldHideClipboard) this.clearClipboard(null, { clearContext: false });
-    }
 
     // Show/Hide sub columns
     subColumns.forEach((col) => (col.hidden = !masterColumn.expanded));
@@ -1881,6 +1898,26 @@ export class CalendarComponent
 
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
+  }
+
+  protected onWillHideColumns(subColumns: ColumnDefinition[]): boolean {
+    if (isEmptyArray(subColumns)) return true;
+
+    if (this.debug) console.debug(`${this.logPrefix}Hide sub columns:`, subColumns);
+
+    if (this.cellSelection) {
+      const { paths: cellPaths } = this.getRowsFromSelection(this.cellSelection);
+      const shouldHideCellSelection = subColumns.some((c) => cellPaths.includes(c.path));
+      if (shouldHideCellSelection) this.removeCellSelection();
+    }
+
+    if (this.cellClipboard) {
+      const { paths: clipboardPaths } = this.getRowsFromSelection(this.cellClipboard);
+      const shouldHideClipboard = subColumns.some((c) => clipboardPaths.includes(c.path));
+      if (shouldHideClipboard) this.clearClipboard(null, { clearContext: false });
+    }
+
+    return true;
   }
 
   protected removeCellSelection(opts?: { emitEvent?: boolean }) {

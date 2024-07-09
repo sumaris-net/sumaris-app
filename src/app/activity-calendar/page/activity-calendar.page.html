@@ -49,11 +49,22 @@
 
   <mat-divider></mat-divider>
 
-  <!-- delete -->
-  <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
-    <mat-icon>delete</mat-icon>
-    <ion-label translate>COMMON.BTN_DELETE</ion-label>
+  <!-- clean calendar -->
+  <button mat-menu-item [disabled]="isNewData || disabled" (click)="clearCalendar($event)">
+    <mat-icon><ion-icon color="medium" name="calendar"></ion-icon></mat-icon>
+    <mat-icon color="warn" class="icon-secondary" style="left: 26px; top: 5px; font-weight: bold">close</mat-icon>
+    <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_CALENDAR</ion-label>
   </button>
+
+  <!-- delete -->
+  @if (isAdmin) {
+    <mat-divider></mat-divider>
+
+    <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
+      <mat-icon color="warn">delete</mat-icon>
+      <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_DELETE_CALENDAR</ion-label>
+    </button>
+  }
 
   <!-- DEV only -->
   <app-data-editor-debug-button></app-data-editor-debug-button>
@@ -151,16 +162,18 @@
                   <ion-icon slot="icon-only" name="mail"></ion-icon>
                 </ion-button>
 
+                <!-- Warning -->
+                @if (qualityWarning) {
+                  <br />
+                  <ion-text class="ion-text-wrap warning">
+                    <ion-icon name="warning"></ion-icon>
+                    &nbsp;
+                    <span [innerHTML]="qualityWarning | translate"></span>
+                  </ion-text>
+                }
+
                 <!-- quality process -->
                 <app-entity-quality-form></app-entity-quality-form>
-
-                <!-- value inconsistent with direct objective investigation (warning) -->
-                <ion-text class="ion-text-wrap warning" *ngIf="warning">
-                  <p>
-                    <ion-icon name="warning"></ion-icon>
-                    &nbsp;{{ warning | translate }}
-                  </p>
-                </ion-text>
               </app-entity-metadata>
             </ion-col>
           </ion-row>

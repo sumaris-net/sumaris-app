@@ -19,9 +19,11 @@ import {
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
+  IReferentialRef,
   isNil,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   isNotNilOrNaN,
   Property,
   ReferentialRef,
@@ -54,7 +56,7 @@ import { ActivityCalendarContextService } from '../activity-calendar-context.ser
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { CalendarComponent } from '@app/activity-calendar/calendar/calendar.component';
@@ -153,7 +155,8 @@ export class ActivityCalendarPage
   protected showMapPanel = true; // TODO enable
   protected selectedSubTabIndex = 0;
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
-  protected warning: string = null;
+  protected isAdmin = this.accountService.isAdmin();
+  protected qualityWarning: string = null;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
@@ -213,7 +216,6 @@ export class ActivityCalendarPage
 
   ngOnInit() {
     super.ngOnInit();
-
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
@@ -540,13 +542,10 @@ export class ActivityCalendarPage
 
       // Year
       this.year = searchFilter.year || fromDateISOString(searchFilter.startDate)?.year();
+      if (isNotNil(this.year)) console.debug(`${this.logPrefix}Found year from table filter: ${this.year}`);
       if (this.year) {
         data.year = this.year;
-        if (this.timezone) {
-          data.startDate = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
-        } else {
-          data.startDate = DateUtils.moment().year(this.year).startOf('year');
-        }
+        data.startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(this.year).startOf('year');
       }
     }
 
@@ -594,6 +593,7 @@ export class ActivityCalendarPage
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
+    console.log('TODO watchStrategyFilter', this.strategyResolution);
     switch (this.strategyResolution) {
       // Spatio-temporal
       case DataStrategyResolutions.SPATIO_TEMPORAL:
@@ -651,16 +651,9 @@ export class ActivityCalendarPage
       this.loadPredoc(data);
     }
 
-    const pmfmSurveyQualification = (await firstNotNilPromise(this.baseForm.pmfms$)).find((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION);
-    const valueSurveyQualification = PmfmValueUtils.valueToString(data.measurementValues?.[PmfmIds.SURVEY_QUALIFICATION], {
-      pmfm: pmfmSurveyQualification,
-      propertyNames: ['label'],
-    });
-
-    this.warning =
-      data.directSurveyInvestigation && valueSurveyQualification != 'DIR'
-        ? 'ACTIVITY_CALENDAR.WARNING.VALUE_INCONSISTENT_WITH_DIRECT_OBJECTIVE_INVESTIGATION'
-        : null;
+    if (!this.isNewData) {
+      this.updateQualityWarning(data);
+    }
   }
 
   async getValue(): Promise<ActivityCalendar> {
@@ -836,7 +829,7 @@ export class ActivityCalendarPage
     this.savePredocPanelSize();
     this.markForCheck();
 
-    if (this._predocPanelVisible && !this.predocCalendar.loaded) {
+    if (this._predocPanelVisible && !this.predocCalendar.value) {
       setTimeout(() => this.loadPredoc(this.data), 500);
     }
   }
@@ -867,5 +860,37 @@ export class ActivityCalendarPage
 
   protected vesselToString(vessel: VesselSnapshot) {
     return referentialToString(vessel, this.vesselSnapshotAttributes);
+  }
+
+  protected async clearCalendar(event?: Event) {
+    await this.calendar.clearAll(event);
+  }
+
+  protected async updateQualityWarning(data?: ActivityCalendar) {
+    data = data || this.data;
+
+    if (!data.directSurveyInvestigation) {
+      this.qualityWarning = null;
+    } else {
+      const pmfms = await firstNotNilPromise(this.baseForm.pmfms$, { stop: this.destroySubject, stopError: false });
+      const surveyQualificationPmfm = (pmfms || []).find((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION);
+      if (!surveyQualificationPmfm) {
+        console.warn(this.logPrefix + "Cannot find PMFM 'SURVEY_QUALIFICATION' need to compute quality warning");
+        return;
+      }
+
+      const surveyQualificationValue = PmfmValueUtils.fromModelValue(
+        data.measurementValues?.[PmfmIds.SURVEY_QUALIFICATION],
+        surveyQualificationPmfm
+      ) as IReferentialRef;
+
+      if (isNotNilOrBlank(surveyQualificationValue?.name) && surveyQualificationValue.id !== QualitativeValueIds.SURVEY_QUALIFICATION.DIRECT) {
+        this.qualityWarning = this.translate.instant('ACTIVITY_CALENDAR.WARNING.INCONSISTENT_DIRECT_SURVEY_QUALIFICATION', {
+          surveyQualification: surveyQualificationValue.name,
+        });
+      } else {
+        this.qualityWarning = null;
+      }
+    }
   }
 }

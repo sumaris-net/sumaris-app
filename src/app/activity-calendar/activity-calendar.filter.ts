@@ -28,6 +28,8 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
   basePortLocations: ReferentialRef[] = null;
   includedIds: number[];
   excludedIds: number[];
+  directSurveyInvestigation: boolean;
+  economicSurvey: boolean;
 
   constructor() {
     super();
@@ -46,6 +48,8 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.excludedIds = source.excludedIds;
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
+    this.directSurveyInvestigation = source.directSurveyInvestigation;
+    this.economicSurvey = source.economicSurvey;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -75,7 +79,14 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
 
   buildFilter(): FilterFn<ActivityCalendar>[] {
     const filterFns = super.buildFilter();
-
+    // Direct survey investigation
+    if (isNotNil(this.directSurveyInvestigation)) {
+      filterFns.push((t) => t.directSurveyInvestigation === this.directSurveyInvestigation);
+    }
+    // Economic survey
+    if (isNotNil(this.economicSurvey)) {
+      filterFns.push((t) => t.economicSurvey === this.economicSurvey);
+    }
     // Filter excluded ids
     if (isNotEmptyArray(this.excludedIds)) {
       filterFns.push((t) => isNil(t.id) || !this.excludedIds.includes(t.id));
