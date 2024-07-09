@@ -29,6 +29,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   @Input() showComment = true;
   @Input() showButtons = true;
   @Input() i18nSuffix: string;
+  @Input() showParent = false;
 
   @Input() set required(value: boolean) {
     if (this._required !== value) {

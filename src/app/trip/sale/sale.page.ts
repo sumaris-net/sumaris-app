@@ -134,8 +134,9 @@ export class SalePage<ST extends SalePageState = SalePageState>
       settingsId: AcquisitionLevelCodes.SALE.toLowerCase(),
       ...options,
     });
-    this.parentAcquisitionLevel = this.route.snapshot.queryParamMap.get('parent') as AcquisitionLevelType;
-    this.showParent = !!this.parentAcquisitionLevel;
+    const queryParams = this.route.snapshot.queryParamMap;
+    this.parentAcquisitionLevel = queryParams.get('parent') as AcquisitionLevelType;
+    this.showParent = !!this.parentAcquisitionLevel && isNil(queryParams.get('landing')) && isNil(queryParams.get('trip'));
 
     // FOR DEV ONLY ----
     this.logPrefix = '[sale-page] ';
@@ -350,13 +351,13 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
       if (this.parent instanceof Trip) {
         data.saleLocation = data.saleLocation || this.parent.returnLocation || this.parent.departureLocation;
-        // data.dateTime = data.dateTime || this.parent.startDateTime || this.parent.endDateTime;
+        data.startDateTime = data.startDateTime || this.parent.returnDateTime || this.parent.departureDateTime;
         data.trip = this.showParent ? this.parent : undefined;
         data.tripId = this.showParent ? null : this.parent.id;
         data.landingId = undefined;
       } else if (this.parent instanceof Landing) {
         data.saleLocation = data.saleLocation || this.parent.location;
-        // data.dateTime = data.dateTime || this.parent.startDateTime || this.parent.endDateTime;
+        data.startDateTime = data.startDateTime || this.parent.dateTime;
         data.landing = this.showParent ? this.parent : undefined;
         data.landingId = this.showParent ? null : this.parent.id;
         data.tripId = undefined;
@@ -410,15 +411,14 @@ export class SalePage<ST extends SalePageState = SalePageState>
         // data.trip = this.showParent ? parent : undefined;
         data.vesselSnapshot = parent.vesselSnapshot;
         data.saleLocation = parent.returnLocation || parent.departureLocation;
-        // data.dateTime = parent.returnDateTime || parent.departureDateTime;
+        data.startDateTime = data.startDateTime || parent.returnDateTime || parent.departureDateTime;
         data.landing = undefined;
         data.landingId = undefined;
       } else if (parent instanceof Landing) {
-        // data.observedLocation = this.showParent ? parent : undefined;
+        data.saleLocation = (this.saleForm.showLocation && data.saleLocation) || parent.location;
+        data.startDateTime = data.startDateTime || parent.dateTime;
+        data.landing = this.showParent ? this.parent : null;
         data.landingId = this.showParent ? null : this.parent.id;
-        // TODO enable this ?
-        //data.saleLocation = (this.saleForm.showLocation && data.location) || parent.location;
-        //data.startDateTime = (this.saleForm.showDateTime && data.dateTime) || parent.startDateTime || parent.endDateTime;
         data.landing = undefined;
         data.tripId = undefined;
 
