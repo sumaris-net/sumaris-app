@@ -23,6 +23,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   isNotNilOrNaN,
   Property,
   ReferentialRef,
@@ -650,18 +651,9 @@ export class ActivityCalendarPage
       this.loadPredoc(data);
     }
 
-    const surveyQualificationPmfm = (await firstNotNilPromise(this.baseForm.pmfms$)).find((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION);
-    const surveyQualificationValue = PmfmValueUtils.fromModelValue(
-      data.measurementValues?.[PmfmIds.SURVEY_QUALIFICATION],
-      surveyQualificationPmfm
-    ) as IReferentialRef;
-
-    this.qualityWarning =
-      data.directSurveyInvestigation && surveyQualificationValue?.id !== QualitativeValueIds.SURVEY_QUALIFICATION.DIRECT
-        ? this.translate.instant('ACTIVITY_CALENDAR.WARNING.INCONSISTENT_DIRECT_SURVEY_QUALIFICATION', {
-            surveyQualification: surveyQualificationValue.name,
-          })
-        : null;
+    if (!this.isNewData) {
+      this.updateQualityWarning(data);
+    }
   }
 
   async getValue(): Promise<ActivityCalendar> {
@@ -872,5 +864,33 @@ export class ActivityCalendarPage
 
   protected async clearCalendar(event?: Event) {
     await this.calendar.clearAll(event);
+  }
+
+  protected async updateQualityWarning(data?: ActivityCalendar) {
+    data = data || this.data;
+
+    if (!data.directSurveyInvestigation) {
+      this.qualityWarning = null;
+    } else {
+      const pmfms = await firstNotNilPromise(this.baseForm.pmfms$, { stop: this.destroySubject, stopError: false });
+      const surveyQualificationPmfm = (pmfms || []).find((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION);
+      if (!surveyQualificationPmfm) {
+        console.warn(this.logPrefix + "Cannot find PMFM 'SURVEY_QUALIFICATION' need to compute quality warning");
+        return;
+      }
+
+      const surveyQualificationValue = PmfmValueUtils.fromModelValue(
+        data.measurementValues?.[PmfmIds.SURVEY_QUALIFICATION],
+        surveyQualificationPmfm
+      ) as IReferentialRef;
+
+      if (isNotNilOrBlank(surveyQualificationValue?.name) && surveyQualificationValue.id !== QualitativeValueIds.SURVEY_QUALIFICATION.DIRECT) {
+        this.qualityWarning = this.translate.instant('ACTIVITY_CALENDAR.WARNING.INCONSISTENT_DIRECT_SURVEY_QUALIFICATION', {
+          surveyQualification: surveyQualificationValue.name,
+        });
+      } else {
+        this.qualityWarning = null;
+      }
+    }
   }
 }
