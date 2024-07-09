@@ -1012,6 +1012,11 @@ export class CalendarComponent
     this.markForCheck();
   }
 
+  toggleCompactMode() {
+    super.toggleCompactMode();
+    setTimeout(() => this.onResize());
+  }
+
   protected resizeCellSelection(cellSelection: TableCellSelection, name?: string, opts?: { emitEvent?: boolean }) {
     if (!cellSelection) return;
 
