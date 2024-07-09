@@ -4,6 +4,7 @@ import { ErrorCodes } from './errors';
 import {
   BaseEntityGraphqlQueries,
   BaseGraphqlService,
+  changeCaseToUnderscore,
   ConfigService,
   EntitiesStorage,
   EntityServiceLoadOptions,
@@ -524,10 +525,14 @@ export class VesselSnapshotService
       ? baseAttributes.concat(this.settings.getFieldDisplayAttributes('location').map((key) => 'basePortLocation.' + key))
       : baseAttributes;
 
+    // DEBUG
+    //if (!displayAttributes.includes('id')) displayAttributes.push('id');
+
     return <MatAutocompleteFieldAddOptions<VesselSnapshot, VesselSnapshotFilter>>{
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggest(value, filter),
       attributes: displayAttributes,
+      columnNames: displayAttributes.map((key) => 'VESSEL.VESSEL_SNAPSHOT.' + changeCaseToUnderscore(key).toUpperCase()),
       filter: {
         ...this.defaultFilter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],

@@ -1950,6 +1950,17 @@
     "TAB_HISTORY": "Historique",
     "VESSEL_REGISTRATION_DIVIDER": "Immatriculation",
     "VESSEL_FEATURES_DIVIDER": "Caractéristiques",
+    "VESSEL_SNAPSHOT": {
+      "ID": "Code interne",
+      "NAME": "Nom",
+      "EXTERIOR_MARKING": "Marquage extérieur",
+      "REGISTRATION_CODE": "Immatriculation",
+      "REGISTRATION_LOCATION": "Pavillon",
+      "BASE_PORT_LOCATION": {
+        "LABEL": "Code du port d'attache",
+        "NAME": "Libellé du port d'attache"
+      }
+    },
     "VESSEL_FEATURES": {
       "START_DATE": "Début validité",
       "END_DATE": "Fin validité",
@@ -2474,6 +2485,7 @@
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Sortie: Saisir les observateurs ?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",
+      "OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE": "Sortie > Saisir la ligne de plan d'échantillonnage ?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Sortie: Niveau(x) de lieu",
       "OBSERVED_LOCATION_CONTROL_ENABLE": "Sortie: Activer le contrôle à la terminaison de la saisie ?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Sortie > Calendrier d'activité hebdomadaire ?",
@@ -2484,6 +2496,7 @@
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Sortie > Hors-Ligne > Niveau(x) de lieu à importer",
       "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Sortie > Afficher la carte de la stratégie ?",
       "OBSERVED_LOCATION_LANDING_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)",
+      "LANDING_BATCH_ENABLE": "Sortie > Débarquement : Activer les lots (BATCH) ?",
       "LANDING_EDITOR": "Sortie > Débarquement : Éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
@@ -2499,6 +2512,7 @@
       "LANDING_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port ?",
       "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Sortie > Débarquements : Zone de pêche: Niveau(x) de lieu",
       "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre de mesures ?",
+      "LANDING_SAMPLE_ENABLE": "Sortie > Débarquement > Activer les mesures (SAMPLE) ?",
       "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Mesures : Unité de poids",
       "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
       "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
@@ -2507,6 +2521,7 @@
       "LANDING_TOP_PMFM_IDS": "Sortie > Débarquements : PSFM(s) en en-tête",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
       "PROGRAM_PRIVILEGE_READONLY": "Programme > Droits d'accès : Lecture seule ?",
+      "SALE_BATCH_ENABLE": "Sortie > Vente : Activer les lots ?",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",
