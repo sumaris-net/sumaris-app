@@ -133,6 +133,8 @@ export class ActivityMonthValidatorService<
       validators: [
         ActivityMonthValidators.uniqueMetier,
         SharedFormGroupValidators.dateRange('startDate', 'endDate'),
+        ActivityMonthValidators.fishingAreaRequiredIfMetier,
+        ActivityMonthValidators.distanceToCoastRequiredIfFishingArea,
         SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
           predicate: (control) => control.value === VesselUseFeaturesIsActiveEnum.ACTIVE || control.value === VesselUseFeaturesIsActiveEnum.INACTIVE,
         }),
@@ -188,7 +190,12 @@ export class ActivityMonthValidatorService<
           if (isNotNil(opts?.fishingAreaCount)) {
             faArray.resize(opts.fishingAreaCount, { emitEvent: false });
           }
-          console.log('TODO Enable FA ?');
+          const metier = guf.get('metier').value;
+          if (isNotNil(metier)) {
+            if (faArray.disabled) faArray.enable({ emitEvent: false });
+          } else {
+            if (faArray.enabled) faArray.disable({ emitEvent: false });
+          }
           if (gufEnabled && faArray.disabled) faArray.enable({ emitEvent: false });
           else if (!gufEnabled && faArray.enabled) faArray.disable({ emitEvent: false });
         } else {
@@ -411,8 +418,67 @@ export class ActivityMonthValidators {
 
     return isNotEmptyArray(duplicatedMetierLabels) ? { uniqueMetier: { metiers: duplicatedMetierLabels.join(',') } } : null;
   }
+
+  static distanceToCoastRequiredIfFishingArea(formGroup: FormArray): ValidationErrors | null {
+    const control = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!control || !(control instanceof FormArray)) {
+      return null;
+    }
+    const fishingAreasCoastGradientError = [];
+    control.controls.forEach((control) => {
+      const fishingAreas = control.get('fishingAreas')?.value as FishingArea[];
+      const metier = control.get('metier')?.value;
+      fishingAreas.forEach((fa) => {
+        const location = fa.location;
+        const distanceToCoast = fa.distanceToCoastGradient;
+
+        if (isNotNil(location?.id) && isNil(distanceToCoast)) {
+          fishingAreasCoastGradientError.push({ fishingArea: location.label, metier: metier.label });
+        }
+      });
+    });
+
+    return isNotEmptyArray(fishingAreasCoastGradientError)
+      ? {
+          requiredDistanceToCoast: {
+            fishingArea: fishingAreasCoastGradientError.map(({ fishingArea, metier }) => `\n${metier} / ${fishingArea} `).join(''),
+          },
+        }
+      : null;
+  }
+
+  static fishingAreaRequiredIfMetier(formGroup: FormArray): ValidationErrors | null {
+    const control = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!control || !(control instanceof FormArray)) {
+      return null;
+    }
+
+    const metierFishingAreasError = [];
+    control.controls.forEach((control) => {
+      const metier = control.get('metier')?.value;
+      const fishingAreas = control.get('fishingAreas') as FormArray;
+
+      if (isNotNil(metier)) {
+        if (fishingAreas.disabled) {
+          fishingAreas.enable({ emitEvent: false });
+        }
+        const hasFishingArea = fishingAreas.value.some((fishingArea) => isNotNil(fishingArea.location?.id));
+        if (!hasFishingArea) {
+          metierFishingAreasError.push(metier.label);
+        }
+      } else {
+        if (fishingAreas.enabled) {
+          fishingAreas.disable({ emitEvent: false });
+        }
+      }
+    });
+
+    return isNotEmptyArray(metierFishingAreasError) ? { requiredFishingArea: { metiers: metierFishingAreasError.join(',') } } : null;
+  }
 }
 
 export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
   uniqueMetier: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_METIER',
+  requiredFishingArea: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_FISHING_AREA',
+  requiredDistanceToCoast: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_DISTANCE_TO_COAST',
 };
