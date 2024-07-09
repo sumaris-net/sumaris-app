@@ -634,8 +634,8 @@ export class CalendarComponent
       case 'table': {
         const months = this.memoryDataService.value;
 
-        // Clear empty block
-        months.forEach((month) => {
+        // Clear empty blocks
+        (months || []).forEach((month) => {
           if (month.isActive === VesselUseFeaturesIsActiveEnum.ACTIVE) {
             month.gearUseFeatures = month.gearUseFeatures?.filter(GearUseFeatures.isNotEmpty);
           } else {
@@ -1397,9 +1397,11 @@ export class CalendarComponent
     }
   }
 
-  toggleMetierBlock(event: Event, key: string) {
-    if (event?.defaultPrevented) return; // Skip^
+  toggleMetierBlock(event: Event | undefined, key: string) {
+    if (event?.defaultPrevented) return; // Skip
     event?.preventDefault();
+
+    if (this.debug) console.debug(this.logPrefix + 'Toggling block #' + key);
 
     const blockColumns = this.dynamicColumns.filter((col) => col.key.startsWith(key));
     if (isEmptyArray(blockColumns)) return; // Skip
@@ -1407,27 +1409,17 @@ export class CalendarComponent
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
-    console.debug(this.logPrefix + 'Toggling block #' + key);
+    // If will close: check if allow
+    const subColumns = blockColumns.slice(1);
+    if (masterColumn.expanded && !this.onWillHideColumns(subColumns)) return;
 
     // Toggle expanded
     masterColumn.expanded = !masterColumn.expanded;
-    const subColumns = blockColumns.slice(1);
 
-    // If close: remove the selection
-    if (!masterColumn.expanded && this.cellSelection) {
-      const { paths: cellPaths } = this.getRowsFromSelection(this.cellSelection);
-      const shouldHideCellSelection = subColumns.some((c) => cellPaths.includes(c.path));
-      if (shouldHideCellSelection) this.removeCellSelection();
-      const { paths: clipboardPaths } = this.getRowsFromSelection(this.cellClipboard);
-      const shouldHideClipboard = subColumns.some((c) => clipboardPaths.includes(c.path));
-      if (shouldHideClipboard) this.clearClipboard(null, { clearContext: false });
-    }
-
-    // Show/Hide sub columns
-    subColumns.forEach((col) => (col.hidden = !masterColumn.expanded));
-
-    // Expanded state for all columns to fix divergences states
-    blockColumns.forEach((col) => {
+    subColumns.forEach((col) => {
+      // Show/Hide sub columns
+      col.hidden = !masterColumn.expanded;
+      // Expanded state for all columns to fix divergences states
       if (isNotNil(col.expanded)) {
         col.expanded = masterColumn.expanded;
       }
@@ -1448,20 +1440,12 @@ export class CalendarComponent
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
+    // If will close: check if allow
+    const subColumns = blockColumns.slice(1);
+    if (masterColumn.expanded && !this.onWillHideColumns(subColumns)) return;
+
     // Toggle expanded
     masterColumn.expanded = !masterColumn.expanded;
-
-    const subColumns = blockColumns.slice(1);
-
-    // If close: remove the selection
-    if (!masterColumn.expanded && this.cellSelection) {
-      const { paths: cellPaths } = this.getRowsFromSelection(this.cellSelection);
-      const shouldHideCellSelection = subColumns.some((c) => cellPaths.includes(c.path));
-      if (shouldHideCellSelection) this.removeCellSelection();
-      const { paths: clipboardPaths } = this.getRowsFromSelection(this.cellClipboard);
-      const shouldHideClipboard = subColumns.some((c) => clipboardPaths.includes(c.path));
-      if (shouldHideClipboard) this.clearClipboard(null, { clearContext: false });
-    }
 
     // Show/Hide sub columns
     subColumns.forEach((col) => (col.hidden = !masterColumn.expanded));
@@ -1905,6 +1889,26 @@ export class CalendarComponent
 
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
+  }
+
+  protected onWillHideColumns(subColumns: ColumnDefinition[]): boolean {
+    if (isEmptyArray(subColumns)) return true;
+
+    if (this.debug) console.debug(`${this.logPrefix}Hide sub columns:`, subColumns);
+
+    if (this.cellSelection) {
+      const { paths: cellPaths } = this.getRowsFromSelection(this.cellSelection);
+      const shouldHideCellSelection = subColumns.some((c) => cellPaths.includes(c.path));
+      if (shouldHideCellSelection) this.removeCellSelection();
+    }
+
+    if (this.cellClipboard) {
+      const { paths: clipboardPaths } = this.getRowsFromSelection(this.cellClipboard);
+      const shouldHideClipboard = subColumns.some((c) => clipboardPaths.includes(c.path));
+      if (shouldHideClipboard) this.clearClipboard(null, { clearContext: false });
+    }
+
+    return true;
   }
 
   protected removeCellSelection(opts?: { emitEvent?: boolean }) {

@@ -836,7 +836,7 @@ export class ActivityCalendarPage
     this.savePredocPanelSize();
     this.markForCheck();
 
-    if (this._predocPanelVisible && !this.predocCalendar.loaded) {
+    if (this._predocPanelVisible && !this.predocCalendar.value) {
       setTimeout(() => this.loadPredoc(this.data), 500);
     }
   }
