@@ -187,11 +187,11 @@
               matBadgeSize="small"
             >
               {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
-              <!-- @if (debug && canEdit) {
+              <!--@if (debug && canEdit) {
                 <br />
-                &lt;!&ndash;{{ row.id }}
+                {{ row.id }}
                 {{ row.valid ? 'V' : row.pending ? 'P' : 'I' }}
-                {{ row.editing ? '*' : '' }}&ndash;&gt;
+                {{ row.editing ? '*' : '' }}
               }-->
             </ion-text>
           </ion-label>
@@ -217,6 +217,8 @@
             @if (owners | isArrayLength: { greaterThan: 1 }) {
               <ion-label class="details computed">(+{{ owners.length - 1 }})</ion-label>
             }
+          } @else {
+            <ng-container *ngTemplateOutlet="skeletonText80"></ng-container>
           }
         </mat-cell>
       </ng-container>
