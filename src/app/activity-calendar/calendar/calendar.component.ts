@@ -745,7 +745,7 @@ export class CalendarComponent
       endDate: endDate,
     };
 
-    const { data } = await this.vesselOwnerPeriodService.loadAll(0, 100, 'startDate', 'desc', filter);
+    const { data } = await this.vesselOwnerPeriodService.loadAll(0, 100, 'startDate', 'asc', filter);
 
     this.vesselOwners = months.map((month) => IUseFeaturesUtils.filterByPeriod(data, month).map((vop) => vop.vesselOwner));
   }

@@ -211,7 +211,7 @@
               class="ion-text-nowrap computed"
               [title]="owners | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: '\n', propertySeparator: ' ' }"
             >
-              {{ owners | arrayFirst | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: ', ', propertySeparator: ' ' } }}
+              {{ owners | arrayFirst | referentialToString: vesselOwnerDisplayAttributes }}
             </ion-label>
 
             @if (owners | isArrayLength: { greaterThan: 1 }) {
@@ -501,8 +501,7 @@
               >
                 <mat-icon style="color: var(--ion-color-dark)">cancel</mat-icon>
               </button>
-              <!-- TODO -->
-              <!-- <!-1- keep remote button -1-> -->
+              <!-- TODO Keep remote button -->
               <!-- <button -->
               <!--   mat-icon-button -->
               <!--   [class.cdk-visually-hidden]="cellSelection?.resizing" -->
