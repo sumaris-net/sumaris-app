@@ -168,12 +168,17 @@ mat-toolbar {
     border-left: 1px solid rgba(0, 0, 0, 0.12);
 
     &.odd {
-      --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
+      --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.15) !important;
       background-color: var(--mat-table-background-color);
 
       &.mat-column-reset-background-color {
         --mat-table-background-color: var(--ion-color-step-100) !important;
       }
+    }
+
+    &.mat-column-fishingArea {
+      --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
+      background-color: var(--mat-table-background-color);
     }
 
     &.collapsed {

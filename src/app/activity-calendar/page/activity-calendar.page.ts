@@ -19,6 +19,7 @@ import {
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
+  IReferentialRef,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -54,7 +55,7 @@ import { ActivityCalendarContextService } from '../activity-calendar-context.ser
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { CalendarComponent } from '@app/activity-calendar/calendar/calendar.component';
@@ -154,7 +155,7 @@ export class ActivityCalendarPage
   protected selectedSubTabIndex = 0;
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
   protected isAdmin = this.accountService.isAdmin();
-  protected warning: string = null;
+  protected qualityWarning: string = null;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
@@ -649,15 +650,17 @@ export class ActivityCalendarPage
       this.loadPredoc(data);
     }
 
-    const pmfmSurveyQualification = (await firstNotNilPromise(this.baseForm.pmfms$)).find((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION);
-    const valueSurveyQualification = PmfmValueUtils.valueToString(data.measurementValues?.[PmfmIds.SURVEY_QUALIFICATION], {
-      pmfm: pmfmSurveyQualification,
-      propertyNames: ['label'],
-    });
+    const surveyQualificationPmfm = (await firstNotNilPromise(this.baseForm.pmfms$)).find((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION);
+    const surveyQualificationValue = PmfmValueUtils.fromModelValue(
+      data.measurementValues?.[PmfmIds.SURVEY_QUALIFICATION],
+      surveyQualificationPmfm
+    ) as IReferentialRef;
 
-    this.warning =
-      data.directSurveyInvestigation && valueSurveyQualification != 'DIR'
-        ? 'ACTIVITY_CALENDAR.WARNING.VALUE_INCONSISTENT_WITH_DIRECT_OBJECTIVE_INVESTIGATION'
+    this.qualityWarning =
+      data.directSurveyInvestigation && surveyQualificationValue?.id !== QualitativeValueIds.SURVEY_QUALIFICATION.DIRECT
+        ? this.translate.instant('ACTIVITY_CALENDAR.WARNING.INCONSISTENT_DIRECT_SURVEY_QUALIFICATION', {
+            surveyQualification: surveyQualificationValue.name,
+          })
         : null;
   }
 

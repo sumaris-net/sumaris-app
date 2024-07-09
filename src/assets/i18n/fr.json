@@ -372,6 +372,7 @@
         "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Référentiel > Valeur qualitative > Sexe / Non sexé",
         "QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_PETS_ID": "Référentiel > Valeur qualitative > Origine des espèces / PETS",
         "QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_RANDOM_ID": "Référentiel > Valeur qualitative > Origine des espèces / Tirage au sort",
+        "QUALITATIVE_VALUE_SURVEY_QUALIFICATION_DIRECT_ID": "Référentiel > Valeur qualitative > Qualification de l'enquête / Directe",
         "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métiers nationaux",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métiers DCF niv 5",
@@ -3513,7 +3514,7 @@
       "DUPLICATED_METIER": "Métier(s) en doublon: {{metiers}}"
     },
     "WARNING": {
-      "VALUE_INCONSISTENT_WITH_DIRECT_OBJECTIVE_INVESTIGATION": "Valeur incohérente avec l'objectif directe de l'enquête"
+      "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif."
     }
   },
   "ERROR": {

@@ -162,16 +162,18 @@
                   <ion-icon slot="icon-only" name="mail"></ion-icon>
                 </ion-button>
 
+                <!-- Warning -->
+                @if (qualityWarning) {
+                  <br />
+                  <ion-text class="ion-text-wrap warning">
+                    <ion-icon name="warning"></ion-icon>
+                    &nbsp;
+                    <span [innerHTML]="qualityWarning | translate"></span>
+                  </ion-text>
+                }
+
                 <!-- quality process -->
                 <app-entity-quality-form></app-entity-quality-form>
-
-                <!-- value inconsistent with direct objective investigation (warning) -->
-                <ion-text class="ion-text-wrap warning" *ngIf="warning">
-                  <p>
-                    <ion-icon name="warning"></ion-icon>
-                    &nbsp;{{ warning | translate }}
-                  </p>
-                </ion-text>
               </app-entity-metadata>
             </ion-col>
           </ion-row>
