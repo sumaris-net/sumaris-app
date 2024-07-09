@@ -540,13 +540,10 @@ export class ActivityCalendarPage
 
       // Year
       this.year = searchFilter.year || fromDateISOString(searchFilter.startDate)?.year();
+      if (isNotNil(this.year)) console.debug(`${this.logPrefix}Found year from table filter: ${this.year}`);
       if (this.year) {
         data.year = this.year;
-        if (this.timezone) {
-          data.startDate = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
-        } else {
-          data.startDate = DateUtils.moment().year(this.year).startOf('year');
-        }
+        data.startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(this.year).startOf('year');
       }
     }
 
@@ -594,6 +591,7 @@ export class ActivityCalendarPage
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
+    console.log('TODO watchStrategyFilter', this.strategyResolution);
     switch (this.strategyResolution) {
       // Spatio-temporal
       case DataStrategyResolutions.SPATIO_TEMPORAL:
