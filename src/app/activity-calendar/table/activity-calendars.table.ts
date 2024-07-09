@@ -5,6 +5,7 @@ import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
   ConfigService,
+  CORE_CONFIG_OPTIONS,
   DateUtils,
   FilesUtils,
   HammerSwipeEvent,
@@ -23,6 +24,7 @@ import {
   slideUpDownAnimation,
   splitByProperty,
   StatusIds,
+  toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -98,6 +100,8 @@ export class ActivityCalendarsTable
   @Input() registrationLocationLevelIds: number[] = null;
   @Input() basePortLocationLevelIds: number[] = null;
   @Input() @RxStateProperty() title: string;
+  @Input() canAdd: boolean;
+  protected timezone = DateUtils.moment().tz();
 
   get filterYearControl(): UntypedFormControl {
     return this.filterForm.controls.year as UntypedFormControl;
@@ -131,12 +135,13 @@ export class ActivityCalendarsTable
       endDate: [null, SharedValidators.validDate],
       registrationLocations: [null],
       basePortLocations: [null],
-      directSurveyInvestigation: [null],
       synchronizationStatus: [null],
       recorderDepartment: [null, SharedValidators.entity],
       recorderPerson: [null, SharedValidators.entity],
       dataQualityStatus: [null],
       qualityFlagId: [null, SharedValidators.integer],
+      directSurveyInvestigation: [null],
+      economicSurvey: [null],
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()
@@ -165,6 +170,8 @@ export class ActivityCalendarsTable
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.canAdd = toBoolean(this.canAdd, this.isAdmin);
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -220,9 +227,10 @@ export class ActivityCalendarsTable
 
     this.registerSubscription(
       this.configService.config.pipe(filter(isNotNil)).subscribe((config) => {
-        console.info('[activity-calendars] Init from config', config);
+        console.info(`${this.logPrefix}Init from config`, config);
 
         this.title = config.getProperty(ACTIVITY_CALENDAR_CONFIG_OPTIONS.ACTIVITY_CALENDAR_NAME);
+        this.timezone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
 
         this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
         this.setShowColumn('quality', this.showQuality, { emitEvent: false });
@@ -430,7 +438,9 @@ export class ActivityCalendarsTable
       this.filterYearControl.reset();
       this.onRefresh.emit();
     } else {
-      this.setFilter({ year, startDate: null, endDate: null });
+      const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
+      this.filterYearControl.setValue(startDate, { emitEvent: false });
+      this.setFilter({ year, startDate: startDate, endDate: null });
     }
   }
 

@@ -372,6 +372,7 @@
         "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Référentiel > Valeur qualitative > Sexe / Non sexé",
         "QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_PETS_ID": "Référentiel > Valeur qualitative > Origine des espèces / PETS",
         "QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_RANDOM_ID": "Référentiel > Valeur qualitative > Origine des espèces / Tirage au sort",
+        "QUALITATIVE_VALUE_SURVEY_QUALIFICATION_DIRECT_ID": "Référentiel > Valeur qualitative > Qualification de l'enquête / Directe",
         "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métiers nationaux",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métiers DCF niv 5",
@@ -2374,6 +2375,8 @@
       "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Calendrier d'activité > Rapport : URL d'une image pour le log de droite",
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER": "Calendrier d'activité > Rapport : nombre de méter a faire figurer sur les formulaire vierge",
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER": "Calendrier d'activité > Rapport : nombre de zone de pêche a par métier a faire figurer sur les formulaire vierge",
+      "ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS": "Calendrier d'activité > Métier : Type(s) d'espèce",
+      "ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID": "Calendrier d'activité > Pays d'immatriculation des navires",
       "EXTRACTION_FORMATS": "Extraction > Formats disponibles:",
       "I18N_SUFFIX": "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY": "Par défaut",
@@ -3392,6 +3395,7 @@
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "VESSEL": "Navire",
+        "QUALITY_FLAG_ID": "Niveau de qualité",
         "YEAR": "Année"
       }
     },
@@ -3406,7 +3410,7 @@
       "SOURCE": "Source",
       "SOURCE_PREDOC": "",
       "BTN_ADD_METIER_BLOCK": "Ajouter un bloc métier",
-      "BTN_REPORT": "Éditer un rapport...",
+      "BTN_REPORT": "Éditer le rapport...",
       "BTN_EXPAND_ALL": "Déplier tout",
       "BTN_COLLAPSE_ALL": "Replier tout",
       "BTN_CLEAR_MONTH": "Vider le mois",
@@ -3414,6 +3418,7 @@
       "SHOW_PREDOC": "Afficher la prédocumentation",
       "BTN_SHOW_PREDOC": "<u>P</u>rédocumentation",
       "CONFIRM_CLEAR_MONTH": "<b>Êtes-vous sûr</b> de vouloir vider ce mois ?",
+      "CONFIRM_CLEAR_CALENDAR": "<b>Êtes-vous sûr</b> de vouloir vider le calendrier ?",
       "YEAR": "Année :",
       "VESSEL_SNAPSHOT": "Navire",
       "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
@@ -3442,6 +3447,8 @@
       "VESSEL_REGISTRATION_DIVIDER": "Immatriculations",
       "VESSEL_OWNER_DIVIDER": "Armateurs",
       "PHOTO": "Photos",
+      "BTN_DELETE_CALENDAR": "Supprimer",
+      "BTN_CLEAR_CALENDAR": "Vider le calendrier",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
         "DISABLE": "Inactif",
@@ -3507,7 +3514,7 @@
       "DUPLICATED_METIER": "Métier(s) en doublon: {{metiers}}"
     },
     "WARNING": {
-      "VALUE_INCONSISTENT_WITH_DIRECT_OBJECTIVE_INVESTIGATION": "Valeur incohérente avec l'objectif directe de l'enquête"
+      "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif."
     }
   },
   "ERROR": {

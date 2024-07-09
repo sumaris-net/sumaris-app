@@ -630,7 +630,7 @@ export class ObservedLocationPage
         landingsTable.minObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
         landingsTable.dividerPmfmId = program.getPropertyAsInt(ProgramProperties.LANDING_ROWS_DIVIDER_PMFM_ID);
         landingsTable.showAutoFillButton = this.autoFillLandings;
-        landingsTable.unknownVesselId = VesselIds.UNKNOWN;
+        landingsTable.unknownVesselId = VesselIds.UNKNOWN !== -1 ? VesselIds.UNKNOWN : null;
         this.showLandingTab = true;
       }
 

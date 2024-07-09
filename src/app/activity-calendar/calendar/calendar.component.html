@@ -269,10 +269,14 @@
                 <mat-select-trigger>
                   {{ isActiveMap[control.value]?.label | translate }}
                 </mat-select-trigger>
-                <mat-option *ngFor="let item of isActiveList" [value]="item.id">
-                  <ion-icon [name]="item.icon"></ion-icon>
-                  {{ item.label | translate }}
-                </mat-option>
+                @for (item of isActiveList; track item.id) {
+                  @if (item.statusId !== 0 || item.id === control.value) {
+                    <mat-option [value]="item.id">
+                      <ion-icon [name]="item.icon"></ion-icon>
+                      {{ item.label | translate }}
+                    </mat-option>
+                  }
+                }
               </mat-select>
               <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
             </mat-form-field>

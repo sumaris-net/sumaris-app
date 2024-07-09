@@ -228,7 +228,7 @@
 
         <ion-row *ngIf="showObservers || showQuality">
           <!-- Observers -->
-          <ion-col size="12" size-sm="6" *ngIf="showObservers">
+          <ion-col size="12" size-lg="6" *ngIf="showObservers">
             <mat-autocomplete-field
               [placeholder]="'TRIP.TABLE.FILTER.OBSERVERS' | translate"
               [formControl]="filterObserversForm.at(0)"
@@ -242,7 +242,7 @@
 
           <ng-container *ngIf="showQuality && filterForm | formGetControl: 'dataQualityStatus'; let control">
             <!-- Data quality status -->
-            <ion-col>
+            <ion-col [sizeLg]="control.value !== 'QUALIFIED' ? 6 : 3">
               <mat-form-field>
                 <ion-icon matPrefix name="create"></ion-icon>
                 <mat-label>{{ 'TRIP.TABLE.QUALITY' | translate }}</mat-label>
@@ -274,6 +274,8 @@
             <!-- Quality flag -->
             <ion-col
               *ngIf="filterForm | formGetControl: 'qualityFlagId'; let flagControl"
+              size="12"
+              size-lg="3"
               [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'"
             >
               <mat-form-field>
