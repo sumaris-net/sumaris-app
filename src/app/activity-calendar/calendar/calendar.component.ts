@@ -437,7 +437,7 @@ export class CalendarComponent
         entityName: 'DistanceToCoastGradient',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      attributes: ['label', 'name'],
+      attributes: ['label', 'description'],
       mobile: this.mobile,
     });
     this.registerAutocompleteField('depthGradient', {
@@ -447,7 +447,7 @@ export class CalendarComponent
         entityName: 'DepthGradient',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      attributes: ['label', 'name'],
+      attributes: ['label', 'description'],
       mobile: this.mobile,
     });
     this.registerAutocompleteField('nearbySpecificArea', {
@@ -457,7 +457,7 @@ export class CalendarComponent
         entityName: 'NearbySpecificArea',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      attributes: ['label', 'name'],
+      attributes: ['label', 'description'],
       mobile: this.mobile,
     });
 
