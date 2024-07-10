@@ -17,6 +17,7 @@ import { Metier } from '@app/referential/metier/metier.model';
 import { IWithProgramEntity } from '@app/data/services/model/model.utils';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { IUseFeatures } from '@app/activity-calendar/model/use-features.model';
 
 export class GearUseFeaturesComparators {
   static sortByDateAndRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
@@ -36,7 +37,7 @@ export class GearUseFeaturesComparators {
 }
 
 @EntityClass({ typename: 'GearUseFeaturesVO' })
-export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWithProgramEntity<GearUseFeatures> {
+export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWithProgramEntity<GearUseFeatures>, IUseFeatures<GearUseFeatures> {
   static fromObject: (source: any, options?: any) => GearUseFeatures;
 
   static equals(o1: GearUseFeatures, o2: GearUseFeatures) {

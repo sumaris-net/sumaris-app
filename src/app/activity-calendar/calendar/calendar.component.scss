@@ -56,6 +56,8 @@ mat-toolbar {
   --mat-column-actions-min-width: 100%;
   --mat-row-height: 35px !important;
   --mat-row-max-height: 35px !important;
+  --mat-table-row-item-label-text-color: var(--ion-text-color, rgba(0, 0, 0, 0.87));
+  --mat-table-row-disabled-item-label-text-color: var(--ion-color-step-500);
 
   display: flex !important;
   flex-direction: row !important;
@@ -113,6 +115,10 @@ mat-toolbar {
           visibility: hidden;
         }
       }
+    }
+
+    &.readonly .mat-mdc-cell {
+      color: var(--mat-table-row-disabled-item-label-text-color);
     }
 
     &.SIH-ACTIPRED {

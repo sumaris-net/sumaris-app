@@ -1,4 +1,12 @@
-import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNotNil, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  fromDateISOString,
+  isNil,
+  isNotNil,
+  ReferentialUtils,
+  toDateISOString,
+} from '@sumaris-net/ngx-components';
 import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
@@ -6,7 +14,8 @@ import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.
 import { Moment } from 'moment';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { GearPhysicalFeatures } from './gear-physical-features.model';
-import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
+import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
+import { VesselRegistrationPeriodsByPrivileges } from '../calendar/activity-month.model';
 
 @EntityClass({ typename: 'ActivityCalendarVO' })
 export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
@@ -22,6 +31,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
   gearUseFeatures: GearUseFeatures[];
   gearPhysicalFeatures: GearPhysicalFeatures[];
   images: ImageAttachment[];
+  vesselRegistrationPeriodsByPrivileges: VesselRegistrationPeriodsByPrivileges;
 
   constructor() {
     super(ActivityCalendar.TYPENAME);
@@ -36,8 +46,13 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
     target.gearPhysicalFeatures = (this.gearPhysicalFeatures && this.gearPhysicalFeatures.map((gpf) => gpf.asObject(opts))) || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
     target.images = (this.images && this.images.map((image) => image.asObject(opts))) || undefined;
+    target.vesselRegistrationPeriodsByPrivileges = Object.keys(this.vesselRegistrationPeriodsByPrivileges || {}).reduce((acc, key) => {
+      acc[key] = this.vesselRegistrationPeriodsByPrivileges[key].map((vesselRegistrationPeriods) => vesselRegistrationPeriods.asObject(opts));
+      return acc;
+    }, {});
     if (opts?.minify) {
       delete target.startDate;
+      delete target.vesselRegistrationPeriodsByPrivileges;
     }
     return target;
   }
@@ -53,9 +68,13 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
     this.gearPhysicalFeatures = source.gearPhysicalFeatures?.map(GearPhysicalFeatures.fromObject) || undefined;
     this.measurementValues = { ...source.measurementValues }; // Copy values
     this.images = (source.images && source.images.map(ImageAttachment.fromObject)) || undefined;
+    this.vesselRegistrationPeriodsByPrivileges = Object.keys(source.vesselRegistrationPeriodsByPrivileges || {}).reduce((acc, key) => {
+      acc[key] = source.vesselRegistrationPeriodsByPrivileges[key].map(VesselRegistrationPeriod.fromObject);
+      return acc;
+    }, {});
   }
 
-  equals(other: ActivityCalendar): boolean {
+  equals(other: ActivityCalendar, opts = { withMeasurementValues: false, withVesselUseFeatures: false, withGearUseFeatures: false }): boolean {
     return (
       (super.equals(other) && isNotNil(this.id)) ||
       // Same vessel
@@ -65,7 +84,18 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
         // Same year
         this.year === other.year &&
         // Same program
-        ReferentialUtils.equals(this.program, other.program))
+        ReferentialUtils.equals(this.program, other.program) &&
+        // Same measurement values
+        (opts.withMeasurementValues !== true || MeasurementValuesUtils.equals(this.measurementValues, other.measurementValues)) &&
+        // Same vuf
+        (opts.withVesselUseFeatures !== true ||
+          (isNil(this?.vesselUseFeatures) && isNil(other?.vesselUseFeatures)) ||
+          (this?.vesselUseFeatures.length === other.vesselUseFeatures.length &&
+            this?.vesselUseFeatures.every((vuf, index) => vuf.equals(other[index], { withMeasurementValues: true })))) &&
+        (opts.withGearUseFeatures !== true ||
+          (isNil(this?.gearUseFeatures) && isNil(other?.gearUseFeatures)) ||
+          (this?.gearUseFeatures.length === other.gearUseFeatures.length &&
+            this?.gearUseFeatures.every((vuf, index) => vuf.equals(other[index], { withMeasurementValues: true })))))
     );
   }
 }

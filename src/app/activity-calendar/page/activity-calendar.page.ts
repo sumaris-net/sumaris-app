@@ -7,6 +7,7 @@ import {
   AccountService,
   AppAsyncTable,
   AppEditorOptions,
+  AppErrorWithDetails,
   AppTable,
   chainPromises,
   CORE_CONFIG_OPTIONS,
@@ -443,6 +444,15 @@ export class ActivityCalendarPage
     await this.dataService.copyLocallyById(this.data.id, { withLanding: true, displaySuccessToast: true });
   }
 
+  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }): void {
+    // if (typeof error === 'object' && error?.code === ServerErrorCodes.BAD_UPDATE_DATE) {
+    //   if (error?.details) {
+    //     if (isNotEmptyArray(error?.details?.vesselUseFeatures)
+    //   }
+    // }
+    super.setError(error, opts);
+  }
+
   /* -- protected methods -- */
 
   protected async setProgram(program: Program) {
@@ -636,7 +646,11 @@ export class ActivityCalendarPage
     this.baseForm.value = data;
 
     // Set data to calendar
-    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, timezone: this.timezone });
+    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, {
+      fillEmptyGuf: true,
+      timezone: this.timezone,
+      isAdmin: this.accountService.isAdmin(),
+    });
 
     // Set metier table data
     this.tableMetier.value = GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone: this.timezone });
@@ -675,6 +689,9 @@ export class ActivityCalendarPage
         if (isNil(img.comments)) img.comments = value.year.toString();
       });
     }
+
+    // keep vesselRegistrationPeriodsByPrivileges
+    value.vesselRegistrationPeriodsByPrivileges = this.data.vesselRegistrationPeriodsByPrivileges;
 
     return value;
   }

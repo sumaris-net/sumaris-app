@@ -217,6 +217,14 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
   }
 }
 
+export class VesselRegistrationPeriodComparators {
+  static sortStartDate(n1: VesselRegistrationPeriod, n2: VesselRegistrationPeriod): number {
+    const d1 = fromDateISOString(n1.startDate);
+    const d2 = fromDateISOString(n2.startDate);
+    return DateUtils.isSame(d1, d2) ? 0 : d1?.isBefore(d2) ? 1 : -1;
+  }
+}
+
 @EntityClass({ typename: 'VesselRegistrationPeriodVO' })
 export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> implements IVesselPeriodEntity<VesselRegistrationPeriod> {
   static fromObject: (source: any, opts?: any) => VesselRegistrationPeriod;
