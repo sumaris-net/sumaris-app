@@ -129,6 +129,10 @@ mat-toolbar {
         --mat-table-background-color: var(--ion-color-step-100) !important;
       }
     }
+
+    &.conflictual {
+      background-color: var(--ion-color-warning-tint);
+    }
   }
 
   .mat-mdc-header-row,

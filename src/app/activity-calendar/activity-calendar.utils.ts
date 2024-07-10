@@ -1,5 +1,5 @@
-import { AppError, arrayDistinct, EntityUtils, isEmptyArray, isNil, isNotEmptyArray, ServerErrorCodes } from '@sumaris-net/ngx-components';
-import { ProgramPrivilegeEnum } from '@app/referential/services/model/model.enum';
+import { AppError, arrayDistinct, EntityUtils, isEmptyArray, ServerErrorCodes } from '@sumaris-net/ngx-components';
+import { ProgramPrivilegeEnum, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { ActivityCalendar } from './model/activity-calendar.model';
 import { IUseFeatures, IUseFeaturesUtils } from '@app/activity-calendar/model/use-features.model';
 import { Moment } from 'moment';
@@ -10,7 +10,7 @@ export class ActivityCalendarUtils {
     EntityUtils.cleanIdAndUpdateDate(target);
 
     // Check base attributes are equals (without children entities)
-    const isSameProperties = source.equals(remoteEntity, { withGearUseFeatures: false, withVesselUseFeatures: false, withMeasurementValues: true });
+    const isSameProperties = source.equals(target, { withGearUseFeatures: false, withVesselUseFeatures: false, withMeasurementValues: true });
     if (!isSameProperties) {
       // Cannot merge: stop here
       throw <AppError>{
@@ -23,44 +23,17 @@ export class ActivityCalendarUtils {
     if (isEmptyArray(writablePeriods)) return remoteEntity; // No access write
 
     // Merge VUF
-    const { resolved: resolvedVuf, unresolved: unresolvedVuf } = this.mergeUseFeatures(
-      source.vesselUseFeatures,
-      remoteEntity.vesselUseFeatures,
-      writablePeriods
-    );
+    target.vesselUseFeatures = this.mergeUseFeatures(source.vesselUseFeatures, remoteEntity.vesselUseFeatures, writablePeriods);
 
     // Merge GUF
-    const { resolved: resolvedGuf, unresolved: unresolvedGuf } = this.mergeUseFeatures(
-      source.gearUseFeatures,
-      remoteEntity.gearUseFeatures,
-      writablePeriods
-    );
+    target.gearUseFeatures = this.mergeUseFeatures(source.gearUseFeatures, remoteEntity.gearUseFeatures, writablePeriods);
 
     // Merge PUF
-    const { resolved: resolvedPuf, unresolved: unresolvedPuf } = this.mergeUseFeatures(
-      source.gearPhysicalFeatures,
-      remoteEntity.gearPhysicalFeatures,
-      writablePeriods
-    );
-
-    // Cannot merge: throw error
-    if (isNotEmptyArray(unresolvedVuf) || isNotEmptyArray(unresolvedGuf)) {
-      throw <AppError>{
-        code: ServerErrorCodes.BAD_UPDATE_DATE,
-        message: 'ERROR.BAD_UPDATE_DATE',
-        details: {
-          vesselUseFeatures: unresolvedVuf,
-          gearUseFeatures: unresolvedGuf,
-          physicalUseFeatures: unresolvedPuf,
-        },
-      };
-    }
+    // const { resolved: resolvedPuf, unresolved: unresolvedPuf } = this.mergeUseFeatures(
+    target.gearPhysicalFeatures = this.mergeUseFeatures(source.gearPhysicalFeatures, remoteEntity.gearPhysicalFeatures, writablePeriods);
 
     target.id = remoteEntity.id;
     target.updateDate = remoteEntity.updateDate;
-    target.vesselUseFeatures = resolvedVuf;
-    target.gearUseFeatures = resolvedGuf;
-    target.gearPhysicalFeatures = resolvedPuf;
 
     return target;
   }
@@ -69,11 +42,13 @@ export class ActivityCalendarUtils {
     sources: T[],
     remoteEntities: T[],
     writablePeriods: { startDate: Moment; endDate: Moment }[]
-  ): { resolved: T[]; unresolved: T[] } {
+  ): T[] {
     const unresolved: T[] = [];
-    let localId = 0;
+    // TODO : need this ???
+    // const localId = 0;
 
-    const mergedSources = sources
+    console.debug('MYTEST ActivityCalendarUtils.mergeUseFeatures: source, remoteEntities', { sources, remoteEntities });
+    let mergedSources = sources
       // Keep only source with access right
       .filter((source) => IUseFeaturesUtils.isInPeriods(source, writablePeriods))
       .map((source) => {
@@ -83,30 +58,36 @@ export class ActivityCalendarUtils {
         );
         // No conflict: we keep the source
         if (!remoteEntity) {
-          if (isNil(source.id)) source.id = --localId;
+          // if (isNil(source.id)) source.id = --localId;
           return source;
         }
 
         const isSame = IUseFeaturesUtils.isSame(source, remoteEntity, { withId: false, withMeasurementValues: true });
         if (isSame) return remoteEntity; // Same content: kse remote (with a valid update date)
 
-        // Data only changed on local, keep local.
-        if (source.updateDate.isSame(remoteEntity.updateDate)) {
-          return source;
+        if (source.updateDate.isSameOrBefore(remoteEntity.updateDate)) {
+          // If source update date is same or before remote update date :
+          // - the remote is conflictual so :
+          //   - flag remote data as conflictual
+          //   - add it into conflictual data
+          // - else keep source data as it
+          remoteEntity.qualityFlagId = QualityFlagIds.CONFLICTUAL;
+          unresolved.push(remoteEntity);
         }
 
-        // Not same: CONFLICT !
-        unresolved.push(source);
-        // Keep remote
-        return remoteEntity;
+        return source;
       });
 
-    // Add new remote entities
-    const resolved = arrayDistinct(mergedSources.concat(remoteEntities), 'id');
-
     // Clean local id
-    resolved.filter(EntityUtils.isLocal).forEach((entity) => (entity.id = undefined));
+    // resolved.filter(EntityUtils.isLocal).forEach((entity) => (entity.id = undefined));
 
-    return { resolved, unresolved };
+    // Add remote data that are not yet present on sources data
+    mergedSources = arrayDistinct(mergedSources.concat(remoteEntities), 'id');
+
+    // Add unresolved entities
+    mergedSources = mergedSources.concat(unresolved);
+
+    console.debug('MYTEST ActivityCalendarUtils.mergeUseFeatures: mergedSources', mergedSources);
+    return mergedSources;
   }
 }

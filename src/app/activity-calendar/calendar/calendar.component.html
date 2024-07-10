@@ -474,7 +474,9 @@
             }
 
             <!-- clear button -->
-            @if (row.validator | formGetValue: 'isActive' | isNotNil) {
+            @if (
+              (row.validator | formGetValue: 'isActive' | isNotNil) && (row.validator | formGetValue: 'qualityFlagId') !== qualityFlagId.CONFLICTUAL
+            ) {
               <button
                 mat-icon-button
                 [class.cdk-visually-hidden]="cellSelection?.resizing"
@@ -485,6 +487,32 @@
               >
                 <mat-icon [style.color]="row.editing ? 'var(--ion-color-dark)' : 'var(--ion-color-medium)'">delete</mat-icon>
               </button>
+            } @else if ((row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL) {
+              <!-- solve conflict button -->
+              <button
+                mat-icon-button
+                [class.cdk-visually-hidden]="cellSelection?.resizing"
+                [class.visible-hover]="!row.editing"
+                [title]="'ACTIVITY_CALENDAR.EDIT.SOLVE_CONFLICT' | translate"
+                (click)="solveConflict($event, row)"
+                tabIndex="-1"
+              >
+                <mat-icon style.color="var(--ion-color-dark)">cancel</mat-icon>
+              </button>
+              <!-- TODO -->
+              <!-- <!-1- keep remote button -1-> -->
+              <!-- <button -->
+              <!--   mat-icon-button -->
+              <!--   [class.cdk-visually-hidden]="cellSelection?.resizing" -->
+              <!--   [class.visible-hover]="!row.editing" -->
+              <!--   [title]="'ACTIVITY_CALENDAR.EDIT.KEEP_REMOTE_DATA' | translate" -->
+              <!--   (click)="keepRemoteData($event, row)" -->
+              <!--   tabIndex="-1" -->
+              <!-- > -->
+              <!--   <mat-icon> -->
+              <!--     <span>&#xbb;</span> -->
+              <!--   </mat-icon> -->
+              <!-- </button> -->
             }
           }
         </ng-template>
@@ -494,6 +522,7 @@
       <mat-row
         *matRowDef="let row; columns: displayedColumns"
         [class.mat-mdc-row-error]="row.touched && row.invalid"
+        [class.conflictual]="(row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL"
         [class.mat-mdc-row-dirty]="row.dirty"
         [class.mat-mdc-row-disabled]="!row.editing"
         [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id"

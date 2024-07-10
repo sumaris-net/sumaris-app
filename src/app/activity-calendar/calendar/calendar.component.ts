@@ -58,7 +58,13 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { distinctUntilChanged, fromEvent, Observable, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import {
+  AcquisitionLevelCodes,
+  LocationLevelGroups,
+  LocationLevelIds,
+  QualityFlagIds,
+  QualityFlags,
+} from '@app/referential/services/model/model.enum';
 import { UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -221,6 +227,7 @@ export class CalendarComponent
   protected readonly isActiveList = IsActiveList;
   protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
+  protected readonly qualityFlagId = Object.freeze(QualityFlagIds);
 
   protected rowSubscription: Subscription;
   protected cellSelection: TableCellSelection<ActivityMonth>;
@@ -229,6 +236,7 @@ export class CalendarComponent
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
+  protected _solveConflictMode = false;
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -301,11 +309,11 @@ export class CalendarComponent
    */
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (DO NOT use 'invalid')
-    return !this._children || this._children.findIndex((c) => c.enabled && !c.valid) === -1;
+    return !this._solveConflictMode && (!this._children || this._children.findIndex((c) => c.enabled && !c.valid) === -1);
   }
 
   get invalid(): boolean {
-    return (this._children && this._children.findIndex((c) => c.enabled && c.invalid) !== -1) || false;
+    return this._solveConflictMode || (this._children && this._children.findIndex((c) => c.enabled && c.invalid) !== -1) || false;
   }
 
   get pending(): boolean {
@@ -561,8 +569,22 @@ export class CalendarComponent
     this.rowSubscription?.unsubscribe();
   }
 
+  async updateView(res: LoadResult<ActivityMonth>, opts?: { emitEvent?: boolean }): Promise<void> {
+    await super.updateView(res, opts);
+
+    const data = res.data;
+    // If no other rows are conflictual, quit _solveConflictMode
+    const conflictualCount = data.filter((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL).length;
+    if (this._solveConflictMode && conflictualCount === 0) {
+      this._solveConflictMode = false;
+      this.markAsDirty();
+    }
+  }
+
   async setValue(data: ActivityMonth[]) {
     console.debug(this.logPrefix + 'Setting data', data);
+
+    this._solveConflictMode = data.some((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL);
 
     switch (this.style) {
       // Table
@@ -650,6 +672,55 @@ export class CalendarComponent
       }
     }
   }
+
+  async solveConflict(_?: Event, row?: AsyncTableElement<ActivityMonth>) {
+    row = row || this.editedRow;
+    if (!row || event.defaultPrevented) return true; // no row to confirm
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_SOLVE_CONFLICT', this.alertCtrl, this.translate);
+    if (!confirmed) return false; // User cancelled
+
+    if (this.debug) console.debug(this.logPrefix + 'Mark as solved', row);
+
+    // Remove solved row
+    const remoteUpdateDate = row.currentData.updateDate;
+    const rowIndex = this.value.findIndex((month) => month.month === row.currentData.month && month.qualityFlagId === QualityFlagIds.CONFLICTUAL);
+    this.value.splice(rowIndex, 1);
+
+    // Update month updateDate with remote update date to avoid conflict when save
+    const localRow = this.value.find((month) => month.month === row.currentData.month && month.qualityFlagId !== QualityFlagIds.CONFLICTUAL);
+    localRow.updateDate = remoteUpdateDate;
+
+    this.onRefresh.emit();
+  }
+
+  // TODO This not work
+  // async keepRemoteData(_?: Event, row?: AsyncTableElement<ActivityMonth>) {
+  //   row = row || this.editedRow;
+  //   if (!row || event.defaultPrevented) return true; // no row to confirm
+
+  //   event?.preventDefault();
+  //   event?.stopPropagation();
+
+  //   const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_KEEP_REMOTE', this.alertCtrl, this.translate);
+  //   if (!confirmed) return false; // User cancelled
+
+  //   if (this.debug) console.debug(this.logPrefix + 'Keep remote', row);
+
+  //   const localRowIndex = this.value.findIndex(
+  //     (month) => month.month === row.currentData.month && month.qualityFlagId !== QualityFlagIds.CONFLICTUAL
+  //   );
+  //   const localRow = this.value.splice(localRowIndex, 1)[0];
+  //   const data = row.currentData;
+  //   data.qualityFlagId = localRow.qualityFlagId;
+  //   data.canEdit = localRow.canEdit;
+  //   await this.updateEntityToTable(data, row), { confirmEdit: false };
+
+  //   this.onRefresh.emit();
+  // }
 
   async loadVesselOwner(months: ActivityMonth[]) {
     if (isEmptyArray(months)) {

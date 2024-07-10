@@ -3419,6 +3419,8 @@
       "BTN_SHOW_PREDOC": "<u>P</u>rédocumentation",
       "CONFIRM_CLEAR_MONTH": "<b>Êtes-vous sûr</b> de vouloir vider ce mois ?",
       "CONFIRM_CLEAR_CALENDAR": "<b>Êtes-vous sûr</b> de vouloir vider le calendrier ?",
+      "CONFIRM_SOLVE_CONFLICT": "<b>Êtest vous sûr</b> de vouloir marquer ce confclit comme résolus ?",
+      "CONFIRM_KEEP_REMOTE": "<b>Êtest vous sûr</b> de vouloir concerver les données distantes ?",
       "YEAR": "Année :",
       "VESSEL_SNAPSHOT": "Navire",
       "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
@@ -3449,6 +3451,8 @@
       "PHOTO": "Photos",
       "BTN_DELETE_CALENDAR": "Supprimer",
       "BTN_CLEAR_CALENDAR": "Vider le calendrier",
+      "SOLVE_CONFLICT": "Résoudre ce conflict",
+      "KEEP_REMOTE_DATA": "Choisir ces données",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
         "DISABLE": "Inactif",

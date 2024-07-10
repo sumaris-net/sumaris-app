@@ -444,15 +444,6 @@ export class ActivityCalendarPage
     await this.dataService.copyLocallyById(this.data.id, { withLanding: true, displaySuccessToast: true });
   }
 
-  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }): void {
-    // if (typeof error === 'object' && error?.code === ServerErrorCodes.BAD_UPDATE_DATE) {
-    //   if (error?.details) {
-    //     if (isNotEmptyArray(error?.details?.vesselUseFeatures)
-    //   }
-    // }
-    super.setError(error, opts);
-  }
-
   /* -- protected methods -- */
 
   protected async setProgram(program: Program) {
@@ -587,6 +578,13 @@ export class ActivityCalendarPage
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
 
+    this.setDataStartDate(data);
+
+    // Hide unused field (for historical data)
+    this.baseForm.showEconomicSurvey = isNotNil(data.economicSurvey);
+  }
+
+  protected setDataStartDate(data: ActivityCalendar) {
     // Year
     if (isNotNil(data.year)) {
       this.year = data.year;
@@ -597,9 +595,6 @@ export class ActivityCalendarPage
         data.startDate = DateUtils.moment().year(this.year).startOf('year');
       }
     }
-
-    // Hide unused field (for historical data)
-    this.baseForm.showEconomicSurvey = isNotNil(data.economicSurvey);
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
@@ -739,6 +734,7 @@ export class ActivityCalendarPage
   protected async onEntitySaved(data: ActivityCalendar): Promise<void> {
     this.calendar?.collapseAll();
     await super.onEntitySaved(data);
+    this.setDataStartDate(data);
   }
 
   protected getFirstInvalidTabIndex(): number {
