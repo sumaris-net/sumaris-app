@@ -3533,7 +3533,7 @@
       "CONFLICTUAL_MONTH": "Conflit détécté lors de la sauvegarde du calendrier",
       "DUPLICATED_METIER": "Métier(s) en doublon : {{metiers}}",
       "REQUIRED_FISHING_AREA": "Zone de pêche obligatoire pour le(s) métier(s) : {{metiers}}",
-      "REQUIRED_DISTANCE_TO_COAST": "Gradient de distance à la côte obligatoire pour : {{fishingArea}}"
+      "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}"
     },
     "WARNING": {
       "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif.",
