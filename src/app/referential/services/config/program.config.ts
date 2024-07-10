@@ -1132,6 +1132,12 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelGroups.FISHING_AREA.join(','),
   },
+  ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.calendar.mergeConflict.enable',
+    label: 'PROGRAM.OPTIONS.OPTIONS.ACTIVITY_CALENDAR_CALENDAR_MERGE_CONFLICT_ENABLE',
+    type: 'boolean',
+    defaultValue: false,
+  },
   ACTIVITY_CALENDAR_REPORT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.report.enable',
     label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_ENABLE',

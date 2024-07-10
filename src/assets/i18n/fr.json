@@ -2366,6 +2366,7 @@
       "TAB_STRATEGIES": "Lignes de plan"
     },
     "OPTIONS": {
+      "ACTIVITY_CALENDAR_CALENDAR_MERGE_CONFLICT_ENABLE": "Calendrier d'activité > Activer la gersion des conflicts de sauvegarde du calendrier",
       "ACTIVITY_CALENDAR_REPORT_ENABLE": "Calendrier d'activité > Rapport : Activer l'édition de rapport ?",
       "ACTIVITY_CALENDAR_REPORT_TYPE": "Calendrier d'activité  > Rapport : Types de rapport :",
       "ACTIVITY_CALENDAR_TYPE_FORM": "Calendrier d'activité",

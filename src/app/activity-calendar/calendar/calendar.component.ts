@@ -33,6 +33,7 @@ import {
   LoadResult,
   LocalSettingsService,
   MatAutocompleteFieldConfig,
+  ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
@@ -572,9 +573,9 @@ export class CalendarComponent
   async updateView(res: LoadResult<ActivityMonth>, opts?: { emitEvent?: boolean }): Promise<void> {
     await super.updateView(res, opts);
 
-    const data = res.data;
+    const data = res?.data;
     // If no other rows are conflictual, quit _solveConflictMode
-    const conflictualCount = data.filter((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL).length;
+    const conflictualCount = data?.filter((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL).length || 0;
     if (this._solveConflictMode && conflictualCount === 0) {
       this._solveConflictMode = false;
       this.markAsDirty();

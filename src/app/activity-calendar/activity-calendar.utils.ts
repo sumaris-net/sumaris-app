@@ -47,7 +47,6 @@ export class ActivityCalendarUtils {
     // TODO : need this ???
     // const localId = 0;
 
-    console.debug('MYTEST ActivityCalendarUtils.mergeUseFeatures: source, remoteEntities', { sources, remoteEntities });
     let mergedSources = sources
       // Keep only source with access right
       .filter((source) => IUseFeaturesUtils.isInPeriods(source, writablePeriods))
@@ -65,12 +64,10 @@ export class ActivityCalendarUtils {
         const isSame = IUseFeaturesUtils.isSame(source, remoteEntity, { withId: false, withMeasurementValues: true });
         if (isSame) return remoteEntity; // Same content: kse remote (with a valid update date)
 
-        if (source.updateDate.isSameOrBefore(remoteEntity.updateDate)) {
-          // If source update date is same or before remote update date :
-          // - the remote is conflictual so :
-          //   - flag remote data as conflictual
-          //   - add it into conflictual data
-          // - else keep source data as it
+        // If source update date is before remote update date that mean
+        // remote has changed and there is a conflict, else data is modified
+        // locally so it's value must be kept as it.
+        if (source.updateDate.isBefore(remoteEntity.updateDate)) {
           remoteEntity.qualityFlagId = QualityFlagIds.CONFLICTUAL;
           unresolved.push(remoteEntity);
         }
@@ -78,6 +75,7 @@ export class ActivityCalendarUtils {
         return source;
       });
 
+    // TODO : need this ???
     // Clean local id
     // resolved.filter(EntityUtils.isLocal).forEach((entity) => (entity.id = undefined));
 
@@ -87,7 +85,14 @@ export class ActivityCalendarUtils {
     // Add unresolved entities
     mergedSources = mergedSources.concat(unresolved);
 
-    console.debug('MYTEST ActivityCalendarUtils.mergeUseFeatures: mergedSources', mergedSources);
     return mergedSources;
+  }
+
+  static hasUseFeatureConflicts(calendar: ActivityCalendar): boolean {
+    return (
+      calendar?.vesselUseFeatures.some((entity) => entity.qualityFlagId === QualityFlagIds.CONFLICTUAL) ||
+      calendar?.gearUseFeatures.some((entity) => entity.qualityFlagId === QualityFlagIds.CONFLICTUAL) ||
+      calendar?.gearPhysicalFeatures.some((entity) => entity.qualityFlagId === QualityFlagIds.CONFLICTUAL)
+    );
   }
 }
