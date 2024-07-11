@@ -3422,6 +3422,7 @@
       "BTN_EXPAND_ALL": "Déplier tout",
       "BTN_COLLAPSE_ALL": "Replier tout",
       "BTN_CLEAR_MONTH": "Vider le mois",
+      "BTN_COPY_PASTE": "Copier et coller",
       "HIDE_PREDOC": "Masquer la prédocumentation",
       "SHOW_PREDOC": "Afficher la prédocumentation",
       "BTN_SHOW_PREDOC": "<u>P</u>rédocumentation",
@@ -3526,7 +3527,8 @@
       "CLEAR_MONTH": "<b>Êtes-vous sûr</b> de vouloir vider ce mois ?",
       "CLEAR_CALENDAR": "<b>Êtes-vous sûr</b> de vouloir vider le calendrier ?",
       "DELETE_CONFLICT": "<b>Êtest vous sûr</b> de vouloir supprimer ce conflit ?",
-      "KEEP_REMOTE": "<b>Êtest vous sûr</b> de vouloir conserver les données distantes ?"
+      "KEEP_REMOTE": "<b>Êtest vous sûr</b> de vouloir conserver les données distantes ?",
+      "COPY_PASTE": "<b>Êtes-vous sûr</b> de vouloir copier la prédocumentation vers le calendrier ?"
     },
     "ERROR": {
       "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici.",

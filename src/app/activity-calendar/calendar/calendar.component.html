@@ -86,6 +86,12 @@
     <mat-toolbar [color]="toolbarColor | matColor" class="{{ toolbarColor }}">
       <!-- metier buttons -->
       <ng-container *ngTemplateOutlet="metierButtons"></ng-container>
+      @if (availablePrograms$ | async; as programs) {
+        <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COPY_PASTE' | translate" (click)="copyAndPaste()">
+          <!--    <mat-icon>unfold_less</mat-icon>-->
+          <mat-icon>content_copy</mat-icon>
+        </button>
+      }
 
       <!-- error (desktop) -->
       <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">

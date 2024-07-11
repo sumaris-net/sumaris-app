@@ -3,11 +3,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  EventEmitter,
   HostListener,
   inject,
   Injector,
   Input,
   OnInit,
+  Output,
   QueryList,
   ViewChild,
   ViewChildren,
@@ -241,6 +243,8 @@ export class CalendarComponent
   @RxStateProperty() hasClipboard: boolean;
   @RxStateProperty() availablePrograms: ReferentialRef[];
   @RxStateProperty() hasConflict: boolean;
+
+  @Output() copyAndPasteEmitter: EventEmitter<void> = new EventEmitter<void>();
 
   @Input() @RxStateProperty() months: Moment[];
 
@@ -1988,6 +1992,10 @@ export class CalendarComponent
 
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
+  }
+
+  copyAndPaste() {
+    this.copyAndPasteEmitter.emit();
   }
 
   protected onWillHideColumns(subColumns: ColumnDefinition[]): boolean {

@@ -5,6 +5,7 @@ import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/fo
 import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
+  Alerts,
   AppAsyncTable,
   AppEditorOptions,
   AppErrorWithDetails,
@@ -80,6 +81,7 @@ import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.tabl
 import { GearPhysicalFeaturesUtils } from '../model/gear-physical-features.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-calendar.utils';
+import { ActivityMonth } from '../calendar/activity-month.model';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -943,6 +945,33 @@ export class ActivityCalendarPage
         this.qualityWarning = null;
       }
     }
+  }
+
+  async copyAndPastePredocToCalendar() {
+    const calendar = this.calendar.getValue();
+    const predoc = this.predocCalendar.getValue();
+    const calendarEmpty = calendar.every((month) => isNil(month.id));
+
+    if (!calendarEmpty) {
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_COPY_PASTE', this.alertCtrl, this.translate);
+      if (!confirmed) return false; // User cancelled
+    }
+
+    const predocCopy = calendar.map((cal, index) => {
+      const predocValue = predoc[index];
+
+      const preservedAttributes: Partial<ActivityMonth> = {
+        id: cal.id,
+        startDate: cal.startDate,
+        endDate: cal.endDate,
+        updateDate: cal.updateDate,
+      };
+
+      return ActivityMonth.fromObject({ ...predocValue, ...preservedAttributes });
+    });
+
+    this.calendar.setValue(predocCopy);
+    this.markAsDirty();
   }
 
   protected readonly equals = equals;
