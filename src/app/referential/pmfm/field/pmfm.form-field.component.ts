@@ -145,6 +145,9 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() i18nPrefix: string;
   @Input() i18nSuffix: string;
+  @Input() displayAttributes: string[];
+  @Input() searchAttributes: string[];
+  @Input() sortAttribute: string;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges = false;

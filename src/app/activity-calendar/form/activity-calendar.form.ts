@@ -57,8 +57,11 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
   private _readonlyControlNames: (keyof ActivityCalendar)[] = ['program', 'year', 'startDate', 'directSurveyInvestigation', 'economicSurvey', 'year'];
   protected isYearInTheFuture = false;
   protected observerFocusIndex = -1;
-
   @RxStateSelect() protected showObservers$: Observable<boolean>;
+
+  displayAttributes: string[];
+  searchAttributes: string[];
+  sortAttribute: string;
 
   @Input() required = true;
   @Input() showError = true;
@@ -73,6 +76,7 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
   @Input() allowAddNewVessel = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() @RxStateProperty() showObservers: boolean;
+  @Input() specificAutocompleteEnable: boolean = false;
 
   get empty(): any {
     const value = this.value;
@@ -133,6 +137,11 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
   ngOnInit() {
     super.ngOnInit();
 
+    if (this.specificAutocompleteEnable) {
+      this.displayAttributes = ['name'];
+      this.searchAttributes = ['name'];
+      this.sortAttribute = 'name';
+    }
     // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     this.showObservers = toBoolean(this.showObservers, false);

@@ -854,7 +854,7 @@ export class CalendarComponent
     }
 
     cellSelection.colspan = colspan;
-    cellSelection.rowspan = rowspan + rowspanShift - 1;
+    cellSelection.rowspan = rowspan + (rowspanShift - 1);
 
     this.resizeCellSelection(cellSelection);
   }
