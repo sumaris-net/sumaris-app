@@ -210,6 +210,13 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
           saleTypeControl.setValue(null);
         }
       }
+
+      // Disable is observed control, if PETS species list
+      if (speciesListOriginControl && PmfmValueUtils.equals(speciesListOriginControl.value, QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS)) {
+        isObservedControl.disable({ emitEvent: false });
+      } else {
+        isObservedControl.enable({ emitEvent: false });
+      }
     }
   }
 }
