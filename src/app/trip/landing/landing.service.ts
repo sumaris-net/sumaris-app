@@ -92,7 +92,6 @@ export declare interface LandingServiceWatchOptions extends EntitiesServiceWatch
   fullLoad?: boolean;
   toEntity?: boolean;
   withTotal?: boolean;
-  mapResult?: (result: LoadResult<Landing>) => LoadResult<Landing>;
 }
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
@@ -479,8 +478,7 @@ export class LandingService
         }
 
         return { data: entities, total };
-      }),
-      map((result) => (opts?.mapResult ? opts.mapResult(result) : result))
+      })
     );
   }
 

@@ -213,7 +213,8 @@ export class MeasurementsTableEntitiesService<
             }
 
             return res;
-          })
+          }),
+          map((result) => (options?.mapResult ? options.mapResult(result) : result))
         );
       })
     );
