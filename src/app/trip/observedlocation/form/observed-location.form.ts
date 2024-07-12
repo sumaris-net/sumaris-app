@@ -88,7 +88,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() set withEndDateRequired(value: boolean) {
     if (this._withEndDateRequired !== value) {
       this._withEndDateRequired = value;
-      if (this.form) {
+      if (this.form && !this.loading) {
         this.updateFormGroup();
       }
     }
