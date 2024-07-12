@@ -463,7 +463,6 @@
             class="{{ col.class }}"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
-            (mouseenter)="col.hidden && cellSelection?.resizing && col.expand($event)"
             (click)="col.hidden ? col.expand($event) : setFocusColumn($event, row, col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
           >

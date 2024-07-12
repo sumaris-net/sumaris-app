@@ -59,7 +59,7 @@ import {
 } from '@app/activity-calendar/calendar/activity-month.validator';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { distinctUntilChanged, fromEvent, Observable, Subscription, tap } from 'rxjs';
+import { distinctUntilChanged, fromEvent, Observable, Subject, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { UntypedFormGroup } from '@angular/forms';
@@ -235,6 +235,7 @@ export class CalendarComponent
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
+  protected $resizingSubject = new Subject<boolean>();
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -514,6 +515,12 @@ export class CalendarComponent
           filter((clipboard) => isNotEmptyArray(clipboard?.data?.months) && clipboard.source !== this)
         )
         .subscribe(() => this.clearClipboard(null, { clearContext: false }))
+    );
+    //TODO BLA FIX DEBOUNCE ERROR
+    this.registerSubscription(
+      this.$resizingSubject.pipe(debounceTime(0)).subscribe(() => {
+        this.expendsRezising();
+      })
     );
   }
 
@@ -860,7 +867,9 @@ export class CalendarComponent
     cellSelection.colspan = colspan;
     cellSelection.rowspan = rowspan + (rowspanShift - 1);
 
+    //this.expendsRezising();
     this.resizeCellSelection(cellSelection);
+    this.$resizingSubject.next(true);
   }
 
   @HostListener('document:mouseup', ['$event'])
@@ -2182,5 +2191,13 @@ export class CalendarComponent
 
   protected markAsConflictual() {
     this.hasConflict = true;
+  }
+
+  protected expendsRezising() {
+    const { paths } = this.getRowsFromSelection(this.cellSelection);
+    const collapsedColumns = this.dynamicColumns.filter((col) => col.toggle && !col.expanded && paths.includes(col.path));
+    if (isNotEmptyArray(collapsedColumns)) {
+      collapsedColumns.forEach((col) => col.toggle());
+    }
   }
 }
