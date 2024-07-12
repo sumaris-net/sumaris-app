@@ -947,18 +947,17 @@ export class ActivityCalendarPage
     }
   }
 
-  async copyAndPastePredocToCalendar() {
+  async copyAndPastePredocToCalendar(dataToPaste: ActivityMonth[]) {
     const calendar = this.calendar.getValue();
-    const predoc = this.predocCalendar.getValue();
-    const calendarEmpty = calendar.every((month) => isNil(month.id));
+    const isCalendarEmpty = calendar.every((month) => isNil(month.id));
 
-    if (!calendarEmpty) {
+    if (!isCalendarEmpty) {
       const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_COPY_PASTE', this.alertCtrl, this.translate);
       if (!confirmed) return false; // User cancelled
     }
 
     const predocCopy = calendar.map((cal, index) => {
-      const predocValue = predoc[index];
+      const predocValue = dataToPaste[index];
 
       const preservedAttributes: Partial<ActivityMonth> = {
         id: cal.id,
