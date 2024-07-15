@@ -74,7 +74,6 @@ import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragme
 import { OverlayEventDetail } from '@ionic/core';
 import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
-import { ProgramPrivilegeEnum } from '@app/referential/services/model/model.enum';
 import { ActivityCalendarUtils } from './activity-calendar.utils';
 
 export const ActivityCalendarFragments = {
@@ -150,7 +149,15 @@ export const ActivityCalendarFragments = {
       gearPhysicalFeatures {
         ...GearPhysicalFeaturesFragment
       }
-      vesselRegistrationPeriodsByPrivileges
+      vesselRegistrationPeriods {
+        id
+        startDate
+        endDate
+        registrationLocation {
+          ...LocationFragment
+        }
+        readonly
+      }
     }
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
@@ -1171,8 +1178,7 @@ export class ActivityCalendarService
     return (
       EntityUtils.isLocal(entity) || // For performance, always give write access to local data
       this.accountService.isAdmin() ||
-      ((this.programRefService.canUserWriteEntity(entity, opts) ||
-        isNotEmptyArray(entity.vesselRegistrationPeriodsByPrivileges?.[ProgramPrivilegeEnum.OBSERVER])) &&
+      ((this.programRefService.canUserWriteEntity(entity, opts) || entity.vesselRegistrationPeriods?.some((vrp) => !vrp.readonly)) &&
         (isNil(entity.validationDate) || this.accountService.isSupervisor()))
     );
   }

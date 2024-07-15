@@ -1,5 +1,5 @@
 import { AppError, arrayDistinct, EntityUtils, isEmptyArray, ServerErrorCodes } from '@sumaris-net/ngx-components';
-import { ProgramPrivilegeEnum, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { ActivityCalendar } from './model/activity-calendar.model';
 import { IUseFeatures, IUseFeaturesUtils } from '@app/activity-calendar/model/use-features.model';
 import { Moment } from 'moment';
@@ -19,7 +19,7 @@ export class ActivityCalendarUtils {
       };
     }
 
-    const writablePeriods = remoteEntity.vesselRegistrationPeriodsByPrivileges?.[ProgramPrivilegeEnum.OBSERVER] || [];
+    const writablePeriods = (remoteEntity.vesselRegistrationPeriods || [])?.filter((vrp) => !vrp.readonly);
     if (isEmptyArray(writablePeriods)) return remoteEntity; // No access write
 
     // Merge VUF
@@ -29,7 +29,6 @@ export class ActivityCalendarUtils {
     target.gearUseFeatures = this.mergeUseFeatures(source.gearUseFeatures, remoteEntity.gearUseFeatures, writablePeriods);
 
     // Merge PUF
-    // const { resolved: resolvedPuf, unresolved: unresolvedPuf } = this.mergeUseFeatures(
     target.gearPhysicalFeatures = this.mergeUseFeatures(source.gearPhysicalFeatures, remoteEntity.gearPhysicalFeatures, writablePeriods);
 
     target.id = remoteEntity.id;

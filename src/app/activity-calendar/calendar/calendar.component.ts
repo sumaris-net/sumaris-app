@@ -33,6 +33,7 @@ import {
   LoadResult,
   LocalSettingsService,
   MatAutocompleteFieldConfig,
+  ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
@@ -58,13 +59,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { distinctUntilChanged, fromEvent, Observable, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import {
-  AcquisitionLevelCodes,
-  LocationLevelGroups,
-  LocationLevelIds,
-  QualityFlagIds,
-  QualityFlags,
-} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -79,7 +74,6 @@ import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
-import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
 import { MatMenuTrigger } from '@angular/material/menu';
 import { BaseMeasurementsTable2 } from '@app/data/measurement/measurements-table2.class';
@@ -573,12 +567,14 @@ export class CalendarComponent
   async updateView(res: LoadResult<ActivityMonth>, opts?: { emitEvent?: boolean }): Promise<void> {
     await super.updateView(res, opts);
 
-    const data = res.data;
-    // If no other rows are conflictual, quit _solveConflictMode
-    const conflictualCount = data.filter((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL).length;
-    if (this._solveConflictMode && conflictualCount === 0) {
-      this._solveConflictMode = false;
-      this.markAsDirty();
+    if (res?.data) {
+      const data = res.data;
+      // If no other rows are conflictual, quit _solveConflictMode
+      const conflictualCount = data.filter((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL).length;
+      if (this._solveConflictMode && conflictualCount === 0) {
+        this._solveConflictMode = false;
+        this.markAsDirty();
+      }
     }
   }
 
@@ -624,6 +620,7 @@ export class CalendarComponent
 
         // load vesselOwner
         await this.loadVesselOwner(data);
+
         break;
       }
       // Accordion
@@ -674,14 +671,14 @@ export class CalendarComponent
     }
   }
 
-  async solveConflict(_?: Event, row?: AsyncTableElement<ActivityMonth>) {
+  async solveConflict(event?: Event, row?: AsyncTableElement<ActivityMonth>) {
     row = row || this.editedRow;
     if (!row || event.defaultPrevented) return true; // no row to confirm
 
     event?.preventDefault();
     event?.stopPropagation();
 
-    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_SOLVE_CONFLICT', this.alertCtrl, this.translate);
+    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.SOLVE_CONFLICT', this.alertCtrl, this.translate);
     if (!confirmed) return false; // User cancelled
 
     if (this.debug) console.debug(this.logPrefix + 'Mark as solved', row);
@@ -706,7 +703,7 @@ export class CalendarComponent
   //   event?.preventDefault();
   //   event?.stopPropagation();
 
-  //   const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_KEEP_REMOTE', this.alertCtrl, this.translate);
+  //   const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.KEEP_REMOTE', this.alertCtrl, this.translate);
   //   if (!confirmed) return false; // User cancelled
 
   //   if (this.debug) console.debug(this.logPrefix + 'Keep remote', row);
@@ -968,6 +965,8 @@ export class CalendarComponent
 
     if (!row || !columnName) return false; // Skip
 
+    this.closeContextMenu();
+
     event?.preventDefault();
     event?.stopPropagation();
 
@@ -990,6 +989,8 @@ export class CalendarComponent
       resizing: false,
     };
     this.resizeCellSelection(this.cellSelection, 'cell');
+
+    return true;
   }
 
   @HostListener('window:resize')
@@ -1080,8 +1081,19 @@ export class CalendarComponent
     return true;
   }
 
-  async clickRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+  async dblClickRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>): Promise<boolean> {
     if (event?.defaultPrevented) return false; // Skip
+
+    this.closeContextMenu();
+
+    // Forget the cell selection
+    this.removeCellSelection();
+
+    return super.clickRow(event, row);
+  }
+
+  async clickRow(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+    if (event?.defaultPrevented || row.editing) return false; // Skip
 
     this.closeContextMenu();
 
@@ -1089,18 +1101,12 @@ export class CalendarComponent
     if (this.cellSelection?.resizing || this.cellSelection?.validating) return false;
 
     // If Click+Shift
-    if (event instanceof MouseEvent) {
-      if (event.shiftKey === true) return this.onMouseShiftClick(event, row, this.focusColumn);
-      if (event.ctrlKey === true) return this.onMouseCtrlClick(event, row, this.focusColumn);
+    if (event instanceof MouseEvent && event.shiftKey === true) {
+      return this.onMouseShiftClick(event, row, this.focusColumn);
     }
 
-    // Not editable: forget the cell selection
-    if (this.disabled) {
-      this.removeCellSelection();
-      return false;
-    }
-
-    return super.clickRow(event, row);
+    // Like a ctrl click
+    return this.onMouseCtrlClick(event, row, this.focusColumn);
   }
 
   async cancelOrDelete(
@@ -1341,9 +1347,8 @@ export class CalendarComponent
   }
 
   protected async editRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, opts?: { focusColumn?: string }): Promise<boolean> {
-    if (!row.currentData.canEdit) {
-      // TODO check if need
-      this.confirmEditCreate();
+    if (row.currentData.readonly) {
+      await this.confirmEditCreate();
       return false;
     }
     const editing = super.editRow(event, row, opts);
@@ -1392,7 +1397,7 @@ export class CalendarComponent
 
     // Ask user confirmation
     if (opts?.interactive !== false) {
-      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_MONTH', this.alertCtrl, this.translate);
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.CLEAR_MONTH', this.alertCtrl, this.translate);
       if (!confirmed) return false; // User cancelled
     }
 
@@ -1401,10 +1406,12 @@ export class CalendarComponent
     const currentData = row.currentData;
     if (ActivityMonth.isEmpty(currentData)) return true; // Nothing to clear
 
-    const { startDate, endDate } = currentData;
+    const { month, startDate, endDate, registrationLocations } = currentData;
     const data = ActivityMonth.fromObject({
+      month,
       startDate,
       endDate,
+      registrationLocations,
       measurementValues: MeasurementValuesUtils.normalizeValuesToForm({}, this.pmfms),
       gearUseFeatures: new Array(this.maxMetierCount).fill({
         startDate,
@@ -1423,7 +1430,10 @@ export class CalendarComponent
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
   }
-  collapseAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
+
+  collapseAll(event?: Event, opts?: { emitEvent?: boolean }) {
+    if (event?.defaultPrevented) return; // Skip
+
     for (let i = 0; i < this.metierCount; i++) {
       this.collapseMetierBlock(null, i);
     }
@@ -1434,12 +1444,9 @@ export class CalendarComponent
   async clearAll(event?: Event, opts?: { interactive?: boolean }) {
     if (event?.defaultPrevented) return; // Skip
 
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    //Ask user confirmation
+    // Ask user confirmation
     if (opts?.interactive !== false) {
-      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_CALENDAR', this.alertCtrl, this.translate);
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.CLEAR_CALENDAR', this.alertCtrl, this.translate);
       if (!confirmed) return false; // User cancelled
     }
 
@@ -1639,9 +1646,9 @@ export class CalendarComponent
   }
 
   protected async copy(event?: Event) {
-    if (event?.defaultPrevented) return;
-
     console.debug(`${this.logPrefix}Copy event`, event);
+
+    if (event?.defaultPrevented) return;
 
     if (this.cellSelection && (this.cellSelection?.colspan !== 0 || this.cellSelection?.rowspan !== 0)) {
       event?.preventDefault();
@@ -2011,6 +2018,11 @@ export class CalendarComponent
     }
 
     event.preventDefault();
+
+    // Stop resizing
+    if (this.cellSelection?.resizing) {
+      this.cellSelection.resizing = false;
+    }
 
     // Select current cell
     if (this.cellSelection?.row !== row || this.cellSelection?.columnName !== columnName) {

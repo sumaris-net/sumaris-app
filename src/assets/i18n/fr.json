@@ -2378,6 +2378,7 @@
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER": "Calendrier d'activité > Rapport : nombre de zone de pêche a par métier a faire figurer sur les formulaire vierge",
       "ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS": "Calendrier d'activité > Métier : Type(s) d'espèce",
       "ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID": "Calendrier d'activité > Pays d'immatriculation des navires",
+      "ACTIVITY_CALENDAR_IMAGES_ENABLE": "Calendrier d'activité > Activer les photos ?",
       "EXTRACTION_FORMATS": "Extraction > Formats disponibles:",
       "I18N_SUFFIX": "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY": "Par défaut",
@@ -3511,10 +3512,10 @@
       }
     },
     "CONFIRM": {
-      "CONFIRM_CLEAR_MONTH": "<b>Êtes-vous sûr</b> de vouloir vider ce mois ?",
-      "CONFIRM_CLEAR_CALENDAR": "<b>Êtes-vous sûr</b> de vouloir vider le calendrier ?",
-      "CONFIRM_SOLVE_CONFLICT": "<b>Êtest vous sûr</b> de vouloir marquer ce confclit comme résolus ?",
-      "CONFIRM_KEEP_REMOTE": "<b>Êtest vous sûr</b> de vouloir conserver les données distantes ?"
+      "CLEAR_MONTH": "<b>Êtes-vous sûr</b> de vouloir vider ce mois ?",
+      "CLEAR_CALENDAR": "<b>Êtes-vous sûr</b> de vouloir vider le calendrier ?",
+      "SOLVE_CONFLICT": "<b>Êtest vous sûr</b> de vouloir résoudre ce conflit ?",
+      "KEEP_REMOTE": "<b>Êtest vous sûr</b> de vouloir conserver les données distantes ?"
     },
     "ERROR": {
       "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici.",

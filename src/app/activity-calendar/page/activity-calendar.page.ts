@@ -7,7 +7,6 @@ import {
   AccountService,
   AppAsyncTable,
   AppEditorOptions,
-  AppErrorWithDetails,
   AppTable,
   chainPromises,
   CORE_CONFIG_OPTIONS,
@@ -21,7 +20,7 @@ import {
   HistoryPageReference,
   Hotkeys,
   IReferentialRef,
-  isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -163,11 +162,11 @@ export class ActivityCalendarPage
   @Input() showVesselBasePortLocation = true;
   @Input() showToolbar = true;
   @Input() showQualityForm = true;
-  @Input() showPictures = true;
+  @Input() showPictures = false;
+  @Input() autoFillPictureComments: boolean = true;
   @Input() showOptionsMenu = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
   @Input() yearHistory: number = 3;
-  @Input() autoNameImage: boolean = true;
   @Input() canEdit: boolean = true;
 
   @Input() @RxStateProperty() year: number;
@@ -319,9 +318,12 @@ export class ActivityCalendarPage
           .pipe(filter(() => this.loaded))
           .subscribe(() => this.toggleShowPredoc())
       );
-    }
 
-    this.restorePredocPanelSize();
+      this.restorePredocPanelSize();
+    } else {
+      this._predocPanelVisible = false;
+      this._predocPanelSize = 0;
+    }
   }
   ngAfterViewInit() {
     super.ngAfterViewInit();
@@ -462,6 +464,7 @@ export class ActivityCalendarPage
       this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_CREATE_VESSEL_ENABLE);
       this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
       this.predocProgramLabels = program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS);
+      this.showPictures = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_IMAGES_ENABLE);
 
       let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -644,7 +647,7 @@ export class ActivityCalendarPage
     this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, {
       fillEmptyGuf: true,
       timezone: this.timezone,
-      isAdmin: this.accountService.isAdmin(),
+      //isAdmin: this.accountService.isAdmin(),
     });
 
     // Set metier table data
@@ -676,17 +679,21 @@ export class ActivityCalendarPage
     // Metiers
     value.gearPhysicalFeatures = GearPhysicalFeaturesUtils.updateFromCalendar(value, this.tableMetier.value, { timezone: this.timezone });
 
-    // Photos
-    if (this.canEdit) value.images = this.gallery.value;
+    // Pictures
+    if (this.showPictures) {
+      value.images = this.gallery.value || [];
 
-    if (this.autoNameImage) {
-      value.images.map((img) => {
-        if (isNil(img.comments)) img.comments = value.year.toString();
-      });
+      if (this.autoFillPictureComments) {
+        (value.images || [])
+          .filter((img) => isNilOrBlank(img.comments))
+          .forEach((img) => {
+            img.comments = value.year.toString();
+          });
+      }
     }
 
-    // keep vesselRegistrationPeriodsByPrivileges
-    value.vesselRegistrationPeriodsByPrivileges = this.data.vesselRegistrationPeriodsByPrivileges;
+    // Restore vesselRegistrationPeriods
+    value.vesselRegistrationPeriods = this.data.vesselRegistrationPeriods;
 
     return value;
   }
@@ -875,8 +882,8 @@ export class ActivityCalendarPage
     return referentialToString(vessel, this.vesselSnapshotAttributes);
   }
 
-  protected async clearCalendar(event?: Event) {
-    await this.calendar.clearAll(event);
+  protected clearCalendar(event?: Event) {
+    this.calendar.clearAll();
   }
 
   protected async updateQualityWarning(data?: ActivityCalendar) {

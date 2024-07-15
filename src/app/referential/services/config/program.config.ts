@@ -1,5 +1,5 @@
 import { FormFieldDefinition, FormFieldType, isNilOrBlank, Property, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds, PmfmIds, ProgramLabel, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelGroups, LocationLevelIds, ProgramLabel, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -1022,7 +1022,7 @@ export const ProgramProperties = Object.freeze({
       attributes: ['id', 'label', 'name'],
       columnSizes: [2, 4, 6],
     },
-    defaultValue: PmfmIds.SPECIES_LIST_ORIGIN,
+    defaultValue: null,
   },
   // TODO remove
   /*LANDING_TOP_PMFM_IDS: <FormFieldDefinition>{
@@ -1198,6 +1198,12 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER',
     type: 'integer',
     defaultValue: 2,
+  },
+  ACTIVITY_CALENDAR_IMAGES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.images.enable',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_IMAGES_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
   },
 
   /* -- Extraction options -- */

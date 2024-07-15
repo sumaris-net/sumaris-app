@@ -15,7 +15,6 @@ import { Moment } from 'moment';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { GearPhysicalFeatures } from './gear-physical-features.model';
 import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
-import { VesselRegistrationPeriodsByPrivileges } from '../calendar/activity-month.model';
 
 @EntityClass({ typename: 'ActivityCalendarVO' })
 export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
@@ -31,7 +30,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
   gearUseFeatures: GearUseFeatures[];
   gearPhysicalFeatures: GearPhysicalFeatures[];
   images: ImageAttachment[];
-  vesselRegistrationPeriodsByPrivileges: VesselRegistrationPeriodsByPrivileges;
+  vesselRegistrationPeriods: ActivityCalendarVesselRegistrationPeriod[];
 
   constructor() {
     super(ActivityCalendar.TYPENAME);
@@ -46,13 +45,10 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
     target.gearPhysicalFeatures = (this.gearPhysicalFeatures && this.gearPhysicalFeatures.map((gpf) => gpf.asObject(opts))) || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
     target.images = (this.images && this.images.map((image) => image.asObject(opts))) || undefined;
-    target.vesselRegistrationPeriodsByPrivileges = Object.keys(this.vesselRegistrationPeriodsByPrivileges || {}).reduce((acc, key) => {
-      acc[key] = this.vesselRegistrationPeriodsByPrivileges[key].map((vesselRegistrationPeriods) => vesselRegistrationPeriods.asObject(opts));
-      return acc;
-    }, {});
+    target.vesselRegistrationPeriods = (this.vesselRegistrationPeriods && this.vesselRegistrationPeriods.map((vrp) => vrp.asObject())) || undefined;
     if (opts?.minify) {
       delete target.startDate;
-      delete target.vesselRegistrationPeriodsByPrivileges;
+      delete target.vesselRegistrationPeriods;
     }
     return target;
   }
@@ -68,10 +64,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
     this.gearPhysicalFeatures = source.gearPhysicalFeatures?.map(GearPhysicalFeatures.fromObject) || undefined;
     this.measurementValues = { ...source.measurementValues }; // Copy values
     this.images = (source.images && source.images.map(ImageAttachment.fromObject)) || undefined;
-    this.vesselRegistrationPeriodsByPrivileges = Object.keys(source.vesselRegistrationPeriodsByPrivileges || {}).reduce((acc, key) => {
-      acc[key] = source.vesselRegistrationPeriodsByPrivileges[key].map(VesselRegistrationPeriod.fromObject);
-      return acc;
-    }, {});
+    this.vesselRegistrationPeriods = source.vesselRegistrationPeriods?.map(ActivityCalendarVesselRegistrationPeriod.fromObject) || undefined;
   }
 
   equals(other: ActivityCalendar, opts = { withMeasurementValues: false, withVesselUseFeatures: false, withGearUseFeatures: false }): boolean {
@@ -102,5 +95,21 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
           (this?.gearUseFeatures.length === other.gearUseFeatures.length &&
             this?.gearUseFeatures.every((vuf, index) => vuf.equals(other[index], { withMeasurementValues: true })))))
     );
+  }
+}
+
+@EntityClass({ typename: 'ActivityCalendarVesselRegistrationPeriodVO' })
+export class ActivityCalendarVesselRegistrationPeriod extends VesselRegistrationPeriod<ActivityCalendarVesselRegistrationPeriod> {
+  static fromObject: (source: any, opts?: any) => ActivityCalendarVesselRegistrationPeriod;
+
+  readonly?: boolean;
+
+  constructor() {
+    super(ActivityCalendarVesselRegistrationPeriod.TYPENAME);
+  }
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.readonly = source.readonly;
   }
 }

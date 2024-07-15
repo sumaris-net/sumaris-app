@@ -13,15 +13,6 @@ import {
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { StoreObject } from '@apollo/client/core';
-import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
-
-export interface RegistrationLocationsWithPrivilegeByMonth {
-  [key: number]: { canEdit: boolean; vesselRegistrationPeriod: VesselRegistrationPeriod }[];
-}
-
-export interface VesselRegistrationPeriodsByPrivileges {
-  [key: string]: VesselRegistrationPeriod[];
-}
 
 @EntityClass({ typename: 'ActivityMonthVO' })
 export class ActivityMonth extends VesselUseFeatures implements IEntity<ActivityMonth> {
@@ -41,6 +32,7 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
   month: number;
   gearUseFeatures: GearUseFeatures[];
   canEdit: boolean;
+  readonly: boolean;
   registrationLocations: ReferentialRef[];
 
   constructor() {
