@@ -1423,6 +1423,7 @@ type Query {
     images(filter: ImageAttachmentFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "desc"): [ImageAttachmentVO]
     "Import vessels from a SIOP file"
     importSiopVessels(fileName: String): JobVO
+    importSiopActivityCalendars(fileName: String): JobVO
     "Check if email exists (from a md5 hash)"
     isEmailExists(email: String, hash: String): Boolean!
     "Get a job"

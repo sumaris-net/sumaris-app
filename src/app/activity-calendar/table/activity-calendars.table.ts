@@ -56,6 +56,7 @@ import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config
 import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { FileTransferService } from '@app/shared/service/file-transfer.service';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -96,6 +97,8 @@ export class ActivityCalendarsTable
   protected qualityFlags: ReferentialRef[];
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
+  readonly canImportFile: boolean;
+  enableFileImport = true; // TODO MFA: Check with the others to see if I should create a program option
 
   @Input() showRecorder = true;
   @Input() canDownload = false;
@@ -159,6 +162,7 @@ export class ActivityCalendarsTable
     protected configService: ConfigService,
     protected context: ContextService,
     protected formBuilder: UntypedFormBuilder,
+    private readonly transferService: FileTransferService,
     protected cd: ChangeDetectorRef
   ) {
     super(
@@ -208,6 +212,8 @@ export class ActivityCalendarsTable
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+    // Import
+    this.canImportFile = true;
   }
 
   ngOnInit() {
@@ -581,5 +587,27 @@ export class ActivityCalendarsTable
 
   protected excludeNotQualified(qualityFlag: ReferentialRef): boolean {
     return qualityFlag?.id !== QualityFlagIds.NOT_QUALIFIED;
+  }
+
+  async importFromCsv(event?: UIEvent, format = 'siop') {
+    const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
+      uniqueFile: true,
+      fileExtension: '.csv',
+      uploadFn: (file) =>
+        this.transferService.uploadResource(file, {
+          resourceType: ActivityCalendar.ENTITY_NAME,
+          resourceId: Date.now().toString(),
+          replace: true,
+        }),
+    });
+    console.debug('[Activity-Calendar] activity calendar files uploaded! Response: ', data);
+    const uploadedFileNames = (data || [])
+      .map((file) => file.response?.body)
+      .filter(isNotNil)
+      .map(({ fileName }) => fileName);
+    if (isNotEmptyArray(uploadedFileNames)) {
+      const jobs = await Promise.all(uploadedFileNames.map((uploadedFileName) => this._dataService.importFile(uploadedFileName, format)));
+      console.info('[Activity-Calendar] activity calendar imported with success!: ', jobs);
+    }
   }
 }
