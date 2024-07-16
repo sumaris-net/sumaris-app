@@ -109,6 +109,12 @@
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
+  <!-- import from file -->
+  <button mat-menu-item class="ion-color-danger" *ngIf="enableFileImport" [disabled]="!canImportFile" (click)="importFromCsv($event)">
+    <mat-icon>description</mat-icon>
+    <mat-label translate>ACTIVITY_CALENDAR.ACTION.IMPORT_FROM_FILE</mat-label>
+  </button>
+
   <!-- Update offline mode -->
   <button mat-menu-item *ngIf="hasOfflineMode" [disabled]="offline" (click)="prepareOfflineMode($event)">
     <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
