@@ -18,7 +18,14 @@ export class ActivityMonthUtils {
 
   static fromActivityCalendars(
     sources: ActivityCalendar[],
-    opts?: { fillEmptyGuf?: boolean; fillEmptyFishingArea?: boolean; fishingAreaCount?: number; timezone?: string; sortedMetierIds?: number[] }
+    opts?: {
+      fillEmptyMonth?: boolean;
+      fillEmptyGuf?: boolean;
+      fillEmptyFishingArea?: boolean;
+      fishingAreaCount?: number;
+      timezone?: string;
+      sortedMetierIds?: number[];
+    }
   ): ActivityMonth[] {
     const gearUseFeatures = (sources || []).flatMap((ac) => ac.gearUseFeatures).filter(GearUseFeatures.isNotEmpty);
     const sortedMetierIds = ActivityMonthUtils.getSortedMetierIds(gearUseFeatures, GearUseFeaturesComparators.sortByMonthAndRankOrderFn);
@@ -29,7 +36,14 @@ export class ActivityMonthUtils {
 
   static fromActivityCalendar(
     data: ActivityCalendar,
-    opts?: { fillEmptyGuf?: boolean; fillEmptyFishingArea?: boolean; fishingAreaCount?: number; timezone?: string; sortedMetierIds?: number[] }
+    opts?: {
+      fillEmptyMonth?: boolean;
+      fillEmptyGuf?: boolean;
+      fillEmptyFishingArea?: boolean;
+      fishingAreaCount?: number;
+      timezone?: string;
+      sortedMetierIds?: number[];
+    }
   ): ActivityMonth[] {
     data = ActivityCalendar.fromObject(data);
     const year = data?.year || DateUtils.moment().year() - 1;
@@ -43,47 +57,51 @@ export class ActivityMonthUtils {
       (opts?.fillEmptyGuf && removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)).concat(undefined));
     const fishingAreaCount = opts?.fishingAreaCount || 2;
 
-    return monthStartDates.map((startDate) => {
-      const endDate = startDate.clone().endOf('month');
+    return monthStartDates
+      .map((startDate) => {
+        const endDate = startDate.clone().endOf('month');
 
-      // DEBUG
-      //console.debug(`Month #${startDate.month() + 1} - ${toDateISOString(startDate)} -> ${toDateISOString(endDate)}`);
+        // DEBUG
+        //console.debug(`Month #${startDate.month() + 1} - ${toDateISOString(startDate)} -> ${toDateISOString(endDate)}`);
 
-      const source = data.vesselUseFeatures?.find(
-        (vuf) => DateUtils.isSame(startDate, vuf.startDate, 'day') && DateUtils.isSame(endDate, vuf.endDate, 'day')
-      ) || { startDate };
-      const target = ActivityMonth.fromObject(source || {});
-      target.gearUseFeatures = sortedGearUseFeatures?.filter(
-        (guf) => DateUtils.isSame(startDate, guf.startDate, 'day') && DateUtils.isSame(endDate, guf.endDate, 'day')
-      );
-      if (opts?.fillEmptyGuf && sortedMetierIds.length > 1) {
-        target.gearUseFeatures = sortedMetierIds.flatMap((metierId) => {
-          const existingGuf = target.gearUseFeatures.filter((guf) => guf.metier?.id === metierId);
-          if (isNotEmptyArray(existingGuf)) return existingGuf;
-          return [new GearUseFeatures()]; // Empty GUF
-        });
+        const source =
+          data.vesselUseFeatures?.find((vuf) => DateUtils.isSame(startDate, vuf.startDate, 'day') && DateUtils.isSame(endDate, vuf.endDate, 'day')) ||
+          (opts?.fillEmptyMonth !== false ? { startDate } : undefined);
+        if (!source) return null; // Skip
 
-        // Fill empty fishing area
-        if (opts?.fillEmptyFishingArea) {
-          target.gearUseFeatures.forEach((guf) => {
-            guf.fishingAreas = arrayResize(guf.fishingAreas, fishingAreaCount, <FishingArea>{}).map(FishingArea.fromObject);
+        const target = ActivityMonth.fromObject(source);
+        target.gearUseFeatures = sortedGearUseFeatures?.filter(
+          (guf) => DateUtils.isSame(startDate, guf.startDate, 'day') && DateUtils.isSame(endDate, guf.endDate, 'day')
+        );
+        if (opts?.fillEmptyGuf && sortedMetierIds.length > 1) {
+          target.gearUseFeatures = sortedMetierIds.flatMap((metierId) => {
+            const existingGuf = target.gearUseFeatures.filter((guf) => guf.metier?.id === metierId);
+            if (isNotEmptyArray(existingGuf)) return existingGuf;
+            return [new GearUseFeatures()]; // Empty GUF
           });
-        }
-      }
-      target.vesselId = vesselId;
-      target.month = startDate.month() + 1;
-      target.endDate = endDate;
 
-      target.readonly = true;
-      target.registrationLocations = removeDuplicatesFromArray(
-        IUseFeaturesUtils.filterByPeriod(data.vesselRegistrationPeriods, target).map((vrp) => {
-          target.readonly = target.readonly && vrp.readonly;
-          return vrp.registrationLocation;
-        }),
-        'id'
-      );
-      return target;
-    });
+          // Fill empty fishing area
+          if (opts?.fillEmptyFishingArea) {
+            target.gearUseFeatures.forEach((guf) => {
+              guf.fishingAreas = arrayResize(guf.fishingAreas, fishingAreaCount, <FishingArea>{}).map(FishingArea.fromObject);
+            });
+          }
+        }
+        target.vesselId = vesselId;
+        target.month = startDate.month() + 1;
+        target.endDate = endDate;
+
+        target.readonly = true;
+        target.registrationLocations = removeDuplicatesFromArray(
+          IUseFeaturesUtils.filterByPeriod(data.vesselRegistrationPeriods, target).map((vrp) => {
+            target.readonly = target.readonly && vrp.readonly;
+            return vrp.registrationLocation;
+          }),
+          'id'
+        );
+        return target;
+      })
+      .filter(isNotNil);
   }
 
   static toActivityCalendar(sources: ActivityMonth[]): ActivityCalendar {

@@ -311,9 +311,9 @@
         <mat-icon><ion-icon name="calendar"></ion-icon></mat-icon>
         <ion-label
           [matBadge]="calendar?.validRowCount$ | push"
-          [matBadgeHidden]="!(calendar?.validRowCount$ | push)"
+          [matBadgeHidden]="calendar.invalid || !(calendar?.validRowCount$ | push)"
           matBadgeOverlap="false"
-          matBadgeColor="primary"
+          [matBadgeColor]="(calendar?.validRowCount$ | push) === 12 ? 'primary' : 'warn'"
           matBadgeSize="small"
           matBadgePosition="above after"
         >

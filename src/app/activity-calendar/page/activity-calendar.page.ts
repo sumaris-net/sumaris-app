@@ -7,6 +7,7 @@ import {
   AccountService,
   AppAsyncTable,
   AppEditorOptions,
+  AppErrorWithDetails,
   AppTable,
   chainPromises,
   CORE_CONFIG_OPTIONS,
@@ -500,6 +501,32 @@ export class ActivityCalendarPage
     }
   }
 
+  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
+    if (error && typeof error === 'object' && error.details?.errors?.conflict instanceof ActivityCalendar) {
+      const remoteCalendar = error.details.errors.conflict;
+      this.showRemoteConflict(remoteCalendar);
+      return;
+    }
+
+    super.setError(error, opts);
+  }
+
+  protected async showRemoteConflict(remoteCalendar: ActivityCalendar) {
+    if (!remoteCalendar) return;
+
+    console.debug(this.logPrefix + 'Detecting conflicts, from remote calendar:', remoteCalendar);
+    const localCalendar = await this.getValue();
+    const sortedMetierIds = ActivityMonthUtils.getSortedMetierIds((localCalendar.gearUseFeatures || []).concat(remoteCalendar.gearUseFeatures || []));
+    const months = ActivityMonthUtils.fromActivityCalendar(localCalendar, { sortedMetierIds, fillEmptyGuf: true }).concat(
+      ActivityMonthUtils.fromActivityCalendar(remoteCalendar, { sortedMetierIds, fillEmptyGuf: true, fillEmptyMonth: false })
+    );
+    EntityUtils.sort(months, 'month', 'asc');
+
+    this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.CONFLICTUAL_MONTH';
+    await this.calendar.setValue(months);
+    this._selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+  }
+
   protected async setStrategy(strategy: Strategy): Promise<void> {
     await super.setStrategy(strategy);
 
@@ -647,7 +674,6 @@ export class ActivityCalendarPage
     this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, {
       fillEmptyGuf: true,
       timezone: this.timezone,
-      //isAdmin: this.accountService.isAdmin(),
     });
 
     // Set metier table data
@@ -913,4 +939,6 @@ export class ActivityCalendarPage
       }
     }
   }
+
+  protected readonly equals = equals;
 }

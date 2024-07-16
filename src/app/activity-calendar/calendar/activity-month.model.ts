@@ -30,9 +30,8 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
   }
 
   month: number;
-  gearUseFeatures: GearUseFeatures[];
-  canEdit: boolean;
   readonly: boolean;
+  gearUseFeatures: GearUseFeatures[];
   registrationLocations: ReferentialRef[];
 
   constructor() {
@@ -48,7 +47,7 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
     super.fromObject(source, opts);
     this.month = this.startDate?.month();
     this.gearUseFeatures = source.gearUseFeatures?.map(GearUseFeatures.fromObject);
-    this.canEdit = source.canEdit;
+    this.readonly = source.readonly;
     this.registrationLocations = source.registrationLocations?.map(ReferentialRef.fromObject);
   }
 
@@ -62,7 +61,7 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
     });
     if (opts?.minify) {
       delete target.month;
-      delete target.canEdit;
+      delete target.readonly;
       delete target.registrationLocations;
     }
     return target;

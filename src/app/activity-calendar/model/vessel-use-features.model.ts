@@ -90,6 +90,8 @@ export class VesselUseFeatures
         //((!this.dailyActivityCalendarId && !other.dailyActivityCalendarId) || this.dailyActivityCalendarId === other.dailyActivityCalendarId) &&
         // Same program
         ReferentialUtils.equals(this.program, other.program) &&
+        // Same basePortLocation
+        ReferentialUtils.equals(this.basePortLocation, other.basePortLocation) &&
         // Same measurementsValues
         (opts.withMeasurementValues !== true || MeasurementValuesUtils.equals(this.measurementValues, other.measurementValues)))
     );

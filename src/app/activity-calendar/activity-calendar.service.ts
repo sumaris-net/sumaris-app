@@ -75,6 +75,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { ActivityCalendarUtils } from './activity-calendar.utils';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -179,7 +180,7 @@ export interface ActivityCalendarLoadOptions extends EntityServiceLoadOptions {
 
 export interface ActivityCalendarSaveOptions extends RootDataEntitySaveOptions {
   enableOptimisticResponse?: boolean; // True by default
-  allowAutoMergeOnConflict?: boolean;
+  allowMergeConflict?: boolean;
 }
 
 export interface ActivityCalendarServiceCopyOptions extends ActivityCalendarSaveOptions {
@@ -776,13 +777,33 @@ export class ActivityCalendarService
         },
       });
     } catch (err) {
-      // TODO How get opts.allowAutoMergeOnConflict
-      if (err.code == ServerErrorCodes.BAD_UPDATE_DATE && isNotNil(opts?.allowAutoMergeOnConflict) && opts?.allowAutoMergeOnConflict !== false) {
+      // Conflict in update date: try to merge
+      if (err.code == ServerErrorCodes.BAD_UPDATE_DATE && opts?.allowMergeConflict !== false) {
         // Reload then try to merge
         const remoteEntity = await this.load(entity.id, { fetchPolicy: 'no-cache' });
         entity = ActivityCalendarUtils.merge(entity, remoteEntity);
-        // TODO Check if has conflictual data and else save data
-        // return this.save(mergedEntity, { ...opts, allowAutoMergeOnConflict: false });
+
+        // Has some unresolved conflicts
+        if (ActivityCalendarUtils.hasSomeConflict(entity)) {
+          // Check if program allow user to resolve conflict
+          const allowMergeConflict = (await this.programRefService.loadByLabel(entity.program.label)).getPropertyAsBoolean(
+            ProgramProperties.ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE
+          );
+          if (!allowMergeConflict) throw err; // Stop in conflict and user is not allowed to resolve it
+
+          throw <AppErrorWithDetails>{
+            ...err,
+            details: {
+              errors: {
+                conflict: entity,
+              },
+            },
+          };
+        }
+        // All conflicts have been resolved: save the merged calendar
+        else {
+          return this.save(entity, { ...opts, allowMergeConflict: false /*avoid infinite loop*/ });
+        }
       } else {
         throw err;
       }

@@ -162,6 +162,7 @@ export interface CalendarComponentState extends BaseMeasurementsTableState {
   validRowCount: number;
   hasClipboard: boolean;
   availablePrograms: ReferentialRef[];
+  hasConflict: boolean;
 }
 
 export type CalendarComponentStyle = 'table' | 'accordion';
@@ -219,6 +220,7 @@ export class CalendarComponent
   @RxStateSelect() validRowCount$: Observable<number>;
   @RxStateSelect() hasClipboard$: Observable<boolean>;
   @RxStateSelect() availablePrograms$: Observable<ReferentialRef[]>;
+  @RxStateSelect() hasConflict$: Observable<boolean>;
   protected readonly isActiveList = IsActiveList;
   protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
@@ -230,7 +232,6 @@ export class CalendarComponent
   protected _children: CalendarComponent[];
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
-  protected _solveConflictMode = false;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
@@ -239,6 +240,7 @@ export class CalendarComponent
   @RxStateProperty() validRowCount: number;
   @RxStateProperty() hasClipboard: boolean;
   @RxStateProperty() availablePrograms: ReferentialRef[];
+  @RxStateProperty() hasConflict: boolean;
 
   @Input() @RxStateProperty() months: Moment[];
 
@@ -259,7 +261,7 @@ export class CalendarComponent
   @Input() programHeaderLabel: string;
 
   @Input() set month(value: number) {
-    this.filter = ActivityMonthFilter.fromObject({ ...this.filter, month: value });
+    this.setFilter(ActivityMonthFilter.fromObject({ ...this.filter, month: value }));
   }
   get month(): number {
     return this.filter?.month;
@@ -304,11 +306,11 @@ export class CalendarComponent
    */
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (DO NOT use 'invalid')
-    return !this._solveConflictMode && (!this._children || this._children.findIndex((c) => c.enabled && !c.valid) === -1);
+    return !this.hasConflict && (!this._children || this._children.findIndex((c) => c.enabled && !c.valid) === -1);
   }
 
   get invalid(): boolean {
-    return this._solveConflictMode || (this._children && this._children.findIndex((c) => c.enabled && c.invalid) !== -1) || false;
+    return this.hasConflict || (this._children && this._children.findIndex((c) => c.enabled && c.invalid) !== -1) || false;
   }
 
   get pending(): boolean {
@@ -373,6 +375,7 @@ export class CalendarComponent
           requiredGear: false,
           acquisitionLevel: AcquisitionLevelCodes.MONTHLY_ACTIVITY,
           metierCount: 0,
+          hasConflict: false,
         },
       }
     );
@@ -461,9 +464,15 @@ export class CalendarComponent
     this._state.connect(
       'validRowCount',
       this._dataSource.rowsSubject.pipe(
-        map((rows) => {
-          return rows.map((row) => row.currentData?.isActive).filter(isNotNil).length;
-        })
+        map(
+          (rows) =>
+            rows
+              .map((row) => row.currentData)
+              .filter(
+                (month) =>
+                  isNotNil(month?.isActive) && month.qualityFlagId !== QualityFlagIds.BAD && month.qualityFlagId !== QualityFlagIds.CONFLICTUAL
+              ).length
+        )
       )
     );
 
@@ -567,21 +576,12 @@ export class CalendarComponent
   async updateView(res: LoadResult<ActivityMonth>, opts?: { emitEvent?: boolean }): Promise<void> {
     await super.updateView(res, opts);
 
-    if (res?.data) {
-      const data = res.data;
-      // If no other rows are conflictual, quit _solveConflictMode
-      const conflictualCount = data.filter((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL).length;
-      if (this._solveConflictMode && conflictualCount === 0) {
-        this._solveConflictMode = false;
-        this.markAsDirty();
-      }
-    }
+    // Update has conflict
+    if (res?.data) this.hasConflict = this.hasSomeConflictualMonth(res?.data);
   }
 
   async setValue(data: ActivityMonth[]) {
     console.debug(this.logPrefix + 'Setting data', data);
-
-    this._solveConflictMode = data.some((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL);
 
     switch (this.style) {
       // Table
@@ -620,6 +620,9 @@ export class CalendarComponent
 
         // load vesselOwner
         await this.loadVesselOwner(data);
+
+        // Update has conflict
+        this.hasConflict = this.hasSomeConflictualMonth(data);
 
         break;
       }
@@ -671,28 +674,36 @@ export class CalendarComponent
     }
   }
 
-  async solveConflict(event?: Event, row?: AsyncTableElement<ActivityMonth>) {
+  async deleteConflictualMonth(event?: Event, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
     row = row || this.editedRow;
     if (!row || event.defaultPrevented) return true; // no row to confirm
 
     event?.preventDefault();
     event?.stopPropagation();
 
-    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.SOLVE_CONFLICT', this.alertCtrl, this.translate);
+    if (this.debug) console.debug(this.logPrefix + `Resolving conflictual month #${row.currentData.month}...`, row);
+
+    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.DELETE_CONFLICT', this.alertCtrl, this.translate);
     if (!confirmed) return false; // User cancelled
 
-    if (this.debug) console.debug(this.logPrefix + 'Mark as solved', row);
-
     // Remove solved row
+    const remoteRowId = row.id;
     const remoteUpdateDate = row.currentData.updateDate;
-    const rowIndex = this.value.findIndex((month) => month.month === row.currentData.month && month.qualityFlagId === QualityFlagIds.CONFLICTUAL);
-    this.value.splice(rowIndex, 1);
+    const deleted = await row.delete();
+    if (!deleted) return false;
 
     // Update month updateDate with remote update date to avoid conflict when save
-    const localRow = this.value.find((month) => month.month === row.currentData.month && month.qualityFlagId !== QualityFlagIds.CONFLICTUAL);
-    localRow.updateDate = remoteUpdateDate;
+    await this.dataSource.waitIdle();
+    const localRow = this.dataSource.getRow(remoteRowId - 1);
+    if (localRow.validator) {
+      localRow.validator.patchValue({ updateDate: remoteUpdateDate }, { emitEvent: false });
+    } else {
+      localRow.currentData.updateDate = remoteUpdateDate;
+    }
 
-    this.onRefresh.emit();
+    if (this.debug) console.debug(this.logPrefix + `Resolving conflictual month #${row.currentData.month} [OK]`);
+
+    this.markAsDirty();
   }
 
   // TODO This not work
@@ -1347,10 +1358,23 @@ export class CalendarComponent
   }
 
   protected async editRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, opts?: { focusColumn?: string }): Promise<boolean> {
-    if (row.currentData.readonly) {
-      await this.confirmEditCreate();
+    // Avoid to edit readonly month
+    const month = row.currentData;
+    if (month.readonly === true || month.qualityFlagId === QualityFlagIds.CONFLICTUAL) {
+      const confirmed = await this.confirmEditCreate();
+      if (!confirmed) return false;
+
+      // Warn user that he cannot edit
+      if (month.readonly === true) {
+        await this.showToast({
+          icon: 'warning-outline',
+          type: 'warning',
+          message: 'ACTIVITY_CALENDAR.WARNING.UNAUTHORIZED_REGISTRATION_LOCATION',
+        });
+      }
       return false;
     }
+
     const editing = super.editRow(event, row, opts);
     if (editing) this.removeCellSelection();
     return editing;
@@ -1385,6 +1409,11 @@ export class CalendarComponent
     if (confirmed) this.focusColumn = undefined;
 
     return confirmed;
+  }
+
+  protected setError(error: string, opts?: { emitEvent?: boolean }) {
+    console.log('TODO ERROR', error);
+    super.setError(error, opts);
   }
 
   async clear(event?: Event, row?: AsyncTableElement<ActivityMonth>, opts?: { interactive?: boolean }) {
@@ -2123,5 +2152,14 @@ export class CalendarComponent
     }); // Delay to skip the first focus (should be the focusColumn)
 
     return subscription;
+  }
+
+  protected hasSomeConflictualMonth(data?: ActivityMonth[]) {
+    data = data || this.value;
+    return data.some((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL);
+  }
+
+  protected markAsConflictual() {
+    this.hasConflict = true;
   }
 }

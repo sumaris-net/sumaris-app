@@ -18,9 +18,9 @@ export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 
-export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'form-blank';
+export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'blank-form';
 
-export type ActivityCalendarReportType = 'form' | 'form-blank';
+export type ActivityCalendarReportType = 'form' | 'blank-form';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
@@ -563,23 +563,23 @@ export const ProgramProperties = Object.freeze({
     values: [
       {
         key: <TripReportType>'legacy',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_LEGACY',
+        value: 'TRIP.REPORT.REPORT_TYPE.LEGACY',
       },
       {
         key: <TripReportType>'selectivity',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_TRAWL_SELECTIVITY',
+        value: 'TRIP.REPORT.REPORT_TYPE.TRAWL_SELECTIVITY',
       },
       // {
       //   key: <TripReportType>'onboard',
-      //   value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_ONBOARD_OBSERVATION',
+      //   value: 'TRIP.REPORT.REPORT_TYPE.ONBOARD_OBSERVATION',
       // },
       {
         key: <TripReportType>'form',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM',
+        value: 'TRIP.REPORT.REPORT_TYPE.FORM',
       },
       {
-        key: <TripReportType>'form-blank',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM_BLANK',
+        key: <TripReportType>'blank-form',
+        value: 'TRIP.REPORT.REPORT_TYPE.BLANK_FORM',
       },
     ],
     autocomplete: {
@@ -1133,8 +1133,8 @@ export const ProgramProperties = Object.freeze({
     defaultValue: LocationLevelGroups.FISHING_AREA.join(','),
   },
   ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.activityCalendar.calendar.mergeConflict.enable',
-    label: 'PROGRAM.OPTIONS.OPTIONS.ACTIVITY_CALENDAR_CALENDAR_MERGE_CONFLICT_ENABLE',
+    key: 'sumaris.activityCalendar.conflict.merge.enable',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE',
     type: 'boolean',
     defaultValue: false,
   },
@@ -1158,11 +1158,11 @@ export const ProgramProperties = Object.freeze({
     values: [
       {
         key: <ActivityCalendarReportType>'form',
-        value: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_TYPE_FORM',
+        value: 'ACTIVITY_CALENDAR.REPORT.REPORT_TYPE.FORM',
       },
       {
-        key: <ActivityCalendarReportType>'form-blank',
-        value: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_TYPE_FORM_BLANK',
+        key: <ActivityCalendarReportType>'blank-form',
+        value: 'ACTIVITY_CALENDAR.REPORT.REPORT_TYPE.BLANK_FORM',
       },
     ],
     autocomplete: {
@@ -1195,7 +1195,7 @@ export const ProgramProperties = Object.freeze({
   },
   ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.report.form.blank.nbMetier',
-    label: 'PROGRAM.OPTIONS.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER',
     type: 'integer',
     defaultValue: 2,
   },
