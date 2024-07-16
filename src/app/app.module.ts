@@ -112,6 +112,7 @@ import {
 import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar/testing/calendar.testing.module';
 import { NamedFilterService } from '@app/shared/service/named-filter.service';
 import { ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS } from '@app/activity-calendar/calendar/activity-month.validator';
+import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
 
 @NgModule({
   declarations: [AppComponent],
@@ -190,6 +191,12 @@ import { ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS } from '@app/activity-calendar
       useValue: <MatTabsConfig>{
         stretchTabs: false,
         // preserveContent: true
+      },
+    },
+    {
+      provide: MAT_SELECT_CONFIG,
+      useValue: <MatSelectConfig>{
+        hideSingleSelectionIndicator: true,
       },
     },
     {

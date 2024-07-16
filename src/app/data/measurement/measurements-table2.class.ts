@@ -295,9 +295,9 @@ export abstract class BaseMeasurementsTable2<
     }
   }
 
-  setFilter(filterData: F, opts?: { emitEvent: boolean }) {
+  async setFilter(filterData: F, opts?: { emitEvent: boolean }) {
     opts = opts || { emitEvent: !this.loading };
-    super.setFilter(filterData, opts);
+    return super.setFilter(filterData, opts);
   }
 
   trackByFn(index: number, row: AsyncTableElement<T>): any {
