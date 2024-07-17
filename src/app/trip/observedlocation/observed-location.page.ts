@@ -53,6 +53,8 @@ import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorato
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { Moment } from 'moment';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { SelectTaxonGroupsForDataModal, SelectTaxonGroupsForDataModalOptions } from './taxon-groups/select-taxongroup-for-data.modal';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 export const ObservedLocationPageSettingsEnum = {
   PAGE_ID: 'observedLocation',
@@ -324,6 +326,13 @@ export class ObservedLocationPage
           const rankOrder = ((await this.landingsTable.getMaxRankOrderOnVessel(vessel)) || 0) + 1;
           await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
         }
+      } else if (this.landingsTable?.showTaxonGroupSelectionButton) {
+        // TODO JVF: if à supprimer, brancher sur addLandingUsingHistoryModal
+        const taxonGroup = await this.openSelectTaxonGroupModal();
+        if (taxonGroup && this.landingsTable) {
+          const rankOrder = ((await this.landingsTable.getMaxRankOrderOnVessel(taxonGroup)) || 0) + 1;
+          // TODO: await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
+        }
       }
       // Create landing without vessel selection
       else {
@@ -516,6 +525,72 @@ export class ObservedLocationPage
     }
   }
 
+  async openSelectTaxonGroupModal(): Promise<VesselSnapshot | undefined> {
+    const programLabel = this.programLabel || this.data.program.label;
+    if (!this.data.startDateTime || !programLabel) {
+      throw new Error('Root entity has no program and start date. Cannot open select taxon groups modal');
+    }
+
+    const showOfflineVessels = EntityUtils.isLocal(this.data) && (await this.vesselService.countAll({ synchronizationStatus: 'DIRTY' })) > 0;
+    const defaultVesselSynchronizationStatus = this.network.offline || showOfflineVessels ? 'DIRTY' : 'SYNC';
+
+    // Prepare landing's filter
+    const startDate = this.data.startDateTime.clone().add(-15, 'days');
+    const endDate = this.data.startDateTime.clone();
+
+    const landingFilter = LandingFilter.fromObject({
+      programLabel,
+      startDate,
+      endDate,
+      locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined,
+      synchronizationStatus: 'SYNC', // only remote entities. This is required to read 'Remote#LandingVO' local storage
+    });
+
+    const modal = await this.modalCtrl.create({
+      component: SelectTaxonGroupsForDataModal,
+      componentProps: <SelectTaxonGroupsForDataModalOptions>{
+        programLabel: this.programLabel,
+        requiredStrategy: this.requiredStrategy,
+        strategyId: this.strategy?.id,
+        allowMultiple: false,
+        landingFilter,
+        taxonGroupFilter: ReferentialRefFilter.fromObject({
+          // TODO JVF: FAO level
+          entityName: 'TaxonGroup',
+          statusIds: [StatusIds.ENABLE],
+        }),
+        allowAddNewVessel: this.allowAddNewVessel,
+        showVesselTypeColumn: this.showVesselType,
+        showBasePortLocationColumn: this.showVesselBasePortLocation,
+        showSamplesCountColumn: this.landingsTable?.showSamplesCountColumn,
+        defaultVesselSynchronizationStatus,
+        showOfflineVessels,
+        maxDateVesselRegistration: endDate,
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large',
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const { data } = await modal.onDidDismiss();
+
+    // If modal return a landing, use it
+    if (data && data[0] instanceof Landing) {
+      console.debug(this.logPrefix + 'Vessel selection modal result:', data);
+      return (data[0] as Landing).vesselSnapshot;
+    }
+    if (data && data[0] instanceof VesselSnapshot) {
+      console.debug(this.logPrefix + 'Vessel selection modal result:', data);
+      const vessel = data[0] as VesselSnapshot;
+      return vessel;
+    } else {
+      console.debug(this.logPrefix + 'Vessel selection modal was cancelled');
+    }
+  }
+
   addRow(event: MouseEvent) {
     if (this.landingsTable) {
       this.landingsTable.addRow(event);
@@ -575,7 +650,6 @@ export class ObservedLocationPage
       }
       this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
       this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
-      this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
       this.autoFillLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_LANDING_AUTO_FILL);
 
       let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
@@ -624,6 +698,7 @@ export class ObservedLocationPage
         landingsTable.minObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
         landingsTable.dividerPmfmId = program.getPropertyAsInt(ProgramProperties.LANDING_ROWS_DIVIDER_PMFM_ID);
         landingsTable.showAutoFillButton = this.autoFillLandings;
+        landingsTable.showTaxonGroupSelectionButton = true; // TODO JVF
         landingsTable.unknownVesselId = VesselIds.UNKNOWN !== -1 ? VesselIds.UNKNOWN : null;
         this.showLandingTab = true;
       }
