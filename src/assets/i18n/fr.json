@@ -1680,6 +1680,11 @@
       "TAB_LANDINGS": "Historique",
       "TAB_NEW_VESSEL": "Nouveau navire"
     },
+    "SELECT_TAXONGROUP_MODAL": {
+      "TITLE": "Sélection de l'espèce",
+      "TAB_TAXONGROUPS": "Recherche espèce",
+      "TAB_LANDINGS": "Historique"
+    },
     "TABLE": {
       "PROGRAM": "Programme",
       "DATE_TIME": "Date/Heure",
@@ -1814,6 +1819,7 @@
       "BTN_OPEN_SALE": "Ouvrir la vente",
       "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> espèce(s) observée(s) (min. : {{minObservedCount}})",
       "BTN_AUTO_FILL": "Remplissage automatique des espèces",
+      "BTN_TAXON_SELECTION": "Sélectionner des espèces",
       "UNKNOWN_VESSEL_NAME": "Navire inconnu",
       "SAMPLING": {
         "STRATEGY": "Ligne de plan",

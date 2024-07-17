@@ -1,0 +1,15 @@
+.mat-mdc-tab-group {
+  height: calc(100%);
+
+  .mat-tab-body-wrapper {
+    height: calc(100%);
+  }
+}
+
+app-vessels-table {
+  --table-container-offset: 0px;
+
+  .mat-column-status {
+    padding-inline-start: 8px;
+  }
+}

@@ -10,13 +10,22 @@
       <mat-icon>add</mat-icon>
     </button>
 
+    <button
+      *ngIf="_enabled && showTaxonGroupSelectionButton"
+      mat-icon-button
+      [title]="'LANDING.TABLE.BTN_TAXON_SELECTION' | translate"
+      (click)="openTaxonGroupSelection($event)"
+    >
+      <mat-icon>control_point_duplicate</mat-icon>
+    </button>
+
     <!-- Refresh -->
     <button *ngIf="!mobile" mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
 
     <button *ngIf="_enabled && showAutoFillButton" mat-icon-button [title]="'LANDING.TABLE.BTN_AUTO_FILL' | translate" (click)="autoFillTable()">
-      <mat-icon>control_point_duplicate</mat-icon>
+      <mat-icon>sync</mat-icon>
     </button>
   </ng-container>
 

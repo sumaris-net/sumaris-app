@@ -13,6 +13,7 @@ import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppObservedLocationOfflineModule } from '@app/trip/observedlocation/offline/observed-location-offline.module';
 import { AppObservedLocationsTableModule } from '@app/trip/observedlocation/table/observed-location-table.module';
 import { AppObservedLocationFormModule } from '@app/trip/observedlocation/form/observed-location-form.module';
+import { SelectTaxonGroupsForDataModal } from './taxon-groups/select-taxongroup-for-data.modal';
 
 @NgModule({
   imports: [
@@ -36,7 +37,7 @@ import { AppObservedLocationFormModule } from '@app/trip/observedlocation/form/o
     AppObservedLocationOfflineModule,
     AppObservedLocationFormModule,
   ],
-  declarations: [ObservedLocationPage, SelectVesselsForDataModal],
+  declarations: [ObservedLocationPage, SelectVesselsForDataModal, SelectTaxonGroupsForDataModal],
   exports: [AppObservedLocationsTableModule],
 })
 export class AppObservedLocationModule {

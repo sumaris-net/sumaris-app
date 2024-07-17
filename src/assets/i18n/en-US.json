@@ -1515,6 +1515,11 @@
       "TAB_LANDINGS": "Vessels already observed",
       "TAB_NEW_VESSEL": "Create new vessel"
     },
+    "SELECT_TAXONGROUP_MODAL": {
+      "TITLE": "Add a taxon group",
+      "TAB_TAXONGROUPS": "Search",
+      "TAB_LANDINGS": "Taxon groups already observed"
+    },
     "TABLE": {
       "PROGRAM": "Program",
       "DATE_TIME": "Date/Heure",
@@ -1650,6 +1655,7 @@
       "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> observed species (min.: {{minObservedCount}})",
       "BTN_AUTO_FILL": "Automatically fill species",
       "UNKNOWN_VESSEL_NAME": "Unknown vessel",
+      "BTN_TAXON_SELECTION": "Select species",
       "SAMPLING": {
         "STRATEGY": "Sampling strata",
         "SAMPLES_COUNT": "Samples count",
