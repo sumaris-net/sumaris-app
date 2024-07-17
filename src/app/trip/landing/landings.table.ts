@@ -116,7 +116,7 @@ export class LandingsTable
 
   // TODO BLA refactor this !!
   protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
-    return this.isSaleDetailEditor && !this.isLandingPets(item);
+    return !!this.dividerPmfmId && !this.isLandingPets(item);
   };
 
   readonly filterForm: UntypedFormGroup = this.formBuilder.group({
@@ -136,6 +136,7 @@ export class LandingsTable
   @Input() showCancelRowButton = false;
   @Input() showConfirmRowButton = false;
   @Input() showAutoFillButton = false;
+  @Input() showTaxonGroupSelectionButton = false;
   @Input() includedPmfmIds: number[] = null;
   @Input() useFooterSticky = true;
   @Input() usageMode: UsageMode;
@@ -612,6 +613,10 @@ export class LandingsTable
 
     // default behavior
     return super.addRow(event);
+  }
+
+  async openTaxonGroupSelection(event) {
+    return this.openNewRowDetail(event);
   }
 
   confirmAndEditTrip(event?: MouseEvent, row?: TableElement<Landing>): boolean {
