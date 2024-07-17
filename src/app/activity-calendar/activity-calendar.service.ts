@@ -211,7 +211,7 @@ export interface ActivityCalendarWatchOptions extends EntitiesServiceWatchOption
 
 export interface ActivityCalendarControlOptions extends ActivityCalendarValidatorOptions, IProgressionOptions {}
 
-const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; loadImages: any; importSiopFile: any } = {
+const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; loadImages: any; importListFile: any } = {
   // Load a activityCalendar
   load: gql`
     query ActivityCalendar($id: Int!) {
@@ -289,9 +289,9 @@ const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; lo
     }
     ${ImageAttachmentFragments.light}
   `,
-  importSiopFile: gql`
-    query ImportActivityCalendarSiopFile($fileName: String) {
-      data: importSiopActivityCalendars(fileName: $fileName) {
+  importListFile: gql`
+    query ImportActivityCalendarListFile($fileName: String) {
+      data: importListActivityCalendars(fileName: $fileName) {
         ...LightJobFragment
       }
     }
@@ -1176,14 +1176,14 @@ export class ActivityCalendarService
     return target;
   }
 
-  async importFile(fileName: string, format = 'siop'): Promise<Job> {
-    if (this._debug) console.debug(this._logPrefix + `Importing activity calendar from SIOP file '${fileName}' ...`);
+  async importFile(fileName: string, format = 'list'): Promise<Job> {
+    if (this._debug) console.debug(this._logPrefix + `Importing activity calendar from LIST file '${fileName}' ...`);
 
     let query: any;
     let variables: any;
     switch (format) {
-      case 'siop':
-        query = ActivityCalendarQueries.importSiopFile;
+      case 'list':
+        query = ActivityCalendarQueries.importListFile;
         variables = { fileName };
         break;
       default:
@@ -1193,7 +1193,7 @@ export class ActivityCalendarService
     const { data } = await this.graphql.query<{ data: any }>({
       query,
       variables,
-      error: { code: ActivityCalendarErrorCodes.REPLACE_ACTIVITY_CALENDAR_ERROR, message: 'ACTIVITY_CALENDAR.ERROR.SIOP_IMPORT_ERROR' },
+      error: { code: ActivityCalendarErrorCodes.REPLACE_ACTIVITY_CALENDAR_ERROR, message: 'ACTIVITY_CALENDAR.ERROR.LIST_IMPORT_ERROR' },
     });
 
     const job = Job.fromObject(data);

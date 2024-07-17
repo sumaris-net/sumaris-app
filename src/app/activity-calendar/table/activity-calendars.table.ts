@@ -589,7 +589,7 @@ export class ActivityCalendarsTable
     return qualityFlag?.id !== QualityFlagIds.NOT_QUALIFIED;
   }
 
-  async importFromCsv(event?: UIEvent, format = 'siop') {
+  async importFromCsv(event?: UIEvent, format = 'list') {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
       uniqueFile: true,
       fileExtension: '.csv',
