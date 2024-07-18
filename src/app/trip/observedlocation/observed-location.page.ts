@@ -46,7 +46,7 @@ import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-loca
 
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { AcquisitionLevelCodes, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, StrategyTaxonPriorityLevels, VesselIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -318,19 +318,19 @@ export class ObservedLocationPage
     this.markAsLoading();
 
     try {
+      // Add landing using taxon groups selection
+      if (this.landingsTable?.showTaxonGroupSelectionButton) {
+        const taxonGroups = await this.openSelectTaxonGroupModal();
+        if (taxonGroups && this.landingsTable) {
+          // TODO JVF: Add landings
+        }
+      }
       // Add landing using vessels modal
-      if (this.addLandingUsingHistoryModal) {
+      else if (this.addLandingUsingHistoryModal) {
         const vessel = await this.openSelectVesselModal();
         if (vessel && this.landingsTable) {
           const rankOrder = ((await this.landingsTable.getMaxRankOrderOnVessel(vessel)) || 0) + 1;
           await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
-        }
-      } else if (this.landingsTable?.showTaxonGroupSelectionButton) {
-        // TODO JVF: if à supprimer, brancher sur addLandingUsingHistoryModal
-        const taxonGroup = await this.openSelectTaxonGroupModal();
-        if (taxonGroup && this.landingsTable) {
-          const rankOrder = ((await this.landingsTable.getMaxRankOrderOnVessel(taxonGroup)) || 0) + 1;
-          // TODO: await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
         }
       }
       // Create landing without vessel selection
@@ -524,14 +524,14 @@ export class ObservedLocationPage
     }
   }
 
-  async openSelectTaxonGroupModal(): Promise<VesselSnapshot | undefined> {
+  async openSelectTaxonGroupModal(): Promise<ReferentialRef[] | undefined> {
     const programLabel = this.programLabel || this.data.program.label;
     if (!this.data.startDateTime || !programLabel) {
       throw new Error('Root entity has no program and start date. Cannot open select taxon groups modal');
     }
-
-    const showOfflineVessels = EntityUtils.isLocal(this.data) && (await this.vesselService.countAll({ synchronizationStatus: 'DIRTY' })) > 0;
-    const defaultVesselSynchronizationStatus = this.network.offline || showOfflineVessels ? 'DIRTY' : 'SYNC';
+    if (!this.strategy?.id) {
+      throw new Error('Strategy not found. Cannot open select taxon groups modal');
+    }
 
     // Prepare landing's filter
     const startDate = this.data.startDateTime.clone().add(-15, 'days');
@@ -545,26 +545,26 @@ export class ObservedLocationPage
       synchronizationStatus: 'SYNC', // only remote entities. This is required to read 'Remote#LandingVO' local storage
     });
 
+    const availableTaxonGroupIds = (await this.programRefService.loadTaxonGroups(this.programLabel, { strategyId: this.strategy.id }))
+      // Exclude the absolute priority (e.g. =PETS in SIH-OBSVENTE)
+      .filter((tg) => tg.priority !== StrategyTaxonPriorityLevels.ABSOLUTE)
+      .map((tg) => tg.id);
+
     const modal = await this.modalCtrl.create({
       component: SelectTaxonGroupsForDataModal,
       componentProps: <SelectTaxonGroupsForDataModalOptions>{
         programLabel: this.programLabel,
         requiredStrategy: this.requiredStrategy,
         strategyId: this.strategy?.id,
-        allowMultiple: false,
+        allowMultiple: true,
         landingFilter,
         taxonGroupFilter: ReferentialRefFilter.fromObject({
-          // TODO JVF: FAO level
           entityName: 'TaxonGroup',
           statusIds: [StatusIds.ENABLE],
+          includedIds: availableTaxonGroupIds,
         }),
-        allowAddNewVessel: this.allowAddNewVessel,
-        showVesselTypeColumn: this.showVesselType,
         showBasePortLocationColumn: this.showVesselBasePortLocation,
         showSamplesCountColumn: this.landingsTable?.showSamplesCountColumn,
-        defaultVesselSynchronizationStatus,
-        showOfflineVessels,
-        maxDateVesselRegistration: endDate,
       },
       keyboardClose: true,
       cssClass: 'modal-large',
@@ -578,15 +578,15 @@ export class ObservedLocationPage
 
     // If modal return a landing, use it
     if (data && data[0] instanceof Landing) {
-      console.debug(this.logPrefix + 'Vessel selection modal result:', data);
-      return (data[0] as Landing).vesselSnapshot;
+      console.debug(this.logPrefix + 'Taxon group selection modal result:', data);
+      return (data as Landing[]).map((l) => l.measurementValues[PmfmIds.TAXON_GROUP_ID]);
     }
-    if (data && data[0] instanceof VesselSnapshot) {
-      console.debug(this.logPrefix + 'Vessel selection modal result:', data);
-      const vessel = data[0] as VesselSnapshot;
-      return vessel;
+    if (data && data[0] instanceof ReferentialRef) {
+      console.debug(this.logPrefix + 'Taxon group selection modal result:', data);
+      const taxonGroups = data as ReferentialRef[];
+      return taxonGroups;
     } else {
-      console.debug(this.logPrefix + 'Vessel selection modal was cancelled');
+      console.debug(this.logPrefix + 'Taxon group selection modal was cancelled');
     }
   }
 

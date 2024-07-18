@@ -19,10 +19,10 @@
         [strategyId]="strategyId"
         [showDateTimeColumn]="true"
         [showVesselTypeColumn]="false"
-        [showBasePortLocationColumn]="false"
+        [showBasePortLocationColumn]="showBasePortLocationColumn"
         [showToolbar]="false"
         [showIdColumn]="false"
-        [showSamplesCountColumn]="false"
+        [showSamplesCountColumn]="showSamplesCountColumn"
         [showLocationColumn]="false"
         [showCreationDateColumn]="false"
         [showObserversColumn]="false"
@@ -48,7 +48,7 @@
       <!-- main table -->
       <app-referential-ref-table
         [showFilter]="true"
-        [showLevelFilter]="true"
+        [showLevelFilter]="false"
         [showStatusFilter]="false"
         [mode]="'select'"
         (onOpenRow)="selectRow($event)"

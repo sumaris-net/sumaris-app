@@ -1,28 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { LandingsTable } from '../../landing/landings.table';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ModalController } from '@ionic/angular';
 import { Landing } from '../../landing/landing.model';
-import {
-  AppFormUtils,
-  AppTable,
-  ConfigService,
-  EntitiesTableDataSource,
-  isEmptyArray,
-  isNil,
-  isNotNil,
-  ReferentialRef,
-  StatusIds,
-  toBoolean,
-} from '@sumaris-net/ngx-components';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { VesselForm } from '@app/vessel/form/form-vessel';
+import { AppTable, EntitiesTableDataSource, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
 import { Subscription } from 'rxjs';
 import { MatTabGroup } from '@angular/material/tabs';
 import { LandingFilter } from '../../landing/landing.filter';
-import { SynchronizationStatus } from '@app/data/services/model/model.utils';
-import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ReferentialRefTable } from '@app/referential/table/referential-ref.table';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -36,15 +20,8 @@ export interface SelectTaxonGroupsForDataModalOptions {
   landingFilter: LandingFilter | null;
   taxonGroupFilter: ReferentialRefFilter | null;
   allowMultiple: boolean;
-  allowAddNewVessel: boolean;
-  vesselTypeId?: number;
-  showVesselTypeFilter?: boolean;
-  showVesselTypeColumn?: boolean;
   showBasePortLocationColumn?: boolean;
   showSamplesCountColumn: boolean;
-  showOfflineVessels: boolean;
-  defaultVesselSynchronizationStatus: SynchronizationStatus;
-  maxDateVesselRegistration?: Moment;
   debug?: boolean;
 }
 
@@ -62,7 +39,6 @@ export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataMo
 
   @ViewChild(LandingsTable, { static: true }) landingsTable: LandingsTable;
   @ViewChild(ReferentialRefTable, { static: true }) taxonGroupsTable: ReferentialRefTable<ReferentialRef, ReferentialRefFilter>;
-  @ViewChild(VesselForm, { static: false }) vesselForm: VesselForm;
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
   @Input() programLabel: string;
@@ -72,18 +48,8 @@ export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataMo
   @Input() landingFilter: LandingFilter | null = null;
   @Input() taxonGroupFilter: ReferentialRefFilter | null = null;
   @Input() allowMultiple: boolean;
-  @Input() allowAddNewVessel: boolean;
-  @Input() vesselTypeId: number;
-  @Input() showVesselTypeFilter: boolean;
-  @Input() showVesselTypeColumn: boolean;
   @Input() showBasePortLocationColumn: boolean;
   @Input() showSamplesCountColumn: boolean;
-
-  @Input() defaultVesselSynchronizationStatus: SynchronizationStatus;
-  @Input() defaultRegistrationLocation: ReferentialRef;
-  @Input() withNameRequired: boolean;
-  @Input() maxDateVesselRegistration: Moment;
-  @Input() showOfflineVessels: boolean;
 
   @Input() debug: boolean;
 
@@ -137,9 +103,6 @@ export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataMo
     this.allowMultiple = toBoolean(this.allowMultiple, false);
     this.showBasePortLocationColumn = toBoolean(this.showBasePortLocationColumn, true);
 
-    // Init taxon groups table filter
-    // this.taxonGroupsTable.filter = { entityName: 'TaxonGroup' };
-
     // Init table
     if (!this.taxonGroupsTable) throw new Error('Missing table child component');
     if (!this.dataService) throw new Error("Missing 'dataService'");
@@ -182,26 +145,21 @@ export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataMo
 
   async close(event?: any): Promise<boolean> {
     try {
-      let vessels: VesselSnapshot[];
+      let taxonGroups: ReferentialRef[] | Landing[];
       if (this.hasSelection()) {
         if (this.showLandings) {
-          vessels = (this.landingsTable.selection.selected || [])
+          taxonGroups = (this.landingsTable.selection.selected || [])
             .map((row) => row.currentData)
             .map(Landing.fromObject)
-            .filter(isNotNil)
-            .map((l) => l.vesselSnapshot);
+            .filter(isNotNil);
         } else if (this.showTaxonGroups) {
-          // TODO ?
-          // vessels = (this.taxonGroupsTable.selection.selected || [])
-          //   .map((row) => row.currentData)
-          //   .map(VesselSnapshot.fromVessel)
-          //   .filter(isNotNil);
+          taxonGroups = (this.taxonGroupsTable.selection.selected || [])
+            .map((row) => row.currentData)
+            .map(ReferentialRef.fromObject)
+            .filter(isNotNil);
         }
       }
-      if (isEmptyArray(vessels)) {
-        console.warn('[select-vessel-modal] no selection');
-      }
-      this.viewCtrl.dismiss(vessels);
+      this.viewCtrl.dismiss(taxonGroups);
       return true;
     } catch (err) {
       // nothing to do
