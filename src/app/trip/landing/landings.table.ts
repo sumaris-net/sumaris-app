@@ -116,7 +116,7 @@ export class LandingsTable
 
   // TODO BLA refactor this !!
   protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
-    return !!this.dividerPmfmId && !this.isLandingPets(item);
+    return isNotNil(item.currentData.measurementValues[this.dividerPmfmId]) && !this.isLandingPets(item);
   };
 
   readonly filterForm: UntypedFormGroup = this.formBuilder.group({
@@ -869,7 +869,7 @@ export class LandingsTable
   }
 
   protected mapLandings(res: LoadResult<Landing>): LoadResult<Landing> {
-    if (isNil(this.dividerPmfmId) || !res?.total) return res;
+    if (isNil(this.dividerPmfmId) || !res?.total || res?.data?.some((landing) => isNil(landing.measurementValues[this.dividerPmfmId]))) return res;
 
     // Get distinct pmfm values
     const dividerValues =
