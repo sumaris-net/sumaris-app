@@ -5,7 +5,7 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular
 import {
   AppFormUtils,
   FormArrayHelper,
-  IFormControlPathTranslator,
+  IFormPathTranslator,
   IReferentialRef,
   isNil,
   isNilOrBlank,
@@ -33,7 +33,7 @@ import { RxState } from '@rx-angular/state';
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SampleForm extends MeasurementValuesForm<Sample> implements OnInit, OnDestroy, IFormControlPathTranslator {
+export class SampleForm extends MeasurementValuesForm<Sample> implements OnInit, OnDestroy, IFormPathTranslator {
   childrenArrayHelper: FormArrayHelper<Sample>;
   focusFieldName: string;
 

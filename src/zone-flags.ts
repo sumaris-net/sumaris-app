@@ -10,12 +10,7 @@ zoneConfig.global.disable.geolocation();
 zoneConfig.global.disable.canvas();
 zoneConfig.global.disable.XHR();
 
-zoneConfig.events.disable.UNPATCHED_EVENTS([
-  'mousemove',
-  'mouseover',
-  // TODO: check if can disabled this events:
-  //'scroll'
-]);
+zoneConfig.events.disable.UNPATCHED_EVENTS(['mousemove', 'mouseover']);
 
 // FIXME disable zone in .then() functions
 //zoneConfig.global.disable.ZoneAwarePromise();

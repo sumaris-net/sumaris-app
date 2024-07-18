@@ -1183,7 +1183,7 @@ export class ActivityCalendarService
     }
   }
 
-  translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
     opts = { i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.', ...opts };
     // Translate PMFM fields
     if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
@@ -1192,7 +1192,7 @@ export class ActivityCalendarService
       return PmfmUtils.getPmfmName(pmfm);
     }
     // Default translation
-    return this.formErrorTranslator.translateControlPath(path, opts);
+    return this.formErrorTranslator.translateFormPath(path, opts);
   }
 
   canUserWrite(entity: ActivityCalendar, opts?: { program?: Program }): boolean {

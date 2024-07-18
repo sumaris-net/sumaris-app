@@ -182,6 +182,7 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: <MatFormFieldDefaultOptions>{
         appearance: 'fill',
+
         //appearance: 'outline',
         //subscriptSizing: 'dynamic',
       },
@@ -196,7 +197,8 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
     {
       provide: MAT_SELECT_CONFIG,
       useValue: <MatSelectConfig>{
-        hideSingleSelectionIndicator: true,
+        //hideSingleSelectionIndicator: false,
+        //overlayPanelClass: 'fit-content',
       },
     },
     {

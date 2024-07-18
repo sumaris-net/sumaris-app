@@ -384,7 +384,7 @@ export class CalendarComponent
     this.autoLoad = true;
     this.sticky = true;
     this.compact = null;
-    this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
+    this.errorTranslatorOptions = { separator: '\n', pathTranslator: this };
     this.excludesColumns = ['program', ...DYNAMIC_COLUMNS];
     this.toolbarColor = 'medium';
     this.logPrefix = '[activity-calendar] ';

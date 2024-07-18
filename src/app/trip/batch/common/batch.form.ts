@@ -229,7 +229,7 @@ export class BatchForm<
         onUpdateFormGroup: (form) => this.onUpdateFormGroup(form),
       }
     );
-    this.errorTranslatorOptions = { separator: '<br/>', controlPathTranslator: this };
+    this.errorTranslatorOptions = { separator: '<br/>', pathTranslator: this };
 
     // Set defaults
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
@@ -380,7 +380,7 @@ export class BatchForm<
     data.rankOrder = toNumber(data.rankOrder, 0);
   }
 
-  translateControlPath(path: string): string {
+  translateFormPath(path: string): string {
     // Translate specific path
     let i18nSuffix: string;
     switch (path) {
@@ -410,7 +410,7 @@ export class BatchForm<
     }
 
     // Default translation (pmfms)
-    return super.translateControlPath(path, this._initialPmfms /*give the full list*/);
+    return super.translateFormPath(path, this._initialPmfms /*give the full list*/);
   }
 
   /* -- protected method -- */

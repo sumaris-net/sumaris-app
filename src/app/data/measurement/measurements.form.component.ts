@@ -258,7 +258,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     this._state.set('initialPmfms', () => undefined);
   }
 
-  translateControlPath(path: string, pmfms?: IPmfm[]) {
+  translateFormPath(path: string, pmfms?: IPmfm[]) {
     if (PMFM_ID_REGEXP.test(path)) {
       const pmfmId = parseInt(path);
       const pmfm = (pmfms || this.initialPmfms)?.find((p) => p.id === pmfmId);
@@ -266,7 +266,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
         return this._pmfmNamePipe.transform(pmfm, { i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nSuffix });
       }
     }
-    return super.translateControlPath(path);
+    return super.translateFormPath(path);
   }
 
   /* -- protected methods -- */

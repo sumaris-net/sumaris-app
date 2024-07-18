@@ -41,7 +41,7 @@ import { CacheService } from 'ionic-cache';
 import { Job } from '@app/social/job/job.model';
 import { JobService } from '@app/social/job/job.service';
 import { isNonEmptyArray } from '@apollo/client/utilities';
-import { NavigationOptions } from '@ionic/angular/providers/nav-controller';
+import { NavigationOptions } from '@ionic/angular/common/providers/nav-controller';
 
 const queries: IUserEventQueries & { loadContent: any } = {
   loadContent: gql`

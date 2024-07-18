@@ -1731,7 +1731,7 @@ export class TripService
     }
   }
 
-  translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
     opts = { i18nPrefix: 'TRIP.EDIT.', ...opts };
     // Translate PMFM fields
     if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
@@ -1740,7 +1740,7 @@ export class TripService
       return PmfmUtils.getPmfmName(pmfm);
     }
     // Default translation
-    return this.formErrorTranslator.translateControlPath(path, opts);
+    return this.formErrorTranslator.translateFormPath(path, opts);
   }
 
   /* -- protected methods -- */
