@@ -1,16 +1,25 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { LandingsTable } from '../../landing/landings.table';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ModalController } from '@ionic/angular';
 import { Landing } from '../../landing/landing.model';
-import { AppTable, EntitiesTableDataSource, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { AppTable, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
 import { Subscription } from 'rxjs';
 import { MatTabGroup } from '@angular/material/tabs';
 import { LandingFilter } from '../../landing/landing.filter';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { ReferentialRefTable } from '@app/referential/table/referential-ref.table';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { environment } from '@environments/environment';
+import { BaseSelectEntityModal } from '@app/referential/table/base-select-entity.modal';
 
 export interface SelectTaxonGroupsForDataModalOptions {
   programLabel: string;
@@ -18,7 +27,7 @@ export interface SelectTaxonGroupsForDataModalOptions {
   strategyId: number;
 
   landingFilter: LandingFilter | null;
-  taxonGroupFilter: ReferentialRefFilter | null;
+  filter: Partial<ReferentialRefFilter>;
   allowMultiple: boolean;
   showBasePortLocationColumn?: boolean;
   showSamplesCountColumn: boolean;
@@ -32,13 +41,15 @@ export interface SelectTaxonGroupsForDataModalOptions {
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
-export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataModalOptions, OnInit, OnDestroy {
+export class SelectTaxonGroupsForDataModal
+  extends BaseSelectEntityModal<ReferentialRef, ReferentialRefFilter>
+  implements SelectTaxonGroupsForDataModalOptions, OnInit, OnDestroy
+{
   selectedTabIndex = 0;
 
   protected _subscription = new Subscription();
 
   @ViewChild(LandingsTable, { static: true }) landingsTable: LandingsTable;
-  @ViewChild(ReferentialRefTable, { static: true }) taxonGroupsTable: ReferentialRefTable<ReferentialRef, ReferentialRefFilter>;
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
   @Input() programLabel: string;
@@ -46,7 +57,6 @@ export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataMo
   @Input() strategyId: number;
 
   @Input() landingFilter: LandingFilter | null = null;
-  @Input() taxonGroupFilter: ReferentialRefFilter | null = null;
   @Input() allowMultiple: boolean;
   @Input() showBasePortLocationColumn: boolean;
   @Input() showSamplesCountColumn: boolean;
@@ -54,12 +64,12 @@ export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataMo
   @Input() debug: boolean;
 
   get loading(): boolean {
-    const table = this.table;
+    const table = this.currentTable;
     return table && table.loading;
   }
 
-  get table(): AppTable<any> {
-    return (this.showTaxonGroups && this.taxonGroupsTable) || (this.showLandings && this.landingsTable);
+  get currentTable(): AppTable<any> {
+    return (this.showTaxonGroups && this.table) || (this.showLandings && this.landingsTable);
   }
 
   get showLandings(): boolean {
@@ -84,13 +94,14 @@ export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataMo
     }
   }
 
-  datasource: EntitiesTableDataSource<ReferentialRef, ReferentialRefFilter, any>;
-
   constructor(
+    injector: Injector,
     protected viewCtrl: ModalController,
-    protected dataService: ReferentialRefService,
+    dataService: ReferentialRefService,
     protected cd: ChangeDetectorRef
-  ) {}
+  ) {
+    super(injector, ReferentialRef, ReferentialRefFilter, dataService);
+  }
 
   ngOnInit() {
     // Init landing table
@@ -103,23 +114,13 @@ export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataMo
     this.allowMultiple = toBoolean(this.allowMultiple, false);
     this.showBasePortLocationColumn = toBoolean(this.showBasePortLocationColumn, true);
 
-    // Init table
-    if (!this.taxonGroupsTable) throw new Error('Missing table child component');
-    if (!this.dataService) throw new Error("Missing 'dataService'");
-
-    this.datasource = new EntitiesTableDataSource<ReferentialRef, ReferentialRefFilter>(ReferentialRef, this.dataService, null, {
-      prependNewElements: false,
-      suppressErrors: environment.production,
-    });
-
-    this.taxonGroupsTable.setDatasource(this.datasource);
-    this.taxonGroupsTable.filter = this.taxonGroupFilter;
+    // Init taxon groups table
+    super.ngOnInit();
 
     // Load data
     setTimeout(async () => {
       // Load landings
       this.landingsTable.onRefresh.next('modal');
-      this.taxonGroupsTable.onRefresh.next('modal');
       this.selectedTabIndex = 0;
       this.tabGroup.realignInkBar();
       this.markForCheck();
@@ -131,7 +132,7 @@ export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataMo
   }
 
   async selectRow(row) {
-    const table = this.table;
+    const table = this.currentTable;
     if (row && table) {
       if (!this.allowMultiple) {
         table.selection.clear();
@@ -153,7 +154,7 @@ export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataMo
             .map(Landing.fromObject)
             .filter(isNotNil);
         } else if (this.showTaxonGroups) {
-          taxonGroups = (this.taxonGroupsTable.selection.selected || [])
+          taxonGroups = (this.table.selection.selected || [])
             .map((row) => row.currentData)
             .map(ReferentialRef.fromObject)
             .filter(isNotNil);
@@ -172,12 +173,16 @@ export class SelectTaxonGroupsForDataModal implements SelectTaxonGroupsForDataMo
   }
 
   hasSelection(): boolean {
-    const table = this.table;
+    const table = this.currentTable;
     return table && table.selection.hasValue() && (this.allowMultiple || table.selection.selected.length === 1);
   }
 
   get canValidate(): boolean {
     return this.hasSelection();
+  }
+
+  protected async computeTitle(): Promise<string> {
+    return 'OBSERVED_LOCATION.SELECT_TAXONGROUP_MODAL.TITLE';
   }
 
   protected markForCheck() {
