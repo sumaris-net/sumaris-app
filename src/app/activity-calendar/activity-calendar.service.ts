@@ -74,7 +74,6 @@ import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragme
 import { OverlayEventDetail } from '@ionic/core';
 import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
-import { ProgramPrivilegeEnum } from '@app/referential/services/model/model.enum';
 import { ActivityCalendarUtils } from './activity-calendar.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 
@@ -151,7 +150,15 @@ export const ActivityCalendarFragments = {
       gearPhysicalFeatures {
         ...GearPhysicalFeaturesFragment
       }
-      vesselRegistrationPeriodsByPrivileges
+      vesselRegistrationPeriods {
+        id
+        startDate
+        endDate
+        registrationLocation {
+          ...LocationFragment
+        }
+        readonly
+      }
     }
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
@@ -173,7 +180,7 @@ export interface ActivityCalendarLoadOptions extends EntityServiceLoadOptions {
 
 export interface ActivityCalendarSaveOptions extends RootDataEntitySaveOptions {
   enableOptimisticResponse?: boolean; // True by default
-  skipAutoMergeOnConflict?: boolean;
+  allowMergeConflict?: boolean;
 }
 
 export interface ActivityCalendarServiceCopyOptions extends ActivityCalendarSaveOptions {
@@ -770,20 +777,32 @@ export class ActivityCalendarService
         },
       });
     } catch (err) {
-      if (err.code == ServerErrorCodes.BAD_UPDATE_DATE && !opts?.skipAutoMergeOnConflict) {
+      // Conflict in update date: try to merge
+      if (err.code == ServerErrorCodes.BAD_UPDATE_DATE && opts?.allowMergeConflict !== false) {
         // Reload then try to merge
         const remoteEntity = await this.load(entity.id, { fetchPolicy: 'no-cache' });
         entity = ActivityCalendarUtils.merge(entity, remoteEntity);
-        // If has no conflictual months we can save the merged calendar
-        if (!ActivityCalendarUtils.hasUseFeatureConflicts(entity)) {
-          // use skipAutoMergeOnConflict to avoid infinite loop on unexpected case
-          return this.save(entity, { ...opts, skipAutoMergeOnConflict: true });
+
+        // Has some unresolved conflicts
+        if (ActivityCalendarUtils.hasSomeConflict(entity)) {
+          // Check if program allow user to resolve conflict
+          const allowMergeConflict = (await this.programRefService.loadByLabel(entity.program.label)).getPropertyAsBoolean(
+            ProgramProperties.ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE
+          );
+          if (!allowMergeConflict) throw err; // Stop in conflict and user is not allowed to resolve it
+
+          throw <AppErrorWithDetails>{
+            ...err,
+            details: {
+              errors: {
+                conflict: entity,
+              },
+            },
+          };
         }
-        const program = await this.programRefService.loadByLabel(entity.program.label);
-        // If calendar merge conflict has enabled, the merged entity was returned
-        // else throw the BAD_UPDATE_DATE error
-        if (!program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE)) {
-          throw err;
+        // All conflicts have been resolved: save the merged calendar
+        else {
+          return this.save(entity, { ...opts, allowMergeConflict: false /*avoid infinite loop*/ });
         }
       } else {
         throw err;
@@ -1164,7 +1183,7 @@ export class ActivityCalendarService
     }
   }
 
-  translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
     opts = { i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.', ...opts };
     // Translate PMFM fields
     if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
@@ -1173,15 +1192,14 @@ export class ActivityCalendarService
       return PmfmUtils.getPmfmName(pmfm);
     }
     // Default translation
-    return this.formErrorTranslator.translateControlPath(path, opts);
+    return this.formErrorTranslator.translateFormPath(path, opts);
   }
 
   canUserWrite(entity: ActivityCalendar, opts?: { program?: Program }): boolean {
     return (
       EntityUtils.isLocal(entity) || // For performance, always give write access to local data
       this.accountService.isAdmin() ||
-      ((this.programRefService.canUserWriteEntity(entity, opts) ||
-        isNotEmptyArray(entity.vesselRegistrationPeriodsByPrivileges?.[ProgramPrivilegeEnum.OBSERVER])) &&
+      ((this.programRefService.canUserWriteEntity(entity, opts) || entity.vesselRegistrationPeriods?.some((vrp) => !vrp.readonly)) &&
         (isNil(entity.validationDate) || this.accountService.isSupervisor()))
     );
   }

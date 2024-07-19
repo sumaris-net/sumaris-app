@@ -1556,7 +1556,7 @@ export class OperationService
     return usedGearIds.length === 0;
   }
 
-  translateControlPath(controlPath: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(controlPath: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
     opts = opts || {};
     if (isNilOrBlank(opts.i18nPrefix)) opts.i18nPrefix = 'TRIP.OPERATION.EDIT.';
     // Translate PMFM field
@@ -1576,7 +1576,7 @@ export class OperationService
     }
 
     // Default translation
-    return this.formErrorTranslator.translateControlPath(controlPath, opts);
+    return this.formErrorTranslator.translateFormPath(controlPath, opts);
   }
 
   /* -- protected methods -- */
@@ -1984,8 +1984,8 @@ export class OperationService
     // Prepare error translator
     if (!opts.translatorOptions) {
       opts.translatorOptions = {
-        controlPathTranslator: {
-          translateControlPath: (path) => this.translateControlPath(path, { pmfms: opts.initialPmfms }),
+        pathTranslator: {
+          translateFormPath: (path) => this.translateFormPath(path, { pmfms: opts.initialPmfms }),
         },
       };
     }

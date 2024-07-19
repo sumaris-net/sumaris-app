@@ -266,7 +266,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>,
     this._state.set('initialPmfms', () => undefined);
   }
 
-  translateControlPath(path: string, pmfms?: IPmfm[]): string {
+  translateFormPath(path: string, pmfms?: IPmfm[]): string {
     if (path.includes('measurementValues.')) {
       const parts = path.split('.');
       const controlName = parts[parts.length - 1];

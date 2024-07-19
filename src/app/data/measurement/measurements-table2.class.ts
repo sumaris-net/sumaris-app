@@ -295,9 +295,9 @@ export abstract class BaseMeasurementsTable2<
     }
   }
 
-  setFilter(filterData: F, opts?: { emitEvent: boolean }) {
+  async setFilter(filterData: F, opts?: { emitEvent: boolean }) {
     opts = opts || { emitEvent: !this.loading };
-    super.setFilter(filterData, opts);
+    return super.setFilter(filterData, opts);
   }
 
   trackByFn(index: number, row: AsyncTableElement<T>): any {
@@ -369,13 +369,13 @@ export abstract class BaseMeasurementsTable2<
     return toNumber(pmfm?.id, index);
   }
 
-  translateControlPath(path: string): string {
+  translateFormPath(path: string): string {
     if (path.startsWith('measurementValues.')) {
       const pmfmId = parseInt(path.split('.')[1]);
       const pmfm = (this.pmfms || []).find((p) => p.id === pmfmId);
       if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }
-    return super.translateControlPath(path);
+    return super.translateFormPath(path);
   }
 
   /**

@@ -1,14 +1,11 @@
-import { arrayResize, DateUtils, isNil, isNotEmptyArray, isNotNil, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
+import { arrayResize, DateUtils, isNotEmptyArray, isNotNil, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import { GearUseFeatures, GearUseFeaturesComparators } from '@app/activity-calendar/model/gear-use-features.model';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
-import { ProgramPrivilegeEnum, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { IUseFeaturesUtils } from '@app/activity-calendar/model/use-features.model';
-import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
-import { Moment } from 'moment';
 
 export class ActivityMonthUtils {
   static getSortedMetierIds(
@@ -21,7 +18,14 @@ export class ActivityMonthUtils {
 
   static fromActivityCalendars(
     sources: ActivityCalendar[],
-    opts?: { fillEmptyGuf?: boolean; fillEmptyFishingArea?: boolean; fishingAreaCount?: number; timezone?: string; sortedMetierIds?: number[] }
+    opts?: {
+      fillEmptyMonth?: boolean;
+      fillEmptyGuf?: boolean;
+      fillEmptyFishingArea?: boolean;
+      fishingAreaCount?: number;
+      timezone?: string;
+      sortedMetierIds?: number[];
+    }
   ): ActivityMonth[] {
     const gearUseFeatures = (sources || []).flatMap((ac) => ac.gearUseFeatures).filter(GearUseFeatures.isNotEmpty);
     const sortedMetierIds = ActivityMonthUtils.getSortedMetierIds(gearUseFeatures, GearUseFeaturesComparators.sortByMonthAndRankOrderFn);
@@ -33,12 +37,12 @@ export class ActivityMonthUtils {
   static fromActivityCalendar(
     data: ActivityCalendar,
     opts?: {
+      fillEmptyMonth?: boolean;
       fillEmptyGuf?: boolean;
       fillEmptyFishingArea?: boolean;
       fishingAreaCount?: number;
       timezone?: string;
       sortedMetierIds?: number[];
-      isAdmin?: boolean;
     }
   ): ActivityMonth[] {
     data = ActivityCalendar.fromObject(data);
@@ -51,98 +55,53 @@ export class ActivityMonthUtils {
     const sortedMetierIds =
       opts?.sortedMetierIds ||
       (opts?.fillEmptyGuf && removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)).concat(undefined));
-    const registrationPeriods: VesselRegistrationPeriod[] = Object.values(data.vesselRegistrationPeriodsByPrivileges).flatMap((values) => values);
-    const writablePeriods = opts?.isAdmin ? registrationPeriods : data.vesselRegistrationPeriodsByPrivileges?.[ProgramPrivilegeEnum.OBSERVER] || [];
-
-    const vufs = (data.vesselUseFeatures || []).filter((vuf) => vuf.qualityFlagId !== QualityFlagIds.CONFLICTUAL);
-    const conflictualVufs = (data.vesselUseFeatures || []).filter((vuf) => vuf.qualityFlagId === QualityFlagIds.CONFLICTUAL);
-
-    const months = ActivityMonthUtils.computeActivityMonths(
-      monthStartDates,
-      vufs,
-      sortedGearUseFeatures,
-      sortedMetierIds,
-      registrationPeriods,
-      writablePeriods,
-      vesselId,
-      opts
-    );
-
-    const conflictualMonths = ActivityMonthUtils.computeActivityMonths(
-      monthStartDates,
-      conflictualVufs,
-      sortedGearUseFeatures,
-      sortedMetierIds,
-      registrationPeriods,
-      writablePeriods,
-      vesselId,
-      opts
-    ).reverse();
-
-    for (const conflictualMonth of conflictualMonths) {
-      if (isNil(conflictualMonth.id)) continue;
-      conflictualMonth.canEdit = false;
-      months.splice(conflictualMonth.month - 1, 0, conflictualMonth);
-    }
-
-    return months;
-  }
-
-  static computeActivityMonths(
-    monthStartDates: Moment[],
-    vufs: VesselUseFeatures[],
-    sortedGearUseFeatures: GearUseFeatures[],
-    sortedMetierIds: number[],
-    registrationPeriods: VesselRegistrationPeriod[],
-    writablePeriods: VesselRegistrationPeriod[],
-    vesselId: number,
-    opts?: {
-      fillEmptyGuf?: boolean;
-      fillEmptyFishingArea?: boolean;
-      fishingAreaCount?: number;
-      isAdmin?: boolean;
-    }
-  ): ActivityMonth[] {
     const fishingAreaCount = opts?.fishingAreaCount || 2;
-    let metierBlockCount = 0;
-    return monthStartDates.map((startDate) => {
-      const endDate = startDate.clone().endOf('month');
 
-      // DEBUG
-      //console.debug(`Month #${startDate.month() + 1} - ${toDateISOString(startDate)} -> ${toDateISOString(endDate)}`);
+    return monthStartDates
+      .map((startDate) => {
+        const endDate = startDate.clone().endOf('month');
 
-      const source = vufs.find((vuf) => DateUtils.isSame(startDate, vuf.startDate, 'day') && DateUtils.isSame(endDate, vuf.endDate, 'day')) || {
-        startDate,
-      };
-      const target = ActivityMonth.fromObject(source || {});
-      target.gearUseFeatures = sortedGearUseFeatures?.filter(
-        (guf) => DateUtils.isSame(startDate, guf.startDate, 'day') && DateUtils.isSame(endDate, guf.endDate, 'day')
-      );
-      if (opts?.fillEmptyGuf && sortedMetierIds.length > 1) {
-        target.gearUseFeatures = sortedMetierIds.flatMap((metierId) => {
-          const existingGuf = target.gearUseFeatures.filter((guf) => guf.metier?.id === metierId);
-          if (isNotEmptyArray(existingGuf)) return existingGuf;
-          return [new GearUseFeatures()]; // Empty GUF
-        });
+        // DEBUG
+        //console.debug(`Month #${startDate.month() + 1} - ${toDateISOString(startDate)} -> ${toDateISOString(endDate)}`);
 
-        // Fill empty fishing area
-        if (opts?.fillEmptyFishingArea) {
-          target.gearUseFeatures.forEach((guf) => {
-            guf.fishingAreas = arrayResize(guf.fishingAreas, fishingAreaCount, <FishingArea>{}).map(FishingArea.fromObject);
+        const source =
+          data.vesselUseFeatures?.find((vuf) => DateUtils.isSame(startDate, vuf.startDate, 'day') && DateUtils.isSame(endDate, vuf.endDate, 'day')) ||
+          (opts?.fillEmptyMonth !== false ? { startDate } : undefined);
+        if (!source) return null; // Skip
+
+        const target = ActivityMonth.fromObject(source);
+        target.gearUseFeatures = sortedGearUseFeatures?.filter(
+          (guf) => DateUtils.isSame(startDate, guf.startDate, 'day') && DateUtils.isSame(endDate, guf.endDate, 'day')
+        );
+        if (opts?.fillEmptyGuf && sortedMetierIds.length > 1) {
+          target.gearUseFeatures = sortedMetierIds.flatMap((metierId) => {
+            const existingGuf = target.gearUseFeatures.filter((guf) => guf.metier?.id === metierId);
+            if (isNotEmptyArray(existingGuf)) return existingGuf;
+            return [new GearUseFeatures()]; // Empty GUF
           });
-        }
-      }
-      metierBlockCount = Math.max(metierBlockCount, target.gearUseFeatures.length);
-      target.vesselId = vesselId;
-      target.month = startDate.month() + 1;
-      target.endDate = endDate;
 
-      target.canEdit = opts?.isAdmin || IUseFeaturesUtils.isInPeriods(target, writablePeriods, 'month');
-      target.registrationLocations = registrationPeriods
-        .filter((period) => IUseFeaturesUtils.isInPeriods(target, [period], 'month'))
-        .map((vrp) => vrp.registrationLocation);
-      return target;
-    });
+          // Fill empty fishing area
+          if (opts?.fillEmptyFishingArea) {
+            target.gearUseFeatures.forEach((guf) => {
+              guf.fishingAreas = arrayResize(guf.fishingAreas, fishingAreaCount, <FishingArea>{}).map(FishingArea.fromObject);
+            });
+          }
+        }
+        target.vesselId = vesselId;
+        target.month = startDate.month() + 1;
+        target.endDate = endDate;
+
+        target.readonly = true;
+        target.registrationLocations = removeDuplicatesFromArray(
+          IUseFeaturesUtils.filterByPeriod(data.vesselRegistrationPeriods, target).map((vrp) => {
+            target.readonly = target.readonly && vrp.readonly;
+            return vrp.registrationLocation;
+          }),
+          'id'
+        );
+        return target;
+      })
+      .filter(isNotNil);
   }
 
   static toActivityCalendar(sources: ActivityMonth[]): ActivityCalendar {

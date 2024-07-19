@@ -262,7 +262,7 @@ export abstract class AppBaseTable2<
     }
   }
 
-  setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
+  async setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
     filter = this.asFilter(filter);
 
     // Update criteria count
@@ -277,7 +277,7 @@ export abstract class AppBaseTable2<
       this.filterForm.patchValue(filter.asObject(), { emitEvent: false });
     }
 
-    super.setFilter(filter as F, opts);
+    return super.setFilter(filter as F, opts);
   }
 
   toggleFilterPanelFloating() {

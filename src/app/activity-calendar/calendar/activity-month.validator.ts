@@ -109,10 +109,10 @@ export class ActivityMonthValidatorService<
       month: [toNumber(data?.month, null), Validators.required],
       startDate: [data?.startDate || null, Validators.required],
       endDate: [data?.endDate || null, Validators.required],
+      readonly: [toBoolean(data?.readonly, false)],
       isActive: [toNumber(data?.isActive, null), opts?.required ? Validators.required : undefined],
       basePortLocation: [data?.basePortLocation || null],
       measurementValues: this.formBuilder.group({}),
-      canEdit: [toBoolean(data?.canEdit, true)],
       registrationLocations: [data?.registrationLocations || []],
     });
 
@@ -160,7 +160,6 @@ export class ActivityMonthValidatorService<
       isActiveControl.removeValidators(Validators.required);
     }
 
-    // TODO update metier, gear, fishing areas
     let gufArray = form.get('gearUseFeatures') as AppFormArray<GearUseFeatures, UntypedFormGroup>;
     if (opts.withMetier) {
       if (!gufArray) {
@@ -181,7 +180,7 @@ export class ActivityMonthValidatorService<
       gufArray.forEach((guf) => {
         // Init fishing areas
         let faArray = guf.get('fishingAreas') as AppFormArray<FishingArea, UntypedFormGroup>;
-        if (opts?.withFishingAreas) {
+        if (opts.withFishingAreas) {
           if (!faArray) {
             faArray = this.getFishingAreaArray(null, { required: !opts.isOnFieldMode });
             guf.addControl('fishingAreas', faArray, { emitEvent: false });
@@ -189,6 +188,7 @@ export class ActivityMonthValidatorService<
           if (isNotNil(opts?.fishingAreaCount)) {
             faArray.resize(opts.fishingAreaCount, { emitEvent: false });
           }
+          console.log('TODO Enable FA ?');
           if (gufEnabled && faArray.disabled) faArray.enable({ emitEvent: false });
           else if (!gufEnabled && faArray.enabled) faArray.disable({ emitEvent: false });
         } else {

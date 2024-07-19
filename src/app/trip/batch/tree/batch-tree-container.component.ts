@@ -23,7 +23,7 @@ import {
   filterFalse,
   filterTrue,
   firstNotNilPromise,
-  FormErrorTranslatorOptions,
+  FormErrorTranslateOptions,
   getPropertyByPath,
   ILogger,
   ILoggingService,
@@ -72,6 +72,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+
 interface BadgeState {
   hidden: boolean;
   text: string;
@@ -119,7 +120,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
   protected _logger: ILogger;
   protected _logPrefix = '[batch-tree-container] ';
   protected _lastEditingBatchPath: string;
-  protected _errorTranslatorOptions: FormErrorTranslatorOptions;
+  protected errorTranslateOptions: FormErrorTranslateOptions;
 
   @RxStateSelect() protected readonly allowSamplingBatches$: Observable<boolean>;
   @RxStateSelect() protected readonly allowSubBatches$: Observable<boolean>;
@@ -277,7 +278,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
       prefix: '',
       suffix: '',
     };
-    this._errorTranslatorOptions = { separator: '<br/>', controlPathTranslator: this };
+    this.errorTranslateOptions = { separator: '<br/>', pathTranslator: this };
     this._state.set({
       treePanelFloating:
         this.settings.getPageSettings(BatchTreeContainerSettingsEnum.PAGE_ID, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY) || this.mobile, // On desktop, panel is pinned by default
@@ -439,7 +440,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
     super.resetError(opts);
   }
 
-  translateControlPath(path: string): string {
+  translateFormPath(path: string): string {
     if (path.startsWith('measurementValues.')) {
       const parts = path.split('.');
       const pmfmId = parseInt(parts[parts.length - 1]);

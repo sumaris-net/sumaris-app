@@ -190,7 +190,8 @@
 
       <mat-tab-group
         #tabGroup
-        class="mat-mdc-tab-fixed-content"
+        class="mat-mdc-tab-fixed-content mat-tab-group-header-pagination-hidden"
+        [class.mat-mdc-tab-group-header-hidden]="!showPictures"
         [class.mobile]="mobile"
         [(selectedIndex)]="selectedSubTabIndex"
         (selectedTabChange)="onSubTabChange($event)"
@@ -252,7 +253,8 @@
                 ></app-vessel-owner-history-table>
               </ion-col>
             </ion-row>
-            <ion-row>
+
+            <ion-row [class.cdk-visually-hidden]="!showPictures">
               <ion-col>
                 <h3>
                   <ion-label translate>ACTIVITY_CALENDAR.EDIT.PHOTO</ion-label>
@@ -270,33 +272,31 @@
           </ion-grid>
         </mat-tab>
 
-        @if (canEdit) {
-          <!-- TAB: vessel photo -->
-          <mat-tab #vesselPhotoTab>
-            <ng-template mat-tab-label>
-              <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
-              &nbsp;
-              <ion-label
-                [matBadge]="gallery.value.length"
-                [matBadgeHidden]="!gallery.value.length"
-                matBadgeOverlap="false"
-                matBadgeColor="primary"
-                matBadgeSize="small"
-                matBadgePosition="above after"
-              >
-                <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_PHOTO</ion-label>
-              </ion-label>
-            </ng-template>
+        <!-- TAB: vessel photo -->
+        <mat-tab #vesselPhotoTab [disabled]="!showPictures">
+          <ng-template mat-tab-label>
+            <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
+            &nbsp;
+            <ion-label
+              [matBadge]="gallery.value.length"
+              [matBadgeHidden]="!gallery.value.length"
+              matBadgeOverlap="false"
+              matBadgeColor="primary"
+              matBadgeSize="small"
+              matBadgePosition="above after"
+            >
+              <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_PHOTO</ion-label>
+            </ion-label>
+          </ng-template>
 
-            <app-image-attachment-gallery
-              #gallery
-              [disabled]="disabled"
-              [showAddCardButton]="true"
-              [showFabButton]="mobile"
-              [debug]="debug"
-            ></app-image-attachment-gallery>
-          </mat-tab>
-        }
+          <app-image-attachment-gallery
+            #gallery
+            [disabled]="disabled"
+            [showAddCardButton]="true"
+            [showFabButton]="mobile"
+            [debug]="debug"
+          ></app-image-attachment-gallery>
+        </mat-tab>
       </mat-tab-group>
     </mat-tab>
 
@@ -311,9 +311,9 @@
         <mat-icon><ion-icon name="calendar"></ion-icon></mat-icon>
         <ion-label
           [matBadge]="calendar?.validRowCount$ | push"
-          [matBadgeHidden]="!(calendar?.validRowCount$ | push)"
+          [matBadgeHidden]="calendar.invalid || !(calendar?.validRowCount$ | push)"
           matBadgeOverlap="false"
-          matBadgeColor="primary"
+          [matBadgeColor]="(calendar?.validRowCount$ | push) === 12 ? 'primary' : 'warn'"
           matBadgeSize="small"
           matBadgePosition="above after"
         >

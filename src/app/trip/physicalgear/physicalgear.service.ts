@@ -629,7 +629,7 @@ export class PhysicalGearService
     return PhysicalGearFilter.fromObject(filter);
   }
 
-  translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
     opts = opts || {};
     opts.i18nPrefix = opts.i18nPrefix || 'TRIP.PHYSICAL_GEAR.EDIT.';
 
@@ -641,7 +641,7 @@ export class PhysicalGearService
     }
 
     // Default translation
-    return this.formErrorTranslator.translateControlPath(path, opts);
+    return this.formErrorTranslator.translateFormPath(path, opts);
   }
 
   /* -- protected methods -- */
@@ -684,8 +684,8 @@ export class PhysicalGearService
     // Prepare error translator
     if (!opts.translatorOptions) {
       opts.translatorOptions = {
-        controlPathTranslator: {
-          translateControlPath: (path) => this.translateControlPath(path, { pmfms: opts.initialPmfms }),
+        pathTranslator: {
+          translateFormPath: (path) => this.translateFormPath(path, { pmfms: opts.initialPmfms }),
         },
       };
     }

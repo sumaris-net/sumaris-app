@@ -59,13 +59,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { distinctUntilChanged, fromEvent, Observable, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import {
-  AcquisitionLevelCodes,
-  LocationLevelGroups,
-  LocationLevelIds,
-  QualityFlagIds,
-  QualityFlags,
-} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -86,9 +80,9 @@ import { BaseMeasurementsTable2 } from '@app/data/measurement/measurements-table
 import { AsyncTableElement } from '@e-is/ngx-material-table';
 import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
-import { SelectionModel } from '@angular/cdk/collections';
 import { IUseFeaturesUtils } from '../model/use-features.model';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
+import { SelectionModel } from '@angular/cdk/collections';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -168,6 +162,7 @@ export interface CalendarComponentState extends BaseMeasurementsTableState {
   validRowCount: number;
   hasClipboard: boolean;
   availablePrograms: ReferentialRef[];
+  hasConflict: boolean;
 }
 
 export type CalendarComponentStyle = 'table' | 'accordion';
@@ -225,6 +220,7 @@ export class CalendarComponent
   @RxStateSelect() validRowCount$: Observable<number>;
   @RxStateSelect() hasClipboard$: Observable<boolean>;
   @RxStateSelect() availablePrograms$: Observable<ReferentialRef[]>;
+  @RxStateSelect() hasConflict$: Observable<boolean>;
   protected readonly isActiveList = IsActiveList;
   protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
@@ -237,7 +233,6 @@ export class CalendarComponent
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
-  protected _solveConflictMode = false;
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -245,6 +240,7 @@ export class CalendarComponent
   @RxStateProperty() validRowCount: number;
   @RxStateProperty() hasClipboard: boolean;
   @RxStateProperty() availablePrograms: ReferentialRef[];
+  @RxStateProperty() hasConflict: boolean;
 
   @Input() @RxStateProperty() months: Moment[];
 
@@ -265,7 +261,7 @@ export class CalendarComponent
   @Input() programHeaderLabel: string;
 
   @Input() set month(value: number) {
-    this.filter = ActivityMonthFilter.fromObject({ ...this.filter, month: value });
+    this.setFilter(ActivityMonthFilter.fromObject({ ...this.filter, month: value }));
   }
   get month(): number {
     return this.filter?.month;
@@ -310,11 +306,11 @@ export class CalendarComponent
    */
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (DO NOT use 'invalid')
-    return !this._solveConflictMode && (!this._children || this._children.findIndex((c) => c.enabled && !c.valid) === -1);
+    return !this.hasConflict && (!this._children || this._children.findIndex((c) => c.enabled && !c.valid) === -1);
   }
 
   get invalid(): boolean {
-    return this._solveConflictMode || (this._children && this._children.findIndex((c) => c.enabled && c.invalid) !== -1) || false;
+    return this.hasConflict || (this._children && this._children.findIndex((c) => c.enabled && c.invalid) !== -1) || false;
   }
 
   get pending(): boolean {
@@ -379,6 +375,7 @@ export class CalendarComponent
           requiredGear: false,
           acquisitionLevel: AcquisitionLevelCodes.MONTHLY_ACTIVITY,
           metierCount: 0,
+          hasConflict: false,
         },
       }
     );
@@ -387,7 +384,7 @@ export class CalendarComponent
     this.autoLoad = true;
     this.sticky = true;
     this.compact = null;
-    this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
+    this.errorTranslateOptions = { separator: '\n', pathTranslator: this };
     this.excludesColumns = ['program', ...DYNAMIC_COLUMNS];
     this.toolbarColor = 'medium';
     this.logPrefix = '[activity-calendar] ';
@@ -467,9 +464,15 @@ export class CalendarComponent
     this._state.connect(
       'validRowCount',
       this._dataSource.rowsSubject.pipe(
-        map((rows) => {
-          return rows.map((row) => row.currentData?.isActive).filter(isNotNil).length;
-        })
+        map(
+          (rows) =>
+            rows
+              .map((row) => row.currentData)
+              .filter(
+                (month) =>
+                  isNotNil(month?.isActive) && month.qualityFlagId !== QualityFlagIds.BAD && month.qualityFlagId !== QualityFlagIds.CONFLICTUAL
+              ).length
+        )
       )
     );
 
@@ -573,19 +576,12 @@ export class CalendarComponent
   async updateView(res: LoadResult<ActivityMonth>, opts?: { emitEvent?: boolean }): Promise<void> {
     await super.updateView(res, opts);
 
-    const data = res?.data;
-    // If no other rows are conflictual, quit _solveConflictMode
-    const conflictualCount = data?.filter((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL).length || 0;
-    if (this._solveConflictMode && conflictualCount === 0) {
-      this._solveConflictMode = false;
-      this.markAsDirty();
-    }
+    // Update has conflict
+    if (res?.data) this.hasConflict = this.hasSomeConflictualMonth(res?.data);
   }
 
   async setValue(data: ActivityMonth[]) {
     console.debug(this.logPrefix + 'Setting data', data);
-
-    this._solveConflictMode = data.some((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL);
 
     switch (this.style) {
       // Table
@@ -624,6 +620,10 @@ export class CalendarComponent
 
         // load vesselOwner
         await this.loadVesselOwner(data);
+
+        // Update has conflict
+        this.hasConflict = this.hasSomeConflictualMonth(data);
+
         break;
       }
       // Accordion
@@ -674,28 +674,36 @@ export class CalendarComponent
     }
   }
 
-  async solveConflict(_?: Event, row?: AsyncTableElement<ActivityMonth>) {
+  async deleteConflictualMonth(event?: Event, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
     row = row || this.editedRow;
     if (!row || event.defaultPrevented) return true; // no row to confirm
 
     event?.preventDefault();
     event?.stopPropagation();
 
-    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_SOLVE_CONFLICT', this.alertCtrl, this.translate);
+    if (this.debug) console.debug(this.logPrefix + `Deleting conflictual month #${row.currentData.month}...`, row);
+
+    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.DELETE_CONFLICT', this.alertCtrl, this.translate);
     if (!confirmed) return false; // User cancelled
 
-    if (this.debug) console.debug(this.logPrefix + 'Mark as solved', row);
-
     // Remove solved row
+    const remoteRowId = row.id;
     const remoteUpdateDate = row.currentData.updateDate;
-    const rowIndex = this.value.findIndex((month) => month.month === row.currentData.month && month.qualityFlagId === QualityFlagIds.CONFLICTUAL);
-    this.value.splice(rowIndex, 1);
+    const deleted = await row.delete();
+    if (!deleted) return false;
 
     // Update month updateDate with remote update date to avoid conflict when save
-    const localRow = this.value.find((month) => month.month === row.currentData.month && month.qualityFlagId !== QualityFlagIds.CONFLICTUAL);
-    localRow.updateDate = remoteUpdateDate;
+    await this.dataSource.waitIdle();
+    const localRow = this.dataSource.getRow(remoteRowId - 1);
+    if (localRow.validator) {
+      localRow.validator.patchValue({ updateDate: remoteUpdateDate }, { emitEvent: false });
+    } else {
+      localRow.currentData.updateDate = remoteUpdateDate;
+    }
 
-    this.onRefresh.emit();
+    if (this.debug) console.debug(this.logPrefix + `Deleting conflictual month #${row.currentData.month} [OK]`);
+
+    this.markAsDirty();
   }
 
   // TODO This not work
@@ -706,7 +714,7 @@ export class CalendarComponent
   //   event?.preventDefault();
   //   event?.stopPropagation();
 
-  //   const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_KEEP_REMOTE', this.alertCtrl, this.translate);
+  //   const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.KEEP_REMOTE', this.alertCtrl, this.translate);
   //   if (!confirmed) return false; // User cancelled
 
   //   if (this.debug) console.debug(this.logPrefix + 'Keep remote', row);
@@ -968,6 +976,8 @@ export class CalendarComponent
 
     if (!row || !columnName) return false; // Skip
 
+    this.closeContextMenu();
+
     event?.preventDefault();
     event?.stopPropagation();
 
@@ -990,6 +1000,8 @@ export class CalendarComponent
       resizing: false,
     };
     this.resizeCellSelection(this.cellSelection, 'cell');
+
+    return true;
   }
 
   @HostListener('window:resize')
@@ -1080,8 +1092,19 @@ export class CalendarComponent
     return true;
   }
 
-  async clickRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+  async dblClickRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>): Promise<boolean> {
     if (event?.defaultPrevented) return false; // Skip
+
+    this.closeContextMenu();
+
+    // Forget the cell selection
+    this.removeCellSelection();
+
+    return super.clickRow(event, row);
+  }
+
+  async clickRow(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+    if (event?.defaultPrevented || row.editing) return false; // Skip
 
     this.closeContextMenu();
 
@@ -1089,18 +1112,12 @@ export class CalendarComponent
     if (this.cellSelection?.resizing || this.cellSelection?.validating) return false;
 
     // If Click+Shift
-    if (event instanceof MouseEvent) {
-      if (event.shiftKey === true) return this.onMouseShiftClick(event, row, this.focusColumn);
-      if (event.ctrlKey === true) return this.onMouseCtrlClick(event, row, this.focusColumn);
+    if (event instanceof MouseEvent && event.shiftKey === true) {
+      return this.onMouseShiftClick(event, row, this.focusColumn);
     }
 
-    // Not editable: forget the cell selection
-    if (this.disabled) {
-      this.removeCellSelection();
-      return false;
-    }
-
-    return super.clickRow(event, row);
+    // Like a ctrl click
+    return this.onMouseCtrlClick(event, row, this.focusColumn);
   }
 
   async cancelOrDelete(
@@ -1341,11 +1358,23 @@ export class CalendarComponent
   }
 
   protected async editRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, opts?: { focusColumn?: string }): Promise<boolean> {
-    if (!row.currentData.canEdit) {
-      // TODO check if need
-      this.confirmEditCreate();
+    // Avoid to edit readonly month
+    const month = row.currentData;
+    if (month.readonly === true || month.qualityFlagId === QualityFlagIds.CONFLICTUAL) {
+      const confirmed = await this.confirmEditCreate();
+      if (!confirmed) return false;
+
+      // Warn user that he cannot edit
+      if (month.readonly === true) {
+        await this.showToast({
+          icon: 'warning-outline',
+          type: 'warning',
+          message: 'ACTIVITY_CALENDAR.WARNING.UNAUTHORIZED_REGISTRATION_LOCATION',
+        });
+      }
       return false;
     }
+
     const editing = super.editRow(event, row, opts);
     if (editing) this.removeCellSelection();
     return editing;
@@ -1382,6 +1411,11 @@ export class CalendarComponent
     return confirmed;
   }
 
+  protected setError(error: string, opts?: { emitEvent?: boolean }) {
+    console.log('TODO ERROR', error);
+    super.setError(error, opts);
+  }
+
   async clear(event?: Event, row?: AsyncTableElement<ActivityMonth>, opts?: { interactive?: boolean }) {
     if (event?.defaultPrevented) return false; // skip
     event?.preventDefault();
@@ -1392,7 +1426,7 @@ export class CalendarComponent
 
     // Ask user confirmation
     if (opts?.interactive !== false) {
-      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_MONTH', this.alertCtrl, this.translate);
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.CLEAR_MONTH', this.alertCtrl, this.translate);
       if (!confirmed) return false; // User cancelled
     }
 
@@ -1401,10 +1435,12 @@ export class CalendarComponent
     const currentData = row.currentData;
     if (ActivityMonth.isEmpty(currentData)) return true; // Nothing to clear
 
-    const { startDate, endDate } = currentData;
+    const { month, startDate, endDate, registrationLocations } = currentData;
     const data = ActivityMonth.fromObject({
+      month,
       startDate,
       endDate,
+      registrationLocations,
       measurementValues: MeasurementValuesUtils.normalizeValuesToForm({}, this.pmfms),
       gearUseFeatures: new Array(this.maxMetierCount).fill({
         startDate,
@@ -1423,7 +1459,10 @@ export class CalendarComponent
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
   }
-  collapseAll(event?: UIEvent, opts?: { emitEvent?: boolean }) {
+
+  collapseAll(event?: Event, opts?: { emitEvent?: boolean }) {
+    if (event?.defaultPrevented) return; // Skip
+
     for (let i = 0; i < this.metierCount; i++) {
       this.collapseMetierBlock(null, i);
     }
@@ -1434,12 +1473,9 @@ export class CalendarComponent
   async clearAll(event?: Event, opts?: { interactive?: boolean }) {
     if (event?.defaultPrevented) return; // Skip
 
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    //Ask user confirmation
+    // Ask user confirmation
     if (opts?.interactive !== false) {
-      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_CLEAR_CALENDAR', this.alertCtrl, this.translate);
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.CLEAR_CALENDAR', this.alertCtrl, this.translate);
       if (!confirmed) return false; // User cancelled
     }
 
@@ -1639,9 +1675,9 @@ export class CalendarComponent
   }
 
   protected async copy(event?: Event) {
-    if (event?.defaultPrevented) return;
-
     console.debug(`${this.logPrefix}Copy event`, event);
+
+    if (event?.defaultPrevented) return;
 
     if (this.cellSelection && (this.cellSelection?.colspan !== 0 || this.cellSelection?.rowspan !== 0)) {
       event?.preventDefault();
@@ -1920,7 +1956,7 @@ export class CalendarComponent
       const entity = targetForm.value;
       if (targetForm.invalid) {
         const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, {
-          ...this.errorTranslatorOptions,
+          ...this.errorTranslateOptions,
         });
         entity.controlDate = null;
         entity.qualificationComments = errorMessage;
@@ -2011,6 +2047,11 @@ export class CalendarComponent
     }
 
     event.preventDefault();
+
+    // Stop resizing
+    if (this.cellSelection?.resizing) {
+      this.cellSelection.resizing = false;
+    }
 
     // Select current cell
     if (this.cellSelection?.row !== row || this.cellSelection?.columnName !== columnName) {
@@ -2111,5 +2152,14 @@ export class CalendarComponent
     }); // Delay to skip the first focus (should be the focusColumn)
 
     return subscription;
+  }
+
+  protected hasSomeConflictualMonth(data?: ActivityMonth[]) {
+    data = data || this.value;
+    return data.some((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL);
+  }
+
+  protected markAsConflictual() {
+    this.hasConflict = true;
   }
 }
