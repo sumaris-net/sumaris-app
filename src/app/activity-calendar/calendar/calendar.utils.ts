@@ -1,8 +1,5 @@
-import { DateUtils, isNil } from '@sumaris-net/ngx-components';
+import { DateUtils } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { ActivityMonth, RegistrationLocationsWithPrivilegeByMonth, VesselRegistrationPeriodsByPrivileges } from './activity-month.model';
-import { ProgramPrivilegeEnum } from '@app/referential/services/model/model.enum';
-import { VesselRegistrationPeriodComparators } from '@app/vessel/services/model/vessel.model';
 
 export class CalendarUtils {
   /**
@@ -18,34 +15,5 @@ export class CalendarUtils {
         .month(month - 1)
         .startOf('month')
     );
-  }
-
-  static computeMonthPrivileges(
-    vesselRegistrationPeriodsPrivileges: VesselRegistrationPeriodsByPrivileges,
-    data: ActivityMonth[]
-  ): RegistrationLocationsWithPrivilegeByMonth {
-    return data.reduce((acc, month) => {
-      acc[month.month] = Object.keys(vesselRegistrationPeriodsPrivileges).reduce((subacc, key) => {
-        subacc = subacc
-          .concat(
-            vesselRegistrationPeriodsPrivileges[key]
-              .filter((vesselRegistrationPeriod) => {
-                return (
-                  month.startDate.isSameOrAfter(vesselRegistrationPeriod.startDate, 'month') &&
-                  (isNil(vesselRegistrationPeriod.endDate) || month.endDate.isSameOrBefore(vesselRegistrationPeriod.endDate, 'month'))
-                );
-              })
-              .map((vesselRegistrationPeriod) => {
-                return {
-                  canEdit: key === ProgramPrivilegeEnum.OBSERVER,
-                  vesselRegistrationPeriod,
-                };
-              })
-          )
-          .sort(VesselRegistrationPeriodComparators.sortStartDate);
-        return subacc;
-      }, []);
-      return acc;
-    }, {});
   }
 }

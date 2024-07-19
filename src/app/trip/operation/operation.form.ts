@@ -879,8 +879,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this.markForCheck();
   }
 
-  translateControlPath(controlPath: string): string {
-    return this.operationService.translateControlPath(controlPath, { i18nPrefix: this.i18nFieldPrefix });
+  translateFormPath(controlPath: string): string {
+    return this.operationService.translateFormPath(controlPath, { i18nPrefix: this.i18nFieldPrefix });
   }
 
   /* -- protected methods -- */

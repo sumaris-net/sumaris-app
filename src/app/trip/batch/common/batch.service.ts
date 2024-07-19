@@ -97,7 +97,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     throw new Error('No implemented');
   }
 
-  translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[]; qvPmfm?: IPmfm }): string {
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[]; qvPmfm?: IPmfm }): string {
     opts = opts || {};
     opts.i18nPrefix = opts.i18nPrefix || 'TRIP.BATCH.EDIT.';
     // Translate PMFM field
@@ -152,7 +152,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     }
 
     // Default translation
-    return this.formErrorTranslator.translateControlPath(cleanPath, opts);
+    return this.formErrorTranslator.translateFormPath(cleanPath, opts);
   }
 
   /* -- private functions -- */
@@ -216,9 +216,9 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         // Translate form error
         const errors = AppFormUtils.getFormErrors(form, { controlName: opts?.controlName });
         const message = this.formErrorTranslator.translateErrors(errors, {
-          controlPathTranslator: {
-            translateControlPath: (path) =>
-              this.translateControlPath(path, {
+          pathTranslator: {
+            translateFormPath: (path) =>
+              this.translateFormPath(path, {
                 pmfms: catchPmfms,
                 i18nPrefix: 'TRIP.CATCH.FORM.',
               }),
@@ -342,8 +342,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
             if (form.invalid) {
               const errors = AppFormUtils.getFormErrors(form, { controlName: `${controlNamePrefix}children.${index}` });
               const message = this.formErrorTranslator.translateErrors(errors, {
-                controlPathTranslator: {
-                  translateControlPath: (path) => this.translateControlPath(path, { pmfms, qvPmfm }),
+                pathTranslator: {
+                  translateFormPath: (path) => this.translateFormPath(path, { pmfms, qvPmfm }),
                 },
                 separator: '\n',
               });
@@ -489,7 +489,6 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
     const allowSamplingBatches = opts?.allowSamplingBatches || BatchUtils.sumObservedIndividualCount(entity.children) > 0;
     const allowDiscard = allowSamplingBatches;
-    const allowChildrenGears = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN);
 
     const [catchPmfms, sortingPmfms] = await Promise.all([
       this.programRefService.loadProgramPmfms(program.label, { acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH, gearId: opts?.gearId }),
@@ -519,10 +518,10 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
           i18nPrefix: 'TRIP.BATCH.EDIT.',
         };
         const translateErrorsOptions = {
-          controlPathTranslator: {
-            translateControlPath: (path) => {
+          pathTranslator: {
+            translateFormPath: (path) => {
               const cleanPath = opts?.controlName ? path.substring(opts.controlName.length + 1) : path;
-              const controlName = this.translateControlPath(cleanPath, translatePathOption);
+              const controlName = this.translateFormPath(cleanPath, translatePathOption);
               const modelPath = cleanPath.replace(/\.weight\.value$|.individualCount$|.label$|.rankOrder$|/gi, '');
               const batchModel = model.get(modelPath);
               if (batchModel) batchModel.valid = false;
@@ -588,10 +587,10 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
           i18nPrefix: 'TRIP.BATCH.EDIT.',
         };
         const translateErrorsOptions = {
-          controlPathTranslator: {
-            translateControlPath: (path) => {
+          pathTranslator: {
+            translateFormPath: (path) => {
               const cleanPath = opts?.controlName ? path.substring(opts.controlName.length + 1) : path;
-              const controlName = this.translateControlPath(cleanPath, translatePathOption);
+              const controlName = this.translateFormPath(cleanPath, translatePathOption);
               const modelPath = cleanPath.replace(/\.weight\.value$|.individualCount$|.label$|.rankOrder$|/gi, '');
               const batchModel = model.get(modelPath);
               if (batchModel) batchModel.valid = false;

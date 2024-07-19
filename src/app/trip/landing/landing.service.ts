@@ -858,7 +858,7 @@ export class LandingService
       );
   }
 
-  translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
     opts = { i18nPrefix: 'LANDING.EDIT.', ...opts };
     // Translate PMFM field
     if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
@@ -867,7 +867,7 @@ export class LandingService
       return PmfmUtils.getPmfmName(pmfm);
     }
     // Default translation
-    return this.formErrorTranslator.translateControlPath(path, opts);
+    return this.formErrorTranslator.translateFormPath(path, opts);
   }
 
   async synchronizeById(id: number): Promise<Landing> {
@@ -1390,8 +1390,8 @@ export class LandingService
 
     if (!opts?.translatorOptions) {
       opts.translatorOptions = {
-        controlPathTranslator: {
-          translateControlPath: (path) => this.translateControlPath(path, { pmfms: opts.strategy?.denormalizedPmfms }),
+        pathTranslator: {
+          translateFormPath: (path) => this.translateFormPath(path, { pmfms: opts.strategy?.denormalizedPmfms }),
         },
       };
     }

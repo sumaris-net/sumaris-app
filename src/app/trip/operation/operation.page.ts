@@ -371,9 +371,9 @@ export class OperationPage<S extends OperationState = OperationState>
     if (errors) {
       const pmfms = await firstNotNilPromise(this.measurementsForm.pmfms$, { stop: this.destroySubject });
       const errorMessage = this.errorTranslator.translateErrors(errors, {
-        controlPathTranslator: {
-          translateControlPath: (path) =>
-            this.service.translateControlPath(path, {
+        pathTranslator: {
+          translateFormPath: (path) =>
+            this.service.translateFormPath(path, {
               i18nPrefix: this.i18nContext.prefix,
               pmfms,
             }),
@@ -395,8 +395,8 @@ export class OperationPage<S extends OperationState = OperationState>
     return; // No errors
   }
 
-  translateControlPath(controlPath: string): string {
-    return this.dataService.translateControlPath(controlPath, { i18nPrefix: this.i18nContext.prefix, pmfms: this.measurementsForm.pmfms });
+  translateFormPath(controlPath: string): string {
+    return this.dataService.translateFormPath(controlPath, { i18nPrefix: this.i18nContext.prefix, pmfms: this.measurementsForm.pmfms });
   }
 
   canUserWrite(data: Operation, opts?: any): boolean {

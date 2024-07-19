@@ -255,7 +255,7 @@ export class SamplesTable
     this.saveBeforeSort = true;
     this.saveBeforeFilter = true;
     this.propagateRowError = true;
-    this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
+    this.errorTranslateOptions = { separator: '\n', pathTranslator: this };
 
     // Set default value
     this.showFooter = false;

@@ -13,15 +13,6 @@ import {
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { StoreObject } from '@apollo/client/core';
-import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
-
-export interface RegistrationLocationsWithPrivilegeByMonth {
-  [key: number]: { canEdit: boolean; vesselRegistrationPeriod: VesselRegistrationPeriod }[];
-}
-
-export interface VesselRegistrationPeriodsByPrivileges {
-  [key: string]: VesselRegistrationPeriod[];
-}
 
 @EntityClass({ typename: 'ActivityMonthVO' })
 export class ActivityMonth extends VesselUseFeatures implements IEntity<ActivityMonth> {
@@ -39,8 +30,8 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
   }
 
   month: number;
+  readonly: boolean;
   gearUseFeatures: GearUseFeatures[];
-  canEdit: boolean;
   registrationLocations: ReferentialRef[];
 
   constructor() {
@@ -56,7 +47,7 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
     super.fromObject(source, opts);
     this.month = this.startDate?.month();
     this.gearUseFeatures = source.gearUseFeatures?.map(GearUseFeatures.fromObject);
-    this.canEdit = source.canEdit;
+    this.readonly = source.readonly;
     this.registrationLocations = source.registrationLocations?.map(ReferentialRef.fromObject);
   }
 
@@ -70,7 +61,7 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
     });
     if (opts?.minify) {
       delete target.month;
-      delete target.canEdit;
+      delete target.readonly;
       delete target.registrationLocations;
     }
     return target;

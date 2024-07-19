@@ -82,7 +82,7 @@
                 </span>
               </h1>
               <p *ngIf="showError && loaded" [class.cdk-visually-hidden]="!childForm.invalid">
-                <ion-text color="danger" [innerHTML]="childForm.form | translateFormError: childForm.errorTranslatorOptions"></ion-text>
+                <ion-text color="danger" [innerHTML]="childForm.form | formError: childForm.errorTranslatorOptions"></ion-text>
               </p>
             </ion-label>
           </ion-card-title>

@@ -40,8 +40,8 @@ export class GearUseFeaturesComparators {
 export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWithProgramEntity<GearUseFeatures>, IUseFeatures<GearUseFeatures> {
   static fromObject: (source: any, options?: any) => GearUseFeatures;
 
-  static equals(o1: GearUseFeatures, o2: GearUseFeatures) {
-    return (!o1 && !o2) || (o1 && GearUseFeatures.fromObject(o1).equals(o2));
+  static equals(o1: GearUseFeatures, o2: GearUseFeatures, opts?: { withMeasurementValues: false }) {
+    return (!o1 && !o2) || (o1 && GearUseFeatures.fromObject(o1).equals(o2, opts));
   }
 
   static isNotEmpty(o: GearUseFeatures) {

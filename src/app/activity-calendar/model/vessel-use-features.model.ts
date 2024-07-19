@@ -29,8 +29,8 @@ export class VesselUseFeatures
   implements IWithProgramEntity<VesselUseFeatures>, IUseFeatures<VesselUseFeatures>
 {
   static fromObject: (source: any, options?: any) => VesselUseFeatures;
-  static equals(o1: VesselUseFeatures, o2: VesselUseFeatures) {
-    return (!o1 && !o2) || (o1 && VesselUseFeatures.fromObject(o1).equals(o2));
+  static equals(o1: VesselUseFeatures, o2: VesselUseFeatures, opts = { withMeasurementValues: false }) {
+    return (!o1 && !o2) || (o1 && VesselUseFeatures.fromObject(o1).equals(o2, opts));
   }
   static isNotEmpty(o: VesselUseFeatures): boolean {
     return !VesselUseFeatures.isEmpty(o);
@@ -90,6 +90,8 @@ export class VesselUseFeatures
         //((!this.dailyActivityCalendarId && !other.dailyActivityCalendarId) || this.dailyActivityCalendarId === other.dailyActivityCalendarId) &&
         // Same program
         ReferentialUtils.equals(this.program, other.program) &&
+        // Same basePortLocation
+        ReferentialUtils.equals(this.basePortLocation, other.basePortLocation) &&
         // Same measurementsValues
         (opts.withMeasurementValues !== true || MeasurementValuesUtils.equals(this.measurementValues, other.measurementValues)))
     );

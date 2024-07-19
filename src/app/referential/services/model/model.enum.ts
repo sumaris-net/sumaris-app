@@ -2,7 +2,10 @@ import { changeCaseToUnderscore, underscoreToChangeCase } from '@sumaris-net/ngx
 
 export const ProgramLabel = {
   SIH: 'SIH', // Used for vessel's filter
-  SIH_ACTIPRED: 'SIH-ACTIPRED', // Used for activity calendar
+
+  // Activity calendar
+  SIH_ACTIFLOT: 'SIH-ACTIFLOT',
+  SIH_ACTIPRED: 'SIH-ACTIPRED',
 };
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 export const LocationLevelIds = {
@@ -455,7 +458,10 @@ export const UnitLabelGroups = {
 };
 
 export const QualityFlagIds = {
+  // Local quality flag (e.g. to manage conflicts on entity)
   CONFLICTUAL: -1,
+
+  // Remote quality flag
   NOT_QUALIFIED: 0,
   GOOD: 1,
   OUT_STATS: 2,

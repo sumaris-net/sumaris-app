@@ -237,4 +237,17 @@ export abstract class DataEntityUtils {
     if (!data) return 0;
     return Math.max(0, ...data.map((entity) => entity?.rankOrder || 0));
   }
+
+  static markAsConflictual(entity: DataEntity<any, any> | undefined, errorMessage?: string) {
+    if (!entity) return; // skip
+    // Clean date
+    entity.controlDate = null;
+    entity.qualificationDate = null;
+
+    // Register error message, into qualificationComments
+    entity.qualificationComments = errorMessage;
+
+    // Mark using a specific quality flag
+    entity.qualityFlagId = QualityFlagIds.CONFLICTUAL;
+  }
 }

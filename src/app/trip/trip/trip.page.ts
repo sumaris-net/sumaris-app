@@ -291,8 +291,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.setError(undefined, opts);
   }
 
-  translateControlPath(controlPath: string): string {
-    return this.dataService.translateControlPath(controlPath, { i18nPrefix: this.i18nContext.prefix });
+  translateFormPath(controlPath: string): string {
+    return this.dataService.translateFormPath(controlPath, { i18nPrefix: this.i18nContext.prefix });
   }
 
   protected registerForms() {
