@@ -3,19 +3,27 @@ import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators'
 import { ActivityCalendarValidatorOptions, ActivityCalendarValidatorService } from '../model/activity-calendar.validator';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { AbstractControl, FormGroup, UntypedFormBuilder } from '@angular/forms';
+import { AbstractControl, FormGroup, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
+  AppFormArray,
   DateUtils,
   equals,
   fromDateISOString,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  LoadResult,
   NetworkService,
+  Person,
   PersonService,
+  PersonUtils,
+  ReferentialUtils,
   setPropertyByPath,
   StatusIds,
+  toBoolean,
   toDateISOString,
+  UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendar } from '../model/activity-calendar.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -29,10 +37,12 @@ import { VesselModal } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { ModalController } from '@ionic/angular';
-import { merge } from 'rxjs';
+import { Observable, merge } from 'rxjs';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export interface ActivityCalendarFormState extends MeasurementsFormState {
   showYear: boolean;
+  showObservers: boolean;
 }
 
 @Component({
@@ -46,6 +56,9 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
   private _lastValidatorOpts: any;
   private _readonlyControlNames: (keyof ActivityCalendar)[] = ['program', 'year', 'startDate', 'directSurveyInvestigation', 'economicSurvey', 'year'];
   protected isYearInTheFuture = false;
+  protected observerFocusIndex = -1;
+
+  @RxStateSelect() protected showObservers$: Observable<boolean>;
 
   @Input() required = true;
   @Input() showError = true;
@@ -59,6 +72,7 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
   @Input() mobile = false;
   @Input() allowAddNewVessel = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
+  @Input() @RxStateProperty() showObservers: boolean;
 
   get empty(): any {
     const value = this.value;
@@ -77,6 +91,10 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
   }
   get economicSurveyControl(): AbstractControl {
     return this.form.get('economicSurvey');
+  }
+
+  get observersForm() {
+    return this.form.controls.observers as AppFormArray<Person, UntypedFormControl>;
   }
 
   @Output() yearChanges = new EventEmitter<number>();
@@ -117,6 +135,22 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
 
     // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
+    this.showObservers = toBoolean(this.showObservers, false);
+
+    // Combo: observers
+    this.registerAutocompleteField('person', {
+      // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
+      showAllOnFocus: false,
+      suggestFn: (value, filter) => this.suggestObservers(value, filter),
+      // Default filter. An excludedIds will be add dynamically
+      filter: {
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER'],
+      },
+      attributes: ['lastName', 'firstName', 'department.name'],
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile,
+    });
 
     // Combo: programs
     this.registerAutocompleteField('program', {
@@ -190,8 +224,23 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
 
     super.onApplyingEntity(data, opts);
 
+    // Make sure to have (at least) one observer
+    // Resize observers array
+    if (this.showObservers) {
+      data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
+    } else {
+      data.observers = [null];
+    }
+
     // Update form group
     this.updateFormGroup();
+  }
+
+  addObserver() {
+    this.observersForm.add();
+    if (!this.mobile) {
+      this.observerFocusIndex = this.observersForm.length - 1;
+    }
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
@@ -223,8 +272,6 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     return data;
   }
 
-  /* -- protected method -- */
-
   updateFormGroup(form?: FormGroup) {
     form = form || this.form;
     const validatorOpts: ActivityCalendarValidatorOptions = {
@@ -249,6 +296,24 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
       // Remember used opts, for next call
       this._lastValidatorOpts = validatorOpts;
     }
+  }
+
+  /* -- protected method -- */
+
+  protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing observers, BUT keep the current control value
+    const excludedIds = (this.observersForm.value || [])
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter((person) => !currentControlValue || currentControlValue !== person)
+      .map((person) => parseInt(person.id));
+
+    return this.personService.suggest(newValue, {
+      ...filter,
+      excludedIds,
+    });
   }
 
   protected async addVesselModal(event?: Event): Promise<any> {

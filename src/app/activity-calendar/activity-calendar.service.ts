@@ -105,6 +105,9 @@ export const ActivityCalendarFragments = {
       recorderPerson {
         ...LightPersonFragment
       }
+      observers {
+        ...LightPersonFragment
+      }
     }
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
@@ -139,6 +142,9 @@ export const ActivityCalendarFragments = {
         ...LightDepartmentFragment
       }
       recorderPerson {
+        ...LightPersonFragment
+      }
+      observers {
         ...LightPersonFragment
       }
       vesselUseFeatures {
