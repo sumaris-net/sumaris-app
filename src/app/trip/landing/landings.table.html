@@ -368,7 +368,6 @@
           <app-pmfm-field
             floatLabel="never"
             [pmfm]="pmfm"
-            [includedQualitativeValuesIds]="(row | check: isRowSelectable) ? (includedQualitativeValuesMap | mapGet: pmfm.id) : null"
             [formControl]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
             [compact]="pmfm?.type === 'boolean'"
             [autofocus]="row.editing && focusColumn == pmfm.id"

@@ -15,12 +15,13 @@ import {
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
+  StatusIds,
   toBoolean,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { LandingService, LandingServiceWatchOptions } from './landing.service';
-import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import {
   AcquisitionLevelCodes,
   LocationLevelIds,
@@ -43,7 +44,7 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { RxState } from '@rx-angular/state';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, Observable, Subscription, tap } from 'rxjs';
+import { debounceTime, filter, Observable, Subscription } from 'rxjs';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
@@ -69,6 +70,9 @@ export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 export const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
 export const LANDING_I18N_PMFM_PREFIX = 'LANDING.PMFM.';
+export interface LandingsTableState extends BaseMeasurementsTableState {
+  availableTaxonGroups: TaxonGroupRef[];
+}
 
 @Component({
   selector: 'app-landings-table',
@@ -77,9 +81,10 @@ export const LANDING_I18N_PMFM_PREFIX = 'LANDING.PMFM.';
   providers: [{ provide: AppValidatorService, useExisting: LandingValidatorService }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
-  readonly pmfmIdsMap = PmfmIds;
-
+export class LandingsTable
+  extends BaseMeasurementsTable<Landing, LandingFilter, LandingService, LandingValidatorService, LandingsTableState>
+  implements OnInit, OnDestroy
+{
   /** Offset to apply to SPECIES_LIST_ORIGIN.RANDOM landings (sale editor). */
   static readonly RANDOM_LANDINGS_RANK_ORDER_OFFSET = 100;
   readonly randomLandingsRankOrderOffset = LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET;
@@ -89,6 +94,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   private _footerRowsSubscription: Subscription;
   private _rowSubscription: Subscription;
 
+  @RxStateSelect() protected readonly observedCount$: Observable<number>;
+
   protected _detailEditor: LandingEditor;
   protected vesselSnapshotService: VesselSnapshotService;
   protected referentialRefService: ReferentialRefService;
@@ -97,20 +104,18 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   protected footerColumns: string[] = [];
   protected showObservedCount: boolean;
-  @RxStateSelect() protected readonly observedCount$: Observable<number>;
-  @RxStateProperty() protected observedCount: number;
   protected showRowError = false;
   protected errorDetails: any;
   protected dividerPmfm: IPmfm;
   protected includedQualitativeValuesMap: ObjectMap<number[]> = {};
-
   protected statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
   protected statusById = DataQualityStatusEnum;
+  @RxStateProperty() protected observedCount: number;
+  @RxStateProperty() protected availableTaxonGroups: TaxonGroupRef[];
+
+  // TODO BLA refactor this !!
   protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
     return this.isSaleDetailEditor && !this.isLandingPets(item);
-  };
-  protected readonly isRowSelectable = (item: TableElement<Landing>): boolean => {
-    return this.isSaleDetailEditor && this.isLandingPets(item);
   };
 
   readonly filterForm: UntypedFormGroup = this.formBuilder.group({
@@ -282,7 +287,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     protected accountService: AccountService,
     protected context: ObservedLocationContextService
   ) {
-    super(injector, Landing, LandingFilter, injector.get(LandingService), injector.get(AppValidatorService), {
+    super(injector, Landing, LandingFilter, injector.get(LandingService), injector.get(AppValidatorService) as LandingValidatorService, {
       reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
       reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
@@ -340,17 +345,6 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       mobile: this.mobile,
     });
 
-    this.registerSubscription(
-      this.pmfms$
-        .pipe(
-          filter(isNotEmptyArray),
-          distinctUntilChanged(),
-          tap((pmfms) => this.onPmfmsLoaded(pmfms))
-        )
-        .pipe(debounceTime(250))
-        .subscribe()
-    );
-
     // Add footer listener
     this.registerSubscription(this.pmfms$.subscribe((pmfms) => this.addFooterListener(pmfms)));
   }
@@ -391,53 +385,12 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     this.setError(undefined, opts);
   }
 
-  protected onPmfmsLoaded(pmfms: IPmfm[]) {
-    if (this.inlineEdition && this.isSaleDetailEditor) {
-      const pmfmIds = pmfms.map((p) => p.id).filter(isNotNil);
-      // Listening on column 'IS_OBSERVED' value changes, to enable/disable column 'NON_OBSERVATION_REASON''
-      const hasIsObservedAndReasonPmfms = pmfmIds.includes(PmfmIds.IS_OBSERVED) && pmfmIds.includes(PmfmIds.NON_OBSERVATION_REASON);
-      if (hasIsObservedAndReasonPmfms) {
-        this.registerSubscription(
-          this.registerCellValueChanges('isObserved', `measurementValues.${PmfmIds.IS_OBSERVED}`, true).subscribe((isObservedValue) => {
-            if (!this.editedRow) return; // Should never occur
-
-            const row = this.editedRow;
-            this.validatorService.updateFormGroup(row.validator, { pmfms });
-
-            if (row.validator.dirty) this.markAsDirty();
-          })
-        );
-      }
-    }
-  }
-
   async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
 
+    // Load taxon groups (if need)
     const hasTaxonGroupId = pmfms.some((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
-    // Load taxon groups
-    let taxonGroups: ReferentialRef[] = [];
-    if (hasTaxonGroupId && isNotEmptyArray(this.context.strategy?.taxonGroups)) {
-      const taxonGroupIds = this.context.strategy.taxonGroups
-        .map((tg) => tg.taxonGroup.id).filter(isNotNil);
-      taxonGroups = await this.referentialRefService.loadAllByIds(
-        taxonGroupIds,
-        'TaxonGroup'
-      );
-
-      // Disable taxon group that are selected randomly
-      const disableRandomTaxonGroups = this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && pmfms.some((pmfm) => pmfm.id === PmfmIds.SPECIES_LIST_ORIGIN);
-      if (disableRandomTaxonGroups) {
-        const randomTaxonGroupIds = this.context.strategy.taxonGroups.filter(tg => tg.priorityLevel > StrategyTaxonPriorityLevels.ABSOLUTE);
-        taxonGroups = taxonGroups.map(tg => {
-          if (randomTaxonGroupIds.includes(tg.id)) {
-            tg = tg.clone();
-            tg.statusId = StatusIds.DISABLE;
-          }
-          return tg
-        });
-      }
-    }
+    let availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
 
     // Reset divider (will be set below)
     this.dividerPmfm = null;
@@ -459,7 +412,14 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
           else if (pmfm.id === PmfmIds.TAXON_GROUP_ID) {
             pmfm = pmfm.clone();
             pmfm.type = 'qualitative_value';
-            pmfm.qualitativeValues = taxonGroups;
+            pmfm.qualitativeValues = availableTaxonGroups.map((tg) => {
+              if (tg.priority > StrategyTaxonPriorityLevels.ABSOLUTE) {
+                console.log('TODO disabling TG', tg);
+                tg = tg.clone();
+                tg.statusId = StatusIds.DISABLE;
+              }
+              return ReferentialRef.fromObject(tg);
+            });
           }
           return pmfm;
         })
@@ -781,7 +741,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     const parent = this.parent;
     if (this.showTaxonGroupColumn && parent instanceof ObservedLocation) {
       // Get available taxon groups
-      const availableTaxonGroups = (await this.programRefService.loadTaxonGroups(this.programLabel, { strategyId: this.strategyId }))
+      const availableTaxonGroups = (await this.loadAvailableTaxonGroups())
         // Exclude the absolute priority (e.g. =PETS in SIH-OBSVENTE)
         .filter((tg) => tg.priority !== StrategyTaxonPriorityLevels.ABSOLUTE);
 
@@ -949,5 +909,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected async loadAvailableTaxonGroups() {
+    this.availableTaxonGroups = await this.programRefService.loadTaxonGroups(this.programLabel, { strategyId: this.strategyId });
+    return this.availableTaxonGroups;
   }
 }
