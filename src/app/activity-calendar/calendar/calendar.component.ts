@@ -59,7 +59,13 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { distinctUntilChanged, fromEvent, Observable, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import {
+  AcquisitionLevelCodes,
+  LocationLevelGroups,
+  LocationLevelIds,
+  QualityFlagIds,
+  QualityFlags,
+} from '@app/referential/services/model/model.enum';
 import { UntypedFormGroup } from '@angular/forms';
 import { VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -79,11 +85,10 @@ import { MatMenuTrigger } from '@angular/material/menu';
 import { BaseMeasurementsTable2 } from '@app/data/measurement/measurements-table2.class';
 import { AsyncTableElement } from '@e-is/ngx-material-table';
 import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
-import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
-import { IUseFeaturesUtils } from '@app/activity-calendar/model/use-features.model';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
-import { VesselRegistrationPeriodService } from '@app/vessel/services/vessel-registration-period.service';
 import { SelectionModel } from '@angular/cdk/collections';
+import { IUseFeaturesUtils } from '../model/use-features.model';
+import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -157,7 +162,6 @@ export interface ColumnDefinition {
 
 export interface CalendarComponentState extends BaseMeasurementsTableState {
   metierLevelId: number;
-  vesselRegistrations: ReferentialRef[][];
   vesselOwners: VesselOwner[][];
   dynamicColumns: ColumnDefinition[];
   metierCount: number;
@@ -213,10 +217,8 @@ export class CalendarComponent
   >
   implements OnInit, AfterViewInit
 {
-  protected vesselRegistrationPeriodService = inject(VesselRegistrationPeriodService);
   protected referentialRefService = inject(ReferentialRefService);
 
-  @RxStateSelect() protected vesselRegistrations$: Observable<ReferentialRef[][]>;
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
   @RxStateSelect() protected months$: Observable<Moment[]>;
@@ -226,6 +228,7 @@ export class CalendarComponent
   protected readonly isActiveList = IsActiveList;
   protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
+  protected readonly qualityFlagId = Object.freeze(QualityFlagIds);
 
   protected rowSubscription: Subscription;
   protected cellSelection: TableCellSelection<ActivityMonth>;
@@ -234,8 +237,8 @@ export class CalendarComponent
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
+  protected _solveConflictMode = false;
 
-  @RxStateProperty() vesselRegistrations: ReferentialRef[][];
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
   @RxStateProperty() metierCount: number;
@@ -307,11 +310,11 @@ export class CalendarComponent
    */
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (DO NOT use 'invalid')
-    return !this._children || this._children.findIndex((c) => c.enabled && !c.valid) === -1;
+    return !this._solveConflictMode && (!this._children || this._children.findIndex((c) => c.enabled && !c.valid) === -1);
   }
 
   get invalid(): boolean {
-    return (this._children && this._children.findIndex((c) => c.enabled && c.invalid) !== -1) || false;
+    return this._solveConflictMode || (this._children && this._children.findIndex((c) => c.enabled && c.invalid) !== -1) || false;
   }
 
   get pending(): boolean {
@@ -567,8 +570,22 @@ export class CalendarComponent
     this.rowSubscription?.unsubscribe();
   }
 
+  async updateView(res: LoadResult<ActivityMonth>, opts?: { emitEvent?: boolean }): Promise<void> {
+    await super.updateView(res, opts);
+
+    const data = res?.data;
+    // If no other rows are conflictual, quit _solveConflictMode
+    const conflictualCount = data?.filter((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL).length || 0;
+    if (this._solveConflictMode && conflictualCount === 0) {
+      this._solveConflictMode = false;
+      this.markAsDirty();
+    }
+  }
+
   async setValue(data: ActivityMonth[]) {
     console.debug(this.logPrefix + 'Setting data', data);
+
+    this._solveConflictMode = data.some((month) => month.qualityFlagId === QualityFlagIds.CONFLICTUAL);
 
     switch (this.style) {
       // Table
@@ -605,12 +622,8 @@ export class CalendarComponent
         // Set data service
         this.memoryDataService.value = data;
 
-        // Load vessels
-        await this.loadVessels(data);
-
         // load vesselOwner
         await this.loadVesselOwner(data);
-
         break;
       }
       // Accordion
@@ -661,28 +674,54 @@ export class CalendarComponent
     }
   }
 
-  async loadVessels(months: ActivityMonth[]) {
-    if (isEmptyArray(months)) {
-      this.vesselRegistrations = [];
-      return;
-    }
-    const vesselId = months[0].vesselId;
-    const startDate = months[0]?.startDate.clone().startOf('year');
-    const endDate = startDate.clone().endOf('year');
-    const { data } = await this.vesselRegistrationPeriodService.loadAll(
-      0,
-      100, // all
-      'startDate',
-      'desc',
-      {
-        vesselId,
-        startDate,
-        endDate,
-      }
-    );
+  async solveConflict(_?: Event, row?: AsyncTableElement<ActivityMonth>) {
+    row = row || this.editedRow;
+    if (!row || event.defaultPrevented) return true; // no row to confirm
 
-    this.vesselRegistrations = months.map((month) => IUseFeaturesUtils.filterByPeriod(data, month, 'day').map((vrp) => vrp.registrationLocation));
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_SOLVE_CONFLICT', this.alertCtrl, this.translate);
+    if (!confirmed) return false; // User cancelled
+
+    if (this.debug) console.debug(this.logPrefix + 'Mark as solved', row);
+
+    // Remove solved row
+    const remoteUpdateDate = row.currentData.updateDate;
+    const rowIndex = this.value.findIndex((month) => month.month === row.currentData.month && month.qualityFlagId === QualityFlagIds.CONFLICTUAL);
+    this.value.splice(rowIndex, 1);
+
+    // Update month updateDate with remote update date to avoid conflict when save
+    const localRow = this.value.find((month) => month.month === row.currentData.month && month.qualityFlagId !== QualityFlagIds.CONFLICTUAL);
+    localRow.updateDate = remoteUpdateDate;
+
+    this.onRefresh.emit();
   }
+
+  // TODO This not work
+  // async keepRemoteData(_?: Event, row?: AsyncTableElement<ActivityMonth>) {
+  //   row = row || this.editedRow;
+  //   if (!row || event.defaultPrevented) return true; // no row to confirm
+
+  //   event?.preventDefault();
+  //   event?.stopPropagation();
+
+  //   const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_KEEP_REMOTE', this.alertCtrl, this.translate);
+  //   if (!confirmed) return false; // User cancelled
+
+  //   if (this.debug) console.debug(this.logPrefix + 'Keep remote', row);
+
+  //   const localRowIndex = this.value.findIndex(
+  //     (month) => month.month === row.currentData.month && month.qualityFlagId !== QualityFlagIds.CONFLICTUAL
+  //   );
+  //   const localRow = this.value.splice(localRowIndex, 1)[0];
+  //   const data = row.currentData;
+  //   data.qualityFlagId = localRow.qualityFlagId;
+  //   data.canEdit = localRow.canEdit;
+  //   await this.updateEntityToTable(data, row), { confirmEdit: false };
+
+  //   this.onRefresh.emit();
+  // }
 
   async loadVesselOwner(months: ActivityMonth[]) {
     if (isEmptyArray(months)) {
@@ -1302,7 +1341,12 @@ export class CalendarComponent
   }
 
   protected async editRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, opts?: { focusColumn?: string }): Promise<boolean> {
-    const editing = await super.editRow(event, row, opts);
+    if (!row.currentData.canEdit) {
+      // TODO check if need
+      this.confirmEditCreate();
+      return false;
+    }
+    const editing = super.editRow(event, row, opts);
     if (editing) this.removeCellSelection();
     return editing;
   }
@@ -1546,7 +1590,9 @@ export class CalendarComponent
     // Get target rows
     const minRowId = colspan > 0 ? sourceRow.id + 1 : sourceRow.id + colspan + 1;
     const maxRowId = colspan > 0 ? sourceRow.id + colspan - 1 : sourceRow.id - 1;
-    const targetRows = this.dataSource.getRows().filter((row) => row.id >= minRowId && row.id <= maxRowId);
+    const targetRows = this.dataSource.getRows().filter((row) => {
+      return row.id >= minRowId && row.id <= maxRowId;
+    });
     if (isEmptyArray(targetRows)) return false; // Skip if empty
 
     // DEBUG

@@ -41,11 +41,7 @@ export class IUseFeaturesUtils {
     period: { startDate: Moment; endDate: Moment },
     granularity?: unitOfTime.StartOf
   ): boolean {
-    return (
-      source.startDate &&
-      source.startDate.isSameOrBefore(period.endDate, granularity) &&
-      (isNil(source.endDate) || source.endDate.isSameOrAfter(period.startDate, granularity))
-    );
+    return period.startDate.isSameOrBefore(source.startDate, granularity) && (isNil(period.endDate) || period.endDate.isSameOrAfter(source.endDate));
   }
 
   static isSame<T extends IUseFeatures<any>>(o1: T, o2: T, opts?: { withId?: boolean; withMeasurementValues?: boolean }): boolean {
