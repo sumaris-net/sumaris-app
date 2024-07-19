@@ -53,6 +53,7 @@ import { first } from 'rxjs/operators';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { StrategyUtils } from '@app/referential/services/model/strategy.model';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -413,8 +414,8 @@ export class LandingsTable
             pmfm = pmfm.clone();
             pmfm.type = 'qualitative_value';
             pmfm.qualitativeValues = availableTaxonGroups.map((tg) => {
-              // Disable rand selected taxon group (e.g. OBSVENTE / metropole strategy)
-              if (tg.priority > StrategyTaxonPriorityLevels.ABSOLUTE && this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN) {
+              // Disable random selected taxon (e.g. PETS in SIH-OBSVENTE)
+              if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && StrategyUtils.isRandomSelectedTaxon(tg)) {
                 tg = tg.clone();
                 tg.statusId = StatusIds.DISABLE;
               }
@@ -742,8 +743,8 @@ export class LandingsTable
     if (this.showTaxonGroupColumn && parent instanceof ObservedLocation) {
       // Get available taxon groups
       const availableTaxonGroups = (await this.loadAvailableTaxonGroups())
-        // Exclude the absolute priority (e.g. =PETS in SIH-OBSVENTE)
-        .filter((tg) => tg.priority !== StrategyTaxonPriorityLevels.ABSOLUTE);
+        // Exclude taxon with absolute priority level (e.g. PETS in SIH-OBSVENTE)
+        .filter(StrategyUtils.isNotAbsolutePriorityTaxon);
 
       const data = this.dataSource.getData().filter(DataEntityUtils.isNotDivider);
       const existingTaxonGroups = removeDuplicatesFromArray(
@@ -763,20 +764,18 @@ export class LandingsTable
 
       // Create useful functions
       let rankOrder = (await this.getMaxRankOrder()) + 1;
-      const isRandomTaxon = (taxonNameOrGroup: TaxonGroupRef | TaxonNameRef) => {
-        return taxonNameOrGroup?.priority !== StrategyTaxonPriorityLevels.ABSOLUTE;
-      };
       const nextRankOrder = (taxonNameOrGroup: TaxonGroupRef | TaxonNameRef) => {
-        return isRandomTaxon(taxonNameOrGroup)
-          ? // Random species
-            LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET + (taxonNameOrGroup.priority - StrategyTaxonPriorityLevels.ABSOLUTE)
-          : rankOrder++;
+        // If random species: add an offset to the priority level
+        return this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && StrategyUtils.isRandomSelectedTaxon(taxonNameOrGroup)
+          ? LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET + (taxonNameOrGroup.priority - StrategyTaxonPriorityLevels.ABSOLUTE)
+          : // For any other case: we use a zero base rankOrder
+            rankOrder++;
       };
       let dirty = false;
 
       if (isNotEmptyArray(existingTaxonGroups)) {
         for (const taxonGroup of existingTaxonGroups) {
-          if (isRandomTaxon(taxonGroup)) {
+          if (StrategyUtils.isRandomSelectedTaxon(taxonGroup)) {
             const rankOrder = nextRankOrder(taxonGroup);
             const existingLandings = data.filter((landing) =>
               PmfmValueUtils.equals(taxonGroup.id, landing.measurementValues[PmfmIds.TAXON_GROUP_ID])
@@ -809,7 +808,7 @@ export class LandingsTable
           entity.measurementValues[PmfmIds.TAXON_GROUP_ID] = taxonGroup;
 
           // Set divider
-          if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && taxonGroup.priority > StrategyTaxonPriorityLevels.ABSOLUTE) {
+          if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && StrategyUtils.isRandomSelectedTaxon(taxonGroup)) {
             entity.measurementValues[this.dividerPmfmId] = QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM.toString();
           }
 
@@ -897,14 +896,6 @@ export class LandingsTable
     }, []);
 
     return { data: entities, total: res.total };
-  }
-
-  updateQualitativeValues() {
-    // Only PETS species for taxon group selection
-    this.includedQualitativeValuesMap = {};
-    this.includedQualitativeValuesMap[PmfmIds.TAXON_GROUP_ID] = this.context.strategy.taxonGroups
-      .filter((tg) => tg.priorityLevel === StrategyTaxonPriorityLevels.ABSOLUTE)
-      .map((tg) => tg.taxonGroup.id);
   }
 
   protected markForCheck() {

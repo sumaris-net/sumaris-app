@@ -14,6 +14,7 @@ import { TaxonGroupRef } from './taxon-group.model';
 import { DenormalizedPmfmStrategy, PmfmStrategy } from './pmfm-strategy.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { AppReferentialUtils, MINIFY_OPTIONS, NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { StrategyTaxonPriorityLevels } from '@app/referential/services/model/model.enum';
 
 export interface StrategyAsObjectOptions extends ReferentialAsObjectOptions {
   keepRemoteId?: boolean;
@@ -306,5 +307,27 @@ export class TaxonNameStrategy {
     this.strategyId = source.strategyId;
     this.priorityLevel = source.priorityLevel;
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName);
+  }
+}
+
+export abstract class StrategyUtils {
+  /**
+   * In SIH-OBSVENTE, absolute priority species are called 'PETS'. They have priorityLevel === 0
+   * @param taxonNameOrGroup
+   */
+  static isAbsolutePriorityTaxon(taxonNameOrGroup: TaxonGroupRef | TaxonNameRef) {
+    return taxonNameOrGroup?.priority === StrategyTaxonPriorityLevels.ABSOLUTE;
+  }
+
+  static isNotAbsolutePriorityTaxon(taxonNameOrGroup: TaxonGroupRef | TaxonNameRef) {
+    return taxonNameOrGroup?.priority !== StrategyTaxonPriorityLevels.ABSOLUTE;
+  }
+
+  /**
+   * In SIH-OBSVENTE, random selected species used a priorityLevel > 0
+   * @param taxonNameOrGroup
+   */
+  static isRandomSelectedTaxon(taxonNameOrGroup: TaxonGroupRef | TaxonNameRef) {
+    return taxonNameOrGroup?.priority > StrategyTaxonPriorityLevels.ABSOLUTE;
   }
 }
