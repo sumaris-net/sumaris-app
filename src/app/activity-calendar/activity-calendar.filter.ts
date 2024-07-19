@@ -142,9 +142,9 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     }
 
     // Observers
-    const observerIds = this.observers && this.observers.map((o) => o && o.id).filter(isNotNil);
+    const observerIds = this.observers?.map((o) => o && o.id).filter(isNotNil);
     if (isNotEmptyArray(observerIds)) {
-      filterFns.push((t) => t.observers && t.observers.findIndex((o) => o && observerIds.includes(o.id)) !== -1);
+      filterFns.push((t) => t.observers?.some((o) => o && observerIds.includes(o.id)));
     }
 
     return filterFns;
