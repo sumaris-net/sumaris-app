@@ -1,6 +1,10 @@
-<app-modal-toolbar color="secondary" (cancel)="cancel()" [canValidate]="canValidate" (validate)="close($event)">
-  <ion-title translate>OBSERVED_LOCATION.SELECT_TAXONGROUP_MODAL.TITLE</ion-title>
-</app-modal-toolbar>
+<app-modal-toolbar
+  color="secondary"
+  [title]="$title | async | translate"
+  (cancel)="cancel()"
+  [canValidate]="canValidate"
+  (validate)="close($event)"
+></app-modal-toolbar>
 
 <ion-content class="ion-no-padding" scroll-y="false">
   <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" dynamicHeight="false">
@@ -47,6 +51,7 @@
 
       <!-- main table -->
       <app-referential-ref-table
+        #table
         [showFilter]="true"
         [showLevelFilter]="false"
         [showStatusFilter]="false"
