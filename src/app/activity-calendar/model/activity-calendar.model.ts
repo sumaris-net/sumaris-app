@@ -2,8 +2,9 @@ import {
   EntityAsObjectOptions,
   EntityClass,
   fromDateISOString,
-  isNil,
-  isNotNil,
+ isNil, isNotNil,
+  Person,
+  ReferentialAsObjectOptions,
   ReferentialUtils,
   toDateISOString,
 } from '@sumaris-net/ngx-components';
@@ -14,10 +15,12 @@ import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.
 import { Moment } from 'moment';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { GearPhysicalFeatures } from './gear-physical-features.model';
+import { IWithObserversEntity } from '@app/data/services/model/model.utils';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
 
 @EntityClass({ typename: 'ActivityCalendarVO' })
-export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
+export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> implements IWithObserversEntity<ActivityCalendar> {
   static ENTITY_NAME = 'ActivityCalendar';
   static fromObject: (source: any, options?: any) => ActivityCalendar;
 
@@ -31,6 +34,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
   gearPhysicalFeatures: GearPhysicalFeatures[];
   images: ImageAttachment[];
   vesselRegistrationPeriods: ActivityCalendarVesselRegistrationPeriod[];
+  observers: Person[];
 
   constructor() {
     super(ActivityCalendar.TYPENAME);
@@ -50,6 +54,9 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
       delete target.startDate;
       delete target.vesselRegistrationPeriods;
     }
+    target.observers =
+      (this.observers && this.observers.map((o) => o.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions))) ||
+      undefined;
     return target;
   }
 
@@ -64,6 +71,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> {
     this.gearPhysicalFeatures = source.gearPhysicalFeatures?.map(GearPhysicalFeatures.fromObject) || undefined;
     this.measurementValues = { ...source.measurementValues }; // Copy values
     this.images = (source.images && source.images.map(ImageAttachment.fromObject)) || undefined;
+    this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
     this.vesselRegistrationPeriods = source.vesselRegistrationPeriods?.map(ActivityCalendarVesselRegistrationPeriod.fromObject) || undefined;
   }
 

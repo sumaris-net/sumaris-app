@@ -1205,6 +1205,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  ACTIVITY_CALENDAR_OBSERVERS_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.observers.enable',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_OBSERVERS_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
 
   /* -- Extraction options -- */
 
