@@ -105,8 +105,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
         .get('gear')
         .valueChanges.pipe(filter(ReferentialUtils.isNotEmpty))
         .subscribe((gear) => {
-          this.data = this.data || new PhysicalGear();
-          this.data.gear = gear;
           this.gearId = gear.id;
           this.markForCheck();
         })

@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { Moment } from 'moment';
-import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } from '../observed-location.validator';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
@@ -34,7 +34,7 @@ import { MeasurementsFormState } from '@app/data/measurement/measurements.utils'
 import { RxState } from '@rx-angular/state';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
@@ -88,7 +88,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() set withEndDateRequired(value: boolean) {
     if (this._withEndDateRequired !== value) {
       this._withEndDateRequired = value;
-      if (this.form) {
+      if (this.form && !this.loading) {
         this.updateFormGroup();
       }
     }
@@ -112,6 +112,9 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   get observersForm() {
     return this.form.controls.observers as AppFormArray<Person, UntypedFormControl>;
   }
+
+  @Output() locationChanges = new EventEmitter<ReferentialRef>();
+  @Output() startDateTimeChanges = new EventEmitter<Moment>();
 
   constructor(
     injector: Injector,
@@ -210,6 +213,24 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         .subscribe((programLabel) => (this.programLabel = programLabel))
     );
 
+    // Check when location changes
+    this.registerSubscription(
+      this.programLabel$
+        .pipe(
+          switchMap(() => {
+            const locationControl = this.form.get('location');
+            return locationControl ? locationControl.valueChanges : of(undefined);
+          }),
+          debounceTime(250),
+          distinctUntilChanged()
+        )
+        .subscribe((location) => {
+          if (location) {
+            this.locationChanges.next(ReferentialRef.fromObject(location));
+          }
+        })
+    );
+
     // Copy startDateTime to endDateTime, when endDate is hidden
     const endDateTimeControl = this.form.get('endDateTime');
     this.registerSubscription(
@@ -219,6 +240,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         .subscribe((startDateTime) => {
           startDateTime = fromDateISOString(startDateTime)?.clone();
           if (!startDateTime) return; // Skip
+
+          // Set timezone
           if (this.timezone) startDateTime.tz(this.timezone);
 
           // Compute the end date time
@@ -233,6 +256,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
             // add expected number of days
             endDateTimeControl.patchValue(toDateISOString(endDate), { emitEvent: false });
           }
+
+          this.startDateTimeChanges.next(startDateTime);
 
           // Warning if date is in the future
           this.isStartDateInTheFuture = startDateTime.isAfter();

@@ -451,22 +451,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   ): Promise<void> {
     if (!data) return;
 
-    // Reapplied changed data
-    if (this.isNewData && this.form.touched) {
-      console.warn(this._logPrefix + 'Merging form value and input data, before updating view');
-
-      // Make sure to keep existing touched field's value
-      const json = this.form.value;
-      Object.keys(json).forEach((key) => {
-        if (isNil(json[key]) && this.form.get(key)?.untouched) delete json[key];
-      });
-
-      data = Landing.fromObject({
-        ...data.asObject(),
-        ...json,
-      });
-    }
-
     // Resize observers array
     if (this._showObservers) {
       // Make sure to have (at least) one observer
