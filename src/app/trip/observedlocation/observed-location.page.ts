@@ -558,7 +558,7 @@ export class ObservedLocationPage
         strategyId: this.strategy?.id,
         allowMultiple: true,
         landingFilter,
-        taxonGroupFilter: ReferentialRefFilter.fromObject({
+        filter: ReferentialRefFilter.fromObject({
           entityName: 'TaxonGroup',
           statusIds: [StatusIds.ENABLE],
           includedIds: availableTaxonGroupIds,
