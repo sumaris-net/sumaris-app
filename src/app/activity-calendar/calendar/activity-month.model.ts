@@ -7,11 +7,21 @@ import {
   IEntity,
   isNotEmptyArray,
   isNotNil,
+  ReferentialRef,
   ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import { VesselUseFeatures } from '@app/activity-calendar/model/vessel-use-features.model';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { StoreObject } from '@apollo/client/core';
+import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
+
+export interface RegistrationLocationsWithPrivilegeByMonth {
+  [key: number]: { canEdit: boolean; vesselRegistrationPeriod: VesselRegistrationPeriod }[];
+}
+
+export interface VesselRegistrationPeriodsByPrivileges {
+  [key: string]: VesselRegistrationPeriod[];
+}
 
 @EntityClass({ typename: 'ActivityMonthVO' })
 export class ActivityMonth extends VesselUseFeatures implements IEntity<ActivityMonth> {
@@ -30,6 +40,8 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
 
   month: number;
   gearUseFeatures: GearUseFeatures[];
+  canEdit: boolean;
+  registrationLocations: ReferentialRef[];
 
   constructor() {
     super();
@@ -44,6 +56,8 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
     super.fromObject(source, opts);
     this.month = this.startDate?.month();
     this.gearUseFeatures = source.gearUseFeatures?.map(GearUseFeatures.fromObject);
+    this.canEdit = source.canEdit;
+    this.registrationLocations = source.registrationLocations?.map(ReferentialRef.fromObject);
   }
 
   asObject(opts?: EntityAsObjectOptions): StoreObject {
@@ -56,6 +70,8 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
     });
     if (opts?.minify) {
       delete target.month;
+      delete target.canEdit;
+      delete target.registrationLocations;
     }
     return target;
   }

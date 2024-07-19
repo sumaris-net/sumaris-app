@@ -232,19 +232,11 @@
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION</ion-label>
         </mat-header-cell>
         <mat-cell *matCellDef="let row" class="odd mat-column-reset-background-color">
-          <ng-container *rxIf="vesselRegistrations$; let items; suspense: skeletonText80">
-            @if (items[row.id]; as locations) {
-              <ion-label
-                class="ion-text-nowrap computed"
-                [title]="locations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }"
-              >
-                {{ locations | arrayLast | referentialToString: locationDisplayAttributes }}
-              </ion-label>
-              @if (locations | isArrayLength: { greaterThan: 1 }) {
-                <ion-label class="details computed">(+{{ locations.length - 1 }})</ion-label>
-              }
-            }
-          </ng-container>
+          @if (inlineEdition && row.validator | formGetValue: 'registrationLocations'; as items) {
+            <ng-container *ngTemplateOutlet="registrationLocations; context: { $implicit: items }"></ng-container>
+          } @else {
+            <ng-container *ngTemplateOutlet="registrationLocations; context: { $implicit: row.currentData.registrationLocations }"></ng-container>
+          }
         </mat-cell>
       </ng-container>
 
@@ -482,7 +474,9 @@
             }
 
             <!-- clear button -->
-            @if (row.validator | formGetValue: 'isActive' | isNotNil) {
+            @if (
+              (row.validator | formGetValue: 'isActive' | isNotNil) && (row.validator | formGetValue: 'qualityFlagId') !== qualityFlagId.CONFLICTUAL
+            ) {
               <button
                 mat-icon-button
                 [class.cdk-visually-hidden]="cellSelection?.resizing"
@@ -493,6 +487,32 @@
               >
                 <mat-icon [style.color]="row.editing ? 'var(--ion-color-dark)' : 'var(--ion-color-medium)'">delete</mat-icon>
               </button>
+            } @else if ((row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL) {
+              <!-- solve conflict button -->
+              <button
+                mat-icon-button
+                [class.cdk-visually-hidden]="cellSelection?.resizing"
+                [class.visible-hover]="!row.editing"
+                [title]="'ACTIVITY_CALENDAR.EDIT.SOLVE_CONFLICT' | translate"
+                (click)="solveConflict($event, row)"
+                tabIndex="-1"
+              >
+                <mat-icon style.color="var(--ion-color-dark)">cancel</mat-icon>
+              </button>
+              <!-- TODO -->
+              <!-- <!-1- keep remote button -1-> -->
+              <!-- <button -->
+              <!--   mat-icon-button -->
+              <!--   [class.cdk-visually-hidden]="cellSelection?.resizing" -->
+              <!--   [class.visible-hover]="!row.editing" -->
+              <!--   [title]="'ACTIVITY_CALENDAR.EDIT.KEEP_REMOTE_DATA' | translate" -->
+              <!--   (click)="keepRemoteData($event, row)" -->
+              <!--   tabIndex="-1" -->
+              <!-- > -->
+              <!--   <mat-icon> -->
+              <!--     <span>&#xbb;</span> -->
+              <!--   </mat-icon> -->
+              <!-- </button> -->
             }
           }
         </ng-template>
@@ -502,12 +522,14 @@
       <mat-row
         *matRowDef="let row; columns: displayedColumns"
         [class.mat-mdc-row-error]="row.touched && row.invalid"
+        [class.conflictual]="(row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL"
         [class.mat-mdc-row-dirty]="row.dirty"
         [class.mat-mdc-row-disabled]="!row.editing"
         [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id"
         [class.activity-inactive]="(row.validator | formGetValue: 'isActive') === 0"
         [class.activity-not-exists]="(row.validator | formGetValue: 'isActive') === 2"
         [class]="row.validator | formGetValue: 'program' | mapGet: 'label'"
+        [class.readonly]="!(row.validator | formGetValue: 'canEdit')"
         (keydown.escape)="escapeEditingRow($event)"
         [cdkTrapFocus]="!row.valid"
         (click)="clickRow($event, row)"
@@ -561,6 +583,14 @@
   </button>
 </ng-template>
 
+<ng-template #registrationLocations let-registrationLocations>
+  <ion-label class="computed" [title]="registrationLocations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }">
+    {{ registrationLocations | arrayLast | referentialToString: locationDisplayAttributes }}
+    @if (registrationLocations | isArrayLength: { greaterThan: 1 }) {
+      <span class="count">(+{{ registrationLocations.length - 1 }})</span>
+    }
+  </ion-label>
+</ng-template>
 <ng-template #skeletonText80>
   <ion-label style="width: 80%">
     <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>

@@ -7,6 +7,7 @@ import {
   AccountService,
   AppAsyncTable,
   AppEditorOptions,
+  AppErrorWithDetails,
   AppTable,
   chainPromises,
   CORE_CONFIG_OPTIONS,
@@ -577,6 +578,13 @@ export class ActivityCalendarPage
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
 
+    this.setDataStartDate(data);
+
+    // Hide unused field (for historical data)
+    this.baseForm.showEconomicSurvey = isNotNil(data.economicSurvey);
+  }
+
+  protected setDataStartDate(data: ActivityCalendar) {
     // Year
     if (isNotNil(data.year)) {
       this.year = data.year;
@@ -587,9 +595,6 @@ export class ActivityCalendarPage
         data.startDate = DateUtils.moment().year(this.year).startOf('year');
       }
     }
-
-    // Hide unused field (for historical data)
-    this.baseForm.showEconomicSurvey = isNotNil(data.economicSurvey);
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
@@ -636,7 +641,11 @@ export class ActivityCalendarPage
     this.baseForm.value = data;
 
     // Set data to calendar
-    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, timezone: this.timezone });
+    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, {
+      fillEmptyGuf: true,
+      timezone: this.timezone,
+      isAdmin: this.accountService.isAdmin(),
+    });
 
     // Set metier table data
     this.tableMetier.value = GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone: this.timezone });
@@ -675,6 +684,9 @@ export class ActivityCalendarPage
         if (isNil(img.comments)) img.comments = value.year.toString();
       });
     }
+
+    // keep vesselRegistrationPeriodsByPrivileges
+    value.vesselRegistrationPeriodsByPrivileges = this.data.vesselRegistrationPeriodsByPrivileges;
 
     return value;
   }
@@ -722,6 +734,7 @@ export class ActivityCalendarPage
   protected async onEntitySaved(data: ActivityCalendar): Promise<void> {
     this.calendar?.collapseAll();
     await super.onEntitySaved(data);
+    this.setDataStartDate(data);
   }
 
   protected getFirstInvalidTabIndex(): number {

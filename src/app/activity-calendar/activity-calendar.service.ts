@@ -31,6 +31,7 @@ import {
   LocalSettingsService,
   NetworkService,
   PersonService,
+  ServerErrorCodes,
   ShowToastOptions,
   Toasts,
   toNumber,
@@ -73,6 +74,9 @@ import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragme
 import { OverlayEventDetail } from '@ionic/core';
 import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
+import { ProgramPrivilegeEnum } from '@app/referential/services/model/model.enum';
+import { ActivityCalendarUtils } from './activity-calendar.utils';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -147,6 +151,7 @@ export const ActivityCalendarFragments = {
       gearPhysicalFeatures {
         ...GearPhysicalFeaturesFragment
       }
+      vesselRegistrationPeriodsByPrivileges
     }
     ${DataCommonFragments.lightDepartment}
     ${DataCommonFragments.lightPerson}
@@ -168,6 +173,7 @@ export interface ActivityCalendarLoadOptions extends EntityServiceLoadOptions {
 
 export interface ActivityCalendarSaveOptions extends RootDataEntitySaveOptions {
   enableOptimisticResponse?: boolean; // True by default
+  skipAutoMergeOnConflict?: boolean;
 }
 
 export interface ActivityCalendarServiceCopyOptions extends ActivityCalendarSaveOptions {
@@ -717,51 +723,72 @@ export class ActivityCalendarService
     const variables = {
       data: json,
     };
-    await this.graphql.mutate<{ data: any }>({
-      mutation: this.mutations.save,
-      variables,
-      offlineResponse,
-      refetchQueries: this.getRefetchQueriesForMutation(opts),
-      awaitRefetchQueries: opts && opts.awaitRefetchQueries,
-      error: { code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR' },
-      update: async (cache, { data }) => {
-        const savedEntity = data && data.data;
+    try {
+      await this.graphql.mutate<{ data: any }>({
+        mutation: this.mutations.save,
+        variables,
+        offlineResponse,
+        refetchQueries: this.getRefetchQueriesForMutation(opts),
+        awaitRefetchQueries: opts && opts.awaitRefetchQueries,
+        error: { code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR' },
+        update: async (cache, { data }) => {
+          const savedEntity = data && data.data;
 
-        // Local entity (optimistic response): save it
-        if (savedEntity.id < 0) {
-          if (this._debug) console.debug('[activity-calendar-service] [offline] Saving activityCalendar locally...', savedEntity);
+          // Local entity (optimistic response): save it
+          if (savedEntity.id < 0) {
+            if (this._debug) console.debug('[activity-calendar-service] [offline] Saving activityCalendar locally...', savedEntity);
 
-          // Save response locally
-          await this.entities.save<ActivityCalendar>(savedEntity);
+            // Save response locally
+            await this.entities.save<ActivityCalendar>(savedEntity);
+          }
+
+          // Update the entity and update GraphQL cache
+          else {
+            // Remove existing entity from the local storage
+            if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
+              if (this._debug) console.debug(`[activity-calendar-service] Deleting activityCalendar {${entity.id}} from local storage`);
+              await this.entities.delete(entity);
+            }
+
+            // Copy id and update Date
+            this.copyIdAndUpdateDate(savedEntity, entity, opts);
+
+            // Insert into the cache
+            if (RootDataEntityUtils.isNew(entity) && this.watchQueriesUpdatePolicy === 'update-cache') {
+              this.insertIntoMutableCachedQueries(cache, {
+                queries: this.getLoadQueries(),
+                data: savedEntity,
+              });
+            }
+
+            if (opts && opts.update) {
+              opts.update(cache, { data });
+            }
+
+            if (this._debug) console.debug(`[activity-calendar-service] ActivityCalendar saved remotely in ${Date.now() - now}ms`, entity);
+          }
+        },
+      });
+    } catch (err) {
+      if (err.code == ServerErrorCodes.BAD_UPDATE_DATE && !opts?.skipAutoMergeOnConflict) {
+        // Reload then try to merge
+        const remoteEntity = await this.load(entity.id, { fetchPolicy: 'no-cache' });
+        entity = ActivityCalendarUtils.merge(entity, remoteEntity);
+        // If has no conflictual months we can save the merged calendar
+        if (!ActivityCalendarUtils.hasUseFeatureConflicts(entity)) {
+          // use skipAutoMergeOnConflict to avoid infinite loop on unexpected case
+          return this.save(entity, { ...opts, skipAutoMergeOnConflict: true });
         }
-
-        // Update the entity and update GraphQL cache
-        else {
-          // Remove existing entity from the local storage
-          if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
-            if (this._debug) console.debug(`[activity-calendar-service] Deleting activityCalendar {${entity.id}} from local storage`);
-            await this.entities.delete(entity);
-          }
-
-          // Copy id and update Date
-          this.copyIdAndUpdateDate(savedEntity, entity, opts);
-
-          // Insert into the cache
-          if (RootDataEntityUtils.isNew(entity) && this.watchQueriesUpdatePolicy === 'update-cache') {
-            this.insertIntoMutableCachedQueries(cache, {
-              queries: this.getLoadQueries(),
-              data: savedEntity,
-            });
-          }
-
-          if (opts && opts.update) {
-            opts.update(cache, { data });
-          }
-
-          if (this._debug) console.debug(`[activity-calendar-service] ActivityCalendar saved remotely in ${Date.now() - now}ms`, entity);
+        const program = await this.programRefService.loadByLabel(entity.program.label);
+        // If calendar merge conflict has enabled, the merged entity was returned
+        // else throw the BAD_UPDATE_DATE error
+        if (!program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE)) {
+          throw err;
         }
-      },
-    });
+      } else {
+        throw err;
+      }
+    }
 
     if (!opts || opts.emitEvent !== false) {
       this.onSave.next([entity]);
@@ -1147,6 +1174,16 @@ export class ActivityCalendarService
     }
     // Default translation
     return this.formErrorTranslator.translateControlPath(path, opts);
+  }
+
+  canUserWrite(entity: ActivityCalendar, opts?: { program?: Program }): boolean {
+    return (
+      EntityUtils.isLocal(entity) || // For performance, always give write access to local data
+      this.accountService.isAdmin() ||
+      ((this.programRefService.canUserWriteEntity(entity, opts) ||
+        isNotEmptyArray(entity.vesselRegistrationPeriodsByPrivileges?.[ProgramPrivilegeEnum.OBSERVER])) &&
+        (isNil(entity.validationDate) || this.accountService.isSupervisor()))
+    );
   }
 
   /* -- protected methods -- */

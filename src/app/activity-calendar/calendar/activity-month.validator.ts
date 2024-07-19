@@ -112,6 +112,8 @@ export class ActivityMonthValidatorService<
       isActive: [toNumber(data?.isActive, null), opts?.required ? Validators.required : undefined],
       basePortLocation: [data?.basePortLocation || null],
       measurementValues: this.formBuilder.group({}),
+      canEdit: [toBoolean(data?.canEdit, true)],
+      registrationLocations: [data?.registrationLocations || []],
     });
 
     // Add measurement values
