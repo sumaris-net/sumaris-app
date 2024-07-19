@@ -203,7 +203,7 @@ export class ActivityCalendarPage
       pathIdAttribute: 'calendarId',
       tabCount: 5, // 4 is map is hidden
       i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.',
-      enableListenChanges: false, // TODO enable
+      enableListenChanges: true,
       acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
       settingsId: ActivityCalendarPageSettingsEnum.PAGE_ID,
       canCopyLocally: accountService.isAdmin(),

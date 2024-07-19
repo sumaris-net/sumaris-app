@@ -681,7 +681,7 @@ export class CalendarComponent
     event?.preventDefault();
     event?.stopPropagation();
 
-    if (this.debug) console.debug(this.logPrefix + `Resolving conflictual month #${row.currentData.month}...`, row);
+    if (this.debug) console.debug(this.logPrefix + `Deleting conflictual month #${row.currentData.month}...`, row);
 
     const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.DELETE_CONFLICT', this.alertCtrl, this.translate);
     if (!confirmed) return false; // User cancelled
@@ -701,7 +701,7 @@ export class CalendarComponent
       localRow.currentData.updateDate = remoteUpdateDate;
     }
 
-    if (this.debug) console.debug(this.logPrefix + `Resolving conflictual month #${row.currentData.month} [OK]`);
+    if (this.debug) console.debug(this.logPrefix + `Deleting conflictual month #${row.currentData.month} [OK]`);
 
     this.markAsDirty();
   }

@@ -216,8 +216,6 @@ const ProgramRefCacheKeys = {
   TAXON_NAMES: 'programTaxonNames',
 };
 
-const noopFilter = () => true;
-
 @Injectable({ providedIn: 'root' })
 export class ProgramRefService
   extends BaseReferentialService<Program, ProgramFilter>
