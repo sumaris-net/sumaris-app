@@ -413,8 +413,8 @@ export class LandingsTable
             pmfm = pmfm.clone();
             pmfm.type = 'qualitative_value';
             pmfm.qualitativeValues = availableTaxonGroups.map((tg) => {
-              if (tg.priority > StrategyTaxonPriorityLevels.ABSOLUTE) {
-                console.log('TODO disabling TG', tg);
+              // Disable rand selected taxon group (e.g. OBSVENTE / metropole strategy)
+              if (tg.priority > StrategyTaxonPriorityLevels.ABSOLUTE && this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN) {
                 tg = tg.clone();
                 tg.statusId = StatusIds.DISABLE;
               }
