@@ -3400,7 +3400,7 @@
         "ECONOMIC_SURVEY": "Enquête économique ?",
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
-        "VESSEL": "Navire",,
+        "VESSEL": "Navire",
         "OBSERVERS": "Enquêteur",
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "YEAR": "Année"
@@ -3452,7 +3452,7 @@
       "VESSEL_REGISTRATION_DIVIDER": "Immatriculations",
       "VESSEL_OWNER_DIVIDER": "Armateurs",
       "PHOTO": "Photos",
-      "OBSERVERS": "Enquêteur",
+      "OBSERVERS": "Enquêteurs :",
       "OBSERVER_PLACEHOLDER": "Enquêteur #",
       "BTN_DELETE_CALENDAR": "Supprimer",
       "BTN_CLEAR_CALENDAR": "Vider le calendrier",
