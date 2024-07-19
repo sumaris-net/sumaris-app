@@ -11,6 +11,7 @@ import {
   isNotNil,
   LoadResult,
   Person,
+  ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
   toBoolean,
@@ -408,25 +409,15 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
     const includedPmfmIds = this.includedPmfmIds || this.context.program?.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
 
-    // TODO remove
-    // const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE_ID);
-    // if (saleTypePmfm) {
-    //   console.debug(`${this.logPrefix}Setting pmfm ${saleTypePmfm.label} qualitative values`);
-    //   const { data: saleTypes } = await this.referentialRefService.loadAll(0, 100, null, null, { entityName: 'SaleType' }, { withTotal: false });
-    //   saleTypePmfm.type = 'qualitative_value';
-    //   saleTypePmfm.qualitativeValues = saleTypes;
-    // }
-
-    const taxonGroupIdPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
-    if (taxonGroupIdPmfm) {
-      console.debug(`${this.logPrefix}Setting pmfm ${taxonGroupIdPmfm.label} qualitative values`);
+    // Load taxon groups
+    const hasTaxonGroupId = pmfms.some((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
+    let taxonGroups: ReferentialRef[];
+    if (hasTaxonGroupId) {
       // TODO BLA review this, to limit to program's taxon group
-      const taxonGroups = await this.referentialRefService.loadAllByIds(
+      taxonGroups = await this.referentialRefService.loadAllByIds(
         this.context.strategy.taxonGroups.map((tg) => tg.taxonGroup.id),
         'TaxonGroup'
       );
-      taxonGroupIdPmfm.type = 'qualitative_value';
-      taxonGroupIdPmfm.qualitativeValues = taxonGroups;
     }
 
     // Reset divider (will be set below)
@@ -444,6 +435,12 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
             // Remember the divider pmfm (will be used later)
             this.dividerPmfm = pmfm;
+          }
+          // Taxon group id
+          else if (pmfm.id === PmfmIds.TAXON_GROUP_ID) {
+            pmfm = pmfm.clone();
+            pmfm.type = 'qualitative_value';
+            pmfm.qualitativeValues = taxonGroups;
           }
           return pmfm;
         })

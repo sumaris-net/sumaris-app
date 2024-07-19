@@ -307,11 +307,14 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>,
       if (this.debug) console.debug(`${this._logPrefix}Applying value...`, data);
       this.onApplyingEntity(data, opts);
 
+      // Mark as pristine before waiting form ready, so we can check data is still the same later
+      this.markAsPristine();
+
       // Wait form is ready, before applying the data
       await this.ready({ stop: this.destroySubject });
 
       // Data is still the same (not changed : applying)
-      if (data && data === this.data) {
+      if (data && data === this.data && !this.dirty) {
         // Applying value to form (that should be ready).
         await this.updateView(data, opts);
         this.markAsLoaded();
@@ -573,7 +576,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>,
     // Data already set: apply value again to fill the form
     if (!this.applyingValue) {
       // Update data in view
-      if (this.data) {
+      if (this.data && !this.dirty) {
         await this.updateView(this.data, { onlySelf: true, emitEvent: false });
         this.markAsLoaded();
       }

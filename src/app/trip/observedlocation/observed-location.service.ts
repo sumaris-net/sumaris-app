@@ -922,12 +922,12 @@ export class ObservedLocationService
         progression: opts?.progression,
         maxProgression: opts?.maxProgression - progressionStep,
       });
-      if (errors?.landings) {
+      if (errors) {
         return {
-          message: 'OBSERVED_LOCATION.ERROR.INVALID_LANDING',
+          message: 'OBSERVED_LOCATION.ERROR.INVALID_LANDINGS',
           details: {
             errors: {
-              landings: errors.landings,
+              landings: errors,
             },
           },
         };

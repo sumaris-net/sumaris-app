@@ -76,6 +76,7 @@ import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragme
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
+import { environment } from '@environments/environment';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -115,6 +116,8 @@ export const LandingFragments = {
       controlDate
       validationDate
       qualificationDate
+      qualificationComments
+      qualityFlagId
       comments
       rankOrder
       observedLocationId
@@ -155,6 +158,8 @@ export const LandingFragments = {
       controlDate
       validationDate
       qualificationDate
+      qualificationComments
+      qualityFlagId
       comments
       rankOrder
       observedLocationId
@@ -344,6 +349,7 @@ export class LandingService
     this._featureName = OBSERVED_LOCATION_FEATURE_NAME;
 
     this._logPrefix = '[landing-service] ';
+    this._debug = !environment.production;
   }
 
   hasSampleWithTagId(landingIds: number[]): Promise<boolean> {
@@ -1037,7 +1043,12 @@ export class LandingService
         } else {
           if (opts.progression?.cancelled) return; // Cancel
           // Need to exclude data that already validated (else got exception when pod control already validated data)
-          if (isNil(entity.validationDate)) await this.terminate(entity);
+          if (isNil(entity.validationDate)) {
+            // reset previous error
+            entity.qualificationComments = null;
+
+            await this.terminate(entity);
+          }
         }
 
         // increment, after save/terminate

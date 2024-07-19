@@ -43,18 +43,6 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
       const measForm = form.get('measurementValues') as UntypedFormGroup;
       const pmfms = opts.strategy?.denormalizedPmfms || opts.program?.strategies?.[0]?.denormalizedPmfms || [];
 
-      // Override SALE_TYPE type to 'qualitative_value'
-      const saleTypePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.SALE_TYPE_ID);
-      if (saleTypePmfm) {
-        saleTypePmfm.type = 'qualitative_value';
-      }
-
-      // Override TAXON_GROUP_ID type to 'qualitative_value'
-      const taxonGroupIdPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
-      if (taxonGroupIdPmfm) {
-        taxonGroupIdPmfm.type = 'qualitative_value';
-      }
-
       pmfms
         .filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.LANDING)
         .forEach((p) => {
@@ -171,16 +159,6 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
     // Update form
     this.updateMeasurementValuesForm(form, opts);
 
-    // Add non observation reason required validators
-    const requiredPmfms = [PmfmIds.NON_OBSERVATION_REASON];
-    requiredPmfms.forEach((pmfmId) => {
-      const control = form.get(pmfmId.toString());
-      if (control && !control.hasValidator(Validators.required)) {
-        control.addValidators(Validators.required);
-        control.updateValueAndValidity();
-      }
-    });
-
     return form;
   }
 
@@ -208,9 +186,20 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
       // Not observed
       else {
         // Enable non observation reason, if random species list
-        if (speciesListOriginControl && PmfmValueUtils.equals(speciesListOriginControl.value, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM)) {
+        if (
+          nonObservationReasonControl &&
+          speciesListOriginControl &&
+          PmfmValueUtils.equals(speciesListOriginControl.value, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM)
+        ) {
+          // Add required validator
+          if (!nonObservationReasonControl.hasValidator(Validators.required)) {
+            nonObservationReasonControl.addValidators(Validators.required);
+            nonObservationReasonControl.updateValueAndValidity();
+          }
           if (enabled) nonObservationReasonControl.enable();
         } else {
+          // Remove required validator
+          if (nonObservationReasonControl.hasValidator(Validators.required)) nonObservationReasonControl.removeValidators(Validators.required);
           nonObservationReasonControl.disable({ emitEvent: false });
           nonObservationReasonControl.setValue(null);
         }
