@@ -23,7 +23,7 @@ import {
   filterFalse,
   filterTrue,
   firstNotNilPromise,
-  FormErrorTranslatorOptions,
+  FormErrorTranslateOptions,
   getPropertyByPath,
   ILogger,
   ILoggingService,
@@ -120,7 +120,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
   protected _logger: ILogger;
   protected _logPrefix = '[batch-tree-container] ';
   protected _lastEditingBatchPath: string;
-  protected _errorTranslatorOptions: FormErrorTranslatorOptions;
+  protected errorTranslateOptions: FormErrorTranslateOptions;
 
   @RxStateSelect() protected readonly allowSamplingBatches$: Observable<boolean>;
   @RxStateSelect() protected readonly allowSubBatches$: Observable<boolean>;
@@ -278,7 +278,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
       prefix: '',
       suffix: '',
     };
-    this._errorTranslatorOptions = { separator: '<br/>', pathTranslator: this };
+    this.errorTranslateOptions = { separator: '<br/>', pathTranslator: this };
     this._state.set({
       treePanelFloating:
         this.settings.getPageSettings(BatchTreeContainerSettingsEnum.PAGE_ID, BatchTreeContainerSettingsEnum.TREE_PANEL_FLOATING_KEY) || this.mobile, // On desktop, panel is pinned by default

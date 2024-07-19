@@ -14,7 +14,7 @@ import {
   fadeInOutAnimation,
   filterNotNil,
   firstNotNilPromise,
-  FormErrorTranslatorOptions,
+  FormErrorTranslateOptions,
   HistoryPageReference,
   IReferentialRef,
   isNil,
@@ -52,7 +52,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
   taxonGroupControl: UntypedFormControl;
   showOtherTaxonGroup = false;
   controlledSpeciesPmfmId: number;
-  errorTranslatorOptions: FormErrorTranslatorOptions;
+  errorTranslateOptions: FormErrorTranslateOptions;
 
   $taxonGroupPmfm = new BehaviorSubject<IPmfm>(null);
   $taxonGroups = new BehaviorSubject<TaxonGroupRef[]>(null);
@@ -73,7 +73,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
     });
 
     this.taxonGroupControl = this.formBuilder.control(null, [SharedValidators.entity]);
-    this.errorTranslatorOptions = { separator: '<br/>', pathTranslator: this };
+    this.errorTranslateOptions = { separator: '<br/>', pathTranslator: this };
 
     // FOR DEV ONLY ----
     this.logPrefix = '[auction-control-page] ';

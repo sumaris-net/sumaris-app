@@ -196,7 +196,7 @@
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            {{ (row.enabled && row.validator | translateFormError: errorTranslatorOptions) || row.currentData.qualificationComments }}
+            {{ (row.enabled && row.validator | formError: errorTranslatorOptions) || row.currentData.qualificationComments }}
           </span>
         </mat-header-cell>
       </ng-container>

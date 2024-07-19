@@ -16,7 +16,7 @@ export class AppProgressBarComponent implements OnInit {
   constructor() {}
 
   ngOnInit() {
-    this.progression = this.progression || ProgressionModel.create();
+    this.progression = this.progression || new ProgressionModel();
     this.cancellable = toBoolean(this.cancellable, this.cancel.observed);
   }
 

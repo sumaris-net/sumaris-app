@@ -384,7 +384,7 @@ export class CalendarComponent
     this.autoLoad = true;
     this.sticky = true;
     this.compact = null;
-    this.errorTranslatorOptions = { separator: '\n', pathTranslator: this };
+    this.errorTranslateOptions = { separator: '\n', pathTranslator: this };
     this.excludesColumns = ['program', ...DYNAMIC_COLUMNS];
     this.toolbarColor = 'medium';
     this.logPrefix = '[activity-calendar] ';
@@ -1956,7 +1956,7 @@ export class CalendarComponent
       const entity = targetForm.value;
       if (targetForm.invalid) {
         const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, {
-          ...this.errorTranslatorOptions,
+          ...this.errorTranslateOptions,
         });
         entity.controlDate = null;
         entity.qualificationComments = errorMessage;

@@ -18,5 +18,5 @@ zoneConfig.events.disable.UNPATCHED_EVENTS(['mousemove', 'mouseover']);
 // FIXME: need to patch some components, to call markForCheck() or detectedChanges()
 // - loading bar still show (e.g. trip editor)
 // - notification icon (e.g. when start timer)
-// - TODO test all components
+// - test all components
 //zoneConfig.global.disable.timers();

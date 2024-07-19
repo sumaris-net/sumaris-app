@@ -90,7 +90,7 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row" [title]="row.validator | translateFormError: errorTranslatorOptions">
+      <td mat-cell *matCellDef="let row" [title]="row.validator | formError: errorTranslatorOptions">
         <ion-text
           matBadge="!"
           [matBadgeHidden]="!row.editing || !row.validator.invalid"

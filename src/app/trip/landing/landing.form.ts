@@ -229,10 +229,9 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
     this._enable = false;
 
-    // Set default acquisition level
+    // Set defaults
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
-
-    this.errorTranslatorOptions = { separator: '<br/>', pathTranslator: this };
+    this.errorTranslateOptions = { separator: '<br/>', pathTranslator: this };
   }
 
   ngOnInit() {

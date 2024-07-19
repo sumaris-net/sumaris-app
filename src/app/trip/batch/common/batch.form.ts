@@ -229,7 +229,7 @@ export class BatchForm<
         onUpdateFormGroup: (form) => this.onUpdateFormGroup(form),
       }
     );
-    this.errorTranslatorOptions = { separator: '<br/>', pathTranslator: this };
+    this.errorTranslateOptions = { separator: '<br/>', pathTranslator: this };
 
     // Set defaults
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';

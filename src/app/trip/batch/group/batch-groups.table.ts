@@ -350,7 +350,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.saveBeforeDelete = true;
     this.saveBeforeFilter = true;
     this.saveBeforeSort = true;
-    this.errorTranslatorOptions = { separator: '\n', pathTranslator: this };
+    this.errorTranslateOptions = { separator: '\n', pathTranslator: this };
     this.showCommentsColumn = !this.mobile; // Was set to 'false' in batches-table
     // this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH; // Already set in batches-table
 

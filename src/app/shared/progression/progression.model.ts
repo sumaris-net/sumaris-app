@@ -1,6 +1,5 @@
 import { RxState } from '@rx-angular/state';
 import { isNotNil } from '@sumaris-net/ngx-components';
-import { Inject, Injectable, InjectionToken, Injector, Optional } from '@angular/core';
 
 export interface IProgressionState {
   message: string;
@@ -9,18 +8,10 @@ export interface IProgressionState {
   cancelled: boolean;
 }
 
-export const PROGRESSION_MODEL_INITIAL_STATE = new InjectionToken<Partial<IProgressionState>>('progressionModelInitialState');
-
-@Injectable()
+// @dynamic
 export class ProgressionModel extends RxState<IProgressionState> {
-  static _injector: Injector;
-  static injector() {
-    this._injector = this._injector || Injector.create({ providers: [{ provide: ProgressionModel, useFactory: () => new ProgressionModel() }] });
-    return this._injector;
-  }
-
-  static create() {
-    return this.injector().get(ProgressionModel);
+  static create(initState?: Partial<IProgressionState>) {
+    return new ProgressionModel(initState);
   }
 
   readonly message$ = this.select('message');
@@ -28,7 +19,7 @@ export class ProgressionModel extends RxState<IProgressionState> {
   readonly current$ = this.select('current');
   readonly cancelled$ = this.select('cancelled');
 
-  constructor(@Optional() @Inject(PROGRESSION_MODEL_INITIAL_STATE) private initState?: Partial<IProgressionState>) {
+  constructor(private initState?: Partial<IProgressionState>) {
     super();
     this.set({
       message: '',

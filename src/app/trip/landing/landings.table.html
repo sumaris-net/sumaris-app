@@ -234,9 +234,7 @@
             }
           </ion-label>
           <span #errorSpan hidden>
-            {{
-              row.currentData.qualificationComments || (row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions)) || ''
-            }}
+            {{ row.currentData.qualificationComments || (row.validator.invalid && (row.validator | formError: errorTranslatorOptions)) || '' }}
           </span>
         </td>
       </ng-container>
