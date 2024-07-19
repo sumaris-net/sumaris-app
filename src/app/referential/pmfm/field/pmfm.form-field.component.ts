@@ -13,7 +13,6 @@ import {
   ViewChild,
 } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -146,7 +145,6 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() i18nPrefix: string;
   @Input() i18nSuffix: string;
-  @Input() includedQualitativeValuesIds: number[];
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges = false;
