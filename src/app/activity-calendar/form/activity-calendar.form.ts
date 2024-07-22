@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { ActivityCalendarValidatorOptions, ActivityCalendarValidatorService } from '../model/activity-calendar.validator';
-import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
+import { IMeasurementsFormOptions, MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AbstractControl, FormGroup, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
@@ -37,12 +37,13 @@ import { VesselModal } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { ModalController } from '@ionic/angular';
-import { merge, Observable } from 'rxjs';
+import { merge, Observable, tap } from 'rxjs';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export interface ActivityCalendarFormState extends MeasurementsFormState {
   showYear: boolean;
   showObservers: boolean;
+  warnFutureYear: boolean;
 }
 
 @Component({
@@ -52,16 +53,16 @@ export interface ActivityCalendarFormState extends MeasurementsFormState {
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [RxState],
 })
-export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar, ActivityCalendarFormState> implements OnInit {
+export class ActivityCalendarForm
+  extends MeasurementValuesForm<ActivityCalendar, ActivityCalendarFormState, IMeasurementsFormOptions<ActivityCalendarFormState>>
+  implements OnInit
+{
   private _lastValidatorOpts: any;
   private _readonlyControlNames: (keyof ActivityCalendar)[] = ['program', 'year', 'startDate', 'directSurveyInvestigation', 'economicSurvey', 'year'];
-  protected isYearInTheFuture = false;
   protected observerFocusIndex = -1;
-  @RxStateSelect() protected showObservers$: Observable<boolean>;
 
-  displayAttributes: string[];
-  searchAttributes: string[];
-  sortAttribute: string;
+  @RxStateSelect() protected showObservers$: Observable<boolean>;
+  @RxStateSelect() protected warnFutureYear$: Observable<boolean>;
 
   @Input() required = true;
   @Input() showError = true;
@@ -76,7 +77,7 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
   @Input() allowAddNewVessel = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() @RxStateProperty() showObservers: boolean;
-  @Input() specificAutocompleteEnable: boolean = false;
+  @Input() @RxStateProperty() warnFutureYear: boolean;
 
   get empty(): any {
     const value = this.value;
@@ -123,12 +124,13 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
       validatorService.getFormGroup(null, { withGearUseFeatures: false, withVesselUseFeatures: false }),
       {
         onUpdateFormGroup: (form) => this.updateFormGroup(form),
+        initialState: {
+          acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
+          warnFutureYear: false,
+        },
       }
     );
     this._enable = false;
-
-    // Set default acquisition level
-    this.acquisitionLevel = AcquisitionLevelCodes.ACTIVITY_CALENDAR;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -212,7 +214,14 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
           })
         )
       )
-        .pipe(filter(isNotNil), distinctUntilChanged())
+        .pipe(
+          // Reset warning, if null
+          tap((year) => {
+            if (isNil(year)) this.warnFutureYear = false;
+          }),
+          filter(isNotNil),
+          distinctUntilChanged()
+        )
         .subscribe((year) => {
           console.debug(this._logPrefix + 'Year changes to: ' + year);
           if (this.isNewData && this.yearControl.value !== year) {
@@ -221,8 +230,7 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
           }
 
           // Warning if year is in the future
-          this.isYearInTheFuture = isNotNil(year) && year > DateUtils.moment().year();
-          this.markForCheck();
+          this.warnFutureYear = isNotNil(year) && year > DateUtils.moment().year();
         })
     );
   }

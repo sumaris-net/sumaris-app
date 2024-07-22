@@ -32,7 +32,7 @@
               [tabindex]="tabindex + 1"
             >
               <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
-              @if (isYearInTheFuture) {
+              @if (warnFutureYear$ | push) {
                 <mat-icon matSuffix color="accent" [title]="'WARNING.DATE_IN_THE_FUTURE' | translate">warning</mat-icon>
               }
             </mat-date-short-field>
