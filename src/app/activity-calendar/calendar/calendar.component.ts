@@ -3,11 +3,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  EventEmitter,
   HostListener,
   inject,
   Injector,
   Input,
   OnInit,
+  Output,
   QueryList,
   ViewChild,
   ViewChildren,
@@ -241,6 +243,8 @@ export class CalendarComponent
   @RxStateProperty() hasClipboard: boolean;
   @RxStateProperty() availablePrograms: ReferentialRef[];
   @RxStateProperty() hasConflict: boolean;
+
+  @Output() copyAllClick: EventEmitter<ActivityMonth[]> = new EventEmitter<ActivityMonth[]>();
 
   @Input() @RxStateProperty() months: Moment[];
 
@@ -1988,6 +1992,15 @@ export class CalendarComponent
 
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
+  }
+
+  protected onCopyAllClick(programLabel: string) {
+    const sources = (this.getValue() || []).filter((month) => month?.program?.label === programLabel);
+    const targets: ActivityMonth[] = new Array(12).fill(null).map((index) => ActivityMonth.fromObject({ month: index + 1 }));
+    sources.forEach((source) => {
+      targets[source.month - 1] = source;
+    });
+    this.copyAllClick.emit(targets);
   }
 
   protected onWillHideColumns(subColumns: ColumnDefinition[]): boolean {

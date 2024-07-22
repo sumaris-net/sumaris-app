@@ -5,6 +5,7 @@ import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/fo
 import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
+  Alerts,
   AppAsyncTable,
   AppEditorOptions,
   AppErrorWithDetails,
@@ -21,6 +22,7 @@ import {
   HistoryPageReference,
   Hotkeys,
   IReferentialRef,
+  isEmptyArray,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
@@ -80,6 +82,7 @@ import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.tabl
 import { GearPhysicalFeaturesUtils } from '../model/gear-physical-features.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-calendar.utils';
+import { ActivityMonth } from '../calendar/activity-month.model';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -943,6 +946,42 @@ export class ActivityCalendarPage
         this.qualityWarning = null;
       }
     }
+  }
+
+  async copyAndPastePredoc(sources: ActivityMonth[]) {
+    if (isEmptyArray(sources)) return; // Skip if empty
+
+    const existingMonths = this.calendar.getValue();
+
+    // Ask user confirmation if calendar is not empty
+    const hasSomeData = existingMonths.some((month) => isNotNil(month.isActive));
+    if (hasSomeData) {
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.COPY_PASTE', this.alertCtrl, this.translate);
+      if (!confirmed) return false; // User cancelled
+    }
+
+    const target = existingMonths.map((existingMonth, index) => {
+      const source = sources[index];
+      if (!source) return target; // Keep original, if missing a month
+
+      return ActivityMonth.fromObject(<Partial<ActivityMonth>>{
+        ...source,
+        // Preserved some properties
+        id: existingMonth.id,
+        program: existingMonth.program,
+        startDate: existingMonth.startDate,
+        endDate: existingMonth.endDate,
+        registrationLocations: existingMonth.registrationLocations,
+        readonly: existingMonth.readonly,
+        updateDate: existingMonth.updateDate,
+      });
+    });
+
+    // Apply result
+    await this.calendar.setValue(target);
+
+    // Mark as dirty
+    this.markAsDirty();
   }
 
   protected readonly equals = equals;
