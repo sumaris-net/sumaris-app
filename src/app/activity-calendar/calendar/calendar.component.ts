@@ -745,7 +745,7 @@ export class CalendarComponent
       endDate: endDate,
     };
 
-    const { data } = await this.vesselOwnerPeriodService.loadAll(0, 100, 'startDate', 'desc', filter);
+    const { data } = await this.vesselOwnerPeriodService.loadAll(0, 100, 'startDate', 'asc', filter);
 
     this.vesselOwners = months.map((month) => IUseFeaturesUtils.filterByPeriod(data, month).map((vop) => vop.vesselOwner));
   }
@@ -812,7 +812,7 @@ export class CalendarComponent
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
     const cellSelection = this.cellSelection;
-
+    const containerElement = this.tableContainerElement;
     if (!cellSelection?.resizing || cellSelection.validating || event.defaultPrevented) return; // Ignore
 
     // DEBUG
@@ -827,6 +827,9 @@ export class CalendarComponent
     let colspan = Math.max(cellRect.width, Math.round((cellRect.width + Math.abs(movementX)) / cellRect.width) * cellRect.width) / cellRect.width;
     let rowspan =
       Math.max(cellRect.height, Math.round((cellRect.height + Math.abs(movementY)) / cellRect.height) * cellRect.height) / cellRect.height;
+    const rowspanShift =
+      Math.max(cellRect.height, Math.round((cellRect.height + Math.abs(containerElement.scrollTop)) / cellRect.height) * cellRect.height) /
+      cellRect.height;
 
     // Manage negative
     if (movementX < 0 && colspan > 1) colspan = -1 * (colspan - 1);
@@ -851,7 +854,7 @@ export class CalendarComponent
     }
 
     cellSelection.colspan = colspan;
-    cellSelection.rowspan = rowspan;
+    cellSelection.rowspan = rowspan + (rowspanShift - 1);
 
     this.resizeCellSelection(cellSelection);
   }
@@ -1012,6 +1015,11 @@ export class CalendarComponent
     this.markForCheck();
   }
 
+  toggleCompactMode() {
+    super.toggleCompactMode();
+    setTimeout(() => this.onResize());
+  }
+
   protected resizeCellSelection(cellSelection: TableCellSelection, name?: string, opts?: { emitEvent?: boolean }) {
     if (!cellSelection) return;
 
@@ -1064,7 +1072,7 @@ export class CalendarComponent
     }*/
 
     // DEBUG
-    //console.debug(`${this.logPrefix}Resizing to top=${top} left=${left} width=${width} height=${height}`);
+    // console.debug(`${this.logPrefix}Resizing to top=${top} left=${left} width=${width} height=${height}`);
 
     // Resize the shadow element
     divElement.style.position = 'fixed';

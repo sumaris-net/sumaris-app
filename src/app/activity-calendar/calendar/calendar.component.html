@@ -125,6 +125,7 @@
     *rxIf="pmfms$; let pmfms; strategy: 'native'"
     (ngInit)="initTableContainer(tableContainer)"
     [class.mobile]="mobile"
+    cdkScrollable
   >
     <div
       #cellSelectionDiv
@@ -177,7 +178,7 @@
           }
         </mat-header-cell>
 
-        <mat-header-cell *matCellDef="let row" [title]="errorSpan.innerText || ''" class="mat-column-reset-background-color">
+        <mat-header-cell *matCellDef="let row" [title]="errorSpan?.innerText || ''" class="mat-column-reset-background-color">
           <ion-label class="ion-text-center">
             <ion-text
               matBadge="!"
@@ -187,16 +188,16 @@
               matBadgeSize="small"
             >
               {{ row.currentData.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
-              <!-- @if (debug && canEdit) {
+              <!--@if (debug && canEdit) {
                 <br />
-                &lt;!&ndash;{{ row.id }}
+                {{ row.id }}
                 {{ row.valid ? 'V' : row.pending ? 'P' : 'I' }}
-                {{ row.editing ? '*' : '' }}&ndash;&gt;
+                {{ row.editing ? '*' : '' }}
               }-->
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            {{ (row.enabled && row.validator | formError: errorTranslatorOptions) || row.currentData.qualificationComments }}
+            {{ ((row.enabled || row.editing) && row.validator | formError: errorTranslatorOptions) || row.currentData.qualificationComments }}
           </span>
         </mat-header-cell>
       </ng-container>
@@ -208,15 +209,18 @@
         <mat-cell *matCellDef="let row" class="mat-column-reset-background-color">
           @if (vesselOwners$ | push | mapGet: row.id; as owners) {
             <ion-label
+              #label
               class="ion-text-nowrap computed"
               [title]="owners | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: '\n', propertySeparator: ' ' }"
             >
-              {{ owners | arrayFirst | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: ', ', propertySeparator: ' ' } }}
+              {{ owners | arrayFirst | referentialToString: vesselOwnerDisplayAttributes }}
             </ion-label>
 
             @if (owners | isArrayLength: { greaterThan: 1 }) {
-              <ion-label class="details computed">(+{{ owners.length - 1 }})</ion-label>
+              <ion-label [title]="label.title" class="details computed">(+{{ owners.length - 1 }})</ion-label>
             }
+          } @else {
+            <ng-container *ngTemplateOutlet="skeletonText80"></ng-container>
           }
         </mat-cell>
       </ng-container>
@@ -231,13 +235,14 @@
             as registrationLocations
           ) {
             <ion-label
+              #label
               class="ion-text-nowrap computed"
               [title]="registrationLocations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }"
             >
               {{ registrationLocations | arrayFirst | referentialToString: locationDisplayAttributes }}
             </ion-label>
             @if (registrationLocations | isArrayLength: { greaterThan: 1 }) {
-              <ion-label class="details computed">(+{{ registrationLocations.length - 1 }})</ion-label>
+              <ion-label [title]="label.title" class="details computed">(+{{ registrationLocations.length - 1 }})</ion-label>
             }
           }
         </mat-cell>
@@ -499,8 +504,7 @@
               >
                 <mat-icon style="color: var(--ion-color-dark)">cancel</mat-icon>
               </button>
-              <!-- TODO -->
-              <!-- <!-1- keep remote button -1-> -->
+              <!-- TODO Keep remote button -->
               <!-- <button -->
               <!--   mat-icon-button -->
               <!--   [class.cdk-visually-hidden]="cellSelection?.resizing" -->

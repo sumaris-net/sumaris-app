@@ -14,16 +14,21 @@ import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/sta
 import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 
-export interface IMeasurementsFormOptions {
+export interface IMeasurementsFormOptions<S extends MeasurementsFormState = MeasurementsFormState> {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
   onUpdateFormGroup?: (formGroup: UntypedFormGroup) => void | Promise<void>;
   skipDisabledPmfmControl?: boolean; // True by default
   skipComputedPmfmControl?: boolean; // True by default
+  initialState?: Partial<S>;
 }
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>, S extends MeasurementsFormState = MeasurementsFormState>
+export abstract class MeasurementValuesForm<
+    T extends IEntityWithMeasurement<T>,
+    S extends MeasurementsFormState = MeasurementsFormState,
+    O extends IMeasurementsFormOptions<S> = IMeasurementsFormOptions<S>,
+  >
   extends AppForm<T>
   implements OnInit, OnDestroy
 {
@@ -105,7 +110,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     @Optional() form?: UntypedFormGroup,
-    @Optional() options?: IMeasurementsFormOptions
+    @Optional() options?: O
   ) {
     super(injector, form);
     this.cd = injector.get(ChangeDetectorRef);
@@ -170,6 +175,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>,
       forceOptional: false,
       requiredStrategy: false,
       requiredGear: false,
+      ...options?.initialState,
     });
 
     // DEBUG
