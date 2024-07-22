@@ -56,6 +56,7 @@ import { StrategyFilter } from '@app/referential/services/filter/strategy.filter
 import { StrategyProperties } from '@app/referential/services/config/strategy.config';
 import { SelectTaxonGroupsForDataModal, SelectTaxonGroupsForDataModalOptions } from './taxon-groups/select-taxongroup-for-data.modal';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 export const ObservedLocationPageSettingsEnum = {
   PAGE_ID: 'observedLocation',
@@ -324,7 +325,7 @@ export class ObservedLocationPage
       if (this.landingsTable?.showTaxonGroupSelectionButton) {
         const taxonGroups = await this.openSelectTaxonGroupModal();
         if (taxonGroups && this.landingsTable) {
-          // TODO JVF: Add landings
+          await this.landingsTable.addLandingsFromTaxonGroups(taxonGroups);
         }
       }
       // Add landing using vessels modal
@@ -526,7 +527,7 @@ export class ObservedLocationPage
     }
   }
 
-  async openSelectTaxonGroupModal(): Promise<ReferentialRef[] | undefined> {
+  async openSelectTaxonGroupModal(): Promise<TaxonGroupRef[] | undefined> {
     const programLabel = this.programLabel || this.data.program.label;
     if (!this.data.startDateTime || !programLabel) {
       throw new Error('Root entity has no program and start date. Cannot open select taxon groups modal');
@@ -585,7 +586,7 @@ export class ObservedLocationPage
     }
     if (data && data[0] instanceof ReferentialRef) {
       console.debug(this.logPrefix + 'Taxon group selection modal result:', data);
-      const taxonGroups = data as ReferentialRef[];
+      const taxonGroups = data as TaxonGroupRef[];
       return taxonGroups;
     } else {
       console.debug(this.logPrefix + 'Taxon group selection modal was cancelled');
