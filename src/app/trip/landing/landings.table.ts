@@ -387,7 +387,7 @@ export class LandingsTable
 
     // Load taxon groups (if need)
     const hasTaxonGroupId = pmfms.some((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
-    let availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
+    const availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
 
     // Reset divider (will be set below)
     this.dividerPmfm = null;
@@ -746,92 +746,93 @@ export class LandingsTable
         // Exclude taxon with absolute priority level (e.g. PETS in SIH-OBSVENTE)
         .filter(StrategyUtils.isNotAbsolutePriorityTaxon);
 
-      const data = this.dataSource.getData().filter(DataEntityUtils.isNotDivider);
-      const existingTaxonGroups = removeDuplicatesFromArray(
-        data.map((landing) => landing.measurementValues[PmfmIds.TAXON_GROUP_ID]).filter(isNotNil),
-        'id'
-      )
-        .map((taxonGroup) => availableTaxonGroups.find((tg) => ReferentialUtils.equals(tg, taxonGroup)))
-        .filter(isNotNil);
+      // Fill table
+      await this.addLandingsFromTaxonGroups(availableTaxonGroups);
+    }
+  }
 
-      const taxonGroupsToAdd = availableTaxonGroups
-        // Exclude if already exists
-        .filter((taxonGroup) => !existingTaxonGroups.some((tg) => ReferentialUtils.equals(tg, taxonGroup)));
+  async addLandingsFromTaxonGroups(taxonGroups: TaxonGroupRef[]) {
+    const data = this.dataSource.getData().filter(DataEntityUtils.isNotDivider);
+    const existingTaxonGroups = removeDuplicatesFromArray(
+      data.map((landing) => landing.measurementValues[PmfmIds.TAXON_GROUP_ID]).filter(isNotNil),
+      'id'
+    )
+      .map((taxonGroup) => taxonGroups.find((tg) => ReferentialUtils.equals(tg, taxonGroup)))
+      .filter(isNotNil);
 
-      // DEBUG
-      console.debug(`${this.logPrefix}autoFillTable() existingTaxonGroups`, existingTaxonGroups);
-      console.debug(`${this.logPrefix}autoFillTable() taxonGroupsToAdd`, taxonGroupsToAdd);
+    const taxonGroupsToAdd = taxonGroups
+      // Exclude if already exists
+      .filter((taxonGroup) => !existingTaxonGroups.some((tg) => ReferentialUtils.equals(tg, taxonGroup)));
 
-      // Create useful functions
-      let rankOrder = (await this.getMaxRankOrder()) + 1;
-      const nextRankOrder = (taxonNameOrGroup: TaxonGroupRef | TaxonNameRef) => {
-        // If random species: add an offset to the priority level
-        return this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && StrategyUtils.isRandomSelectedTaxon(taxonNameOrGroup)
-          ? LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET + (taxonNameOrGroup.priority - StrategyTaxonPriorityLevels.ABSOLUTE)
-          : // For any other case: we use a zero base rankOrder
-            rankOrder++;
-      };
-      let dirty = false;
+    // DEBUG
+    console.debug(`${this.logPrefix}autoFillTable() existingTaxonGroups`, existingTaxonGroups);
+    console.debug(`${this.logPrefix}autoFillTable() taxonGroupsToAdd`, taxonGroupsToAdd);
 
-      if (isNotEmptyArray(existingTaxonGroups)) {
-        for (const taxonGroup of existingTaxonGroups) {
-          if (StrategyUtils.isRandomSelectedTaxon(taxonGroup)) {
-            const rankOrder = nextRankOrder(taxonGroup);
-            const existingLandings = data.filter((landing) =>
-              PmfmValueUtils.equals(taxonGroup.id, landing.measurementValues[PmfmIds.TAXON_GROUP_ID])
-            );
+    // Create useful functions
+    let rankOrder = (await this.getMaxRankOrder()) + 1;
+    const nextRankOrder = (taxonNameOrGroup: TaxonGroupRef | TaxonNameRef) => {
+      // If random species: add an offset to the priority level
+      return this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && StrategyUtils.isRandomSelectedTaxon(taxonNameOrGroup)
+        ? LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET + (taxonNameOrGroup.priority - StrategyTaxonPriorityLevels.ABSOLUTE)
+        : // For any other case: we use a zero base rankOrder
+          rankOrder++;
+    };
+    let dirty = false;
 
-            for (const entity of existingLandings) {
-              if (entity.rankOrder !== rankOrder) {
-                entity.rankOrder = rankOrder;
-                await this.addOrUpdateEntityToTable(entity, { confirmEditCreate: true, editing: false });
-                // Mark as dirty
-                dirty = true;
-              }
+    if (isNotEmptyArray(existingTaxonGroups)) {
+      for (const taxonGroup of existingTaxonGroups) {
+        if (StrategyUtils.isRandomSelectedTaxon(taxonGroup)) {
+          const rankOrder = nextRankOrder(taxonGroup);
+          const existingLandings = data.filter((landing) => PmfmValueUtils.equals(taxonGroup.id, landing.measurementValues[PmfmIds.TAXON_GROUP_ID]));
+
+          for (const entity of existingLandings) {
+            if (entity.rankOrder !== rankOrder) {
+              entity.rankOrder = rankOrder;
+              await this.addOrUpdateEntityToTable(entity, { confirmEditCreate: true, editing: false });
+              // Mark as dirty
+              dirty = true;
             }
           }
         }
       }
-
-      // Insert taxon groups that not exists yet
-      if (isNotEmptyArray(taxonGroupsToAdd)) {
-        const entities = [];
-        for (const taxonGroup of taxonGroupsToAdd) {
-          const entity = new Landing();
-
-          // Set rankOrder
-          entity.rankOrder = nextRankOrder(taxonGroup);
-
-          entity.measurementValues = entity.measurementValues || {};
-
-          // Set taxon group
-          entity.measurementValues[PmfmIds.TAXON_GROUP_ID] = taxonGroup;
-
-          // Set divider
-          if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && StrategyUtils.isRandomSelectedTaxon(taxonGroup)) {
-            entity.measurementValues[this.dividerPmfmId] = QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM.toString();
-          }
-
-          // Initialize entity
-          await this.onNewEntity(entity);
-
-          entities.push(entity);
-        }
-
-        await this.addEntitiesToTable(entities, { emitEvent: false });
-        dirty = true;
-      }
-
-      // Mark as dirty
-      if (dirty) {
-        this.markAsLoading();
-        await this.save({ keepEditing: false });
-        this.emitRefresh();
-        this.markAsDirty({ emitEvent: false /* done in markAsLoaded() */ });
-      }
     }
 
-    return true;
+    // Insert taxon groups that not exists yet
+    if (isNotEmptyArray(taxonGroupsToAdd)) {
+      const entities = [];
+      for (const taxonGroup of taxonGroupsToAdd) {
+        const entity = new Landing();
+
+        // Set rankOrder
+        entity.rankOrder = nextRankOrder(taxonGroup);
+
+        entity.measurementValues = entity.measurementValues || {};
+
+        // Set taxon group
+        entity.measurementValues[PmfmIds.TAXON_GROUP_ID] = taxonGroup;
+
+        // Set divider
+        if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && StrategyUtils.isRandomSelectedTaxon(taxonGroup)) {
+          entity.measurementValues[this.dividerPmfmId] = QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM.toString();
+        }
+
+        // Initialize entity
+        await this.onNewEntity(entity);
+
+        entities.push(entity);
+      }
+
+      await this.addEntitiesToTable(entities, { emitEvent: false });
+      dirty = true;
+    }
+
+    // Mark as dirty
+    if (dirty) {
+      this.markAsLoading();
+      await this.save({ keepEditing: false });
+      this.emitRefresh();
+      this.markAsDirty({ emitEvent: false /* done in markAsLoaded() */ });
+    }
   }
 
   protected updateFooter(rows: TableElement<Landing>[] | readonly TableElement<Landing>[]) {
