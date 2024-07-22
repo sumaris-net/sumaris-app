@@ -368,6 +368,7 @@
             [showToolbarOptions]="false"
             [compact]="calendar.compact"
             [debug]="debug"
+            (copyAllClick)="copyAndPastePredoc($event)"
           >
             <!-- toggle predoc -->
             <div matToolbarStart *ngTemplateOutlet="togglePredocButton"></div>

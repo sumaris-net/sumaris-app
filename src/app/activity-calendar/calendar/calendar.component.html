@@ -87,6 +87,28 @@
       <!-- metier buttons -->
       <ng-container *ngTemplateOutlet="metierButtons"></ng-container>
 
+      <!-- copy all -->
+      @if (visibleRowCount > 0 && (availablePrograms$ | push); as programs) {
+        @if (programs | isArrayLength: { equals: 1 }) {
+          <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COPY_PASTE_ALL' | translate" (click)="onCopyAllClick(programs[0].label)">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        } @else {
+          <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COPY_PASTE_ALL' | translate" [matMenuTriggerFor]="optionsMenuCopyPaste">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+
+          <mat-menu #optionsMenuCopyPaste="matMenu" xPosition="after">
+            <!-- Compact mode -->
+            @for (program of programs; track program.label) {
+              <button mat-menu-item (click)="onCopyAllClick(program.label)">
+                <mat-label>{{ 'ACTIVITY_CALENDAR.EDIT.SOURCE_PREDOC' | translateContext: program.label }}</mat-label>
+              </button>
+            }
+          </mat-menu>
+        }
+      }
+
       <!-- error (desktop) -->
       <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
         <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
