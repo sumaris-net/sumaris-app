@@ -170,9 +170,14 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     const attributes = isNotEmptyArray(this.displayAttributes)
       ? this.settings.getFieldDisplayAttributes('qualitativeValue', this.displayAttributes)
       : this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
-    const displayAttributes = this.compact && attributes.length > 1 ? ['label'] : attributes;
+    const displayAttributes =
+      this.compact && attributes.length > 1 ? (attributes.includes('label') ? ['label'] : attributes.slice(0, 1)) : attributes;
     this.searchAttributes = (isNotEmptyArray(this.searchAttributes) && this.searchAttributes) || attributes;
-    this.sortAttribute = isNotNil(this.sortAttribute) ? this.sortAttribute : this.style === 'button' ? 'name' : attributes[0];
+    this.sortAttribute = isNotNil(this.sortAttribute)
+      ? this.sortAttribute
+      : this.style === 'button' && attributes.includes('name')
+        ? 'name'
+        : attributes[0];
 
     // Sort values (but keep original order if LANDING/DISCARD or mobile)
     this._sortedQualitativeValues =

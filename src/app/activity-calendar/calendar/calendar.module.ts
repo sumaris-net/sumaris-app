@@ -9,11 +9,13 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
 import { AppDataModule } from '@app/data/data.module';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 @NgModule({
   imports: [
     SharedModule,
     CommonModule,
+    ScrollingModule,
     IonicModule,
     RxStateModule,
     TranslateModule.forChild(),

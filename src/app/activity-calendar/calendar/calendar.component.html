@@ -125,6 +125,7 @@
     *rxIf="pmfms$; let pmfms; strategy: 'native'"
     (ngInit)="initTableContainer(tableContainer)"
     [class.mobile]="mobile"
+    cdkScrollable
   >
     <div
       #cellSelectionDiv
@@ -177,7 +178,7 @@
           }
         </mat-header-cell>
 
-        <mat-header-cell *matCellDef="let row" [title]="errorSpan.innerText || ''" class="mat-column-reset-background-color">
+        <mat-header-cell *matCellDef="let row" [title]="errorSpan?.innerText || ''" class="mat-column-reset-background-color">
           <ion-label class="ion-text-center">
             <ion-text
               matBadge="!"
@@ -196,7 +197,7 @@
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            {{ (row.enabled && row.validator | formError: errorTranslatorOptions) || row.currentData.qualificationComments }}
+            {{ ((row.enabled || row.editing) && row.validator | formError: errorTranslatorOptions) || row.currentData.qualificationComments }}
           </span>
         </mat-header-cell>
       </ng-container>
@@ -207,7 +208,8 @@
         </mat-header-cell>
         <mat-cell *matCellDef="let row" class="mat-column-reset-background-color">
           @if (vesselOwners$ | push | mapGet: row.id; as owners) {
-            <ion-label #label
+            <ion-label
+              #label
               class="ion-text-nowrap computed"
               [title]="owners | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: '\n', propertySeparator: ' ' }"
             >
@@ -215,8 +217,7 @@
             </ion-label>
 
             @if (owners | isArrayLength: { greaterThan: 1 }) {
-                <ion-label [title]="label.title"
-                           class="details computed">(+{{ owners.length - 1 }})</ion-label>
+              <ion-label [title]="label.title" class="details computed">(+{{ owners.length - 1 }})</ion-label>
             }
           } @else {
             <ng-container *ngTemplateOutlet="skeletonText80"></ng-container>
@@ -233,15 +234,15 @@
             inlineEdition ? (row.validator | formGetValue: 'registrationLocations') : row.currentData.registrationLocations;
             as registrationLocations
           ) {
-            <ion-label #label
+            <ion-label
+              #label
               class="ion-text-nowrap computed"
               [title]="registrationLocations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }"
             >
               {{ registrationLocations | arrayFirst | referentialToString: locationDisplayAttributes }}
             </ion-label>
             @if (registrationLocations | isArrayLength: { greaterThan: 1 }) {
-              <ion-label [title]="label.title"
-                         class="details computed">(+{{ registrationLocations.length - 1 }})</ion-label>
+              <ion-label [title]="label.title" class="details computed">(+{{ registrationLocations.length - 1 }})</ion-label>
             }
           }
         </mat-cell>

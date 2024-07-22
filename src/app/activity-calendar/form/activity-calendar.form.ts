@@ -37,7 +37,7 @@ import { VesselModal } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { ModalController } from '@ionic/angular';
-import { Observable, merge } from 'rxjs';
+import { merge, Observable } from 'rxjs';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export interface ActivityCalendarFormState extends MeasurementsFormState {
@@ -136,15 +136,14 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
 
   ngOnInit() {
     super.ngOnInit();
-
-    if (this.specificAutocompleteEnable) {
-      this.displayAttributes = ['name'];
-      this.searchAttributes = ['name'];
-      this.sortAttribute = 'name';
-    }
     // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     this.showObservers = toBoolean(this.showObservers, false);
+
+    // Combo qualitative pmfm
+    this.registerAutocompleteField('pmfmQualitativeValue', {
+      attributes: ['name'],
+    });
 
     // Combo: observers
     this.registerAutocompleteField('person', {
