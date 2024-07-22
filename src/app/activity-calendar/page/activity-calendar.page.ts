@@ -22,6 +22,7 @@ import {
   HistoryPageReference,
   Hotkeys,
   IReferentialRef,
+  isEmptyArray,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
@@ -947,29 +948,39 @@ export class ActivityCalendarPage
     }
   }
 
-  async copyAndPastePredocToCalendar(dataToPaste: ActivityMonth[]) {
-    const calendar = this.calendar.getValue();
-    const isCalendarEmpty = calendar.every((month) => isNil(month.id));
+  async copyAndPastePredoc(sources: ActivityMonth[]) {
+    if (isEmptyArray(sources)) return; // Skip if empty
 
-    if (!isCalendarEmpty) {
-      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.EDIT.CONFIRM_COPY_PASTE', this.alertCtrl, this.translate);
+    const existingMonths = this.calendar.getValue();
+
+    // Ask user confirmation if calendar is not empty
+    const hasSomeData = existingMonths.some((month) => isNotNil(month.isActive));
+    if (hasSomeData) {
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.COPY_PASTE', this.alertCtrl, this.translate);
       if (!confirmed) return false; // User cancelled
     }
 
-    const predocCopy = calendar.map((cal, index) => {
-      const predocValue = dataToPaste[index];
+    const target = existingMonths.map((existingMonth, index) => {
+      const source = sources[index];
+      if (!source) return target; // Keep original, if missing a month
 
-      const preservedAttributes: Partial<ActivityMonth> = {
-        id: cal.id,
-        startDate: cal.startDate,
-        endDate: cal.endDate,
-        updateDate: cal.updateDate,
-      };
-
-      return ActivityMonth.fromObject({ ...predocValue, ...preservedAttributes });
+      return ActivityMonth.fromObject(<Partial<ActivityMonth>>{
+        ...source,
+        // Preserved some properties
+        id: existingMonth.id,
+        program: existingMonth.program,
+        startDate: existingMonth.startDate,
+        endDate: existingMonth.endDate,
+        registrationLocations: existingMonth.registrationLocations,
+        readonly: existingMonth.readonly,
+        updateDate: existingMonth.updateDate,
+      });
     });
 
-    this.calendar.setValue(predocCopy);
+    // Apply result
+    await this.calendar.setValue(target);
+
+    // Mark as dirty
     this.markAsDirty();
   }
 

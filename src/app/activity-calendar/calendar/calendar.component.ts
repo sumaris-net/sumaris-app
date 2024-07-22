@@ -244,7 +244,7 @@ export class CalendarComponent
   @RxStateProperty() availablePrograms: ReferentialRef[];
   @RxStateProperty() hasConflict: boolean;
 
-  @Output() copyAndPasteEmitter: EventEmitter<ActivityMonth[]> = new EventEmitter<ActivityMonth[]>();
+  @Output() copyAllClick: EventEmitter<ActivityMonth[]> = new EventEmitter<ActivityMonth[]>();
 
   @Input() @RxStateProperty() months: Moment[];
 
@@ -1994,15 +1994,13 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  copyAndPaste(programLabel: any) {
-    const sourceMonthsToPaste = this.getValue().filter((month) => month?.program?.label === programLabel);
-    const activityMonths: ActivityMonth[] = Array(12)
-      .fill(null)
-      .map(() => new ActivityMonth());
-    sourceMonthsToPaste.forEach((month) => {
-      activityMonths[month.month - 1] = month;
+  protected onCopyAllClick(programLabel: string) {
+    const sources = (this.getValue() || []).filter((month) => month?.program?.label === programLabel);
+    const targets: ActivityMonth[] = new Array(12).fill(null).map((index) => ActivityMonth.fromObject({ month: index + 1 }));
+    sources.forEach((source) => {
+      targets[source.month - 1] = source;
     });
-    this.copyAndPasteEmitter.emit(activityMonths);
+    this.copyAllClick.emit(targets);
   }
 
   protected onWillHideColumns(subColumns: ColumnDefinition[]): boolean {

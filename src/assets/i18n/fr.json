@@ -3422,7 +3422,7 @@
       "BTN_EXPAND_ALL": "Déplier tout",
       "BTN_COLLAPSE_ALL": "Replier tout",
       "BTN_CLEAR_MONTH": "Vider le mois",
-      "BTN_COPY_PASTE": "Copier et coller",
+      "BTN_COPY_PASTE_ALL": "Copier et coller",
       "HIDE_PREDOC": "Masquer la prédocumentation",
       "SHOW_PREDOC": "Afficher la prédocumentation",
       "BTN_SHOW_PREDOC": "<u>P</u>rédocumentation",
