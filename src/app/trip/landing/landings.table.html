@@ -198,7 +198,7 @@
           [indeterminate]="selection.hasValue() && !isAllSelected()"
         ></mat-checkbox>
       </th>
-      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit || (mobile && !showToolbar)">
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile && !showToolbar">
         <mat-checkbox
           [class.cdk-visually-hidden]="row | asBoolean: isRowNotSelectable"
           (click)="toggleSelectRow($event, row)"
@@ -377,7 +377,7 @@
                       pmfm: pmfm,
                       html: true,
                       propertyNames: pmfm.isMultiple ? [qualitativeValueAttributes[0]] : qualitativeValueAttributes,
-                      showYesOrNo: true
+                      showYesOrNo: true,
                     }
             "
           ></ion-label>
@@ -391,7 +391,7 @@
                       pmfm: pmfm,
                       html: true,
                       propertyNames: pmfm.isMultiple ? [qualitativeValueAttributes[0]] : qualitativeValueAttributes,
-                      showYesOrNo: true
+                      showYesOrNo: true,
                     }
             "
           ></ion-label>
