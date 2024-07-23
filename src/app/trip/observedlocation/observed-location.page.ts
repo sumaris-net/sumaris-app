@@ -472,7 +472,7 @@ export class ObservedLocationPage
       programLabel,
       startDate,
       endDate,
-      locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined,
+      location: this.data.location,
       groupByVessel: (this.landingsTable && this.landingsTable.isTripDetailEditor) || isNotNil(this.aggregatedLandingsTable),
       excludeVesselIds,
       synchronizationStatus: 'SYNC', // only remote entities. This is required to read 'Remote#LandingVO' local storage
@@ -543,7 +543,7 @@ export class ObservedLocationPage
       programLabel,
       startDate,
       endDate,
-      locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined,
+      location: this.data.location,
       synchronizationStatus: 'SYNC', // only remote entities. This is required to read 'Remote#LandingVO' local storage
     });
 
