@@ -324,7 +324,7 @@
         <span translate>LANDING.TABLE.CREATION_DATE</span>
       </th>
       <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
-        {{ row.currentData.creationDate | dateFormat: { time: true } }}
+        {{ row.currentData.creationDate | dateFormat: { time: false } }}
       </td>
     </ng-container>
 
