@@ -16,6 +16,7 @@ export const StrategyFragments = {
       appliedStrategies {
         ...AppliedStrategyFragment
       }
+      properties
     }
   `,
 
@@ -30,6 +31,7 @@ export const StrategyFragments = {
       updateDate
       creationDate
       statusId
+      properties
       programId
       gears {
         ...LightReferentialFragment
@@ -198,6 +200,7 @@ export const StrategyFragments = {
       updateDate
       creationDate
       statusId
+      properties
       programId
     }
   `,
@@ -212,6 +215,7 @@ export const StrategyFragments = {
       updateDate
       creationDate
       statusId
+      properties
       programId
       gears {
         ...LightReferentialFragment
