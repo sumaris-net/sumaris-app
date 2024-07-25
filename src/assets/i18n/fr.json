@@ -2654,6 +2654,7 @@
       "DOWNLOAD_JSON_FILENAME": "{{programLabel}}-stratégie-{{label}}.json",
       "DOWNLOAD_MANY_JSON_FILENAME": "{{programLabel}}-stratégies.json",
       "TAB_TRANSCRIBING": "Transcodages",
+      "TAB_PROPERTIES": "Options",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplication",
         "HELP": "Sélectionnez une année de suivie pour les nouvelles lignes de plan :"

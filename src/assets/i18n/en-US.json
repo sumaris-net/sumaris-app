@@ -2536,6 +2536,7 @@
       "DOWNLOAD_JSON_FILENAME": "{{programLabel}}-strategy-{{label}}.json",
       "DOWNLOAD_MANY_JSON_FILENAME": "{{programLabel}}-strategies.json",
       "TAB_TRANSCRIBING": "Transcribing",
+      "TAB_PROPERTIES": "Options",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplicate",
         "HELP": "Select a year for the new sampling plan: "

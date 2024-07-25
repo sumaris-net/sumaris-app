@@ -3,8 +3,10 @@ import {
   Entity,
   EntityClass,
   EntityUtils,
+  FormFieldDefinition,
   fromDateISOString,
   isNotNil,
+  ObjectMap,
   ReferentialAsObjectOptions,
   ReferentialRef,
   toDateISOString,
@@ -29,6 +31,7 @@ export class Strategy<T extends Strategy<any> = Strategy<any>, O extends Strateg
   static ENTITY_NAME = 'Strategy';
   static fromObject: (source: any, opts?: any) => Strategy;
 
+  properties: ObjectMap = {};
   analyticReference: string | ReferentialRef = null;
   appliedStrategies: AppliedStrategy[] = null;
   pmfms: PmfmStrategy[] = null;
@@ -53,6 +56,11 @@ export class Strategy<T extends Strategy<any> = Strategy<any>, O extends Strateg
 
   fromObject(source: any) {
     super.fromObject(source);
+    if (source.properties && source.properties instanceof Array) {
+      this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
+    } else {
+      this.properties = { ...source.properties };
+    }
     this.analyticReference = source.analyticReference;
     this.programId = source.programId;
     this.appliedStrategies = (source.appliedStrategies && source.appliedStrategies.map(AppliedStrategy.fromObject)) || [];
@@ -67,6 +75,7 @@ export class Strategy<T extends Strategy<any> = Strategy<any>, O extends Strateg
 
   asObject(opts?: O): any {
     const target: any = super.asObject({ ...opts, ...NOT_MINIFY_OPTIONS });
+    target.properties = { ...this.properties };
     target.programId = this.programId;
     target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map((s) => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.pmfms = this.pmfms && this.pmfms.map((s) => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
@@ -100,6 +109,32 @@ export class Strategy<T extends Strategy<any> = Strategy<any>, O extends Strateg
     AppReferentialUtils.cleanIdAndDates(target, true, ['gears', 'taxonGroups', 'taxonNames']);
 
     return target;
+  }
+
+  getPropertyAsBoolean(definition: FormFieldDefinition): boolean {
+    const value = this.getProperty(definition);
+    return isNotNil(value) ? value && value !== 'false' : undefined;
+  }
+
+  getPropertyAsInt(definition: FormFieldDefinition): number {
+    const value = this.getProperty(definition);
+    return isNotNil(value) ? parseInt(value) : undefined;
+  }
+
+  getPropertyAsNumbers(definition: FormFieldDefinition): number[] {
+    const value = this.getProperty(definition);
+    if (typeof value === 'string') return value.split(',').map(parseFloat) || undefined;
+    return isNotNil(value) ? [parseFloat(value)] : undefined;
+  }
+
+  getPropertyAsStrings(definition: FormFieldDefinition): string[] {
+    const value = this.getProperty(definition);
+    return (value && value.split(',')) || undefined;
+  }
+
+  getProperty<T = string>(definition: FormFieldDefinition): T {
+    if (!definition) throw new Error("Missing 'definition' argument");
+    return isNotNil(this.properties[definition.key]) ? this.properties[definition.key] : definition.defaultValue;
   }
 }
 

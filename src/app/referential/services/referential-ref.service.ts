@@ -74,6 +74,7 @@ import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.
 import { BBox } from 'geojson';
 import { translateQualityFlag } from '@app/data/services/model/model.utils';
 import { VesselConfigUtils } from '@app/vessel/services/config/vessel.config';
+import { StrategyPropertiesUtils } from './config/strategy.config';
 
 const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any; loadLevels: any }>{
   lastUpdateDate: gql`
@@ -1140,5 +1141,8 @@ export class ReferentialRefService
     // Force update ProgramProperties default
     //  /!\ should be call AFTER overrides from config (e.g. in case an option use LocationLevelGroups.FISHING_AREA)
     ProgramPropertiesUtils.refreshDefaultValues();
+
+    // Force update StrategyProperties default
+    StrategyPropertiesUtils.refreshDefaultValues();
   }
 }
