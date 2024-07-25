@@ -498,9 +498,15 @@ export class UserEventService
   protected decorateJobUserEvent(source: UserEvent, job: Job) {
     console.debug('[user-event-service] Decorate user event on Job:', job);
 
-    source.addDefaultAction({
-      executeAction: (e) => this.navigate(['vessels']),
-    });
+    if (job.type === 'LIST_ACTIVITY_CALENDARS_IMPORTATION') {
+      source.addDefaultAction({
+        executeAction: (e) => this.navigate(['activity-calendar']),
+      });
+    } else {
+      source.addDefaultAction({
+        executeAction: (e) => this.navigate(['vessels']),
+      });
+    }
 
     if (job.report) {
       source.addAction({
