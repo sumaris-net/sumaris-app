@@ -1786,6 +1786,7 @@ type StrategyVO {
     "Get strategy's pmfms"
     pmfms: [PmfmStrategyVO]
     programId: Int
+    properties: Map_String_StringScalar
     statusId: Int
     taxonGroupIds: [Int]
     taxonGroups: [TaxonGroupStrategyVO]
@@ -3898,6 +3899,7 @@ input StrategyVOInput {
     name: String
     pmfms: [PmfmStrategyVOInput]
     programId: Int
+    properties: Map_String_StringScalar
     statusId: Int
     taxonGroupIds: [Int]
     taxonGroups: [TaxonGroupStrategyVOInput]

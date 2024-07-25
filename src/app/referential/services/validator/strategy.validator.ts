@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { toNumber } from '@sumaris-net/ngx-components';
+import { EntityUtils, toNumber } from '@sumaris-net/ngx-components';
 import { SharedValidators } from '@sumaris-net/ngx-components';
 import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonGroupStrategy, TaxonNameStrategy } from '../model/strategy.model';
 import { PmfmStrategyValidatorService } from './pmfm-strategy.validator';
@@ -37,6 +37,18 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
       departments: this.getStrategyDepartmentsFormArray(data),
 
       programId: [toNumber(data && data.programId, null)],
+    });
+  }
+
+  getPropertiesArray(array?: any) {
+    const properties = EntityUtils.getMapAsArray(array || {});
+    return this.formBuilder.array(properties.map((item) => this.getPropertyFormGroup(item)));
+  }
+
+  getPropertyFormGroup(data?: { key: string; value?: string }): UntypedFormGroup {
+    return this.formBuilder.group({
+      key: [(data && data.key) || null, Validators.compose([Validators.required, Validators.max(50)])],
+      value: [(data && data.value) || null, Validators.compose([Validators.required, Validators.max(100)])],
     });
   }
 
