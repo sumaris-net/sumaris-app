@@ -31,6 +31,7 @@ import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorato
 import { BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { AppBaseTable2 } from '@app/shared/table/base.table2';
 import { AsyncTableElement } from '@e-is/ngx-material-table';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -155,6 +156,7 @@ export abstract class BaseMeasurementsTable2<
       // Use a decorator data service
       new MeasurementsTableEntitiesService(injector, dataType, dataService, {
         mapPmfms: options?.mapPmfms || undefined,
+        mapResult: options?.mapResult || undefined,
         requiredStrategy: options?.initialState?.requiredStrategy,
         requiredGear: options?.initialState?.requiredGear,
         debug: options?.debug || false,
@@ -439,7 +441,7 @@ export abstract class BaseMeasurementsTable2<
 
   protected async getMaxRankOrder(data?: T[]): Promise<number> {
     data = data || this.dataSource.getData() || [];
-    return Math.max(0, ...data.map((entity) => entity.rankOrder || 0));
+    return DataEntityUtils.getMaxRankOrder(data);
   }
 
   protected async existsRankOrder(rankOrder: number, excludedRows?: AsyncTableElement<T>[]): Promise<boolean> {
@@ -447,12 +449,16 @@ export abstract class BaseMeasurementsTable2<
     return rows.some((row) => (!excludedRows || !excludedRows.includes(row)) && row.currentData.rankOrder === rankOrder);
   }
 
-  protected async canAddEntity(data: T): Promise<boolean> {
+  protected async canAddEntity(data: T, opts?: { interactive?: boolean }): Promise<boolean> {
     // Before using the given rankOrder, check if not already exists
     if (this.canEditRankOrder && isNotNil(data.rankOrder)) {
       if (await this.existsRankOrder(data.rankOrder)) {
-        const message = this.translate.instant('TRIP.MEASUREMENT.ERROR.DUPLICATE_RANK_ORDER', data);
-        await Alerts.showError(message, this.alertCtrl, this.translate);
+        // Show an error alert
+        if (opts?.interactive !== false) {
+          const message = this.translate.instant('TRIP.MEASUREMENT.ERROR.DUPLICATE_RANK_ORDER', data);
+          await Alerts.showError(message, this.alertCtrl, this.translate);
+        }
+
         return false;
       }
     }
@@ -507,7 +513,8 @@ export abstract class BaseMeasurementsTable2<
       if (
         this.hasRankOrder &&
         // Do NOT override if can edit it and set
-        (!this.canEditRankOrder || isNil(data.rankOrder))
+        (!this.canEditRankOrder || isNil(data.rankOrder)) &&
+        isNotNil(row.currentData.rankOrder)
       ) {
         data.rankOrder = row.currentData.rankOrder;
       }
