@@ -233,7 +233,7 @@ export abstract class DataEntityUtils {
     source.__typename = 'divider';
   }
 
-  static getMaxRankOrder<T extends IEntity<T> & { rankOrder?: number }>(data?: T[]): number {
+  static getMaxRankOrder(data?: (IEntity<any> & { rankOrder?: number })[]): number {
     if (!data) return 0;
     return Math.max(0, ...data.map((entity) => entity?.rankOrder || 0));
   }

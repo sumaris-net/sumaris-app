@@ -2,6 +2,7 @@ import { mergeMap, Observable } from 'rxjs';
 import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from './measurement.model';
 import {
+  EntitiesServiceWatchOptions,
   EntityUtils,
   firstNotNilPromise,
   IEntitiesService,
@@ -37,13 +38,20 @@ export interface MeasurementsTableEntitiesServiceState {
   loading: boolean;
 }
 
+export interface MeasurementsTableEntitiesServiceOptions<T extends IEntityWithMeasurement<T>> {
+  mapPmfms: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
+  mapResult?: (result: LoadResult<T>) => LoadResult<T> | Promise<LoadResult<T>>;
+  requiredStrategy?: boolean;
+  requiredGear?: boolean;
+  debug?: boolean;
+}
+
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export class MeasurementsTableEntitiesService<
-    T extends IEntityWithMeasurement<T, ID>,
+    T extends IEntityWithMeasurement<T, any>,
     F extends IEntityFilter<any, T, any>,
     S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
-    ID = number,
     ST extends MeasurementsTableEntitiesServiceState = MeasurementsTableEntitiesServiceState,
   >
   extends StartableService<IPmfm[]>
@@ -97,12 +105,7 @@ export class MeasurementsTableEntitiesService<
     protected dataType: new () => T,
     delegate?: S,
     @Optional()
-    protected options?: {
-      mapPmfms: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
-      requiredStrategy?: boolean;
-      requiredGear?: boolean;
-      debug?: boolean;
-    }
+    protected options?: MeasurementsTableEntitiesServiceOptions<T>
   ) {
     super(null);
     this._delegate = delegate;
@@ -178,7 +181,7 @@ export class MeasurementsTableEntitiesService<
     sortBy?: string,
     sortDirection?: SortDirection,
     selectionFilter?: any,
-    options?: any
+    options?: EntitiesServiceWatchOptions
   ): Observable<LoadResult<T>> {
     if (!this.started) this.start();
 
@@ -214,7 +217,7 @@ export class MeasurementsTableEntitiesService<
 
             return res;
           }),
-          map((result) => (options?.mapResult ? options.mapResult(result) : result))
+          mergeMap(async (result) => (this.options?.mapResult ? this.options.mapResult(result) : result))
         );
       })
     );

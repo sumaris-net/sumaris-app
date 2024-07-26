@@ -54,7 +54,7 @@ import { RxState } from '@rx-angular/state';
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
 
-export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<BaseMeasurementsTableConfig<Batch>>('SubBatchesTableOptions');
+export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<BaseMeasurementsTableConfig<SubBatch>>('SubBatchesTableOptions');
 
 export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch> {
   parentId?: number;
@@ -211,7 +211,7 @@ export class SubBatchesTable
   constructor(
     injector: Injector,
     validatorService: SubBatchValidatorService,
-    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<Batch>
+    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>
   ) {
     super(
       injector,
