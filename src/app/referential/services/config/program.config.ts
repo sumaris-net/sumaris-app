@@ -109,6 +109,19 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean',
   },
+  TRIP_SALE_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.sale.location.level.ids',
+    label: 'PROGRAM.OPTIONS.TRIP_SALE_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['name'],
+    },
+    defaultValue: LocationLevelIds.PORT.toString(),
+  },
   TRIP_OBSERVERS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.observers.enable',
     label: 'PROGRAM.OPTIONS.TRIP_OBSERVERS_ENABLE',
@@ -842,9 +855,9 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
-  OBSERVED_LOCATION_LANDING_AUTO_FILL: <FormFieldDefinition>{
-    key: 'sumaris.observedLocation.landing.autoFill',
-    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_LANDING_AUTO_FILL',
+  OBSERVED_LOCATION_LANDINGS_AUTO_FILL: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.landings.autoFill',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_LANDINGS_AUTO_FILL',
     defaultValue: 'false',
     type: 'boolean',
   },
@@ -1049,6 +1062,19 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
   },
 
+  SALE_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.sale.location.level.ids',
+    label: 'PROGRAM.OPTIONS.SALE_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['name'],
+    },
+    defaultValue: LocationLevelIds.PORT.toString(),
+  },
   /* -- Landed trip options -- */
 
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
@@ -1363,9 +1389,11 @@ export class ProgramPropertiesUtils {
 
     ProgramProperties.STRATEGY_EDITOR_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.DIVISION_ICES.toString();
     ProgramProperties.TRIP_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
+    ProgramProperties.TRIP_SALE_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.RECTANGLE_ICES.toString();
     ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.DCF_METIER_LVL_5.toString();
     ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
+    ProgramProperties.SALE_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.RECTANGLE_ICES.toString();
     ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.join(',');
     ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;

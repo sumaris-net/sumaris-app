@@ -1,13 +1,26 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { SaleValidatorOptions, SaleValidatorService } from './sale.validator';
 import { Moment } from 'moment';
-import { AppForm, isNilOrBlank, OnReady, referentialToString, ReferentialUtils, StatusIds, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AppForm,
+  isEmptyArray,
+  isNilOrBlank,
+  MatAutocompleteField,
+  OnReady,
+  ReferentialRef,
+  referentialToString,
+  ReferentialUtils,
+  StatusIds,
+  toBoolean,
+  toNumber,
+} from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Sale } from './sale.model';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormControl } from '@angular/forms';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 @Component({
   selector: 'app-form-sale',
@@ -18,6 +31,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   private _minDate: Moment = null;
   private _required: boolean;
+  private _locationSuggestLengthThreshold: number;
 
   protected readonly mobile = this.settings.mobile;
 
@@ -30,6 +44,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   @Input() showButtons = true;
   @Input() i18nSuffix: string;
   @Input() showParent = false;
+  @Input() locationLevelIds: number[];
 
   @Input() set required(value: boolean) {
     if (this._required !== value) {
@@ -53,6 +68,25 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
     return this._minDate;
   }
 
+  @Input() set locationSuggestLengthThreshold(value: number) {
+    if (this._locationSuggestLengthThreshold !== value) {
+      this._locationSuggestLengthThreshold = value;
+
+      // Update location field
+      if (this.autocompleteFields.location) {
+        this.autocompleteFields.location.suggestLengthThreshold = value;
+        if (this.locationField) {
+          this.locationField.suggestLengthThreshold = value;
+          this.locationField.reloadItems();
+        }
+      }
+    }
+  }
+
+  get locationSuggestLengthThreshold() {
+    return this._locationSuggestLengthThreshold;
+  }
+
   get empty(): any {
     const value = this.value;
     return (
@@ -72,6 +106,8 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
     return this._form.get('startDateTime') as UntypedFormControl;
   }
 
+  @ViewChild('locationField', { static: false }) locationField: MatAutocompleteField;
+
   constructor(
     injector: Injector,
     protected validatorService: SaleValidatorService,
@@ -87,8 +123,9 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
     super.ngOnInit();
 
     // Set defaults
-    this.tabindex = toNumber(this.tabindex, 0);
+    this.tabindex = toNumber(this.tabindex, 1);
     this._required = toBoolean(this._required, this.showProgram);
+    if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
     if (this.showProgram) {
@@ -111,13 +148,19 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
       this.form.get('vesselSnapshot').clearValidators();
     }
 
-    // Combo: sale locations
-    this.registerAutocompleteField('location', {
-      service: this.referentialRefService,
+    // Combo location
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelIds: this.locationLevelIds,
+        }),
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.PORT,
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
+      suggestLengthThreshold: this._locationSuggestLengthThreshold || 0,
+      mobile: this.mobile,
     });
 
     // Combo: sale types

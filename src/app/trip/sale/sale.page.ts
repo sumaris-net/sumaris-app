@@ -56,6 +56,7 @@ export class SaleEditorOptions extends RootDataEditorOptions {}
 
 export interface SalePageState extends RootDataEntityEditorState {
   strategyLabel: string;
+  parent: Trip | Landing;
 }
 export const SalesPageSettingsEnum = {
   PAGE_ID: 'sale',
@@ -87,7 +88,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     GENERAL: 0,
     BATCHES: 1,
   };
-  protected parent: Trip | Landing;
+
   protected tripService = inject(TripService);
   protected landingService = inject(LandingService);
   protected pmfmService = inject(PmfmService);
@@ -95,15 +96,16 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected vesselSnapshotService = inject(VesselSnapshotService);
   protected translateContext = inject(TranslateContextService);
   protected selectedSubTabIndex = 0;
-  showParent = false;
-  showEntityMetadata = false;
-  showQualityForm = false;
-  showFishingArea = false;
-  enableReport = false;
-  parentAcquisitionLevel: AcquisitionLevelType;
-  showBatchTablesByProgram = false;
-  showBatchTables = true;
-  @RxStateProperty() strategyLabel: string;
+  protected showParent = false;
+  protected showEntityMetadata = false;
+  protected showQualityForm = false;
+  protected showFishingArea = false;
+  protected enableReport = false;
+  protected parentAcquisitionLevel: AcquisitionLevelType;
+  protected showBatchTablesByProgram = false;
+  protected showBatchTables = true;
+  @RxStateProperty() protected parent: Trip | Landing;
+  @RxStateProperty() protected strategyLabel: string;
 
   get form(): UntypedFormGroup {
     return this.saleForm.form;
@@ -173,23 +175,53 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
     console.debug(this.logPrefix + 'watchStrategyFilter', this.acquisitionLevel);
-    if (this.strategyResolution === DataStrategyResolutions.USER_SELECT) {
-      return this._state
-        .select(['acquisitionLevel', 'strategyLabel'], (s) => s)
-        .pipe(
-          // DEBUG
-          tap((s) => console.debug(this.logPrefix + 'Received strategy label: ', s)),
-          map(({ acquisitionLevel, strategyLabel }) => {
-            return <Partial<StrategyFilter>>{
-              acquisitionLevel,
-              programId: program.id,
-              label: strategyLabel,
-            };
+    switch (this.strategyResolution) {
+      // User select
+      case DataStrategyResolutions.USER_SELECT:
+        return this._state
+          .select(['acquisitionLevel', 'strategyLabel'], (s) => s)
+          .pipe(
+            // DEBUG
+            tap((s) => console.debug(this.logPrefix + 'Received strategy label: ', s)),
+            map(({ acquisitionLevel, strategyLabel }) => {
+              return <Partial<StrategyFilter>>{
+                acquisitionLevel,
+                programId: program.id,
+                label: strategyLabel,
+              };
+            })
+          );
+      // User select
+      case DataStrategyResolutions.SPATIO_TEMPORAL:
+        return this._state
+          .select(['acquisitionLevel', 'parent'], (_) => _, {
+            acquisitionLevel: equals,
+            parent: EntityUtils.equals,
           })
-        );
+          .pipe(
+            map(({ acquisitionLevel, parent }) => {
+              if (parent instanceof Trip) {
+                return <Partial<StrategyFilter>>{
+                  acquisitionLevel,
+                  programId: program.id,
+                  startDate: parent.departureDateTime,
+                  location: parent.departureLocation,
+                };
+              } else if (parent instanceof Landing) {
+                return <Partial<StrategyFilter>>{
+                  acquisitionLevel,
+                  programId: program.id,
+                  startDate: parent.dateTime,
+                  location: parent.location,
+                };
+              }
+            })
+            // DEBUG
+            //tap((values) => console.debug(this.logPrefix + 'Strategy filter changed:', values))
+          );
+      default:
+        return super.watchStrategyFilter(program);
     }
-
-    return super.watchStrategyFilter(program);
   }
 
   async updateView(
@@ -477,7 +509,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     this.strategyResolution = showStrategy ? 'user-select' : program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
 
     // Customize the UI, using program options
-    // this.saleForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+    this.saleForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.SALE_LOCATION_LEVEL_IDS);
     // this.saleForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
     // this.saleForm.showStrategy = showStrategy;
     // this.saleForm.requiredStrategy = requiredStrategy;

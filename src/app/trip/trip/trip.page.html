@@ -173,6 +173,7 @@
                 <app-form-sale
                   #saleForm
                   [class.cdk-visually-hidden]="!showSaleForm || (measurementsForm.readySubject | async) === false"
+                  [locationLevelIds]="saleLocationLevelIds"
                   [showProgram]="false"
                   [showVessel]="false"
                   [showError]="false"

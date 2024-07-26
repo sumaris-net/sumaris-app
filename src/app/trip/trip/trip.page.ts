@@ -110,16 +110,16 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   @RxStateSelect() protected returnDateTime$: Observable<Moment>;
 
+  protected showSaleForm = false;
+  protected saleLocationLevelIds: number[];
+  protected showGearTable = false;
+  protected showOperationTable = false;
+  protected enableReport: boolean;
+  protected operationEditor: OperationEditor;
+  protected operationPasteFlags: number;
+  protected canDownload = false;
+  protected helpUrl: string;
   @RxStateProperty() protected reportTypes: Property[];
-
-  showSaleForm = false;
-  showGearTable = false;
-  showOperationTable = false;
-  enableReport: boolean;
-  operationEditor: OperationEditor;
-  operationPasteFlags: number;
-  canDownload = false;
-  helpUrl: string;
 
   @Input() toolbarColor: PredefinedColors = 'primary';
 
@@ -334,6 +334,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Sale form
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
+    this.saleLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_SALE_LOCATION_LEVEL_IDS);
 
     // Measurement form
     this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
@@ -419,9 +420,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
                 endDate: departureDateTime,
                 location: departureLocation,
               };
-            }),
+            })
             // DEBUG
-            tap((values) => console.debug(this.logPrefix + 'Strategy filter changed:', values))
+            //tap((values) => console.debug(this.logPrefix + 'Strategy filter changed:', values))
           );
       default:
         return super.watchStrategyFilter(program);
