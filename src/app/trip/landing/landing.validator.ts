@@ -185,23 +185,23 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
       // Not observed
       else {
-        // Enable non observation reason, if random species list
-        if (
-          nonObservationReasonControl &&
-          speciesListOriginControl &&
-          PmfmValueUtils.equals(speciesListOriginControl.value, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM)
-        ) {
-          // Add required validator
-          if (!nonObservationReasonControl.hasValidator(Validators.required)) {
-            nonObservationReasonControl.addValidators(Validators.required);
-            nonObservationReasonControl.updateValueAndValidity();
+        // If random species list
+        if (PmfmValueUtils.equals(speciesListOriginControl?.value, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM)) {
+          // Enable non observation reason, and add required validator
+          if (nonObservationReasonControl) {
+            if (!nonObservationReasonControl.hasValidator(Validators.required)) {
+              nonObservationReasonControl.addValidators(Validators.required);
+              nonObservationReasonControl.updateValueAndValidity();
+            }
+            if (enabled) nonObservationReasonControl.enable();
           }
-          if (enabled) nonObservationReasonControl.enable();
         } else {
           // Remove required validator
-          if (nonObservationReasonControl.hasValidator(Validators.required)) nonObservationReasonControl.removeValidators(Validators.required);
-          nonObservationReasonControl.disable({ emitEvent: false });
-          nonObservationReasonControl.setValue(null);
+          if (nonObservationReasonControl) {
+            if (nonObservationReasonControl.hasValidator(Validators.required)) nonObservationReasonControl.removeValidators(Validators.required);
+            nonObservationReasonControl.disable({ emitEvent: false });
+            nonObservationReasonControl.setValue(null);
+          }
         }
 
         // Disable sale type
@@ -209,6 +209,13 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
           saleTypeControl.disable({ emitEvent: false });
           saleTypeControl.setValue(null);
         }
+      }
+
+      // Disable is observed control, if PETS species list
+      if (PmfmValueUtils.equals(speciesListOriginControl?.value, QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS)) {
+        isObservedControl.disable({ emitEvent: false });
+      } else {
+        if (enabled) isObservedControl.enable({ emitEvent: false });
       }
     }
   }

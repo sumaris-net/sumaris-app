@@ -95,12 +95,13 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
     { provide: SubBatchValidatorService, useClass: SubBatchValidatorService },
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
-      useFactory: (settings: LocalSettingsService) => ({
-        prependNewElements: settings.mobile,
-        suppressErrors: true,
-        reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
-        reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS,
-      }),
+      useFactory: (settings: LocalSettingsService) =>
+        <BaseMeasurementsTableConfig<SubBatch>>{
+          prependNewElements: settings.mobile,
+          suppressErrors: true,
+          reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
+          reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS,
+        },
       deps: [LocalSettingsService],
     },
     RxState,
@@ -187,7 +188,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     protected audio: AudioProvider,
     protected platform: PlatformService,
     validatorService: SubBatchValidatorService,
-    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<Batch>
+    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>
   ) {
     super(injector, settings.mobile ? null : validatorService /*no validator = not editable*/, options);
     this.inlineEdition = !this.mobile; // Disable row edition (no validator)

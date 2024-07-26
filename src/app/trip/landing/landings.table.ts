@@ -20,7 +20,7 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { LandingService, LandingServiceWatchOptions } from './landing.service';
+import { LandingService } from './landing.service';
 import { BaseMeasurementsTable, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import {
   AcquisitionLevelCodes,
@@ -292,6 +292,7 @@ export class LandingsTable
       reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
       reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+      mapResult: (res: LoadResult<Landing>) => this.mapLandings(res),
       onPrepareRowForm: (form) => this.onPrepareRowForm(form),
       i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
       i18nPmfmPrefix: LANDING_I18N_PMFM_PREFIX,
@@ -299,9 +300,6 @@ export class LandingsTable
         requiredStrategy: true,
         requiredGear: false,
         acquisitionLevel: AcquisitionLevelCodes.LANDING,
-      },
-      watchAllOptions: <LandingServiceWatchOptions>{
-        mapResult: (res: LoadResult<Landing>) => this.mapLandings(res),
       },
     });
 
@@ -882,7 +880,7 @@ export class LandingsTable
       }
     }
 
-    // Concat each divider and landings
+    // Merge landings and divider values
     const entities = dividerValues.reduce((acc, dividerValue) => {
       const divider = Landing.fromObject({
         measurementValues: { [this.dividerPmfmId]: dividerValue },
