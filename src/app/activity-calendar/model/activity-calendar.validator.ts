@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import {
   AppFormArray,
+  isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
@@ -163,7 +164,8 @@ export class ActivityCalendarValidatorService<
     return form;
   }
 
-  getGearUseFeaturesArray(data?: GearUseFeatures[], opts?: { maxLength?: number }) {
+  getGearUseFeaturesArray(data?: GearUseFeatures[], opts?: { maxLength?: number; required?: boolean }) {
+    const required = opts?.required || false;
     const formArray = new AppFormArray<GearUseFeatures, UntypedFormGroup>(
       (guf) => this.gearUseFeaturesValidatorService.getFormGroup(guf),
       ReferentialUtils.equals,
@@ -174,7 +176,11 @@ export class ActivityCalendarValidatorService<
       }
     );
     if (data) {
-      formArray.patchValue(data);
+      data = data?.filter(GearUseFeatures.isNotEmpty);
+      if (required && isEmptyArray(data)) {
+        data = [null];
+      }
+      formArray.patchValue(data || []);
     }
     return formArray;
   }
