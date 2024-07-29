@@ -182,10 +182,10 @@ export class EntityQualityFormComponent<
         await this.editor.updateView(data);
 
         // Construct error with details
-        if (isNil(errors.details)) {
+        if (isNotNil(errors.details)) {
           errors = <AppErrorWithDetails>{
             message: errors.message || data.qualificationComments || 'COMMON.FORM.HAS_ERROR',
-            details: { errors: errors as FormErrors },
+            details: { errors: errors.details as FormErrors },
           };
         } else {
           errors.message = errors.message || data.qualificationComments || 'COMMON.FORM.HAS_ERROR';
