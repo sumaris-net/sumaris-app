@@ -19,6 +19,7 @@ export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 
 export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'blank-form';
+export type ObservedLocationReportType = 'legacy' | 'form' | 'blank-form';
 
 export type ActivityCalendarReportType = 'form' | 'blank-form';
 
@@ -842,6 +843,31 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_ENABLE',
     type: 'boolean',
     defaultValue: 'false',
+  },
+  OBSERVED_LOCATION_REPORT_TYPE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.type',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_TYPE',
+    type: 'enums',
+    values: [
+      {
+        key: <ObservedLocationReportType>'legacy',
+        value: 'OBSERVED_LOCATION.REPORT.REPORT_TYPE.LEGACY',
+      },
+      {
+        key: <ObservedLocationReportType>'form',
+        value: 'OBSERVED_LOCATION.REPORT.REPORT_TYPE.FORM',
+      },
+      {
+        key: <ObservedLocationReportType>'blank-form',
+        value: 'OBSERVED_LOCATION.REPORT.REPORT_TYPE.BLANK_FORM',
+      },
+    ],
+    autocomplete: {
+      columnNames: ['key', 'value'],
+      columnSizes: [4, 8],
+      displayWith: (p) => p?.key,
+    },
+    defaultValue: <ObservedLocationReportType>'legacy',
   },
   OBSERVED_LOCATION_CONTROL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.control.enable',

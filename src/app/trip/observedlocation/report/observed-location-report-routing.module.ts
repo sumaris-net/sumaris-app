@@ -9,6 +9,10 @@ const routes: Routes = [
     pathMatch: 'full',
     component: ObservedLocationReport,
   },
+  {
+    path: 'form',
+    loadChildren: () => import('./form/form-observed-location-report-routing.module').then((m) => m.FormObservedLocationReportRoutingModule),
+  },
 ];
 
 @NgModule({
