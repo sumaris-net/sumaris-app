@@ -75,6 +75,10 @@ export class ActivityCalendarValidatorService<
           measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
         });
     }
+    if (opts.withAllMonths) {
+      form.setValidators(this.validateNumberMonths);
+      form.updateValueAndValidity();
+    }
 
     return form;
   }
@@ -258,6 +262,18 @@ export class ActivityCalendarValidatorService<
     opts.pmfms = opts.pmfms || (opts.strategy?.denormalizedPmfms || []).filter((p) => p.acquisitionLevel === AcquisitionLevelCodes.MONTHLY_ACTIVITY);
 
     return opts;
+  }
+
+  validateNumberMonths(group: FormArray): ValidationErrors | null {
+    const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!months) {
+      return null;
+    }
+
+    if (months && months.length !== 12) {
+      return { invalidMonthNumbers: true };
+    }
+    return null;
   }
 }
 export class ActivityCalendarValidators {
