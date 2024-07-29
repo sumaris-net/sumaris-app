@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { GraphqlService } from '@sumaris-net/ngx-components';
 import { TripReportService } from '../trip-report.service';
 import { FormExtractionData, FormSpeciesLength, FormSpeciesList, FormStation, FormTrip } from './form-trip-report.model';
-import { SelectivityExtractionData } from '../selectivity/selectivity-trip-report.model';
 import { ExtractionCacheDurationType, ExtractionFilter } from '@app/extraction/type/extraction-type.model';
 import { FetchPolicy } from '@apollo/client/core';
 

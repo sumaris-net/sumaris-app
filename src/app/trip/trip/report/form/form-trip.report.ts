@@ -196,7 +196,7 @@ export class FormTripReportStats extends BaseReportStats {
 export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripReportStats> {
   public static readonly isBlankFormParam = 'isBlankForm';
 
-  protected logPrefix = 'trip-form-report';
+  protected logPrefix = 'form-trip-report';
   protected isBlankForm: boolean;
   protected subReportType: string;
   protected latLongPattern: LatLongPattern;
@@ -457,7 +457,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   }
 
   protected computeShareBasePath(): string {
-    // TODO
     return 'trips/report/form';
   }
 

@@ -19,6 +19,7 @@ import {
   HistoryPageReference,
   isNil,
   isNotNil,
+  Property,
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
@@ -29,7 +30,7 @@ import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
 import { ObservedLocation } from './observed-location.model';
 import { Landing } from '../landing/landing.model';
-import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
+import { LandingEditor, ObservedLocationReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap } from 'rxjs/operators';
@@ -71,6 +72,7 @@ export interface ObservedLocationPageState extends RootDataEntityEditorState {
 
   location: ReferentialRef;
   startDateTime: Moment;
+  reportTypes: Property[];
 }
 
 @Component({
@@ -114,6 +116,7 @@ export class ObservedLocationPage
 
   @RxStateProperty() landingTableType: LandingTableType;
   @RxStateProperty() landingTable: ILandingsTable;
+  @RxStateProperty() protected reportTypes: Property[];
 
   @Input() showToolbar = true;
   @Input() showQualityForm = true;
@@ -152,6 +155,17 @@ export class ObservedLocationPage
 
     this._state.connect('startDateTime', this.observedLocationForm.startDateTimeChanges);
     this._state.connect('location', this.observedLocationForm.locationChanges);
+    this._state.connect(
+      'reportTypes',
+      this.program$.pipe(
+        map((program) => {
+          return program.getPropertyAsStrings(ProgramProperties.OBSERVED_LOCATION_REPORT_TYPE).map((key) => {
+            const values = ProgramProperties.OBSERVED_LOCATION_REPORT_TYPE.values as Property[];
+            return values.find((item) => item.key === key);
+          });
+        })
+      )
+    );
 
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
@@ -524,12 +538,15 @@ export class ObservedLocationPage
     }
   }
 
-  async openReport() {
+  async openReport(reportType?: ObservedLocationReportType) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+
+    if (!reportType) reportType = this.reportTypes.length === 1 ? <ObservedLocationReportType>this.reportTypes[0].key : 'legacy';
+    const reportPath = reportType !== <ObservedLocationReportType>'legacy' ? reportType.split('-') : [];
+    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...reportPath].join('/'));
   }
 
   async copyLocally() {
