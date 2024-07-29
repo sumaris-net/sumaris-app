@@ -76,7 +76,7 @@ export class ActivityCalendarValidatorService<
         });
     }
     if (opts.withAllMonths) {
-      form.setValidators(this.validateNumberMonths);
+      form.setValidators(this.validateMonthNumbers);
       form.updateValueAndValidity();
     }
 
@@ -264,7 +264,7 @@ export class ActivityCalendarValidatorService<
     return opts;
   }
 
-  validateNumberMonths(group: FormArray): ValidationErrors | null {
+  validateMonthNumbers(group: FormArray): ValidationErrors | null {
     const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
     if (!months) {
       return null;
