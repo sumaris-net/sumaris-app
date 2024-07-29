@@ -23,6 +23,7 @@ import {
   equals,
   getPropertyByPath,
   HAMMER_TAP_TIME,
+  HammerTapEvent,
   IEntitiesService,
   InMemoryEntitiesService,
   isEmptyArray,
@@ -166,7 +167,6 @@ export interface CalendarComponentState extends BaseMeasurementsTableState {
   hasClipboard: boolean;
   availablePrograms: ReferentialRef[];
   hasConflict: boolean;
-  cellSelection: TableCellSelection<ActivityMonth>;
 }
 
 export type CalendarComponentStyle = 'table' | 'accordion';
@@ -217,7 +217,7 @@ export class CalendarComponent
   implements OnInit, AfterViewInit
 {
   protected referentialRefService = inject(ReferentialRefService);
-  protected cellSelectionResizing$ = new Subject<TableCellSelection<ActivityMonth>>();
+  protected movingCellSelection$ = new Subject<TableCellSelection<ActivityMonth>>();
 
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
@@ -232,12 +232,13 @@ export class CalendarComponent
   protected readonly qualityFlagId = Object.freeze(QualityFlagIds);
 
   protected rowSubscription: Subscription;
+  protected cellSelection: TableCellSelection<ActivityMonth>;
   protected cellClipboard: TableCellSelection<ActivityMonth>;
   protected _children: CalendarComponent[];
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
-  @RxStateProperty() protected cellSelection: TableCellSelection<ActivityMonth>;
+  protected readonlyColumnCount: number;
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -248,6 +249,7 @@ export class CalendarComponent
   @RxStateProperty() hasConflict: boolean;
 
   @Output() copyAllClick: EventEmitter<ActivityMonth[]> = new EventEmitter<ActivityMonth[]>();
+  @Output() startCellSelection: EventEmitter<void> = new EventEmitter();
 
   @Input() @RxStateProperty() months: Moment[];
 
@@ -406,6 +408,7 @@ export class CalendarComponent
       this.vesselOwnerDisplayAttributes || this.settings.getFieldDisplayAttributes('vesselOwner', ['lastName', 'firstName']);
     this.inlineEdition = this.inlineEdition && this.canEdit;
     this.enableCellSelection = toBoolean(this.enableCellSelection, this.inlineEdition && this.style === 'table' && this.canEdit);
+    this.readonlyColumnCount = ACTIVITY_MONTH_READONLY_COLUMNS.filter((c) => !this.excludesColumns.includes(c)).length;
 
     // Wait enumerations to be set
     await this.referentialRefService.ready();
@@ -519,7 +522,7 @@ export class CalendarComponent
         .subscribe(() => this.clearClipboard(null, { clearContext: false }))
     );
 
-    this._state.hold(this.cellSelectionResizing$.pipe(debounceTime(250)), (cellSelection) => this.expandCellSelection(cellSelection));
+    this._state.hold(this.movingCellSelection$.pipe(debounceTime(250)), (cellSelection) => this.expandCellSelection(cellSelection));
   }
 
   ngAfterViewInit() {
@@ -766,7 +769,7 @@ export class CalendarComponent
     }
   }
 
-  async onMouseDown(event: MouseEvent, cellElement: HTMLTableCellElement, row: AsyncTableElement<any>, columnName: string, axis?: 'x' | 'y') {
+  async onMouseDown(event: MouseEvent, cellElement: HTMLElement, row: AsyncTableElement<any>, columnName: string, axis?: 'x' | 'y') {
     if (!cellElement) throw new Error('Missing cell element');
 
     event.preventDefault();
@@ -789,7 +792,7 @@ export class CalendarComponent
       if (this.cellSelection.validating) return false;
 
       // If action comes from the bottom-right cell, then extend the current selection
-      if (this.isRightAndBottomCellSelected(this.cellSelection, row, columnName)) {
+      if (!axis && this.isRightAndBottomCellSelected(this.cellSelection, row, columnName)) {
         this.cellSelection.resizing = true;
         return true;
       }
@@ -814,7 +817,11 @@ export class CalendarComponent
       resizing: true,
     };
 
+    // Resize the cell selection
     this.resizeCellSelection(this.cellSelection, 'cell');
+
+    // Emit start cell selection event
+    this.startCellSelection.next();
 
     return true;
   }
@@ -828,7 +835,7 @@ export class CalendarComponent
     // DEBUG
     if (this.debug) console.debug(this.logPrefix + `Moving cell selection (validating: ${cellSelection?.validating || false})`);
 
-    const { axis, cellRect, row } = cellSelection;
+    const { axis, cellRect, row, cellElement } = cellSelection;
     if (!cellRect) return; // Missing cellRect
 
     const movementX = axis !== 'y' ? event.clientX + containerElement.scrollLeft - cellSelection.originalMouseX : 0;
@@ -859,7 +866,7 @@ export class CalendarComponent
       rowspan = Math.min(rowspan, this.displayedColumns.length - RESERVED_END_COLUMNS.length - columnIndex);
     } else {
       // Lower limit
-      rowspan = Math.max(rowspan, -1 * (columnIndex + 1 - RESERVED_START_COLUMNS.length - ACTIVITY_MONTH_READONLY_COLUMNS.length));
+      rowspan = Math.max(rowspan, -1 * (columnIndex + 1 - RESERVED_START_COLUMNS.length - this.readonlyColumnCount));
     }
 
     if (cellSelection.colspan !== colspan || cellSelection.rowspan !== rowspan) {
@@ -867,9 +874,13 @@ export class CalendarComponent
       cellSelection.rowspan = rowspan;
 
       this.resizeCellSelection(cellSelection, 'cell', { autoExpand: false });
-      this.cellSelectionResizing$.next(cellSelection);
-    } else {
-      if (this.debug) console.debug(this.logPrefix + 'Cell selection unchanged: skipping');
+
+      // Emit mouse move trigger, to expand cell selection
+      this.movingCellSelection$.next(cellSelection);
+    }
+    // Same cell selection: log if debug
+    else if (this.debug) {
+      console.debug(this.logPrefix + 'Cell selection unchanged: skipping');
     }
   }
 
@@ -915,7 +926,7 @@ export class CalendarComponent
     event?.stopPropagation();
 
     // DEBUG
-    //console.debug(`${this.logPrefix}Shift+click`, event, row, columnName);
+    console.debug(`${this.logPrefix}Shift+click`, event, row, columnName);
     let cellSelection = this.cellSelection;
 
     // No existing selection, but edited Row
@@ -988,9 +999,6 @@ export class CalendarComponent
 
     this.closeContextMenu();
 
-    //event?.preventDefault();
-    //event?.stopPropagation();
-
     // DEBUG
     console.debug(`${this.logPrefix}Ctrl+click`, event, row, columnName);
 
@@ -1000,6 +1008,7 @@ export class CalendarComponent
     // Select the targeted cell
     const cellElement = this.getEventCellElement(event);
     if (!cellElement) return false;
+
     this.cellSelection = {
       divElement: this.cellSelectionDivRef.nativeElement,
       cellElement,
@@ -1009,7 +1018,12 @@ export class CalendarComponent
       rowspan: 1,
       resizing: false,
     };
+
+    // Resize the new cell selection
     this.resizeCellSelection(this.cellSelection, 'cell');
+
+    // Emit start cell selection event
+    this.startCellSelection.next();
 
     return true;
   }
@@ -1051,8 +1065,8 @@ export class CalendarComponent
       height: relativeCellRect.height,
     };
 
-    const colspan = toNumber(cellSelection.colspan, divRect.width / toNumber(previousCellRect?.width, relativeCellRect.width));
-    const rowspan = toNumber(cellSelection.rowspan, divRect.height / toNumber(previousCellRect?.height, relativeCellRect.width));
+    const colspan = toNumber(cellSelection.colspan, divRect.width / toNumber(previousCellRect?.width, relativeCellRect.width)) || 1;
+    const rowspan = toNumber(cellSelection.rowspan, divRect.height / toNumber(previousCellRect?.height, relativeCellRect.width)) || 1;
 
     let top = relativeCellRect.top;
     let left = relativeCellRect.left + (containerElement.scrollLeft || 0) - containerRect.left;
@@ -1075,6 +1089,12 @@ export class CalendarComponent
     divElement.style.left = left + 'px';
     divElement.style.width = width + 'px';
     divElement.style.height = height + 'px';
+
+    // Update original mouse x/Y, need for next resizing
+    if (isNil(cellSelection.originalMouseX) || isNil(cellSelection.originalMouseY)) {
+      cellSelection.originalMouseY = relativeCellRect.top + containerElement.scrollTop + cellElement.clientHeight;
+      cellSelection.originalMouseX = relativeCellRect.left + containerElement.scrollLeft + cellElement.clientWidth;
+    }
 
     if (opts?.emitEvent !== false) {
       this.markForCheck();
@@ -1100,9 +1120,11 @@ export class CalendarComponent
   }
 
   async dblClickRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>): Promise<boolean> {
-    if (event?.defaultPrevented) return false; // Skip
+    if (event?.defaultPrevented || !this.inlineEdition || this.readOnly || !this.canEdit) return false; // Skip
 
     this.closeContextMenu();
+
+    event?.preventDefault();
 
     // Wait of resizing or validating
     if (this.cellSelection?.resizing || this.cellSelection?.validating) {
@@ -1118,9 +1140,13 @@ export class CalendarComponent
     return super.clickRow(event, row);
   }
 
-  async clickRow(event?: Event, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+  async clickRow(event?: HammerTapEvent | Event, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+    if (event?.defaultPrevented || row.editing) return false; // Skip
+
     // Add a delay, to allow double click to cancel the click event
-    await sleep(HAMMER_TAP_TIME + 10);
+    if (this.inlineEdition && !this.readOnly && this.canEdit) {
+      await sleep(HAMMER_TAP_TIME + 10);
+    }
 
     if (event?.defaultPrevented || row.editing) return false; // Skip
 
@@ -1132,7 +1158,8 @@ export class CalendarComponent
     }
 
     // If Click+Shift
-    if (event instanceof MouseEvent && event.shiftKey === true) {
+    event = (event as HammerTapEvent)?.srcEvent || event;
+    if ((event instanceof MouseEvent || event instanceof PointerEvent) && event.shiftKey === true) {
       return this.onMouseShiftClick(event, row, this.focusColumn);
     }
 
@@ -1589,6 +1616,25 @@ export class CalendarComponent
     super.markAsDirty(opts);
   }
 
+  removeCellSelection(opts?: { emitEvent?: boolean }) {
+    if (!this.cellSelection) return;
+    const { divElement, cellRect } = this.cellSelection;
+    if (!divElement || !cellRect) return;
+
+    // Forget the current selection
+    this.cellSelection = null;
+
+    // Reset the div size
+    divElement.style.width = cellRect.width + 'px';
+    divElement.style.height = cellRect.height + 'px';
+
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
+    }
+  }
+
+  /* -- protected functions -- */
+
   protected setMetierBlockExpanded(blockIndex: number, expanded: boolean, opts?: { emitEvent?: boolean }) {
     const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return;
@@ -2043,23 +2089,6 @@ export class CalendarComponent
     return true;
   }
 
-  protected removeCellSelection(opts?: { emitEvent?: boolean }) {
-    if (!this.cellSelection) return;
-    const { divElement, cellRect } = this.cellSelection;
-    if (!divElement || !cellRect) return;
-
-    // Forget the current selection
-    this.cellSelection = null;
-
-    // Reset the div size
-    divElement.style.width = cellRect.width + 'px';
-    divElement.style.height = cellRect.height + 'px';
-
-    if (opts?.emitEvent !== false) {
-      this.markForCheck();
-    }
-  }
-
   protected clearClipboard(event?: Event, opts?: { clearContext?: boolean }) {
     event?.preventDefault();
     event?.stopPropagation();
@@ -2074,12 +2103,7 @@ export class CalendarComponent
     }
   }
 
-  protected async onContextMenu(
-    event: MouseEvent,
-    cell?: HTMLElement | HTMLTableCellElement,
-    row?: AsyncTableElement<ActivityMonth>,
-    columnName?: string
-  ) {
+  protected async onContextMenu(event: MouseEvent, cell?: HTMLElement, row?: AsyncTableElement<ActivityMonth>, columnName?: string) {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
     if (!row || !columnName) {
@@ -2098,7 +2122,7 @@ export class CalendarComponent
     if (this.cellSelection?.row !== row || this.cellSelection?.columnName !== columnName) {
       if (!this.isCellSelected(this.cellSelection, row, columnName)) {
         this.removeCellSelection();
-        await this.onMouseDown(event, cell as HTMLTableCellElement, row, columnName);
+        await this.onMouseDown(event, cell, row, columnName);
         await this.onMouseUp(event);
       }
     }

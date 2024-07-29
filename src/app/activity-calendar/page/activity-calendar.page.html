@@ -343,6 +343,7 @@
             [strategyId]="(strategy$ | async)?.id"
             [timezone]="timezone"
             [debug]="debug"
+            (startCellSelection)="predocCalendar?.removeCellSelection()"
           ></app-calendar>
         </as-split-area>
 
@@ -369,6 +370,7 @@
             [compact]="calendar.compact"
             [debug]="debug"
             (copyAllClick)="copyAndPastePredoc($event)"
+            (startCellSelection)="calendar.removeCellSelection()"
           >
             <!-- toggle predoc -->
             <div matToolbarStart *ngTemplateOutlet="togglePredocButton"></div>
