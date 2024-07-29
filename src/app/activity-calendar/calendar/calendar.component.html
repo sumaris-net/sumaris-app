@@ -474,8 +474,7 @@
                   [formControl]="control"
                   [config]="col.autocomplete"
                   [autofocus]="focusColumn === col.key"
-                  [class]="mobile && 'min-width-80vw'"
-                  [panelWidth]="!mobile && '500px'"
+                  [panelWidth]="mobile ? '80vw' : '500px'"
                   [floatLabel]="'never'"
                 ></mat-autocomplete-field>
               } @else if (inlineEdition) {
