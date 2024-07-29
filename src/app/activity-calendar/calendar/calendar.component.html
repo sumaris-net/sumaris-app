@@ -363,14 +363,7 @@
 
       <!-- Pmfms columns -->
       <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as index; odd as odd" [matColumnDef]="pmfm.id || index | toString">
-        <mat-header-cell
-          *matHeaderCellDef
-          class="mat-column-pmfm mat-column-{{ pmfm.label }}"
-          [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
-          [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
-          [class.odd]="odd"
-          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
-        >
+        <mat-header-cell *matHeaderCellDef class="mat-column-pmfm mat-column-{{ pmfm.label }}" [class.odd]="odd">
           <ion-label
             [innerHTML]="
               pmfm
@@ -389,10 +382,6 @@
           #cell
           *matCellDef="let row"
           class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-resizable"
-          [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
-          [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
-          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
-          [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
           [class.odd]="odd"
           (click)="focusColumn = (pmfm.id || index).toString()"
           (contextmenu)="onContextMenu($event, cell, row, (pmfm.id || index).toString())"
@@ -403,6 +392,7 @@
               [innerHTML]="row.currentData | measurementValueGet: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"
             ></ion-text>
           } @else {
+            @if (inlineEdition && row.validator | formGetControl: ['measurementValues', pmfm.id]; as control) {}
             <!-- desktop -->
             @if (row.editing && (row.validator | formGetValue: 'isActive') === 1) {
               <app-pmfm-field
@@ -440,7 +430,7 @@
         <ng-container [matColumnDef]="col.key">
           <mat-header-cell
             *matHeaderCellDef
-            class="{{ col.class }}"
+            [class]="col.class"
             [class.collapsed]="col.hidden"
             [class.tappable]="col.expanded !== undefined"
             (click)="(col.expanded !== undefined || col.hidden) && col.toggle($event)"
@@ -460,25 +450,27 @@
           <mat-cell
             #cell
             *matCellDef="let row"
-            class="{{ col.class }}"
+            [class]="col.class"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
             (click)="col.hidden ? col.expand($event) : setFocusColumn($event, row, col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
           >
             @if (!col.hidden) {
-              @if (row.editing && row.validator?.get(col.path) | formGetControl; as control) {
-                <mat-autocomplete-field
-                  [placeholder]="col.placeholder"
-                  [formControl]="control"
-                  [config]="col.autocomplete"
-                  [autofocus]="focusColumn === col.key"
-                  [panelWidth]="mobile ? '80vw' : '500px'"
-                  [floatLabel]="'never'"
-                ></mat-autocomplete-field>
-              } @else if (inlineEdition) {
-                @if (row.validator?.get(col.path) | formGetValue | referentialToString: col.autocomplete.attributes; as label) {
-                  <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
+              @if (inlineEdition && row.validator | formGetControl: col.path; as control) {
+                @if (row.editing) {
+                  <mat-autocomplete-field
+                    [placeholder]="col.placeholder"
+                    [formControl]="control"
+                    [config]="col.autocomplete"
+                    [autofocus]="focusColumn === col.key"
+                    [panelWidth]="mobile ? '80vw' : '500px'"
+                    [floatLabel]="'never'"
+                  ></mat-autocomplete-field>
+                } @else {
+                  @if (control | formGetValue | referentialToString: col.autocomplete.attributes; as label) {
+                    <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
+                  }
                 }
               } @else {
                 @if (row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
@@ -486,7 +478,11 @@
                 }
               }
               <!-- resize handlers -->
-              <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key, x: true, y: false }"></ng-container>
+              @if (enableCellSelection) {
+                <ng-container
+                  *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key, x: true, y: false }"
+                ></ng-container>
+              }
             }
           </mat-cell>
         </ng-container>
@@ -568,8 +564,8 @@
         [class.duplicated]="(row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL"
         (keydown.escape)="escapeEditingRow($event)"
         [cdkTrapFocus]="!row.valid"
+        (tap)="clickRow($event, row)"
         (dblclick)="dblClickRow($event, row)"
-        (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></mat-row>
     </mat-table>

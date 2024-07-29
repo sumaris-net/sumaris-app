@@ -96,6 +96,10 @@ mat-toolbar {
       }
     }
 
+    .mat-column-pmfm {
+
+    }
+
     /* Disable other columns */
     &.activity-not-exists .mat-mdc-cell,
     &.activity-inactive .mat-mdc-cell {

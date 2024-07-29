@@ -22,6 +22,7 @@ import {
   EntityUtils,
   equals,
   getPropertyByPath,
+  HAMMER_TAP_TIME,
   IEntitiesService,
   InMemoryEntitiesService,
   isEmptyArray,
@@ -165,6 +166,7 @@ export interface CalendarComponentState extends BaseMeasurementsTableState {
   hasClipboard: boolean;
   availablePrograms: ReferentialRef[];
   hasConflict: boolean;
+  cellSelection: TableCellSelection<ActivityMonth>;
 }
 
 export type CalendarComponentStyle = 'table' | 'accordion';
@@ -215,6 +217,7 @@ export class CalendarComponent
   implements OnInit, AfterViewInit
 {
   protected referentialRefService = inject(ReferentialRefService);
+  protected cellSelectionResizing$ = new Subject<TableCellSelection<ActivityMonth>>();
 
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
@@ -229,13 +232,12 @@ export class CalendarComponent
   protected readonly qualityFlagId = Object.freeze(QualityFlagIds);
 
   protected rowSubscription: Subscription;
-  protected cellSelection: TableCellSelection<ActivityMonth>;
   protected cellClipboard: TableCellSelection<ActivityMonth>;
   protected _children: CalendarComponent[];
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
-  protected $resizingSubject = new Subject<boolean>();
+  @RxStateProperty() protected cellSelection: TableCellSelection<ActivityMonth>;
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -516,12 +518,8 @@ export class CalendarComponent
         )
         .subscribe(() => this.clearClipboard(null, { clearContext: false }))
     );
-    //TODO BLA FIX DEBOUNCE ERROR
-    this.registerSubscription(
-      this.$resizingSubject.pipe(debounceTime(0)).subscribe(() => {
-        this.expendsRezising();
-      })
-    );
+
+    this._state.hold(this.cellSelectionResizing$.pipe(debounceTime(250)), (cellSelection) => this.expandCellSelection(cellSelection));
   }
 
   ngAfterViewInit() {
@@ -775,7 +773,8 @@ export class CalendarComponent
     event.stopPropagation();
 
     const divElement = this.cellSelectionDivRef.nativeElement as HTMLDivElement;
-    if (!divElement) return false;
+    const containerElement = this.tableContainerElement;
+    if (!divElement || !containerElement) return false;
 
     this.closeContextMenu();
 
@@ -808,8 +807,8 @@ export class CalendarComponent
       row,
       columnName,
       axis,
-      originalMouseX: event.clientX,
-      originalMouseY: event.clientY,
+      originalMouseX: event.clientX + containerElement.scrollLeft,
+      originalMouseY: event.clientY + containerElement.scrollTop,
       colspan: 1,
       rowspan: 1,
       resizing: true,
@@ -827,26 +826,23 @@ export class CalendarComponent
     if (!cellSelection?.resizing || cellSelection.validating || event.defaultPrevented) return; // Ignore
 
     // DEBUG
-    if (this.debug) console.debug(this.logPrefix + 'Moving cell selection validating=' + (cellSelection?.validating || false));
+    if (this.debug) console.debug(this.logPrefix + `Moving cell selection (validating: ${cellSelection?.validating || false})`);
 
     const { axis, cellRect, row } = cellSelection;
     if (!cellRect) return; // Missing cellRect
 
-    const movementX = axis !== 'y' ? event.clientX - cellSelection.originalMouseX : 0;
-    const movementY = axis !== 'x' ? event.clientY - cellSelection.originalMouseY : 0;
+    const movementX = axis !== 'y' ? event.clientX + containerElement.scrollLeft - cellSelection.originalMouseX : 0;
+    const movementY = axis !== 'x' ? event.clientY + containerElement.scrollTop - cellSelection.originalMouseY : 0;
 
     let colspan = Math.max(cellRect.width, Math.round((cellRect.width + Math.abs(movementX)) / cellRect.width) * cellRect.width) / cellRect.width;
     let rowspan =
       Math.max(cellRect.height, Math.round((cellRect.height + Math.abs(movementY)) / cellRect.height) * cellRect.height) / cellRect.height;
-    const rowspanShift =
-      Math.max(cellRect.height, Math.round((cellRect.height + Math.abs(containerElement.scrollTop)) / cellRect.height) * cellRect.height) /
-      cellRect.height;
 
     // Manage negative
     if (movementX < 0 && colspan > 1) colspan = -1 * (colspan - 1);
     if (movementY < 0 && rowspan > 1) rowspan = -1 * (rowspan - 1);
 
-    // Check limits
+    // Check row limits
     const rowIndex = row.id;
     if (colspan >= 0) {
       // Upper limit
@@ -855,6 +851,8 @@ export class CalendarComponent
       // Lower limit
       colspan = Math.max(colspan, -1 * (rowIndex + 1));
     }
+
+    // Check col limits
     const columnIndex = this.displayedColumns.indexOf(cellSelection.columnName);
     if (rowspan >= 0) {
       // Upper limit
@@ -864,12 +862,15 @@ export class CalendarComponent
       rowspan = Math.max(rowspan, -1 * (columnIndex + 1 - RESERVED_START_COLUMNS.length - ACTIVITY_MONTH_READONLY_COLUMNS.length));
     }
 
-    cellSelection.colspan = colspan;
-    cellSelection.rowspan = rowspan + (rowspanShift - 1);
+    if (cellSelection.colspan !== colspan || cellSelection.rowspan !== rowspan) {
+      cellSelection.colspan = colspan;
+      cellSelection.rowspan = rowspan;
 
-    //this.expendsRezising();
-    this.resizeCellSelection(cellSelection);
-    this.$resizingSubject.next(true);
+      this.resizeCellSelection(cellSelection, 'cell', { autoExpand: false });
+      this.cellSelectionResizing$.next(cellSelection);
+    } else {
+      if (this.debug) console.debug(this.logPrefix + 'Cell selection unchanged: skipping');
+    }
   }
 
   @HostListener('document:mouseup', ['$event'])
@@ -971,14 +972,7 @@ export class CalendarComponent
     }
 
     // Expand blocks if need
-    const { paths: selectedPaths } = this.getRowsFromSelection(cellSelection);
-
-    // Expand some column, if need
-    const collapsedColumns = this.dynamicColumns.filter((col) => col.toggle && !col.expanded && selectedPaths.includes(col.path));
-    if (isNotEmptyArray(collapsedColumns)) {
-      collapsedColumns.forEach((col) => col.toggle());
-      await sleep(100); // Wait end of expansion
-    }
+    //await this.expandCellSelection(cellSelection);
 
     this.cellSelection = cellSelection;
     this.resizeCellSelection(cellSelection, 'cell');
@@ -986,19 +980,19 @@ export class CalendarComponent
     return true;
   }
 
-  async onMouseCtrlClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
+  async onMouseCtrlClick(event: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
 
-    if (!row || !columnName) return false; // Skip
+    if (!row || !columnName || !event) return false; // Skip
 
     this.closeContextMenu();
 
-    event?.preventDefault();
-    event?.stopPropagation();
+    //event?.preventDefault();
+    //event?.stopPropagation();
 
     // DEBUG
-    //console.debug(`${this.logPrefix}Ctrl+click`, event, row, columnName);
+    console.debug(`${this.logPrefix}Ctrl+click`, event, row, columnName);
 
     const confirmed = await this.confirmEditCreate();
     if (!confirmed) return false;
@@ -1033,7 +1027,7 @@ export class CalendarComponent
     setTimeout(() => this.onResize());
   }
 
-  protected resizeCellSelection(cellSelection: TableCellSelection, name?: string, opts?: { emitEvent?: boolean }) {
+  protected resizeCellSelection(cellSelection: TableCellSelection, name = 'cell', opts?: { emitEvent?: boolean; autoExpand?: boolean }) {
     if (!cellSelection) return;
 
     const containerElement = this.tableContainerElement;
@@ -1043,7 +1037,7 @@ export class CalendarComponent
     if (!cellElement || !divElement) return;
 
     // DEBUG
-    //console.debug(`${this.logPrefix}Resizing ${name || 'cell'} selection...`);
+    console.debug(`${this.logPrefix}Resizing ${name} selection...`);
 
     const containerRect = containerElement.getBoundingClientRect();
     const relativeCellRect = cellElement.getBoundingClientRect();
@@ -1072,20 +1066,8 @@ export class CalendarComponent
       left = relativeCellRect.left + relativeCellRect.width - width - containerRect.left + (containerElement.scrollLeft || 0);
     }
 
-    // TODO - Check top limit
-    /*const maxTop = containerElement.offsetTop - containerElement.scrollTop;
-    //console.log('TODO maxTop=' + maxTop);
-    if (top < maxTop) {
-      //height -= maxTop - top;
-      //top = containerElement.offsetTop + containerElement.scrollTop;
-    }
-    // Check height limit
-    if (top + height > containerElement.clientHeight) {
-      //height = top + containerElement.clientHeight;
-    }*/
-
     // DEBUG
-    // console.debug(`${this.logPrefix}Resizing to top=${top} left=${left} width=${width} height=${height}`);
+    // console.debug(`${this.logPrefix}Resizing ${name} to top=${top} left=${left} width=${width} height=${height}`);
 
     // Resize the shadow element
     divElement.style.position = 'fixed';
@@ -1096,6 +1078,10 @@ export class CalendarComponent
 
     if (opts?.emitEvent !== false) {
       this.markForCheck();
+    }
+
+    if (opts?.autoExpand !== false) {
+      this.expandCellSelection(cellSelection);
     }
   }
 
@@ -1118,19 +1104,32 @@ export class CalendarComponent
 
     this.closeContextMenu();
 
+    // Wait of resizing or validating
+    if (this.cellSelection?.resizing || this.cellSelection?.validating) {
+      await waitFor(() => !this.cellSelection?.resizing && !this.cellSelection?.validating, { stop: this.destroySubject });
+    }
+
+    // DEBUG
+    console.debug(`${this.logPrefix}Double+click`, event, row, this.focusColumn);
+
     // Forget the cell selection
     this.removeCellSelection();
 
     return super.clickRow(event, row);
   }
 
-  async clickRow(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+  async clickRow(event?: Event, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+    // Add a delay, to allow double click to cancel the click event
+    await sleep(HAMMER_TAP_TIME + 10);
+
     if (event?.defaultPrevented || row.editing) return false; // Skip
 
     this.closeContextMenu();
 
-    // If cell selection is resizing: skip
-    if (this.cellSelection?.resizing || this.cellSelection?.validating) return false;
+    // Wait of resizing or validating
+    if (this.cellSelection?.resizing || this.cellSelection?.validating) {
+      await waitFor(() => !this.cellSelection?.resizing && !this.cellSelection?.validating, { stop: this.destroySubject, timeout: 250 });
+    }
 
     // If Click+Shift
     if (event instanceof MouseEvent && event.shiftKey === true) {
@@ -1204,7 +1203,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}`,
             class: 'mat-column-fishingArea',
             treeIndent: '&nbsp;&nbsp;',
-            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
+            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`, true),
           },
           {
             blockIndex: index,
@@ -1219,7 +1218,7 @@ export class CalendarComponent
             treeIndent: '&nbsp;&nbsp',
             expanded: false,
             toggle: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
-            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
+            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`, true),
           },
           {
             blockIndex: index,
@@ -1232,7 +1231,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}depthGradient`,
             class: 'mat-column-depthGradient',
             treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
-            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
+            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`, true),
             hidden: true,
           },
           {
@@ -1246,7 +1245,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`,
             class: 'mat-column-nearbySpecificArea',
             treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
-            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
+            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`, true),
             hidden: true,
           },
         ];
@@ -1276,7 +1275,11 @@ export class CalendarComponent
 
   protected expandAll(event?: Event, opts?: { emitEvent?: boolean }) {
     for (let i = 0; i < this.metierCount; i++) {
-      this.expandMetierBlock(null, i);
+      this.expandMetierBlock(null, i, { emitEvent: false });
+    }
+
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
     }
   }
 
@@ -1456,11 +1459,12 @@ export class CalendarComponent
     const currentData = row.currentData;
     if (ActivityMonth.isEmpty(currentData)) return true; // Nothing to clear
 
-    const { month, startDate, endDate, registrationLocations } = currentData;
+    const { month, startDate, endDate, readonly, registrationLocations } = currentData;
     const data = ActivityMonth.fromObject({
       month,
       startDate,
       endDate,
+      readonly,
       registrationLocations,
       measurementValues: MeasurementValuesUtils.normalizeValuesToForm({}, this.pmfms),
       gearUseFeatures: new Array(this.maxMetierCount).fill({
@@ -1485,9 +1489,9 @@ export class CalendarComponent
     if (event?.defaultPrevented) return; // Skip
 
     for (let i = 0; i < this.metierCount; i++) {
-      this.collapseMetierBlock(null, i);
+      this.collapseMetierBlock(null, i, { emitEvent: false });
     }
-    this.removeCellSelection();
+    this.removeCellSelection(opts);
     this.clearClipboard(null, { clearContext: false });
   }
 
@@ -1507,7 +1511,7 @@ export class CalendarComponent
     }
   }
 
-  toggleMetierBlock(event: Event | undefined, key: string) {
+  toggleMetierBlock(event: Event | undefined, key: string, forceExpanded?: boolean) {
     if (event?.defaultPrevented) return; // Skip
     event?.preventDefault();
 
@@ -1519,26 +1523,27 @@ export class CalendarComponent
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
+    const expanded = toBoolean(forceExpanded, !masterColumn.expanded);
     // If will close: check if allow
     const subColumns = blockColumns.slice(1);
-    if (masterColumn.expanded && !this.onWillHideColumns(subColumns)) return;
+    if (!expanded && !this.onWillHideColumns(subColumns)) return;
 
     // Toggle expanded
-    masterColumn.expanded = !masterColumn.expanded;
+    masterColumn.expanded = expanded;
 
     subColumns.forEach((col) => {
       // Show/Hide sub columns
-      col.hidden = !masterColumn.expanded;
+      col.hidden = !expanded;
       // Expanded state for all columns to fix divergences states
       if (isNotNil(col.expanded)) {
-        col.expanded = masterColumn.expanded;
+        col.expanded = expanded;
       }
     });
 
     this.markForCheck();
   }
 
-  toggleGradientBlock(event: Event, keyPrefix: string) {
+  toggleGradientBlock(event: Event, keyPrefix: string, forceExpanded?: boolean) {
     if (event?.defaultPrevented) return; // Skip
     event?.preventDefault();
 
@@ -1550,31 +1555,33 @@ export class CalendarComponent
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
+    const expanded = toBoolean(forceExpanded, !masterColumn.expanded);
+
     // If will close: check if allow
     const subColumns = blockColumns.slice(1);
-    if (masterColumn.expanded && !this.onWillHideColumns(subColumns)) return;
+    if (!expanded && !this.onWillHideColumns(subColumns)) return;
 
     // Toggle expanded
-    masterColumn.expanded = !masterColumn.expanded;
+    masterColumn.expanded = expanded;
 
     // Show/Hide sub columns
-    subColumns.forEach((col) => (col.hidden = !masterColumn.expanded));
+    subColumns.forEach((col) => (col.hidden = !expanded));
 
     this.markForCheck();
   }
 
-  expandMetierBlock(event: Event, blockIndex: number) {
+  expandMetierBlock(event: Event, blockIndex: number, opts?: { emitEvent?: boolean }) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
-    this.setMetierBlockExpanded(blockIndex, true);
+    this.setMetierBlockExpanded(blockIndex, true, opts);
   }
 
-  collapseMetierBlock(event: Event, blockIndex: number) {
+  collapseMetierBlock(event: Event, blockIndex: number, opts?: { emitEvent?: boolean }) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
-    this.setMetierBlockExpanded(blockIndex, false);
+    this.setMetierBlockExpanded(blockIndex, false, opts);
   }
 
   markAsDirty(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -1582,7 +1589,7 @@ export class CalendarComponent
     super.markAsDirty(opts);
   }
 
-  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean) {
+  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean, opts?: { emitEvent?: boolean }) {
     const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return;
 
@@ -1600,6 +1607,10 @@ export class CalendarComponent
         col.expanded = expanded;
       }
     });
+
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
+    }
   }
 
   protected setFocusColumn(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, columnName: string) {
@@ -2193,11 +2204,27 @@ export class CalendarComponent
     this.hasConflict = true;
   }
 
-  protected expendsRezising() {
-    const { paths } = this.getRowsFromSelection(this.cellSelection);
-    const collapsedColumns = this.dynamicColumns.filter((col) => col.toggle && !col.expanded && paths.includes(col.path));
-    if (isNotEmptyArray(collapsedColumns)) {
-      collapsedColumns.forEach((col) => col.toggle());
+  protected expandCellSelection(cellSelection?: TableCellSelection<ActivityMonth>, opts?: { emitEvent?: boolean }) {
+    cellSelection = cellSelection || this.cellSelection;
+
+    if (!cellSelection) return; // Skip
+
+    const { paths } = this.getRowsFromSelection(cellSelection);
+    if (isEmptyArray(paths)) return; // Skip
+
+    const hiddenColumns = this.dynamicColumns.filter((col) => col.expand && col.hidden && paths.includes(col.path));
+    if (isEmptyArray(hiddenColumns)) return; // Skip
+
+    // DEBUG
+    console.debug(
+      this.logPrefix + 'Expand hidden paths:',
+      hiddenColumns.map((c) => c.path)
+    );
+
+    hiddenColumns.forEach((col) => col.expand());
+
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
     }
   }
 }
