@@ -3657,7 +3657,6 @@
     "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée",
     "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
     "GEOLOCATION_ERROR": "Erreur de récupération de la position. <small><br/>{{message}}</small>",
-    "MONTH_NUMBERS": "La saisie du calendrier n'est pas complète. Veuillez continuer la saisie",
     "SHARE_AS_PUBLIC_FAIL": "Échec du partage pulic"
   },
   "CONFIRM": {

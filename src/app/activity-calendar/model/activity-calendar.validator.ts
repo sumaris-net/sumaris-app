@@ -268,7 +268,9 @@ export class ActivityCalendarValidatorService<
     const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
     //TODO to discuss at the daily if we need to validate the months with spécifics method
     if (months && months.length !== 12) {
-      return { invalidMonthNumbers: true };
+      return {
+        v: {},
+      };
     }
     return null;
   }
