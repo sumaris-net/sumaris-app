@@ -79,6 +79,7 @@ import { ImageAttachmentFragments } from '@app/data/image/image-attachment.servi
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { ActivityCalendarUtils } from './activity-calendar.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -951,11 +952,16 @@ export class ActivityCalendarService
     if (!programLabel) throw new Error("Missing activityCalendar's program. Unable to control the activityCalendar");
     const program = await this.programRefService.loadByLabel(programLabel);
 
+    const catchPmfms = await this.programRefService.loadProgramPmfms(program.label, {
+      acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
+    });
+
     const form = this.validatorService.getFormGroup(entity, {
       ...opts,
       program,
       isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true, // Need by full validation
+      pmfms: catchPmfms,
     });
 
     if (!form.valid) {
