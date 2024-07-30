@@ -75,10 +75,6 @@ export class ActivityCalendarValidatorService<
           measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
         });
     }
-    if (opts.withAllMonths) {
-      form.setValidators(this.validateMonthNumbers);
-      form.updateValueAndValidity();
-    }
 
     return form;
   }
@@ -263,18 +259,8 @@ export class ActivityCalendarValidatorService<
 
     return opts;
   }
-
-  validateMonthNumbers(group: FormArray): ValidationErrors | null {
-    const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
-    //TODO to discuss at the daily if we need to validate the months with spécifics method
-    if (months && months.length !== 12) {
-      return {
-        v: {},
-      };
-    }
-    return null;
-  }
 }
+
 export class ActivityCalendarValidators {
   static validateMonthNumbers(group: FormArray): ValidationErrors | null {
     const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
