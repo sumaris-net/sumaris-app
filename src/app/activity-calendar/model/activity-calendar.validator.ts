@@ -75,10 +75,6 @@ export class ActivityCalendarValidatorService<
           measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
         });
     }
-    if (opts.withAllMonths) {
-      form.setValidators(this.validateMonthNumbers);
-      form.updateValueAndValidity();
-    }
 
     return form;
   }
@@ -130,20 +126,7 @@ export class ActivityCalendarValidatorService<
   }
 
   getFormGroupOptions(data?: ActivityCalendar, opts?: O): AbstractControlOptions | null {
-    const validators: ValidatorFn | ValidatorFn[] | null = null;
-
-    // Add a form group control, to make there is ont GUF, when isActive=true
-    // if (opts?.isOnFieldMode !== false) {
-    //   validators = (form) => {
-    //     const isActive = form.get('isActive').value;
-    //     console.log('TODO isActive=' + isActive);
-    //     if (isActive) {
-    //       return {required: true};
-    //     }
-    //     return null;
-    //   };
-    // }
-    //
+    const validators: ValidatorFn[] = [ActivityCalendarValidators.validetAnnualInactivity, ActivityCalendarValidators.validateMonthNumbers];
     return {
       ...super.getFormGroupOptions(data, opts),
       validators,
@@ -276,19 +259,43 @@ export class ActivityCalendarValidatorService<
 
     return opts;
   }
-
-  validateMonthNumbers(group: FormArray): ValidationErrors | null {
+}
+export class ActivityCalendarValidators {
+  static validateMonthNumbers(group: FormArray): ValidationErrors | null {
     const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
-    //TODO to discuss at the daily if we need to validate the months with spécifics method
     if (months && months.length !== 12) {
       return {
-        v: {},
+        invalidMonthNumbers: {},
       };
     }
     return null;
+  }
+
+  static validetAnnualInactivity(group: FormArray): ValidationErrors | null {
+    const pmfms = group.get('measurementValues')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!months && isNotNil(pmfms)) return null;
+    const vufs: VesselUseFeatures[] = [];
+    months.forEach((month) => {
+      vufs.push(VesselUseFeatures.fromObject(month));
+    });
+
+    const isComplete = months.length === 12;
+    const error = isComplete ? vufs.every((month: VesselUseFeatures) => month.isActive === 0) : false;
+
+    if (pmfms['452'] && isComplete && error) {
+      return null;
+    } else if (!pmfms['452'] && !error) {
+      return null;
+    } else {
+      return {
+        invalidAnnualInactivity: {},
+      };
+    }
   }
 }
 
 export const ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS = {
   invalidMonthNumbers: 'ACTIVITY_CALENDAR.ERROR.MONTH_NUMBERS',
+  invalidAnnualInactivity: 'ACTIVITY_CALENDAR.ERROR.ANNUAL_INACTIVITY',
 };

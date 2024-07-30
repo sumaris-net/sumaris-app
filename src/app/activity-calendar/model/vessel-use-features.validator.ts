@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { LocalSettingsService } from '@sumaris-net/ngx-components';
+import { LocalSettingsService, toNumber } from '@sumaris-net/ngx-components';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { VesselUseFeatures } from './vessel-use-features.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
@@ -44,5 +44,14 @@ export class VesselUseFeaturesValidatorService<O extends VesselUseFeaturesValida
 
     const form = super.getFormGroup(data, opts);
     return form;
+  }
+
+  getFormGroupConfig(data?: VesselUseFeatures, opts?: O): { [key: string]: any } {
+    const config = Object.assign(super.getFormGroupConfig(data, opts), {
+      __typename: [VesselUseFeatures.TYPENAME],
+      isActive: [toNumber(data?.isActive, null)],
+    });
+
+    return config;
   }
 }

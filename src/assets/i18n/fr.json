@@ -3548,6 +3548,7 @@
       "DUPLICATED_METIER": "Métier(s) en doublon : {{metiers}}",
       "REQUIRED_FISHING_AREA": "Zone de pêche obligatoire pour le(s) métier(s) : {{metiers}}",
       "MONTH_NUMBERS": "La saisie du calendrier n'est pas complète.",
+      "ANNUAL_INACTIVITY": "Inactivité annuelle à confirmer",
       "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}"
     },
     "WARNING": {

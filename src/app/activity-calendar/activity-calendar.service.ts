@@ -88,6 +88,7 @@ import { JobFragments } from '@app/social/job/job.service';
 export const ActivityCalendarErrorCodes = {
   CSV_IMPORT_ERROR: 223,
 };
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -969,11 +970,16 @@ export class ActivityCalendarService
     if (!programLabel) throw new Error("Missing activityCalendar's program. Unable to control the activityCalendar");
     const program = await this.programRefService.loadByLabel(programLabel);
 
+    const pmfms = await this.programRefService.loadProgramPmfms(program.label, {
+      acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
+    });
+
     const form = this.validatorService.getFormGroup(entity, {
       ...opts,
       program,
       isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true, // Need by full validation
+      pmfms,
     });
 
     if (!form.valid) {
