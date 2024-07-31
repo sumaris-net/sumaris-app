@@ -88,7 +88,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-mdc-tab-fixed-content"
+    class="mat-mdc-tab-fixed-content mat-mdc-tab-disabled-hidden"
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
@@ -419,25 +419,27 @@
       <as-split direction="horizontal" [useTransition]="true" (dragEnd)="map?.containerResize()" [restrictMove]="mobile">
         <as-split-area [minSize]="20" [size]="100 - mapPanelWidth">
           <!-- map -->
-          @if (!!map || (selectedTabIndex === 3 && calendar.valid)) {
+          @if (!!map || (selectedTabIndex === 4 && calendar.valid)) {
             <app-activity-calendar-map #map></app-activity-calendar-map>
           }
         </as-split-area>
         <as-split-area [minSize]="30" [size]="mapPanelWidth" [visible]="showMapPanel">
-          <app-calendar
-            #mapCalendar
-            [style]="'accordion'"
-            [pmfms]="calendar.pmfms$ | push"
-            [timezone]="timezone"
-            [showVesselOwner]="false"
-            [showRegistrationLocation]="false"
-            [showMonth]="false"
-            [showToolbar]="false"
-            [enableCellSelection]="false"
-            [usePageSettings]="false"
-            [compact]="true"
-            [debug]="debug"
-          ></app-calendar>
+          @if (showMap) {
+            <app-calendar
+              #mapCalendar
+              [style]="'accordion'"
+              [pmfms]="calendar.pmfms$ | push"
+              [timezone]="timezone"
+              [showVesselOwner]="false"
+              [showRegistrationLocation]="false"
+              [showMonth]="false"
+              [showToolbar]="false"
+              [enableCellSelection]="false"
+              [usePageSettings]="false"
+              [compact]="true"
+              [debug]="debug"
+            ></app-calendar>
+          }
         </as-split-area>
       </as-split>
     </mat-tab>
