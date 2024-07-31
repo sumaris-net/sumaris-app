@@ -165,7 +165,7 @@
             colspan:{{ cellSelection.colspan }} rowspan:{{ cellSelection.rowspan }}
             <br />
             <b>div:</b>
-            top:{{ cellSelectionDiv.style.top }} left:{{ cellSelectionDiv.style.left }}
+            top:{{ cellSelectionDiv.style.top }} left:{{ cellSelectionDiv.style.left }} height:{{ cellSelectionDiv.style.height }}
             <br />
             <b>container:</b>
             scroll-top:{{ tableContainer.scrollTop }} scroll-left:{{ tableContainer.scrollLeft }}
@@ -222,7 +222,7 @@
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            {{ ((row.enabled || row.editing) && row.validator | formError: errorTranslatorOptions) || row.currentData.qualificationComments }}
+            {{ row | activityMonthRowError: errorTranslatorOptions }}
           </span>
         </mat-header-cell>
       </ng-container>
@@ -292,7 +292,7 @@
           *matCellDef="let row"
           class="mat-mdc-cell-resizable"
           #cell
-          (click)="focusColumn = 'isActive'"
+          (click)="setFocusColumn($event, row, 'isActive')"
           (contextmenu)="onContextMenu($event, cell, row, 'isActive')"
         >
           @if (row.editing && row.validator | formGetControl: 'isActive'; as control) {
@@ -338,7 +338,7 @@
           *matCellDef="let row"
           class="odd mat-mdc-cell-resizable"
           #cell
-          (click)="focusColumn = 'basePortLocation'"
+          (click)="setFocusColumn($event, row, 'basePortLocation')"
           (contextmenu)="onContextMenu($event, cell, row, 'basePortLocation')"
         >
           @if (row.editing) {
@@ -386,7 +386,7 @@
           *matCellDef="let row"
           class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-resizable"
           [class.odd]="odd"
-          (click)="focusColumn = (pmfm.id || index).toString()"
+          (click)="setFocusColumn($event, row, (pmfm.id || index).toString())"
           (contextmenu)="onContextMenu($event, cell, row, (pmfm.id || index).toString())"
         >
           <!-- desktop -->
@@ -559,9 +559,8 @@
         [class.duplicated]="(row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL"
         (keydown.escape)="escapeEditingRow($event)"
         [cdkTrapFocus]="!row.valid"
-        (tap)="clickRow($event, row)"
+        (click)="clickRow($event, row)"
         (dblclick)="dblClickRow($event, row)"
-        (press)="pressRow($event, row)"
       ></mat-row>
     </mat-table>
 

@@ -17,6 +17,7 @@ import {
 import {
   Alerts,
   AppFormArray,
+  AppFormUtils,
   changeCaseToUnderscore,
   DateUtils,
   EntityUtils,
@@ -87,6 +88,7 @@ import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
 import { IUseFeaturesUtils } from '../model/use-features.model';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 import { SelectionModel } from '@angular/cdk/collections';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -217,7 +219,7 @@ export class CalendarComponent
   implements OnInit, AfterViewInit
 {
   protected referentialRefService = inject(ReferentialRefService);
-  protected movingCellSelection$ = new Subject<TableCellSelection<ActivityMonth>>();
+  protected debouncedExpandCellSelection$ = new Subject<TableCellSelection<ActivityMonth>>();
 
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
@@ -522,7 +524,7 @@ export class CalendarComponent
         .subscribe(() => this.clearClipboard(null, { clearContext: false }))
     );
 
-    this._state.hold(this.movingCellSelection$.pipe(debounceTime(250)), (cellSelection) => this.expandCellSelection(cellSelection));
+    this._state.hold(this.debouncedExpandCellSelection$.pipe(debounceTime(250)), (cellSelection) => this.expandCellSelection(cellSelection));
   }
 
   ngAfterViewInit() {
@@ -873,10 +875,8 @@ export class CalendarComponent
       cellSelection.colspan = colspan;
       cellSelection.rowspan = rowspan;
 
-      this.resizeCellSelection(cellSelection, 'cell', { autoExpand: false });
-
-      // Emit mouse move trigger, to expand cell selection
-      this.movingCellSelection$.next(cellSelection);
+      // Apply resize
+      this.resizeCellSelection(cellSelection, 'cell', { debouncedExpansion: true });
     }
     // Same cell selection: log if debug
     else if (this.debug) {
@@ -917,7 +917,7 @@ export class CalendarComponent
     }
   }
 
-  async onMouseShiftClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
+  async shiftClick(event?: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
     if (!row || !columnName || event?.defaultPrevented) return false; // Skip
@@ -982,16 +982,13 @@ export class CalendarComponent
         targetColumnIndex > sourceColumnNameIndex ? targetColumnIndex - sourceColumnNameIndex + 1 : targetColumnIndex - sourceColumnNameIndex - 1;
     }
 
-    // Expand blocks if need
-    //await this.expandCellSelection(cellSelection);
-
     this.cellSelection = cellSelection;
     this.resizeCellSelection(cellSelection, 'cell');
 
     return true;
   }
 
-  async onMouseCtrlClick(event: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
+  async ctrlClick(event: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
 
@@ -1041,7 +1038,7 @@ export class CalendarComponent
     setTimeout(() => this.onResize());
   }
 
-  protected resizeCellSelection(cellSelection: TableCellSelection, name = 'cell', opts?: { emitEvent?: boolean; autoExpand?: boolean }) {
+  protected resizeCellSelection(cellSelection: TableCellSelection, name = 'cell', opts?: { emitEvent?: boolean; debouncedExpansion?: boolean }) {
     if (!cellSelection) return;
 
     const containerElement = this.tableContainerElement;
@@ -1069,9 +1066,9 @@ export class CalendarComponent
     const rowspan = toNumber(cellSelection.rowspan, divRect.height / toNumber(previousCellRect?.height, relativeCellRect.width)) || 1;
 
     let top = relativeCellRect.top;
-    let left = relativeCellRect.left + (containerElement.scrollLeft || 0) - containerRect.left;
+    let left = relativeCellRect.left - containerRect.left;
     const width = relativeCellRect.width * Math.abs(colspan);
-    const height = relativeCellRect.height * Math.abs(rowspan);
+    let height = relativeCellRect.height * Math.abs(rowspan);
 
     if (rowspan < 0) {
       top = relativeCellRect.top + relativeCellRect.height - height;
@@ -1080,28 +1077,51 @@ export class CalendarComponent
       left = relativeCellRect.left + relativeCellRect.width - width - containerRect.left + (containerElement.scrollLeft || 0);
     }
 
+    // Update original mouse x/Y, need for next resizing
+    if (isNil(cellSelection.originalMouseX) || isNil(cellSelection.originalMouseY)) {
+      // DEBUG
+      console.debug(this.logPrefix + 'Computing originalMouseY...');
+      cellSelection.originalMouseY = top + relativeCellRect.height + containerElement.scrollTop;
+      cellSelection.originalMouseX = left + relativeCellRect.width + containerRect.left + containerElement.scrollLeft;
+    }
+
+    let topCut = false;
+    if (top < containerRect.top) {
+      height = Math.max(0, height - containerRect.top + top);
+      top = containerRect.top;
+      topCut = true;
+    }
+
+    //console.debug(`${this.logPrefix}containerRect.bottom=${containerRect.bottom} scrollbarHeight=${scrollbarHeight} maxBottom=${maxBottom} bottom=${top + height}`);
+    let bottomCut = false;
+    if (top + height > containerRect.bottom) {
+      height = Math.max(0, containerRect.bottom - top);
+      if (height === 0) top = containerRect.bottom;
+      bottomCut = true;
+    }
+
     // DEBUG
-    // console.debug(`${this.logPrefix}Resizing ${name} to top=${top} left=${left} width=${width} height=${height}`);
+    //console.debug(`${this.logPrefix}Resizing ${name} to top=${top} left=${left} width=${width} height=${height}`);
 
     // Resize the shadow element
     divElement.style.position = 'fixed';
+    //divElement.style.position = 'relative';
     divElement.style.top = top + 'px';
     divElement.style.left = left + 'px';
     divElement.style.width = width + 'px';
     divElement.style.height = height + 'px';
-
-    // Update original mouse x/Y, need for next resizing
-    if (isNil(cellSelection.originalMouseX) || isNil(cellSelection.originalMouseY)) {
-      cellSelection.originalMouseY = relativeCellRect.top + containerElement.scrollTop + cellElement.clientHeight;
-      cellSelection.originalMouseX = relativeCellRect.left + containerElement.scrollLeft + cellElement.clientWidth;
-    }
+    divElement.classList.toggle('top-no-border', topCut);
+    divElement.classList.toggle('bottom-no-border', bottomCut);
 
     if (opts?.emitEvent !== false) {
       this.markForCheck();
     }
 
-    if (opts?.autoExpand !== false) {
+    if (opts?.debouncedExpansion !== true) {
       this.expandCellSelection(cellSelection);
+    } else {
+      // Expand selection (with a debounce time)
+      this.debouncedExpandCellSelection$.next(cellSelection);
     }
   }
 
@@ -1120,11 +1140,9 @@ export class CalendarComponent
   }
 
   async dblClickRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>): Promise<boolean> {
-    if (event?.defaultPrevented || !this.inlineEdition || this.readOnly || !this.canEdit) return false; // Skip
+    if (event?.defaultPrevented || !this.inlineEdition || this.readOnly || !this.canEdit) return false; //  if cancelled or cannot edit
 
     this.closeContextMenu();
-
-    event?.preventDefault();
 
     // Wait of resizing or validating
     if (this.cellSelection?.resizing || this.cellSelection?.validating) {
@@ -1141,9 +1159,11 @@ export class CalendarComponent
   }
 
   async clickRow(event?: HammerTapEvent | Event, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
-    if (event?.defaultPrevented || row.editing) return false; // Skip
+    if (event?.defaultPrevented) return false; // Skip
 
-    // Add a delay, to allow double click to cancel the click event
+    // Add a delay, to allow :
+    // - double click to cancel the event
+    // - setFocusColumn() to be call
     if (this.inlineEdition && !this.readOnly && this.canEdit) {
       await sleep(HAMMER_TAP_TIME + 10);
     }
@@ -1157,14 +1177,13 @@ export class CalendarComponent
       await waitFor(() => !this.cellSelection?.resizing && !this.cellSelection?.validating, { stop: this.destroySubject, timeout: 250 });
     }
 
-    // If Click+Shift
-    event = (event as HammerTapEvent)?.srcEvent || event;
-    if ((event instanceof MouseEvent || event instanceof PointerEvent) && event.shiftKey === true) {
-      return this.onMouseShiftClick(event, row, this.focusColumn);
+    // Shift click
+    if ((event instanceof PointerEvent || event instanceof MouseEvent) && event.shiftKey === true) {
+      return this.shiftClick(event, row, this.focusColumn);
     }
 
-    // Like a ctrl click
-    return this.onMouseCtrlClick(event, row, this.focusColumn);
+    // Ctrl click
+    return this.ctrlClick(event, row, this.focusColumn);
   }
 
   async cancelOrDelete(
@@ -1444,22 +1463,31 @@ export class CalendarComponent
     row = row || this.editedRow;
     if (!row || !row.editing) return true; // nothing to confirmed
 
-    // If pristine, cancel instead of confirmed
-    if (row.validator.pristine && !row.validator.valid) {
-      await this.cancelOrDelete(event, row);
+    // Allow to confirm when invalid
+    const form = row.validator;
+    if (form && !form.valid) {
+      await AppFormUtils.waitWhilePending(form);
 
-      this.focusColumn = undefined;
+      if (form.invalid && form.touched) {
+        const errorMessage = this.formErrorAdapter.translateFormErrors(form, this.errorTranslateOptions);
+
+        // DEBUG
+        //console.debug(this.logPrefix + 'Confirm row with error:' + errorMessage);
+
+        // Save error message
+        // FIXME this is not working well
+        DataEntityUtils.markFormAsInvalid(row.validator, errorMessage, { emitEvent: false });
+      }
+      if (form.dirty) this.markAsDirty({ emitEvent: false /* because of resetError() */ });
+      this.resetError();
+
+      row.originalData = undefined;
+      form.disable();
 
       return true;
     }
 
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    const confirmed = await super.confirmEditCreate(event, row);
-    if (confirmed) this.focusColumn = undefined;
-
-    return confirmed;
+    return super.confirmEditCreate(event, row);
   }
 
   protected setError(error: string, opts?: { emitEvent?: boolean }) {
@@ -2033,11 +2061,10 @@ export class CalendarComponent
       // Update quality flag
       const entity = targetForm.value;
       if (targetForm.invalid) {
-        const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, {
-          ...this.errorTranslateOptions,
-        });
-        entity.controlDate = null;
-        entity.qualificationComments = errorMessage;
+        const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, this.errorTranslateOptions);
+        //entity.controlDate = null;
+        //entity.qualificationComments = errorMessage;
+        DataEntityUtils.markAsInvalid(entity, errorMessage);
       }
 
       // Update the row
