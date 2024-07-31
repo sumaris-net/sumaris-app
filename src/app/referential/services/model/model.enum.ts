@@ -175,6 +175,7 @@ export const PmfmIds = {
   /* ACTIFLOT */
   SURVEY_QUALIFICATION: 446,
   AUCTION_HABIT: 451,
+  INACTIVTY_YEAR: 452,
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
