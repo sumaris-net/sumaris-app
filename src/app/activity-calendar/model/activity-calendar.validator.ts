@@ -17,7 +17,7 @@ import { ActivityCalendar } from './activity-calendar.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
 import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
 import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
@@ -283,9 +283,9 @@ export class ActivityCalendarValidators {
     const isComplete = months.length === 12;
     const error = isComplete ? vufs.every((month: VesselUseFeatures) => month.isActive === 0) : false;
 
-    if (pmfms['452'] && isComplete && error) {
+    if (pmfms[PmfmIds.INACTIVTY_YEAR] && isComplete && error) {
       return null;
-    } else if (!pmfms['452'] && !error) {
+    } else if (!pmfms[PmfmIds.INACTIVTY_YEAR] && !error) {
       return null;
     } else {
       return {
