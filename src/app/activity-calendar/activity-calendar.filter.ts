@@ -25,6 +25,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
   vesselId: number = null;
   vesselIds: number[] = null;
   vesselSnapshot: VesselSnapshot = null;
+  vesselTypeId: number = null;
   registrationLocations: ReferentialRef[] = null;
   basePortLocations: ReferentialRef[] = null;
   includedIds: number[];
@@ -44,6 +45,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.vesselId = source.vesselId;
     this.vesselIds = source.vesselIds;
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
+    this.vesselTypeId = source.vesselType.id;
     this.registrationLocations = source.registrationLocations?.map(ReferentialRef.fromObject);
     this.basePortLocations = source.basePortLocations?.map(ReferentialRef.fromObject);
     this.includedIds = source.includedIds;
@@ -109,6 +111,11 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     const vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
     if (isNotNil(vesselId)) {
       filterFns.push((t) => t.vesselSnapshot?.id === vesselId);
+    }
+
+    // VesselType
+    if (isNotNil(this.vesselTypeId)) {
+      filterFns.push((t) => t.vesselSnapshot?.vesselType.id === this.vesselTypeId);
     }
 
     // Registration locations

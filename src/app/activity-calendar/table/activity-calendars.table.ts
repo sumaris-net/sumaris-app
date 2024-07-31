@@ -135,6 +135,7 @@ export class ActivityCalendarsTable
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
       vesselSnapshot: [null, SharedValidators.entity],
+      vesselType: [null, SharedValidators.entity],
       year: [null, SharedValidators.integer],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
@@ -183,6 +184,17 @@ export class ActivityCalendarsTable
     this.registerAutocompleteField('program', {
       service: this.programRefService,
       filter: ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
+      mobile: this.mobile,
+    });
+
+    // Combo: Vessel type
+    this.registerAutocompleteField('vesselType', {
+      attributes: ['name'],
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+      },
       mobile: this.mobile,
     });
 
