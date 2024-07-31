@@ -895,6 +895,7 @@ export class ActivityCalendarPage
   }
 
   protected onPredocResize(sizes?: IOutputAreaSizes) {
+    this.calendar.onResize();
     this.predocCalendar.onResize();
 
     this.savePredocPanelSize(sizes);

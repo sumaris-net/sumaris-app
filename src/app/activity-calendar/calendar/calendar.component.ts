@@ -1027,6 +1027,7 @@ export class CalendarComponent
 
   @HostListener('window:resize')
   onResize() {
+    console.debug(this.logPrefix + 'Resizing calendar...');
     this.closeContextMenu();
     this.resizeCellSelection(this.cellSelection, 'cell', { emitEvent: false });
     this.resizeCellSelection(this.cellClipboard, 'clipboard', { emitEvent: false });
