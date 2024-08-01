@@ -145,7 +145,7 @@
     <!-- Metiers -->
     <ng-container *ngIf="showMetiers">
       <ion-row *ngFor="let metierForm of metiersForm?.controls; index as i; first as first; last as last">
-        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+        <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.METIERS</ion-label>
         </ion-col>
         <ion-col>
@@ -175,7 +175,7 @@
             </button>
           </mat-autocomplete-field>
         </ion-col>
-        <ion-col size="auto" class="ion-align-self-center">
+        <ion-col size="auto">
           <button
             type="button"
             mat-icon-button
@@ -206,7 +206,7 @@
     <!-- Observers -->
     <ng-container *ngIf="showObservers">
       <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first; last as last">
-        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+        <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.OBSERVERS</ion-label>
         </ion-col>
         <ion-col>
@@ -222,7 +222,7 @@
             <ion-icon matPrefix name="person"></ion-icon>
           </mat-autocomplete-field>
         </ion-col>
-        <ion-col size="auto" class="ion-align-self-center">
+        <ion-col size="auto">
           <button
             type="button"
             mat-icon-button

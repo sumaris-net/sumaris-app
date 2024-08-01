@@ -25,14 +25,14 @@
     </ion-row>
 
     <!-- Metiers -->
-    <ion-row *ngFor="let metierForm of metiersForm?.controls; index as i; first as first">
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-align-self-end" [class.cdk-visually-hidden]="mobile">
+    <ion-row *ngFor="let metierForm of metiersForm?.controls; index as i; first as first; last as last">
+      <ion-col size="12" size-md="3" size-lg="3" [class.cdk-visually-hidden]="mobile">
         <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.METIERS</ion-label>
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
           #metierField
-          [formControl]="metiersHelper.at(i)"
+          [formControl]="metierForm | formGetControl"
           [placeholder]="(first && 'TRIP.MAIN_METIER_PLACEHOLDER') || 'TRIP.SECONDARY_METIER_PLACEHOLDER' | translate: { rank: i }"
           [autofocus]="metierFocusIndex === i"
           [config]="autocompleteFields.metier"
@@ -54,9 +54,10 @@
           <!--          </button>-->
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="auto" class="ion-align-self-center">
+      <ion-col size="auto">
         <button
           type="button"
+          *ngIf="last"
           mat-icon-button
           [tabindex]="tabindex + 10 + +i * 3 + 1"
           [disabled]="disabled"
