@@ -30,7 +30,7 @@ workflow:
         - electron/src/*
         - electron/package.json
         - electron/package-lock.json
-        - electron/electron-builder.config.json 
+        - electron/electron-builder.config.json
 
 
 
@@ -40,7 +40,10 @@ workflow:
 
 variables:
   DOCKER_IMAGE_REGISTRY: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/
-  CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
+  DOCKER_DIND_VERSION: 24.0.7-dind
+  #DOCKER_DIND_VERSION: latest
+  DOCKER_DIND_IMAGE: ${DOCKER_IMAGE_REGISTRY}docker:${DOCKER_DIND_VERSION}
+  CI_BUILD_IMAGE: ${CI_REGISTRY_IMAGE}/build:develop
   CI_BUILD_ELECTRON_IMAGE: electronuserland/builder:18-wine
   BUILD_CACHE_DIR: /tmp/.build-cache
   BUILD_ENVIRONMENT: prod
@@ -56,14 +59,14 @@ variables:
 .configure-git-template: &git-setup
   tags: [sih_public_runner]
   before_script:
-    - echo "Fetching origin... token=${CI_ACCESS_TOKEN}"
+    - echo "Fetching origin..."
     - git remote set-url origin "https://gitlab+access-token:${CI_ACCESS_TOKEN}@gitlab.ifremer.fr/${CI_PROJECT_PATH}.git"
     - git config --global user.email "${GITLAB_USER_EMAIL}"
     - git config --global user.name "${GITLAB_USER_NAME}"
-    - git fetch origin
+    - git fetch origin ${CI_COMMIT_REF_NAME}
 
 .docker:
-  image: docker:latest
+  image: ${DOCKER_DIND_IMAGE}
   tags: [sih_public_runner]
   services:
     - docker:dind
@@ -386,7 +389,7 @@ gitlab-release:
 # ---------------------------------------------------------------
 # Deploy jobs
 # ---------------------------------------------------------------
-#
+
 .deploy:web:
   stage: deploy
   needs: [release]
