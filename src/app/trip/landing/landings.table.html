@@ -100,7 +100,7 @@
   <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
 </ion-item>
 
-<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="showPaginator">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="showPaginator" cdkScrollable>
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel class="filter-panel" [class.ion-no-padding]="mobile" [class.filter-panel-floating]="filterPanelFloating">
     <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
