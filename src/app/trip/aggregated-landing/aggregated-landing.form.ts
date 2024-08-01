@@ -163,6 +163,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     if (!this.mobile) {
       this.activityFocusIndex = this.activitiesHelper.size() - 1;
     }
+    this.markForCheck();
   }
 
   removeActivity(index: number) {

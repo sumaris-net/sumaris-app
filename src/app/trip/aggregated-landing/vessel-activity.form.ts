@@ -27,6 +27,7 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
   @Input() maxVisibleButtons: number;
   @Input() mobile: boolean;
   @Input() showComment = false;
+  @Input() autofocus = false;
 
   onRefresh = new EventEmitter<any>();
   dates: Moment[];

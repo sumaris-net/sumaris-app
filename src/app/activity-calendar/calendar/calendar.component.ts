@@ -1317,7 +1317,11 @@ export class CalendarComponent
     }
 
     if (opts?.emitEvent !== false) {
+      // Update columns
       this.updateColumns();
+
+      // Force to see it
+      sleep(250).then(() => this.scrollToBottom());
     }
   }
 

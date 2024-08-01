@@ -253,11 +253,14 @@ export abstract class AppBaseTable2<
     }
   }
 
+  /**
+   * Scroll to bottom
+   */
   scrollToBottom() {
     if (this.tableContainerRef) {
-      // scroll to bottom
       this.tableContainerRef.nativeElement.scroll({
         top: this.tableContainerRef.nativeElement.scrollHeight,
+        behavior: 'smooth',
       });
     }
   }
