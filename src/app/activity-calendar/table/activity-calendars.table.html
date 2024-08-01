@@ -217,23 +217,8 @@
             </mat-autocomplete-field>
           </ion-col>
 
-          <ion-col>
-            <!-- Recorder person -->
-            <mat-autocomplete-field
-              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate"
-              formControlName="recorderPerson"
-              [config]="autocompleteFields.person"
-              [i18nPrefix]="'USER.'"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="person"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-        </ion-row>
-
-        <ion-row *ngIf="showObservers">
           <!-- Observers criteria -->
-          <ion-col>
+          <ion-col size="12" size-lg="6" *ngIf="showObservers">
             <mat-autocomplete-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.OBSERVERS' | translate"
               [formControl]="filterObserversForm.at(0)"
