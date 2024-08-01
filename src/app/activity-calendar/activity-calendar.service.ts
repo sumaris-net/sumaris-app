@@ -7,7 +7,9 @@ import {
   AppErrorWithDetails,
   AppFormUtils,
   BaseEntityGraphqlQueries,
+  capitalizeFirstLetter,
   chainPromises,
+  changeCaseToUnderscore,
   DateUtils,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
@@ -27,6 +29,7 @@ import {
   isNotNilOrBlank,
   IUserEventService,
   JobUtils,
+  lastArrayValue,
   LoadResult,
   LocalSettingsService,
   NetworkService,
@@ -962,13 +965,21 @@ export class ActivityCalendarService
       // Get form errors
       if (form.invalid) {
         const errors = AppFormUtils.getFormErrors(form);
+        console.info(`[activity-calendar-service] Control #${entity.id} [INVALID] in ${Date.now() - now}ms`, errors);
 
-        if (this._debug)
-          console.debug(`[activity-calendar-service] Control activityCalendar {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+        const months = AppFormUtils.filterErrorsByPrefix(errors, 'vesselUseFeatures', 'gearUseFeatures');
+        const metiers = AppFormUtils.filterErrorsByPrefix(errors, 'gearPhysicalFeatures');
+        const other = AppFormUtils.filterErrors(errors, ([path, _]) =>
+          ['vesselUseFeatures', 'gearUseFeatures', 'gearPhysicalFeatures'].includes(path.split('.')[0])
+        );
         return {
           message: 'COMMON.FORM.HAS_ERROR',
           details: {
-            errors,
+            errors: {
+              ...other,
+              months,
+              metiers,
+            },
           },
         };
       }
@@ -1196,6 +1207,19 @@ export class ActivityCalendarService
       const pmfmId = parseInt(path.split('.').pop());
       const pmfm = opts.pmfms.find((p) => p.id === pmfmId);
       return PmfmUtils.getPmfmName(pmfm);
+    }
+
+    // Gear use feature fields
+    if (path.startsWith('gearUseFeatures.')) {
+      const parts = path.split('.');
+      const month = capitalizeFirstLetter(DateUtils.moment().month(+parts[1]).format('MMMM'));
+      let fieldName = lastArrayValue(parts);
+      if (fieldName === 'location') {
+        fieldName = 'fishingArea';
+      }
+      fieldName = this.translate.instant(opts.i18nPrefix + changeCaseToUnderscore(fieldName).toUpperCase());
+
+      return [month, fieldName].join('>');
     }
     // Default translation
     return this.formErrorTranslator.translateFormPath(path, opts);

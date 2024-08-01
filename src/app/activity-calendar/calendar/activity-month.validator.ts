@@ -202,15 +202,16 @@ export class ActivityMonthValidatorService<
           //if (faArray) guf.removeControl('fishingAreas');
           if (faArray) faArray.disable({ emitEvent: false });
         }
-
-        // Init start/end date
-        guf.patchValue({ startDate, endDate }, { emitEvent: false });
+        // Init start/end date (only if need)
+        if (guf.get('startDate').value || !guf.get('endDate').value) {
+          guf.patchValue({ startDate, endDate }, { emitEvent: gufEnabled && guf.invalid /*force validation*/ });
+        }
 
         if (gufEnabled && !guf.enabled) guf.enable({ emitEvent: false });
         else if (!gufEnabled && guf.enabled) guf.disable({ emitEvent: false });
       });
     } else {
-      //if (gufArray) form.removeControl('gearUseFeatures');
+      // Disable GUF array
       if (gufArray?.enabled) gufArray.disable({ emitEvent: false, onlySelf: true });
     }
 

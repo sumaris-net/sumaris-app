@@ -270,6 +270,7 @@ export class CalendarComponent
   @Input() style: CalendarComponentStyle = 'table';
   @Input() enableCellSelection: boolean;
   @Input() programHeaderLabel: string;
+  @Input() showError = true;
 
   @Input() set month(value: number) {
     this.setFilter(ActivityMonthFilter.fromObject({ ...this.filter, month: value }));
@@ -1492,7 +1493,6 @@ export class CalendarComponent
   }
 
   protected setError(error: string, opts?: { emitEvent?: boolean }) {
-    console.log('TODO ERROR', error);
     super.setError(error, opts);
   }
 

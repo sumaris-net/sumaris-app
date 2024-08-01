@@ -510,13 +510,34 @@ export class ActivityCalendarPage
   }
 
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
-    if (error && typeof error === 'object' && error.details?.errors?.conflict instanceof ActivityCalendar) {
-      const remoteCalendar = error.details.errors.conflict;
+    const errors = error && typeof error === 'object' && error.details?.errors;
+
+    // Conflictual error: show remote conflictual data
+    if (errors?.conflict instanceof ActivityCalendar) {
+      const remoteCalendar = errors.conflict;
       this.showRemoteConflict(remoteCalendar);
       return;
     }
 
+    if (errors?.months) {
+      this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS';
+      this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+      super.resetError();
+      return;
+    }
+
+    if (errors?.metiers) {
+      this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_METIERS';
+      this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
+      super.resetError();
+      return;
+    }
+
     super.setError(error, opts);
+  }
+
+  translateFormPath(controlPath: string): string {
+    return this.dataService.translateFormPath(controlPath, { i18nPrefix: this.i18nContext.prefix });
   }
 
   protected async showRemoteConflict(remoteCalendar: ActivityCalendar) {
@@ -636,7 +657,6 @@ export class ActivityCalendarPage
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
-    console.log('TODO watchStrategyFilter', this.strategyResolution);
     switch (this.strategyResolution) {
       // Spatio-temporal
       case DataStrategyResolutions.SPATIO_TEMPORAL:

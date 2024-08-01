@@ -19,6 +19,7 @@
 mat-toolbar {
   position: relative;
   z-index: 50;
+  --mdc-icon-button-state-layer-size: 34px;
   &.secondary {
     --mat-toolbar-container-text-color: var(--ion-color-secondary-contrast);
     --mdc-form-field-label-text-color: var(--ion-color-secondary-contrast);
@@ -29,6 +30,12 @@ mat-toolbar {
       --mdc-form-field-label-text-color: var(--ion-color-secondary-contrast);
       color: var(--ion-color-secondary-contrast);
     }
+  }
+
+  ion-item {
+    max-height: 100%;
+    width: calc(100% - 4 * var(--mdc-icon-button-state-layer-size) - 32px);
+    overflow: hidden;
   }
 }
 

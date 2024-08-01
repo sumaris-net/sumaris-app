@@ -23,26 +23,20 @@
     </button>
   </ng-template>
 
-  <ion-item *ngIf="showError && !mobile && (errorSubject | push); let error" lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
-
-  <!-- Table options menu -->
-  <mat-menu #optionsMenu="matMenu" xPosition="after">
-    <!-- display columns option -->
-    <button mat-menu-item (click)="openSelectColumnsModal($event)">
-      <mat-icon>view_column</mat-icon>
-      <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
-    </button>
-  </mat-menu>
-
-  <!-- error -->
-  <ion-item *ngIf="showError && mobile && (errorSubject | push); let error" lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (showError && !mobile && errorSubject | push; as error) {
+    <ion-item lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
+    </ion-item>
+  }
 </mat-toolbar>
+
+<!-- error -->
+<ion-item *ngIf="showError && mobile && (errorSubject | push); let error" lines="none">
+  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
+</ion-item>
+
 <div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" cdkScrollable>
   <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
