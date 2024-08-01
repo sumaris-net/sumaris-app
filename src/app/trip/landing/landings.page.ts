@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   Alerts,
   ConfigService,
@@ -368,6 +367,9 @@ export class LandingsPage
         null,
         {
           statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+
+          // FIXME: limit program to occasion (but how to manage SIH-META-OBSDEB ??)
+          //acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
         },
         { withTotal: true }
       );
@@ -430,6 +432,8 @@ export class LandingsPage
     const title = this.translateContext.instant(this.i18nColumnPrefix + 'TITLE', this.i18nColumnSuffix);
     this.$title.next(title);
 
+    // FIXME hide program
+    //this.showProgramColumn = false;
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
     this.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
@@ -465,8 +469,10 @@ export class LandingsPage
   }
 
   protected async resetProgram() {
-    console.debug('[landings] Reset filter program');
+    console.debug(`${this.logPrefix}Reset filter program`);
 
+    // FIXME: enable this
+    //this.showProgramColumn = true;
     this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
     this.showVesselBasePortLocationColumn = toBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE.defaultValue, false);
     this.showCreationDateColumn = toBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE.defaultValue, false);
