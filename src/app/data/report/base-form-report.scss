@@ -79,6 +79,9 @@ html.print-pdf .reveal .slides section {
     ion-grid {
       --ion-grid-column-padding: 0;
       flex: 0 0 auto;
+      &.inner-grid {
+        width: 100%;
+      }
 
       ion-row {
         &.document-title {
@@ -116,6 +119,10 @@ html.print-pdf .reveal .slides section {
         }
         &.form-field {
           min-height: var(--form-field-height);
+          .help {
+            font-size: var(--font-small);
+            font-style: italic;
+          }
           ion-col {
             &.form-label {
               padding-right: 10px;
@@ -131,10 +138,6 @@ html.print-pdf .reveal .slides section {
                   display: inline-block;
                   margin-right: 5px;
                 }
-              }
-              .help {
-                font-size: var(--font-small);
-                font-style: italic;
               }
             }
             &.form-value {
@@ -169,6 +172,9 @@ html.print-pdf .reveal .slides section {
           }
           &.no-border-bottom {
             border-bottom: none !important;
+          }
+          &.no-border {
+            border: none !important;
           }
 
           figure {

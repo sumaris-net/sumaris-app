@@ -1,1 +1,440 @@
-<p>form-observed-location works!</p>
+<ng-container *ngIf="showToolbar">
+  <app-toolbar *ngIf="!modal; else modalToolbar" [defaultBackHref]="$defaultBackHref | async" canGoBack="false">
+    <ion-title [innerHTML]="$title | async"></ion-title>
+
+    <ion-buttons slot="end">
+      <!-- Refresh -->
+      <ion-button *ngIf="uuid | isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH' | translate">
+        <mat-icon>refresh</mat-icon>
+      </ion-button>
+
+      <!-- Help button -->
+      <ion-button (click)="reveal.toggleHelp()">
+        <mat-icon>help_outline</mat-icon>
+      </ion-button>
+
+      <!-- Print -->
+      <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+        <!-- Print button -->
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- share menu -->
+      <button mat-icon-button matHeader [title]="'COMMON.SHARE.BTN_SHARE' | translate" [matMenuTriggerFor]="shareMenu">
+        <mat-icon>share</mat-icon>
+      </button>
+    </ion-buttons>
+  </app-toolbar>
+
+  <mat-menu #shareMenu="matMenu" xPosition="after">
+    <!-- Share popover -->
+    <button mat-menu-item (click)="showSharePopover($event)" [disabled]="(loadingSubject | async) || network.offline">
+      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS' | translate }}</ion-label>
+    </button>
+  </mat-menu>
+
+  <ng-template #modalToolbar>
+    <app-modal-toolbar *ngIf="showToolbar" [modalName]="modalName" [color]="'secondary'" (cancel)="cancel()" [canValidate]="false">
+      <ion-title [innerHTML]="$title | async"></ion-title>
+
+      <!-- Print button -->
+      <ion-button slot="end" (click)="reveal.print($event)">
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- Close button (on desktop screen) -->
+      <ion-button hidden-xs hidden-sm hidden-mobile slot="end" (click)="cancel()" (keyup.enter)="cancel()">
+        <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+      </ion-button>
+    </app-modal-toolbar>
+  </ng-template>
+</ng-container>
+
+<ion-content>
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
+    <section *sectionDef class="portrait">
+      <ion-grid class="report-header ion-no-padding">
+        <ion-row class="document-title">
+          <ion-col class="logo" size="2">
+            @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+              <img [src]="stats.logoHeadLeftUrl" />
+            }
+          </ion-col>
+          <ion-col size="8">
+            <h1 class="ion-text-uppercase">{{ 'OBSERVED_LOCATION.REPORT.FORM.TITLE' | translateContext: i18nContext.suffix }}</h1>
+            <h2>
+              @if (stats?.subtitle | isNotNilOrBlank) {
+                {{ stats.subtitle }}
+              } @else {
+                {{ stats.program.description }}
+              }
+            </h2>
+          </ion-col>
+          <ion-col class="logo" size="2">
+            @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+              <img [src]="stats.logoHeadRightUrl" />
+            }
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ion-grid class="report-section">
+        <ion-row class="page-title ion-padding">
+          <ion-col>
+            <h2>{{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.TITLE' | translate }}</h2>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Section link with the sampling plan -->
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.LINK_WITH_THE_SAMPLING_PLAN' | translate }}</h3>
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.OBSERVED_LOCATION' | translate }}
+          </ion-col>
+          <ion-col class="form-value" size="8">
+            <!-- CHECK_IT -->
+            {{ data.location?.name }}
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.ATTACHMENT_PROGRAM' | translate }}
+          </ion-col>
+          <ion-col class="form-value no-border-top" size="8">
+            <!-- CHECK_IT -->
+            {{ isBlankForm ? '' : stats.program.label }}
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Observers section -->
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.OBSERVERS' | translate }}</h3>
+          </ion-col>
+        </ion-row>
+        @for (observer of data.observers; track $index) {
+          <ion-row class="form-field">
+            <ion-col class="form-label" size="4">
+              {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.' + (isBlankForm ? 'OBSERVERS_NAMES' : 'OBSERVERS_NAMES_WITH_SOCIETY') | translate }}
+            </ion-col>
+            <ion-col class="form-value" [class.no-border-top]="$index > 0" size="8">
+              {{ observer | personToString: ', ' : { withDepartment: true } }}
+            </ion-col>
+          </ion-row>
+        }
+        @if (isBlankForm) {
+          <ion-row class="form-field">
+            <ion-col class="form-label" size="4">
+              {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.SOCIETY' | translate }}
+            </ion-col>
+            <ion-col class="form-value no-border-top" size="8"></ion-col>
+          </ion-row>
+        }
+      </ion-grid>
+
+      <!-- Global trip information -->
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.TRIP_INFORMATION' | translate }}</h3>
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.TYPE_OF_TRIP' | translate }}
+          </ion-col>
+          <ion-col class="form-value" size="8">
+            <!-- TODO -->
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.START_DATE' | translate }}
+          </ion-col>
+          <ion-col class="form-value no-border-top" size="8">
+            <!-- CHECK_IT -->
+            {{ data.startDateTime | dateFormat: { time: true } }}
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.END_DATE' | translate }}
+          </ion-col>
+          <ion-col class="form-value no-border-top" size="8">
+            <!-- CHECK_IT -->
+            {{ data.endDateTime | dateFormat: { time: true } }}
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.SELL_DATE' | translate }}
+          </ion-col>
+          <ion-col class="form-value no-border-top" size="8">
+            <!-- TODO -->
+          </ion-col>
+        </ion-row>
+
+        <ion-row class="form-field ion-margin-top">
+          <ion-col class="form-label horiz-checkbox" size="6">
+            <!-- TODO : Insert data -->
+            <span>
+              {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.RETURN_FISHMONGER_CARD' | translate }}
+              <br />
+              <span class="help">
+                {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.HELP_INCLUDE_DOCUMENT' | translate }}
+              </span>
+            </span>
+            <ion-icon [name]="'square-outline'"></ion-icon>
+          </ion-col>
+          <ion-col class="form-label horiz-checkbox" size="6">
+            <span>
+              {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.SALE_RECEIPT_RECOVERY' | translate }}
+              <br />
+              <span class="help">
+                {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.HELP_INCLUDE_DOCUMENT' | translate }}
+              </span>
+            </span>
+            <ion-icon [name]="'square-outline'"></ion-icon>
+          </ion-col>
+        </ion-row>
+
+        <ion-row class="form-field ion-margin-top">
+          <ion-col class="form-label" size="4" [innerHTML]="'OBSERVED_LOCATION.REPORT.FORM.LANDING.USE_MEASUREMENT_TOOL' | translate"></ion-col>
+          <ion-col class="form-value" size="8">
+            <ion-grid class="inner-grid">
+              <ion-row class="form-field">
+                <ion-col class="form-label" size="1">
+                  {{ 'COMMON.YES' | translate }}
+                </ion-col>
+                <ion-col class="form-value no-border" size="1">
+                  <ion-icon [name]="'square-outline'"></ion-icon>
+                </ion-col>
+                <ion-col class="form-value no-border" size="4">{{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.IWA_FILE_NAME' | translate }}</ion-col>
+                <ion-col class="form-value no-border" size="6"></ion-col>
+              </ion-row>
+              <ion-row class="form-field">
+                <ion-col class="form-label" size="1">
+                  {{ 'COMMON.NO' | translate }}
+                </ion-col>
+                <ion-col class="form-value no-border" size="1">
+                  <ion-icon [name]="'square-outline'"></ion-icon>
+                </ion-col>
+                <ion-col class="form-value no-border" size="4">{{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.ARP_FILE_NAME' | translate }}</ion-col>
+                <ion-col class="form-value no-border" size="6"></ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Comment section -->
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.COMMENTS' | translate }}</h3>
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field" [style.--form-field-height]="'120px'">
+          <ion-col class="form-value" size="12">
+            {{ data?.comments }}
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ng-content *ngTemplateOutlet="pageFooter; context: { help: 'OBSERVED_LOCATION.REPORT.FORM.LANDING.HELP' }"></ng-content>
+    </section>
+
+    <section *sectionDef>
+      @for (landings of data.landings | splitArrayInChunks: 9; track $index) {
+        <section class="landscape">
+          <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.TITLE' }"></ng-content>
+          <ion-grid class="report-section">
+            <ion-row>
+              <ion-col size="6">
+                <ion-grid class="ion-no-padding ion-no-margin">
+                  <ion-row class="section-title ion-no-margin ion-justify-content-between">
+                    <ion-col class="ion-no-padding ion-no-margin" size="auto">
+                      <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.TOTAL_NUMBER_OF_VESSEL_SAMPLED' | translate }}</h3>
+                    </ion-col>
+                    <ion-col class="title-value ion-text-center font-large no-border-bottom ion-no-padding ion-no-margin" size="2">
+                      @if (!isBlankForm) {
+                        <!-- TODO -->
+                      }
+                    </ion-col>
+                  </ion-row>
+                  <ion-row class="section-title ion-no-margin ion-justify-content-between">
+                    <ion-col class="ion-no-padding ion-no-margin" size="auto">
+                      <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.NB_OF_PRIORITY_SPECIES_SAMPLED' | translate }}</h3>
+                    </ion-col>
+                    <ion-col class="title-value ion-text-center font-large ion-no-padding ion-no-margin" size="2">
+                      @if (!isBlankForm) {
+                        <!-- TODO -->
+                      }
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </ion-col>
+              <ion-col class="vertical-centred-content" size="6">
+                <ion-grid class="ion-no-padding ion-no-margin inner-grid">
+                  <ion-row class="section-title form-filed ion-no-margin ion-justify-content-between">
+                    <ion-col class="ion-no-padding ion-no-margin ion-text-right" size="6">
+                      <h3 [style.margin]="0">{{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.PRESENCE_OF_PETS' | translate }}</h3>
+                    </ion-col>
+                    <!-- TODO : check box-->
+                    <ion-col class="vertical-centred-content horizontal-centred-content" size="2">
+                      {{ 'COMMON.YES' | translate }}
+                      &nbsp;
+                      <!-- <ion-icon [name]="data?.sale?.saleType.label === type ? 'checkbox-outline' : 'square-outline'"></ion-icon> -->
+                      <ion-icon class="ion-text-center" name="square-outline"></ion-icon>
+                    </ion-col>
+                    <ion-col class="vertical-centred-content horizontal-centred-content" size="2">
+                      {{ 'COMMON.NO' | translate }}
+                      &nbsp;
+                      <!-- <ion-icon [name]="data?.sale?.saleType.label === type ? 'checkbox-outline' : 'square-outline'"></ion-icon> -->
+                      <ion-icon class="ion-text-center" name="square-outline"></ion-icon>
+                    </ion-col>
+                    <ion-col size="2"></ion-col>
+                  </ion-row>
+                </ion-grid>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <em>
+                  {{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.HELP' | translate }}
+                </em>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+          <table class="table-full-width" [style.margin-top]="'10px'" [style.--row-title-height]="'40px'">
+            <thead>
+              <tr>
+                <th class="ion-text-center font-medium">
+                  {{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.VESSEL_REGISTRATION_CODE' | translate }}
+                </th>
+                @for (pmfm of stats.pmfms.landing | arrayFilter: filterPmfmForLandingTable; track pmfm.id) {
+                  <th class="ion-text-center font-medium">
+                    {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix } }}
+                  </th>
+                }
+                <th class="ion-text-center font-medium">
+                  {{ 'OBSERVED_LOCATION.REPORT.FORM.COMMENTS' | translate }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (landing of landings; track landing.rankOrder) {
+                <tr>
+                  <td class="font-medium">
+                    {{ landing.vesselSnapshot?.registrationCode || landing.vesselSnapshot?.intRegistrationCode }}
+                  </td>
+                  @for (pmfm of stats.pmfms.landing | arrayFilter: filterPmfmForLandingTable; track pmfm) {
+                    <td class="font-medium">
+                      <div [innerHTML]="landing.measurementValues | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm, html: false }"></div>
+                    </td>
+                  }
+                  <td class="font-medium">
+                    n
+                    {{ landing.comments }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+      }
+    </section>
+  </app-reveal>
+
+  <ng-template #pageHeader let-title="title" let-titleParams="titleParams">
+    <ion-grid class="report-header ion-no-padding">
+      <ion-row class="page-title">
+        <ion-col class="logo" size="auto">
+          @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+            <img [src]="stats.logoHeadLeftUrl" />
+          }
+        </ion-col>
+        <ion-col>
+          <ion-grid class="ion-no-padding">
+            <ion-row class="title-items">
+              <ion-col size="auto">
+                {{ 'OBSERVED_LOCATION.REPORT.FORM.TRIP_DATE' | translate }}
+                @if (isBlankForm) {
+                  ...../...../......
+                } @else {
+                  <!-- TODO : Get from Trip ? -->
+                }
+              </ion-col>
+              <ion-col size="auto">
+                {{ 'OBSERVED_LOCATION.REPORT.FORM.TRIP_LOCATION' | translate }}
+                @if (isBlankForm) {
+                  .................................
+                } @else {
+                  <!-- TODO : Get from Trip ? -->
+                }
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-col>
+        <ion-col>
+          <h2>
+            {{ title | translateContext: i18nContext.suffix : titleParams }}
+            @if (titleParams?.pageNumber; as pageNumber) {
+              ({{ 'COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber } }})
+            }
+          </h2>
+        </ion-col>
+        <ion-col class="logo" size="auto">
+          @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+            <img [src]="stats.logoHeadRightUrl" />
+          }
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-template>
+
+  <ng-template #pageFooter let-help="help">
+    <ion-grid class="report-footer ion-no-padding">
+      @if (help | isNotNilOrBlank) {
+        <ion-row class="footer-help">
+          <ion-col>
+            {{ help | translate }}
+          </ion-col>
+        </ion-row>
+      }
+      <ion-row class="footer-text">
+        <ion-col [innerHTML]="stats.footerText"></ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-template>
+
+  <ng-template #loadingTemplate>
+    <div class="loader">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  </ng-template>
+
+  <ng-template #latLongPlaceHolder>
+    <span class="font-large place-holder">
+      <span [style.letter-spacing]="'3px'">__°__.___</span>
+      N
+      <br />
+      <span [style.letter-spacing]="'3px'">__°__.___</span>
+      E ou W
+    </span>
+  </ng-template>
+</ion-content>

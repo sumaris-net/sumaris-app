@@ -869,6 +869,32 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: <ObservedLocationReportType>'legacy',
   },
+  OBSERVED_LOCATION_REPORT_FORM_SUBTITLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.form.subtitle',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_SUBTITLE',
+    type: 'string',
+  },
+  OBSERVED_LOCATION_REPORT_FORM_FOOTER: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.form.footer',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_FOOTER',
+    type: 'string',
+  },
+  OBSERVED_LOCATION_REPORT_FORM_LOGO_HEAD_LEFT_URL: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.form.logo.head.left.url',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_LOGO_HEAD_LEFT_URL',
+    type: 'string',
+  },
+  OBSERVED_LOCATION_REPORT_FORM_LOGO_HEAD_RIGHT_URL: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.form.logo.head.right.url',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_LOGO_HEAD_RIGHT_URL',
+    type: 'string',
+  },
+  OBSERVED_LOCATION_REPORT_FORM_BLANK_NB_OBSERVERS: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.form.blank.nbObservers',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_BLANK_NB_OBSERVERS:',
+    defaultValue: 2,
+    type: 'integer',
+  },
   OBSERVED_LOCATION_CONTROL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.control.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_CONTROL_ENABLE',
