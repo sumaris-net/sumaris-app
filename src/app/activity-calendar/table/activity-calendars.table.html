@@ -151,7 +151,7 @@
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
         <ion-row>
-          <ion-col>
+          <ion-col *ngIf="showProgram || isAdmin">
             <!-- Program -->
             <mat-autocomplete-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate"
