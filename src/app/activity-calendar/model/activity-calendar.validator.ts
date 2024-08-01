@@ -287,9 +287,13 @@ export class ActivityCalendarValidators {
       return null;
     } else if (!pmfms[PmfmIds.INACTIVTY_YEAR] && !error) {
       return null;
+    } else if (pmfms[PmfmIds.INACTIVTY_YEAR] && !error) {
+      return {
+        inconsistentAnnualInactivity: {},
+      };
     } else {
       return {
-        invalidAnnualInactivity: {},
+        confirmAnnualInactivity: {},
       };
     }
   }
@@ -297,5 +301,6 @@ export class ActivityCalendarValidators {
 
 export const ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS = {
   invalidMonthNumbers: 'ACTIVITY_CALENDAR.ERROR.MONTH_NUMBERS',
-  invalidAnnualInactivity: 'ACTIVITY_CALENDAR.ERROR.ANNUAL_INACTIVITY',
+  confirmAnnualInactivity: 'ACTIVITY_CALENDAR.ERROR.ANNUAL_INACTIVITY',
+  inconsistentAnnualInactivity: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENT_ANNUAL_INACTIVITY',
 };

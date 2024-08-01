@@ -3549,6 +3549,7 @@
       "REQUIRED_FISHING_AREA": "Zone de pêche obligatoire pour le(s) métier(s) : {{metiers}}",
       "MONTH_NUMBERS": "Calendrier incomplet.",
       "ANNUAL_INACTIVITY": "Inactivité annuelle à confirmer",
+      "INCONSISTENT_ANNUAL_INACTIVITY": "Inactivité annuelle incohérente",
       "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}"
     },
     "WARNING": {
