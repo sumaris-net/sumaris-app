@@ -1683,7 +1683,41 @@
         "EXPORT_JSON_FILENAME": "RapportDeControle-{{ location }}-{{ dateTime }}.json"
       },
       "FORM": {
-        "TITLE": "Formulaire terrain"
+        "TITLE": "Formulaire terrain",
+        "COMMENTS": "Commentaires",
+        "TRIP_DATE": "Date de la sortie : ",
+        "TRIP_LOCATION": "Lieu de la sortie : ",
+        "LANDING": {
+          "TITLE": "Fiche de sortie a terre",
+          "LINK_WITH_THE_SAMPLING_PLAN": "Liaison avec le plan d’échantillonnage (voir le site web WAO)",
+          "OBSERVED_LOCATION": "Lieu observé justifinat la sortie :",
+          "ATTACHMENT_PROGRAM": "Programme de rattachement :",
+          "OBSERVERS": "Observateur(s)",
+          "OBSERVERS_NAMES": "Nom(s), Prénom(s) :",
+          "OBSERVERS_NAMES_WITH_SOCIETY": "Nom(s), Prénom(s) (société)",
+          "SOCIETY": "Société :",
+          "TYPE_OF_TRIP": "Lieu et type de la sortie",
+          "START_DATE": "Date et heure d'arrivée",
+          "END_DATE": "Date et heure de départ",
+          "SELL_DATE": "Date et heure de la vente",
+          "TRIP_INFORMATION": "Informations générales de la sortie",
+          "HELP_INCLUDE_DOCUMENT": "(inclure le document dans le dossier)",
+          "RETURN_FISHMONGER_CARD": "Récupération fiche mareyeur",
+          "SALE_RECEIPT_RECOVERY": "Récupération bordereau de vente",
+          "USE_MEASUREMENT_TOOL": "Utilisation d’un outil de mesure<br>(PSION ou autre)",
+          "IWA_FILE_NAME": "Nom du fichier IWA :",
+          "ARP_FILE_NAME": "Nom du fichier ARP :",
+          "HELP": "Rappel : Les informations et données relatives au programme ObsVentes sont confidentielles et ne sauraient de quelque manière que ce soit être communiquées à des tiers."
+        },
+        "SAMPLES": {
+          "TITLE": "Plan de sortie",
+          "TOTAL_NUMBER_OF_VESSEL_SAMPLED": "Nombre total de navires échantillonnés pendant la sortie :",
+          "NB_OF_PRIORITY_SPECIES_SAMPLED": "Nombre d’espèces prioritaires échantillonnées pendant la sortie :",
+          "PRESENCE_OF_PETS": "Présence de PETS :",
+          "HELP": "(Inclure dans le dossier la liste des espèces à échantillonner (en cochant les espèces échantillonnées))",
+          "VESSEL_REGISTRATION_CODE": "Immatriculation – Nom du navire"
+        },
+        "PMFM": {}
       },
       "REPORT_TYPE": {
         "LEGACY": "Par défaut",
@@ -2508,6 +2542,10 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Sortie > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
       "OBSERVED_LOCATION_REPORT_ENABLE": "Sortie > Rapport > Activer l'édition de rapport ?",
       "OBSERVED_LOCATION_REPORT_TYPE": "Sortie > Rapport > Types de rapport ?",
+      "OBSERVED_LOCATION_REPORT_FORM_SUBTITLE": "Sortie > Rapport : Sous-titre du rapport",
+      "OBSERVED_LOCATION_REPORT_FORM_FOOTER": "Sortie > Rapport : Texte de pied de page",
+      "OBSERVED_LOCATION_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Sortie > Rapport : URL d'une image pour le log de gauche",
+      "OBSERVED_LOCATION_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Sortie > Rapport : URL d'une image pour le log de droite",
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Sortie > Hors-Ligne > Niveau(x) de lieu à importer",
       "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Sortie > Afficher la carte de la stratégie ?",
       "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)",

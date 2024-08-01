@@ -389,7 +389,7 @@ export class LandingsTable
 
     // Load taxon groups (if need)
     const hasTaxonGroupId = pmfms.some((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
-    let availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
+    const availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
 
     // Reset divider (will be set below)
     this.dividerPmfm = null;

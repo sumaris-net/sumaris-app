@@ -306,6 +306,7 @@ export class ActivityCalendarsTable
 
         // Observer
         this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
+        this.setShowColumn('observers', this.showObservers, { emitEvent: false });
 
         // Locations combo (filter)
         this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_IDS);

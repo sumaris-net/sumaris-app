@@ -194,8 +194,6 @@ export class FormTripReportStats extends BaseReportStats {
   encapsulation: ViewEncapsulation.None,
 })
 export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripReportStats> {
-  public static readonly isBlankFormParam = 'isBlankForm';
-
   protected logPrefix = 'form-trip-report';
   protected isBlankForm: boolean;
   protected subReportType: string;
