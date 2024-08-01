@@ -1283,8 +1283,7 @@ export class TripService
       // Get form errors
       if (form.invalid) {
         const errors = AppFormUtils.getFormErrors(form);
-
-        if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+        console.info(`[trip-service] Control #${entity.id} [INVALID] in ${Date.now() - now}ms`, errors);
         return {
           message: 'COMMON.FORM.HAS_ERROR',
           details: {
