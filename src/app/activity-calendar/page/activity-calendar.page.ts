@@ -65,7 +65,6 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { CalendarComponent } from '@app/activity-calendar/calendar/calendar.component';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 import { Moment } from 'moment';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
@@ -83,6 +82,7 @@ import { GearPhysicalFeaturesUtils } from '../model/gear-physical-features.utils
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-calendar.utils';
 import { ActivityMonth } from '../calendar/activity-month.model';
+import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -152,11 +152,11 @@ export class ActivityCalendarPage
   protected showCalendar = true;
   protected showVesselTab = true;
   protected enableReport: boolean;
-  protected showMap = true;
   protected _predocPanelSize = 30;
   protected _predocPanelVisible = false;
+  protected showMap = false; // TODO V3 enable
   protected mapPanelWidth = 30;
-  protected showMapPanel = true; // TODO enable
+  protected showMapPanel = true;
   protected selectedSubTabIndex = 0;
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
   protected isAdmin = this.accountService.isAdmin();
@@ -779,7 +779,12 @@ export class ActivityCalendarPage
   }
 
   protected getFirstInvalidTabIndex(): number {
-    return this.baseForm.invalid ? ActivityCalendarPage.TABS.GENERAL : this.calendar?.invalid ? ActivityCalendarPage.TABS.CALENDAR : -1;
+    if (this.baseForm.invalid) return ActivityCalendarPage.TABS.GENERAL;
+    if (this.showPictures && this.gallery?.invalid) return ActivityCalendarPage.TABS.VESSEL;
+    if (this.calendar && (this.calendar.invalid || this.calendar.visibleRowCount !== 12)) return ActivityCalendarPage.TABS.CALENDAR;
+    if (this.tableMetier.invalid) return ActivityCalendarPage.TABS.METIER;
+    if (this.showMap && this.mapCalendar.invalid) return ActivityCalendarPage.TABS.MAP;
+    return -1;
   }
 
   protected markForCheck() {
@@ -895,6 +900,7 @@ export class ActivityCalendarPage
   }
 
   protected onPredocResize(sizes?: IOutputAreaSizes) {
+    this.calendar.onResize();
     this.predocCalendar.onResize();
 
     this.savePredocPanelSize(sizes);

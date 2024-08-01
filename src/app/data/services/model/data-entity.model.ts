@@ -16,6 +16,7 @@ import {
 import { IWithObserversEntity, IWithRecorderDepartmentEntity } from './model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { StoreObject } from '@apollo/client/core';
+import { UntypedFormGroup } from '@angular/forms';
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
   keepSynchronizationStatus?: boolean;
@@ -185,6 +186,31 @@ export abstract class DataEntityUtils {
 
     // Clean quality flag
     entity.qualityFlagId = QualityFlagIds.BAD;
+  }
+
+  /**
+   * Mark form value as invalid, using qualityFlag
+   *
+   * @param formGroup
+   * @param errorMessage
+   * @param opts
+   */
+  static markFormAsInvalid(formGroup: UntypedFormGroup, errorMessage: string, opts?: { emitEvent?: boolean }) {
+    if (!formGroup) return; // skip
+    formGroup.patchValue(
+      <Partial<DataEntity<any, any>>>{
+        // Clean date
+        controlDate: null,
+        qualificationDate: null,
+
+        // Register error message, into qualificationComments
+        qualificationComments: errorMessage,
+
+        // Clean quality flag
+        //qualityFlagId: QualityFlagIds.BAD,
+      },
+      opts
+    );
   }
 
   /**
