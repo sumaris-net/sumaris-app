@@ -15,15 +15,19 @@
     }
 
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-      <!-- Add -->
-      <button mat-icon-button *ngIf="canEdit && !mobile" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
-        <mat-icon>add</mat-icon>
-      </button>
+      @if (!mobile) {
+        @if (canAdd && canEdit) {
+          <!-- Add -->
+          <button mat-icon-button [title]="'COMMON.BTN_ADD' | translate" (click)="addRow($event)">
+            <mat-icon>add</mat-icon>
+          </button>
 
-      <!-- Refresh -->
-      <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
-        <mat-icon>refresh</mat-icon>
-      </button>
+          <!-- Refresh -->
+          <button mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        }
+      }
 
       <!-- Reset filter -->
       <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
@@ -147,7 +151,7 @@
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
         <ion-row>
-          <ion-col>
+          <ion-col *ngIf="showProgram || isAdmin">
             <!-- Program -->
             <mat-autocomplete-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate"
@@ -212,19 +216,111 @@
               <ion-icon matPrefix name="boat"></ion-icon>
             </mat-autocomplete-field>
           </ion-col>
+
+          <!-- Observers criteria -->
+          <ion-col size="12" size-lg="6" *ngIf="showObservers">
+            <mat-autocomplete-field
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.OBSERVERS' | translate"
+              [formControl]="filterObserversForm.at(0)"
+              [config]="autocompleteFields.observers"
+              [i18nPrefix]="'USER.'"
+              [clearable]="true"
+            >
+              <ion-icon matPrefix name="person"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
         </ion-row>
 
-        <!--<ion-row>
-          &lt;!&ndash; Direct survey investigation ? &ndash;&gt;
+        <ion-row *ngIf="showQuality && filterForm | formGetControl: 'dataQualityStatus'; let control">
+          <!-- Data quality status -->
+          <ng-container *ngIf="showQuality && filterForm | formGetControl: 'dataQualityStatus'; let control">
+            <ion-col size="12" [sizeLg]="control.value !== 'QUALIFIED' ? 6 : 3">
+              <mat-form-field>
+                <ion-icon matPrefix name="create"></ion-icon>
+                <mat-label>{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</mat-label>
+                <mat-select [formControl]="control">
+                  <mat-select-trigger>
+                    <span *ngIf="statusById | mapGet: control.value; let item">
+                      {{ item.label | translate }}
+                    </span>
+                  </mat-select-trigger>
+                  <mat-option *ngFor="let item of statusList" [value]="item.id">
+                    <ion-icon [name]="item.icon"></ion-icon>
+                    {{ item.label | translate }}
+                  </mat-option>
+                </mat-select>
+
+                <button
+                  matSuffix
+                  mat-icon-button
+                  tabindex="-1"
+                  type="button"
+                  (click)="clearFilterValue('dataQualityStatus', $event)"
+                  [hidden]="disabled || !control.value"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </mat-form-field>
+            </ion-col>
+
+            <!-- Quality flag -->
+            <ion-col
+              *ngIf="filterForm | formGetControl: 'qualityFlagId'; let flagControl"
+              size="12"
+              size-lg="3"
+              [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'"
+            >
+              <mat-form-field>
+                <mat-select [formControl]="flagControl" [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.QUALITY_FLAG_ID' | translate">
+                  <mat-option
+                    *ngFor="let item of qualityFlags | arrayFilter: excludeNotQualified"
+                    style="background-color: var(--ion-color-{{ item.id | qualityFlagToColor }}); color: var(--ion-color-{{
+                      item.id | qualityFlagToColor
+                    }}-contrast)"
+                    [value]="item.id"
+                  >
+                    {{ item.label | translate }}
+                  </mat-option>
+                </mat-select>
+
+                <button
+                  matSuffix
+                  mat-icon-button
+                  tabindex="-1"
+                  type="button"
+                  (click)="clearFilterValue('qualityFlagId', $event)"
+                  [hidden]="disabled || !flagControl.value"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </mat-form-field>
+            </ion-col>
+          </ng-container>
+        </ion-row>
+
+        <ion-row>
+          <!-- Direct Survey Investigation -->
           <ion-col>
             <mat-boolean-field
-              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.DIRECT_SURVEY_INVESTIGATION' | translate"
-              formControlName="directSurveyInvestigation">
-              <mat-icon matPrefix>room</mat-icon>
+              formControlName="directSurveyInvestigation"
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION' | translate"
+              [clearable]="true"
+            >
+              <ion-icon matPrefix name="help-outline"></ion-icon>
             </mat-boolean-field>
           </ion-col>
-        </ion-row>-->
 
+          <!-- Economic Survey -->
+          <ion-col>
+            <mat-boolean-field
+              formControlName="economicSurvey"
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.ECONOMIC_SURVEY' | translate"
+              [clearable]="true"
+            >
+              <ion-icon matPrefix name="help-outline"></ion-icon>
+            </mat-boolean-field>
+          </ion-col>
+        </ion-row>
         <!-- Recorder criteria -->
         <ion-row *ngIf="showRecorder">
           <ion-col>
@@ -250,66 +346,6 @@
             >
               <ion-icon matPrefix name="person"></ion-icon>
             </mat-autocomplete-field>
-          </ion-col>
-        </ion-row>
-
-        <ion-row *ngIf="showQuality && filterForm | formGetControl: 'dataQualityStatus'; let control">
-          <!-- Data quality status -->
-          <ion-col>
-            <mat-form-field>
-              <ion-icon matPrefix name="create"></ion-icon>
-              <mat-label>{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</mat-label>
-              <mat-select [formControl]="control">
-                <mat-select-trigger>
-                  <span *ngIf="statusById | mapGet: control.value; let item">
-                    {{ item.label | translate }}
-                  </span>
-                </mat-select-trigger>
-                <mat-option *ngFor="let item of statusList" [value]="item.id">
-                  <ion-icon [name]="item.icon"></ion-icon>
-                  {{ item.label | translate }}
-                </mat-option>
-              </mat-select>
-
-              <button
-                matSuffix
-                mat-icon-button
-                tabindex="-1"
-                type="button"
-                (click)="clearFilterValue('dataQualityStatus', $event)"
-                [hidden]="disabled || !control.value"
-              >
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-form-field>
-          </ion-col>
-
-          <!-- Quality flag -->
-          <ion-col *ngIf="filterForm | formGetControl: 'qualityFlagId'; let flagControl" [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'">
-            <mat-form-field>
-              <mat-select [formControl]="flagControl" [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.QUALITY_FLAG_ID' | translate">
-                <mat-option
-                  *ngFor="let item of qualityFlags | arrayFilter: excludeNotQualified"
-                  style="background-color: var(--ion-color-{{ item.id | qualityFlagToColor }}); color: var(--ion-color-{{
-                    item.id | qualityFlagToColor
-                  }}-contrast)"
-                  [value]="item.id"
-                >
-                  {{ item.label | translate }}
-                </mat-option>
-              </mat-select>
-
-              <button
-                matSuffix
-                mat-icon-button
-                tabindex="-1"
-                type="button"
-                (click)="clearFilterValue('qualityFlagId', $event)"
-                [hidden]="disabled || !flagControl.value"
-              >
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-form-field>
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -511,6 +547,16 @@
         </td>
       </ng-container>
 
+      <!-- Observers -->
+      <ng-container matColumnDef="observers">
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.OBSERVERS</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>{{ row.currentData.observers | personToString }}</ion-text>
+        </td>
+      </ng-container>
+
       <!-- Comments column -->
       <ng-container matColumnDef="comments">
         <th mat-header-cell *matHeaderCellDef></th>
@@ -580,7 +626,7 @@
 </ion-footer>
 
 <!-- Add button (mobile) -->
-<ion-fab vertical="bottom" horizontal="end" *ngIf="canEdit && mobile">
+<ion-fab vertical="bottom" horizontal="end" *ngIf="canAdd && canEdit && mobile">
   <ion-fab-button color="tertiary" [disabled]="importing">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

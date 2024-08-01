@@ -36,9 +36,8 @@ RUN  node --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE} $(which npm) install -
 
 # Install project dependencies
 #RUN npm install --unsafe-perm --force --silent
-RUN node --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE} $(which npm) install --force
-
-RUN ls -artl
+RUN node --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE} $(which npm) install --force && \
+    ls -artl
 
 # Install global tools
 RUN apt-get update && \

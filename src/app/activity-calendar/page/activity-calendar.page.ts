@@ -5,8 +5,10 @@ import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/fo
 import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
+  Alerts,
   AppAsyncTable,
   AppEditorOptions,
+  AppErrorWithDetails,
   AppTable,
   chainPromises,
   CORE_CONFIG_OPTIONS,
@@ -19,13 +21,17 @@ import {
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
-  isNil,
+  IReferentialRef,
+  isEmptyArray,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   isNotNilOrNaN,
   Property,
   ReferentialRef,
   referentialToString,
+  removeDuplicatesFromArray,
   StatusIds,
   toBoolean,
   toNumber,
@@ -53,21 +59,17 @@ import { ActivityCalendarContextService } from '../activity-calendar-context.ser
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { CalendarComponent } from '@app/activity-calendar/calendar/calendar.component';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 import { Moment } from 'moment';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
-import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
-import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { VesselFeaturesHistoryComponent } from '@app/vessel/page/vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from '@app/vessel/page/vessel-registration-history.component';
-import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { IOutputAreaSizes } from 'angular-split/lib/interface';
 import { SplitComponent } from 'angular-split';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
@@ -76,8 +78,11 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { VesselOwnerHistoryComponent } from '@app/vessel/page/vessel-owner-history.component';
 import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
 import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.table';
-import { environment } from '@environments/environment';
 import { GearPhysicalFeaturesUtils } from '../model/gear-physical-features.utils';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-calendar.utils';
+import { ActivityMonth } from '../calendar/activity-month.model';
+import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -147,23 +152,25 @@ export class ActivityCalendarPage
   protected showCalendar = true;
   protected showVesselTab = true;
   protected enableReport: boolean;
-  protected showMap = true;
   protected _predocPanelSize = 30;
   protected _predocPanelVisible = false;
+  protected showMap = false; // TODO V3 enable
   protected mapPanelWidth = 30;
-  protected showMapPanel = true; // TODO enable
+  protected showMapPanel = true;
   protected selectedSubTabIndex = 0;
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
+  protected isAdmin = this.accountService.isAdmin();
+  protected qualityWarning: string = null;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
   @Input() showToolbar = true;
   @Input() showQualityForm = true;
-  @Input() showPictures = true;
+  @Input() showPictures = false;
+  @Input() autoFillPictureComments: boolean = true;
   @Input() showOptionsMenu = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
   @Input() yearHistory: number = 3;
-  @Input() autoNameImage: boolean = true;
   @Input() canEdit: boolean = true;
 
   @Input() @RxStateProperty() year: number;
@@ -199,21 +206,20 @@ export class ActivityCalendarPage
       pathIdAttribute: 'calendarId',
       tabCount: 5, // 4 is map is hidden
       i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.',
-      enableListenChanges: false, // TODO enable
+      enableListenChanges: true,
       acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
       settingsId: ActivityCalendarPageSettingsEnum.PAGE_ID,
       canCopyLocally: accountService.isAdmin(),
       autoOpenNextTab: false,
     });
     this.defaultBackHref = '/activity-calendar';
+
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
-    this.debug = !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
-
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
@@ -316,9 +322,12 @@ export class ActivityCalendarPage
           .pipe(filter(() => this.loaded))
           .subscribe(() => this.toggleShowPredoc())
       );
-    }
 
-    this.restorePredocPanelSize();
+      this.restorePredocPanelSize();
+    } else {
+      this._predocPanelVisible = false;
+      this._predocPanelSize = 0;
+    }
   }
   ngAfterViewInit() {
     super.ngAfterViewInit();
@@ -459,10 +468,16 @@ export class ActivityCalendarPage
       this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_CREATE_VESSEL_ENABLE);
       this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
       this.predocProgramLabels = program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS);
+      this.showPictures = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_IMAGES_ENABLE);
 
       let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
       this.i18nContext.suffix = i18nSuffix;
+
+      this.baseForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
+      if (!this.baseForm.showObservers && this.data?.observers) {
+        this.data.observers = []; // make sure to reset data observers, if any
+      }
 
       if (this.baseForm) {
         this.baseForm.timezone = this.timezone;
@@ -492,6 +507,53 @@ export class ActivityCalendarPage
     } catch (err) {
       this.setError(err);
     }
+  }
+
+  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
+    const errors = error && typeof error === 'object' && error.details?.errors;
+
+    // Conflictual error: show remote conflictual data
+    if (errors?.conflict instanceof ActivityCalendar) {
+      const remoteCalendar = errors.conflict;
+      this.showRemoteConflict(remoteCalendar);
+      return;
+    }
+
+    if (errors?.months) {
+      this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS';
+      this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+      super.resetError();
+      return;
+    }
+
+    if (errors?.metiers) {
+      this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_METIERS';
+      this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
+      super.resetError();
+      return;
+    }
+
+    super.setError(error, opts);
+  }
+
+  translateFormPath(controlPath: string): string {
+    return this.dataService.translateFormPath(controlPath, { i18nPrefix: this.i18nContext.prefix });
+  }
+
+  protected async showRemoteConflict(remoteCalendar: ActivityCalendar) {
+    if (!remoteCalendar) return;
+
+    console.debug(this.logPrefix + 'Detecting conflicts, from remote calendar:', remoteCalendar);
+    const localCalendar = await this.getValue();
+    const sortedMetierIds = ActivityMonthUtils.getSortedMetierIds((localCalendar.gearUseFeatures || []).concat(remoteCalendar.gearUseFeatures || []));
+    const months = ActivityMonthUtils.fromActivityCalendar(localCalendar, { sortedMetierIds, fillEmptyGuf: true }).concat(
+      ActivityMonthUtils.fromActivityCalendar(remoteCalendar, { sortedMetierIds, fillEmptyGuf: true, fillEmptyMonth: false })
+    );
+    EntityUtils.sort(months, 'month', 'asc');
+
+    this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.CONFLICTUAL_MONTH';
+    await this.calendar.setValue(months);
+    this._selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
   }
 
   protected async setStrategy(strategy: Strategy): Promise<void> {
@@ -540,13 +602,10 @@ export class ActivityCalendarPage
 
       // Year
       this.year = searchFilter.year || fromDateISOString(searchFilter.startDate)?.year();
+      if (isNotNil(this.year)) console.debug(`${this.logPrefix}Found year from table filter: ${this.year}`);
       if (this.year) {
         data.year = this.year;
-        if (this.timezone) {
-          data.startDate = DateUtils.moment().tz(this.timezone).year(this.year).startOf('year');
-        } else {
-          data.startDate = DateUtils.moment().year(this.year).startOf('year');
-        }
+        data.startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(this.year).startOf('year');
       }
     }
 
@@ -578,6 +637,13 @@ export class ActivityCalendarPage
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
 
+    this.setDataStartDate(data);
+
+    // Hide unused field (for historical data)
+    this.baseForm.showEconomicSurvey = isNotNil(data.economicSurvey);
+  }
+
+  protected setDataStartDate(data: ActivityCalendar) {
     // Year
     if (isNotNil(data.year)) {
       this.year = data.year;
@@ -588,9 +654,6 @@ export class ActivityCalendarPage
         data.startDate = DateUtils.moment().year(this.year).startOf('year');
       }
     }
-
-    // Hide unused field (for historical data)
-    this.baseForm.showEconomicSurvey = isNotNil(data.economicSurvey);
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
@@ -636,7 +699,10 @@ export class ActivityCalendarPage
     this.baseForm.value = data;
 
     // Set data to calendar
-    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, timezone: this.timezone });
+    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, {
+      fillEmptyGuf: true,
+      timezone: this.timezone,
+    });
 
     // Set metier table data
     this.tableMetier.value = GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone: this.timezone });
@@ -650,6 +716,10 @@ export class ActivityCalendarPage
     if (this._predocPanelVisible && !isNewData) {
       this.loadPredoc(data);
     }
+
+    if (!this.isNewData) {
+      this.updateQualityWarning(data);
+    }
   }
 
   async getValue(): Promise<ActivityCalendar> {
@@ -658,28 +728,26 @@ export class ActivityCalendarPage
     const value = await super.getValue();
 
     const activityMonths = this.calendar.value;
-    if (activityMonths) {
-      value.vesselUseFeatures = activityMonths.map((m) => VesselUseFeatures.fromObject(m.asObject())).filter(VesselUseFeatures.isNotEmpty);
-      value.gearUseFeatures = activityMonths.flatMap((m) =>
-        ((m.isActive === VesselUseFeaturesIsActiveEnum.ACTIVE && m.gearUseFeatures) || []).filter(GearUseFeatures.isNotEmpty).map((guf, index) => {
-          guf.rankOrder = index + 1;
-          guf.fishingAreas = guf.fishingAreas?.filter(FishingArea.isNotEmpty) || [];
-          return guf;
-        })
-      );
-    }
+    if (activityMonths) ActivityMonthUtils.fillActivityCalendar(value, activityMonths);
 
     // Metiers
     value.gearPhysicalFeatures = GearPhysicalFeaturesUtils.updateFromCalendar(value, this.tableMetier.value, { timezone: this.timezone });
 
-    // Photos
-    if (this.canEdit) value.images = this.gallery.value;
+    // Pictures
+    if (this.showPictures) {
+      value.images = this.gallery.value || [];
 
-    if (this.autoNameImage) {
-      value.images.map((img) => {
-        if (isNil(img.comments)) img.comments = value.year.toString();
-      });
+      if (this.autoFillPictureComments) {
+        (value.images || [])
+          .filter((img) => isNilOrBlank(img.comments))
+          .forEach((img) => {
+            img.comments = value.year.toString();
+          });
+      }
     }
+
+    // Restore vesselRegistrationPeriods
+    value.vesselRegistrationPeriods = this.data.vesselRegistrationPeriods;
 
     return value;
   }
@@ -725,11 +793,18 @@ export class ActivityCalendarPage
   }
 
   protected async onEntitySaved(data: ActivityCalendar): Promise<void> {
+    this.calendar?.collapseAll();
     await super.onEntitySaved(data);
+    this.setDataStartDate(data);
   }
 
   protected getFirstInvalidTabIndex(): number {
-    return this.baseForm.invalid ? ActivityCalendarPage.TABS.GENERAL : this.calendar?.invalid ? ActivityCalendarPage.TABS.CALENDAR : -1;
+    if (this.baseForm.invalid) return ActivityCalendarPage.TABS.GENERAL;
+    if (this.showPictures && this.gallery?.invalid) return ActivityCalendarPage.TABS.VESSEL;
+    if (this.calendar && (this.calendar.invalid || this.calendar.visibleRowCount !== 12)) return ActivityCalendarPage.TABS.CALENDAR;
+    if (this.tableMetier.invalid) return ActivityCalendarPage.TABS.METIER;
+    if (this.showMap && this.mapCalendar.invalid) return ActivityCalendarPage.TABS.MAP;
+    return -1;
   }
 
   protected markForCheck() {
@@ -743,7 +818,7 @@ export class ActivityCalendarPage
 
     const programLabels = await firstValueFrom(this.predocProgramLabels$);
 
-    const lastYearDefer = async () => {
+    const loadPreviousYearCalendar = async () => {
       const { data } = await this.dataService.loadAll(
         0,
         1,
@@ -758,7 +833,7 @@ export class ActivityCalendarPage
       );
       return data?.[0];
     };
-    const otherProgramDefers = (programLabels || []).map((programLabel) => async () => {
+    const loadPredocProgramCalendars = (programLabels || []).map((programLabel) => async () => {
       const { data } = await this.dataService.loadAll(
         0,
         1,
@@ -774,19 +849,30 @@ export class ActivityCalendarPage
       return data?.[0];
     });
 
-    const predocCalendars = (await chainPromises<ActivityCalendar>([lastYearDefer, ...otherProgramDefers])).filter(isNotNil);
-    console.debug(`${this.logPrefix}${predocCalendars.length} predoc calendars loaded in ${Date.now() - now}ms`);
+    let data = (await chainPromises<ActivityCalendar>([loadPreviousYearCalendar, ...loadPredocProgramCalendars])).filter(isNotNil);
 
-    if (isNotEmptyArray(predocCalendars)) {
-      this.predocCalendar.markAsReady();
+    // DEBUG: simulate a N-1 calendar
+    if (this.debug && data.length === 1) {
+      const fakeCalendar = data[0].clone();
+      ActivityCalendarUtils.setYear(fakeCalendar, entity.year - 1);
+      ActivityCalendarUtils.setProgram(fakeCalendar, entity.program);
+      data = [fakeCalendar, data[0]];
+    }
 
-      // DEBUG: simulate a previous calendar
-      //if (this.debug && predocCalendars.length === 1) predocCalendars = predocCalendars.concat(predocCalendars[0].clone());
+    this.predocCalendar.pmfms = await firstNotNilPromise(this.calendar.pmfms$);
+    this.predocCalendar.availablePrograms = removeDuplicatesFromArray(data.map((ac) => ac.program).filter(isNotNil), 'label');
+    this.predocCalendar.markAsReady();
 
-      const predocMonths = predocCalendars.flatMap((ac) => ActivityMonthUtils.fromActivityCalendar(ac, { fillEmptyGuf: true }));
-      EntityUtils.sort(predocMonths, 'month', 'asc');
+    if (isNotEmptyArray(data)) {
+      console.debug(`${this.logPrefix}${data.length} predoc calendars loaded in ${Date.now() - now}ms`);
 
-      await this.predocCalendar.setValue(predocMonths);
+      // Convert to months, then sort
+      const months = ActivityMonthUtils.fromActivityCalendars(data, { fillEmptyGuf: true, timezone: this.timezone });
+      EntityUtils.sort(months, 'month', 'asc');
+
+      await this.predocCalendar.setValue(months || []);
+    } else {
+      await this.predocCalendar.setValue([]);
     }
   }
 
@@ -822,7 +908,7 @@ export class ActivityCalendarPage
     this.savePredocPanelSize();
     this.markForCheck();
 
-    if (this._predocPanelVisible && !this.predocCalendar.loaded) {
+    if (this._predocPanelVisible && !this.predocCalendar.value) {
       setTimeout(() => this.loadPredoc(this.data), 500);
     }
   }
@@ -834,6 +920,7 @@ export class ActivityCalendarPage
   }
 
   protected onPredocResize(sizes?: IOutputAreaSizes) {
+    this.calendar.onResize();
     this.predocCalendar.onResize();
 
     this.savePredocPanelSize(sizes);
@@ -854,4 +941,74 @@ export class ActivityCalendarPage
   protected vesselToString(vessel: VesselSnapshot) {
     return referentialToString(vessel, this.vesselSnapshotAttributes);
   }
+
+  protected clearCalendar(event?: Event) {
+    this.calendar.clearAll();
+  }
+
+  protected async updateQualityWarning(data?: ActivityCalendar) {
+    data = data || this.data;
+
+    if (!data.directSurveyInvestigation) {
+      this.qualityWarning = null;
+    } else {
+      const pmfms = await firstNotNilPromise(this.baseForm.pmfms$, { stop: this.destroySubject, stopError: false });
+      const surveyQualificationPmfm = (pmfms || []).find((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION);
+      if (!surveyQualificationPmfm) {
+        console.warn(this.logPrefix + "Cannot find PMFM 'SURVEY_QUALIFICATION' need to compute quality warning");
+        return;
+      }
+
+      const surveyQualificationValue = PmfmValueUtils.fromModelValue(
+        data.measurementValues?.[PmfmIds.SURVEY_QUALIFICATION],
+        surveyQualificationPmfm
+      ) as IReferentialRef;
+
+      if (isNotNilOrBlank(surveyQualificationValue?.name) && surveyQualificationValue.id !== QualitativeValueIds.SURVEY_QUALIFICATION.DIRECT) {
+        this.qualityWarning = this.translate.instant('ACTIVITY_CALENDAR.WARNING.INCONSISTENT_DIRECT_SURVEY_QUALIFICATION', {
+          surveyQualification: surveyQualificationValue.name,
+        });
+      } else {
+        this.qualityWarning = null;
+      }
+    }
+  }
+
+  async copyAndPastePredoc(sources: ActivityMonth[]) {
+    if (isEmptyArray(sources)) return; // Skip if empty
+
+    const existingMonths = this.calendar.getValue();
+
+    // Ask user confirmation if calendar is not empty
+    const hasSomeData = existingMonths.some((month) => isNotNil(month.isActive));
+    if (hasSomeData) {
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.CONFIRM.COPY_PASTE', this.alertCtrl, this.translate);
+      if (!confirmed) return false; // User cancelled
+    }
+
+    const target = existingMonths.map((existingMonth, index) => {
+      const source = sources[index];
+      if (!source) return target; // Keep original, if missing a month
+
+      return ActivityMonth.fromObject(<Partial<ActivityMonth>>{
+        ...source,
+        // Preserved some properties
+        id: existingMonth.id,
+        program: existingMonth.program,
+        startDate: existingMonth.startDate,
+        endDate: existingMonth.endDate,
+        registrationLocations: existingMonth.registrationLocations,
+        readonly: existingMonth.readonly,
+        updateDate: existingMonth.updateDate,
+      });
+    });
+
+    // Apply result
+    await this.calendar.setValue(target);
+
+    // Mark as dirty
+    this.markAsDirty();
+  }
+
+  protected readonly equals = equals;
 }

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 import {
@@ -349,6 +350,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     if (resetValue) {
       setTimeout(() => {
         criterionForm.get('value').reset(null);
+        this.markForCheck();
       }, 250);
     }
 

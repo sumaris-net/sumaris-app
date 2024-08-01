@@ -1,21 +1,29 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { ActivityCalendarValidatorOptions, ActivityCalendarValidatorService } from '../model/activity-calendar.validator';
-import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
+import { IMeasurementsFormOptions, MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { AbstractControl, FormGroup, UntypedFormBuilder } from '@angular/forms';
+import { AbstractControl, FormGroup, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
+  AppFormArray,
   DateUtils,
   equals,
   fromDateISOString,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  LoadResult,
   NetworkService,
+  Person,
   PersonService,
+  PersonUtils,
+  ReferentialUtils,
   setPropertyByPath,
   StatusIds,
+  toBoolean,
   toDateISOString,
+  UserProfileLabel,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendar } from '../model/activity-calendar.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -29,10 +37,13 @@ import { VesselModal } from '@app/vessel/modal/vessel-modal';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { ModalController } from '@ionic/angular';
-import { merge } from 'rxjs';
+import { merge, Observable, tap } from 'rxjs';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export interface ActivityCalendarFormState extends MeasurementsFormState {
   showYear: boolean;
+  showObservers: boolean;
+  warnFutureYear: boolean;
 }
 
 @Component({
@@ -42,10 +53,16 @@ export interface ActivityCalendarFormState extends MeasurementsFormState {
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [RxState],
 })
-export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar, ActivityCalendarFormState> implements OnInit {
+export class ActivityCalendarForm
+  extends MeasurementValuesForm<ActivityCalendar, ActivityCalendarFormState, IMeasurementsFormOptions<ActivityCalendarFormState>>
+  implements OnInit
+{
   private _lastValidatorOpts: any;
   private _readonlyControlNames: (keyof ActivityCalendar)[] = ['program', 'year', 'startDate', 'directSurveyInvestigation', 'economicSurvey', 'year'];
-  protected isYearInTheFuture = false;
+  protected observerFocusIndex = -1;
+
+  @RxStateSelect() protected showObservers$: Observable<boolean>;
+  @RxStateSelect() protected warnFutureYear$: Observable<boolean>;
 
   @Input() required = true;
   @Input() showError = true;
@@ -59,6 +76,8 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
   @Input() mobile = false;
   @Input() allowAddNewVessel = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
+  @Input() @RxStateProperty() showObservers: boolean;
+  @Input() @RxStateProperty() warnFutureYear: boolean;
 
   get empty(): any {
     const value = this.value;
@@ -77,6 +96,10 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
   }
   get economicSurveyControl(): AbstractControl {
     return this.form.get('economicSurvey');
+  }
+
+  get observersForm() {
+    return this.form.controls.observers as AppFormArray<Person, UntypedFormControl>;
   }
 
   @Output() yearChanges = new EventEmitter<number>();
@@ -101,12 +124,13 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
       validatorService.getFormGroup(null, { withGearUseFeatures: false, withVesselUseFeatures: false }),
       {
         onUpdateFormGroup: (form) => this.updateFormGroup(form),
+        initialState: {
+          acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
+          warnFutureYear: false,
+        },
       }
     );
     this._enable = false;
-
-    // Set default acquisition level
-    this.acquisitionLevel = AcquisitionLevelCodes.ACTIVITY_CALENDAR;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -114,9 +138,29 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
 
   ngOnInit() {
     super.ngOnInit();
-
     // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
+    this.showObservers = toBoolean(this.showObservers, false);
+
+    // Combo qualitative pmfm
+    this.registerAutocompleteField('pmfmQualitativeValue', {
+      attributes: ['name'],
+    });
+
+    // Combo: observers
+    this.registerAutocompleteField('person', {
+      // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
+      showAllOnFocus: false,
+      suggestFn: (value, filter) => this.suggestObservers(value, filter),
+      // Default filter. An excludedIds will be add dynamically
+      filter: {
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+        userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER'],
+      },
+      attributes: ['lastName', 'firstName', 'department.name'],
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile,
+    });
 
     // Combo: programs
     this.registerAutocompleteField('program', {
@@ -127,7 +171,22 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
+      this.registerAutocompleteField('vesselSnapshot', {
+        ...opts,
+        suggestFn: (value, filter) => {
+          const year = this.yearControl.value;
+          if (isNotNil(year)) {
+            const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
+            filter = {
+              ...filter,
+              date: startDate,
+            };
+          }
+          return this.vesselSnapshotService.suggest(value, filter);
+        },
+      });
+    });
 
     // Propagate program
     this.registerSubscription(
@@ -145,9 +204,24 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     this.registerSubscription(
       merge(
         this.yearControl.valueChanges,
-        this.form.get('startDate').valueChanges.pipe(map((startDate) => fromDateISOString(startDate)?.utc(false).year()))
+        this.form.get('startDate').valueChanges.pipe(
+          // Convert startDate to year
+          map(fromDateISOString),
+          map((startDate) => {
+            if (!startDate) return null;
+            if (this.timezone) startDate = startDate.tz(this.timezone);
+            return startDate.year();
+          })
+        )
       )
-        .pipe(filter(isNotNil), distinctUntilChanged())
+        .pipe(
+          // Reset warning, if null
+          tap((year) => {
+            if (isNil(year)) this.warnFutureYear = false;
+          }),
+          filter(isNotNil),
+          distinctUntilChanged()
+        )
         .subscribe((year) => {
           console.debug(this._logPrefix + 'Year changes to: ' + year);
           if (this.isNewData && this.yearControl.value !== year) {
@@ -156,8 +230,7 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
           }
 
           // Warning if year is in the future
-          this.isYearInTheFuture = isNotNil(year) && year > DateUtils.moment().year();
-          this.markForCheck();
+          this.warnFutureYear = isNotNil(year) && year > DateUtils.moment().year();
         })
     );
   }
@@ -167,8 +240,23 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
 
     super.onApplyingEntity(data, opts);
 
+    // Make sure to have (at least) one observer
+    // Resize observers array
+    if (this.showObservers) {
+      data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
+    } else {
+      data.observers = [null];
+    }
+
     // Update form group
     this.updateFormGroup();
+  }
+
+  addObserver() {
+    this.observersForm.add();
+    if (!this.mobile) {
+      this.observerFocusIndex = this.observersForm.length - 1;
+    }
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
@@ -200,8 +288,6 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
     return data;
   }
 
-  /* -- protected method -- */
-
   updateFormGroup(form?: FormGroup) {
     form = form || this.form;
     const validatorOpts: ActivityCalendarValidatorOptions = {
@@ -226,6 +312,24 @@ export class ActivityCalendarForm extends MeasurementValuesForm<ActivityCalendar
       // Remember used opts, for next call
       this._lastValidatorOpts = validatorOpts;
     }
+  }
+
+  /* -- protected method -- */
+
+  protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing observers, BUT keep the current control value
+    const excludedIds = (this.observersForm.value || [])
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter((person) => !currentControlValue || currentControlValue !== person)
+      .map((person) => parseInt(person.id));
+
+    return this.personService.suggest(newValue, {
+      ...filter,
+      excludedIds,
+    });
   }
 
   protected async addVesselModal(event?: Event): Promise<any> {

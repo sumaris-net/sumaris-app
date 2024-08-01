@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
-import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
   ConfigService,
+  CORE_CONFIG_OPTIONS,
   DateUtils,
   FilesUtils,
   HammerSwipeEvent,
@@ -13,6 +14,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   MatAutocompleteFieldConfig,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   OfflineFeature,
@@ -23,12 +25,13 @@ import {
   slideUpDownAnimation,
   splitByProperty,
   StatusIds,
+  toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
@@ -51,6 +54,8 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 import { isMoment } from 'moment';
+import { Program } from '@app/referential/services/model/program.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -90,6 +95,7 @@ export class ActivityCalendarsTable
   protected statusById = DataQualityStatusEnum;
   protected qualityFlags: ReferentialRef[];
   protected qualityFlagsById: { [id: number]: ReferentialRef };
+  protected timezone = DateUtils.moment().tz();
 
   @Input() showRecorder = true;
   @Input() canDownload = false;
@@ -98,9 +104,41 @@ export class ActivityCalendarsTable
   @Input() registrationLocationLevelIds: number[] = null;
   @Input() basePortLocationLevelIds: number[] = null;
   @Input() @RxStateProperty() title: string;
+  @Input() canAdd: boolean;
+
+  @Input()
+  set showObservers(value: boolean) {
+    this.setShowColumn('observers', value);
+  }
+
+  get showObservers(): boolean {
+    return this.getShowColumn('observers');
+  }
+
+  @Input()
+  set showVesselTypeColumn(value: boolean) {
+    this.setShowColumn('vesselType', value);
+  }
+
+  get showVesselTypeColumn(): boolean {
+    return this.getShowColumn('vesselType');
+  }
+
+  @Input()
+  set showProgram(value: boolean) {
+    this.setShowColumn('program', value);
+  }
+
+  get showProgram(): boolean {
+    return this.getShowColumn('program');
+  }
 
   get filterYearControl(): UntypedFormControl {
     return this.filterForm.controls.year as UntypedFormControl;
+  }
+
+  get filterObserversForm(): UntypedFormArray {
+    return this.filterForm.controls.observers as UntypedFormArray;
   }
 
   constructor(
@@ -118,7 +156,7 @@ export class ActivityCalendarsTable
       injector,
       ActivityCalendar,
       ActivityCalendarFilter,
-      ['quality', 'program', 'vessel', 'year', 'directSurveyInvestigation', 'economicSurvey', 'recorderPerson', 'comments'],
+      ['quality', 'program', 'vessel', 'year', 'directSurveyInvestigation', 'economicSurvey', 'observers', 'recorderPerson', 'comments'],
       _dataService,
       null
     );
@@ -131,12 +169,14 @@ export class ActivityCalendarsTable
       endDate: [null, SharedValidators.validDate],
       registrationLocations: [null],
       basePortLocations: [null],
-      directSurveyInvestigation: [null],
       synchronizationStatus: [null],
       recorderDepartment: [null, SharedValidators.entity],
       recorderPerson: [null, SharedValidators.entity],
       dataQualityStatus: [null],
       qualityFlagId: [null, SharedValidators.integer],
+      directSurveyInvestigation: [null],
+      economicSurvey: [null],
+      observers: formBuilder.array([[null, SharedValidators.entity]]),
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()
@@ -144,12 +184,7 @@ export class ActivityCalendarsTable
     this.defaultSortBy = 'year';
     this.defaultSortDirection = 'desc';
     this.confirmBeforeDelete = true;
-    this.canEdit = this.accountService.isUser();
-
-    const showAdvancedFeatures = this.accountService.isAdmin();
-    this.canDownload = showAdvancedFeatures;
-    this.canUpload = showAdvancedFeatures;
-    this.canOpenMap = showAdvancedFeatures;
+    this.canEdit = false;
 
     this.settingsId = ActivityCalendarsTableSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureName = ActivityCalendarsTableSettingsEnum.FEATURE_ID;
@@ -165,6 +200,13 @@ export class ActivityCalendarsTable
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.canEdit = this.accountService.isUser();
+    const showAdvancedFeatures = this.isAdmin;
+    this.canDownload = showAdvancedFeatures;
+    this.canUpload = showAdvancedFeatures;
+    this.canOpenMap = showAdvancedFeatures;
+    this.canAdd = showAdvancedFeatures;
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -218,11 +260,23 @@ export class ActivityCalendarsTable
       mobile: this.mobile,
     });
 
+    // Combo: observers
+    this.registerAutocompleteField('observers', {
+      service: this.personService,
+      filter: {
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+      },
+      attributes: personAttributes,
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile,
+    });
+
     this.registerSubscription(
       this.configService.config.pipe(filter(isNotNil)).subscribe((config) => {
-        console.info('[activity-calendars] Init from config', config);
+        console.info(`${this.logPrefix}Init from config`, config);
 
         this.title = config.getProperty(ACTIVITY_CALENDAR_CONFIG_OPTIONS.ACTIVITY_CALENDAR_NAME);
+        this.timezone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
 
         this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
         this.setShowColumn('quality', this.showQuality, { emitEvent: false });
@@ -237,6 +291,9 @@ export class ActivityCalendarsTable
         // Recorder
         this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
         this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
+
+        // Observer
+        this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
 
         // Locations combo (filter)
         this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_IDS);
@@ -253,7 +310,7 @@ export class ActivityCalendarsTable
     this.resetContext();
   }
 
-  setFilter(filter: Partial<ActivityCalendarFilter>, opts?: { emitEvent: boolean }) {
+  async setFilter(filter: Partial<ActivityCalendarFilter>, opts?: { emitEvent: boolean }) {
     filter = filter || {};
     if (isMoment(filter.year)) {
       filter.year = filter.year.year();
@@ -262,7 +319,55 @@ export class ActivityCalendarsTable
     } else {
       filter.year = toNumber(filter.year, DateUtils.moment().year() - 1);
     }
+
+    // Program
+    const programLabel = filter?.program?.label;
+    if (isNotNilOrBlank(programLabel)) {
+      const program = await this.programRefService.loadByLabel(programLabel);
+      await this.setProgram(program);
+    } else {
+      // Check if user can access more than one program
+      const { data, total } = await this.programRefService.loadAll(
+        0,
+        1,
+        null,
+        null,
+        {
+          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+          acquisitionLevelLabels: [AcquisitionLevelCodes.ACTIVITY_CALENDAR, AcquisitionLevelCodes.MONTHLY_ACTIVITY],
+        },
+        { withTotal: true }
+      );
+
+      if (isNotEmptyArray(data) && total === 1) {
+        const program = data[0];
+        await this.setProgram(program);
+      } else {
+        await this.resetProgram();
+      }
+    }
     super.setFilter(filter, opts);
+  }
+
+  protected async setProgram(program: Program) {
+    if (!program?.label) throw new Error('Invalid program');
+    console.debug(`${this.logPrefix}Init using program`, program);
+
+    // I18n suffix
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+    this.i18nColumnSuffix = i18nSuffix;
+
+    this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
+    this.showProgram = false;
+    if (this.loaded) this.updateColumns();
+  }
+
+  protected async resetProgram() {
+    console.debug(`${this.logPrefix}Reset filter program`);
+    this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
+    this.showProgram = true;
+    if (this.loaded) this.updateColumns();
   }
 
   protected countNotEmptyCriteria(filter: ActivityCalendarFilter): number {
@@ -430,7 +535,9 @@ export class ActivityCalendarsTable
       this.filterYearControl.reset();
       this.onRefresh.emit();
     } else {
-      this.setFilter({ year, startDate: null, endDate: null });
+      const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
+      this.filterYearControl.setValue(startDate, { emitEvent: false });
+      this.setFilter({ year, startDate: startDate, endDate: null });
     }
   }
 

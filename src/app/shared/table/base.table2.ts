@@ -253,16 +253,19 @@ export abstract class AppBaseTable2<
     }
   }
 
+  /**
+   * Scroll to bottom
+   */
   scrollToBottom() {
     if (this.tableContainerRef) {
-      // scroll to bottom
       this.tableContainerRef.nativeElement.scroll({
         top: this.tableContainerRef.nativeElement.scrollHeight,
+        behavior: 'smooth',
       });
     }
   }
 
-  setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
+  async setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
     filter = this.asFilter(filter);
 
     // Update criteria count
@@ -277,7 +280,7 @@ export abstract class AppBaseTable2<
       this.filterForm.patchValue(filter.asObject(), { emitEvent: false });
     }
 
-    super.setFilter(filter as F, opts);
+    return super.setFilter(filter as F, opts);
   }
 
   toggleFilterPanelFloating() {

@@ -346,7 +346,7 @@ export abstract class AppDataEntityEditor<
         if (formErrors) {
           const i18FormError = this.errorTranslator.translateErrors(formErrors, {
             separator: ', ',
-            controlPathTranslator: this,
+            pathTranslator: this,
           });
           if (isNotNilOrBlank(i18FormError)) {
             error.details.message = i18FormError;
@@ -371,7 +371,7 @@ export abstract class AppDataEntityEditor<
 
   /* -- protected methods -- */
 
-  translateControlPath(controlPath: string): string {
+  translateFormPath(controlPath: string): string {
     const i18nKey = (this.i18nContext.prefix || '') + changeCaseToUnderscore(controlPath).toUpperCase();
     return this.translate.instant(i18nKey);
   }

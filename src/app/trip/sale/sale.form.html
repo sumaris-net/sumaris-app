@@ -70,6 +70,7 @@
       <ion-row>
         <ion-col size="12">
           <mat-autocomplete-field
+            #locationField
             formControlName="saleLocation"
             [placeholder]="'SALE.SALE_LOCATION' | translate"
             [config]="autocompleteFields.location"
@@ -111,6 +112,7 @@
         <ion-col offset="0" offset-md="2" offset-lg="3">
           <mat-autocomplete-field
             formControlName="saleLocation"
+            #locationField
             [placeholder]="'SALE.SALE_LOCATION' | translate"
             [config]="autocompleteFields.location"
             [tabindex]="tabindex === -1 ? -1 : tabindex + 7"
@@ -190,6 +192,7 @@
           <br />
           form.showVessel: {{ showVessel }}
           <br />
+          form.showParent: {{ showParent }}
         </ion-col>
       </ion-row>
     </ion-grid>

@@ -76,6 +76,7 @@ import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragme
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
+import { environment } from '@environments/environment';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -91,7 +92,6 @@ export declare interface LandingServiceWatchOptions extends EntitiesServiceWatch
   fullLoad?: boolean;
   toEntity?: boolean;
   withTotal?: boolean;
-  mapResult?: (result: LoadResult<Landing>) => LoadResult<Landing>;
 }
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
@@ -115,6 +115,8 @@ export const LandingFragments = {
       controlDate
       validationDate
       qualificationDate
+      qualificationComments
+      qualityFlagId
       comments
       rankOrder
       observedLocationId
@@ -155,6 +157,8 @@ export const LandingFragments = {
       controlDate
       validationDate
       qualificationDate
+      qualificationComments
+      qualityFlagId
       comments
       rankOrder
       observedLocationId
@@ -344,6 +348,7 @@ export class LandingService
     this._featureName = OBSERVED_LOCATION_FEATURE_NAME;
 
     this._logPrefix = '[landing-service] ';
+    this._debug = !environment.production;
   }
 
   hasSampleWithTagId(landingIds: number[]): Promise<boolean> {
@@ -473,8 +478,7 @@ export class LandingService
         }
 
         return { data: entities, total };
-      }),
-      map((result) => (opts?.mapResult ? opts.mapResult(result) : result))
+      })
     );
   }
 
@@ -852,7 +856,7 @@ export class LandingService
       );
   }
 
-  translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
     opts = { i18nPrefix: 'LANDING.EDIT.', ...opts };
     // Translate PMFM field
     if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
@@ -861,7 +865,7 @@ export class LandingService
       return PmfmUtils.getPmfmName(pmfm);
     }
     // Default translation
-    return this.formErrorTranslator.translateControlPath(path, opts);
+    return this.formErrorTranslator.translateFormPath(path, opts);
   }
 
   async synchronizeById(id: number): Promise<Landing> {
@@ -1037,7 +1041,12 @@ export class LandingService
         } else {
           if (opts.progression?.cancelled) return; // Cancel
           // Need to exclude data that already validated (else got exception when pod control already validated data)
-          if (isNil(entity.validationDate)) await this.terminate(entity);
+          if (isNil(entity.validationDate)) {
+            // reset previous error
+            entity.qualificationComments = null;
+
+            await this.terminate(entity);
+          }
         }
 
         // increment, after save/terminate
@@ -1379,8 +1388,8 @@ export class LandingService
 
     if (!opts?.translatorOptions) {
       opts.translatorOptions = {
-        controlPathTranslator: {
-          translateControlPath: (path) => this.translateControlPath(path, { pmfms: opts.strategy?.denormalizedPmfms }),
+        pathTranslator: {
+          translateFormPath: (path) => this.translateFormPath(path, { pmfms: opts.strategy?.denormalizedPmfms }),
         },
       };
     }

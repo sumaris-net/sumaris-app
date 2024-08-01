@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { AccountService, LocalSettingsService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
 import { VesselFeatures } from '../services/model/vessel.model';
-import { VesselFeaturesService } from '../services/vessel-features.service';
+import { VesselFeaturesService, VesselFeaturesServiceWatchOptions } from '../services/vessel-features.service';
 import { environment } from '@environments/environment';
 import { VesselFeaturesFilter } from '../services/filter/vessel.filter';
 import { AppBaseTable } from '@app/shared/table/base.table';
@@ -19,6 +19,8 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
   @Input() compact: boolean;
   @Input() title: string;
   @Input() stickyEnd: boolean = false;
+  @Input() mergeSameAndContiguous: boolean = false;
+  @Input() showPagination: boolean = false;
 
   @Input()
   set showGrossTonnageGrtColumn(value: boolean) {
@@ -94,7 +96,12 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
       ],
       dataService,
       null,
+
       {
+        watchAllOptions: <VesselFeaturesServiceWatchOptions>{
+          mergeSameAndContiguous: () => this.mergeSameAndContiguous,
+        },
+
         saveOnlyDirtyRows: true,
       }
     );

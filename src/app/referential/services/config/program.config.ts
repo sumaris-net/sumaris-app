@@ -1,5 +1,5 @@
 import { FormFieldDefinition, FormFieldType, isNilOrBlank, Property, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds, PmfmIds, ProgramLabel, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelGroups, LocationLevelIds, ProgramLabel, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -18,9 +18,9 @@ export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 
-export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'form-blank';
+export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'blank-form';
 
-export type ActivityCalendarReportType = 'form' | 'form-blank';
+export type ActivityCalendarReportType = 'form' | 'blank-form';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
@@ -108,6 +108,19 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_SALE_ENABLE',
     defaultValue: 'true',
     type: 'boolean',
+  },
+  TRIP_SALE_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.sale.location.level.ids',
+    label: 'PROGRAM.OPTIONS.TRIP_SALE_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['name'],
+    },
+    defaultValue: LocationLevelIds.PORT.toString(),
   },
   TRIP_OBSERVERS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.observers.enable',
@@ -563,23 +576,23 @@ export const ProgramProperties = Object.freeze({
     values: [
       {
         key: <TripReportType>'legacy',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_LEGACY',
+        value: 'TRIP.REPORT.REPORT_TYPE.LEGACY',
       },
       {
         key: <TripReportType>'selectivity',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_TRAWL_SELECTIVITY',
+        value: 'TRIP.REPORT.REPORT_TYPE.TRAWL_SELECTIVITY',
       },
       // {
       //   key: <TripReportType>'onboard',
-      //   value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_ONBOARD_OBSERVATION',
+      //   value: 'TRIP.REPORT.REPORT_TYPE.ONBOARD_OBSERVATION',
       // },
       {
         key: <TripReportType>'form',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM',
+        value: 'TRIP.REPORT.REPORT_TYPE.FORM',
       },
       {
-        key: <TripReportType>'form-blank',
-        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_FORM_BLANK',
+        key: <TripReportType>'blank-form',
+        value: 'TRIP.REPORT.REPORT_TYPE.BLANK_FORM',
       },
     ],
     autocomplete: {
@@ -842,9 +855,9 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
-  OBSERVED_LOCATION_LANDING_AUTO_FILL: <FormFieldDefinition>{
-    key: 'sumaris.observedLocation.landing.autoFill',
-    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_LANDING_AUTO_FILL',
+  OBSERVED_LOCATION_LANDINGS_AUTO_FILL: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.landings.autoFill',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_LANDINGS_AUTO_FILL',
     defaultValue: 'false',
     type: 'boolean',
   },
@@ -1022,7 +1035,7 @@ export const ProgramProperties = Object.freeze({
       attributes: ['id', 'label', 'name'],
       columnSizes: [2, 4, 6],
     },
-    defaultValue: PmfmIds.SPECIES_LIST_ORIGIN,
+    defaultValue: null,
   },
   // TODO remove
   /*LANDING_TOP_PMFM_IDS: <FormFieldDefinition>{
@@ -1049,6 +1062,19 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
   },
 
+  SALE_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.sale.location.level.ids',
+    label: 'PROGRAM.OPTIONS.SALE_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['name'],
+    },
+    defaultValue: LocationLevelIds.PORT.toString(),
+  },
   /* -- Landed trip options -- */
 
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
@@ -1132,6 +1158,12 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelGroups.FISHING_AREA.join(','),
   },
+  ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.conflict.merge.enable',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE',
+    type: 'boolean',
+    defaultValue: false,
+  },
   ACTIVITY_CALENDAR_REPORT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.report.enable',
     label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_ENABLE',
@@ -1152,11 +1184,11 @@ export const ProgramProperties = Object.freeze({
     values: [
       {
         key: <ActivityCalendarReportType>'form',
-        value: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_TYPE_FORM',
+        value: 'ACTIVITY_CALENDAR.REPORT.REPORT_TYPE.FORM',
       },
       {
-        key: <ActivityCalendarReportType>'form-blank',
-        value: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_TYPE_FORM_BLANK',
+        key: <ActivityCalendarReportType>'blank-form',
+        value: 'ACTIVITY_CALENDAR.REPORT.REPORT_TYPE.BLANK_FORM',
       },
     ],
     autocomplete: {
@@ -1189,9 +1221,21 @@ export const ProgramProperties = Object.freeze({
   },
   ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.report.form.blank.nbMetier',
-    label: 'PROGRAM.OPTIONS.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER',
     type: 'integer',
     defaultValue: 2,
+  },
+  ACTIVITY_CALENDAR_IMAGES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.images.enable',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_IMAGES_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
+  ACTIVITY_CALENDAR_OBSERVERS_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.observers.enable',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_OBSERVERS_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
   },
 
   /* -- Extraction options -- */
@@ -1345,9 +1389,11 @@ export class ProgramPropertiesUtils {
 
     ProgramProperties.STRATEGY_EDITOR_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.DIVISION_ICES.toString();
     ProgramProperties.TRIP_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
+    ProgramProperties.TRIP_SALE_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.RECTANGLE_ICES.toString();
     ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.DCF_METIER_LVL_5.toString();
     ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
+    ProgramProperties.SALE_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.RECTANGLE_ICES.toString();
     ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.join(',');
     ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;

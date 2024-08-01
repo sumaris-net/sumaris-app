@@ -11,10 +11,12 @@ import {
   firstNotNilPromise,
   firstTrue,
   IEntitiesService,
+  IEntity,
   InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   isNotNil,
+  LoadResult,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toNumber,
@@ -47,30 +49,34 @@ export interface BaseMeasurementsTableState {
   hasPmfms: boolean;
 }
 
-export interface BaseMeasurementsTableConfig<T extends IEntityWithMeasurement<T>, ST extends BaseMeasurementsTableState = BaseMeasurementsTableState>
-  extends BaseTableConfig<T, number, ST> {
+export interface BaseMeasurementsTableConfig<
+  T extends IEntityWithMeasurement<T, any>,
+  ST extends BaseMeasurementsTableState = BaseMeasurementsTableState,
+> extends BaseTableConfig<T, any, ST> {
   onRowCreated?: undefined; // IMPORTANT: leave 'undefined'. subclasses should use onPrepareRowForm instead
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
   onPrepareRowForm?: (form: UntypedFormGroup) => void | Promise<void>;
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
+  mapResult?: (result: LoadResult<T>) => LoadResult<T> | Promise<LoadResult<T>>;
   i18nPmfmPrefix?: string;
 }
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class BaseMeasurementsTable<
-    T extends IEntityWithMeasurement<T>,
-    F extends EntityFilter<any, T, any>,
+    T extends IEntityWithMeasurement<T, ID>,
+    F extends EntityFilter<any, T, ID>,
     S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
-    V extends BaseValidatorService<T, number, VO> = any,
+    V extends BaseValidatorService<T, ID, VO> = any,
     ST extends BaseMeasurementsTableState = BaseMeasurementsTableState,
     O extends BaseMeasurementsTableConfig<T, ST> = BaseMeasurementsTableConfig<T, ST>,
     VO = any,
+    ID = number,
     MS extends MeasurementsTableEntitiesService<T, F, S> = MeasurementsTableEntitiesService<T, F, S>,
-    MV extends MeasurementsTableValidatorService<T, V, number, VO> = MeasurementsTableValidatorService<T, V, number, VO>,
+    MV extends MeasurementsTableValidatorService<T, V, ID, VO> = MeasurementsTableValidatorService<T, V, ID, VO>,
   >
-  extends AppBaseTable<T, F, MS, MV, number, ST, O>
+  extends AppBaseTable<T, F, MS, MV, ID, ST, O>
   implements OnInit, OnDestroy
 {
   private _autoLoadAfterPmfm = true;
@@ -180,6 +186,7 @@ export abstract class BaseMeasurementsTable<
       // Use a decorator data service
       new MeasurementsTableEntitiesService(injector, dataType, dataService, {
         mapPmfms: options?.mapPmfms || undefined,
+        mapResult: options?.mapResult || undefined,
         requiredStrategy: options?.initialState?.requiredStrategy,
         requiredGear: options?.initialState?.requiredGear,
         debug: options?.debug || false,
@@ -192,7 +199,7 @@ export abstract class BaseMeasurementsTable<
         onRowCreated: (row: TableElement<T>) => this._onRowCreated(row),
       }
     );
-    this.memoryDataService = dataService instanceof InMemoryEntitiesService ? (dataService as InMemoryEntitiesService<T, F, number>) : null;
+    this.memoryDataService = dataService instanceof InMemoryEntitiesService ? (dataService as InMemoryEntitiesService<T, F, ID>) : null;
     this.defaultPageSize = -1; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex((key) => key === 'rankOrder') !== -1;
     this.markAsLoaded({ emitEvent: false });
@@ -394,13 +401,13 @@ export abstract class BaseMeasurementsTable<
     return toNumber(pmfm?.id, index);
   }
 
-  translateControlPath(path: string): string {
+  translateFormPath(path: string): string {
     if (path.startsWith('measurementValues.')) {
       const pmfmId = parseInt(path.split('.')[1]);
       const pmfm = (this.pmfms || []).find((p) => p.id === pmfmId);
       if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }
-    return super.translateControlPath(path);
+    return super.translateFormPath(path);
   }
 
   /**
@@ -464,7 +471,7 @@ export abstract class BaseMeasurementsTable<
 
   protected async getMaxRankOrder(data?: T[]): Promise<number> {
     data = data || this.dataSource.getData() || [];
-    return DataEntityUtils.getMaxRankOrder(data);
+    return DataEntityUtils.getMaxRankOrder(data as IEntity<any>[]);
   }
 
   protected async existsRankOrder(rankOrder: number, excludedRows?: TableElement<T>[]): Promise<boolean> {

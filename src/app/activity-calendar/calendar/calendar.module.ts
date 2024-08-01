@@ -9,13 +9,14 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
 import { AppDataModule } from '@app/data/data.module';
-import { MatIcon } from '@angular/material/icon';
-import { MatIconButton } from '@angular/material/button';
+import { ScrollingModule } from '@angular/cdk/scrolling';
+import { ActivityMonthRowErrorPipe } from '@app/activity-calendar/calendar/activity-month.pipes';
 
 @NgModule({
   imports: [
     SharedModule,
     CommonModule,
+    ScrollingModule,
     IonicModule,
     RxStateModule,
     TranslateModule.forChild(),
@@ -27,11 +28,8 @@ import { MatIconButton } from '@angular/material/button';
     AppPmfmFormFieldModule,
     AppIconModule,
     AppDataModule,
-    MatIcon,
-    MatIconButton,
-    MatIcon,
   ],
-  declarations: [CalendarComponent],
+  declarations: [CalendarComponent, ActivityMonthRowErrorPipe],
   exports: [
     SharedModule,
     TranslateModule,

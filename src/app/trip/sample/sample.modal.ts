@@ -366,7 +366,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
           this.setError('COMMON.FORM.HAS_ERROR');
         } else {
           const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
-            controlPathTranslator: this.form,
+            pathTranslator: this.form,
             separator: '<br/>',
           });
           const errorMessage = isNotNilOrBlank(error) ? `<small class="error-details">${error}</small>` : 'COMMON.FORM.HAS_ERROR';

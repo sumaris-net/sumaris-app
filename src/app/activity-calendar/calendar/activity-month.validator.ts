@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import {
   AbstractControlOptions,
+  FormArray,
+  FormGroup,
   UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
@@ -102,13 +104,16 @@ export class ActivityMonthValidatorService<
   getFormGroupConfig(data?: ActivityMonth, opts?: O): { [key: string]: any } {
     const config = Object.assign(super.getFormGroupConfig(data, opts), {
       __typename: [VesselUseFeatures.TYPENAME],
+      program: [data?.program || null],
       vesselId: [toNumber(data?.vesselId, null)],
       month: [toNumber(data?.month, null), Validators.required],
       startDate: [data?.startDate || null, Validators.required],
       endDate: [data?.endDate || null, Validators.required],
-      isActive: [toNumber(data?.isActive, null), opts?.required ? Validators.required : undefined],
+      readonly: [toBoolean(data?.readonly, false)],
+      isActive: [toNumber(data?.isActive, null), opts?.required !== false ? Validators.required : undefined],
       basePortLocation: [data?.basePortLocation || null],
       measurementValues: this.formBuilder.group({}),
+      registrationLocations: [data?.registrationLocations || []],
     });
 
     // Add measurement values
@@ -126,7 +131,10 @@ export class ActivityMonthValidatorService<
   getFormGroupOptions(data?: ActivityMonth, opts?: O): AbstractControlOptions {
     return <AbstractControlOptions>{
       validators: [
+        ActivityMonthValidators.uniqueMetier,
         SharedFormGroupValidators.dateRange('startDate', 'endDate'),
+        ActivityMonthValidators.fishingAreaRequiredIfMetier,
+        ActivityMonthValidators.distanceToCoastRequiredIfFishingArea,
         SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
           predicate: (control) => control.value === VesselUseFeaturesIsActiveEnum.ACTIVE || control.value === VesselUseFeaturesIsActiveEnum.INACTIVE,
         }),
@@ -154,7 +162,6 @@ export class ActivityMonthValidatorService<
       isActiveControl.removeValidators(Validators.required);
     }
 
-    // TODO update metier, gear, fishing areas
     let gufArray = form.get('gearUseFeatures') as AppFormArray<GearUseFeatures, UntypedFormGroup>;
     if (opts.withMetier) {
       if (!gufArray) {
@@ -165,17 +172,17 @@ export class ActivityMonthValidatorService<
         gufArray.resize(opts.metierCount);
       }
 
-      if (enabled && !gufArray.enabled) gufArray.enable();
-      else if (!enabled && gufArray.enabled) gufArray.disable();
+      const gufEnabled = enabled && isActive === VesselUseFeaturesIsActiveEnum.ACTIVE;
+      if (gufEnabled && !gufArray.enabled) gufArray.enable();
+      else if (!gufEnabled && gufArray.enabled) gufArray.disable();
 
       // Set start/end date, and fishing area
       const startDate = form.get('startDate').value;
       const endDate = form.get('endDate').value;
-      const gufEnabled = enabled && isActive === VesselUseFeaturesIsActiveEnum.ACTIVE;
       gufArray.forEach((guf) => {
         // Init fishing areas
         let faArray = guf.get('fishingAreas') as AppFormArray<FishingArea, UntypedFormGroup>;
-        if (opts?.withFishingAreas) {
+        if (opts.withFishingAreas) {
           if (!faArray) {
             faArray = this.getFishingAreaArray(null, { required: !opts.isOnFieldMode });
             guf.addControl('fishingAreas', faArray, { emitEvent: false });
@@ -183,21 +190,28 @@ export class ActivityMonthValidatorService<
           if (isNotNil(opts?.fishingAreaCount)) {
             faArray.resize(opts.fishingAreaCount, { emitEvent: false });
           }
+          const metier = guf.get('metier').value;
+          if (isNotNil(metier)) {
+            if (faArray.disabled) faArray.enable({ emitEvent: false });
+          } else {
+            if (faArray.enabled) faArray.disable({ emitEvent: false });
+          }
           if (gufEnabled && faArray.disabled) faArray.enable({ emitEvent: false });
           else if (!gufEnabled && faArray.enabled) faArray.disable({ emitEvent: false });
         } else {
           //if (faArray) guf.removeControl('fishingAreas');
           if (faArray) faArray.disable({ emitEvent: false });
         }
-
-        // Init start/end date
-        guf.patchValue({ startDate, endDate }, { emitEvent: false });
+        // Init start/end date (only if need)
+        if (guf.get('startDate').value || !guf.get('endDate').value) {
+          guf.patchValue({ startDate, endDate }, { emitEvent: gufEnabled && guf.invalid /*force validation*/ });
+        }
 
         if (gufEnabled && !guf.enabled) guf.enable({ emitEvent: false });
         else if (!gufEnabled && guf.enabled) guf.disable({ emitEvent: false });
       });
     } else {
-      //if (gufArray) form.removeControl('gearUseFeatures');
+      // Disable GUF array
       if (gufArray?.enabled) gufArray.disable({ emitEvent: false, onlySelf: true });
     }
 
@@ -209,8 +223,9 @@ export class ActivityMonthValidatorService<
   }
 
   getI18nError(errorKey: string, errorContent?: any): any {
-    if (ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS[errorKey])
+    if (ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS[errorKey]) {
       return this.translate.instant(ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS[errorKey], errorContent);
+    }
     return super.getI18nError(errorKey, errorContent);
   }
 
@@ -376,8 +391,97 @@ export class ActivityMonthValidators {
 
     return errors;
   }
+
+  static uniqueMetier(formGroup: FormGroup): ValidationErrors | null {
+    const control = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!control || !(control instanceof FormArray)) {
+      return null;
+    }
+
+    // Make sure month is active
+    const isActiveControl = formGroup.get('isActive');
+    const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
+    if (!isActive) return null;
+
+    const metierLabels: number[] = [];
+    const duplicatedMetierLabels = (control.controls as UntypedFormGroup[]).reduce((res, group) => {
+      const metier = group.get('metier').value;
+      if (ReferentialUtils.isEmpty(metier)) return res;
+      // If already includes: we have a duplication: stop here
+      if (metierLabels.includes(metier.label)) {
+        if (!res.includes(metier.label)) return res.concat(metier.label);
+        return res;
+      }
+
+      metierLabels.push(metier.label);
+      return res;
+    }, []);
+
+    return isNotEmptyArray(duplicatedMetierLabels) ? { uniqueMetier: { metiers: duplicatedMetierLabels.join(',') } } : null;
+  }
+
+  static fishingAreaRequiredIfMetier(formGroup: FormArray): ValidationErrors | null {
+    const gufArray = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!gufArray || !(gufArray instanceof FormArray)) {
+      return null;
+    }
+
+    const errorMetierLabels = [];
+    gufArray.controls.forEach((control) => {
+      const metier = control.get('metier')?.value;
+      const fishingAreas = control.get('fishingAreas') as AppFormArray<FishingArea, UntypedFormGroup>;
+
+      if (ReferentialUtils.isNotEmpty(metier)) {
+        if (fishingAreas.disabled) {
+          fishingAreas.enable({ emitEvent: false });
+        }
+        const hasFishingArea = (fishingAreas.value || []).some((fa) => isNotNil(fa.location?.id));
+        if (!hasFishingArea) {
+          errorMetierLabels.push(metier.label);
+        }
+      } else {
+        if (fishingAreas.enabled) {
+          fishingAreas.disable({ emitEvent: false });
+        }
+      }
+    });
+
+    return isNotEmptyArray(errorMetierLabels) ? { requiredFishingArea: { metiers: errorMetierLabels.join(', ') } } : null;
+  }
+
+  static distanceToCoastRequiredIfFishingArea(formGroup: FormArray): ValidationErrors | null {
+    const gufArray = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!gufArray || !(gufArray instanceof FormArray)) {
+      return null;
+    }
+    const errorFishingAreas = [];
+    gufArray.controls.forEach((control) => {
+      const metier = control.get('metier')?.value;
+      if (ReferentialUtils.isNotEmpty(metier)) {
+        const fishingAreas = control.get('fishingAreas')?.value as FishingArea[];
+        (fishingAreas || []).forEach((fa) => {
+          const location = fa.location;
+          const distanceToCoast = fa.distanceToCoastGradient;
+
+          if (isNotNil(location?.id) && isNil(distanceToCoast)) {
+            errorFishingAreas.push({ fishingArea: location.label, metier: metier.label });
+          }
+        });
+      }
+    });
+
+    return isNotEmptyArray(errorFishingAreas)
+      ? {
+          requiredDistanceToCoast: {
+            fishingArea: errorFishingAreas.map(({ fishingArea, metier }) => `${metier} / ${fishingArea}`).join('\n '),
+          },
+        }
+      : null;
+  }
 }
 
 export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
-  // TODO
+  uniqueMetier: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_METIER',
+  requiredFishingArea: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_FISHING_AREA',
+  requiredDistanceToCoast: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_DISTANCE_TO_COAST',
 };

@@ -124,21 +124,17 @@
       </ng-template>
 
       <div>
-        <!-- error -->
-        <ion-item
-          *ngIf="submitted && (samplesTable.error || (landingForm.measurementValuesForm | translateFormError: errorTranslatorOptions)); let error"
-          visible-xs
-          visible-sm
-          visible-mobile
-          lines="none"
-        >
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-        </ion-item>
-
-        <ng-container *ngIf="debug">
+        @if (debug) {
           <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
-        </ng-container>
+        }
+
+        <!-- error -->
+        @if (submitted && (samplesTable.error || (landingForm.measurementValuesForm | formError: errorTranslateOptions)); as error) {
+          <ion-item visible-xs visible-sm visible-mobile lines="none">
+            <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+            <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+          </ion-item>
+        }
 
         <form
           *rxIf="pmfms$; let pmfms; strategy: 'immediate'; else: measurementSkeletons"

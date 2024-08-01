@@ -15,6 +15,7 @@ import { DataOrigin } from '@app/activity-calendar/model/data-origin.model';
 import { Moment } from 'moment';
 import { IWithProgramEntity } from '@app/data/services/model/model.utils';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { IUseFeatures } from '@app/activity-calendar/model/use-features.model';
 
 export const VesselUseFeaturesIsActiveEnum = {
   INACTIVE: 0,
@@ -23,10 +24,13 @@ export const VesselUseFeaturesIsActiveEnum = {
 };
 
 @EntityClass({ typename: 'VesselUseFeaturesVO' })
-export class VesselUseFeatures extends DataEntity<VesselUseFeatures> implements IWithProgramEntity<VesselUseFeatures> {
+export class VesselUseFeatures
+  extends DataEntity<VesselUseFeatures>
+  implements IWithProgramEntity<VesselUseFeatures>, IUseFeatures<VesselUseFeatures>
+{
   static fromObject: (source: any, options?: any) => VesselUseFeatures;
-  static equals(o1: VesselUseFeatures, o2: VesselUseFeatures) {
-    return (!o1 && !o2) || (o1 && o1.equals(o2));
+  static equals(o1: VesselUseFeatures, o2: VesselUseFeatures, opts = { withMeasurementValues: false }) {
+    return (!o1 && !o2) || (o1 && VesselUseFeatures.fromObject(o1).equals(o2, opts));
   }
   static isNotEmpty(o: VesselUseFeatures): boolean {
     return !VesselUseFeatures.isEmpty(o);
@@ -86,6 +90,8 @@ export class VesselUseFeatures extends DataEntity<VesselUseFeatures> implements 
         //((!this.dailyActivityCalendarId && !other.dailyActivityCalendarId) || this.dailyActivityCalendarId === other.dailyActivityCalendarId) &&
         // Same program
         ReferentialUtils.equals(this.program, other.program) &&
+        // Same basePortLocation
+        ReferentialUtils.equals(this.basePortLocation, other.basePortLocation) &&
         // Same measurementsValues
         (opts.withMeasurementValues !== true || MeasurementValuesUtils.equals(this.measurementValues, other.measurementValues)))
     );

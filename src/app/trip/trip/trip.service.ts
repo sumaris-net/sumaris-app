@@ -1283,8 +1283,7 @@ export class TripService
       // Get form errors
       if (form.invalid) {
         const errors = AppFormUtils.getFormErrors(form);
-
-        if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+        console.info(`[trip-service] Control #${entity.id} [INVALID] in ${Date.now() - now}ms`, errors);
         return {
           message: 'COMMON.FORM.HAS_ERROR',
           details: {
@@ -1731,7 +1730,7 @@ export class TripService
     }
   }
 
-  translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
     opts = { i18nPrefix: 'TRIP.EDIT.', ...opts };
     // Translate PMFM fields
     if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
@@ -1740,7 +1739,7 @@ export class TripService
       return PmfmUtils.getPmfmName(pmfm);
     }
     // Default translation
-    return this.formErrorTranslator.translateControlPath(path, opts);
+    return this.formErrorTranslator.translateFormPath(path, opts);
   }
 
   /* -- protected methods -- */

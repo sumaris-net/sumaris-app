@@ -142,6 +142,7 @@
   [class.has-group-header]="showGroupHeader"
   [class.has-pmfm-header-details]="showPmfmDetails"
   [style.--pmfm-count]="pmfms?.length"
+  cdkScrollable
 >
   <!-- ********************************************************** -->
   <!-- ***********  Writable table (e.g. for desktop) *********** -->
@@ -218,7 +219,7 @@
           {{ row.currentData?.rankOrder }}
         </ion-label>
         <span hidden #errorSpan>
-          {{ row.validator.enabled && row.validator | translateFormError: errorTranslatorOptions }}
+          {{ row.validator.enabled && row.validator | formError: errorTranslatorOptions }}
         </span>
       </td>
     </ng-container>
@@ -228,7 +229,7 @@
         <td
           mat-cell
           *ngVar="{
-            formError: row.validator.enabled && (row.validator | translateFormError: errorTranslatorOptions),
+            formError: row.validator.enabled && (row.validator | formError: errorTranslatorOptions),
             entityError: row.currentData | dataEntityError
           } as vars"
           [title]="vars.formError || vars.entityError || ''"

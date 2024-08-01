@@ -26,6 +26,13 @@ workflow:
         - package-lock.json
         - tsconfig*.json
         - angular.json
+        - electron/src/**/*
+        - electron/src/*
+        - electron/package.json
+        - electron/package-lock.json
+        - electron/electron-builder.config.json
+
+
 
 # ---------------------------------------------------------------
 # Global variables
@@ -33,7 +40,10 @@ workflow:
 
 variables:
   DOCKER_IMAGE_REGISTRY: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/
-  CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
+  DOCKER_DIND_VERSION: 24.0.7-dind
+  #DOCKER_DIND_VERSION: latest
+  DOCKER_DIND_IMAGE: ${DOCKER_IMAGE_REGISTRY}docker:${DOCKER_DIND_VERSION}
+  CI_BUILD_IMAGE: ${CI_REGISTRY_IMAGE}/build:develop
   CI_BUILD_ELECTRON_IMAGE: electronuserland/builder:18-wine
   BUILD_CACHE_DIR: /tmp/.build-cache
   BUILD_ENVIRONMENT: prod
@@ -49,14 +59,14 @@ variables:
 .configure-git-template: &git-setup
   tags: [sih_public_runner]
   before_script:
-    - echo "Fetching origin... token=${CI_ACCESS_TOKEN}"
+    - echo "Fetching origin..."
     - git remote set-url origin "https://gitlab+access-token:${CI_ACCESS_TOKEN}@gitlab.ifremer.fr/${CI_PROJECT_PATH}.git"
     - git config --global user.email "${GITLAB_USER_EMAIL}"
     - git config --global user.name "${GITLAB_USER_NAME}"
-    - git fetch origin
+    - git fetch origin ${CI_COMMIT_REF_NAME}
 
 .docker:
-  image: docker:latest
+  image: ${DOCKER_DIND_IMAGE}
   tags: [sih_public_runner]
   services:
     - docker:dind
@@ -379,7 +389,7 @@ gitlab-release:
 # ---------------------------------------------------------------
 # Deploy jobs
 # ---------------------------------------------------------------
-#
+
 .deploy:web:
   stage: deploy
   needs: [release]
@@ -396,13 +406,18 @@ gitlab-release:
     - echo "--- Building 'www'"
     - export NODE_OPTIONS=--max-old-space-size=4096
     - npm run build:prod
-    - fileName=${CI_PROJECT_NAME}-${APP_VERSION}.zip
+    - baseName=${CI_PROJECT_NAME}-${APP_VERSION}-web
+    - fileName=${baseName}.zip
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
     - if [[ -f "${releaseFile}" ]]; then rm "${releaseFile}"; fi
     - cd ${CI_PROJECT_DIR}/www || exit 1
     - if ! zip -q -r "${releaseFile}" . ; then echo "Cannot create the archive for the web artifact"; exit 1; fi
     - cd ${CI_PROJECT_DIR}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
+    # Creating SHA256
+    - echo "$(cd ${CI_PROJECT_DIR}/release && sha256sum ${fileName})" > ${CI_PROJECT_DIR}/release/${baseName}.sha256
+    - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${CI_PROJECT_DIR}/release/${baseName}.sha256" "link_release"
+
   artifacts:
     paths:
       - www
@@ -442,11 +457,15 @@ deploy:web:tags:
     - npm run android:build:prod
     - npm run android:package:prod
     # Deploy as a release package
-    - fileName=${CI_PROJECT_NAME}-${APP_VERSION}-android.apk
+    - baseName=${CI_PROJECT_NAME}-${APP_VERSION}-android
+    - fileName=${baseName}.apk
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
     - if [[ -f "${releaseFile}" ]]; then rm "${releaseFile}"; fi
     - mv "${sourceFile}" "${releaseFile}"
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
+    # Creating SHA256
+    - echo "$(cd ${CI_PROJECT_DIR}/release && sha256sum ${fileName})" > ${CI_PROJECT_DIR}/release/${baseName}.sha256
+    - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${CI_PROJECT_DIR}/release/${baseName}.sha256" "link_release"
   allow_failure: true
 
 deploy:android:
@@ -486,17 +505,24 @@ deploy:android:tags:
     - mv -f ${CI_PROJECT_DIR}/electron/dist/*.{AppImage,deb,exe} $CI_PROJECT_DIR/release/
     - ls -l "${CI_PROJECT_DIR}/release/"
     # Deploy Linux Debian
-    - fileName=${CI_PROJECT_NAME}-${APP_VERSION}-linux-amd64.deb
+    - baseName=${CI_PROJECT_NAME}-${APP_VERSION}-linux-amd64
+    - fileName=${baseName}.deb
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
     # Deploy Linux AppImage
-    - fileName=${CI_PROJECT_NAME}-${APP_VERSION}-linux-x86_64.AppImage
+    - baseName=${CI_PROJECT_NAME}-${APP_VERSION}-linux-amd64
+    - fileName=${baseName}.AppImage
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
+    - echo "$(cd ${CI_PROJECT_DIR}/release && sha256sum ${baseName}.*)" > ${CI_PROJECT_DIR}/release/${baseName}.sha256
+    - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${CI_PROJECT_DIR}/release/${baseName}.sha256" "link_release"
     # Deploy Windows exe
-    - fileName=${CI_PROJECT_NAME}-${APP_VERSION}-windows-x64.exe
+    - baseName=${CI_PROJECT_NAME}-${APP_VERSION}-windows-x64
+    - fileName=${baseName}.exe
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
+    - echo "$(cd ${CI_PROJECT_DIR}/release && sha256sum ${fileName})" > ${CI_PROJECT_DIR}/release/${baseName}.sha256
+    - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${CI_PROJECT_DIR}/release/${baseName}.sha256" "link_release"
   allow_failure: false
 
 deploy:electron:

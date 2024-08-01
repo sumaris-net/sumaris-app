@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import {
   AppFormArray,
+  isEmptyArray,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
@@ -152,7 +153,11 @@ export class GearUseFeaturesValidatorService<O extends GearUseFeaturesValidatorO
       }
     );
     if (data || required) {
-      formArray.patchValue(data?.length ? data : required ? [null] : []);
+      data = data?.filter(FishingArea.isNotEmpty);
+      if (required && isEmptyArray(data)) {
+        data = [null];
+      }
+      formArray.patchValue(data || []);
     }
     return formArray;
   }

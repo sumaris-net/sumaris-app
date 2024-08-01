@@ -1,10 +1,25 @@
 import { Injectable } from '@angular/core';
-import { FetchPolicy, gql } from '@apollo/client/core';
 import { VesselFeatures } from './model/vessel.model';
-import { BaseEntityService, GraphqlService, IEntitiesService, isNotNil, PlatformService } from '@sumaris-net/ngx-components';
+import {
+  BaseEntityService,
+  EntitiesServiceWatchOptions,
+  EntityUtils,
+  GraphqlService,
+  IEntitiesService,
+  isNotNil,
+  LoadResult,
+  PlatformService,
+} from '@sumaris-net/ngx-components';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { VesselFeaturesFilter } from './filter/vessel.filter';
+import { SortDirection } from '@angular/material/sort';
+import { map, Observable } from 'rxjs';
+import { FetchPolicy, gql } from '@apollo/client/core';
+import { VesselFeaturesUtils } from './model/vessel.utils';
 
+export declare interface VesselFeaturesServiceWatchOptions extends EntitiesServiceWatchOptions {
+  mergeSameAndContiguous?: (() => boolean) | boolean;
+}
 export const VesselFeaturesFragments = {
   vesselFeatures: gql`
     fragment VesselFeaturesFragment on VesselFeaturesVO {
@@ -64,6 +79,41 @@ export class VesselFeaturesService
       queries: VesselFeatureQueries,
       defaultSortBy: 'startDate',
     });
+  }
+
+  watchAll(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    dataFilter?: VesselFeaturesFilter,
+    opts?: VesselFeaturesServiceWatchOptions
+  ): Observable<LoadResult<VesselFeatures>> {
+    // Merge items
+    const mergeSameAndContiguous = typeof opts?.mergeSameAndContiguous === 'function' ? opts.mergeSameAndContiguous() : opts?.mergeSameAndContiguous;
+    if (mergeSameAndContiguous) {
+      // Get all items, ordered from last to older
+      return super.watchAll(offset, null, 'startDate', 'asc', dataFilter, opts).pipe(
+        map(({ data }) => {
+          // Merge
+          data = VesselFeaturesUtils.mergeSameAndContiguous(data);
+
+          // Fill changed properties
+          data = VesselFeaturesUtils.fillChangedProperties(data);
+
+          // Apply expected sort
+          data = EntityUtils.sort(data, sortBy, sortDirection);
+
+          // Apply offset/size
+          const total = data.length;
+          data = data.slice(offset, offset + size);
+
+          return { data, total };
+        })
+      );
+    }
+
+    return super.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts);
   }
 
   async count(

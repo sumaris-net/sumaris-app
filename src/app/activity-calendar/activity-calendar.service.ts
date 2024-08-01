@@ -7,7 +7,9 @@ import {
   AppErrorWithDetails,
   AppFormUtils,
   BaseEntityGraphqlQueries,
+  capitalizeFirstLetter,
   chainPromises,
+  changeCaseToUnderscore,
   DateUtils,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
@@ -27,10 +29,12 @@ import {
   isNotNilOrBlank,
   IUserEventService,
   JobUtils,
+  lastArrayValue,
   LoadResult,
   LocalSettingsService,
   NetworkService,
   PersonService,
+  ServerErrorCodes,
   ShowToastOptions,
   Toasts,
   toNumber,
@@ -73,6 +77,8 @@ import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragme
 import { OverlayEventDetail } from '@ionic/core';
 import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
+import { ActivityCalendarUtils } from './activity-calendar.utils';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -100,6 +106,9 @@ export const ActivityCalendarFragments = {
         ...LightDepartmentFragment
       }
       recorderPerson {
+        ...LightPersonFragment
+      }
+      observers {
         ...LightPersonFragment
       }
     }
@@ -138,6 +147,9 @@ export const ActivityCalendarFragments = {
       recorderPerson {
         ...LightPersonFragment
       }
+      observers {
+        ...LightPersonFragment
+      }
       vesselUseFeatures {
         ...VesselUseFeaturesFragment
       }
@@ -146,6 +158,15 @@ export const ActivityCalendarFragments = {
       }
       gearPhysicalFeatures {
         ...GearPhysicalFeaturesFragment
+      }
+      vesselRegistrationPeriods {
+        id
+        startDate
+        endDate
+        registrationLocation {
+          ...LocationFragment
+        }
+        readonly
       }
     }
     ${DataCommonFragments.lightDepartment}
@@ -168,6 +189,7 @@ export interface ActivityCalendarLoadOptions extends EntityServiceLoadOptions {
 
 export interface ActivityCalendarSaveOptions extends RootDataEntitySaveOptions {
   enableOptimisticResponse?: boolean; // True by default
+  allowMergeConflict?: boolean;
 }
 
 export interface ActivityCalendarServiceCopyOptions extends ActivityCalendarSaveOptions {
@@ -717,51 +739,84 @@ export class ActivityCalendarService
     const variables = {
       data: json,
     };
-    await this.graphql.mutate<{ data: any }>({
-      mutation: this.mutations.save,
-      variables,
-      offlineResponse,
-      refetchQueries: this.getRefetchQueriesForMutation(opts),
-      awaitRefetchQueries: opts && opts.awaitRefetchQueries,
-      error: { code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR' },
-      update: async (cache, { data }) => {
-        const savedEntity = data && data.data;
+    try {
+      await this.graphql.mutate<{ data: any }>({
+        mutation: this.mutations.save,
+        variables,
+        offlineResponse,
+        refetchQueries: this.getRefetchQueriesForMutation(opts),
+        awaitRefetchQueries: opts && opts.awaitRefetchQueries,
+        error: { code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR' },
+        update: async (cache, { data }) => {
+          const savedEntity = data && data.data;
 
-        // Local entity (optimistic response): save it
-        if (savedEntity.id < 0) {
-          if (this._debug) console.debug('[activity-calendar-service] [offline] Saving activityCalendar locally...', savedEntity);
+          // Local entity (optimistic response): save it
+          if (savedEntity.id < 0) {
+            if (this._debug) console.debug('[activity-calendar-service] [offline] Saving activityCalendar locally...', savedEntity);
 
-          // Save response locally
-          await this.entities.save<ActivityCalendar>(savedEntity);
+            // Save response locally
+            await this.entities.save<ActivityCalendar>(savedEntity);
+          }
+
+          // Update the entity and update GraphQL cache
+          else {
+            // Remove existing entity from the local storage
+            if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
+              if (this._debug) console.debug(`[activity-calendar-service] Deleting activityCalendar {${entity.id}} from local storage`);
+              await this.entities.delete(entity);
+            }
+
+            // Copy id and update Date
+            this.copyIdAndUpdateDate(savedEntity, entity, opts);
+
+            // Insert into the cache
+            if (RootDataEntityUtils.isNew(entity) && this.watchQueriesUpdatePolicy === 'update-cache') {
+              this.insertIntoMutableCachedQueries(cache, {
+                queries: this.getLoadQueries(),
+                data: savedEntity,
+              });
+            }
+
+            if (opts && opts.update) {
+              opts.update(cache, { data });
+            }
+
+            if (this._debug) console.debug(`[activity-calendar-service] ActivityCalendar saved remotely in ${Date.now() - now}ms`, entity);
+          }
+        },
+      });
+    } catch (err) {
+      // Conflict in update date: try to merge
+      if (err.code == ServerErrorCodes.BAD_UPDATE_DATE && opts?.allowMergeConflict !== false) {
+        // Reload then try to merge
+        const remoteEntity = await this.load(entity.id, { fetchPolicy: 'no-cache' });
+        entity = ActivityCalendarUtils.merge(entity, remoteEntity);
+
+        // Has some unresolved conflicts
+        if (ActivityCalendarUtils.hasSomeConflict(entity)) {
+          // Check if program allow user to resolve conflict
+          const allowMergeConflict = (await this.programRefService.loadByLabel(entity.program.label)).getPropertyAsBoolean(
+            ProgramProperties.ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE
+          );
+          if (!allowMergeConflict) throw err; // Stop in conflict and user is not allowed to resolve it
+
+          throw <AppErrorWithDetails>{
+            ...err,
+            details: {
+              errors: {
+                conflict: entity,
+              },
+            },
+          };
         }
-
-        // Update the entity and update GraphQL cache
+        // All conflicts have been resolved: save the merged calendar
         else {
-          // Remove existing entity from the local storage
-          if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
-            if (this._debug) console.debug(`[activity-calendar-service] Deleting activityCalendar {${entity.id}} from local storage`);
-            await this.entities.delete(entity);
-          }
-
-          // Copy id and update Date
-          this.copyIdAndUpdateDate(savedEntity, entity, opts);
-
-          // Insert into the cache
-          if (RootDataEntityUtils.isNew(entity) && this.watchQueriesUpdatePolicy === 'update-cache') {
-            this.insertIntoMutableCachedQueries(cache, {
-              queries: this.getLoadQueries(),
-              data: savedEntity,
-            });
-          }
-
-          if (opts && opts.update) {
-            opts.update(cache, { data });
-          }
-
-          if (this._debug) console.debug(`[activity-calendar-service] ActivityCalendar saved remotely in ${Date.now() - now}ms`, entity);
+          return this.save(entity, { ...opts, allowMergeConflict: false /*avoid infinite loop*/ });
         }
-      },
-    });
+      } else {
+        throw err;
+      }
+    }
 
     if (!opts || opts.emitEvent !== false) {
       this.onSave.next([entity]);
@@ -910,13 +965,21 @@ export class ActivityCalendarService
       // Get form errors
       if (form.invalid) {
         const errors = AppFormUtils.getFormErrors(form);
+        console.info(`[activity-calendar-service] Control #${entity.id} [INVALID] in ${Date.now() - now}ms`, errors);
 
-        if (this._debug)
-          console.debug(`[activity-calendar-service] Control activityCalendar {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+        const months = AppFormUtils.filterErrorsByPrefix(errors, 'vesselUseFeatures', 'gearUseFeatures');
+        const metiers = AppFormUtils.filterErrorsByPrefix(errors, 'gearPhysicalFeatures');
+        const other = AppFormUtils.filterErrors(errors, ([path, _]) =>
+          ['vesselUseFeatures', 'gearUseFeatures', 'gearPhysicalFeatures'].includes(path.split('.')[0])
+        );
         return {
           message: 'COMMON.FORM.HAS_ERROR',
           details: {
-            errors,
+            errors: {
+              ...other,
+              months,
+              metiers,
+            },
           },
         };
       }
@@ -1137,7 +1200,7 @@ export class ActivityCalendarService
     }
   }
 
-  translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
     opts = { i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.', ...opts };
     // Translate PMFM fields
     if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
@@ -1145,8 +1208,30 @@ export class ActivityCalendarService
       const pmfm = opts.pmfms.find((p) => p.id === pmfmId);
       return PmfmUtils.getPmfmName(pmfm);
     }
+
+    // Gear use feature fields
+    if (path.startsWith('gearUseFeatures.')) {
+      const parts = path.split('.');
+      const month = capitalizeFirstLetter(DateUtils.moment().month(+parts[1]).format('MMMM'));
+      let fieldName = lastArrayValue(parts);
+      if (fieldName === 'location') {
+        fieldName = 'fishingArea';
+      }
+      fieldName = this.translate.instant(opts.i18nPrefix + changeCaseToUnderscore(fieldName).toUpperCase());
+
+      return [month, fieldName].join('>');
+    }
     // Default translation
-    return this.formErrorTranslator.translateControlPath(path, opts);
+    return this.formErrorTranslator.translateFormPath(path, opts);
+  }
+
+  canUserWrite(entity: ActivityCalendar, opts?: { program?: Program }): boolean {
+    return (
+      EntityUtils.isLocal(entity) || // For performance, always give write access to local data
+      this.accountService.isAdmin() ||
+      ((this.programRefService.canUserWriteEntity(entity, opts) || entity.vesselRegistrationPeriods?.some((vrp) => !vrp.readonly)) &&
+        (isNil(entity.validationDate) || this.accountService.isSupervisor()))
+    );
   }
 
   /* -- protected methods -- */

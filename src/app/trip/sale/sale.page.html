@@ -156,11 +156,18 @@
 </ion-footer>
 
 <!-- FAB button -->
-<!--<ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && _enabled && showSamplesTable && selectedTabIndex === 1" @fadeInOutAnimation>-->
-<!--  <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">-->
-<!--    <ion-icon name="add"></ion-icon>-->
-<!--  </ion-fab-button>-->
-<!--</ion-fab>-->
+<ion-fab
+  *ngIf="mobile && _enabled && showCatchTab && selectedTabIndex === 1"
+  vertical="bottom"
+  horizontal="end"
+  slot="fixed"
+  [class.cdk-visually-hidden]="batchTree?.disabled"
+  @fadeInOutAnimation
+>
+  <ion-fab-button color="tertiary" (click)="batchTree.addRow($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
 
 <!-- DEBUG -->
 <ng-template #debugPanel>
@@ -184,6 +191,10 @@
           <br />
           <br />
           editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
+          <br />
+          editor.parentAcquisitionLevel: {{ parentAcquisitionLevel }}
+          <br />
+          editor.showParent: {{ showParent }}
         </ion-col>
         <ion-col>
           form.observedLocationId: {{ form | formGetValue: 'observedLocationId' }}

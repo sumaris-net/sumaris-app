@@ -16,6 +16,7 @@ import {
 import { IWithObserversEntity, IWithRecorderDepartmentEntity } from './model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { StoreObject } from '@apollo/client/core';
+import { UntypedFormGroup } from '@angular/forms';
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
   keepSynchronizationStatus?: boolean;
@@ -188,6 +189,31 @@ export abstract class DataEntityUtils {
   }
 
   /**
+   * Mark form value as invalid, using qualityFlag
+   *
+   * @param formGroup
+   * @param errorMessage
+   * @param opts
+   */
+  static markFormAsInvalid(formGroup: UntypedFormGroup, errorMessage: string, opts?: { emitEvent?: boolean }) {
+    if (!formGroup) return; // skip
+    formGroup.patchValue(
+      <Partial<DataEntity<any, any>>>{
+        // Clean date
+        controlDate: null,
+        qualificationDate: null,
+
+        // Register error message, into qualificationComments
+        qualificationComments: errorMessage,
+
+        // Clean quality flag
+        //qualityFlagId: QualityFlagIds.BAD,
+      },
+      opts
+    );
+  }
+
+  /**
    * Check if an entity has been mark as invalid
    *
    * @param entity
@@ -233,8 +259,21 @@ export abstract class DataEntityUtils {
     source.__typename = 'divider';
   }
 
-  static getMaxRankOrder<T extends IEntity<T> & { rankOrder?: number }>(data?: T[]): number {
+  static getMaxRankOrder(data?: (IEntity<any> & { rankOrder?: number })[]): number {
     if (!data) return 0;
     return Math.max(0, ...data.map((entity) => entity?.rankOrder || 0));
+  }
+
+  static markAsConflictual(entity: DataEntity<any, any> | undefined, errorMessage?: string) {
+    if (!entity) return; // skip
+    // Clean date
+    entity.controlDate = null;
+    entity.qualificationDate = null;
+
+    // Register error message, into qualificationComments
+    entity.qualificationComments = errorMessage;
+
+    // Mark using a specific quality flag
+    entity.qualityFlagId = QualityFlagIds.CONFLICTUAL;
   }
 }

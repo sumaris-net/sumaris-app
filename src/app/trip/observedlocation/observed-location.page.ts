@@ -13,6 +13,7 @@ import {
   DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
+  equals,
   fadeInOutAnimation,
   firstNotNilPromise,
   HistoryPageReference,
@@ -31,7 +32,7 @@ import { Landing } from '../landing/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Observable, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationsPageSettingsEnum } from './table/observed-locations.page';
@@ -44,12 +45,13 @@ import { VesselService } from '@app/vessel/services/vessel-service';
 import { ObservedLocationContextService } from '@app/trip/observedlocation/observed-location-context.service';
 import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
 
-import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import { AcquisitionLevelCodes, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Strategy } from '@app/referential/services/model/strategy.model';
+import { Moment } from 'moment';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 export const ObservedLocationPageSettingsEnum = {
@@ -66,6 +68,9 @@ type ILandingsTable = AppTable<any> & {
 export interface ObservedLocationPageState extends RootDataEntityEditorState {
   landingTableType: LandingTableType;
   landingTable: ILandingsTable;
+
+  location: ReferentialRef;
+  startDateTime: Moment;
 }
 
 @Component({
@@ -130,8 +135,8 @@ export class ObservedLocationPage
     super(injector, ObservedLocation, injector.get(ObservedLocationService), {
       pathIdAttribute: 'observedLocationId',
       tabCount: 2,
-      i18nPrefix: 'OBSERVED_LOCATION.EDIT.',
       enableListenChanges: true,
+      i18nPrefix: 'OBSERVED_LOCATION.EDIT.',
       acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION,
       settingsId: ObservedLocationPageSettingsEnum.PAGE_ID,
       canCopyLocally: accountService.isAdmin(),
@@ -144,6 +149,9 @@ export class ObservedLocationPage
 
   ngOnInit() {
     super.ngOnInit();
+
+    this._state.connect('startDateTime', this.observedLocationForm.startDateTimeChanges);
+    this._state.connect('location', this.observedLocationForm.locationChanges);
 
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
@@ -192,23 +200,8 @@ export class ObservedLocationPage
     // If errors in landings
     if (typeof error !== 'string' && error?.details?.errors?.landings) {
       // Show error in landing table
-      this.landingsTable.setError('OBSERVED_LOCATION.ERROR.INVALID_LANDINGS', {
+      this.landingsTable.setError(error.message || 'OBSERVED_LOCATION.ERROR.INVALID_LANDINGS', {
         showOnlyInvalidRows: true,
-      });
-
-      // Open the landing tab
-      this.tabGroup.selectedIndex = ObservedLocationPage.TABS.LANDINGS;
-
-      // Reset other errors
-      super.setError(undefined, opts);
-    }
-
-    // If other errors in landings
-    else if (typeof error !== 'string' && error?.details?.errors?.observations) {
-      // Show error in landing table
-      this.landingsTable.setError(error.message, {
-        showOnlyInvalidRows: false,
-        errorDetails: error.details.errors.observations,
       });
 
       // Open the landing tab
@@ -549,6 +542,8 @@ export class ObservedLocationPage
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
+
+    // Important: should load the strategy resolution
     await super.setProgram(program);
 
     // Update the context
@@ -581,7 +576,7 @@ export class ObservedLocationPage
       this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
       this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
       this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
-      this.autoFillLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_LANDING_AUTO_FILL);
+      this.autoFillLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_LANDINGS_AUTO_FILL);
 
       let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -629,7 +624,7 @@ export class ObservedLocationPage
         landingsTable.minObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
         landingsTable.dividerPmfmId = program.getPropertyAsInt(ProgramProperties.LANDING_ROWS_DIVIDER_PMFM_ID);
         landingsTable.showAutoFillButton = this.autoFillLandings;
-        landingsTable.unknownVesselId = VesselIds.UNKNOWN;
+        landingsTable.unknownVesselId = VesselIds.UNKNOWN !== -1 ? VesselIds.UNKNOWN : null;
         this.showLandingTab = true;
       }
 
@@ -642,11 +637,41 @@ export class ObservedLocationPage
       this.addForms([table]);
 
       this.markAsReady();
+      this.markForCheck();
 
       // Listen program, to reload if changes
       if (this.network.online) this.startListenProgramRemoteChanges(program);
     } catch (err) {
       this.setError(err);
+    }
+  }
+
+  protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
+    console.debug(this.logPrefix + 'Computing strategy filter, using resolution: ' + this.strategyResolution);
+
+    switch (this.strategyResolution) {
+      // Spatio-temporal
+      case DataStrategyResolutions.SPATIO_TEMPORAL:
+        return this._state
+          .select(['acquisitionLevel', 'startDateTime', 'location'], (_) => _, {
+            acquisitionLevel: equals,
+            startDateTime: DateUtils.equals,
+            location: ReferentialUtils.equals,
+          })
+          .pipe(
+            map(({ acquisitionLevel, location, startDateTime }) => {
+              return <Partial<StrategyFilter>>{
+                acquisitionLevel,
+                programId: program.id,
+                startDate: startDateTime,
+                location: location,
+              };
+            }),
+            // DEBUG
+            tap((values) => console.debug(this.logPrefix + 'Strategy filter changed:', values))
+          );
+      default:
+        return super.watchStrategyFilter(program);
     }
   }
 
@@ -734,6 +759,8 @@ export class ObservedLocationPage
   protected async onEntityLoaded(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
+
+    this._state.set({ startDateTime: data.startDateTime, location: data.location });
   }
 
   async setValue(data: ObservedLocation) {

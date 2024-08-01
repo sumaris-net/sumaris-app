@@ -63,6 +63,7 @@
               [value]="activities[i]"
               [programLabel]="programLabel"
               [acquisitionLevel]="acquisitionLevel"
+              [autofocus]="activityFocusIndex === i"
               maxVisibleButtons="2"
               (ngInit)="activityFormComponent.markAsReady(); options?.readonly && activityFormComponent.disable()"
             ></app-vessel-activity-form>

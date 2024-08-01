@@ -503,8 +503,7 @@
             [autofocus]="fishingAreaFocusIndex === i"
             [config]="autocompleteFields.fishingAreaLocation"
             [tabindex]="tabindex + 30 + i * 3"
-            [class]="mobile && 'min-width-80vw'"
-            [panelWidth]="!mobile && '500px'"
+            [panelWidth]="mobile ? '80vw' : '500px'"
             [required]="i === 0"
           >
             <mat-icon matPrefix>room</mat-icon>
@@ -525,7 +524,7 @@
             </button>
           </mat-autocomplete-field>
         </ion-col>
-        <ion-col size="auto" class="ion-align-self-center">
+        <ion-col size="auto">
           <button
             type="button"
             mat-icon-button

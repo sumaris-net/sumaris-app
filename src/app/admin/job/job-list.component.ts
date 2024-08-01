@@ -176,7 +176,7 @@ export class JobListComponent implements OnInit, OnDestroy {
 
             // Watch progression, if not finished
             if (!JobStatusUtils.isFinished(job.status) && this.jobProgressionService) {
-              job.progression = this.jobProgressions[job.id] || ProgressionModel.create();
+              job.progression = this.jobProgressions[job.id] || new ProgressionModel();
               job.status = job.status === 'PENDING' && job.progression.total > 0 ? 'RUNNING' : job.status;
               this.jobProgressions[job.id] = job.progression;
 

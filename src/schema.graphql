@@ -40,6 +40,7 @@ type ActivityCalendarVO {
     images: [ImageAttachmentVO]
     "Get measurement values (as a key/value map, using pmfmId as key)"
     measurementValues: Map_Integer_StringScalar
+    observers: [PersonVO]
     program: ProgramVO
     qualificationComments: String
     qualificationDate: Date
@@ -52,9 +53,22 @@ type ActivityCalendarVO {
     validationDate: Date
     vesselDateTime: Date
     vesselId: Int
+    vesselRegistrationPeriods: [ActivityCalendarVesselRegistrationPeriodVO]
     vesselSnapshot: VesselSnapshotVO
     vesselUseFeatures: [VesselUseFeaturesVO]
     year: Int
+}
+
+type ActivityCalendarVesselRegistrationPeriodVO {
+    endDate: Date
+    id: Int
+    intRegistrationCode: String
+    qualityFlagId: Int
+    readonly: Boolean!
+    registrationCode: String
+    registrationLocation: LocationVO
+    startDate: Date
+    vessel: VesselVO
 }
 
 type AggregatedLandingVO {
@@ -465,6 +479,7 @@ type GearPhysicalFeaturesVO {
     creationDate: Date
     dataOrigins: [DataOriginVO]
     endDate: Date
+    flags: Int!
     gear: ReferentialVO
     id: Int
     measurementValues: Map_Integer_StringScalar
@@ -480,7 +495,6 @@ type GearPhysicalFeaturesVO {
     recorderDepartmentId: Int
     recorderPersonId: Int
     startDate: Date
-    trip: TripVO
     updateDate: Date
     validationDate: Date
     vessel: VesselSnapshotVO
@@ -497,6 +511,7 @@ type GearUseFeaturesVO {
     dataOrigins: [DataOriginVO]
     endDate: Date
     fishingAreas: [FishingAreaVO]
+    flags: Int!
     gear: ReferentialVO
     id: Int
     "Get gear use features measurements"
@@ -1562,7 +1577,7 @@ type Query {
     "Search in vessel snapshots"
     vesselSnapshots(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "exteriorMarking", sortDirection: String = "asc"): [VesselSnapshotVO]
     "Get total vessel snapshots count"
-    vesselSnapshotsCount(filter: VesselFilterVOInput): Long!
+    vesselSnapshotsCount(filter: VesselFilterVOInput): Long
     "Search in vessels"
     vessels(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc"): [VesselVO]
     "Get total vessels count"
@@ -2090,8 +2105,8 @@ type VesselFeaturesVO {
 
 type VesselOwnerPeriodId {
     startDate: Date
-    vesselId: Int
-    vesselOwnerId: Int
+    vessel: Int!
+    vesselOwner: Int!
 }
 
 "Vessel owner period"
@@ -2197,6 +2212,7 @@ type VesselUseFeaturesVO {
     dailyActivityCalendarId: Int
     dataOrigins: [DataOriginVO]
     endDate: Date
+    flags: Int!
     id: Int
     isActive: Int
     "Get vessel use features measurements"
@@ -2383,11 +2399,14 @@ input ActivityCalendarFilterVOInput {
     activityCalendarId: Int
     basePortLocationIds: [Int]
     dataQualityStatus: [DataQualityStatusEnum]
+    directSurveyInvestigation: Boolean
+    economicSurvey: Boolean
     endDate: Date
     excludedIds: [Int]
     includedIds: [Int]
     locationId: Int
     locationIds: [Int]
+    observerPersonIds: [Int]
     programIds: [Int]
     programLabel: String
     qualityFlagIds: [Int]
@@ -2413,6 +2432,7 @@ input ActivityCalendarVOInput {
     id: Int
     images: [ImageAttachmentVOInput]
     measurementValues: Map_Integer_StringScalar
+    observers: [PersonVOInput]
     program: ProgramVOInput
     qualificationComments: String
     qualificationDate: Date
@@ -2424,9 +2444,22 @@ input ActivityCalendarVOInput {
     updateDate: Date
     validationDate: Date
     vesselId: Int
+    vesselRegistrationPeriods: [ActivityCalendarVesselRegistrationPeriodVOInput]
     vesselSnapshot: VesselSnapshotVOInput
     vesselUseFeatures: [VesselUseFeaturesVOInput]
     year: Int
+}
+
+input ActivityCalendarVesselRegistrationPeriodVOInput {
+    endDate: Date
+    id: Int
+    intRegistrationCode: String
+    qualityFlagId: Int
+    readonly: Boolean!
+    registrationCode: String
+    registrationLocation: LocationVOInput
+    startDate: Date
+    vessel: VesselVOInput
 }
 
 input AggregatedLandingFilterVOInput {
@@ -2855,7 +2888,6 @@ input GearPhysicalFeaturesVOInput {
     recorderDepartmentId: Int
     recorderPersonId: Int
     startDate: Date
-    trip: TripVOInput
     updateDate: Date
     validationDate: Date
     vessel: VesselSnapshotVOInput
@@ -3562,7 +3594,8 @@ input ProgramPersonVOInput {
 }
 
 input ProgramSaveOptionsInput {
-    withDepartmentsAndPersons: Boolean
+    withDepartments: Boolean
+    withPersons: Boolean
     withStrategies: Boolean
 }
 

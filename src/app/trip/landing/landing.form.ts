@@ -229,10 +229,9 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
     this._enable = false;
 
-    // Set default acquisition level
+    // Set defaults
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
-
-    this.errorTranslatorOptions = { separator: '<br/>', controlPathTranslator: this };
+    this.errorTranslateOptions = { separator: '<br/>', pathTranslator: this };
   }
 
   ngOnInit() {
@@ -450,22 +449,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any }
   ): Promise<void> {
     if (!data) return;
-
-    // Reapplied changed data
-    if (this.isNewData && this.form.touched) {
-      console.warn(this._logPrefix + 'Merging form value and input data, before updating view');
-
-      // Make sure to keep existing touched field's value
-      const json = this.form.value;
-      Object.keys(json).forEach((key) => {
-        if (isNil(json[key]) && this.form.get(key)?.untouched) delete json[key];
-      });
-
-      data = Landing.fromObject({
-        ...data.asObject(),
-        ...json,
-      });
-    }
 
     // Resize observers array
     if (this._showObservers) {

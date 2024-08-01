@@ -10,12 +10,7 @@ zoneConfig.global.disable.geolocation();
 zoneConfig.global.disable.canvas();
 zoneConfig.global.disable.XHR();
 
-zoneConfig.events.disable.UNPATCHED_EVENTS([
-  'mousemove',
-  'mouseover',
-  // TODO: check if can disabled this events:
-  //'scroll'
-]);
+zoneConfig.events.disable.UNPATCHED_EVENTS(['mousemove', 'mouseover']);
 
 // FIXME disable zone in .then() functions
 //zoneConfig.global.disable.ZoneAwarePromise();
@@ -23,5 +18,5 @@ zoneConfig.events.disable.UNPATCHED_EVENTS([
 // FIXME: need to patch some components, to call markForCheck() or detectedChanges()
 // - loading bar still show (e.g. trip editor)
 // - notification icon (e.g. when start timer)
-// - TODO test all components
+// - test all components
 //zoneConfig.global.disable.timers();

@@ -56,6 +56,7 @@ export class SaleEditorOptions extends RootDataEditorOptions {}
 
 export interface SalePageState extends RootDataEntityEditorState {
   strategyLabel: string;
+  parent: Trip | Landing;
 }
 export const SalesPageSettingsEnum = {
   PAGE_ID: 'sale',
@@ -87,7 +88,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     GENERAL: 0,
     BATCHES: 1,
   };
-  protected parent: Trip | Landing;
+
   protected tripService = inject(TripService);
   protected landingService = inject(LandingService);
   protected pmfmService = inject(PmfmService);
@@ -95,15 +96,16 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected vesselSnapshotService = inject(VesselSnapshotService);
   protected translateContext = inject(TranslateContextService);
   protected selectedSubTabIndex = 0;
-  showParent = false;
-  showEntityMetadata = false;
-  showQualityForm = false;
-  showFishingArea = false;
-  enableReport = false;
-  parentAcquisitionLevel: AcquisitionLevelType;
-  showBatchTablesByProgram = false;
-  showBatchTables = true;
-  @RxStateProperty() strategyLabel: string;
+  protected showParent = false;
+  protected showEntityMetadata = false;
+  protected showQualityForm = false;
+  protected showFishingArea = false;
+  protected enableReport = false;
+  protected parentAcquisitionLevel: AcquisitionLevelType;
+  protected showBatchTablesByProgram = false;
+  protected showBatchTables = true;
+  @RxStateProperty() protected parent: Trip | Landing;
+  @RxStateProperty() protected strategyLabel: string;
 
   get form(): UntypedFormGroup {
     return this.saleForm.form;
@@ -134,8 +136,9 @@ export class SalePage<ST extends SalePageState = SalePageState>
       settingsId: AcquisitionLevelCodes.SALE.toLowerCase(),
       ...options,
     });
-    this.parentAcquisitionLevel = this.route.snapshot.queryParamMap.get('parent') as AcquisitionLevelType;
-    this.showParent = !!this.parentAcquisitionLevel;
+    const queryParams = this.route.snapshot.queryParamMap;
+    this.parentAcquisitionLevel = queryParams.get('parent') as AcquisitionLevelType;
+    this.showParent = !!this.parentAcquisitionLevel && isNil(queryParams.get('landing')) && isNil(queryParams.get('trip'));
 
     // FOR DEV ONLY ----
     this.logPrefix = '[sale-page] ';
@@ -172,23 +175,53 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
     console.debug(this.logPrefix + 'watchStrategyFilter', this.acquisitionLevel);
-    if (this.strategyResolution === DataStrategyResolutions.USER_SELECT) {
-      return this._state
-        .select(['acquisitionLevel', 'strategyLabel'], (s) => s)
-        .pipe(
-          // DEBUG
-          tap((s) => console.debug(this.logPrefix + 'Received strategy label: ', s)),
-          map(({ acquisitionLevel, strategyLabel }) => {
-            return <Partial<StrategyFilter>>{
-              acquisitionLevel,
-              programId: program.id,
-              label: strategyLabel,
-            };
+    switch (this.strategyResolution) {
+      // User select
+      case DataStrategyResolutions.USER_SELECT:
+        return this._state
+          .select(['acquisitionLevel', 'strategyLabel'], (s) => s)
+          .pipe(
+            // DEBUG
+            tap((s) => console.debug(this.logPrefix + 'Received strategy label: ', s)),
+            map(({ acquisitionLevel, strategyLabel }) => {
+              return <Partial<StrategyFilter>>{
+                acquisitionLevel,
+                programId: program.id,
+                label: strategyLabel,
+              };
+            })
+          );
+      // User select
+      case DataStrategyResolutions.SPATIO_TEMPORAL:
+        return this._state
+          .select(['acquisitionLevel', 'parent'], (_) => _, {
+            acquisitionLevel: equals,
+            parent: EntityUtils.equals,
           })
-        );
+          .pipe(
+            map(({ acquisitionLevel, parent }) => {
+              if (parent instanceof Trip) {
+                return <Partial<StrategyFilter>>{
+                  acquisitionLevel,
+                  programId: program.id,
+                  startDate: parent.departureDateTime,
+                  location: parent.departureLocation,
+                };
+              } else if (parent instanceof Landing) {
+                return <Partial<StrategyFilter>>{
+                  acquisitionLevel,
+                  programId: program.id,
+                  startDate: parent.dateTime,
+                  location: parent.location,
+                };
+              }
+            })
+            // DEBUG
+            //tap((values) => console.debug(this.logPrefix + 'Strategy filter changed:', values))
+          );
+      default:
+        return super.watchStrategyFilter(program);
     }
-
-    return super.watchStrategyFilter(program);
   }
 
   async updateView(
@@ -350,13 +383,13 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
       if (this.parent instanceof Trip) {
         data.saleLocation = data.saleLocation || this.parent.returnLocation || this.parent.departureLocation;
-        // data.dateTime = data.dateTime || this.parent.startDateTime || this.parent.endDateTime;
+        data.startDateTime = data.startDateTime || this.parent.returnDateTime || this.parent.departureDateTime;
         data.trip = this.showParent ? this.parent : undefined;
         data.tripId = this.showParent ? null : this.parent.id;
         data.landingId = undefined;
       } else if (this.parent instanceof Landing) {
         data.saleLocation = data.saleLocation || this.parent.location;
-        // data.dateTime = data.dateTime || this.parent.startDateTime || this.parent.endDateTime;
+        data.startDateTime = data.startDateTime || this.parent.dateTime;
         data.landing = this.showParent ? this.parent : undefined;
         data.landingId = this.showParent ? null : this.parent.id;
         data.tripId = undefined;
@@ -410,15 +443,14 @@ export class SalePage<ST extends SalePageState = SalePageState>
         // data.trip = this.showParent ? parent : undefined;
         data.vesselSnapshot = parent.vesselSnapshot;
         data.saleLocation = parent.returnLocation || parent.departureLocation;
-        // data.dateTime = parent.returnDateTime || parent.departureDateTime;
+        data.startDateTime = data.startDateTime || parent.returnDateTime || parent.departureDateTime;
         data.landing = undefined;
         data.landingId = undefined;
       } else if (parent instanceof Landing) {
-        // data.observedLocation = this.showParent ? parent : undefined;
+        data.saleLocation = (this.saleForm.showLocation && data.saleLocation) || parent.location;
+        data.startDateTime = data.startDateTime || parent.dateTime;
+        data.landing = this.showParent ? this.parent : null;
         data.landingId = this.showParent ? null : this.parent.id;
-        // TODO enable this ?
-        //data.saleLocation = (this.saleForm.showLocation && data.location) || parent.location;
-        //data.startDateTime = (this.saleForm.showDateTime && data.dateTime) || parent.startDateTime || parent.endDateTime;
         data.landing = undefined;
         data.tripId = undefined;
 
@@ -477,7 +509,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     this.strategyResolution = showStrategy ? 'user-select' : program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
 
     // Customize the UI, using program options
-    // this.saleForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+    this.saleForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.SALE_LOCATION_LEVEL_IDS);
     // this.saleForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
     // this.saleForm.showStrategy = showStrategy;
     // this.saleForm.requiredStrategy = requiredStrategy;

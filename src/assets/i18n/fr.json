@@ -134,7 +134,7 @@
       "HAS_ERROR": "Veuillez corriger des erreurs dans le formulaire"
     },
     "PAGINATOR": {
-      "ITEMS_PER_PAGE": "Nombre de lignes",
+      "ITEMS_PER_PAGE": "Nombre de lignes affichées",
       "NEXT_PAGE": "Page suivante",
       "PREVIOUS_PAGE": "Page précédente",
       "OF": "sur"
@@ -372,6 +372,7 @@
         "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Référentiel > Valeur qualitative > Sexe / Non sexé",
         "QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_PETS_ID": "Référentiel > Valeur qualitative > Origine des espèces / PETS",
         "QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_RANDOM_ID": "Référentiel > Valeur qualitative > Origine des espèces / Tirage au sort",
+        "QUALITATIVE_VALUE_SURVEY_QUALIFICATION_DIRECT_ID": "Référentiel > Valeur qualitative > Qualification de l'enquête / Directe",
         "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métiers nationaux",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métiers DCF niv 5",
@@ -1491,6 +1492,13 @@
           "FRACTION_FIELD": "Fraction :",
           "TABLE_LEGEND": "Légende : Les lots dont la qualité est invalide sont en <span class=\"invalid\">rouge</span>, les valeurs calculées sont en <span class=\"computed\">bleu et italique</span>, les valeurs issues d'estimation terrain sont surlignées, les valeurs mesurées, pesées ou comptées sont en noir."
         }
+      },
+      "REPORT_TYPE": {
+        "LEGACY": "Par défaut",
+        "TRAWL_SELECTIVITY": "Sélectivité châlut",
+        "OBSERVED_TRIP": "Observation des marées en mer",
+        "FORM": "Formulaire terrain",
+        "BLANK_FORM": "Formulaire terrain vierge"
       }
     },
     "PMFM": {
@@ -1950,6 +1958,17 @@
     "TAB_HISTORY": "Historique",
     "VESSEL_REGISTRATION_DIVIDER": "Immatriculation",
     "VESSEL_FEATURES_DIVIDER": "Caractéristiques",
+    "VESSEL_SNAPSHOT": {
+      "ID": "Code interne",
+      "NAME": "Nom",
+      "EXTERIOR_MARKING": "Marquage extérieur",
+      "REGISTRATION_CODE": "Immatriculation",
+      "REGISTRATION_LOCATION": "Pavillon",
+      "BASE_PORT_LOCATION": {
+        "LABEL": "Code du port d'attache",
+        "NAME": "Libellé du port d'attache"
+      }
+    },
     "VESSEL_FEATURES": {
       "START_DATE": "Début validité",
       "END_DATE": "Fin validité",
@@ -2358,11 +2377,17 @@
       "ACTIVITY_CALENDAR_REPORT_TYPE": "Calendrier d'activité  > Rapport : Types de rapport :",
       "ACTIVITY_CALENDAR_TYPE_FORM": "Calendrier d'activité",
       "ACTIVITY_CALENDAR_TYPE_FORM_BLANK": "Calendrier d'activité vierge",
-      "ACTIVITY_CALENDAR_REPORT_FORM_FOOTER": "Calendrier d'activité > Rapport : Texte de pied de page",
-      "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Calendrier d'activité > Rapport : URL d'une image pour le log de gauche",
-      "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Calendrier d'activité > Rapport : URL d'une image pour le log de droite",
-      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER": "Calendrier d'activité > Rapport : nombre de méter a faire figurer sur les formulaire vierge",
-      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER": "Calendrier d'activité > Rapport : nombre de zone de pêche a par métier a faire figurer sur les formulaire vierge",
+      "ACTIVITY_CALENDAR_REPORT_FORM_FOOTER": "Calendrier d'activité > Rapport : Texte du pied de page",
+      "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Calendrier d'activité > Rapport : URL d'une image de gauche",
+      "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Calendrier d'activité > Rapport : URL d'une image de droite",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER": "Calendrier d'activité > Rapport > Formulaire vierge : Nb de métiers",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER": "Calendrier d'activité > Rapport > Formulaire vierge : Nb de zones de pêche / Métier",
+      "ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS": "Calendrier d'activité > Métier : Type(s) d'espèce",
+      "ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID": "Calendrier d'activité > Pays d'immatriculation des navires",
+      "ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE": "Calendrier d'activité > Activer la résolution des conflits ?",
+      "ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS": "Calendrier d'activité > Prédocumentation : Code(s) programme(s)",
+      "ACTIVITY_CALENDAR_IMAGES_ENABLE": "Calendrier d'activité > Activer les photos ?",
+      "ACTIVITY_CALENDAR_OBSERVERS_ENABLE": "Calendrier d'activité: Saisir les observateurs ?",
       "EXTRACTION_FORMATS": "Extraction > Formats disponibles:",
       "I18N_SUFFIX": "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY": "Par défaut",
@@ -2376,6 +2401,7 @@
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
+      "TRIP_SALE_LOCATION_LEVEL_IDS": "Marée > Vente : Niveau(x) de lieu",
       "TRIP_SAMPLING_STRATA_ENABLE": "Marée: Saisir la ligne de plan d'échantillonnage ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Marée > Hors-Ligne > Niveau(x) de lieu à importer",
@@ -2427,11 +2453,6 @@
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
       "TRIP_REPORT_ENABLE": "Marée > Rapport : Activer l'édition de rapport ?",
       "TRIP_REPORT_TYPE": "Marée > Rapport : Types de rapport :",
-      "TRIP_REPORT_TYPE_LEGACY": "Par défaut",
-      "TRIP_REPORT_TYPE_TRAWL_SELECTIVITY": "Sélectivité châlut",
-      "TRIP_REPORT_TYPE_OBSERVED_TRIP": "Observation des marées en mer",
-      "TRIP_REPORT_TYPE_FORM": "Formulaire terrain",
-      "TRIP_REPORT_TYPE_FORM_BLANK": "Formulaire terrain vierge",
       "TRIP_REPORT_FORM_SUBTITLE": "Marée > Rapport : Sous-titre du rapport",
       "TRIP_REPORT_FORM_FOOTER": "Marée > Rapport : Texte de pied de page",
       "TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Marée > Rapport : URL d'une image pour le log de gauche",
@@ -2474,6 +2495,7 @@
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Sortie: Saisir les observateurs ?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Sortie > Débarquements: Ajout de navire ?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Sortie > Afficher l'historique pour ajouter un débarquement ?",
+      "OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE": "Sortie > Saisir la ligne de plan d'échantillonnage ?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Sortie: Niveau(x) de lieu",
       "OBSERVED_LOCATION_CONTROL_ENABLE": "Sortie: Activer le contrôle à la terminaison de la saisie ?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Sortie > Calendrier d'activité hebdomadaire ?",
@@ -2483,7 +2505,8 @@
       "OBSERVED_LOCATION_REPORT_ENABLE": "Sortie > Activer l'édition de rapport ?",
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Sortie > Hors-Ligne > Niveau(x) de lieu à importer",
       "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Sortie > Afficher la carte de la stratégie ?",
-      "OBSERVED_LOCATION_LANDING_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)",
+      "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)",
+      "LANDING_BATCH_ENABLE": "Sortie > Débarquement : Activer les lots (BATCH) ?",
       "LANDING_EDITOR": "Sortie > Débarquement : Éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
@@ -2499,6 +2522,7 @@
       "LANDING_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port ?",
       "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Sortie > Débarquements : Zone de pêche: Niveau(x) de lieu",
       "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre de mesures ?",
+      "LANDING_SAMPLE_ENABLE": "Sortie > Débarquement > Activer les mesures (SAMPLE) ?",
       "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Mesures : Unité de poids",
       "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
       "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
@@ -2507,6 +2531,8 @@
       "LANDING_TOP_PMFM_IDS": "Sortie > Débarquements : PSFM(s) en en-tête",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
       "PROGRAM_PRIVILEGE_READONLY": "Programme > Droits d'accès : Lecture seule ?",
+      "SALE_LOCATION_LEVEL_IDS": "Sortie > Vente : Niveau(x) de lieu",
+      "SALE_BATCH_ENABLE": "Sortie > Vente : Activer les lots ?",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",
@@ -3368,6 +3394,7 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les calendriers <b>non synchronisés</b>)",
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
+      "OBSERVERS": "Enquêteur(s)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "REGISTRATION_LOCATION": "Quartier maritime",
@@ -3377,6 +3404,8 @@
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "VESSEL": "Navire",
+        "OBSERVERS": "Enquêteur",
+        "QUALITY_FLAG_ID": "Niveau de qualité",
         "YEAR": "Année"
       }
     },
@@ -3388,15 +3417,17 @@
       "TITLE_MENU": "{{vessel}} ({{year}})",
       "PREDOC_TITLE": "Prédocumentation",
       "BASE_PORT_LOCATION": "Port d'exploitation",
+      "SOURCE": "Source",
+      "SOURCE_PREDOC": "",
       "BTN_ADD_METIER_BLOCK": "Ajouter un bloc métier",
-      "BTN_REPORT": "Éditer un rapport...",
+      "BTN_REPORT": "Éditer le rapport...",
       "BTN_EXPAND_ALL": "Déplier tout",
       "BTN_COLLAPSE_ALL": "Replier tout",
       "BTN_CLEAR_MONTH": "Vider le mois",
+      "BTN_COPY_PASTE_ALL": "Copier et coller",
       "HIDE_PREDOC": "Masquer la prédocumentation",
       "SHOW_PREDOC": "Afficher la prédocumentation",
       "BTN_SHOW_PREDOC": "<u>P</u>rédocumentation",
-      "CONFIRM_CLEAR_MONTH": "<b>Êtes-vous sûr</b> de vouloir vider ce mois ?",
       "YEAR": "Année :",
       "VESSEL_SNAPSHOT": "Navire",
       "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
@@ -3425,10 +3456,21 @@
       "VESSEL_REGISTRATION_DIVIDER": "Immatriculations",
       "VESSEL_OWNER_DIVIDER": "Armateurs",
       "PHOTO": "Photos",
+      "OBSERVERS": "Enquêteur(s) :",
+      "OBSERVER_PLACEHOLDER": "Enquêteur #",
+      "BTN_DELETE_CALENDAR": "Supprimer",
+      "BTN_CLEAR_CALENDAR": "Vider le calendrier",
+      "BTN_DELETE_CONFLICT": "Supprimer ce mois en conflit",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
         "DISABLE": "Inactif",
         "NOT_EXISTS": "Inexistant"
+      },
+      "SIH-ACTIFLOT": {
+        "SOURCE_PREDOC": "Enquête N-1"
+      },
+      "SIH-ACTIPRED": {
+        "SOURCE_PREDOC": "SACROIS-OBSDEB"
       }
     },
     "OFFLINE_MODAL": {
@@ -3477,10 +3519,31 @@
         "TITLE": "Observateur",
         "LAST_NAME": "Nom :",
         "FIRST_NAME": "Prénom :"
+      },
+      "REPORT_TYPE": {
+        "BLANK_FORM": "Calendrier d'activité vierge",
+        "FORM": "Calendrier d'activité"
       }
     },
+    "CONFIRM": {
+      "CLEAR_MONTH": "<b>Êtes-vous sûr</b> de vouloir vider ce mois ?",
+      "CLEAR_CALENDAR": "<b>Êtes-vous sûr</b> de vouloir vider le calendrier ?",
+      "DELETE_CONFLICT": "<b>Êtest vous sûr</b> de vouloir supprimer ce conflit ?",
+      "KEEP_REMOTE": "<b>Êtest vous sûr</b> de vouloir conserver les données distantes ?",
+      "COPY_PASTE": "<b>Êtes-vous sûr</b> de vouloir copier la prédocumentation vers le calendrier ?"
+    },
+    "WARNING": {
+      "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif.",
+      "UNAUTHORIZED_REGISTRATION_LOCATION": "Vous n'êtes <b>pas autorisé</b> à saisir sur ce lieu d'immatriculation."
+    },
     "ERROR": {
-      "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici."
+      "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici.",
+      "CONFLICTUAL_MONTH": "Conflit détécté lors de la sauvegarde du calendrier",
+      "DUPLICATED_METIER": "Métier(s) en doublon : {{metiers}}",
+      "REQUIRED_FISHING_AREA": "Zone de pêche obligatoire pour le(s) métier(s) : {{metiers}}",
+      "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}",
+      "INVALID_MONTHS": "Veuillez corriger le(s) mois invalide(s)",
+      "INVALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)"
     }
   },
   "ERROR": {

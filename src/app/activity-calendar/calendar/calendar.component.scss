@@ -3,7 +3,6 @@
   --mat-cell-resizable-handle-size: 5px;
   --mat-cell-resizable-handle-color-hover: var(--ion-color-secondary);
 }
-
 .mat-accordion {
   --expansion-panel-padding: 0;
   .mat-expansion-panel-header {
@@ -20,9 +19,23 @@
 mat-toolbar {
   position: relative;
   z-index: 50;
+  --mdc-icon-button-state-layer-size: 34px;
   &.secondary {
+    --mat-toolbar-container-text-color: var(--ion-color-secondary-contrast);
+    --mdc-form-field-label-text-color: var(--ion-color-secondary-contrast);
     background-color: var(--ion-color-secondary);
     color: var(--ion-color-secondary-contrast);
+    mat-checkbox input,
+    mat-label {
+      --mdc-form-field-label-text-color: var(--ion-color-secondary-contrast);
+      color: var(--ion-color-secondary-contrast);
+    }
+  }
+
+  ion-item {
+    max-height: 100%;
+    width: calc(100% - 4 * var(--mdc-icon-button-state-layer-size) - 32px);
+    overflow: hidden;
   }
 }
 
@@ -44,7 +57,7 @@ mat-toolbar {
 
 .mat-mdc-table {
   --col-header-size: 150px;
-  --col-min-size: 100px;
+  --col-min-size: 120px;
   --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / var(--month-count, 12)));
   --mat-table-row-item-outline-width: 0px;
   --mat-column-actions-min-width: 100%;
@@ -90,12 +103,18 @@ mat-toolbar {
       }
     }
 
+    .mat-column-pmfm {
+    }
+
     /* Disable other columns */
     &.activity-not-exists .mat-mdc-cell,
     &.activity-inactive .mat-mdc-cell {
       &.mat-column-pmfm,
       &.mat-column-metier,
-      &.mat-column-fishingArea {
+      &.mat-column-fishingArea,
+      &.mat-column-distanceToCoastGradient,
+      &.mat-column-depthGradient,
+      &.mat-column-nearbySpecificArea {
         --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.8) !important;
         background-color: var(--mat-table-background-color);
 
@@ -104,6 +123,32 @@ mat-toolbar {
           visibility: hidden;
         }
       }
+    }
+
+    // Readonly month
+    &.readonly .mat-mdc-cell {
+      --mat-table-row-item-label-text-color: var(--ion-text-color, rgba(0, 0, 0, 0.87));
+      --mat-table-row-disabled-item-label-text-color: var(--ion-color-step-500);
+      color: var(--mat-table-row-disabled-item-label-text-color);
+    }
+
+    // Duplicated month (e.g. unresolved conflict)
+    &.duplicated {
+      background-color: var(--ion-color-warning-tint);
+    }
+
+    // Predoc month
+    &.SIH-ACTIPRED {
+      --mat-table-background-color: rgba(var(--ion-color-secondary-rgb), 0.1) !important;
+      background-color: var(--mat-table-background-color);
+
+      &.mat-column-reset-background-color {
+        --mat-table-background-color: var(--ion-color-step-100) !important;
+      }
+    }
+
+    &.conflictual {
+      background-color: var(--ion-color-warning-tint);
     }
   }
 
@@ -150,12 +195,17 @@ mat-toolbar {
     border-left: 1px solid rgba(0, 0, 0, 0.12);
 
     &.odd {
-      --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
+      --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.15) !important;
       background-color: var(--mat-table-background-color);
 
       &.mat-column-reset-background-color {
         --mat-table-background-color: var(--ion-color-step-100) !important;
       }
+    }
+
+    &.mat-column-fishingArea {
+      --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
+      background-color: var(--mat-table-background-color);
     }
 
     &.collapsed {
@@ -318,6 +368,13 @@ mat-toolbar {
   border: 2px solid var(--mat-cell-border-color-hover);
   z-index: 10;
   pointer-events: none;
+
+  &.top-no-border {
+    border-top: 1px dot-dot-dash var(--mat-cell-border-color-hover);
+  }
+  &.bottom-no-border {
+    border-bottom: 1px dot-dot-dash var(--mat-cell-border-color-hover);
+  }
 
   &:has(.debug) {
     align-content: end;

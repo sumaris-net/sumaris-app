@@ -546,7 +546,7 @@ export class ObservedLocationService
       );
   }
 
-  translateControlPath(path, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
     opts = { i18nPrefix: 'OBSERVED_LOCATION.EDIT.', ...opts };
     // Translate PMFM fields
     if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
@@ -555,7 +555,7 @@ export class ObservedLocationService
       return PmfmUtils.getPmfmName(pmfm);
     }
     // Default translation
-    return this.formErrorTranslator.translateControlPath(path, opts);
+    return this.formErrorTranslator.translateFormPath(path, opts);
   }
 
   async save(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
@@ -922,12 +922,12 @@ export class ObservedLocationService
         progression: opts?.progression,
         maxProgression: opts?.maxProgression - progressionStep,
       });
-      if (errors?.landings) {
+      if (errors) {
         return {
-          message: 'OBSERVED_LOCATION.ERROR.INVALID_LANDING',
+          message: 'OBSERVED_LOCATION.ERROR.INVALID_LANDINGS',
           details: {
             errors: {
-              landings: errors.landings,
+              landings: errors,
             },
           },
         };
@@ -1379,8 +1379,8 @@ export class ObservedLocationService
 
     if (!opts.translatorOptions) {
       opts.translatorOptions = {
-        controlPathTranslator: {
-          translateControlPath: (path) => this.translateControlPath(path, {}),
+        pathTranslator: {
+          translateFormPath: (path) => this.translateFormPath(path, {}),
         },
       };
     }

@@ -202,7 +202,7 @@ export class EntityQualityFormComponent<
 
         // Emit event (refresh component with the new data)
         if (!opts || opts.emitEvent !== false) {
-          this.updateView(data);
+          await this.updateView(data);
         } else {
           this.data = data;
         }
@@ -400,7 +400,7 @@ export class EntityQualityFormComponent<
 
   /* -- protected method -- */
 
-  protected updateView(data?: T) {
+  protected async updateView(data?: T) {
     if (this.busy) return; // Skip
 
     data = data || this.data || this.editor?.data;
@@ -450,13 +450,9 @@ export class EntityQualityFormComponent<
 
     // Load available quality flags
     if ((this.canQualify || this.canUnqualify) && !this.qualityFlags) {
-      this.referentialRefService.loadQualityFlags().then((items) => {
-        this.qualityFlags = items;
-        this.markForCheck();
-      });
-    } else {
-      this.markForCheck();
+      this.qualityFlags = await this.referentialRefService.loadQualityFlags();
     }
+    this.markForCheck();
   }
 
   protected async showToast<R = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<R>> {

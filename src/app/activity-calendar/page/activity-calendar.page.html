@@ -49,11 +49,22 @@
 
   <mat-divider></mat-divider>
 
-  <!-- delete -->
-  <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
-    <mat-icon>delete</mat-icon>
-    <ion-label translate>COMMON.BTN_DELETE</ion-label>
+  <!-- clean calendar -->
+  <button mat-menu-item [disabled]="isNewData || disabled" (click)="clearCalendar($event)">
+    <mat-icon><ion-icon color="medium" name="calendar"></ion-icon></mat-icon>
+    <mat-icon color="warn" class="icon-secondary" style="left: 26px; top: 5px; font-weight: bold">close</mat-icon>
+    <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_CALENDAR</ion-label>
   </button>
+
+  <!-- delete -->
+  @if (isAdmin) {
+    <mat-divider></mat-divider>
+
+    <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
+      <mat-icon color="warn">delete</mat-icon>
+      <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_DELETE_CALENDAR</ion-label>
+    </button>
+  }
 
   <!-- DEV only -->
   <app-data-editor-debug-button></app-data-editor-debug-button>
@@ -77,7 +88,7 @@
 <ion-content>
   <mat-tab-group
     #tabGroup
-    class="mat-mdc-tab-fixed-content"
+    class="mat-mdc-tab-fixed-content mat-mdc-tab-disabled-hidden"
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
@@ -151,6 +162,16 @@
                   <ion-icon slot="icon-only" name="mail"></ion-icon>
                 </ion-button>
 
+                <!-- Warning -->
+                @if (qualityWarning) {
+                  <br />
+                  <ion-text class="ion-text-wrap warning">
+                    <ion-icon name="warning"></ion-icon>
+                    &nbsp;
+                    <span [innerHTML]="qualityWarning | translate"></span>
+                  </ion-text>
+                }
+
                 <!-- quality process -->
                 <app-entity-quality-form></app-entity-quality-form>
               </app-entity-metadata>
@@ -169,7 +190,8 @@
 
       <mat-tab-group
         #tabGroup
-        class="mat-mdc-tab-fixed-content"
+        class="mat-mdc-tab-fixed-content mat-tab-group-header-pagination-hidden"
+        [class.mat-mdc-tab-group-header-hidden]="!showPictures"
         [class.mobile]="mobile"
         [(selectedIndex)]="selectedSubTabIndex"
         (selectedTabChange)="onSubTabChange($event)"
@@ -196,6 +218,10 @@
                   [showIsFpcColumn]="true"
                   [showCommentsColumn]="false"
                   [showIrcsColumn]="false"
+                  [mergeSameAndContiguous]="true"
+                  [showPagination]="true"
+                  [defaultPageSize]="5"
+                  [defaultPageSizeOptions]="[5, 10, 50]"
                   [debug]="debug"
                 ></app-vessel-features-history-table>
               </ion-col>
@@ -207,6 +233,9 @@
                   [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATION_DIVIDER'"
                   [i18nColumnSuffix]="'.ACTIVITY_CALENDAR'"
                   [showRegistrationLocationColumn]="true"
+                  [showPagination]="true"
+                  [defaultPageSize]="5"
+                  [defaultPageSizeOptions]="[5, 10, 50]"
                   [debug]="debug"
                 ></app-vessel-registration-history-table>
               </ion-col>
@@ -217,11 +246,15 @@
                   #ownerHistoryTable
                   [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER_DIVIDER'"
                   [i18nColumnSuffix]="'.ACTIVITY_CALENDAR'"
+                  [showPagination]="true"
+                  [defaultPageSize]="5"
+                  [defaultPageSizeOptions]="[5, 10, 50]"
                   [debug]="debug"
                 ></app-vessel-owner-history-table>
               </ion-col>
             </ion-row>
-            <ion-row>
+
+            <ion-row [class.cdk-visually-hidden]="!showPictures">
               <ion-col>
                 <h3>
                   <ion-label translate>ACTIVITY_CALENDAR.EDIT.PHOTO</ion-label>
@@ -239,33 +272,31 @@
           </ion-grid>
         </mat-tab>
 
-        @if (canEdit) {
-          <!-- TAB: vessel photo -->
-          <mat-tab #vesselPhotoTab>
-            <ng-template mat-tab-label>
-              <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
-              &nbsp;
-              <ion-label
-                [matBadge]="gallery.value.length"
-                [matBadgeHidden]="!gallery.value.length"
-                matBadgeOverlap="false"
-                matBadgeColor="primary"
-                matBadgeSize="small"
-                matBadgePosition="above after"
-              >
-                <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_PHOTO</ion-label>
-              </ion-label>
-            </ng-template>
+        <!-- TAB: vessel photo -->
+        <mat-tab #vesselPhotoTab [disabled]="!showPictures">
+          <ng-template mat-tab-label>
+            <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
+            &nbsp;
+            <ion-label
+              [matBadge]="gallery.value.length"
+              [matBadgeHidden]="!gallery.value.length"
+              matBadgeOverlap="false"
+              matBadgeColor="primary"
+              matBadgeSize="small"
+              matBadgePosition="above after"
+            >
+              <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_PHOTO</ion-label>
+            </ion-label>
+          </ng-template>
 
-            <app-image-attachment-gallery
-              #gallery
-              [disabled]="disabled"
-              [showAddCardButton]="true"
-              [showFabButton]="mobile"
-              [debug]="debug"
-            ></app-image-attachment-gallery>
-          </mat-tab>
-        }
+          <app-image-attachment-gallery
+            #gallery
+            [disabled]="disabled"
+            [showAddCardButton]="true"
+            [showFabButton]="mobile"
+            [debug]="debug"
+          ></app-image-attachment-gallery>
+        </mat-tab>
       </mat-tab-group>
     </mat-tab>
 
@@ -280,9 +311,9 @@
         <mat-icon><ion-icon name="calendar"></ion-icon></mat-icon>
         <ion-label
           [matBadge]="calendar?.validRowCount$ | push"
-          [matBadgeHidden]="!(calendar?.validRowCount$ | push)"
+          [matBadgeHidden]="calendar.invalid || !(calendar?.validRowCount$ | push)"
           matBadgeOverlap="false"
-          matBadgeColor="primary"
+          [matBadgeColor]="(calendar?.validRowCount$ | push) === 12 ? 'primary' : 'warn'"
           matBadgeSize="small"
           matBadgePosition="above after"
         >
@@ -299,11 +330,13 @@
       >
         <!-- Main calendar -->
         <as-split-area [minSize]="20" size="*">
-          <!-- error -->
-          <ion-item *ngIf="calendar?.error" visible-xs visible-sm visible-mobile lines="none">
-            <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-            <ion-label color="danger" class="error" [innerHTML]="calendar.error | translate"></ion-label>
-          </ion-item>
+          <!-- error (mobile) -->
+          @if (mobile && calendar.errorSubject | async; as error) {
+            <ion-item lines="none">
+              <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+              <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+            </ion-item>
+          }
 
           <app-calendar
             #calendar
@@ -311,7 +344,9 @@
             [requiredStrategy]="requiredStrategy$ | async"
             [strategyId]="(strategy$ | async)?.id"
             [timezone]="timezone"
+            [showError]="!mobile"
             [debug]="debug"
+            (startCellSelection)="predocCalendar?.removeCellSelection()"
           ></app-calendar>
         </as-split-area>
 
@@ -320,10 +355,12 @@
           <app-calendar
             #predocCalendar
             [title]="'ACTIVITY_CALENDAR.EDIT.PREDOC_TITLE'"
-            [pmfms]="calendar.pmfms$ | push"
+            [showToolbar]="true"
             [showVesselOwner]="false"
             [showRegistrationLocation]="false"
-            [showToolbar]="true"
+            [showProgram]="true"
+            [programLabel]="programLabel"
+            [programHeaderLabel]="'ACTIVITY_CALENDAR.EDIT.SOURCE'"
             [usePageSettings]="false"
             [toolbarColor]="'secondary'"
             [timezone]="timezone"
@@ -335,6 +372,8 @@
             [showToolbarOptions]="false"
             [compact]="calendar.compact"
             [debug]="debug"
+            (copyAllClick)="copyAndPastePredoc($event)"
+            (startCellSelection)="calendar.removeCellSelection()"
           >
             <!-- toggle predoc -->
             <div matToolbarStart *ngTemplateOutlet="togglePredocButton"></div>
@@ -358,17 +397,28 @@
           {{ metierTab.textLabel }}
         </ion-label>
       </ng-template>
-      <app-gear-physical-features-table
-        #tableMetier
-        [programLabel]="programLabel$ | async"
-        [requiredStrategy]="requiredStrategy$ | async"
-        [strategyId]="(strategy$ | async)?.id"
-        [timezone]="timezone"
-        [showGearColumn]="false"
-        [showMetierColumn]="true"
-        [canAdd]="false"
-        [canDelete]="false"
-      ></app-gear-physical-features-table>
+
+      <div>
+        <!-- error (mobile) -->
+        @if (mobile && tableMetier.errorSubject | async; as error) {
+          <ion-item lines="none">
+            <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+            <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+          </ion-item>
+        }
+        <app-gear-physical-features-table
+          #tableMetier
+          [programLabel]="programLabel$ | async"
+          [requiredStrategy]="requiredStrategy$ | async"
+          [strategyId]="(strategy$ | async)?.id"
+          [timezone]="timezone"
+          [showGearColumn]="false"
+          [showMetierColumn]="true"
+          [showError]="!mobile"
+          [canAdd]="false"
+          [canDelete]="false"
+        ></app-gear-physical-features-table>
+      </div>
     </mat-tab>
 
     <!-- TAB: Map -->
@@ -383,25 +433,27 @@
       <as-split direction="horizontal" [useTransition]="true" (dragEnd)="map?.containerResize()" [restrictMove]="mobile">
         <as-split-area [minSize]="20" [size]="100 - mapPanelWidth">
           <!-- map -->
-          @if (!!map || (selectedTabIndex === 3 && calendar.valid)) {
+          @if (!!map || (selectedTabIndex === 4 && calendar.valid)) {
             <app-activity-calendar-map #map></app-activity-calendar-map>
           }
         </as-split-area>
         <as-split-area [minSize]="30" [size]="mapPanelWidth" [visible]="showMapPanel">
-          <app-calendar
-            #mapCalendar
-            [style]="'accordion'"
-            [pmfms]="calendar.pmfms$ | push"
-            [timezone]="timezone"
-            [showVesselOwner]="false"
-            [showRegistrationLocation]="false"
-            [showMonth]="false"
-            [showToolbar]="false"
-            [enableCellSelection]="false"
-            [usePageSettings]="false"
-            [compact]="true"
-            [debug]="debug"
-          ></app-calendar>
+          @if (showMap) {
+            <app-calendar
+              #mapCalendar
+              [style]="'accordion'"
+              [pmfms]="calendar.pmfms$ | push"
+              [timezone]="timezone"
+              [showVesselOwner]="false"
+              [showRegistrationLocation]="false"
+              [showMonth]="false"
+              [showToolbar]="false"
+              [enableCellSelection]="false"
+              [usePageSettings]="false"
+              [compact]="true"
+              [debug]="debug"
+            ></app-calendar>
+          }
         </as-split-area>
       </as-split>
     </mat-tab>

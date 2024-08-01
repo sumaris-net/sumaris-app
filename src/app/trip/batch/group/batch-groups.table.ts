@@ -350,7 +350,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.saveBeforeDelete = true;
     this.saveBeforeFilter = true;
     this.saveBeforeSort = true;
-    this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this };
+    this.errorTranslateOptions = { separator: '\n', pathTranslator: this };
     this.showCommentsColumn = !this.mobile; // Was set to 'false' in batches-table
     // this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH; // Already set in batches-table
 
@@ -411,7 +411,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     };
   }
 
-  translateControlPath(controlPath: string): string {
+  translateFormPath(controlPath: string): string {
     if (controlPath.startsWith('measurementValues.')) {
       const parts = controlPath.split('.');
       const pmfmId = parseInt(parts[parts.length - 1]);
@@ -439,7 +439,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         return prefix + this.translate.instant('TRIP.BATCH.EDIT.SAMPLING_BATCH');
       }
     }
-    return super.translateControlPath(controlPath);
+    return super.translateFormPath(controlPath);
   }
 
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {

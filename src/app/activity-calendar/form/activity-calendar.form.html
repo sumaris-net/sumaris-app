@@ -32,7 +32,7 @@
               [tabindex]="tabindex + 1"
             >
               <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
-              @if (isYearInTheFuture) {
+              @if (warnFutureYear$ | push) {
                 <mat-icon matSuffix color="accent" [title]="'WARNING.DATE_IN_THE_FUTURE' | translate">warning</mat-icon>
               }
             </mat-date-short-field>
@@ -90,32 +90,81 @@
             formControlName="economicSurvey"
             [placeholder]="'ACTIVITY_CALENDAR.EDIT.ECONOMIC_SURVEY' | translate"
             [tabindex]="-1"
+            required
           ></mat-boolean-field>
         </ion-col>
       }
     </ion-row>
 
+    <!-- Observers -->
+    <ng-container *ngIf="showObservers">
+      <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first; last as last">
+        <ion-col size="12" size-md="2" size-lg="3">
+          <ion-label class="ion-float-end" *ngIf="first" translate>ACTIVITY_CALENDAR.EDIT.OBSERVERS</ion-label>
+        </ion-col>
+        <ion-col>
+          <mat-autocomplete-field
+            [formControl]="observerForm | formGetControl"
+            [placeholder]="('ACTIVITY_CALENDAR.EDIT.OBSERVER_PLACEHOLDER' | translate) + (i + 1)"
+            [autofocus]="observerFocusIndex === i"
+            [config]="autocompleteFields.person"
+            [tabindex]="tabindex + 10 + i * 3"
+            [i18nPrefix]="'USER.'"
+            [required]="first"
+          >
+            <ion-icon matPrefix name="person"></ion-icon>
+          </mat-autocomplete-field>
+        </ion-col>
+        <ion-col size="auto">
+          <button
+            type="button"
+            mat-icon-button
+            *ngIf="last"
+            [tabindex]="tabindex + 10 + i * 3 + 1"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_ADD' | translate"
+            (click)="addObserver()"
+          >
+            <mat-icon>add</mat-icon>
+          </button>
+          <button
+            type="button"
+            mat-icon-button
+            [tabindex]="tabindex + 10 + i * 3 + 2"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="observersForm.removeAt(i)"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+
     <!-- Measurements -->
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end" [class.cdk-visually-hidden]="pmfms$ | async | isEmptyArray" translate>
+        <ion-label class="ion-float-end" [class.cdk-visually-hidden]="pmfms$ | push | isEmptyArray" translate>
           ACTIVITY_CALENDAR.EDIT.OTHER_FEATURES
         </ion-label>
       </ion-col>
       <ion-col>
         <!-- pmfms -->
-        <form *rxIf="pmfms$; let pmfms; else: measurementsSkeleton" [formGroup]="measurementValuesForm">
-          <app-pmfm-field
-            *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i"
-            [pmfm]="pmfm"
-            [controlName]="pmfm | pmfmIdString"
-            [compact]="compact"
-            [tabindex]="50 + i * 2"
-            [floatLabel]="floatLabel"
-          ></app-pmfm-field>
+        <form *rxLet="pmfms$; let pmfms; suspense: measurementsSkeleton" [formGroup]="measurementValuesForm">
+          @for (pmfm of pmfms; track trackPmfmFn) {
+            <app-pmfm-field
+              [pmfm]="pmfm"
+              [controlName]="pmfm | pmfmIdString"
+              [compact]="compact"
+              [tabindex]="50 + $index * 2"
+              [floatLabel]="floatLabel"
+              [qualitativeValueAttributes]="autocompleteFields.pmfmQualitativeValue.attributes"
+            ></app-pmfm-field>
+          }
         </form>
 
         <ng-template #measurementsSkeleton>
+          <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
           <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
           <ng-container *ngTemplateOutlet="propertySkeleton"></ng-container>
         </ng-template>

@@ -87,15 +87,55 @@
       <!-- metier buttons -->
       <ng-container *ngTemplateOutlet="metierButtons"></ng-container>
 
-      <!-- separator -->
+      <!-- copy all -->
+      @if (visibleRowCount > 0 && (availablePrograms$ | push); as programs) {
+        @if (programs | isArrayLength: { equals: 1 }) {
+          <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COPY_PASTE_ALL' | translate" (click)="onCopyAllClick(programs[0].label)">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        } @else {
+          <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COPY_PASTE_ALL' | translate" [matMenuTriggerFor]="optionsMenuCopyPaste">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+
+          <mat-menu #optionsMenuCopyPaste="matMenu" xPosition="after">
+            <!-- Compact mode -->
+            @for (program of programs; track program.label) {
+              <button mat-menu-item (click)="onCopyAllClick(program.label)">
+                <mat-label>{{ 'ACTIVITY_CALENDAR.EDIT.SOURCE_PREDOC' | translateContext: program.label }}</mat-label>
+              </button>
+            }
+          </mat-menu>
+        }
+      }
+
+      <!-- error -->
+      @if (showError && errorSubject | async; as error) {
+        <ion-item lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+        </ion-item>
+      }
+
+      <!-- spacer + title -->
       <ion-text class="toolbar-spacer ion-text-center">
-        <!-- title -->
-        <span *ngIf="showTitle && title" [innerHTML]="title | translate"></span>
+        @if (showTitle && title) {
+          <span [innerHTML]="title | translate"></span>
+        }
       </ion-text>
 
       <ng-content select="[matToolbarEnd]"></ng-content>
 
-      <!-- options -->
+      <!-- filter programs -->
+      @if (availablePrograms$ | async; as programs) {
+        @for (program of programs; track program.label) {
+          <mat-checkbox (change)="$event ? programSelection.toggle(program) : null" [checked]="programSelection.isSelected(program)">
+            <mat-label>{{ 'ACTIVITY_CALENDAR.EDIT.SOURCE_PREDOC' | translateContext: program.label }}</mat-label>
+          </mat-checkbox>
+        }
+      }
+
+      <!-- options menu -->
       @if (showToolbarOptions) {
         <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
           <mat-icon>more_vert</mat-icon>
@@ -110,6 +150,7 @@
     *rxIf="pmfms$; let pmfms; strategy: 'native'"
     (ngInit)="initTableContainer(tableContainer)"
     [class.mobile]="mobile"
+    cdkScrollable
   >
     <div
       #cellSelectionDiv
@@ -118,31 +159,39 @@
       (contextmenu)="cellSelection && onContextMenu($event, cellSelection?.cellElement, cellSelection.row, cellSelection.columnName)"
       style="align-content: end"
     >
-      <div class="resize-handle-corner"></div>
-
       <!-- debug -->
-      <ion-text *ngIf="debug && !!cellSelection" class="debug" color="tertiary">
-        @if (cellSelection.resizing) {
-          Resizing...
-        } @else {
-          colspan:{{ cellSelection.colspan }} rowspan:{{ cellSelection.rowspan }}
-          <br />
-          <b>div:</b>
-          top:{{ cellSelectionDiv.style.top }} left:{{ cellSelectionDiv.style.left }}
-          <br />
-          <b>container:</b>
-          scroll-top:{{ tableContainer.scrollTop }} scroll-left:{{ tableContainer.scrollLeft }}
-          @if (cellSelection.cellRect; as cellRect) {
+      @if (cellSelection && debug) {
+        <ion-text class="debug" color="tertiary">
+          @if (cellSelection.resizing) {
+            Resizing...
+          } @else {
+            colspan:{{ cellSelection.colspan }} rowspan:{{ cellSelection.rowspan }}
             <br />
-            <b>cell rect</b>
-            : top:{{ cellRect.top }} left:{{ cellRect.left }})
+            <b>div:</b>
+            top:{{ cellSelectionDiv.style.top }} left:{{ cellSelectionDiv.style.left }} height:{{ cellSelectionDiv.style.height }}
+            <br />
+            <b>container:</b>
+            scroll-top:{{ tableContainer.scrollTop }} scroll-left:{{ tableContainer.scrollLeft }}
+            <br />
+            <b>originalMouse:</b>
+            top:{{ cellSelection.originalMouseY }} left:{{ cellSelection.originalMouseX }}
+            @if (cellSelection.cellRect; as cellRect) {
+              <br />
+              <b>cell rect</b>
+              : top:{{ cellRect.top }} left:{{ cellRect.left }})
+            }
           }
-        }
-      </ion-text>
+        </ion-text>
+      }
     </div>
     <div #cellClipboardDiv class="cell-clipboard" [class.cdk-visually-hidden]="!cellClipboard"></div>
 
-    <mat-table [dataSource]="dataSource" [class.resizing]="cellSelection?.resizing" [class.large]="!compact">
+    <mat-table
+      [dataSource]="dataSource"
+      [class.resizing]="cellSelection?.resizing"
+      [class.large]="!compact"
+      [class.cdk-visually-hidden]="totalRowCount === 0"
+    >
       <!-- hidden columns (required by AppTable) -->
       <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
         <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
@@ -157,11 +206,11 @@
           }
         </mat-header-cell>
 
-        <mat-header-cell *matCellDef="let row" [title]="errorSpan.innerText || ''" class="mat-column-reset-background-color">
+        <mat-header-cell *matCellDef="let row" [title]="errorSpan?.innerText || ''" class="mat-column-reset-background-color">
           <ion-label class="ion-text-center">
             <ion-text
               matBadge="!"
-              [matBadgeHidden]="!row.editing || !row.invalid"
+              [matBadgeHidden]="errorSpan.innerText | isNilOrBlank"
               matBadgeOverlap="false"
               matBadgeColor="accent"
               matBadgeSize="small"
@@ -176,7 +225,7 @@
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            {{ row.editing && row.validator | translateFormError: errorTranslatorOptions }}
+            {{ row | activityMonthRowError: errorTranslatorOptions }}
           </span>
         </mat-header-cell>
       </ng-container>
@@ -185,41 +234,56 @@
         <mat-header-cell *matHeaderCellDef>
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER</ion-label>
         </mat-header-cell>
-        <mat-cell *matCellDef="let row" class="mat-column-reset-background-color">
-          <ng-container *rxIf="vesselOwners$; let items; suspense: skeletonText80">
-            @if (items[row.id]; as owners) {
-              <ion-label
-                class="ion-text-nowrap computed"
-                [title]="owners | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: '\n' }"
-              >
-                {{ owners | arrayLast | referentialToString: vesselOwnerDisplayAttributes }}
+        <ng-container *matCellDef="let row">
+          <mat-cell #cell class="mat-column-reset-background-color">
+            @if (vesselOwners$ | push | mapGet: row.id; as owners) {
+              @if (owners | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: '\n', propertySeparator: ' ' }; as title) {
+                <ion-label class="ion-text-nowrap computed" (ngInit)="cell.title = title">
+                  {{ owners | arrayFirst | referentialToString: { properties: vesselOwnerDisplayAttributes, propertySeparator: ' ' } }}
+                </ion-label>
+
                 @if (owners | isArrayLength: { greaterThan: 1 }) {
-                  <span class="details">(+{{ owners.length - 1 }})</span>
+                  <ion-label class="details computed">(+{{ owners.length - 1 }})</ion-label>
                 }
-              </ion-label>
+              }
+            } @else {
+              <ng-container *ngTemplateOutlet="skeletonText80"></ng-container>
             }
-          </ng-container>
-        </mat-cell>
+          </mat-cell>
+        </ng-container>
       </ng-container>
 
       <ng-container matColumnDef="registrationLocation">
         <mat-header-cell *matHeaderCellDef class="odd">
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION</ion-label>
         </mat-header-cell>
-        <mat-cell *matCellDef="let row" class="odd mat-column-reset-background-color">
-          <ng-container *rxIf="vesselRegistrations$; let items; suspense: skeletonText80">
-            @if (items[row.id]; as locations) {
-              <ion-label
-                class="ion-text-nowrap computed"
-                [title]="locations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }"
-              >
-                {{ locations | arrayLast | referentialToString: locationDisplayAttributes }}
-                @if (locations | isArrayLength: { greaterThan: 1 }) {
-                  <span class="details">(+{{ locations.length - 1 }})</span>
+        <ng-container *matCellDef="let row">
+          <mat-cell #cell class="odd mat-column-reset-background-color">
+            @if (
+              inlineEdition ? (row.validator | formGetValue: 'registrationLocations') : row.currentData.registrationLocations;
+              as registrationLocations
+            ) {
+              @if (registrationLocations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }; as title) {
+                <ion-label class="ion-text-nowrap computed" (ngInit)="cell.title = title">
+                  {{ registrationLocations | arrayFirst | referentialToString: locationDisplayAttributes }}
+                </ion-label>
+                @if (registrationLocations | isArrayLength: { greaterThan: 1 }) {
+                  <ion-label class="details computed">(+{{ registrationLocations.length - 1 }})</ion-label>
                 }
-              </ion-label>
+              }
             }
-          </ng-container>
+          </mat-cell>
+        </ng-container>
+      </ng-container>
+
+      <ng-container matColumnDef="program">
+        <mat-header-cell *matHeaderCellDef class="odd">
+          <ion-label>{{ programHeaderLabel | translate }}</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row" class="odd mat-column-reset-background-color">
+          <ion-label class="ion-text-nowrap computed" [title]="content.innerText">
+            <span #content>{{ 'ACTIVITY_CALENDAR.EDIT.SOURCE_PREDOC' | translateContext: row.currentData.program?.label }}</span>
+          </ion-label>
         </mat-cell>
       </ng-container>
 
@@ -231,7 +295,7 @@
           *matCellDef="let row"
           class="mat-mdc-cell-resizable"
           #cell
-          (click)="focusColumn = 'isActive'"
+          (click)="setFocusColumn($event, row, 'isActive')"
           (contextmenu)="onContextMenu($event, cell, row, 'isActive')"
         >
           @if (row.editing && row.validator | formGetControl: 'isActive'; as control) {
@@ -244,10 +308,14 @@
                 <mat-select-trigger>
                   {{ isActiveMap[control.value]?.label | translate }}
                 </mat-select-trigger>
-                <mat-option *ngFor="let item of isActiveList" [value]="item.id">
-                  <ion-icon [name]="item.icon"></ion-icon>
-                  {{ item.label | translate }}
-                </mat-option>
+                @for (item of isActiveList; track item.id) {
+                  @if (item.statusId !== 0 || item.id === control.value) {
+                    <mat-option [value]="item.id">
+                      <ion-icon [name]="item.icon"></ion-icon>
+                      {{ item.label | translate }}
+                    </mat-option>
+                  }
+                }
               </mat-select>
               <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
             </mat-form-field>
@@ -273,7 +341,7 @@
           *matCellDef="let row"
           class="odd mat-mdc-cell-resizable"
           #cell
-          (click)="focusColumn = 'basePortLocation'"
+          (click)="setFocusColumn($event, row, 'basePortLocation')"
           (contextmenu)="onContextMenu($event, cell, row, 'basePortLocation')"
         >
           @if (row.editing) {
@@ -301,14 +369,7 @@
 
       <!-- Pmfms columns -->
       <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as index; odd as odd" [matColumnDef]="pmfm.id || index | toString">
-        <mat-header-cell
-          *matHeaderCellDef
-          class="mat-column-pmfm mat-column-{{ pmfm.label }}"
-          [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
-          [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
-          [class.odd]="odd"
-          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
-        >
+        <mat-header-cell *matHeaderCellDef class="mat-column-pmfm mat-column-{{ pmfm.label }}" [class.odd]="odd">
           <ion-label
             [innerHTML]="
               pmfm
@@ -316,6 +377,7 @@
                   : {
                       html: false,
                       withDetails: showPmfmDetails,
+                      withUnit: false,
                       i18nPrefix: i18nPmfmPrefix,
                       i18nContext: i18nColumnSuffix
                     }
@@ -326,22 +388,14 @@
           #cell
           *matCellDef="let row"
           class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-resizable"
-          [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
-          [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
-          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
-          [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
           [class.odd]="odd"
-          (click)="focusColumn = (pmfm.id || index).toString()"
+          (click)="setFocusColumn($event, row, (pmfm.id || index).toString())"
           (contextmenu)="onContextMenu($event, cell, row, (pmfm.id || index).toString())"
         >
-          @if (mobile) {
-            <!-- readonly (mobile) -->
-            <ion-text
-              [innerHTML]="row.currentData | measurementValueGet: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"
-            ></ion-text>
-          } @else {
-            <!-- desktop -->
+          <!-- desktop -->
+          @if (inlineEdition && row.validator | formGetControl: ['measurementValues', pmfm.id]; as control) {
             @if (row.editing && (row.validator | formGetValue: 'isActive') === 1) {
+              <!-- writable (desktop) -->
               <app-pmfm-field
                 floatLabel="never"
                 [pmfm]="pmfm"
@@ -354,20 +408,18 @@
             } @else {
               <!-- readonly (desktop) -->
               <ion-text
-                [innerHTML]="
-                  row.validator
-                    | formGetValue: ['measurementValues', pmfm.id]
-                    | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
-                "
+                [innerHTML]="control | formGetValue | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"
               ></ion-text>
             }
-
-            <!-- resize handlers -->
-            @if (enableCellSelection) {
-              <ng-container
-                *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false }"
-              ></ng-container>
-            }
+          } @else {
+            <!-- readonly (mobile) -->
+            <ion-label>{{ row.currentData | measurementValueGet: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] } }}</ion-label>
+          }
+          <!-- resize handlers -->
+          @if (enableCellSelection) {
+            <ng-container
+              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false }"
+            ></ng-container>
           }
         </mat-cell>
       </ng-container>
@@ -377,7 +429,7 @@
         <ng-container [matColumnDef]="col.key">
           <mat-header-cell
             *matHeaderCellDef
-            class="{{ col.class }}"
+            [class]="col.class"
             [class.collapsed]="col.hidden"
             [class.tappable]="col.expanded !== undefined"
             (click)="(col.expanded !== undefined || col.hidden) && col.toggle($event)"
@@ -397,34 +449,37 @@
           <mat-cell
             #cell
             *matCellDef="let row"
-            class="{{ col.class }}"
+            [class]="col.class"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
-            (mouseenter)="col.hidden && cellSelection?.resizing && col.expand($event)"
             (click)="col.hidden ? col.expand($event) : setFocusColumn($event, row, col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
           >
-            @if (!col.hidden) {
-              @if (row.editing && row.validator?.get(col.path) | formGetControl; as control) {
+            <!-- Desktop -->
+            @if (inlineEdition && !col.hidden && row.validator | formGetControl: col.path; as control) {
+              @if (row.editing) {
+                <!-- writable (desktop) -->
                 <mat-autocomplete-field
                   [placeholder]="col.placeholder"
                   [formControl]="control"
                   [config]="col.autocomplete"
                   [autofocus]="focusColumn === col.key"
-                  [class]="mobile && 'min-width-80vw'"
-                  [panelWidth]="!mobile && '500px'"
+                  [panelWidth]="mobile ? '80vw' : '500px'"
                   [floatLabel]="'never'"
                 ></mat-autocomplete-field>
-              } @else if (inlineEdition) {
-                @if (row.validator?.get(col.path) | formGetValue | referentialToString: col.autocomplete.attributes; as label) {
-                  <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
-                }
               } @else {
-                @if (row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
+                @if (control | formGetValue | referentialToString: col.autocomplete.attributes; as label) {
                   <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
                 }
               }
-              <!-- resize handlers -->
+            } @else {
+              <!-- readonly (mobile) -->
+              @if (row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
+                <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
+              }
+            }
+            <!-- resize handlers -->
+            @if (enableCellSelection) {
               <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key, x: true, y: false }"></ng-container>
             }
           </mat-cell>
@@ -451,8 +506,33 @@
               </button>
             }
 
-            <!-- clear button -->
-            @if (row.validator | formGetValue: 'isActive' | isNotNil) {
+            @if ((row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL) {
+              <!-- solve conflict button -->
+              <button
+                mat-icon-button
+                [class.cdk-visually-hidden]="cellSelection?.resizing"
+                class="visible-hover"
+                [title]="'ACTIVITY_CALENDAR.EDIT.BTN_DELETE_CONFLICT' | translate"
+                (click)="deleteConflictualMonth($event, row)"
+                tabIndex="-1"
+              >
+                <mat-icon style="color: var(--ion-color-dark)">cancel</mat-icon>
+              </button>
+              <!-- TODO Keep remote button -->
+              <!-- <button -->
+              <!--   mat-icon-button -->
+              <!--   [class.cdk-visually-hidden]="cellSelection?.resizing" -->
+              <!--   [class.visible-hover]="!row.editing" -->
+              <!--   [title]="'ACTIVITY_CALENDAR.EDIT.KEEP_REMOTE_DATA' | translate" -->
+              <!--   (click)="keepRemoteData($event, row)" -->
+              <!--   tabIndex="-1" -->
+              <!-- > -->
+              <!--   <mat-icon> -->
+              <!--     <span>&#xbb;</span> -->
+              <!--   </mat-icon> -->
+              <!-- </button> -->
+            } @else if (row.validator | formGetValue: 'isActive' | isNotNil) {
+              <!-- clear button -->
               <button
                 mat-icon-button
                 [class.cdk-visually-hidden]="cellSelection?.resizing"
@@ -477,12 +557,21 @@
         [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id"
         [class.activity-inactive]="(row.validator | formGetValue: 'isActive') === 0"
         [class.activity-not-exists]="(row.validator | formGetValue: 'isActive') === 2"
+        [class]="row.validator | formGetValue: 'program' | mapGet: 'label'"
+        [class.readonly]="(row.validator | formGetValue: 'readonly') === true"
+        [class.duplicated]="(row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL"
         (keydown.escape)="escapeEditingRow($event)"
         [cdkTrapFocus]="!row.valid"
         (click)="clickRow($event, row)"
-        (press)="pressRow($event, row)"
+        (dblclick)="dblClickRow($event, row)"
       ></mat-row>
     </mat-table>
+
+    @if (totalRowCount === 0 && loaded) {
+      <ion-item>
+        <ion-text color="danger" class="text-italic">{{ 'COMMON.NO_RESULT' | translate }}</ion-text>
+      </ion-item>
+    }
   </div>
 
   <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y">

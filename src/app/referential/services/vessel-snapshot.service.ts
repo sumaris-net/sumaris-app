@@ -4,6 +4,7 @@ import { ErrorCodes } from './errors';
 import {
   BaseEntityGraphqlQueries,
   BaseGraphqlService,
+  changeCaseToUnderscore,
   ConfigService,
   EntitiesStorage,
   EntityServiceLoadOptions,
@@ -496,22 +497,6 @@ export class VesselSnapshotService
     return VesselSnapshotFilter.fromObject(source);
   }
 
-  async getDisplayAttributes(fieldName?: string, defaultAttributes?: string[]): Promise<string[]> {
-    // Make sure defaults have been loaded
-    if (!this.started) await this.ready();
-
-    const baseAttributes = this.settings.getFieldDisplayAttributes(
-      fieldName || 'vesselSnapshot',
-      defaultAttributes || VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES
-    );
-
-    const displayAttributes = this.defaultLoadOptions?.withBasePortLocation
-      ? baseAttributes.concat(this.settings.getFieldDisplayAttributes('location').map((key) => 'basePortLocation.' + key))
-      : baseAttributes;
-
-    return displayAttributes;
-  }
-
   async getAutocompleteFieldOptions(
     fieldName?: string,
     defaultAttributes?: string[]
@@ -524,10 +509,14 @@ export class VesselSnapshotService
       ? baseAttributes.concat(this.settings.getFieldDisplayAttributes('location').map((key) => 'basePortLocation.' + key))
       : baseAttributes;
 
+    // DEBUG
+    //if (!displayAttributes.includes('id')) displayAttributes.push('id');
+
     return <MatAutocompleteFieldAddOptions<VesselSnapshot, VesselSnapshotFilter>>{
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggest(value, filter),
       attributes: displayAttributes,
+      columnNames: displayAttributes.map((key) => 'VESSEL.VESSEL_SNAPSHOT.' + changeCaseToUnderscore(key).toUpperCase()),
       filter: {
         ...this.defaultFilter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],

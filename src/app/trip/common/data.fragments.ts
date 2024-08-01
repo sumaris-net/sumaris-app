@@ -229,6 +229,10 @@ export const DataFragments = {
     fragment VesselUseFeaturesFragment on VesselUseFeaturesVO {
       id
       vesselId
+      program {
+        id
+        label
+      }
       startDate
       endDate
       isActive

@@ -933,6 +933,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM,
   },
+  QUALITATIVE_VALUE_SURVEY_QUALIFICATION_DIRECT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.SURVEY_QUALIFICATION_DIRECT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SURVEY_QUALIFICATION_DIRECT_ID',
+    type: 'entity',
+    autocomplete: QualitativeValueAutocompleteConfig,
+    defaultValue: QualitativeValueIds.SURVEY_QUALIFICATION.DIRECT,
+  },
 
   QUALITY_FLAG_NOT_COMPLETED_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualityFlag.NOT_COMPLETED.id',

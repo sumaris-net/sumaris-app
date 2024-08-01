@@ -100,7 +100,7 @@
   <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
 </ion-item>
 
-<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="showPaginator">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="showPaginator" cdkScrollable>
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel class="filter-panel" [class.ion-no-padding]="mobile" [class.filter-panel-floating]="filterPanelFloating">
     <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
@@ -218,16 +218,14 @@
         <ion-label>#</ion-label>
       </th>
       <ng-container *matCellDef="let row">
-        <td
-          mat-cell
-          [class.ion-padding-start]="!canEdit || mobile"
-          *rxLet="
-            row.currentData.qualificationComments || (row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions));
-            let rowError
-          "
-          [title]="rowError || ''"
-        >
-          <ion-label matBadge="!" [matBadgeHidden]="!rowError && !showRowError" matBadgeOverlap="false" matBadgeColor="accent" matBadgeSize="small">
+        <td mat-cell [class.ion-padding-start]="!canEdit || mobile" [title]="errorSpan.innerText || ''">
+          <ion-label
+            matBadge="!"
+            [matBadgeHidden]="!showRowError || (errorSpan.innerText | isNilOrBlank)"
+            matBadgeOverlap="false"
+            matBadgeColor="accent"
+            matBadgeSize="small"
+          >
             @if (row.currentData.rankOrder && (row | check: isRowNotSelectable)) {
               <!-- Offset on RANDOM landings -->
               {{ row.currentData.rankOrder - randomLandingsRankOrderOffset }}
@@ -235,6 +233,9 @@
               {{ row.currentData.rankOrder || (row.currentData.id | mathAbs) }}
             }
           </ion-label>
+          <span #errorSpan hidden>
+            {{ row.currentData.qualificationComments || (row.validator.invalid && (row.validator | formError: errorTranslatorOptions)) || '' }}
+          </span>
         </td>
       </ng-container>
     </ng-container>

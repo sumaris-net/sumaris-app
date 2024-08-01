@@ -110,16 +110,16 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   @RxStateSelect() protected returnDateTime$: Observable<Moment>;
 
+  protected showSaleForm = false;
+  protected saleLocationLevelIds: number[];
+  protected showGearTable = false;
+  protected showOperationTable = false;
+  protected enableReport: boolean;
+  protected operationEditor: OperationEditor;
+  protected operationPasteFlags: number;
+  protected canDownload = false;
+  protected helpUrl: string;
   @RxStateProperty() protected reportTypes: Property[];
-
-  showSaleForm = false;
-  showGearTable = false;
-  showOperationTable = false;
-  enableReport: boolean;
-  operationEditor: OperationEditor;
-  operationPasteFlags: number;
-  canDownload = false;
-  helpUrl: string;
 
   @Input() toolbarColor: PredefinedColors = 'primary';
 
@@ -133,7 +133,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     return (
       this.dirtySubject.value ||
       // Ignore operation table, when computing dirty state
-      this.children?.filter((form) => form !== this.operationsTable).findIndex((c) => c.dirty) !== -1
+      this.children?.filter((form) => form !== this.operationsTable).some((c) => c.dirty)
     );
   }
 
@@ -170,9 +170,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     super.ngOnInit();
 
     // Listen some field
+    this._state.connect('departureLocation', this.tripForm.departureLocationChanges);
     this._state.connect('departureDateTime', this.tripForm.departureDateTimeChanges.pipe(filter((d) => d?.isValid())));
     this._state.connect('returnDateTime', this.tripForm.maxDateChanges.pipe(filter((d) => d?.isValid())));
-    this._state.connect('departureLocation', this.tripForm.departureLocationChanges);
     this._state.connect(
       'reportTypes',
       this.program$.pipe(
@@ -251,7 +251,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     // If errors in operations
     if (typeof error !== 'string' && error?.details?.errors?.operations) {
       // Show error in operation table
-      this.operationsTable.setError('TRIP.ERROR.INVALID_OPERATIONS', {
+      this.operationsTable.setError(error.message || 'TRIP.ERROR.INVALID_OPERATIONS', {
         showOnlyInvalidRows: true,
       });
 
@@ -291,8 +291,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.setError(undefined, opts);
   }
 
-  translateControlPath(controlPath: string): string {
-    return this.dataService.translateControlPath(controlPath, { i18nPrefix: this.i18nContext.prefix });
+  translateFormPath(controlPath: string): string {
+    return this.dataService.translateFormPath(controlPath, { i18nPrefix: this.i18nContext.prefix });
   }
 
   protected registerForms() {
@@ -334,6 +334,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Sale form
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
+    this.saleLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_SALE_LOCATION_LEVEL_IDS);
 
     // Measurement form
     this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
@@ -419,9 +420,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
                 endDate: departureDateTime,
                 location: departureLocation,
               };
-            }),
+            })
             // DEBUG
-            tap((values) => console.debug(this.logPrefix + 'Strategy filter changed:', values))
+            //tap((values) => console.debug(this.logPrefix + 'Strategy filter changed:', values))
           );
       default:
         return super.watchStrategyFilter(program);

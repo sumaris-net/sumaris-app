@@ -192,8 +192,8 @@
 
     <ng-container *rxIf="readySubject">
       <!-- metier -->
-      <ion-row *ngFor="let metierForm of metiersForm?.controls; let i = index; first as first">
-        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+      <ion-row *ngFor="let metierForm of metiersForm?.controls; let i = index; first as first; last as last">
+        <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end" *ngIf="first">
             {{ allowManyMetiers ? 'TRIP.METIERS' : ('TRIP.METIER' | translate) }}
           </ion-label>
@@ -205,16 +205,17 @@
             [autofocus]="metierFocusIndex === i"
             [config]="autocompleteFields.metier"
             [tabindex]="tabindex + 20 + i * 3"
-            [panelWidth]="!mobile && '500px'"
+            [panelWidth]="mobile ? '500px' : undefined"
             [required]="i === 0"
           >
             <ion-icon matPrefix name="locate"></ion-icon>
           </mat-autocomplete-field>
         </ion-col>
-        <ion-col *ngIf="allowManyMetiers" size="auto" class="ion-align-self-center">
+        <ion-col *ngIf="allowManyMetiers" size="auto">
           <button
             type="button"
             mat-icon-button
+            *ngIf="last"
             [tabindex]="tabindex + 20 + i * 3 + 1"
             [disabled]="disabled"
             [title]="'COMMON.BTN_ADD' | translate"
@@ -238,7 +239,7 @@
       <!-- Fishing areas -->
       <ng-container *ngIf="showFishingArea">
         <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first; last as last">
-          <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+          <ion-col size="12" size-md="2" size-lg="3">
             <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.FISHING_AREAS</ion-label>
           </ion-col>
           <ion-col [formGroup]="fishingAreaForm | formGetGroup">
@@ -270,7 +271,7 @@
               </button>
             </mat-autocomplete-field>
           </ion-col>
-          <ion-col size="auto" class="ion-align-self-center">
+          <ion-col size="auto">
             <button
               type="button"
               mat-icon-button
@@ -299,7 +300,7 @@
       <!-- Observers -->
       <ng-container *ngIf="showObservers">
         <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first; last as last">
-          <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+          <ion-col size="12" size-md="2" size-lg="3">
             <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
           </ion-col>
           <ion-col>
@@ -315,7 +316,7 @@
               <ion-icon matPrefix name="person"></ion-icon>
             </mat-autocomplete-field>
           </ion-col>
-          <ion-col size="auto" class="ion-align-self-center">
+          <ion-col size="auto">
             <button
               type="button"
               mat-icon-button

@@ -122,7 +122,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this._showMetiers;
   }
 
-  @Input() locationLevelIds = [LocationLevelIds.PORT];
+  @Input() locationLevelIds: number[];
   @Input() minDurationInHours: number;
   @Input() maxDurationInHours: number;
 
@@ -139,6 +139,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         });
       }
     }
+  }
+
+  get locationSuggestLengthThreshold() {
+    return this._locationSuggestLengthThreshold;
   }
 
   @Input() set returnFieldsRequired(value: boolean) {

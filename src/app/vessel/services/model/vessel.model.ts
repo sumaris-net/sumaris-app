@@ -89,6 +89,10 @@ export class Vessel extends RootDataEntity<Vessel> {
 export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPeriodEntity<VesselFeatures> {
   static fromObject: (source: any, opts?: any) => VesselFeatures;
 
+  static equals(o1: VesselFeatures | any, o2: VesselFeatures | any, opts?: { withId?: boolean; withDates?: boolean }): boolean {
+    return (!o1 && !o2) || (o1 && VesselFeatures.fromObject(o1).equals(o2, opts));
+  }
+
   name: string;
   startDate: Moment;
   endDate: Moment;
@@ -110,6 +114,9 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
 
   // Parent
   vesselId: number;
+
+  // UI properties
+  __changedProperties: string[];
 
   get empty(): boolean {
     return isNil(this.id) && isNilOrBlank(this.exteriorMarking) && isNilOrBlank(this.name) && isNil(this.startDate);
@@ -152,6 +159,12 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
     target.recorderDepartment = (this.recorderDepartment && this.recorderDepartment.asObject(options)) || undefined;
     target.recorderPerson = (this.recorderPerson && this.recorderPerson.asObject(options)) || undefined;
     target.qualityFlagId = isNotNil(this.qualityFlagId) ? this.qualityFlagId : undefined;
+    target.__changedProperties = this.__changedProperties;
+
+    // Clean technical properties, before sending to POD
+    if (options?.minify) {
+      delete target.__changedProperties;
+    }
     return target;
   }
 
@@ -177,11 +190,35 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
     this.creationDate = fromDateISOString(source.creationDate);
     this.qualityFlagId = source.qualityFlagId;
+    this.__changedProperties = source.__changedProperties;
+  }
+
+  equals(other: VesselFeatures, opts?: { withId?: boolean; withDates?: boolean }): boolean {
+    return (
+      (opts?.withId !== false && super.equals(other) && isNotNil(this.id)) || // Same date
+      ((opts?.withDates === false || (DateUtils.equals(this.startDate, other.startDate) && DateUtils.equals(this.endDate, other.endDate))) &&
+        // Same hullMaterial
+        ReferentialUtils.equals(this.hullMaterial, other.hullMaterial) &&
+        // Same basePortLocation
+        ReferentialUtils.equals(this.basePortLocation, other.basePortLocation) &&
+        // Same other simple properties
+        this.vesselId === other.vesselId &&
+        this.exteriorMarking === other.exteriorMarking &&
+        this.name === other.name &&
+        this.comments === other.comments &&
+        this.administrativePower === other.administrativePower &&
+        this.lengthOverAll === other.lengthOverAll &&
+        this.grossTonnageGt === other.grossTonnageGt &&
+        this.grossTonnageGrt === other.grossTonnageGrt &&
+        this.constructionYear === other.constructionYear &&
+        this.ircs === other.ircs &&
+        this.isFpc === other.isFpc)
+    );
   }
 }
 
 @EntityClass({ typename: 'VesselRegistrationPeriodVO' })
-export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> implements IVesselPeriodEntity<VesselRegistrationPeriod> {
+export class VesselRegistrationPeriod<T extends Entity<T> = VesselRegistrationPeriod<any>> extends Entity<T> implements IVesselPeriodEntity<T> {
   static fromObject: (source: any, opts?: any) => VesselRegistrationPeriod;
 
   vesselId: number = null;
@@ -201,19 +238,19 @@ export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> i
     );
   }
 
-  constructor() {
-    super(VesselRegistrationPeriod.TYPENAME);
+  constructor(__typename?: string) {
+    super(__typename || VesselRegistrationPeriod.TYPENAME);
   }
 
   // TODO : Check if clone is needed
-  clone(): VesselRegistrationPeriod {
-    const target = new VesselRegistrationPeriod();
+  clone(): T {
+    const target = new (this.constructor as any)();
     this.copy(target);
     target.registrationLocation = (this.registrationLocation && this.registrationLocation.clone()) || undefined;
     return target;
   }
 
-  copy(target: VesselRegistrationPeriod): VesselRegistrationPeriod {
+  copy(target: T): T {
     target.fromObject(this);
     return target;
   }

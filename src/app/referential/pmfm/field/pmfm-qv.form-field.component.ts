@@ -100,6 +100,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() compact = false;
   @Input() clearable = false;
   @Input() style: PmfmQvFormFieldStyle;
+  @Input() displayAttributes: string[];
   @Input() searchAttributes: string[];
   @Input() sortAttribute: string;
   @Input() autofocus: boolean;
@@ -166,10 +167,17 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
-    const attributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
-    const displayAttributes = this.compact && attributes.length > 1 ? ['label'] : attributes;
+    const attributes = isNotEmptyArray(this.displayAttributes)
+      ? this.settings.getFieldDisplayAttributes('qualitativeValue', this.displayAttributes)
+      : this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
+    const displayAttributes =
+      this.compact && attributes.length > 1 ? (attributes.includes('label') ? ['label'] : attributes.slice(0, 1)) : attributes;
     this.searchAttributes = (isNotEmptyArray(this.searchAttributes) && this.searchAttributes) || attributes;
-    this.sortAttribute = isNotNil(this.sortAttribute) ? this.sortAttribute : this.style === 'button' ? 'name' : attributes[0];
+    this.sortAttribute = isNotNil(this.sortAttribute)
+      ? this.sortAttribute
+      : this.style === 'button' && attributes.includes('name')
+        ? 'name'
+        : attributes[0];
 
     // Sort values (but keep original order if LANDING/DISCARD or mobile)
     this._sortedQualitativeValues =

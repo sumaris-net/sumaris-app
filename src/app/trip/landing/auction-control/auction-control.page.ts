@@ -14,7 +14,7 @@ import {
   fadeInOutAnimation,
   filterNotNil,
   firstNotNilPromise,
-  FormErrorTranslatorOptions,
+  FormErrorTranslateOptions,
   HistoryPageReference,
   IReferentialRef,
   isNil,
@@ -52,7 +52,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
   taxonGroupControl: UntypedFormControl;
   showOtherTaxonGroup = false;
   controlledSpeciesPmfmId: number;
-  errorTranslatorOptions: FormErrorTranslatorOptions;
+  errorTranslateOptions: FormErrorTranslateOptions;
 
   $taxonGroupPmfm = new BehaviorSubject<IPmfm>(null);
   $taxonGroups = new BehaviorSubject<TaxonGroupRef[]>(null);
@@ -73,7 +73,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
     });
 
     this.taxonGroupControl = this.formBuilder.control(null, [SharedValidators.entity]);
-    this.errorTranslatorOptions = { separator: '<br/>', controlPathTranslator: this };
+    this.errorTranslateOptions = { separator: '<br/>', pathTranslator: this };
 
     // FOR DEV ONLY ----
     this.logPrefix = '[auction-control-page] ';
@@ -359,12 +359,12 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
     return null;
   }
 
-  translateControlPath(controlPath: string): string {
+  translateFormPath(controlPath: string): string {
     // Redirect pmfm control path, to the landing form
     if (PMFM_ID_REGEXP.test(controlPath)) {
       controlPath = `measurementValues.${controlPath}`;
     }
-    return this.landingForm.translateControlPath(controlPath);
+    return this.landingForm.translateFormPath(controlPath);
   }
 
   async setValue(data: Landing): Promise<void> {
