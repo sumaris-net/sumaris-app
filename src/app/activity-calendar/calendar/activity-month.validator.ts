@@ -110,7 +110,7 @@ export class ActivityMonthValidatorService<
       startDate: [data?.startDate || null, Validators.required],
       endDate: [data?.endDate || null, Validators.required],
       readonly: [toBoolean(data?.readonly, false)],
-      isActive: [toNumber(data?.isActive, null), opts?.required ? Validators.required : undefined],
+      isActive: [toNumber(data?.isActive, null), opts?.required !== false ? Validators.required : undefined],
       basePortLocation: [data?.basePortLocation || null],
       measurementValues: this.formBuilder.group({}),
       registrationLocations: [data?.registrationLocations || []],
@@ -172,13 +172,13 @@ export class ActivityMonthValidatorService<
         gufArray.resize(opts.metierCount);
       }
 
-      if (enabled && !gufArray.enabled) gufArray.enable();
-      else if (!enabled && gufArray.enabled) gufArray.disable();
+      const gufEnabled = enabled && isActive === VesselUseFeaturesIsActiveEnum.ACTIVE;
+      if (gufEnabled && !gufArray.enabled) gufArray.enable();
+      else if (!gufEnabled && gufArray.enabled) gufArray.disable();
 
       // Set start/end date, and fishing area
       const startDate = form.get('startDate').value;
       const endDate = form.get('endDate').value;
-      const gufEnabled = enabled && isActive === VesselUseFeaturesIsActiveEnum.ACTIVE;
       gufArray.forEach((guf) => {
         // Init fishing areas
         let faArray = guf.get('fishingAreas') as AppFormArray<FishingArea, UntypedFormGroup>;

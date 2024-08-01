@@ -17,11 +17,14 @@ import {
 import {
   Alerts,
   AppFormArray,
+  AppFormUtils,
   changeCaseToUnderscore,
   DateUtils,
   EntityUtils,
   equals,
   getPropertyByPath,
+  HAMMER_TAP_TIME,
+  HammerTapEvent,
   IEntitiesService,
   InMemoryEntitiesService,
   isEmptyArray,
@@ -59,7 +62,7 @@ import {
 } from '@app/activity-calendar/calendar/activity-month.validator';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { distinctUntilChanged, fromEvent, Observable, Subscription, tap } from 'rxjs';
+import { distinctUntilChanged, fromEvent, Observable, Subject, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { UntypedFormGroup } from '@angular/forms';
@@ -85,6 +88,7 @@ import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
 import { IUseFeaturesUtils } from '../model/use-features.model';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 import { SelectionModel } from '@angular/cdk/collections';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -215,6 +219,7 @@ export class CalendarComponent
   implements OnInit, AfterViewInit
 {
   protected referentialRefService = inject(ReferentialRefService);
+  protected debouncedExpandCellSelection$ = new Subject<TableCellSelection<ActivityMonth>>();
 
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
@@ -235,6 +240,7 @@ export class CalendarComponent
   protected showDebugValue = false;
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
+  protected readonlyColumnCount: number;
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -245,6 +251,7 @@ export class CalendarComponent
   @RxStateProperty() hasConflict: boolean;
 
   @Output() copyAllClick: EventEmitter<ActivityMonth[]> = new EventEmitter<ActivityMonth[]>();
+  @Output() startCellSelection: EventEmitter<void> = new EventEmitter();
 
   @Input() @RxStateProperty() months: Moment[];
 
@@ -403,6 +410,7 @@ export class CalendarComponent
       this.vesselOwnerDisplayAttributes || this.settings.getFieldDisplayAttributes('vesselOwner', ['lastName', 'firstName']);
     this.inlineEdition = this.inlineEdition && this.canEdit;
     this.enableCellSelection = toBoolean(this.enableCellSelection, this.inlineEdition && this.style === 'table' && this.canEdit);
+    this.readonlyColumnCount = ACTIVITY_MONTH_READONLY_COLUMNS.filter((c) => !this.excludesColumns.includes(c)).length;
 
     // Wait enumerations to be set
     await this.referentialRefService.ready();
@@ -515,6 +523,8 @@ export class CalendarComponent
         )
         .subscribe(() => this.clearClipboard(null, { clearContext: false }))
     );
+
+    this._state.hold(this.debouncedExpandCellSelection$.pipe(debounceTime(250)), (cellSelection) => this.expandCellSelection(cellSelection));
   }
 
   ngAfterViewInit() {
@@ -761,14 +771,15 @@ export class CalendarComponent
     }
   }
 
-  async onMouseDown(event: MouseEvent, cellElement: HTMLTableCellElement, row: AsyncTableElement<any>, columnName: string, axis?: 'x' | 'y') {
+  async onMouseDown(event: MouseEvent, cellElement: HTMLElement, row: AsyncTableElement<any>, columnName: string, axis?: 'x' | 'y') {
     if (!cellElement) throw new Error('Missing cell element');
 
     event.preventDefault();
     event.stopPropagation();
 
     const divElement = this.cellSelectionDivRef.nativeElement as HTMLDivElement;
-    if (!divElement) return false;
+    const containerElement = this.tableContainerElement;
+    if (!divElement || !containerElement) return false;
 
     this.closeContextMenu();
 
@@ -783,7 +794,7 @@ export class CalendarComponent
       if (this.cellSelection.validating) return false;
 
       // If action comes from the bottom-right cell, then extend the current selection
-      if (this.isRightAndBottomCellSelected(this.cellSelection, row, columnName)) {
+      if (!axis && this.isRightAndBottomCellSelected(this.cellSelection, row, columnName)) {
         this.cellSelection.resizing = true;
         return true;
       }
@@ -801,14 +812,18 @@ export class CalendarComponent
       row,
       columnName,
       axis,
-      originalMouseX: event.clientX,
-      originalMouseY: event.clientY,
+      originalMouseX: event.clientX + containerElement.scrollLeft,
+      originalMouseY: event.clientY + containerElement.scrollTop,
       colspan: 1,
       rowspan: 1,
       resizing: true,
     };
 
+    // Resize the cell selection
     this.resizeCellSelection(this.cellSelection, 'cell');
+
+    // Emit start cell selection event
+    this.startCellSelection.next();
 
     return true;
   }
@@ -820,26 +835,23 @@ export class CalendarComponent
     if (!cellSelection?.resizing || cellSelection.validating || event.defaultPrevented) return; // Ignore
 
     // DEBUG
-    if (this.debug) console.debug(this.logPrefix + 'Moving cell selection validating=' + (cellSelection?.validating || false));
+    if (this.debug) console.debug(this.logPrefix + `Moving cell selection (validating: ${cellSelection?.validating || false})`);
 
-    const { axis, cellRect, row } = cellSelection;
+    const { axis, cellRect, row, cellElement } = cellSelection;
     if (!cellRect) return; // Missing cellRect
 
-    const movementX = axis !== 'y' ? event.clientX - cellSelection.originalMouseX : 0;
-    const movementY = axis !== 'x' ? event.clientY - cellSelection.originalMouseY : 0;
+    const movementX = axis !== 'y' ? event.clientX + containerElement.scrollLeft - cellSelection.originalMouseX : 0;
+    const movementY = axis !== 'x' ? event.clientY + containerElement.scrollTop - cellSelection.originalMouseY : 0;
 
     let colspan = Math.max(cellRect.width, Math.round((cellRect.width + Math.abs(movementX)) / cellRect.width) * cellRect.width) / cellRect.width;
     let rowspan =
       Math.max(cellRect.height, Math.round((cellRect.height + Math.abs(movementY)) / cellRect.height) * cellRect.height) / cellRect.height;
-    const rowspanShift =
-      Math.max(cellRect.height, Math.round((cellRect.height + Math.abs(containerElement.scrollTop)) / cellRect.height) * cellRect.height) /
-      cellRect.height;
 
     // Manage negative
     if (movementX < 0 && colspan > 1) colspan = -1 * (colspan - 1);
     if (movementY < 0 && rowspan > 1) rowspan = -1 * (rowspan - 1);
 
-    // Check limits
+    // Check row limits
     const rowIndex = row.id;
     if (colspan >= 0) {
       // Upper limit
@@ -848,19 +860,28 @@ export class CalendarComponent
       // Lower limit
       colspan = Math.max(colspan, -1 * (rowIndex + 1));
     }
+
+    // Check col limits
     const columnIndex = this.displayedColumns.indexOf(cellSelection.columnName);
     if (rowspan >= 0) {
       // Upper limit
       rowspan = Math.min(rowspan, this.displayedColumns.length - RESERVED_END_COLUMNS.length - columnIndex);
     } else {
       // Lower limit
-      rowspan = Math.max(rowspan, -1 * (columnIndex + 1 - RESERVED_START_COLUMNS.length - ACTIVITY_MONTH_READONLY_COLUMNS.length));
+      rowspan = Math.max(rowspan, -1 * (columnIndex + 1 - RESERVED_START_COLUMNS.length - this.readonlyColumnCount));
     }
 
-    cellSelection.colspan = colspan;
-    cellSelection.rowspan = rowspan + (rowspanShift - 1);
+    if (cellSelection.colspan !== colspan || cellSelection.rowspan !== rowspan) {
+      cellSelection.colspan = colspan;
+      cellSelection.rowspan = rowspan;
 
-    this.resizeCellSelection(cellSelection);
+      // Apply resize
+      this.resizeCellSelection(cellSelection, 'cell', { debouncedExpansion: true });
+    }
+    // Same cell selection: log if debug
+    else if (this.debug) {
+      console.debug(this.logPrefix + 'Cell selection unchanged: skipping');
+    }
   }
 
   @HostListener('document:mouseup', ['$event'])
@@ -896,7 +917,7 @@ export class CalendarComponent
     }
   }
 
-  async onMouseShiftClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
+  async shiftClick(event?: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
     if (!row || !columnName || event?.defaultPrevented) return false; // Skip
@@ -905,7 +926,7 @@ export class CalendarComponent
     event?.stopPropagation();
 
     // DEBUG
-    //console.debug(`${this.logPrefix}Shift+click`, event, row, columnName);
+    console.debug(`${this.logPrefix}Shift+click`, event, row, columnName);
     let cellSelection = this.cellSelection;
 
     // No existing selection, but edited Row
@@ -961,35 +982,22 @@ export class CalendarComponent
         targetColumnIndex > sourceColumnNameIndex ? targetColumnIndex - sourceColumnNameIndex + 1 : targetColumnIndex - sourceColumnNameIndex - 1;
     }
 
-    // Expand blocks if need
-    const { paths: selectedPaths } = this.getRowsFromSelection(cellSelection);
-
-    // Expand some column, if need
-    const collapsedColumns = this.dynamicColumns.filter((col) => col.toggle && !col.expanded && selectedPaths.includes(col.path));
-    if (isNotEmptyArray(collapsedColumns)) {
-      collapsedColumns.forEach((col) => col.toggle());
-      await sleep(100); // Wait end of expansion
-    }
-
     this.cellSelection = cellSelection;
     this.resizeCellSelection(cellSelection, 'cell');
 
     return true;
   }
 
-  async onMouseCtrlClick(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
+  async ctrlClick(event: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
 
-    if (!row || !columnName) return false; // Skip
+    if (!row || !columnName || !event) return false; // Skip
 
     this.closeContextMenu();
 
-    event?.preventDefault();
-    event?.stopPropagation();
-
     // DEBUG
-    //console.debug(`${this.logPrefix}Ctrl+click`, event, row, columnName);
+    console.debug(`${this.logPrefix}Ctrl+click`, event, row, columnName);
 
     const confirmed = await this.confirmEditCreate();
     if (!confirmed) return false;
@@ -997,6 +1005,7 @@ export class CalendarComponent
     // Select the targeted cell
     const cellElement = this.getEventCellElement(event);
     if (!cellElement) return false;
+
     this.cellSelection = {
       divElement: this.cellSelectionDivRef.nativeElement,
       cellElement,
@@ -1006,13 +1015,19 @@ export class CalendarComponent
       rowspan: 1,
       resizing: false,
     };
+
+    // Resize the new cell selection
     this.resizeCellSelection(this.cellSelection, 'cell');
+
+    // Emit start cell selection event
+    this.startCellSelection.next();
 
     return true;
   }
 
   @HostListener('window:resize')
   onResize() {
+    console.debug(this.logPrefix + 'Resizing calendar...');
     this.closeContextMenu();
     this.resizeCellSelection(this.cellSelection, 'cell', { emitEvent: false });
     this.resizeCellSelection(this.cellClipboard, 'clipboard', { emitEvent: false });
@@ -1024,7 +1039,7 @@ export class CalendarComponent
     setTimeout(() => this.onResize());
   }
 
-  protected resizeCellSelection(cellSelection: TableCellSelection, name?: string, opts?: { emitEvent?: boolean }) {
+  protected resizeCellSelection(cellSelection: TableCellSelection, name = 'cell', opts?: { emitEvent?: boolean; debouncedExpansion?: boolean }) {
     if (!cellSelection) return;
 
     const containerElement = this.tableContainerElement;
@@ -1034,7 +1049,7 @@ export class CalendarComponent
     if (!cellElement || !divElement) return;
 
     // DEBUG
-    //console.debug(`${this.logPrefix}Resizing ${name || 'cell'} selection...`);
+    console.debug(`${this.logPrefix}Resizing ${name} selection...`);
 
     const containerRect = containerElement.getBoundingClientRect();
     const relativeCellRect = cellElement.getBoundingClientRect();
@@ -1048,13 +1063,13 @@ export class CalendarComponent
       height: relativeCellRect.height,
     };
 
-    const colspan = toNumber(cellSelection.colspan, divRect.width / toNumber(previousCellRect?.width, relativeCellRect.width));
-    const rowspan = toNumber(cellSelection.rowspan, divRect.height / toNumber(previousCellRect?.height, relativeCellRect.width));
+    const colspan = toNumber(cellSelection.colspan, divRect.width / toNumber(previousCellRect?.width, relativeCellRect.width)) || 1;
+    const rowspan = toNumber(cellSelection.rowspan, divRect.height / toNumber(previousCellRect?.height, relativeCellRect.width)) || 1;
 
     let top = relativeCellRect.top;
-    let left = relativeCellRect.left + (containerElement.scrollLeft || 0) - containerRect.left;
+    let left = relativeCellRect.left - containerRect.left;
     const width = relativeCellRect.width * Math.abs(colspan);
-    const height = relativeCellRect.height * Math.abs(rowspan);
+    let height = relativeCellRect.height * Math.abs(rowspan);
 
     if (rowspan < 0) {
       top = relativeCellRect.top + relativeCellRect.height - height;
@@ -1063,30 +1078,51 @@ export class CalendarComponent
       left = relativeCellRect.left + relativeCellRect.width - width - containerRect.left + (containerElement.scrollLeft || 0);
     }
 
-    // TODO - Check top limit
-    /*const maxTop = containerElement.offsetTop - containerElement.scrollTop;
-    //console.log('TODO maxTop=' + maxTop);
-    if (top < maxTop) {
-      //height -= maxTop - top;
-      //top = containerElement.offsetTop + containerElement.scrollTop;
+    // Update original mouse x/Y, need for next resizing
+    if (isNil(cellSelection.originalMouseX) || isNil(cellSelection.originalMouseY)) {
+      // DEBUG
+      console.debug(this.logPrefix + 'Computing originalMouseY...');
+      cellSelection.originalMouseY = top + relativeCellRect.height + containerElement.scrollTop;
+      cellSelection.originalMouseX = left + relativeCellRect.width + containerRect.left + containerElement.scrollLeft;
     }
-    // Check height limit
-    if (top + height > containerElement.clientHeight) {
-      //height = top + containerElement.clientHeight;
-    }*/
+
+    let topCut = false;
+    if (top < containerRect.top) {
+      height = Math.max(0, height - containerRect.top + top);
+      top = containerRect.top;
+      topCut = true;
+    }
+
+    //console.debug(`${this.logPrefix}containerRect.bottom=${containerRect.bottom} scrollbarHeight=${scrollbarHeight} maxBottom=${maxBottom} bottom=${top + height}`);
+    let bottomCut = false;
+    if (top + height > containerRect.bottom) {
+      height = Math.max(0, containerRect.bottom - top);
+      if (height === 0) top = containerRect.bottom;
+      bottomCut = true;
+    }
 
     // DEBUG
-    // console.debug(`${this.logPrefix}Resizing to top=${top} left=${left} width=${width} height=${height}`);
+    //console.debug(`${this.logPrefix}Resizing ${name} to top=${top} left=${left} width=${width} height=${height}`);
 
     // Resize the shadow element
     divElement.style.position = 'fixed';
+    //divElement.style.position = 'relative';
     divElement.style.top = top + 'px';
     divElement.style.left = left + 'px';
     divElement.style.width = width + 'px';
     divElement.style.height = height + 'px';
+    divElement.classList.toggle('top-no-border', topCut);
+    divElement.classList.toggle('bottom-no-border', bottomCut);
 
     if (opts?.emitEvent !== false) {
       this.markForCheck();
+    }
+
+    if (opts?.debouncedExpansion !== true) {
+      this.expandCellSelection(cellSelection);
+    } else {
+      // Expand selection (with a debounce time)
+      this.debouncedExpandCellSelection$.next(cellSelection);
     }
   }
 
@@ -1105,9 +1141,17 @@ export class CalendarComponent
   }
 
   async dblClickRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>): Promise<boolean> {
-    if (event?.defaultPrevented) return false; // Skip
+    if (event?.defaultPrevented || !this.inlineEdition || this.readOnly || !this.canEdit) return false; //  if cancelled or cannot edit
 
     this.closeContextMenu();
+
+    // Wait of resizing or validating
+    if (this.cellSelection?.resizing || this.cellSelection?.validating) {
+      await waitFor(() => !this.cellSelection?.resizing && !this.cellSelection?.validating, { stop: this.destroySubject });
+    }
+
+    // DEBUG
+    console.debug(`${this.logPrefix}Double+click`, event, row, this.focusColumn);
 
     // Forget the cell selection
     this.removeCellSelection();
@@ -1115,21 +1159,32 @@ export class CalendarComponent
     return super.clickRow(event, row);
   }
 
-  async clickRow(event?: MouseEvent, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+  async clickRow(event?: HammerTapEvent | Event, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
+    if (event?.defaultPrevented) return false; // Skip
+
+    // Add a delay, to allow :
+    // - double click to cancel the event
+    // - setFocusColumn() to be call
+    if (this.inlineEdition && !this.readOnly && this.canEdit) {
+      await sleep(HAMMER_TAP_TIME + 10);
+    }
+
     if (event?.defaultPrevented || row.editing) return false; // Skip
 
     this.closeContextMenu();
 
-    // If cell selection is resizing: skip
-    if (this.cellSelection?.resizing || this.cellSelection?.validating) return false;
-
-    // If Click+Shift
-    if (event instanceof MouseEvent && event.shiftKey === true) {
-      return this.onMouseShiftClick(event, row, this.focusColumn);
+    // Wait of resizing or validating
+    if (this.cellSelection?.resizing || this.cellSelection?.validating) {
+      await waitFor(() => !this.cellSelection?.resizing && !this.cellSelection?.validating, { stop: this.destroySubject, timeout: 250 });
     }
 
-    // Like a ctrl click
-    return this.onMouseCtrlClick(event, row, this.focusColumn);
+    // Shift click
+    if ((event instanceof PointerEvent || event instanceof MouseEvent) && event.shiftKey === true) {
+      return this.shiftClick(event, row, this.focusColumn);
+    }
+
+    // Ctrl click
+    return this.ctrlClick(event, row, this.focusColumn);
   }
 
   async cancelOrDelete(
@@ -1195,7 +1250,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}`,
             class: 'mat-column-fishingArea',
             treeIndent: '&nbsp;&nbsp;',
-            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
+            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`, true),
           },
           {
             blockIndex: index,
@@ -1210,7 +1265,7 @@ export class CalendarComponent
             treeIndent: '&nbsp;&nbsp',
             expanded: false,
             toggle: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
-            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
+            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`, true),
           },
           {
             blockIndex: index,
@@ -1223,7 +1278,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}depthGradient`,
             class: 'mat-column-depthGradient',
             treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
-            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
+            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`, true),
             hidden: true,
           },
           {
@@ -1237,7 +1292,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}nearbySpecificArea`,
             class: 'mat-column-nearbySpecificArea',
             treeIndent: '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;',
-            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
+            expand: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`, true),
             hidden: true,
           },
         ];
@@ -1267,7 +1322,11 @@ export class CalendarComponent
 
   protected expandAll(event?: Event, opts?: { emitEvent?: boolean }) {
     for (let i = 0; i < this.metierCount; i++) {
-      this.expandMetierBlock(null, i);
+      this.expandMetierBlock(null, i, { emitEvent: false });
+    }
+
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
     }
   }
 
@@ -1405,22 +1464,31 @@ export class CalendarComponent
     row = row || this.editedRow;
     if (!row || !row.editing) return true; // nothing to confirmed
 
-    // If pristine, cancel instead of confirmed
-    if (row.validator.pristine && !row.validator.valid) {
-      await this.cancelOrDelete(event, row);
+    // Allow to confirm when invalid
+    const form = row.validator;
+    if (form && !form.valid) {
+      await AppFormUtils.waitWhilePending(form);
 
-      this.focusColumn = undefined;
+      if (form.invalid && form.touched) {
+        const errorMessage = this.formErrorAdapter.translateFormErrors(form, this.errorTranslateOptions);
+
+        // DEBUG
+        //console.debug(this.logPrefix + 'Confirm row with error:' + errorMessage);
+
+        // Save error message
+        // FIXME this is not working well
+        DataEntityUtils.markFormAsInvalid(row.validator, errorMessage, { emitEvent: false });
+      }
+      if (form.dirty) this.markAsDirty({ emitEvent: false /* because of resetError() */ });
+      this.resetError();
+
+      row.originalData = undefined;
+      form.disable();
 
       return true;
     }
 
-    event?.preventDefault();
-    event?.stopPropagation();
-
-    const confirmed = await super.confirmEditCreate(event, row);
-    if (confirmed) this.focusColumn = undefined;
-
-    return confirmed;
+    return super.confirmEditCreate(event, row);
   }
 
   protected setError(error: string, opts?: { emitEvent?: boolean }) {
@@ -1447,11 +1515,12 @@ export class CalendarComponent
     const currentData = row.currentData;
     if (ActivityMonth.isEmpty(currentData)) return true; // Nothing to clear
 
-    const { month, startDate, endDate, registrationLocations } = currentData;
+    const { month, startDate, endDate, readonly, registrationLocations } = currentData;
     const data = ActivityMonth.fromObject({
       month,
       startDate,
       endDate,
+      readonly,
       registrationLocations,
       measurementValues: MeasurementValuesUtils.normalizeValuesToForm({}, this.pmfms),
       gearUseFeatures: new Array(this.maxMetierCount).fill({
@@ -1476,9 +1545,9 @@ export class CalendarComponent
     if (event?.defaultPrevented) return; // Skip
 
     for (let i = 0; i < this.metierCount; i++) {
-      this.collapseMetierBlock(null, i);
+      this.collapseMetierBlock(null, i, { emitEvent: false });
     }
-    this.removeCellSelection();
+    this.removeCellSelection(opts);
     this.clearClipboard(null, { clearContext: false });
   }
 
@@ -1498,7 +1567,7 @@ export class CalendarComponent
     }
   }
 
-  toggleMetierBlock(event: Event | undefined, key: string) {
+  toggleMetierBlock(event: Event | undefined, key: string, forceExpanded?: boolean) {
     if (event?.defaultPrevented) return; // Skip
     event?.preventDefault();
 
@@ -1510,26 +1579,27 @@ export class CalendarComponent
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
+    const expanded = toBoolean(forceExpanded, !masterColumn.expanded);
     // If will close: check if allow
     const subColumns = blockColumns.slice(1);
-    if (masterColumn.expanded && !this.onWillHideColumns(subColumns)) return;
+    if (!expanded && !this.onWillHideColumns(subColumns)) return;
 
     // Toggle expanded
-    masterColumn.expanded = !masterColumn.expanded;
+    masterColumn.expanded = expanded;
 
     subColumns.forEach((col) => {
       // Show/Hide sub columns
-      col.hidden = !masterColumn.expanded;
+      col.hidden = !expanded;
       // Expanded state for all columns to fix divergences states
       if (isNotNil(col.expanded)) {
-        col.expanded = masterColumn.expanded;
+        col.expanded = expanded;
       }
     });
 
     this.markForCheck();
   }
 
-  toggleGradientBlock(event: Event, keyPrefix: string) {
+  toggleGradientBlock(event: Event, keyPrefix: string, forceExpanded?: boolean) {
     if (event?.defaultPrevented) return; // Skip
     event?.preventDefault();
 
@@ -1541,31 +1611,33 @@ export class CalendarComponent
     const masterColumn = blockColumns[0];
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
+    const expanded = toBoolean(forceExpanded, !masterColumn.expanded);
+
     // If will close: check if allow
     const subColumns = blockColumns.slice(1);
-    if (masterColumn.expanded && !this.onWillHideColumns(subColumns)) return;
+    if (!expanded && !this.onWillHideColumns(subColumns)) return;
 
     // Toggle expanded
-    masterColumn.expanded = !masterColumn.expanded;
+    masterColumn.expanded = expanded;
 
     // Show/Hide sub columns
-    subColumns.forEach((col) => (col.hidden = !masterColumn.expanded));
+    subColumns.forEach((col) => (col.hidden = !expanded));
 
     this.markForCheck();
   }
 
-  expandMetierBlock(event: Event, blockIndex: number) {
+  expandMetierBlock(event: Event, blockIndex: number, opts?: { emitEvent?: boolean }) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
-    this.setMetierBlockExpanded(blockIndex, true);
+    this.setMetierBlockExpanded(blockIndex, true, opts);
   }
 
-  collapseMetierBlock(event: Event, blockIndex: number) {
+  collapseMetierBlock(event: Event, blockIndex: number, opts?: { emitEvent?: boolean }) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
-    this.setMetierBlockExpanded(blockIndex, false);
+    this.setMetierBlockExpanded(blockIndex, false, opts);
   }
 
   markAsDirty(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -1573,7 +1645,26 @@ export class CalendarComponent
     super.markAsDirty(opts);
   }
 
-  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean) {
+  removeCellSelection(opts?: { emitEvent?: boolean }) {
+    if (!this.cellSelection) return;
+    const { divElement, cellRect } = this.cellSelection;
+    if (!divElement || !cellRect) return;
+
+    // Forget the current selection
+    this.cellSelection = null;
+
+    // Reset the div size
+    divElement.style.width = cellRect.width + 'px';
+    divElement.style.height = cellRect.height + 'px';
+
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
+    }
+  }
+
+  /* -- protected functions -- */
+
+  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean, opts?: { emitEvent?: boolean }) {
     const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return;
 
@@ -1591,6 +1682,10 @@ export class CalendarComponent
         col.expanded = expanded;
       }
     });
+
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
+    }
   }
 
   protected setFocusColumn(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, columnName: string) {
@@ -1967,11 +2062,10 @@ export class CalendarComponent
       // Update quality flag
       const entity = targetForm.value;
       if (targetForm.invalid) {
-        const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, {
-          ...this.errorTranslateOptions,
-        });
-        entity.controlDate = null;
-        entity.qualificationComments = errorMessage;
+        const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, this.errorTranslateOptions);
+        //entity.controlDate = null;
+        //entity.qualificationComments = errorMessage;
+        DataEntityUtils.markAsInvalid(entity, errorMessage);
       }
 
       // Update the row
@@ -2023,23 +2117,6 @@ export class CalendarComponent
     return true;
   }
 
-  protected removeCellSelection(opts?: { emitEvent?: boolean }) {
-    if (!this.cellSelection) return;
-    const { divElement, cellRect } = this.cellSelection;
-    if (!divElement || !cellRect) return;
-
-    // Forget the current selection
-    this.cellSelection = null;
-
-    // Reset the div size
-    divElement.style.width = cellRect.width + 'px';
-    divElement.style.height = cellRect.height + 'px';
-
-    if (opts?.emitEvent !== false) {
-      this.markForCheck();
-    }
-  }
-
   protected clearClipboard(event?: Event, opts?: { clearContext?: boolean }) {
     event?.preventDefault();
     event?.stopPropagation();
@@ -2054,12 +2131,7 @@ export class CalendarComponent
     }
   }
 
-  protected async onContextMenu(
-    event: MouseEvent,
-    cell?: HTMLElement | HTMLTableCellElement,
-    row?: AsyncTableElement<ActivityMonth>,
-    columnName?: string
-  ) {
+  protected async onContextMenu(event: MouseEvent, cell?: HTMLElement, row?: AsyncTableElement<ActivityMonth>, columnName?: string) {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
     if (!row || !columnName) {
@@ -2078,7 +2150,7 @@ export class CalendarComponent
     if (this.cellSelection?.row !== row || this.cellSelection?.columnName !== columnName) {
       if (!this.isCellSelected(this.cellSelection, row, columnName)) {
         this.removeCellSelection();
-        await this.onMouseDown(event, cell as HTMLTableCellElement, row, columnName);
+        await this.onMouseDown(event, cell, row, columnName);
         await this.onMouseUp(event);
       }
     }
@@ -2182,5 +2254,29 @@ export class CalendarComponent
 
   protected markAsConflictual() {
     this.hasConflict = true;
+  }
+
+  protected expandCellSelection(cellSelection?: TableCellSelection<ActivityMonth>, opts?: { emitEvent?: boolean }) {
+    cellSelection = cellSelection || this.cellSelection;
+
+    if (!cellSelection) return; // Skip
+
+    const { paths } = this.getRowsFromSelection(cellSelection);
+    if (isEmptyArray(paths)) return; // Skip
+
+    const hiddenColumns = this.dynamicColumns.filter((col) => col.expand && col.hidden && paths.includes(col.path));
+    if (isEmptyArray(hiddenColumns)) return; // Skip
+
+    // DEBUG
+    console.debug(
+      this.logPrefix + 'Expand hidden paths:',
+      hiddenColumns.map((c) => c.path)
+    );
+
+    hiddenColumns.forEach((col) => col.expand());
+
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
+    }
   }
 }

@@ -10,6 +10,7 @@ import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
 import { AppDataModule } from '@app/data/data.module';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { ActivityMonthRowErrorPipe } from '@app/activity-calendar/calendar/activity-month.pipes';
 
 @NgModule({
   imports: [
@@ -28,7 +29,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
     AppIconModule,
     AppDataModule,
   ],
-  declarations: [CalendarComponent],
+  declarations: [CalendarComponent, ActivityMonthRowErrorPipe],
   exports: [
     SharedModule,
     TranslateModule,
