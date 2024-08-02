@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { sleep } from "./utils";
+
 
 (async () => {
 
@@ -151,7 +151,7 @@ import { sleep } from "./utils";
       const now = Date.now();
       while (!exists && (Date.now() - now) < waitTimeoutMs) {
         utils.logMessage('I', LOG_PREFIX, `Waiting release creation ...`);
-        await sleep(1000);
+        await utils.sleep(1000);
         exists = await isReleaseExists(tagName);
       }
       if (exists) return true; // OK
