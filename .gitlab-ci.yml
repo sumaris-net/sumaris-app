@@ -286,7 +286,7 @@ package:webext:feature:
   <<: *git-setup
   stage: release
   script:
-    - if [[ "_${RELEASE_VERSION}" == "_" ]]; then echo "Missing required variable RELEASE_VERSION"; exit 1; fi
+    - if [[ -z ${RELEASE_VERSION} ]]; then echo "Missing required variable RELEASE_VERSION"; exit 1; fi
     - git checkout -B "release/${RELEASE_VERSION}"
     # Copy cached dependencies and build
     - ls -artl "${BUILD_CACHE_DIR}"
