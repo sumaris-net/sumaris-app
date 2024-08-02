@@ -408,6 +408,7 @@ gitlab-release:
     - export NODE_OPTIONS=--max-old-space-size=4096
     - npm run build:prod
     # Create ZIP archive
+    - mkdir -p "${CI_PROJECT_DIR}/release/"
     - baseName=${CI_PROJECT_NAME}-${APP_VERSION}-web
     - fileName=${baseName}.zip
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
@@ -461,6 +462,7 @@ deploy:web:tags:
     - npm run android:build:prod
     - npm run android:package:prod
     # Deploy as a release package
+    - mkdir -p "${CI_PROJECT_DIR}/release/"
     - baseName=${CI_PROJECT_NAME}-${APP_VERSION}-android
     - fileName=${baseName}.apk
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
@@ -559,6 +561,7 @@ deploy:electron:tags:
   stage: deploy
   script:
     - npm version
+    - mkdir -p "${CI_PROJECT_DIR}/release/"
     - npm run webext:build:prod
     - npm run webext:package:prod
     - npm run webext:deploy:${DEPLOY_ENVIRONMENT}
