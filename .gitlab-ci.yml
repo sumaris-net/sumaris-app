@@ -523,7 +523,7 @@ deploy:android:tags:
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
     - echo "$(cd ${CI_PROJECT_DIR}/release && sha256sum ${fileName})" > ${CI_PROJECT_DIR}/release/${baseName}.sha256
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${CI_PROJECT_DIR}/release/${baseName}.sha256" "link_release"
-  allow_failure: false
+  allow_failure: true
 
 deploy:electron:
   extends: .deploy:electron
@@ -563,7 +563,7 @@ deploy:electron:tags:
     - fileName=$(basename $(echo release/cesium-*.xpi))
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
-  allow_failure: false
+  allow_failure: true
   when: manual
 
 deploy:webext:prerelease:
