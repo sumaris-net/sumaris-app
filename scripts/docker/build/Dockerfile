@@ -41,7 +41,7 @@ RUN node --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE} $(which npm) install --
 
 # Install global tools
 RUN apt-get update && \
-    apt-get -y install git zip curl python3-minimal fakeroot openjdk-17-jdk-headless\
-    && rm -rf /var/lib/apt/lists/*
+    apt-get -y install git zip curl python3-minimal fakeroot openjdk-17-jdk-headless && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
