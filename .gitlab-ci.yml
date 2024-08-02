@@ -382,7 +382,7 @@ gitlab-release:
     - '[ -d "${BUILD_CACHE_DIR}" ] || mkdir "${BUILD_CACHE_DIR}"'
     - ls -artl "${BUILD_CACHE_DIR}"
     - ln -s "${BUILD_CACHE_DIR}/node_modules" node_modules
-    - npm run release:create --token=${CI_JOB_TOKEN} "Release ${CI_PROJECT_NAME}-${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}"
+    - npm run release:create --token=${CI_JOB_TOKEN} "Release ${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}"
   only:
     - tags
 

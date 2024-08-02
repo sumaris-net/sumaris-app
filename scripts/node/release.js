@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { sleep } from "./utils";
+
 (async () => {
 
   const path = require('path');
@@ -124,10 +126,10 @@
     }
   }
 
-  async function assetsLinkCheckExists(tag, name) {
-    utils.logMessage('I', LOG_PREFIX, `Check if asset link "${name}" exists for tag "${tag}"`);
+  async function assetsLinkCheckExists(tagName, name) {
+    utils.logMessage('I', LOG_PREFIX, `Check if asset link "${name}" exists for tag "${tagName}"`);
     try {
-      const res = await fetch(`${computeGitlabApiProjectUrl()}/releases/${tag}/assets/links`);
+      const res = await fetch(`${computeGitlabApiProjectUrl()}/releases/${tagName}/assets/links`);
       if (res.status === 404) return false;
       else if (res.status !== 200)
         throw new Error(`${res.status} ${res.statusText}`);
@@ -141,16 +143,44 @@
     }
   }
 
-  async function assetsLinkCreate(tag, name, url, type) {
-    utils.logMessage('I', LOG_PREFIX,
-      `Create assets_link : tag=${tag}, name=${name}, url=${url}, type=${type}`);
+  async function checkReleaseExists(tagName, waitTimeoutMs, createIfNotExists) {
+    waitTimeoutMs = waitTimeoutMs || 5000;
+    utils.logMessage('I', LOG_PREFIX, `Check if release exists for tag "${tagName}"`);
     try {
-      const existingId = await assetsLinkCheckExists(tag, name);
+      let exists = await isReleaseExists(tagName);
+      const now = Date.now();
+      while (!exists && (Date.now() - now) < waitTimeoutMs) {
+        utils.logMessage('I', LOG_PREFIX, `Waiting release creation ...`);
+        await sleep(1000);
+        exists = await isReleaseExists(tagName);
+      }
+      if (exists) return true; // OK
+      if (createIfNotExists) {
+        utils.logMessage('I', LOG_PREFIX, `Release not found, after waiting ${waitTimeoutMs}ms. Will create the release`);
+        await releaseCreate(tagName, `Release ${tagName}`, waitTimeoutMs);
+        return true;
+      }
+      return false;
+    } catch(e) {
+      utils.logMessage('E', LOG_PREFIX, e);
+      process.exit(1);
+    }
+  }
+
+  async function assetsLinkCreate(tagName, name, url, type) {
+    utils.logMessage('I', LOG_PREFIX,
+      `Create assets_link : tag=${tagName}, name=${name}, url=${url}, type=${type}`);
+    try {
+      const existingId = await assetsLinkCheckExists(tagName, name);
       if (existingId) {
         utils.logMessage('I', LOG_PREFIX, `Remove previous assets link with id=${existingId}`);
-        await GITLAB.ReleaseLinks.remove(GITLAB_PROJECT_ID, tag, existingId);
+        await GITLAB.ReleaseLinks.remove(GITLAB_PROJECT_ID, tagName, existingId);
       }
-      await GITLAB.ReleaseLinks.create(GITLAB_PROJECT_ID, tag, name, url, {linkType: type});
+      // Link not exists: check release exists
+      else {
+        await checkReleaseExists(tagName, name, 4000, true /*create release if need*/);
+      }
+      await GITLAB.ReleaseLinks.create(GITLAB_PROJECT_ID, tagName, name, url, {linkType: type});
     } catch(e) {
       utils.logMessage('E', LOG_PREFIX, e);
       process.exit(1);
@@ -234,19 +264,21 @@
     }
   }
 
-  async function releaseCheckExist(tagName) {
-    utils.logMessage('I', LOG_PREFIX, `Check if release for tag "${tagName}" exits`);
+  async function isReleaseExists(tagName) {
+    utils.logMessage('I', LOG_PREFIX, `Check if release for tag "${tagName}" exists`);
     try {
       const res = await fetch(`${computeGitlabApiProjectUrl()}/releases/${tagName}`);
-      if (res.status !== 200) return false;
-      return true;
+      if (res.status === 200) return true;
+      if (res.status === 404) return false;
+      // Any other status: throw error (this should never occur)
+      throw new Error(`${res.status} ${res.statusText}`);
     } catch(e) {
       utils.logMessage('E', LOG_PREFIX, e);
       process.exit(1);
     }
   }
 
-  async function releaseCreate(name, tagName, ref) {
+  async function releaseCreate(tagName, name, ref) {
     utils.logMessage('I', LOG_PREFIX, `Create ${name} with tagName="${tagName}", ref="${ref}"`);
     const description = await descriptionCompute(tagName);
     try {
@@ -290,9 +322,9 @@
       const name = OPTIONS.release[0];
       const tagName = OPTIONS.release[1];
       const ref = OPTIONS.release[2];
-      const exists = await releaseCheckExist(tagName);
+      const exists = await isReleaseExists(tagName);
       if (exists) await releaseUpdate(tagName);
-      else await releaseCreate(name, tagName, ref);
+      else await releaseCreate(tagName, name, ref);
     }
 
     if (OPTIONS.upload) {
