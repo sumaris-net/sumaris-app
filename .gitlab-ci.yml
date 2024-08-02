@@ -330,7 +330,6 @@ release:
   extends: .release
   stage: build
   image: ${CI_BUILD_IMAGE}
-  needs: [build]
   only:
     - develop
 
