@@ -16,7 +16,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   // Environment
   externalEnvironmentUrl: 'assets/environments/environment.json',
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '2.9.19',
+  peerMinVersion: '2.9.20',
 
   // Check Web new app version
   checkAppVersionIntervalInSeconds: 5 * 60, // every 5min
@@ -32,14 +32,17 @@ export const environment = Object.freeze(<AppEnvironment>{
     {
       host: 'www.sumaris.net',
       port: 443,
+      useSsl: true,
     },
     {
       host: 'open.sumaris.net',
       port: 443,
+      useSsl: true,
     },
     {
       host: 'adap.pecheursdebretagne.eu',
       port: 443,
+      useSsl: true,
     },
     {
       host: 'imagine-pod.ifremer.fr',
@@ -61,10 +64,12 @@ export const environment = Object.freeze(<AppEnvironment>{
     {
       host: 'test.sumaris.net',
       port: 443,
+      useSsl: true,
     },
     {
       host: 'obsmer.sumaris.net',
       port: 443,
+      useSsl: true,
     },
   ],
 
