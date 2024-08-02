@@ -623,6 +623,8 @@ deploy:webext:release:tags:
   extends: .docker
   stage: docker
   script:
+    # Check if www exists
+    - if [[ ! -d www ]]; then echo "Missing artifact 'www'" && exit 1; fi
     # Build docker image
     - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
     - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTML=www" --build-arg="NGINX_CONF=scripts/docker/run/site.conf" -f scripts/docker/run/Dockerfile .
@@ -648,7 +650,7 @@ docker:feature:
 
 docker:release:
   extends: .docker-build
-  needs: [release]
+  needs: [deploy:web]
   variables:
     IMAGE_TAG: ${APP_VERSION}
   only:
@@ -656,7 +658,7 @@ docker:release:
 
 docker:release:tags:
   extends: .docker-build
-  needs: [release:tags]
+  needs: [deploy:web:tags]
   variables:
     IMAGE_TAG: ${CI_COMMIT_TAG}
   only:
