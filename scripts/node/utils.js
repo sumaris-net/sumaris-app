@@ -257,6 +257,11 @@ function logMessage(level, prefix, message, debug = false) {
   process.stderr.write(`${message}${reset}\n`)
 }
 
+function sleep(ms) {
+  if (ms <= 0) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 module.exports = {
   canExecute,
   canRead,
@@ -271,4 +276,5 @@ module.exports = {
   mvFile,
   replaceTextInFile,
   unzipFile,
+  sleep
 };

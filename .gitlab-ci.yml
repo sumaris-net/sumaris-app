@@ -382,7 +382,7 @@ gitlab-release:
     - '[ -d "${BUILD_CACHE_DIR}" ] || mkdir "${BUILD_CACHE_DIR}"'
     - ls -artl "${BUILD_CACHE_DIR}"
     - ln -s "${BUILD_CACHE_DIR}/node_modules" node_modules
-    - npm run release:create --token=${CI_JOB_TOKEN} "Release ${CI_PROJECT_NAME}-${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}"
+    - npm run release:create --token=${CI_JOB_TOKEN} "Release ${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}" "${CI_COMMIT_TAG}"
   only:
     - tags
 
@@ -523,7 +523,7 @@ deploy:android:tags:
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
     - echo "$(cd ${CI_PROJECT_DIR}/release && sha256sum ${fileName})" > ${CI_PROJECT_DIR}/release/${baseName}.sha256
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${CI_PROJECT_DIR}/release/${baseName}.sha256" "link_release"
-  allow_failure: false
+  allow_failure: true
 
 deploy:electron:
   extends: .deploy:electron
@@ -563,7 +563,7 @@ deploy:electron:tags:
     - fileName=$(basename $(echo release/cesium-*.xpi))
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
-  allow_failure: false
+  allow_failure: true
   when: manual
 
 deploy:webext:prerelease:
@@ -623,6 +623,8 @@ deploy:webext:release:tags:
   extends: .docker
   stage: docker
   script:
+    # Check if www exists
+    - if [[ ! -d www ]]; then echo "Missing artifact 'www'" && exit 1; fi
     # Build docker image
     - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
     - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTML=www" --build-arg="NGINX_CONF=scripts/docker/run/site.conf" -f scripts/docker/run/Dockerfile .
@@ -648,7 +650,7 @@ docker:feature:
 
 docker:release:
   extends: .docker-build
-  needs: [release]
+  needs: [deploy:web]
   variables:
     IMAGE_TAG: ${APP_VERSION}
   only:
@@ -656,7 +658,7 @@ docker:release:
 
 docker:release:tags:
   extends: .docker-build
-  needs: [release:tags]
+  needs: [deploy:web:tags]
   variables:
     IMAGE_TAG: ${CI_COMMIT_TAG}
   only:
