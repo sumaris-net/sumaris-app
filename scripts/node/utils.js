@@ -234,24 +234,20 @@ function logMessage(level, prefix, message, debug = false) {
   const reset = '\u001b[0m';
   const red = '\u001b[31m';
   const orange = '\u001b[33m';
-  const green = '\u001b[32m';
   const blue = '\u001b[34m';
   switch (level) {
     case 'D':
       if (!debug) return;
-      message = `${blue}${prefix} DEBUG :${message}`;
+      message = `${blue}${prefix} DEBUG ${message}`;
       break;
     case 'I':
-      message = `${prefix} INFO :${message}`;
-      break;
-    case 'C':
-      message = `${green}${prefix} OK :${message}`;
+      message = `${prefix} INFO ${message}`;
       break;
     case 'W':
-      message = `${orange}${prefix} WARN :${message}`;
+      message = `${orange}${prefix} WARN ${message}`;
       break;
     case 'E':
-      message = `${red}${prefix} ERR :${message}`;
+      message = `${red}${prefix} ERROR ${message}`;
       break;
   }
   process.stderr.write(`${message}${reset}\n`)
