@@ -29,6 +29,8 @@ import { GearPhysicalFeatures } from './gear-physical-features.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselUseFeatures } from './vessel-use-features.model';
 import { VesselUseFeaturesValidatorService } from './vessel-use-features.validator';
+import { ActivityMonth } from '../calendar/activity-month.model';
+import { ActivityMonthValidatorService } from '../calendar/activity-month.validator';
 
 export interface ActivityCalendarValidatorOptions extends DataRootEntityValidatorOptions {
   timezone?: string;
@@ -52,6 +54,7 @@ export class ActivityCalendarValidatorService<
     translate: TranslateService,
     settings: LocalSettingsService,
     protected gearUseFeaturesValidatorService: GearUseFeaturesValidatorService,
+    protected activityMonthValidatorService: ActivityMonthValidatorService,
     protected gearPhysicalFeaturesValidatorService: GearPhysicalFeaturesValidatorService,
     protected vesselUseFeaturesValidatorService: VesselUseFeaturesValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
@@ -98,10 +101,19 @@ export class ActivityCalendarValidatorService<
       });
     }
 
-    // Add gear use features
-    if (opts.withGearUseFeatures) {
-      config.gearUseFeatures = this.getGearUseFeaturesArray(data?.gearUseFeatures);
-    }
+    // Add activity months
+    const activityMonths = data?.vesselUseFeatures.map(ActivityMonth.fromObject);
+    data?.gearUseFeatures.forEach((guf) => {
+      const month = activityMonths.find((am) => am.startDate.month() === guf.startDate.month());
+      if (month) {
+        if (!month.gearUseFeatures) {
+          month.gearUseFeatures = [];
+        }
+        month.gearUseFeatures.push(guf);
+      }
+    });
+    config.activityMonths = this.getActivityMonthArray(activityMonths);
+
     // Add vessel use features
     if (opts.withVesselUseFeatures) {
       config.vesselUseFeatures = this.getVesselUseFeatures(data?.vesselUseFeatures);
@@ -116,7 +128,6 @@ export class ActivityCalendarValidatorService<
       config.observers = this.getObserversFormArray(data?.observers);
     }
 
-    //
     // // Add fishing Ares
     // if (opts.withFishingAreas) {
     //   config.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, {required: true});
@@ -171,6 +182,27 @@ export class ActivityCalendarValidatorService<
     );
     if (data) {
       data = data?.filter(GearUseFeatures.isNotEmpty);
+      if (required && isEmptyArray(data)) {
+        data = [null];
+      }
+      formArray.patchValue(data || []);
+    }
+    return formArray;
+  }
+
+  getActivityMonthArray(data?: ActivityMonth[], opts?: { maxLength?: number; required?: boolean }) {
+    const required = opts?.required || false;
+    const formArray = new AppFormArray<ActivityMonth, UntypedFormGroup>(
+      (month) => this.activityMonthValidatorService.getFormGroup(month),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: true,
+        validators: opts?.maxLength ? SharedFormArrayValidators.arrayMaxLength(opts.maxLength) : null,
+      }
+    );
+    if (data) {
+      data = data?.filter(ActivityMonth.isNotEmpty);
       if (required && isEmptyArray(data)) {
         data = [null];
       }
