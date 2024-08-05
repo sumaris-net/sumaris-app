@@ -991,7 +991,7 @@ export class ActivityCalendarService
         const errors = AppFormUtils.getFormErrors(form);
         console.info(`[activity-calendar-service] Control #${entity.id} [INVALID] in ${Date.now() - now}ms`, errors);
 
-        const months = AppFormUtils.filterErrorsByPrefix(errors, 'vesselUseFeatures', 'gearUseFeatures');
+        const months = AppFormUtils.filterErrorsByPrefix(errors, 'vesselUseFeatures', 'gearUseFeatures', 'activityMonths');
         const metiers = AppFormUtils.filterErrorsByPrefix(errors, 'gearPhysicalFeatures');
         const other = AppFormUtils.filterErrors(errors, ([path, _]) =>
           ['vesselUseFeatures', 'gearUseFeatures', 'gearPhysicalFeatures'].includes(path.split('.')[0])
@@ -1001,8 +1001,9 @@ export class ActivityCalendarService
           details: {
             errors: {
               ...other,
-              months,
-              metiers,
+              ...(isNotNil(months) && Object.keys(months).length > 0 ? { months } : {}),
+              ...(isNotNil(metiers) && Object.keys(metiers).length > 0 ? { metiers } : {}),
+              ...errors,
             },
           },
         };

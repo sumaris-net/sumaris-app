@@ -3550,12 +3550,9 @@
       "MONTH_NUMBERS": "Calendrier incomplet.",
       "ANNUAL_INACTIVITY": "Inactivité annuelle à confirmer",
       "INCONSISTENT_ANNUAL_INACTIVITY": "Inactivité annuelle incohérente",
-      "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}"
-    },
-    "WARNING": {
-      "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif.",
-      "UNAUTHORIZED_REGISTRATION_LOCATION": "Vous n'êtes <b>pas autorisé</b> à saisir sur ce lieu d'immatriculation.",
       "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}",
+      "INVALID_MONTHS": "Veuillez corriger le(s) mois invalide(s)",
+      "INVALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)",
       "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
     },
     "WARNING": {

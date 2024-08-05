@@ -508,7 +508,6 @@ export class ActivityCalendarPage
 
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
     const errors = error && typeof error === 'object' && error.details?.errors;
-
     // Conflictual error: show remote conflictual data
     if (errors?.conflict instanceof ActivityCalendar) {
       const remoteCalendar = errors.conflict;
@@ -516,14 +515,14 @@ export class ActivityCalendarPage
       return;
     }
 
-    if (errors?.months) {
+    if (errors?.errors.months) {
       this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
       super.resetError();
       return;
     }
 
-    if (errors?.metiers) {
+    if (errors?.errors.metiers) {
       this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_METIERS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
       super.resetError();
