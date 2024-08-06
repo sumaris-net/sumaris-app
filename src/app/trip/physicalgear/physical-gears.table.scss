@@ -1,3 +1,5 @@
+@import 'theme.globals';
+
 .table-container {
   --table-toolbar-height: 0px;
   height: calc(100% - var(--table-toolbar-height) - 1px);
@@ -15,6 +17,7 @@
     min-width: 250px;
     width: 300px;
     text-overflow: ellipsis;
+    text-wrap: auto;
   }
   .mat-column-subGearsCount {
     max-width: 50px;

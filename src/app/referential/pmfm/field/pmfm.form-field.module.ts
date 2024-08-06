@@ -5,6 +5,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
+import { MatAutocomplete } from '@angular/material/autocomplete';
+import { MatSelect } from '@angular/material/select';
 
 @NgModule({
   imports: [
@@ -14,6 +16,9 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
     // App modules
     AppCoreModule,
     AppReferentialPipesModule,
+    MatAutocomplete,
+    MatAutocomplete,
+    MatSelect,
   ],
   declarations: [
     // Components

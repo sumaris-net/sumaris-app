@@ -218,7 +218,7 @@
         [allowSubSamples]="false"
         [usageMode]="usageMode"
         [sticky]="true"
-        [stickyEnd]="true"
+        [stickyEnd]="!mobile"
         [compactFields]="false"
         (prepareRowForm)="onPrepareSampleForm($event)"
         (weightUnitChanges)="setWeightDisplayUnit($event)"
