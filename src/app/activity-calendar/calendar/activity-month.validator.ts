@@ -134,6 +134,7 @@ export class ActivityMonthValidatorService<
         ActivityMonthValidators.uniqueMetier,
         SharedFormGroupValidators.dateRange('startDate', 'endDate'),
         ActivityMonthValidators.fishingAreaRequiredIfMetier,
+        ActivityMonthValidators.checkInconsistenciesInGearUseFeatures,
         ActivityMonthValidators.distanceToCoastRequiredIfFishingArea,
         SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
           predicate: (control) => control.value === VesselUseFeaturesIsActiveEnum.ACTIVE || control.value === VesselUseFeaturesIsActiveEnum.INACTIVE,
@@ -489,10 +490,36 @@ export class ActivityMonthValidators {
         }
       : null;
   }
+
+  static checkInconsistenciesInGearUseFeatures(formGroup: FormArray): ValidationErrors | null {
+    const gufArray = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!gufArray || !(gufArray instanceof FormArray)) {
+      return null;
+    }
+    const inconsistentData = [];
+    gufArray.controls.forEach((control) => {
+      const metier = control.get('metier')?.value;
+      const fishingAreas = control.get('fishingAreas').value;
+      (fishingAreas || []).forEach((fa) => {
+        const location = fa.location;
+        const distanceToCoast = fa.distanceToCoastGradient;
+        if (
+          ReferentialUtils.isEmpty(metier) &&
+          (ReferentialUtils.isNotEmpty(fishingAreas) || ReferentialUtils.isNotEmpty(location) || ReferentialUtils.isNotEmpty(distanceToCoast))
+        ) {
+          console.log('inconsistentData', metier, location, distanceToCoast, fishingAreas);
+          inconsistentData.push({ inconsistentData: {} });
+        }
+      });
+    });
+
+    return inconsistentData.length > 0 ? { inconsistentData: inconsistentData } : null;
+  }
 }
 
 export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
   uniqueMetier: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_METIER',
   requiredFishingArea: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_FISHING_AREA',
   requiredDistanceToCoast: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_DISTANCE_TO_COAST',
+  inconsistentData: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENT_DATA',
 };
