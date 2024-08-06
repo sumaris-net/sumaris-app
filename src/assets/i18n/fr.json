@@ -3538,6 +3538,23 @@
       "REPORT_TYPE": {
         "BLANK_FORM": "Calendrier d'activité vierge",
         "FORM": "Calendrier d'activité"
+      },
+      "PROGRESS": {
+        "TITLE": "SIH - Enquête d'activité des flotilles {{ year }} - Rapport d'avencement",
+        "COPY_RIGHT": "© {{ year }} Ifremer - Système d'Informations Halieutiques",
+        "TABLE": {
+          "VESSEL": "Navire",
+          "NB_METIER_PEER_MONTH": "Nomber de métiers pratiqués mar mois",
+          "NB_MONTH_NOT_SPECIFIED": "Nbre mois non renseignés",
+          "CALENDAR_STATUS": "État calendrier",
+          "RECORDER": "Saisisseur",
+          "REGISTERED_LOCATION": "QIM",
+          "NAME": "Nom"
+        },
+        "SYNTHESIS": {
+          "TITLE": "Synthèse de l'avancement des calendriers d'activité"
+        }
+>>>>>>> 2933cd080 (wip(ActivityCalendarProgressReport) : Start the base)
       }
     },
     "CONFIRM": {

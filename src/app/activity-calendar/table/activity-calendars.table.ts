@@ -560,6 +560,10 @@ export class ActivityCalendarsTable
     await this.router.navigate(['extraction', 'data'], { queryParams });
   }
 
+  async openReport() {
+    return this.router.navigateByUrl(['activity-calendar', 'report', 'progress'].join('/'));
+  }
+
   /* -- protected methods -- */
 
   protected setFilterYear(year: number) {

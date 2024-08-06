@@ -1,0 +1,49 @@
+.slides {
+  section {
+    table {
+      th,
+      td {
+        &.col-tiny {
+          padding: 0;
+        }
+      }
+      margin: 0 auto;
+    }
+    ion-grid {
+      &.filter-section {
+        margin: 0 auto;
+        min-height: 140px;
+        max-height: 140px;
+        display: flex;
+        align-items: center;
+      }
+      &.synthesis-section {
+        margin: 0 auto;
+        min-height: 140px;
+        max-height: 140px;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        ion-row {
+          ion-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            margin: 0 20px;
+            table {
+              border: solid 1px;
+              background-color: whitesmoke;
+            }
+          }
+        }
+      }
+      ion-row {
+        &.page-title {
+          h2 {
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
+}
