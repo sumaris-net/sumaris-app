@@ -572,6 +572,15 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     if (this.baitForms) this.baitForms.forEach((form) => form.markAllAsTouched(opts));
   }
 
+  // Change visibility to public
+  resetError(opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean }) {
+    this.setError(undefined, opts);
+  }
+
+  setError(error: string, opts?: { emitEvent?: boolean }) {
+    super.setError(error, opts);
+  }
+
   protected markForCheck() {
     this.cd.markForCheck();
   }
