@@ -102,7 +102,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
 
   public static readonly isBlankFormParam = 'isBlankForm';
 
-  protected logPrefix = 'trip-form-report';
+  protected logPrefix = 'activity-calendar-form-report';
   protected isBlankForm: boolean;
   protected subReportType: string;
 
@@ -143,7 +143,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
   }
 
   constructor(injector: Injector) {
-    super(injector, ActivityCalendar, FormActivityCalendarReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
+    super(injector, ActivityCalendar, FormActivityCalendarReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.FORM.PMFM.' });
     this.ActivityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);

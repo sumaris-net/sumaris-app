@@ -1,0 +1,272 @@
+<ng-container *ngIf="showToolbar">
+  <app-toolbar *ngIf="!modal; else modalToolbar" [defaultBackHref]="$defaultBackHref | async" canGoBack="false">
+    <ion-title [innerHTML]="$title | async"></ion-title>
+
+    <ion-buttons slot="end">
+      <!-- Refresh -->
+      <ion-button *ngIf="uuid | isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH' | translate">
+        <mat-icon>refresh</mat-icon>
+      </ion-button>
+
+      <!-- Help button -->
+      <ion-button (click)="reveal.toggleHelp()">
+        <mat-icon>help_outline</mat-icon>
+      </ion-button>
+
+      <!-- Print -->
+      <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+        <!-- Print button -->
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- share menu -->
+      <button mat-icon-button matHeader [title]="'COMMON.SHARE.BTN_SHARE' | translate" [matMenuTriggerFor]="shareMenu">
+        <mat-icon>share</mat-icon>
+      </button>
+    </ion-buttons>
+  </app-toolbar>
+
+  <mat-menu #shareMenu="matMenu" xPosition="after">
+    <!-- Share popover -->
+    <button mat-menu-item (click)="showSharePopover($event)" [disabled]="(loadingSubject | async) || network.offline">
+      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS' | translate }}</ion-label>
+    </button>
+  </mat-menu>
+
+  <ng-template #modalToolbar>
+    <app-modal-toolbar *ngIf="showToolbar" [modalName]="modalName" [color]="'secondary'" (cancel)="cancel()" [canValidate]="false">
+      <ion-title [innerHTML]="$title | async"></ion-title>
+
+      <!-- Print button -->
+      <ion-button slot="end" (click)="reveal.print($event)">
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- Close button (on desktop screen) -->
+      <ion-button hidden-xs hidden-sm hidden-mobile slot="end" (click)="cancel()" (keyup.enter)="cancel()">
+        <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+      </ion-button>
+    </app-modal-toolbar>
+  </ng-template>
+</ng-container>
+
+<ion-content>
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
+    @for (tableChunk of stats.tableRowChunk; track chunkIndex; let chunkIndex = $index; let firstChunk = $first; let lastChunk = $last) {
+      <section class="landscape" *sectionDef>
+        <!-- header -->
+        <ion-grid class="report-header ion-no-padding">
+          <ion-row class="page-title">
+            <ion-col class="logo" size="auto">
+              @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+                <img [src]="stats.logoHeadLeftUrl" />
+              }
+            </ion-col>
+            <ion-col>
+              <h2>
+                {{ $title | async }}
+              </h2>
+            </ion-col>
+            <ion-col class="logo" size="auto">
+              @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+                <img [src]="stats.logoHeadRightUrl" />
+              }
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!-- filter -->
+        @if (firstChunk) {
+          <ion-grid class="filter-section">
+            <ion-row>
+              <ion-col class="ion-margin-horizontal">
+                <table [style.--row-height]="'20px'">
+                  <tbody>
+                    <tr>
+                      <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate }}</th>
+                      <td>{{ data.program?.label }}</td>
+                    </tr>
+                    <tr>
+                      <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.YEAR' | translate }}</th>
+                      <td>{{ data.year }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ion-col>
+              <ion-col class="ion-margin-horizontal">
+                <table [style.--row-height]="'20px'">
+                  <tbody>
+                    <tr>
+                      <th class="col-large">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.REGISTRATION_LOCATION' | translate }}</th>
+                      <td class="col-large">
+                        <ng-content *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: data.registrationLocations }"></ng-content>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th class="col-large">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.BASE_PORT_LOCATION' | translate }}</th>
+                      <td class="col-large">
+                        <ng-content *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: data.basePortLocations }"></ng-content>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ion-col>
+              <ion-col class="ion-margin-horizontal">
+                <table [style.--row-height]="'20px'">
+                  <tbody>
+                    <tr>
+                      <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate }}</th>
+                      <td>{{ data.recorderPerson | personToString }}</td>
+                    </tr>
+                    <tr>
+                      <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_DEPARTMENT' | translate }}</th>
+                      <td>{{ data.recorderDepartment | departmentToString }}</td>
+                    </tr>
+                    <tr>
+                      <th>{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</th>
+                      <td>
+                        {{ (data.dataQualityStatus | isNotNilOrBlank) ? ('QUALITY.' + data.dataQualityStatus | translate) : '' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ion-col>
+            </ion-row>
+            <ng-template #referentialRefsItems let-referentialRefs="referentialRefs">
+              @for (referentialRef of referentialRefs; track referentialRef.id) {
+                <span>
+                  {{ referentialRef | referentialToString: { properties: ['name'] } }}
+                  @if (!$last) {
+                    ,&nbsp;
+                  }
+                </span>
+              }
+            </ng-template>
+          </ion-grid>
+        }
+
+        <!-- advancement -->
+        @if (tableChunk | isNotEmptyArray) {
+          <table>
+            <thead>
+              <tr [style.--row-title-height]="'20px'">
+                <th class="ion-text-center" colspan="5">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL' | translate }}</th>
+                <th class="ion-text-center" colspan="12">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.NB_METIER_PEER_MONTH' | translate }}</th>
+                <th class="ion-text-center" rowspan="2">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.NB_MONTH_NOT_SPECIFIED' | translate }}</th>
+                <th class="ion-text-center col-compact" rowspan="2">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.CALENDAR_STATUS' | translate }}</th>
+                <th class="ion-text-center col-compact" rowspan="2">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.RECORDER' | translate }}</th>
+              </tr>
+              <tr [style.--row-title-height]="'30px'">
+                <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL' | translate }}</th>
+                <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.NAME' | translate }}</th>
+                <th class="ion-text-center col-tiny">{{ 'QIM' }}</th>
+                <th class="ion-text-center col-small">{{ 'TODO' }}</th>
+                <th class="ion-text-center col-compact">{{ 'TODO' }}</th>
+                @for (monthLetter of stats.monthLetters; track $index) {
+                  <th class="ion-text-center col-tiny">{{ monthLetter }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (activityCalendar of tableChunk; track activityCalendar.id) {
+                <tr [style.--row-height]="'30px'">
+                  <td class="ion-text-center col-small">{{ activityCalendar.id }}</td>
+                  <td class="ion-text-center col-compact"></td>
+                  <td class="ion-text-center col-tiny"></td>
+                  <td class="ion-text-center col-small"></td>
+                  <td class="ion-text-center col-compact"></td>
+                  @for (monthLetter of stats.monthLetters; track $index) {
+                    <th class="ion-text-center col-tiny">INA</th>
+                  }
+                  <td class="ion-text-center col-compact"></td>
+                  <td class="ion-text-center col-compact"></td>
+                  <td class="ion-text-center col-compact"></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        <!-- Synthesis -->
+        @if (lastChunk) {
+          <ion-grid class="synthesis-section ion-no-padding">
+            <ion-row class="ion-margin-vertical synthesis">
+              <ion-col>
+                <h3 class="ion-text-center font-extra-large">
+                  <strong>{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.TITLE' | translate }}</strong>
+                </h3>
+              </ion-col>
+            </ion-row>
+            <ion-row class="synthesis">
+              <ion-col>
+                <table [style.--row-height]="'20px'" [style.margin-right]="'var(--col-medium)'">
+                  <tbody>
+                    <tr>
+                      <th class="col-medium"></th>
+                      <td class="ion-text-center col-medium"></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table [style.--row-height]="'20px'">
+                  <tbody>
+                    <tr>
+                      <th class="col-medium"></th>
+                      <td class="ion-text-center col-medium"></td>
+                      <td class="ion-text-center col-medium"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ion-col>
+              <ion-col>
+                <table [style.--row-height]="'20px'">
+                  <tbody>
+                    <tr>
+                      <th class="col-medium"></th>
+                      <td class="ion-text-center col-medium"></td>
+                      <td class="ion-text-center col-medium"></td>
+                    </tr>
+                    <tr>
+                      <th class="col-medium"></th>
+                      <td class="ion-text-center col-medium"></td>
+                      <td class="ion-text-center col-medium"></td>
+                    </tr>
+                    <tr>
+                      <th class="col-medium"></th>
+                      <td class="ion-text-center col-medium"></td>
+                      <td class="ion-text-center col-medium"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        }
+
+        <!-- footer -->
+        <ion-grid class="report-footer ion-no-padding">
+          <ion-row class="footer-text">
+            <ion-col class="ion-text-start">
+              {{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.COPY_RIGHT' | translate: { year: stats.reportDate | dateFormat: { pattern: 'YYYY' } } }}
+            </ion-col>
+            <ion-col class="ion-text-center">{{ stats.reportDate | dateFormat }}</ion-col>
+            <ion-col class="ion-text-end">
+              {{ ('COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber: chunkIndex + 1 }) + '/' + stats.tableRowChunk.length }}
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </section>
+    }
+  </app-reveal>
+
+  <ng-template #loadingTemplate>
+    <div class="loader">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  </ng-template>
+</ion-content>
