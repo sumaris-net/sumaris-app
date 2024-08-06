@@ -46,6 +46,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
   basePortLocation: ReferentialRef;
   vesselType: ReferentialRef;
   vesselTypeId: number;
+  vesselTypeIds: number[];
   onlyWithRegistration: boolean;
 
   fromObject(source: any, opts?: any) {
@@ -75,6 +76,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       (isNotNilOrBlank(source.basePortLocationId) && ReferentialRef.fromObject({ id: source.basePortLocationId })) ||
       undefined;
     this.vesselTypeId = source.vesselTypeId;
+    this.vesselTypeIds = source.vesselTypeIds;
     this.vesselType =
       ReferentialRef.fromObject(source.vesselType) ||
       (isNotNilOrBlank(source.vesselTypeId) && ReferentialRef.fromObject({ id: source.vesselTypeId })) ||
@@ -106,6 +108,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       delete target.basePortLocation;
 
       target.vesselTypeId = toNumber(this.vesselTypeId, this.vesselType?.id);
+      target.vesselTypeIds = this.vesselTypeIds;
       delete target.vesselType;
 
       target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
@@ -171,6 +174,10 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       filterFns.push((t) => t.vesselType?.id === vesselTypeId);
     }
 
+    // Vessel types ids
+    if (isNotEmptyArray(this.vesselTypeIds)) {
+      filterFns.push((t) => isNotNil(t.vesselType?.id) && this.vesselTypeIds.includes(t.vesselType?.id));
+    }
     // Start date
     const startDate = this.startDate || this.date;
     if (isNotNil(startDate)) {

@@ -53,6 +53,12 @@ export const VesselTypeIds = {
   SCIENTIFIC_RESEARCH_VESSEL: 2,
 };
 
+export const VesselTypeIdsByProgram = {
+  ACTIFLOT: [1, 5],
+  OBSMER: [1, 5, 8],
+  OBSVENTES: [1, 5],
+};
+
 export const VesselIds = {
   UNKNOWN: 5,
 };
