@@ -1,5 +1,5 @@
 import { FormFieldDefinition, FormFieldType, isNilOrBlank, Property, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds, ProgramLabel, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelGroups, LocationLevelIds, ProgramLabel, TaxonGroupTypeIds, UnitLabel, VesselTypeIdsByProgram } from '../model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -1239,6 +1239,13 @@ export const ProgramProperties = Object.freeze({
   },
 
   /* -- Extraction options -- */
+
+  VESSEL_TYPE_FILTER_BY_IDS: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.observers.enable',
+    label: 'PROGRAM.OPTIONS.VESSEL_TYPE_FILTER_BY_IDS',
+    defaultValue: [1, 2, 3],
+    type: 'string',
+  },
 
   EXTRACTION_FORMATS: <FormFieldDefinition>{
     key: 'sumaris.extraction.formats',
