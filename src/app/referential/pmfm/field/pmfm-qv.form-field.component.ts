@@ -1,4 +1,5 @@
 import {
+  booleanAttribute,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -107,6 +108,10 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() maxVisibleButtons: number;
   @Input() buttonsColCount: number;
   @Input() showButtonIcons: boolean;
+  @Input({ transform: booleanAttribute }) disableRipple = false;
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  @Input() @Input({ alias: 'class' }) panelClass: string;
+  @Input() panelWidth: string;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;

@@ -106,6 +106,8 @@
         // IMAGINE-653 Remove transparent attribute for header since values are visible on header row otherwise
         //background-color: transparent;
 
+        background-color: var(--mat-toolbar-background-color, whitesmoke) !important;
+
         &.mat-column-top-start {
           padding-inline-start: 16px !important;
           min-width: 116px;

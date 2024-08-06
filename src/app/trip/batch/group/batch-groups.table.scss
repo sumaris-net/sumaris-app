@@ -1,4 +1,3 @@
-
 :host {
   width: 100%;
 }
@@ -29,6 +28,11 @@
         &.mat-column-top-start {
           padding-inline-start: 8px;
           color: unset;
+          z-index: 99 !important; // Should not hide other columns
+          background-color: var(--mat-toolbar-background-color, whitesmoke) !important;
+        }
+        &.mat-column-top-end {
+          background-color: var(--mat-toolbar-background-color, whitesmoke) !important;
         }
 
         &.mat-column-qv-group {
@@ -55,10 +59,8 @@
       }
     }
 
-
     .mat-mdc-header-row,
     .mat-mdc-row {
-
       .mat-mdc-header-cell.total {
         background-color: rgba(var(--ion-color-light-rgb), 0.6) !important;
       }
