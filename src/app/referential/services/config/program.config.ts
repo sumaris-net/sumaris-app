@@ -1221,7 +1221,7 @@ export const ProgramProperties = Object.freeze({
   VESSEL_TYPE_FILTER_BY_IDS: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.observers.enable',
     label: 'PROGRAM.OPTIONS.VESSEL_TYPE_FILTER_BY_IDS',
-    defaultValue: [1, 2, 3],
+    defaultValue: [],
     type: 'string',
   },
 
