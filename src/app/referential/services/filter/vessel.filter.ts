@@ -17,8 +17,6 @@ import {
 } from '@sumaris-net/ngx-components';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
-import { Program } from '../model/program.model';
-import { ProgramProperties } from '../config/program.config';
 
 @EntityClass({ typename: 'VesselFilterVO' })
 export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, VesselSnapshot> {
