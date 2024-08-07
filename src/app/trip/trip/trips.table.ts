@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TripComparators, TripService } from './trip.service';
 import { TripFilter, TripSynchroImportFilter } from './trip.filter';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
@@ -13,6 +13,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  MatAutocompleteField,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
   PersonUtils,
@@ -31,7 +32,7 @@ import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter, tap } from 'rxjs/operators';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
@@ -42,7 +43,6 @@ import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operati
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
-import { RxState } from '@rx-angular/state';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
@@ -70,6 +70,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
   @Input() canDownload = false;
   @Input() canUpload = false;
   @Input() canOpenMap = false;
+  programValueChanges$: Observable<any>;
+  vesselAutocompleteOriginalFilter: Partial<VesselSnapshotFilter>;
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
@@ -131,9 +133,29 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
   }
-
+  @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
   ngOnInit() {
     super.ngOnInit();
+
+    this.programValueChanges$ = this.filterForm.get('program')?.valueChanges || new Observable();
+
+    this.programValueChanges$.subscribe((program) => {
+      let programVesselTypeIdsFilter = program?.getProperty(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
+      if (isNotNil(programVesselTypeIdsFilter)) {
+        programVesselTypeIdsFilter = programVesselTypeIdsFilter
+          .split(',')
+          .map((item) => item.trim())
+          .map(Number);
+      }
+      if (program) {
+        console.log(filter);
+        const newFilter: Partial<VesselSnapshotFilter> = { ...this.vesselAutocompleteOriginalFilter, vesselTypeIds: programVesselTypeIdsFilter };
+        this.vesselSnapshotField.filter = newFilter;
+      } else {
+        this.vesselSnapshotField.filter = this.vesselAutocompleteOriginalFilter;
+      }
+      this.vesselSnapshotField.reloadItems();
+    });
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -153,7 +175,11 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
+      this.registerAutocompleteField('vesselSnapshot', opts);
+      // save the original filter to be able to restore it when the program changes
+      this.vesselAutocompleteOriginalFilter = opts.filter;
+    });
 
     // Combo: recorder department
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {

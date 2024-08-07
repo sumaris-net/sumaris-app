@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
 import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
@@ -15,6 +15,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  MatAutocompleteField,
   MatAutocompleteFieldConfig,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   OfflineFeature,
@@ -57,6 +58,7 @@ import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -110,8 +112,6 @@ export class ActivityCalendarsTable
   @Input() basePortLocationLevelIds: number[] = null;
   @Input() @RxStateProperty() title: string;
   @Input() canAdd: boolean;
-  @Input() enableReport = false;
-  @RxStateProperty() protected reportTypes: Property[];
 
   @Input()
   set showObservers(value: boolean) {
@@ -210,6 +210,7 @@ export class ActivityCalendarsTable
     this.debug = !environment.production;
     this.logPrefix = '[activity-calendar-table] ';
   }
+  @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
 
   ngOnInit() {
     super.ngOnInit();
@@ -221,6 +222,26 @@ export class ActivityCalendarsTable
     this.canOpenMap = showAdvancedFeatures;
     this.canAdd = showAdvancedFeatures;
 
+    this.programValueChanges$ = this.filterForm.get('program')?.valueChanges || new Observable();
+
+    this.programValueChanges$.subscribe((program) => {
+      let programVesselTypeIdsFilter = program?.getProperty(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
+      if (isNotNil(programVesselTypeIdsFilter)) {
+        programVesselTypeIdsFilter = programVesselTypeIdsFilter
+          .split(',')
+          .map((item) => item.trim())
+          .map(Number);
+      }
+      if (program) {
+        console.log(filter);
+        const newFilter: Partial<VesselSnapshotFilter> = { ...this.vesselAutocompleteOriginalFilter, vesselTypeIds: programVesselTypeIdsFilter };
+        this.vesselSnapshotField.filter = newFilter;
+      } else {
+        this.vesselSnapshotField.filter = this.vesselAutocompleteOriginalFilter;
+      }
+      this.vesselSnapshotField.reloadItems();
+    });
+
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
       service: this.programRefService,
@@ -229,7 +250,11 @@ export class ActivityCalendarsTable
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
+      this.registerAutocompleteField('vesselSnapshot', opts);
+      // save the original filter to be able to restore it when the program changes
+      this.vesselAutocompleteOriginalFilter = opts.filter;
+    });
 
     const locationConfig: MatAutocompleteFieldConfig = {
       filter: {
