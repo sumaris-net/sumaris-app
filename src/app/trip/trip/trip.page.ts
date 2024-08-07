@@ -560,7 +560,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
 
     // Enable expenses tab if has the program
-    this.showExpensesTable = this.showExpensesTable || (this.showExpensesTable && isNotEmptyArray(data.gears));
+    this.showExpensesTable = this.showExpensesTable || !this.isNewData;
   }
 
   async openReport(reportType?: TripReportType) {
@@ -826,6 +826,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   async getValue(): Promise<Trip> {
     const data = await super.getValue();
+
+    data.measurements = this.measurementsForm.value;
 
     if (this.physicalGearsTable.dirty) {
       await this.physicalGearsTable.save();
