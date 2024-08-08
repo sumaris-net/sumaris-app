@@ -258,9 +258,9 @@
       <ng-content *ngTemplateOutlet="pageFooter; context: { help: 'OBSERVED_LOCATION.REPORT.FORM.LANDING.HELP' }"></ng-content>
     </section>
 
-    <section *sectionDef>
+    <section>
       @for (landings of data.landings | splitArrayInChunks: 9; track $index) {
-        <section class="landscape">
+        <section *sectionDef class="landscape">
           <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.TITLE' }"></ng-content>
           <ion-grid class="report-section">
             <ion-row>
