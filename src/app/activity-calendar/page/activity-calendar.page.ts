@@ -145,8 +145,8 @@ export class ActivityCalendarPage
   @RxStateProperty() protected reportTypes: Property[];
   @RxStateProperty() protected titleMenu: string;
   @RxStateProperty() protected hasClipboard: boolean;
+  @RxStateProperty() protected timezone = DateUtils.moment().tz();
 
-  protected timezone = DateUtils.moment().tz();
   protected allowAddNewVessel: boolean;
   protected showRecorder = true;
   protected showCalendar = true;
@@ -828,6 +828,7 @@ export class ActivityCalendarPage
           program: entity.program,
           vesselId: entity.vesselSnapshot?.id,
           year: entity.year - 1,
+          excludedIds: isNotNil(entity.id) ? [entity.id] : undefined,
         },
         { fullLoad: true }
       );
