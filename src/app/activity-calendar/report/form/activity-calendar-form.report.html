@@ -96,19 +96,32 @@
                 <ion-col size="7" class="ion-padding-end">
                   <ion-grid class="ion-no-padding">
                     <ion-row class="section-title red-border-bottom">
-                      <ion-col>
+                      <ion-col class="ion-padding-end">
                         <h2>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.TITLE' | translate }}</h2>
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      <ion-col>
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_LOCATION' | translate }}
-                        </strong>
-                        &nbsp;
-                        @if (!isBlankForm) {
-                          {{ data.vesselSnapshot.registrationLocation | referentialToString: ['label', 'name'] }}
-                        }
+                      <ion-col class="ion-margin-right">
+                        <ion-grid class="ion-no-padding">
+                          <ion-row>
+                            <ion-col size="auto">
+                              <strong>
+                                {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_LOCATION' | translate }}
+                              </strong>
+                              &nbsp;
+                            </ion-col>
+                            <ion-col>
+                              @if (!isBlankForm) {
+                                @for (registrationPeriod of data.vesselRegistrationPeriods; track registrationPeriod.id) {
+                                  {{ registrationPeriod.registrationLocation | referentialToString: ['label', 'name'] }}
+                                  @if (!$last) {
+                                    <br />
+                                  }
+                                }
+                              }
+                            </ion-col>
+                          </ion-row>
+                        </ion-grid>
                       </ion-col>
                       <ion-col>
                         <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}</strong>
