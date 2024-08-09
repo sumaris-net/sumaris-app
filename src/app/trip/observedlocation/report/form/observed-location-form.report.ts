@@ -16,7 +16,7 @@ import { ObservedLocation } from '../../observed-location.model';
 import { ObservedLocationService } from '../../observed-location.service';
 import { Landing } from '@app/trip/landing/landing.model';
 
-export class FormObservedLocationReportStats extends BaseReportStats {
+export class ObservedLocationFormReportStats extends BaseReportStats {
   subtitle?: string;
   footerText?: string;
   logoHeadLeftUrl?: string;
@@ -33,28 +33,28 @@ export class FormObservedLocationReportStats extends BaseReportStats {
 }
 
 @Component({
-  selector: 'app-form-observed-location',
-  templateUrl: './form-observed-location.report.html',
-  styleUrls: ['./form-observed-location.report.scss', '../../../../data/report/base-form-report.scss'],
+  selector: 'app-observed-location-form-report',
+  templateUrl: './observed-location-form.report.html',
+  styleUrls: ['./observed-location-form.report.scss', '../../../../data/report/base-form-report.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class FormObservedLocationReport extends AppDataEntityReport<ObservedLocation, number, FormObservedLocationReportStats> {
+export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLocation, number, ObservedLocationFormReportStats> {
   protected logPrefix = 'form-observed-location-report';
   protected isBlankForm: boolean;
-  protected subReportType: string;
+  protected reportType: string;
 
   protected readonly observedLocationService: ObservedLocationService;
   protected readonly strategyRefService: StrategyRefService;
   protected readonly referentialRefService: ReferentialRefService;
 
   constructor(injector: Injector) {
-    super(injector, ObservedLocation, FormObservedLocationReportStats);
+    super(injector, ObservedLocation, ObservedLocationFormReportStats);
     this.observedLocationService = injector.get(ObservedLocationService);
     this.strategyRefService = injector.get(StrategyRefService);
     this.referentialRefService = injector.get(ReferentialRefService);
 
-    this.subReportType = this.route.snapshot.routeConfig.path;
-    this.isBlankForm = this.subReportType === 'blank';
+    this.reportType = this.route.snapshot.routeConfig.path;
+    this.isBlankForm = this.reportType === 'blank-form';
   }
 
   protected async loadData(id: number, opts?: any): Promise<ObservedLocation> {
@@ -75,7 +75,7 @@ export class FormObservedLocationReport extends AppDataEntityReport<ObservedLoca
     return data;
   }
 
-  protected computeSlidesOptions(data: ObservedLocation, stats: FormObservedLocationReportStats): Partial<IRevealExtendedOptions> {
+  protected computeSlidesOptions(data: ObservedLocation, stats: ObservedLocationFormReportStats): Partial<IRevealExtendedOptions> {
     return {
       ...super.computeSlidesOptions(data, stats),
       width: 210 * 4,
@@ -86,9 +86,9 @@ export class FormObservedLocationReport extends AppDataEntityReport<ObservedLoca
 
   protected async computeStats(
     data: ObservedLocation,
-    opts?: IComputeStatsOpts<FormObservedLocationReportStats>
-  ): Promise<FormObservedLocationReportStats> {
-    const stats = new FormObservedLocationReportStats();
+    opts?: IComputeStatsOpts<ObservedLocationFormReportStats>
+  ): Promise<ObservedLocationFormReportStats> {
+    const stats = new ObservedLocationFormReportStats();
 
     // Get program and options
     stats.program = await this.programRefService.loadByLabel(data.program.label);
@@ -157,11 +157,11 @@ export class FormObservedLocationReport extends AppDataEntityReport<ObservedLoca
     return stats;
   }
 
-  protected async computeTitle(data: ObservedLocation, stats: FormObservedLocationReportStats): Promise<string> {
+  protected async computeTitle(data: ObservedLocation, stats: ObservedLocationFormReportStats): Promise<string> {
     return this.translate.instant('OBSERVED_LOCATION.REPORT.FORM.TITLE');
   }
 
-  protected computeDefaultBackHref(data: ObservedLocation, stats: FormObservedLocationReportStats): string {
+  protected computeDefaultBackHref(data: ObservedLocation, stats: ObservedLocationFormReportStats): string {
     return `/observations/${data.id}`;
   }
 
@@ -169,7 +169,7 @@ export class FormObservedLocationReport extends AppDataEntityReport<ObservedLoca
     return 'observations/report/form';
   }
 
-  protected computeI18nContext(stats: FormObservedLocationReportStats): IReportI18nContext {
+  protected computeI18nContext(stats: ObservedLocationFormReportStats): IReportI18nContext {
     return {
       ...super.computeI18nContext(stats),
       pmfmPrefix: 'OBSERVED_LOCATION.REPORT.FORM.PMFM.',
