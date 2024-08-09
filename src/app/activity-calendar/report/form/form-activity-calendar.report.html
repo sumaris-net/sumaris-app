@@ -297,47 +297,49 @@
             <ion-grid class="report-section ion-no-padding ion-padding-top font-compact" [style.--ion-padding]="'8px'">
               <ion-row>
                 <ion-col size="8" class="ion-padding-end">
-                  <ion-grid class="ion-no-padding">
-                    <ion-row class="section-title">
-                      <ion-col>
-                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GUF_SECTION.TITLE' | translate }}</h2>
-                      </ion-col>
-                    </ion-row>
-                    <ion-row>
-                      <table class="gpf-table" [style.width]="'100%'">
-                        <thead>
-                          <tr>
-                            <th [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'"></th>
-                            @for (labelMetier of data.gearPhysicalFeatures | arrayPluck: 'metier.label'; track labelMetier) {
-                              <th
-                                [style.--col-width]="
-                                  'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
-                                "
-                              >
-                                {{ labelMetier }}
-                              </th>
-                            }
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @for (pmfm of stats.pmfm.gpf; track pmfm.id) {
-                            <tr [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
-                              <th>{{ pmfm | pmfmName: { withDetails: false } }}</th>
-                              @for (gpf of data.gearPhysicalFeatures; track gpf.id) {
-                                <td
+                  @if ((stats.pmfm.gpf | isNotEmptyArray) && (data.gearPhysicalFeatures | isNotEmptyArray)) {
+                    <ion-grid class="ion-no-padding">
+                      <ion-row class="section-title">
+                        <ion-col>
+                          <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GUF_SECTION.TITLE' | translate }}</h2>
+                        </ion-col>
+                      </ion-row>
+                      <ion-row>
+                        <table class="gpf-table" [style.width]="'100%'">
+                          <thead>
+                            <tr>
+                              <th [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'"></th>
+                              @for (labelMetier of data.gearPhysicalFeatures | arrayPluck: 'metier.label'; track labelMetier) {
+                                <th
                                   [style.--col-width]="
                                     'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
                                   "
                                 >
-                                  {{ gpf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
-                                </td>
+                                  {{ labelMetier }}
+                                </th>
                               }
                             </tr>
-                          }
-                        </tbody>
-                      </table>
-                    </ion-row>
-                  </ion-grid>
+                          </thead>
+                          <tbody>
+                            @for (pmfm of stats.pmfm.gpf; track pmfm.id) {
+                              <tr [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
+                                <th>{{ pmfm | pmfmName: { withDetails: false } }}</th>
+                                @for (gpf of data.gearPhysicalFeatures; track gpf.id) {
+                                  <td
+                                    [style.--col-width]="
+                                      'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
+                                    "
+                                  >
+                                    {{ gpf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
+                                  </td>
+                                }
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </ion-row>
+                    </ion-grid>
+                  }
                 </ion-col>
                 <ion-col size="2" class="ion-padding-start">
                   <ion-grid class="ion-no-padding">
