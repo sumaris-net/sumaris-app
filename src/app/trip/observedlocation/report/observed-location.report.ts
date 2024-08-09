@@ -75,7 +75,7 @@ export class ObservedLocationStats extends DataReportStats {
 }
 
 @Component({
-  selector: 'app-observed-location',
+  selector: 'app-observed-location-report',
   templateUrl: './observed-location.report.html',
   styleUrls: ['../../landing/report/landing.report.scss', '../../../data/report/base-report.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

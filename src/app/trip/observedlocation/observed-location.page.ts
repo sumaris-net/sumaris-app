@@ -545,8 +545,7 @@ export class ObservedLocationPage
     }
 
     if (!reportType) reportType = this.reportTypes.length === 1 ? <ObservedLocationReportType>this.reportTypes[0].key : 'legacy';
-    const reportPath = reportType !== <ObservedLocationReportType>'legacy' ? reportType.split('-') : [];
-    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...reportPath].join('/'));
+    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', reportType].join('/'));
   }
 
   async copyLocally() {

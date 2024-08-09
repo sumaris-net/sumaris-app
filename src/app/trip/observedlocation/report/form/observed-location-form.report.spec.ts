@@ -1,19 +1,18 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
+import { ObservedLocationFromReport } from './observed-location-form.report';
 
-import { FormObservedLocationReport } from './form-observed-location.report';
-
-describe('FormObservedLocationReport', () => {
-  let component: FormObservedLocationReport;
-  let fixture: ComponentFixture<FormObservedLocationReport>;
+describe('ObservedLocationFormReport', () => {
+  let component: ObservedLocationFromReport;
+  let fixture: ComponentFixture<ObservedLocationFromReport>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [FormObservedLocationReport],
+      declarations: [ObservedLocationFromReport],
       imports: [IonicModule.forRoot()],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(FormObservedLocationReport);
+    fixture = TestBed.createComponent(ObservedLocationFromReport);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));

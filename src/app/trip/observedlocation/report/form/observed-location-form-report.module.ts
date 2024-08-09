@@ -1,13 +1,13 @@
 import { NgModule } from '@angular/core';
-import { FormObservedLocationReport } from './form-observed-location.report';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppDataModule } from '@app/data/data.module';
+import { ObservedLocationFormReport } from './observed-location-form.report';
 
 @NgModule({
   imports: [AppCoreModule, AppSharedReportModule, AppDataModule, AppReferentialModule],
-  declarations: [FormObservedLocationReport],
-  exports: [FormObservedLocationReport],
+  declarations: [ObservedLocationFormReport],
+  exports: [ObservedLocationFormReport],
 })
-export class FormObservedLocationReportModule {}
+export class ObservedLocationFormReportModule {}
