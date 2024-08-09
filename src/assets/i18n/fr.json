@@ -3483,7 +3483,7 @@
     "REPORT": {
       "TITLE": "Calendrier d'activité {{ year }}",
       "BLANK_TITLE": "Raport d'activité vierge",
-      "BASE_PORT_LOCATION": "Port",
+      "BASE_PORT_LOCATION": "Port d'exploitation",
       "PMFM": {
         "DURATION_AT_SEA_DAYS": "Nb jours mer",
         "FISHING_DURATION_DAYS": "Nb jours pêche",
