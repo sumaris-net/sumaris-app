@@ -197,7 +197,7 @@
               <tbody>
                 <!-- isActive row -->
                 <tr>
-                  <th>
+                  <th class="col-label">
                     {{ 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate }}
                   </th>
                   @for (month of stats.activityMonth; track month.id) {
@@ -208,7 +208,7 @@
                 </tr>
                 <!-- basePortLocation row -->
                 <tr>
-                  <th>
+                  <th class="col-label">
                     {{ 'ACTIVITY_CALENDAR.REPORT.BASE_PORT_LOCATION' | translate }}
                   </th>
                   @for (month of stats.activityMonth; track month.id) {
@@ -223,7 +223,9 @@
                 </tr>
                 @for (monthPmfm of stats.pmfm.activityMonth; track monthPmfm.id) {
                   <tr>
-                    <th>{{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: false } }}</th>
+                    <th class="col-label">
+                      {{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: false } }}
+                    </th>
                     @for (month of stats.activityMonth; track month.id) {
                       <td
                         [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
@@ -248,7 +250,7 @@
             <table class="month-table">
               <thead>
                 <tr>
-                  <th></th>
+                  <th class="col-label"></th>
                   @for (month of stats.activityMonth; track month.id) {
                     <th>
                       {{ month.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
@@ -259,7 +261,7 @@
               <tbody>
                 @for (metierIndex of metierChunk | arrayPluck: 'metierIndex'; track metierIndex; let metierChunkIndex = $index) {
                   <tr class="metier-row">
-                    <th>
+                    <th class="col-label">
                       {{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}
                     </th>
                     @for (month of stats.activityMonth; track month.id; let monthIndex = $index) {
@@ -287,7 +289,7 @@
                   </tr>
                   @for (fishingAreasIndex of metierChunk[metierChunkIndex] | mapGet: 'fishingAreasIndexes'; track fishingAreasIndex) {
                     <tr>
-                      <th>{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_FISHING_AREA' | translate }}</th>
+                      <th class="col-label">{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_FISHING_AREA' | translate }}</th>
                       @for (month of stats.activityMonth; track month.id) {
                         <td
                           [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
