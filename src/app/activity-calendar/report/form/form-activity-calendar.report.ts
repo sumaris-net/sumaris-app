@@ -104,7 +104,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
 
   protected logPrefix = 'trip-form-report';
   protected isBlankForm: boolean;
-  protected subReportType: string;
+  protected reportType: string;
 
   protected readonly ActivityCalendarService: ActivityCalendarService;
   protected readonly strategyRefService: StrategyRefService;
@@ -151,15 +151,14 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     this.translateContextService = this.injector.get(TranslateContextService);
     this.configService = this.injector.get(ConfigService);
 
-    this.subReportType = this.route.snapshot.routeConfig.path;
-    this.isBlankForm = this.subReportType === 'blank';
+    this.reportType = this.route.snapshot.routeConfig.path;
+    this.isBlankForm = this.reportType === 'blank-form';
     this.debug = !environment.production;
   }
 
   computePrintHref(data: ActivityCalendar, stats: FormActivityCalendarReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
-    else
-      return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form/' + this.subReportType);
+    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + this.reportType);
   }
 
   async updateView() {
