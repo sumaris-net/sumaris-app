@@ -137,6 +137,8 @@
       "ITEMS_PER_PAGE": "Nombre de lignes affichées",
       "NEXT_PAGE": "Page suivante",
       "PREVIOUS_PAGE": "Page précédente",
+      "LAST_PAGE": "Dernière page",
+      "FIRST_PAGE": "Première page",
       "OF": "sur"
     },
     "TABLE": {
