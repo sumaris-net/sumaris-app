@@ -3,7 +3,7 @@ import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/
 import { BaseReportStats, IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
@@ -11,10 +11,11 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
-import { Person, isNotNil, splitById } from '@sumaris-net/ngx-components';
+import { Person, arrayDistinct, isNotNil, splitById, toBoolean } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../observed-location.model';
 import { ObservedLocationService } from '../../observed-location.service';
 import { Landing } from '@app/trip/landing/landing.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
 export class ObservedLocationFormReportStats extends BaseReportStats {
   subtitle?: string;
@@ -23,6 +24,10 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
   logoHeadRightUrl?: string;
   strategy: Strategy;
   landingTableRowChunk: Landing[][];
+  nbSampledVessel: number;
+  dividerPmfmId: number;
+  minObservedSpeciesCount: number;
+  observedCount: number;
   pmfms: {
     observedLocation: IPmfm[];
     landing: IPmfm[];
@@ -111,6 +116,8 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
     stats.footerText = stats.program.getProperty(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_FOOTER);
     stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_LOGO_HEAD_LEFT_URL);
     stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_LOGO_HEAD_RIGHT_URL);
+    stats.minObservedSpeciesCount = stats.program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
+    stats.dividerPmfmId = stats.program.getPropertyAsInt(ProgramProperties.LANDING_ROWS_DIVIDER_PMFM_ID);
 
     // Get strategy
     stats.strategy = await this.loadStrategy(stats.program, data);
@@ -160,9 +167,20 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       data.landings = new Array(stats.program.getPropertyAsInt(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_BLANK_NB_LANDINGS)).fill(
         Landing.fromObject({})
       );
+    } else {
+      stats.nbSampledVessel = arrayDistinct(
+        data.landings.map((landing) => landing.vesselSnapshot),
+        'id'
+      ).length;
+      stats.observedCount = data.landings
+        .map((landing) => landing.measurementValues)
+        .filter((measurementValues) =>
+          MeasurementValuesUtils.hasPmfmValue(measurementValues, stats.dividerPmfmId, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM)
+        )
+        .filter((measurementValues) => toBoolean(measurementValues[PmfmIds.IS_OBSERVED], true)).length;
     }
 
-    // Adapt TAXON_GROUP_ID PMFM for getting taxon group names reather taxon group id
+    // Adapt TAXON_GROUP_ID PMFM for getting taxon group names rather taxon group id
     const adaptedTaxonGroupIdPmfms = await this.adaptTaxonGroupIdPmfmToCarryTaxonGroupName(
       data.landings,
       stats.pmfmsByIds.landing[PmfmIds.TAXON_GROUP_ID]

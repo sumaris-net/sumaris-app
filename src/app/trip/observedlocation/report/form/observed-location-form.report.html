@@ -284,7 +284,7 @@
                       </ion-col>
                       <ion-col class="title-value ion-text-center font-large no-border-bottom ion-no-padding ion-no-margin" size="2">
                         @if (!isBlankForm) {
-                          <!-- TODO -->
+                          {{ stats?.nbSampledVessel }}
                         }
                       </ion-col>
                     </ion-row>
@@ -292,10 +292,13 @@
                       <ion-col class="ion-no-padding ion-no-margin" size="auto">
                         <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.NB_OF_PRIORITY_SPECIES_SAMPLED' | translate }}</h3>
                       </ion-col>
-                      <ion-col class="title-value ion-text-center font-large ion-no-padding ion-no-margin" size="2">
+                      <ion-col class="title-value ion-text-right font-large ion-no-padding ion-no-margin" size="2">
                         @if (!isBlankForm) {
-                          <!-- TODO -->
+                          {{ stats.observedCount }}
+                        } @else {
+                          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         }
+                        &nbsp;/&nbsp; {{ stats.minObservedSpeciesCount }}&nbsp;
                       </ion-col>
                     </ion-row>
                   </ion-grid>
@@ -310,14 +313,12 @@
                       <ion-col class="vertical-centred-content horizontal-centred-content" size="2">
                         {{ 'COMMON.YES' | translate }}
                         &nbsp;
-                        <!-- <ion-icon [name]="data?.sale?.saleType.label === type ? 'checkbox-outline' : 'square-outline'"></ion-icon> -->
-                        <ion-icon class="ion-text-center" name="square-outline"></ion-icon>
+                        <ion-icon [name]="(data.measurementValues | mapGet: pmfmIdsMap.HAS_PETS) ? 'checkbox-outline' : 'square-outline'"></ion-icon>
                       </ion-col>
                       <ion-col class="vertical-centred-content horizontal-centred-content" size="2">
                         {{ 'COMMON.NO' | translate }}
                         &nbsp;
-                        <!-- <ion-icon [name]="data?.sale?.saleType.label === type ? 'checkbox-outline' : 'square-outline'"></ion-icon> -->
-                        <ion-icon class="ion-text-center" name="square-outline"></ion-icon>
+                        <ion-icon [name]="!(data.measurementValues | mapGet: pmfmIdsMap.HAS_PETS) ? 'checkbox-outline' : 'square-outline'"></ion-icon>
                       </ion-col>
                       <ion-col size="2"></ion-col>
                     </ion-row>
@@ -357,7 +358,11 @@
                   </td>
                   @for (pmfm of stats.pmfms.landing | arrayFilter: filterPmfmForLandingTable; track pmfm) {
                     <td class="font-medium">
-                      <div [innerHTML]="landing.measurementValues | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm, html: false }"></div>
+                      <div
+                        [innerHTML]="
+                          landing.measurementValues | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm, html: false, propertyNames: ['label', 'name'] }
+                        "
+                      ></div>
                     </td>
                   }
                   <td class="font-medium">
@@ -388,7 +393,7 @@
                 @if (isBlankForm) {
                   ...../...../......
                 } @else {
-                  <!-- TODO : Get from Trip ? -->
+                  {{ data.startDateTime | dateFormat: { time: false } }}
                 }
               </ion-col>
               <ion-col size="auto">
@@ -396,7 +401,7 @@
                 @if (isBlankForm) {
                   .................................
                 } @else {
-                  <!-- TODO : Get from Trip ? -->
+                  {{ data.location?.name }}
                 }
               </ion-col>
             </ion-row>
