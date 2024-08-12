@@ -170,7 +170,11 @@
       <span>{{ 'VESSEL.VESSEL_FEATURES.BASE_PORT_LOCATION' | translateContext: i18nColumnSuffix }}</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
-      <ion-label [class.text-bold]="row.currentData.__changedProperties | arrayIncludes: 'basePortLocation'">
+      <ion-label
+        [title]="row.currentData.basePortLocation | referentialToString"
+        class="ion-text-nowrap"
+        [class.text-bold]="row.currentData.__changedProperties | arrayIncludes: 'basePortLocation'"
+      >
         {{ row.currentData.basePortLocation | referentialToString }}
       </ion-label>
     </mat-cell>

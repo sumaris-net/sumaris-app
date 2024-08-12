@@ -151,7 +151,7 @@
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
         <ion-row>
-          <ion-col *ngIf="showProgram || isAdmin">
+          <ion-col *ngIf="showProgram">
             <!-- Program -->
             <mat-autocomplete-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate"
@@ -164,7 +164,7 @@
           </ion-col>
 
           <!-- Year -->
-          <ion-col size="12" size-lg="3">
+          <ion-col size="12" size-lg="3" *ngIf="showYear">
             <mat-form-field floatLabel="auto">
               <mat-label>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.YEAR' | translate }}</mat-label>
               <mat-select formControlName="year">
@@ -527,7 +527,7 @@
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-text translate>
-            {{ (row.currentData.economicSurvey === true && 'COMMON.YES') || (row.currentData.economicSurvey === false && 'COMMON.NO') || '' }}
+            {{ row.currentData.economicSurvey ? 'COMMON.YES' : 'COMMON.NO' }}
           </ion-text>
         </td>
       </ng-container>
