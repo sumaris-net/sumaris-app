@@ -232,7 +232,8 @@ export class ActivityMonthValidatorService<
   getGearUseFeaturesArray(data?: GearUseFeatures[], opts?: GearUseFeaturesValidatorOptions & { required?: boolean }) {
     const required = !opts || opts.required !== false;
     const formArray = new AppFormArray(
-      (fa) => this.gearUseFeaturesValidator.getFormGroup(fa, { ...opts, requiredMetier: false, requiredFishingAreas: false }),
+      (fa) =>
+        this.gearUseFeaturesValidator.getFormGroup(fa, { ...opts, requiredMetier: false, ignoreDateRequired: true, requiredFishingAreas: false }),
       GearUseFeatures.equals,
       GearUseFeatures.isEmpty,
       {

@@ -1423,6 +1423,10 @@ export class CalendarComponent
             form.get('qualificationComments').setValue(null, { emitEvent: false });
             this.markAsDirty();
           }
+          const isActive = form.get('isActive').value;
+          if (isActive === VesselUseFeaturesIsActiveEnum.ACTIVE && form.status === 'VALID') {
+            this.validatorService.updateFormGroup(form);
+          }
         })
     );
 
