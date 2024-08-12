@@ -22,6 +22,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
   logoHeadLeftUrl?: string;
   logoHeadRightUrl?: string;
   strategy: Strategy;
+  landingTableRowChunk: Landing[][];
   pmfms: {
     observedLocation: IPmfm[];
     landing: IPmfm[];
@@ -46,6 +47,18 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
   protected readonly observedLocationService: ObservedLocationService;
   protected readonly strategyRefService: StrategyRefService;
   protected readonly referentialRefService: ReferentialRefService;
+
+  protected readonly pageDimensions = Object.freeze({
+    height: 297 * 4,
+    width: 210 * 4,
+    marginTop: 16,
+    marginBottom: 16,
+    headerHeight: 80,
+    footerHeight: 16,
+    landingTableSummaryHeight: 80,
+    landingTableHeadRowHeight: 40,
+    landingTableRowHeight: 65,
+  });
 
   constructor(injector: Injector) {
     super(injector, ObservedLocation, ObservedLocationFormReportStats);
@@ -137,10 +150,13 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       return isObservedValueA > isObservedValueB ? -1 : 1;
     });
 
-    // Fill empty observers on blank form
+    // Fill empty data on blank form
     if (this.isBlankForm) {
       data.observers = new Array(stats.program.getPropertyAsInt(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_BLANK_NB_OBSERVERS)).fill(
         Person.fromObject({})
+      );
+      data.landings = new Array(stats.program.getPropertyAsInt(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_BLANK_NB_LANDINGS)).fill(
+        Landing.fromObject({})
       );
     }
 
@@ -153,7 +169,10 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       result.push(pmfm.id === PmfmIds.TAXON_GROUP_ID ? adaptedTaxonGroupIdPmfms : pmfm);
       return result;
     }, []);
-    stats.pmfmsByIds[PmfmIds.TAXON_GROUP_ID] = console.debug('MYTEST DATA/STATS', { data, stats });
+
+    stats.landingTableRowChunk = this.computeLandingTableChunk(data);
+
+    console.debug('MYTEST STATS', { data, stats });
     return stats;
   }
 
@@ -215,5 +234,33 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
 
   protected filterPmfmForLandingTable(pmfm: IPmfm): boolean {
     return [PmfmIds.TAXON_GROUP_ID].includes(pmfm.id);
+  }
+
+  protected computeLandingTableChunk(data: ObservedLocation): Landing[][] {
+    const totalAvailableHeightForContent =
+      this.pageDimensions.width - // Use width because page is landscape
+      this.pageDimensions.marginTop -
+      this.pageDimensions.marginBottom -
+      this.pageDimensions.headerHeight -
+      this.pageDimensions.footerHeight;
+
+    const nbLinesAvailableOnTheFirstPage = Math.trunc(
+      (totalAvailableHeightForContent - this.pageDimensions.landingTableSummaryHeight - this.pageDimensions.landingTableHeadRowHeight) /
+        this.pageDimensions.landingTableRowHeight
+    );
+    const nbLinesAvailableOnOtherPage = Math.trunc(
+      (totalAvailableHeightForContent - this.pageDimensions.landingTableHeadRowHeight) / this.pageDimensions.landingTableRowHeight
+    );
+
+    const result = [data.landings.slice(0, nbLinesAvailableOnTheFirstPage)];
+    let consumedLineCount = nbLinesAvailableOnTheFirstPage;
+
+    while (consumedLineCount < data.landings.length) {
+      result.push(data.landings.slice(consumedLineCount, consumedLineCount + nbLinesAvailableOnOtherPage));
+      consumedLineCount += nbLinesAvailableOnOtherPage;
+    }
+
+    console.debug('MYTEST result', result);
+    return result;
   }
 }

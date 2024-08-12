@@ -2546,6 +2546,8 @@
       "OBSERVED_LOCATION_REPORT_FORM_FOOTER": "Sortie > Rapport : Texte de pied de page",
       "OBSERVED_LOCATION_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Sortie > Rapport : URL d'une image pour le log de gauche",
       "OBSERVED_LOCATION_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Sortie > Rapport : URL d'une image pour le log de droite",
+      "OBSERVED_LOCATION_REPORT_FORM_BLANK_NB_OBSERVERS": "Sortie > Rapport : Nombre de champs observateur vide à faire figurer sur le formulaire vierge",
+      "OBSERVED_LOCATION_REPORT_FORM_BLANK_NB_LANDINGS": "Sortie > Rapport : Nombre de lignes vide à faire figurer sur le tableau du plan de sortie pour les formulaires vierge",
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Sortie > Hors-Ligne > Niveau(x) de lieu à importer",
       "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Sortie > Afficher la carte de la stratégie ?",
       "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)",

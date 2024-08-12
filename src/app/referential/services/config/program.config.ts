@@ -891,8 +891,14 @@ export const ProgramProperties = Object.freeze({
   },
   OBSERVED_LOCATION_REPORT_FORM_BLANK_NB_OBSERVERS: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.report.form.blank.nbObservers',
-    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_BLANK_NB_OBSERVERS:',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_BLANK_FORM_NB_OBSERVERS:',
     defaultValue: 2,
+    type: 'integer',
+  },
+  OBSERVED_LOCATION_REPORT_FORM_BLANK_NB_LANDINGS: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.form.blank.nbLandings',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_BLANK_NB_LANDINGS:',
+    defaultValue: 9,
     type: 'integer',
   },
   OBSERVED_LOCATION_CONTROL_ENABLE: <FormFieldDefinition>{

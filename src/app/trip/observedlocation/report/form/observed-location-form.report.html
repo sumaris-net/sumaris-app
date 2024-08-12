@@ -259,68 +259,70 @@
     </section>
 
     <section>
-      @for (landings of data.landings | splitArrayInChunks: 9; track $index) {
+      @for (landings of stats.landingTableRowChunk; track $index) {
         <section *sectionDef class="landscape">
           <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.TITLE' }"></ng-content>
-          <ion-grid class="report-section">
-            <ion-row>
-              <ion-col size="6">
-                <ion-grid class="ion-no-padding ion-no-margin">
-                  <ion-row class="section-title ion-no-margin ion-justify-content-between">
-                    <ion-col class="ion-no-padding ion-no-margin" size="auto">
-                      <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.TOTAL_NUMBER_OF_VESSEL_SAMPLED' | translate }}</h3>
-                    </ion-col>
-                    <ion-col class="title-value ion-text-center font-large no-border-bottom ion-no-padding ion-no-margin" size="2">
-                      @if (!isBlankForm) {
-                        <!-- TODO -->
-                      }
-                    </ion-col>
-                  </ion-row>
-                  <ion-row class="section-title ion-no-margin ion-justify-content-between">
-                    <ion-col class="ion-no-padding ion-no-margin" size="auto">
-                      <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.NB_OF_PRIORITY_SPECIES_SAMPLED' | translate }}</h3>
-                    </ion-col>
-                    <ion-col class="title-value ion-text-center font-large ion-no-padding ion-no-margin" size="2">
-                      @if (!isBlankForm) {
-                        <!-- TODO -->
-                      }
-                    </ion-col>
-                  </ion-row>
-                </ion-grid>
-              </ion-col>
-              <ion-col class="vertical-centred-content" size="6">
-                <ion-grid class="ion-no-padding ion-no-margin inner-grid">
-                  <ion-row class="section-title form-filed ion-no-margin ion-justify-content-between">
-                    <ion-col class="ion-no-padding ion-no-margin ion-text-right" size="6">
-                      <h3 [style.margin]="0">{{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.PRESENCE_OF_PETS' | translate }}</h3>
-                    </ion-col>
-                    <!-- TODO : check box-->
-                    <ion-col class="vertical-centred-content horizontal-centred-content" size="2">
-                      {{ 'COMMON.YES' | translate }}
-                      &nbsp;
-                      <!-- <ion-icon [name]="data?.sale?.saleType.label === type ? 'checkbox-outline' : 'square-outline'"></ion-icon> -->
-                      <ion-icon class="ion-text-center" name="square-outline"></ion-icon>
-                    </ion-col>
-                    <ion-col class="vertical-centred-content horizontal-centred-content" size="2">
-                      {{ 'COMMON.NO' | translate }}
-                      &nbsp;
-                      <!-- <ion-icon [name]="data?.sale?.saleType.label === type ? 'checkbox-outline' : 'square-outline'"></ion-icon> -->
-                      <ion-icon class="ion-text-center" name="square-outline"></ion-icon>
-                    </ion-col>
-                    <ion-col size="2"></ion-col>
-                  </ion-row>
-                </ion-grid>
-              </ion-col>
-            </ion-row>
-            <ion-row>
-              <ion-col>
-                <em>
-                  {{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.HELP' | translate }}
-                </em>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-          <table class="table-full-width" [style.margin-top]="'10px'" [style.--row-title-height]="'40px'">
+          @if ($first) {
+            <ion-grid class="report-section landing-table-summary">
+              <ion-row>
+                <ion-col size="6">
+                  <ion-grid class="ion-no-padding ion-no-margin">
+                    <ion-row class="section-title ion-no-margin ion-justify-content-between">
+                      <ion-col class="ion-no-padding ion-no-margin" size="auto">
+                        <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.TOTAL_NUMBER_OF_VESSEL_SAMPLED' | translate }}</h3>
+                      </ion-col>
+                      <ion-col class="title-value ion-text-center font-large no-border-bottom ion-no-padding ion-no-margin" size="2">
+                        @if (!isBlankForm) {
+                          <!-- TODO -->
+                        }
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="section-title ion-no-margin ion-justify-content-between">
+                      <ion-col class="ion-no-padding ion-no-margin" size="auto">
+                        <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.NB_OF_PRIORITY_SPECIES_SAMPLED' | translate }}</h3>
+                      </ion-col>
+                      <ion-col class="title-value ion-text-center font-large ion-no-padding ion-no-margin" size="2">
+                        @if (!isBlankForm) {
+                          <!-- TODO -->
+                        }
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+                <ion-col class="vertical-centred-content" size="6">
+                  <ion-grid class="ion-no-padding ion-no-margin inner-grid">
+                    <ion-row class="section-title form-filed ion-no-margin ion-justify-content-between">
+                      <ion-col class="ion-no-padding ion-no-margin ion-text-right" size="6">
+                        <h3 [style.margin]="0">{{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.PRESENCE_OF_PETS' | translate }}</h3>
+                      </ion-col>
+                      <!-- TODO : check box-->
+                      <ion-col class="vertical-centred-content horizontal-centred-content" size="2">
+                        {{ 'COMMON.YES' | translate }}
+                        &nbsp;
+                        <!-- <ion-icon [name]="data?.sale?.saleType.label === type ? 'checkbox-outline' : 'square-outline'"></ion-icon> -->
+                        <ion-icon class="ion-text-center" name="square-outline"></ion-icon>
+                      </ion-col>
+                      <ion-col class="vertical-centred-content horizontal-centred-content" size="2">
+                        {{ 'COMMON.NO' | translate }}
+                        &nbsp;
+                        <!-- <ion-icon [name]="data?.sale?.saleType.label === type ? 'checkbox-outline' : 'square-outline'"></ion-icon> -->
+                        <ion-icon class="ion-text-center" name="square-outline"></ion-icon>
+                      </ion-col>
+                      <ion-col size="2"></ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+              </ion-row>
+              <ion-row>
+                <ion-col>
+                  <em>
+                    {{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.HELP' | translate }}
+                  </em>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          }
+          <table class="table-full-width" [style.margin-top]="'10px'" [style.--row-title-height]="'40px'" [style.--row-height]="'65px'">
             <thead>
               <tr>
                 <th class="ion-text-center font-medium">
@@ -348,7 +350,6 @@
                     </td>
                   }
                   <td class="font-medium">
-                    n
                     {{ landing.comments }}
                   </td>
                 </tr>

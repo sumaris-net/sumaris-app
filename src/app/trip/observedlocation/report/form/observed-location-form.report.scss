@@ -1,0 +1,10 @@
+.slides {
+  section {
+    ion-grid {
+      &.landing-table-summary {
+        min-height: 80px;
+        max-height: 80px;
+      }
+    }
+  }
+}
