@@ -115,7 +115,7 @@ export class Sale extends DataRootVesselEntity<Sale, number, SaleAsObjectOptions
     target.startDateTime = toDateISOString(this.startDateTime);
     target.endDateTime = toDateISOString(this.endDateTime);
     target.saleLocation = (this.saleLocation && this.saleLocation.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
-    target.saleType = (this.saleType && this.saleType.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
+    target.saleType = (this.saleType && this.saleType.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepLocalId: true })) || undefined; // #637 : handle negative SALE_TYPE ids
     target.observers = (this.observers && this.observers.map((o) => o.asObject(opts))) || undefined;
     target.measurements = (this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map((m) => m.asObject(opts))) || undefined;
     target.fishingAreas = (this.fishingAreas && this.fishingAreas.map((value) => value.asObject(opts))) || undefined;
