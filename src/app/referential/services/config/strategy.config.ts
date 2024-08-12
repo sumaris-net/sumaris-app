@@ -15,7 +15,7 @@ export class StrategyPropertiesUtils {
    * Refresh default values, (e.g. after enumeration has been update)
    */
   static refreshDefaultValues() {
-    console.info('[program-properties] Refreshing StrategyProperties default values...');
+    console.info('[strategy-properties] Refreshing StrategyProperties default values...');
   }
 
   static getPropertiesByType(type: FormFieldType | FormFieldType[]): FormFieldDefinition[] {
