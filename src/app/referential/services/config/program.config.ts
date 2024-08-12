@@ -1196,7 +1196,7 @@ export const ProgramProperties = Object.freeze({
       columnSizes: [4, 8],
       displayWith: (p) => p?.key,
     },
-    defaultValue: <ActivityCalendarReportType>'form',
+    defaultValue: 'form,blank-form',
   },
   ACTIVITY_CALENDAR_REPORT_FORM_FOOTER: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.report.form.footer',

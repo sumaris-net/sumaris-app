@@ -38,7 +38,7 @@ import moment from 'moment';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
 
-export class FormActivityCalendarReportStats extends BaseReportStats {
+export class ActivityCalendarFormReportStats extends BaseReportStats {
   subtitle?: string;
   footerText?: string;
   logoHeadLeftUrl?: string;
@@ -91,20 +91,20 @@ export class FormActivityCalendarReportStats extends BaseReportStats {
 }
 
 @Component({
-  selector: 'app-form-activity-calendar-report',
-  templateUrl: './form-activity-calendar.report.html',
-  styleUrls: ['./form-activity-calendar.report.scss', '../../../data/report/base-form-report.scss'],
+  selector: 'app-activity-calendar-form-report',
+  templateUrl: './activity-calendar-form.report.html',
+  styleUrls: ['./activity-calendar-form.report.scss', '../../../data/report/base-form-report.scss'],
   providers: [],
   encapsulation: ViewEncapsulation.None,
 })
-export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCalendar, number, FormActivityCalendarReportStats> {
+export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCalendar, number, ActivityCalendarFormReportStats> {
   readonly pmfmIdsMap = PmfmIds;
 
   public static readonly isBlankFormParam = 'isBlankForm';
 
   protected logPrefix = 'trip-form-report';
   protected isBlankForm: boolean;
-  protected subReportType: string;
+  protected reportType: string;
 
   protected readonly ActivityCalendarService: ActivityCalendarService;
   protected readonly strategyRefService: StrategyRefService;
@@ -143,7 +143,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
   }
 
   constructor(injector: Injector) {
-    super(injector, ActivityCalendar, FormActivityCalendarReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
+    super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
     this.ActivityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
@@ -151,15 +151,14 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     this.translateContextService = this.injector.get(TranslateContextService);
     this.configService = this.injector.get(ConfigService);
 
-    this.subReportType = this.route.snapshot.routeConfig.path;
-    this.isBlankForm = this.subReportType === 'blank';
+    this.reportType = this.route.snapshot.routeConfig.path;
+    this.isBlankForm = this.reportType === 'blank-form';
     this.debug = !environment.production;
   }
 
-  computePrintHref(data: ActivityCalendar, stats: FormActivityCalendarReportStats): URL {
+  computePrintHref(data: ActivityCalendar, stats: ActivityCalendarFormReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
-    else
-      return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form/' + this.subReportType);
+    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + this.reportType);
   }
 
   async updateView() {
@@ -188,7 +187,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     return data;
   }
 
-  protected computeSlidesOptions(data: ActivityCalendar, stats: FormActivityCalendarReportStats): Partial<IRevealExtendedOptions> {
+  protected computeSlidesOptions(data: ActivityCalendar, stats: ActivityCalendarFormReportStats): Partial<IRevealExtendedOptions> {
     return {
       ...super.computeSlidesOptions(data, stats),
       width: this.pageDimensions.width,
@@ -199,9 +198,9 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
 
   protected async computeStats(
     data: ActivityCalendar,
-    opts?: IComputeStatsOpts<FormActivityCalendarReportStats>
-  ): Promise<FormActivityCalendarReportStats> {
-    const stats = new FormActivityCalendarReportStats();
+    opts?: IComputeStatsOpts<ActivityCalendarFormReportStats>
+  ): Promise<ActivityCalendarFormReportStats> {
+    const stats = new ActivityCalendarFormReportStats();
 
     const timezone = (await firstNotNilPromise(this.configService.config)).getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE) || DateUtils.moment().tz();
     const gearIds = data.gearPhysicalFeatures?.map((gph) => gph.gear.id) || [];
@@ -268,7 +267,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     return stats;
   }
 
-  protected async computeTitle(data: ActivityCalendar, stats: FormActivityCalendarReportStats): Promise<string> {
+  protected async computeTitle(data: ActivityCalendar, stats: ActivityCalendarFormReportStats): Promise<string> {
     return this.isBlankForm
       ? this.translate.instant('ACTIVITY_CALENDAR.REPORT.BLANK_TITLE')
       : this.translate.instant('COMMON.REPORT.REPORT') +
@@ -279,7 +278,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
           });
   }
 
-  protected computeDefaultBackHref(data: ActivityCalendar, stats: FormActivityCalendarReportStats): string {
+  protected computeDefaultBackHref(data: ActivityCalendar, stats: ActivityCalendarFormReportStats): string {
     return `/activity-calendar/${data.id}`;
   }
 
@@ -287,7 +286,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     return 'activity-calendar/report/form';
   }
 
-  protected computeMetierTableChunk(data: ActivityCalendar, stats: FormActivityCalendarReportStats) {
+  protected computeMetierTableChunk(data: ActivityCalendar, stats: ActivityCalendarFormReportStats) {
     stats.metierTableChunks = [];
 
     const metierChunks: { metierIndex: number; fishingAreasIndexes: number[] }[] = stats.activityMonth[0].gearUseFeatures.map((guf, index) => {
@@ -356,7 +355,7 @@ export class FormActivityCalendarReport extends AppDataEntityReport<ActivityCale
     }
   }
 
-  protected computeActivityMonthColspan(stats: FormActivityCalendarReportStats) {
+  protected computeActivityMonthColspan(stats: ActivityCalendarFormReportStats) {
     stats.activityMonthColspan = stats.activityMonth.reduce((acc, month) => {
       const result = {};
       month.gearUseFeatures.forEach((_, idx) => (result[idx] = 1));

@@ -4,11 +4,11 @@ import { AppDataModule } from '@app/data/data.module';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { SharedModule } from '@sumaris-net/ngx-components';
-import { FormActivityCalendarReport } from './form-activity-calendar.report';
+import { ActivityCalendarFormReport } from './activity-calendar-form.report';
 
 @NgModule({
-  declarations: [FormActivityCalendarReport],
+  declarations: [ActivityCalendarFormReport],
   imports: [AppCoreModule, AppSharedReportModule, AppDataModule, AppReferentialModule, SharedModule],
-  exports: [FormActivityCalendarReport],
+  exports: [ActivityCalendarFormReport],
 })
-export class FormActivityCalendarReportModule {}
+export class ActivityCalendarFormReportModule {}

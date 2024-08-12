@@ -202,8 +202,9 @@ export class ActivityMonthValidatorService<
           //if (faArray) guf.removeControl('fishingAreas');
           if (faArray) faArray.disable({ emitEvent: false });
         }
+
         // Init start/end date (only if need)
-        if (guf.get('startDate').value || !guf.get('endDate').value) {
+        if ((startDate && !guf.get('startDate').value) || (endDate && !guf.get('endDate').value)) {
           guf.patchValue({ startDate, endDate }, { emitEvent: gufEnabled && guf.invalid /*force validation*/ });
         }
 
@@ -232,7 +233,8 @@ export class ActivityMonthValidatorService<
   getGearUseFeaturesArray(data?: GearUseFeatures[], opts?: GearUseFeaturesValidatorOptions & { required?: boolean }) {
     const required = !opts || opts.required !== false;
     const formArray = new AppFormArray(
-      (fa) => this.gearUseFeaturesValidator.getFormGroup(fa, { ...opts, requiredMetier: false, requiredFishingAreas: false }),
+      (fa) =>
+        this.gearUseFeaturesValidator.getFormGroup(fa, { ...opts, requiredMetier: false, ignoreDateRequired: true, requiredFishingAreas: false }),
       GearUseFeatures.equals,
       GearUseFeatures.isEmpty,
       {
@@ -421,6 +423,10 @@ export class ActivityMonthValidators {
   }
 
   static fishingAreaRequiredIfMetier(formGroup: FormArray): ValidationErrors | null {
+    // Make sure month is active
+    const isActiveControl = formGroup.get('isActive');
+    const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
+    if (!isActive) return null;
     const gufArray = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
     if (!gufArray || !(gufArray instanceof FormArray)) {
       return null;
@@ -450,6 +456,11 @@ export class ActivityMonthValidators {
   }
 
   static distanceToCoastRequiredIfFishingArea(formGroup: FormArray): ValidationErrors | null {
+    // Make sure month is active
+    const isActiveControl = formGroup.get('isActive');
+    const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
+    if (!isActive) return null;
+
     const gufArray = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
     if (!gufArray || !(gufArray instanceof FormArray)) {
       return null;

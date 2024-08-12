@@ -20,11 +20,15 @@
         min-width: calc(100% - (var(--page-left-right-margin) * 2));
         max-width: calc(100% - (var(--page-left-right-margin) * 2));
         border-top: solid 3px var(--section-title-color) !important;
-        --col-width: calc(100% / 13);
+        --col-width-label: 100px;
+        --col-width: calc((1136px - 100px) / 12);
         tbody,
         thead {
           th,
           td {
+            &.col-label {
+              --col-width: var(--col-width-label);
+            }
             &.activity-not-exists,
             &.activity-inactive {
               background-color: rgba(var(--ion-color-medium-rgb), 0.8) !important;

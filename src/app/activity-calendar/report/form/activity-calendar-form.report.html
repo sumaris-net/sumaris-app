@@ -96,19 +96,32 @@
                 <ion-col size="7" class="ion-padding-end">
                   <ion-grid class="ion-no-padding">
                     <ion-row class="section-title red-border-bottom">
-                      <ion-col>
+                      <ion-col class="ion-padding-end">
                         <h2>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.TITLE' | translate }}</h2>
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      <ion-col>
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_LOCATION' | translate }}
-                        </strong>
-                        &nbsp;
-                        @if (!isBlankForm) {
-                          {{ data.vesselSnapshot.registrationLocation | referentialToString: ['label', 'name'] }}
-                        }
+                      <ion-col class="ion-margin-right">
+                        <ion-grid class="ion-no-padding">
+                          <ion-row>
+                            <ion-col size="auto">
+                              <strong>
+                                {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_LOCATION' | translate }}
+                              </strong>
+                              &nbsp;
+                            </ion-col>
+                            <ion-col>
+                              @if (!isBlankForm) {
+                                @for (registrationPeriod of data.vesselRegistrationPeriods; track registrationPeriod.id) {
+                                  {{ registrationPeriod.registrationLocation | referentialToString: ['label', 'name'] }}
+                                  @if (!$last) {
+                                    <br />
+                                  }
+                                }
+                              }
+                            </ion-col>
+                          </ion-row>
+                        </ion-grid>
                       </ion-col>
                       <ion-col>
                         <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}</strong>
@@ -184,7 +197,7 @@
               <tbody>
                 <!-- isActive row -->
                 <tr>
-                  <th>
+                  <th class="col-label">
                     {{ 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate }}
                   </th>
                   @for (month of stats.activityMonth; track month.id) {
@@ -195,7 +208,7 @@
                 </tr>
                 <!-- basePortLocation row -->
                 <tr>
-                  <th>
+                  <th class="col-label">
                     {{ 'ACTIVITY_CALENDAR.REPORT.BASE_PORT_LOCATION' | translate }}
                   </th>
                   @for (month of stats.activityMonth; track month.id) {
@@ -210,7 +223,9 @@
                 </tr>
                 @for (monthPmfm of stats.pmfm.activityMonth; track monthPmfm.id) {
                   <tr>
-                    <th>{{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: false } }}</th>
+                    <th class="col-label">
+                      {{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: false } }}
+                    </th>
                     @for (month of stats.activityMonth; track month.id) {
                       <td
                         [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
@@ -235,7 +250,7 @@
             <table class="month-table">
               <thead>
                 <tr>
-                  <th></th>
+                  <th class="col-label"></th>
                   @for (month of stats.activityMonth; track month.id) {
                     <th>
                       {{ month.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
@@ -246,7 +261,7 @@
               <tbody>
                 @for (metierIndex of metierChunk | arrayPluck: 'metierIndex'; track metierIndex; let metierChunkIndex = $index) {
                   <tr class="metier-row">
-                    <th>
+                    <th class="col-label">
                       {{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}
                     </th>
                     @for (month of stats.activityMonth; track month.id; let monthIndex = $index) {
@@ -274,7 +289,7 @@
                   </tr>
                   @for (fishingAreasIndex of metierChunk[metierChunkIndex] | mapGet: 'fishingAreasIndexes'; track fishingAreasIndex) {
                     <tr>
-                      <th>{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_FISHING_AREA' | translate }}</th>
+                      <th class="col-label">{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_FISHING_AREA' | translate }}</th>
                       @for (month of stats.activityMonth; track month.id) {
                         <td
                           [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
@@ -297,47 +312,49 @@
             <ion-grid class="report-section ion-no-padding ion-padding-top font-compact" [style.--ion-padding]="'8px'">
               <ion-row>
                 <ion-col size="8" class="ion-padding-end">
-                  <ion-grid class="ion-no-padding">
-                    <ion-row class="section-title">
-                      <ion-col>
-                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GUF_SECTION.TITLE' | translate }}</h2>
-                      </ion-col>
-                    </ion-row>
-                    <ion-row>
-                      <table class="gpf-table" [style.width]="'100%'">
-                        <thead>
-                          <tr>
-                            <th [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'"></th>
-                            @for (labelMetier of data.gearPhysicalFeatures | arrayPluck: 'metier.label'; track labelMetier) {
-                              <th
-                                [style.--col-width]="
-                                  'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
-                                "
-                              >
-                                {{ labelMetier }}
-                              </th>
-                            }
-                          </tr>
-                        </thead>
-                        <tbody>
-                          @for (pmfm of stats.pmfm.gpf; track pmfm.id) {
-                            <tr [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
-                              <th>{{ pmfm | pmfmName: { withDetails: false } }}</th>
-                              @for (gpf of data.gearPhysicalFeatures; track gpf.id) {
-                                <td
+                  @if ((stats.pmfm.gpf | isNotEmptyArray) && (data.gearPhysicalFeatures | isNotEmptyArray)) {
+                    <ion-grid class="ion-no-padding">
+                      <ion-row class="section-title">
+                        <ion-col>
+                          <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GUF_SECTION.TITLE' | translate }}</h2>
+                        </ion-col>
+                      </ion-row>
+                      <ion-row>
+                        <table class="gpf-table" [style.width]="'100%'">
+                          <thead>
+                            <tr>
+                              <th [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'"></th>
+                              @for (labelMetier of data.gearPhysicalFeatures | arrayPluck: 'metier.label'; track labelMetier) {
+                                <th
                                   [style.--col-width]="
                                     'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
                                   "
                                 >
-                                  {{ gpf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
-                                </td>
+                                  {{ labelMetier }}
+                                </th>
                               }
                             </tr>
-                          }
-                        </tbody>
-                      </table>
-                    </ion-row>
-                  </ion-grid>
+                          </thead>
+                          <tbody>
+                            @for (pmfm of stats.pmfm.gpf; track pmfm.id) {
+                              <tr [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
+                                <th>{{ pmfm | pmfmName: { withDetails: false } }}</th>
+                                @for (gpf of data.gearPhysicalFeatures; track gpf.id) {
+                                  <td
+                                    [style.--col-width]="
+                                      'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
+                                    "
+                                  >
+                                    {{ gpf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
+                                  </td>
+                                }
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </ion-row>
+                    </ion-grid>
+                  }
                 </ion-col>
                 <ion-col size="2" class="ion-padding-start">
                   <ion-grid class="ion-no-padding">
