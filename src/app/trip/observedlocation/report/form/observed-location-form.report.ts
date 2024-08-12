@@ -40,6 +40,8 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
   encapsulation: ViewEncapsulation.None,
 })
 export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLocation, number, ObservedLocationFormReportStats> {
+  readonly pmfmIdsMap = PmfmIds;
+
   protected logPrefix = 'form-observed-location-report';
   protected isBlankForm: boolean;
   protected reportType: string;
@@ -61,7 +63,7 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
   });
 
   constructor(injector: Injector) {
-    super(injector, ObservedLocation, ObservedLocationFormReportStats);
+    super(injector, ObservedLocation, ObservedLocationFormReportStats, { i18nPmfmPrefix: 'OBSERVED_LOCATION.REPORT.FORM.PMFM.' });
     this.observedLocationService = injector.get(ObservedLocationService);
     this.strategyRefService = injector.get(StrategyRefService);
     this.referentialRefService = injector.get(ReferentialRefService);
@@ -172,7 +174,6 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
 
     stats.landingTableRowChunk = this.computeLandingTableChunk(data);
 
-    console.debug('MYTEST STATS', { data, stats });
     return stats;
   }
 
@@ -260,7 +261,6 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       consumedLineCount += nbLinesAvailableOnOtherPage;
     }
 
-    console.debug('MYTEST result', result);
     return result;
   }
 }

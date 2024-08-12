@@ -1700,10 +1700,10 @@
           "START_DATE": "Date et heure d'arrivée",
           "END_DATE": "Date et heure de départ",
           "SELL_DATE": "Date et heure de la vente",
+          "SELL_TYPE": "Type de vente",
           "TRIP_INFORMATION": "Informations générales de la sortie",
           "HELP_INCLUDE_DOCUMENT": "(inclure le document dans le dossier)",
           "RETURN_FISHMONGER_CARD": "Récupération fiche mareyeur",
-          "SALE_RECEIPT_RECOVERY": "Récupération bordereau de vente",
           "USE_MEASUREMENT_TOOL": "Utilisation d’un outil de mesure<br>(PSION ou autre)",
           "IWA_FILE_NAME": "Nom du fichier IWA :",
           "ARP_FILE_NAME": "Nom du fichier ARP :",
@@ -1717,7 +1717,9 @@
           "HELP": "(Inclure dans le dossier la liste des espèces à échantillonner (en cochant les espèces échantillonnées))",
           "VESSEL_REGISTRATION_CODE": "Immatriculation – Nom du navire"
         },
-        "PMFM": {}
+        "PMFM": {
+          "PRESALE_AVAILABLE": "Récupération bordereau de vente"
+        }
       },
       "REPORT_TYPE": {
         "LEGACY": "Par défaut",

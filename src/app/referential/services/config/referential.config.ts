@@ -687,6 +687,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.AUCTION_HABIT,
   },
+  PMFM_PRESALE_AVAILABLE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.PRESALE_AVAILABLE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PRESALE_AVAILABLE_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.PRESALE_AVAILABLE,
+  },
 
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',

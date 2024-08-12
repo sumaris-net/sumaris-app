@@ -1,0 +1,18 @@
+{
+  "*": {
+    "dispatch": "npm start"
+  },
+  "src/app/*.ts": {
+    "alternate": "src/app/{}.html",
+    "type": "component",
+    "skeleton": "angular_component"
+  },
+  "src/app/*.html": {
+    "alternate": "src/app/{}.scss",
+    "type": "template"
+  },
+  "src/app/*.scss": {
+    "alternate": "src/app/{}.ts",
+    "type": "style"
+  }
+}

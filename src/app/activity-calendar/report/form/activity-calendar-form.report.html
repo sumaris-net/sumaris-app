@@ -373,10 +373,6 @@
                             [name]="
                               (data.measurementValues
                                 | mapGet: pmfmIdsMap.AUCTION_HABIT
-                                | pmfmValue
-                                  : {
-                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst
-                                    }) === qv.name
                                 ? 'checkbox-outline'
                                 : 'square-outline'
                             "

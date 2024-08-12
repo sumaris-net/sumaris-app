@@ -181,6 +181,14 @@
         </ion-row>
         <ion-row class="form-field">
           <ion-col class="form-label" size="4">
+            {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.SELL_TYPE' | translate }}
+          </ion-col>
+          <ion-col class="form-value no-border-top" size="8">
+            <!-- TODO -->
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
             {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.SELL_DATE' | translate }}
           </ion-col>
           <ion-col class="form-value no-border-top" size="8">
@@ -202,13 +210,16 @@
           </ion-col>
           <ion-col class="form-label horiz-checkbox" size="6">
             <span>
-              {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.SALE_RECEIPT_RECOVERY' | translate }}
+              {{
+                stats.pmfmsByIds.observedLocation[pmfmIdsMap.PRESALE_AVAILABLE]
+                  | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix }
+              }}
               <br />
               <span class="help">
                 {{ 'OBSERVED_LOCATION.REPORT.FORM.LANDING.HELP_INCLUDE_DOCUMENT' | translate }}
               </span>
             </span>
-            <ion-icon [name]="'square-outline'"></ion-icon>
+            <ion-icon [name]="(data.measurementValues | mapGet: pmfmIdsMap.PRESALE_AVAILABLE) ? 'checkbox-outline' : 'square-outline'"></ion-icon>
           </ion-col>
         </ion-row>
 
