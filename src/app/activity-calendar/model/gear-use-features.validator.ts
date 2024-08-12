@@ -28,6 +28,7 @@ import { ValidatorService } from '@e-is/ngx-material-table';
 export interface GearUseFeaturesValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
   withMeasurementTypename?: boolean;
+  ignoreDateRequired?: boolean;
 
   pmfms?: IPmfm[];
 
@@ -78,8 +79,8 @@ export class GearUseFeaturesValidatorService<O extends GearUseFeaturesValidatorO
     const config = Object.assign(super.getFormGroupConfig(data, opts), {
       __typename: [GearUseFeatures.TYPENAME],
       vesselId: [toNumber(data?.vesselId, null)],
-      startDate: [data?.startDate || null, Validators.required],
-      endDate: [data?.endDate || null, Validators.required],
+      startDate: [data?.startDate || null, opts?.ignoreDateRequired ? null : Validators.required],
+      endDate: [data?.endDate || null, opts?.ignoreDateRequired ? null : Validators.required],
       rankOrder: [toNumber(data?.rankOrder, 0)],
       measurementValues: this.formBuilder.group({}),
     });
