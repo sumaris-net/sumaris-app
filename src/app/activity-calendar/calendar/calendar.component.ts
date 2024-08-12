@@ -1424,7 +1424,7 @@ export class CalendarComponent
             this.markAsDirty();
           }
           const isActive = form.get('isActive').value;
-          if (isActive === VesselUseFeaturesIsActiveEnum.ACTIVE && form.status === 'VALID') {
+          if (isActive === VesselUseFeaturesIsActiveEnum.ACTIVE && form.status != 'DISABLED') {
             this.validatorService.updateFormGroup(form);
           }
         })
