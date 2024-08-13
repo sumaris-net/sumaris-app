@@ -34,9 +34,11 @@ export class VesselOwnerHistoryComponent extends AppBaseTable<VesselOwnerPeriod,
   set showActivityStartDateColumn(value: boolean) {
     this.setShowColumn('activityStartDate', value);
   }
+
   get showActivityStartDateColumn(): boolean {
     return this.getShowColumn('activityStartDate');
   }
+
   constructor(
     injector: Injector,
     protected accountService: AccountService,

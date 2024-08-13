@@ -1407,6 +1407,7 @@ export class CalendarComponent
     );
 
     const qualificationCommentsControl = form.get('qualificationComments');
+    const isActiveControl = form.get('isActive');
     this.rowSubscription.add(
       form.valueChanges
         .pipe(
@@ -1420,11 +1421,13 @@ export class CalendarComponent
           }
 
           if (form.dirty && isNotNilOrBlank(qualificationCommentsControl.value)) {
-            form.get('qualificationComments').setValue(null, { emitEvent: false });
+            qualificationCommentsControl.setValue(null, { emitEvent: false });
             this.markAsDirty();
           }
-          const isActive = form.get('isActive').value;
-          if (isActive === VesselUseFeaturesIsActiveEnum.ACTIVE && form.status != 'DISABLED') {
+
+          // TODO BLA: Morgan, pourquoi cet update ici ? Peux tu commenter ce que tu cherches à corriger ?
+          // Car normalement, c'est ActivityMonthValidators.startListenChanges() qui lance déjà le updateFormGroup()
+          if (isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE && form.status !== 'DISABLED') {
             this.validatorService.updateFormGroup(form);
           }
         })
