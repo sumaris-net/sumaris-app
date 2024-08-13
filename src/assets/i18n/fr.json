@@ -2588,7 +2588,6 @@
       "OBSERVED_LOCATION_REPORT_ENABLE": "Sortie > Activer l'édition de rapport ?",
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Sortie > Hors-Ligne > Niveau(x) de lieu à importer",
       "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Sortie > Afficher la carte de la stratégie ?",
-      "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)",
       "LANDING_BATCH_ENABLE": "Sortie > Débarquement : Activer les lots (BATCH) ?",
       "LANDING_EDITOR": "Sortie > Débarquement : Éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
@@ -2823,6 +2822,9 @@
       "CONFIRM": {
         "MANY_PMFM_DELETED": "ATTENTION ! Plusieurs paramètres collectés ({{count}}) <b>vont être retirés</b> de la stratégie.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?",
         "RELOAD_PAGE": "Voulez vous recharger la page, pour <b>annuler Vos dernière modifications</b> ?"
+      },
+      "OPTIONS": {
+        "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)"
       }
     },
     "INFO": {

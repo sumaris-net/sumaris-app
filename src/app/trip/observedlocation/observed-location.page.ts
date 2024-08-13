@@ -52,6 +52,7 @@ import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorato
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { Moment } from 'moment';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { StrategyProperties } from '@app/referential/services/config/strategy.config';
 
 export const ObservedLocationPageSettingsEnum = {
   PAGE_ID: 'observedLocation',
@@ -573,8 +574,6 @@ export class ObservedLocationPage
       }
       this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
       this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
-      this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
-      this.autoFillLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_LANDINGS_AUTO_FILL);
 
       let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -621,7 +620,6 @@ export class ObservedLocationPage
         landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
         landingsTable.minObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
         landingsTable.dividerPmfmId = program.getPropertyAsInt(ProgramProperties.LANDING_ROWS_DIVIDER_PMFM_ID);
-        landingsTable.showAutoFillButton = this.autoFillLandings;
         landingsTable.unknownVesselId = VesselIds.UNKNOWN !== -1 ? VesselIds.UNKNOWN : null;
         this.showLandingTab = true;
       }
@@ -681,6 +679,10 @@ export class ObservedLocationPage
       if (this.debug) console.debug(this.logPrefix + "Update context's strategy...", strategy);
       this.observedLocationContext.strategy = strategy;
     }
+
+    // Configure landings table depending on strategy properties
+    this.autoFillLandings = strategy.getPropertyAsBoolean(StrategyProperties.OBSERVED_LOCATION_LANDINGS_AUTO_FILL);
+    this.landingsTable.showAutoFillButton = this.autoFillLandings;
   }
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {
