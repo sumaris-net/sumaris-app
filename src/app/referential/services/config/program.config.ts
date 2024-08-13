@@ -833,12 +833,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
-  OBSERVED_LOCATION_LANDINGS_AUTO_FILL: <FormFieldDefinition>{
-    key: 'sumaris.observedLocation.landings.autoFill',
-    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_LANDINGS_AUTO_FILL',
-    defaultValue: 'false',
-    type: 'boolean',
-  },
 
   VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.vessel.type.enable',
