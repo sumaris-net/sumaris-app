@@ -1,0 +1,14 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <mat-form-field appearance="fill" [style.width.%]="100">
+    <mat-label>Title</mat-label>
+    <textarea matInput formControlName="title"></textarea>
+  </mat-form-field>
+
+  <div class="button-group">
+    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+      {{ submitLabel }}
+    </button>
+
+    <button *ngIf="hasCancelButton" mat-raised-button color="warn" type="button" (click)="handleCancel.emit()">Cancel</button>
+  </div>
+</form>

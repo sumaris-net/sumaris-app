@@ -1,0 +1,20 @@
+<div class="comments">
+  <h3 class="comments-title">Commentaires ({{ numberOfComments }})</h3>
+
+  <div class="comments-container">
+    <app-comment
+      #comment
+      *ngFor="let rootComment of getRootComments()"
+      [comment]="rootComment"
+      [replies]="getReplies(rootComment.id)"
+      [activeComment]="activeComment"
+      (setActiveComment)="setActiveComment($event)"
+      (addComment)="addComment($event)"
+      (deleteComment)="deleteComment($event)"
+      (updateComment)="updateComment($event)"
+      [currentUserId]="currentUserId"
+    ></app-comment>
+  </div>
+  <br />
+  <app-comment-form submitLabel="Write" (handleSubmit)="addComment({ text: $event, parentId: null })"></app-comment-form>
+</div>

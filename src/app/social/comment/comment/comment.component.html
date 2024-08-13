@@ -1,0 +1,75 @@
+<div class="comment">
+  <br />
+
+  <div class="comment-right-part">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          {{ comment.username }}
+        </mat-card-title>
+        <mat-card-subtitle>{{ createdAt }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div *ngIf="!isEditing()">{{ comment.body }}</div>
+
+        <app-comment-form
+          *ngIf="isEditing()"
+          submitLabel="Update"
+          [hasCancelButton]="true"
+          [initialText]="comment.body"
+          (handleSubmit)="updateComment.emit({ text: $event, commentId: comment.id })"
+          (handleCancel)="setActiveComment.emit(null)"
+        ></app-comment-form>
+
+        <app-comment-form
+          *ngIf="isReplying()"
+          submitLabel="Reply"
+          (handleSubmit)="addComment.emit({ text: $event, parentId: replyId })"
+        ></app-comment-form>
+
+        <div class="comment-actions">
+          <button
+            *ngIf="canReply"
+            mat-button
+            (click)="
+              setActiveComment.emit({
+                id: comment.id,
+                type: activeCommentType.replying
+              })
+            "
+          >
+            Reply
+          </button>
+          <button
+            *ngIf="canEdit"
+            mat-button
+            (click)="
+              setActiveComment.emit({
+                id: comment.id,
+                type: activeCommentType.editing
+              })
+            "
+          >
+            Edit
+          </button>
+          <button *ngIf="canDelete" mat-button color="warn" (click)="deleteComment.emit(comment.id)">Delete</button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="replies" *ngIf="replies.length > 0">
+      <app-comment
+        *ngFor="let reply of replies"
+        [comment]="reply"
+        (setActiveComment)="setActiveComment.emit($event)"
+        [activeComment]="activeComment"
+        (updateComment)="updateComment.emit($event)"
+        (deleteComment)="deleteComment.emit($event)"
+        (addComment)="addComment.emit($event)"
+        [parentId]="comment.id"
+        [replies]="[]"
+        [currentUserId]="currentUserId"
+      ></app-comment>
+    </div>
+  </div>
+</div>

@@ -12,6 +12,7 @@ import { AppActivityMapModule } from '@app/activity-calendar/map/activity-calend
 import { AngularSplitModule } from 'angular-split';
 import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppGearPhysicalFeaturesTableModule } from '../metier/gear-physical-features.table.module';
+import { AppCommentModule } from '@app/social/comment/comment.module';
 
 @NgModule({
   imports: [
@@ -30,6 +31,8 @@ import { AppGearPhysicalFeaturesTableModule } from '../metier/gear-physical-feat
     AppVesselModule,
     AppActivityMapModule,
     AngularSplitModule,
+    //test
+    AppCommentModule,
   ],
   declarations: [ActivityCalendarPage],
   exports: [ActivityCalendarPage],
