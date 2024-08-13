@@ -1,0 +1,9 @@
+.replies {
+  margin-left: 20px; /* Adjust the value for desired indentation */
+  padding-left: 20px; /* Optional: Adds padding if needed */
+  border-left: 2px solid #e0e0e0; /* Optional: Adds a border for visual separation */
+}
+
+.replies .comment {
+  margin-top: 10px; /* Adds spacing between replies */
+}
