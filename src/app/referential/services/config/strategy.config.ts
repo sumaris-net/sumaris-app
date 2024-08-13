@@ -2,9 +2,9 @@ import { FormFieldDefinition, FormFieldType, isNilOrBlank, removeDuplicatesFromA
 import { Strategy } from '../model/strategy.model';
 
 export const StrategyProperties = Object.freeze({
-  TODO: <FormFieldDefinition>{
-    key: 'sumaris.data.observers.todo',
-    label: 'STRATEGY.OPTIONS.TODO',
+  OBSERVED_LOCATION_LANDINGS_AUTO_FILL: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.landings.autoFill',
+    label: 'PROGRAM.STRATEGY.OPTIONS.OBSERVED_LOCATION_LANDINGS_AUTO_FILL',
     type: 'boolean',
     defaultValue: false,
   },
