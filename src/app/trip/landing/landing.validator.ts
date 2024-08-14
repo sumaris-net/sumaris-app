@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { isNotEmptyArray, isNotNil, LocalSettingsService, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { isNil, isNotEmptyArray, isNotNil, LocalSettingsService, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Landing } from './landing.model';
@@ -211,8 +211,11 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
         }
       }
 
-      // Disable is observed control, if PETS species list
-      if (PmfmValueUtils.equals(speciesListOriginControl?.value, QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS)) {
+      // Disable is observed control, if PETS species list or if species list is not specified (when adding a new row)
+      if (
+        isNil(speciesListOriginControl?.value) ||
+        PmfmValueUtils.equals(speciesListOriginControl.value, QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS)
+      ) {
         isObservedControl.disable({ emitEvent: false });
       } else {
         if (enabled) isObservedControl.enable({ emitEvent: false });

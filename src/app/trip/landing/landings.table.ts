@@ -384,7 +384,7 @@ export class LandingsTable
 
     // Load taxon groups (if need)
     const hasTaxonGroupId = pmfms.some((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
-    let availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
+    const availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
 
     // Reset divider (will be set below)
     this.dividerPmfm = null;
@@ -438,6 +438,17 @@ export class LandingsTable
       subscription.add(() => this.unregisterSubscription(subscription));
       this.registerSubscription(subscription);
       this._rowSubscription = subscription;
+
+      // Check when IS_OBSERVED updates
+      this.registerSubscription(
+        form
+          .get('measurementValues')
+          .get(PmfmIds.IS_OBSERVED.toString())
+          .valueChanges.pipe(filter(() => form.dirty))
+          .subscribe(() => {
+            this.validatorService.updateFormGroup(form, { pmfms: this.pmfms });
+          })
+      );
     }
   }
 
