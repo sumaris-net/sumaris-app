@@ -164,7 +164,7 @@
           </ion-col>
 
           <!-- Year -->
-          <ion-col size="12" size-lg="3" *ngIf="showYear">
+          <ion-col size="12" size-lg="3" *ngIf="showYear" [class.cdk-visually-hidden]="hiddenYearFilter">
             <mat-form-field floatLabel="auto">
               <mat-label>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.YEAR' | translate }}</mat-label>
               <mat-select formControlName="year">

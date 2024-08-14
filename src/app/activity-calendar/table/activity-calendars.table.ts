@@ -96,6 +96,7 @@ export class ActivityCalendarsTable
   protected qualityFlags: ReferentialRef[];
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
+  hiddenYearFilter: boolean;
 
   @Input() showRecorder = true;
   @Input() canDownload = false;
@@ -198,8 +199,7 @@ export class ActivityCalendarsTable
     this.settingsId = ActivityCalendarsTableSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureName = ActivityCalendarsTableSettingsEnum.FEATURE_ID;
 
-    this.showYear = false;
-    this.showProgram = false;
+    this.hiddenYearFilter = true;
 
     // Load years
     {
