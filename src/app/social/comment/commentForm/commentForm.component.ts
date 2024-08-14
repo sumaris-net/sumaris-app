@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 @Component({
   selector: 'app-comment-form',
   templateUrl: './commentForm.component.html',
+  styleUrls: ['./commentForm.component.scss'],
 })
 export class CommentFormComponent implements OnInit {
   @Input() submitLabel!: string;
@@ -22,12 +23,12 @@ export class CommentFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      title: [this.initialText, Validators.required],
+      comment: [this.initialText, Validators.required],
     });
   }
 
   onSubmit(): void {
-    this.handleSubmit.emit(this.form.value.title);
+    this.handleSubmit.emit(this.form.value.comment);
     this.form.reset();
   }
 }

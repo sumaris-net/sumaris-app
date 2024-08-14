@@ -3,7 +3,6 @@
 
   <div class="comments-container">
     <app-comment
-      #comment
       *ngFor="let rootComment of getRootComments()"
       [comment]="rootComment"
       [replies]="getReplies(rootComment.id)"
@@ -16,5 +15,9 @@
     ></app-comment>
   </div>
   <br />
-  <app-comment-form submitLabel="Write" (handleSubmit)="addComment({ text: $event, parentId: null })"></app-comment-form>
+  <app-comment-form
+    submitLabel="Write"
+    (handleSubmit)="addComment({ text: $event, parentId: null })"
+    (handleCancel)="setActiveComment(null)"
+  ></app-comment-form>
 </div>

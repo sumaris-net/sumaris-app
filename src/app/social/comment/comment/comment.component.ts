@@ -1,7 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { CommentInterface } from '../type/comment.interface';
-import { ActiveCommentInterface } from '../type/activeComment.interface';
-import { ActiveCommentTypeEnum } from '../type/activeCommentType.enum';
+import { ActiveCommentInterface, ActiveCommentTypeEnum, CommentInterface } from '../comments/comments.component';
 
 @Component({
   selector: 'app-comment',

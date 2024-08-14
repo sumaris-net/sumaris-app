@@ -1,8 +1,23 @@
 import { Component, Input, OnInit } from '@angular/core';
 
 import { CommentsService } from '../services/comments.service';
-import { CommentInterface } from '../type/comment.interface';
-import { ActiveCommentInterface } from '../type/activeComment.interface';
+
+export interface ActiveCommentInterface {
+  id: string;
+  type: ActiveCommentTypeEnum;
+}
+export enum ActiveCommentTypeEnum {
+  replying = 'replying',
+  editing = 'editing',
+}
+export interface CommentInterface {
+  id: string;
+  body: string;
+  username: string;
+  userId: string;
+  parentId: null | string;
+  createdAt: string;
+}
 
 @Component({
   selector: 'app-comments',
@@ -45,6 +60,7 @@ export class CommentsComponent implements OnInit {
   deleteComment(commentId: string): void {
     this.commentsService.deleteComment(commentId).subscribe(() => {
       this.comments = this.comments.filter((comment) => comment.id !== commentId);
+      this.numberOfComments = this.comments.length;
     });
   }
 
@@ -56,6 +72,7 @@ export class CommentsComponent implements OnInit {
     this.commentsService.createComment(text, parentId).subscribe((createdComment) => {
       this.comments = [...this.comments, createdComment];
       this.activeComment = null;
+      this.numberOfComments = this.comments.length;
     });
   }
 
