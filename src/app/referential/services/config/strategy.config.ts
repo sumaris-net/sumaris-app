@@ -8,6 +8,12 @@ export const StrategyProperties = Object.freeze({
     type: 'boolean',
     defaultValue: false,
   },
+  OBSERVED_LOCATION_LANDINGS_TAXON_GROUP_SELECTION: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.landings.taxonGroupSelection',
+    label: 'PROGRAM.STRATEGY.OPTIONS.OBSERVED_LOCATION_LANDINGS_TAXON_GROUP_SELECTION',
+    type: 'boolean',
+    defaultValue: false,
+  },
 });
 
 export class StrategyPropertiesUtils {
