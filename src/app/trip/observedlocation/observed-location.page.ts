@@ -696,7 +696,6 @@ export class ObservedLocationPage
         landingsTable.includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
         landingsTable.minObservedSpeciesCount = program.getPropertyAsInt(ProgramProperties.LANDING_MIN_OBSERVED_SPECIES_COUNT);
         landingsTable.dividerPmfmId = program.getPropertyAsInt(ProgramProperties.LANDING_ROWS_DIVIDER_PMFM_ID);
-        landingsTable.showTaxonGroupSelectionButton = true; // TODO JVF
         landingsTable.unknownVesselId = VesselIds.UNKNOWN !== -1 ? VesselIds.UNKNOWN : null;
         this.showLandingTab = true;
       }
@@ -760,6 +759,9 @@ export class ObservedLocationPage
     // Configure landings table depending on strategy properties
     this.autoFillLandings = strategy.getPropertyAsBoolean(StrategyProperties.OBSERVED_LOCATION_LANDINGS_AUTO_FILL);
     this.landingsTable.showAutoFillButton = this.autoFillLandings;
+    this.landingsTable.showTaxonGroupSelectionButton = strategy.getPropertyAsBoolean(
+      StrategyProperties.OBSERVED_LOCATION_LANDINGS_TAXON_GROUP_SELECTION
+    );
   }
 
   protected async onNewEntity(data: ObservedLocation, options?: EntityServiceLoadOptions): Promise<void> {

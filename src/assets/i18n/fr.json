@@ -2824,7 +2824,8 @@
         "RELOAD_PAGE": "Voulez vous recharger la page, pour <b>annuler Vos dernière modifications</b> ?"
       },
       "OPTIONS": {
-        "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)"
+        "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)",
+        "OBSERVED_LOCATION_LANDINGS_TAXON_GROUP_SELECTION": "Sortie > Ajout d'espèces par lot pour les débarquements"
       }
     },
     "INFO": {
