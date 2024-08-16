@@ -16,12 +16,11 @@ export interface DenormalizedTripResult {
   jobStatusEnum: number;
 }
 
-export interface DenormalizedTripResult {
-  tripCount: number;
-  operationCount: number;
+export interface DenormalizedSaleResult {
+  saleCount: number;
   batchCount: number;
 
-  tripErrorCount: number;
+  saleErrorCount: number;
   invalidBatchCount: number;
 
   message: string;

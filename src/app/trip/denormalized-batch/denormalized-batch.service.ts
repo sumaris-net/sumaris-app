@@ -1,5 +1,5 @@
 import { BaseEntityService, EntityServiceLoadOptions, ErrorCodes, GraphqlService, LoadResult, PlatformService } from '@sumaris-net/ngx-components';
-import { DenormalizedBatch, DenormalizedTripResult } from './denormalized-batch.model';
+import { DenormalizedBatch, DenormalizedSaleResult, DenormalizedTripResult } from './denormalized-batch.model';
 import { DenormalizedBatchFilter } from './denormalized-batch.filter';
 import gql from 'graphql-tag';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
@@ -56,6 +56,17 @@ export const DenormalizedBatchFragments = {
       status
     }
   `,
+  denormalizedSaleResult: gql`
+    fragment DenormalizedSaleResult on DenormalizedSaleResultVO {
+      saleCount
+      batchCount
+      saleErrorCount
+      invalidBatchCount
+      executionTime
+      message
+      status
+    }
+  `,
 };
 
 export const DenormalizedBatchQueries = {
@@ -75,6 +86,14 @@ export const DenormalizedBatchQueries = {
       }
     }
     ${DenormalizedBatchFragments.denormalizedTripResult}
+  `,
+  denormalizeObservedlocation: gql`
+    query DenormalizeObservedLocation($observedLocationId: Int!) {
+      data: denormalizeObservedLocation(id: $observedLocationId) {
+        ...DenormalizedSaleResult
+      }
+    }
+    ${DenormalizedBatchFragments.denormalizedSaleResult}
   `,
 };
 
@@ -114,6 +133,23 @@ export class DenormalizedBatchService extends BaseEntityService<DenormalizedBatc
     };
 
     const query = DenormalizedBatchQueries.denormalizeTrip;
+    const { data } = await this.graphql.query<{ data: any }>({
+      query,
+      variables,
+      error: { code: ErrorCodes.LOAD_DATA_ERROR, message: 'ERROR.LOAD_DATA_ERROR' },
+    });
+
+    return data;
+  }
+
+  async denormalizeObservedLocation(observedLocationId: number): Promise<LoadResult<DenormalizedSaleResult>> {
+    if (this._debug) console.debug(this._logPrefix + `DenormalizeObservedLocation {${observedLocationId}}...`);
+
+    const variables = {
+      observedLocationId: observedLocationId,
+    };
+
+    const query = DenormalizedBatchQueries.denormalizeObservedlocation;
     const { data } = await this.graphql.query<{ data: any }>({
       query,
       variables,

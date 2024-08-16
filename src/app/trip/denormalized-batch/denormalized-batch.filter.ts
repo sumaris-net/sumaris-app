@@ -7,6 +7,7 @@ export class DenormalizedBatchFilter extends DataEntityFilter<DenormalizedBatchF
   tripId: number;
   operationId: number;
   operationIds: number[];
+  saleId: number;
   isLanding: boolean;
   isDiscard: boolean;
 
@@ -16,6 +17,7 @@ export class DenormalizedBatchFilter extends DataEntityFilter<DenormalizedBatchF
     super.fromObject(source, opts);
     this.tripId = source.tripId;
     this.operationId = source.operationId;
+    this.saleId = source.saleId;
     this.isLanding = source.isLanding;
     this.isDiscard = source.isDiscard;
   }

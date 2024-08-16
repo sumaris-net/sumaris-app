@@ -8,6 +8,14 @@ export class DenormalizedBatchUtils {
     return BatchUtils.isSamplingBatch(source as any as Batch);
   }
 
+  static isCatchBatch(source: DenormalizedBatch) {
+    return BatchUtils.isCatchBatch(source as any as Batch);
+  }
+
+  static isSortingBatch(source: DenormalizedBatch) {
+    return BatchUtils.isSortingBatch(source as any as Batch);
+  }
+
   static arrayToTree<T extends ITreeItemEntity<T, number> & IEntity<T, number>>(sources: T[], parent?: T): T[] {
     if (!sources) return null;
     let excludedBatches: T[] = [];
@@ -57,16 +65,16 @@ export class DenormalizedBatchUtils {
   }
 
   static computeTreeIndent(parent: DenormalizedBatch, indentComponents: string[] = [], isLast = false, opts?: { html: boolean }) {
-    // Compute the treeIndent for the batch itself dependigns on the parametrer givent by the parent
+    // Compute the treeIndent for the batch itself depending on the parameter given by the parent
 
     // If has no indentComponents than mean we are on the root of the tree
     const initializeTree = indentComponents.length === 0;
     if (initializeTree) {
-      // Indents alaways start with a blank
+      // Indents alway start with a blank
       parent.treeIndent = opts?.html ? '<div class="blank"></div>' : '  ';
       indentComponents.push(parent.treeIndent);
     } else {
-      // Set the leaf dependings on if the element is the last of the slibing or not
+      // Set the leaf depending on if the element is the last of the slibing or not
       parent.treeIndent = indentComponents
         .join('')
         .concat(opts?.html ? `<div class="${isLast ? 'last-leaf' : 'leaf'}"></div>` : isLast ? '|_' : '|-');

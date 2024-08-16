@@ -309,7 +309,6 @@
                       <ion-col class="ion-no-padding ion-no-margin ion-text-right" size="6">
                         <h3 [style.margin]="0">{{ 'OBSERVED_LOCATION.REPORT.FORM.SAMPLES.PRESENCE_OF_PETS' | translate }}</h3>
                       </ion-col>
-                      <!-- TODO : check box-->
                       <ion-col class="vertical-centred-content horizontal-centred-content" size="2">
                         {{ 'COMMON.YES' | translate }}
                         &nbsp;
@@ -372,9 +371,148 @@
               }
             </tbody>
           </table>
+          <ng-content *ngTemplateOutlet="pageFooter; context: { help: 'OBSERVED_LOCATION.REPORT.FORM.LANDING.HELP' }"></ng-content>
         </section>
       }
     </section>
+
+    @for (sale of stats.sales; track sale.id) {
+      <section>
+        @if (stats.denormalizedBatchesBySale | mapGet: sale.id | isNotEmptyArray) {
+          @for (
+            batchesChunk of stats.denormalizedBatchesBySale | mapGet: sale.id | splitArrayInChunks: 28;
+            track $index;
+            let isLastBatchesChunk = $last , isFirstBatchesChunk = $first
+          ) {
+            <section *sectionDef class="portrait">
+              <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.TITLE' }"></ng-content>
+              <ion-grid class="report-section ion-no-padding">
+                <ion-row class="section-title">
+                  <ion-col size="3">
+                    <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.VESSEL_NAME_AND_IMAT' | translate }}</h3>
+                  </ion-col>
+                  <ion-col class="title-value ion-text-center font-large no-border-bottom" size="4">
+                    @if (!isBlankForm) {
+                      {{ sale.vesselSnapshot.name }} - {{ sale.vesselSnapshot.exteriorMarking }}
+                    }
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+              <table [style.--row-height]="'30px'">
+                <thead>
+                  <tr class="group-head">
+                    <th colspan="4" class="no-border">
+                      <ion-grid class="ion-no-padding ion-no-margin">
+                        <ion-row>
+                          <ion-col size="6" class="vertical-centred-content">
+                            {{ 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.EXCLUSIVE_SCIENTIFIC_SPECIES' | translate }}
+                          </ion-col>
+                          <ion-col size="3" class="vertical-centred-content">
+                            <ion-icon
+                              [style.font-size]="'1.5em'"
+                              [name]="batchesChunk[0].exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"
+                            ></ion-icon>
+                            &nbsp;
+                            {{ 'COMMON.YES' | translate }}
+                          </ion-col>
+                          <ion-col size="3" class="vertical-centred-content">
+                            <ion-icon
+                              [style.font-size]="'1.5em'"
+                              [name]="!batchesChunk[0].exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"
+                            ></ion-icon>
+                            &nbsp;
+                            {{ 'COMMON.NO' | translate }}
+                          </ion-col>
+                        </ion-row>
+                      </ion-grid>
+                    </th>
+                    <th colspan="2" class="col-small"></th>
+                    <th colspan="3" class="col-small ion-text-center">
+                      {{ 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.BATCH.SUB_SAMPLING' | translate }}
+                    </th>
+                  </tr>
+                  <tr>
+                    <th class="col-tiny no-border ion-text-center no-margin no-padding">
+                      <mat-icon class="mat-icon mat-icon-sm">arrow_downward</mat-icon>
+                    </th>
+                    <th class="col-medium ion-text-center">{{ 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.TAXON_GROUPS' | translate }}</th>
+                    <th class="col-medium ion-text-center">{{ 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.TAXON_NAMES' | translate }}</th>
+                    <th class="col-extra-large ion-text-center">{{ 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.SORT_CRITERIAS' | translate }}</th>
+                    <th class="col-small ion-text-center">{{ 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.TOTAL_WEIGHT' | translate }}</th>
+                    <th class="col-small ion-text-center">{{ 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.TOTAL_INDIV' | translate }}</th>
+                    <th class="col-small ion-text-center">{{ 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.FRACTION' | translate }}</th>
+                    <th class="col-small ion-text-center">{{ 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.WEIGHT' | translate }}</th>
+                    <th class="col-small ion-text-center">{{ 'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.NB_INDIV' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (batch of batchesChunk; track batch.id) {
+                    <tr>
+                      <td class="col-tiny no-margin no-padding ion-text-center font-large">
+                        <ion-icon [style.font-size]="'1.1em'" [name]="batch.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                      </td>
+                      <td class="col-medium">{{ batch.taxonGroup | referentialToString }}</td>
+                      <td class="col-medium">{{ batch.taxonName | referentialToString }}</td>
+                      <td class="col-extra-large no-margin no-padding">
+                        <div class="denormalized-batch-sorting-values">
+                          <div class="denormalized-batch-tree-indent" [innerHtml]="batch.treeIndent"></div>
+                          <div class="denormalized-batch-sorting-values-text">
+                            @if (batch.qualityFlagId | qualityFlagInvalid) {
+                              <ion-icon [name]="batch.qualityFlagId | qualityFlagToIcon" color="danger"></ion-icon>
+                            }
+                            <b>
+                              @if (batch.individualCount === 1) {
+                                {{ batch.sortingValuesText }}
+                              } @else {
+                                @for (pmfmId of batch.measurementValues | mapKeys; track pmfmId; let last = $last) {
+                                  {{
+                                    batch.measurementValues
+                                      | mapGet: pmfmId
+                                      | pmfmValue
+                                        : {
+                                            pmfm: stats.pmfmsByIds.denormalizedBatch | mapGet: pmfmId,
+                                            propertyNames: ['label', 'name'],
+                                            html: false,
+                                            showYesOrNo: true
+                                          }
+                                  }}
+                                  @if (!last) {
+                                    ,&nbsp;
+                                  }
+                                }
+                              }
+                            </b>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="col-small ion-text-right">
+                        @if (!(batch | denormalizeBatchIsIndividual)) {
+                          {{ batch.elevateWeight }}
+                        }
+                      </td>
+                      <td class="col-small ion-text-right">
+                        @if (!(batch | denormalizeBatchIsIndividual)) {
+                          {{ batch.elevateIndividualCount }}
+                        }
+                      </td>
+                      <td class="col-small ion-text-right">{{ batch.samplingRatioText || batch.samplingRatio }}</td>
+                      <td class="col-small ion-text-right" [class.computed]="batch.weight | isNil">
+                        {{ batch.weight || batch.indirectWeight }}
+                      </td>
+                      <td class="col-small ion-text-right" [class.computed]="batch.individualCount | isNil">
+                        {{ batch.individualCount || batch.indirectIndividualCount }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+                <caption [innerHTML]="'OBSERVED_LOCATION.REPORT.FORM.MEASUREMENTS.TABLE_LEGEND' | translate"></caption>
+              </table>
+              <ng-content *ngTemplateOutlet="pageFooter; context: { help: 'OBSERVED_LOCATION.REPORT.FORM.LANDING.HELP' }"></ng-content>
+            </section>
+          }
+        }
+      </section>
+    }
   </app-reveal>
 
   <ng-template #pageHeader let-title="title" let-titleParams="titleParams">

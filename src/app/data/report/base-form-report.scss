@@ -337,6 +337,51 @@ html.print-pdf .reveal .slides section {
                 color: var(--ion-color-medium);
               }
             }
+            div.denormalized-batch-sorting-values {
+              padding: 0;
+              margin: 0;
+              display: flex;
+              align-items: center;
+              --element-width: 16px;
+              .denormalized-batch-tree-indent {
+                min-height: var(--row-height);
+                max-height: var(--row-height);
+                display: flex;
+                align-items: flex-start;
+                justify-content: flex-start;
+                div {
+                  min-height: var(--row-height);
+                  max-height: var(--row-height);
+                  min-width: var(--element-width);
+                  min-width: var(--element-width);
+                  &.trunc,
+                  &.leaf {
+                    border-left: 1px dotted;
+                  }
+                  &.leaf,
+                  &.last-leaf {
+                    &:before {
+                      content: '';
+                      display: block;
+                      min-height: calc(var(--row-height) / 2);
+                      max-height: calc(var(--row-height) / 2);
+                      min-width: calc(var(--element-width) / 2);
+                      max-width: calc(var(--element-width) / 2);
+                      border-bottom: 1px dotted;
+                    }
+                  }
+                  &.last-leaf {
+                    &:before {
+                      border-left: 1px dotted;
+                    }
+                  }
+                }
+              }
+              .denormalized-batch-sorting-values-text {
+                position: relative;
+                left: calc(var(--element-width) / -4);
+              }
+            }
           }
         }
       }

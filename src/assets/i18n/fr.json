@@ -1717,6 +1717,21 @@
           "HELP": "(Inclure dans le dossier la liste des espèces à échantillonner (en cochant les espèces échantillonnées))",
           "VESSEL_REGISTRATION_CODE": "Immatriculation – Nom du navire"
         },
+        "MEASUREMENTS": {
+          "TITLE": "Fiche mensurations",
+          "VESSEL_NAME_AND_IMAT": "Nom du navire et IMMAT. :",
+          "EXCLUSIVE_SCIENTIFIC_SPECIES": "Exhaustivité des espèces scientifiques ?",
+          "TAXON_GROUPS": "Espèces commerciales",
+          "TAXON_NAMES": "Espèces scientifique",
+          "SORT_CRITERIAS": "Critères de classement",
+          "TOTAL_WEIGHT": "Poids TOTAL (kg)",
+          "TOTAL_INDIV": "Nombre TOTAL",
+          "FRACTION": "Fraction",
+          "WEIGHT": "Poids (kg)",
+          "NB_INDIV": "Nb. Indiv.",
+          "SUB_SAMPLING": "Sous echantillon",
+          "TABLE_LEGEND": "Légende : Les lots dont la qualité est invalide sont en <span class=\"invalid\">rouge</span>, les valeurs calculées sont en <span class=\"computed\">bleu et italique</span>, les valeurs issues d'estimation terrain sont surlignées, les valeurs mesurées, pesées ou comptées sont en noir."
+        },
         "PMFM": {
           "PRESALE_AVAILABLE": "Récupération bordereau de vente"
         }

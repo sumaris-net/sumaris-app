@@ -1,5 +1,6 @@
 import { Component, Injector, ViewEncapsulation } from '@angular/core';
 import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { BaseReportStats, IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -11,11 +12,25 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
-import { Person, arrayDistinct, isNotNil, splitById, toBoolean } from '@sumaris-net/ngx-components';
+import { DenormalizedBatch } from '@app/trip/denormalized-batch/denormalized-batch.model';
+import { DenormalizedBatchService } from '@app/trip/denormalized-batch/denormalized-batch.service';
+import { Landing } from '@app/trip/landing/landing.model';
+import { Sale } from '@app/trip/sale/sale.model';
+import { SaleService } from '@app/trip/sale/sale.service';
+import {
+  EntityAsObjectOptions,
+  Person,
+  TreeItemEntityUtils,
+  arrayDistinct,
+  isEmptyArray,
+  isNotNil,
+  splitById,
+  toBoolean,
+} from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../observed-location.model';
 import { ObservedLocationService } from '../../observed-location.service';
-import { Landing } from '@app/trip/landing/landing.model';
-import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { DenormalizedBatchUtils } from '@app/trip/denormalized-batch/denormalized-batch.utils';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 export class ObservedLocationFormReportStats extends BaseReportStats {
   subtitle?: string;
@@ -28,14 +43,73 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
   dividerPmfmId: number;
   minObservedSpeciesCount: number;
   observedCount: number;
+  sales: Sale[];
   pmfms: {
     observedLocation: IPmfm[];
     landing: IPmfm[];
+    denormalizedBatch: IPmfm[];
   };
   pmfmsByIds?: {
     observedLocation?: { [key: number]: IPmfm };
     landing?: { [key: number]: IPmfm };
+    denormalizedBatch?: { [key: number]: IPmfm };
   };
+  denormalizedBatchesBySale: { [key: number]: DenormalizedBatch[] };
+
+  fromObject(source: any): void {
+    super.fromObject(source);
+    this.subtitle = source.subtitle;
+    this.footerText = source.footerText;
+    this.logoHeadLeftUrl = source.logoHeadLeftUrl;
+    this.logoHeadRightUrl = source.logoHeadRightUrl;
+    this.strategy = Strategy.fromObject(source.strategy);
+    this.landingTableRowChunk = (source.landingTableRowChunk || []).map((chunk) => chunk.map((landing) => Landing.fromObject(landing)));
+    this.nbSampledVessel = source.nbSampledVessel;
+    this.dividerPmfmId = source.dividerPmfmId;
+    this.minObservedSpeciesCount = source.minObservedSpeciesCount;
+    this.observedCount = source.observedCount;
+    this.sales = (source.sales || []).map((sale) => Sale.fromObject(sale));
+    this.pmfms = {
+      observedLocation: (source.pmfm?.observedLocation || []).map((pmfm) => DenormalizedPmfmStrategy.fromObject(pmfm)),
+      landing: (source.pmfm?.landing || []).map((pmfm) => DenormalizedPmfmStrategy.fromObject(pmfm)),
+      denormalizedBatch: (source.pmfm?.landing || []).map((pmfm) => DenormalizedPmfmStrategy.fromObject(pmfm)),
+    };
+    this.pmfmsByIds = {
+      observedLocation: splitById(this.pmfms.observedLocation),
+      landing: splitById(this.pmfms.landing),
+      denormalizedBatch: splitById(this.pmfms.denormalizedBatch),
+    };
+    this.denormalizedBatchesBySale = Object.keys(source.denormalizedBatchBySale || {}).reduce((acc, key) => {
+      acc[key] = (source.denormalizedBatchBySale[key] || []).map((batch) => DenormalizedPmfmStrategy.fromObject(batch));
+      return acc;
+    }, {});
+  }
+
+  asObject(opts?: EntityAsObjectOptions) {
+    return {
+      ...super.asObject(opts),
+      subtitle: this.subtitle,
+      footerText: this.footerText,
+      logoHeadLeftUrl: this.logoHeadLeftUrl,
+      logoHeadRightUrl: this.logoHeadRightUrl,
+      strategy: this.strategy.asObject(opts),
+      landingTableRowChunk: (this.landingTableRowChunk || []).map((chunk) => chunk.map((landing) => landing.asObject(opts))),
+      nbSampledVessel: this.nbSampledVessel,
+      dividerPmfmId: this.dividerPmfmId,
+      minObservedSpeciesCount: this.minObservedSpeciesCount,
+      observedCount: this.observedCount,
+      sales: (this.sales || []).map((sale) => sale.asObject(opts)),
+      pmfms: {
+        observedLocation: (this.pmfms?.observedLocation || []).map((pmfm) => pmfm.asObject(opts)),
+        landing: (this.pmfms?.landing || []).map((pmfm) => pmfm.asObject(opts)),
+        denormalizedBatch: (this.pmfms?.denormalizedBatch || []).map((pmfm) => pmfm.asObject(opts)),
+      },
+      denormalizedBatchesBySale: Object.keys(this.denormalizedBatchesBySale || {}).reduce((acc, key) => {
+        acc[key] = this.denormalizedBatchesBySale[key].map((batch) => batch.asObject(opts));
+        return acc;
+      }, {}),
+    };
+  }
 }
 
 @Component({
@@ -54,6 +128,8 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
   protected readonly observedLocationService: ObservedLocationService;
   protected readonly strategyRefService: StrategyRefService;
   protected readonly referentialRefService: ReferentialRefService;
+  protected readonly saleService: SaleService;
+  protected readonly denormalizedBatchService: DenormalizedBatchService;
 
   protected readonly pageDimensions = Object.freeze({
     height: 297 * 4,
@@ -72,6 +148,8 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
     this.observedLocationService = injector.get(ObservedLocationService);
     this.strategyRefService = injector.get(StrategyRefService);
     this.referentialRefService = injector.get(ReferentialRefService);
+    this.saleService = injector.get(SaleService);
+    this.denormalizedBatchService = injector.get(DenormalizedBatchService);
 
     this.reportType = this.route.snapshot.routeConfig.path;
     this.isBlankForm = this.reportType === 'blank-form';
@@ -134,15 +212,27 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
             acquisitionLevel: AcquisitionLevelCodes.LANDING,
             strategyId,
           }),
+          denormalizedBatch: [
+            ...(await this.programRefService.loadProgramPmfms(data.program.label, {
+              acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
+              strategyId,
+            })),
+            ...(await this.programRefService.loadProgramPmfms(data.program.label, {
+              acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
+              strategyId,
+            })),
+          ],
         }
       : {
           observedLocation: [],
           landing: [],
+          denormalizedBatch: [],
         };
 
     stats.pmfmsByIds = {
       observedLocation: splitById(stats.pmfms.observedLocation),
       landing: splitById(stats.pmfms.landing),
+      denormalizedBatch: splitById(stats.pmfms.denormalizedBatch),
     };
 
     // Sort landings to put PETS before then by rankOrder
@@ -192,6 +282,52 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
 
     stats.landingTableRowChunk = this.computeLandingTableChunk(data);
 
+    stats.sales = await Promise.all(
+      data.landings
+        .map((landing) => landing.saleIds)
+        .flat()
+        .map(async (saleId) => {
+          return await this.saleService.load(saleId);
+        })
+    );
+
+    if (isNotNil(data.id)) {
+      const denormaliseSaleResult = await this.denormalizedBatchService.denormalizeObservedLocation(data.id);
+      // TODO : Need to handle result ?
+    }
+    stats.denormalizedBatchesBySale = {};
+    for (const sale of stats.sales) {
+      const denormalizedBatches = (await this.denormalizedBatchService.loadAll(0, 1000, null, null, { saleId: sale.id })).data;
+      if (isEmptyArray(denormalizedBatches)) continue;
+      const [catchBatch] = DenormalizedBatchUtils.arrayToTree(denormalizedBatches);
+
+      const samplingBatches = denormalizedBatches
+        .filter((b) => DenormalizedBatchUtils.isSamplingBatch(b))
+        .map((b) => {
+          const parent = b.parent;
+          parent.samplingRatio = b.samplingRatio;
+          parent.samplingRatioText = b.samplingRatioText;
+          parent.weight = b.weight;
+          parent.indirectWeight = b.indirectWeight;
+          parent.individualCount = b.individualCount;
+          parent.indirectIndividualCount = b.indirectIndividualCount;
+          return b;
+        });
+
+      // Exclude sapling batch (they no be visible on table)
+      const result =
+        catchBatch &&
+        TreeItemEntityUtils.filterRecursively(catchBatch, (b) => !samplingBatches.includes(b) && !DenormalizedBatchUtils.isCatchBatch(b));
+
+      // Compute tree
+      DenormalizedBatchUtils.filterTreeComponents(result[0], (b) => !DenormalizedBatchUtils.isSamplingBatch(b));
+      result
+        .filter((batch) => DenormalizedBatchUtils.isSortingBatch(batch))
+        .forEach((batch) => DenormalizedBatchUtils.computeTreeIndent(batch, [], false, { html: true }));
+
+      stats.denormalizedBatchesBySale[sale.id] = result;
+    }
+
     return stats;
   }
 
@@ -204,7 +340,7 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
   }
 
   protected computeShareBasePath(): string {
-    return 'observations/report/form';
+    return 'observations/report/form/' + this.reportType;
   }
 
   protected computeI18nContext(stats: ObservedLocationFormReportStats): IReportI18nContext {
