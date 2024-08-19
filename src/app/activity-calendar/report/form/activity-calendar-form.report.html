@@ -398,24 +398,32 @@
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      <ion-col size="12" class="ion-padding-bottom">
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.LAST_NAME' | translate }}
-                        </strong>
-                        @if (!isBlankForm) {
+                      @if ((data.observers || []).length < 2) {
+                        <ion-col size="12" class="ion-padding-bottom">
+                          <strong>
+                            {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.LAST_NAME' | translate }}
+                          </strong>
                           &nbsp;
-                          {{ data.recorderPerson.lastName }}
-                        }
-                      </ion-col>
-                      <ion-col size="12">
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.FIRST_NAME' | translate }}
-                        </strong>
-                        @if (!isBlankForm) {
+                          @if (data.observers | isNotEmptyArray) {
+                            {{ data.observers[0]?.lastName }}
+                          }
+                        </ion-col>
+                        <ion-col size="12">
+                          <strong>
+                            {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.FIRST_NAME' | translate }}
+                          </strong>
                           &nbsp;
-                          {{ data.recorderPerson.firstName }}
+                          @if (data.observers | isNotEmptyArray) {
+                            {{ data.observers[0]?.firstName }}
+                          }
+                        </ion-col>
+                      } @else {
+                        @for (observer of data.observers; track observer.id) {
+                          <ion-col size="12" class="ion-padding-bottom">
+                            {{ observer | personToString }}
+                          </ion-col>
                         }
-                      </ion-col>
+                      }
                     </ion-row>
                   </ion-grid>
                 </ion-col>
