@@ -367,10 +367,7 @@
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      @for (
-                        qv of stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst | mapGet: 'qualitativeValues';
-                        track qv.id
-                      ) {
+                      @for (qv of stats.pmfmById.activityCalendar | mapGet: pmfmIdsMap.AUCTION_HABIT | mapGet: 'qualitativeValues'; track qv.id) {
                         <ion-col size="12">
                           <ion-icon
                             [name]="

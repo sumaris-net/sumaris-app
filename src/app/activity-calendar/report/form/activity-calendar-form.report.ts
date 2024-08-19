@@ -68,6 +68,12 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     guf?: IPmfm[];
     forGpfTable?: IPmfm[];
   };
+  pmfmById: {
+    activityMonth?: { [key: number]: IPmfm };
+    activityCalendar?: { [key: number]: IPmfm };
+    gpf?: { [key: number]: IPmfm };
+  };
+
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
   filteredAndOrderedGpf?: (GearPhysicalFeatures | GearUseFeatures)[];
@@ -96,6 +102,11 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
       gpf: source?.pmfm?.gpf?.map(DenormalizedPmfmStrategy.fromObject) || null,
       guf: source?.pmfm?.guf?.map(DenormalizedPmfmStrategy.fromObject) || null,
       forGpfTable: source?.pmfm?.forGpfTable?.map(DenormalizedPmfmStrategy.fromObject) || null,
+    };
+    this.pmfmById = {
+      activityMonth: splitById(this.pmfm.activityMonth),
+      activityCalendar: splitById(this.pmfm.activityCalendar),
+      gpf: splitById(this.pmfm.gpf),
     };
     this.activityMonthColspan = source.activityMonthColspan;
     this.metierTableChunks = source.metierTableChunks;
