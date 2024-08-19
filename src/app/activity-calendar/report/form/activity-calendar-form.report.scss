@@ -62,9 +62,9 @@
         }
         tbody {
           tr {
-            &.metier-row {
+            &.big-row {
               background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
-              height: var(--month-table-metier-row-height);
+              height: var(--month-table-big-row-height);
             }
           }
         }

@@ -141,7 +141,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     sectionTitleHeight: 25,
     monthTableRowTitleHeight: 20,
     monthTableRowHeight: 20,
-    monthTableMetierRowHeight: 30,
+    monthTableBigRowHeight: 30,
     gpfTableRowTitleHeight: 20,
     gpfTableColTitleWidth: 200,
     gpfTableRowHeight: 20,
@@ -330,7 +330,8 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     const heightOfEffortSection =
       this.pageDimensions.sectionTitleHeight +
       this.pageDimensions.monthTableRowHeight +
-      (stats.pmfm.activityMonth.length + this.nbOfNonPmfmRowInEffortTable) * this.pageDimensions.monthTableRowHeight +
+      (stats.pmfm.activityMonth.length + this.nbOfNonPmfmRowInEffortTable - 1) * this.pageDimensions.monthTableRowHeight +
+      this.pageDimensions.monthTableBigRowHeight +
       this.pageDimensions.investigationQualificationSectionHeight;
     const heightOfGearSection =
       this.pageDimensions.marginTop / 2 +
@@ -345,7 +346,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
     const heightNeededByEachMetierChunk = metierChunks.map((chunk) => {
       const nbOfFishingArea = chunk.fishingAreasIndexes.length;
-      return this.pageDimensions.monthTableMetierRowHeight + this.pageDimensions.monthTableRowHeight * nbOfFishingArea;
+      return this.pageDimensions.monthTableBigRowHeight + this.pageDimensions.monthTableRowHeight * nbOfFishingArea;
     });
 
     let currentChunkItems = [];
