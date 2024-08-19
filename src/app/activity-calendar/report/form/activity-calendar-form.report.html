@@ -64,7 +64,7 @@
           *sectionDef
           [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight + 'px'"
           [style.--month-table-row-height]="pageDimensions.monthTableRowHeight + 'px'"
-          [style.--month-table-metier-row-height]="pageDimensions.monthTableMetierRowHeight + 'px'"
+          [style.--month-table-big-row-height]="pageDimensions.monthTableBigRowHeight + 'px'"
           [style.--gear-table-title-row-height]="pageDimensions.gpfTableRowTitleHeight + 'px'"
           [style.--gear-table-row-height]="pageDimensions.gpfTableRowHeight + 'px'"
           [style.--header-height]="pageDimensions.headerHeight + 'px'"
@@ -197,7 +197,7 @@
                   }
                 </tr>
                 <!-- basePortLocation row -->
-                <tr>
+                <tr class="big-row">
                   <th class="col-label">
                     {{ 'ACTIVITY_CALENDAR.REPORT.BASE_PORT_LOCATION' | translate }}
                   </th>
@@ -205,7 +205,10 @@
                     <td [class.activity-not-exists]="(month | mapGet: 'isActive') === 2" class="fit-one-line">
                       <div>
                         <div [title]="month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] }">
-                          {{ month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] } }}
+                          {{ month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label'] } }}
+                        </div>
+                        <div>
+                          {{ month | mapGet: 'basePortLocation' | referentialToString: { properties: ['name'] } }}
                         </div>
                       </div>
                     </td>
@@ -250,7 +253,7 @@
               </thead>
               <tbody>
                 @for (metierIndex of metierChunk | arrayPluck: 'metierIndex'; track metierIndex; let metierChunkIndex = $index) {
-                  <tr class="metier-row">
+                  <tr class="big-row">
                     <th class="col-label">
                       {{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}
                     </th>

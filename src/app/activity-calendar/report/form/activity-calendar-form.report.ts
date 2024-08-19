@@ -168,7 +168,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     sectionTitleHeight: 25,
     monthTableRowTitleHeight: 20,
     monthTableRowHeight: 20,
-    monthTableMetierRowHeight: 30,
+    monthTableBigRowHeight: 30,
     gpfTableRowTitleHeight: 20,
     gpfTableColTitleWidth: 200,
     gpfTableRowHeight: 20,
