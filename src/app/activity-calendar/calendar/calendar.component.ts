@@ -1007,23 +1007,7 @@ export class CalendarComponent
     const cellElement = this.getEventCellElement(event);
     if (!cellElement) return false;
 
-    this.cellSelection = {
-      divElement: this.cellSelectionDivRef.nativeElement,
-      cellElement,
-      row,
-      columnName,
-      colspan: 1,
-      rowspan: 1,
-      resizing: false,
-    };
-
-    // Resize the new cell selection
-    this.resizeCellSelection(this.cellSelection, 'cell');
-
-    // Emit start cell selection event
-    this.startCellSelection.next();
-
-    return true;
+    this.selectRow(columnName, row, event);
   }
 
   @HostListener('window:resize')
