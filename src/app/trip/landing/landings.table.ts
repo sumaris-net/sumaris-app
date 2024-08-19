@@ -92,6 +92,7 @@ export class LandingsTable
   private _parentObservers: Person[];
   private _footerRowsSubscription: Subscription;
   private _rowSubscription: Subscription;
+  private _isObservedRowSubscription: Subscription;
 
   @RxStateSelect() protected readonly observedCount$: Observable<number>;
 
@@ -427,28 +428,31 @@ export class LandingsTable
     }
 
     // Mark as dirty if row changes
-    if (!this.showConfirmRowButton && this.canEdit && !this.dirty) {
-      this._rowSubscription?.unsubscribe();
-      const subscription = form.valueChanges
-        .pipe(
-          filter(() => form.dirty),
-          first()
-        )
-        .subscribe(() => this.markAsDirty());
-      subscription.add(() => this.unregisterSubscription(subscription));
-      this.registerSubscription(subscription);
-      this._rowSubscription = subscription;
+    if (!this.showConfirmRowButton && this.canEdit) {
+      if (!this.dirty) {
+        this._rowSubscription?.unsubscribe();
+        const subscription = form.valueChanges
+          .pipe(
+            filter(() => form.dirty),
+            first()
+          )
+          .subscribe(() => this.markAsDirty());
+        subscription.add(() => this.unregisterSubscription(subscription));
+        this.registerSubscription(subscription);
+        this._rowSubscription = subscription;
+      }
 
-      // Check when IS_OBSERVED updates
-      this.registerSubscription(
-        form
-          .get('measurementValues')
-          .get(PmfmIds.IS_OBSERVED.toString())
-          .valueChanges.pipe(filter(() => form.dirty))
-          .subscribe(() => {
-            this.validatorService.updateFormGroup(form, { pmfms: this.pmfms });
-          })
-      );
+      // Update form group when IS_OBSERVED updates
+      const isObservedControl = form.get('measurementValues').get(PmfmIds.IS_OBSERVED.toString());
+      if (isNotNil(isObservedControl)) {
+        this._isObservedRowSubscription?.unsubscribe();
+        const isObservedSubscription = isObservedControl.valueChanges.pipe(filter(() => form.dirty)).subscribe(() => {
+          this.validatorService.updateFormGroup(form, { pmfms: this.pmfms });
+        });
+        isObservedSubscription.add(() => this.unregisterSubscription(isObservedSubscription));
+        this.registerSubscription(isObservedSubscription);
+        this._isObservedRowSubscription = isObservedSubscription;
+      }
     }
   }
 
