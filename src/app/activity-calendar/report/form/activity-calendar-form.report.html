@@ -127,7 +127,7 @@
                         <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}</strong>
                         &nbsp;
                         @if (!isBlankForm) {
-                          {{ data.vesselSnapshot.registrationCode || data.vesselSnapshot.intRegistrationCode }}
+                          {{ (data.vesselSnapshot | mapGet: stats.settingVesselSnapshotAttribute) || data.vesselSnapshot.intRegistrationCode }}
                         }
                       </ion-col>
                       <ion-col>

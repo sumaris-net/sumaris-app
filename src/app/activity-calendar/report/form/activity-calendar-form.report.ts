@@ -21,6 +21,7 @@ import {
   isEmptyArray,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   referentialToString,
   sleep,
   splitById,
@@ -37,6 +38,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import moment from 'moment';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
+import { VESSEL_LOCAL_SETTINGS_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
 export class ActivityCalendarFormReportStats extends BaseReportStats {
   subtitle?: string;
@@ -52,6 +54,7 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
   };
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
+  settingVesselSnapshotAttribute: string;
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -214,6 +217,11 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
       programId: stats.program.id,
       acquisitionLevels: [AcquisitionLevelCodes.ACTIVITY_CALENDAR, AcquisitionLevelCodes.MONTHLY_ACTIVITY],
     });
+
+    const settingVesselSnapshotAttribute = this.settings.getProperty(VESSEL_LOCAL_SETTINGS_OPTIONS.FIELD_VESSEL_SNAPSHOT_ATTRIBUTES);
+    stats.settingVesselSnapshotAttribute = isNotNilOrBlank(settingVesselSnapshotAttribute)
+      ? settingVesselSnapshotAttribute.split(',')[0]
+      : 'registrationCode';
 
     stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER);
     stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL);
