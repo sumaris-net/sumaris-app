@@ -149,7 +149,7 @@
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
                       @for (
-                        qv of stats.pmfm.activityCalendar | arrayFilter: filterPmfmSurveyQualification | arrayFirst | mapGet: 'qualitativeValues';
+                        qv of stats.pmfmById.activityCalendar | mapGet: pmfmIdsMap.SURVEY_QUALIFICATION | mapGet: 'qualitativeValues';
                         track qv.id
                       ) {
                         <ion-col size="3">
@@ -159,7 +159,7 @@
                                 | mapGet: pmfmIdsMap.SURVEY_QUALIFICATION
                                 | pmfmValue
                                   : {
-                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmSurveyQualification | arrayFirst
+                                      pmfm: stats.pmfmById.activityCalendar | mapGet: pmfmIdsMap.SURVEY_QUALIFICATION
                                     }) === qv.name
                                 ? 'checkbox-outline'
                                 : 'square-outline'
@@ -364,10 +364,7 @@
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      @for (
-                        qv of stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst | mapGet: 'qualitativeValues';
-                        track qv.id
-                      ) {
+                      @for (qv of stats.pmfmById.activityCalendar | mapGet: pmfmIdsMap.AUCTION_HABIT | mapGet: 'qualitativeValues'; track qv.id) {
                         <ion-col size="12">
                           <ion-icon
                             [name]="
@@ -375,7 +372,7 @@
                                 | mapGet: pmfmIdsMap.AUCTION_HABIT
                                 | pmfmValue
                                   : {
-                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst
+                                      pmfm: stats.pmfmById.activityCalendar | mapGet: pmfmIdsMap.AUCTION_HABIT
                                     }) === qv.name
                                 ? 'checkbox-outline'
                                 : 'square-outline'

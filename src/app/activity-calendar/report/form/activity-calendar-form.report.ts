@@ -52,6 +52,12 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     activityCalendar?: IPmfm[];
     gpf?: IPmfm[];
   };
+  pmfmById: {
+    activityMonth?: { [key: number]: IPmfm };
+    activityCalendar?: { [key: number]: IPmfm };
+    gpf?: { [key: number]: IPmfm };
+  };
+
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
   settingVesselSnapshotAttribute: string;
@@ -68,6 +74,11 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
       activityMonth: source.pmfm.activityMonth.map(DenormalizedPmfmStrategy.fromObject),
       activityCalendar: source.pmfm.activityCalendar.map(DenormalizedPmfmStrategy.fromObject),
       gpf: source.pmfm.physicalGear.map(DenormalizedPmfmStrategy.fromObject),
+    };
+    this.pmfmById = {
+      activityMonth: splitById(this.pmfm.activityMonth),
+      activityCalendar: splitById(this.pmfm.activityCalendar),
+      gpf: splitById(this.pmfm.gpf),
     };
     this.activityMonthColspan = source.activityMonthColspan;
     this.metierTableChunks = source.metierTableChunks;
@@ -136,14 +147,6 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     gpfTableRowHeight: 20,
     investigationQualificationSectionHeight: 60,
   });
-
-  protected filterPmfmSurveyQualification(pmfm: IPmfm): boolean {
-    return PmfmIds.SURVEY_QUALIFICATION === pmfm.id;
-  }
-
-  protected filterPmfmAuctionHabit(pmfm: IPmfm): boolean {
-    return PmfmIds.AUCTION_HABIT === pmfm.id;
-  }
 
   constructor(injector: Injector) {
     super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
@@ -269,6 +272,19 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
         (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gearIds.includes(gearId))
       ),
     };
+
+    stats.pmfmById = {
+      activityMonth: splitById(stats.pmfm.activityMonth),
+      activityCalendar: splitById(stats.pmfm.activityCalendar),
+      gpf: splitById(stats.pmfm.gpf),
+    };
+    // Sort pmfm qualitativeValues used to display checkbox in alphabetical order
+    stats.pmfmById.activityCalendar[PmfmIds.SURVEY_QUALIFICATION].qualitativeValues = stats.pmfmById.activityCalendar[
+      PmfmIds.SURVEY_QUALIFICATION
+    ].qualitativeValues.sort((a, b) => (a.name < b.name ? -1 : 1));
+    stats.pmfmById.activityCalendar[PmfmIds.AUCTION_HABIT].qualitativeValues = stats.pmfmById.activityCalendar[
+      PmfmIds.AUCTION_HABIT
+    ].qualitativeValues.sort((a, b) => (a.name < b.name ? -1 : 1));
 
     this.computeMetierTableChunk(data, stats);
 
