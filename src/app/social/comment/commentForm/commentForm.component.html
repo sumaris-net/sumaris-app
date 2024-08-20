@@ -1,14 +1,14 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <mat-form-field appearance="fill" [style.width.%]="100">
-    <mat-label>Comment</mat-label>
+    <mat-label translate>COMMON.COMMENTS</mat-label>
     <textarea matInput formControlName="comment"></textarea>
   </mat-form-field>
 
   <div class="button-group">
-    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
-      {{ submitLabel }}
-    </button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">{{ 'COMMON.BTN_SEND' | translate }}</button>
 
-    <button *ngIf="hasCancelButton" mat-raised-button color="warn" type="button" (click)="handleCancel.emit()">Cancel</button>
+    <button *ngIf="hasCancelButton" mat-raised-button color="warn" type="button" (click)="handleCancel.emit()">
+      {{ 'COMMON.BTN_CANCEL' | translate }}
+    </button>
   </div>
 </form>

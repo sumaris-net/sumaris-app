@@ -1,11 +1,7 @@
 <div class="comments">
-  <h3 class="comments-title">Commentaires ({{ numberOfComments }})</h3>
+  <h3 class="comments-title">{{ 'COMMON.COMMENTS' | translate }} ({{ numberOfComments }})</h3>
 
-  <app-comment-form
-    submitLabel="Write"
-    (handleSubmit)="addComment({ text: $event, parentId: null })"
-    (handleCancel)="setActiveComment(null)"
-  ></app-comment-form>
+  <app-comment-form (handleSubmit)="addComment({ text: $event, parentId: null })" (handleCancel)="setActiveComment(null)"></app-comment-form>
   <br />
   <div class="comments-container">
     <app-comment

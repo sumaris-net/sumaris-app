@@ -39,8 +39,9 @@
                 type: activeCommentType.replying
               })
             "
+            translate
           >
-            Reply
+            {{ 'COMMON.BTN_REPLY' | translate }}
           </button>
           <button
             *ngIf="canEdit"
@@ -52,9 +53,9 @@
               })
             "
           >
-            Edit
+            {{ 'COMMON.BTN_EDIT' | translate }}
           </button>
-          <button *ngIf="canDelete" mat-button color="warn" (click)="deleteComment.emit(comment.id)">Delete</button>
+          <button *ngIf="canDelete" mat-button color="warn" (click)="deleteComment.emit(comment.id)">{{ 'COMMON.BTN_DELETE' | translate }}</button>
         </div>
       </mat-card-content>
     </mat-card>
