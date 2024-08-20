@@ -127,7 +127,7 @@ export class CommentsComponent implements OnInit {
       parentId,
       createdAt: moment().format('DD/MM/YY HH:mm').toString(),
       userId: this.accountService.account.id,
-      username: this.accountService.account.lastName,
+      username: this.accountService.account.lastName + ' ' + this.accountService.account.firstName,
       pubkey: this.accountService.account.pubkey,
     };
   }

@@ -7,7 +7,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
   styleUrls: ['./commentForm.component.scss'],
 })
 export class CommentFormComponent implements OnInit {
-  @Input() submitLabel!: string;
   @Input() hasCancelButton: boolean = false;
   @Input() initialText: string = '';
 
