@@ -38,7 +38,9 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import moment from 'moment';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
-import { VESSEL_LOCAL_SETTINGS_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { VesselOwnerPeridodService, VesselOwnerPeriodQueries } from '@app/vessel/services/vessel-owner-period.service';
+import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
+import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
 
 export class ActivityCalendarFormReportStats extends BaseReportStats {
   subtitle?: string;
@@ -60,7 +62,11 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
 
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
-  settingVesselSnapshotAttribute: string;
+  displayAttributes: {
+    vesselSnapshot: string[];
+    vesselOwner: string[];
+  };
+  lastVesselOwner: VesselOwner;
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -82,6 +88,8 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     };
     this.activityMonthColspan = source.activityMonthColspan;
     this.metierTableChunks = source.metierTableChunks;
+    this.lastVesselOwner = VesselOwner.fromObject(source.lastVesselOwner);
+    this.displayAttributes = source.displayAttributes;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -100,6 +108,8 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
       },
       activityMonthColspan: this.activityMonthColspan,
       metierTableChunks: this.metierTableChunks,
+      lastVesselOwner: this.lastVesselOwner.asObject(opts),
+      displayAttributes: this.displayAttributes,
     };
   }
 }
@@ -124,6 +134,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   protected readonly strategyRefService: StrategyRefService;
   protected readonly programRefService: ProgramRefService;
   protected readonly vesselSnapshotService: VesselSnapshotService;
+  protected readonly vesselOwnerPeridodService: VesselOwnerPeridodService;
   protected readonly translateContextService: TranslateContextService;
   protected readonly configService: ConfigService;
 
@@ -154,6 +165,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
     this.vesselSnapshotService = this.injector.get(VesselSnapshotService);
+    this.vesselOwnerPeridodService = this.injector.get(VesselOwnerPeridodService);
     this.translateContextService = this.injector.get(TranslateContextService);
     this.configService = this.injector.get(ConfigService);
 
@@ -221,10 +233,10 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
       acquisitionLevels: [AcquisitionLevelCodes.ACTIVITY_CALENDAR, AcquisitionLevelCodes.MONTHLY_ACTIVITY],
     });
 
-    const settingVesselSnapshotAttribute = this.settings.getProperty(VESSEL_LOCAL_SETTINGS_OPTIONS.FIELD_VESSEL_SNAPSHOT_ATTRIBUTES);
-    stats.settingVesselSnapshotAttribute = isNotNilOrBlank(settingVesselSnapshotAttribute)
-      ? settingVesselSnapshotAttribute.split(',')[0]
-      : 'registrationCode';
+    stats.displayAttributes = {
+      vesselSnapshot: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['registrationCode', 'name']),
+      vesselOwner: this.settings.getFieldDisplayAttributes('vesselOwner', ['lastName', 'firstName']),
+    };
 
     stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER);
     stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL);
@@ -248,6 +260,27 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
       );
       data.vesselSnapshot = VesselSnapshot.fromObject({});
       data.year = moment().year();
+
+      stats.lastVesselOwner = VesselOwner.fromObject({});
+    } else {
+      const lastRegistrationPeriod = data.vesselRegistrationPeriods.sort((a, b) => (a.startDate < b.startDate ? 1 : -1))[0];
+      const vesselOwnerPeridodResult = await this.vesselOwnerPeridodService.loadAll(
+        0,
+        1,
+        'startDate',
+        'desc',
+        VesselOwnerPeriodFilter.fromObject({
+          vesselId: data.vesselSnapshot.id,
+          startDate: DateUtils.toDateISOString(DateUtils.markTime(lastRegistrationPeriod.startDate)),
+          endDate: DateUtils.toDateISOString(DateUtils.markTime(lastRegistrationPeriod.endDate)),
+        }),
+        {
+          query: VesselOwnerPeriodQueries.loadAllWithAdministrativeInfos,
+        }
+      );
+      stats.lastVesselOwner = isNotEmptyArray(vesselOwnerPeridodResult.data)
+        ? vesselOwnerPeridodResult.data[0].vesselOwner
+        : VesselOwner.fromObject({});
     }
 
     stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, fillEmptyFishingArea: true });
