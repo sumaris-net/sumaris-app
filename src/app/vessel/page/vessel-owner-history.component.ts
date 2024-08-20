@@ -39,6 +39,15 @@ export class VesselOwnerHistoryComponent extends AppBaseTable<VesselOwnerPeriod,
     return this.getShowColumn('activityStartDate');
   }
 
+  @Input()
+  set showRetirementDateColumn(value: boolean) {
+    this.setShowColumn('retirementDate', value);
+  }
+
+  get showRetirementDateColumn(): boolean {
+    return this.getShowColumn('retirementDate');
+  }
+
   constructor(
     injector: Injector,
     protected accountService: AccountService,
@@ -64,6 +73,7 @@ export class VesselOwnerHistoryComponent extends AppBaseTable<VesselOwnerPeriod,
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.debug = !environment.production;
+    this.showRetirementDateColumn = false;
   }
 
   ngOnInit() {
