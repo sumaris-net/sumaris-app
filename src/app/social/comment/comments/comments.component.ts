@@ -3,6 +3,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { AccountService } from '@sumaris-net/ngx-components';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { UserEventFilter } from '@app/social/user-event/user-event.model';
+import moment from 'moment';
 
 export interface ActiveCommentInterface {
   id: number;
@@ -51,15 +52,14 @@ export class CommentsComponent implements OnInit {
   async ngOnInit() {
     const filter: Partial<UserEventFilter> = { recipients: [this.objectType], source: this.objectId };
     console.log('filter', filter);
-    await this.userEventService.watchAll(0, 10, 'createdAt', 'desc', filter, { withContent: true }).subscribe((data) => {
-      this.comments = data.data[0].content.content as Comment[];
-      this.numberOfComments = this.comments.length;
-      console.log(data.data[0].content.content);
-    });
+
+    const comments = await this.userEventService.loadComments(filter);
+    this.comments = comments.content as Comment[];
+    this.numberOfComments = this.comments.length;
   }
 
   getRootComments(): Comment[] {
-    return this.comments.filter((comment) => comment.parentId === null);
+    return this.comments.filter((comment) => comment.parentId === null).reverse();
   }
 
   updateComment({ text, commentId }: { text: string; commentId: number }): void {
@@ -125,7 +125,7 @@ export class CommentsComponent implements OnInit {
       id: highestId + 1,
       body: text,
       parentId,
-      createdAt: new Date().toISOString(),
+      createdAt: moment().format('DD/MM/YY HH:mm').toString(),
       userId: this.accountService.account.id,
       username: this.accountService.account.lastName,
       pubkey: this.accountService.account.pubkey,

@@ -172,6 +172,29 @@ export class UserEventService
     }
   }
 
+  async loadComments(filter: Partial<UserEventFilter>): Promise<any | undefined> {
+    try {
+      const fixedFilter = {
+        ...filter,
+        excludeRead: filter.excludeRead ?? false,
+      };
+
+      const response = await this.graphql.query<{ data: any[] }>({
+        query: queries.loadAllWithContent,
+        variables: {
+          filter: fixedFilter,
+          page: null,
+        },
+      });
+
+      const entity = response.data?.[0];
+      return entity ? JSON.parse(entity.content) : undefined;
+    } catch (err) {
+      console.error('Cannot load event content:', err);
+      return undefined;
+    }
+  }
+
   watchAll(
     offset: number,
     size: number,
