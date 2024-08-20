@@ -34,6 +34,9 @@ export interface Comment {
 export class CommentsComponent implements OnInit {
   currentUserId!: number;
 
+  @Input() objectType!: string;
+  @Input() objectId!: string;
+
   comments: Comment[] = [];
   activeComment: ActiveCommentInterface | null = null;
   numberOfComments: number = 0;
@@ -46,18 +49,13 @@ export class CommentsComponent implements OnInit {
   }
 
   async ngOnInit() {
-    const filter: Partial<UserEventFilter> = { recipients: ['ACTIVITY_CALENDAR'], source: '1' };
+    const filter: Partial<UserEventFilter> = { recipients: [this.objectType], source: this.objectId };
+    console.log('filter', filter);
     await this.userEventService.watchAll(0, 10, 'createdAt', 'desc', filter, { withContent: true }).subscribe((data) => {
       this.comments = data.data[0].content.content as Comment[];
       this.numberOfComments = this.comments.length;
       console.log(data.data[0].content.content);
     });
-
-    // this.commentsService.getComments().subscribe((comments) => {
-    //   this.comments = comments;
-    //   this.numberOfComments = comments.length;
-    // });
-    // console.log('comment component', this.accountService.account);
   }
 
   getRootComments(): Comment[] {
@@ -69,8 +67,8 @@ export class CommentsComponent implements OnInit {
     updateComment.body = text;
 
     const data: CommentData = {
-      objectId: '1',
-      objectType: 'ACTIVITY_CALENDAR',
+      objectId: this.objectId,
+      objectType: this.objectType,
       content: [...this.comments],
     };
     this.activeComment = null;
@@ -78,12 +76,13 @@ export class CommentsComponent implements OnInit {
   }
 
   deleteComment(commentId: number): void {
-    const comments = this.comments.filter((comment) => comment.id != commentId);
+    const comments = this.comments.filter((comment) => comment.id != commentId && comment.parentId != commentId);
+
     this.comments = comments;
     this.numberOfComments = this.comments.length;
     const data: CommentData = {
-      objectId: '1',
-      objectType: 'ACTIVITY_CALENDAR',
+      objectId: this.objectId,
+      objectType: this.objectType,
       content: [...comments],
     };
     this.userEventService.sendComment(data);
@@ -101,8 +100,8 @@ export class CommentsComponent implements OnInit {
     this.numberOfComments = this.comments.length;
 
     const data: CommentData = {
-      objectId: '1',
-      objectType: 'ACTIVITY_CALENDAR',
+      objectId: this.objectId,
+      objectType: this.objectType,
       content: [...this.comments],
     };
     this.userEventService.sendComment(data);

@@ -11,7 +11,7 @@
       </mat-card-header>
       <mat-card-content>
         <div *ngIf="!isEditing()">{{ comment.body }}</div>
-
+        <br />
         <app-comment-form
           *ngIf="isEditing()"
           submitLabel="Update"

@@ -485,8 +485,8 @@ export class UserEventService
 
   sendComment(data: any): Promise<UserEvent> {
     const userEvent = new UserEvent();
-    userEvent.recipient = 'ACTIVITY_CALENDAR';
-    userEvent.source = '1';
+    userEvent.recipient = data.objectType;
+    userEvent.source = data.objectId;
     userEvent.type = UserEventTypeEnum.COMMENT;
     userEvent.content = data;
     return this.save(userEvent);

@@ -161,6 +161,7 @@ export class ActivityCalendarPage
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
   protected isAdmin = this.accountService.isAdmin();
   protected qualityWarning: string = null;
+  calendarId: string;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
@@ -220,6 +221,8 @@ export class ActivityCalendarPage
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.calendarId = this.route.snapshot.params['calendarId'];
     // Listen some field
     // console.log(this.accountService.account);
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
