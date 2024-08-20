@@ -92,7 +92,7 @@
           @if (firstPage) {
             <ion-grid class="report-section ion-no-padding font-compact">
               <ion-row>
-                <ion-col size="7" class="ion-padding-end">
+                <ion-col size="4">
                   <ion-grid class="ion-no-padding">
                     <ion-row class="section-title red-border-bottom">
                       <ion-col class="ion-padding-end">
@@ -103,7 +103,7 @@
                       <ion-col class="ion-margin-right">
                         <ion-grid class="ion-no-padding">
                           <ion-row>
-                            <ion-col size="auto">
+                            <ion-col size="6">
                               <strong>
                                 {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_LOCATION' | translate }}
                               </strong>
@@ -130,10 +130,23 @@
                         &nbsp;
                         {{ data.vesselSnapshot.name }}
                       </ion-col>
+                      <ion-col size="6">
+                        <strong>
+                          @if (stats.displayAttributes.vesselSnapshot[0] == 'exteriorMarking') {
+                            {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.EXTERIOR_MARKING' | translate }}
+                          } @else {
+                            {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}
+                          }
+                          &nbsp;
+                        </strong>
+                        @if (!isBlankForm) {
+                          {{ (data.vesselSnapshot | mapGet: stats.displayAttributes.vesselSnapshot[0]) || data.vesselSnapshot.intRegistrationCode }}
+                        }
+                      </ion-col>
                     </ion-row>
                   </ion-grid>
                 </ion-col>
-                <ion-col size="5">
+                <ion-col size="5" class="ion-padding-horizontal">
                   <ion-grid class="ion-no-padding">
                     <ion-row class="section-title red-border-bottom">
                       <ion-col>
@@ -159,6 +172,34 @@
                           <strong>
                             {{ qv.name }}
                           </strong>
+                        </ion-col>
+                      }
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+                <ion-col size="3">
+                  <ion-grid class="ion-no-padding">
+                    <ion-row class="section-title red-border-bottom">
+                      <ion-col>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
+                      @if (isBlankForm) {
+                        <ion-col size="12">
+                          <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER_SECTION.NAME' | translate }}</strong>
+                        </ion-col>
+                        <ion-col size="12">
+                          <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER_SECTION.ADDRESS' | translate }}</strong>
+                        </ion-col>
+                      } @else {
+                        <ion-col size="12">
+                          {{
+                            stats.lastVesselOwner | referentialToString: { properties: stats.displayAttributes.vesselOwner, propertySeparator: ' ' }
+                          }}
+                        </ion-col>
+                        <ion-col size="12">
+                          {{ stats.lastVesselOwner | referentialToString: { properties: ['street', 'zipCode', 'city'], propertySeparator: ' ' } }}
                         </ion-col>
                       }
                     </ion-row>
