@@ -483,6 +483,15 @@ export class UserEventService
     return this.save(userEvent);
   }
 
+  sendComment(data: any): Promise<UserEvent> {
+    const userEvent = new UserEvent();
+    userEvent.recipient = 'ACTIVITY_CALENDAR';
+    userEvent.source = '1';
+    userEvent.type = UserEventTypeEnum.COMMENT;
+    userEvent.content = data;
+    return this.save(userEvent);
+  }
+
   protected async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     return await Toasts.show(this.toastController, this.translate, opts);

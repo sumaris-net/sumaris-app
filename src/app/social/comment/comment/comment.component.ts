@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { ActiveCommentInterface, ActiveCommentTypeEnum, CommentInterface } from '../comments/comments.component';
+import { ActiveCommentInterface, ActiveCommentTypeEnum, Comment } from '../comments/comments.component';
 
 @Component({
   selector: 'app-comment',
@@ -7,27 +7,27 @@ import { ActiveCommentInterface, ActiveCommentTypeEnum, CommentInterface } from 
   styleUrls: ['./comment.component.scss'],
 })
 export class CommentComponent implements OnInit {
-  @Input() comment!: CommentInterface;
+  @Input() comment!: Comment;
   @Input() activeComment!: ActiveCommentInterface | null;
-  @Input() replies!: CommentInterface[];
-  @Input() currentUserId!: string;
-  @Input() parentId!: string | null;
+  @Input() replies!: Comment[];
+  @Input() currentUserId!: number;
+  @Input() parentId!: number | null;
 
   @Output()
   setActiveComment = new EventEmitter<ActiveCommentInterface | null>();
   @Output()
-  deleteComment = new EventEmitter<string>();
+  deleteComment = new EventEmitter<number>();
   @Output()
-  addComment = new EventEmitter<{ text: string; parentId: string | null }>();
+  addComment = new EventEmitter<{ text: string; parentId: number | null }>();
   @Output()
-  updateComment = new EventEmitter<{ text: string; commentId: string }>();
+  updateComment = new EventEmitter<{ text: string; commentId: number }>();
 
   createdAt: string = '';
   canReply: boolean = false;
   canEdit: boolean = false;
   canDelete: boolean = false;
   activeCommentType = ActiveCommentTypeEnum;
-  replyId: string | null = null;
+  replyId: number | null = null;
 
   ngOnInit(): void {
     const fiveMinutes = 300000;

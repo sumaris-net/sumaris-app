@@ -221,6 +221,7 @@ export class ActivityCalendarPage
   ngOnInit() {
     super.ngOnInit();
     // Listen some field
+    // console.log(this.accountService.account);
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
     this._state.connect(
@@ -687,7 +688,6 @@ export class ActivityCalendarPage
 
   async setValue(data: ActivityCalendar) {
     console.info(this.logPrefix + 'Setting data', data);
-
     const isNewData = this.isNewData;
     if (!isNewData) {
       // Wait ready only on existing data (must not wait table because program is not set yet)

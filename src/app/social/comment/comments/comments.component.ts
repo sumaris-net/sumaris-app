@@ -1,87 +1,135 @@
 import { Component, Input, OnInit } from '@angular/core';
 
-import { CommentsService } from '../services/comments.service';
+import { AccountService } from '@sumaris-net/ngx-components';
+import { UserEventService } from '@app/social/user-event/user-event.service';
+import { UserEventFilter } from '@app/social/user-event/user-event.model';
 
 export interface ActiveCommentInterface {
-  id: string;
+  id: number;
   type: ActiveCommentTypeEnum;
 }
 export enum ActiveCommentTypeEnum {
   replying = 'replying',
   editing = 'editing',
 }
-export interface CommentInterface {
-  id: string;
+export interface CommentData {
+  objectId: string;
+  objectType: string;
+  content: Comment[];
+}
+export interface Comment {
+  id: number;
   body: string;
   username: string;
-  userId: string;
-  parentId: null | string;
+  userId: number;
+  parentId: null | number;
   createdAt: string;
+  pubkey: string;
 }
 
 @Component({
   selector: 'app-comments',
   templateUrl: './comments.component.html',
-  providers: [CommentsService],
 })
 export class CommentsComponent implements OnInit {
-  @Input() currentUserId!: string;
+  currentUserId!: number;
 
-  comments: CommentInterface[] = [];
+  comments: Comment[] = [];
   activeComment: ActiveCommentInterface | null = null;
   numberOfComments: number = 0;
 
-  constructor(private commentsService: CommentsService) {}
-
-  ngOnInit(): void {
-    this.commentsService.getComments().subscribe((comments) => {
-      this.comments = comments;
-      this.numberOfComments = comments.length;
-    });
+  constructor(
+    private userEventService: UserEventService,
+    private accountService: AccountService
+  ) {
+    this.currentUserId = this.accountService.account.id;
   }
 
-  getRootComments(): CommentInterface[] {
+  async ngOnInit() {
+    const filter: Partial<UserEventFilter> = { recipients: ['ACTIVITY_CALENDAR'], source: '1' };
+    await this.userEventService.watchAll(0, 10, 'createdAt', 'desc', filter, { withContent: true }).subscribe((data) => {
+      this.comments = data.data[0].content.content as Comment[];
+      this.numberOfComments = this.comments.length;
+      console.log(data.data[0].content.content);
+    });
+
+    // this.commentsService.getComments().subscribe((comments) => {
+    //   this.comments = comments;
+    //   this.numberOfComments = comments.length;
+    // });
+    // console.log('comment component', this.accountService.account);
+  }
+
+  getRootComments(): Comment[] {
     return this.comments.filter((comment) => comment.parentId === null);
   }
 
-  updateComment({ text, commentId }: { text: string; commentId: string }): void {
-    this.commentsService.updateComment(commentId, text).subscribe((updatedComment) => {
-      this.comments = this.comments.map((comment) => {
-        if (comment.id === commentId) {
-          return updatedComment;
-        }
-        return comment;
-      });
+  updateComment({ text, commentId }: { text: string; commentId: number }): void {
+    const updateComment = this.comments.find((comment) => comment.id === commentId);
+    updateComment.body = text;
 
-      this.activeComment = null;
-    });
+    const data: CommentData = {
+      objectId: '1',
+      objectType: 'ACTIVITY_CALENDAR',
+      content: [...this.comments],
+    };
+    this.activeComment = null;
+    this.userEventService.sendComment(data);
   }
 
-  deleteComment(commentId: string): void {
-    this.commentsService.deleteComment(commentId).subscribe(() => {
-      this.comments = this.comments.filter((comment) => comment.id !== commentId);
-      this.numberOfComments = this.comments.length;
-    });
+  deleteComment(commentId: number): void {
+    const comments = this.comments.filter((comment) => comment.id != commentId);
+    this.comments = comments;
+    this.numberOfComments = this.comments.length;
+    const data: CommentData = {
+      objectId: '1',
+      objectType: 'ACTIVITY_CALENDAR',
+      content: [...comments],
+    };
+    this.userEventService.sendComment(data);
   }
 
   setActiveComment(activeComment: ActiveCommentInterface | null): void {
     this.activeComment = activeComment;
   }
 
-  addComment({ text, parentId }: { text: string; parentId: string | null }): void {
-    this.commentsService.createComment(text, parentId).subscribe((createdComment) => {
-      this.comments = [...this.comments, createdComment];
-      this.activeComment = null;
-      this.numberOfComments = this.comments.length;
-    });
+  async addComment({ text, parentId }: { text: string; parentId: number | null }) {
+    const newComment = this.createComment(text, parentId);
+    newComment as Comment;
+    this.comments = [...this.comments, newComment];
+    this.activeComment = null;
+    this.numberOfComments = this.comments.length;
+
+    const data: CommentData = {
+      objectId: '1',
+      objectType: 'ACTIVITY_CALENDAR',
+      content: [...this.comments],
+    };
+    this.userEventService.sendComment(data);
   }
 
-  getReplies(commentId: string): CommentInterface[] {
+  getReplies(commentId: number): Comment[] {
     return this.comments
       .filter((comment) => comment.parentId === commentId)
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }
   getNumberOfComment() {
     return this.numberOfComments;
+  }
+
+  createComment(text: string, parentId: number | null = null) {
+    const highestId = this.comments.reduce((maxId, comment) => {
+      return comment.id > maxId ? comment.id : maxId;
+    }, 0);
+
+    return {
+      id: highestId + 1,
+      body: text,
+      parentId,
+      createdAt: new Date().toISOString(),
+      userId: this.accountService.account.id,
+      username: this.accountService.account.lastName,
+      pubkey: this.accountService.account.pubkey,
+    };
   }
 }

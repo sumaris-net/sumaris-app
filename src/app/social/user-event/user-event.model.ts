@@ -26,6 +26,7 @@ export const UserEventTypeEnum = Object.freeze({
   DEBUG_DATA: <UserEventType>'DEBUG_DATA',
   INBOX_MESSAGE: <UserEventType>'INBOX_MESSAGE',
   JOB: <UserEventType>'JOB',
+  COMMENT: <UserEventType>'COMMENT',
   // TODO: add all types of event
 });
 
