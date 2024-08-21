@@ -219,27 +219,27 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL);
     stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL);
 
+    let fishingAreaCount: number;
     if (this.isBlankForm) {
       const nbOfMetier = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER);
-      const nbOfFishingAreaPerMetier = stats.program.getPropertyAsInt(
-        ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER
-      );
+      fishingAreaCount = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER);
       data.gearPhysicalFeatures = Array(nbOfMetier).fill(
         GearPhysicalFeatures.fromObject({
           metier: Metier.fromObject({}),
         })
       );
-      data.gearUseFeatures = Array(nbOfMetier).fill(
-        GearUseFeatures.fromObject({
-          metier: Metier.fromObject({}),
-          fishingAreas: Array(nbOfFishingAreaPerMetier).fill(FishingArea.fromObject({})),
-        })
-      );
+      data.gearUseFeatures = Array(nbOfMetier)
+        .fill(-1)
+        .map((value, index) =>
+          GearUseFeatures.fromObject({
+            metier: Metier.fromObject({ id: value * index - 1 }),
+          })
+        );
       data.vesselSnapshot = VesselSnapshot.fromObject({});
       data.year = moment().year();
     }
 
-    stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, fillEmptyFishingArea: true });
+    stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, fillEmptyFishingArea: true, fishingAreaCount });
 
     this.computeActivityMonthColspan(stats);
 

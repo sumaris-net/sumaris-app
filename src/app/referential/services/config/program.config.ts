@@ -1220,7 +1220,7 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 4,
   },
   ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER: <FormFieldDefinition>{
-    key: 'sumaris.activityCalendar.report.form.blank.nbMetier',
+    key: 'sumaris.activityCalendar.report.form.blank.nbFishingAreaPerMetier',
     label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER',
     type: 'integer',
     defaultValue: 2,
