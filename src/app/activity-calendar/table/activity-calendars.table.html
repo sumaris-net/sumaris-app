@@ -11,6 +11,7 @@
         [autocompleteConfig]="namedFilterAutocompleteConfig"
         [filterImportCallback]="filterImportCallback"
         (filterSelected)="setFilter($event)"
+        [detectChangeOnSelectFilter]="true"
       ></app-named-filter-selector>
     }
 
