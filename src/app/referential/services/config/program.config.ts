@@ -1200,7 +1200,7 @@ export const ProgramProperties = Object.freeze({
   },
   ACTIVITY_CALENDAR_REPORT_FORM_FOOTER: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.report.form.footer',
-    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_FORM_FOOTER',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER',
     type: 'string',
   },
   ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL: <FormFieldDefinition>{

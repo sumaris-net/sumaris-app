@@ -239,7 +239,7 @@
               </tbody>
             </table>
           }
-          @if (metierChunk | isNotNil) {
+          @if (metierChunk | isNotEmptyArray) {
             <ion-grid class="report-section ion-no-padding ion-padding-top" [style.--ion-padding]="'8px'">
               <ion-row class="ion-no-padding">
                 <ion-col>
