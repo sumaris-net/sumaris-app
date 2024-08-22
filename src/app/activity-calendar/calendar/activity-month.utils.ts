@@ -53,8 +53,7 @@ export class ActivityMonthUtils {
       .map(GearUseFeatures.fromObject)
       .sort(GearUseFeaturesComparators.sortByDateAndRankOrderFn);
     const sortedMetierIds =
-      opts?.sortedMetierIds ||
-      (opts?.fillEmptyGuf && removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)).concat(undefined));
+      opts?.sortedMetierIds || (opts?.fillEmptyGuf && removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)));
     const fishingAreaCount = opts?.fishingAreaCount || 2;
 
     return monthStartDates

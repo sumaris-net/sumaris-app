@@ -221,14 +221,15 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
     let fishingAreaCount: number;
     if (this.isBlankForm) {
-      const nbOfMetier = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER);
+      const nbOfGuf = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GUF);
+      const nbOfGpf = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GPF);
       fishingAreaCount = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER);
-      data.gearPhysicalFeatures = Array(nbOfMetier).fill(
+      data.gearPhysicalFeatures = Array(nbOfGpf).fill(
         GearPhysicalFeatures.fromObject({
           metier: Metier.fromObject({}),
         })
       );
-      data.gearUseFeatures = Array(nbOfMetier)
+      data.gearUseFeatures = Array(nbOfGuf)
         .fill(-1)
         .map((value, index) =>
           GearUseFeatures.fromObject({
@@ -252,14 +253,25 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
         acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
         strategyId: stats.strategy.id,
       }),
-      gpf: (
-        await this.programRefService.loadProgramPmfms(data.program.label, {
-          acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
-          strategyId: stats.strategy.id,
-        })
-      ).filter(
-        (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gearIds.includes(gearId))
-      ),
+      gpf: !this.isBlankForm
+        ? (
+            await this.programRefService.loadProgramPmfms(data.program.label, {
+              acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
+              strategyId: stats.strategy.id,
+            })
+          ).filter(
+            (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gearIds.includes(gearId))
+          )
+        : [
+            DenormalizedPmfmStrategy.fromObject({
+              id: -1,
+              name: stats.program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1),
+            }),
+            DenormalizedPmfmStrategy.fromObject({
+              id: -2,
+              name: stats.program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2),
+            }),
+          ],
     };
 
     this.computeMetierTableChunk(data, stats);

@@ -342,7 +342,7 @@
                                 @for (gpf of data.gearPhysicalFeatures; track gpf.id) {
                                   <td
                                     [style.--col-width]="
-                                      'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
+                                      'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearPhysicalFeatures.length + ')'
                                     "
                                   >
                                     {{ gpf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
