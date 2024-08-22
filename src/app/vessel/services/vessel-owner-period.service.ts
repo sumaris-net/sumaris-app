@@ -34,6 +34,15 @@ export const VesselOwnerPeriodQueries = {
     }
     ${VesselOwnerPeriodFragments.vesselOwner}
   `,
+  loadAllWithTotal: gql`
+    query vesselOwnerHistory($filter: VesselOwnerFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: vesselOwnerHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...VesselOwnerFragment
+      }
+      total: vesselOwnerHistoryCount(filter: $filter)
+    }
+    ${VesselOwnerPeriodFragments.vesselOwner}
+  `,
 };
 
 @Injectable({ providedIn: 'root' })
