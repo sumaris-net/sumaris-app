@@ -30,10 +30,8 @@ import { ActivityMonth } from '../../calendar/activity-month.model';
 import { ActivityMonthUtils } from '../../calendar/activity-month.utils';
 import { IsActiveList } from '../../calendar/calendar.component';
 import { ActivityCalendar } from '../../model/activity-calendar.model';
-import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { GearUseFeatures } from '../../model/gear-use-features.model';
 import { Metier } from '@app/referential/metier/metier.model';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import moment from 'moment';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
@@ -172,17 +170,15 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
   protected async loadData(id: number, opts?: any): Promise<ActivityCalendar> {
     console.log(`[${this.logPrefix}] loadData`);
-    let data: ActivityCalendar;
-    if (this.isBlankForm) {
-      // Keep id : needed by method like `computeDefaultBackHref`
-      const realData = await this.ActivityCalendarService.load(id, { ...opts });
-      data = ActivityCalendar.fromObject({
-        id: id,
-        program: Program.fromObject({ label: realData.program.label }),
-      });
-    } else {
-      data = await this.ActivityCalendarService.load(id, { ...opts });
-    }
+    const fetchedData = await this.ActivityCalendarService.load(id, { ...opts });
+    const data: ActivityCalendar = this.isBlankForm
+      ? ActivityCalendar.fromObject({
+          id: id,
+          program: Program.fromObject({ label: fetchedData.program.label }),
+          vesselSnapshot: fetchedData.vesselSnapshot,
+          vesselRegistrationPeriods: fetchedData.vesselRegistrationPeriods,
+        })
+      : fetchedData;
     if (!data) throw new Error('ERROR.LOAD_ENTITY_ERROR');
     return data;
   }
@@ -221,22 +217,21 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
     let fishingAreaCount: number;
     if (this.isBlankForm) {
-      const nbOfGuf = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GUF);
-      const nbOfGpf = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GPF);
+      const nbOfMetierBlock = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER_BLOCK);
+      const nbOfGearsColumn = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GEARS_COLUMN);
       fishingAreaCount = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER);
-      data.gearPhysicalFeatures = Array(nbOfGpf).fill(
+      data.gearPhysicalFeatures = Array(nbOfGearsColumn).fill(
         GearPhysicalFeatures.fromObject({
           metier: Metier.fromObject({}),
         })
       );
-      data.gearUseFeatures = Array(nbOfGuf)
+      data.gearUseFeatures = Array(nbOfMetierBlock)
         .fill(-1)
         .map((value, index) =>
           GearUseFeatures.fromObject({
             metier: Metier.fromObject({ id: value * index - 1 }),
           })
         );
-      data.vesselSnapshot = VesselSnapshot.fromObject({});
       data.year = moment().year();
     }
 

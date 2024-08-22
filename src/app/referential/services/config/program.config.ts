@@ -1213,15 +1213,15 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL',
     type: 'string',
   },
-  ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GUF: <FormFieldDefinition>{
-    key: 'sumaris.activityCalendar.report.form.blank.nbGuf',
-    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GUF',
+  ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER_BLOCK: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.form.blank.nbMetierBlock',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER_BLOCK',
     type: 'integer',
     defaultValue: 4,
   },
-  ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GPF: <FormFieldDefinition>{
-    key: 'sumaris.activityCalendar.report.form.blank.nbGpf',
-    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GPF',
+  ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GEARS_COLUMN: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.form.blank.nbGearsColumn',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GEARS_COLUMN',
     type: 'integer',
     defaultValue: 5,
   },
