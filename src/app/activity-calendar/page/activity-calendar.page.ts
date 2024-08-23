@@ -82,6 +82,7 @@ import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model
 import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-calendar.utils';
 import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
+import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-form.component';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -179,6 +180,7 @@ export class ActivityCalendarPage
 
   @ViewChild('baseForm', { static: true }) baseForm: ActivityCalendarForm;
   @ViewChild('calendar', { static: true }) calendar: CalendarComponent;
+  @ViewChild('entityQuality', { static: true }) entityQuality: EntityQualityFormComponent;
 
   @ViewChild('predocSplit') predocSplit: SplitComponent;
   @ViewChild('predocCalendar') predocCalendar: CalendarComponent;
@@ -198,6 +200,7 @@ export class ActivityCalendarPage
     protected vesselService: VesselService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected context: ActivityCalendarContextService,
+    protected activityCalendarService: ActivityCalendarService,
     protected hotkeys: Hotkeys
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
@@ -506,7 +509,7 @@ export class ActivityCalendarPage
     }
   }
 
-  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
+  async setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
     const errors = error && typeof error === 'object' && error.details?.errors;
     // Conflictual error: show remote conflictual data
     if (errors?.conflict instanceof ActivityCalendar) {
@@ -527,6 +530,17 @@ export class ActivityCalendarPage
       this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
       super.resetError();
       return;
+    }
+
+    if (errors?.errors.warning) {
+      const messageError = this.translate.instant('ACTIVITY_CALENDAR.ERROR.INCONSISTENT_ANNUAL_INACTIVITY');
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.ERROR.INCONSISTENT_ANNUAL_INACTIVITY', this.alertCtrl, this.translate);
+      if (!confirmed) {
+        super.setError(messageError, opts);
+        return;
+      }
+      await this.entityQuality.terminate(null, { ignoreWarningError: true });
+      return null;
     }
 
     super.setError(error, opts);

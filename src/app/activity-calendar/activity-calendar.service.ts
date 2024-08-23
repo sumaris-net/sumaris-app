@@ -982,7 +982,7 @@ export class ActivityCalendarService
       pmfms,
     });
 
-    if (!form.valid) {
+    if (!form.valid && opts?.ignoreWarningError !== true) {
       // Wait end of validation (e.g. async validators)
       await AppFormUtils.waitWhilePending(form);
 
@@ -993,6 +993,7 @@ export class ActivityCalendarService
 
         const months = AppFormUtils.filterErrorsByPrefix(errors, 'vesselUseFeatures', 'gearUseFeatures', 'activityMonths');
         const metiers = AppFormUtils.filterErrorsByPrefix(errors, 'gearPhysicalFeatures');
+        const warning = AppFormUtils.filterErrors(errors, ([path, _]) => path.startsWith('warning'));
         const other = AppFormUtils.filterErrors(errors, ([path, _]) =>
           ['vesselUseFeatures', 'gearUseFeatures', 'gearPhysicalFeatures'].includes(path.split('.')[0])
         );
@@ -1003,6 +1004,7 @@ export class ActivityCalendarService
               ...other,
               ...(isNotNil(months) && Object.keys(months).length > 0 ? { months } : {}),
               ...(isNotNil(metiers) && Object.keys(metiers).length > 0 ? { metiers } : {}),
+              ...(isNotNil(warning) && Object.keys(warning).length > 0 ? { warning } : {}),
               ...errors,
             },
           },
