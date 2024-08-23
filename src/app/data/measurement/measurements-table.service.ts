@@ -8,6 +8,7 @@ import {
   IEntitiesService,
   IEntityFilter,
   InMemoryEntitiesService,
+  isEmptyArray,
   isNil,
   isNotNil,
   LoadResult,
@@ -27,6 +28,7 @@ import { equals } from '@app/shared/functions';
 export interface MeasurementsTableEntitiesServiceState {
   programLabel: string;
   acquisitionLevel: AcquisitionLevelType;
+  acquisitionLevels: AcquisitionLevelType[];
   requiredStrategy: boolean;
   strategyLabel: string;
   strategyId: number;
@@ -66,9 +68,11 @@ export class MeasurementsTableEntitiesService<
   @RxStateSelect() private initialPmfms$: Observable<IPmfm[]>;
   @RxStateSelect() private filteredPmfms$: Observable<IPmfm[]>;
   @RxStateSelect() loading$: Observable<boolean>;
+  @RxStateSelect() acquisitionLevel$: Observable<AcquisitionLevelType>;
 
   @RxStateProperty() programLabel: string;
-  @RxStateProperty() acquisitionLevel: string;
+  @RxStateProperty() acquisitionLevel: AcquisitionLevelType;
+  @RxStateProperty() acquisitionLevels: AcquisitionLevelType[];
   @RxStateProperty() requiredStrategy: boolean;
   @RxStateProperty() strategyId: number;
   @RxStateProperty() strategyLabel: string;
@@ -126,7 +130,7 @@ export class MeasurementsTableEntitiesService<
     this._state.connect(
       'initialPmfms',
       this._state
-        .select(['programLabel', 'acquisitionLevel', 'requiredStrategy', 'strategyId', 'strategyLabel', 'requiredGear', 'gearId'], (s) => s)
+        .select(['programLabel', 'acquisitionLevels', 'requiredStrategy', 'strategyId', 'strategyLabel', 'requiredGear', 'gearId'], (s) => s)
         .pipe(
           filter((s) => this.canLoadPmfms(s as Partial<ST>)),
           tap(() => this.markAsLoading()),
@@ -144,6 +148,15 @@ export class MeasurementsTableEntitiesService<
         filter((pmfms) => !equals(pmfms, this.pmfms))
         // DEBUG
         //tap((pmfms) => this._debug && console.debug(`${this._logPrefix}Filtered pmfms changed to:`, pmfms))
+      )
+    );
+
+    this._state.connect(
+      'acquisitionLevels',
+      this.acquisitionLevel$.pipe(
+        map((acquisitionLevel) => {
+          return isNotNil(acquisitionLevel) ? [acquisitionLevel] : [];
+        })
       )
     );
 
@@ -258,7 +271,7 @@ export class MeasurementsTableEntitiesService<
   /* -- private methods -- */
 
   private canLoadPmfms(state: Partial<ST>): boolean {
-    if (isNil(state.programLabel) || isNil(state.acquisitionLevel)) {
+    if (isNil(state.programLabel) || isEmptyArray(state.acquisitionLevels)) {
       return false;
     }
 
@@ -280,13 +293,13 @@ export class MeasurementsTableEntitiesService<
     // DEBUG
     //if (this._debug)
     console.debug(
-      `${this._logPrefix}Loading pmfms... {program: '${state.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyId: ${state.strategyId} (required? ${state.requiredStrategy}), gearId: ${state.gearId}}}̀̀`
+      `${this._logPrefix}Loading pmfms... {program: '${state.programLabel}', acquisitionLevels: '${state.acquisitionLevels}', strategyId: ${state.strategyId} (required? ${state.requiredStrategy}), gearId: ${state.gearId}}}̀̀`
     );
 
     // Watch pmfms
     let pmfm$ = this.programRefService
       .watchProgramPmfms(state.programLabel, {
-        acquisitionLevel: state.acquisitionLevel,
+        acquisitionLevels: state.acquisitionLevels,
         strategyId: state.strategyId,
         strategyLabel: state.strategyLabel,
         gearId: state.gearId,
@@ -299,11 +312,11 @@ export class MeasurementsTableEntitiesService<
         tap((pmfms) => {
           if (!pmfms.length) {
             console.debug(
-              `${this._logPrefix}No pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyLabel: '${state.strategyLabel}'}. Please fill program's strategies !`
+              `${this._logPrefix}No pmfm found for {program: '${this.programLabel}', acquisitionLevels: '${state.acquisitionLevels}', strategyLabel: '${state.strategyLabel}'}. Please fill program's strategies !`
             );
           } else {
             console.debug(
-              `${this._logPrefix}Pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${state.acquisitionLevel}', strategyLabel: '${state.strategyLabel}'}`,
+              `${this._logPrefix}Pmfm found for {program: '${this.programLabel}', acquisitionLevels: '${state.acquisitionLevels}', strategyLabel: '${state.strategyLabel}'}`,
               pmfms
             );
           }
