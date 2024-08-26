@@ -3406,7 +3406,7 @@
       "OBSERVERS": "Enquêteur(s)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
-        "REGISTRATION_LOCATION": "Quartier maritime",
+        "REGISTRATION_LOCATION": "Lieu d'immatriculation",
         "BASE_PORT_LOCATION": "Port d'exploitation",
         "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
         "ECONOMIC_SURVEY": "Enquête économique ?",
