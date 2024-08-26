@@ -329,7 +329,7 @@ export class ActivityCalendarsTable
       filter.year = filter.year.year();
     } else if (isMoment(filter.startDate)) {
       filter.year = filter.startDate.year();
-    } else {
+    } else if (isNotNil(filter.year)) {
       filter.year = toNumber(filter.year, DateUtils.moment().year() - 1);
     }
 
