@@ -204,7 +204,9 @@ export class ActivityCalendarsTable
     this.featureName = ActivityCalendarsTableSettingsEnum.FEATURE_ID;
 
     // Load years
-    this.years = new Array(10).fill(DateUtils.moment().year()).map((year, index) => year - index);
+    {
+      this.years = new Array(11).fill(DateUtils.moment().year() + 1).map((year, index) => year - index);
+    }
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
