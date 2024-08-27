@@ -310,6 +310,7 @@
     (keyup.enter)="onPressEnter.emit($event)"
     (click)="clicked.emit($event)"
     [mobile]="mobile"
+    [excludedQualitativeValuesIds]="excludedQualitativeValuesIds"
   >
     <div matSuffix class="mat-form-field-suffix-container">
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>

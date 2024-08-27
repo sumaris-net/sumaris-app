@@ -112,6 +112,7 @@ export class LandingsTable
   protected includedQualitativeValuesMap: ObjectMap<number[]> = {};
   protected statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
   protected statusById = DataQualityStatusEnum;
+  protected excludedTaxonGroups: number[] = [];
   @RxStateProperty() protected observedCount: number;
   @RxStateProperty() protected availableTaxonGroups: TaxonGroupRef[];
 
@@ -429,6 +430,13 @@ export class LandingsTable
   onPrepareRowForm(form: UntypedFormGroup) {
     // Update measurement form
     if (this.isSaleDetailEditor) {
+      // Get taxon groups to exclude (already existing)
+      this.excludedTaxonGroups = this.dataSource
+        .getRows()
+        .filter((row) => this.isLandingPets(row))
+        .filter((row) => !!row.currentData.measurementValues[PmfmIds.TAXON_GROUP_ID])
+        .map((row) => row.currentData.measurementValues[PmfmIds.TAXON_GROUP_ID].id);
+
       this.validatorService.updateFormGroup(form, { pmfms: this.pmfms });
     }
 

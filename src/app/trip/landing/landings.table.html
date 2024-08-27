@@ -371,6 +371,7 @@
             [formControl]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
             [compact]="pmfm?.type === 'boolean'"
             [autofocus]="row.editing && focusColumn == pmfm.id"
+            [excludedQualitativeValuesIds]="excludedTaxonGroups"
           ></app-pmfm-field>
         } @else if (mobile) {
           <ion-text
