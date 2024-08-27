@@ -171,6 +171,8 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
       const speciesListOriginControl = measurementValuesForm.get(PmfmIds.SPECIES_LIST_ORIGIN.toString());
       const nonObservationReasonControl = measurementValuesForm.get(PmfmIds.NON_OBSERVATION_REASON.toString());
       const saleTypeControl = measurementValuesForm.get(PmfmIds.SALE_TYPE_ID.toString());
+      const taxonGroupControl = measurementValuesForm.get(PmfmIds.TAXON_GROUP_ID.toString());
+
       // Observed
       if (isObservedControl.value) {
         // Disabled non observation reason
@@ -211,14 +213,16 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
         }
       }
 
-      // Disable is observed control, if PETS species list or if species list is not specified (when adding a new row)
+      // Disable is observed control + enable taxon group control, if PETS species list or if species list is not specified (when adding a new row)
       if (
         isNil(speciesListOriginControl?.value) ||
         PmfmValueUtils.equals(speciesListOriginControl.value, QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS)
       ) {
         isObservedControl.disable({ emitEvent: false });
+        if (enabled) taxonGroupControl?.enable({ emitEvent: false });
       } else {
         if (enabled) isObservedControl.enable({ emitEvent: false });
+        taxonGroupControl?.disable({ emitEvent: false });
       }
     }
   }
