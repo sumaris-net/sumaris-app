@@ -5,7 +5,7 @@
 
   <div *ngSwitchCase="'array'">
     <!-- Compact mode -->
-    <ng-container *ngIf="compact; else defaultArray">
+    @if (compact) {
       <ion-grid class="ion-no-padding">
         <ion-row>
           <ng-container *ngFor="let childControl of formArray.controls; index as j; first as first; last as last">
@@ -50,8 +50,7 @@
           </ng-container>
         </ion-row>
       </ion-grid>
-    </ng-container>
-    <ng-template #defaultArray>
+    } @else {
       <ion-grid class="ion-no-padding">
         <ion-row>
           <ng-container *ngFor="let childControl of formArray.controls; index as j; last as last">
@@ -72,7 +71,7 @@
               ></app-pmfm-field>
             </ion-col>
 
-            <ion-col [size]="style !== 'button' ? 'auto' : 2" class="ion-align-self-center">
+            <ion-col [size]="style !== 'button' ? 'auto' : 2">
               <button
                 type="button"
                 mat-icon-button
@@ -97,7 +96,7 @@
           </ng-container>
         </ion-row>
       </ion-grid>
-    </ng-template>
+    }
   </div>
 
   <!-- integer -->
