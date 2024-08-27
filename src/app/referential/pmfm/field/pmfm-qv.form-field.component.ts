@@ -112,6 +112,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input({ transform: booleanAttribute }) disableRipple = false;
   @Input() panelClass: string;
   @Input() panelWidth: string;
+  @Input() excludedQualitativeValuesIds: number[];
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -175,8 +176,11 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         );
       }
     }
-    // Exclude disabled values
-    this._qualitativeValues = qualitativeValues.filter((qv) => qv.statusId !== StatusIds.DISABLE);
+    this._qualitativeValues = qualitativeValues
+      // Exclude disabled values
+      .filter((qv) => qv.statusId !== StatusIds.DISABLE)
+      // Exclude additional values
+      .filter((qv) => !this.excludedQualitativeValuesIds?.includes(qv.id));
 
     this.required = toBoolean(this.required, this.pmfm.required || false);
 
@@ -212,13 +216,14 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         this._items$ = merge(
           this.onShowDropdown.pipe(
             filter((event) => !event.defaultPrevented),
-            map((_) => this._sortedQualitativeValues)
+            map((_) => this._sortedQualitativeValues.filter((qv) => !this.excludedQualitativeValuesIds?.includes(qv.id)))
           ),
           this.formControl.valueChanges.pipe(
             filter(ReferentialUtils.isEmpty),
             map((value) =>
               suggestFromArray(this._sortedQualitativeValues, value, {
                 searchAttributes: this.searchAttributes,
+                excludedIds: this.excludedQualitativeValuesIds,
               })
             ),
             map((res) => res && res.data),
