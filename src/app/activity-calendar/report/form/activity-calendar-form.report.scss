@@ -62,9 +62,9 @@
         }
         tbody {
           tr {
-            &.big-row {
+            &.large-height-row {
               background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
-              height: var(--month-table-big-row-height);
+              height: var(--month-table-large-row-height);
             }
           }
         }
