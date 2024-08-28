@@ -1645,40 +1645,41 @@ type RoundWeightConversionVO {
 }
 
 type SaleVO {
-  batches: [BatchVO]
-  catchBatch: BatchVO
-  comments: String
-  controlDate: Date
-  creationDate: Date
-  endDateTime: Date
-  fishingAreas: [FishingAreaVO]
-  id: Int
-  landing: LandingVO
-  landingId: Int
-  "Get sale measurement values"
-  measurementValues: Map_Integer_StringScalar
-  "Get sale measurements"
-  measurements: [MeasurementVO]
-  observers: [PersonVO]
-  "Get sale's products"
-  products: [ProductVO]
-  program: ProgramVO
-  qualificationComments: String
-  qualificationDate: Date
-  qualityFlag: Int
-  qualityFlagId: Int
-  recorderDepartment: DepartmentVO
-  recorderPerson: PersonVO
-  saleLocation: LocationVO
-  saleType: ReferentialVO
-  startDateTime: Date
-  trip: TripVO
-  tripId: Int
-  updateDate: Date
-  validationDate: Date
-  vesselDateTime: Date
-  vesselId: Int
-  vesselSnapshot: VesselSnapshotVO
+    batches: [BatchVO]
+    catchBatch: BatchVO
+    comments: String
+    controlDate: Date
+    creationDate: Date
+    endDateTime: Date
+    fishingAreas: [FishingAreaVO]
+    metiers: [MetierVO]
+    id: Int
+    landing: LandingVO
+    landingId: Int
+    "Get sale measurement values"
+    measurementValues: Map_Integer_StringScalar
+    "Get sale measurements"
+    measurements: [MeasurementVO]
+    observers: [PersonVO]
+    "Get sale's products"
+    products: [ProductVO]
+    program: ProgramVO
+    qualificationComments: String
+    qualificationDate: Date
+    qualityFlag: Int
+    qualityFlagId: Int
+    recorderDepartment: DepartmentVO
+    recorderPerson: PersonVO
+    saleLocation: LocationVO
+    saleType: ReferentialVO
+    startDateTime: Date
+    trip: TripVO
+    tripId: Int
+    updateDate: Date
+    validationDate: Date
+    vesselDateTime: Date
+    vesselId: Int
+    vesselSnapshot: VesselSnapshotVO
 }
 
 type SampleVO {

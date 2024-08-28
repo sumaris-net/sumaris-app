@@ -1,9 +1,13 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import {
+  AppFormArray,
   fromDateISOString,
   isNotNil,
   LocalSettingsService,
+  ReferentialRef,
+  ReferentialUtils,
+  SharedFormArrayValidators,
   SharedFormGroupValidators,
   SharedValidators,
   toBoolean,
@@ -20,6 +24,7 @@ export interface SaleValidatorOptions extends DataRootEntityValidatorOptions {
   withProgram?: boolean;
   withVessel?: boolean;
   minDate?: Moment;
+  withMetiers?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -61,6 +66,10 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
         (data && data.vesselSnapshot) || null,
         !opts?.required ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity]),
       ];
+    }
+    // Add metiers
+    if (opts.withMetiers) {
+      config.metiers = this.getMetiersArray(data?.metiers);
     }
 
     return config;
@@ -126,11 +135,44 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
       form.controls['startDateTime'].setValidators(SharedValidators.validDate);
     }
 
+    // Metier array
+    if (opts?.withMetiers) {
+      if (!form.controls.metiers) {
+        form.addControl('metiers', this.getMetiersArray(null, { required: true }));
+      }
+      if (enabled) form.controls.metiers.enable();
+      else form.controls.metiers.disable();
+    } else {
+      if (form.controls.metiers) form.removeControl('metiers');
+    }
+
     // Re add group validators
     const formGroupOptions = this.getFormGroupOptions(null, opts);
     form.setValidators(formGroupOptions?.validators);
 
     return form;
+  }
+
+  getMetiersArray(data?: ReferentialRef<any>[], opts?: { required?: boolean }) {
+    const required = !opts || opts.required !== false;
+    const formArray = new AppFormArray<ReferentialRef<any>, UntypedFormControl>(
+      (metier) => this.getMetierControl(metier, { required }),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: false,
+        validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : null,
+      }
+    );
+    if (data || required) {
+      formArray.patchValue(data || [null]);
+    }
+    return formArray;
+  }
+
+  getMetierControl(value: any, opts?: { required?: boolean }): UntypedFormControl {
+    const required = !opts || opts.required !== false;
+    return this.formBuilder.control(value || null, required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
   }
 
   /* -- fill options defaults -- */
@@ -145,6 +187,8 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
     opts.withProgram = toBoolean(opts.withProgram, true);
 
     opts.withVessel = toBoolean(opts.withVessel, true);
+
+    opts.withMetiers = toBoolean(opts.withMetiers, false);
 
     return opts;
   }

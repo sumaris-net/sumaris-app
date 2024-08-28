@@ -134,6 +134,53 @@
       </ion-row>
     }
 
+    <!-- metier -->
+    <ng-container *ngIf="showMetiers">
+      <ion-row *ngFor="let metierForm of metiersForm?.controls; let i = index; first as first; last as last">
+        <ion-col size="12" size-md="2" size-lg="3">
+          <ion-label class="ion-float-end" *ngIf="first">
+            {{ allowManyMetiers ? 'TRIP.METIERS' : ('TRIP.METIER' | translate) }}
+          </ion-label>
+        </ion-col>
+        <ion-col>
+          <mat-autocomplete-field
+            [formControl]="metierForm | formGetControl"
+            [placeholder]="(first && 'TRIP.MAIN_METIER_PLACEHOLDER') || 'TRIP.SECONDARY_METIER_PLACEHOLDER' | translate: { rank: i + 1 }"
+            [autofocus]="metierFocusIndex === i"
+            [config]="autocompleteFields.metier"
+            [tabindex]="tabindex + 20 + i * 3"
+            [panelWidth]="mobile ? '500px' : undefined"
+            [required]="i === 0"
+          >
+            <ion-icon matPrefix name="locate"></ion-icon>
+          </mat-autocomplete-field>
+        </ion-col>
+        <ion-col *ngIf="allowManyMetiers" size="auto">
+          <button
+            type="button"
+            mat-icon-button
+            *ngIf="last"
+            [tabindex]="tabindex + 20 + i * 3 + 1"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_ADD' | translate"
+            (click)="this.addMetier()"
+          >
+            <mat-icon>add</mat-icon>
+          </button>
+          <button
+            type="button"
+            mat-icon-button
+            [tabindex]="tabindex + 20 + i * 3 + 2"
+            [disabled]="disabled"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="metiersForm.removeAt(i)"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+
     <ng-content></ng-content>
 
     <!-- Comments -->
@@ -192,6 +239,8 @@
           form.showVessel: {{ showVessel }}
           <br />
           form.showParent: {{ showParent }}
+          <br />
+          form.showMetiers: {{ showMetiers }}
         </ion-col>
       </ion-row>
     </ion-grid>
