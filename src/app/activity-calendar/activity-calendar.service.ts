@@ -587,7 +587,7 @@ export class ActivityCalendarService
           query: ActivityCalendarQueries.load,
           variables: { id },
           error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
-          fetchPolicy: (opts && opts.fetchPolicy) || 'no-cache',
+          fetchPolicy: (opts && opts.fetchPolicy) || undefined,
         });
         source = data;
       }
