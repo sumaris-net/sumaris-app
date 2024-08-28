@@ -13,6 +13,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrNaN,
   MatAutocompleteField,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
@@ -138,23 +139,14 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     super.ngOnInit();
 
     this.programValueChanges$ = this.filterForm.get('program')?.valueChanges || new Observable();
-
     this.programValueChanges$.subscribe((program) => {
-      let programVesselTypeIdsFilter = program?.getProperty(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
-      if (isNotNil(programVesselTypeIdsFilter)) {
-        programVesselTypeIdsFilter = programVesselTypeIdsFilter
-          .split(',')
-          .map((item) => item.trim())
-          .map(Number);
-      }
-      if (program) {
-        console.log(filter);
+      const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
+      if (program && isNotNilOrNaN(programVesselTypeIdsFilter[0])) {
         const newFilter: Partial<VesselSnapshotFilter> = { ...this.vesselAutocompleteOriginalFilter, vesselTypeIds: programVesselTypeIdsFilter };
         this.vesselSnapshotField.filter = newFilter;
       } else {
         this.vesselSnapshotField.filter = this.vesselAutocompleteOriginalFilter;
       }
-      this.vesselSnapshotField.reloadItems();
     });
 
     // Programs combo (filter)

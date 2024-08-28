@@ -1219,7 +1219,7 @@ export const ProgramProperties = Object.freeze({
   /* -- Extraction options -- */
   //Option de test
   VESSEL_TYPE_FILTER_BY_IDS: <FormFieldDefinition>{
-    key: 'sumaris.activityCalendar.observers.enable',
+    key: 'sumaris.activityCalendar.vessel.type.filterByIds',
     label: 'PROGRAM.OPTIONS.VESSEL_TYPE_FILTER_BY_IDS',
     defaultValue: [],
     type: 'string',

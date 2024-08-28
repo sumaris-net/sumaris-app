@@ -15,6 +15,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  isNotNilOrNaN,
   MatAutocompleteField,
   MatAutocompleteFieldConfig,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
@@ -33,7 +34,7 @@ import {
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, ProgramLabel, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
@@ -104,6 +105,9 @@ export class ActivityCalendarsTable
   @Input() basePortLocationLevelIds: number[] = null;
   @Input() @RxStateProperty() title: string;
   @Input() canAdd: boolean;
+
+  programValueChanges$: Observable<any>;
+  vesselAutocompleteOriginalFilter: Partial<VesselSnapshotFilter>;
 
   @Input()
   set showObservers(value: boolean) {
@@ -203,37 +207,15 @@ export class ActivityCalendarsTable
     this.debug = !environment.production;
     this.logPrefix = '[activity-calendar-table] ';
   }
-  @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
 
-  ngOnInit() {
+  async ngOnInit() {
     super.ngOnInit();
-
     this.canEdit = this.accountService.isUser();
     const showAdvancedFeatures = this.isAdmin;
     this.canDownload = showAdvancedFeatures;
     this.canUpload = showAdvancedFeatures;
     this.canOpenMap = showAdvancedFeatures;
     this.canAdd = showAdvancedFeatures;
-
-    this.programValueChanges$ = this.filterForm.get('program')?.valueChanges || new Observable();
-
-    this.programValueChanges$.subscribe((program) => {
-      let programVesselTypeIdsFilter = program?.getProperty(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
-      if (isNotNil(programVesselTypeIdsFilter)) {
-        programVesselTypeIdsFilter = programVesselTypeIdsFilter
-          .split(',')
-          .map((item) => item.trim())
-          .map(Number);
-      }
-      if (program) {
-        console.log(filter);
-        const newFilter: Partial<VesselSnapshotFilter> = { ...this.vesselAutocompleteOriginalFilter, vesselTypeIds: programVesselTypeIdsFilter };
-        this.vesselSnapshotField.filter = newFilter;
-      } else {
-        this.vesselSnapshotField.filter = this.vesselAutocompleteOriginalFilter;
-      }
-      this.vesselSnapshotField.reloadItems();
-    });
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -242,11 +224,14 @@ export class ActivityCalendarsTable
       mobile: this.mobile,
     });
 
+    const program = await this.programRefService.loadByLabel(ProgramLabel.SIH_ACTIFLOT);
+    const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
+      if (isNotNilOrNaN(programVesselTypeIdsFilter[0])) {
+        opts.filter = { ...opts.filter, vesselTypeIds: programVesselTypeIdsFilter };
+      }
       this.registerAutocompleteField('vesselSnapshot', opts);
-      // save the original filter to be able to restore it when the program changes
-      this.vesselAutocompleteOriginalFilter = opts.filter;
     });
 
     const locationConfig: MatAutocompleteFieldConfig = {
@@ -403,9 +388,7 @@ export class ActivityCalendarsTable
 
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showProgram = false;
-    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
-    const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
-    this.reportTypes = (program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES) || []).map((key) => reportTypeByKey[key]);
+
     this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
 
     if (this.loaded) this.updateColumns();
