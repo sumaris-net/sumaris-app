@@ -227,6 +227,7 @@
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HELP_URL": "App > Adresse du manuel utilisateur (URL)",
       "FORUM_URL": "App > Adresse du forum (URL)",
+      "APP_URL": "App >  URL de l'app utilisé pour les partages publics",
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
