@@ -17,6 +17,7 @@ import { Moment } from 'moment';
 import { VesselOwnerPeriod } from '../model/vessel-owner-period.model';
 import { StoreObject } from '@apollo/client/core';
 import { IVesselPeriodEntity } from '@app/vessel/services/model/vessel.utils';
+import { VesselOwner } from '../model/vessel-owner.model';
 
 @EntityClass({ typename: 'VesselFilterVO' })
 export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
@@ -195,4 +196,13 @@ export class VesselRegistrationPeriodFilter extends BaseVesselWithPeriodFilter<V
 @EntityClass({ typename: 'VesselOwnerPeriodFilterVO' })
 export class VesselOwnerPeriodFilter extends BaseVesselWithPeriodFilter<VesselOwnerPeriodFilter, VesselOwnerPeriod> {
   static fromObject: (source: any, opts?: any) => VesselOwnerPeriodFilter;
+}
+
+@EntityClass({ typename: 'VesselOwnerFilterVO' })
+export class VesselOwnerFilter extends EntityFilter<VesselOwnerFilter, VesselOwner> {
+  static fromObject: (source: any, opts?: any) => VesselOwnerFilter;
+
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+  }
 }

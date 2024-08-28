@@ -23,32 +23,6 @@ export const VesselOwnerPeriodFragments = {
       }
     }
   `,
-  vesselOwnerWithAdministrativeInfos: gql`
-    fragment VesselOwnerFragmentWithAdministrativeInfos on VesselOwnerPeriodVO {
-      startDate
-      endDate
-      vesselOwner {
-        id
-        lastName
-        firstName
-        registrationCode
-        activityStartDate
-        retirementDate
-        street
-        zipCode
-        city
-        dateOfBirth
-        phoneNumber
-        mobileNumber
-        faxNumber
-        email
-        program {
-          id
-          label
-        }
-      }
-    }
-  `,
 };
 
 export const VesselOwnerPeriodQueries = {
@@ -59,14 +33,6 @@ export const VesselOwnerPeriodQueries = {
       }
     }
     ${VesselOwnerPeriodFragments.vesselOwner}
-  `,
-  loadAllWithAdministrativeInfos: gql`
-    query vesselOwnerHistory($filter: VesselOwnerFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
-      data: vesselOwnerHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
-        ...VesselOwnerFragmentWithAdministrativeInfos
-      }
-    }
-    ${VesselOwnerPeriodFragments.vesselOwnerWithAdministrativeInfos}
   `,
 };
 

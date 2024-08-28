@@ -41,6 +41,7 @@ import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical
 import { VesselOwnerPeridodService, VesselOwnerPeriodQueries } from '@app/vessel/services/vessel-owner-period.service';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
+import { VesselOwnerService } from '@app/vessel/services/vessel-owner.service';
 
 export class ActivityCalendarFormReportStats extends BaseReportStats {
   subtitle?: string;
@@ -135,6 +136,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   protected readonly programRefService: ProgramRefService;
   protected readonly vesselSnapshotService: VesselSnapshotService;
   protected readonly vesselOwnerPeridodService: VesselOwnerPeridodService;
+  protected readonly vesselOwnerService: VesselOwnerService;
   protected readonly translateContextService: TranslateContextService;
   protected readonly configService: ConfigService;
 
@@ -166,6 +168,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     this.programRefService = this.injector.get(ProgramRefService);
     this.vesselSnapshotService = this.injector.get(VesselSnapshotService);
     this.vesselOwnerPeridodService = this.injector.get(VesselOwnerPeridodService);
+    this.vesselOwnerService = this.injector.get(VesselOwnerService);
     this.translateContextService = this.injector.get(TranslateContextService);
     this.configService = this.injector.get(ConfigService);
 
@@ -263,24 +266,18 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
       stats.lastVesselOwner = VesselOwner.fromObject({});
     } else {
-      const lastRegistrationPeriod = data.vesselRegistrationPeriods.sort((a, b) => (a.startDate < b.startDate ? 1 : -1))[0];
-      const vesselOwnerPeridodResult = await this.vesselOwnerPeridodService.loadAll(
-        0,
-        1,
-        'startDate',
-        'desc',
-        VesselOwnerPeriodFilter.fromObject({
-          vesselId: data.vesselSnapshot.id,
-          startDate: DateUtils.toDateISOString(DateUtils.markTime(lastRegistrationPeriod.startDate)),
-          endDate: DateUtils.toDateISOString(DateUtils.markTime(lastRegistrationPeriod.endDate)),
-        }),
-        {
-          query: VesselOwnerPeriodQueries.loadAllWithAdministrativeInfos,
-        }
-      );
-      stats.lastVesselOwner = isNotEmptyArray(vesselOwnerPeridodResult.data)
-        ? vesselOwnerPeridodResult.data[0].vesselOwner
-        : VesselOwner.fromObject({});
+      const startDate = (timezone ? DateUtils.moment().tz(timezone) : DateUtils.moment()).year(data.year).startOf('year');
+      const endDate = startDate.clone().endOf('year');
+      const filter = VesselOwnerPeriodFilter.fromObject({
+        vesselId: data.vesselSnapshot.id,
+        startDate,
+        endDate,
+      });
+      const vesselOwnerPeriods = await this.vesselOwnerPeridodService.loadAll(0, 100, 'startDate', 'asc', filter, {
+        fetchPolicy: 'cache-first',
+      });
+      const lastVesselOwner = isNotEmptyArray(vesselOwnerPeriods.data) ? vesselOwnerPeriods.data[0].vesselOwner : VesselOwner.fromObject({});
+      stats.lastVesselOwner = await this.vesselOwnerService.load(lastVesselOwner.id);
     }
 
     stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, fillEmptyFishingArea: true });
