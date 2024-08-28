@@ -29,6 +29,7 @@ export class VesselOwner extends Entity<VesselOwner> {
   mobileNumber: string = null;
   faxNumber: string = null;
   email: string = null;
+  countryLocation: ReferentialRef = null;
 
   program: ReferentialRef = null;
 
@@ -53,6 +54,7 @@ export class VesselOwner extends Entity<VesselOwner> {
     this.mobileNumber = source.mobileNumber;
     this.faxNumber = source.faxNumber;
     this.email = source.email;
+    this.countryLocation = source.countryLocation && ReferentialRef.fromObject(source.countryLocation);
 
     this.program = source.program && ReferentialRef.fromObject(source.program);
   }

@@ -210,6 +210,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     this.programRefService = this.injector.get(ProgramRefService);
     this.vesselSnapshotService = this.injector.get(VesselSnapshotService);
     this.vesselOwnerPeridodService = this.injector.get(VesselOwnerPeridodService);
+    this.vesselOwnerService = this.injector.get(VesselOwnerService);
     this.translateContextService = this.injector.get(TranslateContextService);
     this.configService = this.injector.get(ConfigService);
     this.localSettings = this.injector.get(LocalSettingsService);

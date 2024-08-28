@@ -23,32 +23,6 @@ export const VesselOwnerPeriodFragments = {
       }
     }
   `,
-  vesselOwnerWithAdministrativeInfos: gql`
-    fragment VesselOwnerFragmentWithAdministrativeInfos on VesselOwnerPeriodVO {
-      startDate
-      endDate
-      vesselOwner {
-        id
-        lastName
-        firstName
-        registrationCode
-        activityStartDate
-        retirementDate
-        street
-        zipCode
-        city
-        dateOfBirth
-        phoneNumber
-        mobileNumber
-        faxNumber
-        email
-        program {
-          id
-          label
-        }
-      }
-    }
-  `,
 };
 
 export const VesselOwnerPeriodQueries = {

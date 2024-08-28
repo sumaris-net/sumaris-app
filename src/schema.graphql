@@ -1576,6 +1576,8 @@ type Query {
     ): VesselVO
     "Get vessel features history"
     vesselFeaturesHistory(filter: VesselFeaturesFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselFeaturesVO]
+    "Get a vesselOwner"
+    vesselOwner(id: Int): VesselOwnerVO
     "Get vessel owner history"
     vesselOwnerHistory(filter: VesselOwnerFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselOwnerPeriodVO]
     "Get vessel registration history"
