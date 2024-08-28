@@ -18,6 +18,7 @@ import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { OperationAsObjectOptions } from '@app/trip/trip/trip.model';
 import { SortDirection } from '@angular/material/sort';
+import { Metier } from '@app/referential/metier/metier.model';
 
 export interface SaleAsObjectOptions extends DataEntityAsObjectOptions {
   batchAsTree?: boolean;
@@ -69,6 +70,7 @@ export class Sale extends DataRootVesselEntity<Sale, number, SaleAsObjectOptions
   catchBatch: Batch = null;
   products: Product[] = null;
   fishingAreas: FishingArea[] = null;
+  metiers: Metier[] = null;
 
   landingId: number = null;
   landing: IEntity<any> = null;
@@ -91,6 +93,7 @@ export class Sale extends DataRootVesselEntity<Sale, number, SaleAsObjectOptions
     this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
     this.measurements = (source.measurements && source.measurements.map(Measurement.fromObject)) || [];
     this.fishingAreas = (source.fishingAreas && source.fishingAreas.map(FishingArea.fromObject)) || undefined;
+    this.metiers = (source.metiers && source.metiers.map(Metier.fromObject)) || undefined;
 
     // Products (sale)
     this.products = (source.products && source.products.map(Product.fromObject)) || [];
@@ -119,6 +122,7 @@ export class Sale extends DataRootVesselEntity<Sale, number, SaleAsObjectOptions
     target.observers = (this.observers && this.observers.map((o) => o.asObject(opts))) || undefined;
     target.measurements = (this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map((m) => m.asObject(opts))) || undefined;
     target.fishingAreas = (this.fishingAreas && this.fishingAreas.map((value) => value.asObject(opts))) || undefined;
+    target.metiers = (this.metiers && this.metiers.map((value) => value.asObject(opts))) || undefined;
 
     // Parent
     target.tripId = this.tripId;

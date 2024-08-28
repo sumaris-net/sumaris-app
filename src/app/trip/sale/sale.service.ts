@@ -124,6 +124,9 @@ export const SaleFragments = {
       fishingAreas {
         ...FishingAreaFragment
       }
+      metiers {
+        ...MetierFragment
+      }
       batches {
         ...BatchFragment
       }
@@ -135,6 +138,7 @@ export const SaleFragments = {
     ${VesselSnapshotFragments.lightVesselSnapshot}
     ${DataCommonFragments.referential}
     ${DataFragments.fishingArea}
+    ${DataCommonFragments.metier}
     ${DataFragments.batch}
   `,
 };

@@ -3,8 +3,11 @@ import { SaleValidatorOptions, SaleValidatorService } from './sale.validator';
 import { Moment } from 'moment';
 import {
   AppForm,
+  AppFormArray,
   isEmptyArray,
   isNilOrBlank,
+  isNotEmptyArray,
+  LoadResult,
   MatAutocompleteField,
   OnReady,
   ReferentialRef,
@@ -34,6 +37,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   private _locationSuggestLengthThreshold: number;
 
   protected readonly mobile = this.settings.mobile;
+  protected metierFocusIndex = -1;
 
   @Input() showError = true;
   @Input() showProgram = true;
@@ -45,6 +49,8 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   @Input() i18nSuffix: string;
   @Input() showParent = false;
   @Input() locationLevelIds: number[];
+  @Input() showMetiers = false;
+  @Input() allowManyMetiers: boolean = null;
 
   @Input() set required(value: boolean) {
     if (this._required !== value) {
@@ -107,6 +113,10 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   }
 
   @ViewChild('locationField', { static: false }) locationField: MatAutocompleteField;
+
+  get metiersForm() {
+    return this.form.controls.metiers as AppFormArray<ReferentialRef<any>, UntypedFormControl>;
+  }
 
   constructor(
     injector: Injector,
@@ -171,10 +181,59 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
         entityName: 'SaleType',
       },
     });
+
+    // Combo: metier
+    const metierAttributes = this.settings.getFieldDisplayAttributes('qualitativeValue');
+    this.registerAutocompleteField('metier', {
+      showAllOnFocus: false,
+      suggestFn: (value, filter) => this.suggestMetiers(value, filter),
+      // Default filter. A excludedIds will be add dynamically
+      filter: {
+        entityName: 'Metier',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+      },
+      attributes: metierAttributes,
+      mobile: this.mobile,
+    });
   }
 
   ngOnReady() {
     this.updateFormGroup();
+  }
+
+  protected suggestMetiers(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+
+    // Excluded existing observers, BUT keep the current control value
+    const excludedIds = (this.metiersForm.value || [])
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter((item) => !currentControlValue || currentControlValue !== item)
+      .map((item) => parseInt(item.id));
+
+    return this.referentialRefService.suggest(value, {
+      ...filter,
+      excludedIds,
+    });
+  }
+
+  addMetier() {
+    this.metiersForm.add();
+    if (!this.mobile) {
+      this.metierFocusIndex = this.metiersForm.length - 1;
+    }
+  }
+
+  async setValue(data: Sale, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    // Make sure to have (at least) one metier
+    this.showMetiers = this.showMetiers || isNotEmptyArray(data?.metiers);
+    if (this.showMetiers) {
+      data.metiers = data.metiers && data.metiers.length ? data.metiers : [null];
+    } else {
+      data.metiers = [];
+    }
+
+    // Send value for form
+    super.setValue(data, opts);
   }
 
   protected updateFormGroup(opts?: { emitEvent?: boolean }) {
@@ -183,6 +242,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
       minDate: this._minDate,
       withProgram: this.showProgram,
       withVessel: this.showVessel,
+      withMetiers: this.showMetiers,
     };
 
     console.info('[sale-form] Updating form group...', validatorOpts);
