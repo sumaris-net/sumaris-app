@@ -26,19 +26,19 @@ $dark: #222428;
 $transparent: transparent;
 
 // Main background color
-$background-color: #fff;
+$background-color-value: #fff;
+$background-color-rgb-value: 255, 255, 255;
+$ion-toolbar-background: whitesmoke;
 
 // Text color
+$text-color-value: rgba(black, 0.87);
+$text-color-rgb-value: 0, 0, 0;
 $dark-primary-text: rgba(black, 0.87);
 $dark-secondary-text: rgba(black, 0.54);
 $dark-disabled-text: rgba(black, 0.38);
 $light-primary-text: white;
 $light-secondary-text: rgba(white, 0.7);
 $light-disabled-text: rgba(white, 0.5);
-$text-color: $dark-primary-text;
-
-// Colors
-$ion-toolbar-background: whitesmoke;
 
 // From material
 $mat-tab-link-height: 49px;
