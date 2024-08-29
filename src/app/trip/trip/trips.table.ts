@@ -72,7 +72,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
   @Input() canUpload = false;
   @Input() canOpenMap = false;
   programValueChanges$: Observable<any>;
-  vesselAutocompleteOriginalFilter: Partial<VesselSnapshotFilter>;
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
@@ -142,10 +141,11 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     this.programValueChanges$.subscribe((program) => {
       const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
       if (program && isNotNilOrNaN(programVesselTypeIdsFilter[0])) {
-        const newFilter: Partial<VesselSnapshotFilter> = { ...this.vesselAutocompleteOriginalFilter, vesselTypeIds: programVesselTypeIdsFilter };
+        const newFilter: Partial<VesselSnapshotFilter> = { ...this.vesselSnapshotField.filter, vesselTypeIds: programVesselTypeIdsFilter };
         this.vesselSnapshotField.filter = newFilter;
       } else {
-        this.vesselSnapshotField.filter = this.vesselAutocompleteOriginalFilter;
+        if (isNotNil(this.vesselSnapshotField.filter.vesselTypeIds)) delete this.vesselSnapshotField.filter.vesselTypeIds;
+        this.vesselSnapshotField.reloadItems();
       }
     });
 
@@ -169,8 +169,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
       this.registerAutocompleteField('vesselSnapshot', opts);
-      // save the original filter to be able to restore it when the program changes
-      this.vesselAutocompleteOriginalFilter = opts.filter;
     });
 
     // Combo: recorder department
