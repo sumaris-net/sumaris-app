@@ -87,8 +87,8 @@
                 [formControl]="weightMethodForm | formGetControl: item.qvIndex.toString()"
                 labelPosition="before"
               >
-                <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
-                <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
+                <ion-text color="dark" hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
+                <ion-text color="dark" visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
               </mat-checkbox>
             </ion-label>
           </th>
@@ -328,6 +328,7 @@
       [matSortDirection]="defaultSortDirection"
       [dataSource]="dataSource"
       [trackBy]="trackByFn"
+      class="mobile"
     >
       <!-- Group header: start -->
       <ng-container matColumnDef="top-start" [sticky]="sticky">
@@ -532,7 +533,7 @@
 </div>
 
 <ng-template #actionCellTemplate let-row>
-  <ng-container *ngIf="mobile; else otherButtons">
+  @if (mobile) {
     <!-- Delete row button -->
     <button
       mat-icon-button
@@ -542,9 +543,7 @@
     >
       <mat-icon>delete</mat-icon>
     </button>
-  </ng-container>
-
-  <ng-template #otherButtons>
+  } @else {
     <!-- open individual measures -->
     <button
       mat-icon-button
@@ -563,5 +562,5 @@
         assessment
       </mat-icon>
     </button>
-  </ng-template>
+  }
 </ng-template>
