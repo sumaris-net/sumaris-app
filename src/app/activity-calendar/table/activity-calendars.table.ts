@@ -311,7 +311,7 @@ export class ActivityCalendarsTable
         this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
 
         // Locations combo (filter)
-        this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_IDS);
+        this.registrationLocationLevelIds = [LocationLevelIds.MARITIME_DISTRICT];
         this.basePortLocationLevelIds = [LocationLevelIds.PORT];
 
         this.updateColumns();
