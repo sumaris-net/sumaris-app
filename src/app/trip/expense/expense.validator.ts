@@ -36,4 +36,14 @@ export class ExpenseValidatorService extends MeasurementsValidatorService {
       rankOrder: [data || 1],
     });
   }
+
+  getGearsFormArray() {
+    return this.formBuilder.array([this.getGearControl()]);
+  }
+
+  getGearControl(data?: number): UntypedFormGroup {
+    return this.formBuilder.group({
+      rankOrder: [data || 1],
+    });
+  }
 }

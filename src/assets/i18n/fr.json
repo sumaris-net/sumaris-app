@@ -1900,6 +1900,11 @@
     "BAIT": {
       "AMOUNT": "Quantité d'appât",
       "PACKAGING": "Unité"
+    },
+    "TAB_GEAR": "Engin",
+    "GEAR": {
+      "AMOUNT": "Nombre d'engins",
+      "PACKAGING": "Unité"
     }
   },
   "FISHING_AREA": {
