@@ -15,6 +15,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  LocalSettingsService,
   MatAutocompleteFieldConfig,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   OfflineFeature,
@@ -100,6 +101,7 @@ export class ActivityCalendarsTable
   protected qualityFlags: ReferentialRef[];
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
+  protected pageSettings;
 
   @Input() showRecorder = true;
   @Input() canDownload = false;
@@ -164,6 +166,7 @@ export class ActivityCalendarsTable
     protected context: ContextService,
     protected formBuilder: UntypedFormBuilder,
     private readonly transferService: FileTransferService,
+    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
     super(
@@ -216,6 +219,7 @@ export class ActivityCalendarsTable
   ngOnInit() {
     super.ngOnInit();
 
+    this.loadFilterYear();
     this.canEdit = this.accountService.isUser();
     const showAdvancedFeatures = this.isAdmin;
     this.canDownload = showAdvancedFeatures;
@@ -551,7 +555,9 @@ export class ActivityCalendarsTable
 
   /* -- protected methods -- */
 
-  protected setFilterYear(year: number) {
+  protected async setFilterYear(year: number) {
+    const pageSettings = this.settings.getPageSettings(ActivityCalendarsTableSettingsEnum.PAGE_ID);
+    await this.settings.savePageSetting(ActivityCalendarsTableSettingsEnum.PAGE_ID, { ...pageSettings, year });
     if (isNil(year)) {
       this.filterYearControl.reset();
       this.emitRefresh();
@@ -617,5 +623,11 @@ export class ActivityCalendarsTable
       const jobs = await Promise.all(uploadedFileNames.map((uploadedFileName) => this._dataService.importCsvFile(uploadedFileName, format)));
       console.info(this.logPrefix + `Activity calendars successfully imported, in ${Date.now() - now}ms`, jobs);
     }
+  }
+
+  protected async loadFilterYear(): Promise<void> {
+    const pageSettings = this.settings.getPageSettings(ActivityCalendarsTableSettingsEnum.PAGE_ID);
+    const year = isNotNil(pageSettings) ? pageSettings.year : DateUtils.moment().year() - 1;
+    await this.setFilterYear(year);
   }
 }
