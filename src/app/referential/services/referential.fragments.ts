@@ -6,6 +6,7 @@ export const ReferentialFragments = {
       id
       label
       name
+      description
       rankOrder
       statusId
       entityName

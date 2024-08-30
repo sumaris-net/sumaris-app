@@ -453,17 +453,17 @@ export class CalendarComponent
         entityName: 'DistanceToCoastGradient',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      attributes: ['label', 'name'],
+      attributes: ['name', 'description'],
       mobile: this.mobile,
     });
     this.registerAutocompleteField('depthGradient', {
       suggestFn: (value, filter) =>
         this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
       filter: {
-        entityName: 'DepthGradient',
+        entityName: 'Person',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      attributes: ['label', 'name'],
+      attributes: ['email', 'description'],
       mobile: this.mobile,
     });
     this.registerAutocompleteField('nearbySpecificArea', {
@@ -473,7 +473,7 @@ export class CalendarComponent
         entityName: 'NearbySpecificArea',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
-      attributes: ['label', 'name'],
+      attributes: ['name', 'description'],
       mobile: this.mobile,
     });
 
