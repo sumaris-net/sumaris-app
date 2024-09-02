@@ -192,14 +192,15 @@
         <!-- Location -->
         <ion-row *ngIf="showFilterLocation">
           <ion-col>
-            <mat-autocomplete-field
+            <mat-chips-field
               [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION' | translate"
               formControlName="location"
               [config]="autocompleteFields.location"
               [clearable]="true"
+              chipColor="accent"
             >
               <mat-icon matPrefix>room</mat-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
         </ion-row>
 
@@ -224,42 +225,45 @@
         <ion-row *ngIf="showRecorder">
           <ion-col>
             <!-- Recorder department -->
-            <mat-autocomplete-field
+            <mat-chips-field
               [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
               formControlName="recorderDepartment"
               [config]="autocompleteFields.department"
               [clearable]="true"
+              chipColor="accent"
             >
               <ion-icon matPrefix name="business"></ion-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
 
           <ion-col>
             <!-- Recorder person -->
-            <mat-autocomplete-field
+            <mat-chips-field
               [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.RECORDER_PERSON' | translate"
               formControlName="recorderPerson"
               [config]="autocompleteFields.person"
               [i18nPrefix]="'USER.'"
               [clearable]="true"
+              chipColor="accent"
             >
               <ion-icon matPrefix name="person"></ion-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
         </ion-row>
 
         <ion-row *ngIf="showObservers || showQuality">
           <!-- Observers criteria -->
           <ion-col *ngIf="showObservers">
-            <mat-autocomplete-field
+            <mat-chips-field
               [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.OBSERVERS' | translate"
               [formControl]="filterObserversForm.at(0)"
               [config]="autocompleteFields.observers"
               [i18nPrefix]="'USER.'"
               [clearable]="true"
+              chipColor="accent"
             >
               <ion-icon matPrefix name="person"></ion-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
 
           <!-- Data quality status -->
