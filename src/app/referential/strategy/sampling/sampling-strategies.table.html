@@ -91,53 +91,57 @@
 
         <ion-col>
           <!-- Analytic reference -->
-          <mat-autocomplete-field
+          <mat-chips-field
             [placeholder]="i18nColumnPrefix + 'ANALYTIC_REFERENCE' | translateContext: i18nColumnSuffix"
             formControlName="analyticReference"
             [config]="autocompleteFields.analyticReference"
             [clearable]="true"
+            chipColor="accent"
           >
             <!-- <ion-icon matPrefix name="analyticReference"></ion-icon> -->
-          </mat-autocomplete-field>
+          </mat-chips-field>
         </ion-col>
       </ion-row>
 
       <ion-row>
         <ion-col>
           <!-- department -->
-          <mat-autocomplete-field
+          <mat-chips-field
             [placeholder]="i18nColumnPrefix + 'RECORDER_DEPARTMENTS' | translateContext: i18nColumnSuffix"
             formControlName="department"
             [config]="autocompleteFields.department"
             [clearable]="true"
+            chipColor="accent"
           >
             <ion-icon matPrefix name="business"></ion-icon>
-          </mat-autocomplete-field>
+          </mat-chips-field>
         </ion-col>
 
         <ion-col>
           <!-- taxonName -->
-          <mat-autocomplete-field
+          <mat-chips-field
             [placeholder]="i18nColumnPrefix + 'TAXON_NAMES' | translateContext: i18nColumnSuffix"
-            formControlName="taxonName"
-            [config]="autocompleteFields.taxonName"
+            formControlName="taxonNames"
+            [config]="autocompleteFields.taxonNames"
             [clearable]="true"
+            chipColor="accent"
           >
             <ion-icon matPrefix name="fish"></ion-icon>
-          </mat-autocomplete-field>
+          </mat-chips-field>
         </ion-col>
       </ion-row>
       <ion-row>
         <ion-col>
           <!-- location -->
-          <mat-autocomplete-field
+          <mat-chips-field
             [placeholder]="i18nColumnPrefix + 'LOCATIONS' | translateContext: i18nColumnSuffix"
             formControlName="location"
             [config]="autocompleteFields.location"
             [clearable]="true"
+            chipColor="accent"
           >
             <mat-icon matPrefix>room</mat-icon>
-          </mat-autocomplete-field>
+          </mat-chips-field>
         </ion-col>
 
         <!-- Parameter groups -->
@@ -336,7 +340,7 @@
             [innerHTML]="
               row.currentData.taxonNames
                 | arrayPluck: { property: 'taxonName' }
-                | referentialToString: { properties: autocompleteFields.taxonName.attributes, separator: ', <br>' }
+                | referentialToString: { properties: autocompleteFields.taxonNames.attributes, separator: ', <br>' }
             "
           ></span>
         </ion-text>
