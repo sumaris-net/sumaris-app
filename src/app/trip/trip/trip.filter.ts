@@ -51,6 +51,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
   vesselId: number = null;
   vesselSnapshot: VesselSnapshot = null;
+  vesselSnapshots: VesselSnapshot[] = null;
   vesselIds: number[] = null;
   location: ReferentialRef = null;
   startDate: Moment = null;
@@ -73,6 +74,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.vesselId = source.vesselId;
     this.vesselIds = source.vesselIds;
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
+    this.vesselSnapshots = source.vesselSnapshots && source.vesselSnapshots.map(VesselSnapshot.fromObject);
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.location = ReferentialRef.fromObject(source.location);
@@ -97,9 +99,12 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
           : this.vesselIds?.length === 1
             ? this.vesselIds[0]
             : undefined;
-      target.vesselIds = isNil(target.vesselId) ? this.vesselIds?.filter(isNotNil) : undefined;
+
+      target.vesselIds = this.vesselIds?.filter(isNotNil) || this.vesselSnapshots?.map((v) => v.id).filter(isNotNil) || undefined;
       if (isEmptyArray(target.vesselIds)) delete target.vesselIds;
+      if (isNil(target.vesselId)) delete target.vesselId;
       delete target.vesselSnapshot;
+      delete target.vesselSnapshots;
 
       // Location
       target.locationId = (this.location && this.location.id) || undefined;
@@ -143,9 +148,11 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     const vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
     if (isNotNil(vesselId)) {
       filterFns.push((t) => t.vesselSnapshot?.id === vesselId);
-    } else if (isNotEmptyArray(this.vesselIds)) {
-      const vesselIds = this.vesselIds;
-      filterFns.push((t) => t.vesselSnapshot && vesselIds.includes(t.vesselSnapshot.id));
+    }
+
+    const vesselSnapshotIds = this.vesselIds?.filter(isNotNil) || this.vesselSnapshots?.map((v) => v.id).filter(isNotNil);
+    if (isNotEmptyArray(vesselSnapshotIds)) {
+      filterFns.push((t) => t.vesselSnapshot && vesselSnapshotIds.includes(t.vesselSnapshot.id));
     }
 
     // Location

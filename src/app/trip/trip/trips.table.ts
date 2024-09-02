@@ -97,7 +97,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     this.i18nColumnPrefix = 'TRIP.TABLE.';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
-      vesselSnapshot: [null, SharedValidators.entity],
+      vesselSnapshots: [null],
       location: [null, SharedValidators.entity],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
@@ -152,7 +152,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshots', opts));
 
     // Combo: recorder department
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
