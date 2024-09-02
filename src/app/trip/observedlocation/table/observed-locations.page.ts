@@ -110,7 +110,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
       injector,
       ObservedLocation,
       ObservedLocationFilter,
-      ['quality', 'program', 'locations', 'startDateTime', 'endDateTime', 'observers', 'recorderPerson', 'comments'],
+      ['quality', 'program', 'locations', 'startDateTime', 'endDateTime', 'observers', 'recorderPersons', 'comments'],
       _dataService,
       null
     );
@@ -124,7 +124,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
       endDate: [null, SharedValidators.validDate],
       synchronizationStatus: [null],
       recorderDepartments: [null],
-      recorderPerson: [null, SharedValidators.entity],
+      recorderPersons: [null],
       observers: formBuilder.array([[null, SharedValidators.entity]]),
       dataQualityStatus: [null],
       qualityFlagId: [null, SharedValidators.integer],

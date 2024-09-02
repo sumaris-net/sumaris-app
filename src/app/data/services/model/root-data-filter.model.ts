@@ -28,6 +28,7 @@ export abstract class RootDataEntityFilter<
   strategy: ReferentialRef;
   synchronizationStatus: SynchronizationStatus;
   recorderPerson: Person;
+  recorderPersons?: Person[];
   startDate?: Moment;
   endDate?: Moment;
 
@@ -43,7 +44,7 @@ export abstract class RootDataEntityFilter<
       Person.fromObject(source.recorderPerson) ||
       (isNotNil(source.recorderPersonId) && Person.fromObject({ id: source.recorderPersonId })) ||
       undefined;
-
+    this.recorderPersons = (source.recorderPersons && source.recorderPersons.map(Person.fromObject)) || [];
     this.startDate = fromDateISOString(source.startDate)?.startOf('day');
     this.endDate = fromDateISOString(source.endDate)?.endOf('day');
   }
@@ -62,6 +63,9 @@ export abstract class RootDataEntityFilter<
 
       target.recorderPersonId = (this.recorderPerson && this.recorderPerson.id) || undefined;
       delete target.recorderPerson;
+
+      target.recorderPersonIds = this.recorderPersons?.map((p) => p.id) || undefined;
+      delete target.recorderPersons;
 
       // Not exits in pod
       delete target.synchronizationStatus;
@@ -98,6 +102,11 @@ export abstract class RootDataEntityFilter<
       filterFns.push((t) => t.recorderPerson && t.recorderPerson.id === recorderPersonId);
     }
 
+    // Recorder persons
+    const recorderPersonIds = this.recorderPersons?.map((p) => p.id);
+    if (isNotNil(recorderPersonIds)) {
+      filterFns.push((t) => t.recorderPerson && recorderPersonIds.includes(t.recorderPerson.id));
+    }
     // Synchronization status
     if (this.synchronizationStatus) {
       if (this.synchronizationStatus === 'SYNC') {

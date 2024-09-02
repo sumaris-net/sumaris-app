@@ -240,7 +240,7 @@
             <!-- Recorder person -->
             <mat-chips-field
               [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.RECORDER_PERSON' | translate"
-              formControlName="recorderPerson"
+              formControlName="recorderPersons"
               [config]="autocompleteFields.person"
               [i18nPrefix]="'USER.'"
               [clearable]="true"
@@ -486,7 +486,7 @@
       </ng-container>
 
       <!-- Recorder -->
-      <ng-container matColumnDef="recorderPerson">
+      <ng-container matColumnDef="recorderPersons">
         <th mat-header-cell *matHeaderCellDef>
           <ion-label translate>OBSERVED_LOCATION.TABLE.RECORDER_PERSON</ion-label>
         </th>
