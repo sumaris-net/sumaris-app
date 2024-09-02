@@ -49,6 +49,8 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
   locationIds?: number[];
   observers?: Person[];
   vesselIds?: number[];
+  recorderPersons?: Person[];
+  recorderDepartments?: Department[];
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
@@ -57,6 +59,8 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
     this.locations = (source.locations && source.locations.map(ReferentialRef.fromObject)) || [];
     this.observers = (source.observers[0] && source.observers[0].map(Person.fromObject)) || [];
     this.vesselIds = source.vesselIds || null;
+    this.recorderPersons = (source.recorderPersons && source.recorderPersons.map(Person.fromObject)) || [];
+    this.recorderDepartments = (source.recorderDepartments && source.recorderDepartments.map(Department.fromObject)) || [];
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -66,6 +70,13 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
       target.locationIds = isNotNil(this.location?.id) ? [this.location.id] : (this.locations || []).map((l) => l.id).filter(isNotNil);
       delete target.location;
       delete target.locations;
+
+      target.recorderPersonIds = this.recorderPersons?.map((p) => p.id) || undefined;
+      delete target.recorderPersons;
+
+      target.recorderDepartmentIds = isNotNil(this.recorderDepartments)
+        ? this.recorderDepartments && this.recorderDepartments.map((d) => d.id)
+        : undefined;
 
       // Observers
       target.observerPersonIds = (this.observers && this.observers.map((o) => o && o.id).filter(isNotNil)) || undefined;
@@ -96,6 +107,19 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
       filterFns.push((t) => t.startDateTime && endDate.isAfter(t.startDateTime));
     }
 
+    // Recorder persons
+    const recorderPersonIds = this.recorderPersons?.map((p) => p.id);
+    if (isNotNil(recorderPersonIds)) {
+      filterFns.push((t) => t.recorderPerson && recorderPersonIds.includes(t.recorderPerson.id));
+    }
+
+    //departments
+    const recorderDepartmentIds = ReferentialUtils.isNotEmpty(this.recorderDepartment)
+      ? [this.recorderDepartment.id]
+      : this.recorderDepartments?.map((l) => l.id);
+    if (isNotEmptyArray(recorderDepartmentIds)) {
+      filterFns.push((t) => t.recorderDepartment && recorderDepartmentIds.includes(t.recorderDepartment.id));
+    }
     // Recorder department and person
     // Already defined in super classes root-data-filter.model.ts et data-filter.model.ts
 

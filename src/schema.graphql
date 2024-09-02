@@ -4001,27 +4001,29 @@ input TaxonNameVOInput {
 }
 
 input TripFilterVOInput {
-  boundingBox: [Int]
-  dataQualityStatus: [DataQualityStatusEnum]
-  endDate: Date
-  excludedIds: [Int]
-  hasObservedLocation: Boolean
-  hasScientificCruise: Boolean
-  includedIds: [Int]
-  locationId: Int
-  locationIds: [Int]
-  observedLocationId: Int
-  observerPersonIds: [Int]
-  operationIds: [Int]
-  programIds: [Int]
-  programLabel: String
-  qualityFlagIds: [Int]
-  recorderDepartmentId: Int
-  recorderPersonId: Int
-  startDate: Date
-  tripId: Int
-  vesselId: Int
-  vesselIds: [Int]
+    boundingBox: [Int]
+    dataQualityStatus: [DataQualityStatusEnum]
+    endDate: Date
+    excludedIds: [Int]
+    hasObservedLocation: Boolean
+    hasScientificCruise: Boolean
+    includedIds: [Int]
+    locationId: Int
+    locationIds: [Int]
+    observedLocationId: Int
+    observerPersonIds: [Int]
+    operationIds: [Int]
+    programIds: [Int]
+    programLabel: String
+    qualityFlagIds: [Int]
+    recorderDepartmentId: Int
+    recorderDepartmentIds: [Int]
+    recorderPersonId: Int
+    recorderPersonIds: [Int]
+    startDate: Date
+    tripId: Int
+    vesselId: Int
+    vesselIds: [Int]
 }
 
 input TripSaveOptionsInput {

@@ -21,8 +21,6 @@ export abstract class DataEntityFilter<
   FO = any,
 > extends EntityFilter<T, E, EID, AO, FO> {
   recorderDepartment: Department;
-  recorderDepartments?: Department[];
-  recorderDepartmentIds?: number[];
   qualityFlagId?: number;
   dataQualityStatus?: DataQualityStatusIdType;
 
@@ -32,7 +30,6 @@ export abstract class DataEntityFilter<
       Department.fromObject(source.recorderDepartment) ||
       (isNotNil(source.recorderDepartmentId) && Department.fromObject({ id: source.recorderDepartmentId })) ||
       undefined;
-    this.recorderDepartments = (source.recorderDepartments && source.recorderDepartments.map(Department.fromObject)) || [];
     this.dataQualityStatus = source.dataQualityStatus;
     this.qualityFlagId = source.qualityFlagId;
   }
@@ -42,7 +39,6 @@ export abstract class DataEntityFilter<
     if (opts && opts.minify) {
       target.recorderDepartmentId = this.recorderDepartment && isNotNil(this.recorderDepartment.id) ? this.recorderDepartment.id : undefined;
       delete target.recorderDepartment;
-      target.recorderDepartmentIds = this.recorderDepartments && this.recorderDepartments.map((d) => d.id);
       delete target.recorderDepartments;
       target.qualityFlagIds = isNotNil(this.qualityFlagId) ? [this.qualityFlagId] : undefined;
       delete target.qualityFlagId;
@@ -72,13 +68,6 @@ export abstract class DataEntityFilter<
       if (isNotNil(recorderDepartmentId)) {
         filterFns.push((t) => t.recorderDepartment && t.recorderDepartment.id === recorderDepartmentId);
       }
-    }
-    //departments
-    const recorderDepartmentIds =
-      this.recorderDepartmentIds ||
-      (ReferentialUtils.isNotEmpty(this.recorderDepartment) ? [this.recorderDepartment.id] : this.recorderDepartments?.map((l) => l.id));
-    if (isNotEmptyArray(recorderDepartmentIds)) {
-      filterFns.push((t) => t.recorderDepartment && recorderDepartmentIds.includes(t.recorderDepartment.id));
     }
 
     // Quality flag
