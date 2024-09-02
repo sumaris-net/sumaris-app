@@ -157,27 +157,29 @@
         <ion-row>
           <ion-col size="12" size-lg="6">
             <!-- Vessel -->
-            <mat-autocomplete-field
+            <mat-chips-field
               *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
               [placeholder]="'TRIP.TABLE.FILTER.VESSEL' | translate"
               formControlName="vesselSnapshot"
               [config]="autocompleteFields.vesselSnapshot"
               [clearable]="true"
+              chipColor="accent"
             >
               <ion-icon matPrefix name="boat"></ion-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
 
           <ion-col size="12" size-lg="6">
             <!-- Location -->
-            <mat-autocomplete-field
+            <mat-chips-field
               [placeholder]="'TRIP.TABLE.FILTER.LOCATION' | translate"
               formControlName="location"
               [config]="autocompleteFields.location"
               [clearable]="true"
+              chipColor="accent"
             >
               <mat-icon matPrefix>room</mat-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
         </ion-row>
 
@@ -202,42 +204,45 @@
         <ion-row *ngIf="showRecorder">
           <ion-col>
             <!-- Recorder department -->
-            <mat-autocomplete-field
+            <mat-chips-field
               [placeholder]="'TRIP.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
               formControlName="recorderDepartment"
               [config]="autocompleteFields.department"
               [clearable]="true"
+              chipColor="accent"
             >
               <ion-icon matPrefix name="business"></ion-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
 
           <ion-col>
             <!-- Recorder person -->
-            <mat-autocomplete-field
+            <mat-chips-field
               [placeholder]="'TRIP.TABLE.FILTER.RECORDER_PERSON' | translate"
               formControlName="recorderPerson"
               [config]="autocompleteFields.person"
               [i18nPrefix]="'USER.'"
               [clearable]="true"
+              chipColor="accent"
             >
               <ion-icon matPrefix name="person"></ion-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
         </ion-row>
 
         <ion-row *ngIf="showObservers || showQuality">
           <!-- Observers -->
           <ion-col size="12" size-lg="6" *ngIf="showObservers">
-            <mat-autocomplete-field
+            <mat-chips-field
               [placeholder]="'TRIP.TABLE.FILTER.OBSERVERS' | translate"
               [formControl]="filterObserversForm.at(0)"
               [config]="autocompleteFields.person"
               [i18nPrefix]="'USER.'"
               [clearable]="true"
+              chipColor="accent"
             >
               <ion-icon matPrefix name="person"></ion-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
 
           <ng-container *ngIf="showQuality && filterForm | formGetControl: 'dataQualityStatus'; let control">
