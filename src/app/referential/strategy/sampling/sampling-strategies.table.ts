@@ -163,7 +163,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       levelId: [null, Validators.required], // the program id
       analyticReference: [null],
       departments: [null],
-      location: [null],
+      locations: [null],
       taxonNames: [null],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
@@ -238,7 +238,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       mobile: this.mobile,
     });
 
-    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('locations', {
       showAllOnFocus: false,
       suggestFn: async (value, filter) => {
         // Note: wait enumeration override, before using LocationLevelGroups.FISHING_AREA

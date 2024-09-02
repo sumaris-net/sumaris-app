@@ -135,8 +135,8 @@
           <!-- location -->
           <mat-chips-field
             [placeholder]="i18nColumnPrefix + 'LOCATIONS' | translateContext: i18nColumnSuffix"
-            formControlName="location"
-            [config]="autocompleteFields.location"
+            formControlName="locations"
+            [config]="autocompleteFields.locations"
             [clearable]="true"
             chipColor="accent"
           >
@@ -321,7 +321,7 @@
             [innerHTML]="
               row.currentData.appliedStrategies
                 | arrayPluck: { property: 'location' }
-                | referentialToString: { properties: autocompleteFields.location.attributes, separator: ', <br>' }
+                | referentialToString: { properties: autocompleteFields.locations.attributes, separator: ', <br>' }
             "
           ></span>
         </ion-text>
