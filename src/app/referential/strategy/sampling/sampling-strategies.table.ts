@@ -162,7 +162,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       searchText: [null],
       levelId: [null, Validators.required], // the program id
       analyticReference: [null],
-      department: [null],
+      departments: [null],
       location: [null],
       taxonNames: [null],
       startDate: [null, SharedValidators.validDate],
@@ -228,7 +228,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       mobile: this.mobile,
     });
 
-    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('departments', {
       showAllOnFocus: false,
       service: this.referentialRefService,
       filter: {
