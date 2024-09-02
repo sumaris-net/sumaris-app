@@ -123,7 +123,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
       synchronizationStatus: [null],
-      recorderDepartment: [null, SharedValidators.entity],
+      recorderDepartments: [null],
       recorderPerson: [null, SharedValidators.entity],
       observers: formBuilder.array([[null, SharedValidators.entity]]),
       dataQualityStatus: [null],
@@ -168,7 +168,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     });
 
     // Combo: recorder department
-    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('departments', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Department',

@@ -3,6 +3,7 @@ import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.
 import { ObservedLocation } from './observed-location.model';
 import {
   DateUtils,
+  Department,
   EntityAsObjectOptions,
   EntityClass,
   FilterFn,
@@ -54,7 +55,7 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
     this.location = ReferentialRef.fromObject(source.location);
     this.locationIds = source.locationIds;
     this.locations = (source.locations && source.locations.map(ReferentialRef.fromObject)) || [];
-    this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
+    this.observers = (source.observers[0] && source.observers[0].map(Person.fromObject)) || [];
     this.vesselIds = source.vesselIds || null;
   }
 
