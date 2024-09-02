@@ -110,7 +110,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
       injector,
       ObservedLocation,
       ObservedLocationFilter,
-      ['quality', 'program', 'location', 'startDateTime', 'endDateTime', 'observers', 'recorderPerson', 'comments'],
+      ['quality', 'program', 'locations', 'startDateTime', 'endDateTime', 'observers', 'recorderPerson', 'comments'],
       _dataService,
       null
     );
@@ -119,7 +119,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
-      location: [null, SharedValidators.entity],
+      locations: [null],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
       synchronizationStatus: [null],
@@ -158,7 +158,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     });
 
     // Locations combo (filter)
-    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('locations', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',

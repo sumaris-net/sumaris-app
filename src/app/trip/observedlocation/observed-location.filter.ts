@@ -53,6 +53,7 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
     super.fromObject(source, opts);
     this.location = ReferentialRef.fromObject(source.location);
     this.locationIds = source.locationIds;
+    this.locations = (source.locations && source.locations.map(ReferentialRef.fromObject)) || [];
     this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
     this.vesselIds = source.vesselIds || null;
   }

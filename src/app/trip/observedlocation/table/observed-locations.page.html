@@ -136,8 +136,8 @@
           <!-- Location -->
           <mat-autocomplete-field
             [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION' | translate"
-            formControlName="location"
-            [config]="autocompleteFields.location"
+            formControlName="locations"
+            [config]="autocompleteFields.locations"
             [clearable]="true"
           >
             <mat-icon matPrefix>room</mat-icon>
@@ -194,8 +194,8 @@
           <ion-col>
             <mat-chips-field
               [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION' | translate"
-              formControlName="location"
-              [config]="autocompleteFields.location"
+              formControlName="locations"
+              [config]="autocompleteFields.locations"
               [clearable]="true"
               chipColor="accent"
             >
@@ -442,13 +442,13 @@
       </ng-container>
 
       <!-- location -->
-      <ng-container matColumnDef="location">
+      <ng-container matColumnDef="locations">
         <th mat-header-cell *matHeaderCellDef>
           <ion-label translate>OBSERVED_LOCATION.TABLE.LOCATION</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-label>
-            {{ row.currentData.location | referentialToString: autocompleteFields.location.attributes }}
+            {{ row.currentData.location | referentialToString: autocompleteFields.locations.attributes }}
           </ion-label>
         </td>
       </ng-container>
