@@ -173,8 +173,8 @@
             <!-- Location -->
             <mat-chips-field
               [placeholder]="'TRIP.TABLE.FILTER.LOCATION' | translate"
-              formControlName="location"
-              [config]="autocompleteFields.location"
+              formControlName="locations"
+              [config]="autocompleteFields.locations"
               [clearable]="true"
               chipColor="accent"
             >
@@ -461,7 +461,7 @@
           <ion-label translate>TRIP.TABLE.DEPARTURE_LOCATION</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          {{ row.currentData.departureLocation | referentialToString: autocompleteFields.location.attributes }}
+          {{ row.currentData.departureLocation | referentialToString: autocompleteFields.locations.attributes }}
         </td>
       </ng-container>
 

@@ -54,6 +54,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   vesselSnapshots: VesselSnapshot[] = null;
   vesselIds: number[] = null;
   location: ReferentialRef = null;
+  locations: ReferentialRef[] = null;
   startDate: Moment = null;
   endDate: Moment = null;
   observers?: Person[];
@@ -78,6 +79,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.location = ReferentialRef.fromObject(source.location);
+    this.locations = (source.locations && source.locations.map(ReferentialRef.fromObject)) || [];
     this.observers = (source.observers && source.observers.map(Person.fromObject).filter(isNotNil)) || [];
     this.includedIds = source.includedIds;
     this.excludedIds = source.excludedIds;
@@ -109,6 +111,9 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       // Location
       target.locationId = (this.location && this.location.id) || undefined;
       delete target.location;
+
+      target.locationIds = isNotNil(this.location?.id) ? [this.location.id] : (this.locations || []).map((l) => l.id).filter(isNotNil);
+      delete target.locations;
 
       // Observers
       target.observerPersonIds = (isNotEmptyArray(this.observers) && this.observers.map((o) => o && o.id).filter(isNotNil)) || undefined;
@@ -160,6 +165,14 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       const locationId = this.location.id;
       filterFns.push(
         (t) => (t.departureLocation && t.departureLocation.id === locationId) || (t.returnLocation && t.returnLocation.id === locationId)
+      );
+    }
+
+    const locationIds = isNotEmptyArray(this.locations) ? this.locations.map((l) => l.id).filter(isNotNil) : [];
+    if (isNotEmptyArray(locationIds)) {
+      filterFns.push(
+        (t) =>
+          (t.departureLocation && locationIds.includes(t.departureLocation.id)) || (t.returnLocation && locationIds.includes(t.returnLocation.id))
       );
     }
 

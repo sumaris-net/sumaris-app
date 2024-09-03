@@ -98,7 +98,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
       vesselSnapshots: [null],
-      location: [null, SharedValidators.entity],
+      locations: [null],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
       synchronizationStatus: [null],
@@ -142,7 +142,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     });
 
     // Locations combo (filter)
-    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('locations', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
