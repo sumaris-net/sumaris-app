@@ -25,6 +25,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
   vesselId: number = null;
   vesselIds: number[] = null;
   vesselSnapshot: VesselSnapshot = null;
+  vesselSnapshots: VesselSnapshot[] = null;
   registrationLocations: ReferentialRef[] = null;
   basePortLocations: ReferentialRef[] = null;
   includedIds: number[];
@@ -44,6 +45,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.vesselId = source.vesselId;
     this.vesselIds = source.vesselIds;
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
+    this.vesselSnapshots = source.vesselSnapshots?.map(VesselSnapshot.fromObject);
     this.registrationLocations = source.registrationLocations?.map(ReferentialRef.fromObject);
     this.basePortLocations = source.basePortLocations?.map(ReferentialRef.fromObject);
     this.includedIds = source.includedIds;
@@ -68,8 +70,9 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     if (opts && opts.minify) {
       // Vessel
       target.vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
-      target.vesselIds = isNil(this.vesselId) ? this.vesselIds : undefined;
+      target.vesselIds = this.vesselIds?.filter(isNotNil) || this.vesselSnapshots?.map((v) => v.id).filter(isNotNil) || undefined;
       delete target.vesselSnapshot;
+      delete target.vesselSnapshots;
 
       // Registration locations
       target.registrationLocationIds = this.registrationLocations?.map((l) => l.id) || undefined;
@@ -115,6 +118,11 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     const vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
     if (isNotNil(vesselId)) {
       filterFns.push((t) => t.vesselSnapshot?.id === vesselId);
+    }
+
+    const vesselSnapshotIds = this.vesselIds?.filter(isNotNil) || this.vesselSnapshots?.map((v) => v.id).filter(isNotNil);
+    if (isNotEmptyArray(vesselSnapshotIds)) {
+      filterFns.push((t) => t.vesselSnapshot && vesselSnapshotIds.includes(t.vesselSnapshot.id));
     }
 
     // Registration locations

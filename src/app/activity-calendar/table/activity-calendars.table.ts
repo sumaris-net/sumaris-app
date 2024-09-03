@@ -176,7 +176,7 @@ export class ActivityCalendarsTable
     this.i18nColumnPrefix = 'ACTIVITY_CALENDAR.TABLE.';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
-      vesselSnapshot: [null, SharedValidators.entity],
+      vesselSnapshots: [null],
       year: [null, SharedValidators.integer],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
@@ -230,7 +230,7 @@ export class ActivityCalendarsTable
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshots', opts));
 
     const locationConfig: MatAutocompleteFieldConfig = {
       filter: {
