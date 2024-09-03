@@ -169,7 +169,7 @@ export class ActivityCalendarsTable
       injector,
       ActivityCalendar,
       ActivityCalendarFilter,
-      ['quality', 'program', 'vessel', 'year', 'directSurveyInvestigation', 'economicSurvey', 'observers', 'recorderPerson', 'comments'],
+      ['quality', 'program', 'vessel', 'year', 'directSurveyInvestigation', 'economicSurvey', 'observers', 'recorderPersons', 'comments'],
       _dataService,
       null
     );
@@ -184,7 +184,7 @@ export class ActivityCalendarsTable
       basePortLocations: [null],
       synchronizationStatus: [null],
       recorderDepartment: [null, SharedValidators.entity],
-      recorderPerson: [null, SharedValidators.entity],
+      recorderPersons: [null],
       dataQualityStatus: [null],
       qualityFlagId: [null, SharedValidators.integer],
       directSurveyInvestigation: [null],
@@ -304,7 +304,7 @@ export class ActivityCalendarsTable
 
         // Recorder
         this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-        this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
+        this.setShowColumn('recorderPersons', this.showRecorder, { emitEvent: false });
 
         // Observer
         this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);

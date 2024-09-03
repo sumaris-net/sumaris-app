@@ -374,7 +374,7 @@
             <!-- Recorder person -->
             <mat-chips-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate"
-              formControlName="recorderPerson"
+              formControlName="recorderPersons"
               [config]="autocompleteFields.person"
               [i18nPrefix]="'USER.'"
               [clearable]="true"
@@ -564,7 +564,7 @@
       </ng-container>
 
       <!-- Recorder -->
-      <ng-container matColumnDef="recorderPerson">
+      <ng-container matColumnDef="recorderPersons">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
           <ion-label translate>ACTIVITY_CALENDAR.TABLE.RECORDER_PERSON</ion-label>
         </th>

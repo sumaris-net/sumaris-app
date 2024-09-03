@@ -28,6 +28,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
   vesselSnapshots: VesselSnapshot[] = null;
   registrationLocations: ReferentialRef[] = null;
   basePortLocations: ReferentialRef[] = null;
+  recorderPersons: Person[] = null;
   includedIds: number[];
   excludedIds: number[];
   directSurveyInvestigation: boolean;
@@ -54,11 +55,8 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.endDate = fromDateISOString(source.endDate);
     this.directSurveyInvestigation = source.directSurveyInvestigation;
     this.economicSurvey = source.economicSurvey;
-    this.observers = Array.isArray(source.observers)
-      ? source.observers.map(Person.fromObject)
-      : source.observers
-        ? [Person.fromObject(source.observers)]
-        : null;
+    this.observers = (source.observers[0] && source.observers[0].map(Person.fromObject)) || [];
+    this.recorderPersons = source.recorderPersons?.map(Person.fromObject);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -81,6 +79,10 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
       // Registration locations
       target.basePortLocationIds = this.basePortLocations?.map((l) => l.id) || undefined;
       delete target.basePortLocations;
+
+      // recorderPersons
+      target.recorderPersonIds = (this.recorderPersons && this.recorderPersons.map((o) => o && o.id).filter(isNotNil)) || undefined;
+      delete target.recorderPersons;
 
       // Observers
       target.observerPersonIds = observers?.map((o) => o?.id).filter(isNotNil) || undefined;
@@ -129,6 +131,12 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     if (isNotEmptyArray(this.registrationLocations)) {
       const registrationLocationIds = this.registrationLocations.map((l) => l.id);
       filterFns.push((t) => t.vesselSnapshot?.registrationLocation && registrationLocationIds.includes(t.vesselSnapshot.registrationLocation?.id));
+    }
+
+    //recorderPersons
+    const recorderPersonIds = this.recorderPersons?.map((p) => p.id).filter(isNotNil);
+    if (isNotEmptyArray(recorderPersonIds)) {
+      filterFns.push((t) => t.recorderPerson && recorderPersonIds.includes(t.recorderPerson.id));
     }
 
     // Base port locations
