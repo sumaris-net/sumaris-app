@@ -183,7 +183,7 @@ export class ActivityCalendarsTable
       registrationLocations: [null],
       basePortLocations: [null],
       synchronizationStatus: [null],
-      recorderDepartment: [null, SharedValidators.entity],
+      recorderDepartments: [null],
       recorderPersons: [null],
       dataQualityStatus: [null],
       qualityFlagId: [null, SharedValidators.integer],

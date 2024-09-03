@@ -1,6 +1,7 @@
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import {
   DateUtils,
+  Department,
   EntityAsObjectOptions,
   EntityClass,
   FilterFn,
@@ -29,6 +30,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
   registrationLocations: ReferentialRef[] = null;
   basePortLocations: ReferentialRef[] = null;
   recorderPersons: Person[] = null;
+  recorderDepartments: Department[];
   includedIds: number[];
   excludedIds: number[];
   directSurveyInvestigation: boolean;
@@ -57,6 +59,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.economicSurvey = source.economicSurvey;
     this.observers = (source.observers[0] && source.observers[0].map(Person.fromObject)) || [];
     this.recorderPersons = source.recorderPersons?.map(Person.fromObject);
+    this.recorderDepartments = source.recorderDepartments?.map(Department.fromObject);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -83,6 +86,10 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
       // recorderPersons
       target.recorderPersonIds = (this.recorderPersons && this.recorderPersons.map((o) => o && o.id).filter(isNotNil)) || undefined;
       delete target.recorderPersons;
+
+      //recorderDepartments
+      target.recorderDepartmentIds = (this.recorderDepartments && this.recorderDepartments.map((o) => o && o.id).filter(isNotNil)) || undefined;
+      delete target.recorderDepartments;
 
       // Observers
       target.observerPersonIds = observers?.map((o) => o?.id).filter(isNotNil) || undefined;
@@ -137,6 +144,12 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     const recorderPersonIds = this.recorderPersons?.map((p) => p.id).filter(isNotNil);
     if (isNotEmptyArray(recorderPersonIds)) {
       filterFns.push((t) => t.recorderPerson && recorderPersonIds.includes(t.recorderPerson.id));
+    }
+
+    //recorderDepartments
+    const recorderDepartmentIds = this.recorderDepartments?.map((d) => d.id).filter(isNotNil);
+    if (isNotEmptyArray(recorderDepartmentIds)) {
+      filterFns.push((t) => t.recorderDepartment && recorderDepartmentIds.includes(t.recorderDepartment.id));
     }
 
     // Base port locations
