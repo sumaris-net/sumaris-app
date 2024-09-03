@@ -1044,7 +1044,19 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
 
 export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze(
   // Display attributes for referential useful entities
-  ['department', 'location', 'fishingAreaLocation', 'qualitativeValue', 'taxonGroup', 'taxonName', 'gear', 'fraction']
+  [
+    'department',
+    'location',
+    'fishingAreaLocation',
+    'qualitativeValue',
+    'taxonGroup',
+    'taxonName',
+    'gear',
+    'fraction',
+    'distanceToCoastGradient',
+    'depthGradient',
+    'nearbySpecificArea',
+  ]
     // Allow user to choose how to display field (by code+label, code, etc)
     .reduce((res, fieldName) => {
       const i18nFieldName = changeCaseToUnderscore(fieldName).toUpperCase(); // e.g. transform 'taxonGroup' into 'TAXON_GROUP'
