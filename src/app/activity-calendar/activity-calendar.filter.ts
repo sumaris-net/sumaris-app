@@ -57,7 +57,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.endDate = fromDateISOString(source.endDate);
     this.directSurveyInvestigation = source.directSurveyInvestigation;
     this.economicSurvey = source.economicSurvey;
-    this.observers = (source.observers[0] && source.observers[0].map(Person.fromObject)) || [];
+    this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
     this.recorderPersons = source.recorderPersons?.map(Person.fromObject);
     this.recorderDepartments = source.recorderDepartments?.map(Department.fromObject);
   }
