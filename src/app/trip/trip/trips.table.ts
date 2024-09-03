@@ -90,7 +90,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       injector,
       Trip,
       TripFilter,
-      ['quality', 'program', 'vessel', 'departureLocation', 'departureDateTime', 'returnDateTime', 'observers', 'recorderPerson', 'comments'],
+      ['quality', 'program', 'vessel', 'departureLocation', 'departureDateTime', 'returnDateTime', 'observers', 'recorderPersons', 'comments'],
       _dataService,
       null
     );
@@ -103,7 +103,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       endDate: [null, SharedValidators.validDate],
       synchronizationStatus: [null],
       recorderDepartments: [null],
-      recorderPerson: [null, SharedValidators.entity],
+      recorderPersons: [null],
       observers: formBuilder.array([[null, SharedValidators.entity]]),
       dataQualityStatus: [null],
       qualityFlagId: [null, SharedValidators.integer],
@@ -197,7 +197,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
 
             // Recorder
             this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-            this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
+            this.setShowColumn('recorderPersons', this.showRecorder, { emitEvent: false });
 
             // Observers
             this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);

@@ -57,6 +57,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   location: ReferentialRef = null;
   locations: ReferentialRef[] = null;
   recorderDepartments: Department[] = null;
+  recorderPersons: Person[] = null;
   startDate: Moment = null;
   endDate: Moment = null;
   observers?: Person[];
@@ -74,7 +75,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
-    this.vesselId = source.vesselId;
+    this.vesselId = source.vdeesselId;
     this.vesselIds = source.vesselIds;
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     this.vesselSnapshots = source.vesselSnapshots && source.vesselSnapshots.map(VesselSnapshot.fromObject);
@@ -90,6 +91,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.hasScientificCruise = source.hasScientificCruise;
     this.hasObservedLocation = source.hasObservedLocation;
     this.recorderDepartments = (source.recorderDepartments && source.recorderDepartments.map(Department.fromObject)) || [];
+    this.recorderPersons = (source.recorderPersons && source.recorderPersons.map(Person.fromObject)) || [];
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -121,6 +123,10 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       // recorderdepartments
       target.recorderDepartmentIds = this.recorderDepartments?.map((d) => d.id).filter(isNotNil) || undefined;
       delete target.recorderDepartments;
+
+      // recorderPersons
+      target.recorderPersonIds = this.recorderPersons?.map((p) => p.id).filter(isNotNil) || undefined;
+      delete target.recorderPersons;
 
       // Observers
       target.observerPersonIds = (isNotEmptyArray(this.observers) && this.observers.map((o) => o && o.id).filter(isNotNil)) || undefined;
@@ -188,6 +194,12 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     const recorderDepartmentIds = this.recorderDepartments?.map((d) => d.id).filter(isNotNil);
     if (isNotEmptyArray(recorderDepartmentIds)) {
       filterFns.push((t) => t.recorderDepartment && recorderDepartmentIds.includes(t.recorderDepartment.id));
+    }
+
+    // Recorder person
+    const recorderPersonIds = this.recorderPersons?.map((p) => p.id).filter(isNotNil);
+    if (isNotEmptyArray(recorderPersonIds)) {
+      filterFns.push((t) => t.recorderPerson && recorderPersonIds.includes(t.recorderPerson.id));
     }
 
     // Start/end period
