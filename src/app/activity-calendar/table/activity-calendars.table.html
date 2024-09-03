@@ -238,15 +238,16 @@
 
           <ion-col size="12" size-lg="6">
             <!-- Vessel -->
-            <mat-autocomplete-field
+            <mat-chips-field
               *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL' | translate"
               formControlName="vesselSnapshot"
               [config]="autocompleteFields.vesselSnapshot"
               [clearable]="true"
+              chipColor="accent"
             >
               <ion-icon matPrefix name="boat"></ion-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
 
           <!-- Observers criteria -->
@@ -358,27 +359,29 @@
         <ion-row *ngIf="showRecorder">
           <ion-col>
             <!-- Recorder department -->
-            <mat-autocomplete-field
+            <mat-chips-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
               formControlName="recorderDepartment"
               [config]="autocompleteFields.department"
               [clearable]="true"
+              chipColor="accent"
             >
               <ion-icon matPrefix name="business"></ion-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
 
           <ion-col>
             <!-- Recorder person -->
-            <mat-autocomplete-field
+            <mat-chips-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate"
               formControlName="recorderPerson"
               [config]="autocompleteFields.person"
               [i18nPrefix]="'USER.'"
               [clearable]="true"
+              chipColor="accent"
             >
               <ion-icon matPrefix name="person"></ion-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
         </ion-row>
       </ion-grid>
