@@ -254,7 +254,7 @@
         <ion-row *ngIf="showObservers || showQuality">
           <!-- Observers criteria -->
           <ion-col *ngIf="showObservers">
-            <mat-chips-field
+            <mat-autocomplete-field
               [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.OBSERVERS' | translate"
               [formControl]="filterObserversForm.at(0)"
               [config]="autocompleteFields.observers"
@@ -263,7 +263,7 @@
               chipColor="accent"
             >
               <ion-icon matPrefix name="person"></ion-icon>
-            </mat-chips-field>
+            </mat-autocomplete-field>
           </ion-col>
 
           <!-- Data quality status -->

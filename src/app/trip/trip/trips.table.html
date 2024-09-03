@@ -233,7 +233,7 @@
         <ion-row *ngIf="showObservers || showQuality">
           <!-- Observers -->
           <ion-col size="12" size-lg="6" *ngIf="showObservers">
-            <mat-chips-field
+            <mat-autocomplete-field
               [placeholder]="'TRIP.TABLE.FILTER.OBSERVERS' | translate"
               [formControl]="filterObserversForm.at(0)"
               [config]="autocompleteFields.person"
@@ -242,7 +242,7 @@
               chipColor="accent"
             >
               <ion-icon matPrefix name="person"></ion-icon>
-            </mat-chips-field>
+            </mat-autocomplete-field>
           </ion-col>
 
           <ng-container *ngIf="showQuality && filterForm | formGetControl: 'dataQualityStatus'; let control">
