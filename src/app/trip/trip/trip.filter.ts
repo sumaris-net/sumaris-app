@@ -1,6 +1,7 @@
 import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 import {
   DateUtils,
+  Department,
   EntityAsObjectOptions,
   EntityClass,
   FilterFn,
@@ -55,6 +56,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   vesselIds: number[] = null;
   location: ReferentialRef = null;
   locations: ReferentialRef[] = null;
+  recorderDepartments: Department[] = null;
   startDate: Moment = null;
   endDate: Moment = null;
   observers?: Person[];
@@ -87,6 +89,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.observedLocationId = source.observedLocationId;
     this.hasScientificCruise = source.hasScientificCruise;
     this.hasObservedLocation = source.hasObservedLocation;
+    this.recorderDepartments = (source.recorderDepartments && source.recorderDepartments.map(Department.fromObject)) || [];
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -114,6 +117,10 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
       target.locationIds = isNotNil(this.location?.id) ? [this.location.id] : (this.locations || []).map((l) => l.id).filter(isNotNil);
       delete target.locations;
+
+      // recorderdepartments
+      target.recorderDepartmentIds = this.recorderDepartments?.map((d) => d.id).filter(isNotNil) || undefined;
+      delete target.recorderDepartments;
 
       // Observers
       target.observerPersonIds = (isNotEmptyArray(this.observers) && this.observers.map((o) => o && o.id).filter(isNotNil)) || undefined;
@@ -174,6 +181,13 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
         (t) =>
           (t.departureLocation && locationIds.includes(t.departureLocation.id)) || (t.returnLocation && locationIds.includes(t.returnLocation.id))
       );
+    }
+
+    // Recorder department
+
+    const recorderDepartmentIds = this.recorderDepartments?.map((d) => d.id).filter(isNotNil);
+    if (isNotEmptyArray(recorderDepartmentIds)) {
+      filterFns.push((t) => t.recorderDepartment && recorderDepartmentIds.includes(t.recorderDepartment.id));
     }
 
     // Start/end period

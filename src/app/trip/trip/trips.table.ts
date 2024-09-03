@@ -102,7 +102,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
       synchronizationStatus: [null],
-      recorderDepartment: [null, SharedValidators.entity],
+      recorderDepartments: [null],
       recorderPerson: [null, SharedValidators.entity],
       observers: formBuilder.array([[null, SharedValidators.entity]]),
       dataQualityStatus: [null],
