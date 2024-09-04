@@ -190,7 +190,7 @@
     </mat-tab>
 
     <!-- SUB-TAB: gear -->
-    <mat-tab label="{{ 'EXPENSE.TAB_GEAR' | translate }}" [disabled]="!gearsFormArray?.length">
+    <mat-tab label="{{ 'EXPENSE.TAB_GEAR' | translate }}" >
       <ion-grid class="form-container ion-no-padding" (focusout)="gearEditedIndex = -1">
         <ion-row
           *ngFor="let gearForm of gearsFormArray?.controls; index as i; first as first; last as last; odd as odd"

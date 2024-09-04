@@ -1,4 +1,4 @@
-import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
+import { MapPmfmEvent, MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import {

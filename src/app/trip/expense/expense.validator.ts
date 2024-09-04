@@ -15,6 +15,7 @@ export class ExpenseValidatorService extends MeasurementsValidatorService {
     return Object.assign(super.getFormGroupConfig(data, opts), {
       calculatedTotal: [null],
       baits: this.getBaitsFormArray(),
+      gears: this.getGearsFormArray(),
     });
   }
 

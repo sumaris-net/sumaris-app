@@ -17,7 +17,6 @@ import {
   FormArrayHelper,
   isNil,
   isNotEmptyArray,
-  isNotNil,
   isNotNilOrNaN,
   ObjectMap,
   remove,
@@ -614,7 +613,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   private calculateTotal() {
     let total = 0;
-    // sum each total field from main form
+    // sum each total field from fluid form
     (this.totalPmfms || []).forEach((totalPmfm) => {
       total += this.form.get(totalPmfm.id.toString()).value;
     });
@@ -669,6 +668,14 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   isHydraulicPmfm(pmfm: IPmfm): boolean {
     return pmfm.label.startsWith('HYDRAULIC_OIL_');
+  }
+
+  isBaitPmfm(pmfm: IPmfm): boolean {
+    return pmfm.label.startsWith('BAIT_');
+  }
+
+  isGearPmfm(pmfm: IPmfm): boolean {
+    return pmfm.label.startsWith('GEAR_');
   }
 
   isQuantityPmfm(pmfm: IPmfm): boolean {
