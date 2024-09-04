@@ -91,7 +91,7 @@
 
         <ion-col>
           <!-- Analytic reference -->
-          <mat-chips-field
+          <mat-autocomplete-field
             [placeholder]="i18nColumnPrefix + 'ANALYTIC_REFERENCE' | translateContext: i18nColumnSuffix"
             formControlName="analyticReference"
             [config]="autocompleteFields.analyticReference"
@@ -99,7 +99,7 @@
             chipColor="accent"
           >
             <!-- <ion-icon matPrefix name="analyticReference"></ion-icon> -->
-          </mat-chips-field>
+          </mat-autocomplete-field>
         </ion-col>
       </ion-row>
 
