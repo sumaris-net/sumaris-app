@@ -565,6 +565,12 @@ export class CalendarComponent
           .subscribe((event) => this.clearCellSelection(event))
       );
 
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'enter', description: 'COMMON.BTN_CONFIRM', preventDefault: false })
+          .subscribe((event) => this.onEnterPress(event))
+      );
+
       this.registerSubscription(fromEvent(element, 'scroll').subscribe(() => this.onResize()));
     }
   }
@@ -1008,6 +1014,12 @@ export class CalendarComponent
     if (!cellElement) return false;
 
     this.selectRow(columnName, row, event);
+  }
+
+  onEnterPress(event: Event) {
+    if (this.cellSelection.colspan === 1 && this.cellSelection.rowspan === 1) {
+      this.dblClickRow(event, this.cellSelection.row);
+    }
   }
 
   @HostListener('window:resize')
