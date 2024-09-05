@@ -89,6 +89,15 @@ import { IUseFeaturesUtils } from '../model/use-features.model';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 import { SelectionModel } from '@angular/cdk/collections';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { MatTable } from '@angular/material/table';
+
+type ArrowKey = 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight';
+
+interface ArrowKeyNavigation {
+  rowIndex: number;
+  columnIndex: number;
+  cellElement: HTMLElement;
+}
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -241,6 +250,7 @@ export class CalendarComponent
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
   protected readonlyColumnCount: number;
+  protected arrowKeyNavigation: ArrowKeyNavigation = null;
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -354,6 +364,9 @@ export class CalendarComponent
   }
 
   @ViewChildren('monthCalendar', { read: CalendarComponent }) monthCalendars!: QueryList<CalendarComponent>;
+  @ViewChild(MatTable) table: MatTable<any>;
+  @ViewChild('tableElement', { read: ElementRef }) tableElementRef!: ElementRef;
+
   @ViewChild('menuTrigger') menuTrigger: MatMenuTrigger;
   @ViewChild('cellSelectionDiv', { read: ElementRef }) cellSelectionDivRef: ElementRef;
   @ViewChild('cellClipboardDiv', { read: ElementRef }) cellClipboardDivRef: ElementRef;
@@ -2297,5 +2310,72 @@ export class CalendarComponent
     if (opts?.emitEvent !== false) {
       this.markForCheck();
     }
+  }
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    this.handleArrowKeyNavigation(event.key as ArrowKey);
+  }
+
+  protected handleArrowKeyNavigation(key: ArrowKey) {
+    if (this.cellSelection) {
+      let rowIndex = this.cellSelection.row.id;
+      let columnIndex = this.displayedColumns.findIndex((col) => col === this.cellSelection.columnName);
+
+      switch (key) {
+        case 'ArrowUp':
+          columnIndex -= 1;
+          break;
+        case 'ArrowDown':
+          columnIndex += 1;
+          break;
+        case 'ArrowLeft':
+          rowIndex -= 1;
+          break;
+        case 'ArrowRight':
+          rowIndex += 1;
+          break;
+      }
+      this.selectCell(rowIndex, columnIndex);
+    }
+    if (!this.cellSelection && this.arrowKeyNavigation) {
+      this.dispatchEventMouseEvent(this.arrowKeyNavigation.cellElement);
+    }
+  }
+
+  protected selectCell(rowIndex: number, columnIndex: number) {
+    if (this.tableElementRef) {
+      // Access the DOM element that contains the table rows
+      const tableElement = this.tableElementRef.nativeElement;
+
+      // Get the column name
+      const columnName = this.displayedColumns[columnIndex];
+
+      // Select the cells
+      const cellElements = tableElement.querySelectorAll(`.cdk-column-${columnName}`);
+
+      if (cellElements[rowIndex + 1]) {
+        const cellElement = cellElements[rowIndex + 1] as HTMLElement;
+
+        this.dispatchEventMouseEvent(cellElement);
+
+        // Save the selected cell
+        this.arrowKeyNavigation = {
+          rowIndex,
+          columnIndex,
+          cellElement,
+        };
+      } else {
+        console.error(`La cellule à l'index ${rowIndex + 1} est introuvable`);
+      }
+    }
+  }
+
+  protected dispatchEventMouseEvent(cellElement: HTMLElement) {
+    const event = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+    });
+    cellElement.dispatchEvent(event);
   }
 }
