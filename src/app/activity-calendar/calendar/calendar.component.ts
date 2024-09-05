@@ -1016,12 +1016,6 @@ export class CalendarComponent
     this.selectRow(columnName, row, event);
   }
 
-  onEnterPress(event: Event) {
-    if (this.cellSelection.colspan === 1 && this.cellSelection.rowspan === 1) {
-      this.dblClickRow(event, this.cellSelection.row);
-    }
-  }
-
   @HostListener('window:resize')
   onResize() {
     console.debug(this.logPrefix + 'Resizing calendar...');
@@ -1182,6 +1176,12 @@ export class CalendarComponent
 
     // Ctrl click
     return this.ctrlClick(event, row, this.focusColumn);
+  }
+
+  protected onEnterPress(event: Event) {
+    if (this.cellSelection.colspan === 1 && this.cellSelection.rowspan === 1) {
+      this.dblClickRow(event, this.cellSelection.row);
+    }
   }
 
   async cancelOrDelete(
