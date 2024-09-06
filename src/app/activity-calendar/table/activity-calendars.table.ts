@@ -60,7 +60,6 @@ import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
-import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -217,7 +216,6 @@ export class ActivityCalendarsTable
     this.debug = !environment.production;
     this.logPrefix = '[activity-calendar-table] ';
   }
-  @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
   @ViewChild('vesselTypeField') vesselTypeField: MatAutocompleteField;
 
   async ngOnInit() {
@@ -421,7 +419,6 @@ export class ActivityCalendarsTable
 
     this.originalFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
 
-    this.vesselSnapshotField.reloadItems();
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showProgram = false;
 

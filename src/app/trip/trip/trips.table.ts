@@ -71,7 +71,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
   @Input() canDownload = false;
   @Input() canUpload = false;
   @Input() canOpenMap = false;
-  programValueChanges$: Observable<any>;
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
@@ -133,21 +132,10 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
   }
-  @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
+  @ViewChild('programField') programField: MatAutocompleteField;
+
   ngOnInit() {
     super.ngOnInit();
-
-    this.programValueChanges$ = this.filterForm.get('program')?.valueChanges || new Observable();
-    this.programValueChanges$.subscribe((program) => {
-      const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
-      if (program && isNotNilOrNaN(programVesselTypeIdsFilter[0])) {
-        const newFilter: Partial<VesselSnapshotFilter> = { ...this.vesselSnapshotField.filter, vesselTypeIds: programVesselTypeIdsFilter };
-        this.vesselSnapshotField.filter = newFilter;
-      } else {
-        if (isNotNil(this.vesselSnapshotField.filter.vesselTypeIds)) delete this.vesselSnapshotField.filter.vesselTypeIds;
-        this.vesselSnapshotField.reloadItems();
-      }
-    });
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -168,7 +156,21 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
 
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
-      this.registerAutocompleteField('vesselSnapshot', opts);
+      this.registerAutocompleteField('vesselSnapshot', {
+        ...opts,
+        suggestFn: (value, filter) => {
+          let vesselFilter = filter;
+          if (this.programField.value) {
+            const programVesselTypeIdsFilter = this.programField.value?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
+            vesselFilter = {
+              ...vesselFilter,
+              vesselTypeId: null,
+              vesselTypeIds: programVesselTypeIdsFilter,
+            };
+          }
+          return this.vesselSnapshotService.suggest(value, vesselFilter);
+        },
+      });
     });
 
     // Combo: recorder department
