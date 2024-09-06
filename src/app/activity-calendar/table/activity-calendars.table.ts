@@ -8,6 +8,7 @@ import {
   CORE_CONFIG_OPTIONS,
   DateUtils,
   FilesUtils,
+  firstNotNilPromise,
   HammerSwipeEvent,
   isEmptyArray,
   isNil,
@@ -34,7 +35,7 @@ import {
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelIds, ProgramLabel, QualityFlagIds, VesselTypeIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
@@ -96,6 +97,7 @@ export class ActivityCalendarsTable
   protected qualityFlags: ReferentialRef[];
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
+  protected originalFilter: any;
 
   @Input() showRecorder = true;
   @Input() canDownload = false;
@@ -176,6 +178,7 @@ export class ActivityCalendarsTable
       year: [null, SharedValidators.integer],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
+      vesselType: [null, SharedValidators.entity],
       registrationLocations: [null],
       basePortLocations: [null],
       synchronizationStatus: [null],
@@ -208,6 +211,8 @@ export class ActivityCalendarsTable
     this.logPrefix = '[activity-calendar-table] ';
   }
   @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
+  @ViewChild('vesselTypeField') vesselTypeField: MatAutocompleteField;
+
   async ngOnInit() {
     super.ngOnInit();
     this.canEdit = this.accountService.isUser();
@@ -226,7 +231,20 @@ export class ActivityCalendarsTable
 
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
-      this.registerAutocompleteField('vesselSnapshot', opts);
+      this.registerAutocompleteField('vesselSnapshot', {
+        ...opts,
+        suggestFn: (value, filter) => {
+          let vesselFilter = { ...filter, vesselTypeIds: this.originalFilter };
+          if (this.vesselTypeField.value) {
+            vesselFilter = {
+              ...vesselFilter,
+              vesselTypeId: this.vesselTypeField.value?.id,
+              vesselTypeIds: null,
+            };
+          }
+          return this.vesselSnapshotService.suggest(value, vesselFilter);
+        },
+      });
     });
 
     const locationConfig: MatAutocompleteFieldConfig = {
@@ -243,6 +261,18 @@ export class ActivityCalendarsTable
       suggestFn: (value, filter) =>
         this.referentialRefService.suggest(value, { ...filter, levelIds: this.registrationLocationLevelIds || [LocationLevelIds.COUNTRY] }),
     });
+
+    // Vessel type
+    this.registerAutocompleteField('vesselType', {
+      attributes: ['name'],
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+      },
+      mobile: this.mobile,
+    });
+
     // Combo: base port locations
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('basePortLocation', {
       ...locationConfig,
@@ -375,16 +405,16 @@ export class ActivityCalendarsTable
   protected async setProgram(program: Program) {
     if (!program?.label) throw new Error('Invalid program');
     console.debug(`${this.logPrefix}Init using program`, program);
+    const config = await firstNotNilPromise(this.configService.config);
 
     // I18n suffix
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nColumnSuffix = i18nSuffix;
 
-    let programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
-    programVesselTypeIdsFilter = isNotNilOrNaN(programVesselTypeIdsFilter[0]) ? programVesselTypeIdsFilter : null;
-    this.vesselSnapshotField.filter = { ...this.vesselSnapshotField.filter, vesselTypeIds: programVesselTypeIdsFilter };
+    this.originalFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
 
+    this.vesselSnapshotField.reloadItems();
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showProgram = false;
 

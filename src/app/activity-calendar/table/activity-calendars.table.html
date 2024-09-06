@@ -256,6 +256,19 @@
             </mat-autocomplete-field>
           </ion-col>
 
+          <ion-col size="12" size-lg="6">
+            <!-- Vessel Type  -->
+            <mat-autocomplete-field
+              #vesselTypeField
+              [placeholder]="'VESSEL.LIST.FILTER.VESSEL_TYPE' | translate"
+              formControlName="vesselType"
+              [config]="autocompleteFields.vesselType"
+              [clearable]="true"
+            >
+              <ion-icon matPrefix name="bookmark"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+
           <!-- Observers criteria -->
           @if (showObservers && !mobile) {
             <ion-col size="12" size-lg="6">
