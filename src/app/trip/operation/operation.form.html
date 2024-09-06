@@ -190,7 +190,7 @@
       <ion-col>
         <ion-grid class="ion-no-padding" style="--ion-grid-columns: 10">
           <ion-row>
-            <ion-col size="10" [sizeLg]="showPosition ? 4 : 10">
+            <ion-col size="10" [sizeLg]="showPosition || showFishingArea ? 4 : 10">
               <mat-date-time-field
                 [placeholder]="'COMMON.DATE' | translate"
                 formControlName="startDateTime"
@@ -202,55 +202,61 @@
               </mat-date-time-field>
             </ion-col>
 
-            <!-- lat -->
-            <ion-col size="5" size-lg="3" *ngIf="form.controls.startPosition as position" [formGroup]="position">
-              <mat-latlong-field
-                formControlName="latitude"
-                type="latitude"
-                [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE' | translate"
-                [latLongPattern]="latLongFormat"
-                [tabindex]="tabindex + 6"
-                [required]="true"
-                [defaultSign]="defaultLatitudeSign"
-              >
-                <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
-              </mat-latlong-field>
-            </ion-col>
+            @if (showPosition && form.controls.startPosition; as position) {
+              <!-- lat -->
+              <ion-col size="5" size-lg="3" [formGroup]="position">
+                <mat-latlong-field
+                  formControlName="latitude"
+                  type="latitude"
+                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE' | translate"
+                  [latLongPattern]="latLongFormat"
+                  [tabindex]="tabindex + 6"
+                  [required]="true"
+                  [defaultSign]="defaultLatitudeSign"
+                >
+                  <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
+                </mat-latlong-field>
+              </ion-col>
 
-            <!-- long -->
-            <ion-col size="5" size-lg="3" *ngIf="form.controls.startPosition as position" [formGroup]="position">
-              <mat-latlong-field
-                formControlName="longitude"
-                type="longitude"
-                [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
-                [latLongPattern]="latLongFormat"
-                [tabindex]="tabindex + 8"
-                [required]="true"
-                [defaultSign]="defaultLongitudeSign"
-              >
-                <button
-                  type="button"
-                  mat-icon-button
-                  matSuffix
-                  (click)="onFillPositionClick($event, 'startPosition')"
-                  tabindex="-1"
-                  *ngIf="enableGeolocation"
+              <!-- long -->
+              <ion-col size="5" size-lg="3" [formGroup]="position">
+                <mat-latlong-field
+                  formControlName="longitude"
+                  type="longitude"
+                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
+                  [latLongPattern]="latLongFormat"
+                  [tabindex]="tabindex + 8"
+                  [required]="true"
+                  [defaultSign]="defaultLongitudeSign"
                 >
-                  <mat-icon>gps_fixed</mat-icon>
-                </button>
-                <button
-                  type="button"
-                  mat-icon-button
-                  matSuffix
-                  *ngIf="enableCopyPosition"
-                  [class.cdk-visually-hidden]="position.invalid || (!fishingStartDateTimeEnable && isParentOperation)"
-                  (click)="copyPosition($event, 'startPosition')"
-                  [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
-                >
-                  <mat-icon>arrow_downward</mat-icon>
-                </button>
-              </mat-latlong-field>
-            </ion-col>
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matSuffix
+                    (click)="onFillPositionClick($event, 'startPosition')"
+                    tabindex="-1"
+                    *ngIf="enableGeolocation"
+                  >
+                    <mat-icon>gps_fixed</mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matSuffix
+                    *ngIf="enableCopyPosition"
+                    [class.cdk-visually-hidden]="position.invalid || (!fishingStartDateTimeEnable && isParentOperation)"
+                    (click)="copyPosition($event, 'startPosition')"
+                    [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
+                  >
+                    <mat-icon>arrow_downward</mat-icon>
+                  </button>
+                </mat-latlong-field>
+              </ion-col>
+            } @else if (showFishingArea) {
+              @if (fishingAreasForm; as formArray) {
+                <ion-col>FISHING AREA #0 {{ 'TODO' }}</ion-col>
+              }
+            }
           </ion-row>
         </ion-grid>
       </ion-col>
@@ -542,7 +548,7 @@
             [tabindex]="tabindex + 30 + i * 3 + 2"
             [disabled]="disabled"
             [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="fishingAreasForm.removeAt(i)"
+            (click)="removeFishingAreaAt(i)"
           >
             <mat-icon>close</mat-icon>
           </button>
@@ -561,21 +567,19 @@
     <!-- Comments -->
     <ion-row *ngIf="showComment">
       <ion-col size="12">
-        <mat-form-field appearance="outline">
-          <mat-label translate>COMMON.COMMENTS</mat-label>
-          <textarea
-            matInput
-            #comments
-            formControlName="comments"
-            matTextareaAutosize="true"
-            matAutosizeMinRows="4"
-            maxlength="2000"
-            [tabindex]="tabindex + 100"
-            [required]="requiredComment"
-          ></textarea>
-          <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
+        <app-text-form
+          formControlName="comments"
+          [multiline]="true"
+          [maxLength]="2000"
+          appearance="outline"
+          [autoSize]="true"
+          [autoSizeMinRows]="4"
+          [placeholder]="'COMMON.COMMENTS' | translate"
+          [required]="requiredComment"
+          [tabindex]="tabindex + 100"
+        >
           <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
+        </app-text-form>
       </ion-col>
     </ion-row>
   </ion-grid>
