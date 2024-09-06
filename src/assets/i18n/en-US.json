@@ -2412,6 +2412,7 @@
       "LANDING_TOP_PMFM_IDS": "Occasion > Landings: Top PMFM(s)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Fishing area: Location level(s)",
       "PROGRAM_PRIVILEGE_READONLY": "Programme > Access rights: read only?",
+      "SALE_METIER_ENABLE": "Occasion > Sale: Metier ?",
       "STRATEGY_EDITOR": "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Default",

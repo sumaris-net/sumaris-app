@@ -2612,6 +2612,7 @@
       "PROGRAM_PRIVILEGE_READONLY": "Programme > Droits d'accès : Lecture seule ?",
       "SALE_LOCATION_LEVEL_IDS": "Sortie > Vente : Niveau(x) de lieu",
       "SALE_BATCH_ENABLE": "Sortie > Vente : Activer les lots ?",
+      "SALE_METIER_ENABLE": "Sortie > Vente : Métier ?",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",

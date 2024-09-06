@@ -1025,6 +1025,13 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
   },
 
+  SALE_METIER_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.sale.metier.enable',
+    label: 'PROGRAM.OPTIONS.SALE_METIER_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
+
   SALE_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.sale.location.level.ids',
     label: 'PROGRAM.OPTIONS.SALE_LOCATION_LEVEL_IDS',

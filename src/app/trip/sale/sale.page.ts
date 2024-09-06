@@ -110,6 +110,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected showBatchTablesByProgram = false;
   protected showBatchTables = true;
   protected defaultTaxonGroup: TaxonGroupRef;
+  protected showMetiers = true;
+  protected allowManyMetiers = true;
   @RxStateProperty() protected parent: Trip | Landing;
   @RxStateProperty() protected strategyLabel: string;
 
@@ -398,7 +400,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
         data.startDateTime = data.startDateTime || this.parent.dateTime;
         data.landing = this.showParent ? this.parent : undefined;
         data.landingId = this.showParent ? null : this.parent.id;
-        data.tripId = undefined;
       }
 
       this.showEntityMetadata = EntityUtils.isRemote(data);
@@ -534,6 +535,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.SALE_BATCH_ENABLE);
 
+    this.showMetiers = program.getPropertyAsBoolean(ProgramProperties.SALE_METIER_ENABLE);
+
     if (this.strategyCard) {
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
     }
@@ -578,10 +581,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected async loadParent(data: Sale): Promise<Landing | Trip> {
     let parent: Landing | Trip;
 
-    if (isNotNilOrNaN(data.tripId)) {
-      console.debug(`[sale-page] Loading parent trip #${data.tripId} ...`);
-      parent = await this.tripService.load(data.tripId, { fetchPolicy: 'cache-first' });
-    } else if (isNotNilOrNaN(data.landingId)) {
+    if (isNotNilOrNaN(data.landingId)) {
       console.debug(`[sale-page] Loading parent landing #${data.landingId} ...`);
       const landing = await this.landingService.load(data.landingId, { fetchPolicy: 'cache-first' });
       parent = landing;
@@ -593,6 +593,10 @@ export class SalePage<ST extends SalePageState = SalePageState>
         console.log('TODO landingTaxonGroup=', landingTaxonGroup);
         this.defaultTaxonGroup = landingTaxonGroup;
       }
+      parent = await this.landingService.load(data.landingId, { fetchPolicy: 'cache-first' });
+    } else if (isNotNilOrNaN(data.tripId)) {
+      console.debug(`[sale-page] Loading parent trip #${data.tripId} ...`);
+      parent = await this.tripService.load(data.tripId, { fetchPolicy: 'cache-first' });
     }
 
     return parent;
