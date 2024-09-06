@@ -210,6 +210,7 @@ export class ActivityCalendarsTable
     this.logPrefix = '[activity-calendar-table] ';
   }
   @ViewChild('vesselTypeField') vesselTypeField: MatAutocompleteField;
+  @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
 
   async ngOnInit() {
     super.ngOnInit();
@@ -233,16 +234,20 @@ export class ActivityCalendarsTable
         ...opts,
         suggestFn: (value, filter) => {
           let vesselFilter = { ...filter, vesselTypeIds: this.originalFilter };
-          if (this.vesselTypeField.value) {
+          const idsAllowed = [vesselFilter.vesselTypeId, ...vesselFilter.vesselTypeIds];
+          const canUpdateFilter = this.vesselTypeField.value && idsAllowed.includes(this.vesselTypeField.value.id);
+
+          if (canUpdateFilter) {
             vesselFilter = {
               ...vesselFilter,
               vesselTypeId: this.vesselTypeField.value?.id,
               vesselTypeIds: null,
             };
           }
-          return this.vesselSnapshotService.suggest(value, vesselFilter);
+          return !canUpdateFilter && this.vesselTypeField.value ? null : this.vesselSnapshotService.suggest(value, vesselFilter);
         },
       });
+      this.vesselSnapshotField.reloadItems();
     });
 
     const locationConfig: MatAutocompleteFieldConfig = {
@@ -410,7 +415,10 @@ export class ActivityCalendarsTable
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nColumnSuffix = i18nSuffix;
 
-    this.originalFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
+    this.originalFilter = [
+      ...program.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS),
+      config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID),
+    ];
 
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showProgram = false;
