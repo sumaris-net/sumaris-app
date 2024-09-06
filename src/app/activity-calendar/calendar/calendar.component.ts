@@ -1007,23 +1007,7 @@ export class CalendarComponent
     const cellElement = this.getEventCellElement(event);
     if (!cellElement) return false;
 
-    this.cellSelection = {
-      divElement: this.cellSelectionDivRef.nativeElement,
-      cellElement,
-      row,
-      columnName,
-      colspan: 1,
-      rowspan: 1,
-      resizing: false,
-    };
-
-    // Resize the new cell selection
-    this.resizeCellSelection(this.cellSelection, 'cell');
-
-    // Emit start cell selection event
-    this.startCellSelection.next();
-
-    return true;
+    this.selectRow(columnName, row, event);
   }
 
   @HostListener('window:resize')
@@ -2149,7 +2133,8 @@ export class CalendarComponent
       event.preventDefault();
       return; // Skip
     }
-
+    // select current row
+    this.selectRow(columnName, row, event);
     event.preventDefault();
 
     // Stop resizing
@@ -2157,20 +2142,31 @@ export class CalendarComponent
       this.cellSelection.resizing = false;
     }
 
-    // Select current cell
-    if (this.cellSelection?.row !== row || this.cellSelection?.columnName !== columnName) {
-      if (!this.isCellSelected(this.cellSelection, row, columnName)) {
-        this.removeCellSelection();
-        await this.onMouseDown(event, cell, row, columnName);
-        await this.onMouseUp(event);
-      }
-    }
-
     this.menuTrigger.openMenu();
     const contextMenu = document.querySelector('.context-menu') as HTMLElement;
     contextMenu.style.position = 'fixed';
     contextMenu.style.left = `${event.clientX}px`;
     contextMenu.style.top = `${event.clientY}px`;
+  }
+
+  selectRow(columnName?: string, row?: AsyncTableElement<ActivityMonth>, event?: Event) {
+    columnName = columnName || this.focusColumn;
+    const cellElement = this.getEventCellElement(event);
+    this.cellSelection = {
+      divElement: this.cellSelectionDivRef.nativeElement,
+      cellElement,
+      row,
+      columnName,
+      colspan: 1,
+      rowspan: 1,
+      resizing: false,
+    };
+
+    // Resize the new cell selection
+    this.resizeCellSelection(this.cellSelection, 'cell');
+
+    // Emit start cell selection event
+    this.startCellSelection.next();
   }
 
   protected closeContextMenu() {
