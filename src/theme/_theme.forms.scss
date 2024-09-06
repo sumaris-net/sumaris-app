@@ -1,5 +1,15 @@
 .form-container,
 form.form-container {
+  mat-autocomplete-field,
+  app-form-field,
+  .mat-mdc-form-field {
+    .mat-mdc-form-field-hint-wrapper,
+    .mat-mdc-form-field-error-wrapper {
+      padding: 0 5px;
+      word-break: break-all;
+    }
+  }
+
   .mat-mdc-form-field {
     width: 100%;
     --mat-form-field-filled-with-label-container-padding-top: 16px;
