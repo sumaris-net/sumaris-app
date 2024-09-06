@@ -7,6 +7,7 @@ import {
   EntityUtils,
   FilterFn,
   FormFieldDefinition,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   ObjectMap,
@@ -85,6 +86,8 @@ export class Program extends BaseReferential<Program> {
     target.privileges = this.privileges;
 
     target.strategies = this.strategies && this.strategies.map((s) => s.asObject(opts));
+
+    if (isNil(target.validityStatusId)) delete target.validityStatusId;
 
     return target;
   }
