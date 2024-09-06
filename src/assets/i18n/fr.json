@@ -619,7 +619,7 @@
       }
     },
     "ERROR": {
-      "PEER_NOT_REACHABLE": "nœud injoignable"
+      "PEER_NOT_REACHABLE": "Nœud injoignable"
     }
   },
   "USER": {
