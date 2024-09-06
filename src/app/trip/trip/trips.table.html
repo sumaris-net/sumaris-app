@@ -145,6 +145,7 @@
           <ion-col>
             <!-- Program -->
             <mat-autocomplete-field
+              #programField
               [placeholder]="'TRIP.TABLE.FILTER.PROGRAM' | translate"
               formControlName="program"
               [config]="autocompleteFields.program"
@@ -159,7 +160,6 @@
           <ion-col size="12" size-lg="6">
             <!-- Vessel -->
             <mat-autocomplete-field
-              #vesselSnapshotField
               *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
               [placeholder]="'TRIP.TABLE.FILTER.VESSEL' | translate"
               formControlName="vesselSnapshot"
