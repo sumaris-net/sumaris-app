@@ -1570,10 +1570,16 @@ type Query {
     ): VesselVO
     "Get vessel features history"
     vesselFeaturesHistory(filter: VesselFeaturesFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselFeaturesVO]
+    "Get total vessel features history count"
+    vesselFeaturesHistoryCount(filter: VesselFeaturesFilterVOInput, vesselId: Int): Long
     "Get vessel owner history"
     vesselOwnerHistory(filter: VesselOwnerFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselOwnerPeriodVO]
+    "Get total vessel owner history count"
+    vesselOwnerHistoryCount(filter: VesselOwnerFilterVOInput, vesselId: Int): Long
     "Get vessel registration history"
     vesselRegistrationHistory(filter: VesselRegistrationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselRegistrationPeriodVO]
+    "Get total vessel registration history count"
+    vesselRegistrationHistoryCount(filter: VesselRegistrationFilterVOInput, vesselId: Int): Long
     "Search in vessel snapshots"
     vesselSnapshots(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "exteriorMarking", sortDirection: String = "asc"): [VesselSnapshotVO]
     "Get total vessel snapshots count"

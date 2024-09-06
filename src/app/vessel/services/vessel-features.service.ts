@@ -67,6 +67,19 @@ export const VesselFeatureQueries = {
     ${ReferentialFragments.lightPerson}
     ${ReferentialFragments.lightReferential}
   `,
+  loadAllWithTotal: gql`
+    query VesselFeaturesHistory($filter: VesselFeaturesFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+      data: vesselFeaturesHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        ...VesselFeaturesFragment
+      }
+      total: vesselFeaturesHistoryCount(filter: $filter)
+    }
+    ${VesselFeaturesFragments.vesselFeatures}
+    ${ReferentialFragments.location}
+    ${ReferentialFragments.lightDepartment}
+    ${ReferentialFragments.lightPerson}
+    ${ReferentialFragments.lightReferential}
+  `,
 };
 
 @Injectable({ providedIn: 'root' })
