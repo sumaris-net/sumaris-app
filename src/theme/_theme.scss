@@ -1,22 +1,22 @@
 // --------------------------------------------------
 // Import SUMARiS themes variables
 // --------------------------------------------------
-@import "theme.globals";
+@import 'theme.globals';
 // --------------------------------------------------
 // Import ngx-components theme
 // --------------------------------------------------
-@import "@sumaris-net/ngx-components/src/theme/theme";
+@import '@sumaris-net/ngx-components/src/theme/theme';
 // --------------------------------------------------
 // Import print style
 // --------------------------------------------------
-@import "print";
+@import 'print';
 
 // --------------------------------------------------
 // SUMARiS theme
 // --------------------------------------------------
-@import "theme.tabs";
-@import "theme.table";
-@import "theme.forms";
+@import 'theme.tabs';
+@import 'theme.table';
+@import 'theme.forms';
 
 // --------------------------------------------------
 // Override material style
@@ -45,7 +45,9 @@ ion-content.ion-flex-direction-column::part(scroll) {
 
   // Reduce filter form field subscript size
   .form-container {
+    --app-form-color: var(--ion-color-secondary-color-contrast);
     --app-form-field-background-color: tranparent;
+    --app-form-field-focus-background-color: tranparent;
     --mat-form-field-subscript-text-line-height: 16px;
     .mat-mdc-form-field-bottom-align::before {
       height: 16px;
@@ -61,12 +63,11 @@ ion-content.ion-flex-direction-column::part(scroll) {
   }
 }
 
-
-.mat-toolbar, .mat-toolbar-single-row {
+.mat-toolbar,
+.mat-toolbar-single-row {
   background-color: #{$mat-toolbar-background-color};
   height: var(--mat-toolbar-height);
 }
-
 
 // Smaller title on xxs device
 @media screen and (max-width: $screen-xxs-max) {
@@ -77,13 +78,12 @@ ion-content.ion-flex-direction-column::part(scroll) {
 }
 
 // Smaller title on xs device
-@media screen and (min-width: $screen-xs) and (max-width: $screen-xs-max)  {
+@media screen and (min-width: $screen-xs) and (max-width: $screen-xs-max) {
   ion-toolbar ion-title {
     font-size: 18px;
     padding-inline: 6px;
   }
 }
-
 
 ion-toast {
   &.secondary {
@@ -107,7 +107,6 @@ app-form-buttons-bar {
   }
 }
 
-
 /* -- FAB buttons -- */
 ion-fab {
   ion-fab-button[title] {
@@ -124,7 +123,10 @@ ion-fab {
     padding: 9px;
     border-radius: 15px;
     color: white;
-    box-shadow: 0 3px 5px -1px rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.14), 0 1px 18px 0 rgba(0,0,0,0.12);
+    box-shadow:
+      0 3px 5px -1px rgba(0, 0, 0, 0.2),
+      0 6px 10px 0 rgba(0, 0, 0, 0.14),
+      0 1px 18px 0 rgba(0, 0, 0, 0.12);
   }
 
   ion-fab-button {
@@ -136,7 +138,6 @@ ion-fab {
     }
   }
 }
-
 
 .popover-notifications {
   ion-avatar img,
@@ -181,10 +182,8 @@ ion-fab {
   }
 }
 
-
-
 .mat-drawer-backdrop.mat-drawer-shown {
-  background-color: rgba(0,0,0,0.2);
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 /* -- toolbar > segment as title (see observedLocations or landings page) -- */

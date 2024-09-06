@@ -572,13 +572,14 @@
   "SETTINGS": {
     "TITLE": "Paramètres",
     "DESCRIPTION": "Voici les paramètres de l'application :",
+    "DISPLAY_DIVIDER": "Paramètres d'affichage",
     "INHERIT_FROM_ACCOUNT": "Utiliser les préférences de l'utilisateur connecté",
     "LOCALE": "Langue",
     "LAT_LONG_FORMAT": "Format latitude/longitude",
     "NETWORK_DIVIDER": "Paramètres réseau",
     "PEER_URL": "Adresse du nœud réseau",
     "BTN_CHANGE_PEER": "Voir les nœuds disponibles",
-    "BTN_DARK_MODE": "Mode sombre/clair",
+    "BTN_DARK_MODE": "Mode sombre ? (expérimental)",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
     "BTN_CLEAR_CACHE": "Vider le cache",
     "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
@@ -618,7 +619,7 @@
       }
     },
     "ERROR": {
-      "PEER_NOT_REACHABLE": "nœud injoignable"
+      "PEER_NOT_REACHABLE": "Nœud injoignable"
     }
   },
   "USER": {
@@ -3552,9 +3553,9 @@
     "ALERT_HEADER": "Erreur",
     "FIELD_REQUIRED": "Champ obligatoire",
     "FIELD_TOO_SHORT": "Valeur trop courte",
-    "FIELD_MIN_LENGTH": "Valeur trop courte {{minLength && (' (' + minLength + ' caract. min)') }}",
+    "FIELD_MIN_LENGTH": "Valeur trop courte ({{requiredLength}} caractères min)",
     "FIELD_MIN_LENGTH_COMPACT": "Valeur trop courte",
-    "FIELD_MAX_LENGTH": "Valeur trop longue {{maxLength && (' (' + maxLength + ' caract. max)') }}",
+    "FIELD_MAX_LENGTH": "Valeur trop longue ({{requiredLength}} caractères max)",
     "FIELD_MAX_LENGTH_COMPACT": "Valeur trop longue",
     "FIELD_MIN": "Valeur minimale : {{min}}",
     "FIELD_MIN_COMPACT": "Min {{min}}",

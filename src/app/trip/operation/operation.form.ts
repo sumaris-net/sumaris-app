@@ -853,6 +853,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     }
   }
 
+  removeFishingAreaAt(index: number) {
+    const done = this.fishingAreasForm.removeAt(index);
+    if (done) this.markAsDirty();
+  }
+
   async toggleMetierFilter(event: Event, field?: MatAutocompleteField) {
     if (event) event.preventDefault();
 
