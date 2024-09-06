@@ -225,7 +225,7 @@
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            {{ row | activityMonthRowError: errorTranslatorOptions }}
+            {{ row | activityMonthRowError: errorTranslateOptions }}
           </span>
         </mat-header-cell>
       </ng-container>
@@ -379,7 +379,7 @@
                       withDetails: showPmfmDetails,
                       withUnit: false,
                       i18nPrefix: i18nPmfmPrefix,
-                      i18nContext: i18nColumnSuffix
+                      i18nSuffix: i18nColumnSuffix
                     }
             "
           ></ion-label>

@@ -41,7 +41,7 @@
           formControlName="parent"
           [autofocus]="enabled && focusFieldName === 'parent'"
           [placeholder]="
-            (displayParentPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }) ||
+            (displayParentPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }) ||
             ('TRIP.SUB_SAMPLE.EDIT.PARENT' | translateContext: i18nFullSuffix)
           "
           [config]="autocompleteFields.parent"
@@ -66,7 +66,7 @@
           <app-pmfm-field
             #matInput
             [pmfm]="pmfm"
-            [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
+            [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
             [style]="vars.style"
             [readonly]="vars.computed"
             [floatLabel]="vars.computed && 'always'"

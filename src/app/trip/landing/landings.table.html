@@ -234,7 +234,7 @@
             }
           </ion-label>
           <span #errorSpan hidden>
-            {{ row.currentData.qualificationComments || (row.validator.invalid && (row.validator | formError: errorTranslatorOptions)) || '' }}
+            {{ row.currentData.qualificationComments || (row.validator.invalid && (row.validator | formError: errorTranslateOptions)) || '' }}
           </span>
         </td>
       </ng-container>
@@ -353,7 +353,7 @@
         [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
       >
         <ion-label>
-          {{ pmfm | pmfmName: { html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix } }}
+          {{ pmfm | pmfmName: { html: true, i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nColumnSuffix } }}
         </ion-label>
       </th>
       <td

@@ -548,7 +548,7 @@
       <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
         <th mat-header-cell *matHeaderCellDef class="mat-column-pmfm" [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
           <ion-label>
-            {{ pmfm | pmfmName: { html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix } }}
+            {{ pmfm | pmfmName: { html: true, i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nColumnSuffix } }}
           </ion-label>
         </th>
         <td

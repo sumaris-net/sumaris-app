@@ -224,7 +224,7 @@
                 @for (monthPmfm of stats.pmfm.activityMonth; track monthPmfm.id) {
                   <tr>
                     <th class="col-label">
-                      {{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: false } }}
+                      {{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix, withUnit: false } }}
                     </th>
                     @for (month of stats.activityMonth; track month.id) {
                       <td

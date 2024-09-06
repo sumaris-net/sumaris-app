@@ -340,7 +340,7 @@
                     <div class="text-vertical">
                       {{
                         stats.pmfmsByIds.operation[stats.pmfmIdsMap.HAS_INDIVIDUAL_MEASURES]
-                          | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix }
+                          | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix }
                       }}
                     </div>
                   </th>
@@ -385,7 +385,7 @@
                   }
                   @for (pmfm of stats.pmfms.operation | arrayFilter: filterPmfmForOperationTable; track pmfm) {
                     <th class="col-tiny font-small text-vertical">
-                      <div>{{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix } }}</div>
+                      <div>{{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix } }}</div>
                     </th>
                   }
                 </tr>
@@ -582,7 +582,7 @@
                   <ion-row class="form-field">
                     @for (pmfm of pmfms; track pmfm.id) {
                       <ion-col class="form-label" size="3">
-                        {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: true, html: false } }}
+                        {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix, withUnit: true, html: false } }}
                       </ion-col>
                       <ion-col
                         class="form-value"
@@ -691,7 +691,7 @@
                     }
                     @for (pmfm of stats.pmfms.samples; track pmfm.id) {
                       <th class="col-compact ion-text-center font-medium">
-                        <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nContext: i18nContext.suffix }"></div>
+                        <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nSuffix: i18nContext.suffix }"></div>
                       </th>
                     }
                     <th class="col-extra-large font-medium">

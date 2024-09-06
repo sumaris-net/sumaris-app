@@ -139,7 +139,7 @@
     <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
         <ion-label
-          [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix }"
+          [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nColumnSuffix }"
         ></ion-label>
       </th>
       <td

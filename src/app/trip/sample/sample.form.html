@@ -98,7 +98,7 @@
           <app-pmfm-field
             #matInput
             [pmfm]="pmfm"
-            [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
+            [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
             [style]="vars.style"
             [readonly]="vars.computed"
             [floatLabel]="vars.computed && 'always'"

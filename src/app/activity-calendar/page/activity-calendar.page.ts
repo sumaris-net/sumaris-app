@@ -35,7 +35,6 @@ import {
   StatusIds,
   toBoolean,
   toNumber,
-  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from '@app/trip/observedlocation/vessels/select-vessel-for-data.modal';
@@ -198,7 +197,6 @@ export class ActivityCalendarPage
     protected accountService: AccountService,
     protected vesselService: VesselService,
     protected vesselSnapshotService: VesselSnapshotService,
-    protected translateContext: TranslateContextService,
     protected context: ActivityCalendarContextService,
     protected hotkeys: Hotkeys
   ) {
@@ -536,7 +534,10 @@ export class ActivityCalendarPage
   }
 
   translateFormPath(controlPath: string): string {
-    return this.dataService.translateFormPath(controlPath, { i18nPrefix: this.i18nContext.prefix });
+    return this.dataService.translateFormPath(controlPath, {
+      i18nPrefix: this.i18nContext.prefix,
+      pmfms: this.pmfms,
+    });
   }
 
   protected async showRemoteConflict(remoteCalendar: ActivityCalendar) {

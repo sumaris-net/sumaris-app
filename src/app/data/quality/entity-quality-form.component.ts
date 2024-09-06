@@ -20,7 +20,6 @@ import {
   EntityUtils,
   fadeInAnimation,
   FormErrors,
-  IEntityService,
   isNil,
   isNotNil,
   LocalSettingsService,
@@ -52,6 +51,7 @@ import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { IDataEntityService } from '@app/data/services/data-service.class';
 
 @Component({
   selector: 'app-entity-quality-form',
@@ -62,7 +62,7 @@ import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 })
 export class EntityQualityFormComponent<
     T extends RootDataEntity<T, ID> = RootDataEntity<any, any>,
-    S extends IEntityService<T, ID> = IEntityService<any>,
+    S extends IDataEntityService<T, ID> = IDataEntityService<any>,
     ID = number,
   >
   implements OnInit, OnDestroy

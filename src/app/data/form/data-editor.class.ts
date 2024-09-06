@@ -6,14 +6,12 @@ import {
   AppEditorOptions,
   AppEntityEditor,
   AppErrorWithDetails,
-  BaseEntityService,
-  changeCaseToUnderscore,
   ConfigService,
   Configuration,
   DateUtils,
   fromDateISOString,
   HistoryPageReference,
-  IEntityService,
+  IFormPathTranslator,
   isEmptyArray,
   isNil,
   isNilOrBlank,
@@ -27,6 +25,7 @@ import {
   PersonService,
   ReferentialUtils,
   toBoolean,
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
@@ -45,6 +44,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { environment } from '@environments/environment';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import { ContextService } from '@app/shared/context.service';
+import { BaseDataService, IDataEntityService, IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
 
 export abstract class AppDataEditorOptions extends AppEditorOptions {
   acquisitionLevel?: AcquisitionLevelType;
@@ -70,12 +70,12 @@ export interface AppDataEditorState {
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AppDataEntityEditor<
     T extends DataEntity<T, ID>,
-    S extends IEntityService<T, ID, any> = BaseEntityService<T, any, any>,
+    S extends IDataEntityService<T, ID, any> = BaseDataService<T, any, any>,
     ID = number,
     ST extends AppDataEditorState = AppDataEditorState,
   >
   extends AppEntityEditor<T, S, ID>
-  implements OnInit, OnDestroy
+  implements OnInit, OnDestroy, IFormPathTranslator
 {
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState);
 
@@ -86,6 +86,7 @@ export abstract class AppDataEntityEditor<
   protected readonly configService = inject(ConfigService);
   protected readonly messageService = inject(MessageService);
   protected readonly personService = inject(PersonService);
+  protected readonly translateContext = inject(TranslateContextService);
   protected readonly context = inject(ContextService);
   protected readonly mobile: boolean;
   protected readonly settingsId: string;
@@ -260,6 +261,15 @@ export abstract class AppDataEntityEditor<
     return true;
   }
 
+  translateFormPath(path: string, opts?: IDataFormPathTranslatorOptions): string {
+    return this.dataService.translateFormPath(path, {
+      i18nPrefix: this.i18nContext.prefix,
+      i18nSuffix: this.i18nContext.suffix,
+      pmfms: this.pmfms,
+      ...opts,
+    });
+  }
+
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
     switch (this.strategyResolution) {
       // Most recent
@@ -346,7 +356,10 @@ export abstract class AppDataEntityEditor<
         if (formErrors) {
           const i18FormError = this.errorTranslator.translateErrors(formErrors, {
             separator: ', ',
-            pathTranslator: this,
+            pathTranslator: this.dataService,
+            i18nPrefix: this.i18nContext.prefix,
+            i18nSuffix: this.i18nContext.suffix,
+            pmfms: this.pmfms,
           });
           if (isNotNilOrBlank(i18FormError)) {
             error.details.message = i18FormError;
@@ -370,11 +383,6 @@ export abstract class AppDataEntityEditor<
   }
 
   /* -- protected methods -- */
-
-  translateFormPath(controlPath: string): string {
-    const i18nKey = (this.i18nContext.prefix || '') + changeCaseToUnderscore(controlPath).toUpperCase();
-    return this.translate.instant(i18nKey);
-  }
 
   protected startListenProgramRemoteChanges(program: Program) {
     if (!program || isNil(program.id)) return; // Skip if program is missing

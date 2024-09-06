@@ -90,7 +90,7 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row" [title]="row.validator | formError: errorTranslatorOptions">
+      <td mat-cell *matCellDef="let row" [title]="row.validator | formError: errorTranslateOptions">
         <ion-text
           matBadge="!"
           [matBadgeHidden]="!row.editing || !row.validator.invalid"
@@ -107,7 +107,7 @@
     <ng-container matColumnDef="parent">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label *ngIf="displayParentPmfm; else defaultParentLabel">
-          {{ displayParentPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix } }}
+          {{ displayParentPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nColumnSuffix } }}
         </ion-label>
         <ng-template #defaultParentLabel>
           <ion-label>{{ 'TRIP.SAMPLE.TABLE.PARENT' | translateContext: i18nColumnSuffix }}</ion-label>
@@ -136,7 +136,7 @@
     <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as index" [matColumnDef]="pmfm | pmfmIdString">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
         <ion-label
-          [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix }"
+          [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nColumnSuffix }"
         ></ion-label>
       </th>
       <td
@@ -256,7 +256,7 @@
       <ng-container matColumnDef="parent">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
           <ion-label *ngIf="displayParentPmfm; else defaultAPrentLabel">
-            {{ displayParentPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix } }}
+            {{ displayParentPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nColumnSuffix } }}
           </ion-label>
           <ng-template #defaultAPrentLabel>
             <ion-label>{{ 'TRIP.SAMPLE.TABLE.PARENT' | translateContext: i18nColumnSuffix }}</ion-label>
@@ -284,7 +284,7 @@
                       html: true,
                       withDetails: showPmfmDetails,
                       i18nPrefix: i18nPmfmPrefix,
-                      i18nContext: i18nColumnSuffix
+                      i18nSuffix: i18nColumnSuffix
                     }
             "
           ></ion-label>

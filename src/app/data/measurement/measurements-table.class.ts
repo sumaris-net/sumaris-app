@@ -22,7 +22,7 @@ import {
   toNumber,
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
-import { IEntityWithMeasurement, MeasurementValuesUtils } from './measurement.model';
+import { IEntityWithMeasurement, MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils } from './measurement.model';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -402,8 +402,8 @@ export abstract class BaseMeasurementsTable<
   }
 
   translateFormPath(path: string): string {
-    if (path.startsWith('measurementValues.')) {
-      const pmfmId = parseInt(path.split('.')[1]);
+    if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path)) {
+      const pmfmId = parseInt(path.split('.').pop());
       const pmfm = (this.pmfms || []).find((p) => p.id === pmfmId);
       if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }

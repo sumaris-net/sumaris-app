@@ -19,8 +19,8 @@ import {
   EntityUtils,
   firstNotNilPromise,
   FormErrors,
+  FormErrorTranslateOptions,
   FormErrorTranslator,
-  FormErrorTranslatorOptions,
   GraphqlService,
   IEntitiesService,
   IEntityService,
@@ -352,7 +352,7 @@ export declare interface OperationControlOptions extends OperationValidatorOptio
   initialPmfms?: DenormalizedPmfmStrategy[];
 
   // Translator options
-  translatorOptions?: FormErrorTranslatorOptions;
+  translatorOptions?: FormErrorTranslateOptions;
 }
 
 export declare interface OperationServiceWatchOptions extends OperationFromObjectOptions, EntitiesServiceWatchOptions {
@@ -1984,9 +1984,10 @@ export class OperationService
     // Prepare error translator
     if (!opts.translatorOptions) {
       opts.translatorOptions = {
-        pathTranslator: {
-          translateFormPath: (path) => this.translateFormPath(path, { pmfms: opts.initialPmfms }),
-        },
+        i18nSuffix: opts?.program?.getProperty(ProgramProperties.I18N_SUFFIX),
+        i18nPmfmPrefix: 'TRIP.OPERATION.PMFM.',
+        pmfms: opts.initialPmfms,
+        pathTranslator: this,
       };
     }
 

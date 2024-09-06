@@ -23,7 +23,6 @@ import {
   ReferentialUtils,
   StatusIds,
   toBoolean,
-  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
@@ -129,7 +128,6 @@ export class ObservedLocationPage
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected vesselService: VesselService,
-    protected translateContext: TranslateContextService,
     protected observedLocationContext: ObservedLocationContextService
   ) {
     super(injector, ObservedLocation, injector.get(ObservedLocationService), {

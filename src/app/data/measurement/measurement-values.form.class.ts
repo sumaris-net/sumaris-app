@@ -3,10 +3,19 @@ import { combineLatestWith, merge, mergeMap, Observable } from 'rxjs';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from './measurement.validator';
 import { distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { IEntityWithMeasurement, MeasurementValuesUtils } from './measurement.model';
-import { AppFloatLabelType, AppForm, changeCaseToUnderscore, firstTrue, isNil, isNotNil, toNumber } from '@sumaris-net/ngx-components';
+import { IEntityWithMeasurement, MEASUREMENT_PMFM_ID_REGEXP, MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils } from './measurement.model';
+import {
+  AppFloatLabelType,
+  AppForm,
+  changeCaseToUnderscore,
+  firstTrue,
+  isNil,
+  isNotNil,
+  toNumber,
+  TranslateContextService,
+} from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
@@ -34,6 +43,7 @@ export abstract class MeasurementValuesForm<
 {
   @RxStateRegister() protected readonly _state: RxState<S> = inject(RxState, { self: true });
   protected readonly _pmfmNamePipe = inject(PmfmNamePipe);
+  protected readonly translateContext = inject(TranslateContextService);
   protected _logPrefix: string;
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected data: T;
@@ -272,21 +282,19 @@ export abstract class MeasurementValuesForm<
     this._state.set('initialPmfms', () => undefined);
   }
 
-  translateFormPath(path: string, pmfms?: IPmfm[]): string {
-    if (path.includes('measurementValues.')) {
-      const parts = path.split('.');
-      const controlName = parts[parts.length - 1];
-      if (PMFM_ID_REGEXP.test(controlName)) {
-        const pmfmId = parseInt(controlName);
-        const pmfm = (pmfms || this.initialPmfms)?.find((p) => p.id === pmfmId);
-        if (pmfm) {
-          return this._pmfmNamePipe.transform(pmfm, { i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nSuffix });
-        }
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; i18nSuffix?: string; pmfms?: IPmfm[] }): string {
+    opts = { i18nPrefix: this.i18nFieldPrefix, i18nSuffix: this.i18nSuffix, ...opts };
+    opts.pmfms = opts?.pmfms || this.initialPmfms;
+    if (opts.pmfms && (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) || MEASUREMENT_PMFM_ID_REGEXP.test(path))) {
+      const pmfmId = parseInt(path.split('.').pop());
+      const pmfm = opts.pmfms.find((p) => p.id === pmfmId);
+      if (pmfm) {
+        return this._pmfmNamePipe.transform(pmfm, { i18nPrefix: this.i18nPmfmPrefix, i18nSuffix: opts.i18nSuffix });
       }
     }
     const fieldName = path.substring(path.lastIndexOf('.') + 1);
-    const i18nKey = (this.i18nFieldPrefix || '') + changeCaseToUnderscore(fieldName).toUpperCase();
-    return this.translate?.instant(i18nKey);
+    const i18nKey = (opts?.i18nPrefix || '') + changeCaseToUnderscore(fieldName).toUpperCase();
+    return this.translateContext.instant(i18nKey, opts.i18nSuffix);
   }
 
   /* -- protected methods -- */

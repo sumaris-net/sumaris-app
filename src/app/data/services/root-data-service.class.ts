@@ -1,12 +1,10 @@
 import { DataEntityAsObjectOptions } from './model/data-entity.model';
-import { Directive, Injector } from '@angular/core';
+import { Directive, inject, Injector } from '@angular/core';
 import {
-  AccountService,
   AppErrorWithDetails,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions,
-  BaseEntityService,
   BaseEntityServiceOptions,
   Department,
   EntitiesServiceWatchOptions,
@@ -14,13 +12,11 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrors,
-  GraphqlService,
   isNil,
   isNotNil,
   Person,
-  PlatformService,
 } from '@sumaris-net/ngx-components';
-import { IDataEntityQualityService, IProgressionOptions, IRootDataTerminateOptions, IRootDataValidateOptions } from './data-quality-service.class';
+import { IDataEntityQualityService, IRootDataTerminateOptions, IRootDataValidateOptions } from './data-quality-service.class';
 import { RootDataEntity, RootDataEntityUtils } from './model/root-data-entity.model';
 import { DataErrorCodes } from './errors';
 import { IWithRecorderDepartmentEntity } from './model/model.utils';
@@ -29,6 +25,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Observable, of } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
+import { BaseDataService } from '@app/data/services/data-service.class';
 
 export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {
   terminate?: any;
@@ -48,21 +45,16 @@ export abstract class BaseRootDataService<
     Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
     M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
     S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions,
-    CO extends IProgressionOptions = IProgressionOptions,
     TO extends IRootDataTerminateOptions = IRootDataTerminateOptions,
     VO extends IRootDataValidateOptions = IRootDataValidateOptions,
   >
-  extends BaseEntityService<T, F, ID, WO, LO, Q, M, S>
+  extends BaseDataService<T, F, ID, WO, LO, Q, M, S>
   implements IDataEntityQualityService<T, ID>
 {
-  protected accountService: AccountService;
-  protected programRefService: ProgramRefService;
+  protected programRefService = inject(ProgramRefService);
 
   protected constructor(injector: Injector, dataType: new () => T, filterType: new () => F, options: BaseEntityServiceOptions<T, ID, Q, M, S>) {
-    super(injector.get(GraphqlService), injector.get(PlatformService), dataType, filterType, options);
-
-    this.accountService = this.accountService || (injector && injector.get(AccountService)) || undefined;
-    this.programRefService = this.programRefService || (injector && injector.get(ProgramRefService)) || undefined;
+    super(injector, dataType, filterType, options);
   }
 
   canUserWrite(entity: T, opts?: { program?: Program }): boolean {
@@ -254,25 +246,22 @@ export abstract class BaseRootDataService<
 
   /* -- protected methods -- */
 
-  protected asObject(entity: T, opts?: DataEntityAsObjectOptions): any {
+  protected asObject(source: T, opts?: DataEntityAsObjectOptions): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
-    const copy = entity.asObject(opts);
+    const target = super.asObject(source, opts);
 
-    if (opts && opts.minify) {
-      // Comment because need to keep recorder person
-      copy.recorderPerson =
-        entity.recorderPerson &&
+    if (opts.minify) {
+      // Keep recorder person
+      target.recorderPerson =
+        source.recorderPerson &&
         <Person>{
-          id: entity.recorderPerson.id,
-          firstName: entity.recorderPerson.firstName,
-          lastName: entity.recorderPerson.lastName,
+          id: source.recorderPerson.id,
+          firstName: source.recorderPerson.firstName,
+          lastName: source.recorderPerson.lastName,
         };
-
-      // Keep id only, on department
-      copy.recorderDepartment = (entity.recorderDepartment && { id: entity.recorderDepartment && entity.recorderDepartment.id }) || undefined;
     }
 
-    return copy;
+    return target;
   }
 
   protected fillDefaultProperties(entity: T) {
@@ -331,10 +320,7 @@ export abstract class BaseRootDataService<
   }
 
   protected resetQualityProperties(entity: T) {
-    entity.controlDate = undefined;
+    super.resetQualityProperties(entity);
     entity.validationDate = undefined;
-    entity.qualificationDate = undefined;
-    entity.qualityFlagId = undefined;
-    // Do not reset qualification comments, because used to hold control errors
   }
 }

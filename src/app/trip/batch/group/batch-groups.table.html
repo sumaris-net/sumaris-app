@@ -123,7 +123,7 @@
           <td
             mat-cell
             *rxLet="
-              row.currentData.qualificationComments || (row.validator.invalid && (row.validator | formError: errorTranslatorOptions));
+              row.currentData.qualificationComments || (row.validator.invalid && (row.validator | formError: errorTranslateOptions));
               let rowError
             "
             [title]="rowError || ''"

@@ -12,8 +12,8 @@ import {
   EntityUtils,
   firstNotNilPromise,
   FormErrors,
+  FormErrorTranslateOptions,
   FormErrorTranslator,
-  FormErrorTranslatorOptions,
   fromDateISOString,
   IEntitiesService,
   IEntityService,
@@ -66,8 +66,8 @@ import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-loca
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 import { LandingValidatorOptions, LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { IProgressionOptions } from '@app/data/services/data-quality-service.class';
-import { MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
@@ -95,7 +95,7 @@ export declare interface LandingServiceWatchOptions extends EntitiesServiceWatch
 }
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
-  translatorOptions?: FormErrorTranslatorOptions;
+  translatorOptions?: FormErrorTranslateOptions;
 }
 
 export const LandingFragments = {
@@ -857,15 +857,7 @@ export class LandingService
   }
 
   translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
-    opts = { i18nPrefix: 'LANDING.EDIT.', ...opts };
-    // Translate PMFM field
-    if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
-      const pmfmId = parseInt(path.split('.').pop());
-      const pmfm = opts.pmfms.find((p) => p.id === pmfmId);
-      return PmfmUtils.getPmfmName(pmfm);
-    }
-    // Default translation
-    return this.formErrorTranslator.translateFormPath(path, opts);
+    return super.translateFormPath(path, { i18nPrefix: 'LANDING.EDIT.', ...opts });
   }
 
   async synchronizeById(id: number): Promise<Landing> {

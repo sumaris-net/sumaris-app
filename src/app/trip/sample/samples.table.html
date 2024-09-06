@@ -219,7 +219,7 @@
           {{ row.currentData?.rankOrder }}
         </ion-label>
         <span hidden #errorSpan>
-          {{ row.validator.enabled && row.validator | formError: errorTranslatorOptions }}
+          {{ row.validator.enabled && row.validator | formError: errorTranslateOptions }}
         </span>
       </td>
     </ng-container>
@@ -229,7 +229,7 @@
         <td
           mat-cell
           *ngVar="{
-            formError: row.validator.enabled && (row.validator | formError: errorTranslatorOptions),
+            formError: row.validator.enabled && (row.validator | formError: errorTranslateOptions),
             entityError: row.currentData | dataEntityError
           } as vars"
           [title]="vars.formError || vars.entityError || ''"
@@ -355,7 +355,7 @@
                     html: true,
                     withDetails: showPmfmDetails,
                     i18nPrefix: i18nPmfmPrefix,
-                    i18nContext: i18nColumnSuffix
+                    i18nSuffix: i18nColumnSuffix
                   }
           "
         ></ion-label>
@@ -631,7 +631,7 @@
                       html: true,
                       withDetails: showPmfmDetails,
                       i18nPrefix: i18nPmfmPrefix,
-                      i18nContext: i18nColumnSuffix
+                      i18nSuffix: i18nColumnSuffix
                     }
             "
           ></ion-label>

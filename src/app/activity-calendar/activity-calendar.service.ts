@@ -1222,7 +1222,7 @@ export class ActivityCalendarService
       return [month, fieldName].join('>');
     }
     // Default translation
-    return this.formErrorTranslator.translateFormPath(path, opts);
+    return this.formErrorTranslator.translateFormPath(path, { ...opts, pathTranslator: null });
   }
 
   canUserWrite(entity: ActivityCalendar, opts?: { program?: Program }): boolean {

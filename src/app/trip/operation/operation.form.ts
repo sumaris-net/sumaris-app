@@ -124,6 +124,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     fishingArea: false,
   };
 
+  @Input() i18nSuffix: string;
   @Input() programLabel: string;
   @Input() showError = true;
   @Input() showComment = true;

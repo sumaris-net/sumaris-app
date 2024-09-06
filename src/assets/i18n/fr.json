@@ -870,8 +870,10 @@
         "METIER": "Espèce cible",
         "TARGET_SPECIES": "Espèce cible",
         "PHYSICAL_GEAR": "Engin utilisé",
-        "START": "Début pêche :",
-        "END": "Fin pêche :",
+        "START": "Début filage :",
+        "START_FISHING": "Début pêche :",
+        "END_FISHING": "Fin pêche :",
+        "END": "Fin virage :",
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
         "GEAR": "Engin :",
         "LATITUDE": "Latitude",
@@ -886,10 +888,6 @@
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
         "DISTANCE_DOTS": "Distance : {{distance}} miles",
-        "START_PARENT_OPERATION": "Début filage :",
-        "END_PARENT_OPERATION": "Fin filage / Début pêche :",
-        "START_CHILD_OPERATION": "Fin pêche / Début virage :",
-        "END_CHILD_OPERATION": "Fin virage :",
         "PARENT_OPERATION": "Opération associée",
         "PLEASE_SELECT_HELP": "Sélectionner une opération",
         "POSITIONS": "Positions",
@@ -919,7 +917,15 @@
           "TAB_SAMPLES": "Tests de survie"
         },
         "ACCIDENTAL_CATCH": {
-          "TAB_SAMPLES": "Captures accidentelles"
+          "TAB_SAMPLES": "Captures accidentelles",
+          "START": "Début filage :",
+          "START_FISHING": "Fin filage / Début pêche :",
+          "END_FISHING": "Fin pêche / Début virage :",
+          "END": "Fin virage :",
+          "START_DATE_TIME": "Début filage",
+          "FISHING_START_DATE_TIME": "Début pêche",
+          "FISHING_END_DATE_TIME": "Fin pêche",
+          "END_DATE_TIME": "Fin virage"
         },
         "OBSERVED_TRIP": {
           "TAB_SAMPLES": "Captures accidentelles"
