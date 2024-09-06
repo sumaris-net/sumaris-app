@@ -6,13 +6,11 @@ form.form-container {
     --mat-form-field-filled-with-label-container-padding-bottom: 4px;
     --mat-form-field-filled-no-label-container-padding-top: 16px;
     --mat-form-field-filled-no-label-container-padding-bottom: 2px;
-    //--mdc-filled-text-field-container-color: rgb(245, 245, 245);
 
     ion-icon[matPrefix],
     mat-icon[matPrefix],
     .mat-mdc-form-field-icon-prefix {
       --mdc-icon-button-margin-vertical: 8px;
-      --mdc-icon-button-icon-color: rgba(0, 0, 0, 0.57);
     }
 
     &.mat-focused {
