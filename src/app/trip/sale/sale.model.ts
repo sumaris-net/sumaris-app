@@ -122,7 +122,7 @@ export class Sale extends DataRootVesselEntity<Sale, number, SaleAsObjectOptions
     target.observers = (this.observers && this.observers.map((o) => o.asObject(opts))) || undefined;
     target.measurements = (this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map((m) => m.asObject(opts))) || undefined;
     target.fishingAreas = (this.fishingAreas && this.fishingAreas.map((value) => value.asObject(opts))) || undefined;
-    target.metiers = (this.metiers && this.metiers.map((value) => value.asObject(opts))) || undefined;
+    target.metiers = (this.metiers && this.metiers.map((value) => value.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }))) || undefined;
 
     // Parent
     target.tripId = this.tripId;

@@ -223,6 +223,13 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
     }
   }
 
+  removeMetierAt(index: number) {
+    const removed = this.metiersForm.removeAt(index);
+    if (removed) {
+      this.metiersForm.markAsDirty();
+    }
+  }
+
   async setValue(data: Sale, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     // Make sure to have (at least) one metier
     this.showMetiers = this.showMetiers || isNotEmptyArray(data?.metiers);
