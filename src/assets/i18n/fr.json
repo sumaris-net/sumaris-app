@@ -1605,7 +1605,7 @@
       "FISHING_AREAS": "Zones de pêche :",
       "LANDINGS": "Débarquement(s)",
       "AUCTION_CONTROL": {
-        "TITLE": "{{location}} - Contrôle du {{dateTime}}",
+        "TITLE": "{{location}} - <span class=\"hidden-xs hidden-sm\">Contrôle du </span>{{dateTime}}",
         "TAB_LANDINGS": "Navires contrôlés"
       },
       "SAMPLING": {

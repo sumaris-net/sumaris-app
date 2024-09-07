@@ -183,17 +183,17 @@
 
         <!-- Period criteria -->
         <ion-row>
-          <ion-col>
+          <ion-col size="12" size-sm="6">
             <!-- Start date -->
             <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.START_DATE' | translate" formControlName="startDate" [clearable]="true">
               <ion-icon matPrefix name="calendar-outline"></ion-icon>
             </mat-date-field>
           </ion-col>
 
-          <ion-col>
+          <ion-col size="12" size-sm="6">
             <!-- End date -->
             <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.END_DATE' | translate" formControlName="endDate" [clearable]="true">
-              <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              <ion-icon matPrefix name="calendar-outline" class="visible-xs visible-sm"></ion-icon>
             </mat-date-field>
           </ion-col>
         </ion-row>

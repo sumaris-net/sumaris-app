@@ -1423,7 +1423,7 @@
       "FISHING_AREAS": "Fishing areas:",
       "LANDINGS": "Landing(s)",
       "AUCTION_CONTROL": {
-        "TITLE": "{{location}} - Control of {{dateTime}}",
+        "TITLE": "{{location}} - <span class=\"hidden-xs hidden-sm\">Control of </span>{{dateTime}}",
         "TAB_LANDINGS": "Controlled vessels"
       },
       "SAMPLING": {
