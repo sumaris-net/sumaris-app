@@ -212,7 +212,7 @@
   </ng-template>
 </mat-menu>
 
-<ion-content>
+<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
   <mat-tab-group
     #tabGroup
     class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
