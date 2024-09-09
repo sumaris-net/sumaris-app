@@ -2001,7 +2001,6 @@ export class CalendarComponent
     // Check target path is compatible
     const sourcePathSuffix = lastArrayValue(sourcePaths[0].split('.'));
     const targetPathSuffix = lastArrayValue(targetPaths[0].split('.'));
-    console.log(this.cellSelection);
     let isCompatibleField = false;
     const isPmfmOnly = sourcePaths.every((path) => path.startsWith('measurementValues'));
     const pmfms = this.pmfms.filter((pmfm) => pmfm.id.toString() === sourcePathSuffix || pmfm.id.toString() === targetPathSuffix);
