@@ -2003,7 +2003,7 @@ export class CalendarComponent
     const targetPathSuffix = lastArrayValue(targetPaths[0].split('.'));
     let isCompatibleField = false;
     const pmfms = this.pmfms.filter((pmfm) => pmfm.id.toString() === sourcePathSuffix || pmfm.id.toString() === targetPathSuffix);
-    if (pmfms.length === 2) isCompatibleField = pmfms.every((pmfm) => pmfm.type === 'double' || pmfm.type === 'integer');
+    if (pmfms.length >= 2) isCompatibleField = pmfms.every((pmfm) => pmfm.type === 'double' || pmfm.type === 'integer');
     if (sourcePathSuffix !== targetPathSuffix && !isCompatibleField) {
       Toasts.show(this.toastController, this.translate, {
         type: 'error',
