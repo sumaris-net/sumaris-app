@@ -2001,7 +2001,10 @@ export class CalendarComponent
     // Check target path is compatible
     const sourcePathSuffix = lastArrayValue(sourcePaths[0].split('.'));
     const targetPathSuffix = lastArrayValue(targetPaths[0].split('.'));
-    if (sourcePathSuffix !== targetPathSuffix) {
+    let isCompatibleField = false;
+    const pmfms = this.pmfms.filter((pmfm) => pmfm.id.toString() === sourcePathSuffix || pmfm.id.toString() === targetPathSuffix);
+    if (pmfms.length === 2) isCompatibleField = pmfms.every((pmfm) => pmfm.type === 'double' || pmfm.type === 'integer');
+    if (sourcePathSuffix !== targetPathSuffix && !isCompatibleField) {
       Toasts.show(this.toastController, this.translate, {
         type: 'error',
         message: 'ACTIVITY_CALENDAR.ERROR.CANNOT_PASTE_HERE',
