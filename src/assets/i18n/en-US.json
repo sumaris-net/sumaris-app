@@ -12,6 +12,7 @@
     "BTN_BURST_INPUT": "Burst mode",
     "BTN_BURST_INPUT_HELP": "Enable burst mode",
     "BTN_COPY": "Copy",
+    "BTN_PASTE": "Paste",
     "BTN_CLEAR": "Clear",
     "BTN_CLOSE": "Close",
     "BTN_COMPACT_ROWS": "Compact rows",
@@ -69,6 +70,8 @@
     "BTN_SHOW_TRASH_DOTS": "Open the trash...",
     "BTN_CLEAN_TRASH": "Clean the trash",
     "BTN_RESTORE": "Restore",
+    "BTN_CLEAR_CLIPBOARD": "Clear clipboard",
+    "BTN_CLEAR_SELECTION": "Clear selection",
     "BTN_LOGOUT": "Log out",
     "CREATED_ON": "Created on ",
     "COMMENTS": "Comments",
@@ -135,6 +138,8 @@
       "ITEMS_PER_PAGE": "Items per page",
       "NEXT_PAGE": "Next page",
       "PREVIOUS_PAGE": "Previous page",
+      "LAST_PAGE": "Last page",
+      "FIRST_PAGE": "First page",
       "OF": "on"
     },
     "TABLE": {
@@ -154,8 +159,10 @@
       "LINK": "Share link"
     },
     "REPORT": {
+      "REPORT": "Report",
       "SHARE_LINK_PLACEHOLDER": "Link of the report:",
-      "TYPE_DIVIDER": "Report types"
+      "TYPE_DIVIDER": "Report types",
+      "PAGE_NUMBER": "page {{ pageNumber }}"
     },
     "HELP": {
       "TITLE": "Online help"
@@ -203,6 +210,9 @@
       "FAVICON": "favicon",
       "GRAVATAR_URL": "User > Gravatar URL (with '{md5}')",
       "ENABLE_GRAVATAR": "User > Enable Gravatar?",
+      "FORM_FIELD_BACKGROUND_COLOR": "Theme > Background color > Field",
+      "FORM_FIELD_FOCUS_BACKGROUND_COLOR": "Theme > Background color > Field with focus",
+      "FORM_FIELD_DISABLED_BACKGROUND_COLOR": "Theme > Background color > Inactive field",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
       "ACCESS_PROGRAM_IDS": "Data entry > Authorized data programs",
@@ -214,6 +224,7 @@
       "SAMPLE_HASH_OPTIMIZATION": "Persistence > Sample: Optimize save (hash)",
       "BATCH_HASH_OPTIMIZATION": "Persistence > Batch: Optimize save (hash)",
       "PHYSICAL_GEAR_HASH_OPTIMIZATION": "Persistence > Physical Gear: Optimize save (hash)",
+      "ACTIVITY_CALENDAR_HASH_OPTIMIZATION": "Persistence > Activity Calendar : Optimize save (hash)",
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HELP_URL": "App > User manual (URL)",
       "FORUM_URL": "App > Forum address (URL)",
@@ -658,7 +669,7 @@
       "TITLE": "<small>{{vessel}}<br></small>Trip of {{departureDateTime}}",
       "OTHER_FEATURES": "Other features:",
       "BTN_DELETE": "Delete the full trip",
-      "BTN_REPORT_DOTS": "Edit report..."
+      "BTN_REPORT": "Edit report..."
     },
     "OPTIONS": {
       "ENABLE": "Trips > Enable?",
@@ -826,8 +837,10 @@
         "METIER": "Target species",
         "TARGET_SPECIES": "Target species",
         "PHYSICAL_GEAR": "Gear used",
-        "START": "Start of fishing:",
-        "END": "End of fishing:",
+        "START": "Start laying:",
+        "START_FISHING": "Start Fishing:",
+        "END_FISHING": "End fishing:",
+        "END": "End hauling:",
         "GEAR_AND_TARGETED_SPECIES": "Gear / Target species:",
         "GEAR": "Gear:",
         "LATITUDE": "Latitude",
@@ -842,10 +855,6 @@
         "OTHER_FEATURES": "Other features:",
         "NO_TARGET_SPECIES_FOUND": "No species for this gear",
         "DISTANCE_DOTS": "Dist.: {{distance}} miles",
-        "START_PARENT_OPERATION": "Start laying:",
-        "END_PARENT_OPERATION": "End laying / Start Fishing:",
-        "START_CHILD_OPERATION": "End fishing / Start hauling:",
-        "END_CHILD_OPERATION": "End hauling:",
         "PARENT_OPERATION": "Associated operation",
         "PLEASE_SELECT_HELP": "Select an operation",
         "POSITIONS": "Positions",
@@ -1159,11 +1168,13 @@
         }
       },
       "TABLE": {
+        "TITLE": "Samples",
         "TAB_SAMPLES": "Samples",
         "TAB_SUB_SAMPLES": "Sub-samples",
         "TAB_INDIVIDUAL_RELEASES": "Releases",
         "LABEL": "Batch",
         "LABEL_PLACEHOLDER": "Batch",
+        "RANK_ORDER": "#",
         "TAXON_GROUP": "Commercial species (FAO)",
         "TAXON_GROUP_PLACEHOLDER": "Species code",
         "TAXON_NAME": "Scientific species (FAO)",
@@ -1201,14 +1212,19 @@
           "IMAGES": "Pictures"
         },
         "ACCIDENTAL_CATCH": {
+          "TITLE": "Accidental catch",
           "TAB_SAMPLES": "Individual measures",
+          "TAXON_NAME": "Scientific species",
           "TAG_COUNT": "<b>{{tagCount}}</b> tagged individual"
         },
-        "ONBOARD_OBSERVATION": {
+        "OBSERVED_TRIP": {
+          "TITLE": "Accidental catch",
           "TAB_SAMPLES": "Individual measures",
+          "TAXON_NAME": "Scientific species",
           "TAG_COUNT": "<b>{{tagCount}}</b> tagged individual"
         },
         "SURVIVAL_TEST": {
+          "TITLE": "Survival tests",
           "TAB_SAMPLES": "Individual measures",
           "TAB_SUB_SAMPLES": "Individual monitoring",
           "BTN_INDIVIDUAL_MONITORING": "Fill individual monitoring",
@@ -1243,7 +1259,7 @@
             "MEASURE_TIME": "Release hour",
             "TAG_ID": "Tag-ID"
           },
-          "ONBOARD_OBSERVATION": {
+          "OBSERVED_TRIP": {
             "MEASURE_TIME": "Release hour",
             "TAG_ID": "Tag-ID"
           }
@@ -1255,7 +1271,7 @@
         "SURVIVAL_TEST": {
           "TAG_ID": "Tag-ID"
         },
-        "ONBOARD_OBSERVATION": {
+        "OBSERVED_TRIP": {
           "MEASURE_TIME": "Release hour",
           "IS_DEAD": "Is dead?",
           "TAG_ID": "Tag-ID"
@@ -1448,7 +1464,9 @@
     },
     "TABLE": {
       "PROGRAM": "Program",
-      "START_DATE_TIME": "Date/time",
+      "DATE_TIME": "Date/Heure",
+      "START_DATE_TIME": "Start date",
+      "END_DATE_TIME": "End date",
       "QUALITY": "State",
       "QUALITY_FILTER": "Filter by state:",
       "LOCATION": "Location",
@@ -1461,7 +1479,10 @@
         "STRATEGY": "Strategy",
         "LOCATION": "Location",
         "START_DATE": "Start period",
-        "END_DATE": "End period"
+        "END_DATE": "End period",
+        "RECORDER_PERSON": "Recorder person",
+        "RECORDER_DEPARTMENT": "Recorder department",
+        "OBSERVERS": "Observers"
       }
     },
     "PMFM": {},
@@ -1574,6 +1595,8 @@
       "BTN_OPEN_TRIP": "Open the trip",
       "BTN_OPEN_SALE": "Open the sale",
       "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> observed species (min.: {{minObservedCount}})",
+      "BTN_AUTO_FILL": "Automatically fill species",
+      "UNKNOWN_VESSEL_NAME": "Unknown vessel",
       "SAMPLING": {
         "STRATEGY": "Sampling strata",
         "SAMPLES_COUNT": "Samples count",
@@ -1778,6 +1801,17 @@
     "TAB_HISTORY": "History",
     "VESSEL_REGISTRATION_DIVIDER": "Registration",
     "VESSEL_FEATURES_DIVIDER": "Features",
+    "VESSEL_SNAPSHOT": {
+      "ID": "Internal code",
+      "NAME": "Name",
+      "EXTERIOR_MARKING": "Exterior Marking",
+      "REGISTRATION_CODE": "Registration Code",
+      "REGISTRATION_LOCATION": "Registration Location",
+      "BASE_PORT_LOCATION": {
+        "LABEL": "Base port code",
+        "NAME": "Base port name"
+      }
+    },
     "VESSEL_FEATURES": {
       "START_DATE": "Validity start date",
       "END_DATE": "Validity end date",
@@ -1785,14 +1819,17 @@
       "EXTERIOR_MARKING": "Exterior Marking",
       "CONSTRUCTION_YEAR": "Construction year",
       "IRCS": "International radio call sign (IRCS)",
-      "FPC": "FPC",
+      "IS_FPC": "FPC?",
       "HULL_MATERIAL": "Hull material",
       "BASE_PORT_LOCATION": "Base port",
       "GROSS_TONNAGE_GT": "Gross tonnage (UMS)",
       "GROSS_TONNAGE_GRT": "Gross registered tonnage (GRT)",
       "ADMINISTRATIVE_POWER": "Administrative power (kW)",
       "LENGTH_OVER_ALL": "Length over all (m)",
-      "COMMENTS": "Comments"
+      "COMMENTS": "Comments",
+      "ACTIVITY_CALENDAR": {
+        "BASE_PORT_LOCATION": "Operation port"
+      }
     },
     "VESSEL_REGISTRATION_PERIOD": {
       "START_DATE": "Registration start date",
@@ -1801,9 +1838,19 @@
       "INT_REGISTRATION_CODE": "International Registration Code",
       "REGISTRATION_LOCATION": "Registration Location"
     },
+    "VESSEL_OWNER": {
+      "REGISTRATION_CODE": "Vessel owner code",
+      "START_DATE": "Start ownership",
+      "END_DATE": "End ownership",
+      "ACTIVITY_START_DATE": "Start activity",
+      "RETIREMENT_DATE": "Date of retirement ",
+      "FIRST_NAME": "First name",
+      "LAST_NAME": "Last name"
+    },
     "HISTORY": {
       "FEATURES": "Vessel features",
-      "REGISTRATIONS": "Registrations"
+      "REGISTRATIONS": "Registrations",
+      "OWNER": "Vessel owners"
     },
     "ACTION": {
       "EDIT": "Edit",
@@ -1886,7 +1933,7 @@
       },
       "ROUND_WEIGHT_CONVERSION": {
         "EXPORT_CSV_FILENAME": "AWE-{{taxonGroupId}}.csv",
-        "CONVERSION_COEFFICIENT": "Coef.",
+        "CONVERSION_COEFFICIENT": "Conversion coef.",
         "COMMENTS": "Comment",
         "CREATION_DATE": "Creation date",
         "DESCRIPTION": "Description",
@@ -2047,6 +2094,9 @@
       "TEMPORARY": "Temporary",
       "DELETED": "Deletion in progress"
     },
+    "ENTITY_DIVIDER": {
+      "OTHER": "Others..."
+    },
     "ENTITY": {
       "CORPUS": "Regulation > Corpus",
       "CORPUS_TYPE": "Regulation > Corpus type",
@@ -2155,7 +2205,8 @@
       "PERSON": "User",
       "DEPARTMENT": "Department",
       "LOCATION": "Location",
-      "PRIVILEGE": "Privilege"
+      "PRIVILEGE": "Privilege",
+      "REFERENCE_PERSON": "Supervised person"
     },
     "SAMPLING": {
       "TAB_STRATEGIES": "Sampling stratum"
@@ -2175,6 +2226,7 @@
       "TRIP_LOCATION_LEVEL_IDS": "Trip: Location level(s)",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Trip > Location: Min nb char. to search",
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
+      "TRIP_SALE_LOCATION_LEVEL_IDS": "Trip > Sale: Location level(s)",
       "TRIP_SAMPLING_STRATA_ENABLE": "Trip: Enter sampling strata?",
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
       "TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Trip> Offline > Location level(x) to import (ids)",
@@ -3094,14 +3146,15 @@
       "FILTER": {
         "PROGRAM": "Data collection programme",
         "REGISTRATION_LOCATION": "Registration location",
-        "BASE_PORT_LOCATION": "Base port / Operation.",
+        "BASE_PORT_LOCATION": "Operation port",
         "DIRECT_SURVEY_INVESTIGATION": "Direct survey investigation objective?",
         "ECONOMIC_SURVEY": "Economic survey?",
         "RECORDER_PERSON": "Recorder",
         "RECORDER_DEPARTMENT": "Recoder department(s)",
         "VESSEL": "Vessel",
-        "YEAR": "Year",
-        "OBSERVERS": "Inspector"
+        "OBSERVERS": "Inspector",
+        "QUALITY_FLAG_ID": "Quality flag",
+        "YEAR": "Year"
       }
     },
     "NEW": {
@@ -3109,23 +3162,37 @@
     },
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Activity {{year}}",
-      "BASE_PORT_LOCATION": "Base port / Operation.",
+      "TITLE_MENU": "{{vessel}} ({{year}})",
+      "PREDOC_TITLE": "Predocumentation",
+      "BASE_PORT_LOCATION": "Operation port",
+      "SOURCE": "Source",
+      "SOURCE_PREDOC": "",
       "BTN_ADD_METIER_BLOCK": "Add a Metier block",
       "BTN_REPORT": "Edit report",
       "BTN_EXPAND_ALL": "Expand all",
       "BTN_COLLAPSE_ALL": "Collapse all",
       "BTN_CLEAR_MONTH": "Clear month",
-      "CONFIRM_CLEAR_MONTH": "<b>Are you sure</b> you want to clear this month?",
+      "BTN_COPY_PASTE_ALL": "Copy and paste",
+      "HIDE_PREDOC": "Hide predocumentation",
+      "SHOW_PREDOC": "Show predocumentation",
+      "BTN_SHOW_PREDOC": "<u>P</u>redocumentation",
       "YEAR": "Year:",
       "VESSEL_SNAPSHOT": "Vessel",
       "DIRECT_SURVEY_INVESTIGATION": "Direct survey investigation objective?",
       "ECONOMIC_SURVEY": "Economic survey?",
       "YEAR_PLACEHOLDER": "Year",
-      "METIER": "metier",
-      "METIER_RANKED": "Metier #{{rankOrder}}",
+      "METIER": "Métier",
+      "GEAR": "Gear",
+      "METIER_RANKED": "Métier #{{rankOrder}}",
       "FISHING_AREA": "Fishing area",
       "FISHING_AREA_RANKED": "Fishing area #{{rankOrder}}",
+      "DISTANCE_TO_COAST_GRADIENT": "Distance to coast",
+      "DEPTH_GRADIENT": "Depth",
+      "NEARBY_SPECIFIC_AREA": "Nearby specific area",
       "TAB_GENERAL": "Details",
+      "TAB_VESSEL": "Vessel",
+      "TAB_HISTORY": "History",
+      "TAB_PHOTO": "Pictures",
       "TAB_CALENDAR": "Activity Months",
       "TAB_METIER": "Fishing Activities",
       "TAB_MAP": "Activity Zones",
@@ -3133,24 +3200,37 @@
       "REGISTRATION_LOCATION": "Registration location",
       "IS_ACTIVE": "Active?",
       "OTHER_FEATURES": "Survey characteristics:",
-      "VESSEL_FEATURES": "Vessel features",
-      "VESSEL_REGISTRATIONS": "Vessel features registration history",
-      "OBSERVERS": "Inspector",
+      "VESSEL_FEATURES_DIVIDER": "Vessel features",
+      "VESSEL_REGISTRATION_DIVIDER": "Registrations",
+      "VESSEL_OWNER_DIVIDER": "Owners",
+      "PHOTO": "Pictures",
+      "OBSERVERS": "Inspector(s):",
       "OBSERVER_PLACEHOLDER": "Inspector #",
+      "BTN_DELETE_CALENDAR": "Delete",
+      "BTN_CLEAR_CALENDAR": "Clear the calendar",
+      "BTN_DELETE_CONFLICT": "Delete this conflicted month",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Active",
         "DISABLE": "Inactive",
         "NOT_EXISTS": "Non-existent"
+      },
+      "SIH-ACTIFLOT": {
+        "SOURCE_PREDOC": "Survey N-1"
+      },
+      "SIH-ACTIPRED": {
+        "SOURCE_PREDOC": "PREDOC"
       }
     },
     "OFFLINE_MODAL": {
       "TITLE": "Offline mode configuration"
     },
     "OPTIONS": {
-      "ENABLE": "Activity calendar > Enable?"
+      "ENABLE": "Activity calendar > Enable?",
+      "NAME": "Activity calendar > Title (menu, etc.)"
     },
     "WARNING": {
-      "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Survey qualification <b>{{surveyQualification}}</b> inconsistent with the objective."
+      "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Survey qualification <b>{{surveyQualification}}</b> inconsistent with the objective.",
+      "UNAUTHORIZED_REGISTRATION_LOCATION": "You are  <b>not allowed</b> to complete data on this registration location."
     }
   },
   "ERROR": {

@@ -64,6 +64,7 @@ export class VesselOwnerHistoryComponent extends AppBaseTable<VesselOwnerPeriod,
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.debug = !environment.production;
+    this.title = 'VESSEL.HISTORY.OWNER';
   }
 
   ngOnInit() {
