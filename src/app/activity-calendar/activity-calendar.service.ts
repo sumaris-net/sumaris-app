@@ -88,6 +88,7 @@ import { JobFragments } from '@app/social/job/job.service';
 export const ActivityCalendarErrorCodes = {
   CSV_IMPORT_ERROR: 223,
 };
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -969,14 +970,19 @@ export class ActivityCalendarService
     if (!programLabel) throw new Error("Missing activityCalendar's program. Unable to control the activityCalendar");
     const program = await this.programRefService.loadByLabel(programLabel);
 
+    const pmfms = await this.programRefService.loadProgramPmfms(program.label, {
+      acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
+    });
+
     const form = this.validatorService.getFormGroup(entity, {
       ...opts,
       program,
       isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true, // Need by full validation
+      pmfms,
     });
 
-    if (!form.valid) {
+    if (!form.valid && opts?.ignoreWarningError !== true) {
       // Wait end of validation (e.g. async validators)
       await AppFormUtils.waitWhilePending(form);
 
@@ -985,8 +991,9 @@ export class ActivityCalendarService
         const errors = AppFormUtils.getFormErrors(form);
         console.info(`[activity-calendar-service] Control #${entity.id} [INVALID] in ${Date.now() - now}ms`, errors);
 
-        const months = AppFormUtils.filterErrorsByPrefix(errors, 'vesselUseFeatures', 'gearUseFeatures');
+        const months = AppFormUtils.filterErrorsByPrefix(errors, 'vesselUseFeatures', 'gearUseFeatures', 'activityMonths');
         const metiers = AppFormUtils.filterErrorsByPrefix(errors, 'gearPhysicalFeatures');
+        const warning = AppFormUtils.filterErrors(errors, ([path, _]) => path.startsWith('warning'));
         const other = AppFormUtils.filterErrors(errors, ([path, _]) =>
           ['vesselUseFeatures', 'gearUseFeatures', 'gearPhysicalFeatures'].includes(path.split('.')[0])
         );
@@ -995,8 +1002,10 @@ export class ActivityCalendarService
           details: {
             errors: {
               ...other,
-              months,
-              metiers,
+              ...(isNotNil(months) && Object.keys(months).length > 0 ? { months } : {}),
+              ...(isNotNil(metiers) && Object.keys(metiers).length > 0 ? { metiers } : {}),
+              ...(isNotNil(warning) && Object.keys(warning).length > 0 ? { warning } : {}),
+              ...errors,
             },
           },
         };
