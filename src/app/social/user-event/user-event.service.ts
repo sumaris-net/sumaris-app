@@ -206,8 +206,6 @@ export class UserEventService
     filter: Partial<UserEventFilter>,
     options?: UserEventWatchOptions & { interval?: number; fetchPolicy?: FetchPolicy }
   ): Observable<number> {
-    filter = filter || this.defaultFilter();
-    filter.excludeRead = true;
     return super.listenCountChanges(filter, { ...options, fetchPolicy: 'no-cache' });
   }
 
@@ -350,6 +348,8 @@ export class UserEventService
       // TODO: fixme: very slow if some DEBUG data are fetched (e.g in ADAP Pod)
       //target.recipients = [...target.recipients, 'SYSTEM'];
     }
+
+    target.excludeRead = true;
 
     return target;
   }
@@ -498,10 +498,29 @@ export class UserEventService
   protected decorateJobUserEvent(source: UserEvent, job: Job) {
     console.debug('[user-event-service] Decorate user event on Job:', job);
 
-    source.addDefaultAction({
-      executeAction: (e) => this.navigate(['vessels']),
-    });
+    switch (job.type) {
+      case 'SUMARIS_EXTRACTION': {
+        source.addDefaultAction({
+          executeAction: (e) => this.navigate(['exraction', 'data']),
+        });
+        break;
+      }
+      case 'VESSEL_SNAPSHOTS_INDEXATION':
+      case 'SIOP_VESSELS_IMPORTATION': {
+        source.addDefaultAction({
+          executeAction: (e) => this.navigate(['vessels']),
+        });
+        break;
+      }
+      case 'ACTIVITY_CALENDARS_IMPORTATION': {
+        source.addDefaultAction({
+          executeAction: (e) => this.navigate(['activity-calendar']),
+        });
+        break;
+      }
+    }
 
+    // Add show report button
     if (job.report) {
       source.addAction({
         name: 'SOCIAL.JOB.BTN_REPORT',

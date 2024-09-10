@@ -3,6 +3,7 @@ import { gql } from '@apollo/client/core';
 import { map } from 'rxjs/operators';
 
 import {
+  APP_JOB_PROGRESSION_SERVICE,
   APP_USER_EVENT_SERVICE,
   AppErrorWithDetails,
   AppFormUtils,
@@ -21,6 +22,7 @@ import {
   GraphqlService,
   IEntitiesService,
   IEntityService,
+  IJobProgressionService,
   isEmptyArray,
   isNil,
   isNilOrBlank,
@@ -28,6 +30,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   IUserEventService,
+  JobProgression,
   JobUtils,
   lastArrayValue,
   LoadResult,
@@ -79,6 +82,12 @@ import { ImageAttachmentFragments } from '@app/data/image/image-attachment.servi
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { ActivityCalendarUtils } from './activity-calendar.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Job } from '@app/social/job/job.model';
+import { JobFragments } from '@app/social/job/job.service';
+
+export const ActivityCalendarErrorCodes = {
+  CSV_IMPORT_ERROR: 223,
+};
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -205,7 +214,7 @@ export interface ActivityCalendarWatchOptions extends EntitiesServiceWatchOption
 
 export interface ActivityCalendarControlOptions extends ActivityCalendarValidatorOptions, IProgressionOptions {}
 
-const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; loadImages: any } = {
+const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; loadImages: any; importCsvFile: any } = {
   // Load a activityCalendar
   load: gql`
     query ActivityCalendar($id: Int!) {
@@ -282,6 +291,14 @@ const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; lo
       }
     }
     ${ImageAttachmentFragments.light}
+  `,
+  importCsvFile: gql`
+    query ImportActivityCalendars($fileName: String) {
+      data: importActivityCalendars(fileName: $fileName) {
+        ...LightJobFragment
+      }
+    }
+    ${JobFragments.light}
   `,
 };
 
@@ -374,7 +391,8 @@ export class ActivityCalendarService
     protected formErrorTranslator: FormErrorTranslator,
     @Inject(APP_USER_EVENT_SERVICE) @Optional() protected userEventService: IUserEventService<any, any>,
     @Optional() protected translate: TranslateService,
-    @Optional() protected toastController: ToastController
+    @Optional() protected toastController: ToastController,
+    @Optional() @Inject(APP_JOB_PROGRESSION_SERVICE) protected jobProgressionService: IJobProgressionService
   ) {
     super(injector, ActivityCalendar, ActivityCalendarFilter, {
       queries: ActivityCalendarQueries,
@@ -1159,6 +1177,39 @@ export class ActivityCalendarService
     }
 
     return target;
+  }
+
+  async importCsvFile(fileName: string, format = 'csv'): Promise<Job> {
+    if (this._debug) console.debug(this._logPrefix + `Importing CSV file '${fileName}' ...`);
+
+    let query: any;
+    let variables: any;
+    switch (format) {
+      case 'csv':
+        query = ActivityCalendarQueries.importCsvFile;
+        variables = { fileName };
+        break;
+      default:
+        throw new Error('Unknown activity calendar file format: ' + format);
+    }
+
+    const { data } = await this.graphql.query<{ data: any }>({
+      query,
+      variables,
+      error: { code: ActivityCalendarErrorCodes.CSV_IMPORT_ERROR, message: 'ACTIVITY_CALENDAR.ERROR.CSV_IMPORT_ERROR' },
+    });
+
+    const job = Job.fromObject(data);
+    const message = this.translate.instant('SOCIAL.JOB.STATUS_ENUM.' + (job.status || 'PENDING'));
+    const progression = JobProgression.fromObject({
+      ...job,
+      message,
+    });
+
+    // Start to listen job
+    this.jobProgressionService.addJob(job.id, progression);
+
+    return job;
   }
 
   copyIdAndUpdateDate(source: ActivityCalendar | undefined, target: ActivityCalendar, opts?: ActivityCalendarSaveOptions) {

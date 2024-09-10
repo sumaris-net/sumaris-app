@@ -379,6 +379,10 @@ export class ProgramRefService
     return this.accountService.isSupervisor() && this.hasUpperOrEqualPrivilege(program, ProgramPrivilegeEnum.QUALIFIER);
   }
 
+  hasUserManagerPrivilege(program: Program): boolean {
+    return this.hasExactPrivilege(program, ProgramPrivilegeEnum.MANAGER);
+  }
+
   async loadAll(
     offset: number,
     size: number,
