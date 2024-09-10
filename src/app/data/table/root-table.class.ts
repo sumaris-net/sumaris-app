@@ -168,6 +168,8 @@ export abstract class AppRootDataTable<
         )
         .subscribe((programLabels) => this.$selectedProgramLabels.next(programLabels))
     );
+
+    this.logPrefix = '[root-data-table] ';
   }
 
   ngOnInit() {
@@ -599,12 +601,12 @@ export abstract class AppRootDataTable<
     }
   }
 
-  async importFromFile(event?: Event): Promise<any[]> {
+  async importJsonFile(event?: Event): Promise<any[]> {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
       uniqueFile: true,
       fileExtension: '.json',
       instantUpload: true,
-      uploadFn: (file) => this.uploadFile(file),
+      uploadFn: (file) => this.uploadJsonFile(file),
     });
 
     const entities = (data || []).flatMap((file) => file.response?.body || []);
@@ -698,7 +700,7 @@ export abstract class AppRootDataTable<
     return 'UTF-8'; // Default encoding
   }
 
-  protected uploadFile(file: File): Observable<FileEvent<T[]>> {
+  protected uploadJsonFile(file: File): Observable<FileEvent<T[]>> {
     console.info(this.logPrefix + `Importing JSON file ${file.name}...`);
 
     const encoding = this.getJsonEncoding();
