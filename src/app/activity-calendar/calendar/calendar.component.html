@@ -187,6 +187,7 @@
     <div #cellClipboardDiv class="cell-clipboard" [class.cdk-visually-hidden]="!cellClipboard"></div>
 
     <mat-table
+      #tableElement
       [dataSource]="dataSource"
       [class.resizing]="cellSelection?.resizing"
       [class.large]="!compact"
@@ -206,7 +207,12 @@
           }
         </mat-header-cell>
 
-        <mat-header-cell *matCellDef="let row" [title]="errorSpan?.innerText || ''" class="mat-column-reset-background-color">
+        <mat-header-cell
+          *matCellDef="let row"
+          [title]="errorSpan?.innerText || ''"
+          class="mat-column-reset-background-color"
+          (click)="handleColumnSelection($event, row.id)"
+        >
           <ion-label class="ion-text-center">
             <ion-text
               matBadge="!"

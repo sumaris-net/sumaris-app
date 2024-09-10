@@ -76,7 +76,7 @@ import { Moment } from 'moment/moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { debounceTime, filter, map } from 'rxjs/operators';
+import { debounceTime, filter, map, take } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
@@ -89,6 +89,7 @@ import { IUseFeaturesUtils } from '../model/use-features.model';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 import { SelectionModel } from '@angular/cdk/collections';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { MatTable } from '@angular/material/table';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -357,6 +358,9 @@ export class CalendarComponent
 
   @ViewChildren('monthCalendar', { read: CalendarComponent }) monthCalendars!: QueryList<CalendarComponent>;
   @ViewChild('menuTrigger') menuTrigger: MatMenuTrigger;
+
+  @ViewChild(MatTable) table: MatTable<any>;
+  @ViewChild('tableElement', { read: ElementRef }) tableElementRef!: ElementRef;
   @ViewChild('cellSelectionDiv', { read: ElementRef }) cellSelectionDivRef: ElementRef;
   @ViewChild('cellClipboardDiv', { read: ElementRef }) cellClipboardDivRef: ElementRef;
 
@@ -2474,6 +2478,27 @@ export class CalendarComponent
     if (opts?.emitEvent !== false) {
       this.markForCheck();
     }
+  }
+
+  protected async handleColumnSelection(event: Event, rowId: number) {
+    const row = this.dataSource.getRow(rowId);
+    if (!row) return;
+    const tableElement = this.tableElementRef.nativeElement;
+    const cellStartElements = tableElement.querySelectorAll('.cdk-column-isActive');
+    const lastColumn = this.displayedColumns[this.displayedColumns.length - 2];
+    const cellStartElement = cellStartElements[rowId + 1] as HTMLElement;
+    if (!cellStartElement) return;
+    const eventClick = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+    });
+
+    cellStartElement.dispatchEvent(eventClick);
+
+    this.startCellSelection.pipe(take(1)).subscribe(() => {
+      this.shiftClick(event, row, lastColumn);
+    });
   }
 
   protected getCellElement(rowIndex: number, columnIndex: number) {
