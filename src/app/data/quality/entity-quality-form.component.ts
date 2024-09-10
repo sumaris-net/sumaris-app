@@ -157,7 +157,7 @@ export class EntityQualityFormComponent<
     this.service = null;
   }
 
-  async control(event?: Event, opts?: { emitEvent?: boolean } & IProgressionOptions): Promise<boolean> {
+  async control(event?: Event, opts?: { emitEvent?: boolean; ignoreWarningError?: boolean } & IProgressionOptions): Promise<boolean> {
     opts = opts || {};
     const progressionSubscription = this.fillProgressionOptions(opts, 'QUALITY.INFO.CONTROL_DOTS');
 
@@ -182,10 +182,10 @@ export class EntityQualityFormComponent<
         await this.editor.updateView(data);
 
         // Construct error with details
-        if (isNil(errors.details)) {
+        if (isNotNil(errors.details)) {
           errors = <AppErrorWithDetails>{
             message: errors.message || data.qualificationComments || 'COMMON.FORM.HAS_ERROR',
-            details: { errors: errors as FormErrors },
+            details: { errors: errors.details as FormErrors },
           };
         } else {
           errors.message = errors.message || data.qualificationComments || 'COMMON.FORM.HAS_ERROR';
@@ -217,7 +217,7 @@ export class EntityQualityFormComponent<
     return valid;
   }
 
-  async terminate(event?: Event, opts?: { emitEvent?: boolean } & IProgressionOptions): Promise<boolean> {
+  async terminate(event?: Event, opts?: { emitEvent?: boolean; ignoreWarningError?: boolean } & IProgressionOptions): Promise<boolean> {
     if (this.busy) return;
 
     opts = opts || {};

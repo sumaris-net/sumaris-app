@@ -3427,6 +3427,7 @@
       "PREDOC_TITLE": "Prédocumentation",
       "BASE_PORT_LOCATION": "Port d'exploitation",
       "SOURCE": "Source",
+      "ERRORS": "Erreur(s) ",
       "SOURCE_PREDOC": "",
       "BTN_ADD_METIER_BLOCK": "Ajouter un bloc métier",
       "BTN_REPORT": "Éditer le rapport...",
@@ -3546,7 +3547,13 @@
       "CONFLICTUAL_MONTH": "Conflit détécté lors de la sauvegarde du calendrier",
       "DUPLICATED_METIER": "Métier(s) en doublon : {{metiers}}",
       "REQUIRED_FISHING_AREA": "Zone de pêche obligatoire pour le(s) métier(s) : {{metiers}}",
+      "MONTH_NUMBERS": "Calendrier incomplet.",
+      "ANNUAL_INACTIVITY": "Inactivité annuelle à confirmer",
+      "INCONSISTENT_ANNUAL_INACTIVITY": "Inactivité annuelle incohérente",
       "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}",
+      "INVALID_MONTHS": "Veuillez corriger le(s) mois invalide(s)",
+      "INCONSISTENT_DATA": "Données incohérentes",
+      "INVALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)",
       "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
     },
     "WARNING": {
