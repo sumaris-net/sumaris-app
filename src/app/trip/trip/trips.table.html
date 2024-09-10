@@ -108,7 +108,7 @@
   <mat-divider></mat-divider>
 
   <!-- upload button -->
-  <button mat-menu-item *ngIf="synchronizationStatus !== 'SYNC'" (click)="importFromFile($event)">
+  <button mat-menu-item *ngIf="synchronizationStatus !== 'SYNC'" (click)="importJsonFile($event)">
     <mat-icon>upload</mat-icon>
     <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
   </button>
@@ -404,10 +404,11 @@
             (change)="$event ? masterToggle() : null"
             [checked]="selection.hasValue() && isAllSelected()"
             [indeterminate]="selection.hasValue() && !isAllSelected()"
+            [tabIndex]="-1"
           ></mat-checkbox>
         </th>
         <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
-          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
+          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
         </td>
       </ng-container>
 

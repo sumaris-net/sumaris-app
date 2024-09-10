@@ -2059,7 +2059,7 @@
     "ERROR": {
       "LOAD_ERROR": "Erreur de chargement des navires.",
       "REPLACE_ERROR": "Erreur de remplacement de navire temporaire.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
-      "SIOP_IMPORT_ERROR": "Erreur lors de l'importation du fichier SIOP.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
+      "SIOP_IMPORT_ERROR": "Échec de l'importation du fichier SIOP.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
     }
   },
   "REFERENTIAL": {
@@ -3541,16 +3541,13 @@
       "KEEP_REMOTE": "<b>Êtest vous sûr</b> de vouloir conserver les données distantes ?",
       "COPY_PASTE": "<b>Êtes-vous sûr</b> de vouloir copier la prédocumentation vers le calendrier ?"
     },
-    "ACTION": {
-      "IMPORT_FROM_FILE": "Importer depuis un fichier..."
-    },
     "ERROR": {
       "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici.",
       "CONFLICTUAL_MONTH": "Conflit détécté lors de la sauvegarde du calendrier",
       "DUPLICATED_METIER": "Métier(s) en doublon : {{metiers}}",
       "REQUIRED_FISHING_AREA": "Zone de pêche obligatoire pour le(s) métier(s) : {{metiers}}",
       "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}",
-      "LIST_IMPORT_ERROR": "Erreur lors de l'importation du fichier LIST.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
+      "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
     },
     "WARNING": {
       "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif.",

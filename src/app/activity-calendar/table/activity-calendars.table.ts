@@ -66,6 +66,7 @@ export const ActivityCalendarsTableSettingsEnum = {
 
 export interface ActivityCalendarsPageState extends BaseTableState {
   years: number[];
+  canImportCsvFile: boolean;
 }
 
 @Component({
@@ -89,16 +90,16 @@ export class ActivityCalendarsTable
 {
   @RxStateSelect() protected title$: Observable<string>;
   @RxStateSelect() protected years$: Observable<number[]>;
+  @RxStateSelect() protected canImportCsvFile$: Observable<boolean>;
 
   @RxStateProperty() protected years: number[];
+  @RxStateProperty() protected canImportCsvFile: boolean;
 
   protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
   protected qualityFlags: ReferentialRef[];
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
-  readonly canImportFile: boolean;
-  enableFileImport = true; // TODO MFA: Check with the others to see if I should create a program option
 
   @Input() showRecorder = true;
   @Input() canDownload = false;
@@ -212,8 +213,7 @@ export class ActivityCalendarsTable
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
-    // Import
-    this.canImportFile = true;
+    this.logPrefix = '[activity-calendar-table] ';
   }
 
   ngOnInit() {
@@ -378,6 +378,9 @@ export class ActivityCalendarsTable
 
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showProgram = false;
+
+    this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
+
     if (this.loaded) this.updateColumns();
   }
 
@@ -385,6 +388,9 @@ export class ActivityCalendarsTable
     console.debug(`${this.logPrefix}Reset filter program`);
     this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
     this.showProgram = true;
+
+    this.canImportCsvFile = this.isAdmin;
+
     if (this.loaded) this.updateColumns();
   }
 
@@ -465,8 +471,8 @@ export class ActivityCalendarsTable
     return super.prepareOfflineMode(event, opts);
   }
 
-  async importFromFile(event: Event): Promise<ActivityCalendar[]> {
-    const data = await super.importFromFile(event);
+  async importJsonFile(event: Event): Promise<ActivityCalendar[]> {
+    const data = await super.importJsonFile(event);
     if (isEmptyArray(data)) return; // Skip
 
     const entities: ActivityCalendar[] = [];
@@ -589,7 +595,7 @@ export class ActivityCalendarsTable
     return qualityFlag?.id !== QualityFlagIds.NOT_QUALIFIED;
   }
 
-  async importFromCsv(event?: UIEvent, format = 'list') {
+  async importFromCsv(event?: UIEvent, format = 'csv') {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
       uniqueFile: true,
       fileExtension: '.csv',
@@ -600,14 +606,17 @@ export class ActivityCalendarsTable
           replace: true,
         }),
     });
-    console.debug('[Activity-Calendar] activity calendar files uploaded! Response: ', data);
+
+    console.debug(this.logPrefix + 'CSV file uploaded! Response: ', data);
+    const now = Date.now();
+
     const uploadedFileNames = (data || [])
       .map((file) => file.response?.body)
       .filter(isNotNil)
       .map(({ fileName }) => fileName);
     if (isNotEmptyArray(uploadedFileNames)) {
-      const jobs = await Promise.all(uploadedFileNames.map((uploadedFileName) => this._dataService.importFile(uploadedFileName, format)));
-      console.info('[Activity-Calendar] activity calendar imported with success!: ', jobs);
+      const jobs = await Promise.all(uploadedFileNames.map((uploadedFileName) => this._dataService.importCsvFile(uploadedFileName, format)));
+      console.info(this.logPrefix + `Activity calendars successfully imported, in ${Date.now() - now}ms`, jobs);
     }
   }
 }

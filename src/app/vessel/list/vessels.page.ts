@@ -183,7 +183,7 @@ export class VesselsPage implements OnInit, OnDestroy {
     return await this.router.navigateByUrl(`/vessels/${row.currentData.id}`);
   }
 
-  async importFromCsv(event?: UIEvent, format = 'siop') {
+  async importFromCsvFile(event?: UIEvent, format = 'siop') {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
       uniqueFile: true,
       fileExtension: '.csv',

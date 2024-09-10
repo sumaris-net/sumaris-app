@@ -57,7 +57,7 @@
   </button>
 
   <!-- import from file -->
-  <button mat-menu-item class="ion-color-danger" *ngIf="enableFileImport" [disabled]="!canImportFile" (click)="importFromCsv($event)">
+  <button mat-menu-item class="ion-color-danger" *ngIf="enableFileImport" [disabled]="!canImportFile" (click)="importFromCsvFile($event)">
     <mat-icon>description</mat-icon>
     <mat-label translate>VESSEL.ACTION.IMPORT_FROM_FILE</mat-label>
   </button>

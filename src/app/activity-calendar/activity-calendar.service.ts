@@ -83,8 +83,11 @@ import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { ActivityCalendarUtils } from './activity-calendar.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Job } from '@app/social/job/job.model';
-import { ActivityCalendarErrorCodes } from '@app/vessel/services/errors';
 import { JobFragments } from '@app/social/job/job.service';
+
+export const ActivityCalendarErrorCodes = {
+  CSV_IMPORT_ERROR: 223,
+};
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -211,7 +214,7 @@ export interface ActivityCalendarWatchOptions extends EntitiesServiceWatchOption
 
 export interface ActivityCalendarControlOptions extends ActivityCalendarValidatorOptions, IProgressionOptions {}
 
-const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; loadImages: any; importListFile: any } = {
+const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; loadImages: any; importCsvFile: any } = {
   // Load a activityCalendar
   load: gql`
     query ActivityCalendar($id: Int!) {
@@ -289,9 +292,9 @@ const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; lo
     }
     ${ImageAttachmentFragments.light}
   `,
-  importListFile: gql`
-    query ImportActivityCalendarListFile($fileName: String) {
-      data: importListActivityCalendars(fileName: $fileName) {
+  importCsvFile: gql`
+    query ImportActivityCalendars($fileName: String) {
+      data: importActivityCalendars(fileName: $fileName) {
         ...LightJobFragment
       }
     }
@@ -1176,14 +1179,14 @@ export class ActivityCalendarService
     return target;
   }
 
-  async importFile(fileName: string, format = 'list'): Promise<Job> {
-    if (this._debug) console.debug(this._logPrefix + `Importing activity calendar from LIST file '${fileName}' ...`);
+  async importCsvFile(fileName: string, format = 'csv'): Promise<Job> {
+    if (this._debug) console.debug(this._logPrefix + `Importing CSV file '${fileName}' ...`);
 
     let query: any;
     let variables: any;
     switch (format) {
-      case 'list':
-        query = ActivityCalendarQueries.importListFile;
+      case 'csv':
+        query = ActivityCalendarQueries.importCsvFile;
         variables = { fileName };
         break;
       default:
@@ -1193,7 +1196,7 @@ export class ActivityCalendarService
     const { data } = await this.graphql.query<{ data: any }>({
       query,
       variables,
-      error: { code: ActivityCalendarErrorCodes.REPLACE_ACTIVITY_CALENDAR_ERROR, message: 'ACTIVITY_CALENDAR.ERROR.LIST_IMPORT_ERROR' },
+      error: { code: ActivityCalendarErrorCodes.CSV_IMPORT_ERROR, message: 'ACTIVITY_CALENDAR.ERROR.CSV_IMPORT_ERROR' },
     });
 
     const job = Job.fromObject(data);

@@ -317,8 +317,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     return super.prepareOfflineMode(event, opts);
   }
 
-  async importFromFile(event: Event): Promise<Trip[]> {
-    const data = await super.importFromFile(event);
+  async importJsonFile(event: Event): Promise<Trip[]> {
+    const data = await super.importJsonFile(event);
     if (isEmptyArray(data)) return; // Skip
 
     const entities: Trip[] = [];

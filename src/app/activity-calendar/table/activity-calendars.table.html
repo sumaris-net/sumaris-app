@@ -109,12 +109,6 @@
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
-  <!-- import from file -->
-  <button mat-menu-item class="ion-color-danger" *ngIf="enableFileImport" [disabled]="!canImportFile" (click)="importFromCsv($event)">
-    <mat-icon>description</mat-icon>
-    <mat-label translate>ACTIVITY_CALENDAR.ACTION.IMPORT_FROM_FILE</mat-label>
-  </button>
-
   <!-- Update offline mode -->
   <button mat-menu-item *ngIf="hasOfflineMode" [disabled]="offline" (click)="prepareOfflineMode($event)">
     <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
@@ -129,11 +123,19 @@
 
   <mat-divider></mat-divider>
 
-  <!-- upload button -->
-  <button mat-menu-item *ngIf="synchronizationStatus !== 'SYNC'" (click)="importFromFile($event)">
-    <mat-icon>upload</mat-icon>
-    <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
-  </button>
+  @if (synchronizationStatus === 'SYNC') {
+    <!-- upload from CSV file -->
+    <button mat-menu-item class="ion-color-danger" [disabled]="(canImportCsvFile$ | async) !== true" (click)="importFromCsv($event)">
+      <mat-icon>description</mat-icon>
+      <mat-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</mat-label>
+    </button>
+  } @else if (synchronizationStatus !== 'SYNC' && (isAdmin || debug)) {
+    <!-- upload from JSON file -->
+    <button mat-menu-item (click)="importJsonFile($event)">
+      <mat-icon>upload</mat-icon>
+      <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
+    </button>
+  }
 
   <!-- Force offline (DEV ONLY) -->
   <button mat-menu-item *ngIf="debug && !offline" (click)="toggleOfflineMode($event)">
@@ -452,14 +454,11 @@
             (change)="$event ? masterToggle() : null"
             [checked]="selection.hasValue() && isAllSelected()"
             [indeterminate]="selection.hasValue() && !isAllSelected()"
+            [tabIndex]="-1"
           ></mat-checkbox>
         </th>
         <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
-          <mat-checkbox
-            (click)="$event.stopPropagation()"
-            (change)="$event ? selection.toggle(row) : null"
-            [checked]="selection.isSelected(row)"
-          ></mat-checkbox>
+          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
         </td>
       </ng-container>
 
@@ -532,9 +531,7 @@
           <ion-label translate>ACTIVITY_CALENDAR.TABLE.ECONOMIC_SURVEY</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
-          <ion-text translate>
-            {{ row.currentData.economicSurvey ? 'COMMON.YES' : 'COMMON.NO' }}
-          </ion-text>
+          <ion-text>{{ (row.currentData.economicSurvey ? 'COMMON.YES' : 'COMMON.NO') | translate }}</ion-text>
         </td>
       </ng-container>
 
