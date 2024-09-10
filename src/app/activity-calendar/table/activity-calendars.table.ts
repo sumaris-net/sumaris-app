@@ -138,11 +138,11 @@ export class ActivityCalendarsTable
   }
 
   @Input()
-  set showYear(value: boolean) {
+  set showYearColumn(value: boolean) {
     this.setShowColumn('year', value);
   }
 
-  get showYear(): boolean {
+  get showYearColumn(): boolean {
     return this.getShowColumn('year');
   }
 
@@ -203,13 +203,8 @@ export class ActivityCalendarsTable
     this.settingsId = ActivityCalendarsTableSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureName = ActivityCalendarsTableSettingsEnum.FEATURE_ID;
 
-    this.showYear = false;
-    this.showProgram = false;
-
     // Load years
-    {
-      this.years = new Array(10).fill(DateUtils.moment().year()).map((year, index) => year - index);
-    }
+    this.years = new Array(10).fill(DateUtils.moment().year()).map((year, index) => year - index);
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
