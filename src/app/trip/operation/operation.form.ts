@@ -49,7 +49,7 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormGroup, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Operation, Trip } from '../trip/trip.model';
 import { BehaviorSubject, combineLatest, firstValueFrom, merge, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
@@ -73,6 +73,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { OverlayEventDetail } from '@ionic/core';
+import { FishingAreaForm } from '@app/data/fishing-area/fishing-area.form';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -109,6 +110,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _positionSubscription: Subscription;
   private _emitGeolocationBusy = true;
   private _lastValidatorOpts: any;
+  private _mapFishingAreasForm: FishingAreaForm[];
   protected _usageMode: UsageMode;
   protected toastController = inject(ToastController);
 
