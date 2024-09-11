@@ -365,7 +365,7 @@ export class CalendarComponent
 
   @ViewChildren('monthCalendar', { read: CalendarComponent }) monthCalendars!: QueryList<CalendarComponent>;
   @ViewChild(MatTable) table: MatTable<any>;
-  @ViewChild('tableElement', { read: ElementRef }) tableElementRef!: ElementRef;
+  @ViewChild('table', { read: ElementRef }) tableElementRef!: ElementRef;
 
   @ViewChild('menuTrigger') menuTrigger: MatMenuTrigger;
   @ViewChild('cellSelectionDiv', { read: ElementRef }) cellSelectionDivRef: ElementRef;
@@ -576,12 +576,6 @@ export class CalendarComponent
         this.hotkeys
           .addShortcut({ keys: 'delete', description: 'COMMON.BTN_CLEAR_SELECTION', preventDefault: false /*keep delete in <input>*/ })
           .subscribe((event) => this.clearCellSelection(event))
-      );
-
-      this.registerSubscription(
-        this.hotkeys
-          .addShortcut({ keys: 'enter', description: 'COMMON.BTN_CONFIRM', preventDefault: false })
-          .subscribe((event) => this.onEnterPress(event))
       );
 
       this.registerSubscription(fromEvent(element, 'scroll').subscribe(() => this.onResize()));
@@ -1189,12 +1183,6 @@ export class CalendarComponent
 
     // Ctrl click
     return this.ctrlClick(event, row, this.focusColumn);
-  }
-
-  protected onEnterPress(event: Event) {
-    if (this.cellSelection.colspan === 1 && this.cellSelection.rowspan === 1) {
-      this.dblClickRow(event, this.cellSelection.row);
-    }
   }
 
   async cancelOrDelete(
@@ -2344,13 +2332,8 @@ export class CalendarComponent
 
   protected selectCell(rowIndex: number, columnIndex: number) {
     if (this.tableElementRef) {
-      // Access the DOM element that contains the table rows
       const tableElement = this.tableElementRef.nativeElement;
-
-      // Get the column name
       const columnName = this.displayedColumns[columnIndex];
-
-      // Select the cells
       const cellElements = tableElement.querySelectorAll(`.cdk-column-${columnName}`);
 
       if (cellElements[rowIndex + 1]) {
@@ -2358,14 +2341,13 @@ export class CalendarComponent
 
         this.dispatchEventMouseEvent(cellElement);
 
-        // Save the selected cell
         this.arrowKeyNavigation = {
           rowIndex,
           columnIndex,
           cellElement,
         };
       } else {
-        console.error(`La cellule à l'index ${rowIndex + 1} est introuvable`);
+        console.error(`The cell at index ${rowIndex + 1} was not found`);
       }
     }
   }
