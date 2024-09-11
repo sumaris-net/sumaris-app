@@ -494,6 +494,10 @@ export class ActivityCalendarPage
       }
       if (this.tableMetier) {
         this.tableMetier.metierTaxonGroupIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS);
+        this.tableMetier.acquisitionLevels = [
+          AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
+          AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_USE_FEATURES,
+        ];
         this.addForms([this.tableMetier]);
       }
 
