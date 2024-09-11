@@ -2001,10 +2001,17 @@ export class CalendarComponent
     // Check target path is compatible
     const sourcePathSuffix = lastArrayValue(sourcePaths[0].split('.'));
     const targetPathSuffix = lastArrayValue(targetPaths[0].split('.'));
+
     let isCompatibleField = false;
     const isPmfmOnly = sourcePaths.every((path) => path.startsWith('measurementValues'));
-    const pmfms = this.pmfms.filter((pmfm) => pmfm.id.toString() === sourcePathSuffix || pmfm.id.toString() === targetPathSuffix);
-    if (pmfms.length >= 2 && isPmfmOnly) isCompatibleField = pmfms.every((pmfm) => pmfm.type === 'double' || pmfm.type === 'integer');
+
+    if (isPmfmOnly) {
+      const pmfmIds = sourcePaths.concat(targetPaths).map((pmfm) => parseInt(lastArrayValue(pmfm.split('.'))));
+      const pmfms = this.pmfms.filter((pmfm) => pmfmIds.includes(pmfm.id));
+      const sourcePathUnitLabel = pmfms.find((pmfm) => pmfm.id.toString() === sourcePathSuffix)?.unitLabel;
+      isCompatibleField = pmfms.every((pmfm) => pmfm.unitLabel === sourcePathUnitLabel);
+    }
+
     if (sourcePathSuffix !== targetPathSuffix && !isCompatibleField) {
       Toasts.show(this.toastController, this.translate, {
         type: 'error',
