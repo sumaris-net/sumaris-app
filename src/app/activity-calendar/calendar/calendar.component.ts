@@ -76,7 +76,7 @@ import { Moment } from 'moment/moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { debounceTime, filter, map, take } from 'rxjs/operators';
+import { debounceTime, filter, map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
@@ -89,7 +89,6 @@ import { IUseFeaturesUtils } from '../model/use-features.model';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 import { SelectionModel } from '@angular/cdk/collections';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
-import { MatTable } from '@angular/material/table';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -358,9 +357,6 @@ export class CalendarComponent
 
   @ViewChildren('monthCalendar', { read: CalendarComponent }) monthCalendars!: QueryList<CalendarComponent>;
   @ViewChild('menuTrigger') menuTrigger: MatMenuTrigger;
-
-  @ViewChild(MatTable) table: MatTable<any>;
-  @ViewChild('tableElement', { read: ElementRef }) tableElementRef!: ElementRef;
   @ViewChild('cellSelectionDiv', { read: ElementRef }) cellSelectionDivRef: ElementRef;
   @ViewChild('cellClipboardDiv', { read: ElementRef }) cellClipboardDivRef: ElementRef;
 
@@ -904,6 +900,8 @@ export class CalendarComponent
 
     // DEBUG
     if (this.debug) console.debug(`${this.logPrefix}Validating cell selection`);
+
+    console.log(this.cellSelection);
 
     cellSelection.validating = true;
     cellSelection.resizing = false;
@@ -2480,25 +2478,43 @@ export class CalendarComponent
     }
   }
 
-  protected async handleColumnSelection(event: Event, rowId: number) {
+  protected async handleColumnSelection(event: PointerEvent, rowId: number) {
     const row = this.dataSource.getRow(rowId);
     if (!row) return;
-    const tableElement = this.tableElementRef.nativeElement;
-    const cellStartElements = tableElement.querySelectorAll('.cdk-column-isActive');
-    const lastColumn = this.displayedColumns[this.displayedColumns.length - 2];
-    const cellStartElement = cellStartElements[rowId + 1] as HTMLElement;
-    if (!cellStartElement) return;
-    const eventClick = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-      view: window,
-    });
+    const reservedColumn = RESERVED_END_COLUMNS.concat(ACTIVITY_MONTH_READONLY_COLUMNS, 'select', 'id');
+    const isActiveIndex = this.displayedColumns.findIndex((col) => col === 'isActive');
+    const { columnName, cellElement } = this.getCellEllement(rowId, isActiveIndex);
 
-    cellStartElement.dispatchEvent(eventClick);
+    const rowspan = this.displayedColumns.filter((column) => !reservedColumn.includes(column)).length;
+    let colspan = 1;
+    let canSaveOldSelection = false;
 
-    this.startCellSelection.pipe(take(1)).subscribe(() => {
-      this.shiftClick(event, row, lastColumn);
-    });
+    if (this.cellSelection?.rowspan === rowspan && event?.ctrlKey) {
+      if (rowId > this.cellSelection.row.id) {
+        colspan = Math.abs(rowId - this.cellSelection.row.id) + 1;
+      } else {
+        colspan = rowId - this.cellSelection.row.id - 1;
+      }
+      canSaveOldSelection = true;
+    }
+
+    this.cellSelection = {
+      divElement: this.cellSelectionDivRef.nativeElement,
+      cellElement: canSaveOldSelection ? this.cellSelection.cellElement : cellElement,
+      row: canSaveOldSelection ? this.cellSelection.row : row,
+      columnName,
+      colspan: colspan,
+      rowspan: rowspan,
+      resizing: false,
+    };
+
+    this.resizeCellSelection(this.cellSelection, 'cell');
+  }
+
+  protected getCellEllement(rowIndex: number, columnIndex: number) {
+    const columnName = this.displayedColumns[columnIndex];
+    const cellElements = this.tableContainerElement?.querySelectorAll(`.cdk-column-${columnName}`);
+    return { cellElement: cellElements[rowIndex + 1] as HTMLElement, columnName };
   }
 
   protected getCellElement(rowIndex: number, columnIndex: number) {
