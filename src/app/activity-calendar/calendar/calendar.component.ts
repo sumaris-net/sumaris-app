@@ -901,8 +901,6 @@ export class CalendarComponent
     // DEBUG
     if (this.debug) console.debug(`${this.logPrefix}Validating cell selection`);
 
-    console.log(this.cellSelection);
-
     cellSelection.validating = true;
     cellSelection.resizing = false;
 
