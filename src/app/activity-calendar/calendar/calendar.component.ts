@@ -2485,7 +2485,7 @@ export class CalendarComponent
 
     const rowspan = this.displayedColumns.filter((column) => !reservedColumn.includes(column)).length;
     let colspan = 1;
-    let canSaveOldSelection = false;
+    let canUseOldSelection = false;
 
     if (this.cellSelection?.rowspan === rowspan && event?.ctrlKey) {
       if (rowId > this.cellSelection.row.id) {
@@ -2493,13 +2493,13 @@ export class CalendarComponent
       } else {
         colspan = rowId - this.cellSelection.row.id - 1;
       }
-      canSaveOldSelection = true;
+      canUseOldSelection = true;
     }
 
     this.cellSelection = {
       divElement: this.cellSelectionDivRef.nativeElement,
-      cellElement: canSaveOldSelection ? this.cellSelection.cellElement : cellElement,
-      row: canSaveOldSelection ? this.cellSelection.row : row,
+      cellElement: canUseOldSelection ? this.cellSelection.cellElement : cellElement,
+      row: canUseOldSelection ? this.cellSelection.row : row,
       columnName,
       colspan: colspan,
       rowspan: rowspan,
