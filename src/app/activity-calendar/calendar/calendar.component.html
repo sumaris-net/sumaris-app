@@ -187,7 +187,6 @@
     <div #cellClipboardDiv class="cell-clipboard" [class.cdk-visually-hidden]="!cellClipboard"></div>
 
     <mat-table
-      #table
       [dataSource]="dataSource"
       [class.resizing]="cellSelection?.resizing"
       [class.large]="!compact"

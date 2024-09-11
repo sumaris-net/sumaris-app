@@ -364,8 +364,6 @@ export class CalendarComponent
   }
 
   @ViewChildren('monthCalendar', { read: CalendarComponent }) monthCalendars!: QueryList<CalendarComponent>;
-  @ViewChild(MatTable) table: MatTable<any>;
-  @ViewChild('table', { read: ElementRef }) tableElementRef!: ElementRef;
 
   @ViewChild('menuTrigger') menuTrigger: MatMenuTrigger;
   @ViewChild('cellSelectionDiv', { read: ElementRef }) cellSelectionDivRef: ElementRef;
@@ -576,6 +574,11 @@ export class CalendarComponent
         this.hotkeys
           .addShortcut({ keys: 'delete', description: 'COMMON.BTN_CLEAR_SELECTION', preventDefault: false /*keep delete in <input>*/ })
           .subscribe((event) => this.clearCellSelection(event))
+      );
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'enter', description: 'COMMON.BTN_CONFIRM', preventDefault: false })
+          .subscribe((event) => this.onEnterPress(event))
       );
 
       this.registerSubscription(fromEvent(element, 'scroll').subscribe(() => this.onResize()));
@@ -928,6 +931,55 @@ export class CalendarComponent
     } finally {
       // Mark as not validating
       cellSelection.validating = false;
+    }
+  }
+  protected handleArrowKeyNavigation(key: ArrowKey) {
+    if (!this.cellSelection) return;
+    let rowIndex = this.cellSelection.row.id;
+    let columnIndex = this.displayedColumns.findIndex((col) => col === this.cellSelection.columnName);
+
+    switch (key) {
+      case 'ArrowUp':
+        columnIndex -= 1;
+        break;
+      case 'ArrowDown':
+        columnIndex += 1;
+        break;
+      case 'ArrowLeft':
+        rowIndex -= 1;
+        break;
+      case 'ArrowRight':
+        rowIndex += 1;
+        break;
+      default:
+        return;
+    }
+    const row = this.dataSource.getRow(rowIndex);
+    const { columnName, cellElement } = this.getCellEllement(rowIndex, columnIndex);
+    if (!cellElement || !row || ACTIVITY_MONTH_READONLY_COLUMNS.includes(columnName) || RESERVED_END_COLUMNS.includes(columnName)) return;
+
+    this.cellSelection = {
+      divElement: this.cellSelectionDivRef.nativeElement,
+      cellElement,
+      row,
+      columnName,
+      colspan: 1,
+      rowspan: 1,
+      resizing: false,
+    };
+
+    this.resizeCellSelection(this.cellSelection, 'cell');
+  }
+
+  protected getCellEllement(rowIndex: number, columnIndex: number) {
+    const columnName = this.displayedColumns[columnIndex];
+    const cellElements = this.tableContainerElement?.querySelectorAll(`.cdk-column-${columnName}`);
+    return { cellElement: cellElements[rowIndex + 1] as HTMLElement, columnName };
+  }
+
+  onEnterPress(event: Event) {
+    if (this.cellSelection.row && this.cellSelection?.colspan === 1 && this.cellSelection?.rowspan === 1) {
+      this.dblClickRow(event, this.cellSelection.row);
     }
   }
 
@@ -1801,7 +1853,7 @@ export class CalendarComponent
       // Copy to clipboard
       await this.copyCellSelectionToClipboard(this.cellSelection);
 
-      this.removeCellSelection();
+      // this.removeCellSelection();
 
       this.markForCheck();
     } else {
@@ -2302,62 +2354,5 @@ export class CalendarComponent
   @HostListener('window:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
     this.handleArrowKeyNavigation(event.key as ArrowKey);
-  }
-
-  protected handleArrowKeyNavigation(key: ArrowKey) {
-    if (this.cellSelection) {
-      let rowIndex = this.cellSelection.row.id;
-      let columnIndex = this.displayedColumns.findIndex((col) => col === this.cellSelection.columnName);
-
-      switch (key) {
-        case 'ArrowUp':
-          columnIndex -= 1;
-          break;
-        case 'ArrowDown':
-          columnIndex += 1;
-          break;
-        case 'ArrowLeft':
-          rowIndex -= 1;
-          break;
-        case 'ArrowRight':
-          rowIndex += 1;
-          break;
-      }
-      this.selectCell(rowIndex, columnIndex);
-    }
-    if (!this.cellSelection && this.arrowKeyNavigation) {
-      this.dispatchEventMouseEvent(this.arrowKeyNavigation.cellElement);
-    }
-  }
-
-  protected selectCell(rowIndex: number, columnIndex: number) {
-    if (this.tableElementRef) {
-      const tableElement = this.tableElementRef.nativeElement;
-      const columnName = this.displayedColumns[columnIndex];
-      const cellElements = tableElement.querySelectorAll(`.cdk-column-${columnName}`);
-
-      if (cellElements[rowIndex + 1]) {
-        const cellElement = cellElements[rowIndex + 1] as HTMLElement;
-
-        this.dispatchEventMouseEvent(cellElement);
-
-        this.arrowKeyNavigation = {
-          rowIndex,
-          columnIndex,
-          cellElement,
-        };
-      } else {
-        console.error(`The cell at index ${rowIndex + 1} was not found`);
-      }
-    }
-  }
-
-  protected dispatchEventMouseEvent(cellElement: HTMLElement) {
-    const event = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-      view: window,
-    });
-    cellElement.dispatchEvent(event);
   }
 }
