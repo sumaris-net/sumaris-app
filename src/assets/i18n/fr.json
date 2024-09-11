@@ -78,6 +78,7 @@
     "BTN_DECIMAL_SEPARATOR": ",",
     "EMPTY_OPTION": "(Vide)",
     "All_OPTION": "(Tous)",
+    "KEY_ENTER": "Entrer en mode saisie",
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",

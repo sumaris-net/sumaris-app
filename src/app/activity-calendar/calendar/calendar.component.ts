@@ -89,15 +89,7 @@ import { IUseFeaturesUtils } from '../model/use-features.model';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 import { SelectionModel } from '@angular/cdk/collections';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
-import { MatTable } from '@angular/material/table';
-
 type ArrowKey = 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight';
-
-interface ArrowKeyNavigation {
-  rowIndex: number;
-  columnIndex: number;
-  cellElement: HTMLElement;
-}
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -250,7 +242,6 @@ export class CalendarComponent
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
   protected readonlyColumnCount: number;
-  protected arrowKeyNavigation: ArrowKeyNavigation = null;
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -364,7 +355,6 @@ export class CalendarComponent
   }
 
   @ViewChildren('monthCalendar', { read: CalendarComponent }) monthCalendars!: QueryList<CalendarComponent>;
-
   @ViewChild('menuTrigger') menuTrigger: MatMenuTrigger;
   @ViewChild('cellSelectionDiv', { read: ElementRef }) cellSelectionDivRef: ElementRef;
   @ViewChild('cellClipboardDiv', { read: ElementRef }) cellClipboardDivRef: ElementRef;
@@ -577,7 +567,7 @@ export class CalendarComponent
       );
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'enter', description: 'COMMON.BTN_CONFIRM', preventDefault: false })
+          .addShortcut({ keys: 'enter', description: 'COMMON.KEY_ENTER', preventDefault: false })
           .subscribe((event) => this.onEnterPress(event))
       );
 
