@@ -923,6 +923,21 @@ export class CalendarComponent
       cellSelection.validating = false;
     }
   }
+
+  @HostListener('window:resize')
+  onResize() {
+    console.debug(this.logPrefix + 'Resizing calendar...');
+    this.closeContextMenu();
+    this.resizeCellSelection(this.cellSelection, 'cell', { emitEvent: false });
+    this.resizeCellSelection(this.cellClipboard, 'clipboard', { emitEvent: false });
+    this.markForCheck();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    this.handleArrowKeyNavigation(event.key as ArrowKey);
+  }
+
   protected handleArrowKeyNavigation(key: ArrowKey) {
     if (!this.cellSelection) return;
     let rowIndex = this.cellSelection.row.id;
@@ -1063,15 +1078,6 @@ export class CalendarComponent
     if (!cellElement) return false;
 
     this.selectRow(columnName, row, event);
-  }
-
-  @HostListener('window:resize')
-  onResize() {
-    console.debug(this.logPrefix + 'Resizing calendar...');
-    this.closeContextMenu();
-    this.resizeCellSelection(this.cellSelection, 'cell', { emitEvent: false });
-    this.resizeCellSelection(this.cellClipboard, 'clipboard', { emitEvent: false });
-    this.markForCheck();
   }
 
   toggleCompactMode() {
@@ -2340,9 +2346,5 @@ export class CalendarComponent
     if (opts?.emitEvent !== false) {
       this.markForCheck();
     }
-  }
-  @HostListener('window:keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent) {
-    this.handleArrowKeyNavigation(event.key as ArrowKey);
   }
 }
