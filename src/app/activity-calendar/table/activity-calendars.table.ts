@@ -37,7 +37,7 @@ import {
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
   ACTIVITY_CALENDAR_FEATURE_NAME,
 } from '../activity-calendar.config';
-import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { AppRootDataTable, AppRootTableFilterRestoreSource, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter } from 'rxjs/operators';
@@ -49,7 +49,7 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ActivityCalendarValidatorService } from '@app/activity-calendar/model/activity-calendar.validator';
-import { BaseTableState } from '@app/shared/table/base.table';
+import { AppBaseTableFilterRestoreSource, BaseTableState } from '@app/shared/table/base.table';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
@@ -324,6 +324,15 @@ export class ActivityCalendarsTable
     // Clear the existing activityCalendar context
     this.resetContext();
   }
+  async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }) {
+    super.restoreFilterOrLoad(opts);
+  }
+
+  protected loadFilter(sources?: AppBaseTableFilterRestoreSource[]): any | undefined {
+    const json = super.loadFilter(sources);
+    if (isNil(json)) return { year: DateUtils.moment().year() - 1 };
+    return json;
+  }
 
   async setFilter(filter: Partial<ActivityCalendarFilter>, opts?: { emitEvent: boolean }) {
     filter = filter || {};
@@ -557,10 +566,10 @@ export class ActivityCalendarsTable
       this.emitRefresh();
     } else {
       const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
-      this.filterYearControl.setValue(year, { emitEvent: false });
+      this.filterYearControl.setValue(year, { emitEvent: true });
       this.markForCheck();
 
-      this.setFilter({ year, startDate: startDate, endDate: null });
+      // this.setFilter({ year, startDate: startDate, endDate: null });
     }
   }
 
