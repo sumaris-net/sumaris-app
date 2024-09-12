@@ -960,7 +960,7 @@ export class CalendarComponent
         return;
     }
     const row = this.dataSource.getRow(rowIndex);
-    const { columnName, cellElement } = this.getCellEllement(rowIndex, columnIndex);
+    const { columnName, cellElement } = this.getCellElement(rowIndex, columnIndex);
     if (!cellElement || !row || ACTIVITY_MONTH_READONLY_COLUMNS.includes(columnName) || RESERVED_END_COLUMNS.includes(columnName)) return;
 
     this.cellSelection = {
@@ -976,7 +976,7 @@ export class CalendarComponent
     this.resizeCellSelection(this.cellSelection, 'cell');
   }
 
-  protected getCellEllement(rowIndex: number, columnIndex: number) {
+  protected getCellElement(rowIndex: number, columnIndex: number) {
     const columnName = this.displayedColumns[columnIndex];
     const cellElements = this.tableContainerElement?.querySelectorAll(`.cdk-column-${columnName}`);
     return { cellElement: cellElements[rowIndex + 1] as HTMLElement, columnName };
