@@ -138,7 +138,7 @@ export class ActivityCalendarValidatorService<
   }
 
   getFormGroupOptions(data?: ActivityCalendar, opts?: O): AbstractControlOptions | null {
-    const validators: ValidatorFn[] = [ActivityCalendarValidators.validetAnnualInactivity, ActivityCalendarValidators.validateMonthNumbers];
+    const validators: ValidatorFn[] = [ActivityCalendarValidators.validateAnnualInactivity, ActivityCalendarValidators.validateMonthNumbers];
     return {
       ...super.getFormGroupOptions(data, opts),
       validators,
@@ -305,7 +305,7 @@ export class ActivityCalendarValidators {
     return null;
   }
 
-  static validetAnnualInactivity(group: FormArray): ValidationErrors | null {
+  static validateAnnualInactivity(group: FormArray): ValidationErrors | null {
     const pmfms = group.get('measurementValues')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
     const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
     if (!months && isNotNil(pmfms)) return null;
