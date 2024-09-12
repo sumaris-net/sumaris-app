@@ -1137,6 +1137,45 @@ export class CalendarComponent
     return true;
   }
 
+  protected async handleColumnSelection(event: PointerEvent, rowId: number) {
+    const row = this.dataSource.getRow(rowId);
+    if (!row) return;
+    const reservedColumn = RESERVED_END_COLUMNS.concat(ACTIVITY_MONTH_READONLY_COLUMNS, 'select', 'id');
+    const isActiveIndex = this.displayedColumns.findIndex((col) => col === 'isActive');
+    const { columnName, cellElement } = this.getCellElement(rowId, isActiveIndex);
+
+    const rowspan = this.displayedColumns.filter((column) => !reservedColumn.includes(column)).length;
+    let colspan = 1;
+    let canUseOldSelection = false;
+
+    if (this.cellSelection?.rowspan === rowspan && event?.ctrlKey) {
+      if (rowId > this.cellSelection.row.id) {
+        colspan = Math.abs(rowId - this.cellSelection.row.id) + 1;
+      } else {
+        colspan = rowId - this.cellSelection.row.id - 1;
+      }
+      canUseOldSelection = true;
+    }
+
+    this.cellSelection = {
+      divElement: this.cellSelectionDivRef.nativeElement,
+      cellElement: canUseOldSelection ? this.cellSelection.cellElement : cellElement,
+      row: canUseOldSelection ? this.cellSelection.row : row,
+      columnName,
+      colspan: colspan,
+      rowspan: rowspan,
+      resizing: false,
+    };
+
+    this.resizeCellSelection(this.cellSelection, 'cell');
+  }
+
+  protected getCellElement(rowIndex: number, columnIndex: number) {
+    const columnName = this.displayedColumns[columnIndex];
+    const cellElements = this.tableContainerElement?.querySelectorAll(`.cdk-column-${columnName}`);
+    return { cellElement: cellElements[rowIndex + 1] as HTMLElement, columnName };
+  }
+
   async ctrlClick(event: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
@@ -2476,46 +2515,7 @@ export class CalendarComponent
     }
   }
 
-  protected async handleColumnSelection(event: PointerEvent, rowId: number) {
-    const row = this.dataSource.getRow(rowId);
-    if (!row) return;
-    const reservedColumn = RESERVED_END_COLUMNS.concat(ACTIVITY_MONTH_READONLY_COLUMNS, 'select', 'id');
-    const isActiveIndex = this.displayedColumns.findIndex((col) => col === 'isActive');
-    const { columnName, cellElement } = this.getCellEllement(rowId, isActiveIndex);
-
-    const rowspan = this.displayedColumns.filter((column) => !reservedColumn.includes(column)).length;
-    let colspan = 1;
-    let canUseOldSelection = false;
-
-    if (this.cellSelection?.rowspan === rowspan && event?.ctrlKey) {
-      if (rowId > this.cellSelection.row.id) {
-        colspan = Math.abs(rowId - this.cellSelection.row.id) + 1;
-      } else {
-        colspan = rowId - this.cellSelection.row.id - 1;
-      }
-      canUseOldSelection = true;
-    }
-
-    this.cellSelection = {
-      divElement: this.cellSelectionDivRef.nativeElement,
-      cellElement: canUseOldSelection ? this.cellSelection.cellElement : cellElement,
-      row: canUseOldSelection ? this.cellSelection.row : row,
-      columnName,
-      colspan: colspan,
-      rowspan: rowspan,
-      resizing: false,
-    };
-
-    this.resizeCellSelection(this.cellSelection, 'cell');
-  }
-
   protected getCellEllement(rowIndex: number, columnIndex: number) {
-    const columnName = this.displayedColumns[columnIndex];
-    const cellElements = this.tableContainerElement?.querySelectorAll(`.cdk-column-${columnName}`);
-    return { cellElement: cellElements[rowIndex + 1] as HTMLElement, columnName };
-  }
-
-  protected getCellElement(rowIndex: number, columnIndex: number) {
     const columnName = this.displayedColumns[columnIndex];
     const cellElements = this.tableContainerElement?.querySelectorAll(`.cdk-column-${columnName}`);
     return { cellElement: cellElements[rowIndex + 1] as HTMLElement, columnName };
