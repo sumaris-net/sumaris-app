@@ -7,7 +7,7 @@ import { AppColors } from '@app/shared/colors.utils';
 import { MatBadgeSize } from '@angular/material/badge';
 import { TranslateService } from '@ngx-translate/core';
 
-export declare type OperationMatSvgIcons = 'down-arrow' | 'rollback-arrow';
+export declare type OperationMatSvgIcons = 'operation-child' | 'operation-parent';
 export declare type OperationIonIcon = 'navigate';
 
 @Component({
@@ -79,20 +79,20 @@ export class OperationIconComponent {
 
     // Is child
     if (isNotNil(value.parentOperationId)) {
-      this.matSvgIcon = 'rollback-arrow';
-      this.icon = undefined;
+      this.matSvgIcon = 'operation-child';
+      this.icon = null;
     }
     // Is parent, and has a child
     else if (isNotNil(value.childOperationId) || value.qualityFlagId === QualityFlagIds.NOT_COMPLETED || this.allowParentOperation) {
-      this.matSvgIcon = 'down-arrow';
-      this.icon = undefined;
-      this.badgeIcon = isNil(value.childOperationId) ? 'time-outline' : undefined;
-      this.badgeColor = (this.badgeIcon && 'accent') || undefined;
+      this.matSvgIcon = 'operation-parent';
+      this.icon = null;
+      this.badgeIcon = isNil(value.childOperationId) ? 'time-outline' : null;
+      this.badgeColor = (this.badgeIcon && 'accent') || null;
     }
     // Other
     else {
       this.icon = 'navigate';
-      this.matSvgIcon = undefined;
+      this.matSvgIcon = null;
     }
 
     // Not controlled
@@ -107,7 +107,7 @@ export class OperationIconComponent {
         this.badgeSize = 'small';
         this.title = value.qualificationComments;
       } else {
-        this.badgeIcon = this.badgeIcon || undefined;
+        this.badgeIcon = this.badgeIcon || null;
       }
     }
     // Controlled, not qualified

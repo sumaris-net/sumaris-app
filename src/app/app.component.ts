@@ -259,6 +259,8 @@ export class AppComponent implements OnInit {
       'fish-packet',
       'down-arrow',
       'rollback-arrow',
+      'operation-parent',
+      'operation-child',
       // ,'dolphin-damage' //PIFIL
     ].forEach((filename) =>
       this.matIconRegistry.addSvgIcon(filename, this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`))

@@ -11,6 +11,8 @@ import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-
 import { RxUnpatch } from '@rx-angular/template/unpatch';
 import { NoHtmlPipe } from '@app/shared/pipes/html.pipes';
 import { CheckPipe } from './pipes/check.pipe';
+import { AppErrorItem } from '@app/shared/error/error-item.component';
+import { AppWarningItem } from '@app/shared/error/warning-item.component';
 
 @NgModule({
   imports: [
@@ -23,6 +25,10 @@ import { CheckPipe } from './pipes/check.pipe';
 
     // Sub modules
     MatFormFieldsSkeletonModule,
+
+    // Standalone components
+    AppErrorItem,
+    AppWarningItem,
   ],
   declarations: [
     // Pipes
@@ -53,6 +59,10 @@ import { CheckPipe } from './pipes/check.pipe';
 
     //Sub modules
     MatFormFieldsSkeletonModule,
+
+    // Standalone components
+    AppErrorItem,
+    AppWarningItem,
   ],
 })
 export class AppSharedModule {

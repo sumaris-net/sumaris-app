@@ -353,10 +353,7 @@
   ></app-update-offline-mode-card>
 
   <!-- error -->
-  <ion-item *ngIf="errorSubject | async; let error" lines="none" @slideUpDownAnimation>
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  <app-error-item [message]="errorSubject | async"></app-error-item>
 
   <!-- Tab nav - synchro status-->
   <ng-container *ngIf="hasOfflineMode">

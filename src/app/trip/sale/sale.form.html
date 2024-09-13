@@ -1,9 +1,8 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
   <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (showError) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
 
   <ion-grid class="ion-no-padding">
     <!-- debug -->

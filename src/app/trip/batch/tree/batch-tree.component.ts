@@ -160,6 +160,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   @Input() rootAcquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
   @Input() mobile: boolean;
+  @Input() showError = true;
   @Input() showToolbar: boolean;
   @Input() useSticky = false;
   @Input() usageMode: UsageMode;

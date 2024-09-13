@@ -4,17 +4,6 @@ mat-toolbar {
   }
 }
 
-ion-item.warning {
-  ion-icon[slot] {
-    height: 18px;
-    width: 18px;
-    font-size: 18px;
-    margin-inline-end: 8px;
-  }
-  ion-label {
-    font-size: 14px;
-  }
-}
 .table-container {
   --table-toolbar-height: 0px;
   --table-paginator-height: 0px;

@@ -11,7 +11,6 @@ import {
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
-  slideUpDownAnimation,
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -37,7 +36,6 @@ export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear', 'metier'];
   templateUrl: 'gear-physical-features.table.html',
   styleUrls: ['./gear-physical-features.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [slideUpDownAnimation],
   providers: [{ provide: AppValidatorService, useExisting: GearPhysicalFeaturesValidatorService }, RxState],
 })
 export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysicalFeatures, GearPhysicalFeaturesFilter> implements OnInit, OnDestroy {

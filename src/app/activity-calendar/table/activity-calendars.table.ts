@@ -552,10 +552,12 @@ export class ActivityCalendarsTable
   protected setFilterYear(year: number) {
     if (isNil(year)) {
       this.filterYearControl.reset();
-      this.onRefresh.emit();
+      this.emitRefresh();
     } else {
       const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
-      this.filterYearControl.setValue(startDate, { emitEvent: false });
+      this.filterYearControl.setValue(year, { emitEvent: false });
+      this.markForCheck();
+
       this.setFilter({ year, startDate: startDate, endDate: null });
     }
   }
