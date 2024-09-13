@@ -182,6 +182,9 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
     if (ReferentialUtils.isNotEmpty(data.gear)) {
       this.gearId = data.gear.id;
     }
+
+    // Applying the rankOrder (without waiting ready)
+    this.form.get('rankOrder').patchValue(toNumber(data?.rankOrder, null), { emitEvent: false });
   }
 
   selectInputContent = selectInputContent;

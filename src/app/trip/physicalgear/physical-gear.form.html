@@ -22,6 +22,7 @@
 
   <!-- rankOrder -->
   <mat-form-field *ngIf="canEditRankOrder && form | formGetControl: 'rankOrder'; let control">
+    <mat-label>{{ 'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER' | translateContext: i18nSuffix }}</mat-label>
     <input
       matInput
       #matInput
@@ -34,8 +35,8 @@
       (keydown.tab)="focusNextInput($event)"
       (keydown.enter)="focusNextInput($event)"
       (click)="selectInputContent($event)"
-      [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER' | translateContext: i18nSuffix"
       [tabindex]="tabindex + 1"
+      required
     />
 
     <mat-error *ngIf="control.errors | mapKeys | arrayFirst; let errorKey">

@@ -95,6 +95,8 @@
                 <br />
                 form.valid: {{ physicalGearForm.valid }}
                 <br />
+                form.errors: {{ physicalGearForm.form | formError }}
+                <br />
               </ion-col>
               <ion-col>
                 form.acquisitionLevel: {{ physicalGearForm.acquisitionLevel$ | async }}

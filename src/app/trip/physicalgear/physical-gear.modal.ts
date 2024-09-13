@@ -333,6 +333,8 @@ export class PhysicalGearModal extends AppEntityEditorModal<PhysicalGear> implem
     const children = data.children;
     data.children = undefined;
 
+    //console.debug('[physical-gear-modal] setValue()', data);
+
     // Set main form
     await this.physicalGearForm.setValue(data);
 
