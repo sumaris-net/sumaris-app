@@ -43,6 +43,7 @@ import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operati
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
@@ -66,6 +67,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
   qualityFlagsById: { [id: number]: ReferentialRef };
 
   programValueChanges$: Observable<any>;
+  configVesselFilterDefault: number[];
 
   @Input() showRecorder = true;
   @Input() showObservers = true;
@@ -136,8 +138,17 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
   @ViewChild('programField') programField: MatAutocompleteField;
   @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
 
-  ngOnInit() {
+  async ngOnInit() {
     super.ngOnInit();
+
+    // Load the config to get the default vessel filter
+    this.registerSubscription(
+      this.configService.config.subscribe((config) => {
+        this.configVesselFilterDefault = [config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID)].concat(
+          config.getPropertyAsNumbers(DATA_CONFIG_OPTIONS.DATA_VESSEL_TYPE_IDS)
+        );
+      })
+    );
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -168,13 +179,22 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
         ...opts,
         suggestFn: (value, filter) => {
           let vesselFilter = filter;
-          const programVesselTypeIdsFilter = this.programField.value?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
-          if (programVesselTypeIdsFilter) {
-            vesselFilter = {
-              ...vesselFilter,
-              vesselTypeId: null,
-              vesselTypeIds: programVesselTypeIdsFilter,
-            };
+          if (isNotEmptyArray(this.configVesselFilterDefault)) {
+            this.configVesselFilterDefault.every((v) => isNotNil(v))
+              ? (vesselFilter = { ...filter, vesselTypeIds: this.configVesselFilterDefault })
+              : null;
+          }
+          const program = this.programField?.value;
+          if (program) {
+            const programVesselTypeIdsFilter = program.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
+            const intersection = this.configVesselFilterDefault.filter((value) => programVesselTypeIdsFilter.includes(value));
+            if (programVesselTypeIdsFilter) {
+              vesselFilter = {
+                ...vesselFilter,
+                vesselTypeId: null,
+                vesselTypeIds: intersection,
+              };
+            }
           }
           return this.vesselSnapshotService.suggest(value, vesselFilter);
         },
