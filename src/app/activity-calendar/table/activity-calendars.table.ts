@@ -16,7 +16,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  isNotNilOrNaN,
   MatAutocompleteField,
   MatAutocompleteFieldConfig,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
