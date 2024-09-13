@@ -13,7 +13,6 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrNaN,
   MatAutocompleteField,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
@@ -65,6 +64,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
   statusById = DataQualityStatusEnum;
   qualityFlags: ReferentialRef[];
   qualityFlagsById: { [id: number]: ReferentialRef };
+
+  programValueChanges$: Observable<any>;
 
   @Input() showRecorder = true;
   @Input() showObservers = true;
@@ -133,6 +134,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     //this.debug = !environment.production;
   }
   @ViewChild('programField') programField: MatAutocompleteField;
+  @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
 
   ngOnInit() {
     super.ngOnInit();
@@ -154,14 +156,20 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
       mobile: this.mobile,
     });
 
+    // for ensure the vesselSnapshot is reloaded when the program changes
+    this.programValueChanges$ = this.filterForm.get('program')?.valueChanges || new Observable();
+    this.programValueChanges$.subscribe(() => {
+      this.vesselSnapshotField.reloadItems();
+    });
+
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
       this.registerAutocompleteField('vesselSnapshot', {
         ...opts,
         suggestFn: (value, filter) => {
           let vesselFilter = filter;
-          if (this.programField.value) {
-            const programVesselTypeIdsFilter = this.programField.value?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
+          const programVesselTypeIdsFilter = this.programField.value?.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
+          if (programVesselTypeIdsFilter) {
             vesselFilter = {
               ...vesselFilter,
               vesselTypeId: null,

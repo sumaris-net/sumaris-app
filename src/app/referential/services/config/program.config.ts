@@ -847,6 +847,13 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
   },
 
+  VESSEL_TYPE_FILTER_BY_IDS: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.vessel.type.filterByIds',
+    label: 'PROGRAM.OPTIONS.VESSEL_TYPE_FILTER_BY_IDS',
+    defaultValue: null,
+    type: 'string',
+  },
+
   // Landing
   LANDING_EDITOR: <FormFieldDefinition>{
     key: 'sumaris.landing.editor',
@@ -1217,13 +1224,6 @@ export const ProgramProperties = Object.freeze({
   },
 
   /* -- Extraction options -- */
-  //Option de test
-  VESSEL_TYPE_FILTER_BY_IDS: <FormFieldDefinition>{
-    key: 'sumaris.activityCalendar.vessel.type.filterByIds',
-    label: 'PROGRAM.OPTIONS.VESSEL_TYPE_FILTER_BY_IDS',
-    defaultValue: [],
-    type: 'string',
-  },
 
   EXTRACTION_FORMATS: <FormFieldDefinition>{
     key: 'sumaris.extraction.formats',
