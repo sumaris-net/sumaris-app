@@ -413,7 +413,9 @@
             }
           } @else {
             <!-- readonly (mobile) -->
-            <ion-label>{{ row.currentData | measurementValueGet: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] } }}</ion-label>
+            <ion-label>
+              {{ row.currentData | measurementValueGet: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] } }}
+            </ion-label>
           }
           <!-- resize handlers -->
           @if (enableCellSelection) {
@@ -566,13 +568,13 @@
         (dblclick)="dblClickRow($event, row)"
       ></mat-row>
     </mat-table>
-
-    @if (totalRowCount === 0 && loaded) {
-      <ion-item>
-        <ion-text color="danger" class="text-italic">{{ 'COMMON.NO_RESULT' | translate }}</ion-text>
-      </ion-item>
-    }
   </div>
+
+  @if (totalRowCount === 0 && loaded) {
+    <ion-item>
+      <ion-text color="danger" class="text-italic">{{ 'COMMON.NO_RESULT' | translate }}</ion-text>
+    </ion-item>
+  }
 
   <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y">
     @if (x !== false && enabled) {
@@ -643,6 +645,10 @@
           <br />
           pmfms: {{ (pmfms$ | async)?.length }}
           <br />
+          <br />
+          focusColumn: {{ focusColumn }}
+          <br />
+
           <ion-button (click)="showDebugValue = !showDebugValue">{{ showDebugValue ? 'Hide' : 'Show' }} value</ion-button>
         </ion-col>
         <ion-col>
