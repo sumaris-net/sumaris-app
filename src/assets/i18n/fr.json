@@ -264,6 +264,7 @@
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
         "DEFAULT_FILTER_COUNTRY_ID": "Saisie > Navire: Pavillon (filtre)",
         "DEFAULT_FILTER_TYPE_ID": "Saisie > Navire: Type de navire (filtre)",
+        "VESSEL_FILTER_DEFAULT_TYPE_IDS": "Saisie > Navire: Type(s) de navire (app)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
         "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires > Port d'attache: Nb caract. min pour recherche",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Saisie > Navire: Nb caract. min pour recherche",
@@ -2599,7 +2600,7 @@
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
       "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Valeurs qualitative > Nb valeurs max pour affichage en boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?",
-      "VESSEL_TYPE_FILTER_BY_IDS": "Navires > Filtrer les types de navire par ids ?",
+      "VESSEL_FILTER_DEFAULT_TYPE_IDS": "Saisie > Navire: Type(s) de navire (app)",
       "DATA_OBSERVERS_CAN_WRITE": "Saisie > Autoriser les observateurs d'une donnée à la modifier ?",
       "DATA_STRATEGY_RESOLUTION": "Saisie > Résolution de la stratégie",
       "DATA_STRATEGY_RESOLUTION_ENUM": {

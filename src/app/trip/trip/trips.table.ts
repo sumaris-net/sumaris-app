@@ -13,7 +13,6 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  MatAutocompleteField,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
   PersonUtils,
@@ -32,7 +31,7 @@ import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter, tap } from 'rxjs/operators';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
@@ -44,6 +43,7 @@ import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
@@ -65,8 +65,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
   statusById = DataQualityStatusEnum;
   qualityFlags: ReferentialRef[];
   qualityFlagsById: { [id: number]: ReferentialRef };
-
-  programValueChanges$: Observable<any>;
   configVesselFilterDefault: number[];
 
   @Input() showRecorder = true;
@@ -135,18 +133,16 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
   }
-  @ViewChild('programField') programField: MatAutocompleteField;
-  @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
 
-  async ngOnInit() {
+  ngOnInit() {
     super.ngOnInit();
 
     // Load the config to get the default vessel filter
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
-        this.configVesselFilterDefault = [config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID)].concat(
-          config.getPropertyAsNumbers(DATA_CONFIG_OPTIONS.DATA_VESSEL_TYPE_IDS)
-        );
+        this.configVesselFilterDefault = [config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID) || undefined]
+          .concat(config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [])
+          .filter(isNotNil);
       })
     );
 
@@ -167,35 +163,12 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
       mobile: this.mobile,
     });
 
-    // for ensure the vesselSnapshot is reloaded when the program changes
-    this.programValueChanges$ = this.filterForm.get('program')?.valueChanges || new Observable();
-    this.programValueChanges$.subscribe(() => {
-      this.vesselSnapshotField.reloadItems();
-    });
-
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
       this.registerAutocompleteField('vesselSnapshot', {
         ...opts,
         suggestFn: (value, filter) => {
-          let vesselFilter = filter;
-          if (isNotEmptyArray(this.configVesselFilterDefault)) {
-            this.configVesselFilterDefault.every((v) => isNotNil(v))
-              ? (vesselFilter = { ...filter, vesselTypeIds: this.configVesselFilterDefault })
-              : null;
-          }
-          const program = this.programField?.value;
-          if (program) {
-            const programVesselTypeIdsFilter = program.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS);
-            const intersection = this.configVesselFilterDefault.filter((value) => programVesselTypeIdsFilter.includes(value));
-            if (programVesselTypeIdsFilter) {
-              vesselFilter = {
-                ...vesselFilter,
-                vesselTypeId: null,
-                vesselTypeIds: intersection,
-              };
-            }
-          }
+          const vesselFilter = this.getVesselTypeFilter(filter);
           return this.vesselSnapshotService.suggest(value, vesselFilter);
         },
       });
@@ -542,5 +515,32 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
 
   protected excludeNotQualified(qualityFlag: ReferentialRef): boolean {
     return qualityFlag?.id !== QualityFlagIds.NOT_QUALIFIED;
+  }
+
+  protected getVesselTypeFilter(filter: Partial<VesselSnapshotFilter>) {
+    let vesselFilter = filter;
+
+    if (isNotEmptyArray(this.configVesselFilterDefault)) vesselFilter = { ...vesselFilter, vesselTypeIds: this.configVesselFilterDefault };
+
+    const program = this.filterForm.value.program;
+    if (!program) return vesselFilter;
+
+    const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
+    if (!programVesselTypeIdsFilter) return vesselFilter;
+
+    let vesselIds;
+
+    vesselIds = isNotEmptyArray(this.configVesselFilterDefault)
+      ? this.configVesselFilterDefault.filter((value) => programVesselTypeIdsFilter.includes(value))
+      : programVesselTypeIdsFilter;
+
+    vesselIds = isEmptyArray(vesselIds) ? [undefined] : vesselIds;
+
+    vesselFilter = {
+      ...vesselFilter,
+      vesselTypeIds: vesselIds,
+    };
+
+    return vesselFilter;
   }
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
 import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
@@ -8,7 +8,6 @@ import {
   CORE_CONFIG_OPTIONS,
   DateUtils,
   FilesUtils,
-  firstNotNilPromise,
   HammerSwipeEvent,
   isEmptyArray,
   isNil,
@@ -16,7 +15,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  MatAutocompleteField,
   MatAutocompleteFieldConfig,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   OfflineFeature,
@@ -58,6 +56,8 @@ import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -95,7 +95,8 @@ export class ActivityCalendarsTable
   protected qualityFlags: ReferentialRef[];
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
-  protected originalFilter: any;
+  protected program: Program;
+  protected configVesselFilterDefault: number[];
 
   @Input() showRecorder = true;
   @Input() canDownload = false;
@@ -208,10 +209,7 @@ export class ActivityCalendarsTable
     this.debug = !environment.production;
     this.logPrefix = '[activity-calendar-table] ';
   }
-  @ViewChild('vesselTypeField') vesselTypeField: MatAutocompleteField;
-  @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
-
-  async ngOnInit() {
+  ngOnInit() {
     super.ngOnInit();
     this.canEdit = this.accountService.isUser();
     const showAdvancedFeatures = this.isAdmin;
@@ -219,6 +217,15 @@ export class ActivityCalendarsTable
     this.canUpload = showAdvancedFeatures;
     this.canOpenMap = showAdvancedFeatures;
     this.canAdd = showAdvancedFeatures;
+
+    // Load the config to get the default vessel filter
+    this.registerSubscription(
+      this.configService.config.subscribe((config) => {
+        this.configVesselFilterDefault = [config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID) || undefined]
+          .concat(config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [])
+          .filter(isNotNil);
+      })
+    );
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -232,21 +239,15 @@ export class ActivityCalendarsTable
       this.registerAutocompleteField('vesselSnapshot', {
         ...opts,
         suggestFn: (value, filter) => {
-          let vesselFilter = { ...filter, vesselTypeIds: this.originalFilter };
-          const idsAllowed = [vesselFilter.vesselTypeId, ...vesselFilter.vesselTypeIds];
-          const canUpdateFilter = this.vesselTypeField.value && idsAllowed.includes(this.vesselTypeField.value.id);
-
-          if (canUpdateFilter) {
-            vesselFilter = {
-              ...vesselFilter,
-              vesselTypeId: this.vesselTypeField.value?.id,
-              vesselTypeIds: null,
-            };
+          let vesselFilter = this.getVesselTypeFilter(filter);
+          const vesselType = this.filterForm.value.vesselType?.id;
+          if (isNotNil(vesselType)) {
+            const isVesselTypeUsable = isNotNil(vesselFilter?.vesselTypeIds) ? vesselFilter?.vesselTypeIds?.includes(vesselType) : true;
+            vesselFilter = { ...vesselFilter, vesselTypeIds: isVesselTypeUsable ? [vesselType] : [undefined] };
           }
-          return !canUpdateFilter && this.vesselTypeField.value ? null : this.vesselSnapshotService.suggest(value, vesselFilter);
+          return this.vesselSnapshotService.suggest(value, vesselFilter);
         },
       });
-      this.vesselSnapshotField.reloadItems();
     });
 
     const locationConfig: MatAutocompleteFieldConfig = {
@@ -407,23 +408,18 @@ export class ActivityCalendarsTable
   protected async setProgram(program: Program) {
     if (!program?.label) throw new Error('Invalid program');
     console.debug(`${this.logPrefix}Init using program`, program);
-    const config = await firstNotNilPromise(this.configService.config);
 
     // I18n suffix
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nColumnSuffix = i18nSuffix;
 
-    this.originalFilter = [
-      ...program.getPropertyAsNumbers(ProgramProperties.VESSEL_TYPE_FILTER_BY_IDS),
-      config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID),
-    ];
-
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
+    this.showProgram = false;
     this.showProgram = false;
 
     this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
-
+    this.program = program;
     if (this.loaded) this.updateColumns();
   }
 
@@ -690,5 +686,31 @@ export class ActivityCalendarsTable
       const jobs = await Promise.all(uploadedFileNames.map((uploadedFileName) => this._dataService.importCsvFile(uploadedFileName, format)));
       console.info(this.logPrefix + `Activity calendars successfully imported, in ${Date.now() - now}ms`, jobs);
     }
+  }
+  protected getVesselTypeFilter(filter: Partial<VesselSnapshotFilter>) {
+    let vesselFilter = filter;
+
+    if (isNotEmptyArray(this.configVesselFilterDefault)) vesselFilter = { ...vesselFilter, vesselTypeIds: this.configVesselFilterDefault };
+
+    const program = this.filterForm.value.program || this.program;
+    if (!program) return vesselFilter;
+
+    const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
+    if (!programVesselTypeIdsFilter) return vesselFilter;
+
+    let vesselIds;
+
+    vesselIds = isNotEmptyArray(this.configVesselFilterDefault)
+      ? this.configVesselFilterDefault.filter((value) => programVesselTypeIdsFilter.includes(value))
+      : programVesselTypeIdsFilter;
+
+    vesselIds = isEmptyArray(vesselIds) ? [undefined] : vesselIds;
+
+    vesselFilter = {
+      ...vesselFilter,
+      vesselTypeIds: vesselIds,
+    };
+
+    return vesselFilter;
   }
 }
