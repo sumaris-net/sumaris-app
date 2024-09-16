@@ -210,7 +210,7 @@
           *matCellDef="let row"
           [title]="errorSpan?.innerText || ''"
           class="mat-column-reset-background-color"
-          (click)="handleColumnSelection($event, row.id)"
+          (click)="selectMonthClick($event, row)"
         >
           <ion-label class="ion-text-center">
             <ion-text

@@ -1060,6 +1060,9 @@ export class CalendarComponent
 
     this.resizeCellSelection(this.cellSelection, 'cell');
 
+    // Emit cell selection changes
+    this.startCellSelection.next();
+
     // Scroll to selection
     if (event.ctrlKey) {
       sleep(250).then(() => this.scrollToElement(cellElement, 'auto'));
@@ -1137,43 +1140,42 @@ export class CalendarComponent
     return true;
   }
 
-  protected async handleColumnSelection(event: PointerEvent, rowId: number) {
-    const row = this.dataSource.getRow(rowId);
-    if (!row) return;
-    const reservedColumn = RESERVED_END_COLUMNS.concat(ACTIVITY_MONTH_READONLY_COLUMNS, 'select', 'id');
+  protected async selectMonthClick(event: MouseEvent, row: AsyncTableElement<ActivityMonth>) {
+    if (!row || event?.defaultPrevented) return; // Skip
+
+    event?.preventDefault(); // Avoid clickRow
+
     const isActiveIndex = this.displayedColumns.findIndex((col) => col === 'isActive');
-    const { columnName, cellElement } = this.getCellElement(rowId, isActiveIndex);
+    let { columnName, cellElement } = this.getCellElement(row.id, isActiveIndex);
 
-    const rowspan = this.displayedColumns.filter((column) => !reservedColumn.includes(column)).length;
+    const reservedColumnCount = RESERVED_START_COLUMNS.concat(RESERVED_END_COLUMNS).length + this.readonlyColumnCount;
+    const rowspan = this.displayedColumns.length - reservedColumnCount;
+
     let colspan = 1;
-    let canUseOldSelection = false;
 
-    if (this.cellSelection?.rowspan === rowspan && event?.ctrlKey) {
-      if (rowId > this.cellSelection.row.id) {
-        colspan = Math.abs(rowId - this.cellSelection.row.id) + 1;
-      } else {
-        colspan = rowId - this.cellSelection.row.id - 1;
+    // If Shift+click: expand the existing selection
+    if (event?.shiftKey && this.cellSelection?.rowspan === rowspan && this.cellSelection.row.id !== row.id) {
+      colspan = Math.max(1, Math.abs(row.id - this.cellSelection.row.id)) + 1;
+      if (row.id > this.cellSelection.row.id) {
+        cellElement = this.cellSelection.cellElement;
+        row = this.cellSelection.row;
       }
-      canUseOldSelection = true;
     }
 
     this.cellSelection = {
       divElement: this.cellSelectionDivRef.nativeElement,
-      cellElement: canUseOldSelection ? this.cellSelection.cellElement : cellElement,
-      row: canUseOldSelection ? this.cellSelection.row : row,
+      cellElement,
+      row,
       columnName,
-      colspan: colspan,
-      rowspan: rowspan,
+      colspan,
+      rowspan,
       resizing: false,
     };
 
     this.resizeCellSelection(this.cellSelection, 'cell');
-  }
 
-  protected getCellElement(rowIndex: number, columnIndex: number) {
-    const columnName = this.displayedColumns[columnIndex];
-    const cellElements = this.tableContainerElement?.querySelectorAll(`.cdk-column-${columnName}`);
-    return { cellElement: cellElements[rowIndex + 1] as HTMLElement, columnName };
+    // Emit cell selection changes
+    this.startCellSelection.next();
   }
 
   async ctrlClick(event: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
@@ -1488,43 +1490,6 @@ export class CalendarComponent
       // Scroll to bottom
       if (opts?.scrollToBottom != false) {
         sleep(250).then(() => this.scrollToBottom());
-      }
-    }
-  }
-
-  scrollToElement(cellElement?: HTMLElement, behavior: 'smooth' | 'auto' = 'smooth') {
-    if (this.tableContainerRef && cellElement) {
-      const container = this.tableContainerRef.nativeElement;
-      const containerRect = container.getBoundingClientRect();
-      const cellRect = cellElement.getBoundingClientRect();
-
-      // Calculer les marges pour la visibilité
-      const margin = 16;
-
-      // Calculer les valeurs de défilement nécessaires
-      let scrollTop = 0;
-      let scrollLeft = 0;
-
-      if (cellRect.top < containerRect.top - margin) {
-        scrollTop = cellElement.offsetTop - container.offsetTop - margin;
-      } else if (cellRect.bottom > containerRect.bottom + margin) {
-        scrollTop = cellElement.offsetTop - container.offsetTop - (containerRect.height - cellRect.height - margin);
-      }
-
-      if (cellRect.left < containerRect.left - margin) {
-        scrollLeft = cellElement.offsetLeft - container.offsetLeft - margin;
-      } else if (cellRect.right > containerRect.right + margin) {
-        scrollLeft = cellElement.offsetLeft - container.offsetLeft - (containerRect.width - cellRect.width - margin);
-      }
-
-      // Vérifier si un défilement est nécessaire avant de l'effectuer
-      if (scrollTop !== 0 || scrollLeft !== 0) {
-        console.debug(this.logPrefix + 'Scrolling to cell element');
-        container.scroll({
-          top: scrollTop !== 0 ? scrollTop : undefined,
-          left: scrollLeft !== 0 ? scrollLeft : undefined,
-          behavior,
-        });
       }
     }
   }
@@ -2513,11 +2478,5 @@ export class CalendarComponent
     if (opts?.emitEvent !== false) {
       this.markForCheck();
     }
-  }
-
-  protected getCellEllement(rowIndex: number, columnIndex: number) {
-    const columnName = this.displayedColumns[columnIndex];
-    const cellElements = this.tableContainerElement?.querySelectorAll(`.cdk-column-${columnName}`);
-    return { cellElement: cellElements[rowIndex + 1] as HTMLElement, columnName };
   }
 }
