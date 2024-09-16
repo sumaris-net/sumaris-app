@@ -645,6 +645,10 @@
           <br />
           pmfms: {{ (pmfms$ | async)?.length }}
           <br />
+          <br />
+          focusColumn: {{ focusColumn }}
+          <br />
+
           <ion-button (click)="showDebugValue = !showDebugValue">{{ showDebugValue ? 'Hide' : 'Show' }} value</ion-button>
         </ion-col>
         <ion-col>
