@@ -386,35 +386,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       showAllOnFocus: true,
     });
 
-    // Combo: fishingAreas
-    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes(
-      'fishingAreaLocation',
-      // TODO: find a way to configure/change this array dynamically (by a set/get input + set by program's option)
-      // Est-ce que la SFA a besoin des deux info, label et name ? Par ACSOT/PIFIL non, sur les rect stats
-      ['label', 'name']
-    );
-    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('fishingAreaLocation', {
-      suggestFn: (value, filter) =>
-        this.suggestFishingAreaLocations(value, {
-          ...filter,
-          levelIds: this.fishingAreaLocationLevelIds,
-        }),
-      filter: {
-        entityName: 'Location',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-      },
-      attributes: fishingAreaAttributes,
-      showAllOnFocus: false,
-      suggestLengthThreshold: 2,
-      mobile: this.mobile,
-    });
-
-    // Taxon group combo
-    this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value, filter) => this.suggestMetiers(value, filter),
-      mobile: this.mobile,
-    });
-
     // Listen physical gear, to enable/disable metier
     this.registerSubscription(
       this.form
@@ -422,6 +393,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         .valueChanges.pipe(distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id')))
         .subscribe((physicalGear) => this.onPhysicalGearChanged(physicalGear))
     );
+
+    // Taxon group combo
+    this.registerAutocompleteField('taxonGroup', {
+      suggestFn: (value, filter) => this.suggestMetiers(value, filter),
+      mobile: this.mobile,
+      showAllOnFocus: true,
+    });
 
     // Listen parent operation
     this.registerSubscription(this.parentControl.valueChanges.subscribe((value) => this.onParentOperationChanged(value)));
@@ -452,6 +430,29 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this.registerSubscription(
       this.isParentOperationControl.valueChanges.pipe(distinctUntilChanged()).subscribe((value) => this.setIsParentOperation(value))
     );
+
+    // Combo: fishingAreas
+    const fishingAreaAttributes = this.settings.getFieldDisplayAttributes(
+      'fishingAreaLocation',
+      // TODO: find a way to configure/change this array dynamically (by a set/get input + set by program's option)
+      // Est-ce que la SFA a besoin des deux info, label et name ? Pour ACSOT/PIFIL non, sur les rect stats
+      ['label', 'name']
+    );
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('fishingAreaLocation', {
+      suggestFn: (value, filter) =>
+        this.suggestFishingAreaLocations(value, {
+          ...filter,
+          levelIds: this.fishingAreaLocationLevelIds,
+        }),
+      filter: {
+        entityName: 'Location',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+      },
+      attributes: fishingAreaAttributes,
+      showAllOnFocus: false,
+      suggestLengthThreshold: 2,
+      mobile: this.mobile,
+    });
   }
 
   ngOnReady() {
@@ -865,8 +866,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this.toggleFilter('metier');
 
     if (!this.loading) {
-      // Refresh metiers
+      // Get selected physical gear
       const physicalGear = this.form.get('physicalGear').value;
+
+      // Refresh metiers
       await this.loadMetiers(physicalGear, { showAlertIfFailed: true, reloadIfFailed: false });
 
       if (field) field.reloadItems();
@@ -968,8 +971,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
     await this.ready();
 
-    const gear = physicalGear?.gear;
-    console.debug('[operation-form] Loading Metier ref items for the gear: ' + gear?.label);
+    const gear = physicalGear.gear;
+    console.debug(`[operation-form] Loading metiers for gear ${gear?.label || 'null'}`);
 
     let res: LoadResult<Metier | ReferentialRef>;
     if (this.autocompleteFilters.metier) {
@@ -981,7 +984,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         endDate: DateUtils.moment().add(1, 'day'), // Tomorrow
         programLabel: this.programLabel,
         gearIds: gear && [gear.id],
-        levelId: (gear && gear.id) || undefined,
+        levelId: gear?.id || undefined,
       });
     } else {
       res = await this.referentialRefService.loadAll(
@@ -993,7 +996,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
           ...METIER_DEFAULT_FILTER,
           searchJoin: 'TaxonGroup',
           searchJoinLevelIds: this.metierTaxonGroupTypeIds,
-          levelId: (gear && gear.id) || undefined,
+          levelId: gear?.id || undefined,
         },
         { withTotal: true }
       );
@@ -1052,6 +1055,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       }
     }
 
+    // Apply the unique value, is field was empty
     if (res.data?.length === 1 && ReferentialUtils.isEmpty(metier)) {
       metierControl.patchValue(res.data[0]);
     }
@@ -1182,6 +1186,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   }
 
   protected async suggestMetiers(value: any, filter: any): Promise<LoadResult<IReferentialRef>> {
+    // DEBUG
+    //console.debug('[operation-form] suggestMetiers()', value, filter);
+
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
     // Replace '*' character by undefined
@@ -1193,12 +1200,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       value = value.trim().replace(TEXT_SEARCH_IGNORE_CHARS_REGEXP, '*');
     }
 
-    let res = this._$metiers.value;
-    if (isNil(res?.data)) {
+    let items = this._$metiers.value?.data;
+    if (isNil(items)) {
       console.debug('[operation-form] Waiting metier to be loaded...');
-      res = await firstNotNilPromise(this._$metiers, { stop: this.destroySubject });
+      items = (await firstNotNilPromise(this._$metiers, { stop: this.destroySubject }))?.data;
     }
-    return suggestFromArray(res.data, value, filter);
+
+    return suggestFromArray(items, value, filter);
   }
 
   protected async suggestFishingAreaLocations(value: string | any, filter: any): Promise<LoadResult<ReferentialRef>> {
