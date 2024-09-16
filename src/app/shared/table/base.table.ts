@@ -298,6 +298,7 @@ export abstract class AppBaseTable<
   }
 
   clickRow(event: Event | undefined, row: TableElement<T>): boolean {
+    if (event?.defaultPrevented) return false;
     if (!this.inlineEdition) this.highlightedRowId = row?.id;
 
     //console.debug('[base-table] click row');
@@ -591,11 +592,11 @@ export abstract class AppBaseTable<
     }
   }
 
-  toggleCompactMode() {
+  async toggleCompactMode() {
     this.compact = !this.compact;
     this.markForCheck();
     if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) {
-      this.settings.savePageSetting(this.settingsId, this.compact, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY);
+      await this.savePageSettings(this.compact, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY);
     }
   }
 
@@ -712,6 +713,6 @@ export abstract class AppBaseTable<
   protected async devToggleDebug() {
     this.debug = !this.debug;
     this.markForCheck();
-    if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) await this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
+    if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) await this.savePageSettings(this.debug, 'debug');
   }
 }
