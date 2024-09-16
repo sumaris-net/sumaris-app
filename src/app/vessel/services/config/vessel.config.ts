@@ -1,6 +1,7 @@
 import { TypePolicies } from '@apollo/client/core';
 import { FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 export const VESSEL_FEATURE_NAME = 'vessel';
 
@@ -38,6 +39,17 @@ export const VESSEL_CONFIG_OPTIONS = {
     autocomplete: {
       attributes: ['id', 'name'],
       filter: { entityName: 'VesselType', statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY] },
+    },
+  },
+  VESSEL_FILTER_DEFAULT_TYPE_IDS: <FormFieldDefinition>{
+    key: 'sumaris.vessel.filter.type.ids',
+    label: 'CONFIGURATION.OPTIONS.VESSEL.VESSEL_FILTER_DEFAULT_TYPE_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: <ReferentialRefFilter>{
+        entityName: 'VesselType',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
     },
   },
   VESSEL_FILTER_MIN_LENGTH: <FormFieldDefinition>{

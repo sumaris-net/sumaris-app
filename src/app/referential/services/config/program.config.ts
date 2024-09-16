@@ -847,11 +847,16 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
   },
 
-  VESSEL_TYPE_FILTER_BY_IDS: <FormFieldDefinition>{
-    key: 'sumaris.activityCalendar.vessel.type.filterByIds',
-    label: 'PROGRAM.OPTIONS.VESSEL_TYPE_FILTER_BY_IDS',
-    defaultValue: null,
-    type: 'string',
+  VESSEL_FILTER_DEFAULT_TYPE_IDS: <FormFieldDefinition>{
+    key: 'sumaris.vessel.filter.type.ids',
+    label: 'PROGRAM.OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: <ReferentialRefFilter>{
+        entityName: 'VesselType',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+    },
   },
 
   // Landing
