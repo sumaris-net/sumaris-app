@@ -206,7 +206,12 @@
           }
         </mat-header-cell>
 
-        <mat-header-cell *matCellDef="let row" [title]="errorSpan?.innerText || ''" class="mat-column-reset-background-color">
+        <mat-header-cell
+          *matCellDef="let row"
+          [title]="errorSpan?.innerText || ''"
+          class="mat-column-reset-background-color"
+          (click)="selectMonthClick($event, row)"
+        >
           <ion-label class="ion-text-center">
             <ion-text
               matBadge="!"

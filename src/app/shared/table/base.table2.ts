@@ -712,6 +712,49 @@ export abstract class AppBaseTable2<
     }
   }
 
+  protected getCellElement(rowIndex: number, columnIndex: number) {
+    const columnName = this.displayedColumns[columnIndex];
+    const cellElements = this.tableContainerElement?.querySelectorAll(`.cdk-column-${columnName}`);
+    return { cellElement: cellElements[rowIndex + 1] as HTMLElement, columnName };
+  }
+
+  protected scrollToElement(cellElement?: HTMLElement, behavior: 'smooth' | 'auto' = 'smooth') {
+    if (this.tableContainerRef && cellElement) {
+      const container = this.tableContainerRef.nativeElement;
+      const containerRect = container.getBoundingClientRect();
+      const cellRect = cellElement.getBoundingClientRect();
+
+      // Calculer les marges pour la visibilité
+      const margin = 16;
+
+      // Calculer les valeurs de défilement nécessaires
+      let scrollTop = 0;
+      let scrollLeft = 0;
+
+      if (cellRect.top < containerRect.top - margin) {
+        scrollTop = cellElement.offsetTop - container.offsetTop - margin;
+      } else if (cellRect.bottom > containerRect.bottom + margin) {
+        scrollTop = cellElement.offsetTop - container.offsetTop - (containerRect.height - cellRect.height - margin);
+      }
+
+      if (cellRect.left < containerRect.left - margin) {
+        scrollLeft = cellElement.offsetLeft - container.offsetLeft - margin;
+      } else if (cellRect.right > containerRect.right + margin) {
+        scrollLeft = cellElement.offsetLeft - container.offsetLeft - (containerRect.width - cellRect.width - margin);
+      }
+
+      // Vérifier si un défilement est nécessaire avant de l'effectuer
+      if (scrollTop !== 0 || scrollLeft !== 0) {
+        console.debug(this.logPrefix + 'Scrolling to cell element');
+        container.scroll({
+          top: scrollTop !== 0 ? scrollTop : undefined,
+          left: scrollLeft !== 0 ? scrollLeft : undefined,
+          behavior,
+        });
+      }
+    }
+  }
+
   protected async devToggleDebug() {
     this.debug = !this.debug;
     this.markForCheck();
