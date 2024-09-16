@@ -44,6 +44,7 @@ mat-toolbar {
   height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
   min-width: 100%;
   overflow: auto;
+  overflow-y: scroll;
   z-index: 10;
 
   &.has-toolbar {
