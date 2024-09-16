@@ -1200,7 +1200,7 @@ export const ProgramProperties = Object.freeze({
   },
   ACTIVITY_CALENDAR_REPORT_FORM_FOOTER: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.report.form.footer',
-    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_FORM_FOOTER',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER',
     type: 'string',
   },
   ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL: <FormFieldDefinition>{
@@ -1213,17 +1213,35 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL',
     type: 'string',
   },
-  ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER: <FormFieldDefinition>{
-    key: 'sumaris.activityCalendar.report.form.blank.nbMetier',
-    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER',
+  ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER_BLOCK: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.form.blank.nbMetierBlock',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER_BLOCK',
     type: 'integer',
     defaultValue: 4,
   },
+  ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GEARS_COLUMN: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.form.blank.nbGearsColumn',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GEARS_COLUMN',
+    type: 'integer',
+    defaultValue: 5,
+  },
   ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER: <FormFieldDefinition>{
-    key: 'sumaris.activityCalendar.report.form.blank.nbMetier',
+    key: 'sumaris.activityCalendar.report.form.blank.nbFishingAreaPerMetier',
     label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER',
     type: 'integer',
     defaultValue: 2,
+  },
+  ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.form.blank.head.physicalGearPmfm1',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1',
+    type: 'string',
+    defaultValue: '',
+  },
+  ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.form.blank.head.physicalGearPmfm2',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2',
+    type: 'string',
+    defaultValue: '',
   },
   ACTIVITY_CALENDAR_IMAGES_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.images.enable',

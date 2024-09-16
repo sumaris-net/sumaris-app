@@ -53,8 +53,7 @@ export class ActivityMonthUtils {
       .map(GearUseFeatures.fromObject)
       .sort(GearUseFeaturesComparators.sortByDateAndRankOrderFn);
     const sortedMetierIds =
-      opts?.sortedMetierIds ||
-      (opts?.fillEmptyGuf && removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)).concat(undefined));
+      opts?.sortedMetierIds || (opts?.fillEmptyGuf && removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)));
     const fishingAreaCount = opts?.fishingAreaCount || 2;
 
     return monthStartDates
@@ -73,7 +72,7 @@ export class ActivityMonthUtils {
         target.gearUseFeatures = sortedGearUseFeatures?.filter(
           (guf) => DateUtils.isSame(startDate, guf.startDate, 'day') && DateUtils.isSame(endDate, guf.endDate, 'day')
         );
-        if (opts?.fillEmptyGuf && sortedMetierIds.length > 1) {
+        if (opts?.fillEmptyGuf && isNotEmptyArray(sortedMetierIds)) {
           target.gearUseFeatures = sortedMetierIds.flatMap((metierId) => {
             const existingGuf = target.gearUseFeatures.filter((guf) => guf.metier?.id === metierId);
             if (isNotEmptyArray(existingGuf)) return existingGuf;
