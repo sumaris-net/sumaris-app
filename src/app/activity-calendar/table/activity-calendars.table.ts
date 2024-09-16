@@ -332,12 +332,18 @@ export class ActivityCalendarsTable
 
   async setFilter(filter: Partial<ActivityCalendarFilter>, opts?: { emitEvent: boolean }) {
     filter = filter || {};
+
+    // Convert year as number (e.g. when was a moment)
     if (isMoment(filter.year)) {
       filter.year = filter.year.year();
     } else if (isMoment(filter.startDate)) {
       filter.year = filter.startDate.year();
+    } else if (isNotNil(filter.year)) {
+      filter.year = toNumber(filter.year, null);
     } else {
-      filter.year = toNumber(filter.year, DateUtils.moment().year() - 1);
+      filter.year = null;
+      filter.startDate = null;
+      filter.endDate = null;
     }
 
     // Program
@@ -559,7 +565,7 @@ export class ActivityCalendarsTable
   protected setFilterYear(year: number) {
     if (isNil(year)) {
       this.filterYearControl.reset();
-      this.emitRefresh();
+      this.setFilter({ year });
     } else {
       const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
       this.filterYearControl.setValue(year, { emitEvent: true });
