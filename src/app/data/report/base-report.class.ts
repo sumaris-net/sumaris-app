@@ -8,6 +8,7 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
   AppErrorWithDetails,
+  ConfigService,
   DateFormatService,
   DateUtils,
   EntityAsObjectOptions,
@@ -29,7 +30,7 @@ import {
   WaitForOptions,
   waitForTrue,
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, lastValueFrom, Subject } from 'rxjs';
+import { BehaviorSubject, lastValueFrom, Subject, Subscription } from 'rxjs';
 import { ModalController, PopoverController, ToastController } from '@ionic/angular';
 import { Share } from '@capacitor/share';
 import { Popovers } from '@app/shared/popover/popover.utils';
@@ -122,6 +123,7 @@ export abstract class AppBaseReport<
   protected readonly baseHref: string;
   protected readonly translateContext: TranslateContextService;
   protected readonly context: ContextService;
+  protected readonly configService: ConfigService;
 
   protected readonly router: Router;
   protected readonly destroySubject = new Subject<void>();
@@ -135,9 +137,11 @@ export abstract class AppBaseReport<
   protected _pathIdAttribute: string;
   protected _pathParentIdAttribute: string;
   protected _stats: S = null;
+  protected _peerUrl: string;
   protected uuid: string = null;
 
   protected onRefresh = new EventEmitter<void>();
+  protected configSubscription: Subscription;
 
   error: string;
   revealOptions: Partial<IRevealExtendedOptions>;
@@ -186,7 +190,7 @@ export abstract class AppBaseReport<
   }
 
   get shareUrlBase(): string {
-    let peerUrl = this.settings.settings?.peerUrl;
+    let peerUrl = this._peerUrl;
 
     if (isNilOrBlank(peerUrl)) {
       // Fallback to current website (but NOT if in App)
@@ -224,6 +228,7 @@ export abstract class AppBaseReport<
     this.fileTransferService = injector.get(FileTransferService);
     this.context = injector.get(ContextService);
     this.network = injector.get(NetworkService);
+    this.configService = injector.get(ConfigService);
 
     this.platform = injector.get(PlatformService);
     this.translate = injector.get(TranslateService);
@@ -253,9 +258,13 @@ export abstract class AppBaseReport<
     if (this._autoLoad) {
       setTimeout(() => this.start(), this._autoLoadDelay);
     }
+    this.configSubscription = this.configService.config.subscribe((config) => {
+      this._peerUrl = config.properties['server.app.url'] === undefined ? this.settings.settings?.peerUrl : config.properties['server.app.url'];
+    });
   }
 
   ngOnDestroy() {
+    this.configSubscription.unsubscribe();
     this.destroySubject.next();
   }
 

@@ -39,4 +39,9 @@ export const APP_CORE_CONFIG_OPTIONS = Object.freeze({
     type: 'string',
     defaultValue: 'GUEST',
   },
+  APP_URL: <FormFieldDefinition>{
+    key: 'server.app.url',
+    label: 'CONFIGURATION.OPTIONS.APP_URL',
+    type: 'string',
+  },
 });
