@@ -528,7 +528,7 @@
     <tr mat-row *matRowDef="let row; columns: ['divider', 'dividerColspan']; when: isDivider"></tr>
 
     <!-- footer -->
-    <ng-container *ngIf="showFooter">
+    <ng-container *ngIf="showFooter && footerColumns | isNotEmptyArray">
       <tr mat-footer-row *matFooterRowDef="footerColumns; sticky: useFooterSticky" [class.cdk-visually-hidden]="!totalRowCount"></tr>
     </ng-container>
   </table>
