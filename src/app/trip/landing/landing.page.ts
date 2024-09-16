@@ -223,15 +223,16 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     err = err as any;
     if (
       err &&
-      typeof err !== 'string' &&
-      err?.code === ServerErrorCodes.DATA_NOT_UNIQUE &&
-      err?.details &&
-      typeof err.details === 'object' &&
-      isNotNil(err.details['duplicatedValues'])
+      typeof err === 'object' &&
+      err.code === ServerErrorCodes.DATA_NOT_UNIQUE &&
+      err.details &&
+      isNotEmptyArray(err.details['duplicatedValues'])
     ) {
-      const details = err.details as any;
+      const details = err.details as { duplicatedValues: any[] };
       this.samplesTable.setError('LANDING.ERROR.DUPLICATED_SAMPLE_TAG_ID', { duplicatedValues: details.duplicatedValues });
+      // Reset error
       super.setError(undefined, opts);
+      // Open first invalid tab
       this.selectedTabIndex = this.getFirstInvalidTabIndex();
     } else {
       this.samplesTable.setError(undefined);
