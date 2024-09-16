@@ -49,10 +49,9 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ActivityCalendarValidatorService } from '@app/activity-calendar/model/activity-calendar.validator';
-import { BaseTableState } from '@app/shared/table/base.table';
+import { AppBaseTableFilterRestoreSource, BaseTableState } from '@app/shared/table/base.table';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -204,7 +203,9 @@ export class ActivityCalendarsTable
     this.featureName = ActivityCalendarsTableSettingsEnum.FEATURE_ID;
 
     // Load years
-    this.years = new Array(10).fill(DateUtils.moment().year()).map((year, index) => year - index);
+    {
+      this.years = new Array(11).fill(DateUtils.moment().year() + 1).map((year, index) => year - index);
+    }
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -309,7 +310,7 @@ export class ActivityCalendarsTable
         this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
 
         // Locations combo (filter)
-        this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_IDS);
+        this.registrationLocationLevelIds = [LocationLevelIds.MARITIME_DISTRICT];
         this.basePortLocationLevelIds = [LocationLevelIds.PORT];
 
         this.updateColumns();
@@ -323,14 +324,26 @@ export class ActivityCalendarsTable
     this.resetContext();
   }
 
+  protected loadFilter(sources?: AppBaseTableFilterRestoreSource[]): any | undefined {
+    const json = super.loadFilter(sources);
+    if (isNil(json)) return { year: DateUtils.moment().year() - 1 };
+    return json;
+  }
+
   async setFilter(filter: Partial<ActivityCalendarFilter>, opts?: { emitEvent: boolean }) {
     filter = filter || {};
+
+    // Convert year as number (e.g. when was a moment)
     if (isMoment(filter.year)) {
       filter.year = filter.year.year();
     } else if (isMoment(filter.startDate)) {
       filter.year = filter.startDate.year();
+    } else if (isNotNil(filter.year)) {
+      filter.year = toNumber(filter.year, null);
     } else {
-      filter.year = toNumber(filter.year, DateUtils.moment().year() - 1);
+      filter.year = null;
+      filter.startDate = null;
+      filter.endDate = null;
     }
 
     // Program
@@ -552,10 +565,10 @@ export class ActivityCalendarsTable
   protected setFilterYear(year: number) {
     if (isNil(year)) {
       this.filterYearControl.reset();
-      this.emitRefresh();
+      this.setFilter({ year });
     } else {
       const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
-      this.filterYearControl.setValue(year, { emitEvent: false });
+      this.filterYearControl.setValue(year, { emitEvent: true });
       this.markForCheck();
 
       this.setFilter({ year, startDate: startDate, endDate: null });

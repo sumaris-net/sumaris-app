@@ -128,7 +128,7 @@
       <mat-icon>description</mat-icon>
       <mat-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</mat-label>
     </button>
-  } @else if (synchronizationStatus !== 'SYNC' && (isAdmin || debug)) {
+  } @else if (isAdmin || debug) {
     <!-- upload from JSON file -->
     <button mat-menu-item (click)="importJsonFile($event)">
       <mat-icon>upload</mat-icon>
