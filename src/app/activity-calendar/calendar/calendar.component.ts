@@ -2182,7 +2182,19 @@ export class CalendarComponent
     // Check target path is compatible
     const sourcePathSuffix = lastArrayValue(sourcePaths[0].split('.'));
     const targetPathSuffix = lastArrayValue(targetPaths[0].split('.'));
-    if (sourcePathSuffix !== targetPathSuffix) {
+
+    let acceptToPaste = false;
+
+    // Accept to paste into compatible PMFM
+    const isPmfmOnly = sourcePaths.every((path) => path.startsWith('measurementValues'));
+    if (isPmfmOnly) {
+      const pmfmIds = sourcePaths.concat(targetPaths).map((pmfm) => parseInt(lastArrayValue(pmfm.split('.'))));
+      const pmfms = this.pmfms.filter((pmfm) => pmfmIds.includes(pmfm.id));
+      const sourcePathUnitLabel = pmfms.find((pmfm) => pmfm.id.toString() === sourcePathSuffix)?.unitLabel;
+      acceptToPaste = pmfms.every((pmfm) => pmfm.unitLabel === sourcePathUnitLabel);
+    }
+
+    if (sourcePathSuffix !== targetPathSuffix && !acceptToPaste) {
       Toasts.show(this.toastController, this.translate, {
         type: 'error',
         message: 'ACTIVITY_CALENDAR.ERROR.CANNOT_PASTE_HERE',
