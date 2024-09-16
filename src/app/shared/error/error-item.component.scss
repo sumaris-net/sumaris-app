@@ -1,0 +1,29 @@
+// Small
+ion-item.small {
+  ion-icon[slot='start'] {
+    height: 18px;
+    width: 18px;
+    font-size: 18px;
+    margin-inline-end: 8px;
+  }
+  ion-label {
+    font-size: 0.9rem;
+  }
+}
+
+// Medium
+ion-item.medium {
+  ion-icon[slot='start'] {
+    margin-inline-end: 10px;
+  }
+}
+
+// Large
+ion-item.large {
+  ion-icon[slot='start'] {
+    margin-inline-end: 10px;
+  }
+  ion-label {
+    font-size: 1.1rem;
+  }
+}
