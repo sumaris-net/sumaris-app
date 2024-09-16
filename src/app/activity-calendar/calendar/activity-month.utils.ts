@@ -1,4 +1,4 @@
-import { arrayResize, DateUtils, isNotEmptyArray, isNotNil, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
+import { arrayResize, DateUtils, isNotEmptyArray, isNotNil, removeDuplicatesFromArray, toDateISOString } from '@sumaris-net/ngx-components';
 import { GearUseFeatures, GearUseFeaturesComparators } from '@app/activity-calendar/model/gear-use-features.model';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
@@ -58,7 +58,7 @@ export class ActivityMonthUtils {
 
     return monthStartDates
       .map((startDate) => {
-        const endDate = startDate.clone().endOf('month');
+        const endDate = startDate.clone().endOf('month').startOf('day');
 
         // DEBUG
         //console.debug(`Month #${startDate.month() + 1} - ${toDateISOString(startDate)} -> ${toDateISOString(endDate)}`);

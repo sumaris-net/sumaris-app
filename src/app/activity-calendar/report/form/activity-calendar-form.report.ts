@@ -141,7 +141,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   }
 
   constructor(injector: Injector) {
-    super(injector, ActivityCalendar, FormActivityCalendarReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.FORM.PMFM.' });
+    super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.FORM.PMFM.' });
     this.ActivityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);

@@ -108,6 +108,12 @@
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
+  <!-- Open report -->
+  <button mat-menu-item (click)="openReport()">
+    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
+  </button>
+
   <!-- Update offline mode -->
   <button mat-menu-item *ngIf="hasOfflineMode" [disabled]="offline" (click)="prepareOfflineMode($event)">
     <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>

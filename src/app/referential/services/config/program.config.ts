@@ -1273,6 +1273,7 @@ export const ProgramProperties = Object.freeze({
       <Property>{ key: 'STRAT', value: 'EXTRACTION.FORMAT.STRAT.NAME' },
       <Property>{ key: 'APASE', value: 'EXTRACTION.FORMAT.APASE.NAME' },
       <Property>{ key: 'VESSEL', value: 'EXTRACTION.FORMAT.VESSEL.NAME' },
+      <Property>{ key: 'ACTIMONIT', value: 'EXTRACTION.FORMAT.ACTIMONIT.NAME' },
     ],
     autocomplete: {
       columnNames: ['key', 'value'],

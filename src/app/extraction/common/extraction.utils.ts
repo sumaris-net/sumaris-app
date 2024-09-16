@@ -8,6 +8,7 @@ import {
   ExtractionFilterCriterion,
   ExtractionType,
 } from '../type/extraction-type.model';
+import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 
 export const SPATIAL_COLUMNS: string[] = [
   //'area', FIXME no area geometries in Pod
@@ -194,6 +195,140 @@ export class ExtractionUtils {
         operator: '=',
         value: operationIdsStr.length === 1 ? operationIdsStr[0] : undefined,
         values: operationIdsStr.length > 1 ? operationIdsStr : undefined,
+      });
+    }
+
+    filter.criteria = criteria.map(ExtractionFilterCriterion.fromObject);
+
+    return filter;
+  }
+
+  static createActivityCalendarFilter(programLabel: string, activityCalendarFilter: ActivityCalendarFilter): ExtractionFilter {
+    const filter = new ExtractionFilter();
+    filter.sheetName = 'AM';
+    const criteria: Partial<ExtractionFilterCriterion>[] = [
+      {
+        sheetName: 'AM',
+        name: 'project',
+        operator: '=',
+        value: programLabel,
+      },
+    ];
+
+    if (isNotNil(activityCalendarFilter.program)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'project',
+        operator: '=',
+        value: activityCalendarFilter.program.label,
+      });
+    }
+
+    if (isNotEmptyArray(activityCalendarFilter.observers)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'observer',
+        operator: '=',
+        values: activityCalendarFilter.observers.map((item) => `${item.lastName} ${item.firstName}`),
+      });
+    }
+
+    if (isNotNil(activityCalendarFilter.year)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'year',
+        operator: '=',
+        value: activityCalendarFilter.year.toString(),
+      });
+    }
+
+    if (isNotNil(activityCalendarFilter.vesselSnapshot)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'vessel_registration_code',
+        operator: '=',
+        value: activityCalendarFilter.vesselSnapshot.registrationCode,
+      });
+    }
+
+    if (isNotEmptyArray(activityCalendarFilter.basePortLocations)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'base_port_location_label',
+        operator: '=',
+        values: (activityCalendarFilter.basePortLocations || []).map((item) => item.label),
+      });
+    }
+
+    if (isNotEmptyArray(activityCalendarFilter.registrationLocations)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'registration_location_label',
+        operator: '=',
+        values: (activityCalendarFilter.registrationLocations || []).map((item) => item.label),
+      });
+    }
+
+    if (isNotNil(activityCalendarFilter.economicSurvey)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'economic_survey',
+        operator: '=',
+        value: activityCalendarFilter.economicSurvey ? 'Y' : 'N',
+      });
+    }
+
+    if (isNotNil(activityCalendarFilter.directSurveyInvestigation)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'direct_survey_investigation',
+        operator: '=',
+        value: activityCalendarFilter.directSurveyInvestigation ? 'Y' : 'N',
+      });
+    }
+
+    if (isNotNil(activityCalendarFilter.dataQualityStatus)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'quality_status',
+        operator: '=',
+        value: activityCalendarFilter.dataQualityStatus,
+      });
+    }
+
+    if (isNotNil(activityCalendarFilter.recorderDepartment)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'recorder_department',
+        operator: '=',
+        value: activityCalendarFilter.recorderDepartment.label,
+      });
+    }
+
+    if (isNotEmptyArray(activityCalendarFilter.recorderDepartments)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'recorder_department',
+        operator: '=',
+        values: activityCalendarFilter.recorderDepartments.map((item) => item.label),
+      });
+    }
+
+    if (isNotNil(activityCalendarFilter.recorderPerson)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'recorder_person',
+        operator: '=',
+        value: `${activityCalendarFilter.recorderPerson.lastName} ${activityCalendarFilter.recorderPerson.firstName}`,
+      });
+    }
+
+    if (isNotNil(activityCalendarFilter.dataQualityStatus)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'quality_status',
+        operator: '=',
+        value: activityCalendarFilter.dataQualityStatus,
       });
     }
 

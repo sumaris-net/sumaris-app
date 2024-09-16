@@ -2670,7 +2670,6 @@
         "LENGTH": "Taille",
         "MATURITY": "Maturité",
         "OTHER": "Autre",
-
         "SAMPLING": {
           "BTN_ADD_DATA_DOTS": "Ajouter une sortie ou un échantillonnage...",
           "LABEL": "Code de la ligne",
@@ -3091,6 +3090,13 @@
         "TITLE": "Marées brutes > Générique",
         "TITLE_PROGRAM": "Marées brutes {{label}}",
         "NAME": "Générique"
+      },
+      "ACTIMONIT": {
+        "TITLE": "Suivi des calendriers",
+        "NAME": "Suivi des calendriers",
+        "SHEET": {
+          "AM": "Calendriers (AM)"
+        }
       },
       "STRAT": {
         "TITLE": "Stratégies de collecte",
@@ -3540,21 +3546,51 @@
         "FORM": "Calendrier d'activité"
       },
       "PROGRESS": {
-        "TITLE": "SIH - Enquête d'activité des flotilles {{ year }} - Rapport d'avencement",
+        "TITLE": "SIH - Enquête d'activité des flotilles {{ year }} - Rapport d'avancement",
         "COPY_RIGHT": "© {{ year }} Ifremer - Système d'Informations Halieutiques",
         "TABLE": {
           "VESSEL": "Navire",
-          "NB_METIER_PEER_MONTH": "Nomber de métiers pratiqués mar mois",
-          "NB_MONTH_NOT_SPECIFIED": "Nbre mois non renseignés",
+          "NB_METIER_PEER_MONTH": "Nombre de métiers pratiqués mar mois",
+          "COUNT_OF_EMPTY_MONTH": "Nbre mois non renseignés",
           "CALENDAR_STATUS": "État calendrier",
-          "RECORDER": "Saisisseur",
-          "REGISTERED_LOCATION": "QIM",
-          "NAME": "Nom"
+          "RECORDER_PRESON": "Saisisseur",
+          "VESSEL_REGISTRATION_LOCATION": "QIM",
+          "VESSEL_NAME": "Nom",
+          "VESSEL_LENGTH": "Longeur H.T (m)",
+          "SURVEY_QUALIFICATION_SECTION": "Qualification de l'enquête",
+          "MONTH1": "J",
+          "MONTH2": "F",
+          "MONTH3": "M",
+          "MONTH4": "A",
+          "MONTH5": "M",
+          "MONTH6": "J",
+          "MONTH7": "J",
+          "MONTH8": "A",
+          "MONTH9": "S",
+          "MONTH10": "O",
+          "MONTH11": "N",
+          "MONTH12": "D",
+          "STATUS": {
+            "EMPTY": "Non renseigné",
+            "COMPLETE": "Complet",
+            "INCOMPLETE": "Incomplet"
+          },
+          "ERROR": {
+            "REQUIRED_PORT": "Port d'exploitation manquant",
+            "REQUIRED_METIER": "Metier manquant",
+            "REQUIRED_FISHING_AREA": "Zone de pêche manquante",
+            "REQUIRED_DISTANCE_TO_COAST_GRADIENT": "Gradiant côte manquant",
+            "TOO_MANY_METIER": "Autres"
+          }
         },
         "SYNTHESIS": {
-          "TITLE": "Synthèse de l'avancement des calendriers d'activité"
+          "TITLE": "Synthèse de l'avancement des calendriers d'activité",
+          "VESSEL_COUNT": "Nombre de navire",
+          "DIRECT_SURVEY": "Enquêtes directes",
+          "UNRESIGNED_VESSEL": "Navire non renseignés",
+          "INCOMPLETE_VESSEL": "Navires incomplets",
+          "COMPLETED_CALENDAR": "Calendriers complets"
         }
->>>>>>> 2933cd080 (wip(ActivityCalendarProgressReport) : Start the base)
       }
     },
     "CONFIRM": {

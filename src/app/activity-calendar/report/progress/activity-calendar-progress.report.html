@@ -90,11 +90,11 @@
                   <tbody>
                     <tr>
                       <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate }}</th>
-                      <td>{{ data.program?.label }}</td>
+                      <td>{{ stats.filter.program?.label }}</td>
                     </tr>
                     <tr>
                       <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.YEAR' | translate }}</th>
-                      <td>{{ data.year }}</td>
+                      <td>{{ stats.filter.year }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -105,13 +105,17 @@
                     <tr>
                       <th class="col-large">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.REGISTRATION_LOCATION' | translate }}</th>
                       <td class="col-large">
-                        <ng-content *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: data.registrationLocations }"></ng-content>
+                        <ng-content
+                          *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.registrationLocations }"
+                        ></ng-content>
                       </td>
                     </tr>
                     <tr>
                       <th class="col-large">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.BASE_PORT_LOCATION' | translate }}</th>
                       <td class="col-large">
-                        <ng-content *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: data.basePortLocations }"></ng-content>
+                        <ng-content
+                          *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.basePortLocations }"
+                        ></ng-content>
                       </td>
                     </tr>
                   </tbody>
@@ -122,16 +126,16 @@
                   <tbody>
                     <tr>
                       <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate }}</th>
-                      <td>{{ data.recorderPerson | personToString }}</td>
+                      <td>{{ stats.filter.recorderPerson | personToString }}</td>
                     </tr>
                     <tr>
                       <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_DEPARTMENT' | translate }}</th>
-                      <td>{{ data.recorderDepartment | departmentToString }}</td>
+                      <td>{{ stats.filter.recorderDepartment | departmentToString }}</td>
                     </tr>
                     <tr>
                       <th>{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</th>
                       <td>
-                        {{ (data.dataQualityStatus | isNotNilOrBlank) ? ('QUALITY.' + data.dataQualityStatus | translate) : '' }}
+                        {{ (stats.filter.dataQualityStatus | isNotNilOrBlank) ? ('QUALITY.' + stats.filter.dataQualityStatus | translate) : '' }}
                       </td>
                     </tr>
                   </tbody>
@@ -158,40 +162,64 @@
               <tr [style.--row-title-height]="'20px'">
                 <th class="ion-text-center" colspan="5">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL' | translate }}</th>
                 <th class="ion-text-center" colspan="12">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.NB_METIER_PEER_MONTH' | translate }}</th>
-                <th class="ion-text-center" rowspan="2">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.NB_MONTH_NOT_SPECIFIED' | translate }}</th>
+                <th class="ion-text-center col-compact" rowspan="2">
+                  {{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.COUNT_OF_EMPTY_MONTH' | translate }}
+                </th>
                 <th class="ion-text-center col-compact" rowspan="2">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.CALENDAR_STATUS' | translate }}</th>
-                <th class="ion-text-center col-compact" rowspan="2">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.RECORDER' | translate }}</th>
+                <th class="ion-text-center col-compact" rowspan="2">{{ 'COMMON.RECORDER' | translate }}</th>
               </tr>
               <tr [style.--row-title-height]="'30px'">
                 <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL' | translate }}</th>
-                <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.NAME' | translate }}</th>
-                <th class="ion-text-center col-tiny">{{ 'QIM' }}</th>
-                <th class="ion-text-center col-small">{{ 'TODO' }}</th>
-                <th class="ion-text-center col-compact">{{ 'TODO' }}</th>
-                @for (monthLetter of stats.monthLetters; track $index) {
-                  <th class="ion-text-center col-tiny">{{ monthLetter }}</th>
+                <th class="ion-text-center col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_NAME' | translate }}</th>
+                <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_REGISTRATION_LOCATION' | translate }}</th>
+                <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_LENGTH' | translate }}</th>
+                <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.SURVEY_QUALIFICATION_SECTION' | translate }}</th>
+                @for (month of months; track $index) {
+                  <th class="ion-text-center col-tiny">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.' + month | uppercase | translate }}</th>
                 }
               </tr>
             </thead>
             <tbody>
-              @for (activityCalendar of tableChunk; track activityCalendar.id) {
+              @for (row of tableChunk; track $index) {
                 <tr [style.--row-height]="'30px'">
-                  <td class="ion-text-center col-small">{{ activityCalendar.id }}</td>
-                  <td class="ion-text-center col-compact"></td>
-                  <td class="ion-text-center col-tiny"></td>
-                  <td class="ion-text-center col-small"></td>
-                  <td class="ion-text-center col-compact"></td>
-                  @for (monthLetter of stats.monthLetters; track $index) {
-                    <th class="ion-text-center col-tiny">INA</th>
+                  <td class="ion-text-center col-small">{{ row.vesselRegistrationCode }}</td>
+                  <td class="ion-text-center col-medium">{{ row.vesselName }}</td>
+                  <td class="ion-text-center col-compact">{{ row.registrationLocationLabel }}</td>
+                  <td class="ion-text-center col-small">{{ row.vesselLength }}</td>
+                  <td class="ion-text-center col-compact">{{ row.surveyQualification }}</td>
+                  @for (month of months; track $index) {
+                    <!-- TODO : discriminate status between inactive and not exists -->
+                    <td class="ion-text-center col-tiny">
+                      <div *ngIf="row[month + 'Error'] | isNotNil" class="error-tip">
+                        ({{ activityMonitoringStatusErrorIds[row[month + 'Error']] }})
+                      </div>
+                      {{ row[month] < 1 ? '&nbsp;' : row[month] }}
+                    </td>
                   }
-                  <td class="ion-text-center col-compact"></td>
-                  <td class="ion-text-center col-compact"></td>
-                  <td class="ion-text-center col-compact"></td>
+                  <td class="ion-text-center col-small">{{ row.emptyMonthCount }}</td>
+                  <td class="ion-text-center col-compact">
+                    {{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.STATUS.' + row.status | translate }}
+                  </td>
+                  <td class="ion-text-center col-compact">{{ row.recorderPerson }}</td>
                 </tr>
               }
             </tbody>
           </table>
         }
+
+        <!-- error legend -->
+        <ul class="caption" [style.margin-top]="'10px'">
+          @for (errorKey of activityMonitoringStatusErrorIds | mapKeys; track $index) {
+            <li>
+              <span class="error-tip">({{ activityMonitoringStatusErrorIds[errorKey] }})</span>
+              &nbsp;:&nbsp;
+              {{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.ERROR.' + errorKey | translate }}
+              @if (!$last) {
+                &nbsp;;&nbsp;
+              }
+            </li>
+          }
+        </ul>
 
         <!-- Synthesis -->
         @if (lastChunk) {
@@ -208,17 +236,17 @@
                 <table [style.--row-height]="'20px'" [style.margin-right]="'var(--col-medium)'">
                   <tbody>
                     <tr>
-                      <th class="col-medium"></th>
-                      <td class="ion-text-center col-medium"></td>
+                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.VESSEL_COUNT' | translate }}</th>
+                      <td class="ion-text-center col-medium">{{ stats.agg.vesselCount }}</td>
                     </tr>
                   </tbody>
                 </table>
                 <table [style.--row-height]="'20px'">
                   <tbody>
                     <tr>
-                      <th class="col-medium"></th>
-                      <td class="ion-text-center col-medium"></td>
-                      <td class="ion-text-center col-medium"></td>
+                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.DIRECT_SURVEY' | translate }}</th>
+                      <td class="ion-text-center col-medium">{{ stats.agg.totalDirectSurveyCount }}</td>
+                      <td class="ion-text-center col-medium">{{ stats.agg.totalDirectSurveyPercent }}&nbsp;%</td>
                     </tr>
                   </tbody>
                 </table>
@@ -227,19 +255,19 @@
                 <table [style.--row-height]="'20px'">
                   <tbody>
                     <tr>
-                      <th class="col-medium"></th>
-                      <td class="ion-text-center col-medium"></td>
-                      <td class="ion-text-center col-medium"></td>
+                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.UNRESIGNED_VESSEL' | translate }}</th>
+                      <td class="ion-text-center col-medium">{{ stats.agg.unresignedVesselCount }}</td>
+                      <td class="ion-text-center col-medium">{{ stats.agg.unresignedVesselPercent }}&nbsp;%</td>
                     </tr>
                     <tr>
-                      <th class="col-medium"></th>
-                      <td class="ion-text-center col-medium"></td>
-                      <td class="ion-text-center col-medium"></td>
+                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.INCOMPLETE_VESSEL' | translate }}</th>
+                      <td class="ion-text-center col-medium">{{ stats.agg.uncompletedVesselCount }}</td>
+                      <td class="ion-text-center col-medium">{{ stats.agg.uncompletedVesselPercent }}&nbsp;%</td>
                     </tr>
                     <tr>
-                      <th class="col-medium"></th>
-                      <td class="ion-text-center col-medium"></td>
-                      <td class="ion-text-center col-medium"></td>
+                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.COMPLETED_CALENDAR' | translate }}</th>
+                      <td class="ion-text-center col-medium">{{ stats.agg.completedCalendarCount }}</td>
+                      <td class="ion-text-center col-medium">{{ stats.agg.completedCalendarPercent }}&nbsp;%</td>
                     </tr>
                   </tbody>
                 </table>

@@ -21,8 +21,6 @@ export abstract class AppDataEntityReport<
   protected readonly accountService: AccountService;
   protected readonly dateFormat: DateFormatService;
 
-  @Input() i18nContextSuffix: string;
-
   @Input() id: ID;
 
   protected constructor(
