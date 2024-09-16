@@ -37,7 +37,7 @@ import {
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
   ACTIVITY_CALENDAR_FEATURE_NAME,
 } from '../activity-calendar.config';
-import { AppRootDataTable, AppRootTableFilterRestoreSource, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter } from 'rxjs/operators';
@@ -52,7 +52,6 @@ import { ActivityCalendarValidatorService } from '@app/activity-calendar/model/a
 import { AppBaseTableFilterRestoreSource, BaseTableState } from '@app/shared/table/base.table';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -324,9 +323,6 @@ export class ActivityCalendarsTable
     // Clear the existing activityCalendar context
     this.resetContext();
   }
-  async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }) {
-    super.restoreFilterOrLoad(opts);
-  }
 
   protected loadFilter(sources?: AppBaseTableFilterRestoreSource[]): any | undefined {
     const json = super.loadFilter(sources);
@@ -569,7 +565,7 @@ export class ActivityCalendarsTable
       this.filterYearControl.setValue(year, { emitEvent: true });
       this.markForCheck();
 
-      // this.setFilter({ year, startDate: startDate, endDate: null });
+      this.setFilter({ year, startDate: startDate, endDate: null });
     }
   }
 
