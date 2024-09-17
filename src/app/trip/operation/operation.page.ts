@@ -147,6 +147,9 @@ export class OperationPage<S extends OperationState = OperationState>
   operationPasteFlags: number;
   helpUrl: string;
   _defaultIsParentOperation = true;
+
+  isFishingAreaInline: boolean = false;
+
   readonly forceOptionalExcludedPmfmIds: number[];
 
   @RxStateProperty() tripId: number;
@@ -720,13 +723,16 @@ export class OperationPage<S extends OperationState = OperationState>
     this.autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
     this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
 
+    const skipDatesPmfmId = program.getPropertyAsInt(ProgramProperties.OPTION_OPERATION_SKIP_DATES_PMFM_ID);
+    const skipDates = isNotNil(skipDatesPmfmId) ? toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, skipDatesPmfmId), false) : false;
     const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true);
-    const enablePosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+    const enablePosition = !skipDates && isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+
     this.opeForm.trip = this.trip;
     this.opeForm.showPosition = enablePosition;
     this.opeForm.boundingBox = enablePosition && Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
     // TODO: make possible to have both showPosition and showFishingArea at true (ex SFA artisanal logbook program)
-    this.opeForm.showFishingArea = !enablePosition; // Trip has gps in use, so active positions controls else active fishing area control
+    this.opeForm.showFishingArea = !skipDates && !enablePosition; // Trip has gps in use, so active positions controls else active fishing area control
     this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
     const defaultLatitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     const defaultLongitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
@@ -740,9 +746,9 @@ export class OperationPage<S extends OperationState = OperationState>
     this.opeForm.showMetier = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_ENABLE);
     this.opeForm.showMetierFilter = this.opeForm.showMetier && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_FILTER);
     this.opeForm.programLabel = program.label;
-    this.opeForm.fishingStartDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
-    this.opeForm.fishingEndDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
-    this.opeForm.endDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
+    this.opeForm.fishingStartDateTimeEnable = !skipDates && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
+    this.opeForm.fishingEndDateTimeEnable = !skipDates && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
+    this.opeForm.endDateTimeEnable = !skipDates && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
     this.opeForm.maxShootingDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS);
     this.opeForm.maxTotalDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS);
     this.opeForm.defaultIsParentOperation = this._defaultIsParentOperation;
@@ -767,6 +773,8 @@ export class OperationPage<S extends OperationState = OperationState>
 
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ENABLE);
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);
+
+    this.isFishingAreaInline = program.getPropertyAsBoolean(ProgramProperties.OPTION_INLINE_FISHING_AREA);
 
     if (!this.allowParentOperation) {
       this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;

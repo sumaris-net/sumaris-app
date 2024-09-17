@@ -146,6 +146,7 @@ export const PmfmIds = {
 
   /* PIFIL + LOGBOOK-SEA-CUCUMBER (SFA)*/
   GPS_USED: 188,
+  CAMERA_USED: 514,
 
   /* APASE */
   CHILD_GEAR: 400,

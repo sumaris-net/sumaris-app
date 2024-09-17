@@ -49,7 +49,7 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormGroup, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Operation, Trip } from '../trip/trip.model';
 import { BehaviorSubject, combineLatest, firstValueFrom, merge, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
@@ -74,6 +74,7 @@ import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { OverlayEventDetail } from '@ionic/core';
 import { FishingAreaForm } from '@app/data/fishing-area/fishing-area.form';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -110,7 +111,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _positionSubscription: Subscription;
   private _emitGeolocationBusy = true;
   private _lastValidatorOpts: any;
-  private _mapFishingAreasForm: FishingAreaForm[];
+  private _showFishingDate: boolean = false;
   protected _usageMode: UsageMode;
   protected toastController = inject(ToastController);
 
@@ -148,6 +149,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   @Input() maxDistanceError: number;
   @Input() maxShootingDurationInHours: number;
   @Input() maxTotalDurationInHours: number;
+  @Input() isFishingAreaInline: boolean;
 
   @Input() set usageMode(usageMode: UsageMode) {
     if (this._usageMode !== usageMode) {
@@ -250,6 +252,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     }
   }
 
+  @Input() set showFishingDate(value: boolean) {
+    if (this._showFishingDate !== value) {
+      this._showFishingDate = value;
+      if (!this.loading) this.updateFormGroup();
+    }
+  }
+
   get requiredComment(): boolean {
     return this._requiredComment;
   }
@@ -344,6 +353,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   get isNewData(): boolean {
     return isNil(this.form?.controls.id.value);
+  }
+
+  get showFishingDate(): boolean {
+    return this._showFishingDate;
   }
 
   @Output() parentChanges = new EventEmitter<Operation>();
@@ -517,11 +530,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       data.endPosition = null;
     }
 
-    //this._showFishingArea = this._showFishingArea || isNotEmptyArray(data.fishingAreas);
-    if (this._showFishingArea) {
+    this._showFishingArea = this._showFishingArea || (!this.showPosition && isNotEmptyArray(data.fishingAreas));
+    if (this.isFishingAreaInline && this._showFishingArea) {
       data.fishingAreas = isNotEmptyArray(data.fishingAreas) ? data.fishingAreas : [null];
-    } else {
-      data.fishingAreas = [];
+      if (ProgramProperties.OPTION_INLINE_FISHING_AREA) {
+        data.fishingAreas = data.fishingAreas.concat([null, null, null]).splice(0, 4);
+      }
     }
 
     if (isParentOperation && DataEntityUtils.hasNoQualityFlag(data)) {
@@ -939,6 +953,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       withFishingStart: this.fishingStartDateTimeEnable,
       withFishingEnd: this.fishingEndDateTimeEnable,
       withEnd: this.endDateTimeEnable,
+      skipDate: this._showFishingDate,
       maxDistance: this.maxDistanceError,
       boundingBox: this._boundingBox,
       maxShootingDurationInHours: this.maxShootingDurationInHours,
