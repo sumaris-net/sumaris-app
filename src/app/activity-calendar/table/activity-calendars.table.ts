@@ -57,7 +57,6 @@ import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
-import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 
 export const ActivityCalendarsTableSettingsEnum = {
@@ -96,7 +95,7 @@ export class ActivityCalendarsTable
   protected qualityFlags: ReferentialRef[];
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
-  protected program: Program;
+  protected programSelected: Program;
 
   @Input() showRecorder = true;
   @Input() canDownload = false;
@@ -404,7 +403,7 @@ export class ActivityCalendarsTable
     this.showProgram = false;
 
     this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
-    this.program = program;
+    this.programSelected = program;
     if (this.loaded) this.updateColumns();
   }
 
@@ -675,7 +674,7 @@ export class ActivityCalendarsTable
 
   protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
     let vesselFilter = filter;
-    const program = this.filterForm.value.program;
+    const program = this.filterForm.value.program || this.programSelected;
     const vesselType = this.filterForm.value.vesselType?.id;
     const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
 

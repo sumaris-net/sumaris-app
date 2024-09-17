@@ -43,8 +43,6 @@ import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operati
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
-import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
-import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 
 export const TripsPageSettingsEnum = {
@@ -511,11 +509,12 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     const program = this.filterForm.value.program;
     const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
 
-    if (program && isNotEmptyArray(programVesselTypeIdsFilter))
+    if (program && isNotEmptyArray(programVesselTypeIdsFilter)) {
       vesselFilter = {
         ...vesselFilter,
         vesselTypeIds: programVesselTypeIdsFilter,
       };
+    }
 
     return this.vesselSnapshotService.suggest(value, vesselFilter);
   }
