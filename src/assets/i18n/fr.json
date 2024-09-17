@@ -304,7 +304,8 @@
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Référentiel > Niveau taxinomique > Sous espèce",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Ligne de plan",
         "PMFM_NB_FISHERMEN_ID": "Référentiel > PSFM > Nombre d'homme à bord (Entier)",
-        "PMFM_GPS_USED_ID": "Référentiel > PSFM > Utilisation d'une GPS ? (Booléen)",
+        "PMFM_GPS_USED_ID": "Référentiel > PSFM > Utilisation d'un GPS ? (Booléen)",
+        "PMFM_CAMERA_USED_ID": "Référentiel > PSFM > Utilisation d'une caméra ? (Booléen)",
         "PMFM_SEA_STATE_ID": "Référentiel > PSFM > État de la mer",
         "PMFM_TAG_ID": "Référentiel > PSFM > Code prélèvement",
         "PMFM_TRIP_PROGRESS": "Référentiel > PSFM > Déroulement normal ? (Booléen)",
@@ -2500,6 +2501,8 @@
         "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Engin, Métier, Position/Zone de pêche, Caractéristiques"
       },
       "TRIP_OPERATION_HELP_URL": "Marée > Opération : Aide en ligne (URL)",
+      "TRIP_OPERATION_INLINE_ENABLE": "Marée > Opération : Activer le mode de vue Inline",
+      "TRIP_OPERATION_SKIP_DATES_TRIP_PMFM_ID": "Marée > Opération : PSFM (booléan) de marée pour désactiver les dates ?",
       "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Marée brutes: Valeur de la colonne 'SAMPLING_METHOD'",
       "TRIP_EXTRACTION_SAMPLING_METHODS": {
         "OBSERVER": "Observer",
@@ -3002,6 +3005,7 @@
       "COMMENTS": "Commentaires",
       "MEASURE_TIME": "Date de la mesure",
       "GPS_USED": "Utilisation d'un GPS?",
+      "CAMERA_USED": "Utilisation d'une caméra?",
       "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids RTP",
       "CATCH_WEIGHT": "Poids total capture",
       "DISCARD_WEIGHT": "Poids total rejet",

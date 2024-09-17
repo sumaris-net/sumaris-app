@@ -261,20 +261,24 @@
           </ion-row>
         </ion-grid>
       </ion-col>
-      <ion-col>
-        <ng-container
-          *ngTemplateOutlet="
-            fishingArea;
-            context: {
-              fishingAreasForm: fishingAreasForm?.controls
-            }
-          "
-        />
-      </ion-col>
+      @if (isFishingAreaInline && showFishingArea) {
+        <ion-col size="10" size-lg="4">
+          <ng-container
+            *ngTemplateOutlet="
+              fishingArea;
+              context: {
+                fishingAreasForm: fishingAreasForm,
+                index: 0,
+                required: true
+              }
+            "
+          />
+        </ion-col>
+      }
     </ion-row>
 
     <!-- Start fishing -->
-    <ion-row *ngIf="fishingStartDateTimeEnable && isChildOperation !== true">
+    <ion-row *ngIf="!showFishingDate && fishingStartDateTimeEnable && isChildOperation !== true">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end">{{ 'TRIP.OPERATION.EDIT.START_FISHING' | translateContext: i18nSuffix }}</ion-label>
       </ion-col>
@@ -352,20 +356,24 @@
           </ion-row>
         </ion-grid>
       </ion-col>
-      <ion-col>
-        <ng-container
-          *ngTemplateOutlet="
-            fishingArea;
-            context: {
-              fishingAreasForm: fishingAreasForm?.controls
-            }
-          "
-        />
-      </ion-col>
+      @if (isFishingAreaInline && showFishingArea) {
+        <ion-col size="10" size-lg="4">
+          <ng-container
+            *ngTemplateOutlet="
+              fishingArea;
+              context: {
+                fishingAreasForm: fishingAreasForm,
+                index: 1,
+                required: _usageMode | isOnDesk
+              }
+            "
+          />
+        </ion-col>
+      }
     </ion-row>
 
     <!-- Fishing end  -->
-    <ion-row *ngIf="fishingEndDateTimeEnable && (!allowParentOperation || isChildOperation)">
+    <ion-row *ngIf="!showFishingDate && fishingEndDateTimeEnable && (!allowParentOperation || isChildOperation)">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end">{{ 'TRIP.OPERATION.EDIT.END_FISHING' | translateContext: i18nSuffix }}</ion-label>
       </ion-col>
@@ -432,20 +440,24 @@
           </ion-row>
         </ion-grid>
       </ion-col>
-      <ion-col>
-        <ng-container
-          *ngTemplateOutlet="
-            fishingArea;
-            context: {
-              fishingAreasForm: fishingAreasForm?.controls
-            }
-          "
-        />
-      </ion-col>
+      @if (isFishingAreaInline && showFishingArea) {
+        <ion-col size="10" size-lg="4">
+          <ng-container
+            *ngTemplateOutlet="
+              fishingArea;
+              context: {
+                fishingAreasForm: fishingAreasForm,
+                index: 2,
+                required: isChildOperation
+              }
+            "
+          />
+        </ion-col>
+      }
     </ion-row>
 
     <!-- End -->
-    <ion-row *ngIf="endDateTimeEnable && (!allowParentOperation || isChildOperation)">
+    <ion-row *ngIf="!showFishingDate && endDateTimeEnable && (!allowParentOperation || isChildOperation)">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end">
           {{ (fishingEndDateTimeEnable ? 'TRIP.OPERATION.EDIT.END' : 'TRIP.OPERATION.EDIT.END_FISHING') | translateContext: i18nSuffix }}
@@ -523,22 +535,29 @@
           </ion-row>
         </ion-grid>
       </ion-col>
-      <ion-col>
-        <ng-container
-          *ngTemplateOutlet="
-            fishingArea;
-            context: {
-              fishingAreasForm: fishingAreasForm?.controls
-            }
-          "
-        />
-      </ion-col>
+      @if (isFishingAreaInline && showFishingArea) {
+        <ion-col size="10" size-lg="4">
+          <ng-container
+            *ngTemplateOutlet="
+              fishingArea;
+              context: {
+                fishingAreasForm: fishingAreasForm,
+                index: 3,
+                required: _usageMode | isOnDesk
+              }
+            "
+          />
+        </ion-col>
+      }
     </ion-row>
 
     <!-- Fishing areas -->
-    <ng-template let-fishingAreasForm="fishingAreasForm" #fishingArea>
-      <ng-container *ngIf="showFishingArea">
-        <ion-row *ngFor="let fishingAreaForm of fishingAreasForm; let i = index; first as first; last as last">
+    @if (!isFishingAreaInline && showFishingArea) {
+      <ng-container>
+        <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first; last as last">
+          <ion-col size="12" size-md="3" size-lg="3">
+            <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS</ion-label>
+          </ion-col>
           <ion-col [formGroup]="fishingAreaForm | formGetGroup">
             <mat-autocomplete-field
               #fishingAreaField
@@ -593,7 +612,43 @@
           </ion-col>
         </ion-row>
       </ng-container>
+    }
+
+    <!-- Fishing areas inline mode with date -->
+    <ng-template let-fishingAreasForm="fishingAreasForm" let-index="index" let-required="required" #fishingArea>
+      <ng-container *ngIf="showFishingArea && fishingAreasForm?.at(index); let fishingAreaForm">
+        <form [formGroup]="fishingAreaForm | formGetGroup">
+          <mat-autocomplete-field
+            #fishingAreaField
+            formControlName="location"
+            [placeholder]="'TRIP.OPERATION.EDIT.FISHING_AREAS' | translate"
+            [autofocus]="fishingAreaFocusIndex === index"
+            [config]="autocompleteFields.fishingAreaLocation"
+            [tabindex]="tabindex + 30 + index * 3"
+            [panelWidth]="mobile ? '80vw' : '500px'"
+            [required]="required"
+          >
+            <mat-icon matPrefix>room</mat-icon>
+
+            <!-- filter button -->
+            <button
+              matAfter
+              type="button"
+              mat-icon-button
+              *ngIf="filteredFishingAreaLocations | isNotEmptyArray"
+              tabindex="-1"
+              [disabled]="disabled"
+              [title]="'COMMON.BTN_FILTER' | translate"
+              (click)="toggleFilter('fishingArea', fishingAreaField)"
+              [color]="autocompleteFilters.fishingArea ? 'primary' : undefined"
+            >
+              <mat-icon>filter_list_alt</mat-icon>
+            </button>
+          </mat-autocomplete-field>
+        </form>
+      </ng-container>
     </ng-template>
+
     <ng-content></ng-content>
 
     <ion-item lines="none" class="ion-no-padding" *ngIf="mobile" (click)="toggleComment()" tappable>

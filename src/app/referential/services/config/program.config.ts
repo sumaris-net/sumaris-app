@@ -1,5 +1,5 @@
 import { FormFieldDefinition, FormFieldType, isNilOrBlank, Property, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds, ProgramLabels, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelGroups, LocationLevelIds,PmfmIds, ProgramLabels, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -1349,6 +1349,28 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.STRATEGY_DEPARTMENT_ENABLE',
     defaultValue: 'false',
     type: 'boolean',
+  },
+
+  OPTION_INLINE_FISHING_AREA: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.inline.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_INLINE_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
+
+  OPTION_OPERATION_SKIP_DATES_PMFM_ID: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.skipDates.tripPmfm.id',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_SKIP_DATES_TRIP_PMFM_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['id', 'label', 'name'],
+      columnSizes: [2, 4, 6],
+    },
+    defaultValue: PmfmIds.CAMERA_USED,
   },
 
   I18N_SUFFIX: <FormFieldDefinition>{
