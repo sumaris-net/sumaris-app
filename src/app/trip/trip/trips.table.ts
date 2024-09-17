@@ -42,7 +42,6 @@ import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operati
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
-import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export const TripsPageSettingsEnum = {
@@ -65,7 +64,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
   statusById = DataQualityStatusEnum;
   qualityFlags: ReferentialRef[];
   qualityFlagsById: { [id: number]: ReferentialRef };
-  configVesselFilterDefault: number[];
 
   @Input() showRecorder = true;
   @Input() showObservers = true;
@@ -136,15 +134,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
 
   ngOnInit() {
     super.ngOnInit();
-
-    // Load the config to get the default vessel filter
-    this.registerSubscription(
-      this.configService.config.subscribe((config) => {
-        this.configVesselFilterDefault = [config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID) || undefined]
-          .concat(config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [])
-          .filter(isNotNil);
-      })
-    );
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -520,22 +509,13 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
   protected getVesselTypeFilter(filter: Partial<VesselSnapshotFilter>) {
     let vesselFilter = filter;
 
-    if (isNotEmptyArray(this.configVesselFilterDefault)) vesselFilter = { ...vesselFilter, vesselTypeIds: this.configVesselFilterDefault };
-
     const program = this.filterForm.value.program;
     if (!program) return vesselFilter;
 
     const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
     if (!programVesselTypeIdsFilter) return vesselFilter;
 
-    let vesselIds;
-
-    vesselIds = isNotEmptyArray(this.configVesselFilterDefault)
-      ? this.configVesselFilterDefault.filter((value) => programVesselTypeIdsFilter.includes(value))
-      : programVesselTypeIdsFilter;
-
-    vesselIds = isEmptyArray(vesselIds) ? [undefined] : vesselIds;
-
+    const vesselIds = isNotEmptyArray(programVesselTypeIdsFilter) ? programVesselTypeIdsFilter : null;
     vesselFilter = {
       ...vesselFilter,
       vesselTypeIds: vesselIds,
