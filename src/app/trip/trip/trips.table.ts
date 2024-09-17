@@ -13,6 +13,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  LoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
   PersonUtils,
@@ -43,6 +44,8 @@ import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import { Vessel } from '@app/vessel/services/model/vessel.model';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
@@ -156,10 +159,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
       this.registerAutocompleteField('vesselSnapshot', {
         ...opts,
-        suggestFn: (value, filter) => {
-          const vesselFilter = this.getVesselTypeFilter(filter);
-          return this.vesselSnapshotService.suggest(value, vesselFilter);
-        },
+        suggestFn: (value, filter) => this.suggestVessels(value, filter),
       });
     });
 
@@ -506,21 +506,17 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     return qualityFlag?.id !== QualityFlagIds.NOT_QUALIFIED;
   }
 
-  protected getVesselTypeFilter(filter: Partial<VesselSnapshotFilter>) {
+  protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
     let vesselFilter = filter;
-
     const program = this.filterForm.value.program;
-    if (!program) return vesselFilter;
-
     const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
-    if (!programVesselTypeIdsFilter) return vesselFilter;
 
-    const vesselIds = isNotEmptyArray(programVesselTypeIdsFilter) ? programVesselTypeIdsFilter : null;
-    vesselFilter = {
-      ...vesselFilter,
-      vesselTypeIds: vesselIds,
-    };
+    if (program && isNotEmptyArray(programVesselTypeIdsFilter))
+      vesselFilter = {
+        ...vesselFilter,
+        vesselTypeIds: programVesselTypeIdsFilter,
+      };
 
-    return vesselFilter;
+    return this.vesselSnapshotService.suggest(value, vesselFilter);
   }
 }

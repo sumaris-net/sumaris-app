@@ -15,6 +15,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  LoadResult,
   MatAutocompleteFieldConfig,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   OfflineFeature,
@@ -58,6 +59,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -236,14 +238,7 @@ export class ActivityCalendarsTable
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
       this.registerAutocompleteField('vesselSnapshot', {
         ...opts,
-        suggestFn: (value, filter) => {
-          const vesselType = this.filterForm.value.vesselType?.id;
-          let vesselFilter = this.getVesselTypeFilter(filter);
-          if (isNotNil(vesselType)) {
-            vesselFilter = { ...vesselFilter, vesselTypeIds: [vesselType] };
-          }
-          return this.vesselSnapshotService.suggest(value, vesselFilter);
-        },
+        suggestFn: (value, filter) => this.suggestVessels(value, filter),
       });
     });
 
@@ -665,20 +660,25 @@ export class ActivityCalendarsTable
       console.info(this.logPrefix + `Activity calendars successfully imported, in ${Date.now() - now}ms`, jobs);
     }
   }
-  protected getVesselTypeFilter(filter: Partial<VesselSnapshotFilter>) {
+
+  protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
     let vesselFilter = filter;
-
-    const program = this.filterForm.value.program || this.program;
-    if (!program) return vesselFilter;
-
+    const program = this.filterForm.value.program;
+    const vesselType = this.filterForm.value.vesselType?.id;
     const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
-    if (isEmptyArray(programVesselTypeIdsFilter)) return vesselFilter;
 
-    vesselFilter = {
-      ...vesselFilter,
-      vesselTypeIds: programVesselTypeIdsFilter,
-    };
+    if (isNotNil(vesselType)) {
+      vesselFilter = {
+        ...vesselFilter,
+        vesselTypeIds: [vesselType],
+      };
+    } else if (program && isNotEmptyArray(programVesselTypeIdsFilter)) {
+      vesselFilter = {
+        ...vesselFilter,
+        vesselTypeIds: programVesselTypeIdsFilter,
+      };
+    }
 
-    return vesselFilter;
+    return this.vesselSnapshotService.suggest(value, vesselFilter);
   }
 }
