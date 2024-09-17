@@ -32,6 +32,10 @@ export const VESSEL_CONFIG_OPTIONS = {
       filter: { entityName: 'Location', statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY], levelId: LocationLevelIds.COUNTRY },
     },
   },
+  /**
+   * @deprecated Use VESSEL_FILTER_DEFAULT_TYPE_IDS instead
+   *
+   */
   VESSEL_FILTER_DEFAULT_TYPE_ID: <FormFieldDefinition>{
     key: 'sumaris.vessel.filter.type.id',
     label: 'CONFIGURATION.OPTIONS.VESSEL.DEFAULT_FILTER_TYPE_ID',
