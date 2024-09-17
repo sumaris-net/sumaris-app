@@ -13,15 +13,19 @@
       <ng-container *ngIf="readySubject | async; else colsSkeleton">
         <ion-col size="12" size-sm="6" size-md="" size-lg="">
           <mat-boolean-field
-            [style]="(mobile && 'button') || 'radio'"
-            [placeholder]="'TRIP.OPERATION.EDIT.TYPE.TITLE' | translate"
+            [style]="mobile ? 'button' : 'radio'"
+            [placeholder]="'TRIP.OPERATION.EDIT.TYPE.PLACEHOLDER' | translate"
             [floatLabel]="mobile ? 'always' : 'never'"
             [formControl]="isParentOperationControl"
             [yesLabel]="'TRIP.OPERATION.EDIT.TYPE.PARENT'"
             [noLabel]="'TRIP.OPERATION.EDIT.TYPE.CHILD'"
             [showButtonIcons]="false"
             [readonly]="!canEditType"
-          ></mat-boolean-field>
+          >
+            @if (!canEditType) {
+              <mat-icon matPrefix [svgIcon]="isParentOperationControl.value === true ? 'operation-parent' : 'operation-child'"></mat-icon>
+            }
+          </mat-boolean-field>
         </ion-col>
 
         <!-- parent operation -->

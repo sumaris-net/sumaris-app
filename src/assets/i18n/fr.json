@@ -895,6 +895,7 @@
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "TYPE": {
           "TITLE": "Type d'opération :",
+          "PLACEHOLDER": "Type",
           "PARENT": "Filage",
           "CHILD": "Virage"
         },
