@@ -35,8 +35,6 @@ export class ScientificCruiseService implements IRootDataEntitiesService<Scienti
     filter = this.asFilter(filter);
 
     const tripFilter = ScientificCruiseFilter.toTripFilter(filter);
-    tripFilter.hasScientificCruise = true;
-    tripFilter.hasObservedLocation = false;
 
     return this.tripService
       .watchAll(offset, size, sortBy, sortDirection, tripFilter, {
