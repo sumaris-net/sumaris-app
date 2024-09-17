@@ -18,6 +18,7 @@ import {
   isNotNilOrBlank,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
+  toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { AsyncTableElement } from '@e-is/ngx-material-table';
@@ -583,7 +584,10 @@ export abstract class AppBaseTable2<
   restoreCompactMode(opts?: { emitEvent?: boolean }) {
     if (!this.usePageSettings || isNilOrBlank(this.settingsId) || isNotNil(this.compact)) return;
 
-    const compact = this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY) || false;
+    const compact = toBoolean(
+      this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY),
+      toBoolean(this.compact, false)
+    );
     if (this.compact !== compact) {
       this.compact = compact;
 

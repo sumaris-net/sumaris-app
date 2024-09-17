@@ -89,6 +89,7 @@ import { IUseFeaturesUtils } from '../model/use-features.model';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 import { SelectionModel } from '@angular/cdk/collections';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -397,7 +398,7 @@ export class CalendarComponent
     this.inlineEdition = true;
     this.autoLoad = true;
     this.sticky = true;
-    this.compact = null;
+    this.compact = !this.mobile; // compact mode enable by default, on desktop
     this.errorTranslateOptions = { separator: '\n', pathTranslator: this };
     this.excludesColumns = ['program', ...DYNAMIC_COLUMNS];
     this.toolbarColor = 'medium';
@@ -920,9 +921,9 @@ export class CalendarComponent
     }
   }
 
-  @HostListener('window:resize')
+  @HostListener('document:resize')
   onResize() {
-    console.debug(this.logPrefix + 'Resizing calendar...');
+    if (this.debug) console.debug(this.logPrefix + 'Resizing...');
     this.closeContextMenu();
     this.resizeCellSelection(this.cellSelection, 'cell', { emitEvent: false });
     this.resizeCellSelection(this.cellClipboard, 'clipboard', { emitEvent: false });
@@ -1140,7 +1141,7 @@ export class CalendarComponent
     return true;
   }
 
-  protected async selectMonthClick(event: MouseEvent, row: AsyncTableElement<ActivityMonth>) {
+  protected async clickMonthHeader(event: MouseEvent, row: AsyncTableElement<ActivityMonth>) {
     if (!row || event?.defaultPrevented) return; // Skip
 
     event?.preventDefault(); // Avoid clickRow
@@ -1155,11 +1156,60 @@ export class CalendarComponent
 
     // If Shift+click: expand the existing selection
     if (event?.shiftKey && this.cellSelection?.rowspan === rowspan && this.cellSelection.row.id !== row.id) {
-      colspan = Math.max(1, Math.abs(row.id - this.cellSelection.row.id)) + 1;
-      if (row.id > this.cellSelection.row.id) {
-        cellElement = this.cellSelection.cellElement;
-        row = this.cellSelection.row;
-      }
+      colspan = (Math.max(1, Math.abs(row.id - this.cellSelection.row.id)) + 1) * (row.id < this.cellSelection.row.id ? -1 : 1);
+      cellElement = this.cellSelection.cellElement;
+      row = this.cellSelection.row;
+    }
+
+    this.cellSelection = {
+      divElement: this.cellSelectionDivRef.nativeElement,
+      cellElement,
+      row,
+      columnName,
+      colspan,
+      rowspan,
+      resizing: false,
+    };
+
+    this.resizeCellSelection(this.cellSelection, 'cell');
+
+    // Emit cell selection changes
+    this.startCellSelection.next();
+  }
+
+  protected async clickColumnHeader(event: MouseEvent, columnName: string | number) {
+    if (event?.defaultPrevented || isNil(columnName)) return; // Skip
+
+    // Convert column to string
+    columnName = '' + columnName;
+
+    // If hidden column: show it
+    const hiddenColumn = this.dynamicColumns.find((col) => col.key === columnName && col.expand && col.hidden);
+    if (hiddenColumn) {
+      hiddenColumn.expand(event);
+      return;
+    }
+
+    event?.preventDefault(); // Avoid default click
+    const columnIndex = this.displayedColumns.findIndex((c) => c === columnName);
+
+    let row = this.dataSource.getRow(0); // January
+    let { cellElement } = this.getCellElement(0, columnIndex);
+
+    const colspan = this.visibleRowCount;
+    let rowspan = 1;
+
+    // If Shift+click: expand the existing selection
+    if (event?.shiftKey && this.cellSelection?.colspan === colspan && this.cellSelection.columnName !== columnName) {
+      const previousColumnIndex = this.displayedColumns.findIndex((c) => c === this.cellSelection.columnName);
+      rowspan = (Math.max(1, Math.abs(columnIndex - previousColumnIndex)) + 1) * (columnIndex < previousColumnIndex ? -1 : 1);
+
+      // DEBUG
+      console.debug(this.logPrefix + `Expand existing cell selection using rowspan=${rowspan}`);
+
+      cellElement = this.cellSelection.cellElement;
+      row = this.cellSelection.row;
+      columnName = this.cellSelection.columnName;
     }
 
     this.cellSelection = {
@@ -1214,7 +1264,7 @@ export class CalendarComponent
     if (!cellElement || !divElement) return;
 
     // DEBUG
-    console.debug(`${this.logPrefix}Resizing ${name} selection...`);
+    if (this.debug) console.debug(`${this.logPrefix}Resizing ${name} selection...`);
 
     const containerRect = containerElement.getBoundingClientRect();
     const relativeCellRect = cellElement.getBoundingClientRect();
@@ -1233,7 +1283,7 @@ export class CalendarComponent
 
     let top = relativeCellRect.top;
     let left = relativeCellRect.left - containerRect.left;
-    const width = relativeCellRect.width * Math.abs(colspan);
+    let width = relativeCellRect.width * Math.abs(colspan);
     let height = relativeCellRect.height * Math.abs(rowspan);
 
     if (rowspan < 0) {
@@ -1251,6 +1301,16 @@ export class CalendarComponent
       cellSelection.originalMouseX = left + relativeCellRect.width + containerRect.left + containerElement.scrollLeft;
     }
 
+    // Compute scrollbar dimension
+    const scrollbarWidth =
+      containerElement.clientWidth < containerElement.scrollWidth ? containerElement.offsetWidth - containerElement.clientWidth : 0;
+    const scrollbarHeight =
+      containerElement.clientHeight < containerElement.scrollHeight ? containerElement.offsetHeight - containerElement.clientHeight : 0;
+
+    // DEBUG
+    console.debug(this.logPrefix + `scrollbarWidth=${scrollbarWidth} scrollbarHeight=${scrollbarHeight}`);
+    //console.debug(`${this.logPrefix}containerRect.bottom=${containerRect.bottom} scrollbarHeight=${scrollbarHeight} maxBottom=${maxBottom} bottom=${top + height}`);
+
     let topCut = false;
     if (top < containerRect.top) {
       height = Math.max(0, height - containerRect.top + top);
@@ -1258,12 +1318,22 @@ export class CalendarComponent
       topCut = true;
     }
 
-    //console.debug(`${this.logPrefix}containerRect.bottom=${containerRect.bottom} scrollbarHeight=${scrollbarHeight} maxBottom=${maxBottom} bottom=${top + height}`);
     let bottomCut = false;
-    if (top + height > containerRect.bottom) {
-      height = Math.max(0, containerRect.bottom - top);
-      if (height === 0) top = containerRect.bottom;
+    if (top + height > containerRect.bottom - scrollbarHeight) {
+      height = Math.max(0, containerRect.bottom - scrollbarHeight - top);
+      if (height === 0) {
+        top = containerRect.bottom - scrollbarHeight;
+      }
       bottomCut = true;
+    }
+
+    let rightCut = false;
+    if (left + width > containerRect.right - containerRect.left - scrollbarWidth) {
+      width = Math.max(0, containerRect.right - containerRect.left - scrollbarWidth - left);
+      if (width === 0) {
+        left = containerRect.right - containerRect.left - scrollbarWidth;
+      }
+      rightCut = true;
     }
 
     // DEBUG
@@ -1278,6 +1348,7 @@ export class CalendarComponent
     divElement.style.height = height + 'px';
     divElement.classList.toggle('top-no-border', topCut);
     divElement.classList.toggle('bottom-no-border', bottomCut);
+    divElement.classList.toggle('right-no-border', rightCut);
 
     if (opts?.emitEvent !== false) {
       this.markForCheck();
@@ -1777,6 +1848,9 @@ export class CalendarComponent
     });
 
     this.markForCheck();
+
+    // Resize cell selection (after refresh was done)
+    setTimeout(() => this.onResize());
   }
 
   toggleGradientBlock(event: Event, keyPrefix: string, forceExpanded?: boolean) {
@@ -1804,6 +1878,9 @@ export class CalendarComponent
     subColumns.forEach((col) => (col.hidden = !expanded));
 
     this.markForCheck();
+
+    // Resize cell selection (after refresh was done)
+    setTimeout(() => this.onResize());
   }
 
   expandMetierBlock(event: Event, blockIndex: number, opts?: { emitEvent?: boolean }) {
@@ -2395,10 +2472,8 @@ export class CalendarComponent
     let columnName: string;
     if (this.editedRowFocusedElement) {
       cellElement = this.getParentCellElement(this.editedRowFocusedElement);
-      const columnClass = (cellElement?.classList.value.split(' ') || []).find(
-        (clazz) => clazz.startsWith('cdk-column-') || clazz.startsWith('mat-column-')
-      );
-      columnName = lastArrayValue(columnClass?.split('-'));
+      const columnClasses = (cellElement?.classList.value.split(' ') || []).filter((clazz) => clazz.startsWith('mat-column-'));
+      columnName = columnClasses.map((columnClass) => lastArrayValue(columnClass?.split('-'))).find(this.displayedColumns.includes);
     } else if (this.focusColumn) {
       const rowElement = this.getEditedRowElement();
       cellElement = rowElement?.querySelector(`.mat-mdc-cell.mat-column-${this.focusColumn}`);
@@ -2410,7 +2485,7 @@ export class CalendarComponent
     return { cellElement, columnName };
   }
 
-  startListenFocusedElement(): Subscription {
+  protected startListenFocusedElement(): Subscription {
     const subscription = new Subscription();
 
     let rowElement: HTMLElement;
@@ -2424,7 +2499,8 @@ export class CalendarComponent
       if (subscription.closed) return; // Edited row changed
 
       // DEBUG
-      console.debug(`${this.logPrefix}Start listening row focused element...`);
+      //console.debug(`${this.logPrefix}Start listening row focused element...`);
+
       this.editedRowFocusedElement = this.focusColumn && rowElement?.querySelector(`.mat-mdc-cell.mat-column-${this.focusColumn}`);
 
       subscription.add(

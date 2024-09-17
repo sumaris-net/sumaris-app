@@ -210,7 +210,7 @@
           *matCellDef="let row"
           [title]="errorSpan?.innerText || ''"
           class="mat-column-reset-background-color"
-          (click)="selectMonthClick($event, row)"
+          (click)="clickMonthHeader($event, row)"
         >
           <ion-label class="ion-text-center">
             <ion-text
@@ -293,7 +293,7 @@
       </ng-container>
 
       <ng-container matColumnDef="isActive">
-        <mat-header-cell *matHeaderCellDef>
+        <mat-header-cell *matHeaderCellDef (click)="clickColumnHeader($event, 'isActive')">
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.IS_ACTIVE</ion-label>
         </mat-header-cell>
         <mat-cell
@@ -339,7 +339,7 @@
 
       <!-- Base port location -->
       <ng-container matColumnDef="basePortLocation">
-        <mat-header-cell *matHeaderCellDef class="odd">
+        <mat-header-cell *matHeaderCellDef class="odd" (click)="clickColumnHeader($event, 'basePortLocation')">
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION</ion-label>
         </mat-header-cell>
         <mat-cell
@@ -373,63 +373,70 @@
       </ng-container>
 
       <!-- Pmfms columns -->
-      <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as index; odd as odd" [matColumnDef]="pmfm.id || index | toString">
-        <mat-header-cell *matHeaderCellDef class="mat-column-pmfm mat-column-{{ pmfm.label }}" [class.odd]="odd">
-          <ion-label
-            [innerHTML]="
-              pmfm
-                | pmfmName
-                  : {
-                      html: false,
-                      withDetails: showPmfmDetails,
-                      withUnit: false,
-                      i18nPrefix: i18nPmfmPrefix,
-                      i18nSuffix: i18nColumnSuffix
-                    }
-            "
-          ></ion-label>
-        </mat-header-cell>
-        <mat-cell
-          #cell
-          *matCellDef="let row"
-          class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-resizable"
-          [class.odd]="odd"
-          (click)="setFocusColumn($event, row, (pmfm.id || index).toString())"
-          (contextmenu)="onContextMenu($event, cell, row, (pmfm.id || index).toString())"
-        >
-          <!-- desktop -->
-          @if (inlineEdition && row.validator | formGetControl: ['measurementValues', pmfm.id]; as control) {
-            @if (row.editing && (row.validator | formGetValue: 'isActive') === 1) {
-              <!-- writable (desktop) -->
-              <app-pmfm-field
-                floatLabel="never"
-                [pmfm]="pmfm"
-                [i18nPrefix]="i18nPmfmPrefix"
-                [i18nSuffix]="i18nColumnSuffix"
-                [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-                [autofocus]="focusColumn == (pmfm.id || index)"
-                [compact]="compactFields"
-              ></app-pmfm-field>
+      @for (pmfm of pmfms; track trackPmfmFn; let index = $index; let odd = $odd) {
+        <ng-container [matColumnDef]="pmfm.id || index | toString">
+          <mat-header-cell
+            *matHeaderCellDef
+            class="mat-column-pmfm mat-column-{{ pmfm.label }}"
+            [class.odd]="odd"
+            (click)="clickColumnHeader($event, pmfm.id || index)"
+          >
+            <ion-label
+              [innerHTML]="
+                pmfm
+                  | pmfmName
+                    : {
+                        html: false,
+                        withDetails: showPmfmDetails,
+                        withUnit: false,
+                        i18nPrefix: i18nPmfmPrefix,
+                        i18nSuffix: i18nColumnSuffix
+                      }
+              "
+            ></ion-label>
+          </mat-header-cell>
+          <mat-cell
+            #cell
+            *matCellDef="let row"
+            class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-resizable"
+            [class.odd]="odd"
+            (click)="setFocusColumn($event, row, (pmfm.id || index).toString())"
+            (contextmenu)="onContextMenu($event, cell, row, (pmfm.id || index).toString())"
+          >
+            <!-- desktop -->
+            @if (inlineEdition && row.validator | formGetControl: ['measurementValues', pmfm.id]; as control) {
+              @if (row.editing && (row.validator | formGetValue: 'isActive') === 1) {
+                <!-- writable (desktop) -->
+                <app-pmfm-field
+                  floatLabel="never"
+                  [pmfm]="pmfm"
+                  [i18nPrefix]="i18nPmfmPrefix"
+                  [i18nSuffix]="i18nColumnSuffix"
+                  [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+                  [autofocus]="focusColumn == (pmfm.id || index)"
+                  [compact]="compactFields"
+                ></app-pmfm-field>
+              } @else {
+                <!-- readonly (desktop) -->
+                <ion-text
+                  [innerHTML]="control | formGetValue | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"
+                ></ion-text>
+              }
             } @else {
-              <!-- readonly (desktop) -->
-              <ion-text
-                [innerHTML]="control | formGetValue | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"
-              ></ion-text>
+              <!-- readonly (mobile) -->
+              <ion-label>
+                {{ row.currentData | measurementValueGet: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] } }}
+              </ion-label>
             }
-          } @else {
-            <!-- readonly (mobile) -->
-            <ion-label>
-              {{ row.currentData | measurementValueGet: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] } }}
-            </ion-label>
-          }
-          <!-- resize handlers -->
-          @if (enableCellSelection) {
-            <ng-container
-              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false }"
-            ></ng-container>
-          }
-        </mat-cell>
-      </ng-container>
+            <!-- resize handlers -->
+            @if (enableCellSelection) {
+              <ng-container
+                *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false }"
+              ></ng-container>
+            }
+          </mat-cell>
+        </ng-container>
+      }
 
       <!-- Dynamic columns (metier block) -->
       <ng-container *ngFor="let col of dynamicColumns">
@@ -439,7 +446,7 @@
             [class]="col.class"
             [class.collapsed]="col.hidden"
             [class.tappable]="col.expanded !== undefined"
-            (click)="(col.expanded !== undefined || col.hidden) && col.toggle($event)"
+            (click)="clickColumnHeader($event, col.key)"
           >
             <ion-label>
               @if (col.treeIndent) {
