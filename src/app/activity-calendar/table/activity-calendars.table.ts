@@ -57,7 +57,6 @@ import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
-import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -96,7 +95,6 @@ export class ActivityCalendarsTable
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
   protected program: Program;
-  protected configVesselFilterDefault: number[];
 
   @Input() showRecorder = true;
   @Input() canDownload = false;
@@ -209,23 +207,16 @@ export class ActivityCalendarsTable
     this.debug = !environment.production;
     this.logPrefix = '[activity-calendar-table] ';
   }
+
   ngOnInit() {
     super.ngOnInit();
+
     this.canEdit = this.accountService.isUser();
     const showAdvancedFeatures = this.isAdmin;
     this.canDownload = showAdvancedFeatures;
     this.canUpload = showAdvancedFeatures;
     this.canOpenMap = showAdvancedFeatures;
     this.canAdd = showAdvancedFeatures;
-
-    // Load the config to get the default vessel filter
-    this.registerSubscription(
-      this.configService.config.subscribe((config) => {
-        this.configVesselFilterDefault = [config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID) || undefined]
-          .concat(config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [])
-          .filter(isNotNil);
-      })
-    );
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
@@ -239,11 +230,10 @@ export class ActivityCalendarsTable
       this.registerAutocompleteField('vesselSnapshot', {
         ...opts,
         suggestFn: (value, filter) => {
-          let vesselFilter = this.getVesselTypeFilter(filter);
           const vesselType = this.filterForm.value.vesselType?.id;
+          let vesselFilter = this.getVesselTypeFilter(filter);
           if (isNotNil(vesselType)) {
-            const isVesselTypeUsable = isNotNil(vesselFilter?.vesselTypeIds) ? vesselFilter?.vesselTypeIds?.includes(vesselType) : true;
-            vesselFilter = { ...vesselFilter, vesselTypeIds: isVesselTypeUsable ? [vesselType] : [undefined] };
+            vesselFilter = { ...vesselFilter, vesselTypeIds: [vesselType] };
           }
           return this.vesselSnapshotService.suggest(value, vesselFilter);
         },
@@ -690,25 +680,15 @@ export class ActivityCalendarsTable
   protected getVesselTypeFilter(filter: Partial<VesselSnapshotFilter>) {
     let vesselFilter = filter;
 
-    if (isNotEmptyArray(this.configVesselFilterDefault)) vesselFilter = { ...vesselFilter, vesselTypeIds: this.configVesselFilterDefault };
-
     const program = this.filterForm.value.program || this.program;
     if (!program) return vesselFilter;
 
     const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
-    if (!programVesselTypeIdsFilter) return vesselFilter;
-
-    let vesselIds;
-
-    vesselIds = isNotEmptyArray(this.configVesselFilterDefault)
-      ? this.configVesselFilterDefault.filter((value) => programVesselTypeIdsFilter.includes(value))
-      : programVesselTypeIdsFilter;
-
-    vesselIds = isEmptyArray(vesselIds) ? [undefined] : vesselIds;
+    if (isEmptyArray(programVesselTypeIdsFilter)) return vesselFilter;
 
     vesselFilter = {
       ...vesselFilter,
-      vesselTypeIds: vesselIds,
+      vesselTypeIds: programVesselTypeIdsFilter,
     };
 
     return vesselFilter;
