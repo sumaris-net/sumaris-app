@@ -12,23 +12,27 @@
 
 <!-- Vessel actions -->
 <mat-menu #actionMenu="matMenu" xPosition="after">
-  <!-- vessel registration -->
-  <mat-label mat-menu-item class="mat-mdc-menu-title" translate>VESSEL.ACTION.REGISTRATION_DIVIDER</mat-label>
-  <button mat-menu-item translate (click)="editRegistration()">VESSEL.ACTION.EDIT_REGISTRATION</button>
-  <button mat-menu-item translate *ngIf="!!data?.vesselRegistrationPeriod" (click)="newRegistration()">VESSEL.ACTION.NEW_REGISTRATION</button>
-  <mat-divider></mat-divider>
+  <ng-template matMenuContent>
+    <!-- vessel registration -->
+    <mat-label mat-menu-item class="mat-mdc-menu-title">{{ 'VESSEL.ACTION.REGISTRATION_DIVIDER' | translate }}</mat-label>
+    <button mat-menu-item (click)="editRegistration()">{{ 'VESSEL.ACTION.EDIT_REGISTRATION' | translate }}</button>
+    <button mat-menu-item *ngIf="!!data?.vesselRegistrationPeriod" (click)="newRegistration()">
+      {{ 'VESSEL.ACTION.NEW_REGISTRATION' | translate }}
+    </button>
+    <mat-divider></mat-divider>
 
-  <!-- vessel features -->
-  <mat-label mat-menu-item class="mat-mdc-menu-title" translate>VESSEL.ACTION.FEATURES_DIVIDER</mat-label>
-  <button mat-menu-item translate (click)="editFeatures()">VESSEL.ACTION.EDIT_FEATURES</button>
-  <button mat-menu-item translate (click)="newFeatures()">VESSEL.ACTION.NEW_FEATURES</button>
-  <mat-divider></mat-divider>
+    <!-- vessel features -->
+    <mat-label mat-menu-item class="mat-mdc-menu-title">{{ 'VESSEL.ACTION.FEATURES_DIVIDER' | translate }}</mat-label>
+    <button mat-menu-item (click)="editFeatures()">{{ 'VESSEL.ACTION.EDIT_FEATURES' | translate }}</button>
+    <button mat-menu-item (click)="newFeatures()">{{ 'VESSEL.ACTION.NEW_FEATURES' | translate }}</button>
+    <mat-divider></mat-divider>
 
-  <!-- other (change status) -->
-  <button mat-menu-item translate (click)="editStatus()">VESSEL.ACTION.EDIT_STATUS</button>
-  <button mat-menu-item translate (click)="replace($event)" *ngIf="replacementEnabled" [disabled]="data?.statusId !== temporaryStatusId">
-    VESSEL.ACTION.REPLACE
-  </button>
+    <!-- other (change status) -->
+    <button mat-menu-item (click)="editStatus()">{{ 'VESSEL.ACTION.EDIT_STATUS' | translate }}</button>
+    <button mat-menu-item (click)="replace($event)" *ngIf="replacementEnabled" [disabled]="data?.statusId !== temporaryStatusId">
+      {{ 'VESSEL.ACTION.REPLACE' | translate }}
+    </button>
+  </ng-template>
 </mat-menu>
 
 <!-- (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)" -->
@@ -42,7 +46,12 @@
     dynamicHeight
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'VESSEL.TAB_GENERAL' | translate }}">
+    <mat-tab
+      [label]="'VESSEL.TAB_GENERAL' | translate"
+      appSubMenuTab
+      [subMenuTitle]="(titleSubject | async | noHtml) || ''"
+      [parentPath]="defaultBackHref"
+    >
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>VESSEL.TAB_GENERAL</ion-label>
@@ -85,7 +94,7 @@
       </ion-grid>
     </mat-tab>
 
-    <mat-tab label="{{ 'VESSEL.TAB_HISTORY' | translate }}">
+    <mat-tab [label]="'VESSEL.TAB_HISTORY' | translate" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>history</mat-icon>
         &nbsp;

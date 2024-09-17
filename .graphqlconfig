@@ -25,7 +25,7 @@
         "introspect": false
       },
       "GraphQL Endpoint (Benoit 2)": {
-        "url": "http://192.168.0.24:8080/graphql",
+        "url": "https://server.e-is.pro/graphql",
         "headers": {
           "user-agent": "JS GraphQL"
         },
