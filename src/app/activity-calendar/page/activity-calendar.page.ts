@@ -337,7 +337,6 @@ export class ActivityCalendarPage
     this.registerSubscription(
       this.onUpdateView.subscribe(() => {
         if (isNotNilOrNaN(this.data.id)) {
-          console.log('TODO got ');
           this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), { emitEvent: true });
           this.registrationHistoryTable.setFilter(VesselRegistrationPeriodFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), {
             emitEvent: true,
