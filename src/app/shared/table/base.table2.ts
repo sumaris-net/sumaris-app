@@ -77,6 +77,7 @@ export abstract class AppBaseTable2<
   protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
   protected popoverController: PopoverController;
+  protected defaultCompact: boolean = false;
 
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
 
@@ -586,7 +587,7 @@ export abstract class AppBaseTable2<
 
     const compact = toBoolean(
       this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY),
-      toBoolean(this.compact, false)
+      toBoolean(this.compact, this.defaultCompact)
     );
     if (this.compact !== compact) {
       this.compact = compact;

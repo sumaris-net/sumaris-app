@@ -398,7 +398,7 @@ export class CalendarComponent
     this.inlineEdition = true;
     this.autoLoad = true;
     this.sticky = true;
-    this.compact = !this.mobile; // compact mode enable by default, on desktop
+    this.defaultCompact = !this.mobile; // compact mode enable by default, on desktop
     this.errorTranslateOptions = { separator: '\n', pathTranslator: this };
     this.excludesColumns = ['program', ...DYNAMIC_COLUMNS];
     this.toolbarColor = 'medium';
@@ -1572,6 +1572,8 @@ export class CalendarComponent
 
     if (opts?.emitEvent !== false) {
       this.markForCheck();
+
+      setTimeout(() => this.onResize());
     }
   }
 
@@ -1798,8 +1800,11 @@ export class CalendarComponent
     for (let i = 0; i < this.metierCount; i++) {
       this.collapseMetierBlock(null, i, { emitEvent: false });
     }
-    this.removeCellSelection(opts);
-    this.clearClipboard(null, { clearContext: false });
+
+    setTimeout(() => {
+      this.removeCellSelection(opts);
+      this.clearClipboard(null, { clearContext: false });
+    });
   }
 
   async clearAll(event?: Event, opts?: { interactive?: boolean }) {
@@ -2407,8 +2412,11 @@ export class CalendarComponent
       event.preventDefault();
       return; // Skip
     }
+
     // select current row
-    this.selectRow(columnName, row, event);
+    if (!this.isInsideCellSelection(this.cellSelection, cell)) {
+      this.selectRow(columnName, row, event);
+    }
     event.preventDefault();
 
     // Stop resizing
@@ -2554,5 +2562,23 @@ export class CalendarComponent
     if (opts?.emitEvent !== false) {
       this.markForCheck();
     }
+  }
+
+  protected isInsideCellSelection(cellSelection: TableCellSelection, cellElement: HTMLElement) {
+    cellSelection = cellSelection || this.cellSelection;
+    const divElement: HTMLElement = cellSelection?.divElement;
+    if (!cellElement || !divElement) return false;
+
+    const divRect = divElement.getBoundingClientRect();
+    const cellRect = cellElement.getBoundingClientRect();
+
+    // Vérifier si le coin supérieur gauche de cellElement est à l'intérieur de divElement
+    const isTopLeftInside = cellRect.left >= divRect.left && cellRect.top >= divRect.top;
+
+    // Vérifier si le coin inférieur droit de cellElement est à l'intérieur de divElement
+    const isBottomRightInside = cellRect.right <= divRect.right && cellRect.bottom <= divRect.bottom;
+
+    // Si les deux coins sont à l'intérieur, alors cellElement est entièrement à l'intérieur de divElement
+    return isTopLeftInside && isBottomRightInside;
   }
 }
