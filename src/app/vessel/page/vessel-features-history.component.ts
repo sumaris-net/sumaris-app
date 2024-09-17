@@ -19,8 +19,8 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
   @Input() compact: boolean;
   @Input() title: string;
   @Input() stickyEnd: boolean = false;
-  @Input() mergeSameAndContiguous: boolean = false;
   @Input() showPagination: boolean = false;
+  @Input() mergeAll: boolean = false;
 
   @Input()
   set showGrossTonnageGrtColumn(value: boolean) {
@@ -99,7 +99,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
 
       {
         watchAllOptions: <VesselFeaturesServiceWatchOptions>{
-          mergeSameAndContiguous: () => this.mergeSameAndContiguous,
+          mergeAll: () => this.mergeAll,
         },
 
         saveOnlyDirtyRows: true,

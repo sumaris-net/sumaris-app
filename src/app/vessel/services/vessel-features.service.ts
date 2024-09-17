@@ -18,7 +18,7 @@ import { FetchPolicy, gql } from '@apollo/client/core';
 import { VesselFeaturesUtils } from './model/vessel.utils';
 
 export declare interface VesselFeaturesServiceWatchOptions extends EntitiesServiceWatchOptions {
-  mergeSameAndContiguous?: (() => boolean) | boolean;
+  mergeAll?: boolean | (() => boolean);
 }
 export const VesselFeaturesFragments = {
   vesselFeatures: gql`
@@ -56,7 +56,7 @@ export const VesselFeaturesFragments = {
 
 export const VesselFeatureQueries = {
   loadAll: gql`
-    query VesselFeaturesHistory($filter: VesselFeaturesFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+    query VesselFeaturesHistory($filter: VesselFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
       data: vesselFeaturesHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
         ...VesselFeaturesFragment
       }
@@ -68,7 +68,7 @@ export const VesselFeatureQueries = {
     ${ReferentialFragments.lightReferential}
   `,
   loadAllWithTotal: gql`
-    query VesselFeaturesHistory($filter: VesselFeaturesFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+    query VesselFeaturesHistory($filter: VesselFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
       data: vesselFeaturesHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
         ...VesselFeaturesFragment
       }
@@ -103,13 +103,13 @@ export class VesselFeaturesService
     opts?: VesselFeaturesServiceWatchOptions
   ): Observable<LoadResult<VesselFeatures>> {
     // Merge items
-    const mergeSameAndContiguous = typeof opts?.mergeSameAndContiguous === 'function' ? opts.mergeSameAndContiguous() : opts?.mergeSameAndContiguous;
-    if (mergeSameAndContiguous) {
+    const mergeAll = typeof opts?.mergeAll === 'function' ? opts.mergeAll() : opts?.mergeAll;
+    if (mergeAll) {
       // Get all items, ordered from last to older
       return super.watchAll(offset, null, 'startDate', 'asc', dataFilter, opts).pipe(
         map(({ data }) => {
           // Merge
-          data = VesselFeaturesUtils.mergeSameAndContiguous(data);
+          data = VesselFeaturesUtils.mergeAll(data);
 
           // Fill changed properties
           data = VesselFeaturesUtils.fillChangedProperties(data);

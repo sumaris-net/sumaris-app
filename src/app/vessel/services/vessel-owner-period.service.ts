@@ -27,7 +27,7 @@ export const VesselOwnerPeriodFragments = {
 
 export const VesselOwnerPeriodQueries = {
   loadAll: gql`
-    query vesselOwnerHistory($filter: VesselOwnerFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+    query vesselOwnerHistory($filter: VesselFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
       data: vesselOwnerHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
         ...VesselOwnerFragment
       }
@@ -35,7 +35,7 @@ export const VesselOwnerPeriodQueries = {
     ${VesselOwnerPeriodFragments.vesselOwner}
   `,
   loadAllWithTotal: gql`
-    query vesselOwnerHistory($filter: VesselOwnerFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+    query vesselOwnerHistory($filter: VesselFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
       data: vesselOwnerHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
         ...VesselOwnerFragment
       }

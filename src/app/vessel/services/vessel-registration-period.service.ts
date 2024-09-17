@@ -5,16 +5,14 @@ import {
   BaseEntityService,
   EntitiesServiceLoadOptions,
   EntitiesServiceWatchOptions,
-  firstNotNilPromise,
   GraphqlService,
-  isNotNil,
   LoadResult,
   PlatformService,
 } from '@sumaris-net/ngx-components';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { VesselRegistrationPeriodFilter } from './filter/vessel.filter';
 import { SortDirection } from '@angular/material/sort';
-import { Observable, first } from 'rxjs';
+import { Observable } from 'rxjs';
 
 export const VesselRegistrationPeriodFragments = {
   registration: gql`
@@ -33,7 +31,7 @@ export const VesselRegistrationPeriodFragments = {
 
 export const VesselRegistrationPeriodQueries = {
   loadAll: gql`
-    query VesselRegistrationHistory($filter: VesselRegistrationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+    query VesselRegistrationHistory($filter: VesselFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
       data: vesselRegistrationHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
         ...VesselRegistrationPeriodFragment
       }
@@ -42,7 +40,7 @@ export const VesselRegistrationPeriodQueries = {
     ${ReferentialFragments.location}
   `,
   loadAllWithTotal: gql`
-    query VesselRegistrationHistory($filter: VesselRegistrationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+    query VesselRegistrationHistory($filter: VesselFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
       data: vesselRegistrationHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
         ...VesselRegistrationPeriodFragment
       }
@@ -69,9 +67,8 @@ export class VesselRegistrationPeriodService extends BaseEntityService<VesselReg
       fetchPolicy?: FetchPolicy;
     }
   ): Promise<number> {
-    const { data, total } = await this.loadAll(0, 100, null, null, filter, opts);
-    console.debug('MYTEST COUNT', { data, total });
-    return isNotNil(total) ? total : (data || []).length;
+    const { total } = await this.loadAll(0, 1, null, null, filter, opts);
+    return total;
   }
   watchAll(
     offset: number,
@@ -80,12 +77,8 @@ export class VesselRegistrationPeriodService extends BaseEntityService<VesselReg
     sortDirection?: SortDirection,
     dataFilter?: VesselRegistrationPeriodFilter,
     opts?: EntitiesServiceWatchOptions
-  ): Observable<LoadResult<VesselRegistrationPeriod<VesselRegistrationPeriod<any>>>> {
-    const result = super.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts);
-    firstNotNilPromise(result).then((data) => {
-      console.debug('MYTEST', data);
-    });
-    return result;
+  ): Observable<LoadResult<VesselRegistrationPeriod>> {
+    return super.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts);
   }
   async loadAll(
     offset: number,
@@ -94,9 +87,8 @@ export class VesselRegistrationPeriodService extends BaseEntityService<VesselReg
     sortDirection?: SortDirection,
     filter?: Partial<VesselRegistrationPeriodFilter>,
     opts?: EntitiesServiceLoadOptions & { debug?: boolean }
-  ): Promise<LoadResult<VesselRegistrationPeriod<VesselRegistrationPeriod<any>>>> {
-    const result = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
-    return result;
+  ): Promise<LoadResult<VesselRegistrationPeriod>> {
+    return await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
   }
   /* -- protected methods -- */
 }

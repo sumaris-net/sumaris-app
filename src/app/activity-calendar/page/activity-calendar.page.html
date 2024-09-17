@@ -218,7 +218,7 @@
                   [showIsFpcColumn]="true"
                   [showCommentsColumn]="false"
                   [showIrcsColumn]="false"
-                  [mergeSameAndContiguous]="true"
+                  [mergeAll]="true"
                   [showPagination]="true"
                   [defaultPageSize]="5"
                   [defaultPageSizeOptions]="[5, 10, 50]"
@@ -352,7 +352,7 @@
         </as-split-area>
 
         <!-- Predoc -->
-        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible" [style.z-index]="110">
+        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible">
           <app-calendar
             #predocCalendar
             [title]="'ACTIVITY_CALENDAR.EDIT.PREDOC_TITLE'"

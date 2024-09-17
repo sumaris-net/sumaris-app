@@ -23,6 +23,7 @@ import {
   Hotkeys,
   IReferentialRef,
   isEmptyArray,
+  isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
@@ -336,6 +337,7 @@ export class ActivityCalendarPage
     this.registerSubscription(
       this.onUpdateView.subscribe(() => {
         if (isNotNilOrNaN(this.data.id)) {
+          console.log('TODO got ');
           this.featuresHistoryTable.setFilter(VesselFeaturesFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), { emitEvent: true });
           this.registrationHistoryTable.setFilter(VesselRegistrationPeriodFilter.fromObject({ vesselId: this.data.vesselSnapshot.id }), {
             emitEvent: true,
@@ -362,11 +364,19 @@ export class ActivityCalendarPage
   }
 
   updateTabsState(data: ActivityCalendar) {
-    // Move to second tab
-    if (this.autoOpenNextTab && !this.isNewData && this.selectedTabIndex === 0) {
-      this.selectedTabIndex = 1;
-      this.tabGroup.realignInkBar();
-      this.autoOpenNextTab = false; // Should switch only once
+    const isNewData = isNil(data?.id);
+    if (isNewData) {
+      this.showVesselTab = false;
+    } else {
+      // Show tab
+      this.showVesselTab = true;
+
+      // Move to calendar tab
+      if (this.autoOpenNextTab && this.selectedTabIndex === ActivityCalendarPage.TABS.GENERAL) {
+        this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+        this.tabGroup.realignInkBar();
+        this.autoOpenNextTab = false; // Should switch only once
+      }
     }
   }
 
