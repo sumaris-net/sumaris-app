@@ -125,6 +125,7 @@
         #batchTree
         queryTabIndexParamName="subtab"
         [selectedTabIndex]="selectedSubTabIndex"
+        [defaultTaxonGroup]="landingTaxonGroup"
         [usageMode]="usageMode"
         [requiredStrategy]="requiredStrategy$ | async"
         [strategyId]="strategy$ | async | propertyGet: 'id'"
