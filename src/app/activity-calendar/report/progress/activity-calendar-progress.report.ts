@@ -101,6 +101,8 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
 })
 export class ActivityCalendarProgressReport extends AppExtractionReport<ActivityMonitoringExtractionData, ActivityCalendarProgressReportStats> {
   static readonly DEFAULT_PROGRAM = 'SIH-ACTIFLOT';
+  // On pod side, if year is not set, the default is current year - 1
+  static readonly DEFAULT_YEAR = moment().year() - 1;
   protected readonly activityMonitoringStatusErrorIds = ActivityMonitoringStatusErrorIds;
   protected readonly months = new Array(12).fill(1).map((v, i) => 'month' + (v + i));
   protected readonly PARENT_PAGE_SETTING = 'activity-calendars';
@@ -155,11 +157,14 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   }
 
   protected async loadFromRoute(opts?: any): Promise<ActivityMonitoringExtractionData> {
-    const activityCalendarFilter = this.getActivityCalendarFilterFromPageSettings();
-    const extractionFilter = ExtractionUtils.createActivityCalendarFilter(
-      activityCalendarFilter.program?.label || ActivityCalendarProgressReport.DEFAULT_PROGRAM,
-      activityCalendarFilter
-    );
+    const activityCalendarFilter = this.getActivityCalendarFilterFromPageSettings() || ActivityCalendarFilter.fromObject({});
+
+    // set defaults
+    if (isNil(activityCalendarFilter.year)) activityCalendarFilter.year = ActivityCalendarProgressReport.DEFAULT_YEAR;
+    if (isNil(activityCalendarFilter.program?.label))
+      activityCalendarFilter.program = Program.fromObject({ label: ActivityCalendarProgressReport.DEFAULT_PROGRAM });
+
+    const extractionFilter = ExtractionUtils.createActivityCalendarFilter(activityCalendarFilter.program.label, activityCalendarFilter);
 
     return this.load(extractionFilter);
   }
@@ -176,9 +181,8 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   ): Promise<ActivityCalendarProgressReportStats> {
     const stats = new ActivityCalendarProgressReportStats();
 
-    // On pod side, if year is not set, the default is current year - 1
-
-    if (isNil(stats.filter.year)) stats.filter.year = moment().year() - 1;
+    stats.filter = this.getActivityCalendarFilterFromPageSettings() || ActivityCalendarFilter.fromObject({});
+    if (isNil(stats.filter.year)) stats.filter.year = ActivityCalendarProgressReport.DEFAULT_YEAR;
     if (isNil(stats.filter.program))
       stats.filter.program = Program.fromObject({
         label: ActivityCalendarProgressReport.DEFAULT_PROGRAM,

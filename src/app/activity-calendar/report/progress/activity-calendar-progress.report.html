@@ -81,65 +81,108 @@
           </ion-row>
         </ion-grid>
 
-        <!-- filter -->
+        <!-- filter --
+        <!-- TODO : hide empty filter -->
         @if (firstChunk) {
-          <ion-grid class="filter-section">
+          <ion-grid class="filter-section ion-padding-horizontal">
             <ion-row>
-              <ion-col class="ion-margin-horizontal">
-                <table [style.--row-height]="'20px'">
-                  <tbody>
-                    <tr>
-                      <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate }}</th>
-                      <td>{{ stats.filter.program?.label }}</td>
-                    </tr>
-                    <tr>
-                      <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.YEAR' | translate }}</th>
-                      <td>{{ stats.filter.year }}</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <!-- Program -->
+              <ion-col size="3">
+                <ion-grid>
+                  <ion-row class="form-field">
+                    <ion-col class="form-label" size="6">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate }}</ion-col>
+                    <ion-col class="form-value" size="6">{{ stats.filter.program?.label }}</ion-col>
+                  </ion-row>
+                </ion-grid>
               </ion-col>
-              <ion-col class="ion-margin-horizontal">
-                <table [style.--row-height]="'20px'">
-                  <tbody>
-                    <tr>
-                      <th class="col-large">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.REGISTRATION_LOCATION' | translate }}</th>
-                      <td class="col-large">
-                        <ng-content
-                          *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.registrationLocations }"
-                        ></ng-content>
-                      </td>
-                    </tr>
-                    <tr>
-                      <th class="col-large">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.BASE_PORT_LOCATION' | translate }}</th>
-                      <td class="col-large">
-                        <ng-content
-                          *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.basePortLocations }"
-                        ></ng-content>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <!-- Year -->
+              <ion-col size="2">
+                <ion-grid>
+                  <ion-row class="form-field">
+                    <ion-col class="form-label" size="6">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.YEAR' | translate }}</ion-col>
+                    <ion-col class="form-value" size="6">{{ stats.filter.year }}</ion-col>
+                  </ion-row>
+                </ion-grid>
               </ion-col>
-              <ion-col class="ion-margin-horizontal">
-                <table [style.--row-height]="'20px'">
-                  <tbody>
-                    <tr>
-                      <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate }}</th>
-                      <td>{{ stats.filter.recorderPerson | personToString }}</td>
-                    </tr>
-                    <tr>
-                      <th>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_DEPARTMENT' | translate }}</th>
-                      <td>{{ stats.filter.recorderDepartment | departmentToString }}</td>
-                    </tr>
-                    <tr>
-                      <th>{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</th>
-                      <td>
-                        {{ (stats.filter.dataQualityStatus | isNotNilOrBlank) ? ('QUALITY.' + stats.filter.dataQualityStatus | translate) : '' }}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <!-- Base port location -->
+              <ion-col size="5">
+                <ion-grid>
+                  <ion-row class="form-field">
+                    <ion-col class="form-label" size="3">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.BASE_PORT_LOCATION' | translate }}</ion-col>
+                    <ion-col class="form-value" size="9">
+                      <ng-content *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.basePortLocations }"></ng-content>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </ion-col>
+              <!-- Registration location -->
+              <ion-col size="5">
+                <ion-grid>
+                  <ion-row class="form-field">
+                    <ion-col class="form-label" size="3">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.REGISTRATION_LOCATION' | translate }}</ion-col>
+                    <ion-col class="form-value" size="9">
+                      <ng-content
+                        *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.registrationLocations }"
+                      ></ng-content>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </ion-col>
+              <!-- Vessel -->
+              <ion-col size="5">
+                <ion-grid>
+                  <ion-row class="form-field">
+                    <ion-col class="form-label" size="3">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL' | translate }}</ion-col>
+                    <ion-col class="form-value" size="9">
+                      <ng-content
+                        *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.registrationLocations }"
+                      ></ng-content>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </ion-col>
+              <!-- Recorder person -->
+              <ion-col size="4">
+                <ion-grid>
+                  <ion-row class="form-field">
+                    <ion-col class="form-label" size="3">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate }}</ion-col>
+                    <ion-col class="form-value" size="9">
+                      {{ stats.filter.recorderPerson | personToString }}
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </ion-col>
+              <!-- Observer -->
+              <ion-col size="4">
+                <ion-grid>
+                  <ion-row class="form-field">
+                    <ion-col class="form-label" size="3">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.OBSERVERS' | translate }}</ion-col>
+                    <ion-col class="form-value" size="9">
+                      <ng-content *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.observers }"></ng-content>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </ion-col>
+              <!-- Recorder departement -->
+              <ion-col size="4">
+                <ion-grid>
+                  <ion-row class="form-field">
+                    <ion-col class="form-label" size="3">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_DEPARTMENT' | translate }}</ion-col>
+                    <ion-col class="form-value" size="9">
+                      {{ stats.filter.recorderDepartment | departmentToString }}
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </ion-col>
+              <ion-col size="2">
+                <ion-grid>
+                  <ion-row class="form-field">
+                    <ion-col class="form-label" size="3">{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</ion-col>
+                    <ion-col class="form-value" size="9">
+                      {{ (stats.filter.dataQualityStatus | isNotNilOrBlank) ? ('QUALITY.' + stats.filter.dataQualityStatus | translate) : '' }}
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
               </ion-col>
             </ion-row>
             <ng-template #referentialRefsItems let-referentialRefs="referentialRefs">
@@ -152,6 +195,7 @@
                 </span>
               }
             </ng-template>
+            <!-- TODO Missing Quality flag -->
           </ion-grid>
         }
 

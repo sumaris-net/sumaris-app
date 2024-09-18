@@ -28,11 +28,12 @@
     }
     ion-grid {
       &.filter-section {
-        margin: 0 auto;
+        width: 100%;
         min-height: 140px;
         max-height: 140px;
-        display: flex;
-        align-items: center;
+        ion-grid {
+          --ion-grid-padding: 2px;
+        }
       }
       &.synthesis-section {
         margin: 0 auto;

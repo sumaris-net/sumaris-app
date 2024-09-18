@@ -189,7 +189,7 @@ export class ActivityCalendarsTable
       qualityFlagId: [null, SharedValidators.integer],
       directSurveyInvestigation: [null],
       economicSurvey: [null],
-      observers: formBuilder.array([[null, SharedValidators.entity]]),
+      observers: [null, SharedValidators.entity],
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()

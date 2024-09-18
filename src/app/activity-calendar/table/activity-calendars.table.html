@@ -235,7 +235,7 @@
           <ion-col size="12" size-lg="6" *ngIf="showObservers">
             <mat-autocomplete-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.OBSERVERS' | translate"
-              [formControl]="filterObserversForm.at(0)"
+              [formControl]="filterObserversForm"
               [config]="autocompleteFields.observers"
               [i18nPrefix]="'USER.'"
               [clearable]="true"
