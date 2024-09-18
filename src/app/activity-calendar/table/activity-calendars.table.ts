@@ -342,9 +342,9 @@ export class ActivityCalendarsTable
       filter.year = toNumber(filter.year, null);
     } else {
       filter.year = null;
-      filter.startDate = null;
-      filter.endDate = null;
     }
+    filter.startDate = null;
+    filter.endDate = null;
 
     // Program
     const programLabel = filter?.program?.label;
@@ -568,7 +568,7 @@ export class ActivityCalendarsTable
       this.setFilter({ year });
     } else {
       const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
-      this.filterYearControl.setValue(year, { emitEvent: true });
+      this.filterForm.patchValue({ year, startDate }, { emitEvent: true });
       this.markForCheck();
 
       this.setFilter({ year, startDate: startDate, endDate: null });
