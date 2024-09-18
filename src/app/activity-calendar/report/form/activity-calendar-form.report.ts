@@ -12,11 +12,10 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import {
-  CORE_CONFIG_OPTIONS,
   ConfigService,
+  CORE_CONFIG_OPTIONS,
   DateUtils,
   EntityAsObjectOptions,
-  TranslateContextService,
   firstNotNilPromise,
   isEmptyArray,
   isNotEmptyArray,
@@ -24,6 +23,7 @@ import {
   referentialToString,
   sleep,
   splitById,
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../../activity-calendar.service';
 import { ActivityMonth } from '../../calendar/activity-month.model';
@@ -100,7 +100,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
   public static readonly isBlankFormParam = 'isBlankForm';
 
-  protected logPrefix = 'trip-form-report';
+  protected logPrefix = 'activity-calendar-form-report';
   protected isBlankForm: boolean;
   protected reportType: string;
 
@@ -141,7 +141,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   }
 
   constructor(injector: Injector) {
-    super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
+    super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.FORM.PMFM.' });
     this.ActivityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
@@ -212,8 +212,8 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     });
 
     stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER);
-    stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL);
-    stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL);
+    stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
+    stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
 
     let fishingAreaCount: number;
     if (this.isBlankForm) {

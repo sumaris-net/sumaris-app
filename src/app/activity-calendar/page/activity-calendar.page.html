@@ -26,18 +26,12 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
-  <ng-container *ngIf="enableReport">
-    <button mat-menu-item *ngIf="isNewData || reportTypes.length < 2; else reportsMenuBtn" [disabled]="isNewData" (click)="openReport()">
+  @if (enableReport && (reportTypes | isNotEmptyArray)) {
+    <button mat-menu-item [disabled]="isNewData" [matMenuTriggerFor]="reportsMenu">
       <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
       <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
     </button>
-    <ng-template #reportsMenuBtn>
-      <button mat-menu-item [matMenuTriggerFor]="reportsMenu">
-        <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
-        <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
-      </button>
-    </ng-template>
-  </ng-container>
+  }
 
   <!-- reset -->
   <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">

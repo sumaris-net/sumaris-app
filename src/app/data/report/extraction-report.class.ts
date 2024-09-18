@@ -1,12 +1,16 @@
-import { AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
-import { AppBaseReport, BaseReportStats, IReportData } from '@app/data/report/base-report.class';
+import { AppBaseReport, BaseReportOptions, BaseReportStats, IReportData } from '@app/data/report/base-report.class';
 import { isNil, isNotNil } from '@sumaris-net/ngx-components';
 
 export class ExtractionReportStats extends BaseReportStats {}
 
 @Directive()
-export abstract class AppExtractionReport<T extends IReportData, S extends BaseReportStats = BaseReportStats>
+export abstract class AppExtractionReport<
+    T extends IReportData,
+    S extends BaseReportStats = BaseReportStats,
+    O extends BaseReportOptions = BaseReportOptions,
+  >
   extends AppBaseReport<T, number, S>
   implements OnInit, AfterViewInit, OnDestroy
 {
@@ -18,7 +22,8 @@ export abstract class AppExtractionReport<T extends IReportData, S extends BaseR
   protected constructor(
     injector: Injector,
     protected dataType: new () => T,
-    protected statsType: new () => S
+    protected statsType: new () => S,
+    @Optional() protected options?: O
   ) {
     super(injector, dataType, statsType);
   }

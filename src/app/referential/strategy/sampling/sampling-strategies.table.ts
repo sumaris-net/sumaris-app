@@ -456,7 +456,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     // Start year (<N - 10> by default)
     // /!\ Need to use local time, because the DB can use a local time (e.g. SIH-ADAGIO use tz=Europe/Paris)
     //     TODO: use DB Timezone, using the config CORE_CONFIG_OPTIONS.DB_TIMEZONE;
-    const startYear = fromDateISOString(source.startDate)?.clone().local(true).year() || moment().year() - 10;
+    const startYear = fromDateISOString(source.startDate)?.clone().local(true).year() || DateUtils.moment().year() - 10;
     // End year (N + 1 by default)
     const endYear = fromDateISOString(source.endDate)?.clone().local(true).year() || moment().year() + 1;
 

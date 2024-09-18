@@ -1,7 +1,6 @@
 import { AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import { AccountService, DateFormatService, EntityAsObjectOptions, isNil, isNotNil } from '@sumaris-net/ngx-components';
-import { DataEntity } from '../services/model/data-entity.model';
 import { AppBaseReport, BaseReportOptions, BaseReportStats } from '@app/data/report/base-report.class';
+import { AccountService, DateFormatService, Entity, EntityAsObjectOptions, isNil, isNotNil } from '@sumaris-net/ngx-components';
 
 export type DataEntityReportOptions = BaseReportOptions;
 
@@ -9,7 +8,7 @@ export class DataReportStats extends BaseReportStats {}
 
 @Directive()
 export abstract class AppDataEntityReport<
-    T extends DataEntity<T, ID>,
+    T extends Entity<T, ID>,
     ID = number,
     S extends BaseReportStats = BaseReportStats,
     O extends DataEntityReportOptions = DataEntityReportOptions,
@@ -21,8 +20,6 @@ export abstract class AppDataEntityReport<
 
   protected readonly accountService: AccountService;
   protected readonly dateFormat: DateFormatService;
-
-  @Input() i18nContextSuffix: string;
 
   @Input() id: ID;
 
@@ -47,7 +44,7 @@ export abstract class AppDataEntityReport<
   async ngOnStart(opts?: any) {
     await super.ngOnStart(opts);
 
-    // If data is not filled by the input or by the clipboad , fill it by loading and computing
+    // If data is not filled by the input or by the clipboard , fill it by loading and computing
 
     if (isNil(this.data))
       if (isNil(this.uuid))
