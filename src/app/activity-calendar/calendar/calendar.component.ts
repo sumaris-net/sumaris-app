@@ -1821,6 +1821,9 @@ export class CalendarComponent
       const isActive = row.currentData.isActive;
       if (isNotNil(isActive)) await this.clear(event, row, { interactive: false });
     }
+
+    // Clear valid row counter
+    this.validRowCount = 0;
   }
 
   toggleMetierBlock(event: Event | undefined, key: string, forceExpanded?: boolean) {

@@ -226,12 +226,17 @@ export class ActivityCalendarPage
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
-    const reportTypeByKey = splitByProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values as Property[], 'key');
     this._state.connect(
       'reportTypes',
       this.program$.pipe(
         map((program) => {
-          return (program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES) || []).map((key) => reportTypeByKey[key]);
+          const reportTypes = (ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values as Property[])
+            // Exclude the progress report
+            .filter((type) => type.key !== <ActivityCalendarReportType>'progress');
+          const reportTypeByKey = splitByProperty(reportTypes, 'key');
+          return (program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES) || [])
+            .map((key) => reportTypeByKey[key])
+            .filter(isNotNil);
         })
       )
     );
