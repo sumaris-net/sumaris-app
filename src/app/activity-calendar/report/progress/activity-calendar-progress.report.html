@@ -1,0 +1,308 @@
+<ng-container *ngIf="showToolbar">
+  <app-toolbar *ngIf="!modal; else modalToolbar" [defaultBackHref]="$defaultBackHref | async" canGoBack="false">
+    <ion-title [innerHTML]="$title | async"></ion-title>
+
+    <ion-buttons slot="end">
+      <!-- Refresh -->
+      <ion-button *ngIf="uuid | isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH' | translate">
+        <mat-icon>refresh</mat-icon>
+      </ion-button>
+
+      <!-- Help button -->
+      <ion-button (click)="reveal.toggleHelp()">
+        <mat-icon>help_outline</mat-icon>
+      </ion-button>
+
+      <!-- Print -->
+      <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+        <!-- Print button -->
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- share menu -->
+      <button mat-icon-button matHeader [title]="'COMMON.SHARE.BTN_SHARE' | translate" [matMenuTriggerFor]="shareMenu">
+        <mat-icon>share</mat-icon>
+      </button>
+    </ion-buttons>
+  </app-toolbar>
+
+  <mat-menu #shareMenu="matMenu" xPosition="after">
+    <!-- Share popover -->
+    <button mat-menu-item (click)="showSharePopover($event)" [disabled]="(loadingSubject | async) || network.offline">
+      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS' | translate }}</ion-label>
+    </button>
+  </mat-menu>
+
+  <ng-template #modalToolbar>
+    <app-modal-toolbar *ngIf="showToolbar" [modalName]="modalName" [color]="'secondary'" (cancel)="cancel()" [canValidate]="false">
+      <ion-title [innerHTML]="$title | async"></ion-title>
+
+      <!-- Print button -->
+      <ion-button slot="end" (click)="reveal.print($event)">
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- Close button (on desktop screen) -->
+      <ion-button hidden-xs hidden-sm hidden-mobile slot="end" (click)="cancel()" (keyup.enter)="cancel()">
+        <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+      </ion-button>
+    </app-modal-toolbar>
+  </ng-template>
+</ng-container>
+
+<ion-content>
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
+    @for (tableChunk of stats.tableRowChunk; track chunkIndex; let chunkIndex = $index; let firstChunk = $first; let lastChunk = $last) {
+      <section class="landscape" *sectionDef>
+        <!-- header -->
+        <ion-grid class="report-header ion-no-padding">
+          <ion-row class="page-title">
+            <ion-col class="logo" size="auto">
+              @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+                <img [src]="stats.logoHeadLeftUrl" />
+              }
+            </ion-col>
+            <ion-col>
+              <h2>{{ $title | async }}</h2>
+            </ion-col>
+            <ion-col class="logo" size="auto">
+              @if (stats?.logoHeadRightUrl | isNotNilOrBlank) {
+                <img [src]="stats.logoHeadRightUrl" />
+              }
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!-- filter -->
+        @if (firstChunk) {
+          <ion-grid class="filter-section ion-padding-horizontal">
+            <ion-row class="form-field">
+              <!-- Program -->
+              @if (stats.showProgram) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">{{ stats.filter.program?.label }}</ion-col>
+              }
+
+              <!-- Base port location -->
+              @if (stats.filter.basePortLocations | isNotEmptyArray) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.BASE_PORT_LOCATION' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  @for (item of stats.filter.basePortLocations; track item.id) {
+                    <ion-badge color="medium">{{ item | referentialToString }}</ion-badge>
+                  }
+                </ion-col>
+              }
+
+              <!-- Registration location -->
+              @if (stats.filter.registrationLocations | isNotEmptyArray) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.REGISTRATION_LOCATION' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  @for (item of stats.filter.registrationLocations; track item.id) {
+                    <ion-badge color="medium">{{ item | referentialToString }}</ion-badge>
+                  }
+                </ion-col>
+              }
+
+              <!-- Vessel -->
+              @if (stats.filter.vesselSnapshot) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  <ion-badge color="medium">{{ stats.filter.vesselSnapshot | referentialToString: stats.vesselAttributes }}</ion-badge>
+                </ion-col>
+              }
+
+              <!-- Recorder person -->
+              @if (stats.filter.recorderPerson) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  <ion-badge color="medium">{{ stats.filter.recorderPerson | personToString }}</ion-badge>
+                </ion-col>
+              }
+
+              <!-- Observer -->
+              @if (stats.filter.observers | isNotEmptyArray) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.OBSERVERS' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  @for (o of stats.filter.observers; track o.id) {
+                    <ion-badge color="medium">{{ o | personToString }}</ion-badge>
+                  }
+                </ion-col>
+              }
+
+              <!-- Recorder departement -->
+              @if (stats.filter.recorderDepartment | isNotEmptyReferential) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_DEPARTMENT' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  <ion-badge color="medium">{{ stats.filter.recorderDepartment | departmentToString }}</ion-badge>
+                </ion-col>
+              }
+
+              <!-- Quality flag -->
+              @if (stats.filter.dataQualityStatus | isNotNilOrBlank) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  <ion-badge color="medium">{{ 'QUALITY.' + stats.filter.dataQualityStatus | translate }}</ion-badge>
+                </ion-col>
+              }
+            </ion-row>
+          </ion-grid>
+        }
+
+        <!-- items -->
+        @if (tableChunk | isNotEmptyArray) {
+          <table>
+            <thead>
+              <tr [style.--row-title-height]="'20px'">
+                <th class="ion-text-center" colspan="5">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL' | translate }}</th>
+                <th class="ion-text-center" colspan="12">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.NB_METIER_PEER_MONTH' | translate }}</th>
+                <th class="ion-text-center col-compact" rowspan="2">
+                  {{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.COUNT_OF_EMPTY_MONTH' | translate }}
+                </th>
+                <th class="ion-text-center col-compact" rowspan="2">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.CALENDAR_STATUS' | translate }}</th>
+                <th class="ion-text-center col-compact" rowspan="2">{{ 'ACTIVITY_CALENDAR.TABLE.OBSERVERS' | translate }}</th>
+              </tr>
+              <tr [style.--row-title-height]="'30px'">
+                <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL' | translate }}</th>
+                <th class="ion-text-center col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_NAME' | translate }}</th>
+                <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_REGISTRATION_LOCATION' | translate }}</th>
+                <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_LENGTH' | translate }}</th>
+                <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.SURVEY_QUALIFICATION_SECTION' | translate }}</th>
+                @for (month of months; track $index) {
+                  <th class="ion-text-center col-tiny">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.' + month | uppercase | translate }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of tableChunk; track $index) {
+                <tr [style.--row-height]="'30px'">
+                  <td class="ion-text-center col-small">{{ row.vesselRegistrationCode }}</td>
+                  <td class="ion-text-center col-medium">{{ row.vesselName }}</td>
+                  <td class="ion-text-center col-compact">{{ row.registrationLocationLabel }}</td>
+                  <td class="ion-text-center col-small">{{ row.vesselLength }}</td>
+                  <td class="ion-text-center col-compact">{{ row.surveyQualification }}</td>
+                  @for (month of months; track $index) {
+                    <!-- TODO : discriminate status between inactive and not exists -->
+                    <td class="ion-text-center col-tiny">
+                      <div *ngIf="row[month + 'Error'] | isNotNil" class="error-tip">
+                        ({{ activityMonitoringStatusErrorIds[row[month + 'Error']] }})
+                      </div>
+                      {{ row[month] < 1 ? '&nbsp;' : row[month] }}
+                    </td>
+                  }
+
+                  <td class="ion-text-center col-small">{{ row.emptyMonthCount }}</td>
+                  <td class="ion-text-center col-compact">
+                    {{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.STATUS.' + row.status | translate }}
+                  </td>
+                  <td class="ion-text-center col-compact">{{ row.observer }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <!-- error legend -->
+          <ul class="caption ion-text-center" [style.margin-top]="'10px'">
+            @for (errorKey of activityMonitoringStatusErrorIds | mapKeys; track $index) {
+              <li>
+                <span class="error-tip">({{ activityMonitoringStatusErrorIds[errorKey] }})</span>
+                {{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.ERROR.' + errorKey | translate }}
+                @if (!$last) {
+                  &nbsp;-&nbsp;
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <!-- no data -->
+          <ion-label color="danger" class="ion-text-center">
+            <ion-icon name="alert-circle" color="danger"></ion-icon>
+            &nbsp;
+            <h3 [style.color]="'var(--ion-color-danger)'">{{ 'COMMON.NO_DATA' | translate }}</h3>
+          </ion-label>
+        }
+
+        <!-- Synthesis -->
+        @if (lastChunk) {
+          <ion-grid class="synthesis-section ion-no-padding">
+            <ion-row class="ion-margin-vertical synthesis">
+              <ion-col>
+                <h3 class="ion-text-center font-extra-large">
+                  <strong>{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.TITLE' | translate }}</strong>
+                </h3>
+              </ion-col>
+            </ion-row>
+            <ion-row class="synthesis">
+              <ion-col>
+                <table [style.--row-height]="'20px'" [style.margin-right]="'var(--col-medium)'">
+                  <tbody>
+                    <tr>
+                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.VESSEL_COUNT' | translate }}</th>
+                      <td class="ion-text-center col-medium">{{ stats.agg.vesselCount }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table [style.--row-height]="'20px'">
+                  <tbody>
+                    <tr>
+                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.DIRECT_SURVEY' | translate }}</th>
+                      <td class="ion-text-center col-medium">{{ stats.agg.totalDirectSurveyCount }}</td>
+                      <td class="ion-text-center col-medium">{{ stats.agg.totalDirectSurveyPercent }}&nbsp;%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ion-col>
+              <ion-col>
+                <table [style.--row-height]="'20px'">
+                  <tbody>
+                    <tr>
+                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.EMPTY_VESSEL' | translate }}</th>
+                      <td class="ion-text-center col-medium">{{ stats.agg.emptyVesselCount }}</td>
+                      <td class="ion-text-center col-medium">{{ stats.agg.emptyVesselPercent }}&nbsp;%</td>
+                    </tr>
+                    <tr>
+                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.INCOMPLETE_VESSEL' | translate }}</th>
+                      <td class="ion-text-center col-medium">{{ stats.agg.uncompletedVesselCount }}</td>
+                      <td class="ion-text-center col-medium">{{ stats.agg.uncompletedVesselPercent }}&nbsp;%</td>
+                    </tr>
+                    <tr>
+                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.COMPLETED_CALENDAR' | translate }}</th>
+                      <td class="ion-text-center col-medium">{{ stats.agg.completedCalendarCount }}</td>
+                      <td class="ion-text-center col-medium">{{ stats.agg.completedCalendarPercent }}&nbsp;%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        }
+
+        <!-- footer -->
+        <ion-grid class="report-footer ion-no-padding">
+          <ion-row class="footer-text">
+            <ion-col class="ion-text-start">
+              @if (stats.footerText) {
+                {{ stats.footerText | translate: { year: stats.reportDate | dateFormat: { pattern: 'YYYY' } } }}
+              }
+            </ion-col>
+            <ion-col class="ion-text-center">{{ stats.reportDate | dateFormat }}</ion-col>
+            <ion-col class="ion-text-end">
+              {{ ('COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber: chunkIndex + 1 }) + '/' + stats.tableRowChunk.length }}
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </section>
+    }
+  </app-reveal>
+
+  <ng-template #loadingTemplate>
+    <div class="loader">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  </ng-template>
+</ion-content>

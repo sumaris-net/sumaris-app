@@ -10,7 +10,7 @@ import {
   ParameterGroupIds,
   ParameterLabelGroups,
   PmfmIds,
-  ProgramLabel,
+  ProgramLabels,
   QualitativeValueIds,
   QualityFlagIds,
   TaxonGroupTypeIds,
@@ -104,7 +104,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     key: 'sumaris.enumeration.Program.SIH.label',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PROGRAM_SIH_LABEL',
     type: 'string',
-    defaultValue: ProgramLabel.SIH,
+    defaultValue: ProgramLabels.SIH,
   },
   PROGRAM_PRIVILEGE_READONLY: <FormFieldDefinition>{
     key: 'sumaris.program.privilege.readonly',

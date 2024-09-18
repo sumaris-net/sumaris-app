@@ -1,0 +1,67 @@
+.slides {
+  section {
+    .error-tip {
+      color: var(--ion-color-danger);
+      font-size: var(--font-small);
+    }
+    ul {
+      &.caption {
+        li {
+          display: inline-block;
+        }
+      }
+    }
+    table {
+      th,
+      td {
+        &.col-tiny {
+          padding: 0;
+        }
+        .error-tip {
+          position: relative;
+          top: -8px;
+          left: 9px;
+          height: 0;
+        }
+      }
+      margin: 0 auto;
+    }
+    ion-grid {
+      &.filter-section {
+        width: 100%;
+        min-height: 140px;
+        max-height: 140px;
+        ion-grid {
+          --ion-grid-padding: 2px;
+        }
+      }
+      &.synthesis-section {
+        margin: 0 auto;
+        min-height: 140px;
+        max-height: 140px;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        ion-row {
+          ion-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            margin: 0 20px;
+            table {
+              border: solid 1px;
+              background-color: whitesmoke;
+            }
+          }
+        }
+      }
+      ion-row {
+        &.page-title {
+          h2 {
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
+}

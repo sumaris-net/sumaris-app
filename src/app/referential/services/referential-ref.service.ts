@@ -43,7 +43,7 @@ import {
   ParameterGroupIds,
   ParameterLabelGroups,
   PmfmIds,
-  ProgramLabel,
+  ProgramLabels,
   QualitativeValueIds,
   QualityFlagIds,
   TaxonGroupTypeIds,
@@ -902,7 +902,7 @@ export class ReferentialRefService
     console.info('[referential-ref] Updating model enumerations...');
 
     // Program
-    ProgramLabel.SIH = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PROGRAM_SIH_LABEL);
+    ProgramLabels.SIH = config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PROGRAM_SIH_LABEL);
 
     // Program privilege
     /* TODO add enumeration options

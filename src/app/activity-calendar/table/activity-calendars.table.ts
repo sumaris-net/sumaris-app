@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
   ConfigService,
@@ -20,6 +20,7 @@ import {
   OfflineFeature,
   PersonService,
   PersonUtils,
+  Property,
   ReferentialRef,
   SharedValidators,
   slideUpDownAnimation,
@@ -54,7 +55,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
 
 export const ActivityCalendarsTableSettingsEnum = {
@@ -66,6 +67,7 @@ export const ActivityCalendarsTableSettingsEnum = {
 export interface ActivityCalendarsPageState extends BaseTableState {
   years: number[];
   canImportCsvFile: boolean;
+  reportTypes: Property[];
 }
 
 @Component({
@@ -108,6 +110,8 @@ export class ActivityCalendarsTable
   @Input() basePortLocationLevelIds: number[] = null;
   @Input() @RxStateProperty() title: string;
   @Input() canAdd: boolean;
+  @Input() enableReport = false;
+  @RxStateProperty() protected reportTypes: Property[];
 
   @Input()
   set showObservers(value: boolean) {
@@ -149,10 +153,6 @@ export class ActivityCalendarsTable
     return this.filterForm.controls.year as UntypedFormControl;
   }
 
-  get filterObserversForm(): UntypedFormArray {
-    return this.filterForm.controls.observers as UntypedFormArray;
-  }
-
   constructor(
     injector: Injector,
     protected _dataService: ActivityCalendarService,
@@ -189,7 +189,7 @@ export class ActivityCalendarsTable
       qualityFlagId: [null, SharedValidators.integer],
       directSurveyInvestigation: [null],
       economicSurvey: [null],
-      observers: formBuilder.array([[null, SharedValidators.entity]]),
+      observers: [null, formBuilder.array([null])],
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()
@@ -386,7 +386,9 @@ export class ActivityCalendarsTable
 
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showProgram = false;
-
+    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
+    const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
+    this.reportTypes = (program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES) || []).map((key) => reportTypeByKey[key]);
     this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
 
     if (this.loaded) this.updateColumns();
@@ -558,6 +560,10 @@ export class ActivityCalendarsTable
 
     // Open extraction
     await this.router.navigate(['extraction', 'data'], { queryParams });
+  }
+
+  async openReport(reportType: ActivityCalendarReportType | string) {
+    return this.router.navigateByUrl(['activity-calendar', 'report', reportType].join('/'));
   }
 
   /* -- protected methods -- */
