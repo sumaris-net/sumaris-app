@@ -227,6 +227,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       if (this._qualitativeValues.length <= this.maxVisibleButtons) {
         this.maxVisibleButtons = 999; // Hide the expand button
       }
+      console.log('TODO buttonsColCount=' + this.buttonsColCount);
 
       this.formControl.statusChanges.pipe(takeUntil(this.destroySubject)).subscribe(() => {
         this.updateSelectedIndex(this.value, { emitEvent: false /*done after*/ });
