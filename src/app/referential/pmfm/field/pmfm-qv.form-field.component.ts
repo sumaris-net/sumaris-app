@@ -7,6 +7,7 @@ import {
   EventEmitter,
   forwardRef,
   Input,
+  numberAttribute,
   OnDestroy,
   OnInit,
   Optional,
@@ -88,7 +89,6 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input()
   displayWith: (obj: ReferentialRef | any) => string;
 
-  @Input() mobile: boolean;
   @Input() pmfm: IPmfm;
   @Input() formControl: UntypedFormControl;
   @Input() formControlName: string;
@@ -98,15 +98,16 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() subscriptSizing: SubscriptSizing;
   @Input() required: boolean;
   @Input() readonly = false;
-  @Input() compact = false;
-  @Input() clearable = false;
+  @Input({ transform: booleanAttribute }) mobile: boolean;
+  @Input({ transform: booleanAttribute }) compact = false;
+  @Input({ transform: booleanAttribute }) clearable = false;
   @Input() style: PmfmQvFormFieldStyle;
   @Input() displayAttributes: string[];
   @Input() searchAttributes: string[];
   @Input() sortAttribute: string;
-  @Input() autofocus: boolean;
-  @Input() maxVisibleButtons: number;
-  @Input() buttonsColCount: number;
+  @Input({ transform: booleanAttribute }) autofocus: boolean;
+  @Input({ transform: numberAttribute }) maxVisibleButtons: number;
+  @Input({ transform: numberAttribute }) buttonsColCount: number;
   @Input() showButtonIcons: boolean;
   @Input({ transform: booleanAttribute }) disableRipple = false;
   // eslint-disable-next-line @angular-eslint/no-input-rename
@@ -225,6 +226,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       if (this._qualitativeValues.length <= this.maxVisibleButtons) {
         this.maxVisibleButtons = 999; // Hide the expand button
       }
+      console.log('TODO buttonsColCount=' + this.buttonsColCount);
 
       this.formControl.statusChanges.pipe(takeUntil(this.destroySubject)).subscribe(() => {
         this.updateSelectedIndex(this.value, { emitEvent: false /*done after*/ });
