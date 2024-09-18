@@ -162,12 +162,12 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       searchText: [null],
       levelId: [null, Validators.required], // the program id
       analyticReference: [null],
-      department: [null],
-      location: [null],
-      taxonNames: [null],
+      department: [null, SharedValidators.entity],
+      location: [null, SharedValidators.entity],
+      taxonName: [null, SharedValidators.entity],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
-      //recorderPerson: [null],
+      //recorderPerson: [null, SharedValidators.entity],
       effortByQuarter: formBuilder.group({
         1: [null],
         2: [null],
@@ -255,7 +255,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       mobile: this.mobile,
     });
 
-    this.registerAutocompleteField<TaxonNameRef, TaxonNameRefFilter>('taxonNames', {
+    this.registerAutocompleteField<TaxonNameRef, TaxonNameRefFilter>('taxonName', {
       showAllOnFocus: false,
       service: this.taxonNameRefService,
       attributes: ['name'],
