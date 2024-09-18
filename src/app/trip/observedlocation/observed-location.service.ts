@@ -13,8 +13,8 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrors,
+  FormErrorTranslateOptions,
   FormErrorTranslator,
-  FormErrorTranslatorOptions,
   GraphqlService,
   IEntitiesService,
   IEntityService,
@@ -78,8 +78,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
@@ -97,7 +96,7 @@ export interface ObservedLocationServiceLoadOptions extends EntityServiceLoadOpt
 
 export interface ObservedLocationControlOptions extends ObservedLocationValidatorOptions, IProgressionOptions {
   enable?: boolean; // true by default
-  translatorOptions?: FormErrorTranslatorOptions;
+  translatorOptions?: FormErrorTranslateOptions;
 }
 
 export const ObservedLocationFragments = {
@@ -547,15 +546,7 @@ export class ObservedLocationService
   }
 
   translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
-    opts = { i18nPrefix: 'OBSERVED_LOCATION.EDIT.', ...opts };
-    // Translate PMFM fields
-    if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
-      const pmfmId = parseInt(path.split('.').pop());
-      const pmfm = opts.pmfms.find((p) => p.id === pmfmId);
-      return PmfmUtils.getPmfmName(pmfm);
-    }
-    // Default translation
-    return this.formErrorTranslator.translateFormPath(path, opts);
+    return super.translateFormPath(path, { i18nPrefix: 'OBSERVED_LOCATION.EDIT.', ...opts });
   }
 
   async save(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
@@ -1379,9 +1370,8 @@ export class ObservedLocationService
 
     if (!opts.translatorOptions) {
       opts.translatorOptions = {
-        pathTranslator: {
-          translateFormPath: (path) => this.translateFormPath(path, {}),
-        },
+        i18nSuffix: opts.program?.getProperty(ProgramProperties.I18N_SUFFIX),
+        pathTranslator: this,
       };
     }
     return opts;

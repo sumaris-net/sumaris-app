@@ -1,4 +1,4 @@
-import { arrayResize, DateUtils, isNotEmptyArray, isNotNil, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
+import { arrayResize, DateUtils, isNotEmptyArray, isNotNil, removeDuplicatesFromArray, toDateISOString } from '@sumaris-net/ngx-components';
 import { GearUseFeatures, GearUseFeaturesComparators } from '@app/activity-calendar/model/gear-use-features.model';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
@@ -53,13 +53,12 @@ export class ActivityMonthUtils {
       .map(GearUseFeatures.fromObject)
       .sort(GearUseFeaturesComparators.sortByDateAndRankOrderFn);
     const sortedMetierIds =
-      opts?.sortedMetierIds ||
-      (opts?.fillEmptyGuf && removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)).concat(undefined));
+      opts?.sortedMetierIds || (opts?.fillEmptyGuf && removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)));
     const fishingAreaCount = opts?.fishingAreaCount || 2;
 
     return monthStartDates
       .map((startDate) => {
-        const endDate = startDate.clone().endOf('month');
+        const endDate = startDate.clone().endOf('month').startOf('day');
 
         // DEBUG
         //console.debug(`Month #${startDate.month() + 1} - ${toDateISOString(startDate)} -> ${toDateISOString(endDate)}`);
@@ -73,7 +72,7 @@ export class ActivityMonthUtils {
         target.gearUseFeatures = sortedGearUseFeatures?.filter(
           (guf) => DateUtils.isSame(startDate, guf.startDate, 'day') && DateUtils.isSame(endDate, guf.endDate, 'day')
         );
-        if (opts?.fillEmptyGuf && sortedMetierIds.length > 1) {
+        if (opts?.fillEmptyGuf && isNotEmptyArray(sortedMetierIds)) {
           target.gearUseFeatures = sortedMetierIds.flatMap((metierId) => {
             const existingGuf = target.gearUseFeatures.filter((guf) => guf.metier?.id === metierId);
             if (isNotEmptyArray(existingGuf)) return existingGuf;

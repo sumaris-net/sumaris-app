@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
   ConfigService,
@@ -20,6 +20,7 @@ import {
   OfflineFeature,
   PersonService,
   PersonUtils,
+  Property,
   ReferentialRef,
   SharedValidators,
   slideUpDownAnimation,
@@ -49,13 +50,13 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ActivityCalendarValidatorService } from '@app/activity-calendar/model/activity-calendar.validator';
-import { BaseTableState } from '@app/shared/table/base.table';
+import { AppBaseTableFilterRestoreSource, BaseTableState } from '@app/shared/table/base.table';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
+import { FileTransferService } from '@app/shared/service/file-transfer.service';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -65,6 +66,8 @@ export const ActivityCalendarsTableSettingsEnum = {
 
 export interface ActivityCalendarsPageState extends BaseTableState {
   years: number[];
+  canImportCsvFile: boolean;
+  reportTypes: Property[];
 }
 
 @Component({
@@ -88,8 +91,10 @@ export class ActivityCalendarsTable
 {
   @RxStateSelect() protected title$: Observable<string>;
   @RxStateSelect() protected years$: Observable<number[]>;
+  @RxStateSelect() protected canImportCsvFile$: Observable<boolean>;
 
   @RxStateProperty() protected years: number[];
+  @RxStateProperty() protected canImportCsvFile: boolean;
 
   protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
@@ -105,6 +110,8 @@ export class ActivityCalendarsTable
   @Input() basePortLocationLevelIds: number[] = null;
   @Input() @RxStateProperty() title: string;
   @Input() canAdd: boolean;
+  @Input() enableReport = false;
+  @RxStateProperty() protected reportTypes: Property[];
 
   @Input()
   set showObservers(value: boolean) {
@@ -134,20 +141,16 @@ export class ActivityCalendarsTable
   }
 
   @Input()
-  set showYear(value: boolean) {
+  set showYearColumn(value: boolean) {
     this.setShowColumn('year', value);
   }
 
-  get showYear(): boolean {
+  get showYearColumn(): boolean {
     return this.getShowColumn('year');
   }
 
   get filterYearControl(): UntypedFormControl {
     return this.filterForm.controls.year as UntypedFormControl;
-  }
-
-  get filterObserversForm(): UntypedFormArray {
-    return this.filterForm.controls.observers as UntypedFormArray;
   }
 
   constructor(
@@ -159,6 +162,7 @@ export class ActivityCalendarsTable
     protected configService: ConfigService,
     protected context: ContextService,
     protected formBuilder: UntypedFormBuilder,
+    private readonly transferService: FileTransferService,
     protected cd: ChangeDetectorRef
   ) {
     super(
@@ -185,7 +189,7 @@ export class ActivityCalendarsTable
       qualityFlagId: [null, SharedValidators.integer],
       directSurveyInvestigation: [null],
       economicSurvey: [null],
-      observers: formBuilder.array([[null, SharedValidators.entity]]),
+      observers: [null, formBuilder.array([null])],
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()
@@ -198,16 +202,14 @@ export class ActivityCalendarsTable
     this.settingsId = ActivityCalendarsTableSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureName = ActivityCalendarsTableSettingsEnum.FEATURE_ID;
 
-    this.showYear = false;
-    this.showProgram = false;
-
     // Load years
     {
-      this.years = new Array(10).fill(DateUtils.moment().year()).map((year, index) => year - index);
+      this.years = new Array(11).fill(DateUtils.moment().year() + 1).map((year, index) => year - index);
     }
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+    this.logPrefix = '[activity-calendar-table] ';
   }
 
   ngOnInit() {
@@ -308,7 +310,7 @@ export class ActivityCalendarsTable
         this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
 
         // Locations combo (filter)
-        this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_IDS);
+        this.registrationLocationLevelIds = [LocationLevelIds.MARITIME_DISTRICT];
         this.basePortLocationLevelIds = [LocationLevelIds.PORT];
 
         this.updateColumns();
@@ -322,15 +324,27 @@ export class ActivityCalendarsTable
     this.resetContext();
   }
 
+  protected loadFilter(sources?: AppBaseTableFilterRestoreSource[]): any | undefined {
+    const json = super.loadFilter(sources);
+    if (isNil(json)) return { year: DateUtils.moment().year() - 1 };
+    return json;
+  }
+
   async setFilter(filter: Partial<ActivityCalendarFilter>, opts?: { emitEvent: boolean }) {
     filter = filter || {};
+
+    // Convert year as number (e.g. when was a moment)
     if (isMoment(filter.year)) {
       filter.year = filter.year.year();
     } else if (isMoment(filter.startDate)) {
       filter.year = filter.startDate.year();
+    } else if (isNotNil(filter.year)) {
+      filter.year = toNumber(filter.year, null);
     } else {
-      filter.year = toNumber(filter.year, DateUtils.moment().year() - 1);
+      filter.year = null;
     }
+    filter.startDate = null;
+    filter.endDate = null;
 
     // Program
     const programLabel = filter?.program?.label;
@@ -372,6 +386,11 @@ export class ActivityCalendarsTable
 
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showProgram = false;
+    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
+    const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
+    this.reportTypes = (program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES) || []).map((key) => reportTypeByKey[key]);
+    this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
+
     if (this.loaded) this.updateColumns();
   }
 
@@ -379,6 +398,9 @@ export class ActivityCalendarsTable
     console.debug(`${this.logPrefix}Reset filter program`);
     this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
     this.showProgram = true;
+
+    this.canImportCsvFile = this.isAdmin;
+
     if (this.loaded) this.updateColumns();
   }
 
@@ -459,8 +481,8 @@ export class ActivityCalendarsTable
     return super.prepareOfflineMode(event, opts);
   }
 
-  async importFromFile(event: Event): Promise<ActivityCalendar[]> {
-    const data = await super.importFromFile(event);
+  async importJsonFile(event: Event): Promise<ActivityCalendar[]> {
+    const data = await super.importJsonFile(event);
     if (isEmptyArray(data)) return; // Skip
 
     const entities: ActivityCalendar[] = [];
@@ -540,15 +562,21 @@ export class ActivityCalendarsTable
     await this.router.navigate(['extraction', 'data'], { queryParams });
   }
 
+  async openReport(reportType: ActivityCalendarReportType | string) {
+    return this.router.navigateByUrl(['activity-calendar', 'report', reportType].join('/'));
+  }
+
   /* -- protected methods -- */
 
   protected setFilterYear(year: number) {
     if (isNil(year)) {
       this.filterYearControl.reset();
-      this.onRefresh.emit();
+      this.setFilter({ year });
     } else {
       const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
-      this.filterYearControl.setValue(startDate, { emitEvent: false });
+      this.filterForm.patchValue({ year, startDate }, { emitEvent: true });
+      this.markForCheck();
+
       this.setFilter({ year, startDate: startDate, endDate: null });
     }
   }
@@ -581,5 +609,30 @@ export class ActivityCalendarsTable
 
   protected excludeNotQualified(qualityFlag: ReferentialRef): boolean {
     return qualityFlag?.id !== QualityFlagIds.NOT_QUALIFIED;
+  }
+
+  async importFromCsv(event?: UIEvent, format = 'csv') {
+    const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
+      uniqueFile: true,
+      fileExtension: '.csv',
+      uploadFn: (file) =>
+        this.transferService.uploadResource(file, {
+          resourceType: ActivityCalendar.ENTITY_NAME,
+          resourceId: Date.now().toString(),
+          replace: true,
+        }),
+    });
+
+    console.debug(this.logPrefix + 'CSV file uploaded! Response: ', data);
+    const now = Date.now();
+
+    const uploadedFileNames = (data || [])
+      .map((file) => file.response?.body)
+      .filter(isNotNil)
+      .map(({ fileName }) => fileName);
+    if (isNotEmptyArray(uploadedFileNames)) {
+      const jobs = await Promise.all(uploadedFileNames.map((uploadedFileName) => this._dataService.importCsvFile(uploadedFileName, format)));
+      console.info(this.logPrefix + `Activity calendars successfully imported, in ${Date.now() - now}ms`, jobs);
+    }
   }
 }

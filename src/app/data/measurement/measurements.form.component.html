@@ -50,7 +50,7 @@
       *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; strategy: 'userBLocking'; parent: false"
       [pmfm]="pmfm"
       [compact]="compact"
-      [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
+      [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
       [style]="pmfm | pmfmFieldStyle: maxItemCountForButtons"
       [maxVisibleButtons]="maxVisibleButtons"
       [showButtonIcons]="showButtonIcons"

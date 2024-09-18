@@ -360,6 +360,8 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       if (this.invalid) {
         if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
 
+        this.form.markAllAsTouched();
+
         // If not many fields/pmfms: display a simple message,
         // Otherwise (many fields/pmfms) show a detailed message
         if (!this.pmfms || this.pmfms.length < 5) {
@@ -369,7 +371,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
             pathTranslator: this.form,
             separator: '<br/>',
           });
-          const errorMessage = isNotNilOrBlank(error) ? `<small class="error-details">${error}</small>` : 'COMMON.FORM.HAS_ERROR';
+          const errorMessage = isNotNilOrBlank(error) ? error : 'COMMON.FORM.HAS_ERROR';
           this.setError(errorMessage);
         }
         this.form.markAllAsTouched();

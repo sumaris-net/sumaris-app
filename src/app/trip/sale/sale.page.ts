@@ -17,7 +17,6 @@ import {
   ReferentialRef,
   ReferentialUtils,
   toNumber,
-  TranslateContextService,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { SaleForm } from './sale.form';
@@ -94,7 +93,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected pmfmService = inject(PmfmService);
   protected referentialRefService = inject(ReferentialRefService);
   protected vesselSnapshotService = inject(VesselSnapshotService);
-  protected translateContext = inject(TranslateContextService);
   protected selectedSubTabIndex = 0;
   protected showParent = false;
   protected showEntityMetadata = false;

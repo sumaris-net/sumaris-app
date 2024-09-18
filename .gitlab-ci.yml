@@ -57,7 +57,6 @@ variables:
 # Jobs templates
 # ---------------------------------------------------------------
 .configure-git-template: &git-setup
-  tags: [sih_public_runner]
   before_script:
     - echo "Fetching origin..."
     - git remote set-url origin "https://gitlab+access-token:${CI_ACCESS_TOKEN}@gitlab.ifremer.fr/${CI_PROJECT_PATH}.git"
@@ -67,7 +66,7 @@ variables:
 
 .docker:
   image: ${DOCKER_DIND_IMAGE}
-  tags: [sih_public_runner]
+  tags: [dind]
   services:
     - docker:dind
   before_script:
@@ -78,7 +77,6 @@ variables:
 
 .configure-android-template: &android-setup
   image: ${CI_BUILD_IMAGE}
-  tags: [sih_public_runner]
   before_script:
     - if [[ -n ${APP_VERSION} ]]; then git fetch origin ; git checkout ${APP_VERSION} ; fi
     # Get project dependencies
@@ -107,7 +105,6 @@ variables:
 
 .configure-electron-template: &electron-setup
   image: ${CI_BUILD_ELECTRON_IMAGE}
-  tags: [sih_public_runner]
   before_script:
     - if [[ -n ${APP_VERSION} ]]; then git fetch origin ; git checkout ${APP_VERSION} ; fi
     - npm run electron:install
@@ -122,7 +119,6 @@ variables:
 
 .configure-webext-template: &webext-setup
   image: ${CI_BUILD_IMAGE}
-  tags: [sih_public_runner]
   before_script:
     - if [[ -n ${APP_VERSION} ]]; then git fetch origin ; git checkout ${APP_VERSION} ; fi
     - ls -artl "${BUILD_CACHE_DIR}"
@@ -159,7 +155,6 @@ build:env:
 # ---------------------------------------------------------------
 .build:
   stage: build
-  tags: [sih_public_runner]
   before_script:
     # Get project dependencies
     - ls -artl "${BUILD_CACHE_DIR}"
@@ -374,7 +369,6 @@ release:tags:
 
 gitlab-release:
   stage: release
-  tags: [sih_public_runner]
   image: ${CI_BUILD_IMAGE}
   script:
     # Copy cached dependencies and build
@@ -393,7 +387,6 @@ gitlab-release:
   stage: deploy
   needs: [release]
   image: ${CI_BUILD_IMAGE}
-  tags: [sih_public_runner]
   script:
     - if [[ -z ${APP_VERSION} ]]; then APP_VERSION=$(node -e "console.log(require('./package.json').version)") ; fi
     - git fetch origin
@@ -679,7 +672,6 @@ docker:release:tags:
 
 pages:
   stage: docs
-  tags: [sih_public_runner]
   image: python:3.7-alpine
   before_script:
     - apk --update --upgrade add gcc musl-dev jpeg-dev zlib-dev libffi-dev cairo-dev pango-dev gdk-pixbuf-dev

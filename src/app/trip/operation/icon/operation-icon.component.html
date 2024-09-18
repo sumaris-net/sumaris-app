@@ -2,12 +2,12 @@
   [svgIcon]="matSvgIcon"
   [style.pointer-events]="title ? 'auto' : 'none'"
   [style.color]="'var(--ion-color-' + color + ')'"
-  appBadge
   [appBadgeIcon]="badgeIcon"
+  [appBadgeHidden]="!badgeIcon"
   [appBadgeColor]="badgeColor"
   [appBadgeFill]="badgeFill"
   [appBadgeSize]="badgeSize"
-  [title]="title"
+  [title]="title || ''"
 >
   <ion-icon *ngIf="icon" slot="icon-only" [color]="color" [name]="icon"></ion-icon>
 </mat-icon>

@@ -23,6 +23,7 @@ import {
   Hotkeys,
   IReferentialRef,
   isEmptyArray,
+  isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
@@ -32,10 +33,10 @@ import {
   ReferentialRef,
   referentialToString,
   removeDuplicatesFromArray,
+  splitByProperty,
   StatusIds,
   toBoolean,
   toNumber,
-  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from '@app/trip/observedlocation/vessels/select-vessel-for-data.modal';
@@ -83,6 +84,7 @@ import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model
 import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-calendar.utils';
 import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
+import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-form.component';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -180,6 +182,7 @@ export class ActivityCalendarPage
 
   @ViewChild('baseForm', { static: true }) baseForm: ActivityCalendarForm;
   @ViewChild('calendar', { static: true }) calendar: CalendarComponent;
+  @ViewChild('entityQuality', { static: true }) entityQuality: EntityQualityFormComponent;
 
   @ViewChild('predocSplit') predocSplit: SplitComponent;
   @ViewChild('predocCalendar') predocCalendar: CalendarComponent;
@@ -198,8 +201,8 @@ export class ActivityCalendarPage
     protected accountService: AccountService,
     protected vesselService: VesselService,
     protected vesselSnapshotService: VesselSnapshotService,
-    protected translateContext: TranslateContextService,
     protected context: ActivityCalendarContextService,
+    protected activityCalendarService: ActivityCalendarService,
     protected hotkeys: Hotkeys
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
@@ -227,10 +230,13 @@ export class ActivityCalendarPage
       'reportTypes',
       this.program$.pipe(
         map((program) => {
-          return program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPE).map((key) => {
-            const values = ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPE.values as Property[];
-            return values.find((item) => item.key === key);
-          });
+          const reportTypes = (ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values as Property[])
+            // Exclude the progress report
+            .filter((type) => type.key !== <ActivityCalendarReportType>'progress');
+          const reportTypeByKey = splitByProperty(reportTypes, 'key');
+          return (program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES) || [])
+            .map((key) => reportTypeByKey[key])
+            .filter(isNotNil);
         })
       )
     );
@@ -361,11 +367,19 @@ export class ActivityCalendarPage
   }
 
   updateTabsState(data: ActivityCalendar) {
-    // Move to second tab
-    if (this.autoOpenNextTab && !this.isNewData && this.selectedTabIndex === 0) {
-      this.selectedTabIndex = 1;
-      this.tabGroup.realignInkBar();
-      this.autoOpenNextTab = false; // Should switch only once
+    const isNewData = isNil(data?.id);
+    if (isNewData) {
+      this.showVesselTab = false;
+    } else {
+      // Show tab
+      this.showVesselTab = true;
+
+      // Move to calendar tab
+      if (this.autoOpenNextTab && this.selectedTabIndex === ActivityCalendarPage.TABS.GENERAL) {
+        this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+        this.tabGroup.realignInkBar();
+        this.autoOpenNextTab = false; // Should switch only once
+      }
     }
   }
 
@@ -432,13 +446,12 @@ export class ActivityCalendarPage
     this.calendar?.addMetierBlock(event);
   }
 
-  async openReport(reportType?: ActivityCalendarReportType) {
+  async openReport(reportType: ActivityCalendarReportType | string) {
+    if (!reportType) return; // Skip
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-
-    if (!reportType) reportType = this.reportTypes.length === 1 ? <ActivityCalendarReportType>this.reportTypes[0].key : 'form';
 
     return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', reportType].join('/'));
   }
@@ -493,6 +506,10 @@ export class ActivityCalendarPage
       }
       if (this.tableMetier) {
         this.tableMetier.metierTaxonGroupIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS);
+        this.tableMetier.acquisitionLevels = [
+          AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
+          AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_USE_FEATURES,
+        ];
         this.addForms([this.tableMetier]);
       }
 
@@ -508,9 +525,8 @@ export class ActivityCalendarPage
     }
   }
 
-  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
+  async setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
     const errors = error && typeof error === 'object' && error.details?.errors;
-
     // Conflictual error: show remote conflictual data
     if (errors?.conflict instanceof ActivityCalendar) {
       const remoteCalendar = errors.conflict;
@@ -518,25 +534,39 @@ export class ActivityCalendarPage
       return;
     }
 
-    if (errors?.months) {
+    if (errors?.errors.months) {
       this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
       super.resetError();
       return;
     }
 
-    if (errors?.metiers) {
+    if (errors?.errors.metiers) {
       this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_METIERS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
       super.resetError();
       return;
     }
 
+    if (errors?.errors.warning) {
+      const messageError = this.translate.instant('ACTIVITY_CALENDAR.ERROR.INCONSISTENT_ANNUAL_INACTIVITY');
+      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.ERROR.INCONSISTENT_ANNUAL_INACTIVITY', this.alertCtrl, this.translate);
+      if (!confirmed) {
+        super.setError(messageError, opts);
+        return;
+      }
+      await this.entityQuality.terminate(null, { ignoreWarningError: true });
+      return null;
+    }
+
     super.setError(error, opts);
   }
 
   translateFormPath(controlPath: string): string {
-    return this.dataService.translateFormPath(controlPath, { i18nPrefix: this.i18nContext.prefix });
+    return this.dataService.translateFormPath(controlPath, {
+      i18nPrefix: this.i18nContext.prefix,
+      pmfms: this.pmfms,
+    });
   }
 
   protected async showRemoteConflict(remoteCalendar: ActivityCalendar) {
@@ -570,7 +600,7 @@ export class ActivityCalendarPage
 
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
-      data.year = DateUtils.moment().utc().year() - 1;
+      data.year = DateUtils.moment().year() - 1;
 
       // Listen first opening the calendar tab, then save
       this.registerSubscription(

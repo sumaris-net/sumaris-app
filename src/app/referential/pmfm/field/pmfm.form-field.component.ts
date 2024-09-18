@@ -1,4 +1,5 @@
 import {
+  booleanAttribute,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -6,6 +7,7 @@ import {
   EventEmitter,
   forwardRef,
   Input,
+  numberAttribute,
   OnDestroy,
   OnInit,
   Optional,
@@ -128,19 +130,19 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
     return this.controlName;
   }
 
-  @Input() mobile: boolean;
-  @Input() required: boolean;
-  @Input() readonly = false;
-  @Input() hidden = false;
+  @Input({ transform: booleanAttribute }) mobile: boolean;
+  @Input({ transform: booleanAttribute }) required: boolean;
+  @Input({ transform: booleanAttribute }) readonly = false;
+  @Input({ transform: booleanAttribute }) hidden = false;
   @Input() placeholder: string;
-  @Input() compact = false;
+  @Input({ transform: booleanAttribute }) compact = false;
   @Input() floatLabel: AppFloatLabelType = 'auto';
-  @Input() tabindex: number;
-  @Input() autofocus: boolean;
+  @Input({ transform: numberAttribute }) tabindex: number;
+  @Input({ transform: booleanAttribute }) autofocus: boolean;
   @Input() style: PmfmFormFieldStyle;
-  @Input() showButtonIcons: boolean;
-  @Input() maxVisibleButtons: number;
-  @Input() acquisitionNumber: number;
+  @Input({ transform: booleanAttribute }) showButtonIcons: boolean;
+  @Input({ transform: numberAttribute }) maxVisibleButtons: number;
+  @Input({ transform: numberAttribute }) acquisitionNumber: number;
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() i18nPrefix: string;
@@ -148,7 +150,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input() qualitativeValueAttributes: string[];
 
   // When async validator (e.g. BatchForm), force update when error detected
-  @Input() listenStatusChanges = false;
+  @Input({ transform: booleanAttribute }) listenStatusChanges = false;
 
   protected set type(value: string) {
     this.set('type', (_) => value);

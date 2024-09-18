@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, OnInit } from '@angular/core';
 import { UntypedFormGroup, ValidationErrors } from '@angular/forms';
-import { firstValueFrom, mergeMap, of, Subscription } from 'rxjs';
+import { filter, firstValueFrom, merge, mergeMap, of, Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ParameterLabelGroups, Parameters, PmfmIds } from '@app/referential/services/model/model.enum';
 import {
@@ -114,6 +114,11 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
             return this.referentialRefService.loadAllByIds(ageFractionIds, 'Fraction', sortBy as keyof Referential<any>, 'asc');
           })
         )
+    );
+
+    // Redirect form and table error, to main error
+    this.registerSubscription(
+      merge(this.landingForm.errorSubject, this.samplesTable.errorSubject.pipe(filter(() => !this.mobile))).subscribe((error) => this.setError(error))
     );
   }
 

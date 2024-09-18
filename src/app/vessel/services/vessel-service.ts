@@ -295,9 +295,9 @@ export class VesselService
     filter?: VesselFilter,
     opts?: EntitiesServiceWatchOptions & { query?: any; withOffline?: boolean }
   ): Observable<LoadResult<Vessel>> {
-    const forceOffline = this.network.offline || (isNotNil(filter.vesselId) && filter.vesselId < 0);
-    const offline = forceOffline || (filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC');
-    const online = !forceOffline && (!filter.synchronizationStatus || filter.synchronizationStatus === 'SYNC');
+    const forceOffline = this.network.offline || (isNotNil(filter?.vesselId) && filter.vesselId < 0);
+    const offline = forceOffline || (filter?.synchronizationStatus && filter.synchronizationStatus !== 'SYNC');
+    const online = !forceOffline && (!filter?.synchronizationStatus || filter.synchronizationStatus === 'SYNC');
 
     const offline$ = offline && this.watchAllLocally(offset, size, sortBy, sortDirection, filter, opts);
     const online$ = online && this.watchAllRemotely(offset, size, sortBy, sortDirection, filter, opts);

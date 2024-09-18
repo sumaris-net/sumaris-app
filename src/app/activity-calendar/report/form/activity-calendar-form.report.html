@@ -111,12 +111,10 @@
                               &nbsp;
                             </ion-col>
                             <ion-col>
-                              @if (!isBlankForm) {
-                                @for (registrationPeriod of data.vesselRegistrationPeriods; track registrationPeriod.id) {
-                                  {{ registrationPeriod.registrationLocation | referentialToString: ['label', 'name'] }}
-                                  @if (!$last) {
-                                    <br />
-                                  }
+                              @for (registrationPeriod of data.vesselRegistrationPeriods; track registrationPeriod.id) {
+                                {{ registrationPeriod.registrationLocation | referentialToString: ['label', 'name'] }}
+                                @if (!$last) {
+                                  <br />
                                 }
                               }
                             </ion-col>
@@ -126,16 +124,12 @@
                       <ion-col>
                         <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}</strong>
                         &nbsp;
-                        @if (!isBlankForm) {
-                          {{ data.vesselSnapshot.registrationCode || data.vesselSnapshot.intRegistrationCode }}
-                        }
+                        {{ data.vesselSnapshot.registrationCode || data.vesselSnapshot.intRegistrationCode }}
                       </ion-col>
                       <ion-col>
                         <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.VESSEL_NAME' | translate }}</strong>
                         &nbsp;
-                        @if (!isBlankForm) {
-                          {{ data.vesselSnapshot.name }}
-                        }
+                        {{ data.vesselSnapshot.name }}
                       </ion-col>
                     </ion-row>
                   </ion-grid>
@@ -224,7 +218,7 @@
                 @for (monthPmfm of stats.pmfm.activityMonth; track monthPmfm.id) {
                   <tr>
                     <th class="col-label">
-                      {{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nContext: i18nContext.suffix, withUnit: false } }}
+                      {{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix, withUnit: false } }}
                     </th>
                     @for (month of stats.activityMonth; track month.id) {
                       <td
@@ -239,7 +233,7 @@
               </tbody>
             </table>
           }
-          @if (metierChunk | isNotNil) {
+          @if (metierChunk | isNotEmptyArray) {
             <ion-grid class="report-section ion-no-padding ion-padding-top" [style.--ion-padding]="'8px'">
               <ion-row class="ion-no-padding">
                 <ion-col>
@@ -342,7 +336,7 @@
                                 @for (gpf of data.gearPhysicalFeatures; track gpf.id) {
                                   <td
                                     [style.--col-width]="
-                                      'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
+                                      'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearPhysicalFeatures.length + ')'
                                     "
                                   >
                                     {{ gpf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}

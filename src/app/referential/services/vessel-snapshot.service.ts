@@ -30,7 +30,7 @@ import { VesselSnapshot } from './model/vessel-snapshot.model';
 import { SortDirection } from '@angular/material/sort';
 import { environment } from '@environments/environment';
 import { VesselSnapshotFilter } from './filter/vessel.filter';
-import { ProgramLabel } from '@app/referential/services/model/model.enum';
+import { ProgramLabels } from '@app/referential/services/model/model.enum';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
@@ -464,7 +464,7 @@ export class VesselSnapshotService
       includedIds: opts?.vesselIds,
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       // Force the use of the specific program, used for vessels
-      program: ReferentialRef.fromObject({ label: ProgramLabel.SIH }),
+      program: ReferentialRef.fromObject({ label: ProgramLabels.SIH }),
     };
 
     if (isNotEmptyArray(filter.includedIds)) {

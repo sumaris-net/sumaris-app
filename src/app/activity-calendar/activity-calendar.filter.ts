@@ -31,7 +31,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
   excludedIds: number[];
   directSurveyInvestigation: boolean;
   economicSurvey: boolean;
-  observers?: Person[];
+  observers?: Person[] = null;
 
   constructor() {
     super();
@@ -52,13 +52,19 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.endDate = fromDateISOString(source.endDate);
     this.directSurveyInvestigation = source.directSurveyInvestigation;
     this.economicSurvey = source.economicSurvey;
-    this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
+    this.observers = Array.isArray(source.observers)
+      ? source.observers.map(Person.fromObject)
+      : source.observers
+        ? [Person.fromObject(source.observers)]
+        : null;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
+    target.year = this.year;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
+    const observers = Array.isArray(this.observers) ? this.observers : [this.observers];
     if (opts && opts.minify) {
       // Vessel
       target.vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
@@ -74,13 +80,13 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
       delete target.basePortLocations;
 
       // Observers
-      target.observerPersonIds = (this.observers && this.observers.map((o) => o && o.id).filter(isNotNil)) || undefined;
+      target.observerPersonIds = observers?.map((o) => o?.id).filter(isNotNil) || undefined;
       delete target.observers;
     } else {
       target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject(opts)) || undefined;
       target.registrationLocations = this.registrationLocations?.map((l) => l.asObject(opts)) || undefined;
       target.basePortLocations = this.basePortLocations?.map((l) => l.asObject(opts)) || undefined;
-      target.observers = (this.observers && this.observers.map((o) => o && o.asObject(opts)).filter(isNotNil)) || undefined;
+      target.observers = observers?.map((o) => o?.asObject(opts)).filter(isNotNil) || undefined;
     }
     return target;
   }

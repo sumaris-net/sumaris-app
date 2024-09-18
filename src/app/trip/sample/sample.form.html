@@ -6,10 +6,9 @@
    </ion-text>-->
 
   <!-- error -->
-  <ion-item *ngIf="showError && error; let error" lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error ion-text-wrap" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (showError) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
 
   <ion-grid class="ion-no-padding ion-padding-start">
     <ion-row class="ion-no-padding">
@@ -98,7 +97,7 @@
           <app-pmfm-field
             #matInput
             [pmfm]="pmfm"
-            [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
+            [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
             [style]="vars.style"
             [readonly]="vars.computed"
             [floatLabel]="vars.computed && 'always'"

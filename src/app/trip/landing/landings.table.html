@@ -33,21 +33,8 @@
     </button>
   </ng-template>
 
-  @if (!mobile) {
-    @if (showError && error) {
-      <ion-item lines="none">
-        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="error | translate: errorDetails"></ion-label>
-      </ion-item>
-    } @else if (showObservedCount && observedCount < minObservedSpeciesCount) {
-      <ion-item lines="none" class="warning">
-        <ion-icon color="tertiary" slot="start" name="warning"></ion-icon>
-        <ion-label
-          color="tertiary"
-          [innerHTML]="'OBSERVED_LOCATION.WARNING.INVALID_OBSERVED_COUNT' | translate: { minObservedCount: minObservedSpeciesCount }"
-        ></ion-label>
-      </ion-item>
-    }
+  @if (showError && !mobile) {
+    <ng-container *ngTemplateOutlet="errorItem"></ng-container>
   }
 
   <div class="toolbar-spacer"></div>
@@ -95,10 +82,9 @@
 </mat-menu>
 
 <!-- error -->
-<ion-item *ngIf="error && showError && mobile" lines="none">
-  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-</ion-item>
+@if (showError && mobile) {
+  <ng-container *ngTemplateOutlet="errorItem"></ng-container>
+}
 
 <div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="showPaginator" cdkScrollable>
   <!-- search -->
@@ -234,7 +220,7 @@
             }
           </ion-label>
           <span #errorSpan hidden>
-            {{ row.currentData.qualificationComments || (row.validator.invalid && (row.validator | formError: errorTranslatorOptions)) || '' }}
+            {{ row.currentData.qualificationComments || (row.validator.invalid && (row.validator | formError: errorTranslateOptions)) || '' }}
           </span>
         </td>
       </ng-container>
@@ -353,7 +339,7 @@
         [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
       >
         <ion-label>
-          {{ pmfm | pmfmName: { html: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix } }}
+          {{ pmfm | pmfmName: { html: true, i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nColumnSuffix } }}
         </ion-label>
       </th>
       <td
@@ -542,7 +528,7 @@
     <tr mat-row *matRowDef="let row; columns: ['divider', 'dividerColspan']; when: isDivider"></tr>
 
     <!-- footer -->
-    <ng-container *ngIf="showFooter">
+    <ng-container *ngIf="showFooter && footerColumns | isNotEmptyArray">
       <tr mat-footer-row *matFooterRowDef="footerColumns; sticky: useFooterSticky" [class.cdk-visually-hidden]="!totalRowCount"></tr>
     </ng-container>
   </table>
@@ -587,6 +573,18 @@
       <span translate>COMMON.BTN_ADD</span>
     </ion-button>
   </span>
+</ng-template>
+
+<!-- error-->
+<ng-template #errorItem>
+  @if (errorSubject | async; as error) {
+    <app-error-item [message]="error"></app-error-item>
+  } @else if (showObservedCount && observedCount < minObservedSpeciesCount) {
+    <app-warning-item
+      size="small"
+      [message]="'OBSERVED_LOCATION.WARNING.INVALID_OBSERVED_COUNT' | translate: { minObservedCount: minObservedSpeciesCount }"
+    ></app-warning-item>
+  }
 </ng-template>
 
 <!-- DEBUG -->

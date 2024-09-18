@@ -7,25 +7,27 @@
 
   <ion-grid>
     <!-- PROGRAM -->
-    <ion-row *ngIf="showProgram">
-      <ion-col offset-md="2" offset-lg="3">
-        <mat-autocomplete-field
-          formControlName="program"
-          [placeholder]="'TRIP.PROGRAM' | translate"
-          [config]="autocompleteFields.program"
-          [tabindex]="tabindex"
-          [required]="true"
-        >
-          <ion-icon matPrefix name="contract"></ion-icon>
-        </mat-autocomplete-field>
-      </ion-col>
-    </ion-row>
+    @if (showProgram) {
+      <ion-row>
+        <ion-col offset-md="2" offset-lg="3">
+          <mat-autocomplete-field
+            formControlName="program"
+            [placeholder]="'TRIP.PROGRAM' | translate"
+            [config]="autocompleteFields.program"
+            [tabindex]="tabindex"
+            [required]="true"
+          >
+            <ion-icon matPrefix name="contract"></ion-icon>
+          </mat-autocomplete-field>
+        </ion-col>
+      </ion-row>
+    }
 
     <!-- Sampling strata -->
     @if (showSamplingStrata) {
       <ion-row>
         <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-          <ion-label class="ion-float-end">{{ 'OBSERVED_LOCATION.SAMPLING_SCHEME' | translateContext: i18nSuffix }}</ion-label>
+          <ion-label class="ion-float-end hidden-xs">{{ 'OBSERVED_LOCATION.SAMPLING_SCHEME' | translateContext: i18nSuffix }}</ion-label>
         </ion-col>
         <ion-col>
           <mat-autocomplete-field
@@ -33,7 +35,7 @@
             formControlName="samplingStrata"
             [placeholder]="'OBSERVED_LOCATION.SAMPLING_STRATA' | translateContext: i18nSuffix"
             [config]="autocompleteFields.samplingStrata"
-            [tabindex]="tabindex"
+            [tabindex]="tabindex + 1"
             [required]="true"
           >
             <ion-icon matPrefix name="calendar"></ion-icon>
@@ -43,60 +45,63 @@
     }
 
     <!-- If only start date time -->
-    <ion-row *ngIf="!showEndDateTime; else withEndDateTime">
-      <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end" translate>OBSERVED_LOCATION.EDIT.LOCATION_AND_DATE</ion-label>
-      </ion-col>
-      <!-- location -->
-      <ion-col size="12" size-sm="">
-        <mat-autocomplete-field
-          formControlName="location"
-          [placeholder]="'OBSERVED_LOCATION.EDIT.LOCATION' | translate"
-          [config]="autocompleteFields.location"
-          [tabindex]="tabindex + 1"
-          required
-        >
-          <mat-icon matPrefix>room</mat-icon>
-        </mat-autocomplete-field>
-      </ion-col>
-
-      <!-- start date time -->
-      <ion-col size="12" size-sm="5" size-md="4">
-        <mat-date-time-field
-          *ngIf="showStartTime; else startDateOnly"
-          formControlName="startDateTime"
-          [placeholder]="'OBSERVED_LOCATION.EDIT.DATE_TIME' | translate"
-          [tabindex]="tabindex + 2"
-          required
-        >
-          <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
-          @if (isStartDateInTheFuture) {
-            <ion-text matHint color="accent">
-              <mat-icon>warning</mat-icon>
-              <span translate>WARNING.DATE_IN_THE_FUTURE</span>
-            </ion-text>
-          }
-        </mat-date-time-field>
-        <ng-template #startDateOnly>
-          <mat-date-field
-            formControlName="startDateTime"
-            [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE' | translate"
+    @if (!showEndDateTime) {
+      <ion-row>
+        <ion-col size="12" size-md="2" size-lg="3">
+          <ion-label class="ion-float-end" translate>OBSERVED_LOCATION.EDIT.LOCATION_AND_DATE</ion-label>
+        </ion-col>
+        <!-- location -->
+        <ion-col size="12" size-sm="">
+          <mat-autocomplete-field
+            formControlName="location"
+            [placeholder]="'OBSERVED_LOCATION.EDIT.LOCATION' | translate"
+            [config]="autocompleteFields.location"
             [tabindex]="tabindex + 2"
-            [timezone]="timezone"
             required
           >
-            <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
-            <mat-hint *ngIf="isStartDateInTheFuture">
-              <mat-icon color="warn">warning</mat-icon>
-              {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
-            </mat-hint>
-          </mat-date-field>
-        </ng-template>
-      </ion-col>
-    </ion-row>
+            <mat-icon matPrefix>room</mat-icon>
+          </mat-autocomplete-field>
+        </ion-col>
 
-    <!-- If show end date time-->
-    <ng-template #withEndDateTime>
+        <!-- start date time -->
+        <ion-col size="12" size-sm="5" size-md="4">
+          @if (showStartTime) {
+            <mat-date-time-field
+              formControlName="startDateTime"
+              [placeholder]="'OBSERVED_LOCATION.EDIT.DATE_TIME' | translate"
+              [tabindex]="tabindex + 3"
+              required
+            >
+              <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
+              @if (isStartDateInTheFuture) {
+                <ion-text matHint color="accent">
+                  <mat-icon>warning</mat-icon>
+                  <span translate>WARNING.DATE_IN_THE_FUTURE</span>
+                </ion-text>
+              }
+            </mat-date-time-field>
+          } @else {
+            <mat-date-field
+              formControlName="startDateTime"
+              [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE' | translate"
+              [tabindex]="tabindex + 3"
+              [timezone]="timezone"
+              required
+            >
+              <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
+              @if (isStartDateInTheFuture) {
+                <mat-hint>
+                  <mat-icon color="warn">warning</mat-icon>
+                  {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
+                </mat-hint>
+              }
+            </mat-date-field>
+          }
+        </ion-col>
+      </ion-row>
+
+      <!-- If show end date time-->
+    } @else {
       <!-- location -->
       <ion-row>
         <ion-col size="12" size-md="10" size-lg="9" offset-md="2" offset-lg="3">
@@ -104,7 +109,7 @@
             formControlName="location"
             [placeholder]="'OBSERVED_LOCATION.EDIT.LOCATION' | translate"
             [config]="autocompleteFields.location"
-            [tabindex]="tabindex + 1"
+            [tabindex]="tabindex + 2"
             required
           >
             <mat-icon matPrefix>room</mat-icon>
@@ -125,7 +130,7 @@
             *ngIf="showStartTime; else startDate"
             formControlName="startDateTime"
             [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE' | translate"
-            [tabindex]="tabindex + 2"
+            [tabindex]="tabindex + 3"
             required
           >
             <mat-icon matPrefix class="visible-xs visible-sm">today</mat-icon>
@@ -139,7 +144,7 @@
             <mat-date-field
               formControlName="startDateTime"
               [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE' | translate"
-              [tabindex]="tabindex + 2"
+              [tabindex]="tabindex + 3"
               [timezone]="timezone"
               [datePickerFilter]="startDatePickerFilter"
               required
@@ -156,20 +161,20 @@
 
         <!-- End date time -->
         <ion-col size="12" size-md="5">
-          <mat-date-time-field
-            *ngIf="showEndTime; else endDate"
-            formControlName="endDateTime"
-            [placeholder]="'OBSERVED_LOCATION.EDIT.END_DATE' | translate"
-            [tabindex]="tabindex + 3"
-            [required]="withEndDateRequired"
-          >
-            <mat-icon matPrefix class="visible-xs visible-sm">event</mat-icon>
-          </mat-date-time-field>
-          <ng-template #endDate>
+          @if (showEndTime) {
+            <mat-date-time-field
+              formControlName="endDateTime"
+              [placeholder]="'OBSERVED_LOCATION.EDIT.END_DATE' | translate"
+              [tabindex]="tabindex + 4"
+              [required]="withEndDateRequired"
+            >
+              <mat-icon matPrefix class="visible-xs visible-sm">event</mat-icon>
+            </mat-date-time-field>
+          } @else {
             <mat-date-field
               formControlName="endDateTime"
               [placeholder]="'OBSERVED_LOCATION.EDIT.END_DATE' | translate"
-              [tabindex]="tabindex + 3"
+              [tabindex]="tabindex + 4"
               [timezone]="timezone"
               [readonly]="!!forceDurationDays"
               [startDate]="form.controls.startDateTime.valueChanges | async"
@@ -177,13 +182,13 @@
             >
               <mat-icon matPrefix class="visible-xs visible-sm">event</mat-icon>
             </mat-date-field>
-          </ng-template>
+          }
         </ion-col>
       </ion-row>
-    </ng-template>
+    }
 
     <!-- Observers -->
-    <ng-container *ngIf="showObservers">
+    @if (showObservers) {
       <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first; last as last">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
           <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
@@ -225,7 +230,7 @@
           </button>
         </ion-col>
       </ion-row>
-    </ng-container>
+    }
 
     <!-- Measurements -->
     <ion-row>

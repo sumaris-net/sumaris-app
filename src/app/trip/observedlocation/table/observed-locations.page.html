@@ -1,20 +1,20 @@
 <app-toolbar *ngIf="showToolbar" color="primary" [canGoBack]="false" [canShowMenu]="true">
-  <div *rxIf="titleSubject; let title" slot="start">
+  @if (!showTitleSegment) {
     <!-- simple title -->
-    <ion-title *ngIf="!showTitleSegment; else titleSegment">{{ title | translate }}</ion-title>
-
+    <ion-title>{{ titleSubject | async | translate }}</ion-title>
+  } @else {
     <!-- segment to show landings -->
-    <ng-template #titleSegment>
+    <div slot="start">
       <ion-segment [value]="selectedSegment" mode="md" (ionChange)="onSegmentChanged($event)">
         <ion-segment-button value="observations" class="ion-title">
-          <ion-label>{{ title | translate }}</ion-label>
+          <ion-label>{{ titleSubject | async | translate }}</ion-label>
         </ion-segment-button>
         <ion-segment-button value="observations/landings" class="ion-title">
           <ion-label>{{ landingsTitleSubject | async | translate }}</ion-label>
         </ion-segment-button>
       </ion-segment>
-    </ng-template>
-  </div>
+    </div>
+  }
 
   <ion-buttons slot="end">
     <ng-container *ngIf="!selection.hasValue(); else hasSelection">
@@ -165,6 +165,7 @@
     </ion-grid>
   </form>
 
+  <!-- filter -->
   <mat-expansion-panel
     #filterExpansionPanel
     class="filter-panel"
@@ -213,11 +214,9 @@
 
           <!-- End date -->
           <ion-col size="12" size-sm="6">
-            <mat-date-field
-              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE' | translate"
-              formControlName="endDate"
-              [clearable]="true"
-            ></mat-date-field>
+            <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE' | translate" formControlName="endDate" [clearable]="true">
+              <ion-icon matPrefix name="calendar-outline" class="visible-xs visible-sm"></ion-icon>
+            </mat-date-field>
           </ion-col>
         </ion-row>
 
@@ -354,10 +353,7 @@
   ></app-update-offline-mode-card>
 
   <!-- error -->
-  <ion-item *ngIf="errorSubject | async; let error" lines="none" @slideUpDownAnimation>
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  <app-error-item [message]="errorSubject | async"></app-error-item>
 
   <!-- Tab nav - synchro status-->
   <ng-container *ngIf="hasOfflineMode">

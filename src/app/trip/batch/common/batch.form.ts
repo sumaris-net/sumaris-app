@@ -19,6 +19,7 @@ import {
   AppFormArray,
   firstArrayValue,
   firstTruePromise,
+  IFormPathTranslatorOptions,
   IReferentialRef,
   isNil,
   isNotEmptyArray,
@@ -380,37 +381,37 @@ export class BatchForm<
     data.rankOrder = toNumber(data.rankOrder, 0);
   }
 
-  translateFormPath(path: string): string {
+  translateFormPath(path: string, opts?: IFormPathTranslatorOptions): string {
     // Translate specific path
-    let i18nSuffix: string;
+    let fieldName: string;
     switch (path) {
       case 'individualCount':
-        i18nSuffix = 'TOTAL_INDIVIDUAL_COUNT';
+        fieldName = 'TOTAL_INDIVIDUAL_COUNT';
         break;
       case 'weight':
       case 'weight.value':
-        i18nSuffix = 'TOTAL_WEIGHT';
+        fieldName = 'TOTAL_WEIGHT';
         break;
       case 'children.0':
-        i18nSuffix = 'SAMPLING_BATCH';
+        fieldName = 'SAMPLING_BATCH';
         break;
       case 'children.0.weight.value':
-        i18nSuffix = 'SAMPLING_WEIGHT';
+        fieldName = 'SAMPLING_WEIGHT';
         break;
       case 'children.0.individualCount':
-        i18nSuffix = 'SAMPLING_INDIVIDUAL_COUNT';
+        fieldName = 'SAMPLING_INDIVIDUAL_COUNT';
         break;
       case 'children.0.samplingRatio':
-        i18nSuffix = this.samplingRatioFormat === '1/w' ? 'SAMPLING_COEFFICIENT' : 'SAMPLING_RATIO_PCT';
+        fieldName = this.samplingRatioFormat === '1/w' ? 'SAMPLING_COEFFICIENT' : 'SAMPLING_RATIO_PCT';
         break;
     }
-    if (i18nSuffix) {
-      const i18nKey = (this.i18nFieldPrefix || 'TRIP.BATCH.EDIT.') + i18nSuffix;
+    if (fieldName) {
+      const i18nKey = (this.i18nFieldPrefix || 'TRIP.BATCH.EDIT.') + fieldName;
       return this.translate.instant(i18nKey);
     }
 
     // Default translation (pmfms)
-    return super.translateFormPath(path, this._initialPmfms /*give the full list*/);
+    return super.translateFormPath(path, { pmfms: this._initialPmfms /*give the full list*/ });
   }
 
   /* -- protected method -- */

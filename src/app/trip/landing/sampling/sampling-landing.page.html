@@ -83,10 +83,9 @@
         </ng-container>
 
         <!-- error -->
-        <ion-item *ngIf="landingForm.error || error as error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-        </ion-item>
+        @if (mobile && (errorSubject | async); as error) {
+          <app-error-item [message]="error"></app-error-item>
+        }
 
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
@@ -238,10 +237,9 @@
     [disabled]="!dirty || loading"
   >
     <!-- error -->
-    <ion-item *ngIf="landingForm.error || error || (samplesTable.error$ | async); let error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-    </ion-item>
+    @if (!mobile && (errorSubject | async); as error) {
+      <app-error-item [message]="error"></app-error-item>
+    }
   </app-form-buttons-bar>
 </ion-footer>
 

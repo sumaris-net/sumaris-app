@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControlOptions, FormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   AppFormArray,
   isEmptyArray,
@@ -17,7 +17,7 @@ import { ActivityCalendar } from './activity-calendar.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
 import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
 import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
@@ -27,6 +27,10 @@ import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.
 import { GearPhysicalFeaturesValidatorService } from './gear-physical-features.validator';
 import { GearPhysicalFeatures } from './gear-physical-features.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { VesselUseFeatures } from './vessel-use-features.model';
+import { VesselUseFeaturesValidatorService } from './vessel-use-features.validator';
+import { ActivityMonth } from '../calendar/activity-month.model';
+import { ActivityMonthValidatorService } from '../calendar/activity-month.validator';
 
 export interface ActivityCalendarValidatorOptions extends DataRootEntityValidatorOptions {
   timezone?: string;
@@ -36,6 +40,8 @@ export interface ActivityCalendarValidatorOptions extends DataRootEntityValidato
   withGearUseFeatures?: boolean;
   withGearPhysicalFeatures?: boolean;
   withVesselUseFeatures?: boolean;
+  withAllMonths?: boolean;
+  ignoreWarningError?: boolean;
 
   pmfms?: IPmfm[];
 }
@@ -49,7 +55,9 @@ export class ActivityCalendarValidatorService<
     translate: TranslateService,
     settings: LocalSettingsService,
     protected gearUseFeaturesValidatorService: GearUseFeaturesValidatorService,
+    protected activityMonthValidatorService: ActivityMonthValidatorService,
     protected gearPhysicalFeaturesValidatorService: GearPhysicalFeaturesValidatorService,
+    protected vesselUseFeaturesValidatorService: VesselUseFeaturesValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, translate, settings);
@@ -94,11 +102,23 @@ export class ActivityCalendarValidatorService<
       });
     }
 
-    // Add gear use features
-    if (opts.withGearUseFeatures) {
-      config.gearUseFeatures = this.getGearUseFeaturesArray(data?.gearUseFeatures);
-    }
+    // Add activity months
+    const activityMonths = data?.vesselUseFeatures.map(ActivityMonth.fromObject);
+    data?.gearUseFeatures.forEach((guf) => {
+      const month = activityMonths.find((am) => am.startDate.month() === guf.startDate.month());
+      if (month) {
+        if (!month.gearUseFeatures) {
+          month.gearUseFeatures = [];
+        }
+        month.gearUseFeatures.push(guf);
+      }
+    });
+    config.activityMonths = this.getActivityMonthArray(activityMonths);
 
+    // Add vessel use features
+    if (opts.withVesselUseFeatures) {
+      config.vesselUseFeatures = this.getVesselUseFeatures(data?.vesselUseFeatures);
+    }
     // Add gear physical features
     if (opts.withGearPhysicalFeatures) {
       config.gearPhysicalFeatures = this.getGearPhysicalFeaturesArray(data?.gearPhysicalFeatures);
@@ -109,7 +129,6 @@ export class ActivityCalendarValidatorService<
       config.observers = this.getObserversFormArray(data?.observers);
     }
 
-    //
     // // Add fishing Ares
     // if (opts.withFishingAreas) {
     //   config.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, {required: true});
@@ -119,20 +138,7 @@ export class ActivityCalendarValidatorService<
   }
 
   getFormGroupOptions(data?: ActivityCalendar, opts?: O): AbstractControlOptions | null {
-    const validators: ValidatorFn | ValidatorFn[] | null = null;
-
-    // Add a form group control, to make there is ont GUF, when isActive=true
-    // if (opts?.isOnFieldMode !== false) {
-    //   validators = (form) => {
-    //     const isActive = form.get('isActive').value;
-    //     console.log('TODO isActive=' + isActive);
-    //     if (isActive) {
-    //       return {required: true};
-    //     }
-    //     return null;
-    //   };
-    // }
-    //
+    const validators: ValidatorFn[] = [ActivityCalendarValidators.validateAnnualInactivity, ActivityCalendarValidators.validateMonthNumbers];
     return {
       ...super.getFormGroupOptions(data, opts),
       validators,
@@ -185,6 +191,48 @@ export class ActivityCalendarValidatorService<
     return formArray;
   }
 
+  getActivityMonthArray(data?: ActivityMonth[], opts?: { maxLength?: number; required?: boolean }) {
+    const required = opts?.required || false;
+    const formArray = new AppFormArray<ActivityMonth, UntypedFormGroup>(
+      (month) => this.activityMonthValidatorService.getFormGroup(month),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: true,
+        validators: opts?.maxLength ? SharedFormArrayValidators.arrayMaxLength(opts.maxLength) : null,
+      }
+    );
+    if (data) {
+      data = data?.filter(ActivityMonth.isNotEmpty);
+      if (required && isEmptyArray(data)) {
+        data = [null];
+      }
+      formArray.patchValue(data || []);
+    }
+    return formArray;
+  }
+
+  getVesselUseFeatures(data?: VesselUseFeatures[], opts?: { maxLength?: number; required?: boolean }) {
+    const required = opts?.required || false;
+    const formArray = new AppFormArray<VesselUseFeatures, UntypedFormGroup>(
+      (vuf) => this.vesselUseFeaturesValidatorService.getFormGroup(vuf),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: true,
+        validators: opts?.maxLength ? SharedFormArrayValidators.arrayMaxLength(opts.maxLength) : null,
+      }
+    );
+    if (data) {
+      data = data?.filter(VesselUseFeatures.isNotEmpty);
+      if (required && isEmptyArray(data)) {
+        data = [null];
+      }
+      formArray.patchValue(data || []);
+    }
+    return formArray;
+  }
+
   getGearPhysicalFeaturesArray(data?: GearPhysicalFeatures[], opts?: { maxLength?: number }) {
     const formArray = new AppFormArray<GearPhysicalFeatures, UntypedFormGroup>(
       (gpf) => this.gearPhysicalFeaturesValidatorService.getFormGroup(gpf),
@@ -199,6 +247,13 @@ export class ActivityCalendarValidatorService<
       formArray.patchValue(data);
     }
     return formArray;
+  }
+
+  getI18nError(errorKey: string, errorContent?: any): any {
+    if (ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS[errorKey]) {
+      return this.translate.instant(ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS[errorKey], errorContent);
+    }
+    return super.getI18nError(errorKey, errorContent);
   }
 
   /* -- protected methods -- */
@@ -221,6 +276,7 @@ export class ActivityCalendarValidatorService<
 
     opts.withVesselUseFeatures = toBoolean(opts.withVesselUseFeatures, true);
     opts.withGearUseFeatures = toBoolean(opts.withGearUseFeatures, true);
+    opts.withAllMonths = toBoolean(opts.withAllMonths, true);
 
     opts.withObservers = toBoolean(
       opts.withObservers,
@@ -237,3 +293,48 @@ export class ActivityCalendarValidatorService<
     return opts;
   }
 }
+
+export class ActivityCalendarValidators {
+  static validateMonthNumbers(group: FormArray): ValidationErrors | null {
+    const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (months && months.length !== 12) {
+      return {
+        invalidMonthNumbers: {},
+      };
+    }
+    return null;
+  }
+
+  static validateAnnualInactivity(group: FormArray): ValidationErrors | null {
+    const pmfms = group.get('measurementValues')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!months && isNotNil(pmfms)) return null;
+    const vufs: VesselUseFeatures[] = [];
+    months.forEach((month) => {
+      vufs.push(VesselUseFeatures.fromObject(month));
+    });
+
+    const isComplete = months.length === 12;
+    const error = isComplete ? vufs.every((month: VesselUseFeatures) => month.isActive === 0) : false;
+
+    if (pmfms[PmfmIds.INACTIVTY_YEAR] && isComplete && error) {
+      return null;
+    } else if (!pmfms[PmfmIds.INACTIVTY_YEAR] && !error) {
+      return null;
+    } else if (pmfms[PmfmIds.INACTIVTY_YEAR] && !error) {
+      return {
+        warningInconsistentAnnualInactivity: {},
+      };
+    } else {
+      return {
+        confirmAnnualInactivity: {},
+      };
+    }
+  }
+}
+
+export const ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS = {
+  invalidMonthNumbers: 'ACTIVITY_CALENDAR.ERROR.MONTH_NUMBERS',
+  confirmAnnualInactivity: 'ACTIVITY_CALENDAR.ERROR.ANNUAL_INACTIVITY',
+  warningInconsistentAnnualInactivity: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENT_ANNUAL_INACTIVITY',
+};

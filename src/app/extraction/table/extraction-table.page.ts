@@ -196,6 +196,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
           // Acquisition levels used by ObservedLocation -> Landing
           AcquisitionLevelCodes.OBSERVED_LOCATION,
           AcquisitionLevelCodes.LANDING,
+          AcquisitionLevelCodes.ACTIVITY_CALENDAR,
         ],
       }),
       (s, { data }) => data

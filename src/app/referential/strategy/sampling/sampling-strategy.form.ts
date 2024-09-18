@@ -1277,10 +1277,20 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     if (currentViewTaxonName && currentViewTaxonName === previousFormTaxonName && yearCode && yearCode === previousFormYear) return;
 
     // Update label mask
-    // @ts-expect-error untyped conversion to mask
-    this.labelMask = yearCode
-      .split('')
-      .concat([' ', /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, ' ', /\d/, /\d/, /\d/]);
+    this.labelMask = (yearCode.split('') as (string | RegExp)[]).concat([
+      ' ',
+      /^[a-zA-Z]$/,
+      /^[a-zA-Z]$/,
+      /^[a-zA-Z]$/,
+      /^[a-zA-Z]$/,
+      /^[a-zA-Z]$/,
+      /^[a-zA-Z]$/,
+      /^[a-zA-Z]$/,
+      ' ',
+      /\d/,
+      /\d/,
+      /\d/,
+    ]);
 
     if (errors) {
       // if (this.data.label && this.data.label.substring(0, 2) === yearMask && this.data.label.substring(2, 9) === labelControl.value.toUpperCase().substring(2, 9)) {

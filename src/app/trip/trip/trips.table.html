@@ -108,7 +108,7 @@
   <mat-divider></mat-divider>
 
   <!-- upload button -->
-  <button mat-menu-item *ngIf="synchronizationStatus !== 'SYNC'" (click)="importFromFile($event)">
+  <button mat-menu-item *ngIf="synchronizationStatus !== 'SYNC'" (click)="importJsonFile($event)">
     <mat-icon>upload</mat-icon>
     <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
   </button>
@@ -183,17 +183,17 @@
 
         <!-- Period criteria -->
         <ion-row>
-          <ion-col>
+          <ion-col size="12" size-sm="6">
             <!-- Start date -->
             <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.START_DATE' | translate" formControlName="startDate" [clearable]="true">
               <ion-icon matPrefix name="calendar-outline"></ion-icon>
             </mat-date-field>
           </ion-col>
 
-          <ion-col>
+          <ion-col size="12" size-sm="6">
             <!-- End date -->
             <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.END_DATE' | translate" formControlName="endDate" [clearable]="true">
-              <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              <ion-icon matPrefix name="calendar-outline" class="visible-xs visible-sm"></ion-icon>
             </mat-date-field>
           </ion-col>
         </ion-row>
@@ -400,14 +400,10 @@
     >
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
-          <mat-checkbox
-            (change)="$event ? masterToggle() : null"
-            [checked]="selection.hasValue() && isAllSelected()"
-            [indeterminate]="selection.hasValue() && !isAllSelected()"
-          ></mat-checkbox>
+          <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection | isAllSelected" [tabIndex]="-1"></mat-checkbox>
         </th>
         <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
-          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
+          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection | isSelected: row" [tabIndex]="-1"></mat-checkbox>
         </td>
       </ng-container>
 

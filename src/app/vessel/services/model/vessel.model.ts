@@ -195,8 +195,8 @@ export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPer
 
   equals(other: VesselFeatures, opts?: { withId?: boolean; withDates?: boolean }): boolean {
     return (
-      (opts?.withId !== false && super.equals(other) && isNotNil(this.id)) || // Same date
-      ((opts?.withDates === false || (DateUtils.equals(this.startDate, other.startDate) && DateUtils.equals(this.endDate, other.endDate))) &&
+      (opts?.withId !== false && isNotNil(this.id) && super.equals(other)) || // Same id
+      ((opts?.withDates === false || (DateUtils.equals(this.startDate, other.startDate) && DateUtils.equals(this.endDate, other.endDate))) && // Same date
         // Same hullMaterial
         ReferentialUtils.equals(this.hullMaterial, other.hullMaterial) &&
         // Same basePortLocation

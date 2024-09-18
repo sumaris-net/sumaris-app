@@ -1,8 +1,7 @@
 <!-- error -->
-<ion-item *ngIf="showError && error; let error" visible-xs visible-sm visible-mobile lines="none">
-  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-</ion-item>
+@if (showError) {
+  <app-error-item [message]="errorSubject | async"></app-error-item>
+}
 
 <!-- filter form
 <form class="form-container">
@@ -87,8 +86,8 @@
                 [formControl]="weightMethodForm | formGetControl: item.qvIndex.toString()"
                 labelPosition="before"
               >
-                <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
-                <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
+                <ion-text color="dark" hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
+                <ion-text color="dark" visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
               </mat-checkbox>
             </ion-label>
           </th>
@@ -123,7 +122,7 @@
           <td
             mat-cell
             *rxLet="
-              row.currentData.qualificationComments || (row.validator.invalid && (row.validator | formError: errorTranslatorOptions));
+              row.currentData.qualificationComments || (row.validator.invalid && (row.validator | formError: errorTranslateOptions));
               let rowError
             "
             [title]="rowError || ''"
@@ -328,6 +327,7 @@
       [matSortDirection]="defaultSortDirection"
       [dataSource]="dataSource"
       [trackBy]="trackByFn"
+      class="mobile"
     >
       <!-- Group header: start -->
       <ng-container matColumnDef="top-start" [sticky]="sticky">
@@ -344,7 +344,7 @@
       </ng-container>
 
       <!-- Group header: pmfm group columns -->
-      <ng-container *ngFor="let item of groupColumns; even as even">
+      @for (item of groupColumns; track item.key; let even = $even) {
         <ng-container [matColumnDef]="item.key">
           <th
             mat-header-cell
@@ -355,19 +355,17 @@
           >
             <ion-label class="ion-text-wrap mat-mdc-cell-content-start-padding ion-text-center">
               <span>{{ item.name }}</span>
-              <br />
-              <mat-checkbox
-                *ngIf="weightMethodForm"
-                [formControl]="weightMethodForm | formGetControl: item.qvIndex.toString()"
-                labelPosition="before"
-              >
-                <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
-                <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
-              </mat-checkbox>
+              @if (weightMethodForm) {
+                <br />
+                <mat-checkbox [formControl]="weightMethodForm | formGetControl: (item.qvIndex | toString)" labelPosition="before">
+                  <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
+                  <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
+                </mat-checkbox>
+              }
             </ion-label>
           </th>
         </ng-container>
-      </ng-container>
+      }
 
       <!-- Group header: end -->
       <ng-container matColumnDef="top-end">
@@ -383,7 +381,7 @@
           ></mat-checkbox>
         </th>
         <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!inlineEdition">
-          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
+          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
         </td>
       </ng-container>
 
@@ -486,7 +484,7 @@
       </ng-container>
 
       <!-- Actions buttons column -->
-      <ng-container matColumnDef="actions" [stickyEnd]="selection.hasValue()">
+      <ng-container matColumnDef="actions" [stickyEnd]="selection | isNotEmptySelection">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let row">
           <ng-container *ngTemplateOutlet="actionCellTemplate; context: { $implicit: row }"></ng-container>
@@ -532,24 +530,23 @@
 </div>
 
 <ng-template #actionCellTemplate let-row>
-  <ng-container *ngIf="mobile; else otherButtons">
+  @if (mobile) {
     <!-- Delete row button -->
     <button
       mat-icon-button
-      *ngIf="enabled && singleSelectedRow === row; else otherButtons"
+      *ngIf="enabled && singleSelectedRow === row"
       [title]="'COMMON.BTN_DELETE' | translate"
       (click)="cancelOrDelete($event, row)"
     >
       <mat-icon>delete</mat-icon>
     </button>
-  </ng-container>
-
-  <ng-template #otherButtons>
+  } @else {
     <!-- open individual measures -->
     <button
       mat-icon-button
       *ngIf="allowSubBatches && (!qvPmfm || mobile)"
       [color]="row.currentData.observedIndividualCount ? 'primary' : undefined"
+      [disabled]="row.invalid"
       [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE' | translate"
       (click)="onSubBatchesClick($event, row, { showParent: false })"
     >
@@ -563,5 +560,5 @@
         assessment
       </mat-icon>
     </button>
-  </ng-template>
+  }
 </ng-template>

@@ -22,12 +22,12 @@ import {
   toNumber,
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
-import { IEntityWithMeasurement, MeasurementValuesUtils } from './measurement.model';
+import { IEntityWithMeasurement, MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils } from './measurement.model';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { mergeMap } from 'rxjs/operators';
+import { map, mergeMap } from 'rxjs/operators';
 import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MeasurementsTableEntitiesService } from './measurements-table.service';
@@ -38,6 +38,7 @@ import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 export interface BaseMeasurementsTableState {
   programLabel: string;
   acquisitionLevel: AcquisitionLevelType;
+  acquisitionLevels: AcquisitionLevelType[];
   requiredStrategy: boolean;
   strategyLabel: string;
   strategyId: number;
@@ -89,6 +90,7 @@ export abstract class BaseMeasurementsTable<
   protected readonly formBuilder = inject(UntypedFormBuilder);
   @RxStateSelect() protected programLabel$: Observable<string>;
   @RxStateSelect() protected acquisitionLevel$: Observable<AcquisitionLevelType>;
+  @RxStateSelect() protected acquisitionLevels$: Observable<AcquisitionLevelType[]>;
   @RxStateSelect() protected initialPmfms$: Observable<IPmfm[]>;
   @RxStateSelect() protected filteredPmfms$: Observable<IPmfm[]>;
   @RxStateSelect() hasPmfms$: Observable<boolean>;
@@ -112,6 +114,10 @@ export abstract class BaseMeasurementsTable<
   @Input()
   @RxStateProperty()
   acquisitionLevel: AcquisitionLevelType;
+
+  @Input()
+  @RxStateProperty()
+  acquisitionLevels: AcquisitionLevelType[];
 
   @Input()
   @RxStateProperty()
@@ -210,7 +216,10 @@ export abstract class BaseMeasurementsTable<
 
     // Copy some properties to the dataService
     this._state.hold(
-      this._state.select(['programLabel', 'acquisitionLevel', 'requiredStrategy', 'strategyId', 'strategyLabel', 'requiredGear', 'gearId'], (s) => s),
+      this._state.select(
+        ['programLabel', 'acquisitionLevels', 'requiredStrategy', 'strategyId', 'strategyLabel', 'requiredGear', 'gearId'],
+        (s) => s
+      ),
       (state) => {
         // DEBUG
         //console.debug(this.logPrefix + 'Updating measurement-service state:', state);
@@ -236,6 +245,15 @@ export abstract class BaseMeasurementsTable<
     this._state.hold(this.filteredPmfms$, (pmfms) => {
       this.hasPmfms = isNotEmptyArray(pmfms);
     });
+
+    this._state.connect(
+      'acquisitionLevels',
+      this.acquisitionLevel$.pipe(
+        map((acquisitionLevel) => {
+          return isNotNil(acquisitionLevel) ? [acquisitionLevel] : [];
+        })
+      )
+    );
 
     // For DEV only
     //this.debug = !environment.production;
@@ -402,8 +420,8 @@ export abstract class BaseMeasurementsTable<
   }
 
   translateFormPath(path: string): string {
-    if (path.startsWith('measurementValues.')) {
-      const pmfmId = parseInt(path.split('.')[1]);
+    if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path)) {
+      const pmfmId = parseInt(path.split('.').pop());
       const pmfm = (this.pmfms || []).find((p) => p.id === pmfmId);
       if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }

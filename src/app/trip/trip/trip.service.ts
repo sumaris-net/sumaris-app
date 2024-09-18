@@ -70,8 +70,7 @@ import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service
 import { Packet } from '@app/trip/packet/packet.model';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { TripErrorCodes } from '@app/trip/trip.errors';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { MEASUREMENT_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
@@ -1730,16 +1729,8 @@ export class TripService
     }
   }
 
-  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
-    opts = { i18nPrefix: 'TRIP.EDIT.', ...opts };
-    // Translate PMFM fields
-    if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
-      const pmfmId = parseInt(path.split('.').pop());
-      const pmfm = opts.pmfms.find((p) => p.id === pmfmId);
-      return PmfmUtils.getPmfmName(pmfm);
-    }
-    // Default translation
-    return this.formErrorTranslator.translateFormPath(path, opts);
+  translateFormPath(path: string, opts?: { i18nPrefix?: string; i18nSuffix?: string; pmfms?: IPmfm[] }): string {
+    return super.translateFormPath(path, { i18nPrefix: 'TRIP.EDIT.', ...opts });
   }
 
   /* -- protected methods -- */

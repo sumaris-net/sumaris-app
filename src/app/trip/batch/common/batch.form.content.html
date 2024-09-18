@@ -92,7 +92,7 @@
           [placeholder]="
             delegate.weightPmfmsByMethod
               | mapGet: controls.weightMethodId.value || delegate.defaultWeightPmfm.methodId
-              | pmfmName: { i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix }
+              | pmfmName: { i18nPrefix: delegate.i18nPmfmPrefix, i18nSuffix: delegate.i18nSuffix }
           "
           [control]="controls.weightValue"
           [class.computed]="controls.weightComputed.value"
@@ -176,7 +176,7 @@
               [placeholder]="
                 delegate.weightPmfmsByMethod
                   | mapGet: controls.childrenWeightMethodId.value
-                  | pmfmName: { i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix }
+                  | pmfmName: { i18nPrefix: delegate.i18nPmfmPrefix, i18nSuffix: delegate.i18nSuffix }
               "
               [tabindex]="-1"
             />
@@ -362,7 +362,7 @@
 
         <ion-row *rxIf="delegate.form.invalid">
           <ion-col size="12">
-            <ion-text color="danger" [innerHTML]="delegate.form | formError: delegate.errorTranslatorOptions"></ion-text>
+            <ion-text color="danger" [innerHTML]="delegate.form | formError: delegate.errorTranslateOptions"></ion-text>
           </ion-col>
         </ion-row>
       </ion-grid>

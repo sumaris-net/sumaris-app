@@ -10,7 +10,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  ObjectMap,
   Person,
   ReferentialRef,
   ReferentialUtils,
@@ -108,7 +107,6 @@ export class LandingsTable
   protected showRowError = false;
   protected errorDetails: any;
   protected dividerPmfm: IPmfm;
-  protected includedQualitativeValuesMap: ObjectMap<number[]> = {};
   protected statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
   protected statusById = DataQualityStatusEnum;
   @RxStateProperty() protected observedCount: number;

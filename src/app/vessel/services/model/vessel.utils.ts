@@ -9,8 +9,10 @@ export interface IVesselPeriodEntity<T extends IEntity<T> = IEntity<any>> extend
 }
 
 export class VesselFeaturesUtils {
-  static mergeSameAndContiguous(vesselFeatures: VesselFeatures[]): VesselFeatures[] {
-    return vesselFeatures.reduce(
+  static CHANGES_IGNORED_PROPERTIES = ['id', 'startDate', 'endDate', 'creationDate', 'updateDate', 'recorderPerson', 'recorderDepartment'];
+
+  static mergeAll(sources: VesselFeatures[]): VesselFeatures[] {
+    return (sources || []).reduce(
       (res, current) => {
         let previous = lastArrayValue(res);
 
@@ -42,21 +44,20 @@ export class VesselFeaturesUtils {
     );
   }
 
-  static fillChangedProperties(sources: VesselFeatures[]) {
+  static fillChangedProperties(sources: VesselFeatures[], excludedProperties?: string[]) {
+    excludedProperties = excludedProperties || this.CHANGES_IGNORED_PROPERTIES;
     return (sources || []).reduce(
       (res, current) => {
         const previous = lastArrayValue(res);
         // previous != current
         if (previous) {
-          const changedProperties = Object.keys(current)
-            .filter((key) => !['id', 'startDate', 'endDate', 'creationDate', 'updateDate', 'recorderPerson', 'recorderDepartment'].includes(key))
-            .filter((key) => !equals(previous[key], current[key]));
+          const changedProperties = Object.keys(current).filter((key) => !excludedProperties.includes(key) && !equals(previous[key], current[key]));
           if (isNotEmptyArray(changedProperties)) {
             current = current.clone();
             current.__changedProperties = changedProperties;
 
             // DEBUG
-            //console.debug('[vessel-features-utils] Detect changed properties:', changedProperties);
+            console.debug('[vessel-features-utils] Detect changed properties:', changedProperties);
           }
         }
         return res.concat(current);

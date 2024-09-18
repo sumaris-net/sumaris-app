@@ -1,4 +1,4 @@
-import { Injectable, InjectionToken } from '@angular/core';
+import { inject, Injectable, InjectionToken } from '@angular/core';
 import {
   AccountService,
   AppFormUtils,
@@ -11,8 +11,8 @@ import {
   EntityUtils,
   firstNotNilPromise,
   FormErrors,
+  FormErrorTranslateOptions,
   FormErrorTranslator,
-  FormErrorTranslatorOptions,
   GraphqlService,
   IEntitiesService,
   isEmptyArray,
@@ -48,8 +48,9 @@ import { MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils } from '@app/
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PhysicalGearFragments } from '@app/trip/common/data.fragments';
+import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 
 const Queries: BaseEntityGraphqlQueries & { loadAllWithTrip: any } = {
   loadAll: gql`
@@ -121,7 +122,7 @@ export declare interface PhysicalGearControlOptions extends PhysicalGearValidato
   initialChildrenPmfms?: DenormalizedPmfmStrategy[];
 
   // Translator options
-  translatorOptions?: FormErrorTranslatorOptions;
+  translatorOptions?: FormErrorTranslateOptions;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -130,6 +131,7 @@ export class PhysicalGearService
   implements IEntitiesService<PhysicalGear, PhysicalGearFilter, PhysicalGearServiceWatchOptions>
 {
   loading = false;
+  protected readonly pmfmNamePipe = inject(PmfmNamePipe);
 
   constructor(
     protected graphql: GraphqlService,
@@ -276,7 +278,6 @@ export class PhysicalGearService
       return EMPTY;
     }
 
-    const withTrip = isNil(dataFilter.tripId);
     const fromTrip$ = this.watchAllLocallyFromTrips(offset, size, sortBy, sortDirection, dataFilter, {
       ...opts,
       toEntity: false,
@@ -629,15 +630,14 @@ export class PhysicalGearService
     return PhysicalGearFilter.fromObject(filter);
   }
 
-  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
-    opts = opts || {};
-    opts.i18nPrefix = opts.i18nPrefix || 'TRIP.PHYSICAL_GEAR.EDIT.';
+  translateFormPath(path: string, opts?: IDataFormPathTranslatorOptions): string {
+    opts = { i18nPrefix: 'TRIP.PHYSICAL_GEAR.EDIT.', ...opts };
 
     // Translate PMFM field
-    if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
+    if (opts.pmfms && MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path)) {
       const pmfmId = parseInt(path.split('.').pop());
       const pmfm = opts.pmfms.find((p) => p.id === pmfmId);
-      return PmfmUtils.getPmfmName(pmfm);
+      return this.pmfmNamePipe.transform(pmfm, { i18nPrefix: opts.i18nPmfmPrefix, i18nSuffix: opts.i18nSuffix });
     }
 
     // Default translation
@@ -684,9 +684,10 @@ export class PhysicalGearService
     // Prepare error translator
     if (!opts.translatorOptions) {
       opts.translatorOptions = {
-        pathTranslator: {
-          translateFormPath: (path) => this.translateFormPath(path, { pmfms: opts.initialPmfms }),
-        },
+        i18nSuffix: opts.program?.getProperty(ProgramProperties.I18N_SUFFIX),
+        i18nPmfmPrefix: 'TRIP.PHYSICAL_GEAR.PMFM.',
+        pmfms: opts.initialPmfms,
+        pathTranslator: this,
       };
     }
 

@@ -105,11 +105,17 @@
       .mat-mdc-header-cell {
         // IMAGINE-653 Remove transparent attribute for header since values are visible on header row otherwise
         //background-color: transparent;
+        --mat-table-header-background-color: var(--ion-toolbar-background);
 
         &.mat-column-top-start {
-          padding-inline-start: 16px !important;
+          padding-inline-start: 16px;
           min-width: 116px;
-          color: unset;
+        }
+
+        &.mat-column-top-start,
+        &.mat-column-top-end {
+          --mdc-icon-button-icon-color: var(--ion-text-color);
+          --mat-table-header-background-color: var(--ion-toolbar-background, whitesmoke);
         }
       }
 

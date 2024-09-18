@@ -18,6 +18,7 @@ import {
   isNotNilOrBlank,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
+  toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { AsyncTableElement } from '@e-is/ngx-material-table';
@@ -76,6 +77,7 @@ export abstract class AppBaseTable2<
   protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
   protected popoverController: PopoverController;
+  protected defaultCompact: boolean = false;
 
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
 
@@ -583,7 +585,10 @@ export abstract class AppBaseTable2<
   restoreCompactMode(opts?: { emitEvent?: boolean }) {
     if (!this.usePageSettings || isNilOrBlank(this.settingsId) || isNotNil(this.compact)) return;
 
-    const compact = this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY) || false;
+    const compact = toBoolean(
+      this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY),
+      toBoolean(this.compact, this.defaultCompact)
+    );
     if (this.compact !== compact) {
       this.compact = compact;
 
@@ -709,6 +714,49 @@ export abstract class AppBaseTable2<
       return this.translateContext.instant((this.i18nColumnPrefix || '') + changeCaseToUnderscore(columnName).toUpperCase(), this.i18nColumnSuffix);
     } else {
       return super.getI18nColumnName(columnName);
+    }
+  }
+
+  protected getCellElement(rowIndex: number, columnIndex: number) {
+    const columnName = this.displayedColumns[columnIndex];
+    const cellElements = this.tableContainerElement?.querySelectorAll(`.cdk-column-${columnName}`);
+    return { cellElement: cellElements[rowIndex + 1] as HTMLElement, columnName };
+  }
+
+  protected scrollToElement(cellElement?: HTMLElement, behavior: 'smooth' | 'auto' = 'smooth') {
+    if (this.tableContainerRef && cellElement) {
+      const container = this.tableContainerRef.nativeElement;
+      const containerRect = container.getBoundingClientRect();
+      const cellRect = cellElement.getBoundingClientRect();
+
+      // Calculer les marges pour la visibilité
+      const margin = 16;
+
+      // Calculer les valeurs de défilement nécessaires
+      let scrollTop = 0;
+      let scrollLeft = 0;
+
+      if (cellRect.top < containerRect.top - margin) {
+        scrollTop = cellElement.offsetTop - container.offsetTop - margin;
+      } else if (cellRect.bottom > containerRect.bottom + margin) {
+        scrollTop = cellElement.offsetTop - container.offsetTop - (containerRect.height - cellRect.height - margin);
+      }
+
+      if (cellRect.left < containerRect.left - margin) {
+        scrollLeft = cellElement.offsetLeft - container.offsetLeft - margin;
+      } else if (cellRect.right > containerRect.right + margin) {
+        scrollLeft = cellElement.offsetLeft - container.offsetLeft - (containerRect.width - cellRect.width - margin);
+      }
+
+      // Vérifier si un défilement est nécessaire avant de l'effectuer
+      if (scrollTop !== 0 || scrollLeft !== 0) {
+        console.debug(this.logPrefix + 'Scrolling to cell element');
+        container.scroll({
+          top: scrollTop !== 0 ? scrollTop : undefined,
+          left: scrollLeft !== 0 ? scrollLeft : undefined,
+          behavior,
+        });
+      }
     }
   }
 

@@ -14,6 +14,10 @@ const routes: Routes = [
     pathMatch: 'full',
     component: ActivityCalendarFormReport,
   },
+  {
+    path: 'progress',
+    loadChildren: () => import('./progress/activity-calendar-progress-routing.module').then((m) => m.ActivityCalendarProgressReportRoutingModule),
+  },
 ];
 
 @NgModule({

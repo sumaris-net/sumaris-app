@@ -20,7 +20,6 @@ import {
   EntityUtils,
   fadeInAnimation,
   FormErrors,
-  IEntityService,
   isNil,
   isNotNil,
   LocalSettingsService,
@@ -52,6 +51,7 @@ import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
+import { IDataEntityService } from '@app/data/services/data-service.class';
 
 @Component({
   selector: 'app-entity-quality-form',
@@ -62,7 +62,7 @@ import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 })
 export class EntityQualityFormComponent<
     T extends RootDataEntity<T, ID> = RootDataEntity<any, any>,
-    S extends IEntityService<T, ID> = IEntityService<any>,
+    S extends IDataEntityService<T, ID> = IDataEntityService<any>,
     ID = number,
   >
   implements OnInit, OnDestroy
@@ -157,7 +157,7 @@ export class EntityQualityFormComponent<
     this.service = null;
   }
 
-  async control(event?: Event, opts?: { emitEvent?: boolean } & IProgressionOptions): Promise<boolean> {
+  async control(event?: Event, opts?: { emitEvent?: boolean; ignoreWarningError?: boolean } & IProgressionOptions): Promise<boolean> {
     opts = opts || {};
     const progressionSubscription = this.fillProgressionOptions(opts, 'QUALITY.INFO.CONTROL_DOTS');
 
@@ -182,10 +182,10 @@ export class EntityQualityFormComponent<
         await this.editor.updateView(data);
 
         // Construct error with details
-        if (isNil(errors.details)) {
+        if (isNotNil(errors.details)) {
           errors = <AppErrorWithDetails>{
             message: errors.message || data.qualificationComments || 'COMMON.FORM.HAS_ERROR',
-            details: { errors: errors as FormErrors },
+            details: { errors: errors.details as FormErrors },
           };
         } else {
           errors.message = errors.message || data.qualificationComments || 'COMMON.FORM.HAS_ERROR';
@@ -217,7 +217,7 @@ export class EntityQualityFormComponent<
     return valid;
   }
 
-  async terminate(event?: Event, opts?: { emitEvent?: boolean } & IProgressionOptions): Promise<boolean> {
+  async terminate(event?: Event, opts?: { emitEvent?: boolean; ignoreWarningError?: boolean } & IProgressionOptions): Promise<boolean> {
     if (this.busy) return;
 
     opts = opts || {};

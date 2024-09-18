@@ -174,7 +174,7 @@
       #inputField
       [control]="form | formGetControl: ['measurementValues', pmfm.id]"
       [pmfm]="pmfm"
-      [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix }"
+      [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
       [floatLabel]="floatLabel"
       [style]="pmfm | pmfmFieldStyle: maxItemCountForButtons"
       [maxVisibleButtons]="maxVisibleButtons"
@@ -224,7 +224,7 @@
   <!-- Computed weight -->
   <mat-form-field *ngIf="weightPmfm" [floatLabel]="floatLabel" class="mat-form-field-disabled computed">
     @if (floatLabel !== 'never') {
-      <mat-label>{{ weightPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix } }}</mat-label>
+      <mat-label>{{ weightPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix } }}</mat-label>
     }
     <input matInput type="number" readonly [formControl]="form | formGetControl: 'weight.value'" />
 

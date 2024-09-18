@@ -12,11 +12,10 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import {
-  CORE_CONFIG_OPTIONS,
   ConfigService,
+  CORE_CONFIG_OPTIONS,
   DateUtils,
   EntityAsObjectOptions,
-  TranslateContextService,
   firstNotNilPromise,
   isEmptyArray,
   isNotEmptyArray,
@@ -24,16 +23,15 @@ import {
   referentialToString,
   sleep,
   splitById,
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../../activity-calendar.service';
 import { ActivityMonth } from '../../calendar/activity-month.model';
 import { ActivityMonthUtils } from '../../calendar/activity-month.utils';
 import { IsActiveList } from '../../calendar/calendar.component';
 import { ActivityCalendar } from '../../model/activity-calendar.model';
-import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { GearUseFeatures } from '../../model/gear-use-features.model';
 import { Metier } from '@app/referential/metier/metier.model';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import moment from 'moment';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
@@ -102,7 +100,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
   public static readonly isBlankFormParam = 'isBlankForm';
 
-  protected logPrefix = 'trip-form-report';
+  protected logPrefix = 'activity-calendar-form-report';
   protected isBlankForm: boolean;
   protected reportType: string;
 
@@ -143,7 +141,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   }
 
   constructor(injector: Injector) {
-    super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
+    super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.FORM.PMFM.' });
     this.ActivityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
@@ -172,17 +170,15 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
   protected async loadData(id: number, opts?: any): Promise<ActivityCalendar> {
     console.log(`[${this.logPrefix}] loadData`);
-    let data: ActivityCalendar;
-    if (this.isBlankForm) {
-      // Keep id : needed by method like `computeDefaultBackHref`
-      const realData = await this.ActivityCalendarService.load(id, { ...opts });
-      data = ActivityCalendar.fromObject({
-        id: id,
-        program: Program.fromObject({ label: realData.program.label }),
-      });
-    } else {
-      data = await this.ActivityCalendarService.load(id, { ...opts });
-    }
+    const fetchedData = await this.ActivityCalendarService.load(id, { ...opts });
+    const data: ActivityCalendar = this.isBlankForm
+      ? ActivityCalendar.fromObject({
+          id: id,
+          program: Program.fromObject({ label: fetchedData.program.label }),
+          vesselSnapshot: fetchedData.vesselSnapshot,
+          vesselRegistrationPeriods: fetchedData.vesselRegistrationPeriods,
+        })
+      : fetchedData;
     if (!data) throw new Error('ERROR.LOAD_ENTITY_ERROR');
     return data;
   }
@@ -216,30 +212,30 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     });
 
     stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER);
-    stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL);
-    stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL);
+    stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
+    stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
 
+    let fishingAreaCount: number;
     if (this.isBlankForm) {
-      const nbOfMetier = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER);
-      const nbOfFishingAreaPerMetier = stats.program.getPropertyAsInt(
-        ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER
-      );
-      data.gearPhysicalFeatures = Array(nbOfMetier).fill(
+      const nbOfMetierBlock = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER_BLOCK);
+      const nbOfGearsColumn = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GEARS_COLUMN);
+      fishingAreaCount = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER);
+      data.gearPhysicalFeatures = Array(nbOfGearsColumn).fill(
         GearPhysicalFeatures.fromObject({
           metier: Metier.fromObject({}),
         })
       );
-      data.gearUseFeatures = Array(nbOfMetier).fill(
-        GearUseFeatures.fromObject({
-          metier: Metier.fromObject({}),
-          fishingAreas: Array(nbOfFishingAreaPerMetier).fill(FishingArea.fromObject({})),
-        })
-      );
-      data.vesselSnapshot = VesselSnapshot.fromObject({});
+      data.gearUseFeatures = Array(nbOfMetierBlock)
+        .fill(-1)
+        .map((value, index) =>
+          GearUseFeatures.fromObject({
+            metier: Metier.fromObject({ id: value * index - 1 }),
+          })
+        );
       data.year = moment().year();
     }
 
-    stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, fillEmptyFishingArea: true });
+    stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, fillEmptyFishingArea: true, fishingAreaCount });
 
     this.computeActivityMonthColspan(stats);
 
@@ -252,14 +248,25 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
         acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
         strategyId: stats.strategy.id,
       }),
-      gpf: (
-        await this.programRefService.loadProgramPmfms(data.program.label, {
-          acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
-          strategyId: stats.strategy.id,
-        })
-      ).filter(
-        (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gearIds.includes(gearId))
-      ),
+      gpf: !this.isBlankForm
+        ? (
+            await this.programRefService.loadProgramPmfms(data.program.label, {
+              acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
+              strategyId: stats.strategy.id,
+            })
+          ).filter(
+            (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gearIds.includes(gearId))
+          )
+        : [
+            DenormalizedPmfmStrategy.fromObject({
+              id: -1,
+              name: stats.program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1),
+            }),
+            DenormalizedPmfmStrategy.fromObject({
+              id: -2,
+              name: stats.program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2),
+            }),
+          ],
     };
 
     this.computeMetierTableChunk(data, stats);

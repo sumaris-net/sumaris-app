@@ -94,6 +94,14 @@ The application should be accessible at [localhost:4200](http://localhost:4200)
     ./release-android.sh
     ```
 
+## iOS build
+
+> brew install cocoapods
+> cd sumaris-app
+> ionic build
+> ionic cap add ios
+> ionic cap open ios
+
 ## Useful links
 
 - Ionic 4 colors: https://www.joshmorony.com/a-primer-on-css-4-variables-for-ionic-4/

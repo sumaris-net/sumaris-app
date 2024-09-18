@@ -22,7 +22,12 @@ export class ScientificCruiseFilter extends RootDataEntityFilter<ScientificCruis
   static fromObject: (source: any, opts?: any) => ScientificCruiseFilter;
 
   static toTripFilter(f: Partial<ScientificCruiseFilter>): TripFilter {
-    if (!f) return undefined;
+    if (!f)
+      return TripFilter.fromObject({
+        hasScientificCruise: true,
+        hasObservedLocation: false,
+      });
+
     return TripFilter.fromObject({
       programLabel: f.program?.label,
       vesselId: toNumber(f.vesselId, f.vesselSnapshot?.id),
@@ -30,6 +35,9 @@ export class ScientificCruiseFilter extends RootDataEntityFilter<ScientificCruis
       startDate: f.startDate,
       endDate: f.endDate,
       boundingBox: f.boundingBox,
+
+      hasScientificCruise: true,
+      hasObservedLocation: false,
     });
   }
 

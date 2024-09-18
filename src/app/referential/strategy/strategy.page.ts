@@ -145,7 +145,10 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   protected async setProgram(program: Program) {
     if (isNotNil(program?.id)) {
       const config = await this.configService.ready();
-      console.log('TODO config loaded', config?.getPropertyAsBoolean(REFERENTIAL_CONFIG_OPTIONS.PMFM_LABEL_ENABLE));
+
+      // DEBUG
+      //console.log('config loaded', config?.getPropertyAsBoolean(REFERENTIAL_CONFIG_OPTIONS.PMFM_LABEL_ENABLE));
+
       this.showPmfmLabel = toBoolean(config?.getPropertyAsBoolean(REFERENTIAL_CONFIG_OPTIONS.PMFM_LABEL_ENABLE), true);
 
       const programPath = [PROGRAMS_PAGE_PATH, program.id].join('/');

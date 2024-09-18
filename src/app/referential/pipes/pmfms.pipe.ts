@@ -46,6 +46,11 @@ export class PmfmNamePipe implements PipeTransform {
       html?: boolean;
       withDetails?: boolean;
       i18nPrefix?: string;
+      i18nSuffix?: string;
+
+      /**
+       * @deprecated Use i18nSuffix instead
+       */
       i18nContext?: string;
     }
   ): string {
@@ -54,9 +59,10 @@ export class PmfmNamePipe implements PipeTransform {
     if (isNotNilOrBlank(opts?.i18nPrefix)) {
       const i18nKey = opts.i18nPrefix + pmfm.label;
 
-      // I18n translation WITH context, if any
-      if (opts.i18nContext) {
-        const contextualTranslation = this.translateContext.instant(i18nKey, opts.i18nContext);
+      // I18n translation WITH suffix, if any
+      const suffix = opts.i18nSuffix || opts.i18nContext;
+      if (suffix) {
+        const contextualTranslation = this.translateContext.instant(i18nKey, suffix);
         if (contextualTranslation !== i18nKey) {
           return PmfmUtils.sanitizeName(contextualTranslation, pmfm, opts);
         }

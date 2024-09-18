@@ -26,28 +26,24 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
-  <ng-container *ngIf="enableReport">
-    <button mat-menu-item *ngIf="isNewData || reportTypes.length < 2; else reportsMenuBtn" [disabled]="isNewData" (click)="openReport()">
+  @if (enableReport && (reportTypes | isNotEmptyArray)) {
+    <button mat-menu-item [disabled]="isNewData" [matMenuTriggerFor]="reportsMenu">
       <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
       <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
     </button>
-    <ng-template #reportsMenuBtn>
-      <button mat-menu-item [matMenuTriggerFor]="reportsMenu">
-        <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
-        <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
-      </button>
-    </ng-template>
-  </ng-container>
+    <mat-divider></mat-divider>
+  }
 
   <!-- reset -->
-  <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
-    <mat-icon>
-      <ion-icon slot="icon-only" name="refresh"></ion-icon>
-    </mat-icon>
-    <ion-label translate>COMMON.BTN_RESET</ion-label>
-  </button>
-
-  <mat-divider></mat-divider>
+  @if (mobile) {
+    <button mat-menu-item [disabled]="disabled || !dirty" (click)="cancel($event)">
+      <mat-icon>
+        <ion-icon slot="icon-only" name="refresh"></ion-icon>
+      </mat-icon>
+      <ion-label translate>COMMON.BTN_RESET</ion-label>
+    </button>
+    <mat-divider></mat-divider>
+  }
 
   <!-- clean calendar -->
   <button mat-menu-item [disabled]="isNewData || disabled" (click)="clearCalendar($event)">
@@ -58,8 +54,6 @@
 
   <!-- delete -->
   @if (isAdmin) {
-    <mat-divider></mat-divider>
-
     <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
       <mat-icon color="warn">delete</mat-icon>
       <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_DELETE_CALENDAR</ion-label>
@@ -173,7 +167,7 @@
                 }
 
                 <!-- quality process -->
-                <app-entity-quality-form></app-entity-quality-form>
+                <app-entity-quality-form #entityQuality></app-entity-quality-form>
               </app-entity-metadata>
             </ion-col>
           </ion-row>
@@ -218,7 +212,7 @@
                   [showIsFpcColumn]="true"
                   [showCommentsColumn]="false"
                   [showIrcsColumn]="false"
-                  [mergeSameAndContiguous]="true"
+                  [mergeAll]="true"
                   [showPagination]="true"
                   [defaultPageSize]="5"
                   [defaultPageSizeOptions]="[5, 10, 50]"
@@ -352,7 +346,7 @@
         </as-split-area>
 
         <!-- Predoc -->
-        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible" [style.z-index]="110">
+        <as-split-area [minSize]="20" [size]="_predocPanelSize" [visible]="_predocPanelVisible">
           <app-calendar
             #predocCalendar
             [title]="'ACTIVITY_CALENDAR.EDIT.PREDOC_TITLE'"
