@@ -18,6 +18,7 @@
     (keydown.tab)="focusNextInput($event)"
     (keydown.enter)="focusNextInput($event)"
     [mobile]="mobile"
+    [panelWidth]="mobile ? '80vw' : undefined"
   ></mat-autocomplete-field>
 
   <!-- rankOrder -->

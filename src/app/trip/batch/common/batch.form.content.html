@@ -23,6 +23,8 @@
           [required]="true"
           [config]="delegate.autocompleteFields.taxonGroup"
           [showSearchBar]="delegate.showTaxonGroupSearchBar"
+          [mobile]="delegate.mobile"
+          [panelWidth]="delegate.mobile ? '80vw' : undefined"
         >
           <ion-icon matPrefix *ngIf="delegate.mobile" name="fish"></ion-icon>
         </mat-autocomplete-field>
@@ -38,6 +40,8 @@
           [required]="true"
           [config]="delegate.autocompleteFields.taxonName"
           [filter]="delegate.taxonNameFilter"
+          [mobile]="delegate.mobile"
+          [panelWidth]="delegate.mobile ? '80vw' : undefined"
         >
           <ion-icon matPrefix *ngIf="delegate.mobile && !delegate.showTaxonGroup" name="fish"></ion-icon>
         </mat-autocomplete-field>
@@ -71,6 +75,7 @@
             [maxVisibleButtons]="delegate.maxVisibleButtons"
             [i18nPrefix]="delegate.i18nPmfmPrefix"
             [i18nSuffix]="delegate.i18nSuffix"
+            [mobile]="delegate.mobile"
           ></app-pmfm-field>
         </ion-col>
       </ng-container>
@@ -101,6 +106,7 @@
           [tabindex]="delegate.tabindex + 28"
           [listenStatusChanges]="true"
           [required]="delegate.requiredWeight"
+          [mobile]="delegate.mobile"
         >
           <!-- is estimated weight ?-->
           <mat-checkbox
@@ -228,6 +234,7 @@
             [tabindex]="delegate.tabindex + 33"
             [listenStatusChanges]="true"
             [required]="delegate.requiredSampleWeight"
+            [mobile]="delegate.mobile"
           >
             <!-- is estimated weight ?-->
             <mat-checkbox
