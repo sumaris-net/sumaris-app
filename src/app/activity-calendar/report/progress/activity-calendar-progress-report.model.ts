@@ -82,6 +82,8 @@ export class ActivityMonitoring extends Entity<ActivityMonitoring> {
     [key: string]: any;
   };
 
+  static fromObject: (source: any, opts?: any) => ActivityMonitoring;
+
   fromObject(source: any, opts?: any): void {
     this.vesselName = source.vesselName.replace(' | ', ', ');
     this.vesselLength = source.vesselLength;

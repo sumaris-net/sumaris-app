@@ -57,6 +57,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
+    target.year = this.year;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     if (opts && opts.minify) {

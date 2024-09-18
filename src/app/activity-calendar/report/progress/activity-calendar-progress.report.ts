@@ -5,10 +5,17 @@ import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report
 import { AppExtractionReport } from '@app/data/report/extraction-report.class';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
-import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
-import { DateUtils, EntityAsObjectOptions, LocalSettingsService, TranslateContextService, isNil } from '@sumaris-net/ngx-components';
+import {
+  DateUtils,
+  EntityAsObjectOptions,
+  LocalSettingsService,
+  TranslateContextService,
+  fromDateISOString,
+  isNil,
+  toDateISOString,
+} from '@sumaris-net/ngx-components';
 import {
   ActivityMonitoring,
   ActivityMonitoringExtractionData,
@@ -17,7 +24,7 @@ import {
 } from './activity-calendar-progress-report.model';
 import { ActivityCalendarProgressReportService } from './activity-calendar-progress-report.service';
 import { Program } from '@app/referential/services/model/program.model';
-import { Moment } from 'moment';
+import moment, { Moment } from 'moment';
 
 export class ActivityCalendarProgressReportStats extends BaseReportStats {
   subtitle: string;
@@ -25,7 +32,6 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
   logoHeadLeftUrl: string;
   logoHeadRightUrl: string;
   filter: ActivityCalendarFilter;
-  strategy: Strategy;
   tableRowChunk: ActivityMonitoring[][];
   reportDate: Moment;
   agg: {
@@ -39,6 +45,52 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
     completedCalendarCount: number;
     completedCalendarPercent: number;
   };
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.subtitle = source.subtitle;
+    this.footerText = source.footerText;
+    this.logoHeadLeftUrl = source.logoHeadLeftUrl;
+    this.logoHeadRightUrl = source.logoHeadRightUrl;
+    this.filter = ActivityCalendarFilter.fromObject(source.filter);
+    this.tableRowChunk = source.tableRowChunk;
+    this.reportDate = fromDateISOString(source.reportDate);
+    this.agg = {
+      vesselCount: source.agg.vesselCount,
+      totalDirectSurveyCount: source.agg.totalDirectSurveyCount,
+      totalDirectSurveyPercent: source.agg.totalDirectSurveyPercent,
+      unresignedVesselCount: source.agg.unresignedVesselCount,
+      unresignedVesselPercent: source.agg.unresignedVesselPercent,
+      uncompletedVesselCount: source.agg.uncompletedVesselCount,
+      uncompletedVesselPercent: source.agg.uncompletedVesselPercent,
+      completedCalendarCount: source.agg.completedCalendarCount,
+      completedCalendarPercent: source.agg.completedCalendarPercent,
+    };
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    return {
+      ...super.asObject(opts),
+      subtitle: this.subtitle,
+      footerText: this.footerText,
+      logoHeadLeftUrl: this.logoHeadLeftUrl,
+      logoHeadRightUrl: this.logoHeadRightUrl,
+      filter: this.filter.asObject(opts),
+      tableRowChunk: this.tableRowChunk,
+      reportDate: toDateISOString(this.reportDate),
+      agg: {
+        vesselCount: this.agg.vesselCount,
+        totalDirectSurveyCount: this.agg.totalDirectSurveyCount,
+        totalDirectSurveyPercent: this.agg.totalDirectSurveyPercent,
+        unresignedVesselCount: this.agg.unresignedVesselCount,
+        unresignedVesselPercent: this.agg.unresignedVesselPercent,
+        uncompletedVesselCount: this.agg.uncompletedVesselCount,
+        uncompletedVesselPercent: this.agg.uncompletedVesselPercent,
+        completedCalendarCount: this.agg.completedCalendarCount,
+        completedCalendarPercent: this.agg.completedCalendarPercent,
+      },
+    };
+  }
 }
 
 @Component({
@@ -124,7 +176,9 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   ): Promise<ActivityCalendarProgressReportStats> {
     const stats = new ActivityCalendarProgressReportStats();
 
-    stats.filter = this.getActivityCalendarFilterFromPageSettings();
+    // On pod side, if year is not set, the default is current year - 1
+
+    if (isNil(stats.filter.year)) stats.filter.year = moment().year() - 1;
     if (isNil(stats.filter.program))
       stats.filter.program = Program.fromObject({
         label: ActivityCalendarProgressReport.DEFAULT_PROGRAM,
