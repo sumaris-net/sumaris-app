@@ -1,4 +1,15 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
+import {
+  booleanAttribute,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  Injector,
+  Input,
+  numberAttribute,
+  OnInit,
+  QueryList,
+  ViewChildren,
+} from '@angular/core';
 import { PhysicalGearValidatorService } from './physicalgear.validator';
 import { filter, mergeMap } from 'rxjs/operators';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
@@ -42,16 +53,16 @@ interface PhysicalGearFormState extends MeasurementsFormState {
 export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, PhysicalGearFormState> implements OnInit {
   @RxStateSelect() gears$: Observable<ReferentialRef[]>;
 
-  @Input() tabindex: number;
-  @Input() canEditRankOrder = false;
-  @Input() canEditGear = true;
-  @Input() maxItemCountForButtons = 12;
-  @Input() maxVisibleButtons: number;
-  @Input() showGear = true;
-  @Input() showError = false;
-  @Input() showComment: boolean;
+  @Input({ transform: numberAttribute }) tabindex: number;
+  @Input({ transform: booleanAttribute }) canEditRankOrder = false;
+  @Input({ transform: booleanAttribute }) canEditGear = true;
+  @Input({ transform: numberAttribute }) maxVisibleButtons: number;
+  @Input({ transform: numberAttribute }) maxItemCountForButtons = 12;
+  @Input({ transform: booleanAttribute }) showGear = true;
+  @Input({ transform: booleanAttribute }) showError = false;
+  @Input({ transform: booleanAttribute }) showComment: boolean;
   @Input() i18nSuffix: string = null;
-  @Input() mobile: boolean;
+  @Input({ transform: booleanAttribute }) mobile: boolean;
 
   @Input() @RxStateProperty() gears: ReferentialRef[];
 

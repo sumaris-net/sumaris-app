@@ -107,6 +107,8 @@
         //background-color: transparent;
         --mat-table-header-background-color: var(--ion-toolbar-background);
 
+        background-color: var(--mat-toolbar-background-color, whitesmoke) !important;
+
         &.mat-column-top-start {
           padding-inline-start: 16px;
           min-width: 116px;

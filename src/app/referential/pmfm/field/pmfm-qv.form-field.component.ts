@@ -1,4 +1,5 @@
 import {
+  booleanAttribute,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -6,6 +7,7 @@ import {
   EventEmitter,
   forwardRef,
   Input,
+  numberAttribute,
   OnDestroy,
   OnInit,
   Optional,
@@ -87,7 +89,6 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input()
   displayWith: (obj: ReferentialRef | any) => string;
 
-  @Input() mobile: boolean;
   @Input() pmfm: IPmfm;
   @Input() formControl: UntypedFormControl;
   @Input() formControlName: string;
@@ -95,18 +96,23 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() appearance: MatFormFieldAppearance;
   @Input() subscriptSizing: SubscriptSizing;
-  @Input() required: boolean;
-  @Input() readonly = false;
-  @Input() compact = false;
-  @Input() clearable = false;
+  @Input({ transform: booleanAttribute }) required: boolean;
+  @Input({ transform: booleanAttribute }) readonly = false;
+  @Input({ transform: booleanAttribute }) mobile: boolean;
+  @Input({ transform: booleanAttribute }) compact = false;
+  @Input({ transform: booleanAttribute }) clearable = false;
   @Input() style: PmfmQvFormFieldStyle;
   @Input() displayAttributes: string[];
   @Input() searchAttributes: string[];
   @Input() sortAttribute: string;
-  @Input() autofocus: boolean;
-  @Input() maxVisibleButtons: number;
-  @Input() buttonsColCount: number;
-  @Input() showButtonIcons: boolean;
+  @Input({ transform: booleanAttribute }) autofocus: boolean;
+  @Input({ transform: numberAttribute }) maxVisibleButtons: number;
+  @Input({ transform: numberAttribute }) buttonsColCount: number;
+  @Input({ transform: booleanAttribute }) showButtonIcons: boolean;
+  @Input({ transform: booleanAttribute }) disableRipple = false;
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  @Input() @Input({ alias: 'class' }) panelClass: string;
+  @Input() panelWidth: string;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -143,6 +149,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   ngOnInit() {
     // Set defaults
     this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
+    this.panelWidth = this.panelWidth || (this.mobile ? '80vw' : undefined);
 
     this.formControl =
       this.formControl || (this.formControlName && this.formGroupDir && (this.formGroupDir.form.get(this.formControlName) as UntypedFormControl));

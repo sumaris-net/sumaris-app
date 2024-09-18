@@ -148,6 +148,10 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input() i18nPrefix: string;
   @Input() i18nSuffix: string;
   @Input() qualitativeValueAttributes: string[];
+  @Input({ transform: booleanAttribute }) disableRipple = false;
+  // eslint-disable-next-line @angular-eslint/no-input-rename
+  @Input() @Input({ alias: 'class' }) panelClass: string;
+  @Input() panelWidth: string;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input({ transform: booleanAttribute }) listenStatusChanges = false;
