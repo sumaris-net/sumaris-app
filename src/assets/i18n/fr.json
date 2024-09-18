@@ -3091,8 +3091,8 @@
         "NAME": "Générique"
       },
       "ACTIMONIT": {
-        "TITLE": "Suivi des calendriers",
-        "NAME": "Suivi des calendriers",
+        "TITLE": "Avancement des calendriers d'activité",
+        "NAME": "Avancement des calendriers d'activité",
         "SHEET": {
           "AM": "Calendriers (AM)"
         }
@@ -3423,7 +3423,7 @@
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "VESSEL": "Navire",
-        "OBSERVERS": "Enquêteur",
+        "OBSERVERS": "Enquêteur(s)",
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "YEAR": "Année"
       }

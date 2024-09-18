@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
   ConfigService,
@@ -153,10 +153,6 @@ export class ActivityCalendarsTable
     return this.filterForm.controls.year as UntypedFormControl;
   }
 
-  get filterObserversForm(): UntypedFormArray {
-    return this.filterForm.controls.observers as UntypedFormArray;
-  }
-
   constructor(
     injector: Injector,
     protected _dataService: ActivityCalendarService,
@@ -193,7 +189,7 @@ export class ActivityCalendarsTable
       qualityFlagId: [null, SharedValidators.integer],
       directSurveyInvestigation: [null],
       economicSurvey: [null],
-      observers: [null, SharedValidators.entity],
+      observers: [null, formBuilder.array([null])],
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()

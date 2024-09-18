@@ -251,15 +251,16 @@
 
           <!-- Observers criteria -->
           <ion-col size="12" size-lg="6" *ngIf="showObservers">
-            <mat-autocomplete-field
+            <mat-chips-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.OBSERVERS' | translate"
-              [formControl]="filterObserversForm"
+              formControlName="observers"
               [config]="autocompleteFields.observers"
               [i18nPrefix]="'USER.'"
               [clearable]="true"
+              chipColor="accent"
             >
               <ion-icon matPrefix name="person"></ion-icon>
-            </mat-autocomplete-field>
+            </mat-chips-field>
           </ion-col>
         </ion-row>
 

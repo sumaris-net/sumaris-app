@@ -23,9 +23,11 @@ import {
 } from './activity-calendar-progress-report.model';
 import { ActivityCalendarProgressReportService } from './activity-calendar-progress-report.service';
 import { Program } from '@app/referential/services/model/program.model';
-import moment, { Moment } from 'moment';
+import { Moment } from 'moment';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
+import { ProgramLabels } from '@app/referential/services/model/model.enum';
 
 export class ActivityCalendarProgressReportStats extends BaseReportStats {
   subtitle: string;
@@ -35,6 +37,7 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
   filter: ActivityCalendarFilter;
   tableRowChunk: ActivityMonitoring[][];
   reportDate: Moment;
+  showProgram: boolean;
   vesselAttributes: string[];
   agg: {
     vesselCount: number;
@@ -57,6 +60,7 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
     this.filter = ActivityCalendarFilter.fromObject(source.filter);
     this.tableRowChunk = source.tableRowChunk;
     this.reportDate = fromDateISOString(source.reportDate);
+    this.showProgram = source.showProgram;
     this.vesselAttributes = source.vesselAttributes;
     this.agg = {
       vesselCount: source.agg.vesselCount,
@@ -81,6 +85,7 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
       filter: this.filter.asObject(opts),
       tableRowChunk: this.tableRowChunk,
       reportDate: toDateISOString(this.reportDate),
+      showProgram: this.showProgram,
       vesselAttributes: this.vesselAttributes,
       agg: {
         vesselCount: this.agg.vesselCount,
@@ -104,12 +109,11 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
   encapsulation: ViewEncapsulation.None,
 })
 export class ActivityCalendarProgressReport extends AppExtractionReport<ActivityMonitoringExtractionData, ActivityCalendarProgressReportStats> {
-  static readonly DEFAULT_PROGRAM = 'SIH-ACTIFLOT';
-  // On pod side, if year is not set, the default is current year - 1
-  static readonly DEFAULT_YEAR = moment().year() - 1;
+  static DEFAULT_PROGRAM_LABEL = ProgramLabels.SIH_ACTIFLOT;
+  static DEFAULT_YEAR = DateUtils.moment().year() - 1;
+
   protected readonly activityMonitoringStatusErrorIds = ActivityMonitoringStatusErrorIds;
   protected readonly months = new Array(12).fill(1).map((v, i) => 'month' + (v + i));
-  protected readonly PARENT_PAGE_SETTING = 'activity-calendars';
 
   protected logPrefix = 'activity-calendar-progress-report';
 
@@ -155,14 +159,13 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   }
 
   protected async loadFromRoute(opts?: any): Promise<ActivityMonitoringExtractionData> {
-    const activityCalendarFilter = this.getActivityCalendarFilterFromPageSettings() || ActivityCalendarFilter.fromObject({});
+    const tableFilter = this.restoreLastTableFilter() || ActivityCalendarFilter.fromObject({});
 
     // set defaults
-    if (isNil(activityCalendarFilter.year)) activityCalendarFilter.year = ActivityCalendarProgressReport.DEFAULT_YEAR;
-    if (isNil(activityCalendarFilter.program?.label))
-      activityCalendarFilter.program = Program.fromObject({ label: ActivityCalendarProgressReport.DEFAULT_PROGRAM });
+    if (isNil(tableFilter.year)) tableFilter.year = ActivityCalendarProgressReport.DEFAULT_YEAR;
+    if (isNil(tableFilter.program?.label)) tableFilter.program = Program.fromObject({ label: ActivityCalendarProgressReport.DEFAULT_PROGRAM_LABEL });
 
-    const extractionFilter = ExtractionUtils.createActivityCalendarFilter(activityCalendarFilter.program.label, activityCalendarFilter);
+    const extractionFilter = ExtractionUtils.createActivityCalendarFilter(tableFilter.program.label, tableFilter);
 
     return this.load(extractionFilter);
   }
@@ -179,23 +182,24 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   ): Promise<ActivityCalendarProgressReportStats> {
     const stats = new ActivityCalendarProgressReportStats();
 
-    stats.filter = this.getActivityCalendarFilterFromPageSettings() || ActivityCalendarFilter.fromObject({});
-    if (isNil(stats.filter.year)) stats.filter.year = ActivityCalendarProgressReport.DEFAULT_YEAR;
-    if (isNil(stats.filter.program))
+    stats.filter = this.restoreLastTableFilter() || ActivityCalendarFilter.fromObject({});
+    if (isNil(stats.filter.year)) {
+      stats.filter.year = ActivityCalendarProgressReport.DEFAULT_YEAR;
+    }
+    if (isNil(stats.filter.program)) {
       stats.filter.program = Program.fromObject({
-        label: ActivityCalendarProgressReport.DEFAULT_PROGRAM,
+        label: ActivityCalendarProgressReport.DEFAULT_PROGRAM_LABEL,
       });
+    }
 
-    stats.program = await this.programRefService.loadByLabel(stats.filter.program.label);
-
+    const program = await this.programRefService.loadByLabel(stats.filter.program.label);
     stats.reportDate = DateUtils.moment();
+    stats.showProgram = program.label !== ActivityCalendarProgressReport.DEFAULT_PROGRAM_LABEL;
     stats.vesselAttributes = (await this.vesselSnapshotService.getAutocompleteFieldOptions('vesselSnapshot'))?.attributes;
+    stats.footerText = program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_FOOTER);
+    stats.logoHeadLeftUrl = program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
+    stats.logoHeadRightUrl = program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
 
-    stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_FOOTER);
-    stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
-    stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
-
-    console.log('TODO', stats);
     // Compute AGG
     const agg = {
       vesselCount: data.AM.length,
@@ -290,7 +294,8 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     return result;
   }
 
-  protected getActivityCalendarFilterFromPageSettings(): ActivityCalendarFilter {
-    return ActivityCalendarFilter.fromObject(this.settings.getPageSettings(this.PARENT_PAGE_SETTING, 'filter'));
+  protected restoreLastTableFilter(): ActivityCalendarFilter {
+    const tableFilter = this.settings.getPageSettings(ActivityCalendarsTableSettingsEnum.PAGE_ID, 'filter');
+    return ActivityCalendarFilter.fromObject(tableFilter);
   }
 }

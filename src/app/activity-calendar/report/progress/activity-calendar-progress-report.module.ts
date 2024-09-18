@@ -5,10 +5,10 @@ import { AppReferentialModule } from '@app/referential/referential.module';
 import { SharedModule } from '@sumaris-net/ngx-components';
 import { ActivityCalendarProgressReport } from './activity-calendar-progress.report';
 import { AppDataModule } from '@app/data/data.module';
-import { NgOptimizedImage } from '@angular/common';
+import { MatChip } from '@angular/material/chips';
 
 @NgModule({
-  imports: [AppCoreModule, AppSharedReportModule, AppReferentialModule, AppDataModule, SharedModule, NgOptimizedImage],
+  imports: [AppCoreModule, AppSharedReportModule, AppReferentialModule, AppDataModule, SharedModule, MatChip],
   declarations: [ActivityCalendarProgressReport],
   exports: [ActivityCalendarProgressReport],
 })

@@ -595,7 +595,7 @@ export class ActivityCalendarPage
 
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
-      data.year = DateUtils.moment().utc().year() - 1;
+      data.year = DateUtils.moment().year() - 1;
 
       // Listen first opening the calendar tab, then save
       this.registerSubscription(
