@@ -108,11 +108,13 @@
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
-  <!-- Open report -->
-  <button mat-menu-item (click)="openReport()">
-    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
-    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
-  </button>
+  <!-- report -->
+  @if (enableReport && (reportTypes | isNotEmptyArray)) {
+    <button mat-menu-item [matMenuTriggerFor]="reportsMenu">
+      <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+      <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
+    </button>
+  }
 
   <!-- Update offline mode -->
   <button mat-menu-item *ngIf="hasOfflineMode" [disabled]="offline" (click)="prepareOfflineMode($event)">
@@ -147,6 +149,22 @@
     <mat-icon>signal_wifi_off</mat-icon>
     <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
   </button>
+</mat-menu>
+
+<mat-menu #reportsMenu="matMenu" class="ion-no-padding">
+  <!-- header-->
+  <ion-row class="mat-menu-header ion-no-padding column">
+    <ion-col>
+      <ion-label>{{ 'COMMON.REPORT.TYPE_DIVIDER' | translate }}</ion-label>
+    </ion-col>
+  </ion-row>
+
+  @for (item of reportTypes; track item.key) {
+    <!-- TODO enable all report type ?-->
+    <button mat-menu-item (click)="openReport(item.key)" [disabled]="item.key !== 'progress'">
+      <ion-label>{{ item.value | translate }}</ion-label>
+    </button>
+  }
 </mat-menu>
 
 <ion-content class="ion-no-padding ion-flex-direction-column" scroll-y="false" scroll-x="false">

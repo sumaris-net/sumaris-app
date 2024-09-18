@@ -1,6 +1,5 @@
-import { Component, Injector, ViewEncapsulation } from '@angular/core';
+import { Component, inject, Injector, ViewEncapsulation } from '@angular/core';
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
-import { ActivityCalendarService } from '@app/activity-calendar/activity-calendar.service';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { AppExtractionReport } from '@app/data/report/extraction-report.class';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
@@ -10,11 +9,11 @@ import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.compone
 import {
   DateUtils,
   EntityAsObjectOptions,
-  LocalSettingsService,
-  TranslateContextService,
   fromDateISOString,
   isNil,
+  LocalSettingsService,
   toDateISOString,
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import {
   ActivityMonitoring,
@@ -25,6 +24,8 @@ import {
 import { ActivityCalendarProgressReportService } from './activity-calendar-progress-report.service';
 import { Program } from '@app/referential/services/model/program.model';
 import moment, { Moment } from 'moment';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export class ActivityCalendarProgressReportStats extends BaseReportStats {
   subtitle: string;
@@ -34,12 +35,13 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
   filter: ActivityCalendarFilter;
   tableRowChunk: ActivityMonitoring[][];
   reportDate: Moment;
+  vesselAttributes: string[];
   agg: {
     vesselCount: number;
     totalDirectSurveyCount: number;
     totalDirectSurveyPercent: number;
-    unresignedVesselCount: number;
-    unresignedVesselPercent: number;
+    emptyVesselCount: number;
+    emptyVesselPercent: number;
     uncompletedVesselCount: number;
     uncompletedVesselPercent: number;
     completedCalendarCount: number;
@@ -55,12 +57,13 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
     this.filter = ActivityCalendarFilter.fromObject(source.filter);
     this.tableRowChunk = source.tableRowChunk;
     this.reportDate = fromDateISOString(source.reportDate);
+    this.vesselAttributes = source.vesselAttributes;
     this.agg = {
       vesselCount: source.agg.vesselCount,
       totalDirectSurveyCount: source.agg.totalDirectSurveyCount,
       totalDirectSurveyPercent: source.agg.totalDirectSurveyPercent,
-      unresignedVesselCount: source.agg.unresignedVesselCount,
-      unresignedVesselPercent: source.agg.unresignedVesselPercent,
+      emptyVesselCount: source.agg.emptyVesselCount,
+      emptyVesselPercent: source.agg.emptyVesselPercent,
       uncompletedVesselCount: source.agg.uncompletedVesselCount,
       uncompletedVesselPercent: source.agg.uncompletedVesselPercent,
       completedCalendarCount: source.agg.completedCalendarCount,
@@ -78,12 +81,13 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
       filter: this.filter.asObject(opts),
       tableRowChunk: this.tableRowChunk,
       reportDate: toDateISOString(this.reportDate),
+      vesselAttributes: this.vesselAttributes,
       agg: {
         vesselCount: this.agg.vesselCount,
         totalDirectSurveyCount: this.agg.totalDirectSurveyCount,
         totalDirectSurveyPercent: this.agg.totalDirectSurveyPercent,
-        unresignedVesselCount: this.agg.unresignedVesselCount,
-        unresignedVesselPercent: this.agg.unresignedVesselPercent,
+        emptyVesselCount: this.agg.emptyVesselCount,
+        emptyVesselPercent: this.agg.emptyVesselPercent,
         uncompletedVesselCount: this.agg.uncompletedVesselCount,
         uncompletedVesselPercent: this.agg.uncompletedVesselPercent,
         completedCalendarCount: this.agg.completedCalendarCount,
@@ -124,20 +128,14 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     tableRowHeight: 30,
   });
 
-  protected readonly activityCalendarService: ActivityCalendarService;
-  protected readonly activityCalendarProgressReportService: ActivityCalendarProgressReportService;
-  protected readonly translateContextService: TranslateContextService;
-  protected readonly strategyRefService: StrategyRefService;
-  protected readonly settings: LocalSettingsService;
+  protected readonly vesselSnapshotService = inject(VesselSnapshotService);
+  protected readonly activityCalendarProgressReportService = inject(ActivityCalendarProgressReportService);
+  protected readonly translateContextService = inject(TranslateContextService);
+  protected readonly strategyRefService = inject(StrategyRefService);
+  protected readonly settings = inject(LocalSettingsService);
 
-  // { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PROGRESS.PMFM.' }
   constructor(injector: Injector) {
     super(injector, null, ActivityCalendarProgressReportStats);
-    this.activityCalendarService = injector.get(ActivityCalendarService);
-    this.translateContextService = injector.get(TranslateContextService);
-    this.activityCalendarProgressReportService = injector.get(ActivityCalendarProgressReportService);
-    this.strategyRefService = injector.get(StrategyRefService);
-    this.settings = injector.get(LocalSettingsService);
   }
 
   protected computeSlidesOptions(
@@ -188,24 +186,32 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
         label: ActivityCalendarProgressReport.DEFAULT_PROGRAM,
       });
 
-    stats.reportDate = DateUtils.moment();
+    stats.program = await this.programRefService.loadByLabel(stats.filter.program.label);
 
+    stats.reportDate = DateUtils.moment();
+    stats.vesselAttributes = (await this.vesselSnapshotService.getAutocompleteFieldOptions('vesselSnapshot'))?.attributes;
+
+    stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_FOOTER);
+    stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
+    stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
+
+    console.log('TODO', stats);
     // Compute AGG
     const agg = {
       vesselCount: data.AM.length,
       totalDirectSurveyCount: data.AM.filter((item) => item.surveyQualification == 'Directe').length,
-      unresignedVesselCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.EMPTY).length,
+      emptyVesselCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.EMPTY).length,
       uncompletedVesselCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.INCOMPLETE).length,
       completedCalendarCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.COMPLETE).length,
     };
     stats.agg = {
       vesselCount: agg.vesselCount,
       totalDirectSurveyCount: agg.totalDirectSurveyCount,
-      unresignedVesselCount: agg.unresignedVesselCount,
+      emptyVesselCount: agg.emptyVesselCount,
       uncompletedVesselCount: agg.uncompletedVesselCount,
       completedCalendarCount: agg.completedCalendarCount,
       totalDirectSurveyPercent: parseFloat(((agg.totalDirectSurveyCount / agg.vesselCount) * 100).toFixed(2)),
-      unresignedVesselPercent: parseFloat(((agg.unresignedVesselCount / agg.vesselCount) * 100).toFixed(2)),
+      emptyVesselPercent: parseFloat(((agg.emptyVesselCount / agg.vesselCount) * 100).toFixed(2)),
       uncompletedVesselPercent: parseFloat(((agg.uncompletedVesselCount / agg.vesselCount) * 100).toFixed(2)),
       completedCalendarPercent: parseFloat(((agg.completedCalendarCount / agg.vesselCount) * 100).toFixed(2)),
     };

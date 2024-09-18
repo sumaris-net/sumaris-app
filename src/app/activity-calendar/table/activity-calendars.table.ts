@@ -20,6 +20,7 @@ import {
   OfflineFeature,
   PersonService,
   PersonUtils,
+  Property,
   ReferentialRef,
   SharedValidators,
   slideUpDownAnimation,
@@ -54,7 +55,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
 
 export const ActivityCalendarsTableSettingsEnum = {
@@ -66,6 +67,7 @@ export const ActivityCalendarsTableSettingsEnum = {
 export interface ActivityCalendarsPageState extends BaseTableState {
   years: number[];
   canImportCsvFile: boolean;
+  reportTypes: Property[];
 }
 
 @Component({
@@ -108,6 +110,8 @@ export class ActivityCalendarsTable
   @Input() basePortLocationLevelIds: number[] = null;
   @Input() @RxStateProperty() title: string;
   @Input() canAdd: boolean;
+  @Input() enableReport = false;
+  @RxStateProperty() protected reportTypes: Property[];
 
   @Input()
   set showObservers(value: boolean) {
@@ -386,7 +390,9 @@ export class ActivityCalendarsTable
 
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showProgram = false;
-
+    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
+    const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
+    this.reportTypes = (program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES) || []).map((key) => reportTypeByKey[key]);
     this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
 
     if (this.loaded) this.updateColumns();
@@ -560,8 +566,8 @@ export class ActivityCalendarsTable
     await this.router.navigate(['extraction', 'data'], { queryParams });
   }
 
-  async openReport() {
-    return this.router.navigateByUrl(['activity-calendar', 'report', 'progress'].join('/'));
+  async openReport(reportType: ActivityCalendarReportType | string) {
+    return this.router.navigateByUrl(['activity-calendar', 'report', reportType].join('/'));
   }
 
   /* -- protected methods -- */

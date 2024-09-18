@@ -203,9 +203,9 @@ export class ExtractionUtils {
     return filter;
   }
 
-  static createActivityCalendarFilter(programLabel: string, activityCalendarFilter: ActivityCalendarFilter): ExtractionFilter {
-    const filter = new ExtractionFilter();
-    filter.sheetName = 'AM';
+  static createActivityCalendarFilter(programLabel: string, source: ActivityCalendarFilter): ExtractionFilter {
+    const target = new ExtractionFilter();
+    target.sheetName = 'AM';
     const criteria: Partial<ExtractionFilterCriterion>[] = [
       {
         sheetName: 'AM',
@@ -215,125 +215,125 @@ export class ExtractionUtils {
       },
     ];
 
-    if (isNotNil(activityCalendarFilter.program)) {
+    if (isNotNil(source.program)) {
       criteria.push({
         sheetName: 'AM',
         name: 'project',
         operator: '=',
-        value: activityCalendarFilter.program.label,
+        value: source.program.label,
       });
     }
 
-    if (isNotEmptyArray(activityCalendarFilter.observers)) {
+    if (isNotEmptyArray(source.observers)) {
       criteria.push({
         sheetName: 'AM',
         name: 'observer',
         operator: '=',
-        values: activityCalendarFilter.observers.map((item) => `${item.lastName} ${item.firstName}`),
+        values: source.observers.filter(isNotNil).map((item) => `${item.lastName} ${item.firstName}`),
       });
     }
 
-    if (isNotNil(activityCalendarFilter.year)) {
+    if (isNotNil(source.year)) {
       criteria.push({
         sheetName: 'AM',
         name: 'year',
         operator: '=',
-        value: activityCalendarFilter.year.toString(),
+        value: source.year.toString(),
       });
     }
 
-    if (isNotNil(activityCalendarFilter.vesselSnapshot)) {
+    if (isNotNil(source.vesselSnapshot)) {
       criteria.push({
         sheetName: 'AM',
         name: 'vessel_registration_code',
         operator: '=',
-        value: activityCalendarFilter.vesselSnapshot.registrationCode,
+        value: source.vesselSnapshot.registrationCode,
       });
     }
 
-    if (isNotEmptyArray(activityCalendarFilter.basePortLocations)) {
+    if (isNotEmptyArray(source.basePortLocations)) {
       criteria.push({
         sheetName: 'AM',
         name: 'base_port_location_label',
         operator: '=',
-        values: (activityCalendarFilter.basePortLocations || []).map((item) => item.label),
+        values: (source.basePortLocations || []).map((item) => item.label),
       });
     }
 
-    if (isNotEmptyArray(activityCalendarFilter.registrationLocations)) {
+    if (isNotEmptyArray(source.registrationLocations)) {
       criteria.push({
         sheetName: 'AM',
         name: 'registration_location_label',
         operator: '=',
-        values: (activityCalendarFilter.registrationLocations || []).map((item) => item.label),
+        values: (source.registrationLocations || []).map((item) => item.label),
       });
     }
 
-    if (isNotNil(activityCalendarFilter.economicSurvey)) {
+    if (isNotNil(source.economicSurvey)) {
       criteria.push({
         sheetName: 'AM',
         name: 'economic_survey',
         operator: '=',
-        value: activityCalendarFilter.economicSurvey ? 'Y' : 'N',
+        value: source.economicSurvey ? 'Y' : 'N',
       });
     }
 
-    if (isNotNil(activityCalendarFilter.directSurveyInvestigation)) {
+    if (isNotNil(source.directSurveyInvestigation)) {
       criteria.push({
         sheetName: 'AM',
         name: 'direct_survey_investigation',
         operator: '=',
-        value: activityCalendarFilter.directSurveyInvestigation ? 'Y' : 'N',
+        value: source.directSurveyInvestigation ? 'Y' : 'N',
       });
     }
 
-    if (isNotNil(activityCalendarFilter.dataQualityStatus)) {
+    if (isNotNil(source.dataQualityStatus)) {
       criteria.push({
         sheetName: 'AM',
         name: 'quality_status',
         operator: '=',
-        value: activityCalendarFilter.dataQualityStatus,
+        value: source.dataQualityStatus,
       });
     }
 
-    if (isNotNil(activityCalendarFilter.recorderDepartment)) {
+    if (isNotNil(source.recorderDepartment)) {
       criteria.push({
         sheetName: 'AM',
         name: 'recorder_department',
         operator: '=',
-        value: activityCalendarFilter.recorderDepartment.label,
+        value: source.recorderDepartment.label,
       });
     }
 
-    if (isNotEmptyArray(activityCalendarFilter.recorderDepartments)) {
+    if (isNotEmptyArray(source.recorderDepartments)) {
       criteria.push({
         sheetName: 'AM',
         name: 'recorder_department',
         operator: '=',
-        values: activityCalendarFilter.recorderDepartments.map((item) => item.label),
+        values: source.recorderDepartments.map((item) => item.label),
       });
     }
 
-    if (isNotNil(activityCalendarFilter.recorderPerson)) {
+    if (isNotNil(source.recorderPerson)) {
       criteria.push({
         sheetName: 'AM',
         name: 'recorder_person',
         operator: '=',
-        value: `${activityCalendarFilter.recorderPerson.lastName} ${activityCalendarFilter.recorderPerson.firstName}`,
+        value: `${source.recorderPerson.lastName} ${source.recorderPerson.firstName}`,
       });
     }
 
-    if (isNotNil(activityCalendarFilter.dataQualityStatus)) {
+    if (isNotNil(source.dataQualityStatus)) {
       criteria.push({
         sheetName: 'AM',
         name: 'quality_status',
         operator: '=',
-        value: activityCalendarFilter.dataQualityStatus,
+        value: source.dataQualityStatus,
       });
     }
 
-    filter.criteria = criteria.map(ExtractionFilterCriterion.fromObject);
+    target.criteria = criteria.map(ExtractionFilterCriterion.fromObject);
 
-    return filter;
+    return target;
   }
 }

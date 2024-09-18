@@ -2385,23 +2385,22 @@
     },
     "OPTIONS": {
       "ACTIVITY_CALENDAR_REPORT_ENABLE": "Calendrier d'activité > Rapport : Activer l'édition de rapport ?",
-      "ACTIVITY_CALENDAR_REPORT_TYPE": "Calendrier d'activité  > Rapport : Types de rapport :",
-      "ACTIVITY_CALENDAR_TYPE_FORM": "Calendrier d'activité",
-      "ACTIVITY_CALENDAR_TYPE_FORM_BLANK": "Calendrier d'activité vierge",
-      "ACTIVITY_CALENDAR_REPORT_FORM_FOOTER": "Calendrier d'activité > Rapport : Texte du pied de page",
-      "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Calendrier d'activité > Rapport : URL d'une image de gauche",
-      "ACTIVITY_CALENDAR_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Calendrier d'activité > Rapport : URL d'une image de droite",
+      "ACTIVITY_CALENDAR_REPORT_TYPES": "Calendrier d'activité  > Rapport : Types de rapport autorisés :",
+      "ACTIVITY_CALENDAR_REPORT_FORM_FOOTER": "Calendrier d'activité > Rapport > Formulaires : Texte du pied de page",
+      "ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Calendrier d'activité > Rapport : Logo à gauche de l'entête",
+      "ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Calendrier d'activité > Rapport : Logo à droite de l'entête",
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER_BLOCK": "Calendrier d'activité > Rapport > Formulaire vierge : Nombre de blocs métier",
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GEARS_COLUMN": "Calendrier d'activité > Rapport > Formulaire vierge : Nombre de colonnes engins",
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER": "Calendrier d'activité > Rapport > Formulaire vierge : Nombre de zones de pêche par blocs métier",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1": "Calendrier d'activité > Rapport > Formulaire vierge : Libellé caractéristique engin #1",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2": "Calendrier d'activité > Rapport > Formulaire vierge : Libellé caractéristique engin #2",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_FOOTER": "Calendrier d'activité > Rapport d'avancement: Texte du pied de page",
       "ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS": "Calendrier d'activité > Métier : Type(s) d'espèce",
       "ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID": "Calendrier d'activité > Pays d'immatriculation des navires",
       "ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE": "Calendrier d'activité > Activer la résolution des conflits ?",
       "ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS": "Calendrier d'activité > Prédocumentation : Code(s) programme(s)",
       "ACTIVITY_CALENDAR_IMAGES_ENABLE": "Calendrier d'activité > Activer les photos ?",
       "ACTIVITY_CALENDAR_OBSERVERS_ENABLE": "Calendrier d'activité: Saisir les observateurs ?",
-      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1": "Calendrier d'activité: Libelle du premier PMFM pour les engins sur le formulaire vierge ?",
-      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2": "Calendrier d'activité: Libelle du second PMFM pour les engins sur le formulaire vierge ?",
       "EXTRACTION_FORMATS": "Extraction > Formats disponibles:",
       "I18N_SUFFIX": "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY": "Par défaut",
@@ -2469,8 +2468,8 @@
       "TRIP_REPORT_TYPE": "Marée > Rapport : Types de rapport :",
       "TRIP_REPORT_FORM_SUBTITLE": "Marée > Rapport : Sous-titre du rapport",
       "TRIP_REPORT_FORM_FOOTER": "Marée > Rapport : Texte de pied de page",
-      "TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Marée > Rapport : URL d'une image pour le log de gauche",
-      "TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Marée > Rapport : URL d'une image pour le log de droite",
+      "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Marée > Rapport : Logo à gauche de l'entête",
+      "TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Marée > Rapport : Logo à droite de l'entête",
       "TRIP_OPERATION_EDITOR": "Marée > Opération : Éditeur",
       "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
       "TRIP_OPERATION_EDITOR_TRAWL_SELECTIVITY": "Sélectivité châlut",
@@ -3542,12 +3541,13 @@
         "FIRST_NAME": "Prénom :"
       },
       "REPORT_TYPE": {
-        "BLANK_FORM": "Calendrier d'activité vierge",
-        "FORM": "Calendrier d'activité"
+        "BLANK_FORM": "Formulaire vierge",
+        "FORM": "Formulaire avec données",
+        "PROGRESS": "Rapport d'avancement"
       },
       "PROGRESS": {
         "TITLE": "SIH - Enquête d'activité des flotilles {{ year }} - Rapport d'avancement",
-        "COPY_RIGHT": "© {{ year }} Ifremer - Système d'Informations Halieutiques",
+        "COPYRIGHT": "© {{ year }} Ifremer - Système d'Informations Halieutiques",
         "TABLE": {
           "VESSEL": "Navire",
           "NB_METIER_PEER_MONTH": "Nombre de métiers pratiqués mar mois",
@@ -3587,7 +3587,7 @@
           "TITLE": "Synthèse de l'avancement des calendriers d'activité",
           "VESSEL_COUNT": "Nombre de navire",
           "DIRECT_SURVEY": "Enquêtes directes",
-          "UNRESIGNED_VESSEL": "Navire non renseignés",
+          "EMPTY_VESSEL": "Navire non renseignés",
           "INCOMPLETE_VESSEL": "Navires incomplets",
           "COMPLETED_CALENDAR": "Calendriers complets"
         }

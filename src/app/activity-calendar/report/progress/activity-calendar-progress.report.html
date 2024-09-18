@@ -69,12 +69,10 @@
               }
             </ion-col>
             <ion-col>
-              <h2>
-                {{ $title | async }}
-              </h2>
+              <h2>{{ $title | async }}qsd</h2>
             </ion-col>
             <ion-col class="logo" size="auto">
-              @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
+              @if (stats?.logoHeadRightUrl | isNotNilOrBlank) {
                 <img [src]="stats.logoHeadRightUrl" />
               }
             </ion-col>
@@ -95,6 +93,7 @@
                   </ion-row>
                 </ion-grid>
               </ion-col>
+
               <!-- Year -->
               <ion-col size="2">
                 <ion-grid>
@@ -104,43 +103,43 @@
                   </ion-row>
                 </ion-grid>
               </ion-col>
+
               <!-- Base port location -->
               <ion-col size="5">
                 <ion-grid>
                   <ion-row class="form-field">
                     <ion-col class="form-label" size="3">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.BASE_PORT_LOCATION' | translate }}</ion-col>
                     <ion-col class="form-value" size="9">
-                      <ng-content *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.basePortLocations }"></ng-content>
+                      {{ stats.filter.basePortLocations | referentialToString }}
                     </ion-col>
                   </ion-row>
                 </ion-grid>
               </ion-col>
+
               <!-- Registration location -->
               <ion-col size="5">
                 <ion-grid>
                   <ion-row class="form-field">
                     <ion-col class="form-label" size="3">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.REGISTRATION_LOCATION' | translate }}</ion-col>
                     <ion-col class="form-value" size="9">
-                      <ng-content
-                        *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.registrationLocations }"
-                      ></ng-content>
+                      {{ stats.filter.registrationLocations | referentialToString }}
                     </ion-col>
                   </ion-row>
                 </ion-grid>
               </ion-col>
+
               <!-- Vessel -->
               <ion-col size="5">
                 <ion-grid>
                   <ion-row class="form-field">
                     <ion-col class="form-label" size="3">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL' | translate }}</ion-col>
                     <ion-col class="form-value" size="9">
-                      <ng-content
-                        *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.registrationLocations }"
-                      ></ng-content>
+                      {{ stats.filter.vesselSnapshot | referentialToString: stats.vesselAttributes }}
                     </ion-col>
                   </ion-row>
                 </ion-grid>
               </ion-col>
+
               <!-- Recorder person -->
               <ion-col size="4">
                 <ion-grid>
@@ -152,17 +151,19 @@
                   </ion-row>
                 </ion-grid>
               </ion-col>
+
               <!-- Observer -->
               <ion-col size="4">
                 <ion-grid>
                   <ion-row class="form-field">
                     <ion-col class="form-label" size="3">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.OBSERVERS' | translate }}</ion-col>
                     <ion-col class="form-value" size="9">
-                      <ng-content *ngTemplateOutlet="referentialRefsItems; context: { referentialRefs: stats.filter.observers }"></ng-content>
+                      {{ stats.filter.observers | personToString }}
                     </ion-col>
                   </ion-row>
                 </ion-grid>
               </ion-col>
+
               <!-- Recorder departement -->
               <ion-col size="4">
                 <ion-grid>
@@ -174,6 +175,8 @@
                   </ion-row>
                 </ion-grid>
               </ion-col>
+
+              <!-- Quality flag -->
               <ion-col size="2">
                 <ion-grid>
                   <ion-row class="form-field">
@@ -185,21 +188,10 @@
                 </ion-grid>
               </ion-col>
             </ion-row>
-            <ng-template #referentialRefsItems let-referentialRefs="referentialRefs">
-              @for (referentialRef of referentialRefs; track referentialRef.id) {
-                <span>
-                  {{ referentialRef | referentialToString: { properties: ['name'] } }}
-                  @if (!$last) {
-                    ,&nbsp;
-                  }
-                </span>
-              }
-            </ng-template>
-            <!-- TODO Missing Quality flag -->
           </ion-grid>
         }
 
-        <!-- advancement -->
+        <!-- items -->
         @if (tableChunk | isNotEmptyArray) {
           <table>
             <thead>
@@ -252,14 +244,13 @@
         }
 
         <!-- error legend -->
-        <ul class="caption" [style.margin-top]="'10px'">
+        <ul class="caption ion-text-center" [style.margin-top]="'10px'">
           @for (errorKey of activityMonitoringStatusErrorIds | mapKeys; track $index) {
             <li>
               <span class="error-tip">({{ activityMonitoringStatusErrorIds[errorKey] }})</span>
-              &nbsp;:&nbsp;
               {{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.ERROR.' + errorKey | translate }}
               @if (!$last) {
-                &nbsp;;&nbsp;
+                &nbsp;-&nbsp;
               }
             </li>
           }
@@ -299,9 +290,9 @@
                 <table [style.--row-height]="'20px'">
                   <tbody>
                     <tr>
-                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.UNRESIGNED_VESSEL' | translate }}</th>
-                      <td class="ion-text-center col-medium">{{ stats.agg.unresignedVesselCount }}</td>
-                      <td class="ion-text-center col-medium">{{ stats.agg.unresignedVesselPercent }}&nbsp;%</td>
+                      <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.EMPTY_VESSEL' | translate }}</th>
+                      <td class="ion-text-center col-medium">{{ stats.agg.emptyVesselCount }}</td>
+                      <td class="ion-text-center col-medium">{{ stats.agg.emptyVesselPercent }}&nbsp;%</td>
                     </tr>
                     <tr>
                       <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.INCOMPLETE_VESSEL' | translate }}</th>
@@ -324,7 +315,9 @@
         <ion-grid class="report-footer ion-no-padding">
           <ion-row class="footer-text">
             <ion-col class="ion-text-start">
-              {{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.COPY_RIGHT' | translate: { year: stats.reportDate | dateFormat: { pattern: 'YYYY' } } }}
+              @if (stats.footerText) {
+                {{ stats.footerText | translate: { year: stats.reportDate | dateFormat: { pattern: 'YYYY' } } }}
+              }
             </ion-col>
             <ion-col class="ion-text-center">{{ stats.reportDate | dateFormat }}</ion-col>
             <ion-col class="ion-text-end">

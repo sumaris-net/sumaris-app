@@ -33,6 +33,7 @@ import {
   ReferentialRef,
   referentialToString,
   removeDuplicatesFromArray,
+  splitByProperty,
   StatusIds,
   toBoolean,
   toNumber,
@@ -225,14 +226,12 @@ export class ActivityCalendarPage
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
+    const reportTypeByKey = splitByProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values as Property[], 'key');
     this._state.connect(
       'reportTypes',
       this.program$.pipe(
         map((program) => {
-          return program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPE).map((key) => {
-            const values = ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPE.values as Property[];
-            return values.find((item) => item.key === key);
-          });
+          return (program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES) || []).map((key) => reportTypeByKey[key]);
         })
       )
     );
@@ -442,13 +441,12 @@ export class ActivityCalendarPage
     this.calendar?.addMetierBlock(event);
   }
 
-  async openReport(reportType?: ActivityCalendarReportType) {
+  async openReport(reportType: ActivityCalendarReportType | string) {
+    if (!reportType) return; // Skip
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-
-    if (!reportType) reportType = this.reportTypes.length === 1 ? <ActivityCalendarReportType>this.reportTypes[0].key : 'form';
 
     return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', reportType].join('/'));
   }

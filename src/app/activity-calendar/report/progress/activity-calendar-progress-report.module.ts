@@ -5,9 +5,10 @@ import { AppReferentialModule } from '@app/referential/referential.module';
 import { SharedModule } from '@sumaris-net/ngx-components';
 import { ActivityCalendarProgressReport } from './activity-calendar-progress.report';
 import { AppDataModule } from '@app/data/data.module';
+import { NgOptimizedImage } from '@angular/common';
 
 @NgModule({
-  imports: [AppCoreModule, AppSharedReportModule, AppReferentialModule, AppDataModule, SharedModule],
+  imports: [AppCoreModule, AppSharedReportModule, AppReferentialModule, AppDataModule, SharedModule, NgOptimizedImage],
   declarations: [ActivityCalendarProgressReport],
   exports: [ActivityCalendarProgressReport],
 })
