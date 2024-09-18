@@ -39,6 +39,11 @@
         &.mat-column-top-end {
           --mdc-icon-button-icon-color: var(--ion-text-color, #000);
           --mat-table-header-background-color: var(--ion-toolbar-background, whitesmoke);
+          z-index: 99 !important; // Should not hide other columns
+          background-color: var(--mat-toolbar-background-color, whitesmoke) !important;
+        }
+        &.mat-column-top-end {
+          background-color: var(--mat-toolbar-background-color, whitesmoke) !important;
         }
 
         &.mat-column-qv-group {

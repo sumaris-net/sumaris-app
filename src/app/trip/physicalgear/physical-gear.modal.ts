@@ -1,11 +1,13 @@
 import {
   AfterViewInit,
+  booleanAttribute,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   Inject,
   Injector,
   Input,
+  numberAttribute,
   OnDestroy,
   OnInit,
   Output,
@@ -111,18 +113,18 @@ export class PhysicalGearModal extends AppEntityEditorModal<PhysicalGear> implem
   @Input() acquisitionLevel: string;
   @Input() childAcquisitionLevel: AcquisitionLevelType = 'CHILD_PHYSICAL_GEAR';
   @Input() programLabel: string;
-  @Input() requiredStrategy: boolean;
-  @Input() strategyId: number;
-  @Input() tripId: number;
-  @Input() canEditGear = false;
-  @Input() canEditRankOrder = false;
-  @Input() allowChildrenGears: boolean;
-  @Input() minChildrenCount = 2;
-  @Input() showGear = true;
-  @Input() showSearchButton = true;
-  @Input() maxVisibleButtons: number;
-  @Input() maxItemCountForButtons = 12;
-  @Input() debug = !environment.production;
+  @Input({ transform: booleanAttribute }) requiredStrategy: boolean;
+  @Input({ transform: numberAttribute }) strategyId: number;
+  @Input({ transform: numberAttribute }) tripId: number;
+  @Input({ transform: booleanAttribute }) canEditGear = false;
+  @Input({ transform: booleanAttribute }) canEditRankOrder = false;
+  @Input({ transform: booleanAttribute }) allowChildrenGears: boolean;
+  @Input({ transform: numberAttribute }) minChildrenCount = 2;
+  @Input({ transform: booleanAttribute }) showGear = true;
+  @Input({ transform: booleanAttribute }) showSearchButton = true;
+  @Input({ transform: numberAttribute }) maxVisibleButtons: number;
+  @Input({ transform: numberAttribute }) maxItemCountForButtons = 12;
+  @Input({ transform: booleanAttribute }) debug = !environment.production;
 
   @Output() searchButtonClick = createPromiseEventEmitter<PhysicalGear>();
 

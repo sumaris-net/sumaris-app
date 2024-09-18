@@ -56,6 +56,8 @@
           [placeholder]="'TRIP.VESSEL_SNAPSHOT' | translate"
           [config]="autocompleteFields.vesselSnapshot"
           [required]="true"
+          [mobile]="mobile"
+          [panelWidth]="mobile ? '80vw' : undefined"
         >
           <ion-icon matPrefix name="boat"></ion-icon>
           <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
@@ -87,6 +89,7 @@
           [placeholder]="'TRIP.DEPARTURE_LOCATION' | translate"
           [config]="autocompleteFields.location"
           [required]="true"
+          [mobile]="mobile"
           [panelWidth]="mobile ? '80vw' : '500px'"
         >
           <mat-icon matPrefix>room</mat-icon>

@@ -51,6 +51,7 @@
         </ion-row>
       </ion-grid>
     } @else {
+      <!-- default array style -->
       <ion-grid class="ion-no-padding">
         <ion-row>
           <ng-container *ngFor="let childControl of formArray.controls; index as j; last as last">
@@ -67,6 +68,9 @@
                 [placeholder]="placeholder"
                 [mobile]="mobile"
                 [style]="style"
+                [panelClass]="panelClass"
+                [panelWidth]="panelWidth"
+                [disableRipple]="disableRipple"
                 (click)="clicked.emit($event)"
               ></app-pmfm-field>
             </ion-col>
@@ -307,9 +311,12 @@
     [maxVisibleButtons]="maxVisibleButtons"
     [buttonsColCount]="maxVisibleButtons"
     [showButtonIcons]="showButtonIcons"
+    [mobile]="mobile"
+    [panelClass]="panelClass"
+    [panelWidth]="panelWidth"
+    [disableRipple]="disableRipple"
     (keyup.enter)="onPressEnter.emit($event)"
     (click)="clicked.emit($event)"
-    [mobile]="mobile"
   >
     <div matSuffix class="mat-form-field-suffix-container">
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>

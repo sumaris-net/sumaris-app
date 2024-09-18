@@ -85,6 +85,10 @@
                 <br />
                 modal.usageMode: {{ usageMode }}
                 <br />
+                modal.maxVisibleButtons: {{ maxVisibleButtons }}
+                <br />
+                modal.maxItemCountForButtons: {{ maxItemCountForButtons }}
+                <br />
               </ion-col>
               <ion-col>
                 form.loading: {{ physicalGearForm.loading }}
@@ -110,6 +114,9 @@
                 <br />
                 form.pmfms count: {{ (physicalGearForm.pmfms$ | async)?.length }}
                 <br />
+                modal.maxVisibleButtons: {{ maxVisibleButtons }}
+                <br />
+                modal.maxItemCountForButtons: {{ maxItemCountForButtons }}
               </ion-col>
             </ion-row>
           </ion-grid>
@@ -126,6 +133,8 @@
           [canEditRankOrder]="canEditRankOrder"
           [showGear]="showGear"
           [i18nSuffix]="i18nSuffix"
+          [maxVisibleButtons]="maxVisibleButtons"
+          [maxItemCountForButtons]="maxItemCountForButtons"
           (onSubmit)="saveAndClose($event)"
           [compact]="false"
           [showError]="false"
