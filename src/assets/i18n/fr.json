@@ -603,6 +603,9 @@
       "QUALITATIVE_VALUE": "Liste déroulante > Valeurs qualitative de paramètre",
       "TAXON_GROUP": "Liste déroulante > Espèces commerciale",
       "TAXON_NAME": "Liste déroulante > Espèces scientifique",
+      "DISTANCE_TO_COAST_GRADIENT": "Liste déroulante > Distance à la côte",
+      "DEPTH_GRADIENT": "Liste déroulante > Profondeur",
+      "NEARBY_SPECIFIC_AREA": "Liste déroulante > Zone spécifique",
       "GEAR": "Liste déroulante > Engins de pêche",
       "FRACTION": "Liste déroulante > Fraction (pièce calcifiée, etc.)",
       "ATTRIBUTES": {
