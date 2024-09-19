@@ -3637,6 +3637,7 @@
       "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}",
       "INVALID_MONTHS": "Veuillez corriger le(s) mois invalide(s)",
       "INCONSISTENT_DATA": "Données incohérentes",
+      "INCONSISTENCY_DAY_NUMBER": "Nombre de jours incohérent",
       "INVALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)",
       "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
     },

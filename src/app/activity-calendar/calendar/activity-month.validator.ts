@@ -28,7 +28,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { FishingAreaValidatorOptions } from '@app/data/fishing-area/fishing-area.validator';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import {
   MeasurementFormValues,
@@ -136,6 +136,7 @@ export class ActivityMonthValidatorService<
         ActivityMonthValidators.fishingAreaRequiredIfMetier,
         ActivityMonthValidators.checkInconsistenciesInGearUseFeatures,
         ActivityMonthValidators.distanceToCoastRequiredIfFishingArea,
+        ActivityMonthValidators.validateDayCountConsistency,
         SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
           predicate: (control) => control.value === VesselUseFeaturesIsActiveEnum.ACTIVE || control.value === VesselUseFeaturesIsActiveEnum.INACTIVE,
         }),
@@ -536,6 +537,29 @@ export class ActivityMonthValidators {
 
     return inconsistentData ? { inconsistentData: true } : null;
   }
+
+  static validateDayCountConsistency(formGroup: FormArray): ValidationErrors | null {
+    const pmfms = formGroup.get('measurementValues')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    const startDate = formGroup.get('startDate') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    const endDate = formGroup.get('endDate') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+
+    if (!pmfms || !startDate?.value || !endDate?.value) {
+      return null;
+    }
+
+    const pmfmFishDurationDays = pmfms[PmfmIds.FISHING_DURATION_DAYS];
+    const pmfmFishAtSeaDays = pmfms[PmfmIds.FISHING_AT_SEA_DAYS];
+
+    if (isNil(pmfmFishDurationDays) && isNil(pmfmFishAtSeaDays)) return null;
+
+    const numberOfDaysMonth = endDate.value.diff(startDate.value, 'days');
+
+    const isDayNumberInconsistent =
+      (isNotNil(pmfmFishDurationDays) && pmfmFishDurationDays > numberOfDaysMonth) ||
+      (isNotNil(pmfmFishAtSeaDays) && pmfmFishAtSeaDays > numberOfDaysMonth);
+
+    return isDayNumberInconsistent ? { inconsistencyDayNumber: true } : null;
+  }
 }
 
 export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
@@ -543,4 +567,5 @@ export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
   requiredFishingArea: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_FISHING_AREA',
   requiredDistanceToCoast: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_DISTANCE_TO_COAST',
   inconsistentData: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENT_DATA',
+  inconsistencyDayNumber: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENCY_DAY_NUMBER',
 };
