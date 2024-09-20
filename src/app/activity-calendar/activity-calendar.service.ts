@@ -1230,7 +1230,22 @@ export class ActivityCalendarService
     // Update VUF
     if (source.vesselUseFeatures && target.vesselUseFeatures) {
       target.vesselUseFeatures.forEach((targetVuf) => {
-        const sourceVuf = source.vesselUseFeatures.find((f) => targetVuf.equals(f));
+        const sourceVuf = source.vesselUseFeatures.find((f) => targetVuf.equals(f, { withProgram: false }));
+
+        // Make sure id and updateDate are copied. See issue #714
+        if (!sourceVuf) {
+          console.error(
+            this._logPrefix + 'VesselUseFeatures not found in save response: cannot copy id and updateDate.',
+            targetVuf,
+            source.vesselUseFeatures
+          );
+          throw <AppErrorWithDetails>{
+            code: DataErrorCodes.SAVE_ENTITY_ERROR,
+            message: 'ERROR.SAVE_ENTITY_ERROR',
+            details: { message: 'VesselUseFeatures not found in save response: cannot copy id and updateDate.' },
+          };
+        }
+
         EntityUtils.copyIdAndUpdateDate(sourceVuf, targetVuf);
       });
     }
@@ -1238,7 +1253,7 @@ export class ActivityCalendarService
     // Update GUF
     if (source.gearUseFeatures && target.gearUseFeatures) {
       target.gearUseFeatures.forEach((targetGuf) => {
-        const sourceGuf = source.gearUseFeatures.find((f) => targetGuf.equals(f));
+        const sourceGuf = source.gearUseFeatures.find((f) => targetGuf.equals(f, { withProgram: false }));
         EntityUtils.copyIdAndUpdateDate(sourceGuf, targetGuf);
 
         // Update fishing areas
@@ -1317,10 +1332,10 @@ export class ActivityCalendarService
     }
     if (entity.gearUseFeatures) {
       this.fillRecorderDepartment(entity.vesselUseFeatures, entity.recorderDepartment);
-    }
 
-    // GearUseFeatures: compute rankOrder
-    fillRankOrder(entity.gearUseFeatures);
+      // GearUseFeatures: compute rankOrder
+      fillRankOrder(entity.gearUseFeatures);
+    }
   }
 
   protected async fillOfflineDefaultProperties(entity: ActivityCalendar) {

@@ -77,7 +77,10 @@ export class VesselUseFeatures
     this.measurementValues = { ...source.measurementValues }; // Copy values
   }
 
-  equals(other: VesselUseFeatures, opts = { withMeasurementValues: false }): boolean {
+  equals(
+    other: VesselUseFeatures,
+    opts: { withProgram?: boolean; withMeasurementValues?: boolean } = { withProgram: true, withMeasurementValues: false }
+  ): boolean {
     return (
       (super.equals(other) && isNotNil(this.id)) ||
       // Same isActive
@@ -89,7 +92,7 @@ export class VesselUseFeatures
         //((!this.activityCalendarId && !other.activityCalendarId) || this.activityCalendarId === other.activityCalendarId) &&
         //((!this.dailyActivityCalendarId && !other.dailyActivityCalendarId) || this.dailyActivityCalendarId === other.dailyActivityCalendarId) &&
         // Same program
-        ReferentialUtils.equals(this.program, other.program) &&
+        (opts.withProgram === false || ReferentialUtils.equals(this.program, other.program)) &&
         // Same basePortLocation
         ReferentialUtils.equals(this.basePortLocation, other.basePortLocation) &&
         // Same measurementsValues
