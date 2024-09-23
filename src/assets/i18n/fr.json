@@ -3417,7 +3417,7 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les calendriers <b>non synchronisés</b>)",
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
-      "OBSERVERS": "Enquêteur(s)",
+      "OBSERVERS": "Observateur(s)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "REGISTRATION_LOCATION": "Lieu d'immatriculation",
@@ -3427,7 +3427,7 @@
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "VESSEL": "Navire",
-        "OBSERVERS": "Enquêteur(s)",
+        "OBSERVERS": "Observateur(s)",
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "YEAR": "Année"
       }
@@ -3480,8 +3480,8 @@
       "VESSEL_REGISTRATION_DIVIDER": "Immatriculations",
       "VESSEL_OWNER_DIVIDER": "Armateurs",
       "PHOTO": "Photos",
-      "OBSERVERS": "Enquêteur(s) :",
-      "OBSERVER_PLACEHOLDER": "Enquêteur #",
+      "OBSERVERS": "Observateur(s) :",
+      "OBSERVER_PLACEHOLDER": "Observateur #",
       "BTN_DELETE_CALENDAR": "Supprimer",
       "BTN_CLEAR_CALENDAR": "Vider le calendrier",
       "BTN_DELETE_CONFLICT": "Supprimer ce mois en conflit",
