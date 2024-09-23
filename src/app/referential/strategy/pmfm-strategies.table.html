@@ -128,11 +128,12 @@
               [control]="row.validator | formGetControl: 'defaultValue'"
               [autofocus]="row.editing && focusColumn === 'defaultValue'"
               [compact]="true"
+              panelClass="mat-select-panel-fit-content"
             ></app-pmfm-field>
           </ng-template>
         </ng-container>
         <ng-template #readonlyDefaultValue>
-          <ion-text [innerHTML]="row.currentData.defaultValue | pmfmValue: { pmfm: row.currentData.pmfm, html: true }"></ion-text>
+          <ion-text [innerHTML]="row.currentData.defaultValue | pmfmValue: { pmfm: row.currentData.pmfm, html: true, showYesOrNo: true }"></ion-text>
         </ng-template>
       </td>
     </ng-container>

@@ -211,6 +211,7 @@
                     [readonly]="computed"
                     [tabindex]="computed && -1"
                     [compact]="compactFields || col.pmfm?.type === 'boolean'"
+                    [panelClass]="'mat-select-panel-fit-content'"
                   ></app-pmfm-field>
                 }
                 @case ('samplingRatio') {

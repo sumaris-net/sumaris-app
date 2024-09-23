@@ -396,7 +396,7 @@
             [innerHTML]="
               row.validator
                 | formGetValue: ['measurementValues', pmfm.id]
-                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
+                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
             "
           ></ion-label>
         }
@@ -655,7 +655,11 @@
           "
         >
           <ion-text
-            [innerHTML]="row.currentData | measurementValueGet: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"
+            [innerHTML]="
+              row.currentData
+                | measurementValueGet
+                  : { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
+            "
           ></ion-text>
         </td>
       </ng-container>

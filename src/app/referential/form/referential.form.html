@@ -10,7 +10,8 @@
       <!-- Label -->
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'REFERENTIAL.LABEL' | translate" formControlName="label" autocomplete="off" required />
+          <mat-label translate>REFERENTIAL.LABEL</mat-label>
+          <input matInput formControlName="label" [required]="requiredLabel" autocomplete="off" required />
           <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.controls.label.hasError('unique')" translate>ERROR.FIELD_NOT_UNIQUE</mat-error>
         </mat-form-field>
@@ -19,7 +20,8 @@
       <!-- Status-->
       <ion-col>
         <mat-form-field>
-          <mat-select [formControl]="form.controls.statusId" [placeholder]="'REFERENTIAL.STATUS' | translate" required>
+          <mat-label translate>REFERENTIAL.STATUS</mat-label>
+          <mat-select formControlName="statusId" [required]="true">
             <mat-select-trigger>
               <span *ngIf="form.controls.statusId.value &gt;= 0">
                 {{ statusById[form.controls.statusId.value]?.label | translate }}
@@ -39,7 +41,8 @@
     <ion-row>
       <ion-col>
         <mat-form-field>
-          <input matInput [placeholder]="'REFERENTIAL.NAME' | translate" formControlName="name" autocomplete="off" required />
+          <mat-label translate>REFERENTIAL.NAME</mat-label>
+          <input matInput formControlName="name" [required]="requiredName" autocomplete="off" />
           <mat-error *ngIf="form.controls.name.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
@@ -49,15 +52,16 @@
     <ion-row *ngIf="form.controls.description && showDescription">
       <ion-col size="12">
         <mat-form-field>
+          <mat-label matPrefix translate>REFERENTIAL.DESCRIPTION</mat-label>
           <textarea
             matInput
+            formControlName="description"
             #description
-            matTextareaAutosize="true"
-            matAutosizeMinRows="4"
+            cdkTextareaAutosize="true"
+            cdkAutosizeMinRows="4"
             rows="1"
             maxlength="255"
-            [placeholder]="'REFERENTIAL.DESCRIPTION' | translate"
-            formControlName="description"
+            [required]="requiredDescription"
           ></textarea>
           <mat-hint align="end">{{ description.value.length }} / 255</mat-hint>
           <mat-error *ngIf="form.controls.description.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -75,8 +79,8 @@
           <textarea
             matInput
             #comments
-            matTextareaAutosize="true"
-            matAutosizeMinRows="4"
+            cdkTextareaAutosize="true"
+            cdkAutosizeMinRows="4"
             rows="4"
             maxlength="2000"
             [placeholder]="'REFERENTIAL.COMMENTS' | translate"

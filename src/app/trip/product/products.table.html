@@ -185,17 +185,17 @@
         [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
         [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
       >
-        <app-pmfm-field
-          *ngIf="row.editing; else readonlyPmfmField"
-          floatLabel="never"
-          [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-          [autofocus]="focusColumn == pmfm.id"
-          [pmfm]="pmfm"
-          [compact]="true"
-        ></app-pmfm-field>
-
-        <!-- readonly value-->
-        <ng-template #readonlyPmfmField>
+        @if (row.editing) {
+          <app-pmfm-field
+            floatLabel="never"
+            [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+            [autofocus]="focusColumn == pmfm.id"
+            [pmfm]="pmfm"
+            [compact]="compactFields"
+            panelClass="mat-select-panel-fit-content"
+          ></app-pmfm-field>
+        } @else {
+          <!-- readonly value-->
           <span
             [innerHTML]="
               row.validator
@@ -203,7 +203,7 @@
                 | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
             "
           ></span>
-        </ng-template>
+        }
       </td>
     </ng-container>
 

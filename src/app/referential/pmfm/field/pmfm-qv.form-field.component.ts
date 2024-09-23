@@ -110,8 +110,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input({ transform: numberAttribute }) buttonsColCount: number;
   @Input({ transform: booleanAttribute }) showButtonIcons: boolean;
   @Input({ transform: booleanAttribute }) disableRipple = false;
-  // eslint-disable-next-line @angular-eslint/no-input-rename
-  @Input() @Input({ alias: 'class' }) panelClass: string;
+  @Input() panelClass: string;
   @Input() panelWidth: string;
 
   @Input() set tabindex(value: number) {
@@ -125,6 +124,16 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   get disabled(): boolean {
     return this.formControl.disabled;
+  }
+
+  /**
+   * @deprecated Use panelClass instead
+   */
+  @Input({ alias: 'class' }) set classList(value: string) {
+    this.panelClass = value;
+  }
+  get classList(): string {
+    return this.panelClass;
   }
 
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
@@ -149,7 +158,6 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   ngOnInit() {
     // Set defaults
     this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
-    this.panelWidth = this.panelWidth || (this.mobile ? '80vw' : undefined);
 
     this.formControl =
       this.formControl || (this.formControlName && this.formGroupDir && (this.formGroupDir.form.get(this.formControlName) as UntypedFormControl));

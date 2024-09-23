@@ -90,19 +90,32 @@
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
-              <app-referential-form #referentialForm [form]="form" [showError]="false" [debug]="debug" (onSubmit)="save($event)">
+              <app-referential-form
+                #referentialForm
+                [form]="form"
+                [showError]="false"
+                [requiredLabel]="true"
+                [requiredName]="true"
+                [requiredDescription]="true"
+                [debug]="debug"
+                (onSubmit)="save($event)"
+              >
+                <!-- taxon group type-->
                 <app-form-field
                   [definition]="fieldDefinitions.taxonGroupType"
                   [formControl]="form | formGetControl: 'taxonGroupType'"
                 ></app-form-field>
 
+                <!-- gear classification -->
                 <app-form-field
                   [definition]="fieldDefinitions.gearClassification"
                   [formControl]="form | formGetControl: 'gearClassification'"
                 ></app-form-field>
 
+                <!-- location classification(s) -->
                 <mat-form-field floatLabel="always">
-                  <input matInput class="cdk-visually-hidden" type="text" [placeholder]="'PROGRAM.LOCATION_CLASSIFICATION' | translate" />
+                  <mat-label matPrefix translate>PROGRAM.LOCATION_CLASSIFICATION</mat-label>
+                  <input matInput class="cdk-visually-hidden" type="text" />
                   <app-list-form
                     #locationClassificationList
                     [formArray]="form | formGetArray: 'locationClassifications'"

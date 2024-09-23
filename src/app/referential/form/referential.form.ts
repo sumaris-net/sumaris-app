@@ -1,5 +1,5 @@
 import { ReferentialValidatorService } from '../services/validator/referential.validator';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Optional } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Optional } from '@angular/core';
 import { AppForm, BaseReferential, IStatus, Referential, splitById, StatusList } from '@sumaris-net/ngx-components';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { FormGroupDirective } from '@angular/forms';
@@ -20,10 +20,13 @@ export class ReferentialForm<T extends BaseReferential<any> = Referential> exten
   protected cd: ChangeDetectorRef;
   private _statusList = StatusList;
 
-  @Input() showError = true;
-  @Input() showDescription = true;
-  @Input() showComments = true;
-  @Input() entityName;
+  @Input({ transform: booleanAttribute }) showError = true;
+  @Input({ transform: booleanAttribute }) showDescription = true;
+  @Input({ transform: booleanAttribute }) requiredLabel = false;
+  @Input({ transform: booleanAttribute }) requiredName = true;
+  @Input({ transform: booleanAttribute }) requiredDescription = false;
+  @Input({ transform: booleanAttribute }) showComments = true;
+  @Input() entityName: string;
 
   @Input()
   set statusList(values: IStatus[]) {

@@ -17,8 +17,7 @@
     (click)="selectInputContent($event)"
     (keydown.tab)="focusNextInput($event)"
     (keydown.enter)="focusNextInput($event)"
-    [mobile]="mobile"
-    [panelWidth]="mobile ? '80vw' : undefined"
+    [clearable]="isNewData"
   ></mat-autocomplete-field>
 
   <!-- rankOrder -->
@@ -100,8 +99,8 @@
       #matInput
       [formControl]="form | formGetControl: 'comments'"
       [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS' | translate"
-      matTextareaAutosize="true"
-      matAutosizeMinRows="4"
+      cdkTextareaAutosize="true"
+      cdkAutosizeMinRows="4"
       maxlength="2000"
       [tabindex]="tabindex + 100"
       (keydown.tab)="focusNextInput($event)"
