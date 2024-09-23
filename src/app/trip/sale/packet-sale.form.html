@@ -29,30 +29,30 @@
     </thead>
 
     <tbody>
-      <!-- footer -->
-      <tr class="mat-mdc-footer-row mat-mdc-row-disabled">
+      <!-- header -->
+      <tr class="mat-mdc-row mat-mdc-row-disabled" [style.background-color]="'var(--ion-toolbar-background)'">
         <!-- total  -->
-        <td class="mat-mdc-footer-cell mat-column-saleType ion-text-end">
+        <td class="mat-mdc-row-cell mat-column-saleType ion-text-end">
           <ion-label color="primary" class="text-italic" style="font-weight: bold" translate>TRIP.PRODUCT.SALE.TOTAL_PRODUCT</ion-label>
         </td>
 
         <!--  number -->
-        <td class="mat-mdc-footer-cell mat-column-subgroupCount">
-          <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
+        <td class="mat-mdc-row-cell mat-column-subgroupCount">
+          <mat-form-field class="mat-form-field-disabled computed" subscriptSizing="dynamic">
             <input matInput [placeholder]="'PACKET.NUMBER' | translate" formControlName="number" readonly />
           </mat-form-field>
         </td>
 
         <!--  weight  -->
-        <td class="mat-mdc-footer-cell mat-column-weight">
-          <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
+        <td class="mat-mdc-row-cell mat-column-weight">
+          <mat-form-field class="mat-form-field-disabled computed" subscriptSizing="dynamic">
             <input matInput [placeholder]="'PACKET.WEIGHT' | translate" formControlName="weight" readonly />
           </mat-form-field>
         </td>
 
-        <td class="mat-mdc-footer-cell"></td>
+        <td class="mat-mdc-row-cell"></td>
 
-        <td class="mat-mdc-footer-cell" colspan="2"></td>
+        <td class="mat-mdc-row-cell" colspan="2"></td>
       </tr>
 
       <!-- sale row -->
@@ -75,6 +75,7 @@
             [config]="autocompleteFields.saleType"
             [tabindex]="tabindex + 3 + i * 7"
             [required]="true"
+            panelClass="mat-select-panel-fit-content"
           >
             <ion-icon matPrefix name="card"></ion-icon>
           </mat-autocomplete-field>
@@ -82,7 +83,7 @@
 
         <!-- subgroupCount -->
         <td class="mat-mdc-cell mat-column-subgroupCount">
-          <mat-form-field floatLabel="never">
+          <mat-form-field>
             <input
               matInput
               formControlName="subgroupCount"
@@ -111,7 +112,7 @@
 
         <!-- weight -->
         <td class="mat-mdc-cell mat-column-weight even">
-          <mat-form-field floatLabel="never" class="mat-form-field-disabled computed">
+          <mat-form-field class="mat-form-field-disabled computed">
             <input
               matInput
               formControlName="weight"
@@ -126,7 +127,7 @@
 
         <!-- averagePackagingPrice -->
         <td class="mat-mdc-cell mat-column-averagePackagingPrice">
-          <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue: 'averagePackagingPriceCalculated'">
+          <mat-form-field [class.computed]="saleForm | formGetValue: 'averagePackagingPriceCalculated'">
             <input
               matInput
               formControlName="averagePackagingPrice"
@@ -141,7 +142,7 @@
 
         <!-- totalPrice -->
         <td class="mat-mdc-cell mat-column-totalPrice">
-          <mat-form-field floatLabel="never" [class.computed]="saleForm | formGetValue: 'totalPriceCalculated'">
+          <mat-form-field [class.computed]="saleForm | formGetValue: 'totalPriceCalculated'">
             <input
               matInput
               formControlName="totalPrice"

@@ -978,6 +978,7 @@ export class CalendarComponent
           return;
       }
     }
+
     // Shift + <arrow|tab> => extend the selection
     else if (!event.ctrlKey && event.shiftKey) {
       switch (event.key) {
@@ -1018,6 +1019,7 @@ export class CalendarComponent
           return;
       }
     }
+
     // Ctrl + <arrow>
     else if (event.ctrlKey) {
       switch (event.key) {

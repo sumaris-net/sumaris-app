@@ -118,11 +118,12 @@
       </th>
       <td mat-cell *matCellDef="let row" [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm" [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm">
         <app-pmfm-field
+          floatLabel="never"
           [readonly]="!row.editing"
           [pmfm]="pmfm"
           [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-          [compact]="true"
-          floatLabel="never"
+          [compact]="compactFields"
+          panelClass="mat-select-panel-fit-content"
         ></app-pmfm-field>
       </td>
     </ng-container>

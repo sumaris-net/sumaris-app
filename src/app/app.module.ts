@@ -112,8 +112,8 @@ import {
 import { ACTIVITY_CALENDAR_TESTING_PAGES } from '@app/activity-calendar/calendar/testing/calendar.testing.module';
 import { NamedFilterService } from '@app/shared/service/named-filter.service';
 import { ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS } from '@app/activity-calendar/calendar/activity-month.validator';
-import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
 import { ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS } from './activity-calendar/model/activity-calendar.validator';
+import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
 
 @NgModule({
   declarations: [AppComponent],
@@ -191,13 +191,18 @@ import { ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS } from './activity-calendar
         stretchTabs: false,
       },
     },
+
     {
       provide: MAT_SELECT_CONFIG,
       useValue: <MatSelectConfig>{
+        // Hide the selection  indicator (checkmark, on the right side)
         hideSingleSelectionIndicator: true,
+
+        // FIXME - Workaround find at : https://github.com/angular/components/issues/26000#issuecomment-1563107933
         //overlayPanelClass: 'mat-select-panel-fit-content',
       },
     },
+
     {
       provide: APP_BASE_HREF,
       useFactory: () => {

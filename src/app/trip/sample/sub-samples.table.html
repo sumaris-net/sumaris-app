@@ -157,6 +157,7 @@
             [defaultLatitudeSign]="defaultLatitudeSign"
             [defaultLongitudeSign]="defaultLongitudeSign"
             [compact]="compactFields"
+            panelClass="mat-select-panel-fit-content"
           ></app-pmfm-field>
         } @else {
           <!-- readonly value-->
@@ -164,7 +165,7 @@
             [innerHTML]="
               row.validator
                 | formGetValue: ['measurementValues', pmfm.id]
-                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
+                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
             "
           ></ion-label>
         }
@@ -300,7 +301,8 @@
           <!-- TODO BLA: manage color -->
           <ion-text
             [innerHTML]="
-              row.currentData.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
+              row.currentData.measurementValues[pmfm.id]
+                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
             "
           ></ion-text>
         </td>
