@@ -385,7 +385,8 @@
         "FILTER_PERIOD": "Landing > Show period filter?"
       },
       "ACCOUNT": {
-        "READONLY": "Account > Readonly profile? (readonly option)"
+        "ENABLE_LATLONG_FORMAT": "My Account > Settings > Enable lat/lon format?",
+        "READONLY": "My Account > Readonly profile? (readonly option)"
       }
     },
     "CACHE": {
@@ -3143,7 +3144,7 @@
       "ECONOMIC_SURVEY": "Economic survey?",
       "VESSEL": "Vessel",
       "YEAR": "Year",
-      "OBSERVERS": "Inspector",
+      "OBSERVERS": "Observer(s)",
       "FILTER": {
         "PROGRAM": "Data collection programme",
         "REGISTRATION_LOCATION": "Registration location",
@@ -3153,7 +3154,7 @@
         "RECORDER_PERSON": "Recorder",
         "RECORDER_DEPARTMENT": "Recoder department(s)",
         "VESSEL": "Vessel",
-        "OBSERVERS": "Inspector",
+        "OBSERVERS": "Observer(s)",
         "QUALITY_FLAG_ID": "Quality flag",
         "YEAR": "Year"
       }
@@ -3205,8 +3206,8 @@
       "VESSEL_REGISTRATION_DIVIDER": "Registrations",
       "VESSEL_OWNER_DIVIDER": "Owners",
       "PHOTO": "Pictures",
-      "OBSERVERS": "Inspector(s):",
-      "OBSERVER_PLACEHOLDER": "Inspector #",
+      "OBSERVERS": "Observer(s):",
+      "OBSERVER_PLACEHOLDER": "Observer #",
       "BTN_DELETE_CALENDAR": "Delete",
       "BTN_CLEAR_CALENDAR": "Clear the calendar",
       "BTN_DELETE_CONFLICT": "Delete this conflicted month",

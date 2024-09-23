@@ -111,7 +111,10 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
     this.dataOrigins = source.dataOrigins?.map(DataOrigin.fromObject) || undefined;
   }
 
-  equals(other: GearUseFeatures, opts = { withMeasurementValues: false }): boolean {
+  equals(
+    other: GearUseFeatures,
+    opts: { withProgram?: boolean; withMeasurementValues?: boolean } = { withProgram: true, withMeasurementValues: false }
+  ): boolean {
     return (
       (super.equals(other) && isNotNil(this.id)) ||
       // Same metier
@@ -127,7 +130,7 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
         //((!this.activityCalendarId && !other.activityCalendarId) || this.activityCalendarId === other.activityCalendarId) &&
         //((!this.dailyActivityCalendarId && !other.dailyActivityCalendarId) || this.dailyActivityCalendarId === other.dailyActivityCalendarId) &&
         // Same program
-        ReferentialUtils.equals(this.program, other.program) &&
+        (opts.withProgram === false || ReferentialUtils.equals(this.program, other.program)) &&
         // Same measurementsValues
         (opts.withMeasurementValues !== true || MeasurementValuesUtils.equals(this.measurementValues, other.measurementValues)))
     );

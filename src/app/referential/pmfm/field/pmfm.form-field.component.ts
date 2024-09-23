@@ -148,6 +148,9 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input() i18nPrefix: string;
   @Input() i18nSuffix: string;
   @Input() qualitativeValueAttributes: string[];
+  @Input({ transform: booleanAttribute }) disableRipple = false;
+  @Input() panelClass: string;
+  @Input() panelWidth: string;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input({ transform: booleanAttribute }) listenStatusChanges = false;
@@ -158,6 +161,16 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
 
   protected get type(): string {
     return this.get('type');
+  }
+
+  /**
+   * @deprecated Use panelClass instead
+   */
+  @Input({ alias: 'class' }) set classList(value: string) {
+    this.panelClass = value;
+  }
+  get classList(): string {
+    return this.panelClass;
   }
 
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();

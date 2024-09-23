@@ -149,25 +149,52 @@
         [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
         (click)="focusColumn = pmfm.id.toString()"
       >
-        <app-pmfm-field
-          *ngIf="row.editing; else readonlyPmfmField"
-          floatLabel="never"
-          [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-          [autofocus]="focusColumn == pmfm.id"
-          [pmfm]="pmfm"
-          [compact]="true"
-        ></app-pmfm-field>
-
-        <!-- readonly value-->
-        <ng-template #readonlyPmfmField>
-          <span
+        @if (row.editing) {
+          <app-pmfm-field
+            floatLabel="never"
+            [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+            [autofocus]="focusColumn == pmfm.id"
+            [pmfm]="pmfm"
+            [compact]="compactFields"
+            panelClass="mat-select-panel-fit-content"
+          ></app-pmfm-field>
+        } @else if (mobile) {
+          <!-- readonly value-->
+          <ion-label
+            [innerHTML]="
+              row.currentData
+                | measurementValueGet
+                  : {
+                      pmfm: pmfm,
+                      html: true,
+                      propertyNames: compactFields || pmfm.isMultiple ? ['label'] : undefined,
+                      showYesOrNo: true
+                    }
+            "
+          ></ion-label>
+        } @else {
+          <!-- readonly value (desktop) -->
+          <ion-label
             [innerHTML]="
               row.validator
                 | formGetValue: ['measurementValues', pmfm.id]
-                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
+                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields || pmfm.isMultiple ? ['label'] : undefined, showYesOrNo: true }
             "
-          ></span>
-        </ng-template>
+          ></ion-label>
+          <ion-label
+            [innerHTML]="
+              row.validator
+                | formGetValue: ['measurementValues', pmfm.id]
+                | pmfmValue
+                  : {
+                      pmfm: pmfm,
+                      html: true,
+                      propertyNames: compactFields || pmfm.isMultiple ? ['label'] : undefined,
+                      showYesOrNo: true
+                    }
+            "
+          ></ion-label>
+        }
       </td>
     </ng-container>
 

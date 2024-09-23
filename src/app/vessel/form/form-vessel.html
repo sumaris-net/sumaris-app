@@ -251,7 +251,7 @@
       <ion-col>
         <mat-form-field appearance="outline">
           <mat-label translate>COMMON.COMMENTS</mat-label>
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000" formControlName="comments"></textarea>
+          <textarea matInput #comments cdkTextareaAutosize="true" cdkAutosizeMinRows="4" maxlength="2000" formControlName="comments"></textarea>
           <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
           <mat-error *ngIf="form.get('vesselFeatures.comments').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>

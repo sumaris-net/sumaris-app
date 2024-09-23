@@ -100,7 +100,7 @@
 
       <!-- Packet weight column -->
       <td class="mat-mdc-cell mat-column-small" *ngFor="let index of $packetIndexes | async; even as colEven" [class.even]="colEven">
-        <mat-form-field floatLabel="never">
+        <mat-form-field>
           <input
             matInput
             autocomplete="off"
@@ -132,12 +132,12 @@
       <td class="mat-mdc-cell mat-column-taxonGroup">
         <mat-autocomplete-field
           formControlName="taxonGroup"
-          floatLabel="never"
           [placeholder]="'PACKET.COMPOSITION.TAXON_GROUP' | translate"
           [autofocus]="compositionFocusIndex === i && compositionEditedIndex === i"
           [config]="autocompleteFields.taxonGroup"
           [tabindex]="tabindex + 10 + i"
           required
+          panelClass="mat-select-panel-fit-content"
         ></mat-autocomplete-field>
       </td>
 

@@ -147,16 +147,18 @@
           <app-pmfm-field
             floatLabel="never"
             [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-            [autofocus]="row.editing && focusColumn == pmfm.id"
+            [autofocus]="focusColumn == pmfm.id"
             [pmfm]="pmfm"
-            [compact]="true"
+            [compact]="compactFields"
             [readonly]="pmfm.isComputed"
+            panelClass="mat-select-panel-fit-content"
           ></app-pmfm-field>
         } @else if (mobile) {
           <!-- readonly value (mobile)-->
           <ion-label
             [innerHTML]="
-              row.currentData.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
+              row.currentData.measurementValues[pmfm.id]
+                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
             "
           ></ion-label>
         } @else {
@@ -165,7 +167,7 @@
             [innerHTML]="
               row.validator
                 | formGetValue: ['measurementValues', pmfm.id]
-                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
+                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
             "
           ></ion-label>
         }

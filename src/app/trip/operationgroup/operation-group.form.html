@@ -6,8 +6,8 @@
   </ion-item>
 
   <ion-grid class="ion-no-padding">
-    <ion-row class="ion-no-padding">
-      <ion-col size="12" size-md="">
+    <ion-row>
+      <ion-col>
         <!-- Metier -->
         <mat-autocomplete-field
           formControlName="metier"
@@ -18,26 +18,22 @@
         ></mat-autocomplete-field>
       </ion-col>
     </ion-row>
-    <ion-row class="ion-no-padding">
-      <!-- Physical gear -->
-      <ion-col size="12" size-md="">
-        <ion-label translate="">TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
-      </ion-col>
 
-      <!-- Target species (using metier) -->
-      <ion-col size="12" size-md="">
-        <ion-label translate="">TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
-      </ion-col>
-    </ion-row>
     <ion-row>
       <!-- Physical gear -->
-      <ion-col size="12" size-md="">
-        <ion-text>{{ referentialToString(gear, displayAttributes.gear) }}</ion-text>
+      <ion-col size="12" size-sm="6">
+        <mat-form-field floatLabel="always" class="mat-form-field-disabled computed">
+          <mat-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</mat-label>
+          <input matInput type="text" [value]="gear | referentialToString: displayAttributes.gear" readonly />
+        </mat-form-field>
       </ion-col>
 
       <!-- Target species (using metier) -->
-      <ion-col size="12" size-md="">
-        <ion-text>{{ referentialToString(metier, displayAttributes.taxonGroup) }}</ion-text>
+      <ion-col size="12" size-sm="6">
+        <mat-form-field floatLabel="always" class="mat-form-field-disabled computed">
+          <mat-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</mat-label>
+          <input matInput type="text" [value]="metier | referentialToString: displayAttributes.taxonGroup" readonly />
+        </mat-form-field>
       </ion-col>
     </ion-row>
 
@@ -63,8 +59,8 @@
             matInput
             #comments
             formControlName="comments"
-            matTextareaAutosize="true"
-            matAutosizeMinRows="4"
+            cdkTextareaAutosize="true"
+            cdkAutosizeMinRows="4"
             maxlength="2000"
             [placeholder]="'TRIP.OPERATION.LIST.COMMENTS' | translate"
             [tabindex]="tabindex + 100"

@@ -202,12 +202,11 @@ export class ActivityCalendarPage
     protected vesselService: VesselService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected context: ActivityCalendarContextService,
-    protected activityCalendarService: ActivityCalendarService,
     protected hotkeys: Hotkeys
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
       pathIdAttribute: 'calendarId',
-      tabCount: 5, // 4 is map is hidden
+      tabCount: 5, // will be 4 when map is hidden
       i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.',
       enableListenChanges: true,
       acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,

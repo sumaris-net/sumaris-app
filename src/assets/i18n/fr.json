@@ -134,7 +134,7 @@
       "HAS_ERROR": "Veuillez corriger des erreurs dans le formulaire"
     },
     "PAGINATOR": {
-      "ITEMS_PER_PAGE": "Nombre de lignes affichées",
+      "ITEMS_PER_PAGE": "Nombre de lignes",
       "NEXT_PAGE": "Page suivante",
       "PREVIOUS_PAGE": "Page précédente",
       "LAST_PAGE": "Dernière page",
@@ -409,6 +409,7 @@
         "FILTER_PERIOD": "Sorties > Afficher le filtre sur la période ?"
       },
       "ACCOUNT": {
+        "ENABLE_LATLONG_FORMAT": "Mon Compte > Préférences > Activer le format lat/lon ?",
         "READONLY": "Mon compte > Nom et prénom en lecture seule ?"
       },
       "REFERENTIAL": {
@@ -3416,7 +3417,7 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les calendriers <b>non synchronisés</b>)",
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
-      "OBSERVERS": "Enquêteur(s)",
+      "OBSERVERS": "Observateur(s)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "REGISTRATION_LOCATION": "Lieu d'immatriculation",
@@ -3426,7 +3427,7 @@
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "VESSEL": "Navire",
-        "OBSERVERS": "Enquêteur(s)",
+        "OBSERVERS": "Observateur(s)",
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "YEAR": "Année"
       }
@@ -3479,8 +3480,8 @@
       "VESSEL_REGISTRATION_DIVIDER": "Immatriculations",
       "VESSEL_OWNER_DIVIDER": "Armateurs",
       "PHOTO": "Photos",
-      "OBSERVERS": "Enquêteur(s) :",
-      "OBSERVER_PLACEHOLDER": "Enquêteur #",
+      "OBSERVERS": "Observateur(s) :",
+      "OBSERVER_PLACEHOLDER": "Observateur #",
       "BTN_DELETE_CALENDAR": "Supprimer",
       "BTN_CLEAR_CALENDAR": "Vider le calendrier",
       "BTN_DELETE_CONFLICT": "Supprimer ce mois en conflit",
@@ -3599,13 +3600,13 @@
     "CONFIRM": {
       "CLEAR_MONTH": "<b>Êtes-vous sûr</b> de vouloir vider ce mois ?",
       "CLEAR_CALENDAR": "<b>Êtes-vous sûr</b> de vouloir vider le calendrier ?",
-      "DELETE_CONFLICT": "<b>Êtest vous sûr</b> de vouloir supprimer ce conflit ?",
-      "KEEP_REMOTE": "<b>Êtest vous sûr</b> de vouloir conserver les données distantes ?",
+      "DELETE_CONFLICT": "<b>Êtes-vous sûr</b> de vouloir supprimer ce conflit ?",
+      "KEEP_REMOTE": "<b>Êtes-vous sûr</b> de vouloir conserver les données distantes ?",
       "COPY_PASTE": "<b>Êtes-vous sûr</b> de vouloir copier la prédocumentation vers le calendrier ?"
     },
     "ERROR": {
-      "CANNOT_PASTE_HERE": "Vous de pouvez pas coller ici.",
-      "CONFLICTUAL_MONTH": "Conflit détécté lors de la sauvegarde du calendrier",
+      "CANNOT_PASTE_HERE": "Vous ne pouvez pas coller ici.",
+      "CONFLICTUAL_MONTH": "Conflit détecté lors de la sauvegarde du calendrier",
       "DUPLICATED_METIER": "Métier(s) en doublon : {{metiers}}",
       "REQUIRED_FISHING_AREA": "Zone de pêche obligatoire pour le(s) métier(s) : {{metiers}}",
       "MONTH_NUMBERS": "Calendrier incomplet.",

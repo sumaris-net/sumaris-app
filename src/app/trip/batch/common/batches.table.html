@@ -129,26 +129,26 @@
       <th mat-header-cell *matHeaderCellDef [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
         <ion-label [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true }"></ion-label>
       </th>
-      <td mat-cell *matCellDef="let row" [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm" (click)="focusColumn = pmfm.label">
-        <app-pmfm-field
-          *ngIf="row.editing; else readonlyPmfmField"
-          floatLabel="never"
-          [pmfm]="pmfm"
-          [i18nPrefix]="i18nPmfmPrefix"
-          [i18nSuffix]="i18nColumnSuffix"
-          [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-          [autofocus]="row.editing && focusColumn == (pmfm.id || index)"
-          [compact]="compactFields"
-        ></app-pmfm-field>
-
-        <!-- readonly value-->
-        <ng-template #readonlyPmfmField>
+      <td mat-cell *matCellDef="let row" [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm" (click)="focusColumn = (pmfm.id || index).toString()">
+        @if (row.editing) {
+          <app-pmfm-field
+            floatLabel="never"
+            [pmfm]="pmfm"
+            [i18nPrefix]="i18nPmfmPrefix"
+            [i18nSuffix]="i18nColumnSuffix"
+            [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+            [autofocus]="focusColumn == (pmfm.id || index)"
+            [compact]="compactFields"
+            panelClass="mat-select-panel-fit-content"
+          ></app-pmfm-field>
+        } @else {
+          <!-- readonly value-->
           <ion-label
             [innerHTML]="
               row.currentData.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
             "
           ></ion-label>
-        </ng-template>
+        }
       </td>
     </ng-container>
 

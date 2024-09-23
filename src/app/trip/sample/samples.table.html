@@ -396,7 +396,7 @@
             [innerHTML]="
               row.validator
                 | formGetValue: ['measurementValues', pmfm.id]
-                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }
+                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
             "
           ></ion-label>
         }
@@ -520,13 +520,19 @@
     >
       <!-- Group header: buttons -->
       <ng-container matColumnDef="top-start" [sticky]="sticky">
-        <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupHeaderStartColSpan"></th>
+        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile" [attr.colspan]="groupHeaderStartColSpan"></th>
       </ng-container>
 
       <!-- Group header: pmfm group columns -->
-      <ng-container *ngFor="let item of pmfmGroupColumns$ | async">
+      <ng-container *ngFor="let item of pmfmGroupColumns$ | async; index as index">
         <ng-container [matColumnDef]="item.key">
-          <th mat-header-cell *matHeaderCellDef class="mat-column-pmfm-group" [class]="item.cssClass" [attr.colspan]="item.colSpan">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="mat-column-pmfm-group"
+            [class]="item.cssClass"
+            [attr.colspan]="item.colSpan + (mobile && index === 0 ? groupHeaderStartColSpan - 1 : 0)"
+          >
             <ion-label class="ion-text-wrap mat-mdc-cell-content-start-padding ion-text-center">
               {{ item.name | translate }}
             </ion-label>
@@ -649,7 +655,11 @@
           "
         >
           <ion-text
-            [innerHTML]="row.currentData | measurementValueGet: { pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"
+            [innerHTML]="
+              row.currentData
+                | measurementValueGet
+                  : { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
+            "
           ></ion-text>
         </td>
       </ng-container>

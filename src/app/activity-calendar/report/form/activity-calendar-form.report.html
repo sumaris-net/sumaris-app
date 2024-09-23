@@ -422,26 +422,6 @@
     </section>
   </app-reveal>
 
-  <ng-template #pageHeader let-title="title" let-titleParams="titleParams">
-    <ion-grid class="report-header ion-no-padding">
-      <ion-row class="page-title">
-        <ion-col class="logo" size="auto">
-          @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
-            <img [src]="stats.logoHeadLeftUrl" />
-          }
-        </ion-col>
-        <ion-col>
-          <h2>{{ title | translateContext: i18nContext.suffix : titleParams }}</h2>
-        </ion-col>
-        <ion-col class="logo" size="auto">
-          @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
-            <img [src]="stats.logoHeadRightUrl" />
-          }
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-  </ng-template>
-
   <ng-template #pageFooter let-help="help" let-pageNumber="pageNumber" let-pageTotal="pageTotal">
     <ion-grid class="report-footer ion-no-padding">
       @if (help | isNotNilOrBlank) {

@@ -1,4 +1,3 @@
-
 .mat-mdc-table {
   --packet-count: 6;
   --mat-column-taxonGroup: calc(min(250px, 100vw / var(--packet-count) * 2));
@@ -12,7 +11,7 @@
 
   &.mobile {
     --mat-column-actions-width: 44px;
-    --mat-cell-horizontal-padding: 0px;
+    --mat-cell-horizontal-padding: 4px;
   }
 
   .mat-mdc-header-row {
@@ -44,9 +43,8 @@
     }
 
     .mat-mdc-cell.even {
-      background-color: rgba(0,0,0, 0.1) !important;
+      background-color: rgba(0, 0, 0, 0.1) !important;
     }
-
   }
 
   .mat-mdc-header-row,
@@ -85,6 +83,3 @@
     }
   }
 }
-
-
-

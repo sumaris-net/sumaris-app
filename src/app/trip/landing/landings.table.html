@@ -356,10 +356,11 @@
             [pmfm]="pmfm"
             [formControl]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
             [compact]="pmfm?.type === 'boolean'"
-            [autofocus]="row.editing && focusColumn == pmfm.id"
+            [autofocus]="focusColumn == pmfm.id"
+            panelClass="mat-select-panel-fit-content"
           ></app-pmfm-field>
         } @else if (mobile) {
-          <ion-text
+          <ion-label
             [innerHTML]="
               row.currentData
                 | measurementValueGet
@@ -370,9 +371,9 @@
                       showYesOrNo: true
                     }
             "
-          ></ion-text>
+          ></ion-label>
         } @else {
-          <ion-text
+          <ion-label
             [innerHTML]="
               row.validator
                 | formGetValue: ['measurementValues', pmfm.id]
@@ -384,7 +385,7 @@
                       showYesOrNo: true
                     }
             "
-          ></ion-text>
+          ></ion-label>
         }
       </td>
     </ng-container>

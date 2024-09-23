@@ -1635,7 +1635,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       .filter((column) => hasFlag(column.flags, flag))
       .forEach((column) => {
         const control = form.get(column.path);
-        if (isNotNil(control.value)) {
+        if (isNotNil(control?.value)) {
           control.setValue(null);
           dirty = true;
         }
