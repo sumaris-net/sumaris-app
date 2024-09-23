@@ -427,13 +427,13 @@ export class CalendarComponent
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
       attributes: this.locationDisplayAttributes,
-      mobile: this.mobile,
+      panelClass: 'mat-select-panel-fit-content',
     });
 
     this.registerAutocompleteField('metier', {
       suggestFn: (value, filter) => this.suggestMetiers(value, filter),
       displayWith: (obj) => obj?.label || '',
-      mobile: this.mobile,
+      panelClass: 'mat-select-panel-fit-content',
     });
 
     this.registerAutocompleteField('fishingAreaLocation', {
@@ -444,7 +444,7 @@ export class CalendarComponent
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
       attributes: ['label'],
-      mobile: this.mobile,
+      panelClass: 'mat-select-panel-fit-content',
     });
     this.registerAutocompleteField('distanceToCoastGradient', {
       suggestFn: (value, filter) =>
@@ -454,7 +454,7 @@ export class CalendarComponent
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
       attributes: ['name'],
-      mobile: this.mobile,
+      panelClass: 'mat-select-panel-fit-content',
     });
     this.registerAutocompleteField('depthGradient', {
       suggestFn: (value, filter) =>
@@ -464,7 +464,7 @@ export class CalendarComponent
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
       attributes: ['name'],
-      mobile: this.mobile,
+      panelClass: 'mat-select-panel-fit-content',
     });
     this.registerAutocompleteField('nearbySpecificArea', {
       suggestFn: (value, filter) =>
@@ -474,7 +474,7 @@ export class CalendarComponent
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
       attributes: ['name'],
-      mobile: this.mobile,
+      panelClass: 'mat-select-panel-fit-content',
     });
 
     this._state.connect(

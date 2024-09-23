@@ -194,7 +194,8 @@ import { ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS } from './activity-calendar
     {
       provide: MAT_SELECT_CONFIG,
       useValue: <MatSelectConfig>{
-        overlayPanelClass: 'mat-select-panel-fit-content',
+        hideSingleSelectionIndicator: true,
+        //overlayPanelClass: 'mat-select-panel-fit-content',
       },
     },
     {
