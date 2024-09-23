@@ -54,7 +54,7 @@ import { IProgressionOptions, IRootDataEntityQualityService } from '@app/data/se
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ActivityCalendarValidatorOptions, ActivityCalendarValidatorService } from './model/activity-calendar.validator';
-import { ActivityCalendar } from './model/activity-calendar.model';
+import { ActivityCalendar, ActivityCalendarVesselRegistrationPeriod } from './model/activity-calendar.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
@@ -84,11 +84,11 @@ import { ActivityCalendarUtils } from './activity-calendar.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Job } from '@app/social/job/job.model';
 import { JobFragments } from '@app/social/job/job.service';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
 export const ActivityCalendarErrorCodes = {
   CSV_IMPORT_ERROR: 223,
 };
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
 export const ActivityCalendarFragments = {
   lightActivityCalendar: gql`
@@ -1273,6 +1273,9 @@ export class ActivityCalendarService
         EntityUtils.copyIdAndUpdateDate(sourceGpf, targetGpf);
       });
     }
+
+    // Copy registration periods, after save, because access rights can have changed - fix issue #719
+    target.vesselRegistrationPeriods = source.vesselRegistrationPeriods?.map(ActivityCalendarVesselRegistrationPeriod.fromObject) || undefined;
   }
 
   translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
