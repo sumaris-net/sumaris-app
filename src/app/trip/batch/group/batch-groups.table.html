@@ -531,21 +531,15 @@
 </div>
 
 <ng-template #actionCellTemplate let-row>
-  @if (mobile) {
-    <!-- Delete row button -->
-    <button
-      mat-icon-button
-      *ngIf="enabled && singleSelectedRow === row"
-      [title]="'COMMON.BTN_DELETE' | translate"
-      (click)="cancelOrDelete($event, row)"
-    >
+  <!-- Delete row button -->
+  @if (mobile && enabled && singleSelectedRow === row) {
+    <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="cancelOrDelete($event, row)">
       <mat-icon>delete</mat-icon>
     </button>
-  } @else {
+  } @else if (allowSubBatches && (!qvPmfm || mobile)) {
     <!-- open individual measures -->
     <button
       mat-icon-button
-      *ngIf="allowSubBatches && (!qvPmfm || mobile)"
       [color]="row.currentData.observedIndividualCount ? 'primary' : undefined"
       [disabled]="row.invalid"
       [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE' | translate"
