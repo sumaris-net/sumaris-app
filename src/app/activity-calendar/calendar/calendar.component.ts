@@ -1149,7 +1149,7 @@ export class CalendarComponent
     event?.preventDefault(); // Avoid clickRow
 
     const isActiveIndex = this.displayedColumns.findIndex((col) => col === 'isActive');
-    let { columnName, cellElement } = this.getCellElement(row.id, isActiveIndex);
+    const cell = this.getCellElement(row.id, isActiveIndex);
 
     const reservedColumnCount = RESERVED_START_COLUMNS.concat(RESERVED_END_COLUMNS).length + this.readonlyColumnCount;
     const rowspan = this.displayedColumns.length - reservedColumnCount;
@@ -1159,15 +1159,15 @@ export class CalendarComponent
     // If Shift+click: expand the existing selection
     if (event?.shiftKey && this.cellSelection?.rowspan === rowspan && this.cellSelection.row.id !== row.id) {
       colspan = (Math.max(1, Math.abs(row.id - this.cellSelection.row.id)) + 1) * (row.id < this.cellSelection.row.id ? -1 : 1);
-      cellElement = this.cellSelection.cellElement;
+      cell.cellElement = this.cellSelection.cellElement;
       row = this.cellSelection.row;
     }
 
     this.cellSelection = {
       divElement: this.cellSelectionDivRef.nativeElement,
-      cellElement,
+      cellElement: cell.cellElement,
       row,
-      columnName,
+      columnName: cell.columnName,
       colspan,
       rowspan,
       resizing: false,
@@ -2278,7 +2278,8 @@ export class CalendarComponent
 
     // Accept to paste into compatible PMFM
     const isPmfmOnly = sourcePaths.every((path) => path.startsWith('measurementValues'));
-    if (isPmfmOnly) {
+    const targetIsPmfm = targetPaths.every((path) => path.startsWith('measurementValues'));
+    if (isPmfmOnly && targetIsPmfm) {
       const pmfmIds = sourcePaths.concat(targetPaths).map((pmfm) => parseInt(lastArrayValue(pmfm.split('.'))));
       const pmfms = this.pmfms.filter((pmfm) => pmfmIds.includes(pmfm.id));
       const sourcePathUnitLabel = pmfms.find((pmfm) => pmfm.id.toString() === sourcePathSuffix)?.unitLabel;
