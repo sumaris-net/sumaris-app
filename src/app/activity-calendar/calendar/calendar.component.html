@@ -94,7 +94,12 @@
             <mat-icon>content_copy</mat-icon>
           </button>
         } @else {
-          <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COPY_PASTE_ALL' | translate" [matMenuTriggerFor]="optionsMenuCopyPaste">
+          <button
+            mat-icon-button
+            [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COPY_PASTE_ALL' | translate"
+            [matMenuTriggerFor]="optionsMenuCopyPaste"
+            [matMenuTriggerRestoreFocus]="false"
+          >
             <mat-icon>content_copy</mat-icon>
           </button>
 
