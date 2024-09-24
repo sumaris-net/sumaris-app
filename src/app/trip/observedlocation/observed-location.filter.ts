@@ -12,6 +12,7 @@ import {
   Person,
   ReferentialRef,
   ReferentialUtils,
+  removeDuplicatesFromArray,
 } from '@sumaris-net/ngx-components';
 import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-service.class';
 
@@ -74,9 +75,7 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
       target.recorderPersonIds = this.recorderPersons?.map((p) => p.id) || undefined;
       delete target.recorderPersons;
 
-      target.recorderDepartmentIds = isNotNil(this.recorderDepartments)
-        ? this.recorderDepartments && this.recorderDepartments.map((d) => d.id)
-        : undefined;
+      target.recorderDepartmentIds = isNotEmptyArray(this.recorderDepartments) ? this.recorderDepartments?.map((d) => d.id) : undefined;
 
       // Observers
       target.observerPersonIds = (this.observers && this.observers.map((o) => o && o.id).filter(isNotNil)) || undefined;
@@ -108,18 +107,25 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
     }
 
     // Recorder persons
-    const recorderPersonIds = this.recorderPersons?.map((p) => p.id);
-    if (isNotNil(recorderPersonIds)) {
+
+    if (isNotEmptyArray(this.recorderPersons)) {
+      const recorderPersonIds = this.recorderPersons?.map((p) => p.id);
       filterFns.push((t) => t.recorderPerson && recorderPersonIds.includes(t.recorderPerson.id));
     }
 
     //departments
-    const recorderDepartmentIds = ReferentialUtils.isNotEmpty(this.recorderDepartment)
-      ? [this.recorderDepartment.id]
-      : this.recorderDepartments?.map((l) => l.id);
+    let recorderDepartmentIds;
+    if (isNotEmptyArray(this.recorderDepartments) || ReferentialUtils.isNotEmpty(this.recorderDepartment)) {
+      const idsRecorderDepartements = this.recorderDepartments?.map((l) => l.id);
+      recorderDepartmentIds = [this.recorderDepartment.id, ...idsRecorderDepartements];
+    }
+
+    recorderDepartmentIds = removeDuplicatesFromArray(recorderDepartmentIds?.filter(isNotNil));
+
     if (isNotEmptyArray(recorderDepartmentIds)) {
       filterFns.push((t) => t.recorderDepartment && recorderDepartmentIds.includes(t.recorderDepartment.id));
     }
+
     // Recorder department and person
     // Already defined in super classes root-data-filter.model.ts et data-filter.model.ts
 
