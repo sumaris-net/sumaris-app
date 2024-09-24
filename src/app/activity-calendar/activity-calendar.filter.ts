@@ -30,7 +30,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
   registrationLocations: ReferentialRef[] = null;
   basePortLocations: ReferentialRef[] = null;
   recorderPersons: Person[] = null;
-  recorderDepartments: Department[];
+  recorderDepartments: Department[] = null;
   includedIds: number[];
   excludedIds: number[];
   directSurveyInvestigation: boolean;
@@ -57,7 +57,11 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.endDate = fromDateISOString(source.endDate);
     this.directSurveyInvestigation = source.directSurveyInvestigation;
     this.economicSurvey = source.economicSurvey;
-    this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
+    this.observers = Array.isArray(source.observers)
+      ? source.observers.map(Person.fromObject)
+      : source.observers
+        ? [Person.fromObject(source.observers)]
+        : null;
     this.recorderPersons = source.recorderPersons?.map(Person.fromObject);
     this.recorderDepartments = source.recorderDepartments?.map(Department.fromObject);
   }
@@ -84,11 +88,11 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
       delete target.basePortLocations;
 
       // recorderPersons
-      target.recorderPersonIds = (this.recorderPersons && this.recorderPersons.map((o) => o && o.id).filter(isNotNil)) || undefined;
+      target.recorderPersonIds = this.recorderPersons?.map((o) => o && o.id).filter(isNotNil) || undefined;
       delete target.recorderPersons;
 
       //recorderDepartments
-      target.recorderDepartmentIds = (this.recorderDepartments && this.recorderDepartments.map((o) => o && o.id).filter(isNotNil)) || undefined;
+      target.recorderDepartmentIds = this.recorderDepartments?.map((o) => o && o.id).filter(isNotNil) || undefined;
       delete target.recorderDepartments;
 
       // Observers
@@ -141,15 +145,15 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     }
 
     //recorderPersons
-    const recorderPersonIds = this.recorderPersons?.map((p) => p.id).filter(isNotNil);
-    if (isNotEmptyArray(recorderPersonIds)) {
-      filterFns.push((t) => t.recorderPerson && recorderPersonIds.includes(t.recorderPerson.id));
+    if (isNotEmptyArray(this.recorderPersons)) {
+      const recorderPersonIds = this.recorderPersons?.map((l) => l.id);
+      filterFns.push((t) => t.recorderPerson && recorderPersonIds.includes(t.recorderPerson?.id));
     }
 
     //recorderDepartments
-    const recorderDepartmentIds = this.recorderDepartments?.map((d) => d.id).filter(isNotNil);
-    if (isNotEmptyArray(recorderDepartmentIds)) {
-      filterFns.push((t) => t.recorderDepartment && recorderDepartmentIds.includes(t.recorderDepartment.id));
+    if (isNotEmptyArray(this.recorderDepartments)) {
+      const recorderDepartmentIds = this.recorderDepartments?.map((l) => l.id);
+      filterFns.push((t) => t.recorderDepartment && recorderDepartmentIds.includes(t.recorderDepartment?.id));
     }
 
     // Base port locations
