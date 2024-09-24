@@ -43,7 +43,7 @@ export abstract class RootDataEntityFilter<
       Person.fromObject(source.recorderPerson) ||
       (isNotNil(source.recorderPersonId) && Person.fromObject({ id: source.recorderPersonId })) ||
       undefined;
-    // this.recorderPersons = (source.recorderPersons && source.recorderPersons.map(Person.fromObject)) || [];
+
     this.startDate = fromDateISOString(source.startDate)?.startOf('day');
     this.endDate = fromDateISOString(source.endDate)?.endOf('day');
   }

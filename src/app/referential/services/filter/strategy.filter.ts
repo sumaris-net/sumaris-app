@@ -9,6 +9,7 @@ import {
   isNotNil,
   ReferentialRef,
   ReferentialUtils,
+  removeDuplicatesFromArray,
   toDateISOString,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -43,11 +44,11 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.department = (source.department && ReferentialRef.fromObject(source.department)) || undefined;
-    this.departments = (source.departments && source.departments.map(Department.fromObject)) || [];
+    this.departments = (source.departments && source.departments?.map(Department.fromObject)) || [];
     this.location = (source.location && ReferentialRef.fromObject(source.location)) || undefined;
-    this.locations = (source.locations && source.locations.map(ObservedLocation.fromObject)) || [];
+    this.locations = (source.locations && source.locations?.map(ObservedLocation.fromObject)) || [];
     this.taxonName = (source.taxonName && TaxonNameRef.fromObject(source.taxonName)) || undefined;
-    this.taxonNames = (source.taxonNames && source.taxonNames.map(TaxonName.fromObject)) || [];
+    this.taxonNames = (source.taxonNames && source.taxonNames?.map(TaxonName.fromObject)) || [];
     this.analyticReference = (source.analyticReference && ReferentialRef.fromObject(source.analyticReference)) || undefined;
 
     this.parameterIds = source.parameterIds;
@@ -64,22 +65,25 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
     target.acquisitionLevels = target.acquisitionLevel ? [target.acquisitionLevel] : target.acquisitionLevels;
 
     if (opts && opts.minify) {
-      target.departmentIds = ReferentialUtils.isNotEmpty(this.department) ? [this.department.id] : undefined;
-      target.departmentIds = ReferentialUtils.isNotEmpty(this.department)
-        ? ReferentialUtils.isNotEmpty(this.department)
-          ? [this.department.id]
-          : undefined
-        : (this.departments && this.departments.map((o) => o && o.id).filter(isNotNil)) || undefined;
-      target.locationIds = ReferentialUtils.isNotEmpty(this.location)
-        ? ReferentialUtils.isNotEmpty(this.location)
-          ? [this.location.id]
-          : undefined
-        : (this.locations && this.locations.map((o) => o && o.id).filter(isNotNil)) || undefined;
-      target.referenceTaxonIds = EntityUtils.isNotEmpty(this.taxonName, 'referenceTaxonId')
-        ? EntityUtils.isNotEmpty(this.taxonName, 'referenceTaxonId')
-          ? [this.taxonName.referenceTaxonId]
-          : undefined
-        : (this.taxonNames && this.taxonNames.map((o) => o && o.id).filter(isNotNil)) || undefined;
+      // departments
+      let departments;
+      if (ReferentialUtils.isNotEmpty(this.department) || isNotEmptyArray(this.departments)) departments = [this.department, ...this.departments];
+      departments = removeDuplicatesFromArray(departments.filter(isNotNil));
+      target.departmentIds = isNotEmptyArray(departments) ? departments?.map((v) => v.id).filter(isNotNil) : undefined;
+
+      // locations
+      let locations;
+      if (ReferentialUtils.isNotEmpty(this.location) || isNotEmptyArray(this.locations)) locations = [this.location, ...this.locations];
+      locations = removeDuplicatesFromArray(locations.filter(isNotNil));
+      target.locationIds = isNotEmptyArray(locations) ? locations?.map((v) => v.id).filter(isNotNil) : undefined;
+
+      // taxonNames
+      let taxonNames;
+      if (ReferentialUtils.isNotEmpty(this.taxonName) || isNotEmptyArray(this.taxonNames)) taxonNames = [this.taxonName, ...this.taxonNames];
+      taxonNames = removeDuplicatesFromArray(taxonNames.filter(isNotNil));
+      target.taxonNameIds = isNotEmptyArray(taxonNames) ? taxonNames?.map((v) => v.id).filter(isNotNil) : undefined;
+
+      target.referenceTaxonIds = EntityUtils.isNotEmpty(this.taxonName, 'referenceTaxonId') ? [this.taxonName.referenceTaxonId] : undefined;
       target.analyticReferences = EntityUtils.isNotEmpty(this.analyticReference, 'label') ? [this.analyticReference.label] : undefined;
       delete target.department;
       delete target.departments;
@@ -123,10 +127,11 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
     if (isNotNil(referenceTaxonId)) {
       filterFns.push((t) => t.taxonNames && t.taxonNames.some((tns) => tns.taxonName?.referenceTaxonId === referenceTaxonId));
     }
+
     if (this.taxonNames) {
       const referenceTaxonIds = this.taxonNames && this.taxonNames.map((o) => o && o.id).filter(isNotNil);
       if (isNotEmptyArray(referenceTaxonIds)) {
-        filterFns.push((t) => t.taxonNames && t.taxonNames.some((tns) => tns.taxonName?.referenceTaxonId === referenceTaxonId));
+        filterFns.push((t) => t.taxonNames && t.taxonNames.some((tns) => referenceTaxonIds.includes(tns.taxonName?.referenceTaxonId)));
       }
     }
 
@@ -138,7 +143,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
     if (this.departments) {
       const departmentIds = this.departments && this.departments.map((o) => o && o.id).filter(isNotNil);
       if (isNotEmptyArray(departmentIds)) {
-        filterFns.push((t) => t.departments && t.departments.findIndex((o) => o && departmentIds.includes(o.id)) !== -1);
+        filterFns.push((t) => t.departments && t.departments.some((d) => departmentIds.includes(d.id)));
       }
     }
     // Location
@@ -146,10 +151,11 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
     if (isNotNil(locationId)) {
       filterFns.push((t) => t.appliedStrategies && t.appliedStrategies.some((as) => as.location?.id === locationId));
     }
+
     if (this.locations) {
       const locationIds = this.locations && this.locations.map((o) => o && o.id).filter(isNotNil);
       if (isNotEmptyArray(locationIds)) {
-        filterFns.push((t) => t.appliedStrategies && t.appliedStrategies.findIndex((o) => o && locationIds.includes(o.id)) !== -1);
+        filterFns.push((t) => t.appliedStrategies && t.appliedStrategies.some((as) => as.location && locationIds.includes(as.location.id)));
       }
     }
 

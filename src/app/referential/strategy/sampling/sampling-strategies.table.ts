@@ -167,7 +167,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       taxonNames: [null],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
-      //recorderPerson: [null],
+      //recorderPerson: [null, SharedValidators.entity],
       effortByQuarter: formBuilder.group({
         1: [null],
         2: [null],
