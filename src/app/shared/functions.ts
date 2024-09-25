@@ -1,13 +1,8 @@
 // TODO: remove after then updating to last version of ngx-components
 
-import { isEmptyArray, isNil, isNotNil, KeyValueType, LoadResult } from '@sumaris-net/ngx-components';
+import { BiFunction, Function, isEmptyArray, isNil, isNilOrNaN, isNotNil, KeyValueType, LoadResult } from '@sumaris-net/ngx-components';
 
-export declare type Function<P, R> = (value: P) => R;
-export declare type BiFunction<P1, P2, R> = (v1: P1, v2: P2) => R;
-
-export function isNilOrNaN<T>(obj: T | null | undefined): boolean {
-  return obj === undefined || obj === null || (typeof obj === 'number' && isNaN(obj));
-}
+export { isNilOrNaN, Function, BiFunction };
 
 export function mergeLoadResult<T>(res1: LoadResult<T>, res2: LoadResult<T>): LoadResult<T> {
   return {

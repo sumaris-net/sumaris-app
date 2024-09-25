@@ -844,8 +844,7 @@ export class ActivityCalendarPage
     const now = Date.now();
     console.debug(`${this.logPrefix}Loading predoc calendars...`);
 
-    const programLabels = await firstValueFrom(this.predocProgramLabels$);
-
+    // Job to load <Survey N-1>
     const loadPreviousYearCalendar = async () => {
       const { data } = await this.dataService.loadAll(
         0,
@@ -862,7 +861,11 @@ export class ActivityCalendarPage
       );
       return data?.[0];
     };
-    const loadPredocProgramCalendars = (programLabels || []).map((programLabel) => async () => {
+
+    // Job to load predoc calendar
+    const predocProgramLabels = (await firstValueFrom(this.predocProgramLabels$)).filter((program) => program !== entity.program?.label); // Exclude self program - see issue #
+
+    const loadPredocProgramCalendars = (predocProgramLabels || []).map((programLabel) => async () => {
       const { data } = await this.dataService.loadAll(
         0,
         1,
