@@ -18,6 +18,7 @@ import {
   Alerts,
   AppForm,
   AppFormArray,
+  arrayResize,
   DateFormatService,
   DateUtils,
   EntityUtils,
@@ -69,7 +70,6 @@ import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { Metier } from '@app/referential/metier/metier.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -142,7 +142,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   @Input() maxDistanceError: number;
   @Input() maxShootingDurationInHours: number;
   @Input() maxTotalDurationInHours: number;
-  @Input() isFishingAreaInline: boolean;
+  @Input() isInlineFishingArea: boolean;
 
   @Input() set usageMode(usageMode: UsageMode) {
     if (this._usageMode !== usageMode) {
@@ -522,11 +522,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     }
 
     this._showFishingArea = this._showFishingArea || (!this.showPosition && isNotEmptyArray(data.fishingAreas));
-    if (this.isFishingAreaInline && this._showFishingArea) {
-      data.fishingAreas = isNotEmptyArray(data.fishingAreas) ? data.fishingAreas : [null];
-      if (ProgramProperties.OPTION_INLINE_FISHING_AREA) {
-        data.fishingAreas = data.fishingAreas.concat([null, null, null]).splice(0, 4);
-      }
+    if (this._showFishingArea) {
+      const size =
+        (isChildOperation !== true ? 1 : 0) +
+        (this.fishingStartDateTimeEnable && isChildOperation !== true ? 1 : 0) +
+        (this.fishingEndDateTimeEnable && (!this.allowParentOperation || isChildOperation) ? 1 : 0) +
+        (this.endDateTimeEnable && (!this.allowParentOperation || isChildOperation) ? 1 : 0);
+      data.fishingAreas = isNotEmptyArray(data.fishingAreas)
+        ? arrayResize(data.fishingAreas, size, <FishingArea>{}).map(FishingArea.fromObject)
+        : [null, null, null, null].splice(0, size);
     }
 
     if (isParentOperation && DataEntityUtils.hasNoQualityFlag(data)) {
@@ -921,6 +925,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       withFishingStart: this.fishingStartDateTimeEnable,
       withFishingEnd: this.fishingEndDateTimeEnable,
       withEnd: this.endDateTimeEnable,
+      isInlineFishingArea: this.isInlineFishingArea,
       skipDate: this._showFishingDate,
       maxDistance: this.maxDistanceError,
       boundingBox: this._boundingBox,
@@ -1227,13 +1232,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   protected async suggestFishingAreaLocations(value: string | any, filter: any): Promise<LoadResult<ReferentialRef>> {
     const currentControlValue: ReferentialRef = ReferentialUtils.isNotEmpty(value) ? value : null;
+    let excludedIds = null;
 
     // Excluded existing locations, BUT keep the current control value
-    const excludedIds = (this.fishingAreasForm.value || [])
-      .map((fa: FishingArea) => fa?.location)
-      .filter(ReferentialUtils.isNotEmpty)
-      .filter((item: ReferentialRef) => !currentControlValue || currentControlValue !== item)
-      .map((item: ReferentialRef) => +item.id);
+    if (!this.isInlineFishingArea) {
+      excludedIds = (this.fishingAreasForm.value || [])
+        .map((fa: FishingArea) => fa?.location)
+        .filter(ReferentialUtils.isNotEmpty)
+        .filter((item: ReferentialRef) => !currentControlValue || currentControlValue !== item)
+        .map((item: ReferentialRef) => +item.id);
+    }
 
     if (this.autocompleteFilters.fishingArea && isNotNil(this.filteredFishingAreaLocations)) {
       return suggestFromArray(this.filteredFishingAreaLocations, value, {

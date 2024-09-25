@@ -264,7 +264,7 @@
                 (onSubmit)="save($event)"
                 (lastEndDateChanges)="lastEndDate = $event"
                 (openParentOperation)="openParentOperation($event)"
-                [isFishingAreaInline]="isFishingAreaInline"
+                [isInlineFishingArea]="isInlineFishingArea"
                 [debug]="debug"
               >
                 <!-- Other features (Measurements) -->
@@ -449,7 +449,7 @@
           opeForm.valid: {{ opeForm.valid }}
           <br />
           <br />
-          opeForm.isFishingAreaInline: {{ opeForm.isFishingAreaInline }}
+          opeForm.isInlineFishingArea: {{ opeForm.isInlineFishingArea }}
           <br />
           opeForm.showPosition: {{ opeForm.showPosition }}
           <br />

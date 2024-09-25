@@ -148,7 +148,7 @@ export class OperationPage<S extends OperationState = OperationState>
   helpUrl: string;
   _defaultIsParentOperation = true;
 
-  isFishingAreaInline: boolean = false;
+  protected isInlineFishingArea: boolean = false;
 
   readonly forceOptionalExcludedPmfmIds: number[];
 
@@ -774,7 +774,7 @@ export class OperationPage<S extends OperationState = OperationState>
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ENABLE);
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);
 
-    this.isFishingAreaInline = program.getPropertyAsBoolean(ProgramProperties.OPTION_INLINE_FISHING_AREA);
+    this.isInlineFishingArea = program.getPropertyAsBoolean(ProgramProperties.OPTION_INLINE_FISHING_AREA);
 
     if (!this.allowParentOperation) {
       this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;

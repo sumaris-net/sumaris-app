@@ -261,7 +261,7 @@
           </ion-row>
         </ion-grid>
       </ion-col>
-      @if (isFishingAreaInline && showFishingArea) {
+      @if (isInlineFishingArea && showFishingArea) {
         <ion-col size="10" size-lg="4">
           <ng-container
             *ngTemplateOutlet="
@@ -356,7 +356,7 @@
           </ion-row>
         </ion-grid>
       </ion-col>
-      @if (isFishingAreaInline && showFishingArea) {
+      @if (isInlineFishingArea && showFishingArea) {
         <ion-col size="10" size-lg="4">
           <ng-container
             *ngTemplateOutlet="
@@ -440,7 +440,7 @@
           </ion-row>
         </ion-grid>
       </ion-col>
-      @if (isFishingAreaInline && showFishingArea) {
+      @if (isInlineFishingArea && showFishingArea) {
         <ion-col size="10" size-lg="4">
           <ng-container
             *ngTemplateOutlet="
@@ -535,7 +535,7 @@
           </ion-row>
         </ion-grid>
       </ion-col>
-      @if (isFishingAreaInline && showFishingArea) {
+      @if (isInlineFishingArea && showFishingArea) {
         <ion-col size="10" size-lg="4">
           <ng-container
             *ngTemplateOutlet="
@@ -552,7 +552,7 @@
     </ion-row>
 
     <!-- Fishing areas -->
-    @if (!isFishingAreaInline && showFishingArea) {
+    @if (!isInlineFishingArea && showFishingArea) {
       <ng-container>
         <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first; last as last">
           <ion-col size="12" size-md="3" size-lg="3">
