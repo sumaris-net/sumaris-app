@@ -2492,7 +2492,7 @@ export class CalendarComponent
       sourceMonths = sourceMonths.slice(0, targetRows.length);
       targetCellSelection.colspan = targetRows.length;
     }
-
+    const rowsToDelete = [];
     for (let i = 0; i < targetRows.length; i++) {
       const targetRow = targetRows[i];
       const sourceMonth = sourceMonths[i % sourceMonths.length];
@@ -2507,7 +2507,7 @@ export class CalendarComponent
       let isActive = toNumber(sourceMonth.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
 
       sourcePaths.forEach((sourcePath, index) => {
-        let sourceValue = getPropertyByPath(sourceMonth, sourcePath);
+        const sourceValue = getPropertyByPath(sourceMonth, sourcePath);
         isActive = isActive || (isNotNil(sourceValue) && sourcePath !== 'isActive' && sourcePath !== 'basePortLocation');
 
         // Force IsActive = true, if need
@@ -2522,7 +2522,9 @@ export class CalendarComponent
         const targetPath = targetPaths[index];
         const control = targetPath && this.findOrCreateControl(targetForm, targetPath);
         if (control) {
-          if (targetPath === 'isActive' && sourceValue === VesselUseFeaturesIsActiveEnum.NOT_EXISTS) sourceValue = null;
+          if (targetPath === 'isActive' && sourceValue === VesselUseFeaturesIsActiveEnum.NOT_EXISTS) {
+            rowsToDelete.push(targetRow);
+          }
           control.enable({ emitEvent: false });
           control.setValue(sourceValue);
         }
@@ -2541,6 +2543,9 @@ export class CalendarComponent
       // Update the row
       await this.updateEntityToTable(targetForm.value, targetRow, { confirmEdit: true });
     }
+
+    // Delete rows paste with IsActive = NOT_EXISTS
+    rowsToDelete.forEach(async (row) => await this.clear(null, row, { interactive: false }));
 
     // DEBUG
     console.debug(`${this.logPrefix}Paste clipboard [OK]`);
