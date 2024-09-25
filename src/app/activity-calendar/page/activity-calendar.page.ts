@@ -85,6 +85,7 @@ import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-cal
 import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-form.component';
+import { VesselUseFeaturesIsActiveEnum } from '../model/vessel-use-features.model';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -1038,6 +1039,11 @@ export class ActivityCalendarPage
     const target = existingMonths.map((existingMonth, index) => {
       const source = sources[index];
       if (!source) return target; // Keep original, if missing a month
+
+      // if isActive not exists, set to null issue #687
+      if (source.isActive === VesselUseFeaturesIsActiveEnum.NOT_EXISTS) {
+        source.isActive = null;
+      }
 
       return ActivityMonth.fromObject(<Partial<ActivityMonth>>{
         ...source,

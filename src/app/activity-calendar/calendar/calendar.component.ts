@@ -2507,7 +2507,7 @@ export class CalendarComponent
       let isActive = toNumber(sourceMonth.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
 
       sourcePaths.forEach((sourcePath, index) => {
-        const sourceValue = getPropertyByPath(sourceMonth, sourcePath);
+        let sourceValue = getPropertyByPath(sourceMonth, sourcePath);
         isActive = isActive || (isNotNil(sourceValue) && sourcePath !== 'isActive' && sourcePath !== 'basePortLocation');
 
         // Force IsActive = true, if need
@@ -2522,6 +2522,7 @@ export class CalendarComponent
         const targetPath = targetPaths[index];
         const control = targetPath && this.findOrCreateControl(targetForm, targetPath);
         if (control) {
+          if (targetPath === 'isActive' && sourceValue === VesselUseFeaturesIsActiveEnum.NOT_EXISTS) sourceValue = null;
           control.enable({ emitEvent: false });
           control.setValue(sourceValue);
         }
