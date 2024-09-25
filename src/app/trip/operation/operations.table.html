@@ -346,6 +346,14 @@
       </td>
     </ng-container>
 
+    <!-- Accidental catch column -->
+    <ng-container matColumnDef="accidentalCatch">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let row" [title]="row.currentData.accidentalCatch || ''">
+        <ion-icon *ngIf="row.currentData.accidentalCatch | isNotNilOrBlank" color="secondary" name="chatbox" slot="icon-only"></ion-icon>
+      </td>
+    </ng-container>
+
     <!-- Actions buttons column -->
     <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)">
       <th mat-header-cell *matHeaderCellDef>

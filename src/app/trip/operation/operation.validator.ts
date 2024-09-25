@@ -66,6 +66,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   withFishingStart?: boolean;
   withFishingEnd?: boolean;
   withEnd?: boolean;
+  isInlineFishingArea?: boolean;
   maxDistance?: number;
   maxShootingDurationInHours?: number;
   maxTotalDurationInHours?: number;
@@ -163,7 +164,14 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add fishing Ares
     if (opts.withFishingAreas) {
-      form.addControl('fishingAreas', this.getFishingAreasArray(data?.fishingAreas, { required: true }));
+      form.addControl(
+        'fishingAreas',
+        this.getFishingAreasArray(data?.fishingAreas, {
+          required: true,
+          allowManyNullValues: opts?.isInlineFishingArea,
+          allowDuplicateValue: opts?.isInlineFishingArea,
+        })
+      );
     }
 
     // Add child operation
@@ -380,7 +388,16 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add fishing areas
     if (opts.withFishingAreas) {
-      if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null, { required: true }));
+      let fishingAreasArray = form.get('fishingAreas') as AppFormArray<FishingArea, UntypedFormGroup>;
+
+      if (!fishingAreasArray) {
+        fishingAreasArray = this.getFishingAreasArray(null, {
+          required: true,
+          allowManyNullValues: opts.isInlineFishingArea,
+          allowDuplicateValue: opts.isInlineFishingArea,
+        });
+        form.addControl('fishingAreas', fishingAreasArray);
+      }
     } else {
       if (form.controls.fishingAreas) form.removeControl('fishingAreas');
     }
@@ -632,6 +649,10 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE), false)
     );
     opts.withEnd = toBoolean(opts.withEnd, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE), true));
+    opts.isInlineFishingArea = toBoolean(
+      opts.isInlineFishingArea,
+      toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.OPTION_INLINE_FISHING_AREA), false)
+    );
     opts.maxDistance = toNumber(opts.maxDistance, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR));
     opts.boundingBox = opts.boundingBox || Geometries.parseAsBBox(opts.program?.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
     opts.maxTotalDurationInHours = toNumber(
@@ -681,10 +702,15 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     };
   }
 
-  protected getFishingAreasArray(data?: FishingArea[], opts?: { required?: boolean }) {
+  protected getFishingAreasArray(data?: FishingArea[], opts?: { required?: boolean; allowManyNullValues?: boolean; allowDuplicateValue?: boolean }) {
     const required = !opts || opts.required !== false;
+    const allowManyNullValues = !opts || opts.allowManyNullValues !== false;
+    const allowDuplicateValue = !opts || opts.allowDuplicateValue !== false;
+
     const formArray = new AppFormArray((fa) => this.fishingAreaValidator.getFormGroup(fa, { required }), FishingArea.equals, FishingArea.isEmpty, {
       allowEmptyArray: false,
+      allowManyNullValues: allowManyNullValues,
+      allowDuplicateValue: allowDuplicateValue,
       validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined,
     });
     if (data) formArray.patchValue(data);
