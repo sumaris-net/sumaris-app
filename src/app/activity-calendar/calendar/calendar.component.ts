@@ -1149,7 +1149,8 @@ export class CalendarComponent
     event?.preventDefault(); // Avoid clickRow
 
     const isActiveIndex = this.displayedColumns.findIndex((col) => col === 'isActive');
-    const cell = this.getCellElement(row.id, isActiveIndex);
+    // eslint-disable-next-line prefer-const
+    let { columnName, cellElement } = this.getCellElement(row.id, isActiveIndex);
 
     const reservedColumnCount = RESERVED_START_COLUMNS.concat(RESERVED_END_COLUMNS).length + this.readonlyColumnCount;
     const rowspan = this.displayedColumns.length - reservedColumnCount;
@@ -1159,15 +1160,15 @@ export class CalendarComponent
     // If Shift+click: expand the existing selection
     if (event?.shiftKey && this.cellSelection?.rowspan === rowspan && this.cellSelection.row.id !== row.id) {
       colspan = (Math.max(1, Math.abs(row.id - this.cellSelection.row.id)) + 1) * (row.id < this.cellSelection.row.id ? -1 : 1);
-      cell.cellElement = this.cellSelection.cellElement;
+      cellElement = this.cellSelection.cellElement;
       row = this.cellSelection.row;
     }
 
     this.cellSelection = {
       divElement: this.cellSelectionDivRef.nativeElement,
-      cellElement: cell.cellElement,
+      cellElement,
       row,
-      columnName: cell.columnName,
+      columnName,
       colspan,
       rowspan,
       resizing: false,
