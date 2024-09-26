@@ -94,7 +94,7 @@
         @if (row.editing) {
           <mat-autocomplete-field
             floatLabel="never"
-            class="min-width-medium"
+            panelClass="min-width-large"
             [autofocus]="focusColumn === 'parentGroup'"
             [formControl]="row.validator | formGetControl: 'parentGroup'"
             [placeholder]="'TRIP.BATCH.TABLE.PARENT_GROUP' | translate"
@@ -120,7 +120,7 @@
         <mat-autocomplete-field
           *ngIf="row.editing; else readonlyCell"
           floatLabel="never"
-          class="min-width-medium"
+          panelClass="min-width-large"
           [formControl]="row.validator | formGetControl: 'taxonName'"
           [autofocus]="focusColumn === 'taxonName'"
           [placeholder]="'TRIP.BATCH.TABLE.TAXON_NAME_PLACEHOLDER' | translate"

@@ -59,7 +59,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
       // If pmfm is multiple, then use a AppFormArray
       if (pmfm.isMultiple) {
-        const formArray = new AppFormArray((v) => this.formBuilder.control(v, validator), PmfmValueUtils.equals, PmfmValueUtils.isEmpty, {
+        const formArray = new AppFormArray((value) => this.formBuilder.control(value, validator), PmfmValueUtils.equals, PmfmValueUtils.isEmpty, {
           allowEmptyArray: false,
         });
         if (Array.isArray(value)) {

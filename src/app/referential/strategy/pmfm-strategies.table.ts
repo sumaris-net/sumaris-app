@@ -189,7 +189,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         items: this.acquisitionLevels$,
         attributes: ['name'],
         showAllOnFocus: true,
-        class: 'mat-autocomplete-panel-large-size',
+        panelClass: 'min-width-large',
       }),
     });
 
@@ -218,7 +218,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         columnSizes: [4, 8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
         showAllOnFocus: false,
-        class: 'mat-autocomplete-panel-large-size',
+        panelClass: 'min-width-large',
       }),
     });
 
@@ -265,7 +265,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         attributes: qvAttributes,
         items: this._state.select('qualitativeValues'),
         showAllOnFocus: true,
-        class: 'mat-autocomplete-panel-large-size',
+        panelClass: 'min-width-large',
       },
       required: false,
     });
@@ -305,7 +305,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         columnNames: pmfmColumnNames,
         displayWith: (pmfm) => this.displayPmfm(pmfm, { withUnit: true, withDetails: true }),
         showAllOnFocus: false,
-        class: 'mat-mdc-autocomplete-panel-full-size',
+        panelClass: 'min-width-large',
       }),
     });
   }

@@ -97,7 +97,7 @@
       <td mat-cell *matCellDef="let row" (click)="focusColumn = 'taxonName'">
         <mat-autocomplete-field
           floatLabel="never"
-          class="min-width-medium"
+          panelClass="min-width-medium"
           [autofocus]="row.editing && focusColumn === 'taxonName'"
           [formControl]="row.validator.controls.taxonName"
           [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER' | translate"

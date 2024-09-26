@@ -4,7 +4,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   AccountService,
   AppForm,

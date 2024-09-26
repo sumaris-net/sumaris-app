@@ -529,7 +529,7 @@ export class OperationPage<S extends OperationState = OperationState>
         samplingTypeControl.valueChanges
           .pipe(
             debounceTime(400),
-            startWith<any, any>(samplingTypeControl.value),
+            startWith<any>(samplingTypeControl.value),
             filter(ReferentialUtils.isNotEmpty),
             map((qv) => qv.label),
             distinctUntilChanged()
@@ -575,7 +575,7 @@ export class OperationPage<S extends OperationState = OperationState>
       hasAccidentalCatchesControl.setValidators(Validators.required);
       this._measurementSubscription.add(
         hasAccidentalCatchesControl.valueChanges
-          .pipe(debounceTime(400), startWith<any, any>(hasAccidentalCatchesControl.value), filter(isNotNil), distinctUntilChanged())
+          .pipe(debounceTime(400), startWith<any>(hasAccidentalCatchesControl.value), filter(isNotNil), distinctUntilChanged())
           .subscribe((hasAccidentalCatches) => {
             if (this.debug) console.debug('[operation] Enable/Disable samples table, because HAS_ACCIDENTAL_CATCHES=' + hasAccidentalCatches);
 
@@ -645,7 +645,7 @@ export class OperationPage<S extends OperationState = OperationState>
     if (isNotNil(hasIndividualMeasuresControl) && this.batchTree) {
       this._measurementSubscription.add(
         hasIndividualMeasuresControl.valueChanges
-          .pipe(startWith<any, any>(hasIndividualMeasuresControl.value), filter(isNotNil))
+          .pipe(startWith<any>(hasIndividualMeasuresControl.value), filter(isNotNil))
           .subscribe((value) => (this.hasIndividualMeasures = value))
       );
       this._measurementSubscription.add(
@@ -689,7 +689,7 @@ export class OperationPage<S extends OperationState = OperationState>
     if (isNotNil(tripProgressControl)) {
       this._measurementSubscription.add(
         tripProgressControl.valueChanges
-          .pipe(debounceTime(400), startWith<any, any>(tripProgressControl.value), filter(isNotNilOrBlank), distinctUntilChanged())
+          .pipe(debounceTime(400), startWith<any>(tripProgressControl.value), filter(isNotNilOrBlank), distinctUntilChanged())
           .subscribe((normalProgress) => {
             if (!normalProgress) console.debug('[operation] abnormal progress: force comment as required');
             this.opeForm.requiredComment = !normalProgress;

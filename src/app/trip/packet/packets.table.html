@@ -74,7 +74,7 @@
         <mat-autocomplete-field
           *ngIf="inlineEdition; else readOnly"
           floatLabel="never"
-          class="min-width-large ion-text-wrap"
+          panelClass="min-width-large ion-text-wrap"
           [formControl]="row.validator.controls.parent"
           [config]="autocompleteFields.parent"
           [autofocus]="row.id === -1 && row.editing"

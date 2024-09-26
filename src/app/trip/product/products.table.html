@@ -79,7 +79,7 @@
         <mat-autocomplete-field
           *ngIf="inlineEdition; else readOnly"
           floatLabel="never"
-          class="min-width-large ion-text-wrap"
+          panelClass="min-width-large ion-text-wrap"
           [autofocus]="row.id === -1 && row.editing && !row.currentData.parent"
           [formControl]="row.validator.controls.parent"
           [placeholder]="'TRIP.PRODUCT.LIST.PARENT' | translate"
@@ -115,7 +115,7 @@
         <mat-autocomplete-field
           *ngIf="inlineEdition; else readOnly"
           floatLabel="never"
-          class="min-width-large ion-text-wrap"
+          panelClass="min-width-large ion-text-wrap"
           [autofocus]="row.id === -1 && row.editing && !!row.currentData.parent"
           [formControl]="row.validator.controls.taxonGroup"
           [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP' | translate"

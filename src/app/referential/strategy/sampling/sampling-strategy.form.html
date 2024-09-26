@@ -334,7 +334,7 @@
       <ion-col>
         <form [formGroup]="lengthPmfmsHelper.at(i)">
           <mat-autocomplete-field
-            class="mat-mdc-autocomplete-panel-full-size"
+            panelClass="full-width"
             formControlName="pmfm"
             [placeholder]="(i18nFieldPrefix + 'LENGTHS_PLACEHOLDER' | translate) + (i + 1)"
             [config]="autocompleteFields.lengthPmfm"
@@ -387,7 +387,7 @@
       <ion-col>
         <form [formGroup]="weightPmfmsHelper.at(i)">
           <mat-autocomplete-field
-            class="mat-mdc-autocomplete-panel-full-size"
+            panelClass="full-width"
             formControlName="pmfm"
             [placeholder]="(i18nFieldPrefix + 'WEIGHTS_PLACEHOLDER' | translate) + (i + 1)"
             [config]="autocompleteFields.weightPmfm"
@@ -454,7 +454,7 @@
         <ion-col>
           <form [formGroup]="maturityPmfmsHelper.at(i)">
             <mat-autocomplete-field
-              class="mat-mdc-autocomplete-panel-full-size"
+              panelClass="full-width"
               formControlName="pmfm"
               [placeholder]="(i18nFieldPrefix + 'MATURITIES_PLACEHOLDER' | translate) + (i + 1)"
               [config]="autocompleteFields.maturityPmfm"

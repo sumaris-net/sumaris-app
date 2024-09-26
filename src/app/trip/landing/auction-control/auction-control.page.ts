@@ -173,7 +173,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
         map((pmfm) => pmfm && this.form.get(`measurementValues.${pmfm.id}`)),
         filter(isNotNil),
         distinctUntilChanged(),
-        switchMap((control) => control.valueChanges.pipe(startWith<any, any>(control.value), debounceTime(250)))
+        switchMap((control) => control.valueChanges.pipe(startWith<any>(control.value), debounceTime(250)))
       )
       .pipe(
         // Update the help content

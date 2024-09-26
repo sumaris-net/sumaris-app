@@ -410,11 +410,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       combineLatest([
         fishingEndDateTimeControl.valueChanges.pipe(
           filter((_) => this.fishingEndDateTimeEnable),
-          startWith<any, any>(fishingEndDateTimeControl.value) // Need by combineLatest (must be after filter)
+          startWith<any>(fishingEndDateTimeControl.value) // Need by combineLatest (must be after filter)
         ),
         endDateTimeControl.valueChanges.pipe(
           filter((_) => this.endDateTimeEnable),
-          startWith<any, any>(endDateTimeControl.value) // Need by combineLatest (must be after filter)
+          startWith<any>(endDateTimeControl.value) // Need by combineLatest (must be after filter)
         ),
       ])
         .pipe(
