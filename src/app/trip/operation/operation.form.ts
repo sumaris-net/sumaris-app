@@ -906,15 +906,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         } else if (this.isInlineFishingArea) {
           // Copy parent's areas
           fishingAreasCopy.forEach((fa, index) => {
-            // fishingAreasForm.at(index).patchValue(fa);
             arrayFishingAreas.push(fa);
             if (index == fishingAreasCopy.length - 1) {
               arrayFishingAreas.push(fa);
             }
           });
           // Init child default areas
-          // const lastFishingArea = lastArrayValue(fishingAreasCopy);
-          arrayFishingAreas = arrayResize(arrayFishingAreas, 4, <FishingArea>{}).map(FishingArea.fromObject);
+          arrayFishingAreas = arrayResize(arrayFishingAreas, this._dateIndexMap.end + 1, <FishingArea>{}).map(FishingArea.fromObject);
           fishingAreasForm.patchValue(arrayFishingAreas);
         }
       }
