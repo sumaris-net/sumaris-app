@@ -34,6 +34,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
+  lastArrayValue,
   LatLongPattern,
   LoadResult,
   MatAutocompleteField,
@@ -115,6 +116,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _showFishingDate: boolean = false;
   protected _usageMode: UsageMode;
   protected toastController = inject(ToastController);
+  protected _dateIndexMap = {
+    start: 0,
+    startFishing: -1,
+    endFishing: -1,
+    end: -1,
+  };
 
   busySubject = new BehaviorSubject<boolean>(false);
   startProgram: Date | Moment;
@@ -533,14 +540,19 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
     this._showFishingArea = this._showFishingArea || (!this.showPosition && isNotEmptyArray(data.fishingAreas));
     if (this._showFishingArea) {
-      const size =
-        (isChildOperation !== true ? 1 : 0) +
-        (this.fishingStartDateTimeEnable && isChildOperation !== true ? 1 : 0) +
-        (this.fishingEndDateTimeEnable && (!this.allowParentOperation || isChildOperation) ? 1 : 0) +
-        (this.endDateTimeEnable && (!this.allowParentOperation || isChildOperation) ? 1 : 0);
-      data.fishingAreas = isNotEmptyArray(data.fishingAreas)
-        ? arrayResize(data.fishingAreas, size, <FishingArea>{}).map(FishingArea.fromObject)
-        : [null, null, null, null].splice(0, size);
+      if (!this.isInlineFishingArea) {
+        data.fishingAreas = isNotEmptyArray(data.fishingAreas) ? data.fishingAreas : [null];
+      } else {
+        const size =
+          // startDate
+          1 +
+          (this.fishingStartDateTimeEnable ? 1 : 0) +
+          (this.fishingEndDateTimeEnable && (!this.allowParentOperation || isChildOperation) ? 1 : 0) +
+          (this.endDateTimeEnable && (!this.allowParentOperation || isChildOperation) ? 1 : 0);
+        data.fishingAreas = isNotEmptyArray(data.fishingAreas)
+          ? arrayResize(data.fishingAreas, size, <FishingArea>{}).map(FishingArea.fromObject)
+          : [null, null, null, null].splice(0, size);
+      }
     }
 
     if (isParentOperation && DataEntityUtils.hasNoQualityFlag(data)) {
@@ -813,7 +825,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     const startDateTimeControl = form.get('startDateTime');
     const fishingStartDateTimeControl = form.get('fishingStartDateTime');
     const qualityFlagIdControl = form.get('qualityFlagId');
-    const fishingAreasControl = this._showFishingArea && form.get('fishingAreas');
+    const fishingAreasForm = this._showFishingArea && this.fishingAreasForm;
 
     this.parentControl.setValue(parentOperation);
 
@@ -877,8 +889,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       this.setPosition(startPositionControl, parentOperation.startPosition);
       if (this.fishingStartDateTimeEnable) this.setPosition(fishingStartPositionControl, parentOperation.fishingStartPosition);
       // Init child default position
-      if (this.fishingEndDateTimeEnable) this.setPosition(fishingEndPositionControl, parentOperation.startPosition);
-      if (this.endDateTimeEnable) this.setPosition(endPositionControl, parentOperation.fishingStartPosition);
+      const lastParentDateTime = parentOperation.fishingStartPosition || parentOperation.startPosition;
+      if (this.fishingEndDateTimeEnable) this.setPosition(fishingEndPositionControl, lastParentDateTime);
+      else if (this.endDateTimeEnable) this.setPosition(endPositionControl, lastParentDateTime);
     }
 
     // Copy fishing area
@@ -886,8 +899,24 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       const fishingAreasCopy = parentOperation.fishingAreas
         .filter((fa) => ReferentialUtils.isNotEmpty(fa.location))
         .map((fa) => <FishingArea>{ location: fa.location });
-      if (isNotEmptyArray(fishingAreasCopy) && this.fishingAreasForm.length <= 1) {
-        fishingAreasControl.patchValue(fishingAreasCopy);
+      let arrayFishingAreas: FishingArea[] = [];
+
+      if (isNotEmptyArray(fishingAreasCopy)) {
+        if (this.fishingAreasForm.length <= 1) {
+          fishingAreasForm.patchValue(fishingAreasCopy);
+        } else if (this.isInlineFishingArea) {
+          // Copy parent's areas
+          fishingAreasCopy.forEach((fa, index) => {
+            // fishingAreasForm.at(index).patchValue(fa);
+            arrayFishingAreas.push(fa);
+            if (index == fishingAreasCopy.length - 1) {
+              arrayFishingAreas.push(fa);
+            }
+          });
+          // Init child default areas
+          const lastFishingArea = lastArrayValue(fishingAreasCopy);
+          fishingAreasForm.setValue(arrayFishingAreas);
+        }
       }
     }
 
@@ -965,6 +994,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       maxShootingDurationInHours: this.maxShootingDurationInHours,
       maxTotalDurationInHours: this.maxTotalDurationInHours,
     };
+    if (this.isInlineFishingArea) {
+      const mapDate = [validatorOpts.withFishingStart, validatorOpts.withFishingEnd, validatorOpts.withEnd];
+
+      this._dateIndexMap.startFishing = validatorOpts.withFishingStart ? 1 : -1;
+      this._dateIndexMap.endFishing = validatorOpts.withFishingEnd ? (validatorOpts.withFishingStart ? 1 : 0) + 1 : -1;
+      this._dateIndexMap.end = mapDate.filter((date) => date == true).length;
+    }
 
     if (!equals(validatorOpts, this._lastValidatorOpts)) {
       // DEBUG

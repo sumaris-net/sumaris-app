@@ -268,7 +268,7 @@
               fishingArea;
               context: {
                 fishingAreasForm: fishingAreasForm,
-                index: 0,
+                index: _dateIndexMap.start.valueOf(),
                 required: true
               }
             "
@@ -363,7 +363,7 @@
               fishingArea;
               context: {
                 fishingAreasForm: fishingAreasForm,
-                index: 1,
+                index: _dateIndexMap.startFishing.valueOf(),
                 required: _usageMode | isOnDesk
               }
             "
@@ -447,7 +447,7 @@
               fishingArea;
               context: {
                 fishingAreasForm: fishingAreasForm,
-                index: 0,
+                index: _dateIndexMap.endFishing.valueOf(),
                 required: isChildOperation
               }
             "
@@ -542,7 +542,7 @@
               fishingArea;
               context: {
                 fishingAreasForm: fishingAreasForm,
-                index: 1,
+                index: _dateIndexMap.end.valueOf(),
                 required: _usageMode | isOnDesk
               }
             "
