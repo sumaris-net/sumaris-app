@@ -122,6 +122,8 @@ export const environment = Object.freeze(<AppEnvironment>{
   // About modal
   sourceUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app',
   reportIssueUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues/new?issue',
+  forumUrl: null,
+  helpUrl: null,
 
   // Storage
   storage: {
