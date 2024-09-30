@@ -1,4 +1,4 @@
-import { isMoment, Moment } from 'moment/moment';
+import { isMoment, Moment } from 'moment';
 import {
   DateUtils,
   fromDateISOString,

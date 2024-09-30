@@ -174,8 +174,8 @@ export class ActivityMonthValidatorService<
       }
 
       const gufEnabled = enabled && isActive === VesselUseFeaturesIsActiveEnum.ACTIVE;
-      if (gufEnabled && !gufArray.enabled) gufArray.enable();
-      else if (!gufEnabled && gufArray.enabled) gufArray.disable();
+      if (gufEnabled && !gufArray.enabled) gufArray.enable({ onlySelf: true });
+      else if (!gufEnabled && gufArray.enabled) gufArray.disable({ onlySelf: true });
 
       // Set start/end date, and fishing area
       const startDate = form.get('startDate').value;
@@ -193,15 +193,15 @@ export class ActivityMonthValidatorService<
           }
           const metier = guf.get('metier').value;
           if (isNotNil(metier)) {
-            if (faArray.disabled) faArray.enable({ emitEvent: false });
+            if (faArray.disabled) faArray.enable({ onlySelf: true, emitEvent: false });
           } else {
-            if (faArray.enabled) faArray.disable({ emitEvent: false });
+            if (faArray.enabled) faArray.disable({ onlySelf: true, emitEvent: false });
           }
-          if (gufEnabled && faArray.disabled) faArray.enable({ emitEvent: false });
-          else if (!gufEnabled && faArray.enabled) faArray.disable({ emitEvent: false });
+          if (gufEnabled && faArray.disabled) faArray.enable({ onlySelf: true, emitEvent: false });
+          else if (!gufEnabled && faArray.enabled) faArray.disable({ onlySelf: true, emitEvent: false });
         } else {
           //if (faArray) guf.removeControl('fishingAreas');
-          if (faArray) faArray.disable({ emitEvent: false });
+          if (faArray) faArray.disable({ onlySelf: true, emitEvent: false });
         }
 
         // Init start/end date (only if need)
@@ -209,8 +209,8 @@ export class ActivityMonthValidatorService<
           guf.patchValue({ startDate, endDate }, { emitEvent: gufEnabled && guf.invalid /*force validation*/ });
         }
 
-        if (gufEnabled && !guf.enabled) guf.enable({ emitEvent: false });
-        else if (!gufEnabled && guf.enabled) guf.disable({ emitEvent: false });
+        if (gufEnabled && !guf.enabled) guf.enable({ onlySelf: true, emitEvent: false });
+        else if (!gufEnabled && guf.enabled) guf.disable({ onlySelf: true, emitEvent: false });
       });
     } else {
       // Disable GUF array
@@ -390,7 +390,7 @@ export class ActivityMonthValidators {
     }
 
     // DEBUG
-    console.debug(`[activity-month-validator] Computing finished [OK] in ${Date.now() - now}ms`);
+    console.debug(`[activity-month-validator] Computing finished [OK] in ${Date.now() - now}ms, dirty=${dirty}`);
 
     return errors;
   }

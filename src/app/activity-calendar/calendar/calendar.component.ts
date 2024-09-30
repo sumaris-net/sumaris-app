@@ -74,7 +74,7 @@ import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service'
 import { BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
-import { Moment } from 'moment/moment';
+import { Moment } from 'moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
@@ -1370,9 +1370,10 @@ export class CalendarComponent
     divElement.classList.toggle('right-no-border', rightCut);
 
     if (opts?.emitEvent !== false) {
-      this.markForCheck();
+      // this.markForCheck();
     }
 
+    // Don't debounce by default
     if (opts?.debouncedExpansion !== true) {
       this.expandCellSelection(cellSelection);
     } else {
@@ -1557,20 +1558,15 @@ export class CalendarComponent
       }),
     ];
 
-    // Update rows validator
-    if (this.loaded && this.inlineEdition && opts?.updateRows !== false) {
-      this.dataSource.getRows().forEach((row) => this.onPrepareRowForm(row.validator, { listenChanges: false }));
-    }
-
     this.focusColumn = blockColumns[0].key;
     this.dynamicColumns = this.dynamicColumns ? [...this.dynamicColumns, ...blockColumns] : blockColumns;
     const dynamicColumnKeys = this.dynamicColumns.map((col) => col.key);
     this.excludesColumns = this.excludesColumns.filter((columnName) => !dynamicColumnKeys.includes(columnName));
     this.metierCount = index + 1;
 
-    // Force to update the edited row
-    if (this.editedRow) {
-      this.onPrepareRowForm(this.editedRow.validator, { listenChanges: false });
+    // Update rows validator
+    if (this.loaded && this.inlineEdition && opts?.updateRows !== false) {
+      this.dataSource.getRows().forEach((row) => this.onPrepareRowForm(row.validator, { listenChanges: false }));
     }
 
     if (opts?.emitEvent !== false) {

@@ -73,7 +73,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import moment from 'moment/moment';
+import moment from 'moment';
 
 export interface OperationState extends AppDataEditorState {
   hasIndividualMeasures?: boolean;
