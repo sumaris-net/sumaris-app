@@ -137,6 +137,14 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     this.settingsId = ObservedLocationsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureName = ObservedLocationsPageSettingsEnum.FEATURE_NAME;
 
+    this.registerSubscription(
+      this.route.queryParams.subscribe((queryParams) => {
+        if (queryParams?.expandFilter && this.filterExpansionPanel) {
+          this.filterExpansionPanel.expanded = true;
+        }
+      })
+    );
+
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
   }
@@ -373,7 +381,12 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     await this.settings.savePageSetting(LandingsPageSettingsEnum.PAGE_ID, json, LandingsPageSettingsEnum.FILTER_KEY);
 
     setTimeout(async () => {
-      await this.navController.navigateRoot(path, { animated: false });
+      await this.navController.navigateRoot(path, {
+        animated: false,
+        queryParams: {
+          expandFilter: this.filterExpansionPanel.expanded ? true : undefined,
+        },
+      });
 
       // Reset the selected segment
       this.selectedSegment = '';

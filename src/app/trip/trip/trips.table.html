@@ -1,20 +1,20 @@
 <app-toolbar *ngIf="showToolbar" [title]="titleSubject | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
   <ion-buttons slot="end">
-    @if (!mobile) {
-      <app-named-filter-selector
-        [class.cdk-visually-hidden]="!filterExpansionPanel.expanded"
-        [entityName]="'Trip'"
-        [appearance]="'outline'"
-        [subscriptSizing]="'dynamic'"
-        [filterContentProvider]="namedFilterContentProvider"
-        [filterFormDirty]="filterForm.dirty"
-        [autocompleteConfig]="namedFilterAutocompleteConfig"
-        [filterImportCallback]="filterImportCallback"
-        (filterSelected)="setFilter($event)"
-      ></app-named-filter-selector>
-    }
+    @if (selection | isEmptySelection) {
+      @if (!mobile && !offline) {
+        <app-named-filter-selector
+          class="hidden-xs hidden-sm"
+          [class.hidden]="!filterExpansionPanel.expanded"
+          [entityName]="'Trip'"
+          [subscriptSizing]="'dynamic'"
+          [filterContentProvider]="namedFilterContentProvider"
+          [filterFormDirty]="filterForm.dirty"
+          [autocompleteConfig]="namedFilterAutocompleteConfig"
+          [filterImportCallback]="filterImportCallback"
+          (filterSelected)="setFilter($event)"
+        ></app-named-filter-selector>
+      }
 
-    <ng-container *ngIf="!selection.hasValue(); else hasSelection">
       <!-- Add -->
       <button mat-icon-button *ngIf="canEdit && !mobile" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
         <mat-icon>add</mat-icon>
@@ -25,11 +25,13 @@
         <mat-icon>refresh</mat-icon>
       </button>
 
-      <!-- Reset filter -->
-      <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
-        <mat-icon color="accent">filter_list_alt</mat-icon>
-        <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
-      </button>
+      <!-- reset filter -->
+      @if (filterCriteriaCount || filterExpansionPanel.expanded) {
+        <button mat-icon-button (click)="resetFilter()">
+          <mat-icon color="accent">filter_list_alt</mat-icon>
+          <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
+        </button>
+      }
 
       <!-- Show filter -->
       <button mat-icon-button (click)="filterExpansionPanel.toggle()">
@@ -50,10 +52,9 @@
       <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
-    </ng-container>
 
-    <!-- if row selection -->
-    <ng-template #hasSelection>
+      <!-- if row selection -->
+    } @else {
       <!-- synchronize -->
       <ion-button *ngIf="hasReadyToSyncSelection" expand="block" [color]="offline ? 'danger100' : 'danger'" (click)="synchronizeSelection()">
         <ion-icon slot="start" name="cloud-upload"></ion-icon>
@@ -87,7 +88,7 @@
       >
         <mat-icon>delete</mat-icon>
       </button>
-    </ng-template>
+    }
   </ion-buttons>
 </app-toolbar>
 

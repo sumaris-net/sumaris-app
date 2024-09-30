@@ -68,28 +68,32 @@
 }
 
 app-toolbar app-named-filter-selector {
+  --ion-text-color: var(--ion-color-contrast);
+  --ion-text-color-rgb: var(--ion-color-contrast-rgb);
+  --app-form-field-background-color: transparent;
   --app-form-color: var(--ion-color-contrast);
-  --mdc-outlined-text-field-label-text-color: rgba(var(--ion-color-contrast-rgb), 0.7);
-  --mdc-outlined-text-field-outline-color: rgba(var(--ion-color-contrast-rgb), 0.8);
-  --mdc-outlined-text-field-hover-label-text-color: var(--ion-color-contrast);
-  --mdc-outlined-text-field-hover-outline-color: var(--ion-color-contrast);
-  --mdc-outlined-text-field-focus-label-text-color: var(--ion-color-contrast);
-  --mdc-outlined-text-field-focus-outline-color: var(--ion-color-contrast);
-  --mdc-outlined-text-field-input-text-color: var(--ion-color-contrast);
-  --mdc-outlined-text-field-caret-color: var(--ion-color-contrast);
-  --ion-color: rgba(var(--ion-color-contrast-rgb), 0.8);
-  --mdc-icon-button-icon-color: rgba(var(--ion-color-contrast-rgb), 0.8);
-  --mdc-icon-button-disabled-icon-color: rgba(var(--ion-color-contrast-rgb), 0.8);
-  --ion-color-tertiary: var(--ion-color-accent);
+  --app-form-color-rgb: var(--ion-color-contrast-rgb, 255, 255, 255);
+  --app-form-field-label-color: rgba(var(--ion-color-contrast-rgb), 0.7);
+  --app-form-field-focus-label-color: rgba(var(--ion-color-contrast-rgb), 0.87);
+  --app-form-field-focus-background-color: var(--ion-color-contrast);
+  --mat-form-field-trailing-icon-color: var(--ion-color-contrast);
+  --ion-color-primary: var(--ion-color-contrast);
+  --ion-color-tertiary: var(--ion-color-danger);
+  --mdc-icon-button-icon-color: var(--ion-color-contrast);
 
-  &:hover {
-    --mdc-icon-button-icon-color: var(--ion-color-contrast);
-    --mdc-icon-button-disabled-icon-color: var(--ion-color-contrast);
+  button {
+    color: var(--ion-color-contrast);
   }
+  width: calc(min(450px, 25vw));
 
-  // Hide subscript wrapper (will hide hint)
-  .mat-mdc-form-field-subscript-wrapper {
-    display: none;
-    visibility: hidden;
+  &.hidden {
+    width: 0;
+    .mat-mdc-form-field-infix {
+      width: 0;
+    }
+  }
+  .mat-mdc-form-field-infix {
+    max-width: calc(max(350px, 15vw));
+    transition: width 150ms 0ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 }

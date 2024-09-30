@@ -1,10 +1,9 @@
 <app-toolbar [title]="title$ | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
   <ion-buttons slot="end">
-    @if (!mobile) {
+    @if (!mobile && !offline) {
       <app-named-filter-selector
         [class.cdk-visually-hidden]="!filterExpansionPanel.expanded"
         [entityName]="'ActivityCalendar'"
-        [appearance]="'outline'"
         [subscriptSizing]="'dynamic'"
         [filterContentProvider]="namedFilterContentProvider"
         [filterFormDirty]="filterForm.dirty"
@@ -30,10 +29,12 @@
       }
 
       <!-- Reset filter -->
-      <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
-        <mat-icon color="accent">filter_list_alt</mat-icon>
-        <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
-      </button>
+      @if (filterCriteriaCount || filterExpansionPanel.expanded) {
+        <button mat-icon-button (click)="resetFilter()">
+          <mat-icon color="accent">filter_list_alt</mat-icon>
+          <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
+        </button>
+      }
 
       <!-- Show filter -->
       <button mat-icon-button (click)="filterExpansionPanel.toggle()">

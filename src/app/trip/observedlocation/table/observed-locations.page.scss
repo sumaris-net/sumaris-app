@@ -5,6 +5,11 @@
   height: calc(100vh - 247px);
 }
 
+ion-segment {
+  // Limit segment max width, to be able to show named filter
+  max-width: calc(min(50vw, 450px));
+}
+
 .table-container {
   --table-offline-nav: 0px;
   --table-toolbar-height: 0px;

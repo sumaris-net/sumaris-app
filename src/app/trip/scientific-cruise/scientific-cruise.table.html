@@ -1,6 +1,20 @@
 <app-toolbar [title]="$title | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
   <ion-buttons slot="end">
-    <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+    @if (selection | isEmptySelection) {
+      @if (!mobile && !offline) {
+        <app-named-filter-selector
+          class="hidden-xs hidden-sm"
+          [class.cdk-visually-hidden]="!filterExpansionPanel.expanded"
+          [entityName]="'ScientificCruise'"
+          [subscriptSizing]="'dynamic'"
+          [filterContentProvider]="namedFilterContentProvider"
+          [filterFormDirty]="filterForm.dirty"
+          [autocompleteConfig]="namedFilterAutocompleteConfig"
+          [filterImportCallback]="filterImportCallback"
+          (filterSelected)="setFilter($event)"
+        ></app-named-filter-selector>
+      }
+
       <!-- Add -->
       <button mat-icon-button *ngIf="canEdit && !mobile" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
         <mat-icon>add</mat-icon>
@@ -12,10 +26,12 @@
       </button>
 
       <!-- Reset filter -->
-      <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
-        <mat-icon color="accent">filter_list_alt</mat-icon>
-        <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
-      </button>
+      @if (filterCriteriaCount || filterExpansionPanel.expanded) {
+        <button mat-icon-button (click)="resetFilter()">
+          <mat-icon color="accent">filter_list_alt</mat-icon>
+          <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
+        </button>
+      }
 
       <!-- Show filter -->
       <button mat-icon-button (click)="filterExpansionPanel.toggle()">
@@ -36,10 +52,9 @@
       <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
-    </ng-container>
 
-    <!-- if row selection -->
-    <ng-template #hasSelection>
+      <!-- if row selection -->
+    } @else {
       <!-- synchronize -->
       <ion-button *ngIf="hasReadyToSyncSelection" expand="block" [color]="offline ? 'danger100' : 'danger'" (click)="synchronizeSelection()">
         <ion-icon slot="start" name="cloud-upload"></ion-icon>
@@ -73,7 +88,7 @@
       >
         <mat-icon>delete</mat-icon>
       </button>
-    </ng-template>
+    }
   </ion-buttons>
 </app-toolbar>
 

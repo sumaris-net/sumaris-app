@@ -264,6 +264,14 @@ export class LandingsPage
     this.settingsId = LandingsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureName = LandingsPageSettingsEnum.FEATURE_NAME; // Same feature as Observed locations
 
+    this.registerSubscription(
+      this.route.queryParams.subscribe((queryParams) => {
+        if (queryParams?.expandFilter && this.filterExpansionPanel) {
+          this.filterExpansionPanel.expanded = true;
+        }
+      })
+    );
+
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -564,7 +572,12 @@ export class LandingsPage
     await this.settings.savePageSetting(ObservedLocationsPageSettingsEnum.PAGE_ID, json, ObservedLocationsPageSettingsEnum.FILTER_KEY);
 
     setTimeout(async () => {
-      await this.navController.navigateRoot(path, { animated: false });
+      await this.navController.navigateRoot(path, {
+        animated: false,
+        queryParams: {
+          expandFilter: this.filterExpansionPanel.expanded ? true : undefined,
+        },
+      });
 
       // Reset the selected segment
       this.selectedSegment = '';

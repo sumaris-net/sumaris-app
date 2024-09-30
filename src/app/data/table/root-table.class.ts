@@ -16,6 +16,7 @@ import {
   isNotNilOrBlank,
   MatAutocompleteFieldConfig,
   NamedFilter,
+  NamedFilterSelector,
   NetworkService,
   referentialToString,
   toBoolean,
@@ -131,6 +132,7 @@ export abstract class AppRootDataTable<
   @Input() showInstallUpgradeCard = true;
 
   @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(NamedFilterSelector, { static: false }) namedFilterSelector: NamedFilterSelector;
 
   protected constructor(
     injector: Injector,
@@ -614,6 +616,11 @@ export abstract class AppRootDataTable<
 
     console.info(this.logPrefix + `Loaded ${entities.length} entities from file`);
     return entities;
+  }
+
+  resetFilter(value?: any, opts?: { emitEvent: boolean }) {
+    super.resetFilter(value, opts);
+    this.namedFilterSelector?.form.reset(null);
   }
 
   referentialToString = referentialToString;
