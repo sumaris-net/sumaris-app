@@ -433,7 +433,13 @@
           [title]="'TRIP.SAMPLE.TABLE.BTN_IMAGES' | translateContext: i18nColumnSuffix"
           (click)="openImagesModal($event, row)"
         >
-          <mat-icon [matBadge]="imageCount" [matBadgeHidden]="!imageCount" matBadgeColor="accent" matBadgeSize="small" matBadgePosition="above after">
+          <mat-icon
+            [matBadge]="imageCount | badgeNumber"
+            [matBadgeHidden]="!imageCount"
+            matBadgeColor="accent"
+            matBadgeSize="small"
+            matBadgePosition="above after"
+          >
             <ion-icon [color]="imageCount ? 'tertiary' : 'medium'" slot="icon-only" name="camera"></ion-icon>
           </mat-icon>
         </button>
@@ -684,7 +690,7 @@
         <td mat-cell *matCellDef="let row">
           <mat-icon
             *ngIf="row.currentData.images?.length; let imageCount"
-            [matBadge]="imageCount"
+            [matBadge]="imageCount | badgeNumber"
             matBadgeColor="accent"
             matBadgeSize="small"
             matBadgePosition="above after"

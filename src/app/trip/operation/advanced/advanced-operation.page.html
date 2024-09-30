@@ -355,7 +355,7 @@
         <mat-icon svgIcon="fish-oblique"></mat-icon>
         <ion-label
           *ngVar="sampleTree.samplesTable.totalRowCount as count"
-          [matBadge]="count"
+          [matBadge]="count | badgeNumber"
           [matBadgeHidden]="sampleTree.invalid || !count"
           matBadgeOverlap="false"
           matBadgeColor="primary"

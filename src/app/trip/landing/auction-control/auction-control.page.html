@@ -111,7 +111,7 @@
           <ion-icon matPrefix slot="icon-only" name="flag"></ion-icon>
         </mat-icon>
         <ion-label
-          [matBadge]="samplesTable.visibleRowCount"
+          [matBadge]="samplesTable.visibleRowCount | badgeNumber"
           [matBadgeHidden]="samplesTable.invalid || !samplesTable.visibleRowCount"
           matBadgeOverlap="false"
           matBadgeColor="primary"

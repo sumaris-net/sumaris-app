@@ -132,7 +132,7 @@
             [color]="(row.currentData.composition | isNotEmptyArray) ? 'primary' : undefined"
           >
             <mat-icon
-              [matBadge]="row.currentData.composition?.length"
+              [matBadge]="row.currentData.composition?.length | badgeNumber"
               [matBadgeHidden]="row.currentData.composition | isEmptyArray"
               matBadgeColor="accent"
               matBadgeSize="small"

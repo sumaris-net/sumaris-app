@@ -118,7 +118,7 @@
       <ng-template mat-tab-label>
         <mat-icon matPrefix>build</mat-icon>
         <ion-label
-          [matBadge]="propertiesForm.length"
+          [matBadge]="propertiesForm.length | badgeNumber"
           [matBadgeHidden]="!propertiesForm.length"
           matBadgeColor="primary"
           matBadgeOverlap="false"

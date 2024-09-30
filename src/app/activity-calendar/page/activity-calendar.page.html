@@ -273,7 +273,7 @@
             <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
             &nbsp;
             <ion-label
-              [matBadge]="gallery.value.length"
+              [matBadge]="gallery.value.length | badgeNumber"
               [matBadgeHidden]="!gallery.value.length"
               matBadgeOverlap="false"
               matBadgeColor="primary"

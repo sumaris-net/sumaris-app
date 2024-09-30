@@ -231,7 +231,7 @@
             [hidden]="readOnly"
           >
             <mat-icon
-              [matBadge]="row.currentData.samples?.length"
+              [matBadge]="row.currentData.samples?.length | badgeNumber"
               [matBadgeHidden]="row.currentData.samples | isEmptyArray"
               matBadgeColor="accent"
               matBadgeSize="small"
@@ -251,7 +251,7 @@
             [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined"
           >
             <mat-icon
-              [matBadge]="row.currentData.saleProducts?.length"
+              [matBadge]="row.currentData.saleProducts?.length | badgeNumber"
               [matBadgeHidden]="row.currentData.saleProducts | isEmptyArray"
               matBadgeColor="accent"
               matBadgeSize="small"

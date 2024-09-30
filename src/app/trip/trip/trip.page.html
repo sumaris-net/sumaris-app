@@ -252,7 +252,7 @@
           <ion-icon matPrefix slot="start" name="settings"></ion-icon>
         </mat-icon>
         <ion-label
-          [matBadge]="physicalGearsTable.totalRowCount"
+          [matBadge]="physicalGearsTable.totalRowCount | badgeNumber"
           [matBadgeHidden]="!physicalGearsTable.totalRowCount"
           matBadgeColor="primary"
           matBadgeOverlap="false"
@@ -286,7 +286,7 @@
           <ion-icon matPrefix slot="start" name="navigate"></ion-icon>
         </mat-icon>
         <ion-label
-          [matBadge]="operationsTable.totalRowCount"
+          [matBadge]="operationsTable.totalRowCount | badgeNumber"
           [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount || !!operationsTable.error"
           matBadgeColor="primary"
           matBadgeOverlap="false"

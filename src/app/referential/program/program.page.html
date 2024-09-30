@@ -142,7 +142,7 @@
       <ng-template mat-tab-label>
         <mat-icon>room</mat-icon>
         <ion-label
-          [matBadge]="locationList.length"
+          [matBadge]="locationList.length | badgeNumber"
           [matBadgeHidden]="locationList.invalid || !locationList.length"
           matBadgeColor="primary"
           matBadgeOverlap="false"
@@ -176,7 +176,7 @@
         <mat-icon>date_range</mat-icon>
         <ng-container *rxIf="strategiesTable$; let table; suspense: suspense">
           <ion-label
-            [matBadge]="table.totalRowCount"
+            [matBadge]="table.totalRowCount | badgeNumber"
             [matBadgeHidden]="table.invalid || !table.totalRowCount"
             matBadgeColor="primary"
             matBadgeOverlap="false"
@@ -235,7 +235,7 @@
         <mat-icon matPrefix>build</mat-icon>
         <ion-label
           *ngVar="propertiesForm.helper?.size() as propertiesCount"
-          [matBadge]="propertiesCount"
+          [matBadge]="propertiesCount | badgeNumber"
           [matBadgeHidden]="propertiesForm.invalid || !propertiesCount"
           matBadgeColor="primary"
           matBadgeOverlap="false"
