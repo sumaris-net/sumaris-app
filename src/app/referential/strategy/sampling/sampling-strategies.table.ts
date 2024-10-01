@@ -1,10 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output, TemplateRef } from '@angular/core';
 import {
   Alerts,
   AppFormUtils,
-  AppTable,
   DateUtils,
-  EntitiesTableDataSource,
   fromDateISOString,
   isEmptyArray,
   isNilOrNaN,
@@ -15,8 +13,6 @@ import {
   PersonUtils,
   ReferentialRef,
   removeDuplicatesFromArray,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
   SharedValidators,
   sleep,
   StatusIds,
@@ -30,13 +26,11 @@ import { environment } from '@environments/environment';
 import { SamplingStrategy, StrategyEffort } from '../../services/model/sampling-strategy.model';
 import { SamplingStrategyService } from '../../services/sampling-strategy.service';
 import { StrategyService } from '../../services/strategy.service';
-import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, Validators } from '@angular/forms';
 import { ParameterService } from '@app/referential/services/parameter.service';
 import { debounceTime, filter, tap } from 'rxjs/operators';
-import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
-import { MatExpansionPanel } from '@angular/material/expansion';
 import { TableElement } from '@e-is/ngx-material-table';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { StrategyModal } from '@app/referential/strategy/strategy.modal';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
@@ -47,6 +41,8 @@ import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-
 import moment from 'moment';
 import { RxState } from '@rx-angular/state';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
+import { AppBaseTable, AppBaseTableFilterRestoreSource, BaseTableState } from '@app/shared/table/base.table';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export const SamplingStrategiesPageSettingsEnum = {
   PAGE_ID: 'samplingStrategies',
@@ -54,9 +50,8 @@ export const SamplingStrategiesPageSettingsEnum = {
   FEATURE_ID: SAMPLING_STRATEGIES_FEATURE_NAME,
 };
 
-interface SamplingStrategiesTableState {
-  canEdit: boolean;
-  canDelete: boolean;
+interface SamplingStrategiesTableState extends BaseTableState {
+  program: Program;
 }
 
 @Component({
@@ -66,57 +61,28 @@ interface SamplingStrategiesTableState {
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SamplingStrategiesTable extends AppTable<SamplingStrategy, StrategyFilter> implements OnInit {
-  private _program: Program;
+export class SamplingStrategiesTable extends AppBaseTable<SamplingStrategy, StrategyFilter> implements OnInit {
+  @RxStateSelect() canEdit$: Observable<boolean>;
+  @RxStateSelect() canDelete$: Observable<boolean>;
 
-  readonly canEdit$ = this._state.select('canEdit');
-  readonly canDelete$ = this._state.select('canDelete');
   readonly quarters = Object.freeze([1, 2, 3, 4]);
   readonly parameterGroupLabels: string[];
 
-  highlightedRowId: number;
   errorDetails: any;
   parameterIdsByGroupLabel: ObjectMap<number[]>;
 
-  filterForm: UntypedFormGroup;
-  filterCriteriaCount = 0;
   i18nContext: {
     prefix?: string;
     suffix?: string;
   } = {};
 
-  @Input() showToolbar = true;
+  @Input({ transform: booleanAttribute }) canOpenRealizedLandings = false;
 
-  @Input() set canEdit(value: boolean) {
-    this._state.set('canEdit', (_) => value);
-  }
-  get canEdit(): boolean {
-    return this._state.get('canEdit');
-  }
-  @Input() set canDelete(value: boolean) {
-    this._state.set('canDelete', (_) => value);
-  }
-  get canDelete(): boolean {
-    return this._state.get('canDelete');
-  }
-  @Input() canOpenRealizedLandings = false;
-  @Input() showError = true;
-  @Input() showPaginator = true;
-  @Input() filterPanelFloating = true;
-  @Input() useSticky = true;
   @Input() cellTemplate: TemplateRef<any>;
 
-  @Input() set program(program: Program) {
-    this.setProgram(program);
-  }
-
-  get program(): Program {
-    return this._program;
-  }
+  @RxStateProperty() @Input() program: Program;
 
   @Output() onNewDataFromRow = new Subject<{ row: TableElement<SamplingStrategy>; event: Event }>();
-
-  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     injector: Injector,
@@ -132,8 +98,10 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   ) {
     super(
       injector,
+      SamplingStrategy,
+      StrategyFilter,
       // columns
-      RESERVED_START_COLUMNS.concat([
+      [
         'label',
         'analyticReference',
         'recorderDepartments',
@@ -145,17 +113,21 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         'effortQ2',
         'effortQ3',
         'effortQ4',
-      ]).concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource(SamplingStrategy, samplingStrategyService, null, {
+      ],
+      samplingStrategyService,
+      null, // No validator
+      {
         prependNewElements: false,
         suppressErrors: environment.production,
         readOnly: true,
         watchAllOptions: {
           withTotal: true,
         },
-      })
+      }
     );
 
+    this.sticky = !this.mobile;
+    this.stickyEnd = !this.mobile;
     this.parameterGroupLabels = ['LENGTH', 'WEIGHT', 'SEX', 'MATURITY', 'AGE'];
 
     this.filterForm = formBuilder.group({
@@ -196,6 +168,8 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       canEdit: false,
       canDelete: false,
     });
+
+    this._state.hold(this._state.select('program', (program) => this.setProgram(program)));
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -356,7 +330,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   resetFilter(json?: any) {
     json = {
       ...json,
-      levelId: json?.levelId || this._program?.id,
+      levelId: json?.levelId || this.program?.id,
     };
     const filter = this.asFilter(json);
     AppFormUtils.copyEntity2Form(json, this.filterForm);
@@ -378,10 +352,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   /* -- protected methods -- */
 
   protected setProgram(program: Program) {
-    if (program && isNotNil(program.id) && this._program !== program) {
+    if (isNotNil(program?.id)) {
       console.debug('[strategy-table] Setting program:', program);
 
-      this._program = program;
       this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID + '#' + program.id;
 
       this.i18nColumnPrefix = 'PROGRAM.STRATEGY.TABLE.';
@@ -390,15 +363,16 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.i18nColumnSuffix += (i18nSuffix !== 'legacy' && i18nSuffix) || '';
 
       // Restore filter from settings, or load all
-      this.restoreFilterOrLoad(program.id);
+      this.restoreFilterOrLoad();
     }
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
+  protected loadFilter(sources?: AppBaseTableFilterRestoreSource[]): any | undefined {
+    const json = super.loadFilter(sources);
+    return { ...json, levelId: this.program?.id };
   }
 
-  protected async restoreFilterOrLoad(programId: number) {
+  protected async restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: AppBaseTableFilterRestoreSource[] }) {
     this.markAsLoading();
 
     // Load map of parameter ids, by group label
@@ -406,14 +380,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       this.parameterIdsByGroupLabel = await this.loadParameterIdsByGroupLabel();
     }
 
-    console.debug('[root-table] Restoring filter from settings...');
-
-    const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
-
-    this.resetFilter({
-      ...json,
-      levelId: programId,
-    });
+    return super.restoreFilterOrLoad(opts);
   }
 
   protected asFilter(source?: any): StrategyFilter {
