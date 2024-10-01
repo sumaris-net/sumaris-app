@@ -1,4 +1,16 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  booleanAttribute,
+  ChangeDetectorRef,
+  Directive,
+  ElementRef,
+  inject,
+  Injector,
+  Input,
+  numberAttribute,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import {
   AppTable,
   changeCaseToUnderscore,
@@ -32,7 +44,7 @@ import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
 import { timer } from 'rxjs';
-import { RxStateRegister } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateRegister } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -40,7 +52,10 @@ export const BASE_TABLE_SETTINGS_ENUM = {
   COMPACT_ROWS_KEY: 'compactRows',
 };
 
-export interface BaseTableState {}
+export interface BaseTableState {
+  canEdit: boolean;
+  canDelete: boolean;
+}
 
 export interface BaseTableConfig<
   T extends Entity<T, ID>,
@@ -80,28 +95,27 @@ export abstract class AppBaseTable<
 
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
 
-  @Input() usePageSettings = true;
-  @Input() canGoBack = false;
-  @Input() showTitle = true;
-  @Input() mobile = false;
-  @Input() showToolbar: boolean;
-  @Input() showPaginator = true;
-  @Input() showFooter = true;
-  @Input() showError = true;
+  @Input({ transform: booleanAttribute }) usePageSettings = true;
+  @Input({ transform: booleanAttribute }) canGoBack = false;
+  @Input({ transform: booleanAttribute }) showTitle = true;
+  @Input({ transform: booleanAttribute }) mobile = false;
+  @Input({ transform: booleanAttribute }) showToolbar: boolean;
+  @Input({ transform: booleanAttribute }) showPaginator = true;
+  @Input({ transform: booleanAttribute }) showFooter = true;
+  @Input({ transform: booleanAttribute }) showError = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
-  @Input() sticky = false;
-  @Input() stickyEnd = false;
-  @Input() compact: boolean = null;
+  @Input({ transform: booleanAttribute }) sticky = false;
+  @Input({ transform: booleanAttribute }) stickyEnd = false;
+  @Input({ transform: booleanAttribute }) compact: boolean = null;
   @Input() pressHighlightDuration = 10000; // 10s
-  @Input() highlightedRowId: number;
-  @Input() filterPanelFloating = true;
-
-  @Input() set canEdit(value: boolean) {
-    this._canEdit = value;
+  @Input({ transform: numberAttribute }) highlightedRowId: number;
+  @Input({ transform: booleanAttribute }) filterPanelFloating = true;
+  @Input({ transform: booleanAttribute }) @RxStateProperty() canDelete: boolean;
+  @Input({ transform: booleanAttribute }) set canEdit(value: boolean) {
+    this._state.set('canEdit', () => value);
   }
-
   get canEdit(): boolean {
-    return this._canEdit && !this.readOnly;
+    return this._state.get('canEdit') && !this.readOnly;
   }
 
   @ViewChild('tableContainer', { read: ElementRef }) tableContainerRef: ElementRef;
@@ -536,7 +550,7 @@ export abstract class AppBaseTable<
 
   /* -- protected function -- */
 
-  protected restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: AppBaseTableFilterRestoreSource[] }) {
+  protected async restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: AppBaseTableFilterRestoreSource[] }) {
     this.markAsLoading();
 
     const json = this.loadFilter(opts?.sources);
@@ -699,7 +713,7 @@ export abstract class AppBaseTable<
   }
 
   protected markForCheck() {
-    this.cd.markForCheck();
+    this.cd?.markForCheck();
   }
 
   protected getI18nColumnName(columnName: string): string {

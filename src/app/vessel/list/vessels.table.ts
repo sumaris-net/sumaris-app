@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { VesselValidatorService } from '../services/validator/vessel.validator';
 import { VesselService } from '../services/vessel-service';
@@ -27,7 +27,6 @@ import { environment } from '@environments/environment';
 import { AppRootDataTable } from '@app/data/table/root-table.class';
 import { VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
 import { VesselFilter } from '../services/filter/vessel.filter';
-import { MatExpansionPanel } from '@angular/material/expansion';
 import { SearchbarChangeEventDetail as ISearchbarSearchbarChangeEventDetail } from '@ionic/core/dist/types/components/searchbar/searchbar-interface';
 import { debounceTime, filter } from 'rxjs/operators';
 
@@ -89,8 +88,6 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
   get searchText(): string {
     return this.searchTextControl.value;
   }
-
-  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     injector: Injector,

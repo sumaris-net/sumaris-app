@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import { AccountService, LocalSettingsService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { AccountService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
 import { VesselRegistrationPeriodService } from '../services/vessel-registration-period.service';
 import { VesselRegistrationPeriod } from '../services/model/vessel.model';
 import { VesselRegistrationPeriodFilter } from '../services/filter/vessel.filter';
@@ -15,9 +15,7 @@ export class VesselRegistrationHistoryComponent extends AppBaseTable<VesselRegis
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
   protected referentialToString = referentialToString;
 
-  @Input() compact: boolean;
   @Input() title: string;
-  @Input() stickyEnd = false;
   @Input() showPagination = false;
 
   @Input()
@@ -32,9 +30,7 @@ export class VesselRegistrationHistoryComponent extends AppBaseTable<VesselRegis
   constructor(
     injector: Injector,
     protected accountService: AccountService,
-    protected settings: LocalSettingsService,
-    dataService: VesselRegistrationPeriodService,
-    protected cd: ChangeDetectorRef
+    dataService: VesselRegistrationPeriodService
   ) {
     super(
       injector,

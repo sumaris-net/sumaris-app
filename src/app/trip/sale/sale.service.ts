@@ -95,6 +95,7 @@ export const SaleFragments = {
       tripId
       landingId
       comments
+      creationDate
       updateDate
       program {
         id

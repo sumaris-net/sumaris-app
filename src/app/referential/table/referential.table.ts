@@ -1,4 +1,4 @@
-import { Component, Inject, InjectionToken, Injector, Input, OnInit, Optional, ViewChild } from '@angular/core';
+import { Component, Inject, InjectionToken, Injector, Input, OnInit, Optional } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime, filter, map, tap } from 'rxjs/operators';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
@@ -39,7 +39,6 @@ import { AbstractControl, UntypedFormBuilder, UntypedFormControl } from '@angula
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment';
 import { BaseReferentialFilter, ReferentialFilter } from '../services/filter/referential.filter';
-import { MatExpansionPanel } from '@angular/material/expansion';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ReferentialI18nKeys } from '@app/referential/referential.utils';
 import { ParameterService } from '@app/referential/services/parameter.service';
@@ -206,8 +205,6 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
   get importPolicy(): ReferentialImportPolicy {
     return this.fileService?.importPolicy || 'insert-update';
   }
-
-  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
     injector: Injector,

@@ -68,7 +68,7 @@
     [matSortDirection]="defaultSortDirection"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="useSticky">
+    <ng-container matColumnDef="select" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -83,7 +83,7 @@
     </ng-container>
 
     <!-- Id column -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
+    <ng-container matColumnDef="id" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
@@ -224,7 +224,7 @@
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="useSticky"
+      [stickyEnd]="stickyEnd"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"

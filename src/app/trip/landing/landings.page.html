@@ -42,7 +42,7 @@
       </button>
 
       <!-- reset filter -->
-      @if (filterCriteriaCount || filterExpansionPanel.expanded) {
+      @if (filterCriteriaCount || (!mobile && filterExpansionPanel.expanded)) {
         <button mat-icon-button (click)="resetFilter()">
           <mat-icon color="accent">filter_list_alt</mat-icon>
           <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
@@ -266,22 +266,27 @@
           </ion-col>
 
           <!-- Data quality status -->
-          <ion-col *ngIf="showQuality && filterDataQualityControl; let control">
-            <mat-form-field>
-              <mat-select [formControl]="control" [placeholder]="'OBSERVED_LOCATION.TABLE.QUALITY' | translate" required>
-                <mat-select-trigger>
-                  <span *ngIf="statusById | mapGet: control.value; let item">
-                    <ion-icon [name]="item.icon"></ion-icon>
-                    {{ item.label | translate }}
-                  </span>
-                </mat-select-trigger>
-                <mat-option *ngFor="let item of statusList" [value]="item.id">
-                  <ion-icon [name]="item.icon"></ion-icon>
-                  {{ item.label | translate }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </ion-col>
+          @if (showQuality && filterDataQualityControl; as control) {
+            <ion-col>
+              <mat-form-field>
+                <mat-select [formControl]="control" [placeholder]="'OBSERVED_LOCATION.TABLE.QUALITY' | translate" required>
+                  <mat-select-trigger>
+                    @if (statusById | mapGet: control.value; as item) {
+                      <span>
+                        {{ item.label | translate }}
+                      </span>
+                    }
+                  </mat-select-trigger>
+                  @for (item of statusList; track item.id) {
+                    <mat-option [value]="item.id">
+                      <ion-icon [name]="item.icon"></ion-icon>
+                      {{ item.label | translate }}
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </ion-col>
+          }
 
           <!-- Sample label -->
           <ion-col *ngIf="showFilterSampleLabel">

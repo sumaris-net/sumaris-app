@@ -16,9 +16,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
   protected referentialToString = referentialToString;
 
-  @Input() compact: boolean;
   @Input() title: string;
-  @Input() stickyEnd: boolean = false;
   @Input() showPagination: boolean = false;
   @Input() mergeAll: boolean = false;
 

@@ -166,7 +166,6 @@ export class ActivityCalendarPage
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
-  @Input() showToolbar = true;
   @Input() showQualityForm = true;
   @Input() showPictures = false;
   @Input() autoFillPictureComments: boolean = true;

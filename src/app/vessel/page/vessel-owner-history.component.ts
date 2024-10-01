@@ -16,9 +16,7 @@ export class VesselOwnerHistoryComponent extends AppBaseTable<VesselOwnerPeriod,
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
   protected referentialToString = referentialToString;
 
-  @Input() compact: boolean;
   @Input() title: string;
-  @Input() stickyEnd: boolean = false;
   @Input() showPagination = false;
 
   @Input()

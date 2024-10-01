@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TripComparators, TripService } from './trip.service';
 import { TripFilter, TripSynchroImportFilter } from './trip.filter';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
@@ -42,6 +42,7 @@ import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operati
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
+import { RxState } from '@rx-angular/state';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
@@ -53,10 +54,11 @@ export const TripsPageSettingsEnum = {
   selector: 'app-trips-table',
   templateUrl: 'trips.table.html',
   styleUrls: ['./trips.table.scss'],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [slideUpDownAnimation],
 })
-export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnInit, OnDestroy {
+export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> implements OnInit, OnDestroy {
   titleSubject = new BehaviorSubject<string>('');
   statusList = DataQualityStatusList;
   statusById = DataQualityStatusEnum;
@@ -75,7 +77,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
 
   constructor(
     injector: Injector,
-    protected _dataService: TripService,
+    _dataService: TripService,
     protected operationService: OperationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
@@ -83,8 +85,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     protected configService: ConfigService,
     protected context: ContextService,
     protected tripContext: TripContextService,
-    protected formBuilder: UntypedFormBuilder,
-    protected cd: ChangeDetectorRef
+    protected formBuilder: UntypedFormBuilder
   ) {
     super(
       injector,

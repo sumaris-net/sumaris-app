@@ -28,14 +28,14 @@ import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/mode
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { map, mergeMap } from 'rxjs/operators';
-import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
+import { AppBaseTable, BaseTableConfig, BaseTableState } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MeasurementsTableEntitiesService } from './measurements-table.service';
 import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from './measurements-table.validator';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 
-export interface BaseMeasurementsTableState {
+export interface BaseMeasurementsTableState extends BaseTableState {
   programLabel: string;
   acquisitionLevel: AcquisitionLevelType;
   acquisitionLevels: AcquisitionLevelType[];

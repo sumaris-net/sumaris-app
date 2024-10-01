@@ -204,6 +204,7 @@
             #samplingStrategiesTable
             *ngSwitchCase="'sampling'"
             [program]="data"
+            showToolbar="true"
             [canEdit]="enabled"
             [canDelete]="enabled"
             (onOpenRow)="onOpenStrategy($event)"

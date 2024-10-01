@@ -48,7 +48,7 @@ import { LANDING_I18N_PMFM_PREFIX, LANDING_RESERVED_END_COLUMNS, LANDING_TABLE_D
 import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TripService } from '@app/trip/trip/trip.service';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
-import { BaseTableConfig } from '@app/shared/table/base.table';
+import { BaseTableConfig, BaseTableState } from '@app/shared/table/base.table';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -78,7 +78,7 @@ export const LANDING_PAGE_RESERVED_START_COLUMNS = [
 ];
 export const LANDING_PAGE_RESERVED_END_COLUMNS = LANDING_RESERVED_END_COLUMNS;
 
-export interface LandingPageConfig extends BaseTableConfig<Landing, number, LandingServiceWatchOptions> {
+export interface LandingPageConfig extends BaseTableConfig<Landing, number, BaseTableState, LandingServiceWatchOptions> {
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
   i18nPmfmPrefix?: string;
@@ -92,7 +92,7 @@ export interface LandingPageConfig extends BaseTableConfig<Landing, number, Land
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingsPage
-  extends AppRootDataTable<Landing, LandingFilter, LandingService, LandingValidatorService, number, LandingPageConfig>
+  extends AppRootDataTable<Landing, LandingFilter, LandingService, LandingValidatorService, number, BaseTableState, LandingPageConfig>
   implements OnInit
 {
   protected $title = new BehaviorSubject<string>(undefined);
@@ -114,7 +114,6 @@ export class LandingsPage
   @Input() showFilterPeriod = true;
   @Input() showFilterSampleLabel = false; // Can be override by setProgram() or resetProgram()
   @Input() showFilterSampleTagId = false; // Can be override by setProgram() or resetProgram()
-  @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
 

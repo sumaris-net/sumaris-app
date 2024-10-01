@@ -75,7 +75,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
 
-  constructor(protected injector: Injector) {
+  constructor(injector: Injector) {
     super(
       injector,
       Sample,
