@@ -463,7 +463,17 @@ export class CalendarComponent
     });
     this.registerAutocompleteField('depthGradient', {
       suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
+        this.referentialRefService.suggest(
+          value,
+          {
+            ...filter,
+
+            levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+          },
+          'rankOrder',
+          'asc'
+        ),
+
       filter: {
         entityName: 'DepthGradient',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
