@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { OperationGroupValidatorService } from './operation-group.validator';
@@ -66,8 +66,7 @@ export class OperationGroupTable
     settings: LocalSettingsService,
     dataService: InMemoryEntitiesService<OperationGroup, OperationGroupFilter>,
     validatorService: OperationGroupValidatorService,
-    protected metierService: MetierService,
-    protected cd: ChangeDetectorRef
+    protected metierService: MetierService
   ) {
     super(injector, OperationGroup, OperationGroupFilter, dataService, validatorService, {
       reservedStartColumns: settings.mobile
@@ -187,10 +186,6 @@ export class OperationGroupTable
     // }
 
     return pmfms;
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected async openNewRowDetail(): Promise<boolean> {

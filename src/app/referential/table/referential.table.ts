@@ -4,7 +4,6 @@ import { debounceTime, filter, map, tap } from 'rxjs/operators';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { ReferentialValidatorService } from '../services/validator/referential.validator';
 import { ReferentialService } from '../services/referential.service';
-import { PopoverController } from '@ionic/angular';
 import {
   AccountService,
   BaseReferential,
@@ -36,7 +35,6 @@ import {
   toBoolean,
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment';
 import { BaseReferentialFilter, ReferentialFilter } from '../services/filter/referential.filter';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -212,8 +210,6 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     protected referentialService: ReferentialService<T>,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: UntypedFormBuilder,
-    protected popoverController: PopoverController,
-    protected translate: TranslateService,
     @Optional() @Inject(DATA_TYPE) dataType?: new () => T,
     @Optional() @Inject(FILTER_TYPE) filterType?: new () => F,
     @Optional() @Inject(DATA_SERVICE) entityService?: IEntitiesService<T, F>

@@ -1,4 +1,4 @@
-import { booleanAttribute, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output, TemplateRef } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, Injector, Input, OnInit, Output, TemplateRef } from '@angular/core';
 import {
   Alerts,
   AppFormUtils,
@@ -43,6 +43,7 @@ import { RxState } from '@rx-angular/state';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
 import { AppBaseTable, AppBaseTableFilterRestoreSource, BaseTableState } from '@app/shared/table/base.table';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 
 export const SamplingStrategiesPageSettingsEnum = {
   PAGE_ID: 'samplingStrategies',
@@ -51,6 +52,8 @@ export const SamplingStrategiesPageSettingsEnum = {
 };
 
 interface SamplingStrategiesTableState extends BaseTableState {
+  canEdit: boolean;
+  canDelete: boolean;
   program: Program;
 }
 
@@ -61,7 +64,17 @@ interface SamplingStrategiesTableState extends BaseTableState {
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SamplingStrategiesTable extends AppBaseTable<SamplingStrategy, StrategyFilter> implements OnInit {
+export class SamplingStrategiesTable
+  extends AppBaseTable<
+    SamplingStrategy,
+    StrategyFilter,
+    SamplingStrategyService,
+    BaseValidatorService<SamplingStrategy>,
+    number,
+    SamplingStrategiesTableState
+  >
+  implements OnInit
+{
   @RxStateSelect() canEdit$: Observable<boolean>;
   @RxStateSelect() canDelete$: Observable<boolean>;
 
@@ -76,6 +89,15 @@ export class SamplingStrategiesTable extends AppBaseTable<SamplingStrategy, Stra
     suffix?: string;
   } = {};
 
+  @Input({ transform: booleanAttribute })
+  public get canEdit(): boolean {
+    return this._state.get('canEdit');
+  }
+  public set canEdit(value: boolean) {
+    this._state.set('canEdit', () => value);
+  }
+  @Input({ transform: booleanAttribute }) @RxStateProperty() canDelete: boolean;
+
   @Input({ transform: booleanAttribute }) canOpenRealizedLandings = false;
 
   @Input() cellTemplate: TemplateRef<any>;
@@ -86,15 +108,13 @@ export class SamplingStrategiesTable extends AppBaseTable<SamplingStrategy, Stra
 
   constructor(
     injector: Injector,
-    protected samplingStrategyService: SamplingStrategyService,
+    _dataService: SamplingStrategyService,
     protected strategyService: StrategyService,
     protected referentialRefService: ReferentialRefService,
     protected taxonNameRefService: TaxonNameRefService,
     protected personService: PersonService,
     protected parameterService: ParameterService,
-    protected formBuilder: UntypedFormBuilder,
-    protected _state: RxState<SamplingStrategiesTableState>,
-    protected cd: ChangeDetectorRef
+    protected formBuilder: UntypedFormBuilder
   ) {
     super(
       injector,
@@ -114,7 +134,7 @@ export class SamplingStrategiesTable extends AppBaseTable<SamplingStrategy, Stra
         'effortQ3',
         'effortQ4',
       ],
-      samplingStrategyService,
+      _dataService,
       null, // No validator
       {
         prependNewElements: false,
@@ -342,8 +362,6 @@ export class SamplingStrategiesTable extends AppBaseTable<SamplingStrategy, Stra
     this.resetFilter();
   }
 
-  onNewData(event: Event, row: TableElement<SamplingStrategy>) {}
-
   toggleFilterPanelFloating() {
     this.filterPanelFloating = !this.filterPanelFloating;
     this.markForCheck();
@@ -489,7 +507,7 @@ export class SamplingStrategiesTable extends AppBaseTable<SamplingStrategy, Stra
 
       // Do save
       // This should refresh the table (because of the watchAll updated throught the cache update)
-      await this.samplingStrategyService.duplicateAllToYear(sources, year);
+      await this._dataService.duplicateAllToYear(sources, year);
     } catch (err) {
       this.setError((err && err.message) || err, { emitEvent: false });
     } finally {

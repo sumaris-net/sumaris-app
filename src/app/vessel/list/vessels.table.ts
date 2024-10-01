@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { VesselValidatorService } from '../services/validator/vessel.validator';
 import { VesselService } from '../services/vessel-service';
@@ -92,11 +92,10 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
   constructor(
     injector: Injector,
     formBuilder: UntypedFormBuilder,
-    protected accountService: AccountService,
-    protected settings: LocalSettingsService,
+    settings: LocalSettingsService,
+    accountService: AccountService,
     protected vesselService: VesselService,
-    protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef
+    protected referentialRefService: ReferentialRefService
   ) {
     super(
       injector,

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   arrayDistinct,
   chainPromises,
@@ -91,8 +91,7 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
     protected configService: ConfigService,
     protected context: ContextService,
     protected tripContext: TripContextService,
-    protected formBuilder: UntypedFormBuilder,
-    protected cd: ChangeDetectorRef
+    protected formBuilder: UntypedFormBuilder
   ) {
     super(
       injector,

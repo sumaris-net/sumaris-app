@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import {
   firstArrayValue,
@@ -61,7 +61,6 @@ export abstract class AbstractBatchesTable<
   implements OnInit, OnDestroy
 {
   protected _initialPmfms: IPmfm[];
-  protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
 
   defaultWeightPmfm: IPmfm;
@@ -111,7 +110,6 @@ export abstract class AbstractBatchesTable<
       ...options,
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
-    this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.inlineEdition = this.validatorService && !this.mobile;
     this.defaultSortBy = 'id';

@@ -44,7 +44,7 @@ import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
 import { timer } from 'rxjs';
-import { RxStateProperty, RxStateRegister } from '@app/shared/state/state.decorator';
+import { RxStateRegister } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -52,10 +52,7 @@ export const BASE_TABLE_SETTINGS_ENUM = {
   COMPACT_ROWS_KEY: 'compactRows',
 };
 
-export interface BaseTableState {
-  canEdit: boolean;
-  canDelete: boolean;
-}
+export interface BaseTableState {}
 
 export interface BaseTableConfig<
   T extends Entity<T, ID>,
@@ -86,12 +83,13 @@ export abstract class AppBaseTable<
 {
   private _canEdit: boolean;
 
+  protected translateContext = inject(TranslateContextService);
+  protected popoverController = inject(PopoverController);
+  protected cd = inject(ChangeDetectorRef);
+
   protected memoryDataService: InMemoryEntitiesService<T, F, ID>;
-  protected translateContext: TranslateContextService;
-  protected cd: ChangeDetectorRef;
   protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
-  protected popoverController: PopoverController;
 
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
 
@@ -110,12 +108,12 @@ export abstract class AppBaseTable<
   @Input() pressHighlightDuration = 10000; // 10s
   @Input({ transform: numberAttribute }) highlightedRowId: number;
   @Input({ transform: booleanAttribute }) filterPanelFloating = true;
-  @Input({ transform: booleanAttribute }) @RxStateProperty() canDelete: boolean;
+  @Input({ transform: booleanAttribute }) canDelete: boolean;
   @Input({ transform: booleanAttribute }) set canEdit(value: boolean) {
-    this._state.set('canEdit', () => value);
+    this._canEdit = value;
   }
   get canEdit(): boolean {
-    return this._state.get('canEdit') && !this.readOnly;
+    return !this.readOnly && (this._canEdit ?? true);
   }
 
   @ViewChild('tableContainer', { read: ElementRef }) tableContainerRef: ElementRef;
@@ -157,10 +155,7 @@ export abstract class AppBaseTable<
 
     this.mobile = this.settings.mobile;
     this.hotkeys = injector.get(Hotkeys);
-    this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
-    this.translateContext = injector.get(TranslateContextService);
-    this.cd = injector.get(ChangeDetectorRef);
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
     this.memoryDataService = this._dataService instanceof InMemoryEntitiesService ? (this._dataService as InMemoryEntitiesService<T, F, ID>) : null;
@@ -698,6 +693,13 @@ export abstract class AppBaseTable<
   protected normalizeEntityToRow(data: T, row: TableElement<T>, opts?: any) {
     // Can be override by subclasses
   }
+
+  // FIXME
+  // protected editRow(event: Event | undefined, row: TableElement<T>, opts?: { focusColumn?: string }): boolean {
+  //   const editing = super.editRow(event, row, opts);
+  //   if (editing) this.markForCheck();
+  //   return editing;
+  // }
 
   /**
    * Delegate equals to the entity class, instead of simple ID comparison

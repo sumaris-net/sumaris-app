@@ -182,12 +182,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @ViewChild('content') content: IonContent;
 
   constructor(
-    protected injector: Injector,
+    injector: Injector,
+    settings: LocalSettingsService,
+    validatorService: SubBatchValidatorService,
     protected viewCtrl: ModalController,
-    protected settings: LocalSettingsService,
     protected audio: AudioProvider,
     protected platform: PlatformService,
-    validatorService: SubBatchValidatorService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>
   ) {
     super(injector, settings.mobile ? null : validatorService /*no validator = not editable*/, options);
