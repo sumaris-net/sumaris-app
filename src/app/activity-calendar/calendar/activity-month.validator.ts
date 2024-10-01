@@ -137,6 +137,7 @@ export class ActivityMonthValidatorService<
         ActivityMonthValidators.checkInconsistenciesInGearUseFeatures,
         ActivityMonthValidators.distanceToCoastRequiredIfFishingArea,
         ActivityMonthValidators.validateDayCountConsistency,
+        ActivityMonthValidators.uniqueFishingAreaInMetier,
         SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
           predicate: (control) => control.value === VesselUseFeaturesIsActiveEnum.ACTIVE || control.value === VesselUseFeaturesIsActiveEnum.INACTIVE,
         }),
@@ -155,6 +156,12 @@ export class ActivityMonthValidatorService<
 
     const enabled = form.enabled;
     const isActive = form.get('isActive').value;
+
+    //Clear qualification comments
+    const qualificationComments = form.get('qualificationComments') as UntypedFormControl;
+    if (qualificationComments.value) {
+      qualificationComments.setValue(null, { emitEvent: false });
+    }
 
     // Is active
     const isActiveControl = form.get('isActive');
@@ -317,6 +324,12 @@ export class ActivityMonthValidators {
 
     let errors: any;
 
+    const qualificationComments = form.get('qualificationComments') as UntypedFormControl;
+
+    if (qualificationComments.value) {
+      qualificationComments.setValue(null, { emitEvent: false });
+    }
+
     const isActiveControl = form.get('isActive') as UntypedFormControl;
     const gearUseFeaturesArray = form.get('gearUseFeatures') as AppFormArray<GearUseFeatures, UntypedFormGroup>;
     let dirty = false;
@@ -437,7 +450,6 @@ export class ActivityMonthValidators {
         if (!res.includes(metier.label)) return res.concat(metier.label);
         return res;
       }
-
       metierLabels.push(metier.label);
       return res;
     }, []);
@@ -559,6 +571,42 @@ export class ActivityMonthValidators {
 
     return invalid ? { inconsistencyDayNumber: true } : null;
   }
+
+  static uniqueFishingAreaInMetier(formGroup: FormGroup): ValidationErrors | null {
+    const control = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!control || !(control instanceof FormArray)) {
+      return null;
+    }
+
+    // Make sure month is active
+    const isActiveControl = formGroup.get('isActive');
+    const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
+    if (!isActive) return null;
+
+    const fishingAreaLabels: string[] = [];
+    const fishingAreasErrors = [];
+
+    control.controls.forEach((guf, index) => {
+      const location = guf.get('fishingAreas')?.value;
+      if (isNotEmptyArray(location)) {
+        location.forEach((fa) => {
+          if (fa.location) {
+            if (fishingAreaLabels.includes(fa.location.label)) {
+              fishingAreasErrors.push({ fishingArea: fa.location.label });
+            }
+            fishingAreaLabels.push(fa.location.label);
+          }
+        });
+      }
+    });
+    return isNotEmptyArray(fishingAreasErrors)
+      ? {
+          fishingAreasErrors: {
+            fishingArea: fishingAreasErrors.map(({ fishingArea }) => ` ${fishingArea}`).join('\n '),
+          },
+        }
+      : null;
+  }
 }
 
 export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
@@ -567,4 +615,5 @@ export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
   requiredDistanceToCoast: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_DISTANCE_TO_COAST',
   inconsistentData: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENT_DATA',
   inconsistencyDayNumber: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENCY_DAY_NUMBER',
+  fishingAreasErrors: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_FISHING_AREA',
 };

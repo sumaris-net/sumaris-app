@@ -1058,5 +1058,13 @@ export class ActivityCalendarPage
     this.markAsDirty();
   }
 
+  saveAndGetDataIfValid() {
+    if (this.calendar.hasErrorsInRows()) {
+      this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+      return;
+    }
+    return super.saveAndGetDataIfValid();
+  }
+
   protected readonly equals = equals;
 }

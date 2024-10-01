@@ -244,7 +244,11 @@
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            {{ row | activityMonthRowError: errorTranslateOptions }}
+            @if (row.currentData.qualificationComments | isNilOrBlank) {
+              {{ row | activityMonthRowError: errorTranslateOptions }}
+            } @else {
+              {{ row.currentData.qualificationComments }}
+            }
           </span>
         </mat-header-cell>
       </ng-container>

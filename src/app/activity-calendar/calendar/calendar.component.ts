@@ -447,13 +447,8 @@ export class CalendarComponent
     });
 
     this.registerAutocompleteField('fishingAreaLocation', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
-      filter: {
-        entityName: 'Location',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
-      attributes: ['label'],
+      suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, filter),
+      displayWith: (obj) => obj?.label || '',
       panelClass: 'mat-select-panel-fit-content',
     });
     this.registerAutocompleteField('distanceToCoastGradient', {
@@ -857,24 +852,19 @@ export class CalendarComponent
     const cellSelection = this.cellSelection;
     const containerElement = this.tableContainerElement;
     if (!cellSelection?.resizing || cellSelection.validating || event.defaultPrevented) return; // Ignore
-
     // DEBUG
     if (this.debug) console.debug(this.logPrefix + `Moving cell selection (validating: ${cellSelection?.validating || false})`);
 
     const { axis, cellRect, row } = cellSelection;
     if (!cellRect) return; // Missing cellRect
-
     const movementX = axis !== 'y' ? event.clientX + containerElement.scrollLeft - cellSelection.originalMouseX : 0;
     const movementY = axis !== 'x' ? event.clientY + containerElement.scrollTop - cellSelection.originalMouseY : 0;
-
     let colspan = Math.max(cellRect.width, Math.round((cellRect.width + Math.abs(movementX)) / cellRect.width) * cellRect.width) / cellRect.width;
     let rowspan =
       Math.max(cellRect.height, Math.round((cellRect.height + Math.abs(movementY)) / cellRect.height) * cellRect.height) / cellRect.height;
-
     // Manage negative
     if (movementX < 0 && colspan > 1) colspan = -1 * (colspan - 1);
     if (movementY < 0 && rowspan > 1) rowspan = -1 * (rowspan - 1);
-
     // Check row limits
     const rowIndex = row.id;
     if (colspan >= 0) {
@@ -884,7 +874,6 @@ export class CalendarComponent
       // Lower limit
       colspan = Math.max(colspan, -1 * (rowIndex + 1));
     }
-
     // Check col limits
     const columnIndex = this.displayedColumns.indexOf(cellSelection.columnName);
     if (rowspan >= 0) {
@@ -894,11 +883,9 @@ export class CalendarComponent
       // Lower limit
       rowspan = Math.max(rowspan, -1 * (columnIndex + 1 - RESERVED_START_COLUMNS.length - this.readonlyColumnCount));
     }
-
     if (cellSelection.colspan !== colspan || cellSelection.rowspan !== rowspan) {
       cellSelection.colspan = colspan;
       cellSelection.rowspan = rowspan;
-
       // Apply resize
       this.resizeCellSelection(cellSelection, 'cell', { debouncedExpansion: true });
     }
@@ -1076,6 +1063,7 @@ export class CalendarComponent
     console.debug(this.logPrefix + `Navigation keydown: columnIndex=${columnIndex} rowIndex=${rowIndex}`);
 
     const row = this.dataSource.getRow(rowIndex);
+    // eslint-disable-next-line prefer-const
     const { columnName, cellElement } = this.getCellElement(rowIndex, columnIndex);
     if (!cellElement || !row || ACTIVITY_MONTH_READONLY_COLUMNS.includes(columnName) || RESERVED_END_COLUMNS.includes(columnName)) return;
 
@@ -1622,6 +1610,41 @@ export class CalendarComponent
     // Convert to Metier entities (using `properties.gear` to fill the gear)
     const entities = ((data || []) as any[]).map((source) => Metier.fromObject({ ...source, ...source.properties }));
 
+    return { data: entities, total };
+  }
+
+  protected async suggestFishingAreaLocations(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<FishingArea>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    // Get gearUseFeature index
+    const gearUseFeatureIndex = parseInt(this.focusColumn.match(/\d/)?.[0], 10);
+
+    // Get fishingArea to exclude (already existing in gearUseFeature)
+    const existingFishingAreaLocationIds =
+      this.editedRow &&
+      removeDuplicatesFromArray(
+        (this.editedRow.currentData?.gearUseFeatures[gearUseFeatureIndex - 1]?.fishingAreas || []).map((guf) => guf.location?.id).filter(isNotNil)
+      );
+
+    // eslint-disable-next-line prefer-const
+    let { data, total } = await this.referentialRefService.suggest(
+      value,
+      {
+        entityName: 'Location',
+        statusId: StatusIds.ENABLE,
+        ...filter,
+        levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+        excludedIds: existingFishingAreaLocationIds,
+      },
+      null,
+      null,
+      {
+        toEntity: true,
+        withProperties: false,
+      }
+    );
+
+    const entities = (data || []) as any[];
     return { data: entities, total };
   }
 
@@ -2240,7 +2263,9 @@ export class CalendarComponent
     for (const row of rows) {
       paths.forEach((path) => {
         setPropertyByPath(row, path, null);
+        this.validatorService.updateFormGroup(row.validator);
         const control = this.findOrCreateControl(row.validator, path);
+
         if (control) control.setValue(null);
       });
     }
@@ -2491,13 +2516,14 @@ export class CalendarComponent
       });
 
       // Update quality flag
-      const entity = targetForm.value;
-      if (targetForm.invalid) {
-        const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, this.errorTranslateOptions);
-        //entity.controlDate = null;
-        //entity.qualificationComments = errorMessage;
-        DataEntityUtils.markAsInvalid(entity, errorMessage);
-      }
+      // const entity = targetForm.value;
+      // if (!targetForm.valid) {
+      //   await AppFormUtils.waitWhilePending(targetForm);
+      //   if (targetForm.invalid) {
+      //     const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, this.errorTranslateOptions);
+      //     DataEntityUtils.markAsInvalid(entity, errorMessage);
+      //   }
+      // }
 
       // Update the row
       await this.updateEntityToTable(targetForm.value, targetRow, { confirmEdit: true });
@@ -2742,5 +2768,38 @@ export class CalendarComponent
 
     // Si les deux coins sont à l'intérieur, alors cellElement est entièrement à l'intérieur de divElement
     return isTopLeftInside && isBottomRightInside;
+  }
+
+  save() {
+    if (!this.hasErrorsInRows()) {
+      return super.save();
+    }
+  }
+
+  getErrorsInRows(): string[] {
+    const rows = this.dataSource.getRows();
+    const listErrors = [];
+
+    rows.forEach((row) => {
+      const form = this.validatorService.getFormGroup(row.currentData);
+      const entity = form.value;
+      const errorTranslate = this.formErrorAdapter.translateFormErrors(form, this.errorTranslateOptions);
+
+      if (form.errors) {
+        DataEntityUtils.markAsInvalid(entity, errorTranslate);
+        row.validator.patchValue(entity, { emitEvent: false });
+        listErrors.push(errorTranslate);
+      }
+    });
+    this.cd.detectChanges();
+
+    // cannot be placed above the cd.detectChanges()
+    this.setError('ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS');
+
+    return listErrors;
+  }
+
+  hasErrorsInRows(): boolean {
+    return this.getErrorsInRows()?.length > 0;
   }
 }
