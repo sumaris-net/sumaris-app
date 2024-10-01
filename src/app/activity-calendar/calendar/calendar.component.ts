@@ -1669,6 +1669,7 @@ export class CalendarComponent
     };
 
     if (this.debug) console.debug(this.logPrefix + 'Updating row form...', opts);
+    if (this.error) this.resetError();
     this.validatorService.updateFormGroup(form, opts);
 
     if (opts?.listenChanges !== false) {
@@ -1705,7 +1706,6 @@ export class CalendarComponent
           if (this.isCellSelected(this.cellClipboard, this.editedRow, this.focusColumn)) {
             this.clearClipboard(null, { clearContext: !!this.cellClipboard });
           }
-
           if (form.dirty && isNotNilOrBlank(qualificationCommentsControl.value)) {
             qualificationCommentsControl.setValue(null, { emitEvent: false });
             this.markAsDirty();
@@ -2263,6 +2263,7 @@ export class CalendarComponent
     for (const row of rows) {
       paths.forEach((path) => {
         setPropertyByPath(row, path, null);
+        if (this.error) this.resetError();
         this.validatorService.updateFormGroup(row.validator);
         const control = this.findOrCreateControl(row.validator, path);
 
