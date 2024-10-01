@@ -450,6 +450,7 @@ export class ActivityMonthValidators {
         if (!res.includes(metier.label)) return res.concat(metier.label);
         return res;
       }
+
       metierLabels.push(metier.label);
       return res;
     }, []);

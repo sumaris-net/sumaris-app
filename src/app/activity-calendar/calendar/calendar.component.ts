@@ -862,19 +862,24 @@ export class CalendarComponent
     const cellSelection = this.cellSelection;
     const containerElement = this.tableContainerElement;
     if (!cellSelection?.resizing || cellSelection.validating || event.defaultPrevented) return; // Ignore
+
     // DEBUG
     if (this.debug) console.debug(this.logPrefix + `Moving cell selection (validating: ${cellSelection?.validating || false})`);
 
     const { axis, cellRect, row } = cellSelection;
     if (!cellRect) return; // Missing cellRect
+
     const movementX = axis !== 'y' ? event.clientX + containerElement.scrollLeft - cellSelection.originalMouseX : 0;
     const movementY = axis !== 'x' ? event.clientY + containerElement.scrollTop - cellSelection.originalMouseY : 0;
+
     let colspan = Math.max(cellRect.width, Math.round((cellRect.width + Math.abs(movementX)) / cellRect.width) * cellRect.width) / cellRect.width;
     let rowspan =
       Math.max(cellRect.height, Math.round((cellRect.height + Math.abs(movementY)) / cellRect.height) * cellRect.height) / cellRect.height;
+
     // Manage negative
     if (movementX < 0 && colspan > 1) colspan = -1 * (colspan - 1);
     if (movementY < 0 && rowspan > 1) rowspan = -1 * (rowspan - 1);
+
     // Check row limits
     const rowIndex = row.id;
     if (colspan >= 0) {
@@ -884,6 +889,7 @@ export class CalendarComponent
       // Lower limit
       colspan = Math.max(colspan, -1 * (rowIndex + 1));
     }
+
     // Check col limits
     const columnIndex = this.displayedColumns.indexOf(cellSelection.columnName);
     if (rowspan >= 0) {
@@ -893,9 +899,11 @@ export class CalendarComponent
       // Lower limit
       rowspan = Math.max(rowspan, -1 * (columnIndex + 1 - RESERVED_START_COLUMNS.length - this.readonlyColumnCount));
     }
+
     if (cellSelection.colspan !== colspan || cellSelection.rowspan !== rowspan) {
       cellSelection.colspan = colspan;
       cellSelection.rowspan = rowspan;
+
       // Apply resize
       this.resizeCellSelection(cellSelection, 'cell', { debouncedExpansion: true });
     }
@@ -2276,7 +2284,6 @@ export class CalendarComponent
         if (this.error) this.resetError();
         this.validatorService.updateFormGroup(row.validator);
         const control = this.findOrCreateControl(row.validator, path);
-
         if (control) control.setValue(null);
       });
     }
