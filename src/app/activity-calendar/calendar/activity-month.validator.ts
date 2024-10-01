@@ -587,7 +587,7 @@ export class ActivityMonthValidators {
     const fishingAreaLabels: string[] = [];
     const fishingAreasErrors = [];
 
-    control.controls.forEach((guf, index) => {
+    control.controls.forEach((guf) => {
       const location = guf.get('fishingAreas')?.value;
       if (isNotEmptyArray(location)) {
         location.forEach((fa) => {
