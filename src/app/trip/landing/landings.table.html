@@ -505,7 +505,7 @@
       [class.mat-mdc-row-error]="row.validator?.invalid"
       [class.mat-mdc-row-dirty]="row.validator?.dirty"
       [class.mat-mdc-row-disabled]="!row.editing"
-      [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
       [class.cdk-visually-hidden]="loadingSubject | async"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
