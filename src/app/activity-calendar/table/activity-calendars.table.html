@@ -59,11 +59,6 @@
         <mat-icon slot="end">arrow_drop_down</mat-icon>
       </ion-button>
 
-      <!-- options -->
-      <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
-        <mat-icon>more_vert</mat-icon>
-      </button>
-
       <!-- if row selection -->
     } @else {
       <!-- synchronize -->
@@ -93,6 +88,11 @@
         <mat-icon>delete</mat-icon>
       </button>
     }
+
+    <!-- options -->
+    <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
   </ion-buttons>
 </app-toolbar>
 
