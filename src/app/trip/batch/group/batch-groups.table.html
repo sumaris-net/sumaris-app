@@ -28,6 +28,7 @@
       [matSortDirection]="defaultSortDirection"
       [dataSource]="dataSource"
       [trackBy]="trackByFn"
+      [style.--mat-column-actions-button-count]="allowSubBatches && !qvPmfm ? 2 : 1"
     >
       <!-- Group header: start -->
       <ng-container matColumnDef="top-start" [sticky]="sticky">
