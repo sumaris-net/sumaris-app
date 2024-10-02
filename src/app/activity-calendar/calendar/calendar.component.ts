@@ -1059,6 +1059,9 @@ export class CalendarComponent
       resizing: false,
     };
 
+    // Set new focus column
+    this.focusColumn = columnName;
+
     this.expandCellSelection(this.cellSelection);
 
     this.resizeCellSelection(this.cellSelection, 'cell');
@@ -1149,6 +1152,7 @@ export class CalendarComponent
     event?.preventDefault(); // Avoid clickRow
 
     const isActiveIndex = this.displayedColumns.findIndex((col) => col === 'isActive');
+    // eslint-disable-next-line prefer-const
     let { columnName, cellElement } = this.getCellElement(row.id, isActiveIndex);
 
     const reservedColumnCount = RESERVED_START_COLUMNS.concat(RESERVED_END_COLUMNS).length + this.readonlyColumnCount;
