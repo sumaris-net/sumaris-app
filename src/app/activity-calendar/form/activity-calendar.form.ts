@@ -83,6 +83,7 @@ export class ActivityCalendarForm
   @Input() allowAddNewVessel = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() @RxStateProperty() showObservers: boolean;
+  @Input() @RxStateProperty() hideObservers: boolean;
   @Input() @RxStateProperty() warnFutureYear: boolean;
 
   get empty(): any {

@@ -498,6 +498,7 @@ export class ActivityCalendarPage
 
       this.baseForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
       this.isAdminOrManager = this.accountService.isAdmin() || this.programRefService.hasUserManagerPrivilege(program);
+      this.baseForm.hideObservers = !this.isAdminOrManager;
       if (!this.baseForm.showObservers && this.data?.observers) {
         this.data.observers = []; // make sure to reset data observers, if any
       }

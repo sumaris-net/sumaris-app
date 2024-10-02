@@ -184,6 +184,26 @@
                   <ion-icon slot="icon-only" name="mail"></ion-icon>
                 </ion-button>
 
+                <ion-item color="light">
+                  <ion-label>Observateurs</ion-label>
+                </ion-item>
+                <ng-container *ngFor="let observer of data?.observers">
+                  <ion-item color="light">
+                    <!-- observer avatar -->
+                    <ion-avatar slot="start">
+                      <ion-img *ngIf="observer.avatar; let avatarUrl; else: generateAvatar" [src]="avatarUrl" />
+                      <ng-template #generateAvatar>
+                        <svg *ngIf="observer.id; let personId" width="30" height="30" [data-jdenticon-value]="personId"></svg>
+                      </ng-template>
+                    </ion-avatar>
+
+                    <!-- observer name -->
+                    <ion-label>
+                      <ion-text>{{ observer?.firstName }} {{ observer?.lastName }}</ion-text>
+                    </ion-label>
+                  </ion-item>
+                </ng-container>
+
                 <!-- Warning -->
                 @if (qualityWarning) {
                   <br />
