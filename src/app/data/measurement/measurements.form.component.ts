@@ -9,6 +9,8 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  QueryList,
+  ViewChildren,
 } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
 import { combineLatestWith, merge, mergeMap, Observable, switchMap, tap } from 'rxjs';
@@ -33,6 +35,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { PmfmFormField } from '@app/referential/pmfm/field/pmfm.form-field.component';
 
 export declare type MapPmfmEvent = PromiseEvent<IPmfm[], { pmfms: IPmfm[] }>;
 export declare type UpdateFormGroupEvent = PromiseEvent<void, { form: UntypedFormGroup }>;
@@ -114,6 +117,8 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   get formError(): string {
     return this.getFormError(this.form);
   }
+
+  @ViewChildren(PmfmFormField) pmfmFormFields: QueryList<PmfmFormField>;
 
   constructor(
     injector: Injector,

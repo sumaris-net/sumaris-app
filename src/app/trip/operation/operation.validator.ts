@@ -787,7 +787,7 @@ export class OperationValidators {
                   if (pmfm.required) {
                     control.setValidators(Validators.required);
                   }
-                  control.enable();
+                  control.enable({ onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }

@@ -143,6 +143,7 @@ export class OperationPage<S extends OperationState = OperationState>
   showBatchTables = false;
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
+
   isDuplicatedData = false;
   operationPasteFlags: number;
   helpUrl: string;
@@ -699,6 +700,84 @@ export class OperationPage<S extends OperationState = OperationState>
             this.markForCheck();
           })
       );
+    }
+
+    // If PMFM "Line layout" exists, then use to use to enable/disable specifics details
+    const lineLayoutControl = formGroup?.controls[PmfmIds.LINE_LAYOUT];
+
+    if (isNotNil(lineLayoutControl)) {
+      this.measurementsForm.pmfmFormFields.changes.pipe(debounceTime(200)).subscribe((value) => {
+        const lineLayoutLinearField = this.measurementsForm.pmfmFormFields.find((item) => item.pmfm.id == PmfmIds.LINE_LAYOUT_LINEAR);
+        const lineLayoutZigzagField = this.measurementsForm.pmfmFormFields.find((item) => item.pmfm.id == PmfmIds.LINE_LAYOUT_ZIGZAG);
+        const lineLayoutUnknownField = this.measurementsForm.pmfmFormFields.find((item) => item.pmfm.id == PmfmIds.LINE_LAYOUT_UNKNOWN);
+
+        let lineLayoutLinearPmfm = this.measurementsForm.pmfms.find((value) => value.id == PmfmIds.LINE_LAYOUT_LINEAR);
+        let lineLayoutZigZagPmfm = this.measurementsForm.pmfms.find((value) => value.id == PmfmIds.LINE_LAYOUT_ZIGZAG);
+        let lineLayoutUnknownPmfm = this.measurementsForm.pmfms.find((value) => value.id == PmfmIds.LINE_LAYOUT_UNKNOWN);
+        if (lineLayoutLinearPmfm && lineLayoutZigZagPmfm && lineLayoutUnknownPmfm) {
+          const originalType = {};
+
+          originalType[lineLayoutLinearPmfm.id] = lineLayoutLinearPmfm.type;
+          originalType[lineLayoutZigZagPmfm.id] = lineLayoutZigZagPmfm.type;
+          originalType[lineLayoutUnknownPmfm.id] = lineLayoutUnknownPmfm.type;
+
+          this._measurementSubscription.add(
+            lineLayoutControl.valueChanges
+              .pipe(
+                debounceTime(400),
+                startWith<any, any>(lineLayoutControl.value),
+                map((qv) => qv?.label),
+                distinctUntilChanged()
+              )
+              .subscribe((qvLabel) => {
+                switch (qvLabel as string) {
+                  case QualitativeLabels.LINE_LAYOUT_TYPE.LINEAR:
+                    if (this.debug) console.debug('[operation] Enable linear details');
+
+                    lineLayoutLinearField.type = originalType[lineLayoutLinearPmfm.id];
+
+                    lineLayoutUnknownField.type = 'hidden';
+                    lineLayoutUnknownField.control.patchValue(null);
+
+                    lineLayoutZigzagField.type = 'hidden';
+                    lineLayoutZigzagField.control.patchValue(null);
+
+                    break;
+                  case QualitativeLabels.LINE_LAYOUT_TYPE.ZIG_ZAG:
+                    if (this.debug) console.debug('[operation] Enable zig_zag details');
+
+                    lineLayoutZigzagField.type = originalType[lineLayoutZigZagPmfm.id];
+
+                    lineLayoutLinearField.type = 'hidden';
+                    lineLayoutLinearField.control.patchValue(null);
+
+                    lineLayoutUnknownField.type = 'hidden';
+                    lineLayoutUnknownField.control.patchValue(null);
+
+                    break;
+                  case QualitativeLabels.LINE_LAYOUT_TYPE.UNKNOWN:
+                    if (this.debug) console.debug('[operation] Enable other details');
+
+                    lineLayoutUnknownField.type = originalType[lineLayoutUnknownPmfm.id];
+
+                    lineLayoutZigzagField.type = 'hidden';
+                    lineLayoutLinearField.type = 'hidden';
+
+                    lineLayoutZigzagField.control.patchValue(null);
+                    lineLayoutLinearField.control.patchValue(null);
+                    break;
+                  default:
+                    lineLayoutZigzagField.type = 'hidden';
+                    lineLayoutLinearField.type = 'hidden';
+                    lineLayoutUnknownField.type = 'hidden';
+
+                    break;
+                }
+                // this.markForCheck();
+              })
+          );
+        }
+      });
     }
   }
 
