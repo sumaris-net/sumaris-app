@@ -4,7 +4,6 @@ import { LocalSettingsService, toNumber } from '@sumaris-net/ngx-components';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { VesselUseFeatures } from './vessel-use-features.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
-import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
@@ -33,7 +32,6 @@ export class VesselUseFeaturesValidatorService<O extends VesselUseFeaturesValida
     formBuilder: UntypedFormBuilder,
     translate: TranslateService,
     settings: LocalSettingsService,
-    protected fishingAreaValidator: FishingAreaValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, translate, settings);
