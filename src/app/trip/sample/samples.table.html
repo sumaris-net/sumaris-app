@@ -380,7 +380,7 @@
         [class.mat-mdc-cell-content-start-padding]="showGroupHeader"
         (click)="focusColumn = (pmfm.id || index).toString()"
       >
-        @if (row.editing) {
+        @if (row.editing && !pmfm.isComputed) {
           <app-pmfm-field
             floatLabel="never"
             [pmfm]="pmfm"
