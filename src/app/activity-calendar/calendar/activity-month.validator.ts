@@ -584,18 +584,18 @@ export class ActivityMonthValidators {
     const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
     if (!isActive) return null;
 
-    const fishingAreaLabels: string[] = [];
     const fishingAreasErrors = [];
 
     control.controls.forEach((guf) => {
       const location = guf.get('fishingAreas')?.value;
       if (isNotEmptyArray(location)) {
+        const gufFishingAreas = [];
         location.forEach((fa) => {
           if (fa.location) {
-            if (fishingAreaLabels.includes(fa.location.label)) {
+            if (gufFishingAreas.includes(fa.location.label)) {
               fishingAreasErrors.push({ fishingArea: fa.location.label });
             }
-            fishingAreaLabels.push(fa.location.label);
+            gufFishingAreas.push(fa.location.label);
           }
         });
       }
