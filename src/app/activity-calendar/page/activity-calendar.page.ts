@@ -162,6 +162,7 @@ export class ActivityCalendarPage
   protected selectedSubTabIndex = 0;
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
   protected isAdmin = this.accountService.isAdmin();
+  protected isAdminOrManager = this.accountService.isAdmin();
   protected qualityWarning: string = null;
 
   @Input() showVesselType = false;
@@ -486,6 +487,7 @@ export class ActivityCalendarPage
       this.i18nContext.suffix = i18nSuffix;
 
       this.baseForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
+      this.isAdminOrManager = this.accountService.isAdmin() || this.programRefService.hasUserManagerPrivilege(program);
       if (!this.baseForm.showObservers && this.data?.observers) {
         this.data.observers = []; // make sure to reset data observers, if any
       }
@@ -776,6 +778,12 @@ export class ActivityCalendarPage
 
     // Restore vesselRegistrationPeriods
     value.vesselRegistrationPeriods = this.data.vesselRegistrationPeriods;
+
+    // Add current user as observer
+    const currentPerson = this.accountService.person;
+    if (!this.isAdminOrManager && isNotEmptyArray(value.observers) && !value.observers.map((observer) => observer.id).includes(currentPerson.id)) {
+      value.observers = [...value.observers, currentPerson];
+    }
 
     return value;
   }
