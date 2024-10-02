@@ -7,7 +7,7 @@ import {
   removeDuplicatesFromArray,
   StatusIds,
 } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds,PmfmIds, ProgramLabels, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelGroups, LocationLevelIds, PmfmIds, ProgramLabels, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -20,6 +20,7 @@ export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'blank-form';
 export type ActivityCalendarReportType = 'form' | 'blank-form' | 'progress';
 
+export type LineLayoutType = 'linear' | 'zig_zag' | 'unk';
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
 export const OperationPasteFlags = Object.freeze({
@@ -283,6 +284,25 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_ENABLE',
     defaultValue: 'true',
     type: 'boolean',
+  },
+  TRIP_OPERATION_LINE_LAYOUT: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.line.layout',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_LINE_LAYOUT',
+    type: 'enum',
+    value: [
+      {
+        key: <LineLayoutType>'linear',
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_LINEAR_LINE',
+      },
+      {
+        key: <LineLayoutType>'zig_zag',
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_ZIGZAG_LINE',
+      },
+      {
+        key: <LineLayoutType>'unk',
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_UNK_LINE',
+      },
+    ],
   },
   TRIP_POSITION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.position.enable',
