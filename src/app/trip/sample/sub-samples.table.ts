@@ -111,7 +111,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     // DEBUG
     //this.debug = !environment.production;
     this.logPrefix = '[sub-samples-table] ';
-    this.acquisitionLevel;
   }
 
   ngOnInit() {

@@ -3732,7 +3732,7 @@
     "FIELD_NOT_EXISTS": "Cette valeur n'existe pas",
     "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée",
     "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
-    "GEOLOCATION_ERROR": "Erreur de récupération de la position. <small><br/>{{message}}</small>",
+    "GEOLOCATION_ERROR": "Géolocalisation <b>impossible</b>.<small><br/>{{message}}</small>",
     "SHARE_AS_PUBLIC_FAIL": "Échec du partage"
   },
   "CONFIRM": {
@@ -3766,7 +3766,8 @@
     "UPDATE_APP_DOWNLOADED": "Le téléchargement de la mise à jour est terminée.<br/><b>Veuillez l'installer</b> à partir des fichiers de l'appareil.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères",
     "TEXT_PROGRESS": "{{current}} sur {{max}}",
-    "DOWNLOADING_DOTS": "Téléchargement en cours..."
+    "DOWNLOADING_DOTS": "Téléchargement en cours...",
+    "GEOLOCATION_STARTED": "Géolocalisation en cours.<br/><b>Veuillez patienter...</b>"
   },
   "WARNING": {
     "ALERT_HEADER": "Avertissement",

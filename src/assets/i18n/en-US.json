@@ -3358,7 +3358,7 @@
     "FIELD_NOT_EXISTS": "Value doesn't exist",
     "FIREFOX_NO_STORAGE": "The application cannot run with Firefox in 'private' mode or without keeping navigation history",
     "FEATURE_NOT_IMPLEMENTED": "Feature not implemented! <small><br/>Please contact your administrator.</small>",
-    "GEOLOCATION_ERROR": "Error while getting GPS position. <small><br/>{{message}}</small>",
+    "GEOLOCATION_ERROR": "Geolocation <b>impossible</b>.<small><br/>{{message}}</small>",
     "SHARE_AS_PUBLIC_FAIL": "Failed to share publicly"
   },
   "CONFIRM": {
@@ -3392,7 +3392,8 @@
     "UPDATE_APP_DOWNLOADED": "The update download is complete.<br/><b>Please install</b> from the downloaded files.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Please type at least {{minLength}} characters",
     "TEXT_PROGRESS": "{{current}} of {{max}}",
-    "DOWNLOADING_DOTS": "Download in progress..."
+    "DOWNLOADING_DOTS": "Download in progress...",
+    "GEOLOCATION_STARTED": "Geolocation in progress.<br/><b>Please wait...</b>"
   },
   "WARNING": {
     "ALERT_HEADER": "Warning",

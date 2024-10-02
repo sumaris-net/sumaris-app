@@ -38,6 +38,8 @@ import {
   PlatformService,
   ProgressBarService,
   QueryVariables,
+  ShowToastOptions,
+  Toasts,
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -88,6 +90,9 @@ import { PositionOptions } from '@capacitor/geolocation';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
+import { ToastButton } from '@ionic/core/dist/types/components/toast/toast-interface';
+import { OverlayEventDetail, ToastOptions } from '@ionic/core';
+import { ToastController } from '@ionic/angular';
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -406,6 +411,7 @@ export class OperationService
     protected progressBarService: ProgressBarService,
     protected programRefService: ProgramRefService,
     protected translate: TranslateService,
+    protected toastController: ToastController,
     protected formErrorTranslator: FormErrorTranslator,
     @Optional() protected geolocation: Geolocation
   ) {
@@ -1222,9 +1228,49 @@ export class OperationService
   /**
    * Get the position by geo loc sensor
    */
-  async getCurrentPosition(options?: PositionOptions): Promise<{ latitude: number; longitude: number }> {
+  async getCurrentPosition(
+    options?: PositionOptions & { showToast?: boolean; stop?: Observable<any>; toastOptions?: ToastOptions; cancellable?: boolean }
+  ): Promise<{ latitude: number; longitude: number }> {
     const timeout = options?.timeout || this.settings.getPropertyAsInt(TRIP_LOCAL_SETTINGS_OPTIONS.OPERATION_GEOLOCATION_TIMEOUT) * 1000;
     const maximumAge = options?.maximumAge || timeout * 2;
+
+    // Opening a toast
+    if (options?.showToast) {
+      return new Promise(async (resolve, reject) => {
+        const toastId = `geolocation-${Date.now()}`;
+        const closeToastAndReject = () => {
+          reject('CANCELLED');
+          this.closeToast(toastId);
+        };
+        // @ts-ignore
+        const subscription = options.stop ? options.stop.subscribe(closeToastAndReject) : null;
+        // Define toast cancel button
+        let toastButtons: ToastButton[];
+        if (options?.cancellable !== false) {
+          toastButtons = [
+            {
+              text: this.translate.instant('COMMON.BTN_CANCEL'),
+              handler: closeToastAndReject,
+            },
+          ];
+        }
+
+        try {
+          // Open the toast (without waiting end)
+          this.showToast({ id: toastId, message: 'INFO.GEOLOCATION_STARTED', buttons: toastButtons, duration: -1, ...options.toastOptions });
+
+          // Loop to get position
+          const result = await this.getCurrentPosition({ ...options, showToast: false });
+          resolve(result);
+        } catch (err) {
+          reject(err);
+        } finally {
+          subscription?.unsubscribe();
+          // Close toast
+          this.closeToast(toastId);
+        }
+      });
+    }
 
     return PositionUtils.getCurrentPosition(this.platform, {
       maximumAge,
@@ -2031,5 +2077,13 @@ export class OperationService
       isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true, // Need by full validation
     };
+  }
+
+  protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+    return Toasts.show(this.toastController, this.translate, opts);
+  }
+
+  protected async closeToast(id: string) {
+    return this.toastController.dismiss(null, null, id);
   }
 }
