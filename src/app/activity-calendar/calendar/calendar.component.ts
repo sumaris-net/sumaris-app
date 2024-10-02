@@ -1796,8 +1796,11 @@ export class CalendarComponent
     const currentData = row.currentData;
     if (ActivityMonth.isEmpty(currentData)) return true; // Nothing to clear
 
-    const { month, startDate, endDate, readonly, registrationLocations } = currentData;
+    const { month, startDate, endDate, readonly, registrationLocations, vesselId, id, program } = currentData;
     const data = ActivityMonth.fromObject({
+      id,
+      vesselId,
+      program,
       month,
       startDate,
       endDate,

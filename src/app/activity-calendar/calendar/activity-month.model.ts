@@ -45,7 +45,7 @@ export class ActivityMonth extends VesselUseFeatures implements IEntity<Activity
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
-    this.month = this.startDate?.month();
+    this.month = this.startDate?.month() + 1;
     this.gearUseFeatures = source.gearUseFeatures?.map(GearUseFeatures.fromObject);
     this.readonly = source.readonly;
     this.registrationLocations = source.registrationLocations?.map(ReferentialRef.fromObject);
