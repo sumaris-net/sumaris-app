@@ -1,4 +1,4 @@
-import { AfterViewInit, Directive, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Directive, inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
   AppFormUtils,
   changeCaseToUnderscore,
@@ -29,7 +29,7 @@ import {
 import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableConfig, BaseTableState } from '@app/shared/table/base.table';
 import { UntypedFormBuilder } from '@angular/forms';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
-import { IonInfiniteScroll, PopoverController } from '@ionic/angular';
+import { IonInfiniteScroll } from '@ionic/angular';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -91,9 +91,8 @@ export abstract class BaseReferentialTable<
 
   columnDefinitions: FormFieldDefinition[];
 
-  protected popoverController: PopoverController;
-  protected propertyFormatPipe: PropertyFormatPipe;
-  protected referentialRefService: ReferentialRefService;
+  protected propertyFormatPipe = inject(PropertyFormatPipe);
+  protected referentialRefService = inject(ReferentialRefService);
 
   protected $status = new BehaviorSubject<IStatus[]>(null);
   private readonly withStatusId: boolean;
@@ -109,9 +108,6 @@ export abstract class BaseReferentialTable<
       options
     );
 
-    this.referentialRefService = injector.get(ReferentialRefService);
-    this.propertyFormatPipe = injector.get(PropertyFormatPipe);
-    this.popoverController = injector.get(PopoverController);
     this.title = (this.i18nColumnPrefix && this.i18nColumnPrefix + 'TITLE') || '';
     this.logPrefix = '[base-referential-table] ';
     this.canUpload = options?.canUpload || false;

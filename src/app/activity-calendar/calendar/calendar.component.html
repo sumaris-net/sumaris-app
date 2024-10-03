@@ -500,14 +500,9 @@
       </ng-container>
 
       <!-- Actions -->
-      <app-actions-column
-        [stickyEnd]="stickyEnd"
+      <app-nav-actions-column
         [style]="'mat-table'"
-        class="mat-column-reset-background-color"
-        (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
-        (backward)="confirmAndBackward($event.event, $event.row)"
-        (forward)="confirmAndForward($event.event, $event.row)"
-        [dirtyIcon]="true"
+        class="{{ inlineEdition ? 'mat-column-reset-background-color' : 'cdk-visually-hidden' }}"
         [cellTemplate]="cellInjection"
       >
         <ng-template #cellInjection let-row>
@@ -559,7 +554,7 @@
             }
           }
         </ng-template>
-      </app-actions-column>
+      </app-nav-actions-column>
 
       <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
       <mat-row

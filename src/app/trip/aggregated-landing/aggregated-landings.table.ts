@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { AlertController } from '@ionic/angular';
 import { UntypedFormBuilder } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
@@ -41,7 +41,6 @@ import { AppBaseTable } from '@app/shared/table/base.table';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, AggregatedLandingFilter> implements OnInit, OnDestroy {
-  canDelete: boolean;
   isAdmin: boolean;
   showNameForPmfmIds: number[];
 
@@ -107,16 +106,15 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
     injector: Injector,
     public network: NetworkService,
     protected accountService: AccountService,
-    protected service: AggregatedLandingService,
+    _dataService: AggregatedLandingService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected formBuilder: UntypedFormBuilder,
     protected alertCtrl: AlertController,
-    protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
+    protected translate: TranslateService
   ) {
-    super(injector, AggregatedLanding, AggregatedLandingFilter, ['vessel'], service, null, {
+    super(injector, AggregatedLanding, AggregatedLandingFilter, ['vessel'], _dataService, null, {
       prependNewElements: false,
       suppressErrors: environment.production,
       debug: !environment.production,

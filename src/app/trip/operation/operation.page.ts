@@ -659,7 +659,7 @@ export class OperationPage<S extends OperationState = OperationState>
           this.batchTree.setModalOption('showHasSubBatchesButton', !value);
           if (!this.allowParentOperation) {
             this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
-            this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
+            this.tabCount = this.showSamplesTab ? 3 : this.showCatchTab ? 2 : 1;
           }
           this.updateTablesState();
         })

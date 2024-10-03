@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
@@ -30,7 +30,6 @@ import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAM
 import { environment } from '@environments/environment';
 import { BehaviorSubject } from 'rxjs';
 import { ObservedLocationOfflineModal } from '../observedlocation/offline/observed-location-offline.modal';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observedlocation/observed-location.filter';
 import { filter } from 'rxjs/operators';
@@ -48,7 +47,7 @@ import { LANDING_I18N_PMFM_PREFIX, LANDING_RESERVED_END_COLUMNS, LANDING_TABLE_D
 import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TripService } from '@app/trip/trip/trip.service';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
-import { BaseTableConfig } from '@app/shared/table/base.table';
+import { BaseTableConfig, BaseTableState } from '@app/shared/table/base.table';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -78,7 +77,7 @@ export const LANDING_PAGE_RESERVED_START_COLUMNS = [
 ];
 export const LANDING_PAGE_RESERVED_END_COLUMNS = LANDING_RESERVED_END_COLUMNS;
 
-export interface LandingPageConfig extends BaseTableConfig<Landing, number, LandingServiceWatchOptions> {
+export interface LandingPageConfig extends BaseTableConfig<Landing, number, BaseTableState, LandingServiceWatchOptions> {
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
   i18nPmfmPrefix?: string;
@@ -92,7 +91,7 @@ export interface LandingPageConfig extends BaseTableConfig<Landing, number, Land
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandingsPage
-  extends AppRootDataTable<Landing, LandingFilter, LandingService, LandingValidatorService, number, LandingPageConfig>
+  extends AppRootDataTable<Landing, LandingFilter, LandingService, LandingValidatorService, number, BaseTableState, LandingPageConfig>
   implements OnInit
 {
   protected $title = new BehaviorSubject<string>(undefined);
@@ -114,7 +113,6 @@ export class LandingsPage
   @Input() showFilterPeriod = true;
   @Input() showFilterSampleLabel = false; // Can be override by setProgram() or resetProgram()
   @Input() showFilterSampleTagId = false; // Can be override by setProgram() or resetProgram()
-  @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
 
@@ -220,7 +218,6 @@ export class LandingsPage
     dataService: LandingService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
-    protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected observedLocationService: ObservedLocationService,
@@ -228,8 +225,7 @@ export class LandingsPage
     protected formBuilder: UntypedFormBuilder,
     protected configService: ConfigService,
     protected pmfmNamePipe: PmfmNamePipe,
-    protected context: ContextService,
-    protected cd: ChangeDetectorRef
+    protected context: ContextService
   ) {
     super(injector, Landing, LandingFilter, [...LANDING_PAGE_RESERVED_START_COLUMNS, ...LANDING_RESERVED_END_COLUMNS], dataService, null, {
       reservedStartColumns: LANDING_PAGE_RESERVED_START_COLUMNS,

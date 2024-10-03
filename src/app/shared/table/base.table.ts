@@ -1,4 +1,16 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  booleanAttribute,
+  ChangeDetectorRef,
+  Directive,
+  ElementRef,
+  inject,
+  Injector,
+  Input,
+  numberAttribute,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import {
   AppTable,
   changeCaseToUnderscore,
@@ -71,37 +83,37 @@ export abstract class AppBaseTable<
 {
   private _canEdit: boolean;
 
+  protected translateContext = inject(TranslateContextService);
+  protected popoverController = inject(PopoverController);
+  protected cd = inject(ChangeDetectorRef);
+
   protected memoryDataService: InMemoryEntitiesService<T, F, ID>;
-  protected translateContext: TranslateContextService;
-  protected cd: ChangeDetectorRef;
   protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
-  protected popoverController: PopoverController;
 
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
 
-  @Input() usePageSettings = true;
-  @Input() canGoBack = false;
-  @Input() showTitle = true;
-  @Input() mobile = false;
-  @Input() showToolbar: boolean;
-  @Input() showPaginator = true;
-  @Input() showFooter = true;
-  @Input() showError = true;
+  @Input({ transform: booleanAttribute }) usePageSettings = true;
+  @Input({ transform: booleanAttribute }) canGoBack = false;
+  @Input({ transform: booleanAttribute }) showTitle = true;
+  @Input({ transform: booleanAttribute }) mobile = false;
+  @Input({ transform: booleanAttribute }) showToolbar: boolean;
+  @Input({ transform: booleanAttribute }) showPaginator = true;
+  @Input({ transform: booleanAttribute }) showFooter = true;
+  @Input({ transform: booleanAttribute }) showError = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
-  @Input() sticky = false;
-  @Input() stickyEnd = false;
-  @Input() compact: boolean = null;
+  @Input({ transform: booleanAttribute }) sticky = false;
+  @Input({ transform: booleanAttribute }) stickyEnd = false;
+  @Input({ transform: booleanAttribute }) compact: boolean = null;
   @Input() pressHighlightDuration = 10000; // 10s
-  @Input() highlightedRowId: number;
-  @Input() filterPanelFloating = true;
-
-  @Input() set canEdit(value: boolean) {
+  @Input({ transform: numberAttribute }) highlightedRowId: number;
+  @Input({ transform: booleanAttribute }) filterPanelFloating = true;
+  @Input({ transform: booleanAttribute }) canDelete: boolean;
+  @Input({ transform: booleanAttribute }) set canEdit(value: boolean) {
     this._canEdit = value;
   }
-
   get canEdit(): boolean {
-    return this._canEdit && !this.readOnly;
+    return !this.readOnly && (this._canEdit ?? true);
   }
 
   @ViewChild('tableContainer', { read: ElementRef }) tableContainerRef: ElementRef;
@@ -117,6 +129,13 @@ export abstract class AppBaseTable<
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     if (this.memoryDataService?.dirty) return; // Skip if service still dirty
     super.markAsPristine(opts);
+  }
+
+  /**
+   * return the selected row if unique in selection
+   */
+  protected get hasSingleSelectedRow(): boolean {
+    return this.selection.selected?.length === 1;
   }
 
   protected constructor(
@@ -143,10 +162,7 @@ export abstract class AppBaseTable<
 
     this.mobile = this.settings.mobile;
     this.hotkeys = injector.get(Hotkeys);
-    this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
-    this.translateContext = injector.get(TranslateContextService);
-    this.cd = injector.get(ChangeDetectorRef);
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
     this.memoryDataService = this._dataService instanceof InMemoryEntitiesService ? (this._dataService as InMemoryEntitiesService<T, F, ID>) : null;
@@ -306,7 +322,7 @@ export abstract class AppBaseTable<
   }
 
   pressRow(event: Event | undefined, row: TableElement<T>): boolean {
-    if (!this.mobile) return; // Skip if inline edition, or not mobile
+    if (!this.mobile || event?.defaultPrevented) return false; // Skip if inline edition, or not mobile
 
     event?.preventDefault();
 
@@ -536,7 +552,7 @@ export abstract class AppBaseTable<
 
   /* -- protected function -- */
 
-  protected restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: AppBaseTableFilterRestoreSource[] }) {
+  protected async restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: AppBaseTableFilterRestoreSource[] }) {
     this.markAsLoading();
 
     const json = this.loadFilter(opts?.sources);
@@ -685,6 +701,13 @@ export abstract class AppBaseTable<
     // Can be override by subclasses
   }
 
+  // FIXME
+  // protected editRow(event: Event | undefined, row: TableElement<T>, opts?: { focusColumn?: string }): boolean {
+  //   const editing = super.editRow(event, row, opts);
+  //   if (editing) this.markForCheck();
+  //   return editing;
+  // }
+
   /**
    * Delegate equals to the entity class, instead of simple ID comparison
    *
@@ -699,7 +722,7 @@ export abstract class AppBaseTable<
   }
 
   protected markForCheck() {
-    this.cd.markForCheck();
+    this.cd?.markForCheck();
   }
 
   protected getI18nColumnName(columnName: string): string {

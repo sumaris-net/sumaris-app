@@ -162,7 +162,7 @@ export const TripFragments = {
       ...LocationFragment
     }
     sale {
-      ...LightSaleFragment
+      ...TripSaleFragment
     }
     gears {
       ...PhysicalGearFragment
@@ -195,7 +195,7 @@ export const TripFragments = {
   ${PhysicalGearFragments.physicalGear}
   ${DataCommonFragments.metier},
   ${DataFragments.fishingArea},
-  ${SaleFragments.lightSale}`,
+  ${SaleFragments.tripSale}`,
 
   landedTrip: gql`
     fragment LandedTripFragment on TripVO {

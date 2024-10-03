@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import { AccountService, LocalSettingsService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { AccountService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
 import { VesselFeatures } from '../services/model/vessel.model';
 import { VesselFeaturesService, VesselFeaturesServiceWatchOptions } from '../services/vessel-features.service';
 import { environment } from '@environments/environment';
@@ -16,9 +16,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
   protected referentialToString = referentialToString;
 
-  @Input() compact: boolean;
   @Input() title: string;
-  @Input() stickyEnd: boolean = false;
   @Input() showPagination: boolean = false;
   @Input() mergeAll: boolean = false;
 
@@ -70,9 +68,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
   constructor(
     injector: Injector,
     protected accountService: AccountService,
-    protected settings: LocalSettingsService,
-    dataService: VesselFeaturesService,
-    protected cd: ChangeDetectorRef
+    dataService: VesselFeaturesService
   ) {
     super(
       injector,

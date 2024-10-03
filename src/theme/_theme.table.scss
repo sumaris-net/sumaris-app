@@ -11,6 +11,7 @@
   --mat-table-row-item-label-text-color: var(--ion-text-color);
   --mat-table-row-item-outline-color: var(--ion-border-color);
 
+
   .mat-mdc-row {
     overflow: hidden;
   }
@@ -35,6 +36,17 @@
       &.mat-mdc-table-sticky-border-elem-left {
         border-right: 0 !important; // 1px solid #{$app-table-border-color};
       }
+    }
+
+    .mat-mdc-cell {
+      // Hide disabled field placeholder
+      --mat-form-field-disabled-input-text-placeholder-color: transparent;
+
+      // Hide disabled field checkbox
+      --mdc-checkbox-disabled-selected-icon-color: transparent;
+      --mdc-checkbox-disabled-selected-checkmark-color: transparent;
+      --mdc-checkbox-disabled-unselected-icon-color: transparent;
+      --mdc-checkbox-disabled-unselected-checkmark-color: transparent;
     }
   }
 

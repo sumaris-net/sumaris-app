@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import {
   createPromiseEventEmitter,
@@ -88,10 +88,9 @@ export class PacketsTable
 
   constructor(
     injector: Injector,
-    protected memoryDataService: InMemoryEntitiesService<Packet, PacketFilter>,
-    protected validatorService: PacketValidatorService,
-    protected programRefService: ProgramRefService,
-    protected cd: ChangeDetectorRef
+    memoryDataService: InMemoryEntitiesService<Packet, PacketFilter>,
+    validatorService: PacketValidatorService,
+    protected programRefService: ProgramRefService
   ) {
     super(
       injector,

@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import { AccountService, LocalSettingsService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { AccountService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { VesselOwnerPeriodFilter } from '../services/filter/vessel.filter';
 import { VesselOwnerPeriod } from '../services/model/vessel-owner-period.model';
@@ -16,9 +16,7 @@ export class VesselOwnerHistoryComponent extends AppBaseTable<VesselOwnerPeriod,
   protected readonly hiddenColumns = RESERVED_START_COLUMNS;
   protected referentialToString = referentialToString;
 
-  @Input() compact: boolean;
   @Input() title: string;
-  @Input() stickyEnd: boolean = false;
   @Input() showPagination = false;
 
   @Input()
@@ -51,9 +49,7 @@ export class VesselOwnerHistoryComponent extends AppBaseTable<VesselOwnerPeriod,
   constructor(
     injector: Injector,
     protected accountService: AccountService,
-    protected settings: LocalSettingsService,
-    dataService: VesselOwnerPeridodService,
-    protected cd: ChangeDetectorRef
+    dataService: VesselOwnerPeridodService
   ) {
     super(
       injector,

@@ -362,10 +362,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   ngOnInit() {
     this.inlineEdition = this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
-    this.showIndividualCountColumns = toBoolean(this.showIndividualCountColumns, !this.mobile);
-    this.showSamplingBatchColumns = toBoolean(this.showSamplingBatchColumns, true);
-    this.allowSubBatches = toBoolean(this.allowSubBatches, true);
-    this.allowIndividualCountOnly = toBoolean(this.allowIndividualCountOnly, false /* need for backward compat */);
+    this.showIndividualCountColumns = this.showIndividualCountColumns ?? !this.mobile;
+    this.showSamplingBatchColumns = this.showSamplingBatchColumns ?? true;
+    this.allowSubBatches = this.allowSubBatches ?? true;
+    this.allowIndividualCountOnly = this.allowIndividualCountOnly ?? false /* need for backward compat */;
 
     // in DEBUG only: force validator = null
     //if (this.debug && this.mobile) this.setValidatorService(null);

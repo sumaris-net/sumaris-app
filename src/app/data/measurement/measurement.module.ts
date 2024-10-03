@@ -5,6 +5,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
+import { IsMeasurementFormValuesPipe, IsMeasurementModelValuesPipe, MeasurementValueGetPipe } from '@app/data/measurement/measurements.pipe';
 
 @NgModule({
   imports: [
@@ -16,13 +17,23 @@ import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-fi
     AppReferentialModule,
     AppPmfmFormFieldModule,
   ],
-  declarations: [MeasurementsForm],
+  declarations: [
+    MeasurementsForm,
+
+    // Pipes
+    IsMeasurementFormValuesPipe,
+    IsMeasurementModelValuesPipe,
+    MeasurementValueGetPipe,
+  ],
   exports: [
     // Modules
     TranslateModule,
     AppPmfmFormFieldModule,
 
     // Pipes
+    IsMeasurementFormValuesPipe,
+    IsMeasurementModelValuesPipe,
+    MeasurementValueGetPipe,
 
     // Components
     MeasurementsForm,

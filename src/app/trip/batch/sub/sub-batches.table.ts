@@ -1,15 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Inject,
-  InjectionToken,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { isObservable, Observable, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -101,9 +90,7 @@ export class SubBatchesTable
   protected _initialPmfms: IPmfm[];
   protected _availableSortedParents: BatchGroup[] = [];
 
-  protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
-  protected memoryDataService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
   protected enableWeightConversion = false;
   protected weightPmfm: IPmfm;
 

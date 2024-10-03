@@ -54,7 +54,8 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
   @Input() showToolbar = true;
   @Input() showPaginator = false;
   @Input() hasRankOrder: boolean;
-  @Input() useSticky = false;
+  @Input() sticky = false;
+  @Input() stickyEnd = false;
 
   @Input()
   set showIdColumn(value: boolean) {

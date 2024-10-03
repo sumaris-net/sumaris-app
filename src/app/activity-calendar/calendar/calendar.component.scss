@@ -62,8 +62,8 @@ mat-toolbar {
   --col-size: calc(max(var(--col-min-size, 0px), (100% - var(--col-header-size)) / var(--month-count, 12)));
   --mat-table-row-item-outline-width: 0px;
   --mat-column-actions-min-width: 100%;
-  --mat-row-height: 35px !important;
-  --mat-row-max-height: 35px !important;
+  --mat-row-height: 30px !important;
+  --mat-row-max-height: 30px !important;
 
   display: flex !important;
   flex-direction: row !important;

@@ -387,10 +387,11 @@ export const OperationGroupFragment = {
   `,
 };
 export const SaleFragments = {
-  lightSale: gql`
-    fragment LightSaleFragment on SaleVO {
+  tripSale: gql`
+    fragment TripSaleFragment on SaleVO {
       id
       startDateTime
+      endDateTime
       creationDate
       updateDate
       comments
@@ -403,31 +404,6 @@ export const SaleFragments = {
     }
     ${DataCommonFragments.referential}
     ${DataCommonFragments.location}
-  `,
-  sale: gql`
-    fragment SaleFragment on SaleVO {
-      id
-      startDateTime
-      creationDate
-      updateDate
-      comments
-      saleType {
-        ...LightReferentialFragment
-      }
-      saleLocation {
-        ...LocationFragment
-      }
-      measurements {
-        ...MeasurementFragment
-      }
-      products {
-        ...ProductFragment
-      }
-    }
-    ${DataCommonFragments.referential}
-    ${DataCommonFragments.location}
-    ${DataCommonFragments.measurement}
-    ${DataFragments.product}
   `,
 };
 export const ExpectedSaleFragments = {

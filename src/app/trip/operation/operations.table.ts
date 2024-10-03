@@ -1,15 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from './operation.validator';
 import { OperationService, OperationServiceWatchOptions } from './operation.service';
@@ -19,8 +8,7 @@ import { environment } from '@environments/environment';
 import { Operation } from '../trip/trip.model';
 import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { from, merge } from 'rxjs';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { MatExpansionPanel } from '@angular/material/expansion';
+import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { debounceTime, filter, tap } from 'rxjs/operators';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
@@ -34,16 +22,12 @@ import { OperationEditor } from '@app/referential/services/config/program.config
   providers: [{ provide: ValidatorService, useExisting: OperationValidatorService }],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OperationsTable extends AppBaseTable<Operation, OperationFilter> implements OnInit, OnDestroy {
+export class OperationsTable extends AppBaseTable<Operation, OperationFilter, OperationService> implements OnInit, OnDestroy {
   displayAttributes: {
     [key: string]: string[];
   };
   statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
   statusById = DataQualityStatusEnum;
-  readonly filterForm: UntypedFormGroup = this.formBuilder.group({
-    tripId: [null],
-    dataQualityStatus: [null],
-  });
 
   @Input() latLongPattern: LatLongPattern;
   @Input() showMap: boolean;
@@ -141,10 +125,6 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     return this.getShowColumn('fishingEndDateTime');
   }
 
-  get filterIsEmpty(): boolean {
-    return this.filterCriteriaCount === 0;
-  }
-
   get filterDataQualityControl(): UntypedFormControl {
     return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
@@ -152,16 +132,12 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
   // eslint-disable-next-line @angular-eslint/no-output-on-prefix
   @Output('duplicateRow') onDuplicateRow = new EventEmitter<{ data: Operation }>();
 
-  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
-
   constructor(
     injector: Injector,
-    protected settings: LocalSettingsService,
-    protected validatorService: ValidatorService,
-    protected _dataService: OperationService,
+    settings: LocalSettingsService,
+    _dataService: OperationService,
     protected accountService: AccountService,
-    protected formBuilder: UntypedFormBuilder,
-    protected cd: ChangeDetectorRef
+    protected formBuilder: UntypedFormBuilder
   ) {
     super(
       injector,
@@ -196,6 +172,10 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
         },
       }
     );
+    this.filterForm = this.formBuilder.group({
+      tripId: [null],
+      dataQualityStatus: [null],
+    });
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.saveBeforeSort = false;

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
 import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
@@ -155,15 +155,14 @@ export class ActivityCalendarsTable
 
   constructor(
     injector: Injector,
-    protected _dataService: ActivityCalendarService,
+    _dataService: ActivityCalendarService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
     protected context: ContextService,
     protected formBuilder: UntypedFormBuilder,
-    private readonly transferService: FileTransferService,
-    protected cd: ChangeDetectorRef
+    private readonly transferService: FileTransferService
   ) {
     super(
       injector,
@@ -579,6 +578,10 @@ export class ActivityCalendarsTable
 
       this.setFilter({ ...this.filter, year, startDate, endDate: null });
     }
+  }
+
+  resetFilter(value?: any, opts?: { emitEvent: boolean }) {
+    super.resetFilter({ ...value, year: this.filter?.year }, opts);
   }
 
   protected markForCheck() {

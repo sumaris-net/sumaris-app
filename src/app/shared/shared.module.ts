@@ -12,6 +12,7 @@ import { RxUnpatch } from '@rx-angular/template/unpatch';
 import { NoHtmlPipe } from '@app/shared/pipes/html.pipes';
 import { AppErrorItem } from '@app/shared/error/error-item.component';
 import { AppWarningItem } from '@app/shared/error/warning-item.component';
+import { DebounceTimePipe } from '@app/shared/pipes/debounceTime.pipe';
 
 @NgModule({
   imports: [
@@ -33,6 +34,7 @@ import { AppWarningItem } from '@app/shared/error/warning-item.component';
     // Pipes
     DisplayWithPipe,
     DelayPipe,
+    DebounceTimePipe,
     SplitArrayInChunksPipe,
     PaginationToStringPipe,
     NoHtmlPipe,
@@ -50,6 +52,7 @@ import { AppWarningItem } from '@app/shared/error/warning-item.component';
     // Pipes
     DisplayWithPipe,
     DelayPipe,
+    DebounceTimePipe,
     SplitArrayInChunksPipe,
     PaginationToStringPipe,
     NoHtmlPipe,
