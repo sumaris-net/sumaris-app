@@ -1796,7 +1796,8 @@ export class CalendarComponent
     const currentData = row.currentData;
     if (ActivityMonth.isEmpty(currentData)) return true; // Nothing to clear
 
-    const { month, startDate, endDate, readonly, registrationLocations, vesselId, id, program } = currentData;
+    const { month, startDate, endDate, readonly, registrationLocations, vesselId, id, program, gearUseFeatures } = currentData;
+
     const data = ActivityMonth.fromObject({
       id,
       vesselId,
@@ -1807,11 +1808,16 @@ export class CalendarComponent
       readonly,
       registrationLocations,
       measurementValues: MeasurementValuesUtils.normalizeValuesToForm({}, this.pmfms),
-      gearUseFeatures: new Array(this.maxMetierCount).fill({
-        startDate,
-        endDate,
-        fishingAreas: new Array(this.maxFishingAreaCount).fill({}),
-      }),
+      gearUseFeatures: new Array(this.metierCount)
+        .fill({
+          startDate,
+          endDate,
+          fishingAreas: new Array(this.maxFishingAreaCount).fill({}),
+        })
+        .map((guf, index) => {
+          guf = { ...guf, id: gearUseFeatures[index].id };
+          return guf;
+        }),
     });
 
     if (row.validator && row.editing) {
