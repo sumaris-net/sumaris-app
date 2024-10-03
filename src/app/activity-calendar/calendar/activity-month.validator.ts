@@ -324,12 +324,6 @@ export class ActivityMonthValidators {
 
     let errors: any;
 
-    const qualificationComments = form.get('qualificationComments') as UntypedFormControl;
-
-    if (qualificationComments.value) {
-      qualificationComments.setValue(null, { emitEvent: false });
-    }
-
     const isActiveControl = form.get('isActive') as UntypedFormControl;
     const gearUseFeaturesArray = form.get('gearUseFeatures') as AppFormArray<GearUseFeatures, UntypedFormGroup>;
     let dirty = false;
