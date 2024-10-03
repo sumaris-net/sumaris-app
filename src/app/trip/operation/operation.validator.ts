@@ -779,8 +779,6 @@ export class OperationValidators {
     const individualOnDeckPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
     const individualOnDeckControl = individualOnDeckPmfm && measFormGroup.controls[individualOnDeckPmfm.id];
 
-    const isTangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_TANGLED);
-
     if (individualOnDeckControl) {
       console.debug('[operation-validator] Listening if individual is on deck...');
 
