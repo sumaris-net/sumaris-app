@@ -790,9 +790,7 @@ export class OperationValidators {
           if (individualOnDeck) {
             if (form.enabled) {
               pmfms
-                .filter(
-                  (pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.rankOrder <= isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
-                )
+                .filter((pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
                   if (pmfm.required) {
