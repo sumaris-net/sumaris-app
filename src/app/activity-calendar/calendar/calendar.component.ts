@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostListener,
   inject,
   Injector,
@@ -16,6 +17,7 @@ import {
 } from '@angular/core';
 import {
   Alerts,
+  AppAsyncTable,
   AppFormArray,
   AppFormUtils,
   changeCaseToUnderscore,
@@ -206,6 +208,7 @@ export interface TableCellSelection<T = any> {
         }),
     },
     RxState,
+    { provide: AppAsyncTable, useExisting: forwardRef(() => CalendarComponent) },
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -653,7 +656,7 @@ export class CalendarComponent
           const filteredMonth =
             data.find((am) => am.startDate?.month() === month) ||
             <ActivityMonth>{
-              month: month,
+              month,
               startDate: firstDayOfYear.clone().month(month),
               endDate: firstDayOfYear.clone().month(month).endOf('month'),
             };
@@ -932,10 +935,11 @@ export class CalendarComponent
 
   @HostListener('window:keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {
-    if (!this.cellSelection || event.defaultPrevented) return; // Skip
+    if (!this.cellSelection || event.defaultPrevented || this.editedRow) return; // Skip
 
     // Start editing
     if (event.key === 'Enter' && this.cellSelection.colspan === 1 && this.cellSelection.rowspan === 1) {
+      if (this.editedRow) return; // Keep default enter behavior, when editing a row
       return this.dblClickRow(event, this.cellSelection.row);
     }
     // Navigate
@@ -970,6 +974,9 @@ export class CalendarComponent
           rowIndex += 1;
           break;
         case 'Tab':
+          // If editing row, skip (keep default Tab behavior)
+          if (this.editedRow) return;
+
           columnIndex += 1;
           event.preventDefault(); // Avoid to start editing
           break;
@@ -1011,6 +1018,9 @@ export class CalendarComponent
           }
           break;
         case 'Tab':
+          // If editing row, skip (keep default Tab behavior)
+          if (this.editedRow) return;
+
           columnIndex -= 1;
           event.preventDefault(); // Avoid to start editing
           break;
@@ -1037,6 +1047,9 @@ export class CalendarComponent
           rowIndex = 11; // December
           break;
         default:
+          // If editing row, skip
+          if (this.editedRow) return;
+
           console.warn(this.logPrefix + `Unknown navigation key: ${event.key}`);
           return;
       }
@@ -1186,7 +1199,7 @@ export class CalendarComponent
     columnName = '' + columnName;
 
     // If hidden column: show it
-    const hiddenColumn = this.dynamicColumns.find((col) => col.key === columnName && col.expand && col.hidden);
+    const hiddenColumn = this.dynamicColumns?.find((col) => col.key === columnName && col.expand && col.hidden);
     if (hiddenColumn) {
       hiddenColumn.expand(event);
       return;
@@ -1684,6 +1697,15 @@ export class CalendarComponent
     this.rowSubscription.add(this.startListenFocusedElement());
   }
 
+  async addRow(event?: Event, insertAt?: number, opts?: { focusColumn?: string; editing?: boolean }): Promise<boolean> {
+    // Avoid to add new row, by Tab navigation
+    const firstRow = this.dataSource
+      .getRows()
+      .find((row) => row.currentData.readonly !== true && row.currentData.qualityFlagId !== QualityFlagIds.CONFLICTUAL);
+    if (firstRow) return this.editRow(event, firstRow);
+    return false;
+  }
+
   protected async editRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, opts?: { focusColumn?: string }): Promise<boolean> {
     // Avoid to edit readonly month
     const month = row.currentData;
@@ -1834,7 +1856,7 @@ export class CalendarComponent
 
     if (this.debug) console.debug(this.logPrefix + 'Toggling block #' + key);
 
-    const blockColumns = this.dynamicColumns.filter((col) => col.key.startsWith(key));
+    const blockColumns = this.dynamicColumns?.filter((col) => col.key.startsWith(key));
     if (isEmptyArray(blockColumns)) return; // Skip
 
     const masterColumn = blockColumns[0];
@@ -2369,9 +2391,9 @@ export class CalendarComponent
 
   protected onCopyAllClick(programLabel: string) {
     const sources = (this.getValue() || []).filter((month) => month?.program?.label === programLabel);
-    const targets: ActivityMonth[] = new Array(12).fill(null).map((index) => ActivityMonth.fromObject({ month: index + 1 }));
+    const targets: ActivityMonth[] = new Array(12).fill(null).map((month) => ActivityMonth.fromObject({ month }));
     sources.forEach((source) => {
-      targets[source.month - 1] = source;
+      targets[source.month] = source;
     });
     this.copyAllClick.emit(targets);
   }
@@ -2553,7 +2575,7 @@ export class CalendarComponent
     const { paths } = this.getRowsFromSelection(cellSelection);
     if (isEmptyArray(paths)) return; // Skip
 
-    const hiddenColumns = this.dynamicColumns.filter((col) => col.expand && col.hidden && paths.includes(col.path));
+    const hiddenColumns = this.dynamicColumns?.filter((col) => col.expand && col.hidden && paths.includes(col.path));
     if (isEmptyArray(hiddenColumns)) return; // Skip
 
     // DEBUG
