@@ -773,7 +773,7 @@ export class OperationValidators {
     const individualOnDeckPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
     const individualOnDeckControl = individualOnDeckPmfm && measFormGroup.controls[individualOnDeckPmfm.id];
     if (individualOnDeckControl) {
-      console.debug('[operation-validator] Listening if on deck...');
+      console.debug('[operation-validator] Listening if individual is on deck...');
 
       return individualOnDeckControl.valueChanges.pipe(
         startWith(individualOnDeckControl.value),
@@ -787,7 +787,7 @@ export class OperationValidators {
                   if (pmfm.required) {
                     control.setValidators(Validators.required);
                   }
-                  control.enable();
+                  control.enable({ onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }

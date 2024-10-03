@@ -74,6 +74,7 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment';
+import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export interface OperationState extends AppDataEditorState {
   hasIndividualMeasures?: boolean;
@@ -699,6 +700,70 @@ export class OperationPage<S extends OperationState = OperationState>
             this.markForCheck();
           })
       );
+    }
+
+    // If PMFM "Line layout" exists, then use to use to enable/disable specifics details
+    const lineLayoutControl = formGroup?.controls[PmfmIds.LINE_LAYOUT];
+
+    if (isNotNil(lineLayoutControl)) {
+      const enableOptions = { onlySelf: true };
+      let lineLayoutLinearControl = formGroup.controls[PmfmIds.LINE_LAYOUT_LINEAR];
+      let lineLayoutZigZagControl = formGroup.controls[PmfmIds.LINE_LAYOUT_ZIGZAG];
+      let lineLayoutUnknownControl = formGroup.controls[PmfmIds.LINE_LAYOUT_UNKNOWN];
+      if (lineLayoutLinearControl && lineLayoutZigZagControl && lineLayoutUnknownControl) {
+        this._measurementSubscription.add(
+          lineLayoutControl.valueChanges
+            .pipe(
+              debounceTime(400),
+              startWith<any, any>(lineLayoutControl.value),
+              map((qv) => qv?.label),
+              distinctUntilChanged()
+            )
+            .subscribe((qvLabel) => {
+              switch (qvLabel as string) {
+                case QualitativeLabels.LINE_LAYOUT_TYPE.LINEAR:
+                  if (this.debug) console.debug('[operation] Enable linear details');
+
+                  AppSharedFormUtils.enableControl(lineLayoutLinearControl, { ...enableOptions, required: true });
+
+                  AppSharedFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+
+                  AppSharedFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+
+                  break;
+                case QualitativeLabels.LINE_LAYOUT_TYPE.ZIG_ZAG:
+                  if (this.debug) console.debug('[operation] Enable zig_zag details');
+
+                  AppSharedFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+
+                  AppSharedFormUtils.enableControl(lineLayoutZigZagControl, { ...enableOptions, required: true });
+
+                  AppSharedFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+
+                  break;
+                case QualitativeLabels.LINE_LAYOUT_TYPE.UNKNOWN:
+                  if (this.debug) console.debug('[operation] Enable other details');
+
+                  AppSharedFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+
+                  AppSharedFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+
+                  AppSharedFormUtils.enableControl(lineLayoutUnknownControl, { ...enableOptions, required: false });
+
+                  break;
+                default:
+                  AppSharedFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+
+                  AppSharedFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+
+                  AppSharedFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+
+                  break;
+              }
+              //this.markForCheck();
+            })
+        );
+      }
     }
   }
 

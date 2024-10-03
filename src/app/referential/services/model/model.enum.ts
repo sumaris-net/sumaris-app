@@ -147,6 +147,10 @@ export const PmfmIds = {
   /* PIFIL + LOGBOOK-SEA-CUCUMBER (SFA)*/
   GPS_USED: 188,
   CAMERA_USED: 514,
+  LINE_LAYOUT: 1038,
+  LINE_LAYOUT_LINEAR: 1039,
+  LINE_LAYOUT_ZIGZAG: 1040,
+  LINE_LAYOUT_UNKNOWN: 1041,
 
   /* APASE */
   CHILD_GEAR: 400,
@@ -193,6 +197,11 @@ export const QualitativeLabels = {
   },
   VIVACITY: {
     DEAD: 'MOR',
+  },
+  LINE_LAYOUT_TYPE: {
+    LINEAR: 'LINEAR',
+    ZIG_ZAG: 'ZIG-ZAG',
+    UNKNOWN: 'UNK',
   },
 };
 
