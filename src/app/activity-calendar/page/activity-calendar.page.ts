@@ -221,6 +221,9 @@ export class ActivityCalendarPage
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.showMap = this.showMap || this.debug;
+
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
@@ -295,18 +298,20 @@ export class ActivityCalendarPage
 
     // Listen opening the map tab
     this.registerSubscription(
-      this.tabGroup.selectedTabChange.pipe(filter((event) => this.showMap && event.index === ActivityCalendarPage.TABS.MAP)).subscribe(async () => {
-        console.debug(this.logPrefix + 'Updating map calendar...');
-        this.mapCalendar.markAsLoading();
-        this.mapCalendar.markAsReady();
-        const saved = await this.saveTable(this.calendar);
-        if (!saved) {
-          this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
-          this.mapCalendar.markAsLoaded();
-          return;
-        }
-        this.mapCalendar.value = this.calendar.value;
-      })
+      this.tabGroup.selectedTabChange
+        .pipe(filter((event) => this.showMap && this.mapCalendar && event.index === ActivityCalendarPage.TABS.MAP))
+        .subscribe(async () => {
+          console.debug(this.logPrefix + 'Updating map calendar...');
+          this.mapCalendar.markAsLoading();
+          this.mapCalendar.markAsReady();
+          const saved = await this.saveTable(this.calendar);
+          if (!saved) {
+            this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+            this.mapCalendar.markAsLoaded();
+            return;
+          }
+          this.mapCalendar.value = this.calendar.value;
+        })
     );
 
     this.registerSubscription(
@@ -654,9 +659,13 @@ export class ActivityCalendarPage
 
   devToggleDebug() {
     super.devToggleDebug();
+
     setTimeout(() => {
       this.calendar?.onResize();
       this.predocCalendar?.onResize();
+
+      this.showMap = this.debug;
+      this.markForCheck();
     }, 250);
   }
 
