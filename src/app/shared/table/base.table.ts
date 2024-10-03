@@ -131,6 +131,13 @@ export abstract class AppBaseTable<
     super.markAsPristine(opts);
   }
 
+  /**
+   * return the selected row if unique in selection
+   */
+  protected get hasSingleSelectedRow(): boolean {
+    return this.selection.selected?.length === 1;
+  }
+
   protected constructor(
     protected injector: Injector,
     protected dataType: new () => T,
@@ -315,7 +322,7 @@ export abstract class AppBaseTable<
   }
 
   pressRow(event: Event | undefined, row: TableElement<T>): boolean {
-    if (!this.mobile) return; // Skip if inline edition, or not mobile
+    if (!this.mobile || event?.defaultPrevented) return false; // Skip if inline edition, or not mobile
 
     event?.preventDefault();
 

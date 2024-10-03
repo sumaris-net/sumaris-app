@@ -59,8 +59,6 @@ export class OperationGroupTable
     return this.memoryDataService.value;
   }
 
-  @Input() useSticky = false;
-
   constructor(
     injector: Injector,
     settings: LocalSettingsService,

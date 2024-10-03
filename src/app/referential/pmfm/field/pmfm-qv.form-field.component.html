@@ -42,7 +42,7 @@
         />
 
         <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="onShowDropdown.emit($event)" [hidden]="disabled">
-          <mat-icon class="large select-arrow">arrow_drop_down</mat-icon>
+          <mat-icon>{{ mobile ? 'arrow_drop_down' : 'keyboard_arrow_down' }}</mat-icon>
         </button>
         <button matSuffix mat-icon-button tabindex="-1" type="button" *ngIf="clearable" (click)="clear()" [hidden]="disabled || !formControl.value">
           <mat-icon>close</mat-icon>

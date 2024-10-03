@@ -1,7 +1,7 @@
 <mat-toolbar *ngIf="showToolbar">
-  <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+  @if (selection | isEmptySelection) {
     <!-- Add -->
-    <button mat-icon-button *ngIf="canEdit && !mobile && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
+    <button mat-icon-button *ngIf="!mobile && canEdit && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
 
@@ -9,20 +9,18 @@
     <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
-  </ng-container>
 
-  <!-- if row selection -->
-  <ng-template #hasSelection>
+    <!-- if row selection -->
+  } @else {
     <!-- Delete -->
     <button mat-icon-button *ngIf="canEdit && enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>
-  </ng-template>
+  }
 
-  <ion-item *ngIf="showError && !mobile && error; let error" lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (showError && !mobile) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
 
   <!-- separator -->
   <ion-text class="toolbar-spacer ion-text-center">
@@ -31,7 +29,7 @@
   </ion-text>
 
   <!-- options menu -->
-  <button mat-icon-button matHeader [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
+  <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
     <mat-icon>more_vert</mat-icon>
   </button>
 </mat-toolbar>
@@ -46,10 +44,9 @@
 </mat-menu>
 
 <!-- error -->
-<ion-item *ngIf="showError && mobile && error; let error" lines="none">
-  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-</ion-item>
+@if (showError && mobile) {
+  <app-error-item [message]="errorSubject | async"></app-error-item>
+}
 
 <div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="showPaginator">
   <table
@@ -61,8 +58,8 @@
     [matSortDirection]="defaultSortDirection"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="sticky && canEdit">
-      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
+      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
           [checked]="selection.hasValue() && isAllSelected()"
@@ -70,17 +67,17 @@
           [tabIndex]="-1"
         ></mat-checkbox>
       </th>
-      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || !canEdit">
         <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
       </td>
     </ng-container>
 
     <!-- Id column -->
     <ng-container matColumnDef="id" [sticky]="sticky">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="!canEdit">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile || !canEdit">
         <ion-label>#</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row" [class.ion-padding-start]="!canEdit">{{ row.currentData?.id }}</td>
+      <td mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile || !canEdit">{{ row.currentData?.id }}</td>
     </ng-container>
 
     <!-- Person  -->
@@ -179,7 +176,7 @@
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="stickyEnd"
+      [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"

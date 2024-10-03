@@ -375,16 +375,8 @@
       </ng-container>
 
       <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!inlineEdition">
-          <mat-checkbox
-            (change)="$event ? masterToggle() : null"
-            [checked]="selection.hasValue() && isAllSelected()"
-            [indeterminate]="selection.hasValue() && !isAllSelected()"
-          ></mat-checkbox>
-        </th>
-        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!inlineEdition">
-          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
-        </td>
+        <th mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></th>
+        <td mat-cell *matCellDef="let row" class="cdk-visually-hidden"></td>
       </ng-container>
 
       <!-- rankOrder Column = id -->
@@ -518,15 +510,14 @@
     </div>-->
   }
 
-  @if (visibleRowCount === 0) {
+  @if (loadingSubject | async) {
+    <ion-item>
+      <ion-skeleton-text animated></ion-skeleton-text>
+    </ion-item>
+  } @else if (totalRowCount === 0) {
     <ion-item>
       <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
-      @if (!mobile && enabled) {
-        <ion-button color="medium" (click)="addRow()">
-          <ion-icon name="add" slot="start"></ion-icon>
-          <span translate>COMMON.BTN_ADD</span>
-        </ion-button>
-      }
+      <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
     </ion-item>
   }
 </div>
@@ -556,5 +547,14 @@
         assessment
       </mat-icon>
     </button>
+  }
+</ng-template>
+
+<ng-template #addRowButton>
+  @if (!mobile && enabled) {
+    <ion-button color="medium" (click)="addRow()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      <span translate>COMMON.BTN_ADD</span>
+    </ion-button>
   }
 </ng-template>

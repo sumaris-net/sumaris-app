@@ -6,27 +6,38 @@
     --table-toolbar-height: var(--mat-toolbar-height);
   }
 }
+.mat-mdc-table {
 
-.mat-mdc-header-row,
-.mat-mdc-row {
-  max-height: 140px;
-  padding: 0 0;
-  z-index: 999;
+  --mat-row-height: 52px;
+  --mat-row-max-height: 140px;
+  --mat-cell-horizontal-padding: 4;
 
-  .mat-column-metier {
-    min-width: 175px;
-  }
+  .mat-mdc-header-row,
+  .mat-mdc-row {
+    padding: 0 0;
+    z-index: 999;
 
-  .mat-column-endPosition,
-  .mat-column-startPosition {
-    padding-left: 0;
-    max-width: 200px;
-    ion-col {
-      padding: 0;
+    .mat-column-metier {
+      min-width: 175px;
     }
-  }
 
-  .mat-mdc-cell app-pmfm-field{
-    padding-left: 7px;
+
+    .mat-column-gear,
+    .mat-column-targetSpecies {
+      background-color: var(--ion-color-light, grey);
+    }
+
+    .mat-column-endPosition,
+    .mat-column-startPosition {
+      padding-left: 0;
+      max-width: 200px;
+      ion-col {
+        padding: 0;
+      }
+    }
+
+    .mat-mdc-cell app-pmfm-field{
+      padding-left: 7px;
+    }
   }
 }
