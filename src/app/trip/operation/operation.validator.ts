@@ -35,7 +35,7 @@ import { Operation, Trip } from '../trip/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { merge, Observable, Subscription } from 'rxjs';
+import { forkJoin, merge, Observable, Subscription } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PositionUtils } from '@app/data/position/position.utils';
@@ -753,10 +753,16 @@ export class OperationValidators {
       { onlySelf: true, emitEvent: false }
     );
 
-    const observables = [OperationValidators.listenIndividualOnDeck(pmfmForm)].filter(isNotNil);
+    const observables = [
+      OperationValidators.listenIndividualOnDeck(pmfmForm),
+      OperationValidators.listenIsTangledIndividual(pmfmForm),
+      OperationValidators.listenIsPingerAccessible(pmfmForm),
+    ].filter(isNotNil);
 
     if (!observables.length) return null;
-    if (observables.length === 1) return observables[0].subscribe();
+    if (observables.length > 0) {
+      return forkJoin(observables).subscribe();
+    }
     return merge(observables).subscribe();
   }
 
@@ -772,6 +778,9 @@ export class OperationValidators {
     // Create listener on column 'INDIVIDUAL_ON_DECK' value changes
     const individualOnDeckPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
     const individualOnDeckControl = individualOnDeckPmfm && measFormGroup.controls[individualOnDeckPmfm.id];
+
+    const isTangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_TANGLED);
+
     if (individualOnDeckControl) {
       console.debug('[operation-validator] Listening if individual is on deck...');
 
@@ -781,7 +790,9 @@ export class OperationValidators {
           if (individualOnDeck) {
             if (form.enabled) {
               pmfms
-                .filter((pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+                .filter(
+                  (pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.rankOrder <= isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
+                )
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
                   if (pmfm.required) {
@@ -809,6 +820,96 @@ export class OperationValidators {
       );
     }
     return null;
+  }
+
+  static listenIsTangledIndividual(event: IPmfmForm): Observable<any> | null {
+    const { form, pmfms, markForCheck } = event;
+    const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
+
+    // Create listener on column 'IS_TANGLED' value changes
+    const isTangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_TANGLED);
+    const isTangledControl = isTangledPmfm && measFormGroup.controls[isTangledPmfm.id];
+
+    if (isTangledControl) {
+      return isTangledControl.valueChanges.pipe(
+        startWith(isTangledControl.value),
+        map((isTangled) => {
+          if (isTangled) {
+            if (form.enabled) {
+              pmfms
+                .filter(
+                  (pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.rankOrder <= PmfmIds.PINGER_ACCESSIBLE && pmfm.id !== PmfmIds.TAG_ID
+                )
+                .map((pmfm) => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  if (pmfm.required) {
+                    control.setValidators(Validators.required);
+                  }
+                  control.enable({ onlySelf: true });
+                });
+              if (markForCheck) markForCheck();
+            }
+          } else {
+            if (form.enabled) {
+              pmfms
+                .filter((pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+                .map((pmfm) => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  control.disable();
+                  control.reset(null, { emitEvent: false });
+                  control.setValidators(null);
+                });
+              if (markForCheck) markForCheck();
+            }
+          }
+          return null;
+        })
+      );
+    }
+  }
+
+  static listenIsPingerAccessible(event: IPmfmForm): Observable<any> | null {
+    const { form, pmfms, markForCheck } = event;
+    const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
+
+    // Create listener on column 'IS_PINGER_ACCESSIBLE' value changes
+    const isPingerAccessiblePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.PINGER_ACCESSIBLE);
+    const isPingerAccessibleControl = isPingerAccessiblePmfm && measFormGroup.controls[isPingerAccessiblePmfm.id];
+
+    if (isPingerAccessibleControl) {
+      return isPingerAccessibleControl.valueChanges.pipe(
+        startWith(isPingerAccessibleControl.value),
+        map((isPingerAccessible) => {
+          if (isPingerAccessible) {
+            if (form.enabled) {
+              pmfms
+                .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+                .map((pmfm) => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  if (pmfm.required) {
+                    control.setValidators(Validators.required);
+                  }
+                  control.enable({ onlySelf: true });
+                });
+              if (markForCheck) markForCheck();
+            }
+          } else {
+            if (form.enabled) {
+              pmfms
+                .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+                .map((pmfm) => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  control.disable();
+                  control.reset(null, { emitEvent: false });
+                  control.setValidators(null);
+                });
+              if (markForCheck) markForCheck();
+            }
+          }
+          return null;
+        })
+      );
+    }
   }
 
   static maxDistance(otherPositionForm: UntypedFormGroup, maxInMiles: number): ValidatorFn {
