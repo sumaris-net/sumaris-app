@@ -9,6 +9,7 @@ import {
   inject,
   Injector,
   Input,
+  OnDestroy,
   OnInit,
   Output,
   QueryList,
@@ -78,7 +79,7 @@ import { Moment } from 'moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { debounceTime, filter, map } from 'rxjs/operators';
+import { debounceTime, delay, filter, map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
@@ -92,6 +93,7 @@ import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filt
 import { SelectionModel } from '@angular/cdk/collections';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+import { Mutex } from '@app/shared/async/mutex.class';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -222,10 +224,11 @@ export class CalendarComponent
     BaseMeasurementsTableConfig<ActivityMonth, CalendarComponentState>,
     ActivityMonthValidatorOptions
   >
-  implements OnInit, AfterViewInit
+  implements OnInit, AfterViewInit, OnDestroy
 {
   protected referentialRefService = inject(ReferentialRefService);
   protected debouncedExpandCellSelection$ = new Subject<TableCellSelection<ActivityMonth>>();
+  protected confirmRowMutex = new Mutex();
 
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
@@ -592,6 +595,7 @@ export class CalendarComponent
   ngOnDestroy() {
     super.ngOnDestroy();
     this.rowSubscription?.unsubscribe();
+    this.confirmRowMutex.stop();
   }
 
   async updateView(res: LoadResult<ActivityMonth>, opts?: { emitEvent?: boolean }): Promise<void> {
@@ -1018,7 +1022,7 @@ export class CalendarComponent
           }
           break;
         case 'Tab':
-          // If editing row, skip (keep default Tab behavior)
+          // If editing row, ignore (keep default Tab behavior)
           if (this.editedRow) return;
 
           columnIndex -= 1;
@@ -1047,7 +1051,7 @@ export class CalendarComponent
           rowIndex = 11; // December
           break;
         default:
-          // If editing row, skip
+          // If editing row, ignore
           if (this.editedRow) return;
 
           console.warn(this.logPrefix + `Unknown navigation key: ${event.key}`);
@@ -1707,6 +1711,8 @@ export class CalendarComponent
   }
 
   protected async editRow(event: Event | undefined, row: AsyncTableElement<ActivityMonth>, opts?: { focusColumn?: string }): Promise<boolean> {
+    await this.waitIdle({ timeout: 2000 });
+
     // Avoid to edit readonly month
     const month = row.currentData;
     if (month.readonly === true || month.qualityFlagId === QualityFlagIds.CONFLICTUAL) {
@@ -1739,34 +1745,40 @@ export class CalendarComponent
   }
 
   async confirmEditCreate(event?: Event, row?: AsyncTableElement<ActivityMonth>): Promise<boolean> {
-    row = row || this.editedRow;
-    if (!row || !row.editing) return true; // nothing to confirmed
+    try {
+      await this.confirmRowMutex.lock();
 
-    // Allow to confirm when invalid
-    const form = row.validator;
-    if (form && !form.valid) {
-      await AppFormUtils.waitWhilePending(form);
+      row = row || this.editedRow;
+      if (!row || !row.editing) return true; // nothing to confirmed
 
-      if (form.invalid && form.touched) {
-        const errorMessage = this.formErrorAdapter.translateFormErrors(form, this.errorTranslateOptions);
+      // Allow to confirm when invalid
+      const form = row.validator;
+      if (form && !form.valid) {
+        await AppFormUtils.waitWhilePending(form);
 
-        // DEBUG
-        //console.debug(this.logPrefix + 'Confirm row with error:' + errorMessage);
+        if (form.invalid && form.touched) {
+          const errorMessage = this.formErrorAdapter.translateFormErrors(form, this.errorTranslateOptions);
 
-        // Save error message
-        // FIXME this is not working well
-        DataEntityUtils.markFormAsInvalid(row.validator, errorMessage, { emitEvent: false });
+          // DEBUG
+          //console.debug(this.logPrefix + 'Confirm row with error:' + errorMessage);
+
+          // Save error message
+          // FIXME this is not working well
+          DataEntityUtils.markFormAsInvalid(row.validator, errorMessage, { emitEvent: false });
+        }
+        if (form.dirty) this.markAsDirty({ emitEvent: false /* because of resetError() */ });
+        this.resetError();
+
+        row.originalData = undefined;
+        form.disable();
+
+        return true;
       }
-      if (form.dirty) this.markAsDirty({ emitEvent: false /* because of resetError() */ });
-      this.resetError();
 
-      row.originalData = undefined;
-      form.disable();
-
-      return true;
+      return (await super.confirmEditCreate(event, row)) === true;
+    } finally {
+      this.confirmRowMutex.unlock();
     }
-
-    return super.confirmEditCreate(event, row);
   }
 
   protected setError(error: string, opts?: { emitEvent?: boolean }) {

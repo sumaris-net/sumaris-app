@@ -336,7 +336,7 @@
           <!-- resize handlers -->
           @if (enableCellSelection) {
             <ng-container
-              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false }"
+              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false, enabled: this.enabled }"
             ></ng-container>
           }
         </mat-cell>
@@ -371,7 +371,10 @@
           <!-- resize handlers -->
           @if (enableCellSelection) {
             <ng-container
-              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false }"
+              *ngTemplateOutlet="
+                cellHandlers;
+                context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false, enabled: this.enabled }
+              "
             ></ng-container>
           }
         </mat-cell>
@@ -436,7 +439,10 @@
             <!-- resize handlers -->
             @if (enableCellSelection) {
               <ng-container
-                *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false }"
+                *ngTemplateOutlet="
+                  cellHandlers;
+                  context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false, enabled: this.enabled }
+                "
               ></ng-container>
             }
           </mat-cell>
@@ -513,14 +519,14 @@
       >
         <ng-template #cellInjection let-row>
           @if (inlineEdition && _enabled && !row.pending) {
-            <!-- cancel button -->
+            <!-- cancel button
             @if (row.editing && row.dirty) {
               <button mat-icon-button [title]="'COMMON.BTN_CANCEL' | translate" (click)="cancelOrDelete($event, row)" tabIndex="-1">
                 <mat-icon>undo</mat-icon>
               </button>
-            }
+            }-->
 
-            @if ((row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL) {
+            @if ((row | propertyGet: 'currentData.qualityFlagId') === qualityFlagId.CONFLICTUAL) {
               <!-- solve conflict button -->
               <button
                 mat-icon-button
@@ -580,15 +586,15 @@
         (dblclick)="dblClickRow($event, row)"
       ></mat-row>
     </mat-table>
+
+    @if (totalRowCount === 0 && loaded) {
+      <ion-item>
+        <ion-text color="danger" class="text-italic">{{ 'COMMON.NO_RESULT' | translate }}</ion-text>
+      </ion-item>
+    }
   </div>
 
-  @if (totalRowCount === 0 && loaded) {
-    <ion-item>
-      <ion-text color="danger" class="text-italic">{{ 'COMMON.NO_RESULT' | translate }}</ion-text>
-    </ion-item>
-  }
-
-  <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y">
+  <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y" let-enabled="enabled">
     @if (x !== false && enabled) {
       <div class="resize-handle-left" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
       <div class="resize-handle-right" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
