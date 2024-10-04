@@ -643,11 +643,16 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
     return json;
   }
 
-  async save(event, options?: any): Promise<boolean> {
+  async save(event?: Event, options?: any): Promise<boolean> {
+    /* FIXME Why not to replace all <table>.save() ?
+    const saveOptions: TripSaveOptions = {
+      withLanding: true, // indicate service to reload with LandedTrip query
+      withOperationGroup: this.operationGroupTable.dirty,
+    };*/
+
     const saveOptions: TripSaveOptions = {
       withLanding: true, // indicate service to reload with LandedTrip query
     };
-
     // Save children in-memory datasources
     if (this.productsTable.dirty) {
       await this.productsTable.save();
