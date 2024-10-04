@@ -1379,13 +1379,19 @@
     "COMMENTS": "Comments",
     "VESSEL": "Vessel",
     "NEW": {
-      "TITLE": "New sale"
+      "TITLE": "New sale",
+      "OBSERVED_SALE": {
+        "TITLE": "{{taxonGroupLabel}} - New sale"
+      }
     },
     "EDIT": {
       "TITLE": "{{location}} - Sale of {{dateTime}}",
       "PROGRAM": "Program",
       "TAB_GENERAL": "Details",
-      "TAB_BATCHES": "Batches"
+      "TAB_BATCHES": "Batches",
+      "OBSERVED_SALE": {
+        "TITLE": "{{taxonGroupLabel}} - Vessel {{vessel}}"
+      }
     },
     "TABLE": {
       "VESSEL": "Vessel",

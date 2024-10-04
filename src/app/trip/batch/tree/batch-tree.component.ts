@@ -239,6 +239,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return this.batchGroupsTable.availableTaxonGroups;
   }
 
+  @Input() set defaultTaxonGroup(value: TaxonGroupRef) {
+    this.batchGroupsTable.defaultTaxonGroup = value;
+  }
+
+  get defaultTaxonGroup(): TaxonGroupRef {
+    return this.batchGroupsTable.defaultTaxonGroup;
+  }
+
   @Input() set defaultHasSubBatches(value: boolean) {
     this.batchGroupsTable.defaultHasSubBatches = value;
   }
