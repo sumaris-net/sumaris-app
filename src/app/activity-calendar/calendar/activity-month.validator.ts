@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import {
+  AbstractControl,
   AbstractControlOptions,
   FormArray,
   FormGroup,
@@ -360,12 +361,9 @@ export class ActivityMonthValidators {
         }
         case VesselUseFeaturesIsActiveEnum.INACTIVE: {
           if (basePortLocationControl.disabled) basePortLocationControl.enable({ emitEvent: false });
-          if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
-            measurementForm.reset(<MeasurementFormValues>{ __typename: MeasurementValuesTypes.MeasurementFormValue }, { emitEvent: false });
-            dirty = true;
-          }
-          if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
-          if (gearUseFeaturesArray?.enabled) gearUseFeaturesArray.disable({ emitEvent: false });
+          const dirtyMeasurementsForm = this._clearAndDisableMeasurementForm(measurementForm);
+          const dirtyGearUseFeaturesArray = this._clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray);
+          dirty ||= dirtyMeasurementsForm || dirtyGearUseFeaturesArray;
           break;
         }
         case VesselUseFeaturesIsActiveEnum.NOT_EXISTS: {
@@ -374,12 +372,9 @@ export class ActivityMonthValidators {
             dirty = true;
           }
           if (basePortLocationControl.enabled) basePortLocationControl.disable({ emitEvent: false });
-          if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
-            measurementForm.reset(<MeasurementFormValues>{ __typename: MeasurementValuesTypes.MeasurementFormValue }, { emitEvent: false });
-            dirty = true;
-          }
-          if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
-          if (gearUseFeaturesArray?.enabled) gearUseFeaturesArray.disable({ emitEvent: false });
+          const dirtyMeasurementsForm = this._clearAndDisableMeasurementForm(measurementForm);
+          const dirtyGearUseFeaturesArray = this._clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray);
+          dirty ||= dirtyMeasurementsForm || dirtyGearUseFeaturesArray;
           break;
         }
       }
@@ -393,6 +388,32 @@ export class ActivityMonthValidators {
     console.debug(`[activity-month-validator] Computing finished [OK] in ${Date.now() - now}ms, dirty=${dirty}`);
 
     return errors;
+  }
+
+  private static _clearAndDisableMeasurementForm(measurementForm: AbstractControl): boolean {
+    let dirty = false;
+
+    if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
+      measurementForm.reset(<MeasurementFormValues>{ __typename: MeasurementValuesTypes.MeasurementFormValue }, { emitEvent: false });
+      dirty = true;
+    }
+    if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
+
+    return dirty;
+  }
+
+  private static _clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray: AppFormArray<GearUseFeatures, UntypedFormGroup>): boolean {
+    let dirty = false;
+
+    gearUseFeaturesArray.forEach((guf) => {
+      if (guf.get('metier')?.value?.id) {
+        guf.reset({}, { emitEvent: false });
+        dirty = true;
+      }
+    });
+    if (gearUseFeaturesArray?.enabled) gearUseFeaturesArray.disable({ emitEvent: false });
+
+    return dirty;
   }
 
   static uniqueMetier(formGroup: FormGroup): ValidationErrors | null {
