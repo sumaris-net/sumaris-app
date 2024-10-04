@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import {
-  AbstractControl,
   AbstractControlOptions,
   FormArray,
   FormGroup,
@@ -335,7 +334,7 @@ export class ActivityMonthValidators {
 
     // Check isActive
     if (isNotNil(isActive)) {
-      const measurementForm = form.get('measurementValues');
+      const measurementForm = form.get('measurementValues') as UntypedFormGroup;
       const basePortLocationControl = form.get('basePortLocation');
       switch (isActive) {
         case VesselUseFeaturesIsActiveEnum.ACTIVE: {
@@ -361,8 +360,8 @@ export class ActivityMonthValidators {
         }
         case VesselUseFeaturesIsActiveEnum.INACTIVE: {
           if (basePortLocationControl.disabled) basePortLocationControl.enable({ emitEvent: false });
-          const dirtyMeasurementsForm = this._clearAndDisableMeasurementForm(measurementForm);
-          const dirtyGearUseFeaturesArray = this._clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray);
+          const dirtyMeasurementsForm = this.clearAndDisableMeasurementForm(measurementForm);
+          const dirtyGearUseFeaturesArray = this.clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray);
           dirty ||= dirtyMeasurementsForm || dirtyGearUseFeaturesArray;
           break;
         }
@@ -372,8 +371,8 @@ export class ActivityMonthValidators {
             dirty = true;
           }
           if (basePortLocationControl.enabled) basePortLocationControl.disable({ emitEvent: false });
-          const dirtyMeasurementsForm = this._clearAndDisableMeasurementForm(measurementForm);
-          const dirtyGearUseFeaturesArray = this._clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray);
+          const dirtyMeasurementsForm = this.clearAndDisableMeasurementForm(measurementForm);
+          const dirtyGearUseFeaturesArray = this.clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray);
           dirty ||= dirtyMeasurementsForm || dirtyGearUseFeaturesArray;
           break;
         }
@@ -390,7 +389,7 @@ export class ActivityMonthValidators {
     return errors;
   }
 
-  private static _clearAndDisableMeasurementForm(measurementForm: AbstractControl): boolean {
+  static clearAndDisableMeasurementForm(measurementForm: UntypedFormGroup): boolean {
     let dirty = false;
 
     if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
@@ -402,12 +401,13 @@ export class ActivityMonthValidators {
     return dirty;
   }
 
-  private static _clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray: AppFormArray<GearUseFeatures, UntypedFormGroup>): boolean {
+  static clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray: AppFormArray<GearUseFeatures, UntypedFormGroup>): boolean {
     let dirty = false;
 
-    gearUseFeaturesArray.forEach((guf) => {
-      if (guf.get('metier')?.value?.id) {
-        guf.reset({}, { emitEvent: false });
+    gearUseFeaturesArray.forEach((gufControl) => {
+      const guf = gufControl?.value;
+      if (GearUseFeatures.isNotEmpty(guf)) {
+        gufControl.reset({ id: guf.id }, { emitEvent: false });
         dirty = true;
       }
     });

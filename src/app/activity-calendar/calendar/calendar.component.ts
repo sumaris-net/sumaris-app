@@ -430,13 +430,13 @@ export class CalendarComponent
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
       attributes: this.locationDisplayAttributes,
-      panelClass: 'mat-select-panel-fit-content',
+      panelClass: 'min-width-large',
     });
 
     this.registerAutocompleteField('metier', {
       suggestFn: (value, filter) => this.suggestMetiers(value, filter),
       displayWith: (obj) => obj?.label || '',
-      panelClass: 'mat-select-panel-fit-content',
+      panelClass: 'min-width-large',
     });
 
     this.registerAutocompleteField('fishingAreaLocation', {

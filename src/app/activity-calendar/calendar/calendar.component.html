@@ -485,7 +485,6 @@
                   [config]="col.autocomplete"
                   [autofocus]="focusColumn === col.key"
                   [floatLabel]="'never'"
-                  [showAllOnFocus]="false"
                 ></mat-autocomplete-field>
               } @else {
                 @if (control | formGetValue | referentialToString: col.autocomplete.attributes; as label) {
