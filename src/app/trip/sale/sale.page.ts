@@ -15,6 +15,7 @@ import {
   isNotNil,
   isNotNilOrNaN,
   ReferentialRef,
+  referentialToString,
   ReferentialUtils,
   toNumber,
   UsageMode,
@@ -35,7 +36,7 @@ import { STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent } fr
 import { from, merge, Observable } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import { SaleFilter } from './sale.filter';
 
@@ -102,6 +103,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected parentAcquisitionLevel: AcquisitionLevelType;
   protected showBatchTablesByProgram = false;
   protected showBatchTables = true;
+  protected landingTaxonGroup: ReferentialRef;
   @RxStateProperty() protected parent: Trip | Landing;
   @RxStateProperty() protected strategyLabel: string;
 
@@ -576,6 +578,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
     } else if (isNotNilOrNaN(data.landingId)) {
       console.debug(`[sale-page] Loading parent landing #${data.landingId} ...`);
       parent = await this.landingService.load(data.landingId, { fetchPolicy: 'cache-first' });
+      const landingTaxonGroupId = (parent as Landing)?.measurementValues?.[PmfmIds.TAXON_GROUP_ID];
+      this.landingTaxonGroup = await this.referentialRefService.loadById(landingTaxonGroupId, 'TaxonGroup');
     }
 
     return parent;
@@ -627,9 +631,11 @@ export class SalePage<ST extends SalePageState = SalePageState>
       // TODO Add taxonName, form landing.measurementValues[PmfmIds.TAXON_GROUP] ?
     }
 
+    const taxonGroupLabel = referentialToString(this.landingTaxonGroup);
+
     // new data
     if (!data || isNil(data.id)) {
-      return titlePrefix + this.translateContext.instant(`SALE.NEW.TITLE`, i18nSuffix);
+      return titlePrefix + this.translateContext.instant(`SALE.NEW.TITLE`, i18nSuffix, { taxonGroupLabel });
     }
 
     // Existing data
@@ -637,6 +643,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       titlePrefix +
       this.translateContext.instant(`SALE.EDIT.TITLE`, i18nSuffix, {
         vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
+        taxonGroupLabel,
       })
     );
   }

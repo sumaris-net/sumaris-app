@@ -1562,13 +1562,19 @@
     "COMMENTS": "Commentaires",
     "VESSEL": "Navire",
     "NEW": {
-      "TITLE": "Nouvelle vente"
+      "TITLE": "Nouvelle vente",
+      "OBSERVED_SALE": {
+        "TITLE": "{{taxonGroupLabel}} - Nouvelle vente"
+      }
     },
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
       "PROGRAM": "Programme",
       "TAB_GENERAL": "Détails",
-      "TAB_BATCHES": "Lots"
+      "TAB_BATCHES": "Lots",
+      "OBSERVED_SALE": {
+        "TITLE": "{{taxonGroupLabel}} - Navire {{vessel}}"
+      }
     },
     "TABLE": {
       "VESSEL": "Navire",
