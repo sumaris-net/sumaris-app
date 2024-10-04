@@ -2,7 +2,6 @@ import { Injectable, Injector } from '@angular/core';
 import { gql } from '@apollo/client/core';
 import { ReferentialFragments } from './referential.fragments';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   AccountService,
   BaseEntityGraphqlQueries,
@@ -15,6 +14,7 @@ import {
   isEmptyArray,
   isNil,
   isNotNil,
+  LoadResult,
   NetworkService,
 } from '@sumaris-net/ngx-components';
 import { CacheService } from 'ionic-cache';
@@ -26,7 +26,6 @@ import { filter, finalize, map } from 'rxjs/operators';
 import { BaseReferentialService } from './base-referential-service.class';
 import { Moment } from 'moment';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
-import { LoadResult } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { DenormalizedPmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';

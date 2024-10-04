@@ -1030,7 +1030,7 @@
         "PRODUCT_SALE": "Sales"
       },
       "SALE": {
-        "TITLE": "Sale of {{taxonGroupLabel}}",
+        "TITLE": "Sale of {{taxonGroup}}",
         "SALE_TYPE": "Disposal",
         "RATIO": "Ratio (%)",
         "AVG_WEIGHT_PRICE": "Average weight price",
@@ -1408,7 +1408,7 @@
     "NEW": {
       "TITLE": "New sale",
       "OBSERVED_SALE": {
-        "TITLE": "{{taxonGroupLabel}} - New sale"
+        "TITLE": "{{taxonGroup}} - New sale"
       }
     },
     "EDIT": {
@@ -1417,7 +1417,7 @@
       "TAB_GENERAL": "Details",
       "TAB_BATCHES": "Batches",
       "OBSERVED_SALE": {
-        "TITLE": "{{taxonGroupLabel}} - Vessel {{vessel}}"
+        "TITLE": "{{taxonGroup}} - Vessel {{vessel}}"
       }
     },
     "TABLE": {

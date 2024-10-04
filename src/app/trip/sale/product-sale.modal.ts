@@ -69,7 +69,7 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
   }
 
   protected async computeTitle(data: Product): Promise<string> {
-    return this.translate.instant('TRIP.PRODUCT.SALE.TITLE', { taxonGroupLabel: referentialToString(data.taxonGroup) });
+    return this.translate.instant('TRIP.PRODUCT.SALE.TITLE', { taxonGroup: referentialToString(data.taxonGroup) });
   }
 
   protected getFirstInvalidTabIndex(): number {

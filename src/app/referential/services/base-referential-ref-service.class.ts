@@ -1,8 +1,16 @@
-import { FetchPolicy } from '@apollo/client/core';
 import { SortDirection } from '@angular/material/sort';
 
-import { BaseEntityServiceOptions, EntitiesStorage, IReferentialRef, LoadResult, NetworkService } from '@sumaris-net/ngx-components';
-import { Directive, Injector } from '@angular/core';
+import {
+  BaseEntityServiceOptions,
+  EntitiesServiceLoadOptions,
+  EntitiesStorage,
+  EntityServiceLoadOptions,
+  EntityStorageLoadOptions,
+  IReferentialRef,
+  LoadResult,
+  NetworkService,
+} from '@sumaris-net/ngx-components';
+import { Directive, inject, Injector } from '@angular/core';
 import { IReferentialFilter } from './filter/referential.filter';
 import { BaseReferentialService } from '@app/referential/services/base-referential-service.class';
 
@@ -13,8 +21,8 @@ export abstract class BaseReferentialRefService<
   F extends IReferentialFilter<F, any, ID>,
   ID = number,
 > extends BaseReferentialService<T, F, ID> {
-  protected readonly network: NetworkService;
-  protected readonly entities: EntitiesStorage;
+  protected readonly network = inject(NetworkService);
+  protected readonly entities = inject(EntitiesStorage);
 
   protected constructor(
     injector: Injector,
@@ -23,8 +31,6 @@ export abstract class BaseReferentialRefService<
     options: BaseEntityServiceOptions<T, ID>
   ) {
     super(injector, dataType, filterType, options);
-    this.network = injector.get(NetworkService);
-    this.entities = injector.get(EntitiesStorage);
   }
 
   async loadAll(
@@ -33,13 +39,7 @@ export abstract class BaseReferentialRefService<
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<F>,
-    opts?: {
-      [key: string]: any;
-      fetchPolicy?: FetchPolicy;
-      debug?: boolean;
-      toEntity?: boolean;
-      withTotal?: boolean;
-    }
+    opts?: EntitiesServiceLoadOptions
   ): Promise<LoadResult<T>> {
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
@@ -49,16 +49,24 @@ export abstract class BaseReferentialRefService<
     return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
   }
 
+  load(id: ID, opts?: EntityServiceLoadOptions): Promise<T> {
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+      return this.loadLocally(id, opts);
+    }
+
+    return super.load(id, opts);
+  }
+
+  /* -- protected function -- */
+
   protected async loadAllLocally(
     offset: number,
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<F>,
-    opts?: {
-      [key: string]: any;
-      toEntity?: boolean;
-    }
+    opts?: EntitiesServiceLoadOptions & EntityStorageLoadOptions
   ): Promise<LoadResult<T>> {
     filter = this.asFilter(filter);
 
@@ -70,7 +78,7 @@ export abstract class BaseReferentialRefService<
       filter: filter && filter.asFilterFn(),
     };
 
-    const { data, total } = await this.entities.loadAll(this._typename, variables);
+    const { data, total } = await this.entities.loadAll(this._typename, variables, opts);
 
     const entities = !opts || opts.toEntity !== false ? (data || []).map((json) => this.fromObject(json)) : ((data || []) as unknown as T[]);
 
@@ -83,5 +91,10 @@ export abstract class BaseReferentialRefService<
     }
 
     return res;
+  }
+
+  protected async loadLocally(id: ID, opts?: EntitiesServiceLoadOptions & EntityStorageLoadOptions): Promise<T> {
+    const json = await this.entities.load(id as number, this._typename, opts);
+    return !opts || opts.toEntity !== false ? this.fromObject(json) : (json as unknown as T);
   }
 }

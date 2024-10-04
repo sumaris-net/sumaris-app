@@ -1069,7 +1069,7 @@
         "PRODUCT_SALE": "Ventes"
       },
       "SALE": {
-        "TITLE": "Vente de {{taxonGroupLabel}}",
+        "TITLE": "Vente de {{ taxonGroup }}",
         "SALE_TYPE": "Type de vente",
         "RATIO": "Ratio (%)",
         "AVG_WEIGHT_PRICE": "Prix moyen / poids",
@@ -1564,7 +1564,7 @@
     "NEW": {
       "TITLE": "Nouvelle vente",
       "OBSERVED_SALE": {
-        "TITLE": "{{taxonGroupLabel}} - Nouvelle vente"
+        "TITLE": "{{taxonGroup}} - Nouvelle vente"
       }
     },
     "EDIT": {
@@ -1573,7 +1573,7 @@
       "TAB_GENERAL": "Détails",
       "TAB_BATCHES": "Lots",
       "OBSERVED_SALE": {
-        "TITLE": "{{taxonGroupLabel}} - Navire {{vessel}}"
+        "TITLE": "{{taxonGroup}} - Navire {{vessel}}"
       }
     },
     "TABLE": {
