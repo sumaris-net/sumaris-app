@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import {
-  AbstractControl,
   AbstractControlOptions,
   FormArray,
   FormGroup,
@@ -396,7 +395,7 @@ export class ActivityMonthValidators {
 
     if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
       measurementForm.reset(<MeasurementFormValues>{ __typename: MeasurementValuesTypes.MeasurementFormValue }, { emitEvent: false });
-            dirty = true;
+      dirty = true;
     }
     if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
 
