@@ -137,6 +137,7 @@ export class ActivityMonthValidatorService<
         ActivityMonthValidators.checkInconsistenciesInGearUseFeatures,
         ActivityMonthValidators.distanceToCoastRequiredIfFishingArea,
         ActivityMonthValidators.validateDayCountConsistency,
+        ActivityMonthValidators.uniqueFishingAreaInMetier,
         SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
           predicate: (control) => control.value === VesselUseFeaturesIsActiveEnum.ACTIVE || control.value === VesselUseFeaturesIsActiveEnum.INACTIVE,
         }),
@@ -155,6 +156,12 @@ export class ActivityMonthValidatorService<
 
     const enabled = form.enabled;
     const isActive = form.get('isActive').value;
+
+    //Clear qualification comments
+    const qualificationComments = form.get('qualificationComments') as UntypedFormControl;
+    if (qualificationComments.value) {
+      qualificationComments.setValue(null, { emitEvent: false });
+    }
 
     // Is active
     const isActiveControl = form.get('isActive');
@@ -559,6 +566,42 @@ export class ActivityMonthValidators {
 
     return invalid ? { inconsistencyDayNumber: true } : null;
   }
+
+  static uniqueFishingAreaInMetier(formGroup: FormGroup): ValidationErrors | null {
+    const control = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    if (!control || !(control instanceof FormArray)) {
+      return null;
+    }
+
+    // Make sure month is active
+    const isActiveControl = formGroup.get('isActive');
+    const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
+    if (!isActive) return null;
+
+    const fishingAreasErrors = [];
+
+    control.controls.forEach((guf) => {
+      const location = guf.get('fishingAreas')?.value;
+      if (isNotEmptyArray(location)) {
+        const gufFishingAreas = [];
+        location.forEach((fa) => {
+          if (fa.location) {
+            if (gufFishingAreas.includes(fa.location.label)) {
+              fishingAreasErrors.push({ fishingArea: fa.location.label });
+            }
+            gufFishingAreas.push(fa.location.label);
+          }
+        });
+      }
+    });
+    return isNotEmptyArray(fishingAreasErrors)
+      ? {
+          duplicatedFishingArea: {
+            fishingArea: fishingAreasErrors.map(({ fishingArea }) => ` ${fishingArea}`).join('\n '),
+          },
+        }
+      : null;
+  }
 }
 
 export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
@@ -567,4 +610,5 @@ export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
   requiredDistanceToCoast: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_DISTANCE_TO_COAST',
   inconsistentData: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENT_DATA',
   inconsistencyDayNumber: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENCY_DAY_NUMBER',
+  duplicatedFishingArea: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_FISHING_AREA',
 };

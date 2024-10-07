@@ -256,7 +256,7 @@ export class ReferentialRefService
     );
   }
 
-  async loadAll(
+  async loadAll<E = ReferentialRef>(
     offset: number,
     size: number,
     sortBy?: string,
@@ -267,10 +267,10 @@ export class ReferentialRefService
       fetchPolicy?: FetchPolicy;
       withTotal?: boolean;
       withProperties?: boolean;
-      toEntity?: boolean;
+      toEntity?: boolean | ((source: any) => E);
       debug?: boolean;
     }
-  ): Promise<LoadResult<ReferentialRef>> {
+  ): Promise<LoadResult<E>> {
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
       return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
@@ -309,14 +309,15 @@ export class ReferentialRefService
       fetchPolicy: (opts && opts.fetchPolicy) || 'cache-first',
     });
 
-    const entities = !opts || opts.toEntity !== false ? (data || []).map(ReferentialRef.fromObject) : ((data || []) as ReferentialRef[]);
+    const toEntityFn = typeof opts?.toEntity === 'function' ? opts.toEntity : (ReferentialRef.fromObject as (source: any) => E);
+    const entities = !opts || opts.toEntity !== false ? (data || []).map(toEntityFn) : ((data || []) as E[]);
 
     // Force entity name (if searchJoin)
     if (filter.entityName !== uniqueEntityName) {
-      entities.forEach((item) => (item.entityName = uniqueEntityName));
+      entities.forEach((item) => (item['entityName'] = uniqueEntityName));
     }
 
-    const res: LoadResult<ReferentialRef> = {
+    const res: LoadResult<E> = {
       data: entities,
       total,
     };
@@ -325,7 +326,7 @@ export class ReferentialRefService
     if (withTotal) {
       const nextOffset = (offset || 0) + entities.length;
       if (nextOffset < total) {
-        res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
+        res.fetchMore = () => this.loadAll<E>(nextOffset, size, sortBy, sortDirection, filter, opts);
       }
     }
 
@@ -334,7 +335,7 @@ export class ReferentialRefService
     return res;
   }
 
-  protected async loadAllLocally(
+  protected async loadAllLocally<E = ReferentialRef>(
     offset: number,
     size: number,
     sortBy?: string,
@@ -342,9 +343,9 @@ export class ReferentialRefService
     filter?: Partial<ReferentialRefFilter>,
     opts?: {
       [key: string]: any;
-      toEntity?: boolean;
+      toEntity?: boolean | ((source: any) => E);
     }
-  ): Promise<LoadResult<ReferentialRef>> {
+  ): Promise<LoadResult<E>> {
     if (!filter || !filter.entityName) {
       console.error("[referential-ref-service] Missing argument 'filter.entityName'");
       throw { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' };
@@ -364,19 +365,20 @@ export class ReferentialRefService
 
     const { data, total } = await this.entities.loadAll(uniqueEntityName + 'VO', variables);
 
-    const entities = !opts || opts.toEntity !== false ? (data || []).map(ReferentialRef.fromObject) : ((data || []) as ReferentialRef[]);
+    const toEntityFn = typeof opts?.toEntity === 'function' ? opts.toEntity : (ReferentialRef.fromObject as (source: any) => E);
+    const entities = !opts || opts.toEntity !== false ? (data || []).map(toEntityFn) : ((data || []) as E[]);
 
     // Force entity name (if searchJoin)
     if (filter.entityName !== uniqueEntityName) {
-      entities.forEach((item) => (item.entityName = uniqueEntityName));
+      entities.forEach((item) => (item['entityName'] = uniqueEntityName));
     }
 
-    const res: LoadResult<ReferentialRef> = { data: entities, total };
+    const res: LoadResult<E> = { data: entities, total };
 
     // Add fetch more function
     const nextOffset = (offset || 0) + entities.length;
     if (nextOffset < total) {
-      res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
+      res.fetchMore = () => this.loadAll<E>(nextOffset, size, sortBy, sortDirection, filter, opts);
     }
 
     return res;
@@ -544,17 +546,17 @@ export class ReferentialRefService
     return (data || []).map((e) => e.id);
   }
 
-  async suggest(
+  async suggest<E = ReferentialRef>(
     value: any,
     filter?: Partial<ReferentialRefFilter>,
     sortBy?: keyof Referential | 'rankOrder',
     sortDirection?: SortDirection,
     opts?: {
-      toEntity?: boolean;
+      toEntity?: boolean | ((source: any) => E);
       fetchPolicy?: FetchPolicy;
       withProperties?: boolean;
     }
-  ): Promise<LoadResult<ReferentialRef>> {
+  ): Promise<LoadResult<E>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
     // Replace '*' character by undefined
     if (!value || value === '*') {
@@ -564,7 +566,7 @@ export class ReferentialRefService
     else if (value && typeof value === 'string') {
       value = value.trim().replace(TEXT_SEARCH_IGNORE_CHARS_REGEXP, '*');
     }
-    return this.loadAll(
+    return this.loadAll<E>(
       0,
       !value ? 30 : 10,
       sortBy,
