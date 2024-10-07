@@ -170,7 +170,7 @@ const Mutations: BaseEntityGraphqlMutations = {
   `,
 
   deleteAll: gql`
-    mutation DeleteSales($ids: [Int]) {
+    mutation DeleteSales($ids: [Int]!) {
       deleteSales(ids: $ids)
     }
   `,
