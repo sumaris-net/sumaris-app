@@ -22,6 +22,12 @@
 <!-- Cell contextual menu  -->
 <mat-menu #contextMenu="matMenu" class="context-menu ion-no-padding" [hasBackdrop]="disabled">
   <ng-template matMenuContent>
+    @if (enabled) {
+      <button mat-menu-item (click)="cut()" [disabled]="!cellSelection">
+        <mat-icon>content_cut</mat-icon>
+        <ion-label translate>COMMON.BTN_CUT</ion-label>
+      </button>
+    }
     <button mat-menu-item (click)="copy()" [disabled]="!cellSelection">
       <mat-icon>content_copy</mat-icon>
       <ion-label translate>COMMON.BTN_COPY</ion-label>
@@ -296,14 +302,15 @@
       </ng-container>
 
       <ng-container matColumnDef="isActive">
-        <mat-header-cell *matHeaderCellDef (click)="clickColumnHeader($event, 'isActive')">
+        <mat-header-cell *matHeaderCellDef (click)="selectMonth($event, 'isActive')">
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.IS_ACTIVE</ion-label>
         </mat-header-cell>
         <mat-cell
           *matCellDef="let row"
           class="mat-mdc-cell-resizable"
           #cell
-          (dblclick)="setFocusColumn($event, row, 'isActive')"
+          (click)="clickCell($event, row, 'isActive')"
+          (dblclick)="dblClickCell($event, row, 'isActive')"
           (contextmenu)="onContextMenu($event, cell, row, 'isActive')"
         >
           @if (row.editing && row.validator | formGetControl: 'isActive'; as control) {
@@ -344,14 +351,15 @@
 
       <!-- Base port location -->
       <ng-container matColumnDef="basePortLocation">
-        <mat-header-cell *matHeaderCellDef class="odd" (click)="clickColumnHeader($event, 'basePortLocation')">
+        <mat-header-cell *matHeaderCellDef class="odd" (click)="selectMonth($event, 'basePortLocation')">
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION</ion-label>
         </mat-header-cell>
         <mat-cell
           *matCellDef="let row"
           class="odd mat-mdc-cell-resizable"
           #cell
-          (dblclick)="setFocusColumn($event, row, 'basePortLocation')"
+          (click)="clickCell($event, row, 'basePortLocation')"
+          (dblclick)="dblClickCell($event, row, 'basePortLocation')"
           (contextmenu)="onContextMenu($event, cell, row, 'basePortLocation')"
         >
           @if (row.editing) {
@@ -387,7 +395,7 @@
             *matHeaderCellDef
             class="mat-column-pmfm mat-column-{{ pmfm.label }}"
             [class.odd]="odd"
-            (click)="clickColumnHeader($event, pmfm.id || index)"
+            (click)="selectMonth($event, pmfm.id || index)"
           >
             <ion-label
               [innerHTML]="
@@ -408,7 +416,8 @@
             *matCellDef="let row"
             class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-resizable"
             [class.odd]="odd"
-            (dblclick)="setFocusColumn($event, row, (pmfm.id || index).toString())"
+            (click)="clickCell($event, row, (pmfm.id || index).toString())"
+            (dblclick)="dblClickCell($event, row, (pmfm.id || index).toString())"
             (contextmenu)="onContextMenu($event, cell, row, (pmfm.id || index).toString())"
           >
             <!-- desktop -->
@@ -457,7 +466,7 @@
             [class]="col.class"
             [class.collapsed]="col.hidden"
             [class.tappable]="col.expanded !== undefined"
-            (click)="clickColumnHeader($event, col.key)"
+            (click)="selectMonth($event, col.key)"
           >
             <ion-label>
               @if (col.treeIndent) {
@@ -477,8 +486,8 @@
             [class]="col.class"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
-            (click)="col.hidden && col.expand($event)"
-            (dblclick)="!col.hidden && setFocusColumn($event, row, col.key)"
+            (click)="col.hidden ? col.expand($event) : clickCell($event, row, col.key)"
+            (dblclick)="!col.hidden && dblClickCell($event, row, col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
           >
             <!-- Desktop -->
@@ -581,9 +590,6 @@
         [class.readonly]="(row.validator | formGetValue: 'readonly') === true"
         [class.duplicated]="(row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL"
         (keydown.escape)="escapeEditingRow($event)"
-        [cdkTrapFocus]="!row.valid"
-        (click)="clickRow($event, row)"
-        (dblclick)="dblClickRow($event, row)"
       ></mat-row>
     </mat-table>
 
