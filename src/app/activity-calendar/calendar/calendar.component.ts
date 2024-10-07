@@ -447,13 +447,8 @@ export class CalendarComponent
     });
 
     this.registerAutocompleteField('fishingAreaLocation', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
-      filter: {
-        entityName: 'Location',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
-      attributes: ['label'],
+      suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, filter),
+      displayWith: (obj) => obj?.label || '',
       panelClass: 'mat-select-panel-fit-content',
     });
     this.registerAutocompleteField('distanceToCoastGradient', {
@@ -468,7 +463,17 @@ export class CalendarComponent
     });
     this.registerAutocompleteField('depthGradient', {
       suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
+        this.referentialRefService.suggest(
+          value,
+          {
+            ...filter,
+
+            levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+          },
+          'rankOrder',
+          'asc'
+        ),
+
       filter: {
         entityName: 'DepthGradient',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
@@ -1076,6 +1081,7 @@ export class CalendarComponent
     console.debug(this.logPrefix + `Navigation keydown: columnIndex=${columnIndex} rowIndex=${rowIndex}`);
 
     const row = this.dataSource.getRow(rowIndex);
+    // eslint-disable-next-line prefer-const
     const { columnName, cellElement } = this.getCellElement(rowIndex, columnIndex);
     if (!cellElement || !row || ACTIVITY_MONTH_READONLY_COLUMNS.includes(columnName) || RESERVED_END_COLUMNS.includes(columnName)) return;
 
@@ -1604,8 +1610,7 @@ export class CalendarComponent
     const existingMetierIds =
       this.editedRow && removeDuplicatesFromArray((this.editedRow.currentData?.gearUseFeatures || []).map((guf) => guf.metier?.id).filter(isNotNil));
 
-    // eslint-disable-next-line prefer-const
-    let { data, total } = await this.referentialRefService.suggest(
+    return await this.referentialRefService.suggest<Metier>(
       value,
       {
         ...METIER_DEFAULT_FILTER,
@@ -1615,14 +1620,44 @@ export class CalendarComponent
       null,
       null,
       {
-        toEntity: false, // convert manually
         withProperties: true /* need to fill properties.gear */,
+        // Convert to Metier entities (using `properties.gear` to fill the gear)
+        toEntity: (source) => Metier.fromObject({ ...source, ...source.properties }),
       }
     );
-    // Convert to Metier entities (using `properties.gear` to fill the gear)
-    const entities = ((data || []) as any[]).map((source) => Metier.fromObject({ ...source, ...source.properties }));
+  }
 
-    return { data: entities, total };
+  protected async suggestFishingAreaLocations(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    // Get gearUseFeature index
+    const columnName = this.getEditedCell().columnName;
+    const gearUseFeatureIndex = parseInt(columnName.match(/\d/)?.[0], 10);
+
+    // Get fishingArea to exclude (already existing in gearUseFeature)
+    const existingFishingAreaLocationIds =
+      this.editedRow &&
+      isNotNil(gearUseFeatureIndex) &&
+      removeDuplicatesFromArray(
+        (this.editedRow.currentData?.gearUseFeatures[gearUseFeatureIndex - 1]?.fishingAreas || []).map((guf) => guf.location?.id).filter(isNotNil)
+      );
+
+    return await this.referentialRefService.suggest(
+      value,
+      {
+        entityName: 'Location',
+        statusId: StatusIds.ENABLE,
+        ...filter,
+        levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+        excludedIds: existingFishingAreaLocationIds,
+      },
+      null,
+      null,
+      {
+        toEntity: true,
+        withProperties: false,
+      }
+    );
   }
 
   protected onPrepareRowForm(
@@ -1646,6 +1681,7 @@ export class CalendarComponent
     };
 
     if (this.debug) console.debug(this.logPrefix + 'Updating row form...', opts);
+    if (this.error) this.resetError();
     this.validatorService.updateFormGroup(form, opts);
 
     if (opts?.listenChanges !== false) {
@@ -1682,7 +1718,6 @@ export class CalendarComponent
           if (this.isCellSelected(this.cellClipboard, this.editedRow, this.focusColumn)) {
             this.clearClipboard(null, { clearContext: !!this.cellClipboard });
           }
-
           if (form.dirty && isNotNilOrBlank(qualificationCommentsControl.value)) {
             qualificationCommentsControl.setValue(null, { emitEvent: false });
             this.markAsDirty();
@@ -2240,6 +2275,8 @@ export class CalendarComponent
     for (const row of rows) {
       paths.forEach((path) => {
         setPropertyByPath(row, path, null);
+        if (this.error) this.resetError();
+        this.validatorService.updateFormGroup(row.validator);
         const control = this.findOrCreateControl(row.validator, path);
         if (control) control.setValue(null);
       });
@@ -2491,13 +2528,14 @@ export class CalendarComponent
       });
 
       // Update quality flag
-      const entity = targetForm.value;
-      if (targetForm.invalid) {
-        const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, this.errorTranslateOptions);
-        //entity.controlDate = null;
-        //entity.qualificationComments = errorMessage;
-        DataEntityUtils.markAsInvalid(entity, errorMessage);
-      }
+      // const entity = targetForm.value;
+      // if (!targetForm.valid) {
+      //   await AppFormUtils.waitWhilePending(targetForm);
+      //   if (targetForm.invalid) {
+      //     const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, this.errorTranslateOptions);
+      //     DataEntityUtils.markAsInvalid(entity, errorMessage);
+      //   }
+      // }
 
       // Update the row
       await this.updateEntityToTable(targetForm.value, targetRow, { confirmEdit: true });
@@ -2643,7 +2681,7 @@ export class CalendarComponent
     if (this.editedRowFocusedElement) {
       cellElement = this.getParentCellElement(this.editedRowFocusedElement);
       const columnClasses = (cellElement?.classList.value.split(' ') || []).filter((clazz) => clazz.startsWith('mat-column-'));
-      columnName = columnClasses.map((columnClass) => lastArrayValue(columnClass?.split('-'))).find(this.displayedColumns.includes);
+      columnName = columnClasses.map((columnClass) => lastArrayValue(columnClass?.split('-'))).find((elem) => this.displayedColumns.includes(elem));
     } else if (this.focusColumn) {
       const rowElement = this.getEditedRowElement();
       cellElement = rowElement?.querySelector(`.mat-mdc-cell.mat-column-${this.focusColumn}`);
@@ -2742,5 +2780,38 @@ export class CalendarComponent
 
     // Si les deux coins sont à l'intérieur, alors cellElement est entièrement à l'intérieur de divElement
     return isTopLeftInside && isBottomRightInside;
+  }
+
+  save() {
+    if (!this.hasErrorsInRows()) {
+      return super.save();
+    }
+  }
+
+  getErrorsInRows(): string[] {
+    const rows = this.dataSource.getRows();
+    const listErrors = [];
+
+    rows.forEach((row) => {
+      const form = this.validatorService.getFormGroup(row.currentData);
+      const entity = form.value;
+      const errorTranslate = this.formErrorAdapter.translateFormErrors(form, this.errorTranslateOptions);
+
+      if (form.errors) {
+        DataEntityUtils.markAsInvalid(entity, errorTranslate);
+        row.validator.patchValue(entity, { emitEvent: false });
+        listErrors.push(errorTranslate);
+      }
+    });
+    this.cd.detectChanges();
+
+    // cannot be placed above the cd.detectChanges()
+    this.setError('ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS');
+
+    return listErrors;
+  }
+
+  hasErrorsInRows(): boolean {
+    return this.getErrorsInRows()?.length > 0;
   }
 }
