@@ -55,6 +55,7 @@ export class ActivityMonthUtils {
     const sortedMetierIds =
       opts?.sortedMetierIds || (opts?.fillEmptyGuf && removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)));
     const fishingAreaCount = opts?.fishingAreaCount || 2;
+    const program = data.program;
 
     return monthStartDates
       .map((startDate) => {
@@ -89,6 +90,7 @@ export class ActivityMonthUtils {
         target.vesselId = vesselId;
         target.month = startDate.month();
         target.endDate = endDate;
+        target.program = program;
 
         target.readonly = true;
         target.registrationLocations = removeDuplicatesFromArray(
