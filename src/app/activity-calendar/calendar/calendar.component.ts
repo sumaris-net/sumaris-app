@@ -25,7 +25,6 @@ import {
   DateUtils,
   EntityUtils,
   equals,
-  FetchMoreFn,
   getPropertyByPath,
   HAMMER_TAP_TIME,
   HammerTapEvent,
@@ -1611,8 +1610,7 @@ export class CalendarComponent
     const existingMetierIds =
       this.editedRow && removeDuplicatesFromArray((this.editedRow.currentData?.gearUseFeatures || []).map((guf) => guf.metier?.id).filter(isNotNil));
 
-    // eslint-disable-next-line prefer-const
-    let { data, total, fetchMore } = await this.referentialRefService.suggest(
+    return await this.referentialRefService.suggest<Metier>(
       value,
       {
         ...METIER_DEFAULT_FILTER,
@@ -1622,14 +1620,11 @@ export class CalendarComponent
       null,
       null,
       {
-        toEntity: false, // convert manually
         withProperties: true /* need to fill properties.gear */,
+        // Convert to Metier entities (using `properties.gear` to fill the gear)
+        toEntity: (source) => Metier.fromObject({ ...source, ...source.properties }),
       }
     );
-    // Convert to Metier entities (using `properties.gear` to fill the gear)
-    const entities = ((data || []) as any[]).map((source) => Metier.fromObject({ ...source, ...source.properties }));
-
-    return { data: entities, total, fetchMore: fetchMore as FetchMoreFn<LoadResult<Metier>> };
   }
 
   protected async suggestFishingAreaLocations(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {

@@ -845,7 +845,8 @@ export class ActivityCalendarPage
   protected getFirstInvalidTabIndex(): number {
     if (this.baseForm.invalid) return ActivityCalendarPage.TABS.GENERAL;
     if (this.showPictures && this.gallery?.invalid) return ActivityCalendarPage.TABS.VESSEL;
-    if (this.calendar && (this.calendar.invalid || this.calendar.visibleRowCount !== 12)) return ActivityCalendarPage.TABS.CALENDAR;
+    if (this.calendar && (this.calendar.invalid || this.calendar.hasErrorsInRows() || this.calendar.visibleRowCount !== 12))
+      return ActivityCalendarPage.TABS.CALENDAR;
     if (this.tableMetier.invalid) return ActivityCalendarPage.TABS.METIER;
     if (this.showMap && this.mapCalendar.invalid) return ActivityCalendarPage.TABS.MAP;
     return -1;

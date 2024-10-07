@@ -596,7 +596,7 @@ export class ActivityMonthValidators {
     });
     return isNotEmptyArray(fishingAreasErrors)
       ? {
-          fishingAreasErrors: {
+          duplicatedFishingArea: {
             fishingArea: fishingAreasErrors.map(({ fishingArea }) => ` ${fishingArea}`).join('\n '),
           },
         }
@@ -610,5 +610,5 @@ export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
   requiredDistanceToCoast: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_DISTANCE_TO_COAST',
   inconsistentData: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENT_DATA',
   inconsistencyDayNumber: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENCY_DAY_NUMBER',
-  fishingAreasErrors: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_FISHING_AREA',
+  duplicatedFishingArea: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_FISHING_AREA',
 };
