@@ -174,8 +174,8 @@ export class ActivityMonthValidatorService<
       }
 
       const gufEnabled = enabled && isActive === VesselUseFeaturesIsActiveEnum.ACTIVE;
-      if (gufEnabled && !gufArray.enabled) gufArray.enable();
-      else if (!gufEnabled && gufArray.enabled) gufArray.disable();
+      if (gufEnabled && !gufArray.enabled) gufArray.enable({ onlySelf: true });
+      else if (!gufEnabled && gufArray.enabled) gufArray.disable({ onlySelf: true });
 
       // Set start/end date, and fishing area
       const startDate = form.get('startDate').value;
@@ -193,15 +193,15 @@ export class ActivityMonthValidatorService<
           }
           const metier = guf.get('metier').value;
           if (isNotNil(metier)) {
-            if (faArray.disabled) faArray.enable({ emitEvent: false });
+            if (faArray.disabled) faArray.enable({ onlySelf: true, emitEvent: false });
           } else {
-            if (faArray.enabled) faArray.disable({ emitEvent: false });
+            if (faArray.enabled) faArray.disable({ onlySelf: true, emitEvent: false });
           }
-          if (gufEnabled && faArray.disabled) faArray.enable({ emitEvent: false });
-          else if (!gufEnabled && faArray.enabled) faArray.disable({ emitEvent: false });
+          if (gufEnabled && faArray.disabled) faArray.enable({ onlySelf: true, emitEvent: false });
+          else if (!gufEnabled && faArray.enabled) faArray.disable({ onlySelf: true, emitEvent: false });
         } else {
           //if (faArray) guf.removeControl('fishingAreas');
-          if (faArray) faArray.disable({ emitEvent: false });
+          if (faArray) faArray.disable({ onlySelf: true, emitEvent: false });
         }
 
         // Init start/end date (only if need)
@@ -209,8 +209,8 @@ export class ActivityMonthValidatorService<
           guf.patchValue({ startDate, endDate }, { emitEvent: gufEnabled && guf.invalid /*force validation*/ });
         }
 
-        if (gufEnabled && !guf.enabled) guf.enable({ emitEvent: false });
-        else if (!gufEnabled && guf.enabled) guf.disable({ emitEvent: false });
+        if (gufEnabled && !guf.enabled) guf.enable({ onlySelf: true, emitEvent: false });
+        else if (!gufEnabled && guf.enabled) guf.disable({ onlySelf: true, emitEvent: false });
       });
     } else {
       // Disable GUF array
@@ -334,7 +334,7 @@ export class ActivityMonthValidators {
 
     // Check isActive
     if (isNotNil(isActive)) {
-      const measurementForm = form.get('measurementValues');
+      const measurementForm = form.get('measurementValues') as UntypedFormGroup;
       const basePortLocationControl = form.get('basePortLocation');
       switch (isActive) {
         case VesselUseFeaturesIsActiveEnum.ACTIVE: {
@@ -360,12 +360,9 @@ export class ActivityMonthValidators {
         }
         case VesselUseFeaturesIsActiveEnum.INACTIVE: {
           if (basePortLocationControl.disabled) basePortLocationControl.enable({ emitEvent: false });
-          if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
-            measurementForm.reset(<MeasurementFormValues>{ __typename: MeasurementValuesTypes.MeasurementFormValue }, { emitEvent: false });
-            dirty = true;
-          }
-          if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
-          if (gearUseFeaturesArray?.enabled) gearUseFeaturesArray.disable({ emitEvent: false });
+          const dirtyMeasurementsForm = this.clearAndDisableMeasurementForm(measurementForm);
+          const dirtyGearUseFeaturesArray = this.clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray);
+          dirty ||= dirtyMeasurementsForm || dirtyGearUseFeaturesArray;
           break;
         }
         case VesselUseFeaturesIsActiveEnum.NOT_EXISTS: {
@@ -374,12 +371,9 @@ export class ActivityMonthValidators {
             dirty = true;
           }
           if (basePortLocationControl.enabled) basePortLocationControl.disable({ emitEvent: false });
-          if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
-            measurementForm.reset(<MeasurementFormValues>{ __typename: MeasurementValuesTypes.MeasurementFormValue }, { emitEvent: false });
-            dirty = true;
-          }
-          if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
-          if (gearUseFeaturesArray?.enabled) gearUseFeaturesArray.disable({ emitEvent: false });
+          const dirtyMeasurementsForm = this.clearAndDisableMeasurementForm(measurementForm);
+          const dirtyGearUseFeaturesArray = this.clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray);
+          dirty ||= dirtyMeasurementsForm || dirtyGearUseFeaturesArray;
           break;
         }
       }
@@ -390,9 +384,36 @@ export class ActivityMonthValidators {
     }
 
     // DEBUG
-    console.debug(`[activity-month-validator] Computing finished [OK] in ${Date.now() - now}ms`);
+    console.debug(`[activity-month-validator] Computing finished [OK] in ${Date.now() - now}ms, dirty=${dirty}`);
 
     return errors;
+  }
+
+  static clearAndDisableMeasurementForm(measurementForm: UntypedFormGroup): boolean {
+    let dirty = false;
+
+    if (MeasurementValuesUtils.isNotEmpty(measurementForm?.value)) {
+      measurementForm.reset(<MeasurementFormValues>{ __typename: MeasurementValuesTypes.MeasurementFormValue }, { emitEvent: false });
+      dirty = true;
+    }
+    if (measurementForm?.enabled) measurementForm.disable({ emitEvent: false });
+
+    return dirty;
+  }
+
+  static clearAndDisableGearUseFeaturesArray(gearUseFeaturesArray: AppFormArray<GearUseFeatures, UntypedFormGroup>): boolean {
+    let dirty = false;
+
+    gearUseFeaturesArray.forEach((gufControl) => {
+      const guf = gufControl?.value;
+      if (GearUseFeatures.isNotEmpty(guf)) {
+        gufControl.reset({ id: guf.id }, { emitEvent: false });
+        dirty = true;
+      }
+    });
+    if (gearUseFeaturesArray?.enabled) gearUseFeaturesArray.disable({ emitEvent: false });
+
+    return dirty;
   }
 
   static uniqueMetier(formGroup: FormGroup): ValidationErrors | null {

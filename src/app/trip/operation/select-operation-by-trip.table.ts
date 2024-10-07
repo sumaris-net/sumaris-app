@@ -23,7 +23,7 @@ import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { TripService } from '@app/trip/trip/trip.service';
 import { debounceTime, filter } from 'rxjs/operators';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import moment from 'moment/moment';
+import moment from 'moment';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { BehaviorSubject, from, merge } from 'rxjs';

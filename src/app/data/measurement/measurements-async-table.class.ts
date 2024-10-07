@@ -29,13 +29,13 @@ import { MeasurementsTableEntitiesService } from './measurements-table.service';
 import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from './measurements-table.validator';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
-import { AppBaseTable2 } from '@app/shared/table/base.table2';
+import { AppBaseAsyncTable } from '@app/shared/table/base.async-table';
 import { AsyncTableElement } from '@e-is/ngx-material-table';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class BaseMeasurementsTable2<
+export abstract class BaseMeasurementsAsyncTable<
     T extends IEntityWithMeasurement<T>,
     F extends EntityFilter<any, T, any>,
     S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
@@ -46,7 +46,7 @@ export abstract class BaseMeasurementsTable2<
     MS extends MeasurementsTableEntitiesService<T, F, S> = MeasurementsTableEntitiesService<T, F, S>,
     MV extends MeasurementsTableValidatorService<T, V, number, VO> = MeasurementsTableValidatorService<T, V, number, VO>,
   >
-  extends AppBaseTable2<T, F, MS, MV, number, ST, O>
+  extends AppBaseAsyncTable<T, F, MS, MV, number, ST, O>
   implements OnInit, OnDestroy
 {
   private _autoLoadAfterPmfm = true;
