@@ -861,7 +861,7 @@ export class CalendarComponent
     // DEBUG
     if (this.debug) console.debug(this.logPrefix + `Moving cell selection (validating: ${cellSelection?.validating || false})`);
 
-    const { axis, cellRect, row, cellElement } = cellSelection;
+    const { axis, cellRect, row } = cellSelection;
     if (!cellRect) return; // Missing cellRect
 
     const movementX = axis !== 'y' ? event.clientX + containerElement.scrollLeft - cellSelection.originalMouseX : 0;
@@ -1264,7 +1264,7 @@ export class CalendarComponent
     this.startCellSelection.next();
   }
 
-  async ctrlClick(event: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
+  async selectCellByClick(event: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
 
@@ -1273,16 +1273,12 @@ export class CalendarComponent
     this.closeContextMenu();
 
     // DEBUG
-    console.debug(`${this.logPrefix}Ctrl+click`, event, row, columnName);
+    console.debug(`${this.logPrefix}Select a cell by click`, event, row, columnName);
 
     const confirmed = await this.confirmEditCreate();
     if (!confirmed) return false;
 
-    // Select the targeted cell
-    const cellElement = this.getEventCellElement(event);
-    if (!cellElement) return false;
-
-    this.selectRow(columnName, row, event);
+    this.selectCell(event, row, columnName);
   }
 
   toggleCompactMode() {
@@ -1441,8 +1437,17 @@ export class CalendarComponent
       return this.shiftClick(event, row, columnName);
     }
 
-    // Ctrl click
-    return this.ctrlClick(event, row, columnName);
+    // Select by click
+    return this.selectCellByClick(event, row, columnName);
+  }
+
+  async confirmEditCell(event: Event, row: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
+    console.debug(this.logPrefix + `Confirm cell month #${row.id} ${columnName}`);
+    const confirmed = await this.confirmEditCreate(event, row);
+    if (!confirmed) return;
+
+    // Select the cell
+    this.selectCell(event, row, columnName);
   }
 
   async cancelOrDelete(
@@ -2568,7 +2573,7 @@ export class CalendarComponent
 
     // select current row
     if (!this.isInsideCellSelection(this.cellSelection, cell)) {
-      this.selectRow(columnName, row, event);
+      this.selectCell(event, row, columnName);
     }
     event.preventDefault();
 
@@ -2584,8 +2589,13 @@ export class CalendarComponent
     contextMenu.style.top = `${event.clientY}px`;
   }
 
-  selectRow(columnName?: string, row?: AsyncTableElement<ActivityMonth>, event?: Event) {
-    columnName = columnName || this.focusColumn;
+  selectCell(event?: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string) {
+    row = row ?? this.editedRow;
+    columnName = columnName ?? this.focusColumn;
+    if (!row || !columnName) return; //
+
+    this.focusColumn = columnName;
+
     const cellElement = this.getEventCellElement(event);
     this.cellSelection = {
       divElement: this.cellSelectionDivRef.nativeElement,

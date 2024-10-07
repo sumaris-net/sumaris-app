@@ -319,6 +319,7 @@
                 [formControl]="control"
                 [placeholder]="'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate"
                 [autofocus]="focusColumn === 'isActive'"
+                (keyup.enter)="confirmEditCell($event, row, 'isActive')"
               >
                 <mat-select-trigger>
                   {{ isActiveMap[control.value]?.label | translate }}
@@ -369,6 +370,7 @@
               [placeholder]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
               [autofocus]="focusColumn === 'basePortLocation'"
               [floatLabel]="'never'"
+              (keyup.enter)="confirmEditCell($event, row, 'basePortLocation')"
             ></mat-autocomplete-field>
           } @else {
             @if (row.currentData.basePortLocation | referentialToString: locationDisplayAttributes; as label) {
@@ -432,6 +434,7 @@
                   [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
                   [autofocus]="focusColumn == (pmfm.id || index)"
                   [compact]="compactFields"
+                  (keyup.enter)="confirmEditCell($event, row, (pmfm.id || index).toString())"
                 ></app-pmfm-field>
               } @else {
                 <!-- readonly (desktop) -->
@@ -500,6 +503,7 @@
                   [config]="col.autocomplete"
                   [autofocus]="focusColumn === col.key"
                   [floatLabel]="'never'"
+                  (keyup.enter)="confirmEditCell($event, row, col.key)"
                 ></mat-autocomplete-field>
               } @else {
                 @if (control | formGetValue | referentialToString: col.autocomplete.attributes; as label) {
