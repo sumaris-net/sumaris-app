@@ -1,5 +1,5 @@
 import { DateUtils, equals, IEntity, isNotEmptyArray, lastArrayValue } from '@sumaris-net/ngx-components';
-import { Moment, unitOfTime } from 'moment/moment';
+import { Moment, unitOfTime } from 'moment';
 import { VesselFeatures } from './vessel.model';
 
 export interface IVesselPeriodEntity<T extends IEntity<T> = IEntity<any>> extends IEntity<T> {

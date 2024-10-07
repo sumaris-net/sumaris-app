@@ -57,7 +57,7 @@ export interface BaseTableConfig<
 export type AppBaseTableFilterRestoreSource = 'settings' | 'queryParams';
 
 @Directive()
-export abstract class AppBaseTable2<
+export abstract class AppBaseAsyncTable<
     T extends Entity<T, ID>,
     F extends IEntityFilter<F, T, any>,
     S extends IEntitiesService<T, F> = IEntitiesService<T, F>,

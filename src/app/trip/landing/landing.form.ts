@@ -59,7 +59,7 @@ import { Metier } from '@app/referential/metier/metier.model';
 import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
 import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-location.filter';
 import { DateAdapter } from '@angular/material/core';
-import { Moment } from 'moment/moment';
+import { Moment } from 'moment';
 import {
   ISelectObservedLocationsModalOptions,
   SelectObservedLocationsModal,
