@@ -400,7 +400,6 @@ html.print-pdf .reveal .slides section {
         border: solid 1px;
         height: var(--slide-width) !important;
         width: var(--slide-height) !important;
-        //position: relative;
         right: calc((var(--slide-width) - var(--slide-height)) / 2);
         top: 12.5%;
       }

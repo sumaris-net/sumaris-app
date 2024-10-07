@@ -562,7 +562,28 @@ export class ActivityCalendarsTable
   }
 
   async openReport(reportType: ActivityCalendarReportType | string) {
-    return this.router.navigateByUrl(['activity-calendar', 'report', reportType].join('/'));
+    const urlParams = new URLSearchParams();
+    if (this.selection.selected.length > 0) {
+      const selectedIds = this.selection.selected.map((s) => s.currentData.id).toString();
+      switch (reportType) {
+        case 'form':
+        case 'blank-form':
+          {
+            urlParams.set('ids', selectedIds);
+            reportType = reportType + 's';
+          }
+          break;
+        case 'progress':
+          break;
+        default:
+          throw new Error(`Report type "${reportType}" not yet implemented !`);
+      }
+    }
+    const url = ['activity-calendar', 'report', reportType].join('/') + '?' + urlParams.toString();
+    if (url.length > 2048) {
+      // TODO : handle url size limit
+    }
+    return this.router.navigateByUrl(url);
   }
 
   /* -- protected methods -- */

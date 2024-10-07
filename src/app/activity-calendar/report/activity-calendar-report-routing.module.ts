@@ -2,6 +2,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { ActivityCalendarFormReport } from './form/activity-calendar-form.report';
 import { ActivityCalendarFormReportModule } from './form/activity-calendar-form-report.module';
+import { ActivityCalendarFormsReport } from './form/activity-calendar-forms.report';
 
 const routes: Routes = [
   {
@@ -10,9 +11,19 @@ const routes: Routes = [
     component: ActivityCalendarFormReport,
   },
   {
+    path: 'forms',
+    pathMatch: 'full',
+    component: ActivityCalendarFormsReport,
+  },
+  {
     path: 'blank-form',
     pathMatch: 'full',
     component: ActivityCalendarFormReport,
+  },
+  {
+    path: 'blank-forms',
+    pathMatch: 'full',
+    component: ActivityCalendarFormsReport,
   },
   {
     path: 'progress',

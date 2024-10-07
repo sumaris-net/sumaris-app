@@ -51,6 +51,8 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
 
+  static fromObject: (source: any) => ActivityCalendarFormReportStats;
+
   fromObject(source: any) {
     super.fromObject(source);
     this.subtitle = source.subtitle;
@@ -98,6 +100,23 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
 export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCalendar, number, ActivityCalendarFormReportStats> {
   readonly pmfmIdsMap = PmfmIds;
 
+  static readonly pageDimensions = Object.freeze({
+    height: 210 * 4,
+    width: 297 * 4,
+    marginTop: 16,
+    marginBottom: 16,
+    headerHeight: 80,
+    footerHeight: 35,
+    sectionTitleHeight: 25,
+    monthTableRowTitleHeight: 20,
+    monthTableRowHeight: 20,
+    monthTableMetierRowHeight: 30,
+    gpfTableRowTitleHeight: 20,
+    gpfTableColTitleWidth: 200,
+    gpfTableRowHeight: 20,
+    investigationQualificationSectionHeight: 60,
+  });
+
   public static readonly isBlankFormParam = 'isBlankForm';
 
   protected logPrefix = 'activity-calendar-form-report';
@@ -115,23 +134,6 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
   protected readonly nbOfNonPmfmRowInEffortTable = 2;
 
-  protected readonly pageDimensions = Object.freeze({
-    height: 210 * 4,
-    width: 297 * 4,
-    marginTop: 16,
-    marginBottom: 16,
-    headerHeight: 80,
-    footerHeight: 35,
-    sectionTitleHeight: 25,
-    monthTableRowTitleHeight: 20,
-    monthTableRowHeight: 20,
-    monthTableMetierRowHeight: 30,
-    gpfTableRowTitleHeight: 20,
-    gpfTableColTitleWidth: 200,
-    gpfTableRowHeight: 20,
-    investigationQualificationSectionHeight: 60,
-  });
-
   protected filterPmfmSurveyQualification(pmfm: IPmfm): boolean {
     return PmfmIds.SURVEY_QUALIFICATION === pmfm.id;
   }
@@ -139,6 +141,8 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   protected filterPmfmAuctionHabit(pmfm: IPmfm): boolean {
     return PmfmIds.AUCTION_HABIT === pmfm.id;
   }
+
+  readonly pageDimensions = Object.freeze({ ...ActivityCalendarFormReport.pageDimensions });
 
   constructor(injector: Injector) {
     super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.FORM.PMFM.' });

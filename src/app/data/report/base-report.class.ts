@@ -4,7 +4,6 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import { TranslateService } from '@ngx-translate/core';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
   AccountService,
   AppErrorWithDetails,
@@ -74,6 +73,8 @@ export interface IReportData {
 export class BaseReportStats {
   program: Program;
 
+  static fromObject: (source: any) => BaseReportStats;
+
   fromObject(source: any) {
     this.program = Program.fromObject(source.program);
   }
@@ -99,8 +100,8 @@ export interface IComputeStatsOpts<S> {
 
 @Directive()
 export abstract class AppBaseReport<
-    T extends IReportData,
-    ID = number,
+    T extends IReportData | IReportData[],
+    ID = number | number[],
     S extends BaseReportStats = BaseReportStats,
     O extends BaseReportOptions = BaseReportOptions,
   >
@@ -509,10 +510,18 @@ export abstract class AppBaseReport<
   dataFromObject(source: any): T {
     if (this.dataType) {
       const data = new this.dataType();
-      data.fromObject(source);
-      return data;
+      if (Array.isArray(data)) {
+        return this.dataArrayFromObject(source);
+      } else {
+        data.fromObject(source);
+        return data;
+      }
     }
     return source as T;
+  }
+
+  dataArrayFromObject(source: any): T {
+    throw new Error('Method not implemented.');
   }
 
   statsAsObject(source: S, opts?: EntityAsObjectOptions): any {
@@ -662,7 +671,7 @@ export abstract class AppBaseReport<
     return `export.${format}`; // Default filename
   }
 
-  private isPrintingPDF(): boolean {
+  private isPrintngPDF(): boolean {
     if (this._printing) return true;
     const query = window.location.search || '?';
     return query.indexOf('print-pdf') !== -1;

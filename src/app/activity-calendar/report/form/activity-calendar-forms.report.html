@@ -1,0 +1,53 @@
+<app-toolbar *ngIf="showToolbar" [defaultBackHref]="$defaultBackHref | async" canGoBack="true">
+  <ion-title [innerHTML]="$title | async"></ion-title>
+  <ion-buttons slot="end">
+    <!-- Refresh -->
+    <ion-button *ngIf="uuid | isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH' | translate">
+      <mat-icon>refresh</mat-icon>
+    </ion-button>
+
+    <!-- Help button -->
+    <ion-button (click)="reveal.toggleHelp()">
+      <mat-icon>help_outline</mat-icon>
+    </ion-button>
+
+    <!-- Print -->
+    <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+    <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+      <ion-icon name="print"></ion-icon>
+    </ion-button>
+
+    <!-- share menu -->
+    <!-- TODO disabled for now. Enable it when parent load date for child to have good data and stats to share -->
+    <button disabled="true" mat-icon-button matHeader [title]="'COMMON.SHARE.BTN_SHARE' | translate" [matMenuTriggerFor]="shareMenu">
+      <mat-icon>share</mat-icon>
+    </button>
+  </ion-buttons>
+
+  <!-- Share menu -->
+  <mat-menu #shareMenu="matMenu" xPosition="after">
+    <!-- Share popover -->
+    <button mat-menu-item (click)="showSharePopover($event)" [disabled]="(loadingSubject | async) || network.offline">
+      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS' | translate }}</ion-label>
+    </button>
+  </mat-menu>
+</app-toolbar>
+
+<ion-content>
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  @if (reveal.loading) {
+    <div class="loader">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  }
+
+  <app-reveal #reveal [class.cdk-visually-hidden]="loading || error" [options]="revealOptions">
+    @for (id of ids; track id) {
+      <app-activity-calendar-form-report [id]="id" [showToolbar]="false"></app-activity-calendar-form-report>
+    }
+  </app-reveal>
+</ion-content>

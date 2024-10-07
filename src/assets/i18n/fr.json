@@ -3532,6 +3532,7 @@
     },
     "REPORT": {
       "TITLE": "Calendrier d'activité {{ year }}",
+      "TITLE_MULTI": "Calendriers d'activité",
       "BLANK_TITLE": "Raport d'activité vierge",
       "BASE_PORT_LOCATION": "Port d'exploitation",
       "PMFM": {
