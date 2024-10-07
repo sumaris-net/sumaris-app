@@ -79,7 +79,7 @@ import { Moment } from 'moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { debounceTime, delay, filter, map } from 'rxjs/operators';
+import { debounceTime, filter, map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
@@ -1730,7 +1730,7 @@ export class CalendarComponent
       return false;
     }
 
-    const editing = super.editRow(event, row, opts);
+    const editing = await super.editRow(event, row, opts);
     if (editing) this.removeCellSelection();
     return editing;
   }
