@@ -1149,6 +1149,7 @@ export class CalendarComponent
     event?.preventDefault(); // Avoid clickRow
 
     const isActiveIndex = this.displayedColumns.findIndex((col) => col === 'isActive');
+    // eslint-disable-next-line prefer-const
     let { columnName, cellElement } = this.getCellElement(row.id, isActiveIndex);
 
     const reservedColumnCount = RESERVED_START_COLUMNS.concat(RESERVED_END_COLUMNS).length + this.readonlyColumnCount;
@@ -2278,7 +2279,8 @@ export class CalendarComponent
 
     // Accept to paste into compatible PMFM
     const isPmfmOnly = sourcePaths.every((path) => path.startsWith('measurementValues'));
-    if (isPmfmOnly) {
+    const targetIsPmfm = targetPaths.every((path) => path.startsWith('measurementValues'));
+    if (isPmfmOnly && targetIsPmfm) {
       const pmfmIds = sourcePaths.concat(targetPaths).map((pmfm) => parseInt(lastArrayValue(pmfm.split('.'))));
       const pmfms = this.pmfms.filter((pmfm) => pmfmIds.includes(pmfm.id));
       const sourcePathUnitLabel = pmfms.find((pmfm) => pmfm.id.toString() === sourcePathSuffix)?.unitLabel;
