@@ -4,13 +4,7 @@
   "directories": {
     "buildResources": "resources"
   },
-  "files": [
-    "assets/**/*",
-    "build/**/*",
-    "capacitor.config.*",
-    "app/**/*",
-    "LICENSE.txt"
-  ],
+  "files": ["assets/**/*", "build/**/*", "capacitor.config.*", "app/**/*", "LICENSE.txt"],
   "linux": {
     "icon": "assets/icons/",
     "category": "Science",
