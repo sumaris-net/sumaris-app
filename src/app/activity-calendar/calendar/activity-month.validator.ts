@@ -539,26 +539,25 @@ export class ActivityMonthValidators {
   }
 
   static validateDayCountConsistency(formGroup: FormArray): ValidationErrors | null {
-    const pmfms = formGroup.get('measurementValues')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    const measurementValues = formGroup.get('measurementValues')?.value as MeasurementFormValues;
     const startDate = formGroup.get('startDate') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
     const endDate = formGroup.get('endDate') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
 
-    if (!pmfms || !startDate?.value || !endDate?.value) {
+    if (!measurementValues || !startDate?.value || !endDate?.value) {
       return null;
     }
 
-    const pmfmFishDurationDays = pmfms[PmfmIds.FISHING_DURATION_DAYS];
-    const pmfmFishAtSeaDays = pmfms[PmfmIds.FISHING_AT_SEA_DAYS];
+    const fishingDurationDays = measurementValues?.[PmfmIds.FISHING_DURATION_DAYS];
+    const fishingAtSeaDays = measurementValues?.[PmfmIds.FISHING_AT_SEA_DAYS];
 
-    if (isNil(pmfmFishDurationDays) && isNil(pmfmFishAtSeaDays)) return null;
+    if (isNil(fishingDurationDays) && isNil(fishingAtSeaDays)) return null;
 
-    const numberOfDaysMonth = endDate.value.diff(startDate.value, 'days');
+    const maxMonthDay = endDate.value.diff(startDate.value, 'days');
 
-    const isDayNumberInconsistent =
-      (isNotNil(pmfmFishDurationDays) && pmfmFishDurationDays > numberOfDaysMonth) ||
-      (isNotNil(pmfmFishAtSeaDays) && pmfmFishAtSeaDays > numberOfDaysMonth);
+    const invalid =
+      (isNotNil(fishingDurationDays) && fishingDurationDays > maxMonthDay) || (isNotNil(fishingAtSeaDays) && fishingAtSeaDays > maxMonthDay);
 
-    return isDayNumberInconsistent ? { inconsistencyDayNumber: true } : null;
+    return invalid ? { inconsistencyDayNumber: true } : null;
   }
 }
 
