@@ -28,7 +28,3 @@ ion-col > ion-label {
 .mat-tab-body.mat-tab-body-active {
   overflow-y: visible; // Workaround for iPad
 }
-
-::ng-deep .mat-form-field-disabled{
-  display: none !important;
-}

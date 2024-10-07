@@ -1,3 +1,7 @@
 form ion-row ion-col {
   min-width: 250px;
 }
+
+:host ::ng-deep .form-container .mat-form-field-disabled {
+  display: none !important;
+}
