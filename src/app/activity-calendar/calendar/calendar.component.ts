@@ -1636,16 +1636,17 @@ export class CalendarComponent
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
     // Get gearUseFeature index
-    const gearUseFeatureIndex = parseInt(this.focusColumn.match(/\d/)?.[0], 10);
+    const columnName = this.getEditedCell().columnName;
+    const gearUseFeatureIndex = parseInt(columnName.match(/\d/)?.[0], 10);
 
     // Get fishingArea to exclude (already existing in gearUseFeature)
     const existingFishingAreaLocationIds =
       this.editedRow &&
+      isNotNil(gearUseFeatureIndex) &&
       removeDuplicatesFromArray(
         (this.editedRow.currentData?.gearUseFeatures[gearUseFeatureIndex - 1]?.fishingAreas || []).map((guf) => guf.location?.id).filter(isNotNil)
       );
 
-    // eslint-disable-next-line prefer-const
     return await this.referentialRefService.suggest(
       value,
       {
@@ -2685,7 +2686,7 @@ export class CalendarComponent
     if (this.editedRowFocusedElement) {
       cellElement = this.getParentCellElement(this.editedRowFocusedElement);
       const columnClasses = (cellElement?.classList.value.split(' ') || []).filter((clazz) => clazz.startsWith('mat-column-'));
-      columnName = columnClasses.map((columnClass) => lastArrayValue(columnClass?.split('-'))).find(this.displayedColumns.includes);
+      columnName = columnClasses.map((columnClass) => lastArrayValue(columnClass?.split('-'))).find((elem) => this.displayedColumns.includes(elem));
     } else if (this.focusColumn) {
       const rowElement = this.getEditedRowElement();
       cellElement = rowElement?.querySelector(`.mat-mdc-cell.mat-column-${this.focusColumn}`);
