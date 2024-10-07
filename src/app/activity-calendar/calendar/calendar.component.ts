@@ -78,8 +78,8 @@ import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measure
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { Moment } from 'moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
-import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
+import { Measurement, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
@@ -958,6 +958,34 @@ export class CalendarComponent
     if (NAVIGATION_KEYS.includes(event.key)) {
       this.onArrowPress(event);
     }
+
+    //Test edit cell on focus hover
+    const cellPmfm = this.pmfms.find((p) => p?.id.toString() === this.focusColumn);
+    if (isNotNil(cellPmfm)) {
+      this.editCellOnFocusHover(event, cellPmfm);
+    }
+  }
+
+  editCellOnFocusHover(event: KeyboardEvent, pmfm: IPmfm<IPmfm<any, any>, number>) {
+    if (this.cellSelection.colspan != 1 && this.cellSelection.rowspan != 1) return;
+
+    const row = this.cellSelection.row.validator.get('measurementValues');
+    console.log(event.key);
+    const rowValue = row.get(pmfm.id.toString());
+    if (!isNaN(Number(event.key))) {
+      if (isNotNil(rowValue.value) && rowValue.value.toString().length >= 1) {
+        rowValue.patchValue(rowValue.value + event.key);
+      }
+      if (isNil(rowValue.value) || rowValue.value.toString().length === 0) {
+        rowValue.patchValue(event.key);
+      }
+    } else if (event.key === 'Backspace') {
+      if (isNotNil(rowValue.value)) rowValue.patchValue(rowValue.value.toString().slice(0, -1));
+      if (rowValue.value.toString().length === 0) rowValue.patchValue(null);
+    } else {
+      return;
+    }
+    this.markAsDirty();
   }
 
   protected onArrowPress(event: KeyboardEvent) {
