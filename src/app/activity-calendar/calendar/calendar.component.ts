@@ -2492,7 +2492,8 @@ export class CalendarComponent
       sourceMonths = sourceMonths.slice(0, targetRows.length);
       targetCellSelection.colspan = targetRows.length;
     }
-    const rowsToDelete = [];
+
+    const rowsToClear = [];
     for (let i = 0; i < targetRows.length; i++) {
       const targetRow = targetRows[i];
       const sourceMonth = sourceMonths[i % sourceMonths.length];
@@ -2518,13 +2519,14 @@ export class CalendarComponent
           // Update the form (should enable more controls - e.g. metier, fishing areas)
           this.onPrepareRowForm(targetForm, { listenChanges: false });
         }
+        // If IsActive = NOT_EXISTS, clear row
+        else if (sourceValue === VesselUseFeaturesIsActiveEnum.NOT_EXISTS) {
+          rowsToClear.push(targetRow);
+        }
         // Update control from the path
         const targetPath = targetPaths[index];
         const control = targetPath && this.findOrCreateControl(targetForm, targetPath);
         if (control) {
-          if (targetPath === 'isActive' && sourceValue === VesselUseFeaturesIsActiveEnum.NOT_EXISTS) {
-            rowsToDelete.push(targetRow);
-          }
           control.enable({ emitEvent: false });
           control.setValue(sourceValue);
         }
@@ -2545,7 +2547,7 @@ export class CalendarComponent
     }
 
     // Delete rows paste with IsActive = NOT_EXISTS
-    rowsToDelete.forEach(async (row) => await this.clear(null, row, { interactive: false }));
+    rowsToClear.forEach(async (row) => await this.clear(null, row, { interactive: false }));
 
     // DEBUG
     console.debug(`${this.logPrefix}Paste clipboard [OK]`);
