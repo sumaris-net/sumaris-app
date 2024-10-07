@@ -371,6 +371,8 @@ export abstract class AppBaseAsyncTable<
   }
 
   async escapeEditingRow(event?: Event, row?: AsyncTableElement<T>): Promise<void> {
+    console.debug(this.logPrefix + 'Escape editing row');
+
     await super.escapeEditingRow(event, row);
     if (!this.dataSource.hasSomeEditingRow()) this.focusColumn = null;
   }

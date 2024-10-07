@@ -1757,8 +1757,6 @@ export class CalendarComponent
   }
 
   async confirmEditCreate(event?: Event, row?: AsyncTableElement<ActivityMonth>, opts?: { lock?: boolean }): Promise<boolean> {
-    if (event?.defaultPrevented) return false;
-
     // If not given row: confirm all editing rows
     if (!row) {
       const editingRows = this.dataSource.getEditingRows();

@@ -593,7 +593,7 @@
         [class]="row.validator | formGetValue: 'program' | mapGet: 'label'"
         [class.readonly]="(row.validator | formGetValue: 'readonly') === true"
         [class.duplicated]="(row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL"
-        (keydown.escape)="escapeEditingRow($event)"
+        (keydown.escape)="escapeEditingRow($event, row)"
       ></mat-row>
     </mat-table>
 
