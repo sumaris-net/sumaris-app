@@ -482,17 +482,7 @@ export class CalendarComponent
 
     this._state.connect(
       'validRowCount',
-      this._dataSource.rowsSubject.pipe(
-        map(
-          (rows) =>
-            rows
-              .map((row) => row.currentData)
-              .filter(
-                (month) =>
-                  isNotNil(month?.isActive) && month.qualityFlagId !== QualityFlagIds.BAD && month.qualityFlagId !== QualityFlagIds.CONFLICTUAL
-              ).length
-        )
-      )
+      this._dataSource.rowsSubject.pipe(map((rows) => rows.map((row) => row.currentData).filter((month) => isNotNil(month?.isActive)).length))
     );
 
     this._state.hold(this.availablePrograms$, (programs: ReferentialRef[]) => {
