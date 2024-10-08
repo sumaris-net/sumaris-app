@@ -2544,8 +2544,10 @@ export class CalendarComponent
         // Mark entity as invalid, if form validation failed
         if (!targetForm.valid) {
           await AppFormUtils.waitWhilePending(targetForm);
-          const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, this.errorTranslateOptions);
-          DataEntityUtils.markAsInvalid(targetEntity, errorMessage);
+          if (targetForm.invalid) {
+            const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, this.errorTranslateOptions);
+            DataEntityUtils.markAsInvalid(targetEntity, errorMessage);
+          }
         }
 
         // Update the row, using the computed entity
