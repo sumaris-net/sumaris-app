@@ -56,6 +56,8 @@ export interface ISubBatchesModalOptions {
   mobile: boolean;
   usageMode: UsageMode;
   showBluetoothIcon: boolean;
+  playSound: boolean;
+  defaultIsIndividualCountOnly: boolean;
 
   programLabel: string;
   requiredStrategy: boolean;
@@ -161,7 +163,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() parentGroup: BatchGroup;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
-  @Input() mobile: boolean;
   @Input() playSound: boolean;
   @Input() showBluetoothIcon = false;
   @Input() canDebug: boolean;
@@ -178,7 +179,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return this.i18nColumnSuffix;
   }
 
-  @ViewChild('form', { static: true }) form: SubBatchForm;
   @ViewChild('content') content: IonContent;
 
   constructor(
