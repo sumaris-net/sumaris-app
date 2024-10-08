@@ -1,12 +1,11 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { LocalSettingsService, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { UntypedFormGroup, Validators } from '@angular/forms';
+import { SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Program } from '@app/referential/services/model/program.model';
 import { OperationGroup } from '../trip/trip.model';
-import { TranslateService } from '@ngx-translate/core';
 
 export interface OperationGroupValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
@@ -18,13 +17,10 @@ export class OperationGroupValidatorService<O extends OperationGroupValidatorOpt
   extends DataEntityValidatorService<OperationGroup, O>
   implements ValidatorService
 {
-  constructor(
-    protected formBuilder: UntypedFormBuilder,
-    protected translate: TranslateService,
-    protected settings: LocalSettingsService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: OperationGroup, opts?: O): UntypedFormGroup {

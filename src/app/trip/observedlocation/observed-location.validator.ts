@@ -1,21 +1,12 @@
 import { Injectable } from '@angular/core';
-import {
-  AbstractControlOptions,
-  UntypedFormBuilder,
-  UntypedFormControl,
-  UntypedFormGroup,
-  ValidationErrors,
-  ValidatorFn,
-  Validators,
-} from '@angular/forms';
-import { DateUtils, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { DateUtils, isNotNil, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from './observed-location.model';
 import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import moment from 'moment';
-import { TranslateService } from '@ngx-translate/core';
 
 export interface ObservedLocationValidatorOptions extends DataRootEntityValidatorOptions {
   withSamplingStrata?: boolean;
@@ -27,8 +18,8 @@ export interface ObservedLocationValidatorOptions extends DataRootEntityValidato
 
 @Injectable({ providedIn: 'root' })
 export class ObservedLocationValidatorService extends DataRootEntityValidatorService<ObservedLocation, ObservedLocationValidatorOptions> {
-  constructor(formBuilder: UntypedFormBuilder, translate: TranslateService, settings: LocalSettingsService) {
-    super(formBuilder, translate, settings);
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: ObservedLocation, opts?: ObservedLocationValidatorOptions): UntypedFormGroup {

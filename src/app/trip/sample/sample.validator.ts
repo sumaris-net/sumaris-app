@@ -1,9 +1,8 @@
-import { Injectable, Optional } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormGroup, Validators } from '@angular/forms';
 import { AppFormArray, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Sample } from './sample.model';
-import { TranslateService } from '@ngx-translate/core';
 import { ImageAttachmentValidator } from '@app/data/image/image-attachment.validator';
 
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
@@ -22,12 +21,10 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
   extends BaseValidatorService<Sample, number, O>
   implements ValidatorService
 {
-  constructor(
-    protected formBuilder: UntypedFormBuilder,
-    protected translate: TranslateService,
-    @Optional() protected imageAttachmentValidator?: ImageAttachmentValidator
-  ) {
-    super(formBuilder, translate);
+  protected readonly imageAttachmentValidator = inject(ImageAttachmentValidator, { optional: true });
+
+  constructor() {
+    super();
   }
 
   getFormGroupConfig(data?: any, opts?: O): { [p: string]: any } {

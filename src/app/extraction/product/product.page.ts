@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
 import { ExtractionCategories, ExtractionColumn, ExtractionFilter } from '../type/extraction-type.model';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
 import { ValidatorService } from '@e-is/ngx-material-table';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
@@ -14,7 +13,6 @@ import {
   isEmptyArray,
   isNil,
   isNotNil,
-  LocalSettingsService,
   Toasts,
 } from '@sumaris-net/ngx-components';
 import { ProductForm } from './product.form';
@@ -51,16 +49,12 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
   }
 
   constructor(
-    protected injector: Injector,
-    protected router: Router,
     protected formBuilder: UntypedFormBuilder,
     protected productService: ProductService,
     protected accountService: AccountService,
-    protected validatorService: ExtractionProductValidatorService,
-    protected settings: LocalSettingsService
+    protected validatorService: ExtractionProductValidatorService
   ) {
     super(
-      injector,
       ExtractionProduct,
       // Data service
       {

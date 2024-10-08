@@ -1,19 +1,10 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import {
-  fromDateISOString,
-  isNotNil,
-  LocalSettingsService,
-  SharedFormGroupValidators,
-  SharedValidators,
-  toBoolean,
-  toNumber,
-} from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, UntypedFormGroup, Validators } from '@angular/forms';
+import { fromDateISOString, isNotNil, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { Sale } from './sale.model';
 import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
 import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
-import { TranslateService } from '@ngx-translate/core';
 
 export interface SaleValidatorOptions extends DataRootEntityValidatorOptions {
   required?: boolean;
@@ -27,13 +18,8 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
   Sale,
   SaleValidatorOptions
 > {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected dateAdapter: DateAdapter<Moment>
-  ) {
-    super(formBuilder, translate, settings);
+  constructor(protected dateAdapter: DateAdapter<Moment>) {
+    super();
   }
 
   getFormGroupConfig(data?: Sale, opts?: O): { [key: string]: any } {

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
@@ -23,11 +23,11 @@ export interface MeasurementsValidatorOptions {
 export class MeasurementsValidatorService<T extends Measurement = Measurement, O extends MeasurementsValidatorOptions = MeasurementsValidatorOptions>
   implements ValidatorService
 {
-  constructor(
-    protected formBuilder: UntypedFormBuilder,
-    protected translate: TranslateService,
-    protected settings: LocalSettingsService
-  ) {}
+  protected readonly formBuilder = inject(UntypedFormBuilder);
+  protected readonly translate = inject(TranslateService);
+  protected readonly settings = inject(LocalSettingsService);
+
+  constructor() {}
 
   getRowValidator(opts?: O): UntypedFormGroup {
     return this.getFormGroup(null, opts);

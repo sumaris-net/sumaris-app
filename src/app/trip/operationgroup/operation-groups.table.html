@@ -129,7 +129,7 @@
               floatLabel="never"
               [pmfm]="pmfm"
               [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-              [autofocus]="focusColumn == pmfm.id"
+              [autofocus]="focusColumn === pmfm.id.toString()"
               [compact]="compactFields"
               panelClass="mat-select-panel-fit-content"
             ></app-pmfm-field>

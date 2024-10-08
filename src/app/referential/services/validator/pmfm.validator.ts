@@ -1,14 +1,13 @@
-import { AbstractControlOptions, UntypedFormBuilder, Validators } from '@angular/forms';
-import { isNotNil, toNumber } from '@sumaris-net/ngx-components';
-import { SharedFormGroupValidators, SharedValidators } from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, Validators } from '@angular/forms';
+import { isNotNil, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import { ReferentialValidatorService } from './referential.validator';
 import { Pmfm } from '../model/pmfm.model';
 
 @Injectable({ providedIn: 'root' })
 export class PmfmValidatorService extends ReferentialValidatorService<Pmfm> {
-  constructor(protected formBuilder: UntypedFormBuilder) {
-    super(formBuilder);
+  constructor() {
+    super();
   }
 
   getFormGroupConfig(data?: Pmfm, opts?: { withDescription?: boolean; withComments?: boolean }): { [p: string]: any } {

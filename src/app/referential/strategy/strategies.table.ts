@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { Strategy } from '../services/model/strategy.model';
@@ -85,15 +85,12 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
   }
 
   constructor(
-    injector: Injector,
     protected strategyService: StrategyService,
     protected popoverController: PopoverController,
     protected referentialRefService: ReferentialRefService,
-    validatorService: ValidatorService,
-    protected cd: ChangeDetectorRef
+    validatorService: ValidatorService
   ) {
     super(
-      injector,
       // columns
       RESERVED_START_COLUMNS.concat(['label', 'name', 'description', 'status', 'comments']).concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource(Strategy, strategyService, validatorService, {
@@ -110,10 +107,6 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
     this.logPrefix = '[strategies-table] ';
     this.debug = !environment.production;
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected async duplicate() {

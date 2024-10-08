@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { TripComparators, TripService } from './trip.service';
 import { TripFilter, TripSynchroImportFilter } from './trip.filter';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
@@ -76,7 +76,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
   }
 
   constructor(
-    injector: Injector,
     _dataService: TripService,
     protected operationService: OperationService,
     protected personService: PersonService,
@@ -88,7 +87,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     protected formBuilder: UntypedFormBuilder
   ) {
     super(
-      injector,
       Trip,
       TripFilter,
       ['quality', 'program', 'vessel', 'departureLocation', 'departureDateTime', 'returnDateTime', 'observers', 'recorderPerson', 'comments'],
@@ -466,10 +464,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
   }
 
   /* -- protected methods -- */
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
 
   protected resetContext() {
     // Consume all context data, to avoid reusing it somewhere

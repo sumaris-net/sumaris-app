@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
 import { VesselService } from '../services/vessel-service';
 import { VesselForm } from '../form/form-vessel';
 import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../services/model/vessel.model';
@@ -73,7 +73,6 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   @ViewChild('registrationHistoryTable', { static: true }) private registrationHistoryTable: VesselRegistrationHistoryComponent;
 
   constructor(
-    injector: Injector,
     vesselService: VesselService,
     platform: PlatformService,
     private network: NetworkService,
@@ -84,7 +83,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     private modalCtrl: ModalController,
     private configService: ConfigService
   ) {
-    super(injector, Vessel, vesselService, {
+    super(Vessel, vesselService, {
       tabCount: 2,
     });
     this.defaultBackHref = '/vessels';

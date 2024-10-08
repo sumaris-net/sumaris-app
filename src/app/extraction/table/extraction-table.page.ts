@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject, EMPTY, merge, Observable, Subject } from 'rxjs';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   Alerts,
   CompletableEvent,
@@ -129,15 +128,12 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   }
 
   constructor(
-    injector: Injector,
     state: RxState<ExtractionTableState>,
     protected productService: ProductService,
     protected programRefService: ProgramRefService,
-    protected extractionTypeService: ExtractionTypeService,
-    protected cd: ChangeDetectorRef
+    protected extractionTypeService: ExtractionTypeService
   ) {
-    super(injector, state);
-
+    super(state);
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
     this.isAdmin = this.accountService.isAdmin();
@@ -821,10 +817,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
     // By default: use type name (should have been translated before)
     this.$title.next(titlePrefix + this.type.name);
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected async openTripReport() {

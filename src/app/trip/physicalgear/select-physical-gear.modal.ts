@@ -50,8 +50,8 @@ export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModal
   @ViewChild(PhysicalGearTable, { static: true }) table: PhysicalGearTable;
 
   constructor(
+    settings: LocalSettingsService,
     private modalCtrl: ModalController,
-    private settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) protected dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {

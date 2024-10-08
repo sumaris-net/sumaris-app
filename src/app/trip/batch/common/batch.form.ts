@@ -1,19 +1,7 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  Inject,
-  InjectionToken,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Optional,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Inject, InjectionToken, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { Batch, BatchWeight } from './batch.model';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
   AppFormArray,
@@ -38,7 +26,6 @@ import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels } from '@a
 import { Observable, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { BatchValidatorOptions, BatchValidatorService } from './batch.validator';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -56,6 +43,7 @@ export interface TaxonNameBatchFilter {
   programLabel?: string;
   taxonGroupId?: number;
 }
+
 export interface BatchFormState extends MeasurementsFormState {
   defaultWeightPmfm: IPmfm;
   weightPmfms: IPmfm[];
@@ -198,20 +186,13 @@ export class BatchForm<
     this._disableByDefaultControls.forEach((c) => c.disable(opts));
   }
 
+  protected readonly referentialRefService = inject(ReferentialRefService);
+
   constructor(
-    injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
-    protected referentialRefService: ReferentialRefService,
     @Inject(BATCH_VALIDATOR) protected validatorService: V,
     @Inject(BATCH_VALIDATOR_OPTIONS_TOKEN) @Optional() validatorOptions?: VO
   ) {
     super(
-      injector,
-      measurementsValidatorService,
-      formBuilder,
-      programRefService,
       validatorService.getFormGroup(null, {
         withWeight: true,
         rankOrderRequired: false, // Allow to be set by parent component
@@ -907,9 +888,5 @@ export class BatchForm<
       this._formValidatorSubscription = null;
       this._formValidatorOpts = null;
     });
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

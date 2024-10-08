@@ -103,18 +103,15 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
   }
 
   constructor(
-    injector: Injector,
     public network: NetworkService,
     protected accountService: AccountService,
     _dataService: AggregatedLandingService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
     protected vesselSnapshotService: VesselSnapshotService,
-    protected formBuilder: UntypedFormBuilder,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService
+    protected formBuilder: UntypedFormBuilder
   ) {
-    super(injector, AggregatedLanding, AggregatedLandingFilter, ['vessel'], _dataService, null, {
+    super(AggregatedLanding, AggregatedLandingFilter, ['vessel'], _dataService, null, {
       prependNewElements: false,
       suppressErrors: environment.production,
       debug: !environment.production,
@@ -344,10 +341,6 @@ export class AggregatedLandingsTable extends AppBaseTable<AggregatedLanding, Agg
   }
 
   /* -- protected methods -- */
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
 
   protected updateColumns() {
     if (!this.$dates.getValue()) return;

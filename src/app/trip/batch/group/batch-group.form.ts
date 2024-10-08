@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { Batch } from '../common/batch.model';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import {
   AppFormUtils,
   InputElement,
@@ -16,11 +16,8 @@ import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-
 import { BatchForm, BatchFormState } from '../common/batch.form';
 import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { merge, Observable } from 'rxjs';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { RxState } from '@rx-angular/state';
@@ -63,6 +60,7 @@ export class BatchGroupForm
   @Input() get childrenState(): Partial<BatchFormState> {
     return this._state.get('childrenState');
   }
+
   set childrenState(value: Partial<BatchFormState>) {
     this._state.set(
       'childrenState',
@@ -145,15 +143,8 @@ export class BatchGroupForm
     (this.childrenList || []).forEach((child) => child.enable(opts));
   }
 
-  constructor(
-    injector: Injector,
-    measurementsValidatorService: MeasurementsValidatorService,
-    formBuilder: UntypedFormBuilder,
-    programRefService: ProgramRefService,
-    referentialRefService: ReferentialRefService,
-    validatorService: BatchGroupValidatorService
-  ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, referentialRefService, validatorService, {
+  constructor(validatorService: BatchGroupValidatorService) {
+    super(validatorService, {
       withWeight: false,
       withChildren: false,
       withMeasurements: false,

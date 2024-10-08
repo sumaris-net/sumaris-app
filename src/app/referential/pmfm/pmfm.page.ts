@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import {
@@ -63,7 +63,6 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
   @ViewChild('btnUseDefaultQualitativeValues', { static: true }) btnUseDefaultQualitativeValues: IonCheckbox;
 
   constructor(
-    protected injector: Injector,
     protected accountService: AccountService,
     protected validatorService: PmfmValidatorService,
     protected pmfmService: PmfmService,
@@ -71,7 +70,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController
   ) {
-    super(injector, Pmfm, pmfmService, { tabCount: 2 });
+    super(Pmfm, pmfmService, { tabCount: 2 });
     this.form = validatorService.getFormGroup();
 
     // default values
@@ -315,10 +314,6 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
   }
 
   referentialToString = referentialToString;
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
 
   protected async toggleUseDefaultQualitativeValues(event) {
     // NOTE : the status of the check btn is not already updated at this moment this is why is it inverted

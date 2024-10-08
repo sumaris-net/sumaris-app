@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
@@ -121,13 +121,11 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   }
 
   constructor(
-    injector: Injector,
     formBuilder: UntypedFormBuilder,
     @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService: IEntitiesService<PhysicalGear, PhysicalGearFilter>,
     protected context: TripContextService
   ) {
     super(
-      injector,
       PhysicalGear,
       PhysicalGearFilter,
       dataService,

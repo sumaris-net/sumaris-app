@@ -1,9 +1,8 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import {
   AbstractControl,
   AbstractControlOptions,
   FormGroup,
-  UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
   ValidationErrors,
@@ -18,7 +17,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
-  LocalSettingsService,
   SharedAsyncValidators,
   SharedValidators,
   toBoolean,
@@ -36,11 +34,11 @@ import { roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { debounceTime } from 'rxjs/operators';
-import { TranslateService } from '@ngx-translate/core';
 
 export function getFormOptions<O>(form: UntypedFormGroup): O | undefined {
   return form['__options'] as O;
 }
+
 export function setFormOptions<O>(form: UntypedFormGroup, opts?: O) {
   form['__options'] = opts;
 }
@@ -67,13 +65,10 @@ export class BatchValidatorService<
   T extends Batch<T> = Batch<any>,
   O extends BatchValidatorOptions = BatchValidatorOptions,
 > extends DataEntityValidatorService<T, O> {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   protected fillDefaultOptions(opts?: O): O {

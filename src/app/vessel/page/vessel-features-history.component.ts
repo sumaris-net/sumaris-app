@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { AccountService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
 import { VesselFeatures } from '../services/model/vessel.model';
 import { VesselFeaturesService, VesselFeaturesServiceWatchOptions } from '../services/vessel-features.service';
@@ -66,12 +66,10 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
   }
 
   constructor(
-    injector: Injector,
     protected accountService: AccountService,
     dataService: VesselFeaturesService
   ) {
     super(
-      injector,
       VesselFeatures,
       VesselFeaturesFilter,
       // columns
@@ -110,13 +108,5 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.debug = !environment.production;
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

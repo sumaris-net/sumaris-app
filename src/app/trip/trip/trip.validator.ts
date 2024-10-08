@@ -1,8 +1,7 @@
-import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { inject, Injectable } from '@angular/core';
+import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import {
   AppFormArray,
-  LocalSettingsService,
   ReferentialRef,
   ReferentialUtils,
   SharedFormArrayValidators,
@@ -19,7 +18,6 @@ import { DataRootEntityValidatorOptions } from '@app/data/services/validator/roo
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
-import { TranslateService } from '@ngx-translate/core';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
@@ -40,15 +38,12 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   static readonly DEFAULT_MIN_DURATION_HOURS = 1; // 1 hour
   static readonly DEFAULT_MAX_DURATION_HOURS = 100 * 24; // 100 days
 
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected saleValidator: SaleValidatorService,
-    protected fishingAreaValidator: FishingAreaValidatorService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly saleValidator = inject(SaleValidatorService);
+  protected readonly fishingAreaValidator = inject(FishingAreaValidatorService);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: Trip, opts?: O): UntypedFormGroup {

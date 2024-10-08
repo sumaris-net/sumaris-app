@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, Injector, Optional } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Optional } from '@angular/core';
 import {
   Alerts,
   APP_CONFIG_OPTIONS,
@@ -46,13 +46,12 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
   }
 
   constructor(
-    injector: Injector,
     validatorService: SoftwareValidatorService,
     dataService: ConfigurationService,
     protected network: NetworkService,
     @Optional() @Inject(APP_CONFIG_OPTIONS) configOptions: FormFieldDefinitionMap
   ) {
-    super(injector, Configuration, dataService, validatorService, configOptions, {
+    super(Configuration, dataService, validatorService, configOptions, {
       tabCount: 5,
     });
 

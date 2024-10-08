@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import {
   AppTable,
   changeCaseToUnderscore,
@@ -64,13 +64,10 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
   }
 
   constructor(
-    injector: Injector,
     formBuilder: UntypedFormBuilder,
-    protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef
+    protected referentialRefService: ReferentialRefService
   ) {
     super(
-      injector,
       // columns
       RESERVED_START_COLUMNS.concat(['label', 'name', 'description', 'status', 'comments']).concat(RESERVED_END_COLUMNS)
     );
@@ -165,10 +162,6 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
     this.showLevelFilter = this.showLevelFilter && isNotEmptyArray(levels);
 
     return levels;
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected setTableMode(value: AppTableMode) {

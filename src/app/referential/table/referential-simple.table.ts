@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import {
   AccountService,
@@ -61,6 +61,7 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
   set showIdColumn(value: boolean) {
     this.setShowColumn('id', value);
   }
+
   get showIdColumn(): boolean {
     return this.getShowColumn('id');
   }
@@ -69,6 +70,7 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
   set showSelectColumn(value: boolean) {
     this.setShowColumn('select', value);
   }
+
   get showSelectColumn(): boolean {
     return this.getShowColumn('select');
   }
@@ -76,6 +78,7 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
   @Input() set showUpdateDateColumn(value: boolean) {
     this.setShowColumn('updateDate', value);
   }
+
   get showUpdateDateColumn(): boolean {
     return this.getShowColumn('updateDate');
   }
@@ -83,20 +86,20 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
   @Input() set showCommentsColumn(value: boolean) {
     this.setShowColumn('comments', value);
   }
+
   get showCommentsColumn(): boolean {
     return this.getShowColumn('comments');
   }
-  protected popoverController: PopoverController;
+
+  protected readonly popoverController = inject(PopoverController);
 
   constructor(
-    injector: Injector,
     protected accountService: AccountService,
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<Referential, ReferentialFilter>,
     protected cd: ChangeDetectorRef
   ) {
     super(
-      injector,
       // columns
       RESERVED_START_COLUMNS.concat(['label', 'name', 'description', 'status', 'updateDate', 'comments']).concat(RESERVED_END_COLUMNS),
       Referential,
@@ -112,7 +115,6 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
       }
     );
 
-    this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.inlineEdition = true;
     this.confirmBeforeDelete = true;
@@ -193,9 +195,5 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
     } else {
       Object.assign(row.currentData, defaultValues);
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

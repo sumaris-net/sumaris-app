@@ -222,7 +222,6 @@ export class SamplesTable
     protected samplingStrategyService: SamplingStrategyService
   ) {
     super(
-      injector,
       Sample,
       SampleFilter,
       new InMemoryEntitiesService(Sample, SampleFilter, {
@@ -264,6 +263,8 @@ export class SamplesTable
     this._state.hold(this.pmfmGroups$, (pmfmGroups) => {
       this.showGroupHeader = (pmfmGroups && Object.keys(pmfmGroups).length > 0) || false;
     });
+
+    this.detectChangesOnEditRow = true;
 
     // DEBUG
     //this.debug = !environment.production;
@@ -1114,8 +1115,4 @@ export class SamplesTable
   selectInputContent = AppFormUtils.selectInputContent;
   isIndividualMonitoring = SampleUtils.isIndividualMonitoring;
   isIndividualRelease = SampleUtils.isIndividualRelease;
-
-  markForCheck() {
-    this.cd.markForCheck();
-  }
 }

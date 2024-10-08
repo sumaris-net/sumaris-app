@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList } from '@sumaris-net/ngx-components';
 import { debounceTime, filter } from 'rxjs/operators';
@@ -24,13 +24,8 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
   @Input() showPaginator = true;
   @Input() sticky = true;
 
-  constructor(
-    injector: Injector,
-    formBuilder: UntypedFormBuilder,
-    protected cd: ChangeDetectorRef
-  ) {
+  constructor(formBuilder: UntypedFormBuilder) {
     super(
-      injector,
       // columns
       RESERVED_START_COLUMNS.concat(['name', 'unit', 'matrix', 'fraction', 'method', 'status']).concat(RESERVED_END_COLUMNS)
     );
@@ -69,11 +64,5 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
     if (event) event.stopPropagation(); // Avoid to enter input the field
     formControl.setValue(null);
     return false;
-  }
-
-  /* -- protected methods -- */
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

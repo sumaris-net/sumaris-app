@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
 import { isNotNil, joinPropertiesPath, MatAutocompleteFieldConfig, Referential } from '@sumaris-net/ngx-components';
 import { ReferentialService } from '@app/referential/services/referential.service';
 import { RoundWeightConversionTable } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.table';
@@ -17,8 +17,8 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('rwcTable', { static: true }) rwcTable: RoundWeightConversionTable;
 
-  constructor(injector: Injector, dataService: ReferentialService, validatorService: TaxonGroupValidatorService) {
-    super(injector, Referential, dataService, validatorService.getFormGroup(), {
+  constructor(dataService: ReferentialService, validatorService: TaxonGroupValidatorService) {
+    super(Referential, dataService, validatorService.getFormGroup(), {
       entityName: TaxonGroupRef.ENTITY_NAME,
       uniqueLabel: false,
       withLevels: true,

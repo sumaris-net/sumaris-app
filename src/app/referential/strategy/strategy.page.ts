@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Strategy } from '../services/model/strategy.model';
@@ -52,7 +52,6 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   }
 
   constructor(
-    protected injector: Injector,
     protected formBuilder: UntypedFormBuilder,
     protected accountService: AccountService,
     protected validatorService: StrategyValidatorService,
@@ -62,7 +61,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     protected modalCtrl: ModalController,
     protected configService: ConfigService
   ) {
-    super(injector, Strategy, dataService, {
+    super(Strategy, dataService, {
       pathIdAttribute: 'strategyId',
     });
 
@@ -252,10 +251,6 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     if (this.referentialForm.invalid) return 0;
     if (this.strategyForm.invalid) return 1;
     return -1;
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected initTranscribingItemTable(table: TranscribingItemTable) {}

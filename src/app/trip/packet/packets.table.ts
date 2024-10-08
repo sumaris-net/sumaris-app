@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import {
   createPromiseEventEmitter,
@@ -87,13 +87,11 @@ export class PacketsTable
   @Output('askSaveConfirmation') askSaveConfirmation: EventEmitter<PromiseEvent<boolean>> = createPromiseEventEmitter<boolean>();
 
   constructor(
-    injector: Injector,
     memoryDataService: InMemoryEntitiesService<Packet, PacketFilter>,
     validatorService: PacketValidatorService,
     protected programRefService: ProgramRefService
   ) {
     super(
-      injector,
       Packet,
       PacketFilter,
       // columns
@@ -201,10 +199,6 @@ export class PacketsTable
   protected async getMaxRankOrder(): Promise<number> {
     const rows = this.dataSource.getRows();
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected async openRow(id: number, row: TableElement<Packet>): Promise<boolean> {

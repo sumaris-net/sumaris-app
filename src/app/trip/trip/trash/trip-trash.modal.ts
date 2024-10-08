@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AccountService,
   AppTable,
@@ -12,7 +12,6 @@ import {
   toBoolean,
 } from '@sumaris-net/ngx-components';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { Trip } from '../trip.model';
 import { TripService } from '../trip.service';
 import { TripFilter } from '../trip.filter';
@@ -50,16 +49,13 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
   }
 
   constructor(
-    injector: Injector,
     protected accountService: AccountService,
     protected service: TripService,
     protected entities: EntitiesStorage,
     protected trashRemoteService: TrashRemoteService,
-    protected formBuilder: UntypedFormBuilder,
-    protected cd: ChangeDetectorRef
+    protected formBuilder: UntypedFormBuilder
   ) {
     super(
-      injector,
       RESERVED_START_COLUMNS.concat([
         'updateDate',
         'program',
@@ -250,11 +246,5 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     } finally {
       this.markAsLoaded();
     }
-  }
-
-  /* -- protected method -- */
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

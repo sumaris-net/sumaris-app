@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { isNotEmptyArray, isNotNil, LocalSettingsService, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { inject, Injectable } from '@angular/core';
+import { UntypedFormGroup, Validators } from '@angular/forms';
+import { isNotEmptyArray, isNotNil, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Landing } from './landing.model';
@@ -8,7 +8,6 @@ import { DataRootEntityValidatorOptions } from '@app/data/services/validator/roo
 import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
 import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
-import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { ControlUpdateOnType } from '@app/data/services/validator/data-entity.validator';
@@ -26,13 +25,10 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
   Landing,
   O
 > {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: Landing, opts?: O): UntypedFormGroup {

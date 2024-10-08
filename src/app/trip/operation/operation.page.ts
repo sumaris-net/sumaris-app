@@ -1596,10 +1596,6 @@ export class OperationPage<S extends OperationState = OperationState>
     return parentUrl && `${parentUrl}/operation/${id}`;
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
   protected computeNextTabIndex(): number | undefined {
     if (this.selectedTabIndex > 0) return undefined; // Already on the next tab
 

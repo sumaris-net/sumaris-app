@@ -1,11 +1,10 @@
-import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { inject, Injectable } from '@angular/core';
+import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import {
   AppFormArray,
   isEmptyArray,
   isNotEmptyArray,
   isNotNil,
-  LocalSettingsService,
   SharedFormArrayValidators,
   SharedFormGroupValidators,
   SharedValidators,
@@ -16,7 +15,6 @@ import { MeasurementsValidatorService } from '@app/data/measurement/measurement.
 import { GearUseFeatures } from './gear-use-features.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
 import { FishingAreaValidatorOptions, FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
-import { TranslateService } from '@ngx-translate/core';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
@@ -45,14 +43,11 @@ export class GearUseFeaturesValidatorService<O extends GearUseFeaturesValidatorO
   extends DataEntityValidatorService<GearUseFeatures, O>
   implements ValidatorService
 {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected fishingAreaValidator: FishingAreaValidatorService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly fishingAreaValidator = inject(FishingAreaValidatorService);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: GearUseFeatures, opts?: O): UntypedFormGroup {

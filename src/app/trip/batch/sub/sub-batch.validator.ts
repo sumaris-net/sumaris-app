@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { inject, Injectable } from '@angular/core';
+import { UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   DateUtils,
   isEmptyArray,
@@ -9,7 +9,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
-  LocalSettingsService,
   ReferentialRef,
   SharedAsyncValidators,
   SharedValidators,
@@ -36,7 +35,6 @@ import { DataContext } from '@app/data/services/model/data-context.model';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { ContextService } from '@app/shared/context.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { TranslateService } from '@ngx-translate/core';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -44,11 +42,13 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 export interface BatchContext extends DataContext {
   parentGroup?: BatchGroup;
 }
+
 // to discuss with Benoit for naming and the implementation
 export interface BacthTreeContext {
   program: Program;
   strategy: Strategy;
 }
+
 export interface SubBatchValidatorValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
   weightRequired?: boolean;
@@ -61,15 +61,12 @@ export interface SubBatchValidatorValidatorOptions extends DataEntityValidatorOp
 // Cannot be root, because we need to inject context dynamically
 //{providedIn: 'root'}
 export class SubBatchValidatorService extends DataEntityValidatorService<SubBatch, SubBatchValidatorValidatorOptions> {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected wlService: WeightLengthConversionRefService,
-    protected rwService: RoundWeightConversionRefService,
-    protected context: ContextService<BatchContext>
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly wlService = inject(WeightLengthConversionRefService);
+  protected readonly rwService = inject(RoundWeightConversionRefService);
+  protected readonly context = inject(ContextService<BatchContext>);
+
+  constructor() {
+    super();
 
     // DEBUG
     //console.debug(`[sub-batch-validator] Creating validator (context: ${this.context?.constructor.name})`);

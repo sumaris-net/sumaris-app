@@ -1,4 +1,4 @@
-import { booleanAttribute, ChangeDetectionStrategy, Component, Injector, Input, OnInit, Output, TemplateRef } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, Input, OnInit, Output, TemplateRef } from '@angular/core';
 import {
   Alerts,
   AppFormUtils,
@@ -107,7 +107,6 @@ export class SamplingStrategiesTable
   @Output() onNewDataFromRow = new Subject<{ row: TableElement<SamplingStrategy>; event: Event }>();
 
   constructor(
-    injector: Injector,
     _dataService: SamplingStrategyService,
     protected strategyService: StrategyService,
     protected referentialRefService: ReferentialRefService,
@@ -117,7 +116,6 @@ export class SamplingStrategiesTable
     protected formBuilder: UntypedFormBuilder
   ) {
     super(
-      injector,
       SamplingStrategy,
       StrategyFilter,
       // columns

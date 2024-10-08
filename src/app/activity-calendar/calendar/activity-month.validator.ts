@@ -1,24 +1,21 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import {
   AbstractControlOptions,
   FormArray,
   FormGroup,
-  UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
   ValidationErrors,
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
 import {
   AppFormArray,
   equals,
   isNil,
   isNotEmptyArray,
   isNotNil,
-  LocalSettingsService,
   ReferentialUtils,
   SharedAsyncValidators,
   SharedFormArrayValidators,
@@ -59,14 +56,11 @@ export interface ActivityMonthValidatorOptions extends GearUseFeaturesValidatorO
 export class ActivityMonthValidatorService<
   O extends ActivityMonthValidatorOptions = ActivityMonthValidatorOptions,
 > extends DataEntityValidatorService<ActivityMonth, O> {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected gearUseFeaturesValidator: GearUseFeaturesValidatorService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly gearUseFeaturesValidator = inject(GearUseFeaturesValidatorService);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: ActivityMonth, opts?: O): UntypedFormGroup {

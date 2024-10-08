@@ -1,12 +1,11 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
-import { LocalSettingsService, SharedFormArrayValidators, SharedValidators } from '@sumaris-net/ngx-components';
+import { UntypedFormArray, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { SharedFormArrayValidators, SharedValidators } from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { Packet, PacketComposition, PacketIndexes } from './packet.model';
 import { PacketCompositionValidatorService } from './packet-composition.validator';
 import { DataValidators } from '@app/data/services/validator/data.validators';
-import { TranslateService } from '@ngx-translate/core';
 
 export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withComposition?: boolean;
@@ -18,13 +17,10 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
   extends DataEntityValidatorService<Packet, O>
   implements ValidatorService
 {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected packetCompositionValidatorService: PacketCompositionValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly packetCompositionValidatorService = inject(PacketCompositionValidatorService);
+
+  constructor() {
+    super();
   }
 
   getFormGroupConfig(data?: Packet, opts?: O): { [key: string]: any } {

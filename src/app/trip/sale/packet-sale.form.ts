@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, UsageMode } from '@sumaris-net/ngx-components';
 import { PacketValidatorService } from '../packet/packet.validator';
@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 import { fillRankOrder } from '@app/data/services/model/model.utils';
 import { SaleProduct, SaleProductUtils } from './sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 @Component({
@@ -47,13 +48,11 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   @Input() pmfms: DenormalizedPmfmStrategy[];
 
   constructor(
-    injector: Injector,
     protected validatorService: PacketValidatorService,
-    protected cd: ChangeDetectorRef,
     protected formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector, validatorService.getFormGroup(undefined, { withSaleProducts: true }));
+    super(validatorService.getFormGroup(undefined, { withSaleProducts: true }));
   }
 
   ngOnInit() {
@@ -202,9 +201,5 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
         this.salesFocusIndex = undefined;
       }, 500);
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

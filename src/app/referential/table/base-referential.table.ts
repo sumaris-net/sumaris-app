@@ -96,10 +96,10 @@ export abstract class BaseReferentialTable<
 
   protected $status = new BehaviorSubject<IStatus[]>(null);
   private readonly withStatusId: boolean;
+  private readonly formBuilder = inject(UntypedFormBuilder);
 
   protected constructor(injector: Injector, dataType: new () => T, filterType: new () => F, entityService: S, validatorService?: V, options?: O) {
     super(
-      injector,
       dataType,
       filterType,
       options?.propertyNames || BaseReferentialTable.getEntityDisplayProperties(dataType),
@@ -114,7 +114,7 @@ export abstract class BaseReferentialTable<
     this.withStatusId = this.columns.includes('statusId');
 
     const filterFormConfig = this.getFilterFormConfig();
-    this.filterForm = filterFormConfig && injector.get(UntypedFormBuilder).group(filterFormConfig);
+    this.filterForm = filterFormConfig && this.formBuilder.group(filterFormConfig);
   }
 
   ngOnInit() {

@@ -193,7 +193,7 @@
         <mat-checkbox
           [class.cdk-visually-hidden]="row | asBoolean: isRowNotSelectable"
           (click)="toggleSelectRow($event, row)"
-          [checked]="selection.isSelected(row)"
+          [checked]="selection | isSelected: row"
         ></mat-checkbox>
       </td>
     </ng-container>

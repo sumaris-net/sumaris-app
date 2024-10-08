@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
@@ -94,7 +94,6 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
   @ViewChild('ion-segment', { static: true }) ionSegment: IonSegment;
 
   constructor(
-    injector: Injector,
     _dataService: ObservedLocationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
@@ -103,7 +102,6 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     protected context: ContextService
   ) {
     super(
-      injector,
       ObservedLocation,
       ObservedLocationFilter,
       ['quality', 'program', 'location', 'startDateTime', 'endDateTime', 'observers', 'recorderPerson', 'comments'],
@@ -433,10 +431,6 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
 
     // Title
     this.landingsTitleSubject.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected resetContext() {

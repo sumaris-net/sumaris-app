@@ -76,14 +76,11 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventFilter> implem
   @Input() defaultSortDirection: SortDirection;
 
   constructor(
-    injector: Injector,
     protected accountService: AccountService,
     @Inject(APP_USER_EVENT_SERVICE) protected userEvenService: UserEventService,
-    protected entities: EntitiesStorage,
-    protected cd: ChangeDetectorRef
+    protected entities: EntitiesStorage
   ) {
     super(
-      injector,
       // columns
       RESERVED_START_COLUMNS.concat(['creationDate', 'icon', 'message']).concat(RESERVED_END_COLUMNS),
       null,

@@ -376,7 +376,6 @@ export class CalendarComponent
     private vesselOwnerPeriodService: VesselOwnerPeridodService
   ) {
     super(
-      injector,
       ActivityMonth,
       ActivityMonthFilter,
       injector.get(InMemoryEntitiesService) ||

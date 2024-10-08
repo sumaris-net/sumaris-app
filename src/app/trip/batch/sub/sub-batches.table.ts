@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Inject, InjectionToken, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { isObservable, Observable, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -90,7 +90,7 @@ export class SubBatchesTable
   protected _initialPmfms: IPmfm[];
   protected _availableSortedParents: BatchGroup[] = [];
 
-  protected referentialRefService: ReferentialRefService;
+  protected referentialRefService = inject(ReferentialRefService);
   protected enableWeightConversion = false;
   protected weightPmfm: IPmfm;
 
@@ -195,13 +195,8 @@ export class SubBatchesTable
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
 
-  constructor(
-    injector: Injector,
-    validatorService: SubBatchValidatorService,
-    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>
-  ) {
+  constructor(validatorService: SubBatchValidatorService, @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>) {
     super(
-      injector,
       SubBatch,
       SubBatchFilter,
       new InMemoryEntitiesService<SubBatch, SubBatchFilter>(SubBatch, SubBatchFilter, {
@@ -225,7 +220,6 @@ export class SubBatchesTable
         },
       }
     );
-    this.referentialRefService = injector.get(ReferentialRefService);
     this.inlineEdition = !this.mobile;
 
     // Default value
@@ -836,10 +830,6 @@ export class SubBatchesTable
   }
 
   selectInputContent = AppFormUtils.selectInputContent;
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
 
   private onPrepareRowForm(form: UntypedFormGroup) {
     if (!form) return; // Skip

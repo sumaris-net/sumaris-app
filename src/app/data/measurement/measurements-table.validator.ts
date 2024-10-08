@@ -1,11 +1,10 @@
-import { FormBuilder, FormGroup, UntypedFormGroup } from '@angular/forms';
+import { FormGroup, UntypedFormGroup } from '@angular/forms';
 import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues } from './measurement.model';
 import { MeasurementsValidatorOptions, MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
-import { Injector } from '@angular/core';
+import { inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { TranslateService } from '@ngx-translate/core';
 import { AppFormArray, isNotNil, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
 
 export interface MeasurementsTableValidatorOptions extends MeasurementsValidatorOptions {
@@ -21,7 +20,7 @@ export class MeasurementsTableValidatorService<
 > extends BaseValidatorService<T, ID, O> {
   private readySubject = new BehaviorSubject(false);
 
-  protected readonly measurementsValidatorService: MeasurementsValidatorService;
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
 
   protected _delegateOptions: O = null;
   protected _measurementsOptions: MeasurementsTableValidatorOptions = null;
@@ -45,12 +44,8 @@ export class MeasurementsTableValidatorService<
     return this._delegate;
   }
 
-  constructor(
-    injector: Injector,
-    protected _delegate: S
-  ) {
-    super(injector.get(FormBuilder), injector.get(TranslateService));
-    this.measurementsValidatorService = injector.get(MeasurementsValidatorService);
+  constructor(protected _delegate: S) {
+    super();
   }
 
   getFormGroup(data?: T, opts?: O) {

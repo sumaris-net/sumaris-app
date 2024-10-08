@@ -5,7 +5,6 @@ import {
   ChangeDetectorRef,
   Component,
   Inject,
-  Injector,
   Input,
   numberAttribute,
   OnDestroy,
@@ -135,13 +134,12 @@ export class PhysicalGearModal extends AppEntityEditorModal<PhysicalGear> implem
   }
 
   constructor(
-    injector: Injector,
     protected translateContext: TranslateContextService,
     @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) protected childrenGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>,
     protected _state: RxState<ComponentState>,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector, PhysicalGear, {
+    super(PhysicalGear, {
       tabCount: 2,
       i18nPrefix: 'TRIP.PHYSICAL_GEAR.EDIT.',
       enableSwipe: false,

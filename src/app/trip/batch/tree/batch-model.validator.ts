@@ -1,19 +1,10 @@
 import { inject, Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import {
-  AppFormArray,
-  AppFormUtils,
-  isNotEmptyArray,
-  LocalSettingsService,
-  removeDuplicatesFromArray,
-  TreeItemEntityUtils,
-} from '@sumaris-net/ngx-components';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { AppFormArray, AppFormUtils, isNotEmptyArray, removeDuplicatesFromArray, TreeItemEntityUtils } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { ControlUpdateOnType, DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
 import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
-import { TranslateService } from '@ngx-translate/core';
 import { BatchModel, BatchModelFilter, BatchModelUtils } from '@app/trip/batch/tree/batch-tree.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { environment } from '@environments/environment';
@@ -50,13 +41,8 @@ export class BatchModelValidatorService<
   protected readonly debug: boolean;
   protected readonly batchRules = inject(BatchRulesService);
 
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings, measurementsValidatorService);
+  constructor() {
+    super();
     this.debug = !environment.production;
   }
 

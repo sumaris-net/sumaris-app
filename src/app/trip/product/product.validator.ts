@@ -1,14 +1,13 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
-import { LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, UntypedFormArray, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { Program } from '@app/referential/services/model/program.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Product } from './product.model';
 import { OperationGroup } from '../trip/trip.model';
 import { DataValidators } from '@app/data/services/validator/data.validators';
-import { TranslateService } from '@ngx-translate/core';
 
 export interface ProductValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
@@ -21,13 +20,10 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
   extends DataEntityValidatorService<Product, O>
   implements ValidatorService
 {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   getRowValidator(): UntypedFormGroup {

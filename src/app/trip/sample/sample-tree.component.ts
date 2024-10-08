@@ -1,15 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  inject,
-  Input,
-  OnInit,
-  Output,
-  ViewChild,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, inject, Input, OnInit, Output, ViewChild } from '@angular/core';
 import {
   AppTabEditor,
   AppTable,
@@ -25,9 +14,6 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { Sample, SampleUtils } from '@app/trip/sample/sample.model';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, NavController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
 import { SamplesTable } from '@app/trip/sample/samples.table';
 import { IndividualMonitoringTable } from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
 import { IndividualReleasesTable } from '@app/trip/sample/individualrelease/individual-releases.table';
@@ -150,16 +136,10 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   @Output() prepareRowForm = new EventEmitter<IPmfmForm>();
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected navController: NavController,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
     protected programRefService: ProgramRefService,
-    protected settings: LocalSettingsService,
-    protected cd: ChangeDetectorRef
+    protected settings: LocalSettingsService
   ) {
-    super(route, router, navController, alertCtrl, translate, {
+    super({
       tabCount: settings.mobile ? 1 : 3,
     });
 
@@ -520,9 +500,5 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
     // Propagate to children tables, if need
     // This should be need when $program has been set by parent, and not from the $programLabel observable
     if (this.programLabel !== program?.label) this.programLabel = program?.label;
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

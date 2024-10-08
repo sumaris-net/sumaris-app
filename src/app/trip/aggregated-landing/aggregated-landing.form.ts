@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Moment } from 'moment';
 import { UntypedFormArray, UntypedFormBuilder, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -12,7 +12,6 @@ import {
   firstNotNilPromise,
   FormArrayHelper,
   isNil,
-  LocalSettingsService,
   NetworkService,
   SharedValidators,
 } from '@sumaris-net/ngx-components';
@@ -99,18 +98,15 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
   dates: Observable<Moment[]> | Moment[];
 
   constructor(
-    injector: Injector,
     protected dateFormat: DateFormatService,
     protected formBuilder: UntypedFormBuilder,
     protected dataService: AggregatedLandingService,
     protected vesselActivityValidatorService: VesselActivityValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
-    public network: NetworkService,
-    protected cd: ChangeDetectorRef
+    public network: NetworkService
   ) {
-    super(injector, null);
+    super(null);
     this.mobile = this.settings.mobile;
 
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING; // default
@@ -266,10 +262,4 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     newActivities.push(...activities);
     this.$data.getValue().vesselActivities = newActivities;
   }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  protected readonly console = console;
 }

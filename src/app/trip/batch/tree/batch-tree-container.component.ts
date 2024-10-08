@@ -1,16 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Inject,
-  Injector,
-  Input,
-  OnInit,
-  Optional,
-  Output,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Inject, Injector, Input, OnInit, Optional, Output, ViewChild } from '@angular/core';
 import {
   APP_LOGGING_SERVICE,
   AppEditor,
@@ -40,14 +28,12 @@ import {
   WaitForOptions,
   waitForTrue,
 } from '@sumaris-net/ngx-components';
-import { AlertController, IonModal, NavController } from '@ionic/angular';
+import { IonModal } from '@ionic/angular';
 import { BatchTreeComponent, IBatchTreeComponent, IBatchTreeStatus } from '@app/trip/batch/tree/batch-tree.component';
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
 import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
 import { combineLatestWith, Observable, Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
@@ -257,23 +243,18 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
 
   constructor(
     injector: Injector,
-    route: ActivatedRoute,
-    router: Router,
-    alertCtrl: AlertController,
-    translate: TranslateService,
     protected programRefService: ProgramRefService,
     protected batchModelValidatorService: BatchModelValidatorService,
     protected pmfmNamePipe: PmfmNamePipe,
     protected context: TripContextService,
     protected _state: RxState<BatchTreeContainerState>,
-    protected cd: ChangeDetectorRef,
     protected settings: LocalSettingsService,
     @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
   ) {
-    super(route, router, injector.get(NavController), alertCtrl, translate);
+    super();
 
     // Defaults
-    this.mobile = injector.get(LocalSettingsService).mobile;
+    this.mobile = settings.mobile;
     this.i18nContext = {
       prefix: '',
       suffix: '',
@@ -1019,10 +1000,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
     if (dirty) this.markAsDirty();
 
     return true;
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected getBatchModelByPath(path: string): BatchModel | undefined {

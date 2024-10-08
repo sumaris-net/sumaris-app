@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
-  Injector,
   Input,
   OnInit,
   Output,
@@ -11,7 +10,7 @@ import {
   ViewChild,
   ViewChildren,
 } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
+import { UntypedFormArray } from '@angular/forms';
 import {
   firstNotNilPromise,
   FormArrayHelper,
@@ -32,7 +31,6 @@ import { ExpenseValidatorService } from './expense.validator';
 import { getMaxRankOrder } from '@app/data/services/model/model.utils';
 import { TypedExpenseForm } from './typed-expense.form';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
 
@@ -78,6 +76,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   get selectedTabIndex(): number | null {
     return this._selectedTabIndex;
   }
+
   @Input() set selectedTabIndex(value: number | null) {
     if (value !== this._selectedTabIndex) {
       this._selectedTabIndex = value;
@@ -124,13 +123,8 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     if (this.iceForm) await this.iceForm.ready(opts);
   }
 
-  constructor(
-    injector: Injector,
-    protected validatorService: ExpenseValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService
-  ) {
-    super(injector, validatorService, formBuilder, programRefService);
+  constructor(protected validatorService: ExpenseValidatorService) {
+    super(validatorService);
     this.mobile = this.settings.mobile;
     this.keepRankOrder = true;
     this.tabindex = 0;
@@ -570,9 +564,5 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     super.markAllAsTouched(opts);
     if (this.iceForm) this.iceForm.markAllAsTouched(opts);
     if (this.baitForms) this.baitForms.forEach((form) => form.markAllAsTouched(opts));
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

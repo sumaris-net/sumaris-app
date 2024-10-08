@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Directive, Injector, OnInit, ViewChild } from '@angular/core';
+import { Directive, inject, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
@@ -27,10 +27,9 @@ import { ReferentialRefService } from '../services/referential-ref.service';
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEntityService<T>> extends AppEntityEditor<T, S> implements OnInit {
-  protected accountService: AccountService;
-  protected platform: PlatformService;
-  protected cd: ChangeDetectorRef;
-  protected referentialRefService: ReferentialRefService;
+  protected readonly accountService = inject(AccountService);
+  protected readonly platform = inject(PlatformService);
+  protected readonly referentialRefService = inject(ReferentialRefService);
 
   propertyDefinitions: FormFieldDefinition[];
   form: UntypedFormGroup;
@@ -40,18 +39,13 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEnt
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
 
   protected constructor(
-    injector: Injector,
     dataType: new () => T,
     dataService: S,
     protected validatorService: SoftwareValidatorService,
     configOptions: FormFieldDefinitionMap,
     options?: AppEditorOptions
   ) {
-    super(injector, dataType, dataService, options);
-    this.platform = injector.get(PlatformService);
-    this.accountService = injector.get(AccountService);
-    this.cd = injector.get(ChangeDetectorRef);
-    this.referentialRefService = injector.get(ReferentialRefService);
+    super(dataType, dataService, options);
 
     // Convert map to list of options
     this.propertyDefinitions = Object.values({ ...CORE_CONFIG_OPTIONS, ...configOptions }).map((def) => {
@@ -228,9 +222,5 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEnt
       console.error('Cannot fetch entity, from option: ' + def.key + '=' + value, err);
       return { id: value, label: '??' };
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

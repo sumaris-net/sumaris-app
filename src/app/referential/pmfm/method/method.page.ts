@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { Referential } from '@sumaris-net/ngx-components';
 import { AppReferentialEditor } from '@app/referential/form/referential-editor.class';
 import { ReferentialForm } from '@app/referential/form/referential.form';
@@ -15,8 +15,8 @@ import { MethodValidatorService } from '@app/referential/pmfm/method/method.vali
 export class MethodPage extends AppReferentialEditor<Method, MethodService> {
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
 
-  constructor(injector: Injector, dataService: MethodService, validatorService: MethodValidatorService) {
-    super(injector, Method, dataService, validatorService.getFormGroup(), {
+  constructor(dataService: MethodService, validatorService: MethodValidatorService) {
+    super(Method, dataService, validatorService.getFormGroup(), {
       entityName: Method.ENTITY_NAME,
       uniqueLabel: true,
       withLevels: false,

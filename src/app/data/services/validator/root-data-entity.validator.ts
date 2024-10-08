@@ -1,16 +1,8 @@
-import {
-  AppFormArray,
-  LocalSettingsService,
-  Person,
-  ReferentialUtils,
-  SharedFormArrayValidators,
-  SharedValidators,
-} from '@sumaris-net/ngx-components';
-import { UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
+import { AppFormArray, Person, ReferentialUtils, SharedFormArrayValidators, SharedValidators } from '@sumaris-net/ngx-components';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import { RootDataEntity } from '../model/root-data-entity.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from './data-entity.validator';
-import { TranslateService } from '@ngx-translate/core';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 
 export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptions {
@@ -23,8 +15,8 @@ export abstract class DataRootEntityValidatorService<
   T extends RootDataEntity<T>,
   O extends DataRootEntityValidatorOptions = DataRootEntityValidatorOptions,
 > extends DataEntityValidatorService<T, O> {
-  protected constructor(formBuilder: UntypedFormBuilder, translate: TranslateService, settings: LocalSettingsService) {
-    super(formBuilder, translate, settings);
+  protected constructor() {
+    super();
   }
 
   getFormGroupConfig(

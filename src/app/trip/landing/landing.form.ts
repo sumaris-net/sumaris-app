@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import {
   AcquisitionLevelCodes,
@@ -9,8 +9,7 @@ import {
 } from '@app/referential/services/model/model.enum';
 import { LandingValidatorOptions, LandingValidatorService } from './landing.validator';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import {
   AppFormArray,
@@ -48,8 +47,6 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { VesselModal } from '@app/vessel/modal/vessel-modal';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
@@ -206,16 +203,11 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
   @Output() strategyChanges = new EventEmitter<Strategy>();
 
   constructor(
-    injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
     protected validatorService: LandingValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
-    protected translate: TranslateService,
     protected modalCtrl: ModalController,
     protected tripValidatorService: TripValidatorService,
     protected fishingAreaValidatorService: FishingAreaValidatorService,
@@ -223,7 +215,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     protected strategyService: StrategyService,
     protected dateAdapter: DateAdapter<Moment>
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
+    super(validatorService.getFormGroup(), {
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
 
@@ -882,10 +874,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       .concat([this.dateAdapter.format(ol.startDateTime, dateTimePattern)])
       .filter(isNotNilOrBlank)
       .join(' - ');
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   notHiddenPmfm(pmfm: IPmfm) {

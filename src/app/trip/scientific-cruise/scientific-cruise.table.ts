@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   arrayDistinct,
   chainPromises,
@@ -82,7 +82,6 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
   }
 
   constructor(
-    injector: Injector,
     dataService: ScientificCruiseService,
     protected operationService: OperationService,
     protected personService: PersonService,
@@ -94,7 +93,6 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
     protected formBuilder: UntypedFormBuilder
   ) {
     super(
-      injector,
       ScientificCruise,
       ScientificCruiseFilter,
       ['quality', 'program', 'name', 'vessel', 'departureLocation', 'departureDateTime', 'returnDateTime', 'managerPerson', 'comments'],
@@ -447,10 +445,6 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
   }
 
   /* -- protected methods -- */
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
 
   protected resetContext() {
     // Consume all context data, to avoid reusing it somewhere

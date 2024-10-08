@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Injector, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Injector, Input, OnInit, Output } from '@angular/core';
 import {
   AppFormUtils,
   AppInMemoryTable,
@@ -127,11 +127,9 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     protected injector: Injector,
     protected validatorService: PmfmStrategyValidatorService,
     protected pmfmService: PmfmService,
-    protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef
+    protected referentialRefService: ReferentialRefService
   ) {
     super(
-      injector,
       // columns
       RESERVED_START_COLUMNS.concat([
         'acquisitionLevel',
@@ -166,6 +164,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.saveBeforeDelete = true;
     this.saveBeforeSort = true;
     this.saveBeforeFilter = true;
+    this.detectChangesOnEditRow = true;
 
     this.debug = !environment.production;
   }
@@ -336,9 +335,21 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     );
   }
 
-  protected editRow(event: Event | undefined, row: TableElement<PmfmStrategy>, opts?: { focusColumn?: string }): boolean {
-    return super.editRow(event, row, opts);
-  }
+  // protected editRow(event: Event | undefined, row: TableElement<PmfmStrategy>, opts?: { focusColumn?: string }): boolean {
+  //   try {
+  //     return super.editRow(event, row, opts);
+  //   } finally {
+  //     this.cd.detectChanges();
+  //   }
+  // }
+  //
+  // toggleSelectRow(event: Event | undefined, row: TableElement<PmfmStrategy>) {
+  //   try {
+  //     super.toggleSelectRow(event, row);
+  //   } finally {
+  //     this.cd.detectChanges();
+  //   }
+  // }
 
   setFilter(source: Partial<PmfmStrategyFilter>, opts?: { emitEvent: boolean }) {
     const target = new PmfmStrategyFilter();
@@ -602,9 +613,5 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       }
     }
     return name;
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

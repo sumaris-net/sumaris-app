@@ -376,6 +376,7 @@ export class SamplingLandingPage extends LandingPage<SamplingLandingPageState> i
   protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
     console.debug(this.logPrefix + 'Adding row validator');
 
+    // FIXME : doesn't return a Subscription !
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.samplesTable.pmfmGroups || {}, {
       markForCheck: () => this.markForCheck(),
     });

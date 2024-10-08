@@ -1,16 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnInit,
-  Output,
-  QueryList,
-  ViewChild,
-  ViewChildren,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { TripValidatorOptions, TripValidatorService } from './trip.validator';
 import { ModalController } from '@ionic/angular';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -205,7 +193,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   @ViewChildren('locationField') locationFields: QueryList<MatAutocompleteField>;
 
   constructor(
-    injector: Injector,
     protected formBuilder: UntypedFormBuilder,
     protected validatorService: TripValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
@@ -214,10 +201,9 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     protected metierService: MetierService,
     protected personService: PersonService,
     protected modalCtrl: ModalController,
-    public network: NetworkService,
-    protected cd: ChangeDetectorRef
+    public network: NetworkService
   ) {
-    super(injector, validatorService.getFormGroup());
+    super(validatorService.getFormGroup());
   }
 
   ngOnInit() {
@@ -539,9 +525,5 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       // Remember used opts, for next call
       this._lastValidatorOpts = validatorOpts;
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

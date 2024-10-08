@@ -1,6 +1,7 @@
 import { environment } from '@environments/environment';
 import { RxState } from '@rx-angular/state';
 import { ProjectValueReducer } from '@rx-angular/state/lib/rx-state.service';
+import { capitalizeFirstLetter } from '@sumaris-net/ngx-components';
 
 declare type Constructor = new (...args: any[]) => any;
 const STATE_VAR_NAME_KEY = '__stateName';
@@ -71,13 +72,13 @@ export function RxStateSelect<T = any>(statePropertyName?: string | keyof T | '$
     statePropertyName = (statePropertyName as string) || key.replace(/\$?$/, '');
     const state = target instanceof RxState ? null : target[STATE_VAR_NAME_KEY] || opts?.stateName || DEFAULT_STATE_VAR_NAME;
     const stateObj = state ? `this.${state}` : `this`;
-
+    const stateProperties = statePropertyName.split('.');
     const _key = '_' + key;
 
     // property getter
-    const getMethodName = '_get' + statePropertyName.charAt(0).toUpperCase() + (statePropertyName.length > 1 ? statePropertyName.slice(1) : '') + '$';
+    const getMethodName = '_get' + stateProperties.map(capitalizeFirstLetter).join('') + '$';
 
-    const observableObj = statePropertyName === '$' ? `${stateObj}.$` : `${stateObj}.select('${statePropertyName.split('.').join("', '")}')`;
+    const observableObj = statePropertyName === '$' ? `${stateObj}.$` : `${stateObj}.select('${stateProperties.join("', '")}')`;
     const getter = new Function(
       `return function ${getMethodName}(){\n if (!this.${_key}) this.${_key} = ${observableObj};\n  return this.${_key};\n}`
     )();

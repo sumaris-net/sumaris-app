@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, inject, Input, OnInit, ViewChild } from '@angular/core';
 import {
   AppAsyncTable,
   changeCaseToUnderscore,
@@ -54,6 +54,7 @@ export interface BaseTableConfig<
   i18nColumnPrefix?: string;
   initialState?: Partial<ST>;
 }
+
 export type AppBaseTableFilterRestoreSource = 'settings' | 'queryParams';
 
 @Directive()
@@ -72,11 +73,10 @@ export abstract class AppBaseAsyncTable<
   private _canEdit: boolean;
 
   protected memoryDataService: InMemoryEntitiesService<T, F, ID>;
-  protected translateContext: TranslateContextService;
-  protected cd: ChangeDetectorRef;
-  protected readonly hotkeys: Hotkeys;
+  protected readonly translateContext = inject(TranslateContextService);
+  protected readonly hotkeys = inject(Hotkeys);
+  protected readonly popoverController = inject(PopoverController);
   protected logPrefix: string = null;
-  protected popoverController: PopoverController;
   protected defaultCompact: boolean = false;
 
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
@@ -129,7 +129,6 @@ export abstract class AppBaseAsyncTable<
   }
 
   protected constructor(
-    protected injector: Injector,
     protected dataType: new () => T,
     protected filterType: new () => F,
     columnNames: string[],
@@ -138,7 +137,6 @@ export abstract class AppBaseAsyncTable<
     protected options?: O
   ) {
     super(
-      injector,
       RESERVED_START_COLUMNS.concat(columnNames).concat(RESERVED_END_COLUMNS),
       new EntitiesAsyncTableDataSource<T, F, ID>(dataType, _dataService, validatorService, {
         prependNewElements: false,
@@ -151,11 +149,7 @@ export abstract class AppBaseAsyncTable<
     );
 
     this.mobile = this.settings.mobile;
-    this.hotkeys = injector.get(Hotkeys);
-    this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
-    this.translateContext = injector.get(TranslateContextService);
-    this.cd = injector.get(ChangeDetectorRef);
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
     this.memoryDataService = this._dataService instanceof InMemoryEntitiesService ? (this._dataService as InMemoryEntitiesService<T, F, ID>) : null;
@@ -705,10 +699,6 @@ export abstract class AppBaseAsyncTable<
     if (d1) return this.asEntity(d1).equals(d2);
     if (d2) return this.asEntity(d2).equals(d1);
     return false;
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected getI18nColumnName(columnName: string): string {

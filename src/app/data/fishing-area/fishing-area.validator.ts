@@ -1,17 +1,8 @@
 import { Injectable } from '@angular/core';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '../services/validator/data-entity.validator';
 import { FishingArea } from './fishing-area.model';
-import {
-  AbstractControlOptions,
-  UntypedFormBuilder,
-  UntypedFormControl,
-  UntypedFormGroup,
-  ValidationErrors,
-  ValidatorFn,
-  Validators,
-} from '@angular/forms';
-import { LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
-import { TranslateService } from '@ngx-translate/core';
+import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 
 export interface FishingAreaValidatorOptions extends DataEntityValidatorOptions {
   required?: boolean;
@@ -22,12 +13,8 @@ export class FishingAreaValidatorService<O extends FishingAreaValidatorOptions =
   FishingArea,
   FishingAreaValidatorOptions
 > {
-  constructor(
-    protected formBuilder: UntypedFormBuilder,
-    protected translate: TranslateService,
-    protected settings: LocalSettingsService
-  ) {
-    super(formBuilder, translate, settings);
+  constructor() {
+    super();
   }
 
   getFormGroupConfig(data?: FishingArea, opts?: FishingAreaValidatorOptions): { [p: string]: any } {

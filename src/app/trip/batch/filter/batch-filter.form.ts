@@ -1,16 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnInit,
-  Output,
-  QueryList,
-  ViewChildren,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AppForm, firstArrayValue } from '@sumaris-net/ngx-components';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
@@ -41,13 +29,8 @@ export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, Aft
 
   @ViewChildren('navBar') navBars: QueryList<MatTabNav>;
 
-  constructor(
-    injector: Injector,
-    protected formBuilder: UntypedFormBuilder,
-    protected cd: ChangeDetectorRef
-  ) {
+  constructor(protected formBuilder: UntypedFormBuilder) {
     super(
-      injector,
       formBuilder.group({
         measurementValues: formBuilder.group({}),
       })
@@ -117,9 +100,5 @@ export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, Aft
 
   realignInkBar() {
     this.navBars.forEach((tab) => tab._alignInkBarToSelectedTab());
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

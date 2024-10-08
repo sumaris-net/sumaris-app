@@ -1,10 +1,8 @@
-import { Injectable, Optional } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, Validators } from '@angular/forms';
+import { Injectable } from '@angular/core';
+import { AbstractControlOptions, Validators } from '@angular/forms';
 import { SharedValidators } from '@sumaris-net/ngx-components';
 import { Sample } from './sample.model';
 import { SampleValidatorOptions, SampleValidatorService } from '@app/trip/sample/sample.validator';
-import { TranslateService } from '@ngx-translate/core';
-import { ImageAttachmentValidator } from '@app/data/image/image-attachment.validator';
 
 export interface SubSampleValidatorOptions extends SampleValidatorOptions {
   withParent?: boolean;
@@ -13,12 +11,8 @@ export interface SubSampleValidatorOptions extends SampleValidatorOptions {
 
 @Injectable({ providedIn: 'root' })
 export class SubSampleValidatorService extends SampleValidatorService<SubSampleValidatorOptions> {
-  constructor(
-    protected formBuilder: UntypedFormBuilder,
-    protected translate: TranslateService,
-    @Optional() protected imageAttachmentValidator?: ImageAttachmentValidator
-  ) {
-    super(formBuilder, translate, imageAttachmentValidator);
+  constructor() {
+    super();
   }
 
   getFormGroupConfig(data?: any, opts?: SubSampleValidatorOptions): { [p: string]: any } {

@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
@@ -15,7 +14,6 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  LocalSettingsService,
   toBoolean,
   waitFor,
   WaitForOptions,
@@ -101,19 +99,14 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   @ViewChild('tabPanel') tabPanel: HTMLFormElement;
 
   constructor(
-    injector: Injector,
     protected formBuilder: UntypedFormBuilder,
     protected route: ActivatedRoute,
     protected router: Router,
-    protected translate: TranslateService,
     protected service: ExtractionService,
     protected accountService: AccountService,
-    protected settings: LocalSettingsService,
-    protected validatorService: ExtractionCriteriaValidatorService,
-    protected cd: ChangeDetectorRef
+    protected validatorService: ExtractionCriteriaValidatorService
   ) {
     super(
-      injector,
       // Empty form, that will be filled by setType() and setSheetName()
       formBuilder.group({})
     );
@@ -479,9 +472,5 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       subject.unsubscribe();
     });
     this.$columnValueDefinitionsByIndex = {};
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   AppErrorWithDetails,
   AppFormUtils,
@@ -19,7 +19,6 @@ import {
   UsageMode,
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
-import { AlertController, NavController } from '@ionic/angular';
 import { BehaviorSubject, combineLatest, defer, Observable, of } from 'rxjs';
 import { UntypedFormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
@@ -28,8 +27,6 @@ import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { BatchGroupsTable } from '../group/batch-groups.table';
 import { SubBatchesTable, SubBatchFilter } from '../sub/sub-batches.table';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { SubBatch, SubBatchUtils } from '../sub/sub-batch.model';
@@ -326,17 +323,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @ViewChild('subBatchesTable', { static: false }) subBatchesTable: SubBatchesTable;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected navController: NavController,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
     protected programRefService: ProgramRefService,
     protected settings: LocalSettingsService,
-    protected context: ContextService<BatchContext>,
-    protected cd: ChangeDetectorRef
+    protected context: ContextService<BatchContext>
   ) {
-    super(route, router, navController, alertCtrl, translate, {
+    super({
       tabCount: settings.mobile ? 1 : 2,
     });
 

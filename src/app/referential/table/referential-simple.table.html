@@ -163,13 +163,13 @@
         <mat-form-field floatLabel="never">
           <ion-icon
             matPrefix
-            *ngIf="row.validator.controls.statusId.value &gt;=0"
+            *ngIf="row.validator.controls.statusId.value >= 0"
             [name]="statusById[row.validator.controls.statusId.value]?.icon"
           ></ion-icon>
 
           <mat-select [formControl]="row.validator.controls.statusId" [placeholder]="'REFERENTIAL.STATUS' | translate">
             <mat-select-trigger>
-              <span *ngIf="row.validator.controls.statusId.value &gt;=0">
+              <span *ngIf="row.validator.controls.statusId.value >= 0">
                 {{ statusById[row.validator.controls.statusId.value]?.label | translate }}
               </span>
             </mat-select-trigger>
@@ -258,7 +258,7 @@
   } @else if (totalRowCount === 0) {
     <ion-item>
       <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
-      <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
+      <!--      <ng-container *ngTemplateOutlet="addRowButton"></ng-container>-->
     </ion-item>
   }
 </div>

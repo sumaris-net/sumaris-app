@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ReferentialForm } from '../form/referential.form';
 import {
   AccountService,
@@ -8,7 +8,6 @@ import {
   EntityServiceLoadOptions,
   isEmptyArray,
   isNotNil,
-  LocalSettingsService,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
@@ -131,16 +130,13 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
   }
 
   constructor(
-    injector: Injector,
     protected formBuilder: UntypedFormBuilder,
-    protected settings: LocalSettingsService,
     protected validatorService: StrategyValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
-    protected accountService: AccountService,
-    protected cd: ChangeDetectorRef
+    protected accountService: AccountService
   ) {
-    super(injector, Strategy, null, {
+    super(Strategy, null, {
       pathIdAttribute: null, // Do not load from route
       autoLoad: false,
     });
@@ -516,9 +512,5 @@ export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, O
 
   closeFloatingPanel() {
     this.sidenav.close();
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

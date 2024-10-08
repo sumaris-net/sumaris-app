@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { InMemoryEntitiesService, PersonService, PersonUtils, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
 import { ReferentialFilter } from '@app/referential/services/filter/referential.filter';
@@ -40,14 +40,12 @@ export class PersonPrivilegesTable extends AppBaseTable<ProgramPerson, ProgramPe
   }
 
   constructor(
-    injector: Injector,
     memoryDataService: InMemoryEntitiesService<ProgramPerson, ProgramPersonFilter>,
     validatorService: ValidatorService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService
   ) {
     super(
-      injector,
       ProgramPerson,
       ProgramPersonFilter,
       ['person', 'department', 'privilege', 'location', 'referencePerson'],

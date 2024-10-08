@@ -2,14 +2,13 @@ import { Injectable } from '@angular/core';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { PacketComposition, PacketIndexes } from './packet.model';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { UntypedFormBuilder, Validators } from '@angular/forms';
-import { LocalSettingsService, SharedValidators } from '@sumaris-net/ngx-components';
-import { TranslateService } from '@ngx-translate/core';
+import { Validators } from '@angular/forms';
+import { SharedValidators } from '@sumaris-net/ngx-components';
 
 @Injectable({ providedIn: 'root' })
 export class PacketCompositionValidatorService extends DataEntityValidatorService<PacketComposition> implements ValidatorService {
-  constructor(formBuilder: UntypedFormBuilder, translate: TranslateService, settings: LocalSettingsService) {
-    super(formBuilder, translate, settings);
+  constructor() {
+    super();
   }
 
   getFormGroupConfig(data?: PacketComposition, opts?: DataEntityValidatorOptions): { [p: string]: any } {

@@ -962,8 +962,4 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.measurementsForm.value = trip.measurements;
     this.form.patchValue(trip);
   }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
 }

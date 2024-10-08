@@ -16,7 +16,7 @@ import {
   waitForFalse,
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
-import { Directive, inject, Injector, Optional } from '@angular/core';
+import { Directive, inject, Optional } from '@angular/core';
 import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { SortDirection } from '@angular/material/sort';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -61,7 +61,7 @@ export class MeasurementsTableEntitiesService<
 {
   private _delegate: S;
   protected _logPrefix = '[measurement-table-service] ';
-  protected programRefService = inject(ProgramRefService);
+  protected readonly programRefService = inject(ProgramRefService);
 
   @RxStateRegister() protected readonly _state: RxState<ST> = new RxState<ST>();
 
@@ -105,7 +105,6 @@ export class MeasurementsTableEntitiesService<
   }
 
   constructor(
-    injector: Injector,
     protected dataType: new () => T,
     delegate?: S,
     @Optional()
@@ -113,7 +112,6 @@ export class MeasurementsTableEntitiesService<
   ) {
     super(null);
     this._delegate = delegate;
-    this.programRefService = injector.get(ProgramRefService);
 
     // Init state defaults
     const requiredGear = options?.requiredGear === true;

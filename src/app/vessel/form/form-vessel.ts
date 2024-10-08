@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, HostListener, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Directive, HostListener, Input, OnInit } from '@angular/core';
 import { VesselValidatorOptions, VesselValidatorService } from '../services/validator/vessel.validator';
 import { Vessel } from '../services/model/vessel.model';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -7,7 +7,6 @@ import {
   AppForm,
   AppFormUtils,
   isNil,
-  LocalSettingsService,
   MatAutocompleteFieldConfig,
   ReferentialRef,
   StatusById,
@@ -138,15 +137,12 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   }
 
   constructor(
-    injector: Injector,
     protected vesselValidatorService: VesselValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef,
-    protected settings: LocalSettingsService,
     private accountService: AccountService
   ) {
-    super(injector, vesselValidatorService.getFormGroup());
-    this.mobile = settings.mobile;
+    super(vesselValidatorService.getFormGroup());
+    this.mobile = this.settings.mobile;
     this.canEditStatus = this.accountService.isAdmin();
   }
 
@@ -241,9 +237,5 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
       this.form.updateValueAndValidity();
       this.markForCheck();
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

@@ -1,4 +1,4 @@
-import { Directive, Injector } from '@angular/core';
+import { Directive, inject } from '@angular/core';
 import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
@@ -46,25 +46,16 @@ export abstract class AppReferentialEditor<
   readonly withLevels: boolean;
   readonly $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
 
-  protected accountService: AccountService;
-  protected referentialService: ReferentialService;
-  protected referentialRefService: ReferentialRefService;
+  protected readonly accountService = inject(AccountService);
+  protected readonly referentialService = inject(ReferentialService);
+  protected readonly referentialRefService = inject(ReferentialRefService);
   protected _logPrefix: string;
 
-  constructor(
-    protected injector: Injector,
-    dataType: new () => T,
-    dataService: S,
-    form: UntypedFormGroup,
-    opts: AppReferentialEditorOptions
-  ) {
-    super(injector, dataType, dataService, {
+  constructor(dataType: new () => T, dataService: S, form: UntypedFormGroup, opts: AppReferentialEditorOptions) {
+    super(dataType, dataService, {
       i18nPrefix: opts?.i18nPrefix || `REFERENTIAL.${changeCaseToUnderscore(opts.entityName).toUpperCase()}.`,
       ...opts,
     });
-    this.accountService = injector.get(AccountService);
-    this.referentialService = injector.get(ReferentialService);
-    this.referentialRefService = injector.get(ReferentialRefService);
 
     this.mobile = this.settings.mobile;
     this.entityName = opts.entityName;
@@ -204,9 +195,5 @@ export abstract class AppReferentialEditor<
       levels.sort(EntityUtils.sortComparator('label', 'asc'));
     }
     this.$levels.next(levels);
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

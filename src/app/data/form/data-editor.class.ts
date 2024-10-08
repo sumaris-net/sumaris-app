@@ -119,16 +119,11 @@ export abstract class AppDataEntityEditor<
   @RxStateProperty() pmfms: Partial<IPmfm[]>;
 
   protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppDataEditorOptions) {
-    super(injector, dataType, dataService, {
+    super(dataType, dataService, {
       autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
       ...options,
     });
 
-    this.programRefService = injector.get(ProgramRefService);
-    this.strategyRefService = injector.get(StrategyRefService);
-    this.messageService = injector.get(MessageService);
-    this.personService = injector.get(PersonService);
-    this.configService = injector.get(ConfigService);
     this.mobile = this.settings.mobile;
     this.acquisitionLevel = options?.acquisitionLevel;
     this.settingsId = options?.settingsId || this.acquisitionLevel || `${this.constructor.name}`;

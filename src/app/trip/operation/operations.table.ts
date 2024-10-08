@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from './operation.validator';
 import { OperationService, OperationServiceWatchOptions } from './operation.service';
@@ -133,14 +133,12 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter, Op
   @Output('duplicateRow') onDuplicateRow = new EventEmitter<{ data: Operation }>();
 
   constructor(
-    injector: Injector,
     settings: LocalSettingsService,
     _dataService: OperationService,
     protected accountService: AccountService,
     protected formBuilder: UntypedFormBuilder
   ) {
     super(
-      injector,
       Operation,
       OperationFilter,
       settings.mobile
@@ -406,9 +404,5 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter, Op
     };
 
     this.markForCheck();
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

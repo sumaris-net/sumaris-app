@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 import { EntityServiceLoadOptions, isNotNil, joinPropertiesPath, MatAutocompleteFieldConfig } from '@sumaris-net/ngx-components';
 import { TaxonName } from '../services/model/taxon-name.model';
@@ -22,12 +22,8 @@ export class TaxonNamePage extends AppReferentialEditor<TaxonName, TaxonNameServ
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('wlcTable', { static: true }) wlcTable: WeightLengthConversionTable;
 
-  constructor(
-    protected injector: Injector,
-    dataService: TaxonNameService,
-    validatorService: TaxonNameValidatorService
-  ) {
-    super(injector, TaxonName, dataService, validatorService.getFormGroup(), {
+  constructor(dataService: TaxonNameService, validatorService: TaxonNameValidatorService) {
+    super(TaxonName, dataService, validatorService.getFormGroup(), {
       entityName: TaxonName.ENTITY_NAME,
       tabCount: 2,
     });

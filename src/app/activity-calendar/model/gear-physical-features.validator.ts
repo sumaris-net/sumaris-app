@@ -1,17 +1,8 @@
-import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import {
-  isNotEmptyArray,
-  isNotNil,
-  LocalSettingsService,
-  SharedFormGroupValidators,
-  SharedValidators,
-  toBoolean,
-  toNumber,
-} from '@sumaris-net/ngx-components';
+import { inject, Injectable } from '@angular/core';
+import { AbstractControlOptions, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { isNotEmptyArray, isNotNil, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
-import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
@@ -37,13 +28,10 @@ export class GearPhysicalFeaturesValidatorService<O extends GearPhysicalFeatures
   extends DataEntityValidatorService<GearPhysicalFeatures, O>
   implements ValidatorService
 {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: GearPhysicalFeatures, opts?: O): UntypedFormGroup {

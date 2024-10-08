@@ -1,4 +1,4 @@
-import { Directive, EventEmitter, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { Directive, EventEmitter, inject, Input, OnInit, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
@@ -34,10 +34,8 @@ import {
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { map } from 'rxjs/operators';
 import { ExtractionCriteriaForm } from '../criteria/extraction-criteria.form';
-import { TranslateService } from '@ngx-translate/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { ExtractionService } from './extraction.service';
-import { AlertController, ModalController, NavController, ToastController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { ExtractionUtils } from './extraction.utils';
 import { ExtractionHelpModal, ExtractionHelpModalOptions } from '../help/help.modal';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
@@ -63,15 +61,14 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   protected readonly type$ = this._state.select('type');
   protected readonly types$ = this._state.select('types');
 
-  protected location: Location;
-  protected toastController: ToastController;
-  protected translateContext: TranslateContextService;
-  protected accountService: AccountService;
-  protected service: ExtractionService;
-  protected settings: LocalSettingsService;
-  protected formBuilder: UntypedFormBuilder;
-  protected platform: PlatformService;
-  protected modalCtrl: ModalController;
+  protected readonly location = inject(Location);
+  protected readonly translateContext = inject(TranslateContextService);
+  protected readonly accountService = inject(AccountService);
+  protected readonly service = inject(ExtractionService);
+  protected readonly settings = inject(LocalSettingsService);
+  protected readonly formBuilder = inject(UntypedFormBuilder);
+  protected readonly platform = inject(PlatformService);
+  protected readonly modalCtrl = inject(ModalController);
 
   form: UntypedFormGroup;
   mobile: boolean;
@@ -122,26 +119,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
   @ViewChild('criteriaForm', { static: true }) criteriaForm: ExtractionCriteriaForm;
 
-  protected constructor(
-    protected injector: Injector,
-    protected _state: RxState<S>
-  ) {
-    super(
-      injector.get(ActivatedRoute),
-      injector.get(Router),
-      injector.get(NavController),
-      injector.get(AlertController),
-      injector.get(TranslateService)
-    );
-    this.location = injector.get(Location);
-    this.toastController = injector.get(ToastController);
-    this.translateContext = injector.get(TranslateContextService);
-    this.accountService = injector.get(AccountService);
-    this.service = injector.get(ExtractionService);
-    this.settings = injector.get(LocalSettingsService);
-    this.formBuilder = injector.get(UntypedFormBuilder);
-    this.platform = injector.get(PlatformService);
-    this.modalCtrl = injector.get(ModalController);
+  protected constructor(protected _state: RxState<S>) {
+    super();
     this.mobile = this.settings.mobile;
     // Create the filter form
     this.form = this.formBuilder.group({

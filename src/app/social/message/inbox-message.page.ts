@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
-import { AppEntityEditor, HistoryPageReference, LocalSettingsService, slideUpDownAnimation } from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
+import { AppEntityEditor, HistoryPageReference, slideUpDownAnimation } from '@sumaris-net/ngx-components';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -21,13 +21,12 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
   readonly mobile: boolean;
 
   constructor(
-    injector: Injector,
+    protected userEventService: UserEventService,
     protected inboxMessageService: InboxMessageService,
-    protected settings: LocalSettingsService,
     protected modalCtrl: ModalController,
     protected formBuilder: UntypedFormBuilder
   ) {
-    super(injector, UserEvent, injector.get(UserEventService), {
+    super(UserEvent, userEventService, {
       pathIdAttribute: 'messageId',
       tabCount: 1,
     });

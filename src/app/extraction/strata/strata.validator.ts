@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 import { AppValidatorService } from '@sumaris-net/ngx-components';
 import { ExtractionProduct } from '../product/product.model';
 import { AggregationStrata } from '@app/extraction/strata/strata.model';
 
 @Injectable({ providedIn: 'root' })
 export class AggregationStrataValidatorService extends AppValidatorService<ExtractionProduct> {
-  constructor(protected formBuilder: UntypedFormBuilder) {
-    super(formBuilder);
+  constructor() {
+    super();
   }
 
   getFormGroup(data?): UntypedFormGroup {

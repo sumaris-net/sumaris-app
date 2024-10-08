@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ExtractionColumn, ExtractionFilterCriterion } from '../type/extraction-type.model';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ReferentialForm } from '@app/referential/form/referential.form';
 import { BehaviorSubject } from 'rxjs';
-import { AppForm, AppFormArray, arraySize, isNotNilOrBlank, LocalSettingsService, splitById, StatusIds } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormArray, arraySize, isNotNilOrBlank, splitById, StatusIds } from '@sumaris-net/ngx-components';
 import { debounceTime } from 'rxjs/operators';
 import { ExtractionUtils } from '../common/extraction.utils';
 import { ExtractionCriteriaForm } from '@app/extraction/criteria/extraction-criteria.form';
@@ -94,14 +94,11 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
   }
 
   constructor(
-    injector: Injector,
     protected formBuilder: UntypedFormBuilder,
-    protected settings: LocalSettingsService,
     protected validatorService: ExtractionProductValidatorService,
-    protected service: ProductService,
-    protected cd: ChangeDetectorRef
+    protected service: ProductService
   ) {
-    super(injector, validatorService.getFormGroup());
+    super(validatorService.getFormGroup());
 
     // Stratum
     this.stratumFormArray = this.form.controls.stratum as AppFormArray<AggregationStrata, UntypedFormGroup>;
@@ -263,11 +260,5 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit, O
 
   removeStrata(index: number) {
     this.stratumFormArray.removeAt(index);
-  }
-
-  /* -- protected -- */
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

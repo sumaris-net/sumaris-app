@@ -1,17 +1,5 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  Injector,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-  ViewEncapsulation,
-} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import moment from 'moment';
 import * as L from 'leaflet';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
@@ -395,15 +383,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   }
 
   constructor(
-    injector: Injector,
     state: RxState<ExtractionMapState>,
     protected productService: ProductService,
     protected durationPipe: DurationPipe,
     protected strataValidatorService: AggregationStrataValidatorService,
-    protected configService: ConfigService,
-    protected cd: ChangeDetectorRef
+    protected configService: ConfigService
   ) {
-    super(injector, state);
+    super(state);
 
     // Add controls to form
     this.form.addControl('strata', this.strataValidatorService.getFormGroup());
@@ -1641,10 +1627,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
   protected isEquals(t1: ExtractionProduct, t2: ExtractionProduct): boolean {
     return ExtractionProduct.equals(t1, t2);
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected getStrataValue(): IAggregationStrata {

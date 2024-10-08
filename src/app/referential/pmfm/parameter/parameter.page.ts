@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import { ReferentialForm } from '../../form/referential.form';
@@ -43,13 +43,12 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
   @ViewChild('qualitativeValuesTable', { static: true }) qualitativeValuesTable: SimpleReferentialTable;
 
   constructor(
-    protected injector: Injector,
     protected accountService: AccountService,
     protected validatorService: ParameterValidatorService,
     protected parameterService: ParameterService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector, Parameter, parameterService, {
+    super(Parameter, parameterService, {
       tabCount: 1,
     });
     this.form = validatorService.getFormGroup();
@@ -170,8 +169,4 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
   }
 
   referentialToString = referentialToString;
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
 }

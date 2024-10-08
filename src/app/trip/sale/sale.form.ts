@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { SaleValidatorOptions, SaleValidatorService } from './sale.validator';
 import { Moment } from 'moment';
 import {
@@ -109,14 +109,12 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   @ViewChild('locationField', { static: false }) locationField: MatAutocompleteField;
 
   constructor(
-    injector: Injector,
     protected validatorService: SaleValidatorService,
     protected programRefService: ProgramRefService,
     protected vesselSnapshotService: VesselSnapshotService,
-    protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef
+    protected referentialRefService: ReferentialRefService
   ) {
-    super(injector, validatorService.getFormGroup(null, { required: false }));
+    super(validatorService.getFormGroup(null, { required: false }));
   }
 
   ngOnInit() {
@@ -192,10 +190,6 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
       this.form.updateValueAndValidity();
       this.markForCheck();
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   referentialToString = referentialToString;

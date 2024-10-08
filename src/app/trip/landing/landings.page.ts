@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
@@ -214,7 +214,6 @@ export class LandingsPage
   }
 
   constructor(
-    injector: Injector,
     dataService: LandingService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
@@ -227,7 +226,7 @@ export class LandingsPage
     protected pmfmNamePipe: PmfmNamePipe,
     protected context: ContextService
   ) {
-    super(injector, Landing, LandingFilter, [...LANDING_PAGE_RESERVED_START_COLUMNS, ...LANDING_RESERVED_END_COLUMNS], dataService, null, {
+    super(Landing, LandingFilter, [...LANDING_PAGE_RESERVED_START_COLUMNS, ...LANDING_RESERVED_END_COLUMNS], dataService, null, {
       reservedStartColumns: LANDING_PAGE_RESERVED_START_COLUMNS,
       reservedEndColumns: LANDING_PAGE_RESERVED_END_COLUMNS,
       i18nColumnPrefix: LANDING_TABLE_DEFAULT_I18N_PREFIX,
@@ -833,10 +832,6 @@ export class LandingsPage
     }
 
     return program;
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected resetContext() {

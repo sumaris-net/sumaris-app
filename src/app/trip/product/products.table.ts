@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   filterNotNil,
   InMemoryEntitiesService,
@@ -93,12 +93,11 @@ export class ProductsTable
   }
 
   constructor(
-    injector: Injector,
     settings: LocalSettingsService,
     dataService: InMemoryEntitiesService<Product, ProductFilter>,
     validatorService: ProductValidatorService
   ) {
-    super(injector, Product, ProductFilter, dataService, validatorService, {
+    super(Product, ProductFilter, dataService, validatorService, {
       suppressErrors: true,
       reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
       reservedEndColumns: settings.mobile ? [] : PRODUCT_RESERVED_END_COLUMNS,

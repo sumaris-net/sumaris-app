@@ -1,14 +1,10 @@
-import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit } from '@angular/core';
-import { UntypedFormBuilder } from '@angular/forms';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
+import { ChangeDetectionStrategy, Component, forwardRef, Input, OnInit } from '@angular/core';
 import { BatchValidatorService } from '../common/batch.validator';
 import { isNotEmptyArray } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, MatrixIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { BatchForm, BatchFormState } from '@app/trip/batch/common/batch.form';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -55,15 +51,8 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState> implem
     return this._state.get('otherPmfms');
   }
 
-  constructor(
-    injector: Injector,
-    measurementsValidatorService: MeasurementsValidatorService,
-    formBuilder: UntypedFormBuilder,
-    programRefService: ProgramRefService,
-    referentialRefService: ReferentialRefService,
-    validatorService: BatchValidatorService
-  ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, referentialRefService, validatorService);
+  constructor(validatorService: BatchValidatorService) {
+    super(validatorService);
     // Set defaults
     this.acquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';

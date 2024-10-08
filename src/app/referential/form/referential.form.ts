@@ -1,5 +1,5 @@
 import { ReferentialValidatorService } from '../services/validator/referential.validator';
-import { booleanAttribute, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Optional } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, Input, OnInit, Optional } from '@angular/core';
 import { AppForm, BaseReferential, IStatus, Referential, splitById, StatusList } from '@sumaris-net/ngx-components';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { FormGroupDirective } from '@angular/forms';
@@ -17,7 +17,6 @@ import { FormGroupDirective } from '@angular/forms';
 })
 export class ReferentialForm<T extends BaseReferential<any> = Referential> extends AppForm<T> implements OnInit {
   statusById: { [id: number]: IStatus };
-  protected cd: ChangeDetectorRef;
   private _statusList = StatusList;
 
   @Input({ transform: booleanAttribute }) showError = true;
@@ -41,12 +40,10 @@ export class ReferentialForm<T extends BaseReferential<any> = Referential> exten
   }
 
   constructor(
-    injector: Injector,
     @Optional() protected validatorService: ValidatorService,
     @Optional() protected formGroupDir: FormGroupDirective
   ) {
-    super(injector, formGroupDir?.form || validatorService?.getRowValidator());
-    this.cd = injector.get(ChangeDetectorRef);
+    super(formGroupDir?.form || validatorService?.getRowValidator());
   }
 
   ngOnInit() {
@@ -68,9 +65,5 @@ export class ReferentialForm<T extends BaseReferential<any> = Referential> exten
     if (entityNameControl && this.entityName && entityNameControl.value !== this.entityName) {
       entityNameControl.setValue(this.entityName, opts);
     }
-  }
-
-  protected markForCheck() {
-    this.cd?.markForCheck();
   }
 }

@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  Injector,
   Input,
   numberAttribute,
   OnInit,
@@ -13,8 +12,6 @@ import {
 import { PhysicalGearValidatorService } from './physicalgear.validator';
 import { filter, mergeMap } from 'rxjs/operators';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { UntypedFormBuilder } from '@angular/forms';
 import {
   focusNextInput,
   getFocusableInputElements,
@@ -31,7 +28,6 @@ import {
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
@@ -69,15 +65,11 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
   @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
 
   constructor(
-    injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
     protected validatorService: PhysicalGearValidatorService,
     protected operationService: OperationService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
+    super(validatorService.getFormGroup());
     this._enable = true;
 
     // Set defaults

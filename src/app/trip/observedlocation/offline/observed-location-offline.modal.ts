@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
 import {
   AppForm,
@@ -82,18 +81,14 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
   @RxStateProperty() program: Program;
 
   constructor(
-    injector: Injector,
     protected viewCtrl: ModalController,
-    protected translate: TranslateService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
     protected referentialRefService: ReferentialRefService,
-    protected vesselSnapshotService: VesselSnapshotService,
-    protected cd: ChangeDetectorRef
+    protected vesselSnapshotService: VesselSnapshotService
   ) {
     super(
-      injector,
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         strategy: [null, Validators.required],
@@ -107,7 +102,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     this.mobile = this.settings.mobile;
 
     // Prepare start date items
-    const datePattern = translate.instant('COMMON.DATE_PATTERN');
+    const datePattern = this.translate.instant('COMMON.DATE_PATTERN');
     this.periodDurationLabels = DATA_IMPORT_PERIODS.map((v) => {
       const date = DateUtils.moment()
         .utc(false)
@@ -406,9 +401,5 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     const fetchPolicy = this.networkService.online ? 'network-only' : undefined; /*default*/
 
     return this.referentialRefService.suggest(value, filter, 'label', 'asc', { fetchPolicy });
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

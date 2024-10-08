@@ -852,10 +852,6 @@ export class ActivityCalendarPage
     return -1;
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
   protected async loadPredoc(entity: ActivityCalendar) {
     // DEBUG
     const now = Date.now();

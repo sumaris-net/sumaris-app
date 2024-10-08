@@ -1,7 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { UntypedFormBuilder } from '@angular/forms';
 import {
   AppFormUtils,
   EntityUtils,
@@ -9,7 +7,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   joinPropertiesPath,
-  LocalSettingsService,
   startsWithUpperCase,
   toNumber,
   UsageMode,
@@ -17,7 +14,6 @@ import {
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { Sample } from './sample.model';
 import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SubSampleValidatorService } from '@app/trip/sample/sub-sample.validator';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
@@ -67,16 +63,8 @@ export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnIn
     return this._availableParents;
   }
 
-  constructor(
-    protected injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
-    protected cd: ChangeDetectorRef,
-    protected validatorService: SubSampleValidatorService,
-    protected settings: LocalSettingsService
-  ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
+  constructor(protected validatorService: SubSampleValidatorService) {
+    super(validatorService.getFormGroup(), {
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
 
@@ -213,10 +201,6 @@ export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnIn
     }
     // Search on rankOrder
     return this._availableSortedParents.filter((p) => p.rankOrder.toString().startsWith(value));
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   isNotHiddenPmfm = PmfmUtils.isNotHidden;

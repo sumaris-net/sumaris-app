@@ -1,11 +1,10 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import {
   AbstractControl,
   AbstractControlOptions,
   AsyncValidatorFn,
   UntypedFormArray,
-  UntypedFormBuilder,
   UntypedFormGroup,
   ValidationErrors,
   ValidatorFn,
@@ -20,7 +19,6 @@ import {
   fromDateISOString,
   isNil,
   isNotNil,
-  LocalSettingsService,
   SharedFormArrayValidators,
   SharedFormGroupValidators,
   SharedValidators,
@@ -42,7 +40,6 @@ import { PositionUtils } from '@app/data/position/position.utils';
 import { BBox } from 'geojson';
 import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
 import { Geometries } from '@app/shared/geometries.utils';
-import { TranslateService } from '@ngx-translate/core';
 import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
@@ -82,15 +79,12 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
   static readonly DEFAULT_MAX_TOTAL_DURATION_HOURS = 100 * 24; // 100 days
   static readonly DEFAULT_MAX_SHOOTING_DURATION_HOURS = 12; // 12 hours
 
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    private positionValidator: PositionValidatorService,
-    private fishingAreaValidator: FishingAreaValidatorService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  private readonly positionValidator = inject(PositionValidatorService);
+  private readonly fishingAreaValidator = inject(FishingAreaValidatorService);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: Operation, opts?: O): UntypedFormGroup {

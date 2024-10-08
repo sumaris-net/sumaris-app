@@ -1,15 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  inject,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
 import { combineLatestWith, merge, mergeMap, Observable, switchMap, tap } from 'rxjs';
 import { distinctUntilChanged, filter, map, takeUntil } from 'rxjs/operators';
@@ -53,7 +42,6 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   protected keepRankOrder = false;
   protected skipDisabledPmfmControl = true;
   protected skipComputedPmfmControl = true;
-  protected cd: ChangeDetectorRef = null;
 
   @RxStateSelect() initialPmfms$: Observable<IPmfm[]>;
   @RxStateSelect() filteredPmfms$: Observable<IPmfm[]>;
@@ -88,6 +76,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   @Input() set pmfms(pmfms: IPmfm[]) {
     this.initialPmfms = pmfms;
   }
+
   get pmfms(): IPmfm[] {
     return this.filteredPmfms;
   }
@@ -100,6 +89,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   set value(value: Measurement[]) {
     this.applyValue(value);
   }
+
   get value(): Measurement[] {
     return this.getValue();
   }
@@ -115,14 +105,11 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     return this.getFormError(this.form);
   }
 
-  constructor(
-    injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService
-  ) {
-    super(injector, measurementValidatorService.getFormGroup([]));
-    this.cd = injector.get(ChangeDetectorRef);
+  protected readonly formBuilder = inject(UntypedFormBuilder);
+  protected readonly programRefService = inject(ProgramRefService);
+
+  constructor(protected measurementValidatorService: MeasurementsValidatorService) {
+    super(measurementValidatorService.getFormGroup([]));
 
     const readySteps$ = this._state.select('readyStep');
     this._state.connect(
@@ -525,9 +512,5 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     } else {
       this.disable(opts);
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

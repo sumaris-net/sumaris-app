@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AppForm,
   AppFormUtils,
@@ -13,7 +13,6 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils } from './packet.model';
 import { PacketValidatorService } from './packet.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -84,13 +83,11 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   }
 
   constructor(
-    injector: Injector,
     protected validatorService: PacketValidatorService,
     protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
-    protected cd: ChangeDetectorRef
+    protected programRefService: ProgramRefService
   ) {
-    super(injector, validatorService.getFormGroup(undefined, { withComposition: true }));
+    super(validatorService.getFormGroup(undefined, { withComposition: true }));
   }
 
   ngOnInit() {
@@ -281,10 +278,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
         this.markForCheck();
       }, 500);
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   selectInputContent = AppFormUtils.selectInputContent;

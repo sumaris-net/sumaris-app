@@ -12,6 +12,10 @@ interface TypedExpenseValidatorOptions extends MeasurementsValidatorOptions {
 
 @Injectable({ providedIn: 'root' })
 export class TypedExpenseValidatorService extends MeasurementsValidatorService<Measurement, TypedExpenseValidatorOptions> {
+  constructor() {
+    super();
+  }
+
   getFormGroupConfig(data: Measurement[], opts?: TypedExpenseValidatorOptions): { [p: string]: any } {
     return Object.assign(super.getFormGroupConfig(data, opts), {
       amount: [null, Validators.compose([SharedValidators.decimal({ maxDecimals: 2 }), Validators.min(0)])],

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Product } from '../product/product.model';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, isNotNil, UsageMode } from '@sumaris-net/ngx-components';
@@ -7,6 +7,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { Subscription } from 'rxjs';
 import { SaleProduct, SaleProductUtils } from './sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 @Component({
@@ -46,13 +47,11 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   @Input() productSalePmfms: DenormalizedPmfmStrategy[];
 
   constructor(
-    injector: Injector,
     protected validatorService: ProductValidatorService,
-    protected cd: ChangeDetectorRef,
     protected formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(injector, validatorService.getFormGroup(undefined, { withSaleProducts: true }));
+    super(validatorService.getFormGroup(undefined, { withSaleProducts: true }));
   }
 
   ngOnInit() {
@@ -218,9 +217,5 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
         this.markForCheck();
       }, 500);
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

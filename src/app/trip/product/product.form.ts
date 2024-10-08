@@ -1,9 +1,6 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { IReferentialRef, isNotNil, LoadResult } from '@sumaris-net/ngx-components';
-import { UntypedFormBuilder } from '@angular/forms';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 import { IWithProductsEntity, Product } from '@app/trip/product/product.model';
@@ -26,18 +23,8 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
   @Input() parents: IWithProductsEntity<any>[];
   @Input() parentAttributes: string[];
 
-  constructor(
-    injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
-    protected validatorService: ProductValidatorService
-  ) {
+  constructor(protected validatorService: ProductValidatorService) {
     super(
-      injector,
-      measurementsValidatorService,
-      formBuilder,
-      programRefService,
       validatorService.getFormGroup(null, {
         withMeasurements: false,
       })
@@ -79,9 +66,5 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
       program: this.programLabel,
       searchAttribute: options && options.searchAttribute,
     });
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
@@ -45,7 +45,6 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
   }
 
   constructor(
-    protected injector: Injector,
     protected formBuilder: UntypedFormBuilder,
     protected accountService: AccountService,
     protected samplingStrategyService: SamplingStrategyService,
@@ -53,7 +52,7 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     protected pmfmService: PmfmService,
     protected platform: PlatformService
   ) {
-    super(injector, SamplingStrategy, samplingStrategyService, {
+    super(SamplingStrategy, samplingStrategyService, {
       pathIdAttribute: 'strategyId',
       tabCount: 1,
       enableListenChanges: true,

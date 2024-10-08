@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Directive, EventEmitter, inject, Injector, Input, OnDestroy, OnInit, Optional, Output } from '@angular/core';
+import { Directive, EventEmitter, inject, Input, OnDestroy, OnInit, Optional, Output } from '@angular/core';
 import { combineLatestWith, merge, mergeMap, Observable } from 'rxjs';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from './measurement.validator';
@@ -50,13 +50,16 @@ export abstract class MeasurementValuesForm<
   @RxStateRegister() protected readonly _state: RxState<S> = inject(RxState, { self: true });
   protected readonly _pmfmNamePipe = inject(PmfmNamePipe);
   protected readonly translateContext = inject(TranslateContextService);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+  protected readonly formBuilder = inject(UntypedFormBuilder);
+  protected readonly programRefService = inject(ProgramRefService);
+
   protected _logPrefix: string;
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected data: T;
   protected applyingValue = false;
   protected _measurementValuesForm: UntypedFormGroup;
   protected options: IMeasurementsFormOptions;
-  protected cd: ChangeDetectorRef = null;
 
   @RxStateSelect() acquisitionLevel$: Observable<AcquisitionLevelType>;
   @RxStateSelect() programLabel$: Observable<string>;
@@ -87,6 +90,7 @@ export abstract class MeasurementValuesForm<
   @Input() set pmfms(pmfms: IPmfm[]) {
     this.initialPmfms = pmfms;
   }
+
   get pmfms(): IPmfm[] {
     return this.filteredPmfms;
   }
@@ -99,6 +103,7 @@ export abstract class MeasurementValuesForm<
   set value(value: T) {
     this.applyValue(value);
   }
+
   get value(): T {
     return this.getValue();
   }
@@ -114,22 +119,15 @@ export abstract class MeasurementValuesForm<
   get programControl(): AbstractControl {
     return this.form.get('program');
   }
+
   get measurementValuesForm(): UntypedFormGroup {
     return this._measurementValuesForm || (this.form.controls.measurementValues as UntypedFormGroup);
   }
 
   @Output() valueChanges = new EventEmitter<any>();
 
-  protected constructor(
-    injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
-    @Optional() form?: UntypedFormGroup,
-    @Optional() options?: O
-  ) {
-    super(injector, form);
-    this.cd = injector.get(ChangeDetectorRef);
+  protected constructor(@Optional() form?: UntypedFormGroup, @Optional() options?: O) {
+    super(form);
     this.options = {
       skipComputedPmfmControl: true,
       skipDisabledPmfmControl: true,
@@ -629,9 +627,5 @@ export abstract class MeasurementValuesForm<
     // Adapt entity measurement values to reactive form
     const pmfms = this.pmfms || [];
     MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, this.form);
-  }
-
-  protected markForCheck() {
-    this.cd?.markForCheck();
   }
 }

@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import {
   AppFormUtils,
   FormArrayHelper,
@@ -19,7 +18,6 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { SampleValidatorService } from './sample.validator';
 import { Sample } from './sample.model';
 import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SubSampleValidatorService } from '@app/trip/sample/sub-sample.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
@@ -53,14 +51,10 @@ export class SampleForm extends MeasurementValuesForm<Sample> implements OnInit,
   @Input() pmfmValueColor: PmfmValueColorFn;
 
   constructor(
-    injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
     protected validatorService: SampleValidatorService,
     protected subValidatorService: SubSampleValidatorService
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
+    super(validatorService.getFormGroup(), {
       skipDisabledPmfmControl: false,
       skipComputedPmfmControl: false,
       onUpdateFormGroup: (form) => this.onUpdateFormGroup(form),
@@ -165,10 +159,6 @@ export class SampleForm extends MeasurementValuesForm<Sample> implements OnInit,
       searchAttribute: options && options.searchAttribute,
       taxonGroupId: (taxonGroup && taxonGroup.id) || undefined,
     });
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected getChildrenFormHelper(form: UntypedFormGroup): FormArrayHelper<Sample> {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { VesselValidatorService } from '../services/validator/vessel.validator';
 import { VesselService } from '../services/vessel-service';
@@ -90,7 +90,6 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
   }
 
   constructor(
-    injector: Injector,
     formBuilder: UntypedFormBuilder,
     settings: LocalSettingsService,
     accountService: AccountService,
@@ -98,7 +97,6 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     protected referentialRefService: ReferentialRefService
   ) {
     super(
-      injector,
       Vessel,
       VesselFilter,
       // columns
@@ -276,9 +274,5 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       (this.disableStatusFilter && (isNotNil(filter.statusId) || isNotEmptyArray(filter.statusIds)) ? 1 : 0) -
       (!this.showVesselTypeFilter && ReferentialUtils.isNotEmpty(filter.vesselType) ? 1 : 0)
     );
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

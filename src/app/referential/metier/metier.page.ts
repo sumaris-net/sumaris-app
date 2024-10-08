@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { Referential, StatusIds } from '@sumaris-net/ngx-components';
 import { AppReferentialEditor } from '@app/referential/form/referential-editor.class';
 import { ReferentialForm } from '@app/referential/form/referential.form';
@@ -17,8 +17,8 @@ import { GearLevelIds, TaxonGroupTypeIds } from '@app/referential/services/model
 export class MetierPage extends AppReferentialEditor<Metier, MetierService> {
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
 
-  constructor(injector: Injector, dataService: MetierService, validatorService: MetierValidatorService) {
-    super(injector, Metier, dataService, validatorService.getFormGroup(), {
+  constructor(dataService: MetierService, validatorService: MetierValidatorService) {
+    super(Metier, dataService, validatorService.getFormGroup(), {
       entityName: Metier.ENTITY_NAME,
       uniqueLabel: true,
       withLevels: false,

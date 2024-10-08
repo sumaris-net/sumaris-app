@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FishingArea } from './fishing-area.model';
 import { AbstractControl, UntypedFormBuilder } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -52,15 +52,13 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
   }
 
   constructor(
-    injector: Injector,
     protected formBuilder: UntypedFormBuilder,
     protected validatorService: FishingAreaValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
-    public network: NetworkService,
-    protected cd: ChangeDetectorRef
+    public network: NetworkService
   ) {
-    super(injector, validatorService.getFormGroup());
+    super(validatorService.getFormGroup());
     this.mobile = this.settings.mobile;
   }
 
@@ -115,9 +113,5 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
       'rankOrder',
       'asc'
     );
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

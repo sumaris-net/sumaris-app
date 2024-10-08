@@ -711,10 +711,6 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
     return `${parentUrl}/trip/${id}`;
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
   protected async askSaveConfirmation(event: PromiseEvent<boolean>) {
     try {
       const saved =

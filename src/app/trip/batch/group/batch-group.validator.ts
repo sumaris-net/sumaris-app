@@ -1,14 +1,12 @@
 import { Injectable } from '@angular/core';
-import { FormArray, FormGroup, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { FormArray, FormGroup, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { BatchValidatorOptions, BatchValidators, BatchValidatorService } from '../common/batch.validator';
 import { BatchGroup } from './batch-group.model';
-import { isNotEmptyArray, isNotNil, LocalSettingsService, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { isNotEmptyArray, isNotNil, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Subscription } from 'rxjs';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { debounceTime } from 'rxjs/operators';
-import { TranslateService } from '@ngx-translate/core';
 
 export interface BatchGroupValidatorOptions extends BatchValidatorOptions<BatchGroupValidatorOptions> {
   root?: boolean;
@@ -19,13 +17,8 @@ export interface BatchGroupValidatorOptions extends BatchValidatorOptions<BatchG
 
 @Injectable({ providedIn: 'root' })
 export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup, BatchGroupValidatorOptions> {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings, measurementsValidatorService);
+  constructor() {
+    super();
   }
 
   getFormGroupConfig(data?: BatchGroup, opts?: BatchGroupValidatorOptions): { [key: string]: any } {
@@ -145,6 +138,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
 
     return opts;
   }
+
   /*
   protected fillDefaultOptions(opts?: BatchGroupValidatorOptions): BatchGroupValidatorOptions {
     return super.fillDefaultOptions(opts);

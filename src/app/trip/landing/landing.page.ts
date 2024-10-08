@@ -59,6 +59,7 @@ import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution, DataStrategyResolutions
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { IPmfmForm } from '@app/trip/operation/operation.validator';
 
 export class LandingEditorOptions extends RootDataEditorOptions {}
 

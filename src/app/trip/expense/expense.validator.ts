@@ -1,14 +1,12 @@
 import { MeasurementsValidatorOptions, MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { Measurement } from '@app/data/measurement/measurement.model';
-import { LocalSettingsService } from '@sumaris-net/ngx-components';
-import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({ providedIn: 'root' })
 export class ExpenseValidatorService extends MeasurementsValidatorService {
-  constructor(formBuilder: UntypedFormBuilder, translate: TranslateService, settings: LocalSettingsService) {
-    super(formBuilder, translate, settings);
+  constructor() {
+    super();
   }
 
   getFormGroupConfig(data: Measurement[], opts?: MeasurementsValidatorOptions): { [p: string]: any } {

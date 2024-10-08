@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Moment } from 'moment';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } from '../observed-location.validator';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { FormGroup, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { FormGroup, UntypedFormControl } from '@angular/forms';
 import {
   AppFormArray,
   DateUtils,
@@ -28,7 +27,6 @@ import {
 import { ObservedLocation } from '../observed-location.model';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DateFilterFn } from '@angular/material/datepicker';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
@@ -115,15 +113,11 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Output() startDateTimeChanges = new EventEmitter<Moment>();
 
   constructor(
-    injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
     protected validatorService: ObservedLocationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
+    super(validatorService.getFormGroup(), {
       onUpdateFormGroup: (form) => this.updateFormGroup(),
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
@@ -397,9 +391,5 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     }
 
     return pmfms;
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

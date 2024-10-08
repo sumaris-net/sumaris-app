@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { AccountService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { VesselOwnerPeriodFilter } from '../services/filter/vessel.filter';
@@ -47,12 +47,10 @@ export class VesselOwnerHistoryComponent extends AppBaseTable<VesselOwnerPeriod,
   }
 
   constructor(
-    injector: Injector,
     protected accountService: AccountService,
     dataService: VesselOwnerPeridodService
   ) {
     super(
-      injector,
       VesselOwnerPeriod,
       VesselOwnerPeriodFilter,
       // columns
@@ -71,13 +69,5 @@ export class VesselOwnerHistoryComponent extends AppBaseTable<VesselOwnerPeriod,
     this.debug = !environment.production;
     this.showRetirementDateColumn = false;
     this.title = 'VESSEL.HISTORY.OWNER';
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

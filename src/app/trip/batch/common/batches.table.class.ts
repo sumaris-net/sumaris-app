@@ -1,4 +1,4 @@
-import { Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Directive, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import {
   firstArrayValue,
@@ -61,7 +61,7 @@ export abstract class AbstractBatchesTable<
   implements OnInit, OnDestroy
 {
   protected _initialPmfms: IPmfm[];
-  protected referentialRefService: ReferentialRefService;
+  protected readonly referentialRefService = inject(ReferentialRefService);
 
   defaultWeightPmfm: IPmfm;
   weightPmfms: IPmfm[];
@@ -101,8 +101,8 @@ export abstract class AbstractBatchesTable<
   @Input() availableTaxonGroups: TaxonGroupRef[];
   @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
 
-  protected constructor(injector: Injector, dataType: new () => T, filterType: new () => F, dataService: S, validatorService: V, options?: O) {
-    super(injector, dataType, filterType, dataService, validatorService, <O>{
+  protected constructor(dataType: new () => T, filterType: new () => F, dataService: S, validatorService: V, options?: O) {
+    super(dataType, filterType, dataService, validatorService, <O>{
       reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
       reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
       i18nColumnPrefix: 'TRIP.BATCH.TABLE.',
@@ -110,7 +110,6 @@ export abstract class AbstractBatchesTable<
       ...options,
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
-    this.referentialRefService = injector.get(ReferentialRefService);
     this.inlineEdition = this.validatorService && !this.mobile;
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
@@ -344,9 +343,5 @@ export abstract class AbstractBatchesTable<
     if (isNotNil(this.defaultTaxonGroup)) {
       data.taxonGroup = this.defaultTaxonGroup;
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

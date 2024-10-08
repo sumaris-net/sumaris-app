@@ -204,7 +204,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH,
       gearId: opts?.gearId,
     });
-    const validator = new BatchValidatorService(this.formBuilder, this.translate, this.settings, this.measurementsValidatorService);
+    const validator = new BatchValidatorService();
     const form = validator.getFormGroup(entity, { pmfms: catchPmfms, withChildren: false });
 
     if (!form.valid) {

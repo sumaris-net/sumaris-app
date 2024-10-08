@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Input, OnInit, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Batch } from '../common/batch.model';
 import {
@@ -182,7 +182,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @ViewChild('content') content: IonContent;
 
   constructor(
-    injector: Injector,
     settings: LocalSettingsService,
     validatorService: SubBatchValidatorService,
     protected viewCtrl: ModalController,
@@ -190,7 +189,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     protected platform: PlatformService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>
   ) {
-    super(injector, settings.mobile ? null : validatorService /*no validator = not editable*/, options);
+    super(settings.mobile ? null : validatorService /*no validator = not editable*/, options);
     this.inlineEdition = !this.mobile; // Disable row edition (no validator)
     this.confirmBeforeDelete = true; // Ask confirmation before delete
     this.allowRowDetail = false; // Disable click on a row

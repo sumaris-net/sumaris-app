@@ -321,7 +321,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     protected context: ContextService<BatchContext>
   ) {
     super(
-      injector,
       BatchGroup,
       BatchFilter,
       new InMemoryEntitiesService<BatchGroup, BatchFilter>(BatchGroup, BatchFilter, {

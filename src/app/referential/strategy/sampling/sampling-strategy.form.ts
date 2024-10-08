@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { AsyncValidatorFn, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   AppForm,
@@ -17,7 +17,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  LocalSettingsService,
   MatAutocompleteField,
   ObjectMap,
   ReferentialRef,
@@ -267,19 +266,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
   }
 
   constructor(
-    injector: Injector,
     protected validatorService: StrategyValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected pmfmService: PmfmService,
     protected strategyService: StrategyService,
-    protected settings: LocalSettingsService,
     protected taxonNameService: TaxonNameService,
     protected taxonNameRefService: TaxonNameRefService,
     protected pmfmStrategyValidator: PmfmStrategyValidatorService,
-    protected cd: ChangeDetectorRef,
     protected formBuilder: UntypedFormBuilder
   ) {
-    super(injector, validatorService.getFormGroup());
+    super(validatorService.getFormGroup());
     this.mobile = this.settings.mobile;
     this.debug = !environment.production;
 
@@ -1516,10 +1512,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   addPmfmFraction() {
     this.fractionPmfmsHelper.add();
-  }
-
-  protected markForCheck() {
-    if (this.cd) this.cd.markForCheck();
   }
 
   // Get the year

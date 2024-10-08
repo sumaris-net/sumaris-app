@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { Program } from '../services/model/program.model';
@@ -118,7 +118,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
 
   constructor(
-    protected injector: Injector,
     protected programService: ProgramService,
     protected formBuilder: UntypedFormBuilder,
     protected accountService: AccountService,
@@ -128,13 +127,13 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     protected configService: ConfigService,
     protected _state: RxState<ProgramPageState>
   ) {
-    super(injector, Program, programService, {
+    super(Program, programService, {
       pathIdAttribute: 'programId',
       autoOpenNextTab: false,
       tabCount: 5,
     });
     this.form = validatorService.getFormGroup();
-    this.propertiesFileService = new PropertiesFileService(this.injector);
+    this.propertiesFileService = new PropertiesFileService();
 
     // default values
     this.mobile = this.settings.mobile;
@@ -577,10 +576,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     } finally {
       this.markAsLoaded();
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   referentialToString = referentialToString;

@@ -1,15 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Inject,
-  Input,
-  OnDestroy,
-  OnInit,
-  Optional,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActionSheetButton, ActionSheetController, AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { RxState } from '@rx-angular/state';
@@ -21,7 +10,6 @@ import {
   Alerts,
   APP_JOB_PROGRESSION_SERVICE,
   EntityUtils,
-  IJobProgressionService,
   isEmptyArray,
   isNotEmptyArray,
   isNotNil,
@@ -34,15 +22,17 @@ import {
   PersonService,
   StatusIds,
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, merge, Subscription } from 'rxjs';
+import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatExpansionPanel } from '@angular/material/expansion';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 
 interface IJobType {
   label: string;
   name: string;
 }
+
 interface JobListState {
   jobs: Job[];
   progressions: JobProgression[];
@@ -61,8 +51,15 @@ interface JobListState {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class JobListComponent implements OnInit, OnDestroy {
-  jobs$ = this.state.select('jobs');
-  jobsCount$ = this.state.select('jobs', 'length');
+  @RxStateSelect() jobs$: Observable<Job[]>;
+  @RxStateSelect('jobs.length') jobsCount$: Observable<number>;
+
+  @Input() @RxStateProperty() jobs: Job[];
+  @Input() @RxStateProperty() jobsCount: number;
+  @Input() @RxStateProperty() availableTypes: IJobType[];
+  @Input() @RxStateProperty() issuer: string;
+  @Input() @RxStateProperty() status: JobStatusLabel[];
+  @Input() @RxStateProperty() types: JobTypeLabel[];
 
   _subscription = new Subscription();
   jobSubscriptions: { [key: number]: Subscription } = {};
@@ -77,61 +74,31 @@ export class JobListComponent implements OnInit, OnDestroy {
   @Input() canAdd = false;
   @Input() filterPanelFloating = true;
 
-  @Input() set jobs(jobs: Job[]) {
-    this.state.set('jobs', () => jobs);
-  }
-  get jobs(): Job[] {
-    return this.state.get('jobs');
-  }
-  @Input() set availableTypes(types: IJobType[]) {
-    this.state.set('availableTypes', () => types);
-  }
-  get availableTypes(): IJobType[] {
-    return this.state.get('availableTypes');
-  }
-  @Input() set issuer(issuer: string) {
-    this.state.set('issuer', () => issuer);
-  }
-  get issuer(): string {
-    return this.state.get('issuer');
-  }
-  @Input() set status(status: JobStatusLabel[]) {
-    this.state.set('status', () => status);
-  }
-  get status(): JobStatusLabel[] {
-    return this.state.get('status');
-  }
-  @Input() set types(types: JobTypeLabel[]) {
-    this.state.set('types', () => types);
-  }
-  get types(): JobTypeLabel[] {
-    return this.state.get('types');
-  }
   get total(): number {
     return this.jobs?.length || 0;
   }
 
   @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
 
-  constructor(
-    private translate: TranslateService,
-    private alertCtrl: AlertController,
-    private actionSheetCtrl: ActionSheetController,
-    private jobService: JobService,
-    private accountService: AccountService,
-    private settings: LocalSettingsService,
-    private personService: PersonService,
-    private cd: ChangeDetectorRef,
-    private state: RxState<JobListState>,
-    formBuilder: UntypedFormBuilder,
-    @Optional() @Inject(APP_JOB_PROGRESSION_SERVICE) protected jobProgressionService: IJobProgressionService
-  ) {
-    this.state.set({
+  private readonly translate = inject(TranslateService);
+  private readonly alertCtrl = inject(AlertController);
+  private readonly actionSheetCtrl = inject(ActionSheetController);
+  private readonly jobService = inject(JobService);
+  private readonly accountService = inject(AccountService);
+  private readonly settings = inject(LocalSettingsService);
+  private readonly personService = inject(PersonService);
+  private readonly cd = inject(ChangeDetectorRef);
+  private readonly formBuilder = inject(UntypedFormBuilder);
+  private readonly jobProgressionService = inject(APP_JOB_PROGRESSION_SERVICE, { optional: true });
+  @RxStateRegister() protected readonly _state: RxState<JobListState> = inject(RxState, { self: true });
+
+  constructor() {
+    this._state.set({
       types: null, // All
       issuer: null, // All
       status: null, // All
     });
-    this.filterForm = formBuilder.group({
+    this.filterForm = this.formBuilder.group({
       status: [null],
       types: [null],
       issuer: [null],
@@ -143,10 +110,10 @@ export class JobListComponent implements OnInit, OnDestroy {
     );
     this.autocompleteFields = this.autocompleteHelper.fields;
 
-    this.state.connect(
+    this._state.connect(
       'jobs',
       merge(
-        this.state.select(['issuer', 'status', 'types'], (res) => res),
+        this._state.select(['issuer', 'status', 'types'], (res) => res),
         this.onRefresh.pipe(map((_) => ({ issuer: this.issuer, status: this.status, types: this.types })))
       ).pipe(
         switchMap(({ issuer, status, types }) => {
@@ -214,7 +181,7 @@ export class JobListComponent implements OnInit, OnDestroy {
       )
     );
 
-    this.state.connect(
+    this._state.connect(
       'availableTypes',
       this.jobService.watchTypes().pipe(
         map((availableTypes) => {
@@ -252,7 +219,7 @@ export class JobListComponent implements OnInit, OnDestroy {
     // Type combo
     this.registerAutocompleteField('types', {
       attributes: ['label', 'name'],
-      items: this.state.select('availableTypes'),
+      items: this._state.select('availableTypes'),
       showAllOnFocus: true,
       displayWith: (obj) => obj?.label || '',
     });

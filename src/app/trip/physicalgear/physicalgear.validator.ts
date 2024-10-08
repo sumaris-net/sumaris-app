@@ -1,10 +1,9 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { AppFormArray, isNil, LocalSettingsService, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, UntypedFormGroup, Validators } from '@angular/forms';
+import { AppFormArray, isNil, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
-import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { Program } from '@app/referential/services/model/program.model';
@@ -29,13 +28,10 @@ export class PhysicalGearValidatorService
   extends DataRootEntityValidatorService<PhysicalGear, PhysicalGearValidatorOptions>
   implements ValidatorService
 {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    settings?: LocalSettingsService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: PhysicalGear, opts?: PhysicalGearValidatorOptions): UntypedFormGroup {

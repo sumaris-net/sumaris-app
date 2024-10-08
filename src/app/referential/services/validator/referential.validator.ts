@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { AppValidatorService, BaseReferential, Referential, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, UntypedFormGroup, Validators } from '@angular/forms';
+import { AppValidatorService, BaseReferential, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 
 @Injectable({ providedIn: 'root' })
 export class ReferentialValidatorService<T extends BaseReferential<T> = BaseReferential<any>> extends AppValidatorService<T> {
-  constructor(protected formBuilder: UntypedFormBuilder) {
-    super(formBuilder);
+  constructor() {
+    super();
   }
 
   getRowValidator(): UntypedFormGroup {

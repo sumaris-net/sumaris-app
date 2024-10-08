@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { OperationGroupValidatorService } from './operation-group.validator';
@@ -60,13 +60,12 @@ export class OperationGroupTable
   }
 
   constructor(
-    injector: Injector,
     settings: LocalSettingsService,
     dataService: InMemoryEntitiesService<OperationGroup, OperationGroupFilter>,
     validatorService: OperationGroupValidatorService,
     protected metierService: MetierService
   ) {
-    super(injector, OperationGroup, OperationGroupFilter, dataService, validatorService, {
+    super(OperationGroup, OperationGroupFilter, dataService, validatorService, {
       reservedStartColumns: settings.mobile
         ? OPERATION_GROUP_RESERVED_START_COLUMNS
         : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),

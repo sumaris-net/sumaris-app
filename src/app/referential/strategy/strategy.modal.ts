@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { AppForm, DateUtils, fromDateISOString, isNotNilOrBlank } from '@sumaris-net/ngx-components';
@@ -14,13 +14,10 @@ export class StrategyModal extends AppForm<{ year: Moment }> implements OnInit {
   @Input() year: number;
 
   constructor(
-    injector: Injector,
     protected formBuilder: UntypedFormBuilder,
-    protected viewCtrl: ModalController,
-    protected cd: ChangeDetectorRef
+    protected viewCtrl: ModalController
   ) {
     super(
-      injector,
       formBuilder.group({
         year: [null, Validators.required],
       })
@@ -54,9 +51,5 @@ export class StrategyModal extends AppForm<{ year: Moment }> implements OnInit {
       .toString();
 
     await this.viewCtrl.dismiss(+year);
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

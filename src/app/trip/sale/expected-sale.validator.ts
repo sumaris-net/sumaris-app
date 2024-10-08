@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { LocalSettingsService, SharedValidators } from '@sumaris-net/ngx-components';
+import { FormGroup } from '@angular/forms';
+import { SharedValidators } from '@sumaris-net/ngx-components';
 import { ExpectedSale } from '@app/trip/sale/expected-sale.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({ providedIn: 'root' })
 export class ExpectedSaleValidatorService extends DataEntityValidatorService<ExpectedSale> {
-  constructor(formBuilder: FormBuilder, translate: TranslateService, settings: LocalSettingsService) {
-    super(formBuilder, translate, settings);
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: ExpectedSale, opts?: DataEntityValidatorOptions): FormGroup {

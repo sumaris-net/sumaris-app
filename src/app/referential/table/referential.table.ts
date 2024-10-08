@@ -205,7 +205,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
   }
 
   constructor(
-    injector: Injector,
+    protected injector: Injector,
     protected accountService: AccountService,
     protected referentialService: ReferentialService<T>,
     protected referentialRefService: ReferentialRefService,
@@ -215,7 +215,6 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     @Optional() @Inject(DATA_SERVICE) entityService?: IEntitiesService<T, F>
   ) {
     super(
-      injector,
       dataType,
       filterType,
       // columns

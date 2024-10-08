@@ -1,16 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  inject,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Optional,
-  Output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Optional, Output } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { OperationValidatorOptions, OperationValidatorService } from './operation.validator';
 import moment, { Moment } from 'moment';
@@ -349,7 +337,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   @Output() openParentOperation = new EventEmitter<Operation>();
 
   constructor(
-    injector: Injector,
     protected router: Router,
     protected dateFormat: DateFormatService,
     protected validatorService: OperationValidatorService,
@@ -361,10 +348,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     protected physicalGearService: PhysicalGearService,
     protected pmfmService: PmfmService,
     protected formBuilder: UntypedFormBuilder,
-    protected cd: ChangeDetectorRef,
     @Optional() protected geolocation: Geolocation
   ) {
-    super(injector, validatorService.getFormGroup());
+    super(validatorService.getFormGroup());
     this.mobile = this.settings.mobile;
     this.i18nFieldPrefix = 'TRIP.OPERATION.EDIT.';
 
@@ -1292,10 +1278,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     return Toasts.show(this.toastController, this.translate, opts);
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected markAsBusy() {

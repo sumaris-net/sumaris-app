@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
 import {
@@ -70,6 +70,7 @@ export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
 export const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
 export const LANDING_I18N_PMFM_PREFIX = 'LANDING.PMFM.';
+
 export interface LandingsTableState extends BaseMeasurementsTableState {
   availableTaxonGroups: TaxonGroupRef[];
 }
@@ -97,8 +98,8 @@ export class LandingsTable
   @RxStateSelect() protected readonly observedCount$: Observable<number>;
 
   protected _detailEditor: LandingEditor;
-  protected vesselSnapshotService: VesselSnapshotService;
-  protected referentialRefService: ReferentialRefService;
+  protected readonly vesselSnapshotService = inject(VesselSnapshotService);
+  protected readonly referentialRefService = inject(ReferentialRefService);
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
 
@@ -187,6 +188,7 @@ export class LandingsTable
   set showIdColumn(value: boolean) {
     this.setShowColumn('id', value);
   }
+
   get showIdColumn(): boolean {
     return this.getShowColumn('id');
   }
@@ -276,11 +278,12 @@ export class LandingsTable
   }
 
   constructor(
-    injector: Injector,
     protected accountService: AccountService,
-    protected context: ObservedLocationContextService
+    protected context: ObservedLocationContextService,
+    protected landingService: LandingService,
+    protected landingValidatorService: LandingValidatorService
   ) {
-    super(injector, Landing, LandingFilter, injector.get(LandingService), injector.get(AppValidatorService) as LandingValidatorService, {
+    super(Landing, LandingFilter, landingService, landingValidatorService, {
       reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
       reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
@@ -306,9 +309,6 @@ export class LandingsTable
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
     this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
-
-    this.vesselSnapshotService = injector.get(VesselSnapshotService);
-    this.referentialRefService = injector.get(ReferentialRefService);
 
     this.defaultPageSize = -1; // Do not use paginator
     this.defaultSortBy = 'id';
@@ -385,7 +385,7 @@ export class LandingsTable
 
     // Load taxon groups (if need)
     const hasTaxonGroupId = pmfms.some((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
-    let availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
+    const availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
 
     // Reset divider (will be set below)
     this.dividerPmfm = null;
@@ -890,10 +890,6 @@ export class LandingsTable
     }, []);
 
     return { data: entities, total: res.total };
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected async loadAvailableTaxonGroups() {

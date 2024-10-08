@@ -857,8 +857,4 @@ export class ObservedLocationPage
         await this.landingsTable.addOrUpdateEntityToTable(updatedLanding, { editing: false });
       });
   }*/
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
 }

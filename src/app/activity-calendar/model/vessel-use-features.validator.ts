@@ -1,10 +1,9 @@
-import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { LocalSettingsService, toNumber } from '@sumaris-net/ngx-components';
+import { inject, Injectable } from '@angular/core';
+import { UntypedFormGroup } from '@angular/forms';
+import { toNumber } from '@sumaris-net/ngx-components';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { VesselUseFeatures } from './vessel-use-features.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
-import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { ValidatorService } from '@e-is/ngx-material-table';
@@ -28,13 +27,10 @@ export class VesselUseFeaturesValidatorService<O extends VesselUseFeaturesValida
   extends DataEntityValidatorService<VesselUseFeatures, O>
   implements ValidatorService
 {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: VesselUseFeatures, opts?: O): UntypedFormGroup {

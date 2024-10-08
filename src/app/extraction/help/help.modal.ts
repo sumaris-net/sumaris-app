@@ -1,11 +1,6 @@
-import { ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
-import { PlatformService } from '@sumaris-net/ngx-components';
-import { LocalSettingsService } from '@sumaris-net/ngx-components';
-import { TranslateService } from '@ngx-translate/core';
+import { Component, Input, OnInit } from '@angular/core';
+import { AppHelpModal, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 import { ExtractionType } from '../type/extraction-type.model';
-import { isNotNilOrBlank } from '@sumaris-net/ngx-components';
-import { AppHelpModal } from '@sumaris-net/ngx-components';
 
 export interface ExtractionHelpModalOptions {
   type: ExtractionType;
@@ -18,15 +13,8 @@ export interface ExtractionHelpModalOptions {
 export class ExtractionHelpModal extends AppHelpModal implements OnInit, ExtractionHelpModalOptions {
   @Input() type: ExtractionType;
 
-  constructor(
-    protected injector: Injector,
-    protected viewCtrl: ModalController,
-    protected platform: PlatformService,
-    protected settings: LocalSettingsService,
-    protected translate: TranslateService,
-    protected cd: ChangeDetectorRef
-  ) {
-    super(injector, viewCtrl, platform, settings, translate, cd);
+  constructor() {
+    super();
   }
 
   ngOnInit() {

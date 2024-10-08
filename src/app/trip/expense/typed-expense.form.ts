@@ -1,6 +1,5 @@
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
-import { UntypedFormBuilder } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import {
   filterNotNil,
   firstTruePromise,
@@ -15,7 +14,6 @@ import { TypedExpenseValidatorService } from './typed-expense.validator';
 import { BehaviorSubject } from 'rxjs';
 import { Measurement } from '@app/data/measurement/measurement.model';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
 
@@ -44,13 +42,8 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
     return (totalPmfm && this.form.get(totalPmfm.id.toString()).value) || 0;
   }
 
-  constructor(
-    injector: Injector,
-    protected validatorService: TypedExpenseValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService
-  ) {
-    super(injector, validatorService, formBuilder, programRefService);
+  constructor(protected validatorService: TypedExpenseValidatorService) {
+    super(validatorService);
     this.mobile = this.settings.mobile;
     this.keepRankOrder = true;
   }
@@ -173,10 +166,5 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
 
   isTotalPmfm(pmfm: IPmfm): boolean {
     return pmfm.label.endsWith('COST');
-  }
-
-  protected markForCheck() {
-    if (this.cd) this.cd.markForCheck();
-    else console.warn('[typed-expense-form] ChangeDetectorRef is undefined');
   }
 }

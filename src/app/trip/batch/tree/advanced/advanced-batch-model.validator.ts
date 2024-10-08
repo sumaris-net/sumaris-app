@@ -1,17 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { UntypedFormBuilder } from '@angular/forms';
-import {
-  isNil,
-  isNotEmptyArray,
-  LocalSettingsService,
-  removeDuplicatesFromArray,
-  TranslateContextService,
-  TreeItemEntityUtils,
-} from '@sumaris-net/ngx-components';
+import { isNil, isNotEmptyArray, removeDuplicatesFromArray, TranslateContextService, TreeItemEntityUtils } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
-import { TranslateService } from '@ngx-translate/core';
 import { BatchModel, BatchModelFilter, BatchModelUtils } from '@app/trip/batch/tree/batch-tree.model';
 import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { Rule } from '@app/referential/services/model/rule.model';
@@ -27,13 +17,8 @@ export class AdvancedBatchModelValidatorService<
 > extends BatchModelValidatorService<T, O, AO, FO> {
   protected translateContext = inject(TranslateContextService);
 
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings, measurementsValidatorService);
+  constructor() {
+    super();
   }
 
   async createModel(

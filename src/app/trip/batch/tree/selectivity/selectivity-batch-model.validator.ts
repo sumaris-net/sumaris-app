@@ -1,10 +1,7 @@
 import { inject, Injectable } from '@angular/core';
-import { UntypedFormBuilder } from '@angular/forms';
-import { isEmptyArray, isNil, isNotNil, LocalSettingsService, ReferentialRef, TreeItemEntityUtils } from '@sumaris-net/ngx-components';
+import { isEmptyArray, isNil, isNotNil, ReferentialRef, TreeItemEntityUtils } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
-import { TranslateService } from '@ngx-translate/core';
 import { BatchModel, BatchModelFilter, BatchModelUtils } from '@app/trip/batch/tree/batch-tree.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
@@ -21,13 +18,8 @@ export class SelectivityBatchModelValidatorService<
 > extends BatchModelValidatorService<T, O, AO, FO> {
   private physicalGearService = inject(PhysicalGearService);
 
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings, measurementsValidatorService);
+  constructor() {
+    super();
   }
 
   async createModel(

@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit } from '@angular/core';
 import { Moment } from 'moment';
-import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
+import { UntypedFormArray } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
 import { FormArrayHelper, isNotNilOrBlank, NetworkService, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
@@ -8,9 +8,7 @@ import { AggregatedLandingService } from './aggregated-landing.service';
 import { VesselActivity } from './aggregated-landing.model';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { VesselActivityValidatorService } from './vessel-activity.validator';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
 import { RxState } from '@rx-angular/state';
@@ -42,17 +40,13 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
   enableMetierFilter = false;
 
   constructor(
-    injector: Injector,
-    protected formBuilder: UntypedFormBuilder,
     protected dataService: AggregatedLandingService,
-    protected programRefService: ProgramRefService,
     protected validatorService: VesselActivityValidatorService,
-    protected measurementsValidatorService: MeasurementsValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
     public network: NetworkService
   ) {
-    super(injector, measurementsValidatorService, formBuilder, programRefService, null, {
+    super(null, {
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
     this._enable = true;

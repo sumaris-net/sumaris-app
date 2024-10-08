@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { ActivityCalendarValidatorOptions, ActivityCalendarValidatorService } from '../model/activity-calendar.validator';
 import { IMeasurementsFormOptions, MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { AbstractControl, FormGroup, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { AbstractControl, FormGroup, UntypedFormControl } from '@angular/forms';
 import {
   AppFormArray,
   DateUtils,
@@ -28,7 +27,6 @@ import {
 import { ActivityCalendar } from '../model/activity-calendar.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
 import { ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER } from '@app/activity-calendar/activity-calendar.config';
@@ -91,9 +89,11 @@ export class ActivityCalendarForm
   get yearControl(): AbstractControl {
     return this.form.get('year');
   }
+
   get directSurveyInvestigationControl(): AbstractControl {
     return this.form.get('directSurveyInvestigation');
   }
+
   get economicSurveyControl(): AbstractControl {
     return this.form.get('economicSurvey');
   }
@@ -105,10 +105,6 @@ export class ActivityCalendarForm
   @Output() yearChanges = new EventEmitter<number>();
 
   constructor(
-    injector: Injector,
-    measurementsValidatorService: MeasurementsValidatorService,
-    formBuilder: UntypedFormBuilder,
-    programRefService: ProgramRefService,
     protected validatorService: ActivityCalendarValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
@@ -116,20 +112,13 @@ export class ActivityCalendarForm
     protected network: NetworkService,
     protected modalCtrl: ModalController
   ) {
-    super(
-      injector,
-      measurementsValidatorService,
-      formBuilder,
-      programRefService,
-      validatorService.getFormGroup(null, { withGearUseFeatures: false, withVesselUseFeatures: false }),
-      {
-        onUpdateFormGroup: (form) => this.updateFormGroup(form),
-        initialState: {
-          acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
-          warnFutureYear: false,
-        },
-      }
-    );
+    super(validatorService.getFormGroup(null, { withGearUseFeatures: false, withVesselUseFeatures: false }), {
+      onUpdateFormGroup: (form) => this.updateFormGroup(form),
+      initialState: {
+        acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
+        warnFutureYear: false,
+      },
+    });
     this._enable = false;
 
     // FOR DEV ONLY ----
@@ -363,9 +352,5 @@ export class ActivityCalendarForm
     } else {
       console.debug('${this._logPrefix}No vessel added (user cancelled)');
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

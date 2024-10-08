@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AppValidatorService,
   DateUtils,
@@ -76,13 +76,11 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
   }
 
   constructor(
-    injector: Injector,
     validatorService: GearPhysicalFeaturesValidatorService,
     private referentialRefService: ReferentialRefService,
     protected context: ActivityCalendarContextService
   ) {
     super(
-      injector,
       GearPhysicalFeatures,
       GearPhysicalFeaturesFilter,
       new InMemoryEntitiesService<GearPhysicalFeatures, GearPhysicalFeaturesFilter>(GearPhysicalFeatures, GearPhysicalFeaturesFilter, {

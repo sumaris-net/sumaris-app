@@ -1,12 +1,13 @@
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormGroup } from '@angular/forms';
 import { isNotNil, LocalSettingsService, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { DataEntity } from '../model/data-entity.model';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
-import { TranslateService } from '@ngx-translate/core';
+import { inject } from '@angular/core';
 
 export declare type ControlUpdateOnType = 'change' | 'blur' | 'submit';
+
 export interface DataEntityValidatorOptions {
   isOnFieldMode?: boolean;
   updateOn?: ControlUpdateOnType;
@@ -17,12 +18,10 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>, O exte
   extends BaseValidatorService<T, number, O>
   implements ValidatorService
 {
-  protected constructor(
-    protected formBuilder: UntypedFormBuilder,
-    protected translate: TranslateService,
-    protected settings: LocalSettingsService
-  ) {
-    super(formBuilder, translate);
+  protected readonly settings = inject(LocalSettingsService);
+
+  protected constructor() {
+    super();
   }
 
   getFormGroup(data?: T, opts?: O): UntypedFormGroup {

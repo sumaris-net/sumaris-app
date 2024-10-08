@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AppValidatorService,
   DateUtils,
@@ -77,12 +77,10 @@ export class GearUseFeaturesTable extends BaseMeasurementsTable<GearUseFeatures,
   }
 
   constructor(
-    injector: Injector,
     validatorService: GearUseFeaturesValidatorService,
     private referentialRefService: ReferentialRefService
   ) {
     super(
-      injector,
       GearUseFeatures,
       GearUseFeaturesFilter,
       new InMemoryEntitiesService<GearUseFeatures, GearUseFeaturesFilter>(GearUseFeatures, GearUseFeaturesFilter, {

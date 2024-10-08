@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from './operation.validator';
 import { OperationService, OperationServiceWatchOptions } from './operation.service';
@@ -115,18 +115,15 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   }
 
   constructor(
-    injector: Injector,
     formBuilder: UntypedFormBuilder,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
     protected referentialRefService: ReferentialRefService,
     protected tripService: TripService,
     protected accountService: AccountService,
-    protected network: NetworkService,
-    protected cd: ChangeDetectorRef
+    protected network: NetworkService
   ) {
     super(
-      injector,
       RESERVED_START_COLUMNS.concat([
         'quality',
         'physicalGear',
@@ -350,9 +347,5 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     }, []);
 
     return data;
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

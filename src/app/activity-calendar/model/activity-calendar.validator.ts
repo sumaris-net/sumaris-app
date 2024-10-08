@@ -1,11 +1,10 @@
-import { Injectable } from '@angular/core';
-import { AbstractControlOptions, FormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { inject, Injectable } from '@angular/core';
+import { AbstractControlOptions, FormArray, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   AppFormArray,
   isEmptyArray,
   isNotEmptyArray,
   isNotNil,
-  LocalSettingsService,
   ReferentialUtils,
   SharedFormArrayValidators,
   SharedValidators,
@@ -16,7 +15,6 @@ import { MeasurementsValidatorService } from '@app/data/measurement/measurement.
 import { ActivityCalendar } from './activity-calendar.model';
 import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
 import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
-import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
@@ -50,17 +48,14 @@ export interface ActivityCalendarValidatorOptions extends DataRootEntityValidato
 export class ActivityCalendarValidatorService<
   O extends ActivityCalendarValidatorOptions = ActivityCalendarValidatorOptions,
 > extends DataRootVesselEntityValidatorService<ActivityCalendar, O> {
-  constructor(
-    formBuilder: UntypedFormBuilder,
-    translate: TranslateService,
-    settings: LocalSettingsService,
-    protected gearUseFeaturesValidatorService: GearUseFeaturesValidatorService,
-    protected activityMonthValidatorService: ActivityMonthValidatorService,
-    protected gearPhysicalFeaturesValidatorService: GearPhysicalFeaturesValidatorService,
-    protected vesselUseFeaturesValidatorService: VesselUseFeaturesValidatorService,
-    protected measurementsValidatorService: MeasurementsValidatorService
-  ) {
-    super(formBuilder, translate, settings);
+  protected readonly gearUseFeaturesValidatorService = inject(GearUseFeaturesValidatorService);
+  protected readonly activityMonthValidatorService = inject(ActivityMonthValidatorService);
+  protected readonly gearPhysicalFeaturesValidatorService = inject(GearPhysicalFeaturesValidatorService);
+  protected readonly vesselUseFeaturesValidatorService = inject(VesselUseFeaturesValidatorService);
+  protected readonly measurementsValidatorService = inject(MeasurementsValidatorService);
+
+  constructor() {
+    super();
   }
 
   getFormGroup(data?: ActivityCalendar, opts?: O): UntypedFormGroup {

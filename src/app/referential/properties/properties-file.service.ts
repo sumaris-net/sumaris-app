@@ -1,4 +1,4 @@
-import { Directive, Injector, Input } from '@angular/core';
+import { Directive, inject, Input } from '@angular/core';
 import { CsvUtils, FileEvent, FileResponse, FilesUtils, isNotNil, Property, ShowToastOptions, Toasts } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { PopoverController, ToastController } from '@ionic/angular';
@@ -11,18 +11,14 @@ export declare type ReferentialImportPolicy = 'insert-update' | 'insert-only' | 
 @Directive()
 export class PropertiesFileService {
   private readonly logPrefix = '[properties-file-service] ';
-  private readonly translate: TranslateService;
-  private readonly toastController: ToastController;
-  private readonly popoverController: PopoverController;
+  private readonly translate = inject(TranslateService);
+  private readonly toastController = inject(ToastController);
+  private readonly popoverController = inject(PopoverController);
 
   @Input() i18nColumnPrefix: string;
   @Input() importPolicy: ReferentialImportPolicy = 'insert-update';
 
-  constructor(injector: Injector) {
-    this.translate = injector.get(TranslateService);
-    this.toastController = injector.get(ToastController);
-    this.popoverController = injector.get(PopoverController);
-  }
+  constructor() {}
 
   exportToCsv(data: Property[], opts?: { context?: any }) {
     // Prepare CSV options

@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 import { SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { ReferentialValidatorService } from '@app/referential/services/validator/referential.validator';
 import { TranscribingItem, TranscribingItemType } from '@app/referential/transcribing/transcribing.model';
 
 @Injectable({ providedIn: 'root' })
 export class TranscribingItemValidatorService extends ReferentialValidatorService<TranscribingItem> {
-  constructor(protected formBuilder: UntypedFormBuilder) {
-    super(formBuilder);
+  constructor() {
+    super();
   }
 
   getRowValidator(): UntypedFormGroup {

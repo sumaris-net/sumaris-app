@@ -77,7 +77,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   constructor(injector: Injector) {
     super(
-      injector,
       Sample,
       SampleFilter,
       new InMemoryEntitiesService(Sample, SampleFilter, {
@@ -486,10 +485,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     return suggestFromArray(this._availableSortedParents, value, {
       ...opts,
     });
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   isNotHiddenPmfm = PmfmUtils.isNotHidden;

@@ -1,4 +1,4 @@
-import { Directive, inject, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Directive, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -17,6 +17,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
+  PlatformService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toNumber,
@@ -153,6 +154,7 @@ export abstract class BaseMeasurementsTable<
   @Input() set pmfms(values: IPmfm[]) {
     this.initialPmfms = values;
   }
+
   get pmfms(): IPmfm[] {
     return this.filteredPmfms;
   }
@@ -182,15 +184,14 @@ export abstract class BaseMeasurementsTable<
     return super.loaded && !this._dataService.loading;
   }
 
-  protected constructor(injector: Injector, dataType: new () => T, filterType: new () => F, dataService?: S, validatorService?: V, options?: O) {
+  protected constructor(dataType: new () => T, filterType: new () => F, dataService?: S, validatorService?: V, options?: O) {
     super(
-      injector,
       dataType,
       filterType,
       // Columns:
       (options?.reservedStartColumns || []).concat(options?.reservedEndColumns || []),
       // Use a decorator data service
-      new MeasurementsTableEntitiesService(injector, dataType, dataService, {
+      new MeasurementsTableEntitiesService(dataType, dataService, {
         mapPmfms: options?.mapPmfms || undefined,
         mapResult: options?.mapResult || undefined,
         requiredStrategy: options?.initialState?.requiredStrategy,
@@ -198,7 +199,7 @@ export abstract class BaseMeasurementsTable<
         debug: options?.debug || false,
       }) as MS,
       // Use a specific decorator validator
-      validatorService ? (new MeasurementsTableValidatorService(injector, validatorService) as MV) : null,
+      validatorService ? (new MeasurementsTableValidatorService(validatorService) as MV) : null,
       {
         ...options,
         // IMPORTANT: Always use our private function onRowCreated()

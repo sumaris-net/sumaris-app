@@ -1,13 +1,10 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { AccountService, isNotNil, PlatformService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
-import { UntypedFormBuilder } from '@angular/forms';
 import { OperationGroup } from '../trip/trip.model';
 import { Observable } from 'rxjs';
 import { MetierService } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { OperationGroupValidatorService } from '@app/trip/operationgroup/operation-group.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
@@ -36,10 +33,6 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
   @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
   constructor(
-    injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected validatorService: OperationGroupValidatorService,
     protected referentialRefService: ReferentialRefService,
@@ -47,10 +40,6 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
     protected accountService: AccountService
   ) {
     super(
-      injector,
-      measurementsValidatorService,
-      formBuilder,
-      programRefService,
       validatorService.getFormGroup(null, {
         withMeasurements: false,
       })
@@ -102,12 +91,6 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
         this.gear = this.data.metier.gear;
       }
     }
-  }
-
-  /* -- protected methods -- */
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   referentialToString = referentialToString;

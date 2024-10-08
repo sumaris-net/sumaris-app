@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { AccountService, referentialToString, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
 import { VesselRegistrationPeriodService } from '../services/vessel-registration-period.service';
 import { VesselRegistrationPeriod } from '../services/model/vessel.model';
@@ -28,12 +28,10 @@ export class VesselRegistrationHistoryComponent extends AppBaseTable<VesselRegis
   }
 
   constructor(
-    injector: Injector,
     protected accountService: AccountService,
     dataService: VesselRegistrationPeriodService
   ) {
     super(
-      injector,
       VesselRegistrationPeriod,
       VesselRegistrationPeriodFilter,
       // columns
@@ -51,13 +49,5 @@ export class VesselRegistrationHistoryComponent extends AppBaseTable<VesselRegis
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.title = 'VESSEL.HISTORY.REGISTRATIONS';
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }

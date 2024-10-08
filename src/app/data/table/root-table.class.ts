@@ -1,4 +1,4 @@
-import { Directive, inject, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Directive, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map, startWith, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
@@ -128,16 +128,8 @@ export abstract class AppRootDataTable<
 
   @ViewChild(NamedFilterSelector, { static: false }) namedFilterSelector: NamedFilterSelector;
 
-  protected constructor(
-    injector: Injector,
-    dataType: new () => T,
-    filterType: new () => F,
-    columnNames: string[],
-    dataService: S,
-    validatorService: V,
-    options?: O
-  ) {
-    super(injector, dataType, filterType, columnNames, dataService, validatorService, options);
+  protected constructor(dataType: new () => T, filterType: new () => F, columnNames: string[], dataService: S, validatorService: V, options?: O) {
+    super(dataType, filterType, columnNames, dataService, validatorService, options);
 
     this.readOnly = false;
     this.inlineEdition = false;

@@ -1,19 +1,7 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  QueryList,
-  ViewChild,
-  ViewChildren,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Batch } from '../common/batch.model';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import {
@@ -63,8 +51,6 @@ import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model'
 import { PmfmFormField } from '@app/referential/pmfm/field/pmfm.form-field.component';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
-import { TranslateService } from '@ngx-translate/core';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { environment } from '@environments/environment';
@@ -81,6 +67,7 @@ export interface SubBatchFormState extends MeasurementsFormState {
   taxonNames: TaxonNameRef[];
   qvPmfm: IPmfm;
 }
+
 @Component({
   selector: 'app-sub-batch-form',
   templateUrl: 'sub-batch.form.html',
@@ -185,20 +172,11 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   }
 
   constructor(
-    injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected ichthyometerService: IchthyometerService,
-    protected translate: TranslateService
+    protected ichthyometerService: IchthyometerService
   ) {
     super(
-      injector,
-      measurementsValidatorService,
-      formBuilder,
-      programRefService,
       validatorService.getFormGroup(null, {
         rankOrderRequired: false, // Avoid to have form.invalid, in Burst mode
       }),

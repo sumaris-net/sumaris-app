@@ -52,5 +52,8 @@ export class BiologicalSamplingValidators {
         return { missingWeightOrSize: SAMPLE_VALIDATOR_I18N_ERROR_KEYS.missingWeightOrSize };
       }
     });
+
+    opts?.markForCheck();
+    return Subscription.EMPTY;
   }
 }

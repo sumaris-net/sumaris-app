@@ -5,7 +5,6 @@ import {
   Directive,
   ElementRef,
   inject,
-  Injector,
   Input,
   numberAttribute,
   OnInit,
@@ -66,6 +65,7 @@ export interface BaseTableConfig<
   i18nColumnPrefix?: string;
   initialState?: Partial<ST>;
 }
+
 export type AppBaseTableFilterRestoreSource = 'settings' | 'queryParams';
 
 @Directive()
@@ -88,7 +88,7 @@ export abstract class AppBaseTable<
   protected cd = inject(ChangeDetectorRef);
 
   protected memoryDataService: InMemoryEntitiesService<T, F, ID>;
-  protected readonly hotkeys: Hotkeys;
+  protected readonly hotkeys = inject(Hotkeys);
   protected logPrefix: string = null;
 
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
@@ -109,9 +109,11 @@ export abstract class AppBaseTable<
   @Input({ transform: numberAttribute }) highlightedRowId: number;
   @Input({ transform: booleanAttribute }) filterPanelFloating = true;
   @Input({ transform: booleanAttribute }) canDelete: boolean;
+
   @Input({ transform: booleanAttribute }) set canEdit(value: boolean) {
     this._canEdit = value;
   }
+
   get canEdit(): boolean {
     return !this.readOnly && (this._canEdit ?? true);
   }
@@ -139,7 +141,6 @@ export abstract class AppBaseTable<
   }
 
   protected constructor(
-    protected injector: Injector,
     protected dataType: new () => T,
     protected filterType: new () => F,
     columnNames: string[],
@@ -148,7 +149,6 @@ export abstract class AppBaseTable<
     protected options?: O
   ) {
     super(
-      injector,
       RESERVED_START_COLUMNS.concat(columnNames).concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<T, F, ID>(dataType, _dataService, validatorService, {
         prependNewElements: false,
@@ -161,7 +161,6 @@ export abstract class AppBaseTable<
     );
 
     this.mobile = this.settings.mobile;
-    this.hotkeys = injector.get(Hotkeys);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
@@ -719,10 +718,6 @@ export abstract class AppBaseTable<
     if (d1) return this.asEntity(d1).equals(d2);
     if (d2) return this.asEntity(d2).equals(d1);
     return false;
-  }
-
-  protected markForCheck() {
-    this.cd?.markForCheck();
   }
 
   protected getI18nColumnName(columnName: string): string {

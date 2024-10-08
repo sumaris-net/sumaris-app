@@ -161,7 +161,7 @@
       <ng-template mat-tab-label>
         <mat-icon>schedule</mat-icon>
         <ion-label
-          *rxLet="jobList.jobsCount$ as count"
+          *rxLet="jobList?.jobsCount$ as count"
           [matBadge]="count | badgeNumber"
           [matBadgeHidden]="!count"
           matBadgeColor="primary"

@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
 import {
   AppForm,
@@ -62,17 +61,13 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
   }
 
   constructor(
-    injector: Injector,
     protected viewCtrl: ModalController,
-    protected translate: TranslateService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
-    protected vesselSnapshotService: VesselSnapshotService,
-    protected cd: ChangeDetectorRef
+    protected vesselSnapshotService: VesselSnapshotService
   ) {
     super(
-      injector,
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         vesselSnapshot: [null, Validators.required],
@@ -84,7 +79,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     this.mobile = this.settings.mobile;
 
     // Prepare start date items
-    const datePattern = translate.instant('COMMON.DATE_PATTERN');
+    const datePattern = this.translate.instant('COMMON.DATE_PATTERN');
     this.periodDurationLabels = DATA_IMPORT_PERIODS.map((v) => {
       const date = DateUtils.moment()
         .utc(false)
@@ -240,9 +235,5 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     }
 
     return this.viewCtrl.dismiss(this.getValue(), 'OK');
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }
