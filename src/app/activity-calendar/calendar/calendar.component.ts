@@ -1123,11 +1123,13 @@ export class CalendarComponent
     const pmfm = this.pmfms?.find((p) => p.id.toString() === columnName);
     if (!pmfm || !PmfmUtils.isNumeric(pmfm)) return; // Skip if not a numerical pmfm column
 
-    const control = row.validator?.get(`measurementValues.${pmfm.id}`);
-    if (!control) return;
+    const isActiveControl = row.validator?.get('isActive');
+    const isActive = isActiveControl?.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
+    const pmfmControl = row.validator?.get(`measurementValues.${pmfm.id}`);
+    if (!pmfmControl) return;
 
     // Compute new control's value
-    let valueStr: string = control.value?.toString() || '';
+    let valueStr: string = pmfmControl.value?.toString() || '';
     if (isNotNilOrNaN(+event.key)) {
       valueStr += event.key;
     } else if (event.key === 'Backspace') {
@@ -1141,16 +1143,21 @@ export class CalendarComponent
 
     // Update control's value
     const newValue = isNotNilOrBlank(valueStr) ? toNumber(+valueStr, null) : null;
-    if (control.value !== newValue) {
+    if (pmfmControl.value !== newValue) {
       // Check min/max (skip if outside [min,max])
       if (isNotNil(newValue) && event.key !== 'Backspace') {
         if (isNotNilOrNaN(pmfm.minValue) && newValue < pmfm.minValue) return;
         if (isNotNilOrNaN(pmfm.maxValue) && newValue > pmfm.maxValue) return;
+
+        // Force month as active
+        if (!isActive) {
+          isActiveControl.patchValue(VesselUseFeaturesIsActiveEnum.ACTIVE);
+        }
       }
 
       if (this.debug) console.debug(this.logPrefix + `Updating Pmfm#${pmfm.id} cell value with: ${newValue}`);
 
-      control.patchValue(newValue);
+      pmfmControl.patchValue(newValue);
       this.markAsDirty();
     }
   }
