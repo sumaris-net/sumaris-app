@@ -2493,7 +2493,6 @@ export class CalendarComponent
       targetCellSelection.colspan = targetRows.length;
     }
 
-    const rowsToClear = [];
     for (let i = 0; i < targetRows.length; i++) {
       const targetRow = targetRows[i];
       const sourceMonth = sourceMonths[i % sourceMonths.length];
@@ -2505,49 +2504,54 @@ export class CalendarComponent
 
       this.onPrepareRowForm(targetForm, { listenChanges: false });
       const isActiveControl = targetForm.get('isActive');
-      let isActive = toNumber(sourceMonth.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
 
-      sourcePaths.forEach((sourcePath, index) => {
-        const sourceValue = getPropertyByPath(sourceMonth, sourcePath);
-        isActive = isActive || (isNotNil(sourceValue) && sourcePath !== 'isActive' && sourcePath !== 'basePortLocation');
+      // If source's isActive is equals to NON_EXISTS
+      const isNotExists: boolean = toNumber(sourceMonth.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.NOT_EXISTS;
+      if (isNotExists) {
+        // Clear the month
+        await this.clear(null, targetRow, { interactive: false });
+      } else {
+        // Read isActive (from the source data, or from the original data) and convert into a boolean
+        let isActive: boolean = toNumber(sourceMonth.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
 
-        // Force IsActive = true, if need
-        if (isActive && isActiveControl.value !== VesselUseFeaturesIsActiveEnum.ACTIVE) {
-          isActiveControl.enable({ emitEvent: false });
-          isActiveControl.setValue(VesselUseFeaturesIsActiveEnum.ACTIVE, { emitEvent: false });
+        // For each paths to paste
+        sourcePaths.forEach((sourcePath, index) => {
+          const sourceValue = getPropertyByPath(sourceMonth, sourcePath);
 
-          // Update the form (should enable more controls - e.g. metier, fishing areas)
-          this.onPrepareRowForm(targetForm, { listenChanges: false });
+          // Force isActive if paste some not null value, that is relative to an fishing activity (e.g metier, fishing area, etc.)
+          isActive = isActive || (isNotNil(sourceValue) && sourcePath !== 'isActive' && sourcePath !== 'basePortLocation');
+
+          // Force IsActive = true, if need
+          if (isActive && isActiveControl.value !== VesselUseFeaturesIsActiveEnum.ACTIVE) {
+            isActiveControl.enable({ emitEvent: false });
+            isActiveControl.setValue(VesselUseFeaturesIsActiveEnum.ACTIVE, { emitEvent: false });
+
+            // Update the form (should enable more controls - e.g. metier, fishing areas)
+            this.onPrepareRowForm(targetForm, { listenChanges: false });
+          }
+
+          // Update control from the path
+          const targetPath = targetPaths[index];
+          const control = targetPath && this.findOrCreateControl(targetForm, targetPath);
+          if (control) {
+            control.enable({ emitEvent: false });
+            control.setValue(sourceValue);
+          }
+        });
+
+        const targetEntity = targetForm.value;
+
+        // Mark entity as invalid, if form validation failed
+        if (!targetForm.valid) {
+          await AppFormUtils.waitWhilePending(targetForm);
+          const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, this.errorTranslateOptions);
+          DataEntityUtils.markAsInvalid(targetEntity, errorMessage);
         }
-        // If IsActive = NOT_EXISTS, clear row
-        else if (sourceValue === VesselUseFeaturesIsActiveEnum.NOT_EXISTS) {
-          rowsToClear.push(targetRow);
-        }
-        // Update control from the path
-        const targetPath = targetPaths[index];
-        const control = targetPath && this.findOrCreateControl(targetForm, targetPath);
-        if (control) {
-          control.enable({ emitEvent: false });
-          control.setValue(sourceValue);
-        }
-      });
 
-      // Update quality flag
-      // const entity = targetForm.value;
-      // if (!targetForm.valid) {
-      //   await AppFormUtils.waitWhilePending(targetForm);
-      //   if (targetForm.invalid) {
-      //     const errorMessage = this.formErrorAdapter.translateFormErrors(targetForm, this.errorTranslateOptions);
-      //     DataEntityUtils.markAsInvalid(entity, errorMessage);
-      //   }
-      // }
-
-      // Update the row
-      await this.updateEntityToTable(targetForm.value, targetRow, { confirmEdit: true });
+        // Update the row, using the computed entity
+        await this.updateEntityToTable(targetEntity, targetRow, { confirmEdit: true });
+      }
     }
-
-    // Delete rows paste with IsActive = NOT_EXISTS
-    rowsToClear.forEach(async (row) => await this.clear(null, row, { interactive: false }));
 
     // DEBUG
     console.debug(`${this.logPrefix}Paste clipboard [OK]`);

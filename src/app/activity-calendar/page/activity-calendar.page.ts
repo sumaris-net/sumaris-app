@@ -1040,7 +1040,7 @@ export class ActivityCalendarPage
       const source = sources[index];
       if (!source) return target; // Keep original, if missing a month
 
-      // if isActive not exists, set to null issue #687
+      // Clean isActive if equals to not exists (see issue #687)
       if (source.isActive === VesselUseFeaturesIsActiveEnum.NOT_EXISTS) {
         source.isActive = null;
       }
