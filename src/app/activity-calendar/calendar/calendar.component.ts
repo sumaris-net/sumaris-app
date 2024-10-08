@@ -494,17 +494,7 @@ export class CalendarComponent
 
     this._state.connect(
       'validRowCount',
-      this._dataSource.rowsSubject.pipe(
-        map(
-          (rows) =>
-            rows
-              .map((row) => row.currentData)
-              .filter(
-                (month) =>
-                  isNotNil(month?.isActive) && month.qualityFlagId !== QualityFlagIds.BAD && month.qualityFlagId !== QualityFlagIds.CONFLICTUAL
-              ).length
-        )
-      )
+      this._dataSource.rowsSubject.pipe(map((rows) => rows.map((row) => row.currentData).filter((month) => isNotNil(month?.isActive)).length))
     );
 
     this._state.hold(this.availablePrograms$, (programs: ReferentialRef[]) => {
@@ -1870,19 +1860,28 @@ export class CalendarComponent
     const currentData = row.currentData;
     if (ActivityMonth.isEmpty(currentData)) return true; // Nothing to clear
 
-    const { month, startDate, endDate, readonly, registrationLocations } = currentData;
+    const { month, startDate, endDate, readonly, registrationLocations, vesselId, id, program, gearUseFeatures } = currentData;
+
     const data = ActivityMonth.fromObject({
+      id,
+      vesselId,
+      program,
       month,
       startDate,
       endDate,
       readonly,
       registrationLocations,
       measurementValues: MeasurementValuesUtils.normalizeValuesToForm({}, this.pmfms),
-      gearUseFeatures: new Array(this.maxMetierCount).fill({
-        startDate,
-        endDate,
-        fishingAreas: new Array(this.maxFishingAreaCount).fill({}),
-      }),
+      gearUseFeatures: new Array(this.metierCount)
+        .fill({
+          startDate,
+          endDate,
+          fishingAreas: new Array(this.maxFishingAreaCount).fill({}),
+        })
+        .map((guf, index) => {
+          guf = { ...guf, id: gearUseFeatures[index].id };
+          return guf;
+        }),
     });
 
     if (row.validator && row.editing) {
