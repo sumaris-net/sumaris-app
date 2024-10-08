@@ -1338,8 +1338,8 @@ export class CalendarComponent
     this.selectCell(event, row, columnName);
   }
 
-  toggleCompactMode() {
-    super.toggleCompactMode();
+  async toggleCompactMode() {
+    await super.toggleCompactMode();
     setTimeout(() => this.onResize());
   }
 

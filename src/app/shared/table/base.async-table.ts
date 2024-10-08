@@ -1,4 +1,16 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  booleanAttribute,
+  ChangeDetectorRef,
+  Directive,
+  ElementRef,
+  inject,
+  Injector,
+  Input,
+  numberAttribute,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import {
   AppAsyncTable,
   changeCaseToUnderscore,
@@ -21,7 +33,7 @@ import {
   toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
-import { AsyncTableElement } from '@e-is/ngx-material-table';
+import { AsyncTableElement, TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
@@ -71,38 +83,38 @@ export abstract class AppBaseAsyncTable<
 {
   private _canEdit: boolean;
 
+  protected translateContext = inject(TranslateContextService);
+  protected popoverController = inject(PopoverController);
+  protected cd = inject(ChangeDetectorRef);
+
   protected memoryDataService: InMemoryEntitiesService<T, F, ID>;
-  protected translateContext: TranslateContextService;
-  protected cd: ChangeDetectorRef;
   protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
-  protected popoverController: PopoverController;
   protected defaultCompact: boolean = false;
 
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
 
-  @Input() usePageSettings = true;
-  @Input() canGoBack = false;
-  @Input() showTitle = true;
-  @Input() showToolbar = true;
-  @Input() showPaginator = true;
-  @Input() showFooter = true;
-  @Input() showError = true;
+  @Input({ transform: booleanAttribute }) usePageSettings = true;
+  @Input({ transform: booleanAttribute }) canGoBack = false;
+  @Input({ transform: booleanAttribute }) showTitle = true;
+  @Input({ transform: booleanAttribute }) showToolbar: boolean;
+  @Input({ transform: booleanAttribute }) showPaginator = true;
+  @Input({ transform: booleanAttribute }) showFooter = true;
+  @Input({ transform: booleanAttribute }) showError = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
-  @Input() sticky = false;
-  @Input() stickyEnd = false;
-  @Input() compact: boolean = null;
-  @Input() mobile = false;
-  @Input() pressHighlightDuration = 10000; // 10s
-  @Input() highlightedRowId: number;
-  @Input() filterPanelFloating = true;
-
-  @Input() set canEdit(value: boolean) {
+  @Input({ transform: booleanAttribute }) sticky = false;
+  @Input({ transform: booleanAttribute }) stickyEnd = false;
+  @Input({ transform: booleanAttribute }) compact: boolean = null;
+  @Input({ transform: booleanAttribute }) mobile = false;
+  @Input({ transform: numberAttribute }) pressHighlightDuration = 10000; // 10s
+  @Input({ transform: numberAttribute }) highlightedRowId: number;
+  @Input({ transform: booleanAttribute }) filterPanelFloating = true;
+  @Input({ transform: booleanAttribute }) canDelete: boolean;
+  @Input({ transform: booleanAttribute }) set canEdit(value: boolean) {
     this._canEdit = value;
   }
-
   get canEdit(): boolean {
-    return this._canEdit && !this.readOnly;
+    return !this.readOnly && (this._canEdit ?? true);
   }
 
   get editedRow(): AsyncTableElement<T> {
@@ -126,6 +138,13 @@ export abstract class AppBaseAsyncTable<
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     if (this.memoryDataService?.dirty) return; // Skip if service still dirty
     super.markAsPristine(opts);
+  }
+
+  /**
+   * return the selected row if unique in selection
+   */
+  protected get hasSingleSelectedRow(): boolean {
+    return this.selection.selected?.length === 1;
   }
 
   protected constructor(
@@ -152,10 +171,7 @@ export abstract class AppBaseAsyncTable<
 
     this.mobile = this.settings.mobile;
     this.hotkeys = injector.get(Hotkeys);
-    this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
-    this.translateContext = injector.get(TranslateContextService);
-    this.cd = injector.get(ChangeDetectorRef);
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
     this.memoryDataService = this._dataService instanceof InMemoryEntitiesService ? (this._dataService as InMemoryEntitiesService<T, F, ID>) : null;
@@ -166,6 +182,9 @@ export abstract class AppBaseAsyncTable<
   }
 
   ngOnInit() {
+    // Set defaults
+    this.showToolbar = toBoolean(this.showToolbar, !this.mobile);
+
     super.ngOnInit();
 
     // Propagate dirty state of the in-memory service
@@ -199,9 +218,7 @@ export abstract class AppBaseAsyncTable<
     // Enable permanent selection (to keep selected rows after reloading)
     // (only on desktop, if not already done)
     if (!this.mobile && !this.permanentSelection) {
-      // TODO: enable this
-      //this.initPermanentSelection();
-      this['initPermanentSelection']();
+      this.initPermanentSelection();
     }
 
     if (this.options?.restoreCompactMode !== false) {
@@ -253,6 +270,14 @@ export abstract class AppBaseAsyncTable<
           .subscribe((event) => this.addRow(event))
       );
     }
+  }
+
+  toggleSelectRow(event: Event | undefined, row: TableElement<T>) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.selection.toggle(row);
+    this.detectChanges();
   }
 
   /**
@@ -316,7 +341,7 @@ export abstract class AppBaseAsyncTable<
   }
 
   pressRow(event: Event | undefined, row: AsyncTableElement<T>): Promise<boolean> {
-    if (!this.mobile) return; // Skip if inline edition, or not mobile
+    if (!this.mobile || event?.defaultPrevented) return; // Skip if inline edition, or not mobile
 
     event?.preventDefault();
 
@@ -371,8 +396,6 @@ export abstract class AppBaseAsyncTable<
   }
 
   async escapeEditingRow(event?: Event, row?: AsyncTableElement<T>): Promise<void> {
-    console.debug(this.logPrefix + 'Escape editing row');
-
     await super.escapeEditingRow(event, row);
     if (!this.dataSource.hasSomeEditingRow()) this.focusColumn = null;
   }
@@ -441,7 +464,7 @@ export abstract class AppBaseAsyncTable<
   }
 
   protected async onNewEntity(data: T): Promise<void> {
-    // Can be overrided by subclasses
+    // Can be override by subclasses
   }
 
   protected async addEntitiesToTable(data: T[], opts?: { editing?: boolean; emitEvent?: boolean }): Promise<AsyncTableElement<T>[]> {
@@ -542,7 +565,7 @@ export abstract class AppBaseAsyncTable<
 
   /* -- protected function -- */
 
-  protected restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: AppBaseTableFilterRestoreSource[] }) {
+  protected async restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: AppBaseTableFilterRestoreSource[] }) {
     this.markAsLoading();
 
     const json = this.loadFilter(opts?.sources);
@@ -601,11 +624,12 @@ export abstract class AppBaseAsyncTable<
     }
   }
 
-  toggleCompactMode() {
+  async toggleCompactMode() {
     this.compact = !this.compact;
+    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
     this.markForCheck();
     if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) {
-      this.settings.savePageSetting(this.settingsId, this.compact, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY);
+      await this.savePageSettings(this.compact, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY);
     }
   }
 
@@ -694,6 +718,13 @@ export abstract class AppBaseAsyncTable<
     // Can be override by subclasses
   }
 
+  protected async editRow(event: Event | undefined, row: AsyncTableElement<T>, opts?: { focusColumn?: string }): Promise<boolean> {
+    const editing = await super.editRow(event, row, opts);
+    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
+    if (editing) this.detectChanges();
+    return editing;
+  }
+
   /**
    * Delegate equals to the entity class, instead of simple ID comparison
    *
@@ -708,7 +739,13 @@ export abstract class AppBaseAsyncTable<
   }
 
   protected markForCheck() {
+    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
     this.cd.markForCheck();
+  }
+
+  protected detectChanges() {
+    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
+    this.cd.detectChanges();
   }
 
   protected getI18nColumnName(columnName: string): string {
@@ -764,7 +801,8 @@ export abstract class AppBaseAsyncTable<
 
   protected async devToggleDebug() {
     this.debug = !this.debug;
+    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
     this.markForCheck();
-    if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) await this.settings.savePageSetting(this.settingsId, this.debug, 'debug');
+    if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) await this.savePageSettings(this.debug, 'debug');
   }
 }

@@ -1114,8 +1114,4 @@ export class SamplesTable
   selectInputContent = AppFormUtils.selectInputContent;
   isIndividualMonitoring = SampleUtils.isIndividualMonitoring;
   isIndividualRelease = SampleUtils.isIndividualRelease;
-
-  markForCheck() {
-    this.cd.markForCheck();
-  }
 }
