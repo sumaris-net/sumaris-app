@@ -33,7 +33,7 @@ import {
   toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
-import { AsyncTableElement, TableElement } from '@e-is/ngx-material-table';
+import { AsyncTableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
@@ -272,7 +272,7 @@ export abstract class AppBaseAsyncTable<
     }
   }
 
-  toggleSelectRow(event: Event | undefined, row: TableElement<T>) {
+  toggleSelectRow(event: Event | undefined, row: AsyncTableElement<T>) {
     if (event) {
       event.stopPropagation();
     }
