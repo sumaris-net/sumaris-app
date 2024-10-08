@@ -568,12 +568,13 @@ export class ActivityCalendarsTable
       switch (reportType) {
         case 'form':
         case 'blank-form':
+        case 'progress':
           {
             urlParams.set('ids', selectedIds);
-            reportType = reportType + 's';
+            if (reportType !== 'progress') {
+              reportType = reportType + 's';
+            }
           }
-          break;
-        case 'progress':
           break;
         default:
           throw new Error(`Report type "${reportType}" not yet implemented !`);
