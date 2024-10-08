@@ -33,9 +33,11 @@ import {
   isEmptyArray,
   isNil,
   isNilOrBlank,
+  isNilOrNaN,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  isNotNilOrNaN,
   IStatus,
   lastArrayValue,
   LoadResult,
@@ -119,6 +121,7 @@ const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
       ]
   );
 const NAVIGATION_KEYS = ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Tab'];
+const NUMERIC_KEYS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Backspace'];
 export const ACTIVITY_MONTH_READONLY_COLUMNS = ['month', 'program', 'vesselOwner', 'registrationLocation'];
 export const ACTIVITY_MONTH_START_COLUMNS = [...ACTIVITY_MONTH_READONLY_COLUMNS, 'isActive', 'basePortLocation'];
 export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
@@ -195,6 +198,10 @@ export interface TableCellSelection<T = any> {
   originalMouseY?: number;
   validating?: boolean;
   resizing?: boolean;
+}
+
+export function isSingleCellSelection(selection: TableCellSelection) {
+  return selection && selection.rowspan === 1 && selection.rowspan === 1;
 }
 
 @Component({
@@ -947,54 +954,71 @@ export class CalendarComponent
 
   @HostListener('window:keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {
-    if (!this.cellSelection || event.defaultPrevented || this.editedRow) return; // Skip
-    const focusPmfm = this.pmfms.find((p) => p?.id.toString() === this.focusColumn);
+    if (!this.cellSelection || event.defaultPrevented || this.dataSource.hasSomeEditingRow()) return; // Skip
 
-    // Start editing
-    if (event.key === 'Enter' && this.cellSelection.colspan === 1 && this.cellSelection.rowspan === 1) {
+    // Press enter on cell : start editing row
+    if (event.key === 'Enter' && isSingleCellSelection(this.cellSelection)) {
       if (this.editedRow) return; // Keep default enter behavior, when editing a row
       return this.dblClickCell(event, this.cellSelection.row, this.cellSelection.columnName);
     }
-    // Navigate
+
+    // Navigation key (e.g. Tab, etc)
     if (NAVIGATION_KEYS.includes(event.key)) {
-      this.onArrowPress(event);
-    } else if (isNotNil(focusPmfm)) {
-      this.editCellOnFocus(event, focusPmfm);
+      this.onNavigationKeyPress(event, this.cellSelection.row, this.cellSelection.columnName);
+      return;
+    }
+
+    // Numeric key
+    if (NUMERIC_KEYS.includes(event.key) && isSingleCellSelection(this.cellSelection)) {
+      this.onNumericKeyPress(event, this.cellSelection.row, this.cellSelection.columnName);
     }
   }
 
-  editCellOnFocus(event: KeyboardEvent, pmfm: IPmfm<IPmfm<any, any>, number>) {
-    if (this.cellSelection.colspan != 1 && this.cellSelection.rowspan != 1) return;
-    if (isNil(pmfm) || !PmfmUtils.isNumeric(pmfm)) return;
+  onNumericKeyPress(event: KeyboardEvent, row: AsyncTableElement<ActivityMonth>, columnName: string) {
+    if (!event || !row || !columnName) return;
 
-    const row = this.cellSelection.row.validator.get('measurementValues')?.get(pmfm.id.toString());
-    let value;
+    // Check if the selected cell is on a numeric pmfm
+    const pmfm = this.pmfms?.find((p) => p.id.toString() === columnName);
+    if (!pmfm || !PmfmUtils.isNumeric(pmfm)) return; // Skip if not a numerical pmfm column
 
-    const isRowValueEmpty = isNil(row.value) || row.value.toString().length === 0;
-    // key press is a number
-    if (!Number.isNaN(Number(event.key))) {
-      if (isRowValueEmpty) {
-        value = event.key;
-      } else {
-        value = row.value + event.key;
-      }
+    const control = row.validator?.get(`measurementValues.${pmfm.id}`);
+    if (!control) return;
+
+    // Compute new control's value
+    let valueStr: string = control.value?.toString() || '';
+    if (isNotNilOrNaN(+event.key)) {
+      valueStr += event.key;
     } else if (event.key === 'Backspace') {
-      value = row.value.toString().slice(0, -1);
+      if (valueStr.length) {
+        // Remove last character
+        valueStr = valueStr.substring(0, valueStr.length - 1);
+      } else {
+        valueStr = null;
+      }
+    } else return; // Skip (unknown key)
+
+    // Update control's value
+    const newValue = isNotNilOrBlank(valueStr) ? toNumber(+valueStr, null) : null;
+    if (control.value !== newValue) {
+      // Check min/max (skip if outside [min,max])
+      if (isNotNil(newValue) && event.key !== 'Backspace') {
+        if (isNotNilOrNaN(pmfm.minValue) && newValue < pmfm.minValue) return;
+        if (isNotNilOrNaN(pmfm.maxValue) && newValue > pmfm.maxValue) return;
+      }
+
+      if (this.debug) console.debug(this.logPrefix + `Updating Pmfm#${pmfm.id} cell value with: ${newValue}`);
+
+      control.patchValue(newValue);
+      this.markAsDirty();
     }
-
-    // for clear cell value
-    if (value.length === 0 && row.value.toString().length === 0) value = null;
-
-    row.patchValue(value);
-    this.markAsDirty();
   }
 
-  protected onArrowPress(event: KeyboardEvent) {
-    if (!this.cellSelection || event.defaultPrevented) return; // Skip
+  protected onNavigationKeyPress(event: KeyboardEvent, row: AsyncTableElement<ActivityMonth>, columnName: string) {
+    if (!row || event.defaultPrevented) return; // Skip
 
-    let rowIndex = this.cellSelection.row.id || 0;
+    let rowIndex = row.id || 0;
     let columnIndex = Math.max(
-      this.displayedColumns.findIndex((col) => col === this.cellSelection.columnName),
+      this.displayedColumns.findIndex((col) => col === columnName),
       ACTIVITY_MONTH_READONLY_COLUMNS.length
     );
 
@@ -1099,16 +1123,16 @@ export class CalendarComponent
     // DEBUG
     console.debug(this.logPrefix + `Navigation keydown: columnIndex=${columnIndex} rowIndex=${rowIndex}`);
 
-    const row = this.dataSource.getRow(rowIndex);
+    const targetRow = this.dataSource.getRow(rowIndex);
     // eslint-disable-next-line prefer-const
-    const { columnName, cellElement } = this.getCellElement(rowIndex, columnIndex);
-    if (!cellElement || !row || ACTIVITY_MONTH_READONLY_COLUMNS.includes(columnName) || RESERVED_END_COLUMNS.includes(columnName)) return;
+    const { columnName: targetColumnName, cellElement } = this.getCellElement(rowIndex, columnIndex);
+    if (!cellElement || !row || ACTIVITY_MONTH_READONLY_COLUMNS.includes(targetColumnName) || RESERVED_END_COLUMNS.includes(targetColumnName)) return;
 
     this.cellSelection = {
       divElement: this.cellSelectionDivRef.nativeElement,
       cellElement,
-      row,
-      columnName,
+      row: targetRow,
+      columnName: targetColumnName,
       colspan,
       rowspan,
       resizing: false,
