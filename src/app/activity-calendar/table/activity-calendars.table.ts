@@ -58,6 +58,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
