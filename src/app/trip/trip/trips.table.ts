@@ -44,6 +44,7 @@ import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { RxState } from '@rx-angular/state';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
