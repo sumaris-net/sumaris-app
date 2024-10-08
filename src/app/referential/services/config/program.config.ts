@@ -1,4 +1,12 @@
-import { FormFieldDefinition, FormFieldType, isNilOrBlank, Property, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
+import {
+  FormFieldDefinition,
+  FormFieldType,
+  isNilOrBlank,
+  MatAutocompleteFieldConfig,
+  Property,
+  removeDuplicatesFromArray,
+  StatusIds,
+} from '@sumaris-net/ngx-components';
 import { LocationLevelGroups, LocationLevelIds, ProgramLabels, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
@@ -6,20 +14,10 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling' | 'sale';
-export const LandingEditors = Object.freeze({
-  LANDING: 'landing',
-  CONTROL: 'control',
-  TRIP: 'trip',
-  SAMPLING: 'sampling',
-  SALE: 'sale',
-});
-
 export type OperationEditor = 'legacy' | 'selectivity' | 'advanced';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
-
 export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'blank-form';
-
 export type ActivityCalendarReportType = 'form' | 'blank-form' | 'progress';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
@@ -39,6 +37,21 @@ export const OperationPasteFlags = Object.freeze({
   ALL: 1 + 2 + 4 + 8 + 16 + 32 + 64,
 });
 
+const locationLevelAutocomplete = {
+  filter: {
+    entityName: 'LocationLevel',
+    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+  },
+  attributes: ['name'],
+};
+const pmfmAutocomplete = Object.freeze(<MatAutocompleteFieldConfig>{
+  filter: {
+    entityName: 'Pmfm',
+    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+  },
+  attributes: ['id', 'label', 'name'],
+  columnSizes: [2, 4, 6],
+});
 export const ProgramProperties = Object.freeze({
   // Access right
   DATA_OBSERVERS_CAN_WRITE: <FormFieldDefinition>{
@@ -88,13 +101,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.location.level.ids',
     label: 'PROGRAM.OPTIONS.TRIP_LOCATION_LEVEL_IDS',
     type: 'entities',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['name'],
-    },
+    autocomplete: locationLevelAutocomplete,
     defaultValue: LocationLevelIds.PORT.toString(),
   },
   TRIP_LOCATION_FILTER_MIN_LENGTH: <FormFieldDefinition>{
@@ -113,13 +120,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.sale.location.level.ids',
     label: 'PROGRAM.OPTIONS.TRIP_SALE_LOCATION_LEVEL_IDS',
     type: 'entities',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['name'],
-    },
+    autocomplete: locationLevelAutocomplete,
     defaultValue: LocationLevelIds.PORT.toString(),
   },
   TRIP_OBSERVERS_ENABLE: <FormFieldDefinition>{
@@ -132,13 +133,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.offline.import.location.level.ids',
     label: 'PROGRAM.OPTIONS.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS',
     type: 'entities',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['name'],
-    },
+    autocomplete: locationLevelAutocomplete,
     defaultValue: undefined, // = Import all locations define in LocationLevelIds
   },
   TRIP_METIERS_ENABLE: <FormFieldDefinition>{
@@ -169,14 +164,7 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS',
     defaultValue: null,
     type: 'entities',
-    autocomplete: {
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['id', 'label', 'name'],
-      columnSizes: [2, 4, 6],
-    },
+    autocomplete: pmfmAutocomplete,
   },
   TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY: <FormFieldDefinition>{
     key: 'sumaris.trip.gears.columns.pmfm.hideIfEmpty',
@@ -654,13 +642,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.operation.fishingArea.locationLevel.ids',
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS',
     type: 'entities',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['name'],
-    },
+    autocomplete: locationLevelAutocomplete,
     defaultValue: LocationLevelIds.RECTANGLE_ICES.toString(),
   },
   TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS: <FormFieldDefinition>{
@@ -726,13 +708,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.extraction.area.locationLevel.ids',
     label: 'PROGRAM.OPTIONS.TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS',
     type: 'entities',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['name'],
-    },
+    autocomplete: locationLevelAutocomplete,
     defaultValue: null,
   },
 
@@ -754,13 +730,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.observedLocation.offline.import.location.level.ids',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS',
     type: 'entities',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['name'],
-    },
+    autocomplete: locationLevelAutocomplete,
     defaultValue: undefined, // = Import all locations define in LocationLevelIds
   },
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{
@@ -785,13 +755,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.observedLocation.location.level.ids',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_IDS',
     type: 'entities',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['name'],
-    },
+    autocomplete: locationLevelAutocomplete,
     defaultValue: LocationLevelIds.PORT.toString(),
   },
   OBSERVED_LOCATION_OBSERVERS_ENABLE: <FormFieldDefinition>{
@@ -962,13 +926,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.landing.fishingArea.locationLevel.ids',
     label: 'PROGRAM.OPTIONS.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS',
     type: 'entities',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['name'],
-    },
+    autocomplete: locationLevelAutocomplete,
     defaultValue: LocationLevelGroups.FISHING_AREA.toString(),
   },
   LANDING_SAMPLE_LABEL_ENABLE: <FormFieldDefinition>{
@@ -1008,14 +966,7 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.LANDING_COLUMNS_PMFM_IDS',
     defaultValue: null,
     type: 'entities',
-    autocomplete: {
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['id', 'label', 'name'],
-      columnSizes: [2, 4, 6],
-    },
+    autocomplete: pmfmAutocomplete,
   },
   LANDING_MIN_OBSERVED_SPECIES_COUNT: <FormFieldDefinition>{
     key: 'sumaris.landing.minObservedSpeciesCount',
@@ -1027,14 +978,7 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.landing.rows.divider.pmfmId',
     label: 'PROGRAM.OPTIONS.LANDING_ROWS_DIVIDER_PMFM_ID',
     type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['id', 'label', 'name'],
-      columnSizes: [2, 4, 6],
-    },
+    autocomplete: pmfmAutocomplete,
     defaultValue: null,
   },
   // TODO remove
@@ -1043,14 +987,7 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.LANDING_TOP_PMFM_IDS',
     defaultValue: null,
     type: 'entities',
-    autocomplete: {
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['id', 'label', 'name'],
-      columnSizes: [2, 4, 6],
-    },
+    autocomplete: pmfmAutocompleteConfig,
   },*/
 
   /* -- Sale -- */
