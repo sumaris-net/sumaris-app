@@ -141,6 +141,7 @@ html.print-pdf .reveal .slides section {
               padding: 5px;
               display: flex;
               align-items: center;
+              flex-wrap: wrap;
               border: solid 1px var(--text-color);
               &.horiz-checkbox {
                 display: block;
