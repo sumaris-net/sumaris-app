@@ -1117,15 +1117,15 @@ export class CalendarComponent
   }
 
   protected onNumericKeyPress(event: KeyboardEvent, row: AsyncTableElement<ActivityMonth>, columnName: string) {
-    if (!event || !row || !columnName) return;
+    if (!this.inlineEdition || !event || !row?.validator || !columnName) return;
 
     // Check if the selected cell is on a numeric pmfm
     const pmfm = this.pmfms?.find((p) => p.id.toString() === columnName);
     if (!pmfm || !PmfmUtils.isNumeric(pmfm)) return; // Skip if not a numerical pmfm column
 
-    const isActiveControl = row.validator?.get('isActive');
+    const isActiveControl = row.validator.get('isActive');
     const isActive = isActiveControl?.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
-    const pmfmControl = row.validator?.get(`measurementValues.${pmfm.id}`);
+    const pmfmControl = row.validator.get(`measurementValues.${pmfm.id}`);
     if (!pmfmControl) return;
 
     // Compute new control's value
