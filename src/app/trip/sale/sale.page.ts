@@ -15,6 +15,7 @@ import {
   isNotNil,
   isNotNilOrNaN,
   ReferentialRef,
+  referentialToString,
   ReferentialUtils,
   toNumber,
   UsageMode,
@@ -35,7 +36,7 @@ import { STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent } fr
 import { from, merge, Observable } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import { SaleFilter } from './sale.filter';
 
@@ -50,6 +51,8 @@ import { LandingService } from '@app/trip/landing/landing.service';
 import { Landing } from '@app/trip/landing/landing.model';
 import { IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
 import { SaleContextService } from './sale-context.service';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
 
 export class SaleEditorOptions extends RootDataEditorOptions {}
 
@@ -93,6 +96,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected pmfmService = inject(PmfmService);
   protected referentialRefService = inject(ReferentialRefService);
   protected vesselSnapshotService = inject(VesselSnapshotService);
+  protected taxonGroupRefService = inject(TaxonGroupRefService);
   protected selectedSubTabIndex = 0;
   protected showParent = false;
   protected showEntityMetadata = false;
@@ -102,6 +106,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected parentAcquisitionLevel: AcquisitionLevelType;
   protected showBatchTablesByProgram = false;
   protected showBatchTables = true;
+  protected defaultTaxonGroup: TaxonGroupRef;
   @RxStateProperty() protected parent: Trip | Landing;
   @RxStateProperty() protected strategyLabel: string;
 
@@ -575,7 +580,16 @@ export class SalePage<ST extends SalePageState = SalePageState>
       parent = await this.tripService.load(data.tripId, { fetchPolicy: 'cache-first' });
     } else if (isNotNilOrNaN(data.landingId)) {
       console.debug(`[sale-page] Loading parent landing #${data.landingId} ...`);
-      parent = await this.landingService.load(data.landingId, { fetchPolicy: 'cache-first' });
+      const landing = await this.landingService.load(data.landingId, { fetchPolicy: 'cache-first' });
+      parent = landing;
+
+      // Load default taxon group (if exists in parent landing)
+      const landingTaxonGroupId = landing && toNumber(landing.measurementValues?.[PmfmIds.TAXON_GROUP_ID]);
+      if (isNotNil(landingTaxonGroupId)) {
+        const landingTaxonGroup = await this.taxonGroupRefService.load(landingTaxonGroupId, { fetchPolicy: 'cache-first' });
+        console.log('TODO landingTaxonGroup=', landingTaxonGroup);
+        this.defaultTaxonGroup = landingTaxonGroup;
+      }
     }
 
     return parent;
@@ -623,20 +637,24 @@ export class SalePage<ST extends SalePageState = SalePageState>
         location: this.parent.location?.name || this.parent.location?.label || '',
         date: this.dateFormat.transform(this.parent.dateTime) as string,
       });
-
-      // TODO Add taxonName, form landing.measurementValues[PmfmIds.TAXON_GROUP] ?
     }
 
-    // new data
+    // New data
     if (!data || isNil(data.id)) {
-      return titlePrefix + this.translateContext.instant(`SALE.NEW.TITLE`, i18nSuffix);
+      return (
+        titlePrefix +
+        this.translateContext.instant(`SALE.NEW.TITLE`, i18nSuffix, {
+          taxonGroup: referentialToString(this.defaultTaxonGroup) || '',
+        })
+      );
     }
 
     // Existing data
     return (
       titlePrefix +
       this.translateContext.instant(`SALE.EDIT.TITLE`, i18nSuffix, {
-        vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
+        vessel: data.vesselSnapshot?.exteriorMarking || data.vesselSnapshot?.name || '',
+        taxonGroup: referentialToString(this.defaultTaxonGroup) || '',
       })
     );
   }

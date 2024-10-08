@@ -28,6 +28,7 @@
       [matSortDirection]="defaultSortDirection"
       [dataSource]="dataSource"
       [trackBy]="trackByFn"
+      [style.--mat-column-actions-button-count]="allowSubBatches && !qvPmfm ? 2 : 1"
     >
       <!-- Group header: start -->
       <ng-container matColumnDef="top-start" [sticky]="sticky">
@@ -144,7 +145,7 @@
           @if (row.editing) {
             <mat-autocomplete-field
               floatLabel="never"
-              [class.min-width-medium]="qvPmfm"
+              panelClass="min-width-medium"
               [autofocus]="focusColumn === 'taxonGroup'"
               [formControl]="row.validator | formGetControl: 'taxonGroup'"
               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER' | translate"
@@ -166,7 +167,7 @@
           @if (row.editing) {
             <mat-autocomplete-field
               floatLabel="never"
-              class="min-width-medium"
+              panelClass="min-width-medium"
               [autofocus]="focusColumn === 'taxonName'"
               [formControl]="row.validator | formGetControl: 'taxonName'"
               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER' | translate"
@@ -180,80 +181,91 @@
       </ng-container>
 
       <!-- Dynamic columns -->
-      <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnFn; let index" [matColumnDef]="col.key">
-        <th mat-header-cell *matHeaderCellDef [class]="col.classList" [class.cdk-visually-hidden]="col.hidden" class="ion-text-center">
-          <mat-label>
-            <span>{{ col.label | translate }}</span>
-            <small *ngIf="col.unitLabel">
-              <br />
-              ({{ col.unitLabel }})
-            </small>
-          </mat-label>
-        </th>
-
-        <ng-container *matCellDef="let row">
-          <td
-            mat-cell
-            *ngVar="isComputed(col, row) as computed"
+      @for (col of dynamicColumns; track col.rankOrder; let index = $index) {
+        <ng-container [matColumnDef]="col.key">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
             [class]="col.classList"
-            [class.mat-mdc-cell-computed]="computed"
-            class="mat-mdc-cell-content-start-padding"
-            (click)="focusColumn = col.key"
+            [class.cdk-visually-hidden]="col.hidden"
+            [class.mat-mdc-cell-content-start-padding]="!qvPmfm"
+            [class.ion-text-center]="!!qvPmfm"
           >
-            @if (row.editing && row.validator | formGetControl: col.path; as control) {
-              @switch (col.type) {
-                @case ('pmfm') {
-                  <app-pmfm-field
-                    floatLabel="never"
-                    [pmfm]="col.pmfm"
-                    [formControl]="control"
-                    [autofocus]="focusColumn === col.key"
-                    [readonly]="computed"
-                    [tabindex]="computed && -1"
-                    [compact]="compactFields || col.pmfm?.type === 'boolean'"
-                    [panelClass]="'mat-select-panel-fit-content'"
-                  ></app-pmfm-field>
-                }
-                @case ('samplingRatio') {
-                  <mat-sampling-ratio-field
-                    floatLabel="never"
-                    [formControl]="control"
-                    [format]="samplingRatioFormat"
-                    [readonly]="computed"
-                    [autofocus]="focusColumn === col.key"
-                    [tabindex]="computed && -1"
-                  ></mat-sampling-ratio-field>
-                }
-                @default {
-                  <app-form-field
-                    floatLabel="never"
-                    [definition]="col"
-                    [readonly]="computed"
-                    [formControl]="control"
-                    [autofocus]="focusColumn === col.key"
-                    [tabindex]="computed && -1"
-                    [compact]="true"
-                  ></app-form-field>
-                }
-              }
-            } @else {
-              <ion-label>
+            <mat-label>
+              <span>{{ col.label | translate }}</span>
+              <small *ngIf="col.unitLabel">
+                <br />
+                ({{ col.unitLabel }})
+              </small>
+            </mat-label>
+          </th>
+
+          <ng-container *matCellDef="let row">
+            <td
+              mat-cell
+              *ngVar="isComputed(col, row) as computed"
+              class="mat-mdc-cell-content-start-padding"
+              [class]="col.classList"
+              [class.mat-mdc-cell-computed]="computed"
+              (click)="focusColumn = col.key"
+            >
+              @if (row.editing && row.validator | formGetControl: col.path; as control) {
                 @switch (col.type) {
                   @case ('pmfm') {
-                    <span [innerHTML]="row.validator | formGetValue: col.path | pmfmValue: { pmfm: col.pmfm, html: true }"></span>
+                    <app-pmfm-field
+                      floatLabel="never"
+                      [pmfm]="col.pmfm"
+                      [formControl]="control"
+                      [autofocus]="focusColumn === col.key"
+                      [readonly]="computed"
+                      [tabindex]="computed ? -1 : undefined"
+                      [compact]="compactFields || col.pmfm?.type === 'boolean'"
+                      panelClass="min-width-medium"
+                    ></app-pmfm-field>
                   }
                   @case ('samplingRatio') {
-                    {{ row.validator | formGetValue: col.path | samplingRatioFormat: samplingRatioFormat }}
+                    <mat-sampling-ratio-field
+                      floatLabel="never"
+                      [formControl]="control"
+                      [format]="samplingRatioFormat"
+                      [readonly]="computed"
+                      [autofocus]="focusColumn === col.key"
+                      [tabindex]="computed && -1"
+                    ></mat-sampling-ratio-field>
                   }
                   @default {
-                    {{ row.validator | formGetValue: col.path | numberFormat: { maximumFractionDigits: col.pmfm?.maximumNumberDecimals || 3 } }}
+                    <app-form-field
+                      floatLabel="never"
+                      [definition]="col"
+                      [readonly]="computed"
+                      [formControl]="control"
+                      [autofocus]="focusColumn === col.key"
+                      [tabindex]="computed && -1"
+                      [compact]="true"
+                    ></app-form-field>
                   }
                 }
-              </ion-label>
-            }
-          </td>
+              } @else {
+                <ion-label>
+                  @switch (col.type) {
+                    @case ('pmfm') {
+                      <span
+                        [innerHTML]="row.validator | formGetValue: col.path | pmfmValue: { pmfm: col.pmfm, html: true, showYesOrNo: true }"
+                      ></span>
+                    }
+                    @case ('samplingRatio') {
+                      {{ row.validator | formGetValue: col.path | samplingRatioFormat: samplingRatioFormat }}
+                    }
+                    @default {
+                      {{ row.validator | formGetValue: col.path | numberFormat: { maximumFractionDigits: col.pmfm?.maximumNumberDecimals || 3 } }}
+                    }
+                  }
+                </ion-label>
+              }
+            </td>
+          </ng-container>
         </ng-container>
-      </ng-container>
+      }
 
       <!-- Comment column -->
       <ng-container matColumnDef="comments">
@@ -374,16 +386,8 @@
       </ng-container>
 
       <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!inlineEdition">
-          <mat-checkbox
-            (change)="$event ? masterToggle() : null"
-            [checked]="selection.hasValue() && isAllSelected()"
-            [indeterminate]="selection.hasValue() && !isAllSelected()"
-          ></mat-checkbox>
-        </th>
-        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!inlineEdition">
-          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
-        </td>
+        <th mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></th>
+        <td mat-cell *matCellDef="let row" class="cdk-visually-hidden"></td>
       </ng-container>
 
       <!-- rankOrder Column = id -->
@@ -430,49 +434,58 @@
       </ng-container>
 
       <!-- Dynamic columns -->
-      <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnFn; index as index" [matColumnDef]="col.key">
-        <th mat-header-cell *matHeaderCellDef [class]="col.classList" [class.cdk-visually-hidden]="col.hidden" class="ion-text-center">
-          <mat-label>
-            <span>{{ col.label | translate }}</span>
-            <small *ngIf="col.unitLabel">
-              <br />
-              ({{ col.unitLabel }})
-            </small>
-          </mat-label>
-        </th>
-
-        <ng-container *matCellDef="let row">
-          <td
-            mat-cell
+      @for (col of dynamicColumns; track col.rankOrder; let index = $index) {
+        <ng-container [matColumnDef]="col.key">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
             [class]="col.classList"
-            [class.mat-mdc-cell-computed]="isComputed(col, row)"
-            class="mat-mdc-cell-content-start-padding"
-            *ngVar="row.currentData | propertyGet: col.path as colValue"
+            [class.cdk-visually-hidden]="col.hidden"
+            [class.mat-mdc-cell-content-start-padding]="!qvPmfm"
+            [class.ion-text-center]="!!qvPmfm"
           >
-            @if (colValue != null) {
-              @switch (col.type) {
-                @case ('pmfm') {
-                  <ion-label [innerHTML]="colValue | pmfmValue: { pmfm: col.pmfm, html: false }"></ion-label>
+            <mat-label>
+              <span>{{ col.label | translate }}</span>
+              <small *ngIf="col.unitLabel">
+                <br />
+                ({{ col.unitLabel }})
+              </small>
+            </mat-label>
+          </th>
+
+          <ng-container *matCellDef="let row">
+            <td
+              mat-cell
+              class="mat-mdc-cell-content-start-padding"
+              [class]="col.classList"
+              [class.mat-mdc-cell-computed]="isComputed(col, row)"
+              *ngVar="row.currentData | propertyGet: col.path as colValue"
+            >
+              @if (colValue != null) {
+                @switch (col.type) {
+                  @case ('pmfm') {
+                    <ion-label [innerHTML]="colValue | pmfmValue: { pmfm: col.pmfm, html: false }"></ion-label>
+                  }
+                  @case ('samplingRatio') {
+                    <ion-label>{{ colValue | samplingRatioFormat: samplingRatioFormat }}</ion-label>
+                  }
+                  @default {
+                    <ion-label>{{ colValue | numberFormat: { maximumFractionDigits: col.pmfm?.maximumNumberDecimals || 3 } }}</ion-label>
+                  }
                 }
-                @case ('samplingRatio') {
-                  <ion-label>{{ colValue | samplingRatioFormat: samplingRatioFormat }}</ion-label>
-                }
-                @default {
-                  <ion-label>{{ colValue | numberFormat: { maximumFractionDigits: col.pmfm?.maximumNumberDecimals || 3 } }}</ion-label>
-                }
+              } @else if (col.isWeight && !col.isSampling) {
+                <!-- If only individual count filled, display it -->
+                <ion-label *ngVar="row.currentData | propertyGet: ['children', col.qvIndex, 'individualCount']; let indivCount">
+                  @if (indivCount != null) {
+                    {{ indivCount | numberFormat }}
+                    {{ 'TRIP.BATCH.TABLE.INDIVIDUAL_UNIT' | translate }}
+                  }
+                </ion-label>
               }
-            } @else if (col.isWeight && !col.isSampling) {
-              <!-- If only individual count filled, display it -->
-              <ion-label *ngVar="row.currentData | propertyGet: ['children', col.qvIndex, 'individualCount']; let indivCount">
-                @if (indivCount != null) {
-                  {{ indivCount | numberFormat }}
-                  {{ 'TRIP.BATCH.TABLE.INDIVIDUAL_UNIT' | translate }}
-                }
-              </ion-label>
-            }
-          </td>
+            </td>
+          </ng-container>
         </ng-container>
-      </ng-container>
+      }
 
       <!-- Comment column -->
       <ng-container matColumnDef="comments">
@@ -517,15 +530,14 @@
     </div>-->
   }
 
-  @if (visibleRowCount === 0) {
+  @if (loadingSubject | async) {
+    <ion-item>
+      <ion-skeleton-text animated></ion-skeleton-text>
+    </ion-item>
+  } @else if (totalRowCount === 0) {
     <ion-item>
       <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
-      @if (!mobile && enabled) {
-        <ion-button color="medium" (click)="addRow()">
-          <ion-icon name="add" slot="start"></ion-icon>
-          <span translate>COMMON.BTN_ADD</span>
-        </ion-button>
-      }
+      <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
     </ion-item>
   }
 </div>
@@ -555,5 +567,14 @@
         assessment
       </mat-icon>
     </button>
+  }
+</ng-template>
+
+<ng-template #addRowButton>
+  @if (!mobile && enabled) {
+    <ion-button color="medium" (click)="addRow()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      <span translate>COMMON.BTN_ADD</span>
+    </ion-button>
   }
 </ng-template>

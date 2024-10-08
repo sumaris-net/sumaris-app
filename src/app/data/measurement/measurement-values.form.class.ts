@@ -3,7 +3,13 @@ import { combineLatestWith, merge, mergeMap, Observable } from 'rxjs';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from './measurement.validator';
 import { distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { IEntityWithMeasurement, MEASUREMENT_PMFM_ID_REGEXP, MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils } from './measurement.model';
+import {
+  IEntityWithMeasurement,
+  MEASUREMENT_PMFM_ID_REGEXP,
+  MEASUREMENT_VALUES_PMFM_ID_REGEXP,
+  MeasurementValuesTypes,
+  MeasurementValuesUtils,
+} from './measurement.model';
 import {
   AppFloatLabelType,
   AppForm,
@@ -562,7 +568,12 @@ export abstract class MeasurementValuesForm<
       // Reset measurement form (if exists)
       if (this._measurementValuesForm) {
         this.measurementsValidatorService.updateFormGroup(this._measurementValuesForm, { pmfms: [], emitEvent: opts?.emitEvent });
-        this._measurementValuesForm.reset({}, { onlySelf: true, emitEvent: false });
+        this._measurementValuesForm.reset(
+          {
+            __typename: MeasurementValuesTypes.MeasurementFormValue,
+          },
+          { onlySelf: true, emitEvent: false }
+        );
       }
     } else {
       // Create measurementValues form group

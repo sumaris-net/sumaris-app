@@ -1,7 +1,7 @@
 <app-toolbar [title]="'VESSEL.LIST.TITLE' | translate" color="primary" [canGoBack]="false">
   <ion-buttons slot="end">
     <ng-container *ngIf="!table.selection.hasValue(); else hasSelection">
-      <button mat-icon-button *ngIf="canEdit && !mobile" [title]="'COMMON.BTN_ADD' | translate" (click)="table.addRow()">
+      <button mat-icon-button *ngIf="!mobile && canEdit" [title]="'COMMON.BTN_ADD' | translate" (click)="table.addRow()">
         <mat-icon>add</mat-icon>
       </button>
 

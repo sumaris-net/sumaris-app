@@ -19,19 +19,20 @@
 
     <ion-col>
       <mat-form-field>
-        <mat-select
-          [formControl]="form | formGetControl: 'processingFrequencyId'"
-          [placeholder]="'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY' | translate"
-          required
-        >
+        <mat-label translate>EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY</mat-label>
+        <mat-select [formControl]="form | formGetControl: 'processingFrequencyId'" required>
           <mat-select-trigger>
-            <span *ngIf="form.controls.statusId.value &gt;= 0">
-              {{ frequenciesById[form.controls.processingFrequencyId.value]?.label | translate }}
-            </span>
+            @if (form.controls.statusId.value >= 0) {
+              <span>
+                {{ frequenciesById[form.controls.processingFrequencyId.value]?.label | translate }}
+              </span>
+            }
           </mat-select-trigger>
-          <mat-option *ngFor="let item of frequencyItems" [value]="item.id">
-            {{ item.label | translate }}
-          </mat-option>
+          @for (item of frequencyItems; track item.id) {
+            <mat-option [value]="item.id">
+              {{ item.label | translate }}
+            </mat-option>
+          }
         </mat-select>
         <mat-error *ngIf="form.controls.processingFrequencyId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
       </mat-form-field>
@@ -58,7 +59,8 @@
     <!-- sheet name -->
     <ion-col size-md="2" size="4">
       <mat-form-field>
-        <mat-select formControlName="sheetName" [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.SHEET_NAME' | translate" required>
+        <mat-label translate>EXTRACTION.AGGREGATION.EDIT.STRATA.SHEET_NAME</mat-label>
+        <mat-select formControlName="sheetName" required>
           <mat-option *ngFor="let sheetName of $sheetNames | async" [value]="sheetName">
             {{ 'EXTRACTION.SHEET.' + sheetName | translate }}
           </mat-option>
@@ -70,7 +72,8 @@
     <!-- time strata-->
     <ion-col size-md="1" size="4">
       <mat-form-field>
-        <mat-select formControlName="timeColumnName" [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.TIME_COLUMN' | translate" required>
+        <mat-label translate>EXTRACTION.AGGREGATION.EDIT.STRATA.TIME_COLUMN</mat-label>
+        <mat-select formControlName="timeColumnName" required>
           <mat-option *ngFor="let item of $timeColumns | async | mapGet: strataForm.controls.sheetName.value" [value]="item.columnName">
             {{ item.name }}
           </mat-option>
@@ -82,7 +85,8 @@
     <!-- space strata-->
     <ion-col size-md="2" size="4">
       <mat-form-field>
-        <mat-select formControlName="spatialColumnName" [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.SPACE_COLUMN' | translate" required>
+        <mat-label translate>EXTRACTION.AGGREGATION.EDIT.STRATA.SPACE_COLUMN</mat-label>
+        <mat-select formControlName="spatialColumnName" required>
           <mat-option *ngFor="let item of $spatialColumns | async | mapGet: strataForm.controls.sheetName.value" [value]="item.columnName">
             {{ item.name }}
           </mat-option>
@@ -94,7 +98,8 @@
     <!-- agg strata-->
     <ion-col size-md="2" size="4">
       <mat-form-field>
-        <mat-select formControlName="aggColumnName" [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_COLUMN' | translate" required>
+        <mat-label translate>EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_COLUMN</mat-label>
+        <mat-select formControlName="aggColumnName" required>
           <mat-option *ngFor="let item of $aggColumns | async | mapGet: strataForm.controls.sheetName.value" [value]="item.columnName">
             {{ item.name }}
           </mat-option>
@@ -106,7 +111,8 @@
     <!-- agg function -->
     <ion-col size-md="2" size="4">
       <mat-form-field>
-        <mat-select formControlName="aggFunction" [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_FUNCTION' | translate" required>
+        <mat-label translate>EXTRACTION.AGGREGATION.EDIT.STRATA.AGG_FUNCTION</mat-label>
+        <mat-select formControlName="aggFunction" required>
           <mat-option *ngFor="let item of aggFunctions" [value]="item.value">{{ item.name | translate }}</mat-option>
         </mat-select>
         <mat-error *ngIf="strataForm.controls.aggFunction.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -116,7 +122,8 @@
     <!-- tech strata-->
     <ion-col size-md="" size="4">
       <mat-form-field>
-        <mat-select formControlName="techColumnName" [placeholder]="'EXTRACTION.AGGREGATION.EDIT.STRATA.TECH_COLUMN' | translate">
+        <mat-label translate>EXTRACTION.AGGREGATION.EDIT.STRATA.TECH_COLUMN</mat-label>
+        <mat-select formControlName="techColumnName">
           <mat-option *ngFor="let item of $techColumns | async | mapGet: strataForm.controls.sheetName.value" [value]="item.columnName">
             {{ item.name }}
           </mat-option>
@@ -126,7 +133,7 @@
     </ion-col>
 
     <!-- actions buttons -->
-    <ion-col size-md="auto" size="12" class="ion-align-self-center">
+    <ion-col size-md="auto" size="12">
       <button mat-icon-button *ngIf="last" (click)="stratumFormArray.add()">
         <mat-icon>add</mat-icon>
       </button>

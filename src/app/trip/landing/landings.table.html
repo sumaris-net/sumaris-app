@@ -181,7 +181,7 @@
     [matSortDirection]="defaultSortDirection"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit || (mobile && !showToolbar)">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -191,7 +191,7 @@
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit || (mobile && !showToolbar)">
         <mat-checkbox
-          [class.cdk-visually-hidden]="row | check: isRowNotSelectable"
+          [class.cdk-visually-hidden]="row | asBoolean: isRowNotSelectable"
           (click)="toggleSelectRow($event, row)"
           [checked]="selection.isSelected(row)"
         ></mat-checkbox>
@@ -200,11 +200,11 @@
 
     <!-- rankOrder Column = id -->
     <ng-container matColumnDef="id" [sticky]="sticky">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="!canEdit || mobile">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile || !canEdit">
         <ion-label>#</ion-label>
       </th>
       <ng-container *matCellDef="let row">
-        <td mat-cell [class.ion-padding-start]="!canEdit || mobile" [title]="errorSpan.innerText || ''">
+        <td mat-cell [class.ion-padding-start]="mobile || !canEdit" [title]="errorSpan.innerText || ''">
           <ion-label
             matBadge="!"
             [matBadgeHidden]="!showRowError || (errorSpan.innerText | isNilOrBlank)"
@@ -212,7 +212,7 @@
             matBadgeColor="accent"
             matBadgeSize="small"
           >
-            @if (row.currentData.rankOrder && (row | check: isRowNotSelectable)) {
+            @if (row.currentData.rankOrder && (row | asBoolean: isRowNotSelectable)) {
               <!-- Offset on RANDOM landings -->
               {{ row.currentData.rankOrder - randomLandingsRankOrderOffset }}
             } @else {
@@ -425,7 +425,7 @@
     </ng-container>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || singleSelectedRow">
+    <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)">
       <th mat-header-cell *matHeaderCellDef>
         <!-- option menu -->
         <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
@@ -505,7 +505,7 @@
       [class.mat-mdc-row-error]="row.validator?.invalid"
       [class.mat-mdc-row-dirty]="row.validator?.dirty"
       [class.mat-mdc-row-disabled]="!row.editing"
-      [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
       [class.cdk-visually-hidden]="loadingSubject | async"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
@@ -534,18 +534,16 @@
     </ng-container>
   </table>
 
-  <ng-container *ngIf="loadingSubject | async; else noResult">
+  @if (loadingSubject | async) {
     <ion-item>
       <ion-skeleton-text animated></ion-skeleton-text>
     </ion-item>
-  </ng-container>
-
-  <ng-template #noResult>
-    <ion-item *ngIf="totalRowCount === 0">
+  } @else if (totalRowCount === 0) {
+    <ion-item>
       <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
       <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
     </ion-item>
-  </ng-template>
+  }
 </div>
 
 <ion-footer *ngIf="showPaginator">

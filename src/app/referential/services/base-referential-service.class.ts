@@ -4,10 +4,14 @@ import { FetchPolicy } from '@apollo/client/core';
 import { SortDirection } from '@angular/material/sort';
 
 import {
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
+  BaseEntityGraphqlSubscriptions,
   BaseEntityService,
   BaseEntityServiceOptions,
+  EntitiesServiceLoadOptions,
+  EntitiesServiceWatchOptions,
   EntityServiceLoadOptions,
-  EntityServiceWatchOptions,
   GraphqlService,
   IEntityService,
   IReferentialRef,
@@ -19,11 +23,6 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Directive, Injector } from '@angular/core';
 import { IReferentialFilter } from './filter/referential.filter';
-import {
-  BaseEntityGraphqlMutations,
-  BaseEntityGraphqlQueries,
-  BaseEntityGraphqlSubscriptions,
-} from '@sumaris-net/ngx-components/src/app/core/services/base-entity-service.class';
 
 export const TEXT_SEARCH_IGNORE_CHARS_REGEXP = /[ \t-*]+/g;
 
@@ -55,8 +54,8 @@ export abstract class BaseReferentialService<
     T extends IReferentialRef<T, ID>,
     F extends IReferentialFilter<F, T, ID>,
     ID = number,
-    WO extends EntityServiceWatchOptions = EntityServiceWatchOptions,
-    LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
+    WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
+    LO extends EntitiesServiceLoadOptions = EntitiesServiceLoadOptions,
     Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
     M extends BaseEntityGraphqlMutations = BaseEntityGraphqlMutations,
     S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions,
@@ -99,8 +98,8 @@ export abstract class BaseReferentialService<
     const query = (opts && opts.query) || this.queries.load;
     if (!query) {
       if (!this.queries.loadAll) throw new Error('Not implemented');
-      const data = await this.loadAll(0, 1, null, null, { id } as unknown as F, opts);
-      return data && data[0];
+      const { data } = await this.loadAll(0, 1, null, null, { id } as unknown as F, { ...opts, withTotal: false });
+      return data?.[0];
     }
     return super.load(id, opts);
   }

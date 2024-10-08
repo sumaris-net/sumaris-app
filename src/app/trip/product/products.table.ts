@@ -331,10 +331,6 @@ export class ProductsTable
     });
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
   private onStartEditProduct(row: TableElement<Product>) {
     if (row.currentData && !row.currentData.parent) {
       if (this.filter?.parent) {

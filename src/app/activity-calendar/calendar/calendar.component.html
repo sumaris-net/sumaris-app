@@ -1,16 +1,17 @@
 <!-- DEBUG -->
-<ng-container *ngIf="debug">
+@if (debug) {
   <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
-</ng-container>
+}
 
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
   <!-- Compact mode -->
   <button mat-menu-item (click)="toggleCompactMode()">
-    <mat-icon *ngIf="compact; else disabledIcon">check_box</mat-icon>
-    <ng-template #disabledIcon>
+    @if (compact) {
+      <mat-icon>check_box</mat-icon>
+    } @else {
       <mat-icon>check_box_outline_blank</mat-icon>
-    </ng-template>
+    }
     <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
   </button>
 </mat-menu>
@@ -21,6 +22,12 @@
 <!-- Cell contextual menu  -->
 <mat-menu #contextMenu="matMenu" class="context-menu ion-no-padding" [hasBackdrop]="disabled">
   <ng-template matMenuContent>
+    @if (enabled) {
+      <button mat-menu-item (click)="cut()" [disabled]="!cellSelection">
+        <mat-icon>content_cut</mat-icon>
+        <ion-label translate>COMMON.BTN_CUT</ion-label>
+      </button>
+    }
     <button mat-menu-item (click)="copy()" [disabled]="!cellSelection">
       <mat-icon>content_copy</mat-icon>
       <ion-label translate>COMMON.BTN_COPY</ion-label>
@@ -94,7 +101,12 @@
             <mat-icon>content_copy</mat-icon>
           </button>
         } @else {
-          <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COPY_PASTE_ALL' | translate" [matMenuTriggerFor]="optionsMenuCopyPaste">
+          <button
+            mat-icon-button
+            [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COPY_PASTE_ALL' | translate"
+            [matMenuTriggerFor]="optionsMenuCopyPaste"
+            [matMenuTriggerRestoreFocus]="false"
+          >
             <mat-icon>content_copy</mat-icon>
           </button>
 
@@ -193,10 +205,12 @@
       [class.cdk-visually-hidden]="totalRowCount === 0"
     >
       <!-- hidden columns (required by AppTable) -->
-      <ng-container *ngFor="let col of hiddenColumns" [matColumnDef]="col">
-        <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
-        <mat-cell *matCellDef="let row" class="cdk-visually-hidden"></mat-cell>
-      </ng-container>
+      @for (col of hiddenColumns; track col) {
+        <ng-container [matColumnDef]="col">
+          <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></mat-header-cell>
+          <mat-cell *matCellDef="let row" class="cdk-visually-hidden"></mat-cell>
+        </ng-container>
+      }
 
       <ng-container matColumnDef="month" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
         <mat-header-cell *matHeaderCellDef [class.toolbar-background-color]="!showToolbar">
@@ -230,7 +244,11 @@
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            {{ row | activityMonthRowError: errorTranslateOptions }}
+            @if (row.currentData.qualificationComments | isNilOrBlank) {
+              {{ row | activityMonthRowError: errorTranslateOptions }}
+            } @else {
+              {{ row.currentData.qualificationComments }}
+            }
           </span>
         </mat-header-cell>
       </ng-container>
@@ -293,14 +311,15 @@
       </ng-container>
 
       <ng-container matColumnDef="isActive">
-        <mat-header-cell *matHeaderCellDef (click)="clickColumnHeader($event, 'isActive')">
+        <mat-header-cell *matHeaderCellDef (click)="selectMonth($event, 'isActive')">
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.IS_ACTIVE</ion-label>
         </mat-header-cell>
         <mat-cell
           *matCellDef="let row"
           class="mat-mdc-cell-resizable"
           #cell
-          (click)="setFocusColumn($event, row, 'isActive')"
+          (click)="clickCell($event, row, 'isActive')"
+          (dblclick)="dblClickCell($event, row, 'isActive')"
           (contextmenu)="onContextMenu($event, cell, row, 'isActive')"
         >
           @if (row.editing && row.validator | formGetControl: 'isActive'; as control) {
@@ -309,6 +328,7 @@
                 [formControl]="control"
                 [placeholder]="'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate"
                 [autofocus]="focusColumn === 'isActive'"
+                (keyup.enter)="confirmEditCell($event, row, 'isActive')"
               >
                 <mat-select-trigger>
                   {{ isActiveMap[control.value]?.label | translate }}
@@ -322,7 +342,9 @@
                   }
                 }
               </mat-select>
-              <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+              @if (control.hasError('required')) {
+                <mat-error translate>ERROR.FIELD_REQUIRED</mat-error>
+              }
             </mat-form-field>
           } @else {
             {{ isActiveMap[row.currentData.isActive]?.label | translate }}
@@ -331,7 +353,7 @@
           <!-- resize handlers -->
           @if (enableCellSelection) {
             <ng-container
-              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false }"
+              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false, enabled: this.enabled }"
             ></ng-container>
           }
         </mat-cell>
@@ -339,14 +361,15 @@
 
       <!-- Base port location -->
       <ng-container matColumnDef="basePortLocation">
-        <mat-header-cell *matHeaderCellDef class="odd" (click)="clickColumnHeader($event, 'basePortLocation')">
+        <mat-header-cell *matHeaderCellDef class="odd" (click)="selectMonth($event, 'basePortLocation')">
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION</ion-label>
         </mat-header-cell>
         <mat-cell
           *matCellDef="let row"
           class="odd mat-mdc-cell-resizable"
           #cell
-          (click)="setFocusColumn($event, row, 'basePortLocation')"
+          (click)="clickCell($event, row, 'basePortLocation')"
+          (dblclick)="dblClickCell($event, row, 'basePortLocation')"
           (contextmenu)="onContextMenu($event, cell, row, 'basePortLocation')"
         >
           @if (row.editing) {
@@ -356,6 +379,7 @@
               [placeholder]="'ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION' | translate"
               [autofocus]="focusColumn === 'basePortLocation'"
               [floatLabel]="'never'"
+              (keyup.enter)="confirmEditCell($event, row, 'basePortLocation')"
             ></mat-autocomplete-field>
           } @else {
             @if (row.currentData.basePortLocation | referentialToString: locationDisplayAttributes; as label) {
@@ -366,20 +390,23 @@
           <!-- resize handlers -->
           @if (enableCellSelection) {
             <ng-container
-              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false }"
+              *ngTemplateOutlet="
+                cellHandlers;
+                context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false, enabled: this.enabled }
+              "
             ></ng-container>
           }
         </mat-cell>
       </ng-container>
 
       <!-- Pmfms columns -->
-      @for (pmfm of pmfms; track trackPmfmFn; let index = $index; let odd = $odd) {
+      @for (pmfm of pmfms; track pmfm.id; let index = $index; let odd = $odd) {
         <ng-container [matColumnDef]="pmfm.id || index | toString">
           <mat-header-cell
             *matHeaderCellDef
             class="mat-column-pmfm mat-column-{{ pmfm.label }}"
             [class.odd]="odd"
-            (click)="clickColumnHeader($event, pmfm.id || index)"
+            (click)="selectMonth($event, pmfm.id || index)"
           >
             <ion-label
               [innerHTML]="
@@ -400,7 +427,8 @@
             *matCellDef="let row"
             class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-resizable"
             [class.odd]="odd"
-            (click)="setFocusColumn($event, row, (pmfm.id || index).toString())"
+            (click)="clickCell($event, row, (pmfm.id || index).toString())"
+            (dblclick)="dblClickCell($event, row, (pmfm.id || index).toString())"
             (contextmenu)="onContextMenu($event, cell, row, (pmfm.id || index).toString())"
           >
             <!-- desktop -->
@@ -415,6 +443,7 @@
                   [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
                   [autofocus]="focusColumn == (pmfm.id || index)"
                   [compact]="compactFields"
+                  (keyup.enter)="confirmEditCell($event, row, (pmfm.id || index).toString())"
                 ></app-pmfm-field>
               } @else {
                 <!-- readonly (desktop) -->
@@ -431,7 +460,10 @@
             <!-- resize handlers -->
             @if (enableCellSelection) {
               <ng-container
-                *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false }"
+                *ngTemplateOutlet="
+                  cellHandlers;
+                  context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false, enabled: this.enabled }
+                "
               ></ng-container>
             }
           </mat-cell>
@@ -439,14 +471,14 @@
       }
 
       <!-- Dynamic columns (metier block) -->
-      <ng-container *ngFor="let col of dynamicColumns">
+      @for (col of dynamicColumns; track col.key) {
         <ng-container [matColumnDef]="col.key">
           <mat-header-cell
             *matHeaderCellDef
             [class]="col.class"
             [class.collapsed]="col.hidden"
             [class.tappable]="col.expanded !== undefined"
-            (click)="clickColumnHeader($event, col.key)"
+            (click)="selectMonth($event, col.key)"
           >
             <ion-label>
               @if (col.treeIndent) {
@@ -466,7 +498,8 @@
             [class]="col.class"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
-            (click)="col.hidden ? col.expand($event) : setFocusColumn($event, row, col.key)"
+            (click)="col.hidden ? col.expand($event) : clickCell($event, row, col.key)"
+            (dblclick)="!col.hidden && dblClickCell($event, row, col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
           >
             <!-- Desktop -->
@@ -479,6 +512,7 @@
                   [config]="col.autocomplete"
                   [autofocus]="focusColumn === col.key"
                   [floatLabel]="'never'"
+                  (keyup.enter)="confirmEditCell($event, row, col.key)"
                 ></mat-autocomplete-field>
               } @else {
                 @if (control | formGetValue | referentialToString: col.autocomplete.attributes; as label) {
@@ -497,29 +531,24 @@
             }
           </mat-cell>
         </ng-container>
-      </ng-container>
+      }
 
       <!-- Actions -->
-      <app-actions-column
-        [stickyEnd]="stickyEnd"
+      <app-nav-actions-column
         [style]="'mat-table'"
-        class="mat-column-reset-background-color"
-        (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
-        (backward)="confirmAndBackward($event.event, $event.row)"
-        (forward)="confirmAndForward($event.event, $event.row)"
-        [dirtyIcon]="true"
+        class="{{ inlineEdition ? 'mat-column-reset-background-color' : 'cdk-visually-hidden' }}"
         [cellTemplate]="cellInjection"
       >
         <ng-template #cellInjection let-row>
           @if (inlineEdition && _enabled && !row.pending) {
-            <!-- cancel button -->
+            <!-- cancel button
             @if (row.editing && row.dirty) {
               <button mat-icon-button [title]="'COMMON.BTN_CANCEL' | translate" (click)="cancelOrDelete($event, row)" tabIndex="-1">
                 <mat-icon>undo</mat-icon>
               </button>
-            }
+            }-->
 
-            @if ((row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL) {
+            @if ((row | propertyGet: 'currentData.qualityFlagId') === qualityFlagId.CONFLICTUAL) {
               <!-- solve conflict button -->
               <button
                 mat-icon-button
@@ -559,7 +588,7 @@
             }
           }
         </ng-template>
-      </app-actions-column>
+      </app-nav-actions-column>
 
       <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
       <mat-row
@@ -573,21 +602,18 @@
         [class]="row.validator | formGetValue: 'program' | mapGet: 'label'"
         [class.readonly]="(row.validator | formGetValue: 'readonly') === true"
         [class.duplicated]="(row.validator | formGetValue: 'qualityFlagId') === qualityFlagId.CONFLICTUAL"
-        (keydown.escape)="escapeEditingRow($event)"
-        [cdkTrapFocus]="!row.valid"
-        (click)="clickRow($event, row)"
-        (dblclick)="dblClickRow($event, row)"
+        (keydown.escape)="escapeEditingRow($event, row)"
       ></mat-row>
     </mat-table>
+
+    @if (totalRowCount === 0 && loaded) {
+      <ion-item>
+        <ion-text color="danger" class="text-italic">{{ 'COMMON.NO_RESULT' | translate }}</ion-text>
+      </ion-item>
+    }
   </div>
 
-  @if (totalRowCount === 0 && loaded) {
-    <ion-item>
-      <ion-text color="danger" class="text-italic">{{ 'COMMON.NO_RESULT' | translate }}</ion-text>
-    </ion-item>
-  }
-
-  <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y">
+  <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y" let-enabled="enabled">
     @if (x !== false && enabled) {
       <div class="resize-handle-left" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
       <div class="resize-handle-right" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
@@ -691,11 +717,13 @@
           dataService.pmfms: {{ (_dataService.pmfms$ | push)?.length }}
         </ion-col>
       </ion-row>
-      <ion-row *ngIf="showDebugValue">
-        <ion-col size="12">
-          <pre>{{ value | json }}</pre>
-        </ion-col>
-      </ion-row>
+      @if (showDebugValue) {
+        <ion-row>
+          <ion-col size="12">
+            <pre>{{ value | json }}</pre>
+          </ion-col>
+        </ion-row>
+      }
     </ion-grid>
   </app-debug>
 </ng-template>

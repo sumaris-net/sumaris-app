@@ -226,7 +226,7 @@
     <ng-template mat-tab-label>
       <mat-icon>assessment</mat-icon>
       <ion-label
-        [matBadge]="subBatchesTable.visibleRowCount"
+        [matBadge]="subBatchesTable.visibleRowCount | badgeNumber"
         [matBadgeHidden]="subBatchesTable.invalid || !subBatchesTable.visibleRowCount"
         matBadgeOverlap="false"
         matBadgeColor="primary"

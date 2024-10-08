@@ -71,8 +71,8 @@
     [trackBy]="trackByFn"
   >
     <!-- Select checkbox -->
-    <ng-container matColumnDef="select" [sticky]="sticky">
-      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
+      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
           [checked]="selection.hasValue() && isAllSelected()"
@@ -80,7 +80,7 @@
           [tabindex]="-1"
         ></mat-checkbox>
       </th>
-      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || !canEdit">
         <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabindex]="-1"></mat-checkbox>
       </td>
     </ng-container>
@@ -114,63 +114,64 @@
         </ng-template>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn = 'parent'">
-        <mat-autocomplete-field
-          *ngIf="row.editing; else readonlyCell"
-          floatLabel="never"
-          class="min-width-medium"
-          [autofocus]="focusColumn === 'parent'"
-          [formControl]="row.validator | formGetControl: 'parent'"
-          [placeholder]="'TRIP.SAMPLE.TABLE.PARENT' | translateContext: i18nColumnSuffix"
-          [config]="autocompleteFields.parent"
-          required
-        ></mat-autocomplete-field>
-
-        <!-- readonly value-->
-        <ng-template #readonlyCell>
+        @if (row.editing) {
+          <mat-autocomplete-field
+            floatLabel="never"
+            panelClass="min-width-large"
+            [autofocus]="focusColumn === 'parent'"
+            [formControl]="row.validator | formGetControl: 'parent'"
+            [placeholder]="'TRIP.SAMPLE.TABLE.PARENT' | translateContext: i18nColumnSuffix"
+            [config]="autocompleteFields.parent"
+            required
+          ></mat-autocomplete-field>
+        } @else {
+          <!-- readonly value-->
           <ion-label [innerHTML]="row.currentData.parent | displayWith: autocompleteFields.parent.displayWith"></ion-label>
-        </ng-template>
+        }
       </td>
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as index" [matColumnDef]="pmfm | pmfmIdString">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
-        <ion-label
-          [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nColumnSuffix }"
-        ></ion-label>
-      </th>
-      <td
-        mat-cell
-        *matCellDef="let row"
-        class="mat-column-pmfm mat-column-{{ pmfm.label }}"
-        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
-        (click)="focusColumn = pmfm.id.toString()"
-      >
-        @if (row.editing) {
-          <app-pmfm-field
-            floatLabel="never"
-            [pmfm]="pmfm"
-            [i18nPrefix]="i18nPmfmPrefix"
-            [i18nSuffix]="i18nColumnSuffix"
-            [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-            [autofocus]="focusColumn == pmfm.id"
-            [defaultLatitudeSign]="defaultLatitudeSign"
-            [defaultLongitudeSign]="defaultLongitudeSign"
-            [compact]="compactFields"
-            panelClass="mat-select-panel-fit-content"
-          ></app-pmfm-field>
-        } @else {
-          <!-- readonly value-->
+    @for (pmfm of pmfms; track pmfm.id; let index = $index) {
+      <ng-container [matColumnDef]="pmfm | pmfmIdString">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
           <ion-label
-            [innerHTML]="
-              row.validator
-                | formGetValue: ['measurementValues', pmfm.id]
-                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
-            "
+            [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nColumnSuffix }"
           ></ion-label>
-        }
-      </td>
-    </ng-container>
+        </th>
+        <td
+          mat-cell
+          *matCellDef="let row"
+          class="mat-column-pmfm mat-column-{{ pmfm.label }}"
+          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+          (click)="focusColumn = pmfm.id.toString()"
+        >
+          @if (row.editing) {
+            <app-pmfm-field
+              floatLabel="never"
+              [pmfm]="pmfm"
+              [i18nPrefix]="i18nPmfmPrefix"
+              [i18nSuffix]="i18nColumnSuffix"
+              [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+              [autofocus]="focusColumn == pmfm.id"
+              [defaultLatitudeSign]="defaultLatitudeSign"
+              [defaultLongitudeSign]="defaultLongitudeSign"
+              [compact]="compactFields"
+              panelClass="mat-select-panel-fit-content"
+            ></app-pmfm-field>
+          } @else {
+            <!-- readonly value-->
+            <ion-label
+              [innerHTML]="
+                row.validator
+                  | formGetValue: ['measurementValues', pmfm.id]
+                  | pmfmValue: { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
+              "
+            ></ion-label>
+          }
+        </td>
+      </ng-container>
+    }
 
     <!-- Comment column -->
     <ng-container matColumnDef="comments">
@@ -229,8 +230,8 @@
       [matSortDirection]="defaultSortDirection"
       [trackBy]="trackByFn"
     >
-      <ng-container matColumnDef="select" [sticky]="sticky">
-        <th mat-header-cell [class.cdk-visually-hidden]="mobile" *matHeaderCellDef>
+      <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
+        <th mat-header-cell [class.cdk-visually-hidden]="mobile || !canEdit" *matHeaderCellDef>
           <mat-checkbox
             (change)="$event ? masterToggle() : null"
             [checked]="selection.hasValue() && isAllSelected()"
@@ -238,7 +239,7 @@
             [tabindex]="-1"
           ></mat-checkbox>
         </th>
-        <td mat-cell [class.cdk-visually-hidden]="mobile" *matCellDef="let row">
+        <td mat-cell [class.cdk-visually-hidden]="mobile || !canEdit" *matCellDef="let row">
           <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabindex]="-1"></mat-checkbox>
         </td>
       </ng-container>
@@ -347,10 +348,16 @@
     </table>
   </ng-template>
 
-  <ion-item *ngIf="totalRowCount === 0">
-    <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
-    <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
-  </ion-item>
+  @if (loadingSubject | async) {
+    <ion-item>
+      <ion-skeleton-text animated></ion-skeleton-text>
+    </ion-item>
+  } @else if (totalRowCount === 0) {
+    <ion-item>
+      <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+      <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
+    </ion-item>
+  }
 </div>
 
 <ng-template #addRowButton>

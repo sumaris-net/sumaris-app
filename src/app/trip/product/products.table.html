@@ -56,7 +56,7 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || readOnly">
-        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
       </td>
     </ng-container>
 
@@ -76,21 +76,21 @@
         <ion-label translate>TRIP.PRODUCT.LIST.PARENT</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-autocomplete-field
-          *ngIf="inlineEdition; else readOnly"
-          floatLabel="never"
-          class="min-width-large ion-text-wrap"
-          [autofocus]="row.id === -1 && row.editing && !row.currentData.parent"
-          [formControl]="row.validator.controls.parent"
-          [placeholder]="'TRIP.PRODUCT.LIST.PARENT' | translate"
-          [config]="autocompleteFields.parent"
-          required
-        ></mat-autocomplete-field>
-        <ng-template #readOnly>
+        @if (row.editing) {
+          <mat-autocomplete-field
+            floatLabel="never"
+            panelClass="min-width-large ion-text-wrap"
+            [autofocus]="row.id === -1 && row.editing && !row.currentData.parent"
+            [formControl]="row.validator.controls.parent"
+            [placeholder]="'TRIP.PRODUCT.LIST.PARENT' | translate"
+            [config]="autocompleteFields.parent"
+            required
+          ></mat-autocomplete-field>
+        } @else {
           <ion-label>
             {{ row.currentData.parent | referentialToString: autocompleteFields.parent.attributes }}
           </ion-label>
-        </ng-template>
+        }
       </td>
     </ng-container>
 
@@ -112,21 +112,21 @@
         <ion-label translate>TRIP.PRODUCT.LIST.TAXON_GROUP</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-autocomplete-field
-          *ngIf="inlineEdition; else readOnly"
-          floatLabel="never"
-          class="min-width-large ion-text-wrap"
-          [autofocus]="row.id === -1 && row.editing && !!row.currentData.parent"
-          [formControl]="row.validator.controls.taxonGroup"
-          [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP' | translate"
-          required
-          [config]="autocompleteFields.taxonGroup"
-        ></mat-autocomplete-field>
-        <ng-template #readOnly>
+        @if (row.editing) {
+          <mat-autocomplete-field
+            floatLabel="never"
+            panelClass="min-width-large ion-text-wrap"
+            [autofocus]="row.id === -1 && row.editing && !!row.currentData.parent"
+            [formControl]="row.validator.controls.taxonGroup"
+            [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP' | translate"
+            required
+            [config]="autocompleteFields.taxonGroup"
+          ></mat-autocomplete-field>
+        } @else {
           <ion-label>
             {{ row.currentData.taxonGroup | referentialToString: autocompleteFields.taxonGroup.attributes }}
           </ion-label>
-        </ng-template>
+        }
       </td>
     </ng-container>
 
@@ -136,18 +136,19 @@
         <ion-label translate>TRIP.PRODUCT.LIST.WEIGHT</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-form-field *ngIf="inlineEdition; else readOnly" floatLabel="never">
-          <input
-            matInput
-            autocomplete="off"
-            [formControl]="row.validator.controls.weight"
-            type="number"
-            [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT' | translate"
-          />
-        </mat-form-field>
-        <ng-template #readOnly>
+        @if (row.editing) {
+          <mat-form-field>
+            <input
+              matInput
+              autocomplete="off"
+              [formControl]="row.validator.controls.weight"
+              type="number"
+              [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT' | translate"
+            />
+          </mat-form-field>
+        } @else {
           <ion-label>{{ row.currentData.weight }}</ion-label>
-        </ng-template>
+        }
       </td>
     </ng-container>
 
@@ -157,18 +158,19 @@
         <ion-label translate>TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-form-field *ngIf="inlineEdition; else readOnly" floatLabel="never">
-          <input
-            matInput
-            autocomplete="off"
-            [formControl]="row.validator.controls.individualCount"
-            type="number"
-            [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT' | translate"
-          />
-        </mat-form-field>
-        <ng-template #readOnly>
+        @if (row.editing) {
+          <mat-form-field>
+            <input
+              matInput
+              autocomplete="off"
+              [formControl]="row.validator.controls.individualCount"
+              type="number"
+              [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT' | translate"
+            />
+          </mat-form-field>
+        } @else {
           <ion-label>{{ row.currentData.individualCount }}</ion-label>
-        </ng-template>
+        }
       </td>
     </ng-container>
 
@@ -188,11 +190,11 @@
         @if (row.editing) {
           <app-pmfm-field
             floatLabel="never"
+            panelClass="min-width-large ion-text-wrap"
             [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
             [autofocus]="focusColumn == pmfm.id"
             [pmfm]="pmfm"
             [compact]="compactFields"
-            panelClass="mat-select-panel-fit-content"
           ></app-pmfm-field>
         } @else {
           <!-- readonly value-->
@@ -220,7 +222,17 @@
       (optionsClick)="openSelectColumnsModal($event)"
     >
       <ng-template #cellTemplate let-row>
-        <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+        @if (selection | isNotEmptySelection) {
+          <!-- delete  -->
+          <button
+            mat-icon-button
+            *ngIf="mobile && enabled && singleSelectedRow === row"
+            [title]="'COMMON.BTN_DELETE' | translate"
+            (click)="cancelOrDelete($event, row)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        } @else if (showActionButtons) {
           <!-- sampling -->
           <button
             mat-icon-button
@@ -231,7 +243,7 @@
             [hidden]="readOnly"
           >
             <mat-icon
-              [matBadge]="row.currentData.samples?.length"
+              [matBadge]="row.currentData.samples?.length | badgeNumber"
               [matBadgeHidden]="row.currentData.samples | isEmptyArray"
               matBadgeColor="accent"
               matBadgeSize="small"
@@ -251,7 +263,7 @@
             [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined"
           >
             <mat-icon
-              [matBadge]="row.currentData.saleProducts?.length"
+              [matBadge]="row.currentData.saleProducts?.length | badgeNumber"
               [matBadgeHidden]="row.currentData.saleProducts | isEmptyArray"
               matBadgeColor="accent"
               matBadgeSize="small"
@@ -260,19 +272,7 @@
               local_offer
             </mat-icon>
           </button>
-        </ng-container>
-
-        <ng-template #hasSelection>
-          <!-- delete  -->
-          <button
-            mat-icon-button
-            *ngIf="mobile && enabled && singleSelectedRow === row"
-            [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="cancelOrDelete($event, row)"
-          >
-            <mat-icon>delete</mat-icon>
-          </button>
-        </ng-template>
+        }
       </ng-template>
     </app-actions-column>
 
@@ -284,23 +284,22 @@
       [class.mat-mdc-row-dirty]="row.validator.dirty"
       [class.mat-mdc-row-disabled]="!row.editing"
       [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+      (keydown.escape)="escapeEditingRow($event)"
       (click)="clickRow($event, row)"
       (press)="pressRow($event, row)"
     ></tr>
   </table>
 
-  <ng-container *ngIf="loadingSubject | async; else noResult">
+  @if (loadingSubject | async) {
     <ion-item>
       <ion-skeleton-text animated></ion-skeleton-text>
     </ion-item>
-  </ng-container>
-
-  <ng-template #noResult>
-    <ion-item *ngIf="totalRowCount === 0">
+  } @else if (totalRowCount === 0) {
+    <ion-item>
       <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
       <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
     </ion-item>
-  </ng-template>
+  }
 </div>
 
 <ng-template #addRowButton>

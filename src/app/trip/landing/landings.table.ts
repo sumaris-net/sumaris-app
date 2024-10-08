@@ -116,12 +116,6 @@ export class LandingsTable
   protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
     return this.isSaleDetailEditor && !this.isLandingPets(item);
   };
-
-  readonly filterForm: UntypedFormGroup = this.formBuilder.group({
-    observedLocationId: [null],
-    dataQualityStatus: [null],
-  });
-
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
   @Output() openSale = new EventEmitter<TableElement<Landing>>();
@@ -299,6 +293,10 @@ export class LandingsTable
         requiredGear: false,
         acquisitionLevel: AcquisitionLevelCodes.LANDING,
       },
+    });
+    this.filterForm = this.formBuilder.group({
+      observedLocationId: [null],
+      dataQualityStatus: [null],
     });
 
     this.readOnly = false; // Allow deletion

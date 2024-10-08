@@ -1,4 +1,4 @@
-import { arrayResize, DateUtils, isNotEmptyArray, isNotNil, removeDuplicatesFromArray, toDateISOString } from '@sumaris-net/ngx-components';
+import { arrayResize, DateUtils, isNotEmptyArray, isNotNil, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import { GearUseFeatures, GearUseFeaturesComparators } from '@app/activity-calendar/model/gear-use-features.model';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
@@ -55,6 +55,7 @@ export class ActivityMonthUtils {
     const sortedMetierIds =
       opts?.sortedMetierIds || (opts?.fillEmptyGuf && removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)));
     const fishingAreaCount = opts?.fishingAreaCount || 2;
+    const program = data.program;
 
     return monthStartDates
       .map((startDate) => {
@@ -87,8 +88,9 @@ export class ActivityMonthUtils {
           }
         }
         target.vesselId = vesselId;
-        target.month = startDate.month() + 1;
+        target.month = startDate.month();
         target.endDate = endDate;
+        target.program = program;
 
         target.readonly = true;
         target.registrationLocations = removeDuplicatesFromArray(

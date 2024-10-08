@@ -13,6 +13,7 @@
     "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
     "BTN_COPY": "Copier",
     "BTN_PASTE": "Coller",
+    "BTN_CUT": "Couper",
     "BTN_CLEAR": "Vider",
     "BTN_CLOSE": "Fermer",
     "BTN_COMPACT_ROWS": "Compacter les lignes",
@@ -94,10 +95,10 @@
     "LAT_LONG": {
       "DDMMSS_PLACEHOLDER": "DD° MM' SS\"",
       "DDMM_PLACEHOLDER": "DD° MM.MMM'",
-      "DD_PLACEHOLDER": "+DD.DDD°",
+      "DD_PLACEHOLDER": "+ DD.DDDDDDD°",
       "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\"",
       "DDDMM_PLACEHOLDER": "DDD° MM.MMM'",
-      "DDD_PLACEHOLDER": "+DDD.DDD°",
+      "DDD_PLACEHOLDER": "+DDD.DDDDDDD°",
       "LAT_SIGN_PLACEHOLDER": "N|S",
       "LAT_SIGN_N": "N",
       "LAT_SIGN_S": "S",
@@ -137,9 +138,9 @@
       "ITEMS_PER_PAGE": "Nombre de lignes",
       "NEXT_PAGE": "Page suivante",
       "PREVIOUS_PAGE": "Page précédente",
-      "LAST_PAGE": "Dernière page",
+      "OF": "sur",
       "FIRST_PAGE": "Première page",
-      "OF": "sur"
+      "LAST_PAGE": "Dernière page"
     },
     "TABLE": {
       "FILTERED_PARENTHESIS": "(filtré)"
@@ -167,7 +168,7 @@
       "TITLE": "Aide en ligne"
     },
     "NAMED_FILTER": {
-      "TITLE": "Filtre",
+      "TITLE": "Filtre enregistré",
       "SAVE": "Sauvegarder le filtre",
       "DELETE": "Supprimer le filtre",
       "DELETED": "Filtre <b>supprimé</b>",
@@ -227,7 +228,11 @@
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HELP_URL": "App > Adresse du manuel utilisateur (URL)",
       "FORUM_URL": "App > Adresse du forum (URL)",
-      "APP_URL": "App >  URL de l'app utilisé pour les partages publics",
+      "APP_URL": "App > Adresse de l'App (URL)",
+      "ACCOUNT": {
+        "ENABLE_LATLONG_FORMAT": "Mon Compte > Préférences > Activer le format lat/lon ?",
+        "READONLY": "Mon compte > Nom et prénom en lecture seule ?"
+      },
       "HOME": {
         "LOGO_LARGE": "Accueil > Logo (largeur max 400px)",
         "PARTNER_DEPARTMENTS": "Accueil > Logo des partenaires",
@@ -253,7 +258,7 @@
         "GUEST": "Libellé du profil Invité"
       },
       "SOCIAL": {
-        "ENABLE_NOTIFICATION_ICONS": "Menu > Afficher les icônes de notifications"
+        "ENABLE_NOTIFICATION_ICONS": "Menu > Afficher les icônes de notifications ?"
       },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
@@ -262,6 +267,7 @@
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
         "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires > Port d'attache: Nb caract. min pour recherche",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Saisie > Navire: Nb caract. min pour recherche",
+        "FILTER_DEFAULT_SEARCH_ATTRIBUTES": "Saisie > Navire: Liste déroulantes",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Saisie > Navire: Recherche d'immatriculation par préfixe (immat, nom) ?",
         "NAME_REQUIRED": "Navire: Nom obligatoire ?",
         "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Saisie > Navire: Tri naturel des immatriculations ?"
@@ -269,8 +275,8 @@
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
         "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_LABEL": "Référentiel > Niveau d'acquisition > Calendrier d'activité",
-        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES_LABEL": "Référentiel > Niveau d'acquisition > Calendrier d'activité: Caratéristique physique engin",
-        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_USE_FEATURES_LABEL": "Référentiel > Niveau d'acquisition > Calendrier d'activité: Caratéristique mise en oeuvre engin",
+        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES_LABEL": "Référentiel > Niveau d'acquisition > Calendrier d'activité: Caractéristique physique engin",
+        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_USE_FEATURES_LABEL": "Référentiel > Niveau d'acquisition > Calendrier d'activité: Caractéristique mise en oeuvre engin",
         "ACQUISITION_LEVEL_MONTHLY_ACTIVITY": "Référentiel > Niveau d'acquisition > Calendrier d'activité: Mois",
         "ACQUISITION_LEVEL_OPERATION_LABEL": "Référentiel > Niveau d'acquisition > Opération",
         "ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL": "Référentiel > Niveau d'acquisition > Engin physique",
@@ -396,7 +402,9 @@
         "TOKEN": "Cryptographique",
         "BASIC_AND_TOKEN": "Basique et cryptographique"
       },
-      "ENABLE_AUTH_API_TOKENS": "Mon compte > Activer les jetons d'authentification (API GraphQL)",
+      "ENABLE_AUTH_API_TOKENS": "API > Activer les jetons d'authentification (API GraphQL)",
+      "ENABLE_AUTH_API_TOKENS_SCOPE": "API > Activer les droits des jetons d'authentification",
+      "DEFAULT_AUTH_API_TOKEN_SCOPE": "API > Droit par défaut d'un nouveau jeton d'authentification",
       "DATA_QUALITY_PROCESS_ENABLE": "Saisie > Activer le processus qualité ?",
       "DATA_SHOW_RECORDER": "Saisie > Afficher le saisisseur ?",
       "DATA_SHOW_OBSERVERS": "Saisie > Afficher les observateurs ?",
@@ -407,10 +415,6 @@
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
         "FILTER_PERIOD": "Sorties > Afficher le filtre sur la période ?"
-      },
-      "ACCOUNT": {
-        "ENABLE_LATLONG_FORMAT": "Mon Compte > Préférences > Activer le format lat/lon ?",
-        "READONLY": "Mon compte > Nom et prénom en lecture seule ?"
       },
       "REFERENTIAL": {
         "PMFM_LABEL_ENABLE": "Référentiel > PSFM > Afficher le code (label) du PSFM ?"
@@ -487,11 +491,22 @@
     "BTN_LOGIN": "Se connecter",
     "BTN_REGISTER": "Créer un compte",
     "NO_ACCOUNT_QUESTION": "Vous n'avez pas encore de compte ?",
+    "RESET_PASSWORD_QUESTION": "Vous n'avez plus accès à votre compte ?",
+    "BTN_RESET_PASSWORD": "Réinitialiser votre mot de passe",
     "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
     "LOGOUT": {
       "CONFIRM_TITLE": "Confirmation",
       "CONFIRM_MESSAGE": "Êtes-vous sûr de vouloir vous déconnecter ?",
       "BTN_CONFIRM": "Oui, continuer"
+    },
+    "RESET_PASSWORD": {
+      "TITLE": "Réinitialisation du mot de passe",
+      "HELP": "Veuillez saisir votre identifiant de compte. Un <b>lien de récupération</b> vous sera ensuite envoyé par email :",
+      "BTN_SEND": "Envoyer la demande"
+    },
+    "CONFIRM": {
+      "RESET_PASSWORD_SENT": "Demande envoyée ! Vous devriez <b>recevoir un lien de récupération</b> par email.",
+      "PASSWORD_CHANGED": "Mot de passe mis à jour <b>avec succès</b> !"
     }
   },
   "REGISTER": {
@@ -532,6 +547,11 @@
       "LOCALE": "Langue",
       "LAT_LONG_FORMAT": "Format latitude/longitude"
     },
+    "SECURITY": {
+      "TITLE": "Sécurité",
+      "PASSWORD": "Mot de passe",
+      "BTN_CHANGE_PASSWORD": "Changer le mot de passe"
+    },
     "TOKENS": {
       "TITLE": "Jetons",
       "DESCRIPTION": "Liste des jetons d'authentification",
@@ -568,7 +588,8 @@
       "RELOADED": "Votre compte utilisateur a été <b>actualisé</b> !"
     },
     "ERROR": {
-      "SUBSCRIBE_ERROR": "Échec de l'abonnement distant au compte utilisateur."
+      "SUBSCRIBE_ERROR": "Échec de l'abonnement distant au compte utilisateur.",
+      "UPDATE_PUBKEY_ERROR": "Échec du changement du mot de passe.<br/><small>Si le problème persiste, veuillez <b>contactez votre administrateur</b>"
     }
   },
   "SETTINGS": {
@@ -1049,7 +1070,7 @@
         "PRODUCT_SALE": "Ventes"
       },
       "SALE": {
-        "TITLE": "Vente de {{taxonGroupLabel}}",
+        "TITLE": "Vente de {{ taxonGroup }}",
         "SALE_TYPE": "Type de vente",
         "RATIO": "Ratio (%)",
         "AVG_WEIGHT_PRICE": "Prix moyen / poids",
@@ -1542,13 +1563,19 @@
     "COMMENTS": "Commentaires",
     "VESSEL": "Navire",
     "NEW": {
-      "TITLE": "Nouvelle vente"
+      "TITLE": "Nouvelle vente",
+      "OBSERVED_SALE": {
+        "TITLE": "{{taxonGroup}} - Nouvelle vente"
+      }
     },
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
       "PROGRAM": "Programme",
       "TAB_GENERAL": "Détails",
-      "TAB_BATCHES": "Lots"
+      "TAB_BATCHES": "Lots",
+      "OBSERVED_SALE": {
+        "TITLE": "{{taxonGroup}} - Navire {{vessel}}"
+      }
     },
     "TABLE": {
       "VESSEL": "Navire",
@@ -2008,10 +2035,7 @@
       "END_DATE": "Fin immatriculation",
       "REGISTRATION_CODE": "Immatriculation",
       "INT_REGISTRATION_CODE": "Immatriculation internationale",
-      "REGISTRATION_LOCATION": "Pavillon",
-      "ACTIVITY_CALENDAR": {
-        "REGISTRATION_LOCATION": "Lieu d'immatriculation"
-      }
+      "REGISTRATION_LOCATION": "Lieu d'immatriculation"
     },
     "VESSEL_OWNER": {
       "REGISTRATION_CODE": "Code armateur",
@@ -2037,9 +2061,9 @@
       "NEW_FEATURES": "Declarer un changement",
       "EDIT_STATUS": "Modifier l'état de saisie",
       "REPLACE": "Remplacer ce navire temporaire...",
-      "REPLACE_CONFIRMATION": "Etes-vous sûr de vouloir remplacer ce navires temporaire avec '{{vessel}}' ?",
+      "REPLACE_CONFIRMATION": "Êtes-vous sûr de vouloir remplacer ce navires temporaire avec '{{vessel}}' ?",
       "REPLACE_MANY": "Remplacer ces navires par...",
-      "REPLACE_MANY_CONFIRMATION": "Etes-vous sûr de vouloir remplacer les navires temporaires sélectionnés avec '{{vessel}}' ?",
+      "REPLACE_MANY_CONFIRMATION": "Êtes-vous sûr de vouloir remplacer les navires temporaires sélectionnés avec '{{vessel}}' ?",
       "IMPORT_FROM_FILE": "Importer depuis un fichier..."
     },
     "SELECT_MODAL": {
@@ -2400,6 +2424,7 @@
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2": "Calendrier d'activité > Rapport > Formulaire vierge : Libellé caractéristique engin #2",
       "ACTIVITY_CALENDAR_REPORT_PROGRESS_FOOTER": "Calendrier d'activité > Rapport d'avancement: Texte du pied de page",
       "ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS": "Calendrier d'activité > Métier : Type(s) d'espèce",
+      "ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS": "Calendrier d'activité > Zone de pêche : Niveau(x) de lieu",
       "ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID": "Calendrier d'activité > Pays d'immatriculation des navires",
       "ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE": "Calendrier d'activité > Activer la résolution des conflits ?",
       "ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS": "Calendrier d'activité > Prédocumentation : Code(s) programme(s)",
@@ -2661,6 +2686,8 @@
         "ANALYTIC_REFERENCE": "Code analytique",
         "RECORDER_DEPARTMENTS": "Service(s) saisisseur(s)",
         "TAXON_NAMES": "Espèce(s) scientifique(s)",
+        "START_YEAR": "Année début",
+        "END_YEAR": "Année fin",
         "EFFORT_Q1": "Effort T1",
         "EFFORT_Q2": "Effort T2",
         "EFFORT_Q3": "Effort T3",
@@ -2681,13 +2708,7 @@
           "RECORDER_DEPARTMENTS": "Laboratoire(s) saisisseur(s)",
           "TAXON_NAMES": "Espèce cible",
           "QUARTERS_DOTS": "Efforts :",
-          "START_YEAR": "Année début",
-          "END_YEAR": "Année fin",
           "PARAMETER_GROUPS": "Paramètres à mesurer",
-          "EFFORT_Q1": "Efforts T1",
-          "EFFORT_Q2": "Efforts T2",
-          "EFFORT_Q3": "Efforts T3",
-          "EFFORT_Q4": "Efforts T4",
           "PARAMETERS": "Paramètres à mesurer",
           "PARAMETERS_DOTS": "Paramètres à mesurer :",
           "COMMENTS": "Commentaires",
@@ -3250,6 +3271,7 @@
     "MESSAGE": {
       "TYPE": "Type d'envoi",
       "RECIPIENTS": "Destinataires",
+      "RECIPIENT_FILTER_COUNT": "{{count}} utilisateurs filtrés",
       "SUBJECT": "Objet",
       "BODY_HELP": "Votre message...",
       "NEW": {
@@ -3494,7 +3516,7 @@
         "SOURCE_PREDOC": "Enquête N-1"
       },
       "SIH-ACTIPRED": {
-        "SOURCE_PREDOC": "SACROIS-OBSDEB"
+        "SOURCE_PREDOC": "Sacrois-ObsDeb"
       }
     },
     "OFFLINE_MODAL": {
@@ -3615,6 +3637,8 @@
       "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}",
       "INVALID_MONTHS": "Veuillez corriger le(s) mois invalide(s)",
       "INCONSISTENT_DATA": "Données incohérentes",
+      "INCONSISTENCY_DAY_NUMBER": "Nombre de jours incohérent",
+      "DUPLICATED_FISHING_AREA": "Zone(s) de pêche en doublon : {{fishingArea}}",
       "INVALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)",
       "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
     },
@@ -3656,6 +3680,7 @@
     "FIELD_NOT_VALID_PATTERN": "Format incorrect",
     "FIELD_NOT_VALID_PUBKEY": "Clé publique invalide",
     "FIELD_NOT_UNIQUE": "Valeur déjà utilisée",
+    "FIELD_NOT_EQUALS": "Valeur différente",
     "SPACE_NOT_ALLOW": "Espaces ou caractères spéciaux non autorisés",
     "SCRYPT_ERROR": "Erreur de generation des clefs d'ouverture du compte",
     "INVALID_OR_INCOMPLETE_FILL": "Saisie incomplète ou invalide",
@@ -3704,7 +3729,7 @@
     "DELETE_ENTITY_ERROR": "Erreur lors de la suppression. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SUBSCRIBE_ENTITY_ERROR": "Erreur lors de l'abonnement aux modifications distantes",
     "CONTROL_ENTITY_ERROR": "Erreur lors du contrôle de la validité des données",
-    "TERMINATE_ENTITY_ERROR": "Terminaision de la saisie impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "TERMINATE_ENTITY_ERROR": "Terminaison de la saisie impossible. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "VALIDATE_ENTITY_ERROR": "Erreur lors de la validation",
     "UNVALIDATE_ENTITY_ERROR": "Erreur lors de la dévalidation",
     "QUALIFY_ENTITY_ERROR": "Erreur lors de la qualification",
@@ -3712,12 +3737,12 @@
     "SYNCHRONIZE_CHILD_BEFORE_PARENT_ERROR": "Erreur lors de la synchronisation, le filage doit être synchronisé avant le virage. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "LOAD_ERROR": "Erreur de chargement",
     "SAVE_ERROR": "Erreur de sauvegarde",
-    "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",
+    "SUBSCRIBE_ERROR": "Échec de l'abonnement distant aux modifications",
     "FIELD_NOT_EXISTS": "Cette valeur n'existe pas",
     "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée",
     "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
-    "GEOLOCATION_ERROR": "Erreur de récupération de la position. <small><br/>{{message}}</small>",
-    "SHARE_AS_PUBLIC_FAIL": "Échec du partage pulic"
+    "GEOLOCATION_ERROR": "Géolocalisation <b>impossible</b>.<small><br/>{{message}}</small>",
+    "SHARE_AS_PUBLIC_FAIL": "Échec du partage"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -3750,7 +3775,8 @@
     "UPDATE_APP_DOWNLOADED": "Le téléchargement de la mise à jour est terminée.<br/><b>Veuillez l'installer</b> à partir des fichiers de l'appareil.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères",
     "TEXT_PROGRESS": "{{current}} sur {{max}}",
-    "DOWNLOADING_DOTS": "Téléchargement en cours..."
+    "DOWNLOADING_DOTS": "Téléchargement en cours...",
+    "GEOLOCATION_STARTED": "Géolocalisation en cours.<br/><b>Veuillez patienter...</b>"
   },
   "WARNING": {
     "ALERT_HEADER": "Avertissement",

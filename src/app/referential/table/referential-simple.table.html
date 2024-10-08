@@ -68,7 +68,7 @@
     [matSortDirection]="defaultSortDirection"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="useSticky">
+    <ng-container matColumnDef="select" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -83,7 +83,7 @@
     </ng-container>
 
     <!-- Id column -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
+    <ng-container matColumnDef="id" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
@@ -224,7 +224,7 @@
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="useSticky"
+      [stickyEnd]="stickyEnd || (mobile && selection.hasValue())"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"
@@ -251,17 +251,15 @@
     ></tr>
   </table>
 
-  <ng-container *ngIf="loadingSubject | async; else noResult">
+  @if (loadingSubject | async) {
     <ion-item>
       <ion-skeleton-text animated></ion-skeleton-text>
     </ion-item>
-  </ng-container>
-
-  <ng-template #noResult>
-    <ion-item *ngIf="totalRowCount === 0">
-      <ion-text color="primary" class="text-italic" [innerHTML]="'COMMON.NO_RESULT' | translate"></ion-text>
+  } @else if (totalRowCount === 0) {
+    <ion-item>
+      <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
     </ion-item>
-  </ng-template>
+  }
 </div>
 
 <!-- Paginator  -->

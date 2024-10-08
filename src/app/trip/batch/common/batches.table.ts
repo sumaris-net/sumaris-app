@@ -30,11 +30,7 @@ export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'
 export class BatchesTable extends AbstractBatchesTable<Batch> implements OnDestroy {
   @Input() modalOptions: Partial<IBatchModalOptions>;
 
-  constructor(
-    injector: Injector,
-    protected memoryDataService: InMemoryEntitiesService<Batch, BatchFilter>,
-    validatorService: BatchValidatorService
-  ) {
+  constructor(injector: Injector, memoryDataService: InMemoryEntitiesService<Batch, BatchFilter>, validatorService: BatchValidatorService) {
     super(injector, Batch, BatchFilter, memoryDataService, validatorService, {
       reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
       initialState: {

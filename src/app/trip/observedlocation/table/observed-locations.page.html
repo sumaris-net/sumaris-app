@@ -17,9 +17,23 @@
   }
 
   <ion-buttons slot="end">
-    <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+    @if (selection | isEmptySelection) {
+      @if (!mobile && !offline) {
+        <app-named-filter-selector
+          class="hidden-xs hidden-sm"
+          [class.cdk-visually-hidden]="!filterExpansionPanel.expanded"
+          [entityName]="'ObservedLocation'"
+          [subscriptSizing]="'dynamic'"
+          [filterContentProvider]="namedFilterContentProvider"
+          [filterFormDirty]="filterForm.dirty"
+          [autocompleteConfig]="namedFilterAutocompleteConfig"
+          [filterImportCallback]="filterImportCallback"
+          (filterSelected)="setFilter($event)"
+        ></app-named-filter-selector>
+      }
+
       <!-- Add -->
-      <button mat-icon-button *ngIf="canEdit && !mobile" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
+      <button mat-icon-button *ngIf="!mobile && canEdit" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
         <mat-icon>add</mat-icon>
       </button>
 
@@ -29,10 +43,12 @@
       </button>
 
       <!-- reset filter -->
-      <button mat-icon-button (click)="resetFilter(undefined, { emitEvent: true })" *ngIf="filterCriteriaCount">
-        <mat-icon color="accent">filter_list_alt</mat-icon>
-        <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
-      </button>
+      @if (filterCriteriaCount || (!mobile && filterExpansionPanel.expanded)) {
+        <button mat-icon-button (click)="resetFilter()">
+          <mat-icon color="accent">filter_list_alt</mat-icon>
+          <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
+        </button>
+      }
 
       <button mat-icon-button (click)="filterExpansionPanel.toggle()">
         <mat-icon
@@ -52,10 +68,9 @@
       <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
-    </ng-container>
 
-    <!-- if row selection -->
-    <ng-template #hasSelection>
+      <!-- if row selection -->
+    } @else {
       <!-- terminate and synchronize -->
       <ion-button
         *ngIf="hasDirtySelection; else synchronizeButton"
@@ -83,7 +98,7 @@
       >
         <mat-icon>delete</mat-icon>
       </button>
-    </ng-template>
+    }
   </ion-buttons>
 
   <!-- Table options menu -->
@@ -175,123 +190,141 @@
   >
     <form *ngIf="!enableFilterPanelCompact" [formGroup]="filterForm" class="form-container ion-padding-top" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
-        <ion-row *ngIf="showFilterProgram">
-          <ion-col>
-            <!-- Program -->
-            <mat-autocomplete-field
-              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.PROGRAM' | translate"
-              formControlName="program"
-              [config]="autocompleteFields.program"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="contract"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-        </ion-row>
+        @if (showFilterProgram) {
+          <ion-row>
+            <ion-col>
+              <!-- Program -->
+              <mat-autocomplete-field
+                [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.PROGRAM' | translate"
+                formControlName="program"
+                [config]="autocompleteFields.program"
+                [clearable]="true"
+              >
+                <ion-icon matPrefix name="contract"></ion-icon>
+              </mat-autocomplete-field>
+            </ion-col>
+          </ion-row>
+        }
 
         <!-- Location -->
-        <ion-row *ngIf="showFilterLocation">
-          <ion-col>
-            <mat-autocomplete-field
-              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION' | translate"
-              formControlName="location"
-              [config]="autocompleteFields.location"
-              [clearable]="true"
-            >
-              <mat-icon matPrefix>room</mat-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-        </ion-row>
+        @if (showFilterLocation) {
+          <ion-row>
+            <ion-col>
+              <mat-autocomplete-field
+                [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION' | translate"
+                formControlName="location"
+                [config]="autocompleteFields.location"
+                [clearable]="true"
+              >
+                <mat-icon matPrefix>room</mat-icon>
+              </mat-autocomplete-field>
+            </ion-col>
+          </ion-row>
+        }
 
         <!-- Period criteria -->
-        <ion-row *ngIf="showFilterPeriod">
-          <!-- Start date -->
-          <ion-col size="12" size-sm="6">
-            <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE' | translate" formControlName="startDate" [clearable]="true">
-              <ion-icon matPrefix name="calendar-outline"></ion-icon>
-            </mat-date-field>
-          </ion-col>
+        @if (showFilterPeriod) {
+          <ion-row>
+            <!-- Start date -->
+            <ion-col size="12" size-sm="6">
+              <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE' | translate" formControlName="startDate" [clearable]="true">
+                <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              </mat-date-field>
+            </ion-col>
 
-          <!-- End date -->
-          <ion-col size="12" size-sm="6">
-            <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE' | translate" formControlName="endDate" [clearable]="true">
-              <ion-icon matPrefix name="calendar-outline" class="visible-xs visible-sm"></ion-icon>
-            </mat-date-field>
-          </ion-col>
-        </ion-row>
+            <!-- End date -->
+            <ion-col size="12" size-sm="6">
+              <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE' | translate" formControlName="endDate" [clearable]="true">
+                <ion-icon matPrefix name="calendar-outline" class="visible-xs visible-sm"></ion-icon>
+              </mat-date-field>
+            </ion-col>
+          </ion-row>
+        }
 
         <!-- Recorder criteria -->
-        <ion-row *ngIf="showRecorder">
-          <ion-col>
-            <!-- Recorder department -->
-            <mat-autocomplete-field
-              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
-              formControlName="recorderDepartment"
-              [config]="autocompleteFields.department"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="business"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-
-          <ion-col>
-            <!-- Recorder person -->
-            <mat-autocomplete-field
-              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.RECORDER_PERSON' | translate"
-              formControlName="recorderPerson"
-              [config]="autocompleteFields.person"
-              [i18nPrefix]="'USER.'"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="person"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-        </ion-row>
-
-        <ion-row *ngIf="showObservers || showQuality">
-          <!-- Observers criteria -->
-          <ion-col *ngIf="showObservers">
-            <mat-autocomplete-field
-              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.OBSERVERS' | translate"
-              [formControl]="filterObserversForm.at(0)"
-              [config]="autocompleteFields.observers"
-              [i18nPrefix]="'USER.'"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="person"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-
-          <!-- Data quality status -->
-          <ion-col *ngIf="showQuality && filterForm | formGetControl: 'dataQualityStatus'; let control">
-            <mat-form-field>
-              <ion-icon matPrefix name="create"></ion-icon>
-              <mat-label>{{ 'OBSERVED_LOCATION.TABLE.QUALITY' | translate }}</mat-label>
-              <mat-select [formControl]="control">
-                <mat-select-trigger>
-                  <span *ngIf="statusById | mapGet: control.value; let item">
-                    {{ item.label | translate }}
-                  </span>
-                </mat-select-trigger>
-                <mat-option *ngFor="let item of statusList" [value]="item.id">
-                  <ion-icon [name]="item.icon"></ion-icon>
-                  {{ item.label | translate }}
-                </mat-option>
-              </mat-select>
-
-              <button
-                matSuffix
-                mat-icon-button
-                tabindex="-1"
-                type="button"
-                (click)="clearFilterValue('dataQualityStatus', $event)"
-                [hidden]="disabled || !control.value"
+        @if (showRecorder && !mobile) {
+          <ion-row>
+            <ion-col>
+              <!-- Recorder department -->
+              <mat-autocomplete-field
+                [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
+                formControlName="recorderDepartment"
+                [config]="autocompleteFields.department"
+                [clearable]="true"
               >
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-form-field>
-          </ion-col>
-        </ion-row>
+                <ion-icon matPrefix name="business"></ion-icon>
+              </mat-autocomplete-field>
+            </ion-col>
+
+            <ion-col>
+              <!-- Recorder person -->
+              <mat-autocomplete-field
+                [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.RECORDER_PERSON' | translate"
+                formControlName="recorderPerson"
+                [config]="autocompleteFields.person"
+                [i18nPrefix]="'USER.'"
+                [clearable]="true"
+              >
+                <ion-icon matPrefix name="person"></ion-icon>
+              </mat-autocomplete-field>
+            </ion-col>
+          </ion-row>
+        }
+
+        @if ((showObservers || showQuality) && !mobile) {
+          <ion-row>
+            <!-- Observers criteria -->
+            @if (showObservers) {
+              <ion-col>
+                <mat-autocomplete-field
+                  [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.OBSERVERS' | translate"
+                  [formControl]="filterObserversForm.at(0)"
+                  [config]="autocompleteFields.observers"
+                  [i18nPrefix]="'USER.'"
+                  [clearable]="true"
+                >
+                  <ion-icon matPrefix name="person"></ion-icon>
+                </mat-autocomplete-field>
+              </ion-col>
+            }
+
+            <!-- Data quality status -->
+            @if (showQuality && filterForm | formGetControl: 'dataQualityStatus'; as control) {
+              <ion-col>
+                <mat-form-field>
+                  <ion-icon matPrefix name="create"></ion-icon>
+                  <mat-label>{{ 'OBSERVED_LOCATION.TABLE.QUALITY' | translate }}</mat-label>
+                  <mat-select [formControl]="control">
+                    <mat-select-trigger>
+                      @if (statusById | mapGet: control.value; as item) {
+                        <span>
+                          {{ item.label | translate }}
+                        </span>
+                      }
+                    </mat-select-trigger>
+                    @for (item of statusList; track item.id) {
+                      <mat-option [value]="item.id">
+                        <ion-icon [name]="item.icon"></ion-icon>
+                        {{ item.label | translate }}
+                      </mat-option>
+                    }
+                  </mat-select>
+
+                  <button
+                    matSuffix
+                    mat-icon-button
+                    tabindex="-1"
+                    type="button"
+                    (click)="clearFilterValue('dataQualityStatus', $event)"
+                    [hidden]="disabled || !control.value"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </mat-form-field>
+              </ion-col>
+            }
+          </ion-row>
+        }
       </ion-grid>
     </form>
 

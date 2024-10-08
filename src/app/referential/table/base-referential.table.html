@@ -154,7 +154,7 @@
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="stickyEnd"
+      [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"
@@ -182,18 +182,16 @@
     ></tr>
   </table>
 
-  <ng-container *ngIf="loadingSubject | async; else noResult">
+  @if (loadingSubject | async) {
     <ion-item>
       <ion-skeleton-text animated></ion-skeleton-text>
     </ion-item>
-  </ng-container>
-
-  <ng-template #noResult>
-    <ion-item *ngIf="totalRowCount === 0">
+  } @else if (totalRowCount === 0) {
+    <ion-item>
       <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
       <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
     </ion-item>
-  </ng-template>
+  }
 </div>
 
 <ng-template #addRowButton>

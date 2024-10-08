@@ -3,6 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  inject,
   Injector,
   Input,
   OnDestroy,
@@ -40,8 +41,10 @@ import {
   ReferentialUtils,
   removeDuplicatesFromArray,
   selectInputContent,
+  ShowToastOptions,
   StatusIds,
   suggestFromArray,
+  Toasts,
   toBoolean,
   toNumber,
   UsageMode,
@@ -53,7 +56,7 @@ import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { OperationService } from '@app/trip/operation/operation.service';
-import { AlertController, ModalController } from '@ionic/angular';
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { ISelectOperationModalOptions, SelectOperationModal } from '@app/trip/operation/select-operation.modal';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
@@ -69,6 +72,7 @@ import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { Metier } from '@app/referential/metier/metier.model';
+import { OverlayEventDetail } from '@ionic/core';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -103,10 +107,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _showFishingArea = false;
   private _requiredComment = false;
   private _positionSubscription: Subscription;
-  private _showGeolocationSpinner = true;
+  private _emitGeolocationBusy = true;
   private _lastValidatorOpts: any;
   protected _usageMode: UsageMode;
+  protected toastController = inject(ToastController);
 
+  busySubject = new BehaviorSubject<boolean>(false);
   startProgram: Date | Moment;
   enableGeolocation: boolean;
   enableCopyPosition: boolean;
@@ -410,11 +416,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       combineLatest([
         fishingEndDateTimeControl.valueChanges.pipe(
           filter((_) => this.fishingEndDateTimeEnable),
-          startWith<any, any>(fishingEndDateTimeControl.value) // Need by combineLatest (must be after filter)
+          startWith<any>(fishingEndDateTimeControl.value) // Need by combineLatest (must be after filter)
         ),
         endDateTimeControl.valueChanges.pipe(
           filter((_) => this.endDateTimeEnable),
-          startWith<any, any>(endDateTimeControl.value) // Need by combineLatest (must be after filter)
+          startWith<any>(endDateTimeControl.value) // Need by combineLatest (must be after filter)
         ),
       ])
         .pipe(
@@ -466,6 +472,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this._$metiers.complete();
     this.$parentOperationLabel.complete();
     this._positionSubscription?.unsubscribe();
+    this.busySubject.complete();
+    this.busySubject.unsubscribe();
   }
 
   reset(data?: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
@@ -597,36 +605,59 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   /**
    * Get the position by GPS sensor
    *
+   * @param event
    * @param fieldName
    */
   async onFillPositionClick(event: Event, fieldName: string) {
+    if (this.busySubject.value) return; // Skip if busy (e.g. already running a GPS resolution)
+
     if (event) {
       event.preventDefault();
       event.stopPropagation(); // Avoid focus into the longitude field
     }
     const positionGroup = this.form.controls[fieldName];
-    if (positionGroup && positionGroup instanceof UntypedFormGroup) {
+    if (positionGroup instanceof UntypedFormGroup) {
+      const now = Date.now();
+
       try {
-        // Show loading spinner, when first time
-        if (this._showGeolocationSpinner) this.markAsLoading();
+        // Emit busy event (e.g. to show a backdrop - see operation page)
+        if (this._emitGeolocationBusy) {
+          this.markAsBusy();
+        }
 
         // Get position
-        const coords = await this.operationService.getCurrentPosition();
+        const coords = await this.operationService.getCurrentPosition({
+          stop: this.destroySubject,
+          showToast: true,
+          toastOptions: { position: 'middle' },
+        });
         positionGroup.patchValue(coords, { emitEvent: false, onlySelf: true });
 
-        // OK, next time not need to show a spinner
-        this._showGeolocationSpinner = false;
+        // Not need to emit next time, if quick execution time
+        this._emitGeolocationBusy = Date.now() - now > 1000;
       } catch (err) {
-        this._showGeolocationSpinner = true;
+        if (err === 'CANCELLED') return; // User cancelled: stop here
 
-        // Display error to user
+        // Next time: force to show spinner again
+        this._emitGeolocationBusy = true;
         let message = err?.message || err;
         if (typeof message === 'object') message = JSON.stringify(message);
-        this.setError(this.translate.instant('ERROR.GEOLOCATION_ERROR', { message: this.translate.instant(message) }));
+
+        // Display error to user (if component not destroyed)
+        if (!this.destroySubject.closed) {
+          this.showToast({
+            type: 'error',
+            message: 'ERROR.GEOLOCATION_ERROR',
+            messageParams: { message: this.translate.instant(message) },
+            showCloseButton: true,
+            duration: 5000,
+          });
+        }
+
         return; // Stop here
       } finally {
         // Hide loading spinner
-        if (this.loading) this.markAsLoaded();
+        this.markAsNotBusy();
       }
     }
     // Set also the end date time
@@ -1259,9 +1290,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     });
   }
 
+  protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+    return Toasts.show(this.toastController, this.translate, opts);
+  }
+
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
-  selectInputContent = selectInputContent;
+  protected markAsBusy() {
+    if (!this.busySubject.closed) this.busySubject.next(true);
+  }
+
+  protected markAsNotBusy() {
+    if (!this.busySubject.closed) this.busySubject.next(false);
+  }
+
+  protected selectInputContent = selectInputContent;
 }

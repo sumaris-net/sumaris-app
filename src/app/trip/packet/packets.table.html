@@ -51,7 +51,7 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || readOnly">
-        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
       </td>
     </ng-container>
 
@@ -74,7 +74,7 @@
         <mat-autocomplete-field
           *ngIf="inlineEdition; else readOnly"
           floatLabel="never"
-          class="min-width-large ion-text-wrap"
+          panelClass="min-width-large ion-text-wrap"
           [formControl]="row.validator.controls.parent"
           [config]="autocompleteFields.parent"
           [autofocus]="row.id === -1 && row.editing"
@@ -111,7 +111,7 @@
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="stickyEnd || (mobile && singleSelectedRow)"
+      [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"
@@ -122,7 +122,7 @@
       (optionsClick)="openSelectColumnsModal($event)"
     >
       <ng-template #cellTemplate let-row>
-        <ng-container *ngIf="!mobile || !selection.hasValue(); else hasSelection">
+        @if (!mobile || !selection.hasValue()) {
           <!-- composition (always visible) -->
           <button
             mat-icon-button
@@ -132,7 +132,7 @@
             [color]="(row.currentData.composition | isNotEmptyArray) ? 'primary' : undefined"
           >
             <mat-icon
-              [matBadge]="row.currentData.composition?.length"
+              [matBadge]="row.currentData.composition?.length | badgeNumber"
               [matBadgeHidden]="row.currentData.composition | isEmptyArray"
               matBadgeColor="accent"
               matBadgeSize="small"
@@ -160,9 +160,9 @@
               local_offer
             </mat-icon>
           </button>
-        </ng-container>
 
-        <ng-template #hasSelection>
+          <!-- has selection -->
+        } @else {
           <!-- delete  -->
           <button
             mat-icon-button
@@ -172,7 +172,7 @@
           >
             <mat-icon>delete</mat-icon>
           </button>
-        </ng-template>
+        }
       </ng-template>
     </app-actions-column>
 
@@ -190,18 +190,16 @@
     ></tr>
   </table>
 
-  <ng-container *ngIf="loadingSubject | async; else noResult">
+  @if (loadingSubject | async) {
     <ion-item>
       <ion-skeleton-text animated></ion-skeleton-text>
     </ion-item>
-  </ng-container>
-
-  <ng-template #noResult>
-    <ion-item *ngIf="totalRowCount === 0">
+  } @else if (totalRowCount === 0) {
+    <ion-item>
       <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
       <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
     </ion-item>
-  </ng-template>
+  }
 </div>
 
 <ng-template #addRowButton>

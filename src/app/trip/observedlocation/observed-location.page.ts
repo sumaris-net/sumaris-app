@@ -239,7 +239,7 @@ export class ObservedLocationPage
     if (hasPetsControl) {
       this._measurementSubscription.add(
         hasPetsControl.valueChanges
-          .pipe(debounceTime(400), startWith<any, any>(hasPetsControl.value), filter(isNotNil), distinctUntilChanged())
+          .pipe(debounceTime(400), startWith<any>(hasPetsControl.value), filter(isNotNil), distinctUntilChanged())
           .subscribe((hasPets) => {
             if (this.debug) console.debug('[observed-location-page] Enable/Disable add button on landings tab, because PETS=' + hasPets);
 

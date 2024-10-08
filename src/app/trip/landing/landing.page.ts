@@ -640,7 +640,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
       const additionalPmfmIds = ((!this.isNewData && this.data?.samples) || []).reduce(
         (res, sample) =>
           MeasurementValuesUtils.getPmfmIds(sample.measurementValues || {}).reduce(
-            (res, pmfmId) => (!strategyPmfmIds.includes(pmfmId) ? res.concat(pmfmId) : res),
+            (res, pmfmId) => (!strategyPmfmIds.includes(pmfmId) && !res.includes(pmfmId) ? res.concat(pmfmId) : res),
             res
           ),
         []

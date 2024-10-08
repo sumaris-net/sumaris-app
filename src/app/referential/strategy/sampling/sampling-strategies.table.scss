@@ -21,6 +21,19 @@
   &.has-paginator {
     --table-paginator-height: var(--app-paginator-height);
   }
+
+  &.mobile {
+    --mat-column-select-width: 0;
+    --mat-column-id-width: 5px;
+
+    .mat-mdc-header-cell {
+      padding-left: 5px;
+    }
+    .mat-mdc-cell {
+      padding-left: 5px;
+      padding-right: 5px;
+    }
+  }
 }
 
 .mat-mdc-table {
@@ -33,12 +46,12 @@
 
   .mat-mdc-table-sticky {
     &.mat-column-id {
-      left: 50px !important;
-      min-width: 55px;
-      max-width: 55px;
+      left: var(--mat-column-select-width, 50px) !important;
+      min-width: var(--mat-column-id-width, 55px);
+      max-width: var(--mat-column-id-width, 55px);
     }
     &.mat-column-label {
-      left: 105px !important;
+      left: calc(var(--mat-column-select-width, 50px) + var(--mat-column-id-width, 55px)) !important;
     }
   }
 

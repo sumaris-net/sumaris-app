@@ -46,6 +46,16 @@ export const VESSEL_CONFIG_OPTIONS = {
     type: 'integer',
     defaultValue: 0,
   },
+  VESSEL_FILTER_DEFAULT_SEARCH_ATTRIBUTES: <FormFieldDefinition>{
+    key: 'sumaris.vessel.filter.searchAttributes',
+    label: 'CONFIGURATION.OPTIONS.VESSEL.FILTER_DEFAULT_SEARCH_ATTRIBUTES',
+    type: 'enum',
+    values: [
+      { key: 'exteriorMarking,name', value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.EXTERIOR_MARKING_NAME' },
+      { key: 'registrationCode,name', value: 'SETTINGS.FIELDS.VESSEL.ATTRIBUTES.REGISTRATION_CODE_NAME' },
+    ],
+    defaultValue: 'exteriorMarking,name',
+  },
   VESSEL_FILTER_SEARCH_REGISTRATION_CODE_AS_PREFIX: <FormFieldDefinition>{
     key: 'sumaris.persistence.vessel.registrationCode.searchAsPrefix',
     label: 'CONFIGURATION.OPTIONS.VESSEL.REGISTRATION_CODE_SEARCH_AS_PREFIX',

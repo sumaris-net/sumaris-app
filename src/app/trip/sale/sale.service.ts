@@ -95,6 +95,7 @@ export const SaleFragments = {
       tripId
       landingId
       comments
+      creationDate
       updateDate
       program {
         id
@@ -170,7 +171,7 @@ const Mutations: BaseEntityGraphqlMutations = {
   `,
 
   deleteAll: gql`
-    mutation DeleteSales($ids: [Int]) {
+    mutation DeleteSales($ids: [Int]!) {
       deleteSales(ids: $ids)
     }
   `,

@@ -832,7 +832,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       isGPSUsed.setValidators(Validators.required);
       this._measurementSubscription.add(
         isGPSUsed.valueChanges
-          .pipe(debounceTime(400), startWith<any, any>(isGPSUsed.value), filter(isNotNil), distinctUntilChanged())
+          .pipe(debounceTime(400), startWith<any>(isGPSUsed.value), filter(isNotNil), distinctUntilChanged())
           .subscribe((value) => {
             if (this.debug) console.debug('[trip] Enable/Disable positions or fishing area, because GPS_USED=' + value);
 

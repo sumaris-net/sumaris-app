@@ -118,8 +118,8 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   protected logPrefix = 'activity-calendar-progress-report';
 
   protected readonly pageDimensions = Object.freeze({
-    height: 297 * 4,
-    width: 210 * 4,
+    height: 210 * 4,
+    width: 297 * 4,
     marginTop: 16,
     marginBottom: 16,
     headerHeight: 80,

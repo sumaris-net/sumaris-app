@@ -1,5 +1,5 @@
 <mat-toolbar *ngIf="showToolbar">
-  <ng-container *ngIf="selection.isEmpty(); else hasSelection">
+  @if (selection | isEmptySelection) {
     <!-- add row -->
     <button mat-icon-button hidden-xs hidden-sm hidden-mobile [disabled]="disabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
@@ -15,18 +15,15 @@
     >
       <mat-icon>refresh</mat-icon>
     </button>
-  </ng-container>
-
-  <ng-template #hasSelection>
+  } @else {
     <button mat-icon-button *ngIf="enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>
-  </ng-template>
+  }
 
-  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (showError && !mobile) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
 
   <span class="toolbar-spacer"></span>
 </mat-toolbar>
@@ -43,10 +40,9 @@
 </mat-menu>
 
 <!-- error -->
-<ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-</ion-item>
+@if (showError && mobile) {
+  <app-error-item [message]="errorSubject | async"></app-error-item>
+}
 
 <div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
   <table
@@ -58,8 +54,8 @@
     [matSortDirection]="defaultSortDirection"
     [trackBy]="trackByFn"
   >
-    <ng-container matColumnDef="select" [sticky]="sticky">
-      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
+      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
           [checked]="selection.hasValue() && isAllSelected()"
@@ -67,7 +63,7 @@
           [tabIndex]="-1"
         ></mat-checkbox>
       </th>
-      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || !canEdit">
         <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
       </td>
     </ng-container>
@@ -94,7 +90,7 @@
         @if (row.editing) {
           <mat-autocomplete-field
             floatLabel="never"
-            class="min-width-medium"
+            panelClass="min-width-large"
             [autofocus]="focusColumn === 'parentGroup'"
             [formControl]="row.validator | formGetControl: 'parentGroup'"
             [placeholder]="'TRIP.BATCH.TABLE.PARENT_GROUP' | translate"
@@ -120,7 +116,7 @@
         <mat-autocomplete-field
           *ngIf="row.editing; else readonlyCell"
           floatLabel="never"
-          class="min-width-medium"
+          panelClass="min-width-large"
           [formControl]="row.validator | formGetControl: 'taxonName'"
           [autofocus]="focusColumn === 'taxonName'"
           [placeholder]="'TRIP.BATCH.TABLE.TAXON_NAME_PLACEHOLDER' | translate"
@@ -136,67 +132,62 @@
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
-        <ion-label
-          [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nColumnSuffix }"
-        ></ion-label>
-      </th>
-      <td
-        mat-cell
-        *matCellDef="let row"
-        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
-        [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
-        (click)="focusColumn = pmfm.id.toString()"
-      >
-        @if (row.editing) {
-          <app-pmfm-field
-            floatLabel="never"
-            [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-            [autofocus]="focusColumn == pmfm.id"
-            [pmfm]="pmfm"
-            [compact]="compactFields"
-            panelClass="mat-select-panel-fit-content"
-          ></app-pmfm-field>
-        } @else if (mobile) {
-          <!-- readonly value-->
+    @for (pmfm of pmfms$ | async; track pmfm.id) {
+      <ng-container [matColumnDef]="pmfm | pmfmIdString">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
           <ion-label
-            [innerHTML]="
-              row.currentData
-                | measurementValueGet
-                  : {
-                      pmfm: pmfm,
-                      html: true,
-                      propertyNames: compactFields || pmfm.isMultiple ? ['label'] : undefined,
-                      showYesOrNo: true
-                    }
-            "
+            [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nColumnSuffix }"
           ></ion-label>
-        } @else {
-          <!-- readonly value (desktop) -->
-          <ion-label
-            [innerHTML]="
-              row.validator
-                | formGetValue: ['measurementValues', pmfm.id]
-                | pmfmValue: { pmfm: pmfm, html: true, propertyNames: compactFields || pmfm.isMultiple ? ['label'] : undefined, showYesOrNo: true }
-            "
-          ></ion-label>
-          <ion-label
-            [innerHTML]="
-              row.validator
-                | formGetValue: ['measurementValues', pmfm.id]
-                | pmfmValue
-                  : {
-                      pmfm: pmfm,
-                      html: true,
-                      propertyNames: compactFields || pmfm.isMultiple ? ['label'] : undefined,
-                      showYesOrNo: true
-                    }
-            "
-          ></ion-label>
-        }
-      </td>
-    </ng-container>
+        </th>
+        <td
+          mat-cell
+          *matCellDef="let row"
+          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+          [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
+          (click)="focusColumn = pmfm.id.toString()"
+        >
+          @if (row.editing) {
+            <app-pmfm-field
+              floatLabel="never"
+              [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+              [autofocus]="focusColumn === pmfm.id.toString()"
+              [pmfm]="pmfm"
+              [compact]="compactFields"
+              panelClass="mat-select-panel-fit-content"
+            ></app-pmfm-field>
+          } @else if (mobile) {
+            <!-- readonly value-->
+            <ion-label
+              [innerHTML]="
+                row.currentData
+                  | measurementValueGet
+                    : {
+                        pmfm: pmfm,
+                        html: true,
+                        propertyNames: compactFields || pmfm.isMultiple ? ['label'] : undefined,
+                        showYesOrNo: true
+                      }
+              "
+            ></ion-label>
+          } @else {
+            <!-- readonly value (desktop) -->
+            <ion-label
+              [innerHTML]="
+                row.validator
+                  | formGetValue: ['measurementValues', pmfm.id]
+                  | pmfmValue
+                    : {
+                        pmfm: pmfm,
+                        html: true,
+                        propertyNames: compactFields || pmfm.isMultiple ? ['label'] : undefined,
+                        showYesOrNo: true
+                      }
+              "
+            ></ion-label>
+          }
+        </td>
+      </ng-container>
+    }
 
     <!-- individualCount column -->
     <ng-container matColumnDef="individualCount">
@@ -275,10 +266,16 @@
     ></tr>
   </table>
 
-  <ion-item *ngIf="totalRowCount === 0">
-    <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
-    <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
-  </ion-item>
+  @if (loadingSubject | async) {
+    <ion-item>
+      <ion-skeleton-text animated></ion-skeleton-text>
+    </ion-item>
+  } @else if (totalRowCount === 0) {
+    <ion-item>
+      <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+      <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
+    </ion-item>
+  }
 </div>
 
 <ng-template #addRowButton>

@@ -91,7 +91,7 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
 @Component({
   selector: 'app-activity-calendar-form-report',
   templateUrl: './activity-calendar-form.report.html',
-  styleUrls: ['./activity-calendar-form.report.scss', '../../../data/report/base-form-report.scss'],
+  styleUrls: ['../../../data/report/base-form-report.scss', './activity-calendar-form.report.scss'],
   providers: [],
   encapsulation: ViewEncapsulation.None,
 })
@@ -116,8 +116,8 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   protected readonly nbOfNonPmfmRowInEffortTable = 2;
 
   protected readonly pageDimensions = Object.freeze({
-    height: 297 * 4,
-    width: 210 * 4,
+    height: 210 * 4,
+    width: 297 * 4,
     marginTop: 16,
     marginBottom: 16,
     headerHeight: 80,

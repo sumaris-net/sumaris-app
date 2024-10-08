@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
@@ -17,7 +17,6 @@ import {
   SharedValidators,
   slideUpDownAnimation,
   StatusIds,
-  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ObservedLocationService } from '../observed-location.service';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -26,7 +25,6 @@ import { AppRootDataTable } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../../trip.config';
 import { BehaviorSubject } from 'rxjs';
 import { ObservedLocationOfflineModal } from '../offline/observed-location-offline.modal';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observed-location.filter';
 import { filter } from 'rxjs/operators';
@@ -38,6 +36,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 import { IonSegment } from '@ionic/angular';
 import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
+import { RxState } from '@rx-angular/state';
 
 export const ObservedLocationsPageSettingsEnum = {
   PAGE_ID: 'observedLocations',
@@ -49,10 +48,11 @@ export const ObservedLocationsPageSettingsEnum = {
   selector: 'app-observed-locations-page',
   templateUrl: 'observed-locations.page.html',
   styleUrls: ['observed-locations.page.scss'],
-  animations: [slideUpDownAnimation],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [slideUpDownAnimation],
 })
-export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
+export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, ObservedLocationFilter, ObservedLocationService> implements OnInit {
   protected titleSubject = new BehaviorSubject<string>('');
   protected landingsTitleSubject = new BehaviorSubject<string>('');
   protected statusList = DataQualityStatusList;
@@ -63,7 +63,6 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
   @Input() showFilterProgram = true;
   @Input() showFilterLocation = true;
   @Input() showFilterPeriod = true;
-  @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
   @Input() allowMultipleSelection = true;
@@ -96,15 +95,12 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
 
   constructor(
     injector: Injector,
-    protected _dataService: ObservedLocationService,
+    _dataService: ObservedLocationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
-    protected programRefService: ProgramRefService,
     protected formBuilder: UntypedFormBuilder,
     protected configService: ConfigService,
-    protected translateContext: TranslateContextService,
-    protected context: ContextService,
-    protected cd: ChangeDetectorRef
+    protected context: ContextService
   ) {
     super(
       injector,
@@ -136,6 +132,14 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
 
     this.settingsId = ObservedLocationsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureName = ObservedLocationsPageSettingsEnum.FEATURE_NAME;
+
+    this.registerSubscription(
+      this.route.queryParams.subscribe((queryParams) => {
+        if (queryParams?.expandFilter && this.filterExpansionPanel) {
+          this.filterExpansionPanel.expanded = true;
+        }
+      })
+    );
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
@@ -373,7 +377,12 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
     await this.settings.savePageSetting(LandingsPageSettingsEnum.PAGE_ID, json, LandingsPageSettingsEnum.FILTER_KEY);
 
     setTimeout(async () => {
-      await this.navController.navigateRoot(path, { animated: false });
+      await this.navController.navigateRoot(path, {
+        animated: false,
+        queryParams: {
+          expandFilter: this.filterExpansionPanel.expanded ? true : undefined,
+        },
+      });
 
       // Reset the selected segment
       this.selectedSegment = '';

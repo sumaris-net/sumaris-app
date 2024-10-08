@@ -108,7 +108,7 @@
       <ng-template mat-tab-label>
         <mat-icon><ion-icon name="file-tray"></ion-icon></mat-icon>
         <ion-label
-          [matBadge]="batchTree.batchGroupsTable.visibleRowCount"
+          [matBadge]="batchTree.batchGroupsTable.visibleRowCount | badgeNumber"
           [matBadgeHidden]="batchTree.invalid || batchTree.error || !batchTree.batchGroupsTable.visibleRowCount"
           matBadgeOverlap="false"
           matBadgeColor="primary"
@@ -125,6 +125,7 @@
         #batchTree
         queryTabIndexParamName="subtab"
         [selectedTabIndex]="selectedSubTabIndex"
+        [defaultTaxonGroup]="defaultTaxonGroup"
         [usageMode]="usageMode"
         [requiredStrategy]="requiredStrategy$ | async"
         [strategyId]="strategy$ | async | propertyGet: 'id'"

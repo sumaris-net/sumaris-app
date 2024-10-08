@@ -28,7 +28,6 @@ export class PersonPrivilegesTable extends AppBaseTable<ProgramPerson, ProgramPe
     department: undefined,
   };
 
-  @Input() useSticky = false;
   @Input() title: string = null;
   @Input() locationLevelIds: number[] = null;
 
@@ -42,8 +41,8 @@ export class PersonPrivilegesTable extends AppBaseTable<ProgramPerson, ProgramPe
 
   constructor(
     injector: Injector,
-    protected validatorService: ValidatorService,
-    protected memoryDataService: InMemoryEntitiesService<ProgramPerson, ProgramPersonFilter>,
+    memoryDataService: InMemoryEntitiesService<ProgramPerson, ProgramPersonFilter>,
+    validatorService: ValidatorService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService
   ) {

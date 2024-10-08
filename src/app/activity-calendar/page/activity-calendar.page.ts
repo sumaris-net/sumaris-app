@@ -85,6 +85,7 @@ import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-cal
 import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-form.component';
+import { VesselUseFeaturesIsActiveEnum } from '../model/vessel-use-features.model';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -162,11 +163,11 @@ export class ActivityCalendarPage
   protected selectedSubTabIndex = 0;
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
   protected isAdmin = this.accountService.isAdmin();
+  protected isAdminOrManager = this.accountService.isAdmin();
   protected qualityWarning: string = null;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
-  @Input() showToolbar = true;
   @Input() showQualityForm = true;
   @Input() showPictures = false;
   @Input() autoFillPictureComments: boolean = true;
@@ -222,6 +223,9 @@ export class ActivityCalendarPage
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.showMap = this.showMap || this.debug;
+
     // Listen some field
     this._state.connect('year', this.baseForm.yearChanges.pipe(filter(isNotNil)));
 
@@ -296,18 +300,20 @@ export class ActivityCalendarPage
 
     // Listen opening the map tab
     this.registerSubscription(
-      this.tabGroup.selectedTabChange.pipe(filter((event) => this.showMap && event.index === ActivityCalendarPage.TABS.MAP)).subscribe(async () => {
-        console.debug(this.logPrefix + 'Updating map calendar...');
-        this.mapCalendar.markAsLoading();
-        this.mapCalendar.markAsReady();
-        const saved = await this.saveTable(this.calendar);
-        if (!saved) {
-          this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
-          this.mapCalendar.markAsLoaded();
-          return;
-        }
-        this.mapCalendar.value = this.calendar.value;
-      })
+      this.tabGroup.selectedTabChange
+        .pipe(filter((event) => this.showMap && this.mapCalendar && event.index === ActivityCalendarPage.TABS.MAP))
+        .subscribe(async () => {
+          console.debug(this.logPrefix + 'Updating map calendar...');
+          this.mapCalendar.markAsLoading();
+          this.mapCalendar.markAsReady();
+          const saved = await this.saveTable(this.calendar);
+          if (!saved) {
+            this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+            this.mapCalendar.markAsLoaded();
+            return;
+          }
+          this.mapCalendar.value = this.calendar.value;
+        })
     );
 
     this.registerSubscription(
@@ -486,6 +492,7 @@ export class ActivityCalendarPage
       this.i18nContext.suffix = i18nSuffix;
 
       this.baseForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
+      this.isAdminOrManager = this.accountService.isAdmin() || this.programRefService.hasUserManagerPrivilege(program);
       if (!this.baseForm.showObservers && this.data?.observers) {
         this.data.observers = []; // make sure to reset data observers, if any
       }
@@ -655,9 +662,13 @@ export class ActivityCalendarPage
 
   devToggleDebug() {
     super.devToggleDebug();
+
     setTimeout(() => {
       this.calendar?.onResize();
       this.predocCalendar?.onResize();
+
+      this.showMap = this.debug;
+      this.markForCheck();
     }, 250);
   }
 
@@ -777,6 +788,12 @@ export class ActivityCalendarPage
     // Restore vesselRegistrationPeriods
     value.vesselRegistrationPeriods = this.data.vesselRegistrationPeriods;
 
+    // Add current user as observer
+    const currentPerson = this.accountService.person;
+    if (!this.isAdminOrManager && isNotEmptyArray(value.observers) && !value.observers.map((observer) => observer.id).includes(currentPerson.id)) {
+      value.observers = [...value.observers, currentPerson];
+    }
+
     return value;
   }
 
@@ -829,7 +846,8 @@ export class ActivityCalendarPage
   protected getFirstInvalidTabIndex(): number {
     if (this.baseForm.invalid) return ActivityCalendarPage.TABS.GENERAL;
     if (this.showPictures && this.gallery?.invalid) return ActivityCalendarPage.TABS.VESSEL;
-    if (this.calendar && (this.calendar.invalid || this.calendar.visibleRowCount !== 12)) return ActivityCalendarPage.TABS.CALENDAR;
+    if (this.calendar && (this.calendar.invalid || this.calendar.hasErrorsInRows() || this.calendar.visibleRowCount !== 12))
+      return ActivityCalendarPage.TABS.CALENDAR;
     if (this.tableMetier.invalid) return ActivityCalendarPage.TABS.METIER;
     if (this.showMap && this.mapCalendar.invalid) return ActivityCalendarPage.TABS.MAP;
     return -1;
@@ -844,8 +862,7 @@ export class ActivityCalendarPage
     const now = Date.now();
     console.debug(`${this.logPrefix}Loading predoc calendars...`);
 
-    const programLabels = await firstValueFrom(this.predocProgramLabels$);
-
+    // Job to load <Survey N-1>
     const loadPreviousYearCalendar = async () => {
       const { data } = await this.dataService.loadAll(
         0,
@@ -862,7 +879,11 @@ export class ActivityCalendarPage
       );
       return data?.[0];
     };
-    const loadPredocProgramCalendars = (programLabels || []).map((programLabel) => async () => {
+
+    // Job to load predoc calendar
+    const predocProgramLabels = (await firstValueFrom(this.predocProgramLabels$)).filter((program) => program !== entity.program?.label); // Exclude self program - see issue #
+
+    const loadPredocProgramCalendars = (predocProgramLabels || []).map((programLabel) => async () => {
       const { data } = await this.dataService.loadAll(
         0,
         1,
@@ -1019,6 +1040,11 @@ export class ActivityCalendarPage
       const source = sources[index];
       if (!source) return target; // Keep original, if missing a month
 
+      // Clean isActive if equals to not exists (see issue #687)
+      if (source.isActive === VesselUseFeaturesIsActiveEnum.NOT_EXISTS) {
+        source.isActive = null;
+      }
+
       return ActivityMonth.fromObject(<Partial<ActivityMonth>>{
         ...source,
         // Preserved some properties
@@ -1037,6 +1063,14 @@ export class ActivityCalendarPage
 
     // Mark as dirty
     this.markAsDirty();
+  }
+
+  saveAndGetDataIfValid() {
+    if (this.calendar.hasErrorsInRows()) {
+      this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
+      return;
+    }
+    return super.saveAndGetDataIfValid();
   }
 
   protected readonly equals = equals;

@@ -1,4 +1,4 @@
-import { Directive, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Directive, inject, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map, startWith, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
@@ -16,6 +16,7 @@ import {
   isNotNilOrBlank,
   MatAutocompleteFieldConfig,
   NamedFilter,
+  NamedFilterSelector,
   NetworkService,
   referentialToString,
   toBoolean,
@@ -28,9 +29,7 @@ import { SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
 import { TableElement } from '@e-is/ngx-material-table';
 import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
-import { MatExpansionPanel } from '@angular/material/expansion';
 import { HttpEventType } from '@angular/common/http';
-import { PopoverController } from '@ionic/angular';
 import { AppBaseTable, AppBaseTableFilterRestoreSource, BaseTableConfig, BaseTableState } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
@@ -68,11 +67,10 @@ export abstract class AppRootDataTable<
   extends AppBaseTable<T, F, S, V, ID, ST, O>
   implements OnInit, OnDestroy
 {
-  protected readonly network: NetworkService;
-  protected readonly accountService: AccountService;
-  protected readonly userEventService: UserEventService;
-  protected readonly programRefService: ProgramRefService;
-  protected readonly popoverController: PopoverController;
+  protected readonly network = inject(NetworkService);
+  protected readonly accountService = inject(AccountService);
+  protected readonly userEventService = inject(UserEventService);
+  protected readonly programRefService = inject(ProgramRefService);
 
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
   protected readonly $selectedProgramLabels = new BehaviorSubject<string[]>([]);
@@ -87,11 +85,9 @@ export abstract class AppRootDataTable<
     showAllOnFocus: true,
   };
 
-  canDelete: boolean;
   isAdmin: boolean;
   needUpdateOfflineFeature = false;
   offline = false;
-  logPrefix = '[root-data-table] ';
 
   importing = false;
   progressionMessage: string = null;
@@ -130,23 +126,18 @@ export abstract class AppRootDataTable<
   @Input() showUpdateOfflineFeature = true;
   @Input() showInstallUpgradeCard = true;
 
-  @ViewChild(MatExpansionPanel, { static: true }) filterExpansionPanel: MatExpansionPanel;
+  @ViewChild(NamedFilterSelector, { static: false }) namedFilterSelector: NamedFilterSelector;
 
   protected constructor(
     injector: Injector,
-    protected dataType: new () => T,
-    protected filterType: new () => F,
+    dataType: new () => T,
+    filterType: new () => F,
     columnNames: string[],
     dataService: S,
     validatorService: V,
     options?: O
   ) {
     super(injector, dataType, filterType, columnNames, dataService, validatorService, options);
-    this.network = injector.get(NetworkService);
-    this.accountService = injector.get(AccountService);
-    this.userEventService = injector.get(UserEventService);
-    this.programRefService = injector.get(ProgramRefService);
-    this.popoverController = injector.get(PopoverController);
 
     this.readOnly = false;
     this.inlineEdition = false;
@@ -173,12 +164,13 @@ export abstract class AppRootDataTable<
   }
 
   ngOnInit() {
-    super.ngOnInit();
-
+    // Default value
     this.isAdmin = this.accountService.isAdmin();
     this.canEdit = toBoolean(this.canEdit, this.isAdmin || this.accountService.isUser());
     this.canDelete = toBoolean(this.canDelete, this.isAdmin);
-    if (this.debug) console.debug('[root-table] Can user edit table ? ' + this.canEdit);
+    if (this.debug) console.debug(`${this.logPrefix}Can edit: ${this.canEdit} - Can delete: ${this.canDelete}`);
+
+    super.ngOnInit();
 
     if (!this.filterForm) throw new Error(`Missing 'filterForm' in ${this.constructor.name}`);
     if (!this.featureName) throw new Error(`Missing 'dataService.featureName' in ${this.constructor.name}`);
@@ -614,6 +606,11 @@ export abstract class AppRootDataTable<
 
     console.info(this.logPrefix + `Loaded ${entities.length} entities from file`);
     return entities;
+  }
+
+  resetFilter(value?: any, opts?: { emitEvent: boolean }) {
+    super.resetFilter(value, opts);
+    this.namedFilterSelector?.form.reset(null);
   }
 
   referentialToString = referentialToString;

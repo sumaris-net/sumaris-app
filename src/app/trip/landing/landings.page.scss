@@ -1,6 +1,10 @@
 .filter-panel-pinned {
   overflow-y: scroll;
 }
+ion-segment {
+  // Limit segment max width, to be able to show named filter
+  max-width: calc(min(50vw, 450px));
+}
 
 .mat-expansion-panel {
   margin-bottom: 5px;

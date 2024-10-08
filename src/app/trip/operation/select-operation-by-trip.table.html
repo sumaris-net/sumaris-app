@@ -249,17 +249,15 @@
     ></tr>
   </table>
 
-  <ng-container *ngIf="loadingSubject | async; else noResult">
+  @if (loadingSubject | async) {
     <ion-item>
       <ion-skeleton-text animated></ion-skeleton-text>
     </ion-item>
-  </ng-container>
-
-  <ng-template #noResult>
-    <ion-item *ngIf="visibleRowCount === 0">
+  } @else if (totalRowCount === 0) {
+    <ion-item>
       <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
     </ion-item>
-  </ng-template>
+  }
 </div>
 
 <ion-footer>

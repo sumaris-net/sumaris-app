@@ -14,13 +14,9 @@
   .mat-mdc-table {
     background-color: transparent !important;
     --mat-cell-horizontal-padding: 4px;
-    --mat-column-actions-width: 96px;
-    --mat-column-actions-max-width: 96px;
 
-    &.mobile {
-      --mat-column-actions-width: 48px;
-      --mat-column-actions-max-width: 48px;
-    }
+    --mat-column-actions-width: calc(var(--mat-column-actions-button-count, 1) * 48px);
+    --mat-column-actions-max-width: calc(var(--mat-column-actions-button-count, 1) * 48px);
 
     /* First header row (group) */
     .mat-mdc-header-row.first-header-row {
@@ -96,9 +92,8 @@
         min-width: 150px;
       }
 
-      .mat-column-weight,
       .mat-column-weight {
-        text-align: center;
+        //
       }
 
       .mat-column-LAN_samplingIndividualCount,

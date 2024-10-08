@@ -42,7 +42,7 @@
   </ion-refresher>
 
   <table mat-table [dataSource]="dataSource" matSort matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
-    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
+    <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
@@ -51,12 +51,12 @@
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
-        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)"></mat-checkbox>
+        <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
       </td>
     </ng-container>
 
     <!-- id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
+    <ng-container matColumnDef="id" [sticky]="sticky">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
         <ion-label>#</ion-label>
       </th>
@@ -70,22 +70,22 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label translate>TRIP.OPERATION.LIST.METIER</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row">
-        <mat-autocomplete-field
-          *ngIf="inlineEdition; else readOnly"
-          floatLabel="never"
-          class="min-width-large ion-text-wrap"
-          [autofocus]="row.id === -1 && row.editing"
-          [formControl]="row.validator.controls.metier"
-          [placeholder]="'TRIP.OPERATION.LIST.METIER' | translate"
-          [readonly]="!row.editing || mobile"
-          [config]="autocompleteFields.metier"
-          (blur)="onMetierChange($event, row)"
-          required
-        ></mat-autocomplete-field>
-        <ng-template #readOnly>
-          <ion-label>{{ row.currentData.metier.label }} - {{ row.currentData.metier.name }}</ion-label>
-        </ng-template>
+      <td mat-cell *matCellDef="let row" (click)="focusColumn = 'metier'">
+        @if (row.editing) {
+          <mat-autocomplete-field
+            floatLabel="never"
+            panelClass="min-width-large ion-text-wrap"
+            [autofocus]="focusColumn === 'metier'"
+            [formControl]="row.validator.controls.metier"
+            [placeholder]="'TRIP.OPERATION.LIST.METIER' | translate"
+            [readonly]="!row.editing || mobile"
+            [config]="autocompleteFields.metier"
+            (blur)="onMetierChange($event, row)"
+            required
+          ></mat-autocomplete-field>
+        } @else {
+          <ion-label>{{ row.currentData.metier | referentialToString: displayAttributes.metier }}</ion-label>
+        }
       </td>
     </ng-container>
 
@@ -94,7 +94,7 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row" class="mat-mdc-cell-computed">
         <ion-label>
           {{ row.currentData.physicalGear?.gear || row.currentData.metier?.gear | referentialToString: displayAttributes.gear }}
         </ion-label>
@@ -106,27 +106,51 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row" class="mat-mdc-cell-computed">
         <ion-label>{{ row.currentData.metier | referentialToString: displayAttributes.taxonGroup }}</ion-label>
       </td>
     </ng-container>
 
     <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
-        <ion-label [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true }"></ion-label>
-      </th>
-      <td mat-cell *matCellDef="let row" [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm" [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm">
-        <app-pmfm-field
-          floatLabel="never"
-          [readonly]="!row.editing"
-          [pmfm]="pmfm"
-          [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-          [compact]="compactFields"
-          panelClass="mat-select-panel-fit-content"
-        ></app-pmfm-field>
-      </td>
-    </ng-container>
+    @for (pmfm of pmfms$ | async; track pmfm.id) {
+      <ng-container [matColumnDef]="pmfm | pmfmIdString">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm">
+          <ion-label [innerHTML]="pmfm | pmfmName: { html: true, withUnit: true }"></ion-label>
+        </th>
+        <td
+          mat-cell
+          *matCellDef="let row"
+          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+          [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
+          (click)="focusColumn = pmfm.id.toString()"
+        >
+          @if (row.editing) {
+            <app-pmfm-field
+              floatLabel="never"
+              [pmfm]="pmfm"
+              [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+              [autofocus]="focusColumn === pmfm.id.toString()"
+              [compact]="compactFields"
+              panelClass="mat-select-panel-fit-content"
+            ></app-pmfm-field>
+          } @else {
+            <!-- readonly value-->
+            <ion-label
+              [innerHTML]="
+                row.currentData
+                  | measurementValueGet
+                    : {
+                        pmfm: pmfm,
+                        html: true,
+                        propertyNames: compactFields || pmfm.isMultiple ? ['label'] : undefined,
+                        showYesOrNo: true
+                      }
+              "
+            ></ion-label>
+          }
+        </td>
+      </ng-container>
+    }
 
     <!-- Comments column -->
     <ng-container matColumnDef="comments">
@@ -138,7 +162,7 @@
 
     <!-- Actions buttons column -->
     <app-actions-column
-      [stickyEnd]="useSticky"
+      [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
       (backward)="confirmAndBackward($event.event, $event.row)"
@@ -150,28 +174,27 @@
     <tr
       mat-row
       *matRowDef="let row; columns: displayedColumns"
-      [class.mat-mdc-row-selected]="row.editing"
+      [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
       [class.mat-mdc-row-error]="row.validator.invalid"
       [class.mat-mdc-row-dirty]="row.validator.dirty"
       [class.mat-mdc-row-disabled]="!row.editing"
-      (click)="clickRow($event, row)"
-      (keydown.escape)="escapeEditingRow($event)"
       [cdkTrapFocus]="!row.validator.valid"
+      (keydown.escape)="escapeEditingRow($event)"
+      (click)="clickRow($event, row)"
+      (press)="pressRow($event, row)"
     ></tr>
   </table>
 
-  <ng-container *ngIf="loadingSubject | async; else noResult">
+  @if (loadingSubject | async) {
     <ion-item>
       <ion-skeleton-text animated></ion-skeleton-text>
     </ion-item>
-  </ng-container>
-
-  <ng-template #noResult>
-    <ion-item *ngIf="totalRowCount === 0">
+  } @else if (totalRowCount === 0) {
+    <ion-item>
       <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
       <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
     </ion-item>
-  </ng-template>
+  }
 </div>
 
 <ng-template #addRowButton>

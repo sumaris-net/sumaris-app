@@ -1,7 +1,7 @@
 import { Trip } from '../trip/trip.model';
 import { EntityClass, fromDateISOString, isNotNil, Person, toDateISOString } from '@sumaris-net/ngx-components';
 import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
-import { Moment } from 'moment/moment';
+import { Moment } from 'moment';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';

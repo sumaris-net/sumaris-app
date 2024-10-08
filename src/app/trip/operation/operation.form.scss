@@ -1,5 +1,3 @@
-@import 'theme.globals';
-
 form {
   ion-col > ion-label {
     word-wrap: break-word;
@@ -16,6 +14,25 @@ form {
     .mat-form-field-disabled {
       .mat-form-field-infix {
         min-height: 38px !important;
+      }
+    }
+  }
+
+  // Compact lat/long fields, to be able to display one one row in small screen
+  mat-latlong-field {
+    ion-col.text {
+      .mdc-text-field {
+        padding-left: unset; // 4px !important;
+        padding-right: 0 !important;
+      }
+    }
+    ion-col.sign {
+      --max-width: var(--min-width) !important;
+      &.latitude {
+        --min-width: 38px !important;
+      }
+      &.longitude {
+        --min-width: 58px !important;
       }
     }
   }
@@ -41,7 +58,6 @@ input.cursor-pointer {
 
 .form-container {
   .mat-mdc-form-field {
-
     &.physicalGear,
     &.metier,
     &.parentOperation {

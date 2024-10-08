@@ -17,9 +17,22 @@
   </div>
 
   <ion-buttons slot="end">
-    <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+    @if (selection | isEmptySelection) {
+      @if (!mobile && !offline) {
+        <app-named-filter-selector
+          class="hidden-xs hidden-sm"
+          [class.cdk-visually-hidden]="!filterExpansionPanel.expanded"
+          [entityName]="'Landing'"
+          [subscriptSizing]="'dynamic'"
+          [filterContentProvider]="namedFilterContentProvider"
+          [filterFormDirty]="filterForm.dirty"
+          [autocompleteConfig]="namedFilterAutocompleteConfig"
+          [filterImportCallback]="filterImportCallback"
+          (filterSelected)="setFilter($event)"
+        ></app-named-filter-selector>
+      }
       <!-- Add -->
-      <button mat-icon-button *ngIf="canEdit && !mobile" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
+      <button mat-icon-button *ngIf="!mobile && canEdit" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
         <mat-icon>add</mat-icon>
       </button>
 
@@ -29,10 +42,12 @@
       </button>
 
       <!-- reset filter -->
-      <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
-        <mat-icon color="accent">filter_list_alt</mat-icon>
-        <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
-      </button>
+      @if (filterCriteriaCount || (!mobile && filterExpansionPanel.expanded)) {
+        <button mat-icon-button (click)="resetFilter()">
+          <mat-icon color="accent">filter_list_alt</mat-icon>
+          <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
+        </button>
+      }
 
       <button mat-icon-button (click)="filterExpansionPanel.toggle()">
         <mat-icon
@@ -52,10 +67,9 @@
       <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
-    </ng-container>
 
-    <!-- if row selection -->
-    <ng-template #hasSelection>
+      <!-- if row selection -->
+    } @else {
       <!-- Terminate and synchronize -->
       <ion-button
         *ngIf="hasDirtySelection; else synchronizeButton"
@@ -83,7 +97,7 @@
       >
         <mat-icon>delete</mat-icon>
       </button>
-    </ng-template>
+    }
   </ion-buttons>
 </app-toolbar>
 
@@ -252,22 +266,27 @@
           </ion-col>
 
           <!-- Data quality status -->
-          <ion-col *ngIf="showQuality && filterDataQualityControl; let control">
-            <mat-form-field>
-              <mat-select [formControl]="control" [placeholder]="'OBSERVED_LOCATION.TABLE.QUALITY' | translate" required>
-                <mat-select-trigger>
-                  <span *ngIf="statusById | mapGet: control.value; let item">
-                    <ion-icon [name]="item.icon"></ion-icon>
-                    {{ item.label | translate }}
-                  </span>
-                </mat-select-trigger>
-                <mat-option *ngFor="let item of statusList" [value]="item.id">
-                  <ion-icon [name]="item.icon"></ion-icon>
-                  {{ item.label | translate }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </ion-col>
+          @if (showQuality && filterDataQualityControl; as control) {
+            <ion-col>
+              <mat-form-field>
+                <mat-select [formControl]="control" [placeholder]="'OBSERVED_LOCATION.TABLE.QUALITY' | translate" required>
+                  <mat-select-trigger>
+                    @if (statusById | mapGet: control.value; as item) {
+                      <span>
+                        {{ item.label | translate }}
+                      </span>
+                    }
+                  </mat-select-trigger>
+                  @for (item of statusList; track item.id) {
+                    <mat-option [value]="item.id">
+                      <ion-icon [name]="item.icon"></ion-icon>
+                      {{ item.label | translate }}
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </ion-col>
+          }
 
           <!-- Sample label -->
           <ion-col *ngIf="showFilterSampleLabel">
@@ -394,15 +413,15 @@
       [matSortDirection]="defaultSortDirection"
       [trackBy]="trackByFn"
     >
-      <ng-container matColumnDef="select" [sticky]="sticky && !mobile">
-        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit || mobile">
+      <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
+        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
           <mat-checkbox
             (change)="$event ? masterToggle() : null"
             [checked]="selection.hasValue() && isAllSelected()"
             [indeterminate]="selection.hasValue() && !isAllSelected()"
           ></mat-checkbox>
         </th>
-        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit || mobile">
+        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || !canEdit">
           <mat-checkbox
             (click)="$event.stopPropagation()"
             (change)="$event ? selection.toggle(row) : null"
@@ -412,11 +431,11 @@
       </ng-container>
 
       <!-- Id Column -->
-      <ng-container matColumnDef="id" [sticky]="sticky">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin" [class.ion-padding-start]="!canEdit || mobile">
+      <ng-container matColumnDef="id" [sticky]="sticky && isAdmin">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin" [class.ion-padding-start]="mobile || !canEdit">
           <ion-label>#</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin" [class.ion-padding-start]="!canEdit || mobile">
+        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin" [class.ion-padding-start]="mobile || !canEdit">
           {{ row.currentData.id | mathAbs }}
         </td>
       </ng-container>
@@ -593,7 +612,7 @@
       </ng-container>
 
       <!-- Actions buttons column -->
-      <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || singleSelectedRow">
+      <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)">
         <th mat-header-cell *matHeaderCellDef>
           <!-- display columns -->
           <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS_DOTS' | translate" (click)="openSelectColumnsModal($event)">
@@ -604,7 +623,7 @@
           <!-- Delete row button -->
           <button
             mat-icon-button
-            *ngIf="enabled && singleSelectedRow === row && canDelete"
+            *ngIf="canDelete && enabled && singleSelectedRow === row"
             [title]="'COMMON.BTN_DELETE' | translate"
             (click)="cancelOrDelete($event, row)"
           >

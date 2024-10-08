@@ -501,13 +501,16 @@ export class VesselSnapshotService
     fieldName?: string,
     defaultAttributes?: string[]
   ): Promise<MatAutocompleteFieldAddOptions<VesselSnapshot, VesselSnapshotFilter>> {
-    const baseAttributes = this.settings.getFieldDisplayAttributes(
+    // Make sure defaults have been loaded
+    if (!this.started) await this.ready();
+
+    const searchAttributes = this.settings.getFieldDisplayAttributes(
       fieldName || 'vesselSnapshot',
-      defaultAttributes || VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES
+      defaultAttributes || this.defaultFilter?.searchAttributes || VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES
     );
     const displayAttributes = this.defaultLoadOptions?.withBasePortLocation
-      ? baseAttributes.concat(this.settings.getFieldDisplayAttributes('location').map((key) => 'basePortLocation.' + key))
-      : baseAttributes;
+      ? searchAttributes.concat(this.settings.getFieldDisplayAttributes('location').map((key) => 'basePortLocation.' + key))
+      : searchAttributes;
 
     // DEBUG
     //if (!displayAttributes.includes('id')) displayAttributes.push('id');
@@ -520,7 +523,7 @@ export class VesselSnapshotService
       filter: {
         ...this.defaultFilter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        searchAttributes: baseAttributes,
+        searchAttributes,
       },
       suggestLengthThreshold: this.suggestLengthThreshold,
       mobile: this.settings.mobile,
@@ -541,12 +544,14 @@ export class VesselSnapshotService
     const defaultRegistrationLocationId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID);
     const defaultVesselTypeId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID);
 
-    const settingsAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
+    // Set default search attributes
+    const defaultSearchAttributes = config.getPropertyAsStrings(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_SEARCH_ATTRIBUTES);
+    const searchAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', defaultSearchAttributes);
 
     // Update default filter
     this.defaultFilter = {
       ...this.defaultFilter,
-      searchAttributes: settingsAttributes,
+      searchAttributes,
       registrationLocation: isNotNil(defaultRegistrationLocationId) ? <ReferentialRef>{ id: defaultRegistrationLocationId } : undefined,
       vesselTypeId: isNotNil(defaultVesselTypeId) ? defaultVesselTypeId : undefined,
     };

@@ -1,5 +1,6 @@
 <mat-toolbar *ngIf="showToolbar" [class.expanded]="filterExpansionPanel.expanded">
-  <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+  <!-- no selection -->
+  @if (selection | isEmptySelection) {
     <!-- Add -->
     <button mat-icon-button hidden-xs hidden-sm hidden-mobile [disabled]="disabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
@@ -9,25 +10,21 @@
     <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
       <mat-icon>refresh</mat-icon>
     </button>
-  </ng-container>
 
-  <!-- if row selection -->
-  <ng-template #hasSelection>
+    <!-- if row selection -->
+  } @else {
     <!-- Delete -->
-    <button mat-icon-button *ngIf="enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+    <button mat-icon-button [disabled]="disabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>
 
     <!-- Duplicate -->
-    <button
-      mat-icon-button
-      *ngIf="canDuplicate && enabled && selection.selected | isArrayLength: { equals: 1 }"
-      [title]="'COMMON.BTN_DUPLICATE' | translate"
-      (click)="duplicateRow($event)"
-    >
-      <mat-icon>content_copy</mat-icon>
-    </button>
-  </ng-template>
+    @if (canDuplicate && enabled && hasSingleSelectedRow) {
+      <button mat-icon-button [title]="'COMMON.BTN_DUPLICATE' | translate" (click)="duplicateRow($event)">
+        <mat-icon>content_copy</mat-icon>
+      </button>
+    }
+  }
 
   <ion-item *ngIf="!mobile && error; let error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -350,10 +347,10 @@
     </ng-container>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions" [stickyEnd]="selection.hasValue()">
+    <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)">
       <th mat-header-cell *matHeaderCellDef>
         <!-- options menu -->
-        <button mat-icon-button matHeader [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
+        <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
           <mat-icon>more_vert</mat-icon>
         </button>
       </th>
@@ -394,18 +391,16 @@
     ></tr>
   </table>
 
-  <ng-container *ngIf="loadingSubject | async; else noResult">
+  @if (loadingSubject | async) {
     <ion-item>
       <ion-skeleton-text animated></ion-skeleton-text>
     </ion-item>
-  </ng-container>
-
-  <ng-template #noResult>
-    <ion-item *ngIf="totalRowCount === 0">
+  } @else if (totalRowCount === 0) {
+    <ion-item>
       <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
       <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
     </ion-item>
-  </ng-template>
+  }
 </div>
 
 <ion-footer *ngIf="showPaginator">

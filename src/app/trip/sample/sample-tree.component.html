@@ -52,7 +52,7 @@
     <ng-template mat-tab-label>
       <mat-icon>center_focus_strong</mat-icon>
       <ion-label
-        [matBadge]="individualMonitoringTable.visibleRowCount"
+        [matBadge]="individualMonitoringTable.visibleRowCount | badgeNumber"
         [matBadgeHidden]="individualMonitoringTable.invalid || !individualMonitoringTable.visibleRowCount"
         matBadgeOverlap="false"
         matBadgeColor="primary"
@@ -92,7 +92,7 @@
     <ng-template mat-tab-label>
       <mat-icon>room</mat-icon>
       <ion-label
-        [matBadge]="individualReleaseTable.visibleRowCount"
+        [matBadge]="individualReleaseTable.visibleRowCount | badgeNumber"
         [matBadgeHidden]="individualReleaseTable.invalid || !individualReleaseTable.visibleRowCount"
         matBadgeOverlap="false"
         matBadgeColor="primary"
@@ -146,6 +146,8 @@
           <br />
           i18nContext.suffix: {{ i18nContext.suffix }}
           <br />
+          tabCount: {{ tabCount }}
+          <br />
           <br />
           showLabelColumn: {{ showLabelColumn }}
           <br />
@@ -160,6 +162,7 @@
           showIndividualMonitoringTable: {{ showIndividualMonitoringTable }}
           <br />
           showIndividualReleaseTable: {{ showIndividualReleaseTable }}
+          <br />
         </ion-col>
 
         <ion-col *ngIf="samplesTable">

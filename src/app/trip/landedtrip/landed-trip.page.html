@@ -191,7 +191,7 @@
           <mat-tab [label]="'TRIP.LANDED_CATCH.TAB_PRODUCT' | translate">
             <ng-template mat-tab-label>
               <ion-label
-                [matBadge]="productsTable.visibleRowCount"
+                [matBadge]="productsTable.visibleRowCount | badgeNumber"
                 [matBadgeHidden]="!productsTable.visibleRowCount"
                 matBadgeOverlap="false"
                 matBadgeColor="primary"
@@ -224,7 +224,7 @@
           <mat-tab [label]="'TRIP.LANDED_CATCH.TAB_BATCH' | translate">
             <ng-template mat-tab-label>
               <ion-label
-                [matBadge]="packetsTable.visibleRowCount"
+                [matBadge]="packetsTable.visibleRowCount | badgeNumber"
                 [matBadgeHidden]="!packetsTable.visibleRowCount"
                 matBadgeOverlap="false"
                 matBadgeColor="primary"

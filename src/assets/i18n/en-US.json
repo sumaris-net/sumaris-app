@@ -13,6 +13,7 @@
     "BTN_BURST_INPUT_HELP": "Enable burst mode",
     "BTN_COPY": "Copy",
     "BTN_PASTE": "Paste",
+    "BTN_CUT": "Cut",
     "BTN_CLEAR": "Clear",
     "BTN_CLOSE": "Close",
     "BTN_COMPACT_ROWS": "Compact rows",
@@ -119,7 +120,6 @@
 
     "YES": "Yes",
     "NO": "No",
-    "DEBUG": "Debug",
 
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
@@ -138,9 +138,9 @@
       "ITEMS_PER_PAGE": "Items per page",
       "NEXT_PAGE": "Next page",
       "PREVIOUS_PAGE": "Previous page",
-      "LAST_PAGE": "Last page",
+      "OF": "on",
       "FIRST_PAGE": "First page",
-      "OF": "on"
+      "LAST_PAGE": "Last page"
     },
     "TABLE": {
       "FILTERED_PARENTHESIS": "(filtered)"
@@ -168,14 +168,14 @@
       "TITLE": "Online help"
     },
     "NAMED_FILTER": {
-      "TITLE": "Named filter",
-      "SAVE": "Save filter",
-      "DELETE": "Delete filter",
+      "TITLE": "Saved filter",
+      "SAVE": "Save the filter",
+      "DELETE": "Delete the filter",
       "DELETED": "Filter deleted",
-      "EXPORT": "Export filter",
-      "IMPORT": "Import filter",
+      "EXPORT": "Export the filter",
+      "IMPORT": "Import a filter",
       "LOAD_FAILED": "Failed to load filter",
-      "IMPORT_FAILED": "Faild to import filter",
+      "IMPORT_FAILED": "Failed to import filter",
       "NOT_FOUND": "Filter not found"
     }
   },
@@ -206,7 +206,7 @@
     "OPTIONS": {
       "ANDROID_INSTALL_URL": "Android > Install App URL",
       "DB_TIMEZONE": "Persistence > Database timezone (readonly option)",
-      "LOGO": "Menu > Logo (max width: 110px)",
+      "LOGO": "Menu > Logo (max width 110px)",
       "FAVICON": "favicon",
       "GRAVATAR_URL": "User > Gravatar URL (with '{md5}')",
       "ENABLE_GRAVATAR": "User > Enable Gravatar?",
@@ -228,7 +228,11 @@
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HELP_URL": "App > User manual (URL)",
       "FORUM_URL": "App > Forum address (URL)",
-      "APP_URL": "App >  App URL used for public shares",
+      "APP_URL": "App > App address (URL)",
+      "ACCOUNT": {
+        "ENABLE_LATLONG_FORMAT": "My Account > Settings > Enable lat/lon format?",
+        "READONLY": "My Account > Readonly profile? (readonly option)"
+      },
       "HOME": {
         "LOGO_LARGE": "Home > Logo (max width 400px)",
         "PARTNER_DEPARTMENTS": "Home > Partners logos",
@@ -254,7 +258,7 @@
         "GUEST": "Label for Guest profile"
       },
       "SOCIAL": {
-        "ENABLE_NOTIFICATION_ICONS": "Menu > Display notifications icons"
+        "ENABLE_NOTIFICATION_ICONS": "Menu > Display notifications icons?"
       },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Vessel > Default status for new vessel",
@@ -263,15 +267,16 @@
         "BASE_PORT_LOCATION_VISIBLE": "Vessels: Show base port?",
         "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Vessels > Base port: Nb char. for search",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Data entry > Vessel: Nb char. for search",
+        "FILTER_DEFAULT_SEARCH_ATTRIBUTES": "Data entry > Vessel: Dropdown list",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Data entry > Vessel: search on registration code as prefix?",
         "NAME_REQUIRED": "Vessel: Name required?",
         "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Data entry > Vessel: Use natural order on registration codes?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Referential > Program for vessels",
+        "ACQUISITION_LEVEL_OPERATION_LABEL": "Referential > Acquisition level > Operation",
         "ACQUISITION_LEVEL_TRIP_LABEL": "Referential > Acquisition level > Trip",
         "ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL": "Referential > Acquisition level > Physical gear",
-        "ACQUISITION_LEVEL_OPERATION_LABEL": "Referential > Acquisition level > Operation",
         "LOCATION_LEVEL_COUNTRY_ID": "Referential > Location level de lieu > Country",
         "LOCATION_LEVEL_PORT_ID": "Referential > Location level > Port",
         "LOCATION_LEVEL_MARITIME_DISTRICT_ID": "Referential > Location level > Maritime district",
@@ -360,9 +365,9 @@
         "VESSEL_UNKNOWN_ID": "Referential > Unknown vessel (id)"
       },
       "TESTING": "Developer mode?",
-      "ENTITY_TRASH": "Enable trash on pod?",
-      "UPDATE_TECHNICAL_TABLES": "Automatically update technical tables?",
-      "GEOMETRY_SRID": "Pod > Geometries: SRID (0=None, 4326=WGS84)",
+      "ENTITY_TRASH": "Pod > Enable trash?",
+      "UPDATE_TECHNICAL_TABLES": "Pod > Automatically update technical tables?",
+      "GEOMETRY_SRID": "Geometries: SRID (0=None, 4326=WGS84)",
       "ELASTICSEARCH_ENABLED": "Elasticsearch > Enable?",
       "ELASTICSEARCH_URIS": "Elasticsearch > Node URI(s)",
       "ANALYTIC_REFERENCES_ENABLE": "Strategy > Analytic references: Enable?",
@@ -372,7 +377,9 @@
         "TOKEN": "Crypto",
         "BASIC_AND_TOKEN": "Basic and crypto"
       },
-      "ENABLE_AUTH_API_TOKENS": "Account > Enable authentication tokens (GraphQL API)?",
+      "ENABLE_AUTH_API_TOKENS": "My account > Enable authentication tokens?",
+      "ENABLE_AUTH_API_TOKENS_SCOPE": "API > Enable rights on auth tokens",
+      "DEFAULT_AUTH_API_TOKEN_SCOPE": "API > Default right on new auth token",
       "DATA_QUALITY_PROCESS_ENABLE": "Forms > Enable quality process?",
       "DATA_SHOW_RECORDER": "Forms > Show recorder person?",
       "DATA_SHOW_OBSERVERS": "Forms > Show observers?",
@@ -384,9 +391,8 @@
         "FILTER_LOCATION": "Landing > Show locations filter?",
         "FILTER_PERIOD": "Landing > Show period filter?"
       },
-      "ACCOUNT": {
-        "ENABLE_LATLONG_FORMAT": "My Account > Settings > Enable lat/lon format?",
-        "READONLY": "My Account > Readonly profile? (readonly option)"
+      "REFERENTIAL": {
+        "PMFM_LABEL_ENABLE": "Referential > PMFM > Display PMFM's code (label)?"
       }
     },
     "CACHE": {
@@ -460,11 +466,22 @@
     "BTN_LOGIN": "Log In",
     "BTN_REGISTER": "Sign up",
     "NO_ACCOUNT_QUESTION": "Don't have an account?",
+    "RESET_PASSWORD_QUESTION": "Don't have access to your account anymore?",
+    "BTN_RESET_PASSWORD": "Reset your password",
     "OFFLINE_MODE": "Force offline mode?",
     "LOGOUT": {
       "CONFIRM_TITLE": "Confirmation",
       "CONFIRM_MESSAGE": "Are you sure you want to logout?",
       "BTN_CONFIRM": "Yes, continue"
+    },
+    "RESET_PASSWORD": {
+      "TITLE": "Password Reset",
+      "HELP": "Please enter your account username. A <b>recovery link</b> will then be sent to you by email:",
+      "BTN_SEND": "Send request"
+    },
+    "CONFIRM": {
+      "RESET_PASSWORD_SENT": "Request sent! You should receive a recovery link by email.",
+      "PASSWORD_CHANGED": "Password updated <b>successfully</b>!"
     }
   },
   "REGISTER": {
@@ -505,6 +522,11 @@
       "LOCALE": "Language",
       "LAT_LONG_FORMAT": "Latitude/longitude format"
     },
+    "SECURITY": {
+      "TITLE": "Security",
+      "PASSWORD": "Password",
+      "BTN_CHANGE_PASSWORD": "Change the password"
+    },
     "TOKENS": {
       "TITLE": "Tokens",
       "DESCRIPTION": "Authentication tokens",
@@ -541,7 +563,8 @@
       "RELOADED": "Your user account has been updated!"
     },
     "ERROR": {
-      "SUBSCRIBE_ERROR": "Error while listening account's changes."
+      "SUBSCRIBE_ERROR": "Error while listening account's changes.",
+      "UPDATE_PUBKEY_ERROR": "Password change failed.<br/><small>If the problem persists, please contact your administrator</small>"
     }
   },
   "SETTINGS": {
@@ -577,6 +600,9 @@
       "QUALITATIVE_VALUE": "Dropdown list > Parameter's qualitative values",
       "TAXON_GROUP": "Dropdown list > Commercial species",
       "TAXON_NAME": "Dropdown list > Scientific species",
+      "DISTANCE_TO_COAST_GRADIENT": "Dropdown list  > Distance to coast gradient",
+      "DEPTH_GRADIENT": "Dropdown list  > Depth gradient",
+      "NEARBY_SPECIFIC_AREA": "Dropdown list  > Nearby specific area",
       "GEAR": "Dropdown list > Fishing gears",
       "FRACTION": "Dropdown list > Fraction (Calcified types...)",
       "ATTRIBUTES": {
@@ -863,6 +889,7 @@
         "QUALITY_FLAG_ID": "Quality flag",
         "TYPE": {
           "TITLE": "Operation type:",
+          "PLACEHOLDER": "Type",
           "PARENT": "Setting",
           "CHILD": "Hauling"
         },
@@ -1004,7 +1031,7 @@
         "PRODUCT_SALE": "Sales"
       },
       "SALE": {
-        "TITLE": "Sale of {{taxonGroupLabel}}",
+        "TITLE": "Sale of {{taxonGroup}}",
         "SALE_TYPE": "Disposal",
         "RATIO": "Ratio (%)",
         "AVG_WEIGHT_PRICE": "Average weight price",
@@ -1380,13 +1407,19 @@
     "COMMENTS": "Comments",
     "VESSEL": "Vessel",
     "NEW": {
-      "TITLE": "New sale"
+      "TITLE": "New sale",
+      "OBSERVED_SALE": {
+        "TITLE": "{{taxonGroup}} - New sale"
+      }
     },
     "EDIT": {
       "TITLE": "{{location}} - Sale of {{dateTime}}",
       "PROGRAM": "Program",
       "TAB_GENERAL": "Details",
-      "TAB_BATCHES": "Batches"
+      "TAB_BATCHES": "Batches",
+      "OBSERVED_SALE": {
+        "TITLE": "{{taxonGroup}} - Vessel {{vessel}}"
+      }
     },
     "TABLE": {
       "VESSEL": "Vessel",
@@ -2197,7 +2230,9 @@
       "TITLE": "New program"
     },
     "EDIT": {
-      "TITLE": "Program {{label}} - {{name}}"
+      "TITLE": "Program {{label}} - {{name}}",
+      "BTN_DOWNLOAD_PROPERTIES_AS_CSV": "Download options (CSV)",
+      "BTN_IMPORT_PROPERTIES_FROM_CSV": "Upload options (CSV)..."
     },
     "LIST": {
       "TITLE": "Data collection program"
@@ -3168,6 +3203,7 @@
       "PREDOC_TITLE": "Predocumentation",
       "BASE_PORT_LOCATION": "Operation port",
       "SOURCE": "Source",
+      "ERRORS": "Error(s) ",
       "SOURCE_PREDOC": "",
       "BTN_ADD_METIER_BLOCK": "Add a Metier block",
       "BTN_REPORT": "Edit report",
@@ -3220,7 +3256,7 @@
         "SOURCE_PREDOC": "Survey N-1"
       },
       "SIH-ACTIPRED": {
-        "SOURCE_PREDOC": "PREDOC"
+        "SOURCE_PREDOC": "Sacrois-ObsDeb"
       }
     },
     "OFFLINE_MODAL": {
@@ -3268,6 +3304,7 @@
     "FIELD_NOT_VALID_PATTERN": "Invalid format",
     "FIELD_NOT_VALID_PUBKEY": "Invalid public key",
     "FIELD_NOT_UNIQUE": "Value already used",
+    "FIELD_NOT_EQUALS": "Value not equals",
     "SPACE_NOT_ALLOW": "Spaces or special characters not allowed",
     "SCRYPT_ERROR": "Unable to create account keys",
     "INVALID_OR_INCOMPLETE_FILL": "Incomplete or invalid entry",
@@ -3328,7 +3365,7 @@
     "FIELD_NOT_EXISTS": "Value doesn't exist",
     "FIREFOX_NO_STORAGE": "The application cannot run with Firefox in 'private' mode or without keeping navigation history",
     "FEATURE_NOT_IMPLEMENTED": "Feature not implemented! <small><br/>Please contact your administrator.</small>",
-    "GEOLOCATION_ERROR": "Error while getting GPS position. <small><br/>{{message}}</small>",
+    "GEOLOCATION_ERROR": "Geolocation <b>impossible</b>.<small><br/>{{message}}</small>",
     "SHARE_AS_PUBLIC_FAIL": "Failed to share publicly"
   },
   "CONFIRM": {
@@ -3362,7 +3399,8 @@
     "UPDATE_APP_DOWNLOADED": "The update download is complete.<br/><b>Please install</b> from the downloaded files.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Please type at least {{minLength}} characters",
     "TEXT_PROGRESS": "{{current}} of {{max}}",
-    "DOWNLOADING_DOTS": "Download in progress..."
+    "DOWNLOADING_DOTS": "Download in progress...",
+    "GEOLOCATION_STARTED": "Geolocation in progress.<br/><b>Please wait...</b>"
   },
   "WARNING": {
     "ALERT_HEADER": "Warning",

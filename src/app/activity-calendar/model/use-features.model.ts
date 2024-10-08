@@ -1,5 +1,5 @@
 import { DataEntity } from '@app/data/services/model/data-entity.model';
-import { Moment } from 'moment/moment';
+import { Moment } from 'moment';
 import { EntityUtils, isNotNil } from '@sumaris-net/ngx-components';
 import { unitOfTime } from 'moment';
 

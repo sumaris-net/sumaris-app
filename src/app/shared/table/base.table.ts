@@ -1,4 +1,16 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  booleanAttribute,
+  ChangeDetectorRef,
+  Directive,
+  ElementRef,
+  inject,
+  Injector,
+  Input,
+  numberAttribute,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import {
   AppTable,
   changeCaseToUnderscore,
@@ -71,37 +83,42 @@ export abstract class AppBaseTable<
 {
   private _canEdit: boolean;
 
+  protected translateContext = inject(TranslateContextService);
+  protected popoverController = inject(PopoverController);
+  protected cd = inject(ChangeDetectorRef);
+
   protected memoryDataService: InMemoryEntitiesService<T, F, ID>;
-  protected translateContext: TranslateContextService;
-  protected cd: ChangeDetectorRef;
   protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
-  protected popoverController: PopoverController;
+  protected defaultCompact: boolean = false;
 
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
 
-  @Input() usePageSettings = true;
-  @Input() canGoBack = false;
-  @Input() showTitle = true;
-  @Input() mobile = false;
-  @Input() showToolbar: boolean;
-  @Input() showPaginator = true;
-  @Input() showFooter = true;
-  @Input() showError = true;
+  @Input({ transform: booleanAttribute }) usePageSettings = true;
+  @Input({ transform: booleanAttribute }) canGoBack = false;
+  @Input({ transform: booleanAttribute }) showTitle = true;
+  @Input({ transform: booleanAttribute }) showToolbar: boolean;
+  @Input({ transform: booleanAttribute }) showPaginator = true;
+  @Input({ transform: booleanAttribute }) showFooter = true;
+  @Input({ transform: booleanAttribute }) showError = true;
   @Input() toolbarColor: PredefinedColors = 'primary';
-  @Input() sticky = false;
-  @Input() stickyEnd = false;
-  @Input() compact: boolean = null;
-  @Input() pressHighlightDuration = 10000; // 10s
-  @Input() highlightedRowId: number;
-  @Input() filterPanelFloating = true;
-
-  @Input() set canEdit(value: boolean) {
+  @Input({ transform: booleanAttribute }) sticky = false;
+  @Input({ transform: booleanAttribute }) stickyEnd = false;
+  @Input({ transform: booleanAttribute }) compact: boolean = null;
+  @Input({ transform: booleanAttribute }) mobile = false;
+  @Input({ transform: numberAttribute }) pressHighlightDuration = 10000; // 10s
+  @Input({ transform: numberAttribute }) highlightedRowId: number;
+  @Input({ transform: booleanAttribute }) filterPanelFloating = true;
+  @Input({ transform: booleanAttribute }) canDelete: boolean;
+  @Input({ transform: booleanAttribute }) set canEdit(value: boolean) {
     this._canEdit = value;
   }
-
   get canEdit(): boolean {
-    return this._canEdit && !this.readOnly;
+    return !this.readOnly && (this._canEdit ?? true);
+  }
+
+  get tableContainerElement(): HTMLElement {
+    return this.tableContainerRef?.nativeElement as HTMLElement;
   }
 
   @ViewChild('tableContainer', { read: ElementRef }) tableContainerRef: ElementRef;
@@ -117,6 +134,13 @@ export abstract class AppBaseTable<
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     if (this.memoryDataService?.dirty) return; // Skip if service still dirty
     super.markAsPristine(opts);
+  }
+
+  /**
+   * return the selected row if unique in selection
+   */
+  protected get hasSingleSelectedRow(): boolean {
+    return this.selection.selected?.length === 1;
   }
 
   protected constructor(
@@ -143,10 +167,7 @@ export abstract class AppBaseTable<
 
     this.mobile = this.settings.mobile;
     this.hotkeys = injector.get(Hotkeys);
-    this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
-    this.translateContext = injector.get(TranslateContextService);
-    this.cd = injector.get(ChangeDetectorRef);
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
     this.memoryDataService = this._dataService instanceof InMemoryEntitiesService ? (this._dataService as InMemoryEntitiesService<T, F, ID>) : null;
@@ -214,11 +235,11 @@ export abstract class AppBaseTable<
     this._state?.ngOnDestroy();
   }
 
-  initTableContainer(element: any) {
+  initTableContainer(element: any, opts?: { defaultShortcuts?: boolean }) {
     if (!element) return; // Skip if already done
 
-    if (!this.mobile /* && opts?.defaultShortcuts !== false*/) {
-      // Add shortcuts
+    // Add shortcuts
+    if (!this.mobile && opts?.defaultShortcuts !== false) {
       console.debug(this.logPrefix + 'Add table shortcuts');
       this.registerSubscription(
         this.hotkeys
@@ -247,11 +268,22 @@ export abstract class AppBaseTable<
     }
   }
 
+  toggleSelectRow(event: Event | undefined, row: TableElement<T>) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.selection.toggle(row);
+    this.detectChanges();
+  }
+
+  /**
+   * Scroll to bottom
+   */
   scrollToBottom() {
     if (this.tableContainerRef) {
-      // scroll to bottom
       this.tableContainerRef.nativeElement.scroll({
         top: this.tableContainerRef.nativeElement.scrollHeight,
+        behavior: 'smooth',
       });
     }
   }
@@ -306,7 +338,7 @@ export abstract class AppBaseTable<
   }
 
   pressRow(event: Event | undefined, row: TableElement<T>): boolean {
-    if (!this.mobile) return; // Skip if inline edition, or not mobile
+    if (!this.mobile || event?.defaultPrevented) return false; // Skip if inline edition, or not mobile
 
     event?.preventDefault();
 
@@ -536,7 +568,7 @@ export abstract class AppBaseTable<
 
   /* -- protected function -- */
 
-  protected restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: AppBaseTableFilterRestoreSource[] }) {
+  protected async restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: AppBaseTableFilterRestoreSource[] }) {
     this.markAsLoading();
 
     const json = this.loadFilter(opts?.sources);
@@ -581,7 +613,10 @@ export abstract class AppBaseTable<
   restoreCompactMode(opts?: { emitEvent?: boolean }) {
     if (!this.usePageSettings || isNilOrBlank(this.settingsId) || isNotNil(this.compact)) return;
 
-    const compact = this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY) || false;
+    const compact = toBoolean(
+      this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY),
+      toBoolean(this.compact, this.defaultCompact)
+    );
     if (this.compact !== compact) {
       this.compact = compact;
 
@@ -594,6 +629,7 @@ export abstract class AppBaseTable<
 
   async toggleCompactMode() {
     this.compact = !this.compact;
+    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
     this.markForCheck();
     if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) {
       await this.savePageSettings(this.compact, BASE_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY);
@@ -685,6 +721,13 @@ export abstract class AppBaseTable<
     // Can be override by subclasses
   }
 
+  protected editRow(event: Event | undefined, row: TableElement<T>, opts?: { focusColumn?: string }): boolean {
+    const editing = super.editRow(event, row, opts);
+    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
+    if (editing) this.detectChanges();
+    return editing;
+  }
+
   /**
    * Delegate equals to the entity class, instead of simple ID comparison
    *
@@ -699,7 +742,13 @@ export abstract class AppBaseTable<
   }
 
   protected markForCheck() {
+    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
     this.cd.markForCheck();
+  }
+
+  protected detectChanges() {
+    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
+    this.cd.detectChanges();
   }
 
   protected getI18nColumnName(columnName: string): string {
@@ -710,8 +759,52 @@ export abstract class AppBaseTable<
     }
   }
 
+  protected getCellElement(rowIndex: number, columnIndex: number) {
+    const columnName = this.displayedColumns[columnIndex];
+    const cellElements = this.tableContainerElement?.querySelectorAll(`.cdk-column-${columnName}`);
+    return { cellElement: cellElements[rowIndex + 1] as HTMLElement, columnName };
+  }
+
+  protected scrollToElement(cellElement?: HTMLElement, behavior: 'smooth' | 'auto' = 'smooth') {
+    if (this.tableContainerRef && cellElement) {
+      const container = this.tableContainerRef.nativeElement;
+      const containerRect = container.getBoundingClientRect();
+      const cellRect = cellElement.getBoundingClientRect();
+
+      // Calculer les marges pour la visibilité
+      const margin = 16;
+
+      // Calculer les valeurs de défilement nécessaires
+      let scrollTop = 0;
+      let scrollLeft = 0;
+
+      if (cellRect.top < containerRect.top - margin) {
+        scrollTop = cellElement.offsetTop - container.offsetTop - margin;
+      } else if (cellRect.bottom > containerRect.bottom + margin) {
+        scrollTop = cellElement.offsetTop - container.offsetTop - (containerRect.height - cellRect.height - margin);
+      }
+
+      if (cellRect.left < containerRect.left - margin) {
+        scrollLeft = cellElement.offsetLeft - container.offsetLeft - margin;
+      } else if (cellRect.right > containerRect.right + margin) {
+        scrollLeft = cellElement.offsetLeft - container.offsetLeft - (containerRect.width - cellRect.width - margin);
+      }
+
+      // Vérifier si un défilement est nécessaire avant de l'effectuer
+      if (scrollTop !== 0 || scrollLeft !== 0) {
+        console.debug(this.logPrefix + 'Scrolling to cell element');
+        container.scroll({
+          top: scrollTop !== 0 ? scrollTop : undefined,
+          left: scrollLeft !== 0 ? scrollLeft : undefined,
+          behavior,
+        });
+      }
+    }
+  }
+
   protected async devToggleDebug() {
     this.debug = !this.debug;
+    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
     this.markForCheck();
     if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) await this.savePageSettings(this.debug, 'debug');
   }

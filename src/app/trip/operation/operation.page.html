@@ -1,3 +1,5 @@
+<ion-backdrop *ngIf="opeForm.busySubject | push"></ion-backdrop>
+
 <!-- Top toolbar -->
 <app-toolbar
   *ngVar="{ saving: (savingSubject | push), loading: (loadingSubject | push) } as vars"
@@ -316,7 +318,7 @@
         <mat-icon>line_style</mat-icon>
         <ion-label
           *ngVar="batchTree.batchGroupsTable.totalRowCount as count"
-          [matBadge]="count"
+          [matBadge]="count | badgeNumber"
           [matBadgeHidden]="(batchTree.errorSubject | push) || batchTree.invalid || !count"
           matBadgeOverlap="false"
           matBadgeColor="primary"
@@ -347,6 +349,7 @@
         [physicalGear]="physicalGear$ | async"
         [useSticky]="mobile"
         [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
+        [disabled]="!showCatchTab"
         [mobile]="mobile"
         [debug]="debug"
       ></app-batch-tree>
@@ -358,7 +361,7 @@
         <mat-icon svgIcon="fish-oblique"></mat-icon>
         <ion-label
           *ngVar="sampleTree.samplesTable.totalRowCount as count"
-          [matBadge]="count"
+          [matBadge]="count | badgeNumber"
           [matBadgeHidden]="sampleTree.invalid || !count"
           matBadgeOverlap="false"
           matBadgeColor="primary"
@@ -434,6 +437,8 @@
           <br />
           <br />
           editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
+          <br />
+          editor.tabCount: {{ tabCount }}
           <br />
         </ion-col>
         <ion-col>

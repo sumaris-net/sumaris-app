@@ -124,7 +124,7 @@
       <ng-template mat-tab-label>
         <mat-icon>center_focus_strong</mat-icon>
         <ion-label
-          [matBadge]="samplesTable.visibleRowCount"
+          [matBadge]="samplesTable.visibleRowCount | badgeNumber"
           [matBadgeHidden]="samplesTable.invalid || samplesTable.error || !samplesTable.visibleRowCount"
           matBadgeOverlap="false"
           matBadgeColor="primary"

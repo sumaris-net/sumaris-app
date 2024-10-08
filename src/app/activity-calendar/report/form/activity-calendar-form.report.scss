@@ -84,3 +84,17 @@
     }
   }
 }
+
+@media screen {
+  .slides {
+    section {
+      &.landscape {
+        border: solid 1px;
+        height: var(--slide-height) !important;
+        width: var(--slide-width) !important;
+        right: 0;
+        top: 0;
+      }
+    }
+  }
+}

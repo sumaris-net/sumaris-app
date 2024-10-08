@@ -30,7 +30,7 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { Moment } from 'moment/moment';
+import { Moment } from 'moment';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 
 export class BatchUtils {

@@ -230,7 +230,7 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy, IAppForm {
     this.registerSubscription(
       this.refresh
         .pipe(
-          startWith<any, any>((this.autoLoad ? {} : 'skip') as any),
+          startWith<any>((this.autoLoad ? {} : 'skip') as any),
           switchMap((event) => {
             if (event === 'skip') {
               return of(undefined);
