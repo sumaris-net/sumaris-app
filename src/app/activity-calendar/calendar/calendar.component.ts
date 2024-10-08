@@ -971,45 +971,7 @@ export class CalendarComponent
     // Numeric key
     if (NUMERIC_KEYS.includes(event.key) && isSingleCellSelection(this.cellSelection)) {
       this.onNumericKeyPress(event, this.cellSelection.row, this.cellSelection.columnName);
-    }
-  }
-
-  onNumericKeyPress(event: KeyboardEvent, row: AsyncTableElement<ActivityMonth>, columnName: string) {
-    if (!event || !row || !columnName) return;
-
-    // Check if the selected cell is on a numeric pmfm
-    const pmfm = this.pmfms?.find((p) => p.id.toString() === columnName);
-    if (!pmfm || !PmfmUtils.isNumeric(pmfm)) return; // Skip if not a numerical pmfm column
-
-    const control = row.validator?.get(`measurementValues.${pmfm.id}`);
-    if (!control) return;
-
-    // Compute new control's value
-    let valueStr: string = control.value?.toString() || '';
-    if (isNotNilOrNaN(+event.key)) {
-      valueStr += event.key;
-    } else if (event.key === 'Backspace') {
-      if (valueStr.length) {
-        // Remove last character
-        valueStr = valueStr.substring(0, valueStr.length - 1);
-      } else {
-        valueStr = null;
-      }
-    } else return; // Skip (unknown key)
-
-    // Update control's value
-    const newValue = isNotNilOrBlank(valueStr) ? toNumber(+valueStr, null) : null;
-    if (control.value !== newValue) {
-      // Check min/max (skip if outside [min,max])
-      if (isNotNil(newValue) && event.key !== 'Backspace') {
-        if (isNotNilOrNaN(pmfm.minValue) && newValue < pmfm.minValue) return;
-        if (isNotNilOrNaN(pmfm.maxValue) && newValue > pmfm.maxValue) return;
-      }
-
-      if (this.debug) console.debug(this.logPrefix + `Updating Pmfm#${pmfm.id} cell value with: ${newValue}`);
-
-      control.patchValue(newValue);
-      this.markAsDirty();
+      return;
     }
   }
 
@@ -1151,6 +1113,45 @@ export class CalendarComponent
     // Scroll to selection
     if (event.ctrlKey) {
       sleep(250).then(() => this.scrollToElement(cellElement, 'auto'));
+    }
+  }
+
+  protected onNumericKeyPress(event: KeyboardEvent, row: AsyncTableElement<ActivityMonth>, columnName: string) {
+    if (!event || !row || !columnName) return;
+
+    // Check if the selected cell is on a numeric pmfm
+    const pmfm = this.pmfms?.find((p) => p.id.toString() === columnName);
+    if (!pmfm || !PmfmUtils.isNumeric(pmfm)) return; // Skip if not a numerical pmfm column
+
+    const control = row.validator?.get(`measurementValues.${pmfm.id}`);
+    if (!control) return;
+
+    // Compute new control's value
+    let valueStr: string = control.value?.toString() || '';
+    if (isNotNilOrNaN(+event.key)) {
+      valueStr += event.key;
+    } else if (event.key === 'Backspace') {
+      if (valueStr.length) {
+        // Remove last character
+        valueStr = valueStr.substring(0, valueStr.length - 1);
+      } else {
+        valueStr = null;
+      }
+    } else return; // Skip (unknown key)
+
+    // Update control's value
+    const newValue = isNotNilOrBlank(valueStr) ? toNumber(+valueStr, null) : null;
+    if (control.value !== newValue) {
+      // Check min/max (skip if outside [min,max])
+      if (isNotNil(newValue) && event.key !== 'Backspace') {
+        if (isNotNilOrNaN(pmfm.minValue) && newValue < pmfm.minValue) return;
+        if (isNotNilOrNaN(pmfm.maxValue) && newValue > pmfm.maxValue) return;
+      }
+
+      if (this.debug) console.debug(this.logPrefix + `Updating Pmfm#${pmfm.id} cell value with: ${newValue}`);
+
+      control.patchValue(newValue);
+      this.markAsDirty();
     }
   }
 
