@@ -6,21 +6,33 @@ import { ActivityCalendarFormsReport } from './form/activity-calendar-forms.repo
 
 const routes: Routes = [
   {
+    data: {
+      isBlankForm: false,
+    },
     path: 'form',
     pathMatch: 'full',
     component: ActivityCalendarFormReport,
   },
   {
+    data: {
+      isBlankForm: false,
+    },
     path: 'forms',
     pathMatch: 'full',
     component: ActivityCalendarFormsReport,
   },
   {
+    data: {
+      isBlankForm: true,
+    },
     path: 'blank-form',
     pathMatch: 'full',
     component: ActivityCalendarFormReport,
   },
   {
+    data: {
+      isBlankForm: true,
+    },
     path: 'blank-forms',
     pathMatch: 'full',
     component: ActivityCalendarFormsReport,

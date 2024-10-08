@@ -1,7 +1,7 @@
 import { Component, Injector, ViewEncapsulation } from '@angular/core';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
@@ -121,7 +121,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
   protected logPrefix = 'activity-calendar-form-report';
   protected isBlankForm: boolean;
-  protected reportType: string;
+  protected reportPath: string;
 
   protected readonly ActivityCalendarService: ActivityCalendarService;
   protected readonly strategyRefService: StrategyRefService;
@@ -153,14 +153,14 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     this.translateContextService = this.injector.get(TranslateContextService);
     this.configService = this.injector.get(ConfigService);
 
-    this.reportType = this.route.snapshot.routeConfig.path;
-    this.isBlankForm = this.reportType === 'blank-form';
+    this.reportPath = this.route.snapshot.routeConfig.path;
+    this.isBlankForm = this.route.snapshot.data?.isBlankForm;
     this.debug = !environment.production;
   }
 
   computePrintHref(data: ActivityCalendar, stats: ActivityCalendarFormReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
-    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + this.reportType);
+    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + this.reportPath);
   }
 
   async updateView() {

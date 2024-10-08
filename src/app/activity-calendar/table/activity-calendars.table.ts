@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
 import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
@@ -155,14 +155,15 @@ export class ActivityCalendarsTable
 
   constructor(
     injector: Injector,
-    _dataService: ActivityCalendarService,
+    protected _dataService: ActivityCalendarService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
     protected context: ContextService,
     protected formBuilder: UntypedFormBuilder,
-    private readonly transferService: FileTransferService
+    private readonly transferService: FileTransferService,
+    protected cd: ChangeDetectorRef
   ) {
     super(
       injector,
@@ -561,26 +562,26 @@ export class ActivityCalendarsTable
     await this.router.navigate(['extraction', 'data'], { queryParams });
   }
 
-  async openReport(reportType: ActivityCalendarReportType | string) {
+  async openReport(reportPath: string) {
     const urlParams = new URLSearchParams();
     if (this.selection.selected.length > 0) {
       const selectedIds = this.selection.selected.map((s) => s.currentData.id).toString();
-      switch (reportType) {
+      switch (reportPath) {
         case 'form':
         case 'blank-form':
         case 'progress':
           {
             urlParams.set('ids', selectedIds);
-            if (reportType !== 'progress') {
-              reportType = reportType + 's';
+            if (reportPath !== 'progress') {
+              reportPath = reportPath + 's';
             }
           }
           break;
         default:
-          throw new Error(`Report type "${reportType}" not yet implemented !`);
+          throw new Error(`Report type "${reportPath}" not yet implemented !`);
       }
     }
-    const url = ['activity-calendar', 'report', reportType].join('/') + '?' + urlParams.toString();
+    const url = ['activity-calendar', 'report', reportPath].join('/') + '?' + urlParams.toString();
     if (url.length > 2048) {
       // TODO : handle url size limit
     }
@@ -600,10 +601,6 @@ export class ActivityCalendarsTable
 
       this.setFilter({ ...this.filter, year, startDate, endDate: null });
     }
-  }
-
-  resetFilter(value?: any, opts?: { emitEvent: boolean }) {
-    super.resetFilter({ ...value, year: this.filter?.year }, opts);
   }
 
   protected markForCheck() {
