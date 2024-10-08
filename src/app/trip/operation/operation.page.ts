@@ -790,7 +790,9 @@ export class OperationPage<S extends OperationState = OperationState>
 
     const skipDatesPmfmId = program.getPropertyAsInt(ProgramProperties.OPTION_OPERATION_SKIP_DATES_PMFM_ID);
     const skipDates = isNotNil(skipDatesPmfmId) ? toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, skipDatesPmfmId), false) : false;
-    const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true);
+    const isGPSUsed =
+      toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.CAMERA_USED), false) ||
+      toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), false);
     const enablePosition = !skipDates && isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
 
     this.opeForm.trip = this.trip;
