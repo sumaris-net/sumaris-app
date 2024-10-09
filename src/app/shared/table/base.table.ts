@@ -728,6 +728,16 @@ export abstract class AppBaseTable<
     return editing;
   }
 
+  protected async addRowToTable(
+    insertAt?: number,
+    opts?: { focusColumn?: string; editing?: boolean; emitEvent?: boolean }
+  ): Promise<TableElement<T> | undefined> {
+    const row = await super.addRowToTable(insertAt, opts);
+    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
+    if (row) this.detectChanges();
+    return row;
+  }
+
   /**
    * Delegate equals to the entity class, instead of simple ID comparison
    *
