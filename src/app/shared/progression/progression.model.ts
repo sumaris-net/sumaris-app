@@ -1,5 +1,5 @@
+import { RxState } from '@rx-angular/state';
 import { isNotNil } from '@sumaris-net/ngx-components';
-import { BehaviorSubject } from 'rxjs';
 
 export interface IProgressionState {
   message: string;
@@ -9,17 +9,18 @@ export interface IProgressionState {
 }
 
 // @dynamic
-export class ProgressionModel implements IProgressionState {
+export class ProgressionModel extends RxState<IProgressionState> {
   static create(initState?: Partial<IProgressionState>) {
     return new ProgressionModel(initState);
   }
 
-  readonly message$ = new BehaviorSubject<string>('');
-  readonly total$ = new BehaviorSubject<number>(0);
-  readonly current$ = new BehaviorSubject<number>(0);
-  readonly cancelled$ = new BehaviorSubject<boolean>(false);
+  readonly message$ = this.select('message');
+  readonly total$ = this.select('total');
+  readonly current$ = this.select('current');
+  readonly cancelled$ = this.select('cancelled');
 
   constructor(private initState?: Partial<IProgressionState>) {
+    super();
     this.set({
       message: '',
       total: 0,
@@ -30,49 +31,45 @@ export class ProgressionModel implements IProgressionState {
   }
 
   increment(value?: number, message?: string) {
-    this.current = Math.min(this.total, (this.current || 0) + Math.abs(value || 1));
+    this.set('current', (s) => {
+      const next = (s.current || 0) + Math.abs(value || 1);
+      return Math.min(s.total, next);
+    });
     if (isNotNil(message)) {
-      this.message = message;
+      this.set('message', (_) => message);
     }
   }
 
   get total(): number {
-    return this.total$.value;
+    return this.get('total');
   }
 
   set total(value: number) {
-    this.total$.next(value);
+    this.set('total', (_) => value);
   }
 
   get message(): string {
-    return this.message$.value;
+    return this.get('message');
   }
 
   set message(value: string) {
-    this.message$.next(value);
+    this.set('message', (_) => value);
   }
 
   get current(): number {
-    return this.current$.value;
+    return this.get('current');
   }
 
   set current(value: number) {
-    this.current$.next(value);
+    this.set('current', (_) => value);
   }
 
   get cancelled(): boolean {
-    return this.cancelled$.value;
+    return this.get('cancelled');
   }
 
   set cancelled(value: boolean) {
-    this.cancelled$.next(value);
-  }
-
-  set(initState?: Partial<IProgressionState>) {
-    this.message = initState?.message;
-    this.total = initState?.total;
-    this.current = initState?.current;
-    this.cancelled = initState?.cancelled;
+    this.set('cancelled', (_) => value);
   }
 
   reset() {
@@ -80,7 +77,7 @@ export class ProgressionModel implements IProgressionState {
   }
 
   cancel() {
-    this.cancelled = true;
+    this.set('cancelled', (s_) => true);
   }
 
   next(current: number) {
