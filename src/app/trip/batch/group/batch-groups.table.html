@@ -464,7 +464,7 @@
               @if (colValue != null) {
                 @switch (col.type) {
                   @case ('pmfm') {
-                    <ion-label [innerHTML]="colValue | pmfmValue: { pmfm: col.pmfm, html: false }"></ion-label>
+                    <ion-label [innerHTML]="colValue | pmfmValue: { pmfm: col.pmfm, html: false, showYesOrNo: true }"></ion-label>
                   }
                   @case ('samplingRatio') {
                     <ion-label>{{ colValue | samplingRatioFormat: samplingRatioFormat }}</ion-label>
