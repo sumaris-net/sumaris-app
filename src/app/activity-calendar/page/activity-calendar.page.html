@@ -188,7 +188,7 @@
                   <ion-label>Observateurs</ion-label>
                 </ion-item>
                 <ng-container *ngFor="let observer of data?.observers">
-                  <ion-item color="light">
+                  <ion-item *ngIf="observer" color="light">
                     <!-- observer avatar -->
                     <ion-avatar slot="start">
                       <ion-img *ngIf="observer.avatar; let avatarUrl; else: generateAvatar" [src]="avatarUrl" />

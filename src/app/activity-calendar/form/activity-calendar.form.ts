@@ -83,7 +83,6 @@ export class ActivityCalendarForm
   @Input() allowAddNewVessel = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() @RxStateProperty() showObservers: boolean;
-  @Input() @RxStateProperty() hideObservers: boolean;
   @Input() @RxStateProperty() warnFutureYear: boolean;
 
   get empty(): any {
@@ -238,12 +237,7 @@ export class ActivityCalendarForm
 
     // Make sure to have (at least) one observer
     // Resize observers array
-    if (this.showObservers) {
-      data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
-    } else {
-      data.observers = [null];
-    }
-
+    data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
     // Update form group
     this.updateFormGroup();
   }
