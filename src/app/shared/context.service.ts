@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 import { Moment } from 'moment';
-import { DateUtils, equals, fromDateISOString, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
+import { DateUtils, equals, fromDateISOString, isEmptyArray, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -99,5 +99,17 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
 
   unregisterChild(child: ContextService<any>) {
     this.set('children', (s) => (s.children || []).filter((c) => c !== child));
+  }
+
+  /**
+   * Merge self state with all children's states
+   */
+  getMerged(): any {
+    const children = this.children;
+    if (isEmptyArray(children)) return { ...this.get(), children: undefined };
+    return [this.get(), ...children.filter((c) => !c.empty).map((child) => child.getMerged())].reduce(
+      (res, state) => ({ ...res, ...state, children: undefined }),
+      {}
+    );
   }
 }
