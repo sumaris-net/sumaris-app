@@ -38,7 +38,7 @@ import {
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 import { UntypedFormGroup, Validators } from '@angular/forms';
-import { Moment } from 'moment';
+import moment, { Moment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { Operation, OperationUtils, Trip } from '../trip/trip.model';
 import { OperationPasteFlags, ProgramProperties } from '@app/referential/services/config/program.config';
@@ -73,7 +73,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import moment from 'moment';
+import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export interface OperationState extends AppDataEditorState {
   hasIndividualMeasures?: boolean;
@@ -147,6 +147,9 @@ export class OperationPage<S extends OperationState = OperationState>
   operationPasteFlags: number;
   helpUrl: string;
   _defaultIsParentOperation = true;
+
+  protected isInlineFishingArea: boolean = false;
+
   readonly forceOptionalExcludedPmfmIds: number[];
 
   @RxStateProperty() tripId: number;
@@ -697,6 +700,70 @@ export class OperationPage<S extends OperationState = OperationState>
           })
       );
     }
+
+    // If PMFM "Line layout" exists, then use to use to enable/disable specifics details
+    const lineLayoutControl = formGroup?.controls[PmfmIds.LINE_LAYOUT];
+
+    if (isNotNil(lineLayoutControl)) {
+      const enableOptions = { onlySelf: true };
+      let lineLayoutLinearControl = formGroup.controls[PmfmIds.LINE_LAYOUT_LINEAR];
+      let lineLayoutZigZagControl = formGroup.controls[PmfmIds.LINE_LAYOUT_ZIGZAG];
+      let lineLayoutUnknownControl = formGroup.controls[PmfmIds.LINE_LAYOUT_UNKNOWN];
+      if (lineLayoutLinearControl && lineLayoutZigZagControl && lineLayoutUnknownControl) {
+        this._measurementSubscription.add(
+          lineLayoutControl.valueChanges
+            .pipe(
+              debounceTime(400),
+              startWith<any, any>(lineLayoutControl.value),
+              map((qv) => qv?.label),
+              distinctUntilChanged()
+            )
+            .subscribe((qvLabel) => {
+              switch (qvLabel as string) {
+                case QualitativeLabels.LINE_LAYOUT_TYPE.LINEAR:
+                  if (this.debug) console.debug('[operation] Enable linear details');
+
+                  AppSharedFormUtils.enableControl(lineLayoutLinearControl, { ...enableOptions, required: true });
+
+                  AppSharedFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+
+                  AppSharedFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+
+                  break;
+                case QualitativeLabels.LINE_LAYOUT_TYPE.ZIG_ZAG:
+                  if (this.debug) console.debug('[operation] Enable zig_zag details');
+
+                  AppSharedFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+
+                  AppSharedFormUtils.enableControl(lineLayoutZigZagControl, { ...enableOptions, required: true });
+
+                  AppSharedFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+
+                  break;
+                case QualitativeLabels.LINE_LAYOUT_TYPE.UNKNOWN:
+                  if (this.debug) console.debug('[operation] Enable other details');
+
+                  AppSharedFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+
+                  AppSharedFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+
+                  AppSharedFormUtils.enableControl(lineLayoutUnknownControl, { ...enableOptions, required: false });
+
+                  break;
+                default:
+                  AppSharedFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+
+                  AppSharedFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+
+                  AppSharedFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+
+                  break;
+              }
+              //this.markForCheck();
+            })
+        );
+      }
+    }
   }
 
   ngOnDestroy() {
@@ -720,13 +787,18 @@ export class OperationPage<S extends OperationState = OperationState>
     this.autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
     this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
 
-    const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true);
-    const enablePosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+    const skipDatesPmfmId = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_SKIP_DATES_PMFM_ID);
+    const skipDates = isNotNil(skipDatesPmfmId) ? toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, skipDatesPmfmId), false) : false;
+    const isGPSUsed =
+      toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.CAMERA_USED), false) ||
+      toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), false);
+    const enablePosition = !skipDates && isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+
     this.opeForm.trip = this.trip;
     this.opeForm.showPosition = enablePosition;
     this.opeForm.boundingBox = enablePosition && Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
     // TODO: make possible to have both showPosition and showFishingArea at true (ex SFA artisanal logbook program)
-    this.opeForm.showFishingArea = !enablePosition; // Trip has gps in use, so active positions controls else active fishing area control
+    this.opeForm.showFishingArea = !skipDates && !enablePosition; // Trip has gps in use, so active positions controls else active fishing area control
     this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
     const defaultLatitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     const defaultLongitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
@@ -740,9 +812,9 @@ export class OperationPage<S extends OperationState = OperationState>
     this.opeForm.showMetier = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_ENABLE);
     this.opeForm.showMetierFilter = this.opeForm.showMetier && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_FILTER);
     this.opeForm.programLabel = program.label;
-    this.opeForm.fishingStartDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
-    this.opeForm.fishingEndDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
-    this.opeForm.endDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
+    this.opeForm.fishingStartDateTimeEnable = !skipDates && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
+    this.opeForm.fishingEndDateTimeEnable = !skipDates && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
+    this.opeForm.endDateTimeEnable = !skipDates && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
     this.opeForm.maxShootingDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS);
     this.opeForm.maxTotalDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS);
     this.opeForm.defaultIsParentOperation = this._defaultIsParentOperation;
@@ -767,6 +839,8 @@ export class OperationPage<S extends OperationState = OperationState>
 
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ENABLE);
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);
+
+    this.isInlineFishingArea = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_AREA_INLINE);
 
     if (!this.allowParentOperation) {
       this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;

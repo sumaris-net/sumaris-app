@@ -335,7 +335,7 @@
       [required]="required"
       [tabIndex]="tabindex"
       (click)="clicked.emit($event)"
-      (keypress)="filterAlphanumericalInput($event)"
+      (keydown)="filterAlphanumericalInput($event)"
       (keyup.enter)="onPressEnter.emit($event)"
       (focus)="focused.emit($event)"
       (blur)="blurred.emit($event)"
@@ -344,8 +344,7 @@
     <mat-error *ngIf="control.errors | mapKeys | arrayFirst; let errorKey">
       <ng-container [ngSwitch]="errorKey">
         <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-        <span *ngSwitchCase="'maxlength'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
-        <span *ngSwitchCase="'minlength'">
+        <span *ngSwitchCase="'maxlength'">
           {{ (compact ? 'ERROR.FIELD_MAX_LENGTH_COMPACT' : 'ERROR.FIELD_MAX_LENGTH') | translate: control.errors.maxlength }}
         </span>
         <span *ngSwitchCase="'minlength'">

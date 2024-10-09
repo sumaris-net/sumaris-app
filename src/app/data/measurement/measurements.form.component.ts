@@ -23,7 +23,6 @@ import {
   isNil,
   isNotNil,
   PromiseEvent,
-  toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
@@ -72,6 +71,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
   @Input() showButtonIcons: boolean;
+  @Input() showDisabledPmfm: boolean;
   @Input() i18nPmfmPrefix: string = null;
   @Input() i18nSuffix: string = null;
   @Input() forceOptionalExcludedPmfmIds: number[]; // Pmfm that should NOT be forced as optional
@@ -190,7 +190,8 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   }
 
   ngOnInit() {
-    this.mobile = toBoolean(this.mobile, this.settings.mobile);
+    this.mobile = this.mobile ?? this.settings.mobile;
+    this.showDisabledPmfm = this.showDisabledPmfm ?? !this.mobile;
     super.ngOnInit();
   }
 

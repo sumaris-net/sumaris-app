@@ -230,3 +230,18 @@ app-toolbar ion-segment-button {
   visibility: hidden;
   display: none;
 }
+
+.cdk-overlay-pane:has(.mat-mdc-autocomplete-panel) {
+  --min-width: 200px;
+  --max-width: calc(min(100%, 100vw - 64px));
+  min-width: var(--min-width) !important;
+  max-width: var(--max-width) !important;
+
+  // FIXME : Workaround for full width panel
+  &:has(.full-width) {
+    left: 36px !important;
+    right: unset !important;
+    width: var(--max-width) !important;
+    --min-width: var(--max-width) !important;
+  }
+}
