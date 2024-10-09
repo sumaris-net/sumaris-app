@@ -9,10 +9,10 @@
     "icon": "assets/icons/",
     "category": "Science",
     "target": ["AppImage", "deb"],
-    "artifactName": "${name}-2.9.23-linux-${arch}.${ext}"
+    "artifactName": "${name}-2.9.23.1-linux-${arch}.${ext}"
   },
   "nsis": {
-    "artifactName": "${name}-2.9.23-windows-${arch}.${ext}",
+    "artifactName": "${name}-2.9.23.1-windows-${arch}.${ext}",
     "allowElevation": true,
     "oneClick": false,
     "allowToChangeInstallationDirectory": true,
