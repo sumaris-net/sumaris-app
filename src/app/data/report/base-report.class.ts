@@ -76,7 +76,7 @@ export class BaseReportStats {
   static fromObject: (source: any) => BaseReportStats;
 
   fromObject(source: any) {
-    this.program = Program.fromObject(source.program);
+    this.program = isNotNil(source.program) ? Program.fromObject(source.program) : undefined;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -332,7 +332,7 @@ export abstract class AppBaseReport<
     let clipboard: Clipboard<any>;
     if (isNotNil(this.context.clipboard)) {
       clipboard = this.context.clipboard;
-    } else if (isNotNilOrBlank(this.uuid)) {
+    } else if (isNotNilOrBlank(this.uuid) && (isNil(this.data) || isNil(this.stats))) {
       if (this.debug) console.debug(`[${this.logPrefix}] fill clipboard by downloading shared resource`);
       const http = this.injector.get(HttpClient);
       const peerUrl = this.settings.settings.peerUrl;
@@ -511,7 +511,7 @@ export abstract class AppBaseReport<
     if (this.dataType) {
       const data = new this.dataType();
       if (Array.isArray(data)) {
-        return this.dataArrayFromObject(source);
+        throw Error('Not implemented');
       } else {
         data.fromObject(source);
         return data;

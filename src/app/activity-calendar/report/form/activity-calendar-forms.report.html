@@ -19,7 +19,13 @@
 
     <!-- share menu -->
     <!-- TODO disabled for now. Enable it when parent load date for child to have good data and stats to share -->
-    <button disabled="true" mat-icon-button matHeader [title]="'COMMON.SHARE.BTN_SHARE' | translate" [matMenuTriggerFor]="shareMenu">
+    <button
+      [disabled]="(loadingSubject | async) || network.offline"
+      mat-icon-button
+      matHeader
+      [title]="'COMMON.SHARE.BTN_SHARE' | translate"
+      [matMenuTriggerFor]="shareMenu"
+    >
       <mat-icon>share</mat-icon>
     </button>
   </ion-buttons>
@@ -39,15 +45,19 @@
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
-  @if (reveal.loading) {
+  @if (loading) {
     <div class="loader">
       <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
     </div>
+  } @else {
+    <app-reveal #reveal [options]="revealOptions">
+      @for (activityCalendar of data; track $index) {
+        <app-activity-calendar-form-report
+          [data]="activityCalendar"
+          [stats]="stats.activityCalendarFormReportStatsByIds | mapGet: activityCalendar.id"
+          [showToolbar]="false"
+        ></app-activity-calendar-form-report>
+      }
+    </app-reveal>
   }
-
-  <app-reveal #reveal [class.cdk-visually-hidden]="loading || error" [options]="revealOptions">
-    @for (id of ids; track id) {
-      <app-activity-calendar-form-report [id]="id" [showToolbar]="false"></app-activity-calendar-form-report>
-    }
-  </app-reveal>
 </ion-content>
