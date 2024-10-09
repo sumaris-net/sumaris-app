@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ObservedLocationForm } from './form/observed-location.form';
 import { ObservedLocationService } from './observed-location.service';
 import { LandingsTable } from '../landing/landings.table';
@@ -78,7 +78,7 @@ export interface ObservedLocationPageState extends RootDataEntityEditorState {
   styleUrls: ['./observed-location.page.scss'],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: ObservedLocationPage }, RxState],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => ObservedLocationPage) }, RxState],
 })
 export class ObservedLocationPage
   extends AppRootDataEntityEditor<ObservedLocation, ObservedLocationService, number, ObservedLocationPageState>

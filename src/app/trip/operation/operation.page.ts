@@ -1,4 +1,15 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  Optional,
+  ViewChild,
+} from '@angular/core';
 import { OperationSaveOptions, OperationService } from './operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../trip/trip.service';
@@ -90,7 +101,11 @@ export interface OperationState extends AppDataEditorState {
   templateUrl: './operation.page.html',
   styleUrls: ['./operation.page.scss'],
   animations: [fadeInOutAnimation],
-  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: OperationPage }, { provide: ContextService, useExisting: TripContextService }, RxState],
+  providers: [
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => OperationPage) },
+    { provide: ContextService, useExisting: TripContextService },
+    RxState,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationPage<S extends OperationState = OperationState>

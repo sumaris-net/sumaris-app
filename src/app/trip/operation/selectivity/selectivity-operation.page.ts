@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector } from '@angular/core';
 import { fadeInOutAnimation } from '@sumaris-net/ngx-components';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { OperationPage } from '@app/trip/operation/operation.page';
@@ -16,7 +16,7 @@ import { SelectivityBatchModelValidatorService } from '@app/trip/batch/tree/sele
   styleUrls: ['../operation.page.scss'],
   animations: [fadeInOutAnimation],
   providers: [
-    { provide: APP_DATA_ENTITY_EDITOR, useExisting: SelectivityOperationPage },
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => SelectivityOperationPage) },
     { provide: ContextService, useExisting: TripContextService },
     { provide: BatchModelValidatorService, useExisting: SelectivityBatchModelValidatorService },
     RxState,

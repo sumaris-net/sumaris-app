@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnInit, Optional, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, forwardRef, inject, Injector, OnInit, Optional, ViewChild } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
   AppEditorOptions,
@@ -73,7 +73,7 @@ export interface LandingPageState extends RootDataEntityEditorState {
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInOutAnimation],
   providers: [
-    { provide: APP_DATA_ENTITY_EDITOR, useExisting: LandingPage },
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => LandingPage) },
     {
       provide: AppEditorOptions,
       useValue: {

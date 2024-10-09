@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, forwardRef, Injector, OnInit } from '@angular/core';
 import { UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { filter, firstValueFrom, merge, mergeMap, of, Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -42,7 +42,7 @@ export interface SamplingLandingPageState extends LandingPageState {
   selector: 'app-sampling-landing-page',
   templateUrl: './sampling-landing.page.html',
   styleUrls: ['./sampling-landing.page.scss'],
-  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: SamplingLandingPage }, RxState],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => SamplingLandingPage) }, RxState],
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
