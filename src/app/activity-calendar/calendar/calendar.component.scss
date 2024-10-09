@@ -233,6 +233,9 @@ mat-toolbar {
 
   .mat-column-month {
     font-weight: var(--mat-table-header-headline-weight, 500);
+
+    --mat-row-height: 35px !important;
+    --mat-row-max-height: 35px !important;
   }
 
   .mat-column-metier {
