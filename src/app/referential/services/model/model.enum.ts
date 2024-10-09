@@ -202,9 +202,9 @@ export const QualitativeLabels = {
     DEAD: 'MOR',
   },
   LINE_LAYOUT_TYPE: {
-    LINEAR: 'LINEAR',
-    ZIG_ZAG: 'ZIG-ZAG',
-    UNKNOWN: 'UNK',
+    LINEAR: 'L',
+    ZIG_ZAG: 'ZZ',
+    UNKNOWN: 'OTH',
   },
 };
 
