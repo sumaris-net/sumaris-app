@@ -940,7 +940,20 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.SURVEY_QUALIFICATION.DIRECT,
   },
-
+  PMFM_CAMERA_USED_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.PMFM_CAMERA_USED_ID.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_CAMERA_USED_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.CAMERA_USED,
+  },
+  PMFM_LINE_LAYOUT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.PMFM_LINE_LAYOUT_ID.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_LINE_LAYOUT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.LINE_LAYOUT,
+  },
   QUALITY_FLAG_NOT_COMPLETED_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualityFlag.NOT_COMPLETED.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITY_FLAG_NOT_COMPLETED_ID',

@@ -35,7 +35,7 @@ import { Operation, Trip } from '../trip/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { merge, Observable, Subscription } from 'rxjs';
+import { forkJoin, merge, Observable, Subscription } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PositionUtils } from '@app/data/position/position.utils';
@@ -46,6 +46,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export interface IPmfmForm {
   form: UntypedFormGroup;
@@ -66,6 +67,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   withFishingStart?: boolean;
   withFishingEnd?: boolean;
   withEnd?: boolean;
+  isInlineFishingArea?: boolean;
   maxDistance?: number;
   maxShootingDurationInHours?: number;
   maxTotalDurationInHours?: number;
@@ -163,7 +165,14 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add fishing Ares
     if (opts.withFishingAreas) {
-      form.addControl('fishingAreas', this.getFishingAreasArray(data?.fishingAreas, { required: true }));
+      form.addControl(
+        'fishingAreas',
+        this.getFishingAreasArray(data?.fishingAreas, {
+          required: true,
+          allowManyNullValues: opts?.isInlineFishingArea,
+          allowDuplicateValue: opts?.isInlineFishingArea,
+        })
+      );
     }
 
     // Add child operation
@@ -380,7 +389,16 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add fishing areas
     if (opts.withFishingAreas) {
-      if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null, { required: true }));
+      let fishingAreasArray = form.get('fishingAreas') as AppFormArray<FishingArea, UntypedFormGroup>;
+
+      if (!fishingAreasArray) {
+        fishingAreasArray = this.getFishingAreasArray(null, {
+          required: true,
+          allowManyNullValues: opts.isInlineFishingArea,
+          allowDuplicateValue: opts.isInlineFishingArea,
+        });
+        form.addControl('fishingAreas', fishingAreasArray);
+      }
     } else {
       if (form.controls.fishingAreas) form.removeControl('fishingAreas');
     }
@@ -632,6 +650,10 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE), false)
     );
     opts.withEnd = toBoolean(opts.withEnd, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE), true));
+    opts.isInlineFishingArea = toBoolean(
+      opts.isInlineFishingArea,
+      toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_AREA_INLINE), false)
+    );
     opts.maxDistance = toNumber(opts.maxDistance, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR));
     opts.boundingBox = opts.boundingBox || Geometries.parseAsBBox(opts.program?.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
     opts.maxTotalDurationInHours = toNumber(
@@ -681,10 +703,15 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     };
   }
 
-  protected getFishingAreasArray(data?: FishingArea[], opts?: { required?: boolean }) {
+  protected getFishingAreasArray(data?: FishingArea[], opts?: { required?: boolean; allowManyNullValues?: boolean; allowDuplicateValue?: boolean }) {
     const required = !opts || opts.required !== false;
+    const allowManyNullValues = !opts || opts.allowManyNullValues !== false;
+    const allowDuplicateValue = !opts || opts.allowDuplicateValue !== false;
+
     const formArray = new AppFormArray((fa) => this.fishingAreaValidator.getFormGroup(fa, { required }), FishingArea.equals, FishingArea.isEmpty, {
       allowEmptyArray: false,
+      allowManyNullValues: allowManyNullValues,
+      allowDuplicateValue: allowDuplicateValue,
       validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined,
     });
     if (data) formArray.patchValue(data);
@@ -727,10 +754,17 @@ export class OperationValidators {
       { onlySelf: true, emitEvent: false }
     );
 
-    const observables = [OperationValidators.listenIndividualOnDeck(pmfmForm)].filter(isNotNil);
+    const observables = [
+      OperationValidators.listenIndividualOnDeck(pmfmForm),
+      OperationValidators.listenIsTangledIndividual(pmfmForm),
+      OperationValidators.listenIsPingerAccessible(pmfmForm),
+      OperationValidators.listenIsDeadIndividual(pmfmForm),
+    ].filter(isNotNil);
 
     if (!observables.length) return null;
-    if (observables.length === 1) return observables[0].subscribe();
+    if (observables.length > 0) {
+      return forkJoin(observables).subscribe();
+    }
     return merge(observables).subscribe();
   }
 
@@ -746,8 +780,11 @@ export class OperationValidators {
     // Create listener on column 'INDIVIDUAL_ON_DECK' value changes
     const individualOnDeckPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
     const individualOnDeckControl = individualOnDeckPmfm && measFormGroup.controls[individualOnDeckPmfm.id];
+
+    const isTangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_TANGLED);
+
     if (individualOnDeckControl) {
-      console.debug('[operation-validator] Listening if on deck...');
+      console.debug('[operation-validator] Listening if individual is on deck...');
 
       return individualOnDeckControl.valueChanges.pipe(
         startWith(individualOnDeckControl.value),
@@ -755,25 +792,28 @@ export class OperationValidators {
           if (individualOnDeck) {
             if (form.enabled) {
               pmfms
-                .filter((pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+                .filter(
+                  (pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.rankOrder <= isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
+                )
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
+                  let required = false;
                   if (pmfm.required) {
-                    control.setValidators(Validators.required);
+                    required = true;
                   }
-                  control.enable();
+                  AppSharedFormUtils.enableControl(control, { onlySelf: true, required: required });
                 });
               if (markForCheck) markForCheck();
             }
           } else {
             if (form.enabled) {
               pmfms
-                .filter((pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+                .filter(
+                  (pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.rankOrder <= isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
+                )
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
-                  control.disable();
-                  control.reset(null, { emitEvent: false });
-                  control.setValidators(null);
+                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }
@@ -783,6 +823,142 @@ export class OperationValidators {
       );
     }
     return null;
+  }
+
+  static listenIsTangledIndividual(event: IPmfmForm): Observable<any> | null {
+    const { form, pmfms, markForCheck } = event;
+    const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
+
+    // Create listener on column 'IS_TANGLED' value changes
+    const isTangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_TANGLED);
+    const isTangledControl = isTangledPmfm && measFormGroup.controls[isTangledPmfm.id];
+
+    if (isTangledControl) {
+      return isTangledControl.valueChanges.pipe(
+        startWith(isTangledControl.value),
+        map((isTangled) => {
+          if (isTangled) {
+            if (form.enabled) {
+              pmfms
+                .filter(
+                  (pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.rankOrder <= PmfmIds.PINGER_ACCESSIBLE && pmfm.id !== PmfmIds.TAG_ID
+                )
+                .map((pmfm) => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  let required = false;
+                  if (pmfm.required) {
+                    required = true;
+                  }
+                  AppSharedFormUtils.enableControl(control, { onlySelf: true, required: required });
+                });
+              if (markForCheck) markForCheck();
+            }
+          } else {
+            if (form.enabled) {
+              pmfms
+                .filter((pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+                .map((pmfm) => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
+                });
+              if (markForCheck) markForCheck();
+            }
+          }
+          return null;
+        })
+      );
+    }
+  }
+
+  static listenIsPingerAccessible(event: IPmfmForm): Observable<any> | null {
+    const { form, pmfms, markForCheck } = event;
+    const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
+
+    // Create listener on column 'IS_PINGER_ACCESSIBLE' value changes
+    const isPingerAccessiblePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.PINGER_ACCESSIBLE);
+    const isPingerAccessibleControl = isPingerAccessiblePmfm && measFormGroup.controls[isPingerAccessiblePmfm.id];
+
+    if (isPingerAccessibleControl) {
+      return isPingerAccessibleControl.valueChanges.pipe(
+        startWith(isPingerAccessibleControl.value),
+        map((isPingerAccessible) => {
+          if (isPingerAccessible) {
+            if (form.enabled) {
+              pmfms
+                .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+                .map((pmfm) => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  let required = false;
+                  if (pmfm.required) {
+                    required = true;
+                  }
+                  AppSharedFormUtils.enableControl(control, { onlySelf: true, required: required });
+                });
+              if (markForCheck) markForCheck();
+            }
+          } else {
+            if (form.enabled) {
+              pmfms
+                .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+                .map((pmfm) => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
+                });
+              if (markForCheck) markForCheck();
+            }
+          }
+          return null;
+        })
+      );
+    }
+  }
+
+  static listenIsDeadIndividual(event: IPmfmForm): Observable<any> | null {
+    const { form, pmfms, markForCheck } = event;
+    const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
+
+    // Create listener on column 'IS_DEAD' value changes
+    const isDeadPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_DEAD);
+    const decompositionStatePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.DECOMPOSITION_STATE);
+    const isDeadControl = isDeadPmfm && measFormGroup.controls[isDeadPmfm.id];
+
+    if (isDeadControl) {
+      return isDeadControl.valueChanges.pipe(
+        startWith(isDeadControl.value),
+        map((isDead) => {
+          if (isDead) {
+            if (form.enabled) {
+              pmfms
+                .filter(
+                  (pmfm) => pmfm.rankOrder > isDeadPmfm.rankOrder && pmfm.rankOrder <= decompositionStatePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
+                )
+                .map((pmfm) => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  let required = false;
+                  if (pmfm.required) {
+                    required = true;
+                  }
+                  AppSharedFormUtils.enableControl(control, { onlySelf: true, required: required });
+                });
+              if (markForCheck) markForCheck();
+            }
+          } else {
+            if (form.enabled) {
+              pmfms
+                .filter(
+                  (pmfm) => pmfm.rankOrder > isDeadPmfm.rankOrder && pmfm.rankOrder <= decompositionStatePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
+                )
+                .map((pmfm) => {
+                  const control = measFormGroup.controls[pmfm.id];
+                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
+                });
+              if (markForCheck) markForCheck();
+            }
+          }
+          return null;
+        })
+      );
+    }
   }
 
   static maxDistance(otherPositionForm: UntypedFormGroup, maxInMiles: number): ValidatorFn {

@@ -7,7 +7,7 @@ import {
   removeDuplicatesFromArray,
   StatusIds,
 } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds, ProgramLabels, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelGroups, LocationLevelIds, PmfmIds, ProgramLabels, TaxonGroupTypeIds, UnitLabel } from '../model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -638,13 +638,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
-  TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.fishingArea.locationLevel.ids',
-    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS',
-    type: 'entities',
-    autocomplete: locationLevelAutocomplete,
-    defaultValue: LocationLevelIds.RECTANGLE_ICES.toString(),
-  },
   TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.metier.taxonGroupType.ids',
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS',
@@ -657,6 +650,14 @@ export const ProgramProperties = Object.freeze({
       attributes: ['name'],
     },
     defaultValue: TaxonGroupTypeIds.DCF_METIER_LVL_5.toString(),
+  },
+  // TODO rename key
+  TRIP_OPERATION_SKIP_DATES_PMFM_ID: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.skipDates.tripPmfm.id',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_SKIP_DATES_TRIP_PMFM_ID',
+    type: 'entity',
+    autocomplete: pmfmAutocomplete,
+    defaultValue: PmfmIds.CAMERA_USED,
   },
   TRIP_OPERATION_FISHING_START_DATE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.fishingStartDateEnable',
@@ -687,6 +688,19 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS',
     defaultValue: '2400', // 100 days
     type: 'integer',
+  },
+  TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.fishingArea.locationLevel.ids',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: locationLevelAutocomplete,
+    defaultValue: LocationLevelIds.RECTANGLE_ICES.toString(),
+  },
+  TRIP_OPERATION_FISHING_AREA_INLINE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.fishingArea.inline',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_AREA_INLINE',
+    defaultValue: 'false',
+    type: 'boolean',
   },
   TRIP_EXTRACTION_SAMPLING_METHOD: <FormFieldDefinition>{
     key: 'sumaris.trip.extraction.sampling.method',
