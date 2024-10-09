@@ -1,4 +1,16 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, OnInit, Self, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Self,
+  ViewChild,
+} from '@angular/core';
 
 import { TripService } from './trip.service';
 import { TripForm } from './trip.form';
@@ -85,7 +97,7 @@ export interface TripPageState extends RootDataEntityEditorState {
   styleUrls: ['./trip.page.scss'],
   animations: [fadeInOutAnimation],
   providers: [
-    { provide: APP_DATA_ENTITY_EDITOR, useExisting: TripPage },
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => TripPage) },
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useFactory: () =>

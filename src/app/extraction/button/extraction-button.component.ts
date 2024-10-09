@@ -52,8 +52,6 @@ export class AppExtractionButton extends RxState<EntityExtractionMenuState> {
   @Output() downloadAsJson = new EventEmitter<UIEvent>();
   @Output() downloadAsType = new EventEmitter<ExtractionType>();
 
-  @ViewChild(MatMenuTrigger) menuTrigger: MatMenuTrigger;
-
   @ViewChild('typesTemplate') typesTemplate: TemplateRef<any>;
 
   constructor() {

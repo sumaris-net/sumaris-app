@@ -1,37 +1,36 @@
 <!-- DEV only -->
-<ng-container *ngIf="editor.canDebug">
+@if (editor.canDebug) {
   <mat-divider></mat-divider>
-  <button mat-menu-item [matMenuTriggerFor]="debugMenu">
+  <button mat-menu-item #menuTrigger="matMenuTrigger" (mouseenter)="menuTrigger.openMenu()" [matMenuTriggerFor]="debugMenu">
     <mat-icon><ion-icon name="bug"></ion-icon></mat-icon>
     <ion-label translate>COMMON.DEBUG.BTN_DEBUG_DOTS</ion-label>
   </button>
 
   <!-- debug menu -->
   <mat-menu #debugMenu="matMenu">
-    <ng-container *ngIf="editor.canCopyLocally && editor.data?.id > 0">
-      <button mat-menu-item [disabled]="editor.isNewData" (click)="editor.copyLocally()">
-        <mat-icon>content_copy</mat-icon>
-        <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
+    <ng-template matMenuContent>
+      @if (editor.canCopyLocally && editor.data?.id > 0) {
+        <button mat-menu-item [disabled]="editor.isNewData" (click)="editor.copyLocally()">
+          <mat-icon>content_copy</mat-icon>
+          <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
+        </button>
+
+        <mat-divider></mat-divider>
+      }
+
+      <button mat-menu-item (click)="editor.devToggleDebug()">
+        <mat-icon>{{ editor.debug ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+        <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
       </button>
 
-      <mat-divider></mat-divider>
-    </ng-container>
-
-    <button mat-menu-item (click)="editor.devToggleDebug()">
-      <mat-icon *ngIf="editor.debug">check_box</mat-icon>
-      <mat-icon *ngIf="!editor.debug">check_box_outline_blank</mat-icon>
-      <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
-    </button>
-
-    <button mat-menu-item (click)="editor.devToggleAutoFillData()">
-      <mat-icon *ngIf="editor.devAutoFillData">check_box</mat-icon>
-      <mat-icon *ngIf="!editor.devAutoFillData">check_box_outline_blank</mat-icon>
-      <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
-    </button>
-    <button mat-menu-item (click)="toggleOfflineMode()">
-      <mat-icon *ngIf="network.offline">check_box</mat-icon>
-      <mat-icon *ngIf="network.online">check_box_outline_blank</mat-icon>
-      <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
-    </button>
+      <button mat-menu-item (click)="editor.devToggleAutoFillData()">
+        <mat-icon>{{ editor.devAutoFillData ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+        <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
+      </button>
+      <button mat-menu-item (click)="toggleOfflineMode()">
+        <mat-icon>{{ network.offline ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+        <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+      </button>
+    </ng-template>
   </mat-menu>
-</ng-container>
+}
