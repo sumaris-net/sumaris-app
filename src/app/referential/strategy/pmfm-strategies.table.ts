@@ -305,7 +305,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         columnNames: pmfmColumnNames,
         displayWith: (pmfm) => this.displayPmfm(pmfm, { withUnit: true, withDetails: true }),
         showAllOnFocus: false,
-        panelClass: 'min-width-large',
+        panelClass: 'full-width',
       }),
     });
   }

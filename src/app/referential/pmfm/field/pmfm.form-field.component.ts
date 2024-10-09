@@ -155,11 +155,11 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   // When async validator (e.g. BatchForm), force update when error detected
   @Input({ transform: booleanAttribute }) listenStatusChanges = false;
 
-  protected set type(value: string) {
+  set type(value: string) {
     this.set('type', (_) => value);
   }
 
-  protected get type(): string {
+  get type(): string {
     return this.get('type');
   }
 

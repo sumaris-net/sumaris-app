@@ -12,7 +12,8 @@
  * These status values are mutually exclusive, so a control cannot be
  * both valid AND invalid or invalid AND disabled.
  */
-import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
+import { AbstractControl, FormArray, FormGroup, Validators } from '@angular/forms';
+import { isNotNil } from '@sumaris-net/ngx-components';
 
 export type FormControlStatus = 'VALID' | 'INVALID' | 'DISABLED' | 'PENDING';
 
@@ -37,5 +38,28 @@ export class AppSharedFormUtils {
     }
 
     return target;
+  }
+
+  static enableControl(control: AbstractControl, opts?: { required?: boolean; onlySelf?: boolean; emitEvent?: boolean }) {
+    this.setControlEnabled(control, true, opts);
+  }
+
+  static disableControl(control: AbstractControl, opts?: { required?: boolean; onlySelf?: boolean; emitEvent?: boolean }) {
+    this.setControlEnabled(control, false, { required: false, ...opts });
+  }
+
+  static setControlEnabled(control: AbstractControl, enabled: boolean, opts?: { required?: boolean; onlySelf?: boolean; emitEvent?: boolean }) {
+    if (enabled) {
+      if (isNotNil(opts?.required) && opts.required && !control.hasValidator(Validators.required)) {
+        control.addValidators(Validators.required);
+      }
+      control.enable(opts);
+    } else {
+      control.disable(opts);
+      if (isNotNil(opts?.required) && !opts.required && control.hasValidator(Validators.required)) {
+        control.removeValidators(Validators.required);
+      }
+      control.reset(null, opts);
+    }
   }
 }
