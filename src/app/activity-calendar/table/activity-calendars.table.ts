@@ -96,7 +96,7 @@ export class ActivityCalendarsTable
   protected qualityFlags: ReferentialRef[];
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
-  protected programSelected: Program;
+  protected programVesselTypeIds: number[];
 
   @Input() showRecorder = true;
   @Input() canDownload = false;
@@ -259,6 +259,7 @@ export class ActivityCalendarsTable
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       mobile: this.mobile,
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, { ...filter, includedIds: this.programVesselTypeIds }),
     });
 
     // Combo: base port locations
@@ -401,10 +402,11 @@ export class ActivityCalendarsTable
 
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showProgram = false;
-    this.showProgram = false;
 
     this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
-    this.programSelected = program;
+
+    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
+
     if (this.loaded) this.updateColumns();
   }
 
@@ -675,19 +677,17 @@ export class ActivityCalendarsTable
 
   protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
     let vesselFilter = filter;
-    const program = this.filterForm.value.program || this.programSelected;
-    const vesselType = this.filterForm.value.vesselType?.id;
-    const programVesselTypeIdsFilter = program?.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
+    const filterVesselTypeId = this.filterForm.value.vesselType?.id;
 
-    if (isNotNil(vesselType)) {
+    if (isNotNil(filterVesselTypeId)) {
       vesselFilter = {
         ...vesselFilter,
-        vesselTypeIds: [vesselType],
+        vesselTypeIds: [filterVesselTypeId],
       };
-    } else if (program && isNotEmptyArray(programVesselTypeIdsFilter)) {
+    } else if (isNotEmptyArray(this.programVesselTypeIds)) {
       vesselFilter = {
         ...vesselFilter,
-        vesselTypeIds: programVesselTypeIdsFilter,
+        vesselTypeIds: this.programVesselTypeIds,
       };
     }
 
