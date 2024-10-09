@@ -813,7 +813,7 @@ export class OperationValidators {
                 )
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
-                  AppSharedFormUtils.disableControl(control, { emitEvent: false });
+                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }
@@ -859,7 +859,7 @@ export class OperationValidators {
                 .filter((pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
-                  AppSharedFormUtils.disableControl(control, { emitEvent: false });
+                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }
@@ -902,7 +902,7 @@ export class OperationValidators {
                 .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
-                  AppSharedFormUtils.disableControl(control, { emitEvent: false });
+                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }
@@ -950,7 +950,7 @@ export class OperationValidators {
                 )
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
-                  AppSharedFormUtils.disableControl(control, { emitEvent: false });
+                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }

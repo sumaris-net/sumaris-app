@@ -33,7 +33,7 @@
       </ion-col>
 
       <!-- Taxon group -->
-      <ion-col size="12" size-sm="12" size-md="6" *ngIf="!showTaxonGroup">
+      <ion-col size="12" size-sm="12" size-md="6" *ngIf="showTaxonGroup">
         <mat-autocomplete-field
           formControlName="taxonGroup"
           [autofocus]="enabled && focusFieldName === 'taxonGroup'"
