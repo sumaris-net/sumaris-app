@@ -39,7 +39,7 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
   @RxStateProperty() children: ContextService<any>[];
 
   get empty(): boolean {
-    return equals(this.defaultState || {}, this.get());
+    return equals(this.defaultState, this.get());
   }
 
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: Partial<S>) {
@@ -101,17 +101,8 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
     this.set('children', (s) => (s.children || []).filter((c) => c !== child));
   }
 
-  get(): S {
-    const state = super.get();
-
-    // Remove children (=internal property)
-    if (state?.children) delete state.children;
-
-    return state;
-  }
-
   getMerged() {
-    const state = super.get();
+    const state = this.get();
     const children = state?.children;
     if (!children) return state;
 
