@@ -62,6 +62,11 @@ export const environment = Object.freeze(<AppEnvironment>{
       useSsl: true,
     },
     {
+      host: 'open-test.sumaris.net',
+      port: 443,
+      useSsl: true,
+    },
+    {
       host: 'test.sumaris.net',
       port: 443,
       useSsl: true,

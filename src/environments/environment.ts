@@ -108,6 +108,11 @@ export const environment = Object.freeze(<AppEnvironment>{
       port: 443,
     },
     {
+      host: 'open-test.sumaris.net',
+      port: 443,
+      useSsl: true,
+    },
+    {
       host: 'visi-common-docker1.ifremer.fr',
       port: 8181,
     },
