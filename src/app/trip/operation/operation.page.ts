@@ -38,7 +38,7 @@ import {
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 import { UntypedFormGroup, Validators } from '@angular/forms';
-import { Moment } from 'moment';
+import moment, { Moment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { Operation, OperationUtils, Trip } from '../trip/trip.model';
 import { OperationPasteFlags, ProgramProperties } from '@app/referential/services/config/program.config';
@@ -73,7 +73,6 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import moment from 'moment';
 import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export interface OperationState extends AppDataEditorState {
@@ -788,7 +787,7 @@ export class OperationPage<S extends OperationState = OperationState>
     this.autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
     this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
 
-    const skipDatesPmfmId = program.getPropertyAsInt(ProgramProperties.OPTION_OPERATION_SKIP_DATES_PMFM_ID);
+    const skipDatesPmfmId = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_SKIP_DATES_PMFM_ID);
     const skipDates = isNotNil(skipDatesPmfmId) ? toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, skipDatesPmfmId), false) : false;
     const isGPSUsed =
       toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.CAMERA_USED), false) ||
@@ -841,7 +840,7 @@ export class OperationPage<S extends OperationState = OperationState>
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ENABLE);
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);
 
-    this.isInlineFishingArea = program.getPropertyAsBoolean(ProgramProperties.OPTION_INLINE_FISHING_AREA);
+    this.isInlineFishingArea = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_AREA_INLINE);
 
     if (!this.allowParentOperation) {
       this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;

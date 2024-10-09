@@ -2525,7 +2525,7 @@
         "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Engin, Métier, Position/Zone de pêche, Caractéristiques"
       },
       "TRIP_OPERATION_HELP_URL": "Marée > Opération : Aide en ligne (URL)",
-      "TRIP_OPERATION_INLINE_ENABLE": "Marée > Opération : Aligner l'affichage des dates avec la position/zone de pêche",
+      "TRIP_OPERATION_FISHING_AREA_INLINE": "Marée > Opération : Aligner les zones de pêche avec les dates",
       "TRIP_OPERATION_SKIP_DATES_TRIP_PMFM_ID": "Marée > Opération : PSFM (booléan) de marée pour désactiver les dates ?",
       "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Marée brutes: Valeur de la colonne 'SAMPLING_METHOD'",
       "TRIP_EXTRACTION_SAMPLING_METHODS": {

@@ -2,9 +2,46 @@
   {{pmfm.name}}
 </ion-col>-->
 
-<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+<form [formGroup]="form" (ngSubmit)="doSubmit($event)" class="form-container" [class.pmfm-disabled-hidden]="!showDisabledPmfm">
   <!-- debug -->
-  <app-debug *ngIf="debug" title="Measurements Form">
+  @if (debug) {
+    <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+  }
+
+  <!-- error -->
+  @if (mobile && showError) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
+
+  <!-- pmfms -->
+  <ng-container *rxLet="pmfms$; let pmfms; suspense: measurementsSkeleton; strategy: 'immediate'; parent: false">
+    <app-pmfm-field
+      *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; strategy: 'userBLocking'; parent: false"
+      [pmfm]="pmfm"
+      [compact]="compact"
+      [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
+      [style]="pmfm | pmfmFieldStyle: maxItemCountForButtons"
+      [maxVisibleButtons]="maxVisibleButtons"
+      [showButtonIcons]="showButtonIcons"
+      [floatLabel]="floatLabel"
+    ></app-pmfm-field>
+  </ng-container>
+</form>
+
+<ng-template #measurementsSkeleton>
+  <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
+  <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
+</ng-template>
+
+<ng-template #measurementSkeleton>
+  <mat-form-field class="mat-form-field-disabled">
+    <input matInput hidden />
+    <ion-skeleton-text [animated]="animated" style="width: 60%"></ion-skeleton-text>
+  </mat-form-field>
+</ng-template>
+
+<ng-template #debugPanel>
+  <app-debug title="Measurements Form">
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
@@ -37,36 +74,4 @@
       </ion-row>
     </ion-grid>
   </app-debug>
-
-  <!-- error -->
-  <ion-item *rxIf="showError && (errorSubject | push); let error" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
-
-  <!-- pmfms -->
-  <ng-container *rxLet="pmfms$; let pmfms; suspense: measurementsSkeleton; strategy: 'immediate'; parent: false">
-    <app-pmfm-field
-      *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; strategy: 'userBLocking'; parent: false"
-      [pmfm]="pmfm"
-      [compact]="compact"
-      [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
-      [style]="pmfm | pmfmFieldStyle: maxItemCountForButtons"
-      [maxVisibleButtons]="maxVisibleButtons"
-      [showButtonIcons]="showButtonIcons"
-      [floatLabel]="floatLabel"
-    ></app-pmfm-field>
-  </ng-container>
-</form>
-
-<ng-template #measurementsSkeleton>
-  <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
-  <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>
-</ng-template>
-
-<ng-template #measurementSkeleton>
-  <mat-form-field class="mat-form-field-disabled">
-    <input matInput hidden />
-    <ion-skeleton-text [animated]="animated" style="width: 60%"></ion-skeleton-text>
-  </mat-form-field>
 </ng-template>

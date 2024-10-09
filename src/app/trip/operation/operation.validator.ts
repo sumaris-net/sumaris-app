@@ -652,7 +652,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     opts.withEnd = toBoolean(opts.withEnd, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE), true));
     opts.isInlineFishingArea = toBoolean(
       opts.isInlineFishingArea,
-      toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.OPTION_INLINE_FISHING_AREA), false)
+      toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_AREA_INLINE), false)
     );
     opts.maxDistance = toNumber(opts.maxDistance, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR));
     opts.boundingBox = opts.boundingBox || Geometries.parseAsBBox(opts.program?.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));

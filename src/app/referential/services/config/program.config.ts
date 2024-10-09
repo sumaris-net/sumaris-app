@@ -20,7 +20,6 @@ export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 export type TripReportType = 'legacy' | 'selectivity' | 'onboard' | 'form' | 'blank-form';
 export type ActivityCalendarReportType = 'form' | 'blank-form' | 'progress';
 
-export type LineLayoutType = 'linear' | 'zig_zag' | 'unk';
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
 export const OperationPasteFlags = Object.freeze({
@@ -284,25 +283,6 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_ENABLE',
     defaultValue: 'true',
     type: 'boolean',
-  },
-  TRIP_OPERATION_LINE_LAYOUT: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.line.layout',
-    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_LINE_LAYOUT',
-    type: 'enum',
-    value: [
-      {
-        key: <LineLayoutType>'linear',
-        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_LINEAR_LINE',
-      },
-      {
-        key: <LineLayoutType>'zig_zag',
-        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_ZIGZAG_LINE',
-      },
-      {
-        key: <LineLayoutType>'unk',
-        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_UNK_LINE',
-      },
-    ],
   },
   TRIP_POSITION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.position.enable',
@@ -658,13 +638,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
-  TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.fishingArea.locationLevel.ids',
-    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS',
-    type: 'entities',
-    autocomplete: locationLevelAutocomplete,
-    defaultValue: LocationLevelIds.RECTANGLE_ICES.toString(),
-  },
   TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.metier.taxonGroupType.ids',
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS',
@@ -677,6 +650,14 @@ export const ProgramProperties = Object.freeze({
       attributes: ['name'],
     },
     defaultValue: TaxonGroupTypeIds.DCF_METIER_LVL_5.toString(),
+  },
+  // TODO rename key
+  TRIP_OPERATION_SKIP_DATES_PMFM_ID: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.skipDates.tripPmfm.id',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_SKIP_DATES_TRIP_PMFM_ID',
+    type: 'entity',
+    autocomplete: pmfmAutocomplete,
+    defaultValue: PmfmIds.CAMERA_USED,
   },
   TRIP_OPERATION_FISHING_START_DATE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.fishingStartDateEnable',
@@ -707,6 +688,19 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS',
     defaultValue: '2400', // 100 days
     type: 'integer',
+  },
+  TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.fishingArea.locationLevel.ids',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: locationLevelAutocomplete,
+    defaultValue: LocationLevelIds.RECTANGLE_ICES.toString(),
+  },
+  TRIP_OPERATION_FISHING_AREA_INLINE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.fishingArea.inline',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_AREA_INLINE',
+    defaultValue: 'false',
+    type: 'boolean',
   },
   TRIP_EXTRACTION_SAMPLING_METHOD: <FormFieldDefinition>{
     key: 'sumaris.trip.extraction.sampling.method',
@@ -1306,28 +1300,6 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.STRATEGY_DEPARTMENT_ENABLE',
     defaultValue: 'false',
     type: 'boolean',
-  },
-
-  OPTION_INLINE_FISHING_AREA: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.inline.enable',
-    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_INLINE_ENABLE',
-    defaultValue: 'false',
-    type: 'boolean',
-  },
-
-  OPTION_OPERATION_SKIP_DATES_PMFM_ID: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.skipDates.tripPmfm.id',
-    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_SKIP_DATES_TRIP_PMFM_ID',
-    type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
-      },
-      attributes: ['id', 'label', 'name'],
-      columnSizes: [2, 4, 6],
-    },
-    defaultValue: PmfmIds.CAMERA_USED,
   },
 
   I18N_SUFFIX: <FormFieldDefinition>{
