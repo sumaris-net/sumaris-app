@@ -89,9 +89,9 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
       provide: ContextService,
       useFactory: (mainContext: ContextService) => {
         // Merge parent and children states
-        const batchState = mainContext.getMerged();
+        const initialState = mainContext.getMerged();
         console.debug('[sub-batches-modal] Creating batch context, using state:', batchState);
-        return new ContextService<BatchContext>(batchState);
+        return new ContextService<BatchContext>(initialState);
       },
       deps: [APP_MAIN_CONTEXT_SERVICE],
     },

@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
 import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 import { Moment } from 'moment';
-import { DateUtils, equals, fromDateISOString, isEmptyArray, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
+import { DateUtils, equals, fromDateISOString, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -19,7 +19,7 @@ export interface Context<TClipboardData = any> {
   program?: Program;
   strategy?: Strategy;
 
-  // A child context, that can be dynamically set (e.g. TripContext, or SaleContext)
+  // Child contexts, that can be dynamically set (e.g. TripContext, or SaleContext)
   children?: ContextService<any>[];
 }
 
@@ -61,7 +61,7 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
   }
 
   getValue<K extends keyof S>(key: K): S[K] {
-    return this.get(key);
+    return super.get(key);
   }
 
   getValueAsDate<K extends keyof S>(key: K): Moment {
@@ -101,15 +101,23 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
     this.set('children', (s) => (s.children || []).filter((c) => c !== child));
   }
 
-  /**
-   * Merge self state with all children's states
-   */
-  getMerged(): any {
-    const children = this.children;
-    if (isEmptyArray(children)) return { ...this.get(), children: undefined };
-    return [this.get(), ...children.filter((c) => !c.empty).map((child) => child.getMerged())].reduce(
-      (res, state) => ({ ...res, ...state, children: undefined }),
-      {}
-    );
+  get(): S {
+    const state = super.get();
+
+    // Remove children (=internal property)
+    if (state?.children) delete state.children;
+
+    return state;
+  }
+
+  getMerged() {
+    const state = super.get();
+    const children = state?.children;
+    if (!children) return state;
+
+    delete state.children;
+
+    // Merge all children's states
+    return [state, ...children.filter((c) => !c.empty).map((child) => child.getMerged())].reduce((res, state) => ({ ...res, ...state }), {});
   }
 }
