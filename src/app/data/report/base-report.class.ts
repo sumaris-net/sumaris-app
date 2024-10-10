@@ -492,10 +492,12 @@ export abstract class AppBaseReport<
       // NOTE: Case when `|| err` is possible ?
       let userMessage: string = (err.message && this.translate.instant(err.message)) || err;
       // NOTE: replace || by && ???
-      const detailMessage: string = !err.details || typeof err.message === 'string' ? (err.details as string) : err.details.message;
+      const detailMessage: string = !err.details || typeof err.details === 'string' ? (err.details as string) : err.details.message;
       // NOTE: !isNotNilOrBlank ??? (invert the test)
       if (isNotNilOrBlank(detailMessage)) {
-        const cssClass = opts?.detailsCssClass || 'hidden-xs hidden-sm';
+        // TODO Why hidden-xs hidden-sm ? : we can't have details on small screen
+        // const cssClass = opts?.detailsCssClass || 'hidden-xs hidden-sm';
+        const cssClass = '';
         userMessage += `<br/><small class="${cssClass}" title="${detailMessage}">`;
         userMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
         userMessage += '</small>';

@@ -112,14 +112,21 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
     const result = [];
     const size = 500;
 
-    let fetched = await this.activityCalendarService.loadAll(0, size, null, null, filter, { fullLoad: true });
-    result.push(...fetched.data);
-    while (Object.prototype.hasOwnProperty.call(fetched, 'fetchMore')) {
-      fetched = await fetched.fetchMore();
-      result.push(...fetched.data);
+    let loadResult;
+    if (this.isBlankForm) {
+      loadResult = await this.activityCalendarService.loadAllVesselOnly(0, size, null, null, filter);
+    } else {
+      loadResult = await this.activityCalendarService.loadAll(0, size, null, null, filter, { fullLoad: true });
+    }
+    result.push(...loadResult.data);
+    while (Object.prototype.hasOwnProperty.call(loadResult, 'fetchMore')) {
+      loadResult = await loadResult.fetchMore();
+      result.push(...loadResult.data);
     }
 
-    if (result.length == 0) {
+    if (isNotNil(loadResult.error)) {
+      throw loadResult.error;
+    } else if (result.length == 0) {
       throw new Error('ERROR.LOAD_ENTITY_ERROR');
     }
 
@@ -130,16 +137,8 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
       acquisitionLevels: [AcquisitionLevelCodes.ACTIVITY_CALENDAR, AcquisitionLevelCodes.MONTHLY_ACTIVITY],
     });
 
-    // If isBlankForm : keep only necessary data
+    // If isBlankForm : fill calendars with blank data
     if (this.isBlankForm) {
-      const cleanResult = result.map((ac) =>
-        ActivityCalendar.fromObject({
-          id: ac.id,
-          program: Program.fromObject({ label: ac.program.label }),
-          vesselSnapshot: ac.vesselSnapshot,
-          vesselRegistrationPeriods: ac.vesselRegistrationPeriods,
-        })
-      );
       return result.reduce((acc, data) => {
         acc.push(fillActivityCalendarBlankData(data, this.program));
         return acc;

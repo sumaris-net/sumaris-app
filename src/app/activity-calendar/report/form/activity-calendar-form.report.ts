@@ -14,8 +14,10 @@ import { environment } from '@environments/environment';
 import {
   ConfigService,
   EntityAsObjectOptions,
+  LoadResult,
   TranslateContextService,
   isInstanceOf,
+  isNotNil,
   referentialToString,
   sleep,
   splitById,
@@ -29,6 +31,7 @@ import {
   computeIndividualActivityCalendarFormReportStats,
   fillActivityCalendarBlankData,
 } from './activity-calendar-from-report.utils';
+import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 
 export interface ActivityCalendarFormReportPageDimentions {
   height: number;
@@ -193,15 +196,16 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
   protected async loadData(id: number, opts?: any): Promise<ActivityCalendar> {
     console.log(`[${this.logPrefix}] loadData`);
-    const fetchedData = await this.ActivityCalendarService.load(id, { ...opts });
-    let data: ActivityCalendar = this.isBlankForm
-      ? ActivityCalendar.fromObject({
-          id: id,
-          program: Program.fromObject({ label: fetchedData.program.label }),
-          vesselSnapshot: fetchedData.vesselSnapshot,
-          vesselRegistrationPeriods: fetchedData.vesselRegistrationPeriods,
-        })
-      : fetchedData;
+    const filter: ActivityCalendarFilter = ActivityCalendarFilter.fromObject({ includedIds: [id] });
+    // const fetchedData = await this.ActivityCalendarService.load(id, { ...opts, forBlankFrom: this.isBlankForm });
+    let loadResult: LoadResult<ActivityCalendar>;
+    if (this.isBlankForm) {
+      loadResult = await this.ActivityCalendarService.loadAllVesselOnly(0, 1, null, null, filter);
+    } else {
+      loadResult = await this.ActivityCalendarService.loadAll(0, 1, null, null, filter, { fullLoad: true });
+    }
+    if (isNotNil(loadResult.errors)) throw loadResult.errors;
+    let data = loadResult.data?.[0];
     if (!data) throw new Error('ERROR.LOAD_ENTITY_ERROR');
 
     this.program = await this.programRefService.loadByLabel(data.program.label);
