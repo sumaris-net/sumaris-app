@@ -74,8 +74,6 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { OverlayEventDetail } from '@ionic/core';
-import { FishingAreaForm } from '@app/data/fishing-area/fishing-area.form';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -108,6 +106,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _showPosition = true;
   private _boundingBox: BBox;
   private _showFishingArea = false;
+  private _showStartDate = false;
   private _requiredComment = false;
   private _positionSubscription: Subscription;
   private _emitGeolocationBusy = true;
@@ -238,6 +237,17 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   get showFishingArea(): boolean {
     return this._showFishingArea;
+  }
+
+  @Input() set showStartDate(value: boolean) {
+    if (this._showStartDate !== value) {
+      this._showStartDate = value;
+      if (!this.loading) this.updateFormGroup();
+    }
+  }
+
+  get showStartDate(): boolean {
+    return this._showStartDate;
   }
 
   @Input() set requiredComment(value: boolean) {

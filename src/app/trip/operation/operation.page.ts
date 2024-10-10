@@ -814,6 +814,7 @@ export class OperationPage<S extends OperationState = OperationState>
     this.opeForm.boundingBox = enablePosition && Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
     // TODO: make possible to have both showPosition and showFishingArea at true (ex SFA artisanal logbook program)
     this.opeForm.showFishingArea = !skipDates && !enablePosition; // Trip has gps in use, so active positions controls else active fishing area control
+    this.opeForm.showStartDate = skipDates;
     this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
     const defaultLatitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     const defaultLongitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
