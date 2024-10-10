@@ -162,9 +162,8 @@ function computeMetierTableChunk(stats: ActivityCalendarFormReportStats, pageDim
     };
   });
 
-  // Take the width because the page is a landscape
   const totalAvailableHeightForContent =
-    pageDimensions.width - pageDimensions.marginTop - pageDimensions.marginBottom - pageDimensions.headerHeight - pageDimensions.footerHeight;
+    pageDimensions.height - pageDimensions.marginTop - pageDimensions.marginBottom - pageDimensions.headerHeight - pageDimensions.footerHeight;
   const heightOfEffortSection =
     pageDimensions.sectionTitleHeight +
     pageDimensions.monthTableRowHeight +

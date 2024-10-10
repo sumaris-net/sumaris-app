@@ -125,7 +125,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     marginTop: 16,
     marginBottom: 16,
     headerHeight: 80,
-    footerHeight: 16,
+    footerHeight: 35,
     captionHeight: 11,
     sectionTitleHeight: 25,
     filterSectionHeight: 140,
@@ -252,7 +252,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
 
   protected computeTableChunk(data: ActivityMonitoringExtractionData, stats: ActivityCalendarProgressReportStats): ActivityMonitoring[][] {
     const totalAvailableHeightForContent =
-      this.pageDimensions.width - // Use width because page is landscape
+      this.pageDimensions.height -
       this.pageDimensions.marginTop -
       this.pageDimensions.marginBottom -
       this.pageDimensions.headerHeight -
