@@ -78,6 +78,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -838,10 +839,29 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     const formGroup = this.measurementsForm.form as UntypedFormGroup;
 
+    // If PMFM "Use of a Camera?" exist, then enable/disable isGPSUsed PMFM
+    const isCameraUsed = formGroup?.controls[PmfmIds.CAMERA_USED];
+    if (isNotNil(isCameraUsed)) {
+      isCameraUsed.setValidators(Validators.required);
+      this._measurementSubscription.add(
+        isCameraUsed.valueChanges.pipe(startWith<boolean>(isCameraUsed.value), filter(isNotNil)).subscribe((value) => {
+          if (this.debug) console.debug('[trip] Enable/Disable GPS');
+          const control = formGroup.controls[PmfmIds.GPS_USED];
+
+          if (value == true) {
+            AppSharedFormUtils.disableControl(control, { onlySelf: true });
+          } else {
+            let required = true;
+            AppSharedFormUtils.enableControl(control, { onlySelf: true, required: required });
+          }
+          this.markForCheck();
+        })
+      );
+    }
+
     // If PMFM "Use of a GPS ?" exists, then use to enable/disable positions or fishing area
     const isGPSUsed = formGroup?.controls[PmfmIds.GPS_USED];
     if (isNotNil(isGPSUsed)) {
-      isGPSUsed.setValidators(Validators.required);
       this._measurementSubscription.add(
         isGPSUsed.valueChanges
           .pipe(debounceTime(400), startWith<any>(isGPSUsed.value), filter(isNotNil), distinctUntilChanged())
