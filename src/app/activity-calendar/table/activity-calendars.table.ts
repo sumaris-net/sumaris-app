@@ -582,7 +582,7 @@ export class ActivityCalendarsTable
       }
     }
     const url = ['activity-calendar', 'report', reportPath].join('/') + '?' + urlParams.toString();
-    if (url.length > 2) {
+    if (url.length > 2048) {
       this.setError('ACTIVITY_CALENDAR.ERROR.MAX_SELECTED_ID');
     } else {
       return this.router.navigateByUrl(url);
