@@ -41,8 +41,8 @@ app-entity-metadata {
 
   .observer-avatars {
     display: flex;
-    justify-content: start;
-    align-items: start;
+    justify-content: flex-start;
+    align-items: flex-start;
     gap: 5px;
     flex-wrap: wrap;
 
