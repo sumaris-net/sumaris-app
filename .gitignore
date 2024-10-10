@@ -50,3 +50,4 @@ resources/ios/
 
 target/
 /webext/
+/.nx/
