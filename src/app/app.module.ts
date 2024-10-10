@@ -56,7 +56,7 @@ import {
   UserEventModule,
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
-import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { Network } from '@awesome-cordova-plugins/network/ngx';
 import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -117,10 +117,11 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
 
 @NgModule({
   declarations: [AppComponent],
+  bootstrap: [AppComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-    HttpClientModule,
     ApolloModule,
     IonicModule.forRoot({
       innerHTMLTemplatesEnabled: true,
@@ -157,10 +158,8 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
     NgChartsModule.forRoot({
       plugins: [],
     }),
-
     // Need for tap event, in app-toolbar
     HammerModule,
-
     // functional modules
     AppSharedModule.forRoot({
       loader: {
@@ -191,18 +190,15 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         stretchTabs: false,
       },
     },
-
     {
       provide: MAT_SELECT_CONFIG,
       useValue: <MatSelectConfig>{
         // Hide the selection  indicator (checkmark, on the right side)
         hideSingleSelectionIndicator: true,
-
         // FIXME - Workaround find at : https://github.com/angular/components/issues/26000#issuecomment-1563107933
         //overlayPanelClass: 'mat-select-panel-fit-content',
       },
     },
-
     {
       provide: APP_BASE_HREF,
       useFactory: () => {
@@ -214,12 +210,10 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         }
       },
     },
-
     { provide: APP_STORAGE, useExisting: StorageService },
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: APP_PROGRESS_BAR_SERVICE, useClass: ProgressBarService },
     { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [APP_PROGRESS_BAR_SERVICE] },
-
     {
       provide: APP_LOCALES,
       useValue: [
@@ -240,7 +234,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         },
       ],
     },
-
     { provide: MAT_DATE_LOCALE, useValue: environment.defaultLocale || 'en' },
     {
       provide: MAT_DATE_FORMATS,
@@ -262,24 +255,18 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
     },
     { provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS] },
     { provide: DateAdapter, useExisting: MomentDateAdapter },
-
     // Logging
     { provide: APP_LOGGING_SERVICE, useClass: LoggingService },
-
     // User event
     { provide: UserEventService, useClass: UserEventService },
     { provide: APP_USER_EVENT_SERVICE, useExisting: UserEventService },
-
     // Job
     { provide: JobProgressionService, useClass: JobProgressionService },
     { provide: APP_JOB_PROGRESSION_SERVICE, useExisting: JobProgressionService },
-
     // Device position
     { provide: DevicePositionService, useClass: DevicePositionService },
-
     // Ichthyometer
     { provide: IchthyometerService, useClass: IchthyometerService },
-
     // Form errors translations
     {
       provide: APP_FORM_ERROR_I18N_KEYS,
@@ -292,11 +279,9 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         ...ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS,
       },
     },
-
     // Configure hammer gesture
     // FIXME: not working well on tablet
     { provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig },
-
     // Settings default values
     {
       provide: APP_LOCAL_SETTINGS,
@@ -304,7 +289,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         pageHistoryMaxSize: 3,
       },
     },
-
     // Setting options definition
     {
       provide: APP_LOCAL_SETTINGS_OPTIONS,
@@ -318,7 +302,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         },
       },
     },
-
     // Config options definition (Core + trip)
     {
       provide: APP_CONFIG_OPTIONS,
@@ -336,7 +319,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         ...DEVICE_POSITION_CONFIG_OPTION,
       },
     },
-
     // Menu config
     {
       provide: APP_MENU_OPTIONS,
@@ -349,13 +331,11 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           ...environment?.menu,
         },
     },
-
     // Menu items
     {
       provide: APP_MENU_ITEMS,
       useValue: <IMenuItem[]>[
         { title: 'MENU.HOME', path: '/', icon: 'home' },
-
         // Data entry
         { title: 'MENU.DATA_ENTRY_DIVIDER', profile: 'USER' },
         {
@@ -390,7 +370,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           ifProperty: 'sumaris.activityCalendar.enable',
           titleProperty: 'sumaris.activityCalendar.name',
         },
-
         // Data extraction
         { title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST' },
         {
@@ -408,30 +387,25 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           ifProperty: 'sumaris.device.position.tracking.enable',
           profile: 'ADMIN',
         },
-
         // Referential
         { title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER' },
         { title: 'MENU.VESSELS', path: '/vessels', icon: 'boat', ifProperty: 'sumaris.referential.vessel.enable', profile: 'USER' },
         { title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'SUPERVISOR' },
         { title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN' },
         { title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN' },
-
         { title: 'MENU.SYSTEM_DIVIDER', profile: 'ADMIN' },
         { title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN' },
-
         // Settings
         { title: ' ' /*empty divider*/, cssClass: 'flex-spacer' },
         { title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR' },
         { title: 'MENU.INBOX', path: '/inbox', icon: 'mail', profile: 'USER', ifProperty: 'sumaris.social.notification.icons.enable' },
         { title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings', color: 'medium' },
         { title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', color: 'medium', cssClass: 'visible-mobile' },
-
         // Logout
         { title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'medium hidden-mobile' },
         { title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'danger visible-mobile' },
       ],
     },
-
     // Home buttons
     {
       provide: APP_HOME_BUTTONS,
@@ -465,7 +439,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         { title: '' /*empty divider*/, cssClass: 'visible-mobile' },
       ],
     },
-
     // Settings menu options
     {
       provide: APP_SETTINGS_MENU_ITEMS,
@@ -473,7 +446,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         { title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR' },
       ],
     },
-
     // About developers
     {
       provide: APP_ABOUT_DEVELOPERS,
@@ -481,7 +453,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         { siteUrl: 'https://www.e-is.pro', logo: 'assets/img/logo/logo-eis_50px.png', label: 'Environmental Information Systems' },
       ],
     },
-
     // About partners
     {
       provide: APP_ABOUT_PARTNERS,
@@ -528,7 +499,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         },
       ],
     },
-
     // Entities Apollo cache options
     {
       provide: APP_GRAPHQL_TYPE_POLICIES,
@@ -541,7 +511,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         ...EXTRACTION_GRAPHQL_TYPE_POLICIES,
       },
     },
-
     // Entities storage options
     {
       provide: APP_LOCAL_STORAGE_TYPE_POLICIES,
@@ -550,7 +519,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         ...ACTIVITY_CALENDAR_STORAGE_TYPE_POLICIES,
       },
     },
-
     // Testing pages
     {
       provide: APP_TESTING_PAGES,
@@ -564,7 +532,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         ...ACTIVITY_CALENDAR_TESTING_PAGES,
       ],
     },
-
     // Custom identicon style
     // https://jdenticon.com/icon-designer.html?config=4451860010ff320028501e5a
     {
@@ -589,9 +556,8 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
       provide: APP_NAMED_FILTER_SERVICE,
       useClass: NamedFilterService,
     },
+    provideHttpClient(withInterceptorsFromDi()),
   ],
-  bootstrap: [AppComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AppModule {
   constructor() {
