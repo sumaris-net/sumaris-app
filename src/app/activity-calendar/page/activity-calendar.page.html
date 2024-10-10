@@ -184,24 +184,29 @@
                   <ion-icon slot="icon-only" name="mail"></ion-icon>
                 </ion-button>
 
-                <ion-item color="light">
-                  <ion-label>Observateurs</ion-label>
-                </ion-item>
-                <ng-container *ngFor="let observer of data?.observers">
-                  <ion-item *ngIf="observer" color="light">
-                    <!-- observer avatar -->
-                    <ion-avatar slot="start">
-                      <ion-img *ngIf="observer.avatar; let avatarUrl; else: generateAvatar" [src]="avatarUrl" />
-                      <ng-template #generateAvatar>
-                        <svg *ngIf="observer.id; let personId" width="30" height="30" [data-jdenticon-value]="personId"></svg>
-                      </ng-template>
-                    </ion-avatar>
-
-                    <!-- observer name -->
-                    <ion-label>
-                      <ion-text>{{ observer?.firstName }} {{ observer?.lastName }}</ion-text>
-                    </ion-label>
-                  </ion-item>
+                <ng-container afterRecorder>
+                  <ion-card-content class="ion-no-padding">
+                    <ion-list>
+                      <!-- Observers -->
+                      <ion-item-divider color="light">
+                        <ion-card-subtitle translate>COMMON.OBSERVERS</ion-card-subtitle>
+                      </ion-item-divider>
+                      <ion-item lines="none" color="light">
+                        <div class="observer-avatars">
+                          <ng-container *ngFor="let observer of data?.observers">
+                            <!-- observer avatar -->
+                            <ion-avatar *ngIf="observer" matTooltip="{{ observer?.firstName }} {{ observer?.lastName }}">
+                              @if (observer.avatar) {
+                                <ion-img [src]="observer.avatar" />
+                              } @else {
+                                <svg *ngIf="observer.id; let personId" width="30" height="30" [data-jdenticon-value]="personId"></svg>
+                              }
+                            </ion-avatar>
+                          </ng-container>
+                        </div>
+                      </ion-item>
+                    </ion-list>
+                  </ion-card-content>
                 </ng-container>
 
                 <!-- Warning -->
