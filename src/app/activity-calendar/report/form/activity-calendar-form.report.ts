@@ -248,6 +248,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
     stats = await computeIndividualActivityCalendarFormReportStats(data, stats, this.pageDimensions, this.isBlankForm);
 
+    console.debug('TODO data/stats', { data, stats });
     return stats;
   }
 
