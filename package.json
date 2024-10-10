@@ -71,7 +71,8 @@
   "peerDependencies": {
     "d3": "~7.6.1",
     "localforage": "~1.10.0",
-    "rxjs": "~7.8.1"
+    "rxjs": "~7.8.1",
+    "zone.js": "0.15.0"
   },
   "dependencies": {
     "@angular/animations": "~17.3.12",
@@ -177,7 +178,6 @@
     "@angular-eslint/builder": "~17.3.0",
     "@angular-eslint/eslint-plugin": "~17.3.0",
     "@angular-eslint/eslint-plugin-template": "~17.3.0",
-    "@angular-eslint/schematics": "~17.3.0",
     "@angular-eslint/template-parser": "~17.3.0",
     "@angular/cli": "~17.3.8",
     "@angular/compiler": "~17.3.12",
