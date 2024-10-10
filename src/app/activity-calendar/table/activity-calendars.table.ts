@@ -582,10 +582,11 @@ export class ActivityCalendarsTable
       }
     }
     const url = ['activity-calendar', 'report', reportPath].join('/') + '?' + urlParams.toString();
-    if (url.length > 2048) {
-      // TODO : handle url size limit
+    if (url.length > 2) {
+      this.setError('ACTIVITY_CALENDAR.ERROR.MAX_SELECTED_ID');
+    } else {
+      return this.router.navigateByUrl(url);
     }
-    return this.router.navigateByUrl(url);
   }
 
   /* -- protected methods -- */
