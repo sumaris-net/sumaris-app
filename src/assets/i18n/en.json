@@ -123,6 +123,7 @@
 
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
+    "OBSERVERS": "Observer(s)",
     "RESULT_COUNT": "{{count}} results",
     "NO_RESULT": "No result",
     "LOADING_DOTS": "Loading...",
