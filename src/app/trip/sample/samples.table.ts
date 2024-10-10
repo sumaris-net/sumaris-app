@@ -1,4 +1,17 @@
-import { AfterViewInit, Component, EventEmitter, inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
+import { TableElement } from '@e-is/ngx-material-table';
 import { SampleValidatorOptions, SampleValidatorService } from './sample.validator';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import {
@@ -28,7 +41,7 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Sample, SampleUtils } from './sample.model';
@@ -56,8 +69,6 @@ import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { UntypedFormGroup } from '@angular/forms';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { BaseMeasurementsAsyncTable } from '@app/data/measurement/measurements-async-table.class';
-import { AsyncTableElement } from '@e-is/ngx-material-table/src/app/ngx-material-table/async/async-table-element';
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -84,9 +95,10 @@ export interface SamplesTableState extends BaseMeasurementsTableState {
   templateUrl: 'samples.table.html',
   styleUrls: ['samples.table.scss'],
   providers: [{ provide: AppValidatorService, useExisting: SampleValidatorService }, RxState],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SamplesTable
-  extends BaseMeasurementsAsyncTable<
+  extends BaseMeasurementsTable<
     Sample,
     SampleFilter,
     InMemoryEntitiesService<Sample, SampleFilter>,
@@ -215,7 +227,8 @@ export class SamplesTable
 
   constructor(
     injector: Injector,
-    protected samplingStrategyService: SamplingStrategyService
+    protected samplingStrategyService: SamplingStrategyService,
+    protected cd: ChangeDetectorRef
   ) {
     super(
       injector,
@@ -394,7 +407,7 @@ export class SamplesTable
     }
   }
 
-  async openDetailModal(dataToOpen?: Sample, row?: AsyncTableElement<Sample>): Promise<OverlayEventDetail<Sample | undefined>> {
+  async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<OverlayEventDetail<Sample | undefined>> {
     console.debug('[samples-table] Opening detail modal...');
     const pmfms = await firstNotNilPromise(this.pmfms$, { stop: this.destroySubject });
 
@@ -479,15 +492,15 @@ export class SamplesTable
     return { data: data instanceof Sample ? data : undefined, role };
   }
 
-  async onIndividualMonitoringClick(event: Event, row: AsyncTableElement<Sample>) {
+  async onIndividualMonitoringClick(event: Event, row: TableElement<Sample>) {
     return this.onSubSampleButtonClick(event, row, AcquisitionLevelCodes.INDIVIDUAL_MONITORING);
   }
 
-  async onIndividualReleaseClick(event: Event, row: AsyncTableElement<Sample>) {
+  async onIndividualReleaseClick(event: Event, row: TableElement<Sample>) {
     return this.onSubSampleButtonClick(event, row, AcquisitionLevelCodes.INDIVIDUAL_RELEASE);
   }
 
-  async onSubSampleButtonClick(event: Event, row: AsyncTableElement<Sample>, acquisitionLevel: AcquisitionLevelType) {
+  async onSubSampleButtonClick(event: Event, row: TableElement<Sample>, acquisitionLevel: AcquisitionLevelType) {
     if (event) event.preventDefault();
     console.debug(`[samples-table] onSubSampleButtonClick() on ${acquisitionLevel}`);
     // Loading spinner
@@ -520,13 +533,11 @@ export class SamplesTable
     if (!parent || !acquisitionLevel) throw Error("Missing 'parent' or 'acquisitionLevel' arguments");
 
     // Make sure the row exists
-    let editedRow =
-      this.dataSource.getEditingRows().find((row) => BatchGroup.equals(row.currentData, parent)) ||
+    this.editedRow =
+      (this.editedRow && BatchGroup.equals(this.editedRow.currentData, parent) && this.editedRow) ||
       (await this.findRowByEntity(parent)) ||
       // Or add it to table, if new
       (await this.addEntityToTable(parent, { confirmCreate: false /*keep row editing*/ }));
-    this.selection.clear();
-    this.selection.select(editedRow);
 
     const { data, role } = await this.openSubSampleModal(parent, { acquisitionLevel });
 
@@ -671,7 +682,7 @@ export class SamplesTable
     if (!pmfmIds) return; // USer cancelled
   }
 
-  async openImagesModal(event: Event, row: AsyncTableElement<Sample>) {
+  async openImagesModal(event: Event, row: TableElement<Sample>) {
     const images = row.currentData.images;
 
     // Skip if no images to display
@@ -845,12 +856,12 @@ export class SamplesTable
       await this.addOrUpdateEntityToTable(data);
       return true;
     } else {
-      this.selection.clear();
+      this.editedRow = null;
       return false;
     }
   }
 
-  protected async openRow(id: number, row: AsyncTableElement<Sample>): Promise<boolean> {
+  protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observed) {
@@ -869,7 +880,7 @@ export class SamplesTable
       await this.addOrUpdateEntityToTable(data);
       return true;
     } else {
-      this.selection.clear();
+      this.editedRow = null;
       return false;
     }
   }
@@ -879,9 +890,9 @@ export class SamplesTable
     DataEntityUtils.markAsControlled(data);
   }
 
-  async findRowByEntity(data: Sample): Promise<AsyncTableElement<Sample>> {
+  async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
     if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
-    return this.dataSource.getRows().find((r) => r.currentData.rankOrder === data.rankOrder) as AsyncTableElement<Sample>;
+    return this.dataSource.getRows().find((r) => r.currentData.rankOrder === data.rankOrder);
   }
 
   protected async addPmfmColumns(pmfmIds: number[]) {
@@ -1104,7 +1115,7 @@ export class SamplesTable
     }
   }
 
-  protected updateFooter(rows: AsyncTableElement<Sample>[] | readonly AsyncTableElement<Sample>[]) {
+  protected updateFooter(rows: TableElement<Sample>[] | readonly TableElement<Sample>[]) {
     // Update tag count
     this.tagCount = (rows || []).map((row) => row.currentData.measurementValues[PmfmIds.TAG_ID.toString()] as string).filter(isNotNilOrBlank).length;
   }
@@ -1112,4 +1123,8 @@ export class SamplesTable
   selectInputContent = AppFormUtils.selectInputContent;
   isIndividualMonitoring = SampleUtils.isIndividualMonitoring;
   isIndividualRelease = SampleUtils.isIndividualRelease;
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 }
