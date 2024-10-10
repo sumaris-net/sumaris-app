@@ -1385,6 +1385,13 @@
           "AVG_VARIATION_DISCARD": "Average rate of change<br/>Discard<br/><small>(%)</small>"
         }
       }
+    },
+    "REPORT_TYPE": {
+      "LEGACY": "Default",
+      "TRAWL_SELECTIVITY": "Trawl selectivity",
+      "OBSERVED_TRIP": "Observation of trip on board",
+      "FORM": "Form with data",
+      "BLANK_FORM": "Empty form",
     }
   },
   "EXPECTED_SALE": {
@@ -2084,6 +2091,9 @@
       "DESCRIPTION": "description",
       "IS_CALCULATED": "Calculated?",
       "IS_ESTIMATED": "Estimated?",
+      "NEW": {
+        "TITLE": "New method"
+      },
       "EDIT": {
         "TITLE": "Method {{label}} - {{name}}"
       }
@@ -2315,14 +2325,10 @@
       "TRIP_ALLOW_PARENT_OPERATION": "Trip > Operation: Associated operations (laying/hauling)?",
       "TRIP_REPORT_ENABLE": "Trip > Enable report edition?",
       "TRIP_REPORT_TYPE": "Trip > Report type",
-      "TRIP_REPORT_TYPE_LEGACY": "Default",
-      "TRIP_REPORT_TYPE_TRAWL_SELECTIVITY": "Trawl selectivity",
-      "TRIP_REPORT_TYPE_FORM": "Form with data",
-      "TRIP_REPORT_TYPE_FORM_BLANK": "Empty form",
       "TRIP_REPORT_FORM_SUBTITLE": "Trip > Form report subtitle",
       "TRIP_REPORT_FORM_FOOTER": "Trip > Form report footer",
-      "TRIP_REPORT_FORM_LOGO_HEAD_LEFT_URL": "Trip > Form report: URL for the left header logo",
-      "TRIP_REPORT_FORM_LOGO_HEAD_RIGHT_URL": "Trip > Form report: URL for the right header logo",
+      "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Trip > Report: Logo for the left header",
+      "TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Trip > Report: Logo for the right header",
       "TRIP_OPERATION_EDITOR": "Trip > Operation: Editor",
       "TRIP_OPERATION_EDITOR_LEGACY": "Default",
       "TRIP_OPERATION_EDITOR_TRAWL_SELECTIVITY": "Trawl selectivity",

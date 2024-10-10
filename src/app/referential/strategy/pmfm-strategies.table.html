@@ -236,7 +236,7 @@
       [class.mat-mdc-row-disabled]="!row.editing"
       (click)="clickRow($event, row)"
       (keydown.escape)="escapeEditingRow($event)"
-      [cdkTrapFocus]="row.editing && row.validator.invalid"
+      [cdkTrapFocus]="row.editing && !row.validator.valid"
     ></tr>
   </table>
 

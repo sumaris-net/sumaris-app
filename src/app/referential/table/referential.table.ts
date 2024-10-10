@@ -205,7 +205,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
   }
 
   constructor(
-    injector: Injector,
+    protected injector: Injector,
     protected accountService: AccountService,
     protected referentialService: ReferentialService<T>,
     protected referentialRefService: ReferentialRefService,

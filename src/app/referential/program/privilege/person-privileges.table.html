@@ -193,7 +193,7 @@
       [class.mat-mdc-row-disabled]="!row.editing"
       [class.mat-mdc-row-selected]="row.editing"
       (click)="clickRow($event, row)"
-      [cdkTrapFocus]="row.editing && row.validator.invalid"
+      [cdkTrapFocus]="row.editing && !row.validator.valid"
     ></tr>
   </table>
 </div>

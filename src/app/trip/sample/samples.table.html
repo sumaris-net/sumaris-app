@@ -286,7 +286,7 @@
               floatLabel="never"
               panelClass="min-width-medium"
               [autofocus]="focusColumn === 'taxonGroup'"
-              [formControl]="row.validator | formGetControl: 'taxonGroup'"
+              [formControl]="row.validator.controls.taxonGroup"
               [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_GROUP_PLACEHOLDER' | translateContext: i18nColumnSuffix"
               [required]="showTaxonGroupColumn"
               [config]="autocompleteFields.taxonGroup"

@@ -1,16 +1,4 @@
-import {
-  AfterViewInit,
-  booleanAttribute,
-  ChangeDetectorRef,
-  Directive,
-  ElementRef,
-  inject,
-  Injector,
-  Input,
-  numberAttribute,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { AfterViewInit, booleanAttribute, Directive, ElementRef, inject, Injector, Input, numberAttribute, OnInit, ViewChild } from '@angular/core';
 import {
   AppAsyncTable,
   changeCaseToUnderscore,
@@ -83,9 +71,8 @@ export abstract class AppBaseAsyncTable<
 {
   private _canEdit: boolean;
 
-  protected translateContext = inject(TranslateContextService);
-  protected popoverController = inject(PopoverController);
-  protected cd = inject(ChangeDetectorRef);
+  protected readonly translateContext = inject(TranslateContextService);
+  protected readonly popoverController = inject(PopoverController);
 
   protected memoryDataService: InMemoryEntitiesService<T, F, ID>;
   protected readonly hotkeys: Hotkeys;
@@ -148,7 +135,7 @@ export abstract class AppBaseAsyncTable<
   }
 
   protected constructor(
-    protected injector: Injector,
+    injector: Injector,
     protected dataType: new () => T,
     protected filterType: new () => F,
     columnNames: string[],
@@ -272,14 +259,6 @@ export abstract class AppBaseAsyncTable<
     }
   }
 
-  toggleSelectRow(event: Event | undefined, row: AsyncTableElement<T>) {
-    if (event) {
-      event.stopPropagation();
-    }
-    this.selection.toggle(row);
-    this.detectChanges();
-  }
-
   /**
    * Scroll to bottom
    */
@@ -340,8 +319,8 @@ export abstract class AppBaseAsyncTable<
     return super.clickRow(event, row);
   }
 
-  pressRow(event: Event | undefined, row: AsyncTableElement<T>): Promise<boolean> {
-    if (!this.mobile || event?.defaultPrevented) return; // Skip if inline edition, or not mobile
+  async pressRow(event: Event | undefined, row: AsyncTableElement<T>): Promise<boolean> {
+    if (!this.mobile || event?.defaultPrevented) return false; // Skip if inline edition, or not mobile
 
     event?.preventDefault();
 
@@ -718,13 +697,6 @@ export abstract class AppBaseAsyncTable<
     // Can be override by subclasses
   }
 
-  protected async editRow(event: Event | undefined, row: AsyncTableElement<T>, opts?: { focusColumn?: string }): Promise<boolean> {
-    const editing = await super.editRow(event, row, opts);
-    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
-    if (editing) this.detectChanges();
-    return editing;
-  }
-
   /**
    * Delegate equals to the entity class, instead of simple ID comparison
    *
@@ -736,16 +708,6 @@ export abstract class AppBaseAsyncTable<
     if (d1) return this.asEntity(d1).equals(d2);
     if (d2) return this.asEntity(d2).equals(d1);
     return false;
-  }
-
-  protected markForCheck() {
-    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
-    this.cd.markForCheck();
-  }
-
-  protected detectChanges() {
-    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
-    this.cd.detectChanges();
   }
 
   protected getI18nColumnName(columnName: string): string {

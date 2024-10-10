@@ -2249,6 +2249,9 @@
       "DESCRIPTION": "description",
       "IS_CALCULATED": "Calulée ?",
       "IS_ESTIMATED": "Est estimée ?",
+      "NEW": {
+        "TITLE": "Nouvelle méthode"
+      },
       "EDIT": {
         "TITLE": "Méthode {{label}} - {{name}}"
       }

@@ -59,6 +59,7 @@ import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution, DataStrategyResolutions
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { BaseMeasurementsAsyncTable } from '@app/data/measurement/measurements-async-table.class';
 
 export class LandingEditorOptions extends RootDataEditorOptions {}
 
@@ -621,7 +622,11 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     this.markForCheck();
   }
 
-  protected async setTablePmfms(table: BaseMeasurementsTable<Sample, SampleFilter>, programLabel: string, strategyLabel?: string) {
+  protected async setTablePmfms(
+    table: BaseMeasurementsTable<Sample, SampleFilter> | BaseMeasurementsAsyncTable<Sample, SampleFilter>,
+    programLabel: string,
+    strategyLabel?: string
+  ) {
     if (!this.landingForm.showStrategy) {
       console.debug(this.logPrefix + 'Delegate pmfms load to table, using programLabel:' + programLabel);
       // Set the table program, to delegate pmfms load

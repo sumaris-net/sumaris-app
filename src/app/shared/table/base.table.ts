@@ -1,16 +1,4 @@
-import {
-  AfterViewInit,
-  booleanAttribute,
-  ChangeDetectorRef,
-  Directive,
-  ElementRef,
-  inject,
-  Injector,
-  Input,
-  numberAttribute,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { AfterViewInit, booleanAttribute, Directive, ElementRef, inject, Injector, Input, numberAttribute, OnInit, ViewChild } from '@angular/core';
 import {
   AppTable,
   changeCaseToUnderscore,
@@ -83,9 +71,8 @@ export abstract class AppBaseTable<
 {
   private _canEdit: boolean;
 
-  protected translateContext = inject(TranslateContextService);
-  protected popoverController = inject(PopoverController);
-  protected cd = inject(ChangeDetectorRef);
+  protected readonly translateContext = inject(TranslateContextService);
+  protected readonly popoverController = inject(PopoverController);
 
   protected memoryDataService: InMemoryEntitiesService<T, F, ID>;
   protected readonly hotkeys: Hotkeys;
@@ -144,7 +131,7 @@ export abstract class AppBaseTable<
   }
 
   protected constructor(
-    protected injector: Injector,
+    injector: Injector,
     protected dataType: new () => T,
     protected filterType: new () => F,
     columnNames: string[],
@@ -266,14 +253,6 @@ export abstract class AppBaseTable<
           .subscribe((event) => this.addRow(event))
       );
     }
-  }
-
-  toggleSelectRow(event: Event | undefined, row: TableElement<T>) {
-    if (event) {
-      event.stopPropagation();
-    }
-    this.selection.toggle(row);
-    this.detectChanges();
   }
 
   /**
@@ -721,23 +700,6 @@ export abstract class AppBaseTable<
     // Can be override by subclasses
   }
 
-  protected editRow(event: Event | undefined, row: TableElement<T>, opts?: { focusColumn?: string }): boolean {
-    const editing = super.editRow(event, row, opts);
-    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
-    if (editing) this.detectChanges();
-    return editing;
-  }
-
-  protected async addRowToTable(
-    insertAt?: number,
-    opts?: { focusColumn?: string; editing?: boolean; emitEvent?: boolean }
-  ): Promise<TableElement<T> | undefined> {
-    const row = await super.addRowToTable(insertAt, opts);
-    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
-    if (row) this.detectChanges();
-    return row;
-  }
-
   /**
    * Delegate equals to the entity class, instead of simple ID comparison
    *
@@ -749,16 +711,6 @@ export abstract class AppBaseTable<
     if (d1) return this.asEntity(d1).equals(d2);
     if (d2) return this.asEntity(d2).equals(d1);
     return false;
-  }
-
-  protected markForCheck() {
-    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
-    this.cd.markForCheck();
-  }
-
-  protected detectChanges() {
-    // eslint-disable-next-line @rx-angular/no-explicit-change-detection-apis
-    this.cd.detectChanges();
   }
 
   protected getI18nColumnName(columnName: string): string {

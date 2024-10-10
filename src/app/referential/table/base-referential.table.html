@@ -178,7 +178,7 @@
       [class.mat-mdc-row-status-disabled]="row.validator.controls.statusId?.value === 0"
       (click)="clickRow($event, row)"
       (keydown.escape)="escapeEditingRow($event)"
-      [cdkTrapFocus]="row.validator.invalid"
+      [cdkTrapFocus]="!row.validator.valid"
     ></tr>
   </table>
 
