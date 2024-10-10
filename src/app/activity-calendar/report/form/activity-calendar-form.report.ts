@@ -143,7 +143,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   protected isBlankForm: boolean;
   protected reportPath: string;
 
-  protected readonly ActivityCalendarService: ActivityCalendarService;
+  protected readonly activityCalendarService: ActivityCalendarService;
   protected readonly strategyRefService: StrategyRefService;
   protected readonly programRefService: ProgramRefService;
   protected readonly vesselSnapshotService: VesselSnapshotService;
@@ -168,7 +168,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
   constructor(injector: Injector) {
     super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.FORM.PMFM.' });
-    this.ActivityCalendarService = this.injector.get(ActivityCalendarService);
+    this.activityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
     this.vesselSnapshotService = this.injector.get(VesselSnapshotService);
@@ -200,9 +200,9 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     // const fetchedData = await this.ActivityCalendarService.load(id, { ...opts, forBlankFrom: this.isBlankForm });
     let loadResult: LoadResult<ActivityCalendar>;
     if (this.isBlankForm) {
-      loadResult = await this.ActivityCalendarService.loadAllVesselOnly(0, 1, null, null, filter);
+      loadResult = await this.activityCalendarService.loadAllVesselOnly(0, 1, null, null, filter);
     } else {
-      loadResult = await this.ActivityCalendarService.loadAll(0, 1, null, null, filter, { fullLoad: true });
+      loadResult = await this.activityCalendarService.loadAll(0, 1, null, null, filter, { fullLoad: true });
     }
     if (isNotNil(loadResult.errors)) throw loadResult.errors;
     let data = loadResult.data?.[0];
