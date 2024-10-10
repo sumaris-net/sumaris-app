@@ -189,7 +189,7 @@
     <ion-row *ngIf="isChildOperation !== true">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end">
-          {{ (fishingStartDateTimeEnable ? 'TRIP.OPERATION.EDIT.START' : 'TRIP.OPERATION.EDIT.START_FISHING') | translateContext: i18nSuffix }}
+          {{ (allowParentOperation ? 'TRIP.OPERATION.EDIT.START' : 'TRIP.OPERATION.EDIT.START_FISHING') | translateContext: i18nSuffix }}
         </ion-label>
       </ion-col>
       <ion-col>
