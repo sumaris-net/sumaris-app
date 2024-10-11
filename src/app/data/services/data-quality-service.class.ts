@@ -1,12 +1,12 @@
 import { DataEntity } from './model/data-entity.model';
 import { AppErrorWithDetails, FormErrors } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
-import { ProgressionModel } from '@app/shared/progression/progression.model';
+import { IProgressionModel } from '@app/shared/progression/progression.model';
 import { Program } from '@app/referential/services/model/program.model';
 
 export interface IProgressionOptions {
   // Progression
-  progression?: ProgressionModel;
+  progression?: IProgressionModel;
   maxProgression?: number;
 }
 
