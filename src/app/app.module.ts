@@ -1,6 +1,6 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
-import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule, provideExperimentalZonelessChangeDetection } from '@angular/core';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
 
@@ -557,6 +557,9 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
       useClass: NamedFilterService,
     },
     provideHttpClient(withInterceptorsFromDi()),
+
+    // Zone less
+    provideExperimentalZonelessChangeDetection(),
   ],
 })
 export class AppModule {
