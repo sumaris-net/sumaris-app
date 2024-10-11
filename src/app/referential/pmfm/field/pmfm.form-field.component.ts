@@ -12,7 +12,9 @@ import {
   OnInit,
   Optional,
   Output,
+  QueryList,
   ViewChild,
+  ViewChildren,
 } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
@@ -48,6 +50,8 @@ import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { Subscription } from 'rxjs';
 import { RxState } from '@rx-angular/state';
 import { filter, map } from 'rxjs/operators';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+import { MatIconButton } from '@angular/material/button';
 
 const noop = () => {};
 
@@ -198,6 +202,8 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   }
 
   @ViewChild('matInput') matInput: ElementRef;
+  @ViewChildren('pmfmField') pmfmFields: QueryList<PmfmFormField>;
+  @ViewChild('addButton') addButton: MatIconButton;
 
   constructor(
     protected settings: LocalSettingsService,
@@ -233,6 +239,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   }
 
   ngOnInit() {
+    this.autofocus = this.autofocus ?? false;
     this.connect(
       'type',
       this.select(['control', 'pmfm'], (_) => _).pipe(
@@ -364,8 +371,10 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   focus() {
     if (this.hidden) {
       console.warn('Cannot focus an hidden measurement field!');
-    } else {
+    } else if (this.matInput) {
       focusInput(this.matInput);
+    } else if (this.pmfmFields.length) {
+      this.pmfmFields.get(0).focus();
     }
   }
 
@@ -401,11 +410,17 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
     this.formArray.add(null, { emitEvent: false });
     this.arrayEditingIndex = this.formArray.length - 1;
 
-    // Let the time for fields validation
-    setTimeout(() => {
-      this.autofocus = autofocus;
-      this.markForCheck();
-    }, 250);
+    // Let the time for fields validation, then restore autofocus
+    if (autofocus) {
+      setTimeout(() => {
+        this.autofocus = autofocus;
+        this.markForCheck();
+      }, 250);
+    } else if (!this.compact) {
+      setTimeout(() => {
+        this.formArrayFocusAt(null, this.arrayEditingIndex);
+      }, 250);
+    }
   }
 
   protected formArrayRemoveAt(index: number, opts?: { markAsDirty: boolean }) {
@@ -415,7 +430,11 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   }
 
   protected formArrayRemoveEmptyOnFocusLost(event: UIEvent, index: number) {
+    if (!this.compact) return; // Skip if not in compact mode
+
     event.stopPropagation();
+
+    // Remove when an empty field lost focus
     setTimeout(() => {
       const control = this.formArray.at(index);
       // If empty: remove it
@@ -426,5 +445,18 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
     }, 250);
   }
 
-  protected readonly undefined = undefined;
+  protected formArrayFocusAt(event: KeyboardEvent | undefined, index: number) {
+    if (index >= 0 && index <= this.pmfmFields.length - 1) {
+      event?.preventDefault();
+      event?.stopPropagation();
+      this.pmfmFields.get(index)?.focus();
+    } else if (this.addButton) {
+      event?.preventDefault();
+      event?.stopPropagation();
+      setTimeout(() => {
+        this.addButton.focus('keyboard');
+        this.markForCheck();
+      });
+    }
+  }
 }
