@@ -215,6 +215,15 @@ export class ExtractionUtils {
       },
     ];
 
+    if (isNotNil(source.includedIds)) {
+      criteria.push({
+        sheetName: 'AM',
+        name: 'included_ids',
+        operator: '=',
+        values: source.includedIds.map((id) => id.toString()),
+      });
+    }
+
     if (isNotNil(source.program)) {
       criteria.push({
         sheetName: 'AM',

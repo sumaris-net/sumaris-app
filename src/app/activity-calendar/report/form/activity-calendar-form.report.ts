@@ -1,9 +1,9 @@
 import { Component, Injector, ViewEncapsulation } from '@angular/core';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -13,28 +13,42 @@ import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.compone
 import { environment } from '@environments/environment';
 import {
   ConfigService,
-  CORE_CONFIG_OPTIONS,
-  DateUtils,
   EntityAsObjectOptions,
-  firstNotNilPromise,
-  isEmptyArray,
-  isNotEmptyArray,
+  LoadResult,
+  TranslateContextService,
+  isInstanceOf,
   isNotNil,
   referentialToString,
   sleep,
   splitById,
-  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../../activity-calendar.service';
 import { ActivityMonth } from '../../calendar/activity-month.model';
-import { ActivityMonthUtils } from '../../calendar/activity-month.utils';
 import { IsActiveList } from '../../calendar/calendar.component';
 import { ActivityCalendar } from '../../model/activity-calendar.model';
-import { GearUseFeatures } from '../../model/gear-use-features.model';
-import { Metier } from '@app/referential/metier/metier.model';
-import moment from 'moment';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
+import {
+  computeCommonActivityCalendarFormReportStats,
+  computeIndividualActivityCalendarFormReportStats,
+  fillActivityCalendarBlankData,
+} from './activity-calendar-from-report.utils';
+import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
+
+export interface ActivityCalendarFormReportPageDimentions {
+  height: number;
+  width: number;
+  marginTop: number;
+  marginBottom: number;
+  headerHeight: number;
+  footerHeight: number;
+  sectionTitleHeight: number;
+  monthTableRowTitleHeight: number;
+  monthTableRowHeight: number;
+  monthTableMetierRowHeight: number;
+  gpfTableRowTitleHeight: number;
+  gpfTableColTitleWidth: number;
+  gpfTableRowHeight: number;
+  investigationQualificationSectionHeight: number;
+}
 
 export class ActivityCalendarFormReportStats extends BaseReportStats {
   subtitle?: string;
@@ -51,6 +65,14 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
 
+  static fromObject(source: any): ActivityCalendarFormReportStats {
+    if (!source) return source;
+    if (source instanceof ActivityCalendarFormReportStats) return source as ActivityCalendarFormReportStats;
+    const target = new ActivityCalendarFormReportStats();
+    target.fromObject(source);
+    return target;
+  }
+
   fromObject(source: any) {
     super.fromObject(source);
     this.subtitle = source.subtitle;
@@ -58,11 +80,11 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     this.logoHeadLeftUrl = source.logoHeadLeftUrl;
     this.logoHeadRightUrl = source.logoHeadRightUrl;
     this.strategy = Strategy.fromObject(source.strategy);
-    this.activityMonth = source.activityMonth.map(ActivityMonth.fromObject);
+    this.activityMonth = source?.activityMonth?.map(ActivityMonth.fromObject) || null;
     this.pmfm = {
-      activityMonth: source.pmfm.activityMonth.map(DenormalizedPmfmStrategy.fromObject),
-      activityCalendar: source.pmfm.activityCalendar.map(DenormalizedPmfmStrategy.fromObject),
-      gpf: source.pmfm.physicalGear.map(DenormalizedPmfmStrategy.fromObject),
+      activityMonth: source?.pmfm?.activityMonth?.map(DenormalizedPmfmStrategy.fromObject) || null,
+      activityCalendar: source?.pmfm?.activityCalendar?.map(DenormalizedPmfmStrategy.fromObject) || null,
+      gpf: source?.pmfm?.physicalGear?.map(DenormalizedPmfmStrategy.fromObject) || null,
     };
     this.activityMonthColspan = source.activityMonthColspan;
     this.metierTableChunks = source.metierTableChunks;
@@ -76,11 +98,11 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
       logoHeadRightUrl: this.logoHeadRightUrl,
       logoHeadLeftUrl: this.logoHeadLeftUrl,
       strategy: this.strategy.asObject(opts),
-      activityMonth: this.activityMonth.map((item) => item.asObject(opts)),
+      activityMonth: this?.activityMonth?.map((item) => item.asObject(opts)) || null,
       pmfm: {
-        activityMonth: this.pmfm.activityMonth.map((item) => item.asObject(opts)),
-        activityCalendar: this.pmfm.activityCalendar.map((item) => item.asObject(opts)),
-        physicalGear: this.pmfm.gpf.map((item) => item.asObject(opts)),
+        activityMonth: this?.pmfm?.activityMonth?.map((item) => item.asObject(opts)) || null,
+        activityCalendar: this?.pmfm?.activityCalendar?.map((item) => item.asObject(opts)) || null,
+        physicalGear: this?.pmfm?.gpf?.map((item) => item.asObject(opts)) || null,
       },
       activityMonthColspan: this.activityMonthColspan,
       metierTableChunks: this.metierTableChunks,
@@ -98,24 +120,9 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
 export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCalendar, number, ActivityCalendarFormReportStats> {
   readonly pmfmIdsMap = PmfmIds;
 
-  public static readonly isBlankFormParam = 'isBlankForm';
+  static readonly nbOfNonPmfmRowInEffortTable = 2;
 
-  protected logPrefix = 'activity-calendar-form-report';
-  protected isBlankForm: boolean;
-  protected reportType: string;
-
-  protected readonly ActivityCalendarService: ActivityCalendarService;
-  protected readonly strategyRefService: StrategyRefService;
-  protected readonly programRefService: ProgramRefService;
-  protected readonly vesselSnapshotService: VesselSnapshotService;
-  protected readonly translateContextService: TranslateContextService;
-  protected readonly configService: ConfigService;
-
-  protected readonly isActiveList = IsActiveList;
-  protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
-  protected readonly nbOfNonPmfmRowInEffortTable = 2;
-
-  protected readonly pageDimensions = Object.freeze({
+  static readonly pageDimensions: ActivityCalendarFormReportPageDimentions = Object.freeze({
     height: 210 * 4,
     width: 297 * 4,
     marginTop: 16,
@@ -132,6 +139,20 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     investigationQualificationSectionHeight: 60,
   });
 
+  protected logPrefix = 'activity-calendar-form-report';
+  protected isBlankForm: boolean;
+  protected reportPath: string;
+
+  protected readonly activityCalendarService: ActivityCalendarService;
+  protected readonly strategyRefService: StrategyRefService;
+  protected readonly programRefService: ProgramRefService;
+  protected readonly vesselSnapshotService: VesselSnapshotService;
+  protected readonly translateContextService: TranslateContextService;
+  protected readonly configService: ConfigService;
+
+  protected readonly isActiveList = IsActiveList;
+  protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
+
   protected filterPmfmSurveyQualification(pmfm: IPmfm): boolean {
     return PmfmIds.SURVEY_QUALIFICATION === pmfm.id;
   }
@@ -140,23 +161,28 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     return PmfmIds.AUCTION_HABIT === pmfm.id;
   }
 
+  readonly pageDimensions = Object.freeze({ ...ActivityCalendarFormReport.pageDimensions });
+
+  private program: Program;
+  private strategy: Strategy;
+
   constructor(injector: Injector) {
     super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.FORM.PMFM.' });
-    this.ActivityCalendarService = this.injector.get(ActivityCalendarService);
+    this.activityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
     this.vesselSnapshotService = this.injector.get(VesselSnapshotService);
     this.translateContextService = this.injector.get(TranslateContextService);
     this.configService = this.injector.get(ConfigService);
 
-    this.reportType = this.route.snapshot.routeConfig.path;
-    this.isBlankForm = this.reportType === 'blank-form';
+    this.reportPath = this.route.snapshot.routeConfig.path;
+    this.isBlankForm = this.route.snapshot.data?.isBlankForm;
     this.debug = !environment.production;
   }
 
   computePrintHref(data: ActivityCalendar, stats: ActivityCalendarFormReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
-    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + this.reportType);
+    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + this.reportPath);
   }
 
   async updateView() {
@@ -170,16 +196,28 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
   protected async loadData(id: number, opts?: any): Promise<ActivityCalendar> {
     console.log(`[${this.logPrefix}] loadData`);
-    const fetchedData = await this.ActivityCalendarService.load(id, { ...opts });
-    const data: ActivityCalendar = this.isBlankForm
-      ? ActivityCalendar.fromObject({
-          id: id,
-          program: Program.fromObject({ label: fetchedData.program.label }),
-          vesselSnapshot: fetchedData.vesselSnapshot,
-          vesselRegistrationPeriods: fetchedData.vesselRegistrationPeriods,
-        })
-      : fetchedData;
+    const filter: ActivityCalendarFilter = ActivityCalendarFilter.fromObject({ includedIds: [id] });
+    // const fetchedData = await this.ActivityCalendarService.load(id, { ...opts, forBlankFrom: this.isBlankForm });
+    let loadResult: LoadResult<ActivityCalendar>;
+    if (this.isBlankForm) {
+      loadResult = await this.activityCalendarService.loadAllVesselOnly(0, 1, null, null, filter);
+    } else {
+      loadResult = await this.activityCalendarService.loadAll(0, 1, null, null, filter, { fullLoad: true });
+    }
+    if (isNotNil(loadResult.errors)) throw loadResult.errors;
+    let data = loadResult.data?.[0];
     if (!data) throw new Error('ERROR.LOAD_ENTITY_ERROR');
+
+    this.program = await this.programRefService.loadByLabel(data.program.label);
+    this.strategy = await this.strategyRefService.loadByFilter({
+      programId: this.program.id,
+      acquisitionLevels: [AcquisitionLevelCodes.ACTIVITY_CALENDAR, AcquisitionLevelCodes.MONTHLY_ACTIVITY],
+    });
+
+    if (this.isBlankForm) {
+      data = fillActivityCalendarBlankData(data, this.program);
+    }
+
     return data;
   }
 
@@ -196,81 +234,21 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     data: ActivityCalendar,
     opts?: IComputeStatsOpts<ActivityCalendarFormReportStats>
   ): Promise<ActivityCalendarFormReportStats> {
-    const stats = new ActivityCalendarFormReportStats();
+    let stats = new ActivityCalendarFormReportStats();
 
-    const timezone = (await firstNotNilPromise(this.configService.config)).getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE) || DateUtils.moment().tz();
-    const gearIds = data.gearPhysicalFeatures?.map((gph) => gph.gear.id) || [];
+    stats = await computeCommonActivityCalendarFormReportStats(
+      data,
+      stats,
+      this.configService,
+      this.programRefService,
+      this.program,
+      this.strategy,
+      this.isBlankForm
+    );
 
-    // Get program and options
-    stats.program = await this.programRefService.loadByLabel(data.program.label);
-    // TODO Need to get strategy resolution ?
-    // const strategyResolution = stats.program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
-    // By default is `last`
-    stats.strategy = await this.strategyRefService.loadByFilter({
-      programId: stats.program.id,
-      acquisitionLevels: [AcquisitionLevelCodes.ACTIVITY_CALENDAR, AcquisitionLevelCodes.MONTHLY_ACTIVITY],
-    });
+    stats = await computeIndividualActivityCalendarFormReportStats(data, stats, this.pageDimensions, this.isBlankForm);
 
-    stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER);
-    stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
-    stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
-
-    let fishingAreaCount: number;
-    if (this.isBlankForm) {
-      const nbOfMetierBlock = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER_BLOCK);
-      const nbOfGearsColumn = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GEARS_COLUMN);
-      fishingAreaCount = stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER);
-      data.gearPhysicalFeatures = Array(nbOfGearsColumn).fill(
-        GearPhysicalFeatures.fromObject({
-          metier: Metier.fromObject({}),
-        })
-      );
-      data.gearUseFeatures = Array(nbOfMetierBlock)
-        .fill(-1)
-        .map((value, index) =>
-          GearUseFeatures.fromObject({
-            metier: Metier.fromObject({ id: value * index - 1 }),
-          })
-        );
-      data.year = moment().year();
-    }
-
-    stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, fillEmptyFishingArea: true, fishingAreaCount });
-
-    this.computeActivityMonthColspan(stats);
-
-    stats.pmfm = {
-      activityMonth: await this.programRefService.loadProgramPmfms(data.program.label, {
-        acquisitionLevel: AcquisitionLevelCodes.MONTHLY_ACTIVITY,
-        strategyId: stats.strategy.id,
-      }),
-      activityCalendar: await this.programRefService.loadProgramPmfms(data.program.label, {
-        acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR,
-        strategyId: stats.strategy.id,
-      }),
-      gpf: !this.isBlankForm
-        ? (
-            await this.programRefService.loadProgramPmfms(data.program.label, {
-              acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES,
-              strategyId: stats.strategy.id,
-            })
-          ).filter(
-            (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gearIds.includes(gearId))
-          )
-        : [
-            DenormalizedPmfmStrategy.fromObject({
-              id: -1,
-              name: stats.program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1),
-            }),
-            DenormalizedPmfmStrategy.fromObject({
-              id: -2,
-              name: stats.program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2),
-            }),
-          ],
-    };
-
-    this.computeMetierTableChunk(data, stats);
-
+    console.debug('TODO data/stats', { data, stats });
     return stats;
   }
 
@@ -290,107 +268,6 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   }
 
   protected computeShareBasePath(): string {
-    return 'activity-calendar/report/form';
-  }
-
-  protected computeMetierTableChunk(data: ActivityCalendar, stats: ActivityCalendarFormReportStats) {
-    stats.metierTableChunks = [];
-
-    const metierChunks: { metierIndex: number; fishingAreasIndexes: number[] }[] = stats.activityMonth[0].gearUseFeatures.map((guf, index) => {
-      return {
-        metierIndex: index,
-        fishingAreasIndexes: guf.fishingAreas.map((_, index) => index),
-      };
-    });
-
-    // Take the width because the page is a landscape
-    const totalAvailableHeightForContent =
-      this.pageDimensions.width -
-      this.pageDimensions.marginTop -
-      this.pageDimensions.marginBottom -
-      this.pageDimensions.headerHeight -
-      this.pageDimensions.footerHeight;
-    const heightOfEffortSection =
-      this.pageDimensions.sectionTitleHeight +
-      this.pageDimensions.monthTableRowHeight +
-      (stats.pmfm.activityMonth.length + this.nbOfNonPmfmRowInEffortTable) * this.pageDimensions.monthTableRowHeight +
-      this.pageDimensions.investigationQualificationSectionHeight;
-    const heightOfGearSection =
-      this.pageDimensions.marginTop / 2 +
-      this.pageDimensions.sectionTitleHeight +
-      this.pageDimensions.gpfTableRowTitleHeight +
-      stats.pmfm.gpf.length * this.pageDimensions.gpfTableRowHeight;
-    const heighOfMetierTableHead =
-      this.pageDimensions.marginTop + this.pageDimensions.sectionTitleHeight + this.pageDimensions.monthTableRowTitleHeight;
-
-    const availableHeightOnFirstPage = totalAvailableHeightForContent - heightOfEffortSection - heighOfMetierTableHead;
-    const availableHeightOnOtherPage = totalAvailableHeightForContent - heighOfMetierTableHead;
-
-    const heightNeededByEachMetierChunk = metierChunks.map((chunk) => {
-      const nbOfFishingArea = chunk.fishingAreasIndexes.length;
-      return this.pageDimensions.monthTableMetierRowHeight + this.pageDimensions.monthTableRowHeight * nbOfFishingArea;
-    });
-
-    let currentChunkItems = [];
-    let availableHeight = availableHeightOnFirstPage;
-    while (isNotEmptyArray(metierChunks)) {
-      const currentChunkHeight = heightNeededByEachMetierChunk.shift();
-      // If not enoughs height to fit on current page
-      if (currentChunkHeight > availableHeight) {
-        let totalHeightNeededByRemainMetierChunk = heightNeededByEachMetierChunk.reduce((r, i) => (r += i), 0);
-        // In this case, it has not enoughs space on the first page to put
-        // a metier chunk
-        if (isEmptyArray(currentChunkItems)) {
-          stats.metierTableChunks.push(null);
-          // As the chunk was not been consumed, re add its height
-          totalHeightNeededByRemainMetierChunk += currentChunkHeight;
-        } else {
-          // Create new page
-          stats.metierTableChunks.push(currentChunkItems);
-          currentChunkItems = [];
-        }
-        availableHeight = availableHeightOnOtherPage;
-      }
-      currentChunkItems.push(metierChunks.shift());
-      availableHeight -= currentChunkHeight;
-    }
-    stats.metierTableChunks.push(currentChunkItems);
-    // If has not enoughs space to put physicalGear table,
-    // put it in a new page.
-    if (availableHeight - heightOfGearSection < 0) {
-      stats.metierTableChunks.push(null);
-    }
-  }
-
-  protected computeActivityMonthColspan(stats: ActivityCalendarFormReportStats) {
-    stats.activityMonthColspan = stats.activityMonth.reduce((acc, month) => {
-      const result = {};
-      month.gearUseFeatures.forEach((_, idx) => (result[idx] = 1));
-      acc.push(result);
-      return acc;
-    }, []);
-
-    if (!this.isBlankForm) {
-      for (let monthIdx = 0; monthIdx < stats.activityMonthColspan.length - 1; monthIdx++) {
-        const gufs = stats.activityMonth[monthIdx].gearUseFeatures;
-        for (let gufIdx = 0; gufIdx < gufs.length; gufIdx++) {
-          if (stats.activityMonthColspan[monthIdx][gufIdx] === 0) continue;
-          const guf = gufs[gufIdx];
-          let nextMonthIdx = monthIdx;
-          let colspanCount = 1;
-          do {
-            nextMonthIdx++;
-            // This is the last month
-            if (stats.activityMonth[nextMonthIdx] === undefined) break;
-            const nextMonthGuf = stats.activityMonth[nextMonthIdx].gearUseFeatures[gufIdx];
-            if (isNotNil(guf.metier?.id) && guf.metier?.id === nextMonthGuf.metier?.id) {
-              stats.activityMonthColspan[nextMonthIdx][gufIdx] = 0;
-              colspanCount++;
-            }
-          } while (stats.activityMonthColspan[nextMonthIdx][gufIdx] === 0);
-          stats.activityMonthColspan[monthIdx][gufIdx] = colspanCount;
-        }
-      }
-    }
+    return `activity-calendar/report/${this.reportPath}`;
   }
 }

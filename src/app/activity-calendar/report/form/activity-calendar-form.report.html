@@ -62,7 +62,6 @@
       @for (metierChunk of stats.metierTableChunks; track pageIndex; let pageIndex = $index; let firstPage = $first; let lastPage = $last) {
         <section
           *sectionDef
-          class="landscape"
           [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight + 'px'"
           [style.--month-table-row-height]="pageDimensions.monthTableRowHeight + 'px'"
           [style.--month-table-metier-row-height]="pageDimensions.monthTableMetierRowHeight + 'px'"
@@ -392,24 +391,34 @@
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      <ion-col size="12" class="ion-padding-bottom">
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.LAST_NAME' | translate }}
-                        </strong>
-                        @if (!isBlankForm) {
-                          &nbsp;
-                          {{ data.recorderPerson.lastName }}
-                        }
-                      </ion-col>
-                      <ion-col size="12">
-                        <strong>
-                          {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.FIRST_NAME' | translate }}
-                        </strong>
-                        @if (!isBlankForm) {
-                          &nbsp;
-                          {{ data.recorderPerson.firstName }}
-                        }
-                      </ion-col>
+                      @if (isBlankForm) {
+                        <ion-col size="12">
+                          <strong>
+                            {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.LAST_NAME' | translate }}
+                          </strong>
+                        </ion-col>
+                        <ion-col size="12">
+                          <strong>
+                            {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.FIRST_NAME' | translate }}
+                          </strong>
+                        </ion-col>
+                        <ion-col size="12">
+                          <strong>
+                            {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.LAST_NAME' | translate }}
+                          </strong>
+                        </ion-col>
+                        <ion-col size="12">
+                          <strong>
+                            {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.FIRST_NAME' | translate }}
+                          </strong>
+                        </ion-col>
+                      } @else {
+                        <ion-col size="12">
+                          @for (observer of data.observers; track observer.id) {
+                            {{ observer | personToString: ', ' }}
+                          }
+                        </ion-col>
+                      }
                     </ion-row>
                   </ion-grid>
                 </ion-col>
