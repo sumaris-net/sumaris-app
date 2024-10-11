@@ -73,7 +73,8 @@ export interface IReportData {
 export class BaseReportStats {
   program: Program;
 
-  static fromObject: (source: any) => BaseReportStats;
+  // TODO: A retirer à mon avis, cela ne sert à rien. il faut ajouter @Entity()
+  //static fromObject: (source: any) => BaseReportStats;
 
   fromObject(source: any) {
     this.program = isNotNil(source.program) ? Program.fromObject(source.program) : undefined;
@@ -492,7 +493,7 @@ export abstract class AppBaseReport<
       // NOTE: Case when `|| err` is possible ?
       let userMessage: string = (err.message && this.translate.instant(err.message)) || err;
       // NOTE: replace || by && ???
-      const detailMessage: string = !err.details || typeof err.details === 'string' ? (err.details as string) : err.details.message;
+      const detailMessage: string = !err.details || typeof err.details === 'string' ? (err.details as string) : err.details?.message;
       // NOTE: !isNotNilOrBlank ??? (invert the test)
       if (isNotNilOrBlank(detailMessage)) {
         // TODO Why hidden-xs hidden-sm ? : we can't have details on small screen
