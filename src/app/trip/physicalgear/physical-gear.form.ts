@@ -66,7 +66,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
 
   @Input() @RxStateProperty() gears: ReferentialRef[];
 
-  @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
+  @ViewChildren('matInput') matInputs: QueryList<ElementRef<any>>;
 
   constructor(
     injector: Injector,

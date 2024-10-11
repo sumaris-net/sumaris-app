@@ -71,8 +71,7 @@ import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { VesselFeaturesHistoryComponent } from '@app/vessel/page/vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from '@app/vessel/page/vessel-registration-history.component';
-import { IOutputAreaSizes } from 'angular-split/lib/interface';
-import { SplitComponent } from 'angular-split';
+import { SplitAreaSize, SplitComponent } from 'angular-split';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
@@ -954,14 +953,14 @@ export class ActivityCalendarPage
     this._predocPanelVisible = toBoolean(visible, this._predocPanelVisible);
   }
 
-  protected onPredocResize(sizes?: IOutputAreaSizes) {
+  protected onPredocResize(sizes?: SplitAreaSize) {
     this.calendar.onResize();
     this.predocCalendar.onResize();
 
     this.savePredocPanelSize(sizes);
   }
 
-  protected savePredocPanelSize(sizes?: IOutputAreaSizes) {
+  protected savePredocPanelSize(sizes?: SplitAreaSize) {
     const previousConfig = this.settings.getPageSettings(this.settingsId, ActivityCalendarPageSettingsEnum.PREDOC_PANEL_CONFIG);
 
     const config = {
