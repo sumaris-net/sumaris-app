@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, forwardRef, Injector, OnInit } from '@angular/core';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds, TaxonGroupLabels } from '@app/referential/services/model/model.enum';
 import { LandingPage } from '../landing.page';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
@@ -44,7 +44,7 @@ import { RxState } from '@rx-angular/state';
   styleUrls: ['auction-control.page.scss'],
   templateUrl: './auction-control.page.html',
   animations: [fadeInOutAnimation],
-  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: AuctionControlPage }, RxState],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => AuctionControlPage) }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuctionControlPage extends LandingPage implements OnInit, AfterViewInit {

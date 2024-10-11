@@ -1,4 +1,16 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, OnInit, Self, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  Inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Self,
+  ViewChild,
+} from '@angular/core';
 
 import { TripService } from './trip.service';
 import { TripForm } from './trip.form';
@@ -9,7 +21,7 @@ import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
-import { UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   Alerts,
@@ -66,6 +78,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -85,7 +98,7 @@ export interface TripPageState extends RootDataEntityEditorState {
   styleUrls: ['./trip.page.scss'],
   animations: [fadeInOutAnimation],
   providers: [
-    { provide: APP_DATA_ENTITY_EDITOR, useExisting: TripPage },
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => TripPage) },
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useFactory: () =>
@@ -826,10 +839,27 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     const formGroup = this.measurementsForm.form as UntypedFormGroup;
 
+    // If PMFM "Use of a Camera?" exist, then enable/disable isGPSUsed PMFM
+    const isCameraUsed = formGroup?.controls[PmfmIds.CAMERA_USED];
+    if (isNotNil(isCameraUsed)) {
+      this._measurementSubscription.add(
+        isCameraUsed.valueChanges.pipe(startWith<boolean>(isCameraUsed.value), filter(isNotNil)).subscribe((value) => {
+          if (this.debug) console.debug('[trip] Enable/Disable GPS');
+          const control = formGroup.controls[PmfmIds.GPS_USED];
+
+          if (value == true) {
+            AppSharedFormUtils.disableControl(control, { onlySelf: true });
+          } else {
+            AppSharedFormUtils.enableControl(control, { onlySelf: true, required: true });
+          }
+          this.markForCheck();
+        })
+      );
+    }
+
     // If PMFM "Use of a GPS ?" exists, then use to enable/disable positions or fishing area
     const isGPSUsed = formGroup?.controls[PmfmIds.GPS_USED];
     if (isNotNil(isGPSUsed)) {
-      isGPSUsed.setValidators(Validators.required);
       this._measurementSubscription.add(
         isGPSUsed.valueChanges
           .pipe(debounceTime(400), startWith<any>(isGPSUsed.value), filter(isNotNil), distinctUntilChanged())

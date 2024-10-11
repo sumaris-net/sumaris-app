@@ -1,4 +1,16 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  inject,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { SampleValidatorOptions, SampleValidatorService } from './sample.validator';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
@@ -99,9 +111,9 @@ export class SamplesTable
 {
   private _footerRowsSubscription: Subscription;
 
-  protected referentialRefService = inject(ReferentialRefService);
-  protected pmfmService = inject(PmfmService);
-  protected network = inject(NetworkService);
+  protected readonly referentialRefService = inject(ReferentialRefService);
+  protected readonly pmfmService = inject(PmfmService);
+  protected readonly network = inject(NetworkService);
   protected forcedTagIdGenerationMode: TagIdGenerationMode | undefined;
 
   // Top group header
@@ -197,10 +209,6 @@ export class SamplesTable
     return this.getShowColumn('images');
   }
 
-  getRowError(row, opts): string {
-    return super.getRowError(row, opts);
-  }
-
   setModalOption(key: keyof ISampleModalOptions, value: ISampleModalOptions[typeof key]) {
     this.modalOptions = this.modalOptions || {};
     this.modalOptions[key as any] = value;
@@ -219,7 +227,8 @@ export class SamplesTable
 
   constructor(
     injector: Injector,
-    protected samplingStrategyService: SamplingStrategyService
+    protected samplingStrategyService: SamplingStrategyService,
+    protected cd: ChangeDetectorRef
   ) {
     super(
       injector,
@@ -1114,4 +1123,8 @@ export class SamplesTable
   selectInputContent = AppFormUtils.selectInputContent;
   isIndividualMonitoring = SampleUtils.isIndividualMonitoring;
   isIndividualRelease = SampleUtils.isIndividualRelease;
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 }

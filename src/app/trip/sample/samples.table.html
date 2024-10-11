@@ -251,7 +251,7 @@
         </th>
         <td mat-cell *matCellDef="let row" (click)="focusColumn = 'label'">
           @if (row.editing) {
-            <mat-form-field floatLabel="never">
+            <mat-form-field>
               <input
                 matInput
                 autocomplete="off"
@@ -286,7 +286,7 @@
               floatLabel="never"
               panelClass="min-width-medium"
               [autofocus]="focusColumn === 'taxonGroup'"
-              [formControl]="row.validator | formGetControl: 'taxonGroup'"
+              [formControl]="row.validator.controls.taxonGroup"
               [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_GROUP_PLACEHOLDER' | translateContext: i18nColumnSuffix"
               [required]="showTaxonGroupColumn"
               [config]="autocompleteFields.taxonGroup"
@@ -309,7 +309,7 @@
               floatLabel="never"
               panelClass="min-width-medium"
               [readonly]="!row.editing"
-              [autofocus]="row.editing && focusColumn === 'taxonName'"
+              [autofocus]="focusColumn === 'taxonName'"
               [formControl]="row.validator.controls.taxonName"
               [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER' | translateContext: i18nColumnSuffix"
               [config]="autocompleteFields.taxonName"
@@ -340,68 +340,71 @@
       </ng-container>
 
       <!-- Pmfms columns -->
-      <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as index" [matColumnDef]="pmfm.id || index | toString">
-        <th
-          mat-header-cell
-          *matHeaderCellDef
-          mat-sort-header
-          class="mat-column-pmfm mat-column-{{ pmfm.label }}"
-          [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
-          [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
-          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
-          [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
-          [class.mat-mdc-cell-content-start-padding]="showGroupHeader"
-        >
-          <ion-label
-            [innerHTML]="
-              pmfm
-                | pmfmName
-                  : {
-                      html: true,
-                      withDetails: showPmfmDetails,
-                      i18nPrefix: i18nPmfmPrefix,
-                      i18nSuffix: i18nColumnSuffix
-                    }
-            "
-          ></ion-label>
-        </th>
-        <td
-          mat-cell
-          *matCellDef="let row"
-          class="mat-column-pmfm mat-column-{{ pmfm.label }}"
-          [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
-          [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
-          [style.background-color]="
-            row.currentData.measurementValues[pmfm.id] | pmfmValueColor: { pmfm: pmfm, mapWith: pmfmValueColor } : row.currentData
-          "
-          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
-          [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
-          [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
-          [class.mat-mdc-cell-content-start-padding]="showGroupHeader"
-          (click)="focusColumn = (pmfm.id || index).toString()"
-        >
-          @if (row.editing && !pmfm.isComputed) {
-            <app-pmfm-field
-              floatLabel="never"
-              [pmfm]="pmfm"
-              [i18nPrefix]="i18nPmfmPrefix"
-              [i18nSuffix]="i18nColumnSuffix"
-              [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-              [autofocus]="focusColumn == (pmfm.id || index)"
-              [compact]="compactFields"
-            ></app-pmfm-field>
-          } @else {
-            <!-- readonly value-->
+      @for (pmfm of pmfms; track pmfm.id || index; let index = $index) {
+        <ng-container [matColumnDef]="pmfm.id || index | toString">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="mat-column-pmfm mat-column-{{ pmfm.label }}"
+            [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
+            [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
+            [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+            [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
+            [class.mat-mdc-cell-content-start-padding]="showGroupHeader"
+          >
             <ion-label
               [innerHTML]="
-                row.validator
-                  | formGetValue: ['measurementValues', pmfm.id]
-                  | pmfmValue: { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
+                pmfm
+                  | pmfmName
+                    : {
+                        html: true,
+                        withDetails: showPmfmDetails,
+                        i18nPrefix: i18nPmfmPrefix,
+                        i18nSuffix: i18nColumnSuffix
+                      }
               "
             ></ion-label>
-          }
-        </td>
-      </ng-container>
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="mat-column-pmfm mat-column-{{ pmfm.label }}"
+            [class.mat-column-pmfm-multiple]="pmfm | isMultiplePmfm"
+            [style.--pmfm-acquisitionNumber]="pmfm.acquisitionNumber || 1"
+            [style.background-color]="
+              row.currentData.measurementValues[pmfm.id] | pmfmValueColor: { pmfm: pmfm, mapWith: pmfmValueColor } : row.currentData
+            "
+            [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+            [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
+            [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
+            [class.mat-mdc-cell-content-start-padding]="showGroupHeader"
+            (click)="focusColumn = (pmfm.id || index).toString()"
+          >
+            @if (row.editing && !pmfm.isComputed) {
+              <app-pmfm-field
+                floatLabel="never"
+                [pmfm]="pmfm"
+                [i18nPrefix]="i18nPmfmPrefix"
+                [i18nSuffix]="i18nColumnSuffix"
+                [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
+                [autofocus]="focusColumn == (pmfm.id || index)"
+                [compact]="compactFields"
+              ></app-pmfm-field>
+            } @else {
+              <!-- readonly value-->
+              <ion-label
+                [innerHTML]="
+                  row.validator
+                    | formGetValue: ['measurementValues', pmfm.id]
+                    | pmfmValue
+                      : { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
+                "
+              ></ion-label>
+            }
+          </td>
+        </ng-container>
+      }
 
       <!-- Comment column -->
       <ng-container matColumnDef="comments">
@@ -626,48 +629,50 @@
       </ng-container>
 
       <!-- Pmfms columns -->
-      <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as index" [matColumnDef]="pmfm.id || index | toString">
-        <th
-          mat-header-cell
-          *matHeaderCellDef
-          mat-sort-header
-          class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-content-start-padding"
-          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
-          [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
-        >
-          <ion-label
-            [innerHTML]="
-              pmfm
-                | pmfmName
-                  : {
-                      html: true,
-                      withDetails: showPmfmDetails,
-                      i18nPrefix: i18nPmfmPrefix,
-                      i18nSuffix: i18nColumnSuffix
-                    }
+      @for (pmfm of pmfms; track pmfm.id || index; let index = $index) {
+        <ng-container [matColumnDef]="pmfm.id || index | toString">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            mat-sort-header
+            class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-content-start-padding"
+            [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+            [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
+          >
+            <ion-label
+              [innerHTML]="
+                pmfm
+                  | pmfmName
+                    : {
+                        html: true,
+                        withDetails: showPmfmDetails,
+                        i18nPrefix: i18nPmfmPrefix,
+                        i18nSuffix: i18nColumnSuffix
+                      }
+              "
+            ></ion-label>
+          </th>
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-content-start-padding"
+            [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+            [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
+            [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
+            [style.background-color]="
+              row.currentData.measurementValues[pmfm.id] | pmfmValueColor: { pmfm: pmfm, mapWith: pmfmValueColor } : row.currentData
             "
-          ></ion-label>
-        </th>
-        <td
-          mat-cell
-          *matCellDef="let row"
-          class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-content-start-padding"
-          [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
-          [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
-          [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
-          [style.background-color]="
-            row.currentData.measurementValues[pmfm.id] | pmfmValueColor: { pmfm: pmfm, mapWith: pmfmValueColor } : row.currentData
-          "
-        >
-          <ion-text
-            [innerHTML]="
-              row.currentData
-                | measurementValueGet
-                  : { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
-            "
-          ></ion-text>
-        </td>
-      </ng-container>
+          >
+            <ion-text
+              [innerHTML]="
+                row.currentData
+                  | measurementValueGet
+                    : { pmfm: pmfm, html: true, propertyNames: pmfm.isMultiple || compactFields ? ['label'] : undefined, showYesOrNo: true }
+              "
+            ></ion-text>
+          </td>
+        </ng-container>
+      }
 
       <!-- Comment column -->
       <ng-container matColumnDef="comments">

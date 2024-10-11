@@ -1,4 +1,15 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  Optional,
+  ViewChild,
+} from '@angular/core';
 import { OperationSaveOptions, OperationService } from './operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../trip/trip.service';
@@ -90,7 +101,11 @@ export interface OperationState extends AppDataEditorState {
   templateUrl: './operation.page.html',
   styleUrls: ['./operation.page.scss'],
   animations: [fadeInOutAnimation],
-  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: OperationPage }, { provide: ContextService, useExisting: TripContextService }, RxState],
+  providers: [
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => OperationPage) },
+    { provide: ContextService, useExisting: TripContextService },
+    RxState,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OperationPage<S extends OperationState = OperationState>
@@ -812,7 +827,9 @@ export class OperationPage<S extends OperationState = OperationState>
     this.opeForm.showMetier = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_ENABLE);
     this.opeForm.showMetierFilter = this.opeForm.showMetier && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_FILTER);
     this.opeForm.programLabel = program.label;
-    this.opeForm.fishingStartDateTimeEnable = !skipDates && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
+    const fishingStartDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
+    this.opeForm.startDateTimeEnable = skipDates || fishingStartDateTimeEnable;
+    this.opeForm.fishingStartDateTimeEnable = !skipDates && fishingStartDateTimeEnable;
     this.opeForm.fishingEndDateTimeEnable = !skipDates && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
     this.opeForm.endDateTimeEnable = !skipDates && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
     this.opeForm.maxShootingDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS);

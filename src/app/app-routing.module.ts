@@ -1,8 +1,9 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { environment } from '@environments/environment';
 import {
   AccountPage,
+  AppChangePasswordPage,
   AuthGuardService,
   ComponentDirtyGuard,
   HomePage,
@@ -28,12 +29,26 @@ const routes: Routes = [
     component: RegisterConfirmPage,
   },
   {
-    path: 'account',
-    pathMatch: 'full',
-    component: AccountPage,
-    canActivate: [AuthGuardService],
-    canDeactivate: [ComponentDirtyGuard],
+    path: 'password/:email/:token',
+    component: AppChangePasswordPage,
   },
+  {
+    path: 'account',
+    canActivate: [AuthGuardService],
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        component: AccountPage,
+        canDeactivate: [ComponentDirtyGuard],
+      },
+      {
+        path: 'password',
+        component: AppChangePasswordPage,
+      },
+    ],
+  },
+
   {
     path: 'settings',
     pathMatch: 'full',
@@ -209,20 +224,17 @@ const routes: Routes = [
   },
 ];
 
-@NgModule({
-  imports: [
-    QuicklinkModule,
-    SharedRoutingModule,
-    RouterModule.forRoot(routes, {
-      // DEBUG
-      //enableTracing: !environment.production,
-      enableTracing: false,
+export const ROUTE_OPTIONS: ExtraOptions = {
+  // DEBUG
+  //enableTracing: !environment.production,
+  enableTracing: false,
+  useHash: environment.useHash || false,
+  onSameUrlNavigation: 'reload',
+  preloadingStrategy: QuicklinkStrategy,
+};
 
-      useHash: environment.useHash || false,
-      onSameUrlNavigation: 'reload',
-      preloadingStrategy: QuicklinkStrategy,
-    }),
-  ],
+@NgModule({
+  imports: [QuicklinkModule, SharedRoutingModule, RouterModule.forRoot(routes, ROUTE_OPTIONS)],
   exports: [RouterModule, SharedRoutingModule],
 })
 export class AppRoutingModule {}

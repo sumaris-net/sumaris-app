@@ -80,6 +80,5 @@ export abstract class AppDataEntityReport<
     return this.loadData(id, opts);
   }
 
-  // TODO This method sill useful ?
   protected abstract loadData(id: ID, opts?: any): Promise<T>;
 }

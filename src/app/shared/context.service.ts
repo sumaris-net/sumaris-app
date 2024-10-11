@@ -19,7 +19,7 @@ export interface Context<TClipboardData = any> {
   program?: Program;
   strategy?: Strategy;
 
-  // A child context, that can be dynamically set (e.g. TripContext, or SaleContext)
+  // Child contexts, that can be dynamically set (e.g. TripContext, or SaleContext)
   children?: ContextService<any>[];
 }
 
@@ -39,7 +39,7 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
   @RxStateProperty() children: ContextService<any>[];
 
   get empty(): boolean {
-    return equals(this.defaultState || {}, this.get());
+    return equals(this.defaultState, this.get());
   }
 
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: Partial<S>) {
@@ -61,7 +61,7 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
   }
 
   getValue<K extends keyof S>(key: K): S[K] {
-    return this.get(key);
+    return super.get(key);
   }
 
   getValueAsDate<K extends keyof S>(key: K): Moment {
@@ -99,5 +99,16 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
 
   unregisterChild(child: ContextService<any>) {
     this.set('children', (s) => (s.children || []).filter((c) => c !== child));
+  }
+
+  getMerged() {
+    const state = this.get();
+    const children = state?.children;
+    if (!children) return state;
+
+    delete state.children;
+
+    // Merge all children's states
+    return [state, ...children.filter((c) => !c.empty).map((child) => child.getMerged())].reduce((res, state) => ({ ...res, ...state }), {});
   }
 }

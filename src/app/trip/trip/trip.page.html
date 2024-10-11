@@ -49,64 +49,69 @@
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
-  <!-- report -->
-  <ng-container *ngIf="enableReport">
-    <button
-      mat-menu-item
-      *ngIf="isNewData || !data.controlDate || reportTypes.length < 2; else reportsMenuBtn"
-      [disabled]="isNewData || !data.controlDate"
-      (click)="openReport()"
-    >
-      <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
-      <ion-label translate>TRIP.EDIT.BTN_REPORT</ion-label>
-    </button>
-    <ng-template #reportsMenuBtn>
-      <button mat-menu-item [matMenuTriggerFor]="reportsMenu">
-        <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
-        <ion-label translate>TRIP.EDIT.BTN_REPORT</ion-label>
+  <ng-template matMenuContent>
+    <!-- report -->
+    @if (enableReport) {
+      @if (isNewData || !data.controlDate || reportTypes.length < 2) {
+        <button mat-menu-item [disabled]="isNewData || !data.controlDate" (click)="openReport()">
+          <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+          <ion-label translate>TRIP.EDIT.BTN_REPORT</ion-label>
+        </button>
+      } @else {
+        <button mat-menu-item [matMenuTriggerFor]="reportsMenu">
+          <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+          <ion-label translate>TRIP.EDIT.BTN_REPORT</ion-label>
+        </button>
+      }
+    }
+
+    <!-- reset -->
+    @if (mobile) {
+      <button mat-menu-item [disabled]="disabled || !dirty" (click)="cancel($event)">
+        <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
+        <ion-label translate>COMMON.BTN_RESET</ion-label>
       </button>
-    </ng-template>
-  </ng-container>
+    }
 
-  <!-- reset -->
-  <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
-    <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
-    <ion-label translate>COMMON.BTN_RESET</ion-label>
-  </button>
+    <!-- download button -->
+    @if (canDownload) {
+      <app-extraction-button
+        [style]="'mat-menu-item'"
+        [programLabel]="programLabel$ | push"
+        [disabledDownloadAsType]="!data.controlDate"
+        (downloadAsJson)="downloadAsJson($event)"
+        (downloadAsType)="openDownloadPage($event)"
+      ></app-extraction-button>
+    }
 
-  <!-- download button -->
-  <app-extraction-button
-    *ngIf="canDownload"
-    [style]="'mat-menu-item'"
-    [programLabel]="programLabel$ | push"
-    [disabledDownloadAsType]="!data.controlDate"
-    (downloadAsJson)="downloadAsJson($event)"
-    (downloadAsType)="openDownloadPage($event)"
-  ></app-extraction-button>
+    @if (canCopyLocally) {
+      <button mat-menu-item (click)="copyLocally()">
+        <mat-icon>file_copy</mat-icon>
+        <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
+      </button>
+    }
 
-  <button mat-menu-item *ngIf="canCopyLocally" (click)="copyLocally()">
-    <mat-icon>file_copy</mat-icon>
-    <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
-  </button>
+    <!-- online help -->
+    @if (!mobile) {
+      <button mat-menu-item (click)="openHelpModal($event)">
+        <mat-icon><ion-icon name="help-circle-outline"></ion-icon></mat-icon>
+        <ion-label>
+          <span translate>COMMON.BTN_SHOW_HELP</span>
+        </ion-label>
+      </button>
+    }
 
-  <!-- online help -->
-  <button mat-menu-item *ngIf="!mobile" (click)="openHelpModal($event)">
-    <ion-label>
-      <mat-icon><ion-icon name="help-circle-outline"></ion-icon></mat-icon>
-      <span translate>COMMON.BTN_SHOW_HELP</span>
-    </ion-label>
-  </button>
+    <mat-divider></mat-divider>
 
-  <mat-divider></mat-divider>
+    <!-- delete -->
+    <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
+      <mat-icon>delete</mat-icon>
+      <ion-label translate>TRIP.EDIT.BTN_DELETE</ion-label>
+    </button>
 
-  <!-- delete -->
-  <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
-    <mat-icon>delete</mat-icon>
-    <ion-label translate>TRIP.EDIT.BTN_DELETE</ion-label>
-  </button>
-
-  <!-- DEV only -->
-  <app-data-editor-debug-button></app-data-editor-debug-button>
+    <!-- debug -->
+    <app-data-editor-debug-button></app-data-editor-debug-button>
+  </ng-template>
 </mat-menu>
 
 <mat-menu #reportsMenu="matMenu" class="ion-no-padding">

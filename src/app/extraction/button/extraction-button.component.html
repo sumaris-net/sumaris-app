@@ -9,14 +9,17 @@
   <button
     *ngSwitchCase="'mat-menu-item'"
     mat-menu-item
-    #menuItemTrigger="matMenuTrigger"
     [disabled]="disabled"
+    #menuTrigger="matMenuTrigger"
     (mouseenter)="menuTrigger.openMenu()"
     [matMenuTriggerFor]="downloadMenu"
   >
+    @if (matIcon) {
+      <mat-icon>{{ matIcon }}</mat-icon>
+    } @else if (icon) {
+      <mat-icon><ion-icon [name]="icon"></ion-icon></mat-icon>
+    }
     <ion-label>
-      <mat-icon *ngIf="matIcon">{{ matIcon }}</mat-icon>
-      <mat-icon *ngIf="icon"><ion-icon [name]="icon"></ion-icon></mat-icon>
       <span>{{ title | translate }}</span>
     </ion-label>
   </button>

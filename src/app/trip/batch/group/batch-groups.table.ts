@@ -464,7 +464,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
     // Transform entities into object array
     data = data.map((batch) => {
-      if (isNotEmptyArray(batch.children) && this.qvPmfm) {
+      if (isNotEmptyArray(batch?.children) && this.qvPmfm) {
         // For each group (one by qualitative value)
         this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
           const childLabel = `${batch.label}.${qv.label}`;
@@ -545,7 +545,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // With qv pmfm
     if (col.qvIndex >= 0) {
       const parent = row.currentData;
-      const batch = parent.children[col.qvIndex];
+      const batch = parent?.children?.[col.qvIndex];
       return col.computed(batch, parent, this.samplingRatioFormat);
     }
 

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnInit, Optional, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, forwardRef, inject, Injector, OnInit, Optional, ViewChild } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
   AppEditorOptions,
@@ -53,6 +53,8 @@ import { IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
 import { SaleContextService } from './sale-context.service';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
+import { ContextService } from '@app/shared/context.service';
+import { TripContextService } from '@app/trip/trip-context.service';
 
 export class SaleEditorOptions extends RootDataEditorOptions {}
 
@@ -72,7 +74,8 @@ export const SalesPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [fadeInOutAnimation],
   providers: [
-    { provide: APP_DATA_ENTITY_EDITOR, useExisting: SalePage },
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => SalePage) },
+    { provide: ContextService, useExisting: SaleContextService },
     {
       provide: AppEditorOptions,
       useValue: {

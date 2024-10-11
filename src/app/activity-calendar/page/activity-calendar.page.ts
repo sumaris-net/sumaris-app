@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ActivityCalendarForm } from '../form/activity-calendar.form';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
@@ -110,7 +110,7 @@ export interface ActivityCalendarPageState extends RootDataEntityEditorState {
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    { provide: APP_DATA_ENTITY_EDITOR, useExisting: ActivityCalendarPage },
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => ActivityCalendarPage) },
     {
       provide: AppEditorOptions,
       useValue: {

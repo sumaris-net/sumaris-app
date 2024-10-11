@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { AcquisitionLevelCodes, SaleTypeIds } from '@app/referential/services/model/model.enum';
@@ -64,7 +64,7 @@ export interface LandedTripPageState extends RootDataEntityEditorState {
   templateUrl: './landed-trip.page.html',
   styleUrls: ['./landed-trip.page.scss'],
   animations: [fadeInOutAnimation],
-  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: LandedTripPage }, RxState],
+  providers: [{ provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => LandedTripPage) }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, number, LandedTripPageState> implements OnInit, OnDestroy {

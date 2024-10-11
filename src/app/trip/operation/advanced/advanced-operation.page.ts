@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector } from '@angular/core';
 import { fadeInAnimation } from '@sumaris-net/ngx-components';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { OperationPage } from '@app/trip/operation/operation.page';
@@ -16,7 +16,7 @@ import { AdvancedBatchModelValidatorService } from '@app/trip/batch/tree/advance
   styleUrls: ['../operation.page.scss'],
   animations: [fadeInAnimation],
   providers: [
-    { provide: APP_DATA_ENTITY_EDITOR, useExisting: AdvancedOperationPage },
+    { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => AdvancedOperationPage) },
     { provide: ContextService, useExisting: TripContextService },
     { provide: BatchModelValidatorService, useExisting: AdvancedBatchModelValidatorService },
     RxState,

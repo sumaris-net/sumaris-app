@@ -4,7 +4,6 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import { TranslateService } from '@ngx-translate/core';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
   AccountService,
   AppErrorWithDetails,
@@ -74,8 +73,10 @@ export interface IReportData {
 export class BaseReportStats {
   program: Program;
 
+  static fromObject: (source: any) => BaseReportStats;
+
   fromObject(source: any) {
-    this.program = Program.fromObject(source.program);
+    this.program = isNotNil(source.program) ? Program.fromObject(source.program) : undefined;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -99,8 +100,8 @@ export interface IComputeStatsOpts<S> {
 
 @Directive()
 export abstract class AppBaseReport<
-    T extends IReportData,
-    ID = number,
+    T extends IReportData | IReportData[],
+    ID = number | number[],
     S extends BaseReportStats = BaseReportStats,
     O extends BaseReportOptions = BaseReportOptions,
   >
@@ -331,7 +332,7 @@ export abstract class AppBaseReport<
     let clipboard: Clipboard<any>;
     if (isNotNil(this.context.clipboard)) {
       clipboard = this.context.clipboard;
-    } else if (isNotNilOrBlank(this.uuid)) {
+    } else if (isNotNilOrBlank(this.uuid) && (isNil(this.data) || isNil(this.stats))) {
       if (this.debug) console.debug(`[${this.logPrefix}] fill clipboard by downloading shared resource`);
       const http = this.injector.get(HttpClient);
       const peerUrl = this.settings.settings.peerUrl;
@@ -491,10 +492,12 @@ export abstract class AppBaseReport<
       // NOTE: Case when `|| err` is possible ?
       let userMessage: string = (err.message && this.translate.instant(err.message)) || err;
       // NOTE: replace || by && ???
-      const detailMessage: string = !err.details || typeof err.message === 'string' ? (err.details as string) : err.details.message;
+      const detailMessage: string = !err.details || typeof err.details === 'string' ? (err.details as string) : err.details.message;
       // NOTE: !isNotNilOrBlank ??? (invert the test)
       if (isNotNilOrBlank(detailMessage)) {
-        const cssClass = opts?.detailsCssClass || 'hidden-xs hidden-sm';
+        // TODO Why hidden-xs hidden-sm ? : we can't have details on small screen
+        // const cssClass = opts?.detailsCssClass || 'hidden-xs hidden-sm';
+        const cssClass = '';
         userMessage += `<br/><small class="${cssClass}" title="${detailMessage}">`;
         userMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
         userMessage += '</small>';
@@ -509,10 +512,18 @@ export abstract class AppBaseReport<
   dataFromObject(source: any): T {
     if (this.dataType) {
       const data = new this.dataType();
-      data.fromObject(source);
-      return data;
+      if (Array.isArray(data)) {
+        throw Error('Not implemented');
+      } else {
+        data.fromObject(source);
+        return data;
+      }
     }
     return source as T;
+  }
+
+  dataArrayFromObject(source: any): T {
+    throw new Error('Method not implemented.');
   }
 
   statsAsObject(source: S, opts?: EntityAsObjectOptions): any {
@@ -662,7 +673,7 @@ export abstract class AppBaseReport<
     return `export.${format}`; // Default filename
   }
 
-  private isPrintingPDF(): boolean {
+  private isPrintngPDF(): boolean {
     if (this._printing) return true;
     const query = window.location.search || '?';
     return query.indexOf('print-pdf') !== -1;
