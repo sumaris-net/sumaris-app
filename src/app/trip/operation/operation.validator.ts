@@ -64,6 +64,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   withPosition?: boolean;
   withFishingAreas?: boolean;
   withChildOperation?: boolean;
+  withStart?: boolean; //TODO: Check if needed
   withFishingStart?: boolean;
   withFishingEnd?: boolean;
   withEnd?: boolean;
@@ -654,6 +655,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       opts.isInlineFishingArea,
       toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_AREA_INLINE), false)
     );
+    opts.withStart = toBoolean(opts.withStart, true);
     opts.maxDistance = toNumber(opts.maxDistance, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR));
     opts.boundingBox = opts.boundingBox || Geometries.parseAsBBox(opts.program?.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
     opts.maxTotalDurationInHours = toNumber(

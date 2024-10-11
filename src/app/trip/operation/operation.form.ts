@@ -74,8 +74,6 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { OverlayEventDetail } from '@ionic/core';
-import { FishingAreaForm } from '@app/data/fishing-area/fishing-area.form';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -144,6 +142,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   @Input() programLabel: string;
   @Input() showError = true;
   @Input() showComment = true;
+  @Input() startDateTimeEnable = true;
   @Input() fishingStartDateTimeEnable = false;
   @Input() fishingEndDateTimeEnable = false;
   @Input() endDateTimeEnable = true;
@@ -259,13 +258,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     }
   }
 
-  @Input() set showFishingDate(value: boolean) {
-    if (this._showFishingDate !== value) {
-      this._showFishingDate = value;
-      if (!this.loading) this.updateFormGroup();
-    }
-  }
-
   get requiredComment(): boolean {
     return this._requiredComment;
   }
@@ -360,10 +352,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   get isNewData(): boolean {
     return isNil(this.form?.controls.id.value);
-  }
-
-  get showFishingDate(): boolean {
-    return this._showFishingDate;
   }
 
   @Output() parentChanges = new EventEmitter<Operation>();
@@ -982,11 +970,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       withMetier: this._showMetier,
       withPosition: this._showPosition,
       withFishingAreas: this._showFishingArea,
+      withStart: this.startDateTimeEnable,
       withFishingStart: this.fishingStartDateTimeEnable,
       withFishingEnd: this.fishingEndDateTimeEnable,
       withEnd: this.endDateTimeEnable,
       isInlineFishingArea: this.isInlineFishingArea,
-      skipDate: this._showFishingDate,
       maxDistance: this.maxDistanceError,
       boundingBox: this._boundingBox,
       maxShootingDurationInHours: this.maxShootingDurationInHours,
