@@ -184,28 +184,25 @@
                   <ion-icon slot="icon-only" name="mail"></ion-icon>
                 </ion-button>
 
-                <ng-container afterRecorder>
-                  <ion-card-content class="ion-no-padding">
-                    <ion-list>
-                      <!-- Observers -->
-                      <ion-item-divider color="light">
-                        <ion-card-subtitle translate>COMMON.OBSERVERS</ion-card-subtitle>
-                      </ion-item-divider>
-                      <ion-item lines="none" color="light">
-                        <div class="observer-avatars">
-                          <ng-container *ngFor="let observer of data?.observers">
-                            <!-- observer avatar -->
-                            <ion-avatar *ngIf="observer" matTooltip="{{ observer?.firstName }} {{ observer?.lastName }}">
-                              @if (observer.avatar) {
-                                <ion-img [src]="observer.avatar" />
-                              } @else {
-                                <svg *ngIf="observer.id; let personId" width="30" height="30" [data-jdenticon-value]="personId"></svg>
-                              }
-                            </ion-avatar>
-                          </ng-container>
-                        </div>
-                      </ion-item>
-                    </ion-list>
+                <!-- Observers -->
+                <ng-container afterRecorder *ngIf="data?.observers | isNotEmptyArray">
+                  <ion-card-content>
+                    <ion-card-subtitle translate>{{ data.observers.length }} {{ 'COMMON.OBSERVERS' | translate }}</ion-card-subtitle>
+                    <div class="observer-avatars">
+                      <ng-container *ngFor="let observer of data.observers">
+                        <!-- observer avatar -->
+                        <ion-chip>
+                          <ion-avatar *ngIf="observer">
+                            @if (observer.avatar) {
+                              <ion-img [src]="observer.avatar" />
+                            } @else {
+                              <svg *ngIf="observer.id; let personId" [data-jdenticon-value]="personId"></svg>
+                            }
+                          </ion-avatar>
+                          <ion-label>{{ observer?.firstName }} {{ observer?.lastName }}</ion-label>
+                        </ion-chip>
+                      </ng-container>
+                    </div>
                   </ion-card-content>
                 </ng-container>
 
