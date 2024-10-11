@@ -21,7 +21,7 @@ import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
-import { UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   Alerts,
@@ -842,7 +842,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     // If PMFM "Use of a Camera?" exist, then enable/disable isGPSUsed PMFM
     const isCameraUsed = formGroup?.controls[PmfmIds.CAMERA_USED];
     if (isNotNil(isCameraUsed)) {
-      isCameraUsed.setValidators(Validators.required);
       this._measurementSubscription.add(
         isCameraUsed.valueChanges.pipe(startWith<boolean>(isCameraUsed.value), filter(isNotNil)).subscribe((value) => {
           if (this.debug) console.debug('[trip] Enable/Disable GPS');
@@ -851,8 +850,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
           if (value == true) {
             AppSharedFormUtils.disableControl(control, { onlySelf: true });
           } else {
-            let required = true;
-            AppSharedFormUtils.enableControl(control, { onlySelf: true, required: required });
+            AppSharedFormUtils.enableControl(control, { onlySelf: true, required: true });
           }
           this.markForCheck();
         })

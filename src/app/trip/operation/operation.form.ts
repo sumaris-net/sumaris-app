@@ -106,7 +106,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _showPosition = true;
   private _boundingBox: BBox;
   private _showFishingArea = false;
-  private _showStartDate = false;
   private _requiredComment = false;
   private _positionSubscription: Subscription;
   private _emitGeolocationBusy = true;
@@ -143,6 +142,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   @Input() programLabel: string;
   @Input() showError = true;
   @Input() showComment = true;
+  @Input() startDateTimeEnable = true;
   @Input() fishingStartDateTimeEnable = false;
   @Input() fishingEndDateTimeEnable = false;
   @Input() endDateTimeEnable = true;
@@ -239,17 +239,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     return this._showFishingArea;
   }
 
-  @Input() set showStartDate(value: boolean) {
-    if (this._showStartDate !== value) {
-      this._showStartDate = value;
-      if (!this.loading) this.updateFormGroup();
-    }
-  }
-
-  get showStartDate(): boolean {
-    return this._showStartDate;
-  }
-
   @Input() set requiredComment(value: boolean) {
     if (this._requiredComment !== value) {
       this._requiredComment = value;
@@ -266,13 +255,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         this.showComment = true;
         this.markForCheck();
       }
-    }
-  }
-
-  @Input() set showFishingDate(value: boolean) {
-    if (this._showFishingDate !== value) {
-      this._showFishingDate = value;
-      if (!this.loading) this.updateFormGroup();
     }
   }
 
@@ -370,10 +352,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   get isNewData(): boolean {
     return isNil(this.form?.controls.id.value);
-  }
-
-  get showFishingDate(): boolean {
-    return this._showFishingDate;
   }
 
   @Output() parentChanges = new EventEmitter<Operation>();
@@ -992,11 +970,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       withMetier: this._showMetier,
       withPosition: this._showPosition,
       withFishingAreas: this._showFishingArea,
+      withStart: this.startDateTimeEnable,
       withFishingStart: this.fishingStartDateTimeEnable,
       withFishingEnd: this.fishingEndDateTimeEnable,
       withEnd: this.endDateTimeEnable,
       isInlineFishingArea: this.isInlineFishingArea,
-      skipDate: this._showFishingDate,
       maxDistance: this.maxDistanceError,
       boundingBox: this._boundingBox,
       maxShootingDurationInHours: this.maxShootingDurationInHours,

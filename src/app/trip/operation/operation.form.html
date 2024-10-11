@@ -189,10 +189,7 @@
     <ion-row *ngIf="isChildOperation !== true">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end">
-          {{
-            (fishingStartDateTimeEnable || showStartDate ? 'TRIP.OPERATION.EDIT.START' : 'TRIP.OPERATION.EDIT.START_FISHING')
-              | translateContext: i18nSuffix
-          }}
+          {{ (startDateTimeEnable ? 'TRIP.OPERATION.EDIT.START' : 'TRIP.OPERATION.EDIT.START_FISHING') | translateContext: i18nSuffix }}
         </ion-label>
       </ion-col>
       <ion-col>
@@ -281,7 +278,7 @@
     </ion-row>
 
     <!-- Start fishing -->
-    <ion-row *ngIf="!showFishingDate && fishingStartDateTimeEnable && isChildOperation !== true">
+    <ion-row *ngIf="fishingStartDateTimeEnable && isChildOperation !== true">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end">{{ 'TRIP.OPERATION.EDIT.START_FISHING' | translateContext: i18nSuffix }}</ion-label>
       </ion-col>
@@ -376,7 +373,7 @@
     </ion-row>
 
     <!-- Fishing end  -->
-    <ion-row *ngIf="!showFishingDate && fishingEndDateTimeEnable && (!allowParentOperation || isChildOperation)">
+    <ion-row *ngIf="fishingEndDateTimeEnable && (!allowParentOperation || isChildOperation)">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end">{{ 'TRIP.OPERATION.EDIT.END_FISHING' | translateContext: i18nSuffix }}</ion-label>
       </ion-col>
@@ -460,7 +457,7 @@
     </ion-row>
 
     <!-- End -->
-    <ion-row *ngIf="!showFishingDate && endDateTimeEnable && (!allowParentOperation || isChildOperation)">
+    <ion-row *ngIf="endDateTimeEnable && (!allowParentOperation || isChildOperation)">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end">
           {{ (fishingEndDateTimeEnable ? 'TRIP.OPERATION.EDIT.END' : 'TRIP.OPERATION.EDIT.END_FISHING') | translateContext: i18nSuffix }}
