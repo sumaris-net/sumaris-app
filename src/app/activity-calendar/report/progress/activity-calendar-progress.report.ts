@@ -11,6 +11,8 @@ import {
   EntityAsObjectOptions,
   fromDateISOString,
   isNil,
+  isNotEmptyArray,
+  isNotNilOrBlank,
   LocalSettingsService,
   toDateISOString,
   TranslateContextService,
@@ -123,7 +125,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     marginTop: 16,
     marginBottom: 16,
     headerHeight: 80,
-    footerHeight: 16,
+    footerHeight: 35,
     captionHeight: 11,
     sectionTitleHeight: 25,
     filterSectionHeight: 140,
@@ -165,6 +167,10 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     if (isNil(tableFilter.year)) tableFilter.year = ActivityCalendarProgressReport.DEFAULT_YEAR;
     if (isNil(tableFilter.program?.label)) tableFilter.program = Program.fromObject({ label: ActivityCalendarProgressReport.DEFAULT_PROGRAM_LABEL });
 
+    const includedIds = this.computeIncludeIds();
+    if (includedIds) {
+      tableFilter.includedIds = includedIds;
+    }
     const extractionFilter = ExtractionUtils.createActivityCalendarFilter(tableFilter.program.label, tableFilter);
 
     return this.load(extractionFilter);
@@ -246,7 +252,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
 
   protected computeTableChunk(data: ActivityMonitoringExtractionData, stats: ActivityCalendarProgressReportStats): ActivityMonitoring[][] {
     const totalAvailableHeightForContent =
-      this.pageDimensions.width - // Use width because page is landscape
+      this.pageDimensions.height -
       this.pageDimensions.marginTop -
       this.pageDimensions.marginBottom -
       this.pageDimensions.headerHeight -
@@ -297,5 +303,22 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   protected restoreLastTableFilter(): ActivityCalendarFilter {
     const tableFilter = this.settings.getPageSettings(ActivityCalendarsTableSettingsEnum.PAGE_ID, 'filter');
     return ActivityCalendarFilter.fromObject(tableFilter);
+  }
+
+  protected computeIncludeIds(): number[] {
+    const idsStr = this.route.snapshot.queryParamMap.get('ids');
+
+    if (isNotNilOrBlank(idsStr)) {
+      const ids = idsStr
+        .split(',')
+        .map((id) => parseInt(id))
+        .filter((id) => !isNaN(id));
+
+      if (isNotEmptyArray(ids)) {
+        return ids;
+      }
+    }
+
+    return null;
   }
 }

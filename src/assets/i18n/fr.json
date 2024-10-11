@@ -3535,6 +3535,7 @@
     },
     "REPORT": {
       "TITLE": "Calendrier d'activité {{ year }}",
+      "TITLE_MULTI": "Calendriers d'activité",
       "BLANK_TITLE": "Raport d'activité vierge",
       "BASE_PORT_LOCATION": "Port d'exploitation",
       "PMFM": {
@@ -3583,7 +3584,7 @@
         "COPYRIGHT": "© {{ year }} Ifremer - Système d'Informations Halieutiques",
         "TABLE": {
           "VESSEL": "Navire",
-          "NB_METIER_PEER_MONTH": "Nombre de métiers pratiqués mar mois",
+          "NB_METIER_PEER_MONTH": "Nombre de métiers pratiqués par mois",
           "COUNT_OF_EMPTY_MONTH": "Nbre mois non renseignés",
           "CALENDAR_STATUS": "État calendrier",
           "RECORDER_PRESON": "Saisisseur",
@@ -3618,9 +3619,9 @@
         },
         "SYNTHESIS": {
           "TITLE": "Synthèse de l'avancement des calendriers d'activité",
-          "VESSEL_COUNT": "Nombre de navire",
+          "VESSEL_COUNT": "Nombre de navires",
           "DIRECT_SURVEY": "Enquêtes directes",
-          "EMPTY_VESSEL": "Navire non renseignés",
+          "EMPTY_VESSEL": "Navires non renseignés",
           "INCOMPLETE_VESSEL": "Navires incomplets",
           "COMPLETED_CALENDAR": "Calendriers complets"
         }
@@ -3647,7 +3648,8 @@
       "INCONSISTENCY_DAY_NUMBER": "Nombre de jours incohérent",
       "DUPLICATED_FISHING_AREA": "Zone(s) de pêche en doublon : {{fishingArea}}",
       "INVALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)",
-      "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
+      "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+      "MAX_SELECTED_ID": "Nombre maximal d'item sélectionné atteint"
     },
     "WARNING": {
       "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif.",

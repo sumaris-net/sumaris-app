@@ -215,7 +215,12 @@ export interface ActivityCalendarWatchOptions extends EntitiesServiceWatchOption
 
 export interface ActivityCalendarControlOptions extends ActivityCalendarValidatorOptions, IProgressionOptions {}
 
-const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; loadImages: any; importCsvFile: any } = {
+const ActivityCalendarQueries: BaseEntityGraphqlQueries & {
+  loadAllFull: any;
+  loadImages: any;
+  importCsvFile: any;
+  loadAllVesselOnly: any;
+} = {
   // Load a activityCalendar
   load: gql`
     query ActivityCalendar($id: Int!) {
@@ -273,6 +278,34 @@ const ActivityCalendarQueries: BaseEntityGraphqlQueries & { loadAllFull: any; lo
       total: activityCalendarsCount(filter: $filter, trash: $trash)
     }
     ${ActivityCalendarFragments.lightActivityCalendar}
+  `,
+
+  loadAllVesselOnly: gql`
+    query ActivityCalendarsVesselOnly($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ActivityCalendarFilterVOInput) {
+      data: activityCalendars(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+        id
+        program {
+          id
+          label
+        }
+        vesselSnapshot {
+          ...LightVesselSnapshotFragment
+        }
+        vesselRegistrationPeriods {
+          id
+          startDate
+          endDate
+          registrationLocation {
+            ...LocationFragment
+          }
+          readonly
+        }
+      }
+      total: activityCalendarsCount(filter: $filter)
+    }
+    ${DataCommonFragments.referential}
+    ${DataCommonFragments.location}
+    ${VesselSnapshotFragments.lightVesselSnapshot}
   `,
 
   loadImages: gql`
@@ -1310,6 +1343,19 @@ export class ActivityCalendarService
       ((this.programRefService.canUserWriteEntity(entity, opts) || entity.vesselRegistrationPeriods?.some((vrp) => !vrp.readonly)) &&
         (isNil(entity.validationDate) || this.accountService.isSupervisor()))
     );
+  }
+
+  async loadAllVesselOnly(
+    offset: number,
+    size: number,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    filter?: Partial<ActivityCalendarFilter>,
+    opts?: EntityServiceLoadOptions & {
+      debug?: boolean;
+    }
+  ): Promise<LoadResult<ActivityCalendar>> {
+    return this.loadAll(offset, size, sortBy, sortDirection, filter, { query: ActivityCalendarQueries.loadAllVesselOnly, ...opts });
   }
 
   /* -- protected methods -- */
