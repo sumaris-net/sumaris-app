@@ -687,6 +687,27 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.AUCTION_HABIT,
   },
+  PMFM_INACTIVTY_YEAR_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.INACTIVTY_YEAR.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_INACTIVTY_YEAR_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.INACTIVTY_YEAR,
+  },
+  PMFM_FISHING_DURATION_DAYS_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.FISHING_DURATION_DAYS.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_FISHING_DURATION_DAYS_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.FISHING_DURATION_DAYS,
+  },
+  PMFM_FISHING_AT_SEA_DAYS_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.FISHING_AT_SEA_DAYS.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_FISHING_AT_SEA_DAYS_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.FISHING_AT_SEA_DAYS,
+  },
 
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',
