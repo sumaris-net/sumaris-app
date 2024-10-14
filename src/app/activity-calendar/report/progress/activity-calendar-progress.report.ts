@@ -178,6 +178,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
 
   dataAsObject(source: ActivityMonitoringExtractionData, opts?: EntityAsObjectOptions) {
     return {
+      AC: source.AC.map((item) => item.asObject(opts)),
       AM: source.AM.map((item) => item.asObject(opts)),
     };
   }

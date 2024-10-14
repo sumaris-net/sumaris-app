@@ -205,10 +205,10 @@ export class ExtractionUtils {
 
   static createActivityCalendarFilter(programLabel: string, source: ActivityCalendarFilter): ExtractionFilter {
     const target = new ExtractionFilter();
-    target.sheetName = 'AM';
+    target.sheetName = 'AC';
     const criteria: Partial<ExtractionFilterCriterion>[] = [
       {
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'project',
         operator: '=',
         value: programLabel,
@@ -217,7 +217,7 @@ export class ExtractionUtils {
 
     if (isNotNil(source.includedIds)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'included_ids',
         operator: '=',
         values: source.includedIds.map((id) => id.toString()),
@@ -226,7 +226,7 @@ export class ExtractionUtils {
 
     if (isNotNil(source.program)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'project',
         operator: '=',
         value: source.program.label,
@@ -235,8 +235,8 @@ export class ExtractionUtils {
 
     if (isNotEmptyArray(source.observers)) {
       criteria.push({
-        sheetName: 'AM',
-        name: 'observer',
+        sheetName: 'AC',
+        name: 'observer_name',
         operator: '=',
         values: source.observers.filter(isNotNil).map((item) => `${item.lastName} ${item.firstName}`),
       });
@@ -244,7 +244,7 @@ export class ExtractionUtils {
 
     if (isNotNil(source.year)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'year',
         operator: '=',
         value: source.year.toString(),
@@ -253,7 +253,7 @@ export class ExtractionUtils {
 
     if (isNotNil(source.vesselSnapshot)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'vessel_registration_code',
         operator: '=',
         value: source.vesselSnapshot.registrationCode,
@@ -262,7 +262,7 @@ export class ExtractionUtils {
 
     if (isNotEmptyArray(source.basePortLocations)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'base_port_location_label',
         operator: '=',
         values: (source.basePortLocations || []).map((item) => item.label),
@@ -271,7 +271,7 @@ export class ExtractionUtils {
 
     if (isNotEmptyArray(source.registrationLocations)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'registration_location_label',
         operator: '=',
         values: (source.registrationLocations || []).map((item) => item.label),
@@ -280,7 +280,7 @@ export class ExtractionUtils {
 
     if (isNotNil(source.economicSurvey)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'economic_survey',
         operator: '=',
         value: source.economicSurvey ? 'Y' : 'N',
@@ -289,7 +289,7 @@ export class ExtractionUtils {
 
     if (isNotNil(source.directSurveyInvestigation)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'direct_survey_investigation',
         operator: '=',
         value: source.directSurveyInvestigation ? 'Y' : 'N',
@@ -298,7 +298,7 @@ export class ExtractionUtils {
 
     if (isNotNil(source.dataQualityStatus)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'quality_status',
         operator: '=',
         value: source.dataQualityStatus,
@@ -307,7 +307,7 @@ export class ExtractionUtils {
 
     if (isNotNil(source.recorderDepartment)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'recorder_department',
         operator: '=',
         value: source.recorderDepartment.label,
@@ -316,7 +316,7 @@ export class ExtractionUtils {
 
     if (isNotEmptyArray(source.recorderDepartments)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'recorder_department',
         operator: '=',
         values: source.recorderDepartments.map((item) => item.label),
@@ -325,8 +325,8 @@ export class ExtractionUtils {
 
     if (isNotNil(source.recorderPerson)) {
       criteria.push({
-        sheetName: 'AM',
-        name: 'recorder_person',
+        sheetName: 'AC',
+        name: 'recorder_person_name',
         operator: '=',
         value: `${source.recorderPerson.lastName} ${source.recorderPerson.firstName}`,
       });
@@ -334,7 +334,7 @@ export class ExtractionUtils {
 
     if (isNotNil(source.dataQualityStatus)) {
       criteria.push({
-        sheetName: 'AM',
+        sheetName: 'AC',
         name: 'quality_status',
         operator: '=',
         value: source.dataQualityStatus,
