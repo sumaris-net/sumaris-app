@@ -527,7 +527,9 @@
             }
             <!-- resize handlers -->
             @if (enableCellSelection) {
-              <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key, x: true, y: false }"></ng-container>
+              <ng-container
+                *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key, x: true, y: false, enabled: this.enabled }"
+              ></ng-container>
             }
           </mat-cell>
         </ng-container>
