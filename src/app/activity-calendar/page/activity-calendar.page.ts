@@ -540,21 +540,21 @@ export class ActivityCalendarPage
       return;
     }
 
-    if (errors?.errors.months) {
+    if (errors?.errors?.months) {
       this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
       super.resetError();
       return;
     }
 
-    if (errors?.errors.metiers) {
+    if (errors?.errors?.metiers) {
       this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_METIERS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
       super.resetError();
       return;
     }
 
-    if (errors?.errors.warning) {
+    if (errors?.warning) {
       const messageError = this.translate.instant('ACTIVITY_CALENDAR.ERROR.INCONSISTENT_ANNUAL_INACTIVITY');
       const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.ERROR.INCONSISTENT_ANNUAL_INACTIVITY', this.alertCtrl, this.translate);
       if (!confirmed) {
