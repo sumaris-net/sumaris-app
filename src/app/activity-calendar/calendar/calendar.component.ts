@@ -1454,7 +1454,7 @@ export class CalendarComponent
 
   protected async onMouseEnd(cellSelection?: TableCellSelection) {
     // Vertical copy
-    if (cellSelection.axis === 'x' && cellSelection?.rowspan === 1 && cellSelection.colspan > 1) {
+    if (cellSelection.axis === 'x' && cellSelection?.rowspan === 1 && cellSelection.colspan !== 0) {
       const done = await this.copyVertically(cellSelection.row, cellSelection.columnName, cellSelection.colspan);
 
       // Reset axis to allow cell selection resize
