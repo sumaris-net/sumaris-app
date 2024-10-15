@@ -306,7 +306,7 @@
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "PMFM_GEAR_LABEL_ID": "Referential > PMFM > Physical gear label",
-        "PMFM_CHILD_GEAR_ID": "Referential > PSFM > Sub-gear",
+        "PMFM_CHILD_GEAR_ID": "Referential > PMFM > Sub-gear",
         "PMFM_HAS_ACCIDENTAL_CATCHES_ID": "Referential > PMFM > Accidental catch",
         "PMFM_HULL_MATERIAL_ID": "Referential > PMFM > Hull material (vessel)",
         "PMFM_BATCH_SORTING_ID": "Referential > PMFM > Bulk/Not Bulk",
@@ -324,6 +324,12 @@
         "PMFM_HAS_PETS_ID": "Referential > PMFM > Presence of PETS? (Boolean)",
         "PMFM_TAXON_GROUP_ID": "Referential > PMFM > Commercial species (id)",
         "PMFM_SALE_TYPE_ID": "Referential > PMFM > Sale type (id)",
+        "PMFM_SURVEY_QUALIFICATION_ID": "Referential > PMFM > Survey qualification (id)",
+        "PMFM_SURVEY_RELIABILITY_ID": "Referential > PMFM > Survey reliability (id)",
+        "PMFM_AUCTION_HABIT_ID": "Referential > PMFM > Auction habit (id)",
+        "PMFM_INACTIVTY_YEAR_ID": "Referential > PMFM > Annual inactivity confirmed by observer (Boolean)",
+        "PMFM_FISHING_DURATION_DAYS_ID": "Referential > PMFM > Fishing duration (id)",
+        "PMFM_FISHING_AT_SEA_DAYS_ID": "Referential > PMFM > Time at sea (id)",
         "PMFM_IS_OBSERVED_ID": "Referential > PMFM > Observed species? (Boolean)",
         "PMFM_NON_OBSERVATION_REASON_ID": "Referential > PMFM > Non-observation reason (of a species)",
         "PMFM_SPECIES_LIST_ORIGIN_ID": "Referential > PMFM > Origin of species list (PETS/Random)",
@@ -1391,7 +1397,7 @@
       "TRAWL_SELECTIVITY": "Trawl selectivity",
       "OBSERVED_TRIP": "Observation of trip on board",
       "FORM": "Form with data",
-      "BLANK_FORM": "Empty form",
+      "BLANK_FORM": "Empty form"
     }
   },
   "EXPECTED_SALE": {

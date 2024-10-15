@@ -680,6 +680,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.SURVEY_QUALIFICATION,
   },
+  PMFM_SURVEY_RELIABILITY_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SURVEY_RELIABILITY.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SURVEY_RELIABILITY_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.SURVEY_RELIABILITY,
+  },
   PMFM_AUCTION_HABIT_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AUCTION_HABIT.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AUCTION_HABIT_ID',
