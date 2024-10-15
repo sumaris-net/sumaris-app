@@ -109,16 +109,12 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEnt
   setValue(data: T) {
     if (!data) return; // Skip
 
-    this.form.patchValue(
-      {
-        ...data.asObject(),
-        properties: [],
-      },
-      { emitEvent: false }
-    );
+    const json = data.asObject();
+    const properties = EntityUtils.getMapAsArray(data.properties || {});
+    delete json.properties;
 
-    // Program properties
-    this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties || {});
+    this.form.patchValue(json, { emitEvent: false });
+    this.propertiesForm.setValue(properties);
 
     this.markAsPristine();
   }

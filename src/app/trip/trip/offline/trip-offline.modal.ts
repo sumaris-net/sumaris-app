@@ -80,7 +80,6 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
         periodDuration: ['15 day', Validators.required],
       })
     );
-    this._enable = false; // Disable by default
     this.mobile = this.settings.mobile;
 
     // Prepare start date items

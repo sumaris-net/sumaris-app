@@ -127,7 +127,6 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
       onUpdateFormGroup: (form) => this.updateFormGroup(),
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
-    this._enable = false;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.OBSERVED_LOCATION;

@@ -617,7 +617,7 @@ export abstract class MeasurementValuesForm<
   }
 
   protected updateViewState(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    if (this._enable) {
+    if (this.enabled) {
       this.enable(opts);
     } else {
       this.disable(opts);

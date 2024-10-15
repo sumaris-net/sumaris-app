@@ -78,7 +78,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
     protected referentialRefService: ReferentialRefService
   ) {
     super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
-    this._enable = true;
+    this._enabled = true;
 
     // Set defaults
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;

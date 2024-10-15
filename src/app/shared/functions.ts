@@ -1,15 +1,18 @@
 // TODO: remove after then updating to last version of ngx-components
 
-import { BiFunction, Function, isEmptyArray, isNil, isNilOrNaN, isNotNil, KeyValueType, LoadResult } from '@sumaris-net/ngx-components';
+import {
+  BiFunction,
+  Function,
+  intersectArrays,
+  isNil,
+  isNilOrNaN,
+  isNotNil,
+  KeyValueType,
+  mergeLoadResult,
+  noHtml,
+} from '@sumaris-net/ngx-components';
 
-export { isNilOrNaN, Function, BiFunction };
-
-export function mergeLoadResult<T>(res1: LoadResult<T>, res2: LoadResult<T>): LoadResult<T> {
-  return {
-    data: (res1.data || []).concat(...res2.data),
-    total: (res1.total || res1.data?.length || 0) + (res2.total || res2.data?.length || 0),
-  };
-}
+export { isNilOrNaN, Function, BiFunction, mergeLoadResult, noHtml, intersectArrays };
 
 /**
  * Arrondi une valeur décimal à demi-valeur supérieur, suivant le nombre de décimales demandé.<br>
@@ -113,19 +116,3 @@ export function collectByFunction<T>(values: T[], getKey: Function<T, string | n
 }
 
 export type ArrayElementType<T> = T extends (infer E)[] ? E : never;
-
-export function intersectArrays<T = any>(values: T[][]): T[] {
-  if (isEmptyArray(values)) return [];
-
-  // Utilise la méthode reduce pour obtenir l'intersection des tableaux
-  return values.reduce((acc, curr) => acc.filter((x) => curr.includes(x)), values[0].slice());
-}
-
-export function noHtml(value: string): string {
-  if (value && typeof value === 'string') {
-    // Use regular expression to remove all HTML tags
-    return value.replace(/<[^>]*>.*?<\/[^>]*>|<[^>]+>/g, '');
-  } else {
-    return value;
-  }
-}
