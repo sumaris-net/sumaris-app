@@ -33,7 +33,6 @@ import {
   isEmptyArray,
   isNil,
   isNilOrBlank,
-  isNilOrNaN,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -80,8 +79,8 @@ import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measure
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { Moment } from 'moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
-import { Measurement, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
@@ -445,18 +444,21 @@ export class CalendarComponent
       },
       attributes: this.locationDisplayAttributes,
       panelClass: 'min-width-large',
+      selectInputContentOnFocus: true,
     });
 
     this.registerAutocompleteField('metier', {
       suggestFn: (value, filter) => this.suggestMetiers(value, filter),
       displayWith: (obj) => obj?.label || '',
       panelClass: 'min-width-large',
+      selectInputContentOnFocus: true,
     });
 
     this.registerAutocompleteField('fishingAreaLocation', {
       suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, filter),
       displayWith: (obj) => obj?.label || '',
       panelClass: 'mat-select-panel-fit-content',
+      selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('distanceToCoastGradient', {
       suggestFn: (value, filter) =>
@@ -467,6 +469,7 @@ export class CalendarComponent
       },
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
+      selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('depthGradient', {
       suggestFn: (value, filter) =>
@@ -487,6 +490,7 @@ export class CalendarComponent
       },
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
+      selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('nearbySpecificArea', {
       suggestFn: (value, filter) =>
@@ -497,6 +501,7 @@ export class CalendarComponent
       },
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
+      selectInputContentOnFocus: true,
     });
 
     this._state.connect(
@@ -1499,7 +1504,7 @@ export class CalendarComponent
   }
 
   async confirmEditCell(event: Event, row: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
-    console.debug(this.logPrefix + `Confirm cell month #${row.id} ${columnName}`);
+    console.debug(this.logPrefix + `Confirm cell month #${row.id} ${columnName}`, event);
     const confirmed = await this.confirmEditCreate(event, row);
     if (!confirmed) return;
 
