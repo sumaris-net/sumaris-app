@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { ExtractionCacheDurationType, ExtractionFilter } from '@app/extraction/type/extraction-type.model';
 import { BaseGraphqlService, GraphqlService } from '@sumaris-net/ngx-components';
-import { ActivityMonitoring, ActivityMonitoringExtractionData } from './activity-calendar-progress-report.model';
+import { ActivityMonitoring, ActivityMonitoringExtractionData, Calendar } from './activity-calendar-progress-report.model';
 
 const Queries = {
   extraction: gql`
@@ -27,6 +27,7 @@ export class ActivityCalendarProgressReportService extends BaseGraphqlService {
       sheetNames?: string[];
       query?: any;
       dataTypes?: {
+        AC: new () => Calendar;
         AM: new () => ActivityMonitoring;
       };
       fetchPolicy?: FetchPolicy;
@@ -35,8 +36,9 @@ export class ActivityCalendarProgressReportService extends BaseGraphqlService {
     }
   ): Promise<ActivityMonitoringExtractionData> {
     opts = {
-      sheetNames: ['AM'],
+      sheetNames: ['AC', 'AM'],
       dataTypes: {
+        AC: Calendar as unknown as new () => Calendar,
         AM: ActivityMonitoring as unknown as new () => ActivityMonitoring,
       },
       ...opts,
