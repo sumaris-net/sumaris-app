@@ -694,12 +694,12 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.AUCTION_HABIT,
   },
-  PMFM_INACTIVTY_YEAR_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.Pmfm.INACTIVTY_YEAR.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_INACTIVTY_YEAR_ID',
+  PMFM_INACTIVITY_YEAR_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.INACTIVITY_YEAR.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_INACTIVITY_YEAR_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.INACTIVTY_YEAR,
+    defaultValue: PmfmIds.INACTIVITY_YEAR,
   },
   PMFM_FISHING_DURATION_DAYS_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.FISHING_DURATION_DAYS.id',

@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, FormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   AppFormArray,
+  arraySize,
   isEmptyArray,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
@@ -128,11 +130,6 @@ export class ActivityCalendarValidatorService<
     if (opts.withObservers) {
       config.observers = this.getObserversFormArray(data?.observers);
     }
-
-    // // Add fishing Ares
-    // if (opts.withFishingAreas) {
-    //   config.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, {required: true});
-    // }
 
     return config;
   }
@@ -295,9 +292,9 @@ export class ActivityCalendarValidatorService<
 }
 
 export class ActivityCalendarValidators {
-  static validateMonthNumbers(group: FormArray): ValidationErrors | null {
-    const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
-    if (months && months.length !== 12) {
+  static validateMonthNumbers(form: UntypedFormGroup): ValidationErrors | null {
+    const months = form.get('vesselUseFeatures')?.value as any[];
+    if (arraySize(months) !== 12) {
       return {
         invalidMonthNumbers: {},
       };
@@ -305,31 +302,31 @@ export class ActivityCalendarValidators {
     return null;
   }
 
-  static validateAnnualInactivity(group: FormArray): ValidationErrors | null {
-    const pmfms = group.get('measurementValues')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
-    const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
-    if (!months && isNotNil(pmfms)) return null;
-    const vufs: VesselUseFeatures[] = [];
-    months.forEach((month) => {
-      vufs.push(VesselUseFeatures.fromObject(month));
-    });
+  static validateAnnualInactivity(form: UntypedFormGroup): ValidationErrors | null {
+    const measurementValues = form.get('measurementValues')?.value as MeasurementFormValues;
+    const months = form.get('vesselUseFeatures')?.value as VesselUseFeatures[];
+    if (!months || isNil(measurementValues)) return null;
 
     const isComplete = months.length === 12;
-    const error = isComplete ? vufs.every((month: VesselUseFeatures) => month.isActive === 0) : false;
+    const inactivityYear = isComplete ? months.every((month) => month.isActive === 0) : false;
+    const userConfirmedInactivityYear = toBoolean(measurementValues[PmfmIds.INACTIVITY_YEAR] as string | boolean, false);
 
-    if (pmfms[PmfmIds.INACTIVTY_YEAR] && isComplete && error) {
-      return null;
-    } else if (!pmfms[PmfmIds.INACTIVTY_YEAR] && !error) {
-      return null;
-    } else if (pmfms[PmfmIds.INACTIVTY_YEAR] && !error) {
+    // Not inactive on all year, BUT user confirmed inactivity => Warning
+    if (!inactivityYear && userConfirmedInactivityYear) {
       return {
         warningInconsistentAnnualInactivity: {},
       };
-    } else {
+    }
+
+    // Inactive in all year, BUT user has not confirmed => Error
+    if (inactivityYear && !userConfirmedInactivityYear) {
       return {
         confirmAnnualInactivity: {},
       };
     }
+
+    // No error
+    return null;
   }
 }
 
