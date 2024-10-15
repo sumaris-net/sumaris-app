@@ -352,7 +352,7 @@
           <!-- resize handlers -->
           @if (enableCellSelection) {
             <ng-container
-              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false, enabled: this.enabled }"
+              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false }"
             ></ng-container>
           }
         </mat-cell>
@@ -391,7 +391,7 @@
             <ng-container
               *ngTemplateOutlet="
                 cellHandlers;
-                context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false, enabled: this.enabled }
+                context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false }
               "
             ></ng-container>
           }
@@ -461,7 +461,7 @@
               <ng-container
                 *ngTemplateOutlet="
                   cellHandlers;
-                  context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false, enabled: this.enabled }
+                  context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false }
                 "
               ></ng-container>
             }
@@ -502,33 +502,33 @@
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
           >
             <!-- Desktop -->
-            @if (inlineEdition && !col.hidden && row.validator | formGetControl: col.path; as control) {
-              @if (row.editing) {
+            @if (!col.hidden) {
+              @let control = inlineEdition && (row.validator | formGetControl: col.path);
+              @if (!control) {
+                <!-- readonly (mobile) -->
+                @let label = (row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes);
+                <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
+              }
+              @else if (control.enabled) {
                 <!-- writable (desktop) -->
                 <mat-autocomplete-field
+                  floatLabel="never"
                   [placeholder]="col.placeholder"
                   [formControl]="control"
                   [config]="col.autocomplete"
                   [autofocus]="focusColumn === col.key"
-                  [floatLabel]="'never'"
                 ></mat-autocomplete-field>
               } @else {
                 @if (control | formGetValue | referentialToString: col.autocomplete.attributes; as label) {
                   <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
                 }
               }
-            } @else {
-              <!-- readonly (mobile) -->
-              @if (row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes; as label) {
-                <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
+              <!-- resize handlers -->
+              @if (enableCellSelection) {
+                <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key, x: true, y: false }"></ng-container>
               }
             }
-            <!-- resize handlers -->
-            @if (enableCellSelection) {
-              <ng-container
-                *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key, x: true, y: false, enabled: this.enabled }"
-              ></ng-container>
-            }
+
           </mat-cell>
         </ng-container>
       }
@@ -613,12 +613,12 @@
     }
   </div>
 
-  <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y" let-enabled="enabled">
-    @if (x !== false && enabled) {
+  <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y">
+    @if (_enabled && x !== false) {
       <div class="resize-handle-left" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
       <div class="resize-handle-right" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
     }
-    @if (y !== false && enabled) {
+    @if (_enabled && y !== false) {
       <div class="resize-handle-top" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
       <div class="resize-handle-bottom" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
     }
