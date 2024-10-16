@@ -3384,7 +3384,6 @@
       "CONFLICTUAL_MONTH": "Conflict detected while saving the calendar",
       "DUPLICATED_METIER": "Duplicated métier(s): {{metiers}}",
       "REQUIRED_FISHING_AREA": "Fishing area required for the métier(s): {{metiers}}",
-      "INCOMPLETE_CALENDAR": "Incomplete calendar ({{missing}} missing month(s))",
       "REQUIRED_INACTIVITY_YEAR": "Annual inactivity to be confirmed",
       "REQUIRED_DISTANCE_TO_COAST": "Distance to coast required for the area(s): {{fishingArea}}",
       "INVALID_MONTHS": "Please correct the invalid month(s)",

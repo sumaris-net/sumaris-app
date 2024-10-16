@@ -534,26 +534,35 @@ export class ActivityCalendarPage
   }
 
   async setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
-    const errors = error && typeof error === 'object' && error.details?.errors;
+    const detailsErrors = error && typeof error === 'object' && error.details?.errors;
+    console.warn('TODO error: ', detailsErrors, error);
+
     // Conflictual error: show remote conflictual data
-    if (errors?.conflict instanceof ActivityCalendar) {
-      const remoteCalendar = errors.conflict;
-      this.showRemoteConflict(remoteCalendar);
+    if (detailsErrors?.conflict instanceof ActivityCalendar) {
+      const remoteCalendar = detailsErrors.conflict;
+      await this.showRemoteConflict(remoteCalendar);
+      super.setError(undefined, opts);
       return;
     }
 
-    if (errors?.errors?.months) {
+    if (detailsErrors?.months) {
       this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
-      super.resetError();
+      super.setError(undefined, opts);
       return;
     }
 
-    if (errors?.errors?.metiers) {
+    if (detailsErrors?.metiers) {
       this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_METIERS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
-      super.resetError();
+      super.setError(undefined, opts);
       return;
+    }
+
+    // Clear child component error
+    if (!error) {
+      this.calendar.error = undefined;
+      this.tableMetier.error = undefined;
     }
 
     super.setError(error, opts);

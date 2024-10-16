@@ -429,7 +429,7 @@ export class CalendarComponent
     this.vesselOwnerDisplayAttributes =
       this.vesselOwnerDisplayAttributes || this.settings.getFieldDisplayAttributes('vesselOwner', ['lastName', 'firstName']);
     this.inlineEdition = this.inlineEdition && this.canEdit;
-    this.enableCellSelection = toBoolean(this.enableCellSelection, this.inlineEdition && this.style === 'table' && this.canEdit);
+    this.enableCellSelection = toBoolean(this.enableCellSelection, this.style === 'table');
     this.readonlyColumnCount = ACTIVITY_MONTH_READONLY_COLUMNS.filter((c) => !this.excludesColumns.includes(c)).length;
 
     // Wait enumerations to be set

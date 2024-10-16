@@ -3646,7 +3646,6 @@
       "CONFLICTUAL_MONTH": "Conflit détecté lors de la sauvegarde du calendrier",
       "DUPLICATED_METIER": "Métier(s) en doublon : {{metiers}}",
       "REQUIRED_FISHING_AREA": "Zone de pêche obligatoire pour le(s) métier(s) : {{metiers}}",
-      "INCOMPLETE_CALENDAR": "Calendrier incomplet ({{missing}} moi(s) manquant(s))",
       "REQUIRED_INACTIVITY_YEAR": "Inactivité annuelle à confirmer",
       "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}",
       "INVALID_MONTHS": "Veuillez corriger le(s) mois invalide(s)",

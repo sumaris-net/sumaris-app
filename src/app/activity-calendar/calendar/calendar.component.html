@@ -352,7 +352,7 @@
           <!-- resize handlers -->
           @if (enableCellSelection) {
             <ng-container
-              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive', x: true, y: false }"
+              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive' }"
             ></ng-container>
           }
         </mat-cell>
@@ -391,7 +391,7 @@
             <ng-container
               *ngTemplateOutlet="
                 cellHandlers;
-                context: { $implicit: row, cell: cell, col: 'basePortLocation', x: true, y: false }
+                context: { $implicit: row, cell: cell, col: 'basePortLocation' }
               "
             ></ng-container>
           }
@@ -400,12 +400,12 @@
 
       <!-- Pmfms columns -->
       @for (pmfm of pmfms; track pmfm.id; let index = $index; let odd = $odd) {
-        <ng-container [matColumnDef]="pmfm.id || index | toString">
+        <ng-container [matColumnDef]="pmfm.id | toString">
           <mat-header-cell
             *matHeaderCellDef
             class="mat-column-pmfm mat-column-{{ pmfm.label }}"
             [class.odd]="odd"
-            (click)="selectMonth($event, pmfm.id || index)"
+            (click)="selectMonth($event, pmfm.id)"
           >
             <ion-label
               [innerHTML]="
@@ -426,9 +426,9 @@
             *matCellDef="let row"
             class="mat-column-pmfm mat-column-{{ pmfm.label }} mat-mdc-cell-resizable"
             [class.odd]="odd"
-            (click)="clickCell($event, row, (pmfm.id || index).toString())"
-            (dblclick)="dblClickCell($event, row, (pmfm.id || index).toString())"
-            (contextmenu)="onContextMenu($event, cell, row, (pmfm.id || index).toString())"
+            (click)="clickCell($event, row, pmfm.id.toString())"
+            (dblclick)="dblClickCell($event, row, pmfm.id.toString())"
+            (contextmenu)="onContextMenu($event, cell, row, pmfm.id.toString())"
           >
             <!-- desktop -->
             @if (inlineEdition && row.validator | formGetControl: ['measurementValues', pmfm.id]; as control) {
@@ -440,9 +440,9 @@
                   [i18nPrefix]="i18nPmfmPrefix"
                   [i18nSuffix]="i18nColumnSuffix"
                   [control]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
-                  [autofocus]="focusColumn == (pmfm.id || index)"
+                  [autofocus]="focusColumn === pmfm.id.toString()"
                   [compact]="compactFields"
-                  (keyup.enter)="confirmEditCell($event, row, (pmfm.id || index).toString())"
+                  (keyup.enter)="confirmEditCell($event, row, pmfm.id.toString())"
                 ></app-pmfm-field>
               } @else {
                 <!-- readonly (desktop) -->
@@ -461,7 +461,7 @@
               <ng-container
                 *ngTemplateOutlet="
                   cellHandlers;
-                  context: { $implicit: row, cell: cell, col: pmfm.id?.toString(), x: true, y: false }
+                  context: { $implicit: row, cell: cell, col: pmfm.id.toString() }
                 "
               ></ng-container>
             }
@@ -525,7 +525,7 @@
               }
               <!-- resize handlers -->
               @if (enableCellSelection) {
-                <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key, x: true, y: false }"></ng-container>
+                <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key }"></ng-container>
               }
             }
 
@@ -613,18 +613,12 @@
     }
   </div>
 
-  <ng-template #cellHandlers let-row let-col="col" let-cell="cell" let-x="x" let-y="y">
-    @if (_enabled && x !== false) {
+  <ng-template #cellHandlers let-row let-col="col" let-cell="cell">
+    @if (_enabled) {
       <div class="resize-handle-left" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
       <div class="resize-handle-right" (mousedown)="onMouseDown($event, cell, row, col, 'x')" (mouseup)="onMouseUp($event)"></div>
     }
-    @if (_enabled && y !== false) {
-      <div class="resize-handle-top" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
-      <div class="resize-handle-bottom" (mousedown)="onMouseDown($event, cell, row, col, 'y')" (mouseup)="onMouseUp($event)"></div>
-    }
-    @if (x !== false || y !== false) {
-      <div class="resize-handle-corner" (mousedown)="onMouseDown($event, cell, row, col)" (mouseup)="onMouseUp($event)"></div>
-    }
+    <div class="resize-handle-corner" (mousedown)="onMouseDown($event, cell, row, col)" (mouseup)="onMouseUp($event)"></div>
   </ng-template>
 }
 

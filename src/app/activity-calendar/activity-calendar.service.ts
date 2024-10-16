@@ -1323,6 +1323,11 @@ export class ActivityCalendarService
     }
 
     // Gear use feature fields
+    if (path === 'vesselUseFeatures' || path === 'gearUseFeatures') {
+      return this.translateContext.instant(opts.i18nPrefix + 'TAB_CALENDAR', opts?.i18nSuffix);
+    }
+
+    // Gear use feature fields
     if (path.startsWith('gearUseFeatures.')) {
       const parts = path.split('.');
       const month = capitalizeFirstLetter(DateUtils.moment().month(+parts[1]).format('MMMM'));
