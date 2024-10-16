@@ -971,6 +971,8 @@
       },
       "PARENT": {
         "TITLE": "Sélectionner filage",
+        "SEARCH": "Recherche",
+        "CREATE": "Nouveau filage",
         "TRIP": "{{vessel}} - Marée {{departureDateTime}}",
         "FILTER": {
           "SEARCH_TEXT": "Recherche : code engin / espèce",
