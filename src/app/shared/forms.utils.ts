@@ -49,6 +49,7 @@ export class AppSharedFormUtils {
   }
 
   static setControlEnabled(control: AbstractControl, enabled: boolean, opts?: { required?: boolean; onlySelf?: boolean; emitEvent?: boolean }) {
+    if (!control) return; // Nothing to DO
     if (enabled) {
       if (isNotNil(opts?.required) && opts.required && !control.hasValidator(Validators.required)) {
         control.addValidators(Validators.required);

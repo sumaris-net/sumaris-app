@@ -208,7 +208,6 @@
                         [programLabel]="programLabel$ | async"
                         [requiredStrategy]="requiredStrategy$ | async"
                         [strategyId]="strategy$ | async | mapGet: 'id'"
-                        [pmfms]="pmfms$ | async"
                         [tabindex]="30"
                         [mobile]="mobile"
                         [debug]="debug"
@@ -414,6 +413,7 @@
           <br />
           editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
           <br />
+          editor.pmfms: {{ pmfms$ | async | arrayPluck: 'label' | arrayJoin: ',' }}
         </ion-col>
         <ion-col>
           form.ready: {{ tripForm.readySubject | async }}

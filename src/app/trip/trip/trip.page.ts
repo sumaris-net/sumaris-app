@@ -305,7 +305,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   protected registerForms() {
-    this.addForms([this.tripForm, this.saleForm, this.measurementsForm, this.physicalGearsTable, this.operationsTable]);
+    this.addForms([this.tripForm, this.saleForm, this.physicalGearsTable, this.operationsTable]);
+    this.addForm('measurements', this.measurementsForm);
   }
 
   protected async setProgram(program: Program) {
@@ -831,7 +832,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     await this.ready();
 
     // DEBUG
-    //console.debug('[operation-page] Measurement form is ready');
+    console.debug('[operation-page] Measurement form is ready');
 
     // Clean existing subscription (e.g. when acquisition level change, this function can= be called many times)
     this._measurementSubscription?.unsubscribe();
@@ -839,18 +840,28 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     const formGroup = this.measurementsForm.form as UntypedFormGroup;
 
-    // If PMFM "Use of a Camera?" exist, then enable/disable isGPSUsed PMFM
-    const isCameraUsed = formGroup?.controls[PmfmIds.CAMERA_USED];
-    if (isNotNil(isCameraUsed)) {
-      this._measurementSubscription.add(
-        isCameraUsed.valueChanges.pipe(startWith<boolean>(isCameraUsed.value), filter(isNotNil)).subscribe((value) => {
-          if (this.debug) console.debug('[trip] Enable/Disable GPS');
-          const control = formGroup.controls[PmfmIds.GPS_USED];
+    const cameraUsedControl = formGroup?.get(PmfmIds.CAMERA_USED.toString());
+    const gpsUsedControl = formGroup?.get(PmfmIds.GPS_USED.toString());
 
+    // If PMFM "Use of a Camera?" exist, then enable/disable isGPSUsed PMFM
+    if (isNotNil(cameraUsedControl)) {
+      this._measurementSubscription.add(
+        cameraUsedControl.valueChanges.pipe(startWith<boolean>(cameraUsedControl.value), filter(isNotNil)).subscribe((value) => {
+          if (this.debug) console.debug('[trip] Enable/Disable GPS, because CAMERA_USED=' + value);
+          const gpsUsed = gpsUsedControl?.value !== false; // True is GPS_USED control NOT exists
+          // Camera is used
           if (value == true) {
-            AppSharedFormUtils.disableControl(control, { onlySelf: true });
-          } else {
-            AppSharedFormUtils.enableControl(control, { onlySelf: true, required: true });
+            AppSharedFormUtils.disableControl(gpsUsedControl, { onlySelf: true });
+            // Disabled positions, and fishing area, in operations table
+            this.operationsTable.showPosition = false;
+            this.operationsTable.showFishingArea = false;
+          }
+
+          // Camera not used
+          else {
+            AppSharedFormUtils.enableControl(gpsUsedControl, { onlySelf: true, required: true });
+            this.operationsTable.showPosition = gpsUsed;
+            this.operationsTable.showFishingArea = !gpsUsed;
           }
           this.markForCheck();
         })
@@ -858,11 +869,10 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     }
 
     // If PMFM "Use of a GPS ?" exists, then use to enable/disable positions or fishing area
-    const isGPSUsed = formGroup?.controls[PmfmIds.GPS_USED];
-    if (isNotNil(isGPSUsed)) {
+    if (isNotNil(gpsUsedControl)) {
       this._measurementSubscription.add(
-        isGPSUsed.valueChanges
-          .pipe(debounceTime(400), startWith<any>(isGPSUsed.value), filter(isNotNil), distinctUntilChanged())
+        gpsUsedControl.valueChanges
+          .pipe(debounceTime(400), startWith<any>(gpsUsedControl.value), filter(isNotNil), distinctUntilChanged())
           .subscribe((value) => {
             if (this.debug) console.debug('[trip] Enable/Disable positions or fishing area, because GPS_USED=' + value);
 
