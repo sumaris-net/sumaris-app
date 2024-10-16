@@ -338,7 +338,8 @@ export class ObservedLocationsPage
     this.setShowColumn('observers', this.showObservers, { emitEvent: false });
 
     // Manage filters display according to config settings.
-    this.showFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
+    this.defaultShowFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
+
     this.showFilterLocation = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_LOCATION);
     this.showFilterPeriod = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PERIOD);
 
@@ -392,6 +393,12 @@ export class ObservedLocationsPage
   protected async setProgram(program: Program) {
     await super.setProgram(program);
 
+    // Allow to filter on program, if user can access more than one program
+    this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
+
+    // Hide program if cannot change it
+    this.showProgramColumn = this.showFilterProgram;
+
     // Show endDateTime column, if enable
     this.showEndDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
 
@@ -401,6 +408,9 @@ export class ObservedLocationsPage
 
   protected async resetProgram() {
     await super.resetProgram();
+
+    this.showFilterProgram = this.defaultShowFilterProgram;
+    this.showProgramColumn = this.defaultShowFilterProgram;
 
     // Show endDateTime
     this.showEndDateTimeColumn = false;

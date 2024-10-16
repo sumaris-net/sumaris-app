@@ -5,6 +5,7 @@ import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
   ConfigService,
+  Configuration,
   CORE_CONFIG_OPTIONS,
   DateUtils,
   FilesUtils,
@@ -96,6 +97,7 @@ export class ActivityCalendarsTable
   protected timezone = DateUtils.moment().tz();
   protected programVesselTypeIds: number[];
 
+  @Input() showFilterProgram = true;
   @Input() showRecorder = true;
   @Input() canDownload = false;
   @Input() canUpload = false;
@@ -123,11 +125,11 @@ export class ActivityCalendarsTable
   }
 
   @Input()
-  set showProgram(value: boolean) {
+  set showProgramColumn(value: boolean) {
     this.setShowColumn('program', value);
   }
 
-  get showProgram(): boolean {
+  get showProgramColumn(): boolean {
     return this.getShowColumn('program');
   }
 
@@ -167,11 +169,11 @@ export class ActivityCalendarsTable
     this.i18nColumnPrefix = 'ACTIVITY_CALENDAR.TABLE.';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
-      vesselSnapshot: [null, SharedValidators.entity],
       year: [null, SharedValidators.integer],
+      vesselSnapshot: [null, SharedValidators.entity],
+      vesselType: [null, SharedValidators.entity],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
-      vesselType: [null, SharedValidators.entity],
       registrationLocations: [null],
       basePortLocations: [null],
       synchronizationStatus: [null],
@@ -229,6 +231,18 @@ export class ActivityCalendarsTable
       });
     });
 
+    // Vessel type
+    this.registerAutocompleteField('vesselType', {
+      attributes: ['name'],
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+      },
+      mobile: this.mobile,
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, { ...filter, includedIds: this.programVesselTypeIds }),
+    });
+
     const locationConfig: MatAutocompleteFieldConfig = {
       filter: {
         entityName: 'Location',
@@ -242,18 +256,6 @@ export class ActivityCalendarsTable
       ...locationConfig,
       suggestFn: (value, filter) =>
         this.referentialRefService.suggest(value, { ...filter, levelIds: this.registrationLocationLevelIds || [LocationLevelIds.COUNTRY] }),
-    });
-
-    // Vessel type
-    this.registerAutocompleteField('vesselType', {
-      attributes: ['name'],
-      service: this.referentialRefService,
-      filter: {
-        entityName: 'VesselType',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-      },
-      mobile: this.mobile,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, { ...filter, includedIds: this.programVesselTypeIds }),
     });
 
     // Combo: base port locations
@@ -295,40 +297,7 @@ export class ActivityCalendarsTable
       mobile: this.mobile,
     });
 
-    this.registerSubscription(
-      this.configService.config.pipe(filter(isNotNil)).subscribe((config) => {
-        console.info(`${this.logPrefix}Init from config`, config);
-
-        this.title = config.getProperty(ACTIVITY_CALENDAR_CONFIG_OPTIONS.ACTIVITY_CALENDAR_NAME);
-        this.timezone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
-
-        this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-        this.setShowColumn('quality', this.showQuality, { emitEvent: false });
-
-        if (this.showQuality) {
-          this.referentialRefService.loadQualityFlags().then((items) => {
-            this.qualityFlags = items;
-            this.qualityFlagsById = splitByProperty(items, 'id');
-          });
-        }
-
-        // Recorder
-        this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-        this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
-
-        // Observer
-        this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
-
-        // Locations combo (filter)
-        this.registrationLocationLevelIds = [LocationLevelIds.MARITIME_DISTRICT];
-        this.basePortLocationLevelIds = [LocationLevelIds.PORT];
-
-        this.updateColumns();
-
-        // Restore filter from settings, or load all
-        this.restoreFilterOrLoad();
-      })
-    );
+    this.registerSubscription(this.configService.config.pipe(filter(isNotNil)).subscribe((config) => this.onConfigLoaded(config)));
 
     // Clear the existing activityCalendar context
     this.resetContext();
@@ -359,10 +328,52 @@ export class ActivityCalendarsTable
     super.setFilter(filter, opts);
   }
 
+  /* -- protected function  -- */
+
+  protected async onConfigLoaded(config: Configuration) {
+    console.info(`${this.logPrefix}Init from config`, config);
+
+    this.title = config.getProperty(ACTIVITY_CALENDAR_CONFIG_OPTIONS.ACTIVITY_CALENDAR_NAME);
+    this.timezone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
+
+    this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
+    this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+
+    if (this.showQuality) {
+      this.referentialRefService.loadQualityFlags().then((items) => {
+        this.qualityFlags = items;
+        this.qualityFlagsById = splitByProperty(items, 'id');
+      });
+    }
+
+    // Recorder
+    this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
+    this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
+
+    // Observers
+    this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
+
+    // Locations filter
+    this.registrationLocationLevelIds = [LocationLevelIds.MARITIME_DISTRICT];
+    this.basePortLocationLevelIds = [LocationLevelIds.PORT];
+
+    // Program filter / column
+    this.defaultShowFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
+
+    // Restore filter from settings, or load all
+    await this.restoreFilterOrLoad();
+
+    this.updateColumns();
+  }
+
   protected async setProgram(program: Program) {
     await super.setProgram(program);
 
-    this.showProgram = false;
+    // Allow to filter on program, if user can access more than one program
+    this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
+
+    // Hide program if cannot change it
+    this.showProgramColumn = this.showFilterProgram;
     this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
@@ -377,10 +388,12 @@ export class ActivityCalendarsTable
   protected async resetProgram() {
     await super.resetProgram();
 
-    this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
-    this.showProgram = true;
-    this.canImportCsvFile = this.isAdmin;
+    this.showFilterProgram = this.defaultShowFilterProgram;
+    this.showProgramColumn = this.defaultShowFilterProgram;
     this.programVesselTypeIds = null;
+    this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
+    this.canImportCsvFile = this.isAdmin;
+
     this.enableReport = toBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE.defaultValue, false);
     const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
     this.reportTypes = (ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.defaultValue || '').split(',').map((key) => reportTypeByKey[key]);
@@ -644,7 +657,7 @@ export class ActivityCalendarsTable
   }
 
   protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
-    const vesselTypeId = this.filterForm.get('vesselType').value?.id;
+    const vesselTypeId = this.filterForm.get('vesselType')?.value?.id;
     let vesselTypeIds = isNotNil(vesselTypeId) ? [vesselTypeId] : undefined;
     if (isNotEmptyArray(this.programVesselTypeIds)) {
       vesselTypeIds = intersectArrays([vesselTypeIds, this.programVesselTypeIds]);

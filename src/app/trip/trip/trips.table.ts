@@ -6,6 +6,7 @@ import {
   arrayDistinct,
   chainPromises,
   ConfigService,
+  Configuration,
   FilesUtils,
   HammerSwipeEvent,
   isEmptyArray,
@@ -33,7 +34,7 @@ import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal'
 import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
 import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
-import { filter, tap } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
@@ -47,6 +48,7 @@ import { OperationEditor, ProgramProperties } from '@app/referential/services/co
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
+import { intersectArrays } from '@app/shared/functions';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
@@ -73,6 +75,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected programVesselTypeIds: number[];
 
+  @Input() showFilterProgram = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
   @Input() canDownload = false;
@@ -81,6 +84,15 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
+  }
+
+  @Input()
+  set showProgramColumn(value: boolean) {
+    this.setShowColumn('program', value);
+  }
+
+  get showProgramColumn(): boolean {
+    return this.getShowColumn('program');
   }
 
   constructor(
@@ -190,41 +202,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
       mobile: this.mobile,
     });
 
-    this.registerSubscription(
-      this.configService.config
-        .pipe(
-          filter(isNotNil),
-          tap((config) => {
-            console.info('[trips] Init from config', config);
-
-            this.title = config.getProperty(TRIP_CONFIG_OPTIONS.TRIP_NAME);
-
-            this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-            this.setShowColumn('quality', this.showQuality, { emitEvent: false });
-
-            if (this.showQuality) {
-              this.referentialRefService.loadQualityFlags().then((items) => {
-                this.qualityFlags = items;
-                this.qualityFlagsById = splitByProperty(items, 'id');
-              });
-            }
-
-            // Recorder
-            this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-            this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
-
-            // Observers
-            this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
-            this.setShowColumn('observers', this.showObservers, { emitEvent: false });
-
-            this.updateColumns();
-
-            // Restore filter from settings, or load all
-            this.restoreFilterOrLoad();
-          })
-        )
-        .subscribe()
-    );
+    this.registerSubscription(this.configService.config.pipe(filter(isNotNil)).subscribe((config) => this.onConfigLoaded(config)));
 
     // Clear the existing trip context
     this.resetContext();
@@ -480,6 +458,38 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
   /* -- protected methods -- */
 
+  protected async onConfigLoaded(config: Configuration) {
+    console.info(`${this.logPrefix}Init using config`, config);
+
+    this.title = config.getProperty(TRIP_CONFIG_OPTIONS.TRIP_NAME);
+
+    this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
+    this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+
+    if (this.showQuality) {
+      this.referentialRefService.loadQualityFlags().then((items) => {
+        this.qualityFlags = items;
+        this.qualityFlagsById = splitByProperty(items, 'id');
+      });
+    }
+
+    // Recorder
+    this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
+    this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
+
+    // Observers
+    this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
+    this.setShowColumn('observers', this.showObservers, { emitEvent: false });
+
+    // Program filter / column
+    this.defaultShowFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
+
+    // Restore filter from settings, or load all
+    if (this.enabled) await this.restoreFilterOrLoad();
+
+    this.updateColumns();
+  }
+
   protected markForCheck() {
     this.cd.markForCheck();
   }
@@ -514,26 +524,43 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
   protected async setProgram(program: Program) {
     await super.setProgram(program);
 
+    // Allow to filter on program, if user can access more than one program
+    this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
+
+    // Hide program if cannot change it
+    this.showProgramColumn = this.showFilterProgram;
     this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
 
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.TRIP_REPORT_ENABLE);
     const reportTypeByKey = splitByProperty((ProgramProperties.TRIP_REPORT_TYPES.values || []) as Property[], 'key');
     this.reportTypes = (program.getPropertyAsStrings(ProgramProperties.TRIP_REPORT_TYPES) || []).map((key) => reportTypeByKey[key]);
+
+    this.markForCheck();
   }
 
   protected async resetProgram() {
     await super.resetProgram();
 
+    this.showFilterProgram = this.defaultShowFilterProgram;
+    this.showProgramColumn = this.defaultShowFilterProgram;
     this.programVesselTypeIds = null;
 
     this.enableReport = toBoolean(ProgramProperties.TRIP_REPORT_ENABLE.defaultValue, false);
     const reportTypeByKey = splitByProperty((ProgramProperties.TRIP_REPORT_TYPES.values || []) as Property[], 'key');
     this.reportTypes = (ProgramProperties.TRIP_REPORT_TYPES.defaultValue || '').split(',').map((key) => reportTypeByKey[key]);
+
+    this.markForCheck();
   }
 
   protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
+    const vesselTypeId = this.filterForm.get('vesselType')?.value?.id;
+    let vesselTypeIds = isNotNil(vesselTypeId) ? [vesselTypeId] : undefined;
+    if (isNotEmptyArray(this.programVesselTypeIds)) {
+      vesselTypeIds = intersectArrays([vesselTypeIds, this.programVesselTypeIds]);
+    }
+
     return this.vesselSnapshotService.suggest(value, {
-      vesselTypeIds: this.programVesselTypeIds,
+      vesselTypeIds,
       ...filter,
     });
   }

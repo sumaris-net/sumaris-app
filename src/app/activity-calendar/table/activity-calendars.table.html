@@ -188,7 +188,7 @@
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
         <ion-row>
-          @if (isAdmin || showProgram) {
+          @if (showFilterProgram) {
             <ion-col size="12">
               <!-- Program -->
               <mat-autocomplete-field

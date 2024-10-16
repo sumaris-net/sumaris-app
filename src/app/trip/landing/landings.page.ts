@@ -12,6 +12,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
+  LoadResult,
   PersonService,
   PersonUtils,
   ReferentialRef,
@@ -57,6 +58,8 @@ import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { intersectArrays } from '@app/shared/functions';
 
 export const LandingsPageSettingsEnum = {
   PAGE_ID: 'landings',
@@ -110,6 +113,7 @@ export class LandingsPage
   protected selectedSegment = '';
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
+  protected programVesselTypeIds: number[];
 
   @RxStateProperty() protected observedLocationTitle: string;
 
@@ -251,6 +255,7 @@ export class LandingsPage
       program: [null, SharedValidators.entity],
       strategy: [null, SharedValidators.entity],
       vesselSnapshot: [null, SharedValidators.entity],
+      vesselType: [null, SharedValidators.entity],
       location: [null, SharedValidators.entity],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
@@ -313,8 +318,23 @@ export class LandingsPage
     // Combo: vessels
     this.vesselSnapshotAttributes = this.settings.getFieldDisplayAttributes('vesselSnapshot', VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
-      this.registerAutocompleteField('vesselSnapshot', opts);
+      this.registerAutocompleteField('vesselSnapshot', {
+        ...opts,
+        suggestFn: (value, filter) => this.suggestVessels(value, filter),
+      });
       this.vesselSnapshotAttributes = opts.attributes;
+    });
+
+    // Vessel type
+    this.registerAutocompleteField('vesselType', {
+      attributes: ['name'],
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+      },
+      mobile: this.mobile,
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, { ...filter, includedIds: this.programVesselTypeIds }),
     });
 
     // Locations combo (filter)
@@ -392,10 +412,12 @@ export class LandingsPage
     this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
     this.setShowColumn('observers', this.showObservers, { emitEvent: false });
 
-    // Manage filters display according to config settings.
-    this.showFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
+    // Location and dates filter
     this.showFilterLocation = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_LOCATION);
     this.showFilterPeriod = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PERIOD);
+
+    // Program filter/columns
+    this.defaultShowFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
 
     // Restore filter from settings, or load all
     await this.restoreFilterOrLoad();
@@ -409,8 +431,12 @@ export class LandingsPage
     // Title
     this.title = this.translateContext.instant(this.i18nColumnPrefix + 'TITLE', this.i18nColumnSuffix);
 
-    // FIXME hide program
-    //this.showProgramColumn = false;
+    // Allow to filter on program, if user can access more than one program
+    this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
+
+    // Hide program if cannot change it
+    this.showProgramColumn = this.showFilterProgram;
+    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
     this.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
@@ -448,8 +474,10 @@ export class LandingsPage
 
     this.title = this.i18nColumnPrefix + 'TITLE';
 
-    // FIXME: enable this
-    //this.showProgramColumn = true;
+    this.showFilterProgram = this.defaultShowFilterProgram;
+    this.showProgramColumn = this.defaultShowFilterProgram;
+    this.programVesselTypeIds = null;
+
     this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
     this.showVesselBasePortLocationColumn = toBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE.defaultValue, false);
     this.showCreationDateColumn = toBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE.defaultValue, false);
@@ -776,6 +804,19 @@ export class LandingsPage
   }
 
   /* -- protected methods -- */
+
+  protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
+    const vesselTypeId = this.filterForm.get('vesselType')?.value?.id;
+    let vesselTypeIds = isNotNil(vesselTypeId) ? [vesselTypeId] : undefined;
+    if (isNotEmptyArray(this.programVesselTypeIds)) {
+      vesselTypeIds = intersectArrays([vesselTypeIds, this.programVesselTypeIds]);
+    }
+
+    return this.vesselSnapshotService.suggest(value, {
+      vesselTypeIds,
+      ...filter,
+    });
+  }
 
   protected async getDetailProgram(source?: Landing): Promise<Program | undefined> {
     // Find data program

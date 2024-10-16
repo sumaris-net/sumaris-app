@@ -99,6 +99,7 @@ export abstract class AppRootDataTable<
   @RxStateProperty() protected selectionProgramLabels: string[];
 
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
+  protected defaultShowFilterProgram: boolean;
 
   @Input() @RxStateProperty() title: string;
 
