@@ -1,4 +1,4 @@
-<app-toolbar *ngIf="showToolbar" [title]="titleSubject | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
+<app-toolbar *ngIf="showToolbar" [title]="title$ | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
   <ion-buttons slot="end">
     @if (selection | isEmptySelection) {
       @if (!mobile && !offline) {
@@ -65,7 +65,7 @@
       <app-extraction-button
         *ngIf="canDownload"
         [disabled]="offline"
-        [programLabels]="$selectedProgramLabels | async"
+        [programLabels]="selectionProgramLabels$ | async"
         [title]="'COMMON.BTN_DOWNLOAD' | translate"
         (downloadAsJson)="downloadSelectionAsJson($event)"
         (downloadAsType)="openDownloadPage($event)"

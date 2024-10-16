@@ -2505,7 +2505,7 @@
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
       "TRIP_REPORT_ENABLE": "Marée > Rapport : Activer l'édition de rapport ?",
-      "TRIP_REPORT_TYPE": "Marée > Rapport : Types de rapport :",
+      "TRIP_REPORT_TYPES": "Marée > Rapport : Types de rapport :",
       "TRIP_REPORT_FORM_SUBTITLE": "Marée > Rapport : Sous-titre du rapport",
       "TRIP_REPORT_FORM_FOOTER": "Marée > Rapport : Texte de pied de page",
       "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Marée > Rapport : Logo à gauche de l'entête",

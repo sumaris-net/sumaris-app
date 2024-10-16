@@ -65,7 +65,7 @@
       <app-extraction-button
         *ngIf="canDownload"
         [disabled]="offline"
-        [programLabels]="$selectedProgramLabels | async"
+        [programLabels]="selectionProgramLabels$ | async"
         [title]="'COMMON.BTN_DOWNLOAD' | translate"
         (downloadAsJson)="downloadSelectionAsJson($event)"
         (downloadAsType)="openDownloadPage($event)"

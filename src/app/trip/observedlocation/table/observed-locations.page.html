@@ -1,16 +1,16 @@
 <app-toolbar *ngIf="showToolbar" color="primary" [canGoBack]="false" [canShowMenu]="true">
   @if (!showTitleSegment) {
     <!-- simple title -->
-    <ion-title>{{ titleSubject | async | translate }}</ion-title>
+    <ion-title>{{ title$ | async | translate }}</ion-title>
   } @else {
     <!-- segment to show landings -->
     <div slot="start">
       <ion-segment [value]="selectedSegment" mode="md" (ionChange)="onSegmentChanged($event)">
         <ion-segment-button value="observations" class="ion-title">
-          <ion-label>{{ titleSubject | async | translate }}</ion-label>
+          <ion-label>{{ title$ | async | translate }}</ion-label>
         </ion-segment-button>
         <ion-segment-button value="observations/landings" class="ion-title">
-          <ion-label>{{ landingsTitleSubject | async | translate }}</ion-label>
+          <ion-label>{{ landingsTitle$ | async | translate }}</ion-label>
         </ion-segment-button>
       </ion-segment>
     </div>

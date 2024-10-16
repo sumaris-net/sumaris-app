@@ -557,9 +557,9 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
     defaultValue: 'false',
   },
-  TRIP_REPORT_TYPE: <FormFieldDefinition>{
+  TRIP_REPORT_TYPES: <FormFieldDefinition>{
     key: 'sumaris.trip.report.type',
-    label: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPES',
     type: 'enums',
     values: [
       {

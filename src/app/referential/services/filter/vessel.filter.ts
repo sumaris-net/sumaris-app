@@ -13,7 +13,6 @@ import {
   isNotNilOrBlank,
   ReferentialRef,
   toDateISOString,
-  toNumber,
 } from '@sumaris-net/ngx-components';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
@@ -107,8 +106,8 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
       target.basePortLocationId = this.basePortLocation?.id;
       delete target.basePortLocation;
 
-      target.vesselTypeId = toNumber(this.vesselTypeId, this.vesselType?.id);
-      target.vesselTypeIds = this.vesselTypeIds;
+      target.vesselTypeId = this.vesselTypeId ?? this.vesselType?.id;
+      target.vesselTypeIds = isNil(target.vesselTypeId) ? this.vesselTypeIds : undefined;
       delete target.vesselType;
 
       target.statusIds = isNotNil(this.statusId) ? [this.statusId] : this.statusIds;
@@ -169,15 +168,12 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
     }
 
     // Vessel type
-    const vesselTypeId = this.vesselType?.id;
-    if (isNotNil(vesselTypeId)) {
-      filterFns.push((t) => t.vesselType?.id === vesselTypeId);
+    const vesselTypeId = this.vesselTypeId ?? this.vesselType?.id;
+    const vesselTypeIds = isNotNil(vesselTypeId) ? [vesselTypeId] : this.vesselTypeIds;
+    if (isNotEmptyArray(vesselTypeIds)) {
+      filterFns.push((t) => isNotNil(t.vesselType?.id) && vesselTypeIds.includes(t.vesselType.id));
     }
 
-    // Vessel types ids
-    if (isNotEmptyArray(this.vesselTypeIds)) {
-      filterFns.push((t) => isNotNil(t.vesselType?.id) && this.vesselTypeIds.includes(t.vesselType?.id));
-    }
     // Start date
     const startDate = this.startDate || this.date;
     if (isNotNil(startDate)) {

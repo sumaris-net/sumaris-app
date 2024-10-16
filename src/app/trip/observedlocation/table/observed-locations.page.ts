@@ -10,7 +10,6 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
   PersonService,
   PersonUtils,
   ReferentialRef,
@@ -21,9 +20,9 @@ import {
 import { ObservedLocationService } from '../observed-location.service';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../observed-location.model';
-import { AppRootDataTable } from '@app/data/table/root-table.class';
+import { AppRootDataTable, AppRootDataTableState } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../../trip.config';
-import { BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { ObservedLocationOfflineModal } from '../offline/observed-location-offline.modal';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observed-location.filter';
@@ -37,12 +36,17 @@ import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.ta
 import { IonSegment } from '@ionic/angular';
 import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export const ObservedLocationsPageSettingsEnum = {
   PAGE_ID: 'observedLocations',
   FILTER_KEY: 'filter',
   FEATURE_NAME: OBSERVED_LOCATION_FEATURE_NAME,
 };
+
+export interface ObservedLocationsPageState extends AppRootDataTableState {
+  landingsTitle: string;
+}
 
 @Component({
   selector: 'app-observed-locations-page',
@@ -52,12 +56,16 @@ export const ObservedLocationsPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [slideUpDownAnimation],
 })
-export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, ObservedLocationFilter, ObservedLocationService> implements OnInit {
-  protected titleSubject = new BehaviorSubject<string>('');
-  protected landingsTitleSubject = new BehaviorSubject<string>('');
+export class ObservedLocationsPage
+  extends AppRootDataTable<ObservedLocation, ObservedLocationFilter, ObservedLocationService, any, number, ObservedLocationsPageState>
+  implements OnInit
+{
+  @RxStateSelect() protected landingsTitle$: Observable<string>;
   protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
   protected selectedSegment = 'observations';
+
+  @RxStateProperty() protected landingsTitle: string;
 
   @Input() showTitleSegment = false;
   @Input() showFilterProgram = true;
@@ -143,6 +151,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
+    this.logPrefix = '[observed-locations-page] ';
   }
 
   ngOnInit() {
@@ -212,31 +221,6 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
   }
 
   async setFilter(filter: Partial<ObservedLocationFilter>, opts?: { emitEvent: boolean }) {
-    // Program
-    const programLabel = filter?.program?.label;
-    if (isNotNilOrBlank(programLabel)) {
-      const program = await this.programRefService.loadByLabel(programLabel);
-      await this.setProgram(program);
-    } else {
-      // Check if user can access more than one program
-      const { data, total } = await this.programRefService.loadAll(
-        0,
-        1,
-        null,
-        null,
-        {
-          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        },
-        { withTotal: true }
-      );
-      if (isNotEmptyArray(data) && total === 1) {
-        const program = data[0];
-        await this.setProgram(program);
-      } else {
-        await this.resetProgram();
-      }
-    }
-
     super.setFilter(filter, {
       ...opts,
       emitEvent: this.enableFilterPanelCompact ? true : opts?.emitEvent,
@@ -244,7 +228,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
   }
 
   async openTrashModal(event?: Event) {
-    console.debug('[observed-locations] Opening trash modal...');
+    console.debug(`${this.logPrefix}Opening trash modal...`);
     // TODO BLA
     /*const modal = await this.modalCtrl.create({
       component: TripTrashModal,
@@ -334,13 +318,12 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
   /* -- protected functions -- */
 
   protected async onConfigLoaded(config: Configuration) {
-    console.info('[observed-locations] Init using config', config);
+    console.info(`${this.logPrefix}Init using config`, config);
 
     // Show title segment ? (always disable on mobile)
     this.showTitleSegment = !this.mobile && config.getPropertyAsBoolean(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_LANDINGS_TAB_ENABLE);
 
-    const title = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
-    this.titleSubject.next(title);
+    this.title = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
 
     // Quality
     this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
@@ -380,7 +363,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
       await this.navController.navigateRoot(path, {
         animated: false,
         queryParams: {
-          expandFilter: this.filterExpansionPanel.expanded ? true : undefined,
+          expandFilter: this.filterExpansionPanel.expanded,
         },
       });
 
@@ -395,7 +378,7 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
    */
   protected onSwipeTab(event: HammerSwipeEvent): boolean {
     // DEBUG
-    // if (this.debug) console.debug("[observed-locations] onSwipeTab()");
+    // if (this.debug) console.debug(`${this.logPrefix}onSwipeTab()`);
 
     // Skip, if not a valid swipe event
     if (!event || event.defaultPrevented || (event.srcEvent && event.srcEvent.defaultPrevented) || event.pointerType !== 'touch') {
@@ -407,32 +390,23 @@ export class ObservedLocationsPage extends AppRootDataTable<ObservedLocation, Ob
   }
 
   protected async setProgram(program: Program) {
-    console.debug('[observed-location] Init using program', program);
-
-    // I18n suffix
-    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
-    this.i18nColumnSuffix = i18nSuffix;
+    await super.setProgram(program);
 
     // Show endDateTime column, if enable
     this.showEndDateTimeColumn = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
 
     // Title
-    const landingsTitle = this.translateContext.instant(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE', this.i18nColumnSuffix);
-    this.landingsTitleSubject.next(landingsTitle);
+    this.landingsTitle = this.translateContext.instant(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE', this.i18nColumnSuffix);
   }
 
   protected async resetProgram() {
-    console.debug('[observed-location] Reset program');
-
-    // I18n suffix
-    this.i18nColumnSuffix = '';
+    await super.resetProgram();
 
     // Show endDateTime
     this.showEndDateTimeColumn = false;
 
     // Title
-    this.landingsTitleSubject.next(LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE');
+    this.landingsTitle = LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE';
   }
 
   protected markForCheck() {

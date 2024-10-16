@@ -557,8 +557,8 @@ export class VesselSnapshotService
     this.defaultFilter = {
       ...this.defaultFilter,
       searchAttributes,
-      registrationLocation: isNotNil(defaultRegistrationLocationId) ? <ReferentialRef>{ id: defaultRegistrationLocationId } : undefined,
       vesselTypeIds: isNotEmptyArray(defaultVesselTypeIds) ? defaultVesselTypeIds : undefined,
+      registrationLocation: isNotNil(defaultRegistrationLocationId) ? <ReferentialRef>{ id: defaultRegistrationLocationId } : undefined,
     };
 
     // Update default options

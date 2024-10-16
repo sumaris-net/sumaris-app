@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
@@ -25,10 +25,10 @@ import {
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
-import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
 import { environment } from '@environments/environment';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { ObservedLocationOfflineModal } from '../observedlocation/offline/observed-location-offline.modal';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observedlocation/observed-location.filter';
@@ -47,7 +47,7 @@ import { LANDING_I18N_PMFM_PREFIX, LANDING_RESERVED_END_COLUMNS, LANDING_TABLE_D
 import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TripService } from '@app/trip/trip/trip.service';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
-import { BaseTableConfig, BaseTableState } from '@app/shared/table/base.table';
+import { BaseTableConfig } from '@app/shared/table/base.table';
 import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -55,6 +55,8 @@ import { StrategyRefService } from '@app/referential/services/strategy-ref.servi
 import { ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/table/observed-locations.page';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export const LandingsPageSettingsEnum = {
   PAGE_ID: 'landings',
@@ -77,7 +79,11 @@ export const LANDING_PAGE_RESERVED_START_COLUMNS = [
 ];
 export const LANDING_PAGE_RESERVED_END_COLUMNS = LANDING_RESERVED_END_COLUMNS;
 
-export interface LandingPageConfig extends BaseTableConfig<Landing, number, BaseTableState, LandingServiceWatchOptions> {
+export interface LandingsPageState extends AppRootDataTableState {
+  observedLocationTitle: string;
+}
+
+export interface LandingPageConfig extends BaseTableConfig<Landing, number, LandingsPageState, LandingServiceWatchOptions> {
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
   i18nPmfmPrefix?: string;
@@ -89,21 +95,23 @@ export interface LandingPageConfig extends BaseTableConfig<Landing, number, Base
   styleUrls: ['landings.page.scss'],
   animations: [slideUpDownAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
 export class LandingsPage
-  extends AppRootDataTable<Landing, LandingFilter, LandingService, LandingValidatorService, number, BaseTableState, LandingPageConfig>
-  implements OnInit
+  extends AppRootDataTable<Landing, LandingFilter, LandingService, LandingValidatorService, number, LandingsPageState, LandingPageConfig>
+  implements OnInit, OnDestroy
 {
-  protected $title = new BehaviorSubject<string>(undefined);
-  protected $observedLocationTitle = new BehaviorSubject<string>(undefined);
+  @RxStateSelect() protected observedLocationTitle$: Observable<string>;
+
   protected $pmfms = new BehaviorSubject<IPmfm[]>([]);
-  protected $detailProgram = new BehaviorSubject<Program>(undefined); // Program to use to create new landing
   protected i18nPmfmPrefix: string;
   protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
   protected selectedSegment = '';
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
+
+  @RxStateProperty() protected observedLocationTitle: string;
 
   @Input() showTitleSegment = false;
   @Input() showFilterProgram = true;
@@ -270,6 +278,7 @@ export class LandingsPage
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+    this.logPrefix = '[landings-page] ';
   }
 
   ngOnInit() {
@@ -357,34 +366,6 @@ export class LandingsPage
   }
 
   async setFilter(filter: Partial<LandingFilter>, opts?: { emitEvent: boolean }) {
-    // Program
-    const programLabel = filter?.program?.label;
-    if (isNotNilOrBlank(programLabel)) {
-      const program = await this.programRefService.loadByLabel(programLabel);
-      await this.setProgram(program);
-    } else {
-      // Check if user can access more than one program
-      const { data, total } = await this.programRefService.loadAll(
-        0,
-        1,
-        null,
-        null,
-        {
-          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-
-          // FIXME: limit program to occasion (but how to manage SIH-META-OBSDEB ??)
-          //acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
-        },
-        { withTotal: true }
-      );
-      if (isNotEmptyArray(data) && total === 1) {
-        const program = data[0];
-        await this.setProgram(program);
-      } else {
-        await this.resetProgram();
-      }
-    }
-
     super.setFilter(filter, opts);
   }
 
@@ -397,8 +378,7 @@ export class LandingsPage
     this.showTitleSegment = !this.mobile && config.getPropertyAsBoolean(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_LANDINGS_TAB_ENABLE);
 
     // title
-    const observedLocationTitle = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
-    this.$observedLocationTitle.next(observedLocationTitle);
+    this.observedLocationTitle = config.getProperty(TRIP_CONFIG_OPTIONS.OBSERVED_LOCATION_NAME);
 
     // Quality
     this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
@@ -424,17 +404,10 @@ export class LandingsPage
   }
 
   protected async setProgram(program: Program) {
-    if (!program?.label) throw new Error('Invalid program');
-    console.debug('[landings] Init using program', program);
-
-    // I18n suffix
-    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
-    this.i18nColumnSuffix = i18nSuffix;
+    await super.setProgram(program);
 
     // Title
-    const title = this.translateContext.instant(this.i18nColumnPrefix + 'TITLE', this.i18nColumnSuffix);
-    this.$title.next(title);
+    this.title = this.translateContext.instant(this.i18nColumnPrefix + 'TITLE', this.i18nColumnSuffix);
 
     // FIXME hide program
     //this.showProgramColumn = false;
@@ -467,13 +440,13 @@ export class LandingsPage
     });
     this.showFilterSampleTagId = samplePmfms?.some(PmfmUtils.isTagId) || false;
 
-    this.$detailProgram.next(program);
-
     if (this.loaded) this.updateColumns();
   }
 
   protected async resetProgram() {
-    console.debug(`${this.logPrefix}Reset filter program`);
+    await super.resetProgram();
+
+    this.title = this.i18nColumnPrefix + 'TITLE';
 
     // FIXME: enable this
     //this.showProgramColumn = true;
@@ -492,9 +465,7 @@ export class LandingsPage
     // Reset location filter
     delete this.autocompleteFields.location.filter.levelIds;
 
-    this.$title.next(this.i18nColumnPrefix + 'TITLE');
     this.$pmfms.next([]);
-    this.$detailProgram.next(undefined);
     if (this.loaded) this.updateColumns();
   }
 
@@ -571,7 +542,7 @@ export class LandingsPage
       await this.navController.navigateRoot(path, {
         animated: false,
         queryParams: {
-          expandFilter: this.filterExpansionPanel.expanded ? true : undefined,
+          expandFilter: this.filterExpansionPanel.expanded,
         },
       });
 
@@ -809,7 +780,7 @@ export class LandingsPage
   protected async getDetailProgram(source?: Landing): Promise<Program | undefined> {
     // Find data program
     const programLabel = source?.program?.label || this.filter?.program?.label;
-    let program: Program = (programLabel && (await this.programRefService.loadByLabel(programLabel))) || this.$detailProgram.value;
+    let program: Program = (programLabel && (await this.programRefService.loadByLabel(programLabel))) || this.program;
 
     if (!program) {
       const modal = await this.modalCtrl.create({

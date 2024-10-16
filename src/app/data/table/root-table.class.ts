@@ -1,5 +1,5 @@
 import { Directive, inject, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { debounceTime, distinctUntilChanged, filter, map, startWith, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
   AppFormUtils,
@@ -18,7 +18,9 @@ import {
   NamedFilter,
   NamedFilterSelector,
   NetworkService,
+  Property,
   referentialToString,
+  StatusIds,
   toBoolean,
   toDateISOString,
   UsageMode,
@@ -36,6 +38,10 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
 import moment from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { Program } from '@app/referential/services/model/program.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: 'filter',
@@ -53,6 +59,16 @@ export interface IRootDataEntitiesService<
   featureName: string;
 }
 
+export interface AppRootDataTableState extends BaseTableState {
+  programLabel: string;
+  program: Program;
+
+  selectionProgramLabels: string[];
+
+  enableReport: boolean;
+  reportTypes: Property[];
+}
+
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AppRootDataTable<
@@ -61,7 +77,7 @@ export abstract class AppRootDataTable<
     S extends IRootDataEntitiesService<T, F, ID> = IRootDataEntitiesService<T, F, any>,
     V extends BaseValidatorService<T, ID> = any,
     ID = number,
-    ST extends BaseTableState = BaseTableState,
+    ST extends AppRootDataTableState = AppRootDataTableState,
     O extends BaseTableConfig<T, ID, ST> = BaseTableConfig<T, ID, ST>,
   >
   extends AppBaseTable<T, F, S, V, ID, ST, O>
@@ -72,8 +88,19 @@ export abstract class AppRootDataTable<
   protected readonly userEventService = inject(UserEventService);
   protected readonly programRefService = inject(ProgramRefService);
 
+  @RxStateSelect() protected program$: Observable<Program>;
+  @RxStateSelect() protected title$: Observable<string>;
+  @RxStateSelect() protected selectionProgramLabels$: Observable<string[]>;
+
+  @RxStateProperty() protected programLabel: string;
+  @RxStateProperty() protected program: Program;
+  @RxStateProperty() protected enableReport: boolean;
+  @RxStateProperty() protected reportTypes: Property[];
+  @RxStateProperty() protected selectionProgramLabels: string[];
+
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
-  protected readonly $selectedProgramLabels = new BehaviorSubject<string[]>([]);
+
+  @Input() @RxStateProperty() title: string;
 
   protected namedFilterContentProvider = (): object => this.filterForm.value;
   protected filterImportCallback = async (namedFilter: NamedFilter): Promise<NamedFilter> => {
@@ -146,18 +173,35 @@ export abstract class AppRootDataTable<
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
 
-    this.registerSubscription(
-      this.selection.changed
-        .pipe(debounceTime(650))
-        .pipe(
-          map((_) => this.selection.selected),
-          map((rows) => (rows || []).map((row) => row.currentData?.program?.label).filter(isNotNilOrBlank)),
-          filter(isNotEmptyArray),
-          map((programLabels) => arrayDistinct(programLabels)),
-          // DEBUG
-          tap((programLabels) => console.debug(this.logPrefix + `Selected data programs: [${programLabels.join(', ')}]`))
-        )
-        .subscribe((programLabels) => this.$selectedProgramLabels.next(programLabels))
+    // Load program, from label
+    this._state.connect(
+      'program',
+      this._state.select('programLabel').pipe(
+        distinctUntilChanged(),
+        mergeMap((label) => this.loadProgram(label))
+      )
+    );
+
+    // Init program, when loaded (or reset)
+    this._state.hold(this._state.select('program'), (program) => {
+      if (program?.label) {
+        return this.setProgram(program);
+      } else {
+        return this.resetProgram();
+      }
+    });
+
+    // Listen checkboxes changes, to known selection's programs (need by extraction button)
+    this._state.connect(
+      'selectionProgramLabels',
+      this.selection.changed.pipe(
+        debounceTime(250),
+        map((_) => this.selection.selected),
+        map((rows) => (rows || []).map((row) => row.currentData?.program?.label).filter(isNotNilOrBlank)),
+        map((programLabels) => arrayDistinct(programLabels)),
+        // DEBUG
+        tap((programLabels) => console.debug(this.logPrefix + `Selection programs: [${programLabels.join(', ')}]`))
+      )
     );
 
     this.logPrefix = '[root-data-table] ';
@@ -652,6 +696,9 @@ export abstract class AppRootDataTable<
   }
 
   setFilter(filter: Partial<F>, opts?: { emitEvent: boolean }) {
+    // Program
+    this.programLabel = filter?.program?.label || null;
+
     super.setFilter(filter as F, opts);
   }
 
@@ -741,5 +788,47 @@ export abstract class AppRootDataTable<
       // Pass the tableId, to be able to use search field as defaults
       queryParams: this.settingsId && { tableId: this.settingsId },
     });
+  }
+
+  protected async loadProgram(programLabel?: string, filter?: Partial<ProgramFilter>): Promise<Program | undefined> {
+    filter = filter ?? this.autocompleteFields.program?.filter;
+    if (isNotNilOrBlank(programLabel)) {
+      console.log('loadByLabel program=' + programLabel);
+      return this.programRefService.loadByLabel(programLabel);
+    }
+    // Check if user can access more than one program
+    const { data, total } = await this.programRefService.loadAll(
+      0,
+      1,
+      null,
+      null,
+      {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        ...filter,
+      },
+      { withTotal: true }
+    );
+
+    if (isNotEmptyArray(data) && total === 1) {
+      return data[0];
+    }
+
+    return null;
+  }
+
+  protected async setProgram(program: Program) {
+    if (!program?.label) throw new Error('Invalid program');
+    console.debug(`${this.logPrefix}Init using program`, program);
+
+    // I18n suffix
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+    this.i18nColumnSuffix = i18nSuffix;
+  }
+
+  protected async resetProgram() {
+    console.debug(`${this.logPrefix}Reset filter program`);
+    this.i18nColumnSuffix = '';
+    this.markForCheck();
   }
 }
