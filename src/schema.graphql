@@ -2424,6 +2424,7 @@ input ActivityCalendarFilterVOInput {
   startDate: Date
   vesselId: Int
   vesselIds: [Int]
+  vesselTypeId: Int
   year: Int
 }
 

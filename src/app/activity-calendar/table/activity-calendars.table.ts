@@ -5,6 +5,7 @@ import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
   ConfigService,
+  Configuration,
   CORE_CONFIG_OPTIONS,
   DateUtils,
   FilesUtils,
@@ -14,7 +15,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
+  LoadResult,
   MatAutocompleteFieldConfig,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   OfflineFeature,
@@ -32,13 +33,13 @@ import {
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
   ACTIVITY_CALENDAR_FEATURE_NAME,
 } from '../activity-calendar.config';
-import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter } from 'rxjs/operators';
@@ -49,13 +50,15 @@ import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
-import { AppBaseTableFilterRestoreSource, BaseTableState } from '@app/shared/table/base.table';
+import { AppBaseTableFilterRestoreSource } from '@app/shared/table/base.table';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { intersectArrays } from '@app/shared/functions';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -63,10 +66,10 @@ export const ActivityCalendarsTableSettingsEnum = {
   FEATURE_ID: ACTIVITY_CALENDAR_FEATURE_NAME,
 };
 
-export interface ActivityCalendarsPageState extends BaseTableState {
+export interface ActivityCalendarsPageState extends AppRootDataTableState {
+  title: string;
   years: number[];
   canImportCsvFile: boolean;
-  reportTypes: Property[];
 }
 
 @Component({
@@ -81,7 +84,6 @@ export class ActivityCalendarsTable
   extends AppRootDataTable<ActivityCalendar, ActivityCalendarFilter, ActivityCalendarService, any, number, ActivityCalendarsPageState>
   implements OnInit, OnDestroy
 {
-  @RxStateSelect() protected title$: Observable<string>;
   @RxStateSelect() protected years$: Observable<number[]>;
   @RxStateSelect() protected canImportCsvFile$: Observable<boolean>;
 
@@ -93,17 +95,16 @@ export class ActivityCalendarsTable
   protected qualityFlags: ReferentialRef[];
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
+  protected programVesselTypeIds: number[];
 
+  @Input() showFilterProgram = true;
   @Input() showRecorder = true;
   @Input() canDownload = false;
   @Input() canUpload = false;
   @Input() canOpenMap = false;
   @Input() registrationLocationLevelIds: number[] = null;
   @Input() basePortLocationLevelIds: number[] = null;
-  @Input() @RxStateProperty() title: string;
   @Input() canAdd: boolean;
-  @Input() enableReport = false;
-  @RxStateProperty() protected reportTypes: Property[];
 
   @Input()
   set showObservers(value: boolean) {
@@ -124,11 +125,11 @@ export class ActivityCalendarsTable
   }
 
   @Input()
-  set showProgram(value: boolean) {
+  set showProgramColumn(value: boolean) {
     this.setShowColumn('program', value);
   }
 
-  get showProgram(): boolean {
+  get showProgramColumn(): boolean {
     return this.getShowColumn('program');
   }
 
@@ -168,8 +169,9 @@ export class ActivityCalendarsTable
     this.i18nColumnPrefix = 'ACTIVITY_CALENDAR.TABLE.';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
-      vesselSnapshot: [null, SharedValidators.entity],
       year: [null, SharedValidators.integer],
+      vesselSnapshot: [null, SharedValidators.entity],
+      vesselType: [null, SharedValidators.entity],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
       registrationLocations: [null],
@@ -222,7 +224,24 @@ export class ActivityCalendarsTable
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
+      this.registerAutocompleteField('vesselSnapshot', {
+        ...opts,
+        suggestFn: (value, filter) => this.suggestVessels(value, filter),
+      });
+    });
+
+    // Vessel type
+    this.registerAutocompleteField('vesselType', {
+      attributes: ['name'],
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+      },
+      mobile: this.mobile,
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, { ...filter, includedIds: this.programVesselTypeIds }),
+    });
 
     const locationConfig: MatAutocompleteFieldConfig = {
       filter: {
@@ -238,6 +257,7 @@ export class ActivityCalendarsTable
       suggestFn: (value, filter) =>
         this.referentialRefService.suggest(value, { ...filter, levelIds: this.registrationLocationLevelIds || [LocationLevelIds.COUNTRY] }),
     });
+
     // Combo: base port locations
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('basePortLocation', {
       ...locationConfig,
@@ -277,40 +297,7 @@ export class ActivityCalendarsTable
       mobile: this.mobile,
     });
 
-    this.registerSubscription(
-      this.configService.config.pipe(filter(isNotNil)).subscribe((config) => {
-        console.info(`${this.logPrefix}Init from config`, config);
-
-        this.title = config.getProperty(ACTIVITY_CALENDAR_CONFIG_OPTIONS.ACTIVITY_CALENDAR_NAME);
-        this.timezone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
-
-        this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-        this.setShowColumn('quality', this.showQuality, { emitEvent: false });
-
-        if (this.showQuality) {
-          this.referentialRefService.loadQualityFlags().then((items) => {
-            this.qualityFlags = items;
-            this.qualityFlagsById = splitByProperty(items, 'id');
-          });
-        }
-
-        // Recorder
-        this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-        this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
-
-        // Observer
-        this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
-
-        // Locations combo (filter)
-        this.registrationLocationLevelIds = [LocationLevelIds.MARITIME_DISTRICT];
-        this.basePortLocationLevelIds = [LocationLevelIds.PORT];
-
-        this.updateColumns();
-
-        // Restore filter from settings, or load all
-        this.restoreFilterOrLoad();
-      })
-    );
+    this.registerSubscription(this.configService.config.pipe(filter(isNotNil)).subscribe((config) => this.onConfigLoaded(config)));
 
     // Clear the existing activityCalendar context
     this.resetContext();
@@ -338,60 +325,78 @@ export class ActivityCalendarsTable
     filter.startDate = null;
     filter.endDate = null;
 
-    // Program
-    const programLabel = filter?.program?.label;
-    if (isNotNilOrBlank(programLabel)) {
-      const program = await this.programRefService.loadByLabel(programLabel);
-      await this.setProgram(program);
-    } else {
-      // Check if user can access more than one program
-      const { data, total } = await this.programRefService.loadAll(
-        0,
-        1,
-        null,
-        null,
-        {
-          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-          acquisitionLevelLabels: [AcquisitionLevelCodes.ACTIVITY_CALENDAR, AcquisitionLevelCodes.MONTHLY_ACTIVITY],
-        },
-        { withTotal: true }
-      );
-
-      if (isNotEmptyArray(data) && total === 1) {
-        const program = data[0];
-        await this.setProgram(program);
-      } else {
-        await this.resetProgram();
-      }
-    }
     super.setFilter(filter, opts);
   }
 
+  /* -- protected function  -- */
+
+  protected async onConfigLoaded(config: Configuration) {
+    console.info(`${this.logPrefix}Init from config`, config);
+
+    this.title = config.getProperty(ACTIVITY_CALENDAR_CONFIG_OPTIONS.ACTIVITY_CALENDAR_NAME);
+    this.timezone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
+
+    this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
+    this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+
+    if (this.showQuality) {
+      this.referentialRefService.loadQualityFlags().then((items) => {
+        this.qualityFlags = items;
+        this.qualityFlagsById = splitByProperty(items, 'id');
+      });
+    }
+
+    // Recorder
+    this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
+    this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
+
+    // Observers
+    this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
+
+    // Locations filter
+    this.registrationLocationLevelIds = [LocationLevelIds.MARITIME_DISTRICT];
+    this.basePortLocationLevelIds = [LocationLevelIds.PORT];
+
+    // Program filter / column
+    this.defaultShowFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
+
+    // Restore filter from settings, or load all
+    await this.restoreFilterOrLoad();
+
+    this.updateColumns();
+  }
+
   protected async setProgram(program: Program) {
-    if (!program?.label) throw new Error('Invalid program');
-    console.debug(`${this.logPrefix}Init using program`, program);
+    await super.setProgram(program);
 
-    // I18n suffix
-    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
-    this.i18nColumnSuffix = i18nSuffix;
+    // Allow to filter on program, if user can access more than one program
+    this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
 
+    // Hide program if cannot change it
+    this.showProgramColumn = this.showFilterProgram;
+    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
-    this.showProgram = false;
+    this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
+
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
     const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
     this.reportTypes = (program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES) || []).map((key) => reportTypeByKey[key]);
-    this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
 
     if (this.loaded) this.updateColumns();
   }
 
   protected async resetProgram() {
-    console.debug(`${this.logPrefix}Reset filter program`);
-    this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
-    this.showProgram = true;
+    await super.resetProgram();
 
+    this.showFilterProgram = this.defaultShowFilterProgram;
+    this.showProgramColumn = this.defaultShowFilterProgram;
+    this.programVesselTypeIds = null;
+    this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
     this.canImportCsvFile = this.isAdmin;
+
+    this.enableReport = toBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE.defaultValue, false);
+    const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
+    this.reportTypes = (ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.defaultValue || '').split(',').map((key) => reportTypeByKey[key]);
 
     if (this.loaded) this.updateColumns();
   }
@@ -649,5 +654,18 @@ export class ActivityCalendarsTable
       const jobs = await Promise.all(uploadedFileNames.map((uploadedFileName) => this._dataService.importCsvFile(uploadedFileName, format)));
       console.info(this.logPrefix + `Activity calendars successfully imported, in ${Date.now() - now}ms`, jobs);
     }
+  }
+
+  protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
+    const vesselTypeId = this.filterForm.get('vesselType')?.value?.id;
+    let vesselTypeIds = isNotNil(vesselTypeId) ? [vesselTypeId] : undefined;
+    if (isNotEmptyArray(this.programVesselTypeIds)) {
+      vesselTypeIds = intersectArrays([vesselTypeIds, this.programVesselTypeIds]);
+    }
+
+    return this.vesselSnapshotService.suggest(value, {
+      vesselTypeIds,
+      ...filter,
+    });
   }
 }

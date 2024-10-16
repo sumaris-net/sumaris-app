@@ -6,6 +6,7 @@ import {
   arrayDistinct,
   chainPromises,
   ConfigService,
+  Configuration,
   FilesUtils,
   HammerSwipeEvent,
   isEmptyArray,
@@ -13,14 +14,17 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
+  LoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
   PersonUtils,
+  Property,
   ReferentialRef,
   SharedValidators,
   slideUpDownAnimation,
   splitByProperty,
   StatusIds,
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Operation, Trip } from './trip.model';
@@ -28,10 +32,9 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
 import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
-import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
-import { filter, tap } from 'rxjs/operators';
-import { BehaviorSubject } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
@@ -42,13 +45,20 @@ import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operati
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { RxState } from '@rx-angular/state';
+import { Program } from '@app/referential/services/model/program.model';
+import { intersectArrays } from '@app/shared/functions';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
   FILTER_KEY: AppRootTableSettingsEnum.FILTER_KEY,
   FEATURE_ID: TRIP_FEATURE_NAME,
 };
+
+export interface TripTableState extends AppRootDataTableState {
+  title: string;
+}
 
 @Component({
   selector: 'app-trips-table',
@@ -58,13 +68,14 @@ export const TripsPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [slideUpDownAnimation],
 })
-export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> implements OnInit, OnDestroy {
-  titleSubject = new BehaviorSubject<string>('');
-  statusList = DataQualityStatusList;
-  statusById = DataQualityStatusEnum;
-  qualityFlags: ReferentialRef[];
-  qualityFlagsById: { [id: number]: ReferentialRef };
+export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, any, number, TripTableState> implements OnInit, OnDestroy {
+  protected statusList = DataQualityStatusList;
+  protected statusById = DataQualityStatusEnum;
+  protected qualityFlags: ReferentialRef[];
+  protected qualityFlagsById: { [id: number]: ReferentialRef };
+  protected programVesselTypeIds: number[];
 
+  @Input() showFilterProgram = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
   @Input() canDownload = false;
@@ -73,6 +84,15 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
+  }
+
+  @Input()
+  set showProgramColumn(value: boolean) {
+    this.setShowColumn('program', value);
+  }
+
+  get showProgramColumn(): boolean {
+    return this.getShowColumn('program');
   }
 
   constructor(
@@ -130,6 +150,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
+    this.logPrefix = '[trips-table] ';
   }
 
   ngOnInit() {
@@ -153,7 +174,12 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
     });
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
+      this.registerAutocompleteField('vesselSnapshot', {
+        ...opts,
+        suggestFn: (value, filter) => this.suggestVessels(value, filter),
+      });
+    });
 
     // Combo: recorder department
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
@@ -176,42 +202,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
       mobile: this.mobile,
     });
 
-    this.registerSubscription(
-      this.configService.config
-        .pipe(
-          filter(isNotNil),
-          tap((config) => {
-            console.info('[trips] Init from config', config);
-
-            const title = config && config.getProperty(TRIP_CONFIG_OPTIONS.TRIP_NAME);
-            this.titleSubject.next(title);
-
-            this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-            this.setShowColumn('quality', this.showQuality, { emitEvent: false });
-
-            if (this.showQuality) {
-              this.referentialRefService.loadQualityFlags().then((items) => {
-                this.qualityFlags = items;
-                this.qualityFlagsById = splitByProperty(items, 'id');
-              });
-            }
-
-            // Recorder
-            this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
-            this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
-
-            // Observers
-            this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
-            this.setShowColumn('observers', this.showObservers, { emitEvent: false });
-
-            this.updateColumns();
-
-            // Restore filter from settings, or load all
-            this.restoreFilterOrLoad();
-          })
-        )
-        .subscribe()
-    );
+    this.registerSubscription(this.configService.config.pipe(filter(isNotNil)).subscribe((config) => this.onConfigLoaded(config)));
 
     // Clear the existing trip context
     this.resetContext();
@@ -467,6 +458,38 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
 
   /* -- protected methods -- */
 
+  protected async onConfigLoaded(config: Configuration) {
+    console.info(`${this.logPrefix}Init using config`, config);
+
+    this.title = config.getProperty(TRIP_CONFIG_OPTIONS.TRIP_NAME);
+
+    this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
+    this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+
+    if (this.showQuality) {
+      this.referentialRefService.loadQualityFlags().then((items) => {
+        this.qualityFlags = items;
+        this.qualityFlagsById = splitByProperty(items, 'id');
+      });
+    }
+
+    // Recorder
+    this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
+    this.setShowColumn('recorderPerson', this.showRecorder, { emitEvent: false });
+
+    // Observers
+    this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
+    this.setShowColumn('observers', this.showObservers, { emitEvent: false });
+
+    // Program filter / column
+    this.defaultShowFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
+
+    // Restore filter from settings, or load all
+    if (this.enabled) await this.restoreFilterOrLoad();
+
+    this.updateColumns();
+  }
+
   protected markForCheck() {
     this.cd.markForCheck();
   }
@@ -496,5 +519,49 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService> i
 
   protected excludeNotQualified(qualityFlag: ReferentialRef): boolean {
     return qualityFlag?.id !== QualityFlagIds.NOT_QUALIFIED;
+  }
+
+  protected async setProgram(program: Program) {
+    await super.setProgram(program);
+
+    // Allow to filter on program, if user can access more than one program
+    this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
+
+    // Hide program if cannot change it
+    this.showProgramColumn = this.showFilterProgram;
+    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
+
+    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.TRIP_REPORT_ENABLE);
+    const reportTypeByKey = splitByProperty((ProgramProperties.TRIP_REPORT_TYPES.values || []) as Property[], 'key');
+    this.reportTypes = (program.getPropertyAsStrings(ProgramProperties.TRIP_REPORT_TYPES) || []).map((key) => reportTypeByKey[key]);
+
+    this.markForCheck();
+  }
+
+  protected async resetProgram() {
+    await super.resetProgram();
+
+    this.showFilterProgram = this.defaultShowFilterProgram;
+    this.showProgramColumn = this.defaultShowFilterProgram;
+    this.programVesselTypeIds = null;
+
+    this.enableReport = toBoolean(ProgramProperties.TRIP_REPORT_ENABLE.defaultValue, false);
+    const reportTypeByKey = splitByProperty((ProgramProperties.TRIP_REPORT_TYPES.values || []) as Property[], 'key');
+    this.reportTypes = (ProgramProperties.TRIP_REPORT_TYPES.defaultValue || '').split(',').map((key) => reportTypeByKey[key]);
+
+    this.markForCheck();
+  }
+
+  protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
+    const vesselTypeId = this.filterForm.get('vesselType')?.value?.id;
+    let vesselTypeIds = isNotNil(vesselTypeId) ? [vesselTypeId] : undefined;
+    if (isNotEmptyArray(this.programVesselTypeIds)) {
+      vesselTypeIds = intersectArrays([vesselTypeIds, this.programVesselTypeIds]);
+    }
+
+    return this.vesselSnapshotService.suggest(value, {
+      vesselTypeIds,
+      ...filter,
+    });
   }
 }

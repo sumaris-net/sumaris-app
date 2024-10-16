@@ -24,6 +24,8 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
 
   vesselId: number = null;
   vesselIds: number[] = null;
+  vesselTypeId: number = null;
+  vesselType: ReferentialRef = null;
   vesselSnapshot: VesselSnapshot = null;
   registrationLocations: ReferentialRef[] = null;
   basePortLocations: ReferentialRef[] = null;
@@ -43,6 +45,8 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     this.year = source.year;
     this.vesselId = source.vesselId;
     this.vesselIds = source.vesselIds;
+    this.vesselTypeId = source.vesselTypeId;
+    this.vesselType = source.vesselType && ReferentialRef.fromObject(source.vesselType);
     this.vesselSnapshot = source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot);
     this.registrationLocations = source.registrationLocations?.map(ReferentialRef.fromObject);
     this.basePortLocations = source.basePortLocations?.map(ReferentialRef.fromObject);
@@ -68,8 +72,12 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     if (opts && opts.minify) {
       // Vessel
       target.vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
-      target.vesselIds = isNil(this.vesselId) ? this.vesselIds : undefined;
+      target.vesselIds = isNil(target.vesselId) ? this.vesselIds : undefined;
       delete target.vesselSnapshot;
+
+      // Vessel type
+      target.vesselTypeId = this.vesselTypeId ?? this.vesselType?.id;
+      delete target.vesselType;
 
       // Registration locations
       target.registrationLocationIds = this.registrationLocations?.map((l) => l.id) || undefined;
@@ -83,7 +91,8 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
       target.observerPersonIds = observers?.map((o) => o?.id).filter(isNotNil) || undefined;
       delete target.observers;
     } else {
-      target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject(opts)) || undefined;
+      target.vesselSnapshot = this.vesselSnapshot?.asObject(opts) || undefined;
+      target.vesselType = this.vesselType?.asObject(opts) || undefined;
       target.registrationLocations = this.registrationLocations?.map((l) => l.asObject(opts)) || undefined;
       target.basePortLocations = this.basePortLocations?.map((l) => l.asObject(opts)) || undefined;
       target.observers = observers?.map((o) => o?.asObject(opts)).filter(isNotNil) || undefined;
@@ -115,6 +124,12 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
     const vesselId = isNotNil(this.vesselId) ? this.vesselId : this.vesselSnapshot?.id;
     if (isNotNil(vesselId)) {
       filterFns.push((t) => t.vesselSnapshot?.id === vesselId);
+    }
+
+    // Vessel type
+    const vesselTypeId = isNotNil(this.vesselTypeId) ? this.vesselTypeId : this.vesselSnapshot?.vesselType?.id;
+    if (isNotNil(vesselTypeId)) {
+      filterFns.push((t) => t.vesselSnapshot?.vesselType?.id === vesselTypeId);
     }
 
     // Registration locations

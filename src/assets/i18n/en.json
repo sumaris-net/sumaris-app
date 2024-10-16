@@ -264,6 +264,7 @@
         "DEFAULT_NEW_VESSEL_STATUS": "Vessel > Default status for new vessel",
         "DEFAULT_FILTER_COUNTRY_ID": "Data entry > Vessel: Default country (filter)",
         "DEFAULT_FILTER_TYPE_ID": "Data entry > Vessel: Vessel type (filter)",
+        "VESSEL_FILTER_DEFAULT_TYPE_IDS": "Data entry > Vessel: Vessel type(s) (filter)",
         "BASE_PORT_LOCATION_VISIBLE": "Vessels: Show base port?",
         "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Vessels > Base port: Nb char. for search",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Data entry > Vessel: Nb char. for search",
@@ -2416,6 +2417,7 @@
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons (mobile)",
       "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Qualitative values > Max values count to use buttons (mobile)",
       "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?",
+      "VESSEL_FILTER_DEFAULT_TYPE_IDS": "Data entry > Vessel: Vessel type(s) (filter)",
       "DATA_OBSERVERS_CAN_WRITE": "Data entry > Authorize the observer of data to modify it?",
       "DATA_STRATEGY_RESOLUTION": "Data entry > Collection strategy resolution",
       "DATA_STRATEGY_RESOLUTION_ENUM": {

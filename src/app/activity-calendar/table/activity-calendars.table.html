@@ -71,7 +71,7 @@
       <app-extraction-button
         *ngIf="canDownload"
         [disabled]="offline"
-        [programLabels]="$selectedProgramLabels | async"
+        [programLabels]="selectionProgramLabels$ | async"
         [title]="'COMMON.BTN_DOWNLOAD' | translate"
         (downloadAsJson)="downloadSelectionAsJson($event)"
         (downloadAsType)="openDownloadPage($event)"
@@ -188,20 +188,22 @@
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
         <ion-row>
-          <ion-col *ngIf="showProgram">
-            <!-- Program -->
-            <mat-autocomplete-field
-              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate"
-              formControlName="program"
-              [config]="autocompleteFields.program"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="contract"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
+          @if (showFilterProgram) {
+            <ion-col size="12">
+              <!-- Program -->
+              <mat-autocomplete-field
+                [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.PROGRAM' | translate"
+                formControlName="program"
+                [config]="autocompleteFields.program"
+                [clearable]="true"
+              >
+                <ion-icon matPrefix name="contract"></ion-icon>
+              </mat-autocomplete-field>
+            </ion-col>
+          }
 
           <!-- Year -->
-          <ion-col size="12" size-lg="3">
+          <ion-col size="12" size-sm="0">
             <mat-form-field floatLabel="auto" class="visible-xs">
               <ion-icon matIconPrefix name="calendar-clear-outline"></ion-icon>
               <mat-label>{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.YEAR' | translate }}</mat-label>
@@ -216,8 +218,8 @@
         </ion-row>
 
         <ion-row>
+          <!-- Registration location -->
           <ion-col size="12" size-lg="6">
-            <!-- Registration location -->
             <mat-chips-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.REGISTRATION_LOCATION' | translate"
               formControlName="registrationLocations"
@@ -229,8 +231,8 @@
             </mat-chips-field>
           </ion-col>
 
+          <!-- base port location -->
           <ion-col size="12" size-lg="6">
-            <!-- base port location -->
             <mat-chips-field
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.BASE_PORT_LOCATION' | translate"
               formControlName="basePortLocations"
@@ -242,8 +244,8 @@
             </mat-chips-field>
           </ion-col>
 
+          <!-- Vessel -->
           <ion-col size="12" size-lg="6">
-            <!-- Vessel -->
             <mat-autocomplete-field
               *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL' | translate"
@@ -255,8 +257,20 @@
             </mat-autocomplete-field>
           </ion-col>
 
-          <!-- Observers criteria -->
-          @if (showObservers && !mobile) {
+          <ion-col size="12" size-lg="6">
+            <!-- Vessel Type  -->
+            <mat-autocomplete-field
+              [placeholder]="'VESSEL.LIST.FILTER.VESSEL_TYPE' | translate"
+              formControlName="vesselType"
+              [config]="autocompleteFields.vesselType"
+              [clearable]="true"
+            >
+              <ion-icon matPrefix name="bookmark"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+
+          <!-- Observers criteria (desktop only) -->
+          @if (!mobile && showObservers) {
             <ion-col size="12" size-lg="6">
               <mat-chips-field
                 [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.OBSERVERS' | translate"
@@ -270,12 +284,11 @@
               </mat-chips-field>
             </ion-col>
           }
-        </ion-row>
 
-        @if (showQuality && !mobile && filterForm | formGetControl: 'dataQualityStatus'; as control) {
-          <ion-row>
+          <!-- Data quality (desktop only) -->
+          @if (!mobile && showQuality && filterForm | formGetControl: 'dataQualityStatus'; as control) {
             <!-- Data quality status -->
-            <ion-col size="6">
+            <ion-col [sizeLg]="control.value !== 'QUALIFIED' ? 6 : 3">
               <mat-form-field>
                 <ion-icon matPrefix name="create"></ion-icon>
                 <mat-label>{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</mat-label>
@@ -337,32 +350,35 @@
                 </mat-form-field>
               </ion-col>
             }
+          }
+        </ion-row>
+
+        <!-- Markers on survey (desktop only) -->
+        @if (!mobile) {
+          <ion-row>
+            <!-- Direct Survey Investigation -->
+            <ion-col>
+              <mat-boolean-field
+                formControlName="directSurveyInvestigation"
+                [placeholder]="'ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION' | translate"
+                [clearable]="true"
+              >
+                <ion-icon matPrefix name="help-outline"></ion-icon>
+              </mat-boolean-field>
+            </ion-col>
+
+            <!-- Economic Survey -->
+            <ion-col>
+              <mat-boolean-field
+                formControlName="economicSurvey"
+                [placeholder]="'ACTIVITY_CALENDAR.TABLE.ECONOMIC_SURVEY' | translate"
+                [clearable]="true"
+              >
+                <ion-icon matPrefix name="help-outline"></ion-icon>
+              </mat-boolean-field>
+            </ion-col>
           </ion-row>
         }
-
-        <ion-row>
-          <!-- Direct Survey Investigation -->
-          <ion-col>
-            <mat-boolean-field
-              formControlName="directSurveyInvestigation"
-              [placeholder]="'ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION' | translate"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="help-outline"></ion-icon>
-            </mat-boolean-field>
-          </ion-col>
-
-          <!-- Economic Survey -->
-          <ion-col>
-            <mat-boolean-field
-              formControlName="economicSurvey"
-              [placeholder]="'ACTIVITY_CALENDAR.TABLE.ECONOMIC_SURVEY' | translate"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="help-outline"></ion-icon>
-            </mat-boolean-field>
-          </ion-col>
-        </ion-row>
 
         <!-- Recorder criteria -->
         @if (showRecorder && !mobile) {
