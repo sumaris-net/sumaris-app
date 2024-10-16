@@ -254,6 +254,9 @@ export class ActivityCalendarPage
 
     this._state.connect('hasClipboard', this.context.select('clipboard', 'data').pipe(map(isNotNil)));
 
+    // Connect pmfms (used by translateFormPath)
+    this._state.connect('pmfms', this.baseForm.pmfms$);
+
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
         if (!config) return;
@@ -540,39 +543,21 @@ export class ActivityCalendarPage
       return;
     }
 
-    if (errors?.errors.months) {
+    if (errors?.errors?.months) {
       this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
       super.resetError();
       return;
     }
 
-    if (errors?.errors.metiers) {
+    if (errors?.errors?.metiers) {
       this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_METIERS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
       super.resetError();
       return;
     }
 
-    if (errors?.errors.warning) {
-      const messageError = this.translate.instant('ACTIVITY_CALENDAR.ERROR.INCONSISTENT_ANNUAL_INACTIVITY');
-      const confirmed = await Alerts.askConfirmation('ACTIVITY_CALENDAR.ERROR.INCONSISTENT_ANNUAL_INACTIVITY', this.alertCtrl, this.translate);
-      if (!confirmed) {
-        super.setError(messageError, opts);
-        return;
-      }
-      await this.entityQuality.terminate(null, { ignoreWarningError: true });
-      return null;
-    }
-
     super.setError(error, opts);
-  }
-
-  translateFormPath(controlPath: string): string {
-    return this.dataService.translateFormPath(controlPath, {
-      i18nPrefix: this.i18nContext.prefix,
-      pmfms: this.pmfms,
-    });
   }
 
   protected async showRemoteConflict(remoteCalendar: ActivityCalendar) {

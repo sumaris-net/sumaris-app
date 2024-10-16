@@ -67,8 +67,8 @@ import { DataErrorCodes } from '@app/data/services/errors';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { MEASUREMENT_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { MEASUREMENT_PMFM_ID_REGEXP, MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 import { BBox } from 'geojson';
@@ -85,6 +85,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { Job } from '@app/social/job/job.model';
 import { JobFragments } from '@app/social/job/job.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
 
 export const ActivityCalendarErrorCodes = {
   CSV_IMPORT_ERROR: 223,
@@ -1015,7 +1016,7 @@ export class ActivityCalendarService
       pmfms,
     });
 
-    if (!form.valid && opts?.ignoreWarningError !== true) {
+    if (!form.valid) {
       // Wait end of validation (e.g. async validators)
       await AppFormUtils.waitWhilePending(form);
 
@@ -1026,7 +1027,6 @@ export class ActivityCalendarService
 
         const months = AppFormUtils.filterErrorsByPrefix(errors, 'vesselUseFeatures', 'gearUseFeatures', 'activityMonths');
         const metiers = AppFormUtils.filterErrorsByPrefix(errors, 'gearPhysicalFeatures');
-        const warning = AppFormUtils.filterErrors(errors, ([path, _]) => path.startsWith('warning'));
         const other = AppFormUtils.filterErrors(errors, ([path, _]) =>
           ['vesselUseFeatures', 'gearUseFeatures', 'gearPhysicalFeatures'].includes(path.split('.')[0])
         );
@@ -1037,7 +1037,6 @@ export class ActivityCalendarService
               ...other,
               ...(isNotNil(months) && Object.keys(months).length > 0 ? { months } : {}),
               ...(isNotNil(metiers) && Object.keys(metiers).length > 0 ? { metiers } : {}),
-              ...(isNotNil(warning) && Object.keys(warning).length > 0 ? { warning } : {}),
               ...errors,
             },
           },
@@ -1311,12 +1310,15 @@ export class ActivityCalendarService
     target.vesselRegistrationPeriods = source.vesselRegistrationPeriods?.map(ActivityCalendarVesselRegistrationPeriod.fromObject) || undefined;
   }
 
-  translateFormPath(path: string, opts?: { i18nPrefix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(path: string, opts?: IDataFormPathTranslatorOptions): string {
     opts = { i18nPrefix: 'ACTIVITY_CALENDAR.EDIT.', ...opts };
+
+    console.debug(`${this._logPrefix}Translating form path: ` + path);
+
     // Translate PMFM fields
-    if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
+    if ((MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) || MEASUREMENT_PMFM_ID_REGEXP.test(path)) && opts?.pmfms) {
       const pmfmId = parseInt(path.split('.').pop());
-      const pmfm = opts.pmfms.find((p) => p.id === pmfmId);
+      let pmfm = opts.pmfms.find((p) => p.id === pmfmId);
       return PmfmUtils.getPmfmName(pmfm);
     }
 
@@ -1332,7 +1334,8 @@ export class ActivityCalendarService
 
       return [month, fieldName].join('>');
     }
-    // Default translation
+
+    // Default (generic) translation
     return this.formErrorTranslator.translateFormPath(path, { ...opts, pathTranslator: null });
   }
 
