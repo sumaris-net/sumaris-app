@@ -1,19 +1,19 @@
 <app-toolbar color="primary" [canGoBack]="false" [canShowMenu]="true">
-  <div *rxIf="$title; let title" slot="start">
-    <!-- simple title -->
-    <ion-title *ngIf="!showTitleSegment; else titleSegment">{{ title | translate }}</ion-title>
-
-    <!-- segment to show observed locations -->
-    <ng-template #titleSegment>
+  <div slot="start">
+    @if (!showTitleSegment) {
+      <!-- simple title -->
+      <ion-title>{{ title$ | async | translate }}</ion-title>
+    } @else {
+      <!-- segment to show observed locations -->
       <ion-segment [value]="selectedSegment" mode="md" (ionChange)="onSegmentChanged($event)">
         <ion-segment-button value="observations" class="ion-title">
-          <ion-label>{{ $observedLocationTitle | async | translate }}</ion-label>
+          <ion-label>{{ observedLocationTitle$ | async | translate }}</ion-label>
         </ion-segment-button>
         <ion-segment-button value="" class="ion-title">
-          <ion-label>{{ title | translate }}</ion-label>
+          <ion-label>{{ title$ | async | translate }}</ion-label>
         </ion-segment-button>
       </ion-segment>
-    </ng-template>
+    }
   </div>
 
   <ion-buttons slot="end">

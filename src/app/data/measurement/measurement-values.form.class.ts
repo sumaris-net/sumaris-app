@@ -28,6 +28,7 @@ import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
 
 export interface IMeasurementsFormOptions<S extends MeasurementsFormState = MeasurementsFormState> {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
@@ -288,7 +289,7 @@ export abstract class MeasurementValuesForm<
     this._state.set('initialPmfms', () => undefined);
   }
 
-  translateFormPath(path: string, opts?: { i18nPrefix?: string; i18nSuffix?: string; pmfms?: IPmfm[] }): string {
+  translateFormPath(path: string, opts?: IDataFormPathTranslatorOptions): string {
     opts = { i18nPrefix: this.i18nFieldPrefix, i18nSuffix: this.i18nSuffix, ...opts };
     opts.pmfms = opts?.pmfms || this.initialPmfms;
     if (opts.pmfms && (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) || MEASUREMENT_PMFM_ID_REGEXP.test(path))) {
@@ -616,7 +617,7 @@ export abstract class MeasurementValuesForm<
   }
 
   protected updateViewState(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    if (this._enable) {
+    if (this.enabled) {
       this.enable(opts);
     } else {
       this.disable(opts);

@@ -1,8 +1,17 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, FormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {
+  AbstractControlOptions,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import {
   AppFormArray,
   isEmptyArray,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
@@ -27,10 +36,9 @@ import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.
 import { GearPhysicalFeaturesValidatorService } from './gear-physical-features.validator';
 import { GearPhysicalFeatures } from './gear-physical-features.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { VesselUseFeatures } from './vessel-use-features.model';
-import { VesselUseFeaturesValidatorService } from './vessel-use-features.validator';
 import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityMonthValidatorService } from '../calendar/activity-month.validator';
+import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 
 export interface ActivityCalendarValidatorOptions extends DataRootEntityValidatorOptions {
   timezone?: string;
@@ -41,7 +49,6 @@ export interface ActivityCalendarValidatorOptions extends DataRootEntityValidato
   withGearPhysicalFeatures?: boolean;
   withVesselUseFeatures?: boolean;
   withAllMonths?: boolean;
-  ignoreWarningError?: boolean;
 
   pmfms?: IPmfm[];
 }
@@ -57,7 +64,6 @@ export class ActivityCalendarValidatorService<
     protected gearUseFeaturesValidatorService: GearUseFeaturesValidatorService,
     protected activityMonthValidatorService: ActivityMonthValidatorService,
     protected gearPhysicalFeaturesValidatorService: GearPhysicalFeaturesValidatorService,
-    protected vesselUseFeaturesValidatorService: VesselUseFeaturesValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, translate, settings);
@@ -102,23 +108,12 @@ export class ActivityCalendarValidatorService<
       });
     }
 
-    // Add activity months
-    const activityMonths = data?.vesselUseFeatures.map(ActivityMonth.fromObject);
-    data?.gearUseFeatures.forEach((guf) => {
-      const month = activityMonths.find((am) => am.startDate.month() === guf.startDate.month());
-      if (month) {
-        if (!month.gearUseFeatures) {
-          month.gearUseFeatures = [];
-        }
-        month.gearUseFeatures.push(guf);
-      }
-    });
-    config.activityMonths = this.getActivityMonthArray(activityMonths);
-
-    // Add vessel use features
+    // Add vessel use features (=activity month)
     if (opts.withVesselUseFeatures) {
-      config.vesselUseFeatures = this.getVesselUseFeatures(data?.vesselUseFeatures);
+      const activityMonths = ActivityMonthUtils.fromActivityCalendar(data);
+      config.months = this.getActivityMonthArray(activityMonths, { required: !opts?.isOnFieldMode });
     }
+
     // Add gear physical features
     if (opts.withGearPhysicalFeatures) {
       config.gearPhysicalFeatures = this.getGearPhysicalFeaturesArray(data?.gearPhysicalFeatures);
@@ -129,16 +124,11 @@ export class ActivityCalendarValidatorService<
       config.observers = this.getObserversFormArray(data?.observers);
     }
 
-    // // Add fishing Ares
-    // if (opts.withFishingAreas) {
-    //   config.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, {required: true});
-    // }
-
     return config;
   }
 
   getFormGroupOptions(data?: ActivityCalendar, opts?: O): AbstractControlOptions | null {
-    const validators: ValidatorFn[] = [ActivityCalendarValidators.validateAnnualInactivity, ActivityCalendarValidators.validateMonthNumbers];
+    const validators: ValidatorFn[] = opts.withVesselUseFeatures && opts.withGearUseFeatures ? [ActivityCalendarValidators.validInactivityYear] : [];
     return {
       ...super.getFormGroupOptions(data, opts),
       validators,
@@ -193,38 +183,24 @@ export class ActivityCalendarValidatorService<
 
   getActivityMonthArray(data?: ActivityMonth[], opts?: { maxLength?: number; required?: boolean }) {
     const required = opts?.required || false;
+    const maxLength = toNumber(opts?.maxLength, 12);
+    const validators = [];
+    if (required) {
+      validators.push(ActivityCalendarValidators.validMonthCount);
+    } else if (opts?.maxLength) {
+      validators.push(SharedFormArrayValidators.arrayMaxLength(maxLength));
+    }
     const formArray = new AppFormArray<ActivityMonth, UntypedFormGroup>(
       (month) => this.activityMonthValidatorService.getFormGroup(month),
       ReferentialUtils.equals,
       ReferentialUtils.isEmpty,
       {
-        allowEmptyArray: true,
-        validators: opts?.maxLength ? SharedFormArrayValidators.arrayMaxLength(opts.maxLength) : null,
+        allowEmptyArray: !required,
+        validators,
       }
     );
     if (data) {
       data = data?.filter(ActivityMonth.isNotEmpty);
-      if (required && isEmptyArray(data)) {
-        data = [null];
-      }
-      formArray.patchValue(data || []);
-    }
-    return formArray;
-  }
-
-  getVesselUseFeatures(data?: VesselUseFeatures[], opts?: { maxLength?: number; required?: boolean }) {
-    const required = opts?.required || false;
-    const formArray = new AppFormArray<VesselUseFeatures, UntypedFormGroup>(
-      (vuf) => this.vesselUseFeaturesValidatorService.getFormGroup(vuf),
-      ReferentialUtils.equals,
-      ReferentialUtils.isEmpty,
-      {
-        allowEmptyArray: true,
-        validators: opts?.maxLength ? SharedFormArrayValidators.arrayMaxLength(opts.maxLength) : null,
-      }
-    );
-    if (data) {
-      data = data?.filter(VesselUseFeatures.isNotEmpty);
       if (required && isEmptyArray(data)) {
         data = [null];
       }
@@ -295,46 +271,60 @@ export class ActivityCalendarValidatorService<
 }
 
 export class ActivityCalendarValidators {
-  static validateMonthNumbers(group: FormArray): ValidationErrors | null {
-    const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
-    if (months && months.length !== 12) {
-      return {
-        invalidMonthNumbers: {},
-      };
+  static validMonthCount(formArray: UntypedFormArray, expectedMonthCount = 12): ValidationErrors | null {
+    const actualCount = formArray.length;
+    if (actualCount !== expectedMonthCount) {
+      // DEBUG
+      //console.warn('Invalid month count - actual: ${actualCount} - expected: ${expectedMonthCount}');
+
+      return { invalidMonths: true };
     }
+
     return null;
   }
 
-  static validateAnnualInactivity(group: FormArray): ValidationErrors | null {
-    const pmfms = group.get('measurementValues')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
-    const months = group.get('vesselUseFeatures')?.value as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
-    if (!months && isNotNil(pmfms)) return null;
-    const vufs: VesselUseFeatures[] = [];
-    months.forEach((month) => {
-      vufs.push(VesselUseFeatures.fromObject(month));
-    });
-
-    const isComplete = months.length === 12;
-    const error = isComplete ? vufs.every((month: VesselUseFeatures) => month.isActive === 0) : false;
-
-    if (pmfms[PmfmIds.INACTIVTY_YEAR] && isComplete && error) {
+  static validInactivityYear(form: UntypedFormGroup): ValidationErrors | null {
+    if (PmfmIds.INACTIVITY_YEAR === -1) {
+      console.warn("Cannot find PMFM 'INACTIVITY_YEAR' need to execute validator 'validateAnnualInactivity'");
       return null;
-    } else if (!pmfms[PmfmIds.INACTIVTY_YEAR] && !error) {
-      return null;
-    } else if (pmfms[PmfmIds.INACTIVTY_YEAR] && !error) {
-      return {
-        warningInconsistentAnnualInactivity: {},
-      };
-    } else {
-      return {
-        confirmAnnualInactivity: {},
-      };
     }
+    const inactivityYearControl = form.get(`measurementValues.${PmfmIds.INACTIVITY_YEAR}`);
+    const monthArray = form.get('months') as UntypedFormArray;
+    if (!monthArray || !inactivityYearControl) return null;
+
+    const inactivityYearPmfmValue = toBoolean(inactivityYearControl.value as string | boolean);
+    const months = monthArray.value as ActivityMonth[];
+    const isCalendarComplete = months.length === 12;
+
+    // Continue only if calendar is complete
+    if (isCalendarComplete) {
+      const inactivityYear = months.every((month) => month.isActive === 0);
+
+      // Inactive in all year => inactivity year is required
+      if (inactivityYear && isNil(inactivityYearPmfmValue)) {
+        inactivityYearControl.setErrors({ required: true });
+        return {
+          required: true,
+        };
+      }
+
+      // Not inactive on all year, BUT user confirmed inactivity => invalid
+      if (!inactivityYear && inactivityYearPmfmValue === true) {
+        inactivityYearControl.setErrors({ inconsistent: true });
+        return {
+          inconsistent: true,
+        };
+      }
+    }
+
+    SharedValidators.clearError(inactivityYearControl, 'required');
+    SharedValidators.clearError(inactivityYearControl, 'inconsistent');
+    // No error
+    return null;
   }
 }
 
 export const ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS = {
-  invalidMonthNumbers: 'ACTIVITY_CALENDAR.ERROR.MONTH_NUMBERS',
-  confirmAnnualInactivity: 'ACTIVITY_CALENDAR.ERROR.ANNUAL_INACTIVITY',
-  warningInconsistentAnnualInactivity: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENT_ANNUAL_INACTIVITY',
+  invalidMonths: 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS',
+  inconsistent: 'ERROR.FIELD_INCONSISTENT', // TODO to remove after upgrade to ngx-components 2.18
 };

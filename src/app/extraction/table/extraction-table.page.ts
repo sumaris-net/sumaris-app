@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { BehaviorSubject, EMPTY, merge, Observable, Subject } from 'rxjs';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   Alerts,
   CompletableEvent,
@@ -831,7 +830,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     const program = this.program;
     if (!program || !this.enableTripReport) return; // Skip
 
-    const reportType = program.getProperty<TripReportType>(ProgramProperties.TRIP_REPORT_TYPE);
+    const reportType = program.getProperty<TripReportType>(ProgramProperties.TRIP_REPORT_TYPES);
     const reportPath = reportType !== 'legacy' ? [reportType] : [];
     const filter = this.getFilterValue();
     await this.router.navigate(['extraction', 'report', 'trips', ...reportPath], {

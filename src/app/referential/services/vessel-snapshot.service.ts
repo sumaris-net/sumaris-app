@@ -21,6 +21,7 @@ import {
   NetworkService,
   ReferentialRef,
   ReferentialUtils,
+  removeDuplicatesFromArray,
   StatusIds,
   SuggestService,
 } from '@sumaris-net/ngx-components';
@@ -542,7 +543,11 @@ export class VesselSnapshotService
 
     // Set default filter (registration location, vessel type)
     const defaultRegistrationLocationId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID);
-    const defaultVesselTypeId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID);
+    const defaultVesselTypeIds = removeDuplicatesFromArray(
+      (config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [])
+        .concat(config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_ID) || undefined)
+        .filter(isNotNil)
+    );
 
     // Set default search attributes
     const defaultSearchAttributes = config.getPropertyAsStrings(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_SEARCH_ATTRIBUTES);
@@ -552,8 +557,8 @@ export class VesselSnapshotService
     this.defaultFilter = {
       ...this.defaultFilter,
       searchAttributes,
+      vesselTypeIds: isNotEmptyArray(defaultVesselTypeIds) ? defaultVesselTypeIds : undefined,
       registrationLocation: isNotNil(defaultRegistrationLocationId) ? <ReferentialRef>{ id: defaultRegistrationLocationId } : undefined,
-      vesselTypeId: isNotNil(defaultVesselTypeId) ? defaultVesselTypeId : undefined,
     };
 
     // Update default options

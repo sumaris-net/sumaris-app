@@ -38,6 +38,7 @@ import { AppColors } from '@app/shared/colors.utils';
 
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { RxState } from '@rx-angular/state';
+import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
 
 @Component({
   selector: 'app-auction-control',
@@ -359,12 +360,12 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
     return null;
   }
 
-  translateFormPath(controlPath: string): string {
+  translateFormPath(path: string, opts?: IDataFormPathTranslatorOptions): string {
     // Redirect pmfm control path, to the landing form
-    if (PMFM_ID_REGEXP.test(controlPath)) {
-      controlPath = `measurementValues.${controlPath}`;
+    if (PMFM_ID_REGEXP.test(path)) {
+      path = `measurementValues.${path}`;
     }
-    return this.landingForm.translateFormPath(controlPath);
+    return this.landingForm.translateFormPath(path, opts);
   }
 
   async setValue(data: Landing): Promise<void> {

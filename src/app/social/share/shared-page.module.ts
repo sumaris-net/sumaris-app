@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { SharedPage } from './shared-page.component';
 import { TranslateModule } from '@ngx-translate/core';
@@ -13,7 +13,6 @@ import { TranslateModule } from '@ngx-translate/core';
     CommonModule,
     IonicModule,
     TranslateModule.forChild(),
-    HttpClientModule,
     RouterModule.forChild([
       {
         path: ':uuid',
@@ -22,5 +21,6 @@ import { TranslateModule } from '@ngx-translate/core';
       },
     ]),
   ],
+  providers: [provideHttpClient(withInterceptorsFromDi())],
 })
 export class SharedPageModule {}

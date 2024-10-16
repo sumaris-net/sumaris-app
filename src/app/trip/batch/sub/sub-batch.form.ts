@@ -213,7 +213,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
 
     // Set default values
     this.mobile = this.settings.mobile;
-    this._enable = false;
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
 

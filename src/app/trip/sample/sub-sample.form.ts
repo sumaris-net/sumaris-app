@@ -80,7 +80,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnIn
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
 
-    this._enable = true;
+    this._enabled = true;
     this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
 
     // for DEV only

@@ -68,7 +68,7 @@ export class SampleForm extends MeasurementValuesForm<Sample> implements OnInit,
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
-    this._enable = true;
+    this._enabled = true;
     this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     this.childrenArrayHelper = this.getChildrenFormHelper(this.form);
 

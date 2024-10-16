@@ -34,7 +34,48 @@ export const ActivityMonitoringStatusErrorIds: { [K in ActivityMonitoringStatusE
 });
 
 export interface ActivityMonitoringExtractionData extends IReportData {
+  AC: Calendar[];
   AM: ActivityMonitoring[];
+}
+
+export class Calendar extends Entity<Calendar> {
+  vesselName: string;
+  vesselLength: string;
+  registrationLocationLabel: string;
+  vesselRegistrationCode: string;
+  vesselIntRegistrationCode: string;
+  observer: string;
+  surveyQualification: string;
+  emptyMonthCount: number;
+  errorMonthCount: number;
+  recorderPerson: string;
+  recorderDepartment: string;
+  status: ActivityMonitoringStatus;
+  qualityStatus: DataQualityStatusIdType;
+  directSurveyInvestigation: string;
+  economicSurvey: string;
+  meta?: {
+    [key: string]: any;
+  };
+
+  static fromObject: (source: any, opts?: any) => Calendar;
+
+  fromObject(source: any, opts?: any): void {
+    this.vesselName = source.vesselName.replace(' | ', ', ');
+    this.vesselLength = source.vesselLength;
+    this.registrationLocationLabel = source.registrationLocationLabel.replace('|', ', ');
+    this.vesselRegistrationCode = source.vesselRegistrationCode.replace('|', ', ');
+    this.vesselIntRegistrationCode = source.vesselIntRegistrationCode.replace('|', ', ');
+    this.observer = source.observer;
+    this.surveyQualification = source.surveyQualification;
+    this.recorderPerson = source.recorderPerson;
+    this.emptyMonthCount = source.emptyMonthCount;
+    this.errorMonthCount = source.errorMonthCount;
+    this.directSurveyInvestigation = source.directSurveyInvestigation;
+    this.economicSurvey = source.economicSurvey;
+    this.status = source.status;
+    this.qualityStatus = source.qualityStatus;
+  }
 }
 
 export class ActivityMonitoring extends Entity<ActivityMonitoring> {
@@ -47,7 +88,6 @@ export class ActivityMonitoring extends Entity<ActivityMonitoring> {
   surveyQualification: string;
   emptyMonthCount: number;
   errorMonthCount: number;
-  fullCalendar: boolean;
   recorderPerson: string;
   recorderDepartment: string;
   status: ActivityMonitoringStatus;
