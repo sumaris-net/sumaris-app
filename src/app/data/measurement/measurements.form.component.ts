@@ -521,7 +521,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   }
 
   protected updateViewState(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    if (this._enable) {
+    if (this.enabled) {
       this.enable(opts);
     } else {
       this.disable(opts);

@@ -71,8 +71,7 @@ import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { VesselFeaturesHistoryComponent } from '@app/vessel/page/vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from '@app/vessel/page/vessel-registration-history.component';
-import { IOutputAreaSizes } from 'angular-split/lib/interface';
-import { SplitComponent } from 'angular-split';
+import { SplitAreaSize, SplitComponent } from 'angular-split';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
@@ -535,26 +534,34 @@ export class ActivityCalendarPage
   }
 
   async setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
-    const errors = error && typeof error === 'object' && error.details?.errors;
+    const detailsErrors = error && typeof error === 'object' && error.details?.errors;
+
     // Conflictual error: show remote conflictual data
-    if (errors?.conflict instanceof ActivityCalendar) {
-      const remoteCalendar = errors.conflict;
-      this.showRemoteConflict(remoteCalendar);
+    if (detailsErrors?.conflict instanceof ActivityCalendar) {
+      const remoteCalendar = detailsErrors.conflict;
+      await this.showRemoteConflict(remoteCalendar);
+      super.setError(undefined, opts);
       return;
     }
 
-    if (errors?.errors?.months) {
+    if (detailsErrors?.months) {
       this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
-      super.resetError();
+      super.setError(undefined, opts);
       return;
     }
 
-    if (errors?.errors?.metiers) {
+    if (detailsErrors?.metiers) {
       this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_METIERS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
-      super.resetError();
+      super.setError(undefined, opts);
       return;
+    }
+
+    // Clear child component error
+    if (!error) {
+      this.calendar.error = undefined;
+      this.tableMetier.error = undefined;
     }
 
     super.setError(error, opts);
@@ -954,14 +961,14 @@ export class ActivityCalendarPage
     this._predocPanelVisible = toBoolean(visible, this._predocPanelVisible);
   }
 
-  protected onPredocResize(sizes?: IOutputAreaSizes) {
+  protected onPredocResize(sizes?: SplitAreaSize) {
     this.calendar.onResize();
     this.predocCalendar.onResize();
 
     this.savePredocPanelSize(sizes);
   }
 
-  protected savePredocPanelSize(sizes?: IOutputAreaSizes) {
+  protected savePredocPanelSize(sizes?: SplitAreaSize) {
     const previousConfig = this.settings.getPageSettings(this.settingsId, ActivityCalendarPageSettingsEnum.PREDOC_PANEL_CONFIG);
 
     const config = {

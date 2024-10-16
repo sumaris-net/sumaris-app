@@ -8,7 +8,7 @@
     @if (compact) {
       <ion-grid class="ion-no-padding">
         <ion-row>
-          <ng-container *ngFor="let childControl of formArray.controls; index as j; first as first; last as last">
+          @for (childControl of formArray.controls; track j; let j = $index; let first = $first; let last = $last) {
             <ion-col (focusin)="arrayEditingIndex = j" (focusout)="formArrayRemoveEmptyOnFocusLost($event, j)">
               <app-pmfm-field
                 [pmfm]="pmfm"
@@ -47,15 +47,15 @@
                 </button>
               </app-pmfm-field>
             </ion-col>
-          </ng-container>
+          }
         </ion-row>
       </ion-grid>
     } @else {
       <!-- default array style -->
       <ion-grid class="ion-no-padding">
         <ion-row>
-          <ng-container *ngFor="let childControl of formArray.controls; index as j; last as last">
-            <ion-col [size]="style !== 'button' ? 'auto' : 10" class="ion-align-self-center">
+          @for (childControl of formArray.controls; track j; let j = $index; let first = $first; let last = $last) {
+            <ion-col (keydown.tab)="formArrayFocusAt($event, j + 1)" [size]="style !== 'button' ? 'auto' : 10" class="ion-align-self-center">
               <app-pmfm-field
                 [pmfm]="pmfm"
                 #pmfmField
@@ -64,7 +64,6 @@
                 [readonly]="readonly"
                 [tabindex]="tabindex + j"
                 [floatLabel]="floatLabel"
-                [autofocus]="autofocus"
                 [placeholder]="placeholder"
                 [mobile]="mobile"
                 [style]="style"
@@ -77,12 +76,15 @@
 
             <ion-col [size]="style !== 'button' ? 'auto' : 2">
               <button
+                #addButton
                 type="button"
                 mat-icon-button
                 [title]="'COMMON.BTN_ADD' | translate"
                 [disabled]="disabled"
+                [tabindex]="tabindex + (acquisitionNumber > 0 ? acquisitionNumber : -1)"
                 *ngIf="(last && formArray.length < acquisitionNumber) || acquisitionNumber === -1"
-                (click)="formArray.add()"
+                (keydown.enter)="formArrayAdd($event)"
+                (click)="formArrayAdd($event)"
               >
                 <mat-icon>add</mat-icon>
               </button>
@@ -97,7 +99,7 @@
                 <mat-icon>close</mat-icon>
               </button>
             </ion-col>
-          </ng-container>
+          }
         </ion-row>
       </ion-grid>
     }

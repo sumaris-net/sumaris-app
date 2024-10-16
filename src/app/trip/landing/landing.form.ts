@@ -227,8 +227,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
 
-    this._enable = false;
-
     // Set defaults
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
     this.errorTranslateOptions = { separator: '<br/>', pathTranslator: this };

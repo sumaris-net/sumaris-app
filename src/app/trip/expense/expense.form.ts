@@ -294,7 +294,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
       // set all as enabled
       this.baitForms.forEach((baitForm) => {
         baitForm.markAsReady();
-        if (this._enable) baitForm.enable();
+        if (this._enabled) baitForm.enable();
       });
     }
 
@@ -303,7 +303,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
       this.addingNewBait = false;
       this.baitForms.last.value = [];
       this.baitForms.last.markAsReady();
-      if (this._enable) this.baitForms.last.enable();
+      if (this._enabled) this.baitForms.last.enable();
     }
 
     // on removing bait, total has to be recalculate

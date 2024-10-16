@@ -22,12 +22,12 @@ mat-toolbar {
   --mdc-icon-button-state-layer-size: 34px;
   &.secondary {
     --mat-toolbar-container-text-color: var(--ion-color-secondary-contrast);
-    --mdc-form-field-label-text-color: var(--ion-color-secondary-contrast);
+    --mat-checkbox-label-text-color: var(--ion-color-secondary-contrast);
     background-color: var(--ion-color-secondary);
     color: var(--ion-color-secondary-contrast);
     mat-checkbox input,
     mat-label {
-      --mdc-form-field-label-text-color: var(--ion-color-secondary-contrast);
+      --mat-checkbox-label-text-color: var(--ion-color-secondary-contrast);
       color: var(--ion-color-secondary-contrast);
     }
   }

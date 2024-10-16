@@ -9,7 +9,16 @@ export interface IVesselPeriodEntity<T extends IEntity<T> = IEntity<any>> extend
 }
 
 export class VesselFeaturesUtils {
-  static CHANGES_IGNORED_PROPERTIES = ['id', 'startDate', 'endDate', 'creationDate', 'updateDate', 'recorderPerson', 'recorderDepartment'];
+  static CHANGES_IGNORED_PROPERTIES = [
+    'id',
+    'startDate',
+    'endDate',
+    'creationDate',
+    'updateDate',
+    'recorderPerson',
+    'recorderDepartment',
+    '__changedProperties',
+  ];
 
   static mergeAll(sources: VesselFeatures[]): VesselFeatures[] {
     return (sources || []).reduce(

@@ -55,7 +55,7 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
     super(injector, measurementsValidatorService, formBuilder, programRefService, null, {
       mapPmfms: (pmfms) => this.mapPmfms(pmfms),
     });
-    this._enable = true;
+    this._enabled = true;
     this.mobile = this.settings.mobile;
   }
 

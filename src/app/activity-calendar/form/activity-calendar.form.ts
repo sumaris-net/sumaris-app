@@ -130,7 +130,6 @@ export class ActivityCalendarForm
         },
       }
     );
-    this._enable = false;
 
     // FOR DEV ONLY ----
     //this.debug = !environment.production;
