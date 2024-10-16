@@ -45,6 +45,7 @@ export class ActivityMonthUtils {
       sortedMetierIds?: number[];
     }
   ): ActivityMonth[] {
+    if (!data) return undefined;
     data = ActivityCalendar.fromObject(data);
     const year = data?.year || DateUtils.moment().year() - 1;
     const monthStartDates = CalendarUtils.getMonths(year, opts?.timezone);

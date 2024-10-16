@@ -49,13 +49,12 @@ import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
-import { ActivityCalendarValidatorService } from '@app/activity-calendar/model/activity-calendar.validator';
 import { AppBaseTableFilterRestoreSource, BaseTableState } from '@app/shared/table/base.table';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
-import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
 
 export const ActivityCalendarsTableSettingsEnum = {
@@ -79,14 +78,7 @@ export interface ActivityCalendarsPageState extends BaseTableState {
   providers: [RxState],
 })
 export class ActivityCalendarsTable
-  extends AppRootDataTable<
-    ActivityCalendar,
-    ActivityCalendarFilter,
-    ActivityCalendarService,
-    ActivityCalendarValidatorService,
-    number,
-    ActivityCalendarsPageState
-  >
+  extends AppRootDataTable<ActivityCalendar, ActivityCalendarFilter, ActivityCalendarService, any, number, ActivityCalendarsPageState>
   implements OnInit, OnDestroy
 {
   @RxStateSelect() protected title$: Observable<string>;

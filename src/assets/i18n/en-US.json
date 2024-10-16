@@ -306,7 +306,7 @@
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "PMFM_GEAR_LABEL_ID": "Referential > PMFM > Physical gear label",
-        "PMFM_CHILD_GEAR_ID": "Referential > PSFM > Sub-gear",
+        "PMFM_CHILD_GEAR_ID": "Referential > PMFM > Sub-gear",
         "PMFM_HAS_ACCIDENTAL_CATCHES_ID": "Referential > PMFM > Accidental catch",
         "PMFM_HULL_MATERIAL_ID": "Referential > PMFM > Hull material (vessel)",
         "PMFM_BATCH_SORTING_ID": "Referential > PMFM > Bulk/Not Bulk",
@@ -322,8 +322,14 @@
         "PMFM_SALE_RANK_ORDER_ID": "Referential > PMFM > Rank order of the sale",
         "PMFM_LANDING_CATEGORY_ID": "Referential > PMFM > Landing product destination",
         "PMFM_HAS_PETS_ID": "Referential > PMFM > Presence of PETS? (Boolean)",
-        "PMFM_TAXON_GROUP_ID": "Referential > PMFM > Commercial species (id)",
-        "PMFM_SALE_TYPE_ID": "Referential > PMFM > Sale type (id)",
+        "PMFM_TAXON_GROUP_ID": "Referential > PMFM > Commercial species",
+        "PMFM_SALE_TYPE_ID": "Referential > PMFM > Sale type",
+        "PMFM_SURVEY_QUALIFICATION_ID": "Referential > PMFM > Survey qualification",
+        "PMFM_SURVEY_RELIABILITY_ID": "Referential > PMFM > Survey reliability",
+        "PMFM_AUCTION_HABIT_ID": "Referential > PMFM > Auction habit",
+        "PMFM_INACTIVITY_YEAR_ID": "Referential > PMFM > Annual inactivity confirmed by observer (Boolean)",
+        "PMFM_FISHING_DURATION_DAYS_ID": "Referential > PMFM > Fishing duration",
+        "PMFM_FISHING_AT_SEA_DAYS_ID": "Referential > PMFM > Duration at sea",
         "PMFM_IS_OBSERVED_ID": "Referential > PMFM > Observed species? (Boolean)",
         "PMFM_NON_OBSERVATION_REASON_ID": "Referential > PMFM > Non-observation reason (of a species)",
         "PMFM_SPECIES_LIST_ORIGIN_ID": "Referential > PMFM > Origin of species list (PETS/Random)",
@@ -1391,7 +1397,7 @@
       "TRAWL_SELECTIVITY": "Trawl selectivity",
       "OBSERVED_TRIP": "Observation of trip on board",
       "FORM": "Form with data",
-      "BLANK_FORM": "Empty form",
+      "BLANK_FORM": "Empty form"
     }
   },
   "EXPECTED_SALE": {
@@ -2325,10 +2331,6 @@
       "TRIP_ALLOW_PARENT_OPERATION": "Trip > Operation: Associated operations (laying/hauling)?",
       "TRIP_REPORT_ENABLE": "Trip > Enable report edition?",
       "TRIP_REPORT_TYPE": "Trip > Report type",
-      "TRIP_REPORT_TYPE_LEGACY": "Default",
-      "TRIP_REPORT_TYPE_TRAWL_SELECTIVITY": "Trawl selectivity",
-      "TRIP_REPORT_TYPE_FORM": "Form with data",
-      "TRIP_REPORT_TYPE_FORM_BLANK": "Empty form",
       "TRIP_REPORT_FORM_SUBTITLE": "Trip > Form report subtitle",
       "TRIP_REPORT_FORM_FOOTER": "Trip > Form report footer",
       "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Trip > Report: Logo for the left header",
@@ -3276,6 +3278,123 @@
       "ENABLE": "Activity calendar > Enable?",
       "NAME": "Activity calendar > Title (menu, etc.)"
     },
+    "REPORT": {
+      "TITLE": "Activity calendar {{ year }}",
+      "TITLE_MULTI": "Activity calendars",
+      "BLANK_TITLE": "Blank activity calendar",
+      "BASE_PORT_LOCATION": "Base port location",
+      "PMFM": {
+        "DURATION_AT_SEA_DAYS": "Nb days at sea",
+        "FISHING_DURATION_DAYS": "Nb fishing days",
+        "NB_FISHERMEN": "Nb fishermen on board"
+      },
+      "EFFORT_SECTION": {
+        "TITLE": "Fishing effort"
+      },
+      "METIERS_SECTION": {
+        "TITLE": "Métier",
+        "ROW_METIER": "Métiers",
+        "ROW_FISHING_AREA": "Area/Gradient"
+      },
+      "VESSEL_SECTION": {
+        "TITLE": "Vessel",
+        "REGISTRATION_CODE": "Registration:",
+        "REGISTRATION_LOCATION": "Registration location:",
+        "VESSEL_NAME": "Name:"
+      },
+      "SURVEY_QUALIFICATION_SECTION": {
+        "TITLE": "Survey qualification"
+      },
+      "GUF_SECTION": {
+        "TITLE": "Gear characteristics"
+      },
+      "SELL_SECTION": {
+        "TITLE": "Sales",
+        "ENTIRELY_AUCTION": "Entirely at auction",
+        "PARTIALLY_AUCTION": "Partially at auction",
+        "OUTSIDE_AUCTION": "Entirely outside auction"
+      },
+      "OBSERVER_SECTION": {
+        "TITLE": "Observer",
+        "LAST_NAME": "Last name:",
+        "FIRST_NAME": "First name:"
+      },
+      "REPORT_TYPE": {
+        "BLANK_FORM": "Blank form",
+        "FORM": "Form with data",
+        "PROGRESS": "Progress report"
+      },
+      "PROGRESS": {
+        "TITLE": "SIH - Fisheries activity survey {{ year }} - Progress report",
+        "COPYRIGHT": "© {{ year }} Ifremer - Fisheries Information System",
+        "TABLE": {
+          "VESSEL": "Vessel",
+          "NB_METIER_PEER_MONTH": "Number of métiers per month",
+          "COUNT_OF_EMPTY_MONTH": "Number of empty months",
+          "CALENDAR_STATUS": "Calendar status",
+          "RECORDER_PRESON": "Recorder",
+          "VESSEL_REGISTRATION_LOCATION": "Location",
+          "VESSEL_NAME": "Name",
+          "VESSEL_LENGTH": "Length O.A. (m)",
+          "SURVEY_QUALIFICATION_SECTION": "Survey qualification",
+          "MONTH1": "J",
+          "MONTH2": "F",
+          "MONTH3": "M",
+          "MONTH4": "A",
+          "MONTH5": "M",
+          "MONTH6": "J",
+          "MONTH7": "J",
+          "MONTH8": "A",
+          "MONTH9": "S",
+          "MONTH10": "O",
+          "MONTH11": "N",
+          "MONTH12": "D",
+          "STATUS": {
+            "EMPTY": "Not filled",
+            "COMPLETE": "Complete",
+            "INCOMPLETE": "Incomplete"
+          },
+          "ERROR": {
+            "REQUIRED_PORT": "Missing base port",
+            "REQUIRED_METIER": "Missing métier",
+            "REQUIRED_FISHING_AREA": "Missing fishing area",
+            "REQUIRED_DISTANCE_TO_COAST_GRADIENT": "Missing distance to coast gradient",
+            "TOO_MANY_METIER": "Others"
+          }
+        },
+        "SYNTHESIS": {
+          "TITLE": "Summary of activity calendar progress",
+          "VESSEL_COUNT": "Number of vessels",
+          "DIRECT_SURVEY": "Direct surveys",
+          "EMPTY_VESSEL": "Unreported vessels",
+          "INCOMPLETE_VESSEL": "Incomplete vessels",
+          "COMPLETED_CALENDAR": "Complete calendars"
+        }
+      }
+    },
+    "CONFIRM": {
+      "CLEAR_MONTH": "<b>Are you sure</b> you want to clear this month?",
+      "CLEAR_CALENDAR": "<b>Are you sure</b> you want to clear the calendar?",
+      "DELETE_CONFLICT": "<b>Are you sure</b> you want to delete this conflict?",
+      "KEEP_REMOTE": "<b>Are you sure</b> you want to keep the remote data?",
+      "COPY_PASTE": "<b>Are you sure</b> you want to copy the predocumentation to the calendar?"
+    },
+    "ERROR": {
+      "CANNOT_PASTE_HERE": "You cannot paste here.",
+      "CONFLICTUAL_MONTH": "Conflict detected while saving the calendar",
+      "DUPLICATED_METIER": "Duplicated métier(s): {{metiers}}",
+      "REQUIRED_FISHING_AREA": "Fishing area required for the métier(s): {{metiers}}",
+      "INCOMPLETE_CALENDAR": "Incomplete calendar ({{missing}} missing month(s))",
+      "REQUIRED_INACTIVITY_YEAR": "Annual inactivity to be confirmed",
+      "REQUIRED_DISTANCE_TO_COAST": "Distance to coast required for the area(s): {{fishingArea}}",
+      "INVALID_MONTHS": "Please correct the invalid month(s)",
+      "INCONSISTENT_DATA": "Inconsistent data",
+      "INCONSISTENCY_DAY_NUMBER": "Inconsistent number of days",
+      "DUPLICATED_FISHING_AREA": "Duplicated fishing area(s): {{fishingArea}}",
+      "INVALID_METIERS": "Please correct the invalid métier(s)",
+      "CSV_IMPORT_ERROR": "CSV file import failed.<small><br/>If the problem persists, please contact your administrator.</small>",
+      "MAX_SELECTED_ID": "Maximum number of selected items reached"
+    },
     "WARNING": {
       "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Survey qualification <b>{{surveyQualification}}</b> inconsistent with the objective.",
       "UNAUTHORIZED_REGISTRATION_LOCATION": "You are  <b>not allowed</b> to complete data on this registration location."
@@ -3296,6 +3415,7 @@
     "FIELD_MAXIMUM_DECIMALS": "Too many decimals ({{maxDecimals}} max)",
     "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb decimals > {{maxDecimals}}",
     "FIELD_INVALID": "Invalid value",
+    "FIELD_INCONSISTENT": "Inconsistent value",
     "FIELD_NOT_VALID_DECIMAL": "Expected decimal value",
     "FIELD_NOT_VALID_INTEGER": "Expected integer value",
     "FIELD_NOT_VALID_PRECISION": "Minimal precision: {{precision}}",
