@@ -62,7 +62,7 @@ import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES } from './trip/trip.config';
 import { IonicStorageModule } from '@ionic/storage-angular';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, IonRouterOutlet } from '@ionic/angular';
 import { CacheModule } from 'ionic-cache';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TypePolicies } from '@apollo/client/core';
@@ -556,10 +556,19 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
       provide: APP_NAMED_FILTER_SERVICE,
       useClass: NamedFilterService,
     },
+    // Tweak the IonRouterOutlet if this component shown in a modal
+    {
+      provide: IonRouterOutlet,
+      useValue: {
+        canGoBack: () => false,
+        nativeEl: '',
+      },
+    },
     provideHttpClient(withInterceptorsFromDi()),
 
     // Zone less
     provideExperimentalZonelessChangeDetection(),
+
   ],
 })
 export class AppModule {
