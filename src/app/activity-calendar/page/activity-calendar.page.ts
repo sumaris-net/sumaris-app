@@ -535,7 +535,6 @@ export class ActivityCalendarPage
 
   async setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
     const detailsErrors = error && typeof error === 'object' && error.details?.errors;
-    console.warn('TODO error: ', detailsErrors, error);
 
     // Conflictual error: show remote conflictual data
     if (detailsErrors?.conflict instanceof ActivityCalendar) {
