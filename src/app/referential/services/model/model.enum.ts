@@ -187,8 +187,9 @@ export const PmfmIds = {
   AUCTION_HABIT: 451,
 
   INACTIVITY_YEAR: 452,
+
+  DURATION_AT_SEA_DAYS: 449,
   FISHING_DURATION_DAYS: 450,
-  FISHING_AT_SEA_DAYS: 449,
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {

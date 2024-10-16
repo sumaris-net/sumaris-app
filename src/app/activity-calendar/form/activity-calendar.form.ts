@@ -121,7 +121,7 @@ export class ActivityCalendarForm
       measurementsValidatorService,
       formBuilder,
       programRefService,
-      validatorService.getFormGroup(null, { withGearUseFeatures: false, withVesselUseFeatures: false }),
+      validatorService.getFormGroup(null, { withVesselUseFeatures: false, withGearUseFeatures: false }),
       {
         onUpdateFormGroup: (form) => this.updateFormGroup(form),
         initialState: {

@@ -15,7 +15,9 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   AppFormArray,
   equals,
+  fromDateISOString,
   isNil,
+  isNilOrNaN,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
@@ -44,6 +46,7 @@ import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { Subscription } from 'rxjs';
 import { FORM_VALIDATOR_OPTIONS_PROPERTY } from '@app/shared/service/base.validator.service';
+import { Moment } from 'moment';
 
 export interface ActivityMonthValidatorOptions extends GearUseFeaturesValidatorOptions {
   required?: boolean;
@@ -547,28 +550,28 @@ export class ActivityMonthValidators {
 
   static validateDayCountConsistency(formGroup: FormArray): ValidationErrors | null {
     const measurementValues = formGroup.get('measurementValues')?.value as MeasurementFormValues;
-    const startDate = formGroup.get('startDate') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
-    const endDate = formGroup.get('endDate') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+    const startDate: Moment = fromDateISOString(formGroup.get('startDate')?.value);
+    const endDate: Moment = fromDateISOString(formGroup.get('endDate')?.value);
 
-    if (!measurementValues || !startDate?.value || !endDate?.value) {
+    if (!measurementValues || !startDate || !endDate) {
       return null;
     }
 
-    const fishingDurationDays = measurementValues?.[PmfmIds.FISHING_DURATION_DAYS];
-    const fishingAtSeaDays = measurementValues?.[PmfmIds.FISHING_AT_SEA_DAYS];
+    const fishingDurationDays = +measurementValues[PmfmIds.FISHING_DURATION_DAYS];
+    const durationAtSeaDays = +measurementValues[PmfmIds.DURATION_AT_SEA_DAYS];
 
-    if (isNil(fishingDurationDays) && isNil(fishingAtSeaDays)) return null;
+    if (isNilOrNaN(fishingDurationDays) && isNilOrNaN(durationAtSeaDays)) return null;
 
-    const maxMonthDay = endDate.value.diff(startDate.value, 'days');
+    const maxMonthDay = endDate.diff(startDate, 'days');
 
     const invalid =
-      (isNotNil(fishingDurationDays) && fishingDurationDays > maxMonthDay) || (isNotNil(fishingAtSeaDays) && fishingAtSeaDays > maxMonthDay);
+      (isNotNil(fishingDurationDays) && +fishingDurationDays > maxMonthDay) || (isNotNil(durationAtSeaDays) && +durationAtSeaDays > maxMonthDay);
 
     return invalid ? { inconsistencyDayNumber: true } : null;
   }
 
-  static uniqueFishingAreaInMetier(formGroup: FormGroup): ValidationErrors | null {
-    const control = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
+  static uniqueFishingAreaInMetier(formGroup: UntypedFormGroup): ValidationErrors | null {
+    const control = formGroup.get('gearUseFeatures');
     if (!control || !(control instanceof FormArray)) {
       return null;
     }

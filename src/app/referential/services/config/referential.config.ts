@@ -708,12 +708,12 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.FISHING_DURATION_DAYS,
   },
-  PMFM_FISHING_AT_SEA_DAYS_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.Pmfm.FISHING_AT_SEA_DAYS.id',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_FISHING_AT_SEA_DAYS_ID',
+  PMFM_DURATION_AT_SEA_DAYS_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.DURATION_AT_SEA_DAYS.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DURATION_AT_SEA_DAYS_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
-    defaultValue: PmfmIds.FISHING_AT_SEA_DAYS,
+    defaultValue: PmfmIds.DURATION_AT_SEA_DAYS,
   },
 
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
