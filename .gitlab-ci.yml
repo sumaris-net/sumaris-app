@@ -51,7 +51,7 @@ variables:
   ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
   ENV_FILE: variables.env
   IONIC_CLI_VERSION: 7.2.0
-  ANGULAR_CLI_VERSION: 17.2.3
+  ANGULAR_CLI_VERSION: 18.2.8
   NODE_MAX_OLD_SPACE_SIZE: 6144
 # ---------------------------------------------------------------
 # Jobs templates

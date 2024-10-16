@@ -103,7 +103,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         periodDuration: ['15 day', Validators.required],
       })
     );
-    this._enable = false; // Disable by default
+    this._enabled = false; // Disable by default
     this.mobile = this.settings.mobile;
 
     // Prepare start date items
