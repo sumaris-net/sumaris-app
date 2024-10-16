@@ -557,9 +557,9 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
     defaultValue: 'false',
   },
-  TRIP_REPORT_TYPE: <FormFieldDefinition>{
+  TRIP_REPORT_TYPES: <FormFieldDefinition>{
     key: 'sumaris.trip.report.type',
-    label: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPES',
     type: 'enums',
     values: [
       {
@@ -845,6 +845,18 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.VESSEL_TYPE_ENABLE',
     defaultValue: 'false',
     type: 'boolean',
+  },
+
+  VESSEL_FILTER_DEFAULT_TYPE_IDS: <FormFieldDefinition>{
+    key: 'sumaris.vessel.filter.type.ids',
+    label: 'PROGRAM.OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: <ReferentialRefFilter>{
+        entityName: 'VesselType',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+    },
   },
 
   // Landing

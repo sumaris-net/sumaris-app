@@ -190,8 +190,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       'reportTypes',
       this.program$.pipe(
         map((program) => {
-          return program.getPropertyAsStrings(ProgramProperties.TRIP_REPORT_TYPE).map((key) => {
-            const values = ProgramProperties.TRIP_REPORT_TYPE.values as Property[];
+          return program.getPropertyAsStrings(ProgramProperties.TRIP_REPORT_TYPES).map((key) => {
+            const values = ProgramProperties.TRIP_REPORT_TYPES.values as Property[];
             return values.find((item) => item.key === key);
           });
         })

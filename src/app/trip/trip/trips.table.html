@@ -1,4 +1,4 @@
-<app-toolbar *ngIf="showToolbar" [title]="titleSubject | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
+<app-toolbar *ngIf="showToolbar" [title]="title$ | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
   <ion-buttons slot="end">
     @if (selection | isEmptySelection) {
       @if (!mobile && !offline) {
@@ -65,7 +65,7 @@
       <app-extraction-button
         *ngIf="canDownload"
         [disabled]="offline"
-        [programLabels]="$selectedProgramLabels | async"
+        [programLabels]="selectionProgramLabels$ | async"
         [title]="'COMMON.BTN_DOWNLOAD' | translate"
         (downloadAsJson)="downloadSelectionAsJson($event)"
         (downloadAsType)="openDownloadPage($event)"
@@ -141,19 +141,21 @@
   >
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
-        <ion-row>
-          <ion-col>
-            <!-- Program -->
-            <mat-autocomplete-field
-              [placeholder]="'TRIP.TABLE.FILTER.PROGRAM' | translate"
-              formControlName="program"
-              [config]="autocompleteFields.program"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="contract"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-        </ion-row>
+        @if (showFilterProgram) {
+          <ion-row>
+            <ion-col>
+              <!-- Program -->
+              <mat-autocomplete-field
+                [placeholder]="'TRIP.TABLE.FILTER.PROGRAM' | translate"
+                formControlName="program"
+                [config]="autocompleteFields.program"
+                [clearable]="true"
+              >
+                <ion-icon matPrefix name="contract"></ion-icon>
+              </mat-autocomplete-field>
+            </ion-col>
+          </ion-row>
+        }
 
         <ion-row>
           <ion-col size="12" size-lg="6">
