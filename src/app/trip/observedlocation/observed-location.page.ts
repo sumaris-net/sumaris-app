@@ -673,10 +673,6 @@ export class ObservedLocationPage
     }
   }
 
-  protected async loadStrategy(strategyFilter: Partial<StrategyFilter>): Promise<Strategy> {
-    return await super.loadStrategy(strategyFilter); // Need taxon names when sale editor
-  }
-
   protected async setStrategy(strategy: Strategy): Promise<void> {
     await super.setStrategy(strategy);
 
