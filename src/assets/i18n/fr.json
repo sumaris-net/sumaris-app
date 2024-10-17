@@ -3579,7 +3579,8 @@
         "TITLE": "Qualification de l'enquête"
       },
       "GUF_SECTION": {
-        "TITLE": "Caractéristiques engins"
+        "TITLE": "Caractéristiques engins",
+        "METIER": "Metier(s)"
       },
       "SELL_SECTION": {
         "TITLE": "Ventes",
