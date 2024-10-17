@@ -47,7 +47,7 @@ export const VESSEL_CONFIG_OPTIONS = {
   },
   VESSEL_FILTER_DEFAULT_TYPE_IDS: <FormFieldDefinition>{
     key: 'sumaris.vessel.filter.type.ids',
-    label: 'CONFIGURATION.OPTIONS.VESSEL.VESSEL_FILTER_DEFAULT_TYPE_IDS',
+    label: 'CONFIGURATION.OPTIONS.VESSEL.FILTER_DEFAULT_TYPE_IDS',
     type: 'entities',
     autocomplete: {
       filter: <ReferentialRefFilter>{
