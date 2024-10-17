@@ -157,7 +157,6 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
     commonAcStats = await computeCommonActivityCalendarFormReportStats(
       data[0],
       commonAcStats,
-      this.configService,
       this.programRefService,
       this.program,
       this.strategy,
@@ -171,6 +170,7 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
         activityCalendar,
         indivStats,
         ActivityCalendarFormReport.pageDimensions,
+        this.configService,
         this.isBlankForm
       );
       stats.activityCalendarFormReportStatsByIds[activityCalendar.id] = indivStats;

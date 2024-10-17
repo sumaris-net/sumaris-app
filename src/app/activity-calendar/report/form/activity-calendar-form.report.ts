@@ -1,4 +1,6 @@
 import { Component, Injector, ViewEncapsulation } from '@angular/core';
+import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
+import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -31,7 +33,6 @@ import {
   computeIndividualActivityCalendarFormReportStats,
   fillActivityCalendarBlankData,
 } from './activity-calendar-from-report.utils';
-import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 
 export interface ActivityCalendarFormReportPageDimentions {
   height: number;
@@ -61,9 +62,11 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     activityMonth?: IPmfm[];
     activityCalendar?: IPmfm[];
     gpf?: IPmfm[];
+    guf?: IPmfm[];
   };
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
+  filteredAndOrderedGpf?: GearPhysicalFeatures[];
 
   static fromObject(source: any): ActivityCalendarFormReportStats {
     if (!source) return source;
@@ -238,17 +241,9 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   ): Promise<ActivityCalendarFormReportStats> {
     let stats = new ActivityCalendarFormReportStats();
 
-    stats = await computeCommonActivityCalendarFormReportStats(
-      data,
-      stats,
-      this.configService,
-      this.programRefService,
-      this.program,
-      this.strategy,
-      this.isBlankForm
-    );
+    stats = await computeCommonActivityCalendarFormReportStats(data, stats, this.programRefService, this.program, this.strategy, this.isBlankForm);
 
-    stats = await computeIndividualActivityCalendarFormReportStats(data, stats, this.pageDimensions, this.isBlankForm);
+    stats = await computeIndividualActivityCalendarFormReportStats(data, stats, this.pageDimensions, this.configService, this.isBlankForm);
 
     return stats;
   }

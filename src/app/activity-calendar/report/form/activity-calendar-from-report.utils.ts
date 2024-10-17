@@ -25,18 +25,17 @@ import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical
 import moment from 'moment';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { GearPhysicalFeaturesUtils } from '@app/activity-calendar/model/gear-physical-features.utils';
+import { Config } from 'electron';
 
 export async function computeCommonActivityCalendarFormReportStats(
   data: ActivityCalendar,
   stats: ActivityCalendarFormReportStats,
-  configService: ConfigService,
   programRefService: ProgramRefService,
   program: Program,
   strategy: Strategy,
   isBlankForm: boolean
 ): Promise<ActivityCalendarFormReportStats> {
-  const timezone = (await firstNotNilPromise(configService.config)).getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE) || DateUtils.moment().tz();
-
   stats.program = program;
   stats.strategy = strategy;
 
@@ -77,13 +76,20 @@ export async function computeIndividualActivityCalendarFormReportStats(
   data: ActivityCalendar,
   stats: ActivityCalendarFormReportStats,
   pageDimensions: ActivityCalendarFormReportPageDimentions,
+  configService: ConfigService,
   isBlankForm: boolean
 ): Promise<ActivityCalendarFormReportStats> {
+  const timezone = (await firstNotNilPromise(configService.config)).getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE) || DateUtils.moment().tz();
   const fishingAreaCount: number = isBlankForm
     ? stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER)
     : null;
 
-  stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, fillEmptyFishingArea: true, fishingAreaCount });
+  stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, {
+    fillEmptyGuf: true,
+    fillEmptyFishingArea: true,
+    fishingAreaCount,
+    timezone,
+  });
 
   computeActivityMonthColspan(stats, isBlankForm);
 
@@ -93,6 +99,8 @@ export async function computeIndividualActivityCalendarFormReportStats(
       (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gearIds.includes(gearId))
     );
   }
+
+  stats.filteredAndOrderedGpf = GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone });
 
   computeMetierTableChunk(stats, pageDimensions);
 
