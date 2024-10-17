@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Injector
 import { ModalController } from '@ionic/angular';
 import {
   AppEntityEditorModal,
+  DateUtils,
   EntitiesTableDataSource,
   isNil,
   isNilOrBlank,
@@ -16,18 +17,20 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { SelectOperationByTripTable } from '@app/trip/operation/select-operation-by-trip.table';
 import { OperationForm } from '@app/trip/operation/operation.form';
 import { OperationSaveOptions, OperationService } from '@app/trip/operation/operation.service';
-import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
+import { MapPmfmEvent, MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { AppDataEditorOptions } from '@app/data/form/data-editor.class';
 import { Promise, setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { Observable } from 'rxjs';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { TripService } from '@app/trip/trip/trip.service';
 import { ContextService } from '@app/shared/context.service';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import moment from 'moment/moment';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { Observable } from 'rxjs';
 
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
@@ -55,6 +58,8 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
 
   @RxStateProperty() tripId: number;
   @RxStateProperty() trip: Trip;
+  @RxStateProperty() physicalGear: PhysicalGear;
+
   @RxStateSelect() protected readonly gearId$: Observable<number>;
 
   @ViewChild('table', { static: true }) table: SelectOperationByTripTable;
@@ -296,6 +301,24 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
 
     // Open the first invalid tab
     return invalidTabs.indexOf(true);
+  }
+
+  protected async mapPmfms(event: MapPmfmEvent) {
+    if (!event || !event.detail.success) return; // Skip (missing callback)
+    let pmfms: IPmfm[] = event.detail.pmfms;
+
+    // If PMFM date/time, set default date, in on field mode
+    if (this.isNewData && this.isOnFieldMode && pmfms?.some(PmfmUtils.isDate)) {
+      pmfms = pmfms.map((p) => {
+        if (PmfmUtils.isDate(p)) {
+          p = p.clone();
+          p.defaultValue = DateUtils.markNoTime(DateUtils.resetTime(moment()));
+        }
+        return p;
+      });
+    }
+
+    event.detail.success(pmfms);
   }
 
   protected markForCheck() {
