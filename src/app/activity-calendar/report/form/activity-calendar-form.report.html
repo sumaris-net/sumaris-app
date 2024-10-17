@@ -293,6 +293,14 @@
                               | mapGet: 'location'
                               | referentialToString: ['label']
                           }}
+                          @if (month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]['distanceToCoastGradient'] | isNotNil) {
+                            &nbsp;-&nbsp;
+                            {{
+                              month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]
+                                | mapGet: 'distanceToCoastGradient'
+                                | referentialToString: ['label']
+                            }}
+                          }
                         </td>
                       }
                     </tr>
