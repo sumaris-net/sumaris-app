@@ -317,7 +317,7 @@
                     <ion-grid class="ion-no-padding">
                       <ion-row class="section-title">
                         <ion-col>
-                          <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GUF_SECTION.TITLE' | translate }}</h2>
+                          <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GPF_SECTION.TITLE' | translate }}</h2>
                         </ion-col>
                       </ion-row>
                       <ion-row>
@@ -325,7 +325,7 @@
                           <thead>
                             <tr>
                               <th class="ion-text-left" [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
-                                {{ 'ACTIVITY_CALENDAR.REPORT.GUF_SECTION.METIER' | translate }}
+                                {{ 'ACTIVITY_CALENDAR.REPORT.GPF_SECTION.METIER' | translate }}
                               </th>
                               @for (labelMetier of data.gearPhysicalFeatures | arrayPluck: 'metier.label'; track $index) {
                                 <th
