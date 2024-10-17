@@ -67,7 +67,6 @@ export const ActivityCalendarsTableSettingsEnum = {
 };
 
 export interface ActivityCalendarsPageState extends AppRootDataTableState {
-  title: string;
   years: number[];
   canImportCsvFile: boolean;
 }
