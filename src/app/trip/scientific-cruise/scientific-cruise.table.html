@@ -1,4 +1,4 @@
-<app-toolbar [title]="$title | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
+<app-toolbar [title]="title$ | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
   <ion-buttons slot="end">
     @if (selection | isEmptySelection) {
       @if (!mobile && !offline) {
