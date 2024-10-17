@@ -59,6 +59,22 @@
           </mat-autocomplete-field>-->
         </ion-col>
       </ion-row>
+      <ion-row class="ion-padding-start" [class.cdk-visually-hidden]="(form | formGetControl: 'strategy').disabled">
+        <ion-col>
+          <!-- Strategy -->
+          <mat-chips-field
+            formControlName="strategy"
+            [placeholder]="'TRIP.TABLE.FILTER.STRATEGY' | translate"
+            [config]="autocompleteFields.strategy"
+            [clearable]="true"
+            chipColor="accent"
+            [tabindex]="2"
+          >
+            <mat-icon matPrefix>date_range</mat-icon>
+          </mat-chips-field>
+        </ion-col>
+      </ion-row>
+
       <ion-row>
         <ion-col>
           <!-- enable history ? -->

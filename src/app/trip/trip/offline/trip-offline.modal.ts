@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
@@ -6,8 +6,15 @@ import {
   AppForm,
   AppFormUtils,
   DateUtils,
+  isEmptyArray,
+  isNilOrBlank,
   isNotEmptyArray,
+  isNotNil,
   isNotNilOrNaN,
+  LoadResult,
+  NetworkService,
+  ReferentialRef,
+  ReferentialUtils,
   SharedValidators,
   slideUpDownAnimation,
   StatusIds,
@@ -22,10 +29,19 @@ import { DATA_IMPORT_PERIODS } from '@app/data/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { mergeMap } from 'rxjs/operators';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { Program } from '@app/referential/services/model/program.model';
+import { map, Observable } from 'rxjs';
+import { RxState } from '@rx-angular/state';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 export interface TripOfflineModalOptions {
   value?: TripSynchroImportFilter;
+}
+
+export interface ITripOfflineModalState {
+  program: Program;
 }
 
 @Component({
@@ -33,11 +49,20 @@ export interface TripOfflineModalOptions {
   styleUrls: ['./trip-offline.modal.scss'],
   templateUrl: './trip-offline.modal.html',
   animations: [slideUpDownAnimation],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implements OnInit, TripOfflineModalOptions {
+  @RxStateRegister() protected readonly _state: RxState<ITripOfflineModalState> = inject(RxState<ITripOfflineModalState>);
+
+  @RxStateSelect() protected program$: Observable<Program>;
+
+  protected readonly networkService = inject(NetworkService);
+
   protected mobile: boolean;
   protected periodDurationLabels: { key: string; label: string; startDate: Moment }[];
+
+  @RxStateProperty() program: Program;
 
   @Input() title = 'TRIP.OFFLINE_MODAL.TITLE';
 
@@ -67,6 +92,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     protected translate: TranslateService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
+    protected strategyRefService: StrategyRefService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected cd: ChangeDetectorRef
@@ -76,6 +102,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         vesselSnapshot: [null, Validators.required],
+        strategy: [null, Validators.required],
         enableHistory: [true, Validators.required],
         periodDuration: ['15 day', Validators.required],
       })
@@ -109,6 +136,30 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
       mobile: this.mobile,
     });
 
+    // Strategies
+    this.registerAutocompleteField('strategy', {
+      suggestFn: (value, filter) => this.suggestStrategy(value, filter),
+      displayWith: (item) => item?.label || '',
+      mobile: this.mobile,
+      showAllOnFocus: true,
+    });
+    this._state.hold(
+      this.program$.pipe(
+        mergeMap((program) => {
+          if (!program) return Promise.resolve(null);
+          return this.strategyRefService.loadAll(0, 0, null, null, { levelId: program.id });
+        }),
+        map((res) => (res && res.total) || 0)
+      ),
+      (strategiesCount) => {
+        if (strategiesCount > 1) {
+          this.form.get('strategy').enable();
+        } else {
+          this.form.get('strategy').disable();
+        }
+      }
+    );
+
     // Enable/disable sub controls, from the 'enable history' checkbox
     const subControls = [this.form.get('periodDuration')];
     this.form
@@ -137,6 +188,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
 
     const json = {
       program: null,
+      strategy: null,
       vesselSnapshot: null,
       enableHistory: true,
       periodDuration: null,
@@ -153,6 +205,16 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
           this.setError(err.message);
         }
       }
+    }
+
+    // Strategy
+    if (isNotEmptyArray(value.strategyIds) && isNotNil(json.program.id)) {
+      json.strategy = (
+        await this.strategyRefService.loadAll(0, value.strategyIds.length, 'label', 'asc', {
+          levelId: json.program?.id,
+          includedIds: value.strategyIds,
+        })
+      )?.data;
     }
 
     // Duration period
@@ -183,6 +245,11 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
 
     this.enable();
 
+    if (isEmptyArray(json.strategy)) {
+      this.form.get('strategy').disable(); // Disable by default, when empty
+      this.cd.markForCheck();
+    }
+
     this.form.patchValue(json);
     this.markAsLoaded();
   }
@@ -197,6 +264,15 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
 
     // Set program
     value.programLabel = (json.program && json.program.label) || json.program;
+
+    // Strategy
+    if (json.strategy) {
+      if (Array.isArray(json.strategy)) {
+        value.strategyIds = json.strategy.map((entity) => entity.id);
+      } else {
+        value.strategyIds = [json.strategy.id];
+      }
+    }
 
     // Set start date
     if (json.enableHistory && json.periodDuration) {
@@ -239,6 +315,21 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     }
 
     return this.viewCtrl.dismiss(this.getValue(), 'OK');
+  }
+
+  protected async suggestStrategy(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    // Avoid to reload, when value is already a valid strategy
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+    if (isNilOrBlank(this.program?.label)) return undefined; // Program no loaded yet
+    filter = {
+      ...filter,
+      levelLabel: this.program.label,
+    };
+
+    // Force network, if possible - fix IMAGINE 302
+    const fetchPolicy = this.networkService.online ? 'network-only' : undefined; /*default*/
+
+    return this.strategyRefService.suggest(value, filter, 'label', 'asc', { fetchPolicy });
   }
 
   protected markForCheck() {
