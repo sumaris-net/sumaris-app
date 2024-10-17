@@ -31,7 +31,7 @@ import { filter, mergeMap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
 import { environment } from '@environments/environment';
 import { ISelectReferentialModalOptions, SelectReferentialModal } from '@app/referential/table/select-referential.modal';
-import { IonCheckbox, ModalController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { SimpleReferentialTable } from '@app/referential/table/referential-simple.table';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { UnitIds } from '@app/referential/services/model/model.enum';
@@ -60,7 +60,6 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('qualitativeValuesTable', { static: true }) qualitativeValuesTable: SimpleReferentialTable;
-  @ViewChild('btnUseDefaultQualitativeValues', { static: true }) btnUseDefaultQualitativeValues: IonCheckbox;
 
   constructor(
     protected injector: Injector,
@@ -244,15 +243,14 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
     // qualitativeValues
     if (isNilOrBlank(data.qualitativeValues)) {
       this.qualitativeValuesTable.value = data.parameter?.qualitativeValues || [];
-      this.btnUseDefaultQualitativeValues.checked = true;
       this.useDefaultQualitativesValues = true;
     } else {
       this.qualitativeValuesTable.value = this.data.qualitativeValues.map((d) => Referential.fromObject(d.asObject()));
-      this.btnUseDefaultQualitativeValues.checked = false;
       this.useDefaultQualitativesValues = false;
     }
 
     this.markAsPristine();
+    this.markForCheck();
   }
 
   async getValue(): Promise<Pmfm> {
@@ -320,9 +318,9 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
     this.cd.markForCheck();
   }
 
-  protected async toggleUseDefaultQualitativeValues(event) {
+  protected async toggleUseDefaultQualitativeValues(event?: Event) {
     // NOTE : the status of the check btn is not already updated at this moment this is why is it inverted
-    if (!this.btnUseDefaultQualitativeValues.checked) {
+    if (!this.useDefaultQualitativesValues) {
       this.qualitativeValuesTable.value = this.data.parameter.qualitativeValues;
       this.useDefaultQualitativesValues = true;
       this.markAsDirty();
@@ -330,7 +328,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
       this.qualitativeValuesTable.value = null;
       const data = await this.openSelectReferentialModal();
       if (isNilOrBlank(data)) {
-        this.btnUseDefaultQualitativeValues.checked = true;
+        this.useDefaultQualitativesValues = true;
         this.qualitativeValuesTable.value = this.data.parameter.qualitativeValues;
       } else {
         this.useDefaultQualitativesValues = false;
@@ -377,7 +375,6 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
     this.markAsDirty();
     if (isEmptyArray(this.qualitativeValuesTable.value)) {
       this.useDefaultQualitativesValues = true;
-      this.btnUseDefaultQualitativeValues.checked = true;
       this.qualitativeValuesTable.value = this.data?.parameter?.qualitativeValues || [];
     }
   }
