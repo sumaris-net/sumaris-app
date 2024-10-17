@@ -29,8 +29,7 @@ import { TripService } from '@app/trip/trip/trip.service';
 import { ContextService } from '@app/shared/context.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment/moment';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { Observable } from 'rxjs';
+import { RxStateProperty } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
 
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
@@ -61,8 +60,6 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   @RxStateProperty() tripId: number;
   @RxStateProperty() trip: Trip;
   @RxStateProperty() physicalGear: PhysicalGear;
-
-  @RxStateSelect() protected readonly gearId$: Observable<number>;
 
   @ViewChild('table', { static: true }) table: SelectOperationByTripTable;
   @ViewChild('form', { static: true }) opeForm: OperationForm;
