@@ -31,6 +31,7 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment/moment';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { Observable } from 'rxjs';
+import { RxState } from '@rx-angular/state';
 
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
@@ -48,6 +49,7 @@ export interface ISelectOperationModalOptions {
   selector: 'app-select-operation-modal',
   templateUrl: './select-operation.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
 export class SelectOperationModal extends AppEntityEditorModal<Operation> implements OnInit, ISelectOperationModalOptions {
   datasource: EntitiesTableDataSource<Operation, OperationFilter>;
