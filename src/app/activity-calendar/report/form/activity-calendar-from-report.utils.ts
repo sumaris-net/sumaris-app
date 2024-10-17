@@ -8,6 +8,7 @@ import {
   CORE_CONFIG_OPTIONS,
   ConfigService,
   DateUtils,
+  StatusIds,
   firstNotNilPromise,
   isEmptyArray,
   isNotEmptyArray,
@@ -15,7 +16,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -26,7 +27,6 @@ import moment from 'moment';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { GearPhysicalFeaturesUtils } from '@app/activity-calendar/model/gear-physical-features.utils';
-import { Config } from 'electron';
 
 export async function computeCommonActivityCalendarFormReportStats(
   data: ActivityCalendar,
@@ -69,6 +69,10 @@ export async function computeCommonActivityCalendarFormReportStats(
         ],
   };
 
+  stats.surveyQualificationQualitativeValues = stats.pmfm.activityCalendar
+    .filter((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION)[0]
+    ?.qualitativeValues.filter((qv) => (isBlankForm ? true : qv.statusId === StatusIds.ENABLE));
+
   return stats;
 }
 
@@ -100,7 +104,7 @@ export async function computeIndividualActivityCalendarFormReportStats(
     );
   }
 
-  stats.filteredAndOrderedGpf = GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone });
+  stats.filteredAndOrderedGpf = isBlankForm ? data.gearPhysicalFeatures : GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone });
 
   computeMetierTableChunk(stats, pageDimensions);
 
