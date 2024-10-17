@@ -71,7 +71,8 @@ export async function computeCommonActivityCalendarFormReportStats(
 
   stats.surveyQualificationQualitativeValues = stats.pmfm.activityCalendar
     .filter((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION)[0]
-    ?.qualitativeValues.filter((qv) => (isBlankForm ? true : qv.statusId === StatusIds.ENABLE));
+    ?.qualitativeValues.filter((qv) => (isBlankForm ? true : qv.statusId === StatusIds.ENABLE))
+    .sort((a, b) => (a.name > b.name ? 1 : a.name < b.name ? -1 : 0));
 
   return stats;
 }
