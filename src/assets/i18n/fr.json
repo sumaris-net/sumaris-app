@@ -194,6 +194,7 @@
     "PROPERTIES_DIVIDER": "Options :",
     "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
+    "BTN_SHOW_OPTION_KEY": "Afficher les codes d'option",
     "BTN_ADD_OPTION": "Ajouter une option",
     "BTN_CLEAR_CACHE": "Vider le cache serveur",
     "CACHE_TITLE": "Statistique du cache serveur",

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, Injector, Optional } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injector, Input, Optional } from '@angular/core';
 import {
   Alerts,
   APP_CONFIG_OPTIONS,
@@ -40,6 +40,8 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     filter(isNotNil),
     map((data) => data?.length || 0)
   );
+
+  @Input() showHintKey = false;
 
   get config(): Configuration {
     return (this.data && (this.data as Configuration)) || undefined;
@@ -130,5 +132,10 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
     return null; // No page history
+  }
+
+  protected toggleShowHintKey() {
+    this.showHintKey = !this.showHintKey;
+    this.markForCheck();
   }
 }

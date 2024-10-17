@@ -126,19 +126,19 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEnt
     data.label = this.form.get('label').value;
 
     // Transform properties
-    data.properties = this.propertiesForm.value;
-    data.properties
-      .filter((property) => this.propertyDefinitions.find((def) => def.key === property.key && (def.type === 'entity' || def.type === 'entities')))
-      .forEach((property) => {
-        if (Array.isArray(property.value)) {
-          property.value = property.value
-            .map((v) => v?.id)
-            .filter(isNotNil)
-            .join(',');
-        } else {
-          property.value = (property.value as any)?.id;
-        }
-      });
+    data.properties = (this.propertiesForm.value || []).map((property) => {
+      const key = (property.key as any)?.key ?? property.key;
+      let value = property.value;
+      if (Array.isArray(value)) {
+        value = value
+          .map((v) => v?.id ?? v)
+          .filter(isNotNil)
+          .join(',');
+      } else {
+        value = (value as any)?.id ?? value;
+      }
+      return { key, value };
+    });
 
     return data;
   }
