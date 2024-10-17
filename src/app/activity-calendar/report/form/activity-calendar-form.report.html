@@ -59,7 +59,7 @@
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
     <section>
-      @for (metierChunk of stats.metierTableChunks; track pageIndex; let pageIndex = $index; let firstPage = $first; let lastPage = $last) {
+      @for (metierChunk of stats.metierTableChunks; track metierChunk; let pageIndex = $index; let firstPage = $first; let lastPage = $last) {
         <section
           *sectionDef
           [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight + 'px'"
@@ -180,7 +180,7 @@
               <thead>
                 <tr>
                   <th></th>
-                  @for (month of stats.activityMonth; track month.id) {
+                  @for (month of stats.activityMonth; track $index) {
                     <th>
                       {{ month.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
                     </th>
@@ -193,7 +193,7 @@
                   <th class="col-label">
                     {{ 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate }}
                   </th>
-                  @for (month of stats.activityMonth; track month.id) {
+                  @for (month of stats.activityMonth; track $index) {
                     <td>
                       {{ isActiveMap[month.isActive] | mapGet: 'label' | translate }}
                     </td>
@@ -204,7 +204,7 @@
                   <th class="col-label">
                     {{ 'ACTIVITY_CALENDAR.REPORT.BASE_PORT_LOCATION' | translate }}
                   </th>
-                  @for (month of stats.activityMonth; track month.id) {
+                  @for (month of stats.activityMonth; track $index) {
                     <td [class.activity-not-exists]="(month | mapGet: 'isActive') === 2" class="fit-one-line">
                       <div>
                         <div [title]="month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] }">
@@ -219,7 +219,7 @@
                     <th class="col-label">
                       {{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix, withUnit: false } }}
                     </th>
-                    @for (month of stats.activityMonth; track month.id) {
+                    @for (month of stats.activityMonth; track $index) {
                       <td
                         [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
                         [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
@@ -244,7 +244,7 @@
               <thead>
                 <tr>
                   <th class="col-label"></th>
-                  @for (month of stats.activityMonth; track month.id) {
+                  @for (month of stats.activityMonth; track $index) {
                     <th>
                       {{ month.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
                     </th>
@@ -257,7 +257,7 @@
                     <th class="col-label">
                       {{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}
                     </th>
-                    @for (month of stats.activityMonth; track month.id; let monthIndex = $index) {
+                    @for (month of stats.activityMonth; track monthIndex; let monthIndex = $index) {
                       @if (stats.activityMonthColspan[monthIndex][metierIndex] > 0) {
                         <td
                           [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
@@ -283,7 +283,7 @@
                   @for (fishingAreasIndex of metierChunk[metierChunkIndex] | mapGet: 'fishingAreasIndexes'; track fishingAreasIndex) {
                     <tr>
                       <th class="col-label">{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_FISHING_AREA' | translate }}</th>
-                      @for (month of stats.activityMonth; track month.id) {
+                      @for (month of stats.activityMonth; track $index) {
                         <td
                           [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
                           [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
@@ -317,7 +317,7 @@
                           <thead>
                             <tr>
                               <th [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'"></th>
-                              @for (labelMetier of data.gearPhysicalFeatures | arrayPluck: 'metier.label'; track labelMetier) {
+                              @for (labelMetier of data.gearPhysicalFeatures | arrayPluck: 'metier.label'; track $index) {
                                 <th
                                   [style.--col-width]="
                                     'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
@@ -332,7 +332,7 @@
                             @for (pmfm of stats.pmfm.gpf; track pmfm.id) {
                               <tr [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
                                 <th>{{ pmfm | pmfmName: { withDetails: false } }}</th>
-                                @for (gpf of data.gearPhysicalFeatures; track gpf.id) {
+                                @for (gpf of data.gearPhysicalFeatures; track $index) {
                                   <td
                                     [style.--col-width]="
                                       'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearPhysicalFeatures.length + ')'
