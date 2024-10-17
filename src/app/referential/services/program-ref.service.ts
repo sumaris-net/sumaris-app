@@ -11,7 +11,6 @@ import {
   BaseEntityGraphqlSubscriptions,
   ConfigService,
   Configuration,
-  DateUtils,
   Department,
   EntitiesServiceLoadOptions,
   EntitiesStorage,
@@ -1091,7 +1090,7 @@ export class ProgramRefService
       };
       const strategyFilter = StrategyFilter.fromObject({
         includedIds: filter.strategyIds,
-        startDate: DateUtils.moment().startOf('day'), // Active strategies
+        // startDate: DateUtils.moment().startOf('day'), // Active strategies
       });
 
       // If strategy are filtered, import only ONE program - fix issue IMAGINE (avoid to import all DB programs)
