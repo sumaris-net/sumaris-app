@@ -16,13 +16,14 @@ import { environment } from '@environments/environment';
 import {
   ConfigService,
   EntityAsObjectOptions,
-  LocalSettingsService,
-  isNotNil,
   LoadResult,
+  LocalSettingsService,
+  ReferentialRef,
+  TranslateContextService,
+  isNotNil,
   referentialToString,
   sleep,
   splitById,
-  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../../activity-calendar.service';
 import { ActivityMonth } from '../../calendar/activity-month.model';
@@ -67,6 +68,7 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
   filteredAndOrderedGpf?: GearPhysicalFeatures[];
+  surveyQualificationQualitativeValues?: ReferentialRef[];
 
   static fromObject(source: any): ActivityCalendarFormReportStats {
     if (!source) return source;
@@ -202,7 +204,6 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   protected async loadData(id: number, opts?: any): Promise<ActivityCalendar> {
     console.log(`[${this.logPrefix}] loadData`);
     const filter: ActivityCalendarFilter = ActivityCalendarFilter.fromObject({ includedIds: [id] });
-    // const fetchedData = await this.ActivityCalendarService.load(id, { ...opts, forBlankFrom: this.isBlankForm });
     let loadResult: LoadResult<ActivityCalendar>;
     if (this.isBlankForm) {
       loadResult = await this.activityCalendarService.loadAllVesselOnly(0, 1, null, null, filter);
