@@ -94,7 +94,7 @@ export class ActivityCalendarValidatorService<
       __typename: [ActivityCalendar.TYPENAME],
       startDate: [data?.startDate || null, Validators.compose([Validators.required, SharedValidators.validDate])],
       year: [toNumber(data?.year, null), Validators.required],
-      directSurveyInvestigation: [toBoolean(data?.directSurveyInvestigation, null), Validators.required],
+      directSurveyInvestigation: [toNumber(data?.directSurveyInvestigation, null), Validators.required],
       economicSurvey: [toBoolean(data?.economicSurvey, null)],
       measurementValues: this.formBuilder.group({}),
     });

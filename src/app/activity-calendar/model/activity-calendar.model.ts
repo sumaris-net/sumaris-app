@@ -2,7 +2,8 @@ import {
   EntityAsObjectOptions,
   EntityClass,
   fromDateISOString,
- isNil, isNotNil,
+  isNil,
+  isNotNil,
   Person,
   ReferentialAsObjectOptions,
   ReferentialUtils,
@@ -19,6 +20,12 @@ import { IWithObserversEntity } from '@app/data/services/model/model.utils';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
 
+export const DirectSurveyInvestigationEnum = {
+  NO: 0,
+  YES: 1,
+  OPPORTUNISTIC: 2,
+};
+
 @EntityClass({ typename: 'ActivityCalendarVO' })
 export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> implements IWithObserversEntity<ActivityCalendar> {
   static ENTITY_NAME = 'ActivityCalendar';
@@ -26,7 +33,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> imp
 
   year: number;
   startDate: Moment;
-  directSurveyInvestigation: boolean;
+  directSurveyInvestigation: number;
   economicSurvey: boolean;
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
   vesselUseFeatures: VesselUseFeatures[];

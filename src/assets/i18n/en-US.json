@@ -3266,6 +3266,11 @@
         "DISABLE": "Inactive",
         "NOT_EXISTS": "Non-existent"
       },
+      "DIRECT_SURVEY_INVESTIGATION_ENUM": {
+        "NO": "No",
+        "YES": "Yes",
+        "OPPORTUNISTIC": "Opportunistic"
+      },
       "SIH-ACTIFLOT": {
         "SOURCE_PREDOC": "Survey N-1"
       },

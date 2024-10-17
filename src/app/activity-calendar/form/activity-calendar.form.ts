@@ -13,6 +13,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  IStatus,
   LoadResult,
   NetworkService,
   Person,
@@ -20,12 +21,13 @@ import {
   PersonUtils,
   ReferentialUtils,
   setPropertyByPath,
+  splitById,
   StatusIds,
   toBoolean,
   toDateISOString,
   UserProfileLabel,
 } from '@sumaris-net/ngx-components';
-import { ActivityCalendar } from '../model/activity-calendar.model';
+import { ActivityCalendar, DirectSurveyInvestigationEnum } from '../model/activity-calendar.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -46,6 +48,21 @@ export interface ActivityCalendarFormState extends MeasurementsFormState {
   warnFutureYear: boolean;
 }
 
+export const DirectSurveyInvestigationList: Readonly<IStatus[]> = Object.freeze([
+  {
+    id: DirectSurveyInvestigationEnum.YES,
+    label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.YES',
+  },
+  {
+    id: DirectSurveyInvestigationEnum.NO,
+    label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.NO',
+  },
+  {
+    id: DirectSurveyInvestigationEnum.OPPORTUNISTIC,
+    label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.OPPORTUNISTIC',
+  },
+]);
+
 @Component({
   selector: 'app-form-activity-calendar',
   templateUrl: './activity-calendar.form.html',
@@ -60,6 +77,9 @@ export class ActivityCalendarForm
   private _lastValidatorOpts: any;
   private _readonlyControlNames: (keyof ActivityCalendar)[] = ['program', 'year', 'startDate', 'directSurveyInvestigation', 'economicSurvey', 'year'];
   protected observerFocusIndex = -1;
+
+  protected readonly directSurveyInvestigationList = DirectSurveyInvestigationList;
+  protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
 
   @RxStateSelect() protected showObservers$: Observable<boolean>;
   @RxStateSelect() protected warnFutureYear$: Observable<boolean>;
