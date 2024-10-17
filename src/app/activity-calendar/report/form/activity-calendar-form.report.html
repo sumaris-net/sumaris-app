@@ -324,7 +324,9 @@
                         <table class="gpf-table" [style.width]="'100%'">
                           <thead>
                             <tr>
-                              <th [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'"></th>
+                              <th class="ion-text-left" [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
+                                {{ 'ACTIVITY_CALENDAR.REPORT.GUF_SECTION.METIER' | translate }}
+                              </th>
                               @for (labelMetier of data.gearPhysicalFeatures | arrayPluck: 'metier.label'; track $index) {
                                 <th
                                   [style.--col-width]="
