@@ -15,8 +15,8 @@ import {
   ConfigService,
   EntityAsObjectOptions,
   LoadResult,
+  LocalSettingsService,
   TranslateContextService,
-  isInstanceOf,
   isNotNil,
   referentialToString,
   sleep,
@@ -149,6 +149,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   protected readonly vesselSnapshotService: VesselSnapshotService;
   protected readonly translateContextService: TranslateContextService;
   protected readonly configService: ConfigService;
+  protected readonly localSettings: LocalSettingsService;
 
   protected readonly isActiveList = IsActiveList;
   protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
@@ -174,6 +175,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     this.vesselSnapshotService = this.injector.get(VesselSnapshotService);
     this.translateContextService = this.injector.get(TranslateContextService);
     this.configService = this.injector.get(ConfigService);
+    this.localSettings = this.injector.get(LocalSettingsService);
 
     this.reportPath = this.route.snapshot.routeConfig.path;
     this.isBlankForm = this.route.snapshot.data?.isBlankForm;
@@ -248,7 +250,6 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
 
     stats = await computeIndividualActivityCalendarFormReportStats(data, stats, this.pageDimensions, this.isBlankForm);
 
-    console.debug('TODO data/stats', { data, stats });
     return stats;
   }
 
@@ -259,7 +260,10 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
           '&nbsp' +
           this.translateContextService.instant('ACTIVITY_CALENDAR.EDIT.TITLE', this.i18nContext.suffix, {
             year: data.year,
-            vessel: referentialToString(data.vesselSnapshot, ['exteriorMarking', 'name']),
+            vessel: referentialToString(
+              data.vesselSnapshot,
+              this.localSettings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name'])
+            ),
           });
   }
 
