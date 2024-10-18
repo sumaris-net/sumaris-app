@@ -122,11 +122,11 @@
     </ion-col>
   </ion-row>
 
-  <ng-container *ngFor="let item of reportTypes">
+  @for (item of reportTypes; track item.key) {
     <button mat-menu-item (click)="openReport(item.key)">
       <ion-label>{{ item.value | translate }}</ion-label>
     </button>
-  </ng-container>
+  }
 </mat-menu>
 
 <ion-content>
