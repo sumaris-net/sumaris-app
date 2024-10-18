@@ -9,6 +9,7 @@ import {
   ConfigService,
   DateUtils,
   StatusIds,
+  arrayDistinct,
   firstNotNilPromise,
   isEmptyArray,
   isNotEmptyArray,
@@ -67,6 +68,12 @@ export async function computeCommonActivityCalendarFormReportStats(
             name: stats.program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2),
           }),
         ],
+    guf: !isBlankForm
+      ? await programRefService.loadProgramPmfms(data.program.label, {
+          acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_USE_FEATURES,
+          strategyId: stats.strategy.id,
+        })
+      : [],
   };
 
   stats.surveyQualificationQualitativeValues = stats.pmfm.activityCalendar
@@ -99,11 +106,17 @@ export async function computeIndividualActivityCalendarFormReportStats(
   computeActivityMonthColspan(stats, isBlankForm);
 
   if (!isBlankForm) {
-    const gearIds = data.gearPhysicalFeatures?.map((gph) => gph.gear.id) || [];
+    const gpfGearIds = data.gearPhysicalFeatures?.map((gph) => gph.gear.id) || [];
     stats.pmfm.gpf = stats.pmfm.gpf.filter(
-      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gearIds.includes(gearId))
+      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gpfGearIds.includes(gearId))
+    );
+    const gufGearIds = data.gearUseFeatures?.map((guf) => guf.gear.id) || [];
+    stats.pmfm.guf = stats.pmfm.guf.filter(
+      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gufGearIds.includes(gearId))
     );
   }
+
+  stats.pmfm.forGpfTable = arrayDistinct(stats.pmfm.gpf.concat(stats.pmfm.guf), 'id');
 
   stats.filteredAndOrderedGpf = isBlankForm ? data.gearPhysicalFeatures : GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone });
 
@@ -186,7 +199,7 @@ function computeMetierTableChunk(stats: ActivityCalendarFormReportStats, pageDim
     pageDimensions.marginTop / 2 +
     pageDimensions.sectionTitleHeight +
     pageDimensions.gpfTableRowTitleHeight +
-    stats.pmfm.gpf.length * pageDimensions.gpfTableRowHeight;
+    stats.pmfm.forGpfTable.length * pageDimensions.gpfTableRowHeight;
   const heighOfMetierTableHead = pageDimensions.marginTop + pageDimensions.sectionTitleHeight + pageDimensions.monthTableRowTitleHeight;
 
   const availableHeightOnFirstPage = totalAvailableHeightForContent - heightOfEffortSection - heighOfMetierTableHead;

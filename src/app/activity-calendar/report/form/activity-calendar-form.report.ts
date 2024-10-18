@@ -34,6 +34,7 @@ import {
   computeIndividualActivityCalendarFormReportStats,
   fillActivityCalendarBlankData,
 } from './activity-calendar-from-report.utils';
+import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 
 export interface ActivityCalendarFormReportPageDimentions {
   height: number;
@@ -64,10 +65,11 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     activityCalendar?: IPmfm[];
     gpf?: IPmfm[];
     guf?: IPmfm[];
+    forGpfTable?: IPmfm[];
   };
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
-  filteredAndOrderedGpf?: GearPhysicalFeatures[];
+  filteredAndOrderedGpf?: (GearPhysicalFeatures | GearUseFeatures)[];
   surveyQualificationQualitativeValues?: ReferentialRef[];
 
   static fromObject(source: any): ActivityCalendarFormReportStats {
