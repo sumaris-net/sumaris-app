@@ -279,13 +279,11 @@ export class OperationPage<S extends OperationState = OperationState>
     );
 
     // Apply program
-    this._state.hold(this._state.select('program'), (program) => {
+    this._state.hold(this.program$, (program) => {
       // Update the context (to avoid a reload, when opening the another operation)
       if (this.context && this.context.program !== program) {
         this.context.setValue('program', program);
       }
-
-      return this.setProgram(program);
     });
 
     // Watch trip
@@ -792,7 +790,7 @@ export class OperationPage<S extends OperationState = OperationState>
     const skipDates = isNotNil(skipDatesPmfmId) ? toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, skipDatesPmfmId), false) : false;
     const isGPSUsed =
       toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.CAMERA_USED), false) ||
-      toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), false);
+      toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true); // GPS is enable by default
     const enablePosition = !skipDates && isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
 
     this.opeForm.trip = this.trip;
