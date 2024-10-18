@@ -1556,30 +1556,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     };
   }
 
-  isDepartmentDisable(index: number): boolean {
-    return this.departmentsHelper.at(index).status === 'DISABLED';
-  }
-
-  isLocationDisable(index: number): boolean {
-    return this.appliedStrategiesHelper.at(index).status === 'DISABLED' || this.hasEffort;
-  }
-
-  isFractionDisable(index: number): boolean {
-    return this.fractionPmfmsHelper.at(index).status === 'DISABLED';
-  }
-
-  isLengthPmfmDisable(index: number): boolean {
-    return this.lengthPmfmsHelper.at(index).status === 'DISABLED';
-  }
-
-  isWeightPmfmDisable(index: number): boolean {
-    return this.weightPmfmsHelper.at(index).status === 'DISABLED';
-  }
-
-  isMaturityPmfmDisable(index: number): boolean {
-    return this.maturityPmfmsHelper.at(index).status === 'DISABLED';
-  }
-
   markAsDirty() {
     this.form.markAsDirty();
   }
