@@ -792,6 +792,8 @@
     },
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne",
+      "VESSELS": "Navire(s)",
+      "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
       "DURATION_PLACEHOLDER": "Période à importer"
     },
     "ERROR": {
@@ -1696,7 +1698,7 @@
     "PMFM": {},
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne",
-      "HISTORICAL_DATA_DIVIDER": "Historique de données",
+      "VESSELS": "Navire(s) (optionnel)",
       "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
       "DURATION_PLACEHOLDER": "Période à importer"
     },
@@ -3537,7 +3539,10 @@
       }
     },
     "OFFLINE_MODAL": {
-      "TITLE": "Configuration du mode hors-ligne"
+      "TITLE": "Configuration du mode hors-ligne",
+      "VESSELS": "Navire(s)",
+      "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
+      "DURATION_PLACEHOLDER": "Période à importer"
     },
     "OPTIONS": {
       "ENABLE": "Calendrier d'activité > Activer ?",
@@ -3800,6 +3805,7 @@
     "ALERT_HEADER": "Avertissement",
     "OOPS_DOTS": "Oups...",
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>",
-    "DATE_IN_THE_FUTURE": "Date dans le futur"
+    "DATE_IN_THE_FUTURE": "Date dans le futur",
+    "EXPERIMENTAL_FEATURE": "Fonctionnalité expérimentale ! En cours de développement."
   }
 }

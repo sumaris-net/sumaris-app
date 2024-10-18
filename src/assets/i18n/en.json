@@ -765,6 +765,8 @@
     },
     "OFFLINE_MODAL": {
       "TITLE": "Configuring offline mode",
+      "VESSELS": "Vessel(s)",
+      "ENABLE_HISTORICAL_DATA": "Import data history?",
       "DURATION_PLACEHOLDER": "Period to import"
     },
     "ERROR": {
@@ -1537,7 +1539,7 @@
     "PMFM": {},
     "OFFLINE_MODAL": {
       "TITLE": "Configuring offline mode",
-      "HISTORICAL_DATA_DIVIDER": "Data history",
+      "VESSELS": "Vessel(s) (optional)",
       "ENABLE_HISTORICAL_DATA": "Import data history?",
       "DURATION_PLACEHOLDER": "Period to import"
     },
@@ -3274,7 +3276,10 @@
       }
     },
     "OFFLINE_MODAL": {
-      "TITLE": "Offline mode configuration"
+      "TITLE": "Offline mode configuration",
+      "VESSELS": "Vessel(s)",
+      "ENABLE_HISTORICAL_DATA": "Import data history?",
+      "DURATION_PLACEHOLDER": "Period to import"
     },
     "OPTIONS": {
       "ENABLE": "Activity calendar > Enable?",
@@ -3537,6 +3542,7 @@
     "ALERT_HEADER": "Warning",
     "OOPS_DOTS": "Oops...",
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "Historical data was not imported. <small>Please update the offline mode.</small>",
-    "DATE_IN_THE_FUTURE": "Date in the future"
+    "DATE_IN_THE_FUTURE": "Date in the future",
+    "EXPERIMENTAL_FEATURE": "Experimental feature! Under development."
   }
 }

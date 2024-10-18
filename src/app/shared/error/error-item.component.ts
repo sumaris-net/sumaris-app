@@ -17,6 +17,7 @@ import { TranslateModule } from '@ngx-translate/core';
 export class AppErrorItem {
   @Input() message: string;
   @Input() icon = 'alert-circle';
+  @Input() backgroundColor: AppColors = 'transparent';
   @Input() color: AppColors = 'danger';
   @Input({ transform: booleanAttribute }) animated = true;
   // eslint-disable-next-line @angular-eslint/no-input-rename
