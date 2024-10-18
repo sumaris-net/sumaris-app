@@ -44,7 +44,7 @@ export class Calendar extends Entity<Calendar> {
   registrationLocationLabel: string;
   vesselRegistrationCode: string;
   vesselIntRegistrationCode: string;
-  observer: string;
+  observerName: string;
   surveyQualification: string;
   emptyMonthCount: number;
   errorMonthCount: number;
@@ -66,7 +66,7 @@ export class Calendar extends Entity<Calendar> {
     this.registrationLocationLabel = source.registrationLocationLabel?.replace('|', ', ');
     this.vesselRegistrationCode = source.vesselRegistrationCode?.replace('|', ', ');
     this.vesselIntRegistrationCode = source.vesselIntRegistrationCode?.replace('|', ', ');
-    this.observer = source.observer;
+    this.observerName = source.observerName;
     this.surveyQualification = source.surveyQualification;
     this.recorderPerson = source.recorderPerson;
     this.emptyMonthCount = source.emptyMonthCount;
@@ -84,7 +84,7 @@ export class ActivityMonitoring extends Entity<ActivityMonitoring> {
   registrationLocationLabel: string;
   vesselRegistrationCode: string;
   vesselIntRegistrationCode: string;
-  observer: string;
+  observerName: string;
   surveyQualification: string;
   emptyMonthCount: number;
   errorMonthCount: number;
@@ -125,12 +125,12 @@ export class ActivityMonitoring extends Entity<ActivityMonitoring> {
   static fromObject: (source: any, opts?: any) => ActivityMonitoring;
 
   fromObject(source: any, opts?: any): void {
-    this.vesselName = source.vesselName.replace(' | ', ', ');
+    this.vesselName = source.vesselName?.replace(' | ', ', ');
     this.vesselLength = source.vesselLength;
-    this.registrationLocationLabel = source.registrationLocationLabel.replace('|', ', ');
-    this.vesselRegistrationCode = source.vesselRegistrationCode.replace('|', ', ');
-    this.vesselIntRegistrationCode = source.vesselIntRegistrationCode.replace('|', ', ');
-    this.observer = source.observer;
+    this.registrationLocationLabel = source.registrationLocationLabel?.replace('|', ', ');
+    this.vesselRegistrationCode = source.vesselRegistrationCode?.replace('|', ', ');
+    this.vesselIntRegistrationCode = source.vesselIntRegistrationCode?.replace('|', ', ');
+    this.observerName = source.observerName;
     this.surveyQualification = source.surveyQualification;
     this.recorderPerson = source.recorderPerson;
     this.emptyMonthCount = source.emptyMonthCount;
