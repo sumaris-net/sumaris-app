@@ -61,11 +61,11 @@ export class Calendar extends Entity<Calendar> {
   static fromObject: (source: any, opts?: any) => Calendar;
 
   fromObject(source: any, opts?: any): void {
-    this.vesselName = source.vesselName.replace(' | ', ', ');
+    this.vesselName = source.vesselName?.replace(' | ', ', ');
     this.vesselLength = source.vesselLength;
-    this.registrationLocationLabel = source.registrationLocationLabel.replace('|', ', ');
-    this.vesselRegistrationCode = source.vesselRegistrationCode.replace('|', ', ');
-    this.vesselIntRegistrationCode = source.vesselIntRegistrationCode.replace('|', ', ');
+    this.registrationLocationLabel = source.registrationLocationLabel?.replace('|', ', ');
+    this.vesselRegistrationCode = source.vesselRegistrationCode?.replace('|', ', ');
+    this.vesselIntRegistrationCode = source.vesselIntRegistrationCode?.replace('|', ', ');
     this.observer = source.observer;
     this.surveyQualification = source.surveyQualification;
     this.recorderPerson = source.recorderPerson;
