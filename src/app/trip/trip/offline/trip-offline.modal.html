@@ -9,10 +9,7 @@
 
 <ion-content class="ion-padding">
   <!-- error -->
-  <ion-item *ngIf="errorSubject | async; let error" lines="none" @slideUpDownAnimation>
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  <app-error-item [message]="errorSubject | async"></app-error-item>
 
   <form class="form-container" [formGroup]="form">
     <ion-grid class="ion-no-padding">
@@ -38,7 +35,7 @@
           <mat-chips-field
             *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
             formControlName="vesselSnapshot"
-            [placeholder]="'TRIP.TABLE.VESSEL' | translate"
+            [placeholder]="'TRIP.OFFLINE_MODAL.VESSELS' | translate"
             [config]="autocompleteFields.vesselSnapshot"
             [clearable]="true"
             chipColor="accent"
@@ -46,46 +43,31 @@
           >
             <ion-icon matPrefix name="boat"></ion-icon>
           </mat-chips-field>
-          <!-- Vessel
-          <mat-autocomplete-field
-            *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
-            formControlName="vesselSnapshot"
-            [placeholder]="'TRIP.VESSEL_SNAPSHOT' | translate"
-            [config]="autocompleteFields.vesselSnapshot"
-            [required]="true"
-            [tabindex]="3"
-          >
-            <ion-icon matPrefix name="boat"></ion-icon>
-          </mat-autocomplete-field>-->
         </ion-col>
       </ion-row>
+
+      @let enableHistoryControl = form | formGetControl: 'enableHistory';
       <ion-row>
-        <ion-col>
+        <ion-col size="12">
           <!-- enable history ? -->
-          <mat-form-field floatLabel="never">
-            <!-- fake input -->
-            <input matInput hidden />
-
-            <ion-label>&nbsp;</ion-label>
-
-            <!-- checkbox, when compact -->
-            <mat-checkbox matPrefix [formControl]="form.controls.enableHistory" labelPosition="after" [tabindex]="4">
-              <ion-text translate>OBSERVED_LOCATION.OFFLINE_MODAL.ENABLE_HISTORICAL_DATA</ion-text>
+          <mat-form-field>
+            <input matInput hidden /><!-- fake input -->
+            <mat-checkbox matPrefix [formControl]="enableHistoryControl" labelPosition="after" [tabindex]="4">
+              <ion-text translate>TRIP.OFFLINE_MODAL.ENABLE_HISTORICAL_DATA</ion-text>
             </mat-checkbox>
-
-            <mat-error *ngIf="form.controls.enableHistory.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="enableHistoryControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
         </ion-col>
-      </ion-row>
 
-      <ion-row class="ion-padding-start">
-        <ion-col>
+        @if (enableHistoryControl.valueChanges | async) {
+
           <!-- Period duration -->
+          <ion-col offset="1" size="11">
           <mat-form-field>
             <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              <mat-label translate>TRIP.OFFLINE_MODAL.DURATION_PLACEHOLDER</mat-label>
             <mat-select
               formControlName="periodDuration"
-              [placeholder]="'TRIP.OFFLINE_MODAL.DURATION_PLACEHOLDER' | translate"
               [tabindex]="6"
               required
             >
@@ -97,6 +79,7 @@
             <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
         </ion-col>
+        }
       </ion-row>
     </ion-grid>
   </form>

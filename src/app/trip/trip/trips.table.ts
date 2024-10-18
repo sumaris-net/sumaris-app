@@ -56,9 +56,7 @@ export const TripsPageSettingsEnum = {
   FEATURE_ID: TRIP_FEATURE_NAME,
 };
 
-export interface TripTableState extends AppRootDataTableState {
-  title: string;
-}
+export interface TripTableState extends AppRootDataTableState {}
 
 @Component({
   selector: 'app-trips-table',
@@ -179,6 +177,18 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
         ...opts,
         suggestFn: (value, filter) => this.suggestVessels(value, filter),
       });
+    });
+
+    // Combo: Vessel type
+    this.registerAutocompleteField('vesselType', {
+      attributes: ['name'],
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'VesselType',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+      },
+      mobile: this.mobile,
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, { ...filter, includedIds: this.programVesselTypeIds }),
     });
 
     // Combo: recorder department

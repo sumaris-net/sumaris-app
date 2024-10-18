@@ -9,10 +9,7 @@
 
 <ion-content class="ion-padding">
   <!-- error -->
-  <ion-item *ngIf="errorSubject | async; let error" lines="none" @slideUpDownAnimation>
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  <app-error-item [message]="errorSubject | async"></app-error-item>
 
   <form class="form-container" [formGroup]="form">
     <ion-grid class="ion-no-padding">
@@ -32,21 +29,25 @@
         </ion-col>
       </ion-row>
 
-      <ion-row class="ion-padding-start" [class.cdk-visually-hidden]="(form | formGetControl: 'strategy').disabled">
-        <ion-col>
-          <!-- Strategy -->
-          <mat-chips-field
-            formControlName="strategy"
-            [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.STRATEGY' | translate"
-            [config]="autocompleteFields.strategy"
-            [clearable]="true"
-            chipColor="accent"
-            [tabindex]="2"
-          >
-            <mat-icon matPrefix>date_range</mat-icon>
-          </mat-chips-field>
-        </ion-col>
-      </ion-row>
+      @let strategyControl = form | formGetControl: 'strategy';
+      @if ((program$ | async) && strategyControl.enabled) {
+        <ion-row class="ion-padding-start">
+          <ion-col>
+            <!-- Strategy -->
+            <mat-chips-field
+              formControlName="strategy"
+              [placeholder]="'PROGRAM.TAB_STRATEGIES' | translateContext: i18nContext.suffix"
+              [config]="autocompleteFields.strategy"
+              [clearable]="true"
+              chipColor="accent"
+              [tabindex]="2"
+              [required]="true"
+            >
+              <mat-icon matPrefix>date_range</mat-icon>
+            </mat-chips-field>
+          </ion-col>
+        </ion-row>
+      }
 
       <ion-row class="ion-padding-start">
         <ion-col>
@@ -54,7 +55,7 @@
           <mat-chips-field
             *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
             formControlName="vesselSnapshot"
-            [placeholder]="'LANDING.TABLE.VESSEL' | translate"
+            [placeholder]="'OBSERVED_LOCATION.OFFLINE_MODAL.VESSELS' | translate"
             [config]="autocompleteFields.vesselSnapshot"
             [clearable]="true"
             chipColor="accent"
@@ -65,61 +66,50 @@
         </ion-col>
       </ion-row>
 
+      @let enableHistoryControl = form | formGetControl: 'enableHistory';
       <ion-row>
-        <ion-col>
+        <ion-col size="12">
           <!-- enable history ? -->
-          <mat-form-field floatLabel="never">
-            <!-- fake input -->
+          <mat-form-field>
             <input matInput hidden />
-
-            <ion-label>&nbsp;</ion-label>
-
-            <!-- checkbox, when compact -->
-            <mat-checkbox matPrefix [formControl]="form.controls.enableHistory" labelPosition="after" [tabindex]="4">
-              <ion-text translate>OBSERVED_LOCATION.OFFLINE_MODAL.ENABLE_HISTORICAL_DATA</ion-text>
+            <mat-checkbox matPrefix [formControl]="enableHistoryControl" labelPosition="after" [tabindex]="4">
+              <mat-label translate>OBSERVED_LOCATION.OFFLINE_MODAL.ENABLE_HISTORICAL_DATA</mat-label>
             </mat-checkbox>
-
-            <mat-error *ngIf="form.controls.enableHistory.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="enableHistoryControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
         </ion-col>
-      </ion-row>
 
-      <ion-row class="ion-padding-start">
-        <ion-col>
+        @if (enableHistoryControl.valueChanges | async) {
           <!-- Location -->
-          <mat-chips-field
-            #chipsField
-            formControlName="location"
-            [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION' | translate"
-            [config]="autocompleteFields.location"
-            [clearable]="true"
-            [chipColor]="(form | formGetControl: 'location').enabled ? 'accent' : 'medium'"
-            [tabindex]="5"
-          >
-            <mat-icon matPrefix>room</mat-icon>
-          </mat-chips-field>
-        </ion-col>
-      </ion-row>
-
-      <ion-row class="ion-padding-start">
-        <ion-col>
-          <!-- Period duration -->
-          <mat-form-field>
-            <ion-icon matPrefix name="calendar-outline"></ion-icon>
-            <mat-select
-              formControlName="periodDuration"
-              [placeholder]="'OBSERVED_LOCATION.OFFLINE_MODAL.DURATION_PLACEHOLDER' | translate"
-              [tabindex]="6"
+          <ion-col offset="1" size="11">
+            <mat-chips-field
+              #chipsField
+              formControlName="location"
+              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION' | translate"
+              [config]="autocompleteFields.location"
+              [clearable]="true"
+              [chipColor]="(form | formGetControl: 'location').enabled ? 'accent' : 'medium'"
+              [tabindex]="5"
               required
             >
-              <mat-option *ngFor="let item of periodDurationLabels" [value]="item.key">
-                {{ item.label | translate }}
-              </mat-option>
-            </mat-select>
+              <mat-icon matPrefix>room</mat-icon>
+            </mat-chips-field>
+          </ion-col>
 
-            <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          </mat-form-field>
-        </ion-col>
+          <!-- Period duration -->
+          <ion-col offset="1" size="11">
+            <mat-form-field>
+              <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              <mat-label translate>OBSERVED_LOCATION.OFFLINE_MODAL.DURATION_PLACEHOLDER</mat-label>
+              <mat-select formControlName="periodDuration" [tabindex]="6" required>
+                <mat-option *ngFor="let item of periodDurationLabels" [value]="item.key">
+                  {{ item.label | translate }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+            </mat-form-field>
+          </ion-col>
+        }
       </ion-row>
     </ion-grid>
   </form>

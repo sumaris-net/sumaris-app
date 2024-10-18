@@ -29,7 +29,7 @@ import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
 import { environment } from '@environments/environment';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { ObservedLocationOfflineModal } from '../observedlocation/offline/observed-location-offline.modal';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observedlocation/observed-location.filter';
@@ -106,7 +106,6 @@ export class LandingsPage
 {
   @RxStateSelect() protected observedLocationTitle$: Observable<string>;
 
-  protected $pmfms = new BehaviorSubject<IPmfm[]>([]);
   protected i18nPmfmPrefix: string;
   protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
@@ -217,14 +216,6 @@ export class LandingsPage
     return this.getShowColumn('location');
   }
 
-  get pmfms(): IPmfm[] {
-    return this.$pmfms.value;
-  }
-
-  @Input() set pmfms(pmfms: IPmfm[]) {
-    this.$pmfms.next(pmfms);
-  }
-
   constructor(
     injector: Injector,
     dataService: LandingService,
@@ -247,6 +238,9 @@ export class LandingsPage
       watchAllOptions: <LandingServiceWatchOptions>{
         computeRankOrder: false, // Not need, because this table use the landing 'id'
         //withObservedLocation: true, // Need to get observers
+      },
+      initialState: {
+        pmfms: [],
       },
     });
     this.inlineEdition = false;
@@ -457,9 +451,7 @@ export class LandingsPage
     const landingPmfms = await this.programRefService.loadProgramPmfms(program?.label, {
       acquisitionLevel: AcquisitionLevelCodes.LANDING,
     });
-    const columnPmfms = landingPmfms.filter((p) => p.required || includedPmfmIds?.includes(p.id));
-
-    this.$pmfms.next(columnPmfms);
+    this.pmfms = landingPmfms.filter((p) => p.required || includedPmfmIds?.includes(p.id));
 
     const samplePmfms = await this.programRefService.loadProgramPmfms(program?.label, {
       acquisitionLevels: [AcquisitionLevelCodes.SAMPLE, AcquisitionLevelCodes.INDIVIDUAL_MONITORING, AcquisitionLevelCodes.INDIVIDUAL_RELEASE],
@@ -493,7 +485,7 @@ export class LandingsPage
     // Reset location filter
     delete this.autocompleteFields.location.filter.levelIds;
 
-    this.$pmfms.next([]);
+    this.pmfms = [];
     if (this.loaded) this.updateColumns();
   }
 

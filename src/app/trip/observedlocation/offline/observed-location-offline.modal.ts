@@ -18,16 +18,17 @@ import {
   referentialToString,
   ReferentialUtils,
   SharedValidators,
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '@app/referential/services/program-ref.service';
-import { map, mergeMap, tap } from 'rxjs/operators';
+import { map, mergeMap, startWith, tap } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ObservedLocationOfflineFilter } from '../observed-location.filter';
 import { DATA_IMPORT_PERIODS } from '@app/data/data.config';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
-import { Observable } from 'rxjs';
+import { combineLatestWith, Observable } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
@@ -53,9 +54,14 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
   protected readonly networkService = inject(NetworkService);
   protected mobile: boolean;
   protected periodDurationLabels: { key: string; label: string; startDate: Moment }[];
+  protected i18nContext: {
+    suffix?: string;
+  } = {};
 
   @RxStateSelect() protected program$: Observable<Program>;
   @RxStateSelect() protected locations$: Observable<ReferentialRef[]>;
+
+  @RxStateProperty() program: Program;
 
   @Input() title = 'OBSERVED_LOCATION.OFFLINE_MODAL.TITLE';
 
@@ -78,8 +84,6 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
   get enableHistory(): boolean {
     return this.form.get('enableHistory').value;
   }
-
-  @RxStateProperty() program: Program;
 
   constructor(
     injector: Injector,
@@ -148,26 +152,6 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     );
 
     const displayAttributes = this.settings.getFieldDisplayAttributes('location');
-    this._state.connect(
-      'locations',
-      this.program$.pipe(
-        mergeMap((program) => {
-          if (!program) return Promise.resolve(null);
-          const locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-          return this.referentialRefService.countAll({
-            entityName: 'Location',
-            levelIds: locationLevelIds,
-          });
-        }),
-        tap((locationCount) => {
-          if (locationCount > 0 && this.enableHistory) {
-            this.form.get('location').enable();
-          } else {
-            this.form.get('location').disable();
-          }
-        })
-      )
-    );
     this.registerAutocompleteField('location', {
       suggestFn: (value, filter) => this.suggestLocation(value, filter),
       displayWith: (arg) => {
@@ -177,7 +161,32 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         return referentialToString(arg, displayAttributes);
       },
       mobile: this.mobile,
+      showAllOnFocus: true,
     });
+    this._state.hold(
+      this.program$.pipe(
+        mergeMap(async (program) => {
+          if (!program) return 0;
+          const locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+
+          const i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+          this.i18nContext.suffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+          return this.referentialRefService.countAll({
+            entityName: 'Location',
+            levelIds: locationLevelIds,
+            statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+          });
+        })
+      ),
+      (locationCount) => {
+        if (locationCount > 0 && this.enableHistory) {
+          this.form.get('location').enable();
+        } else {
+          this.form.get('location').disable();
+        }
+        this.markForCheck();
+      }
+    );
 
     // Strategies
     this.registerAutocompleteField('strategy', {
@@ -186,44 +195,49 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       mobile: this.mobile,
       showAllOnFocus: true,
     });
+
+    // Listen program
     this._state.hold(
       this.program$.pipe(
-        mergeMap((program) => {
-          if (!program) return Promise.resolve(null);
+        mergeMap(async (program) => {
+          if (!program) return null;
+
+          this.form.get('location').disable();
+          this.form.get('periodDuration').disable();
+
+          // Count program's strategies
           return this.strategyRefService.loadAll(0, 0, null, null, { levelId: program.id });
         }),
-        map((res) => (res && res.total) || 0)
+        map((res) => res?.total ?? 0)
       ),
       (strategiesCount) => {
+        // If more than one strategy, force user to select some
         if (strategiesCount > 1) {
           this.form.get('strategy').enable();
         } else {
           this.form.get('strategy').disable();
         }
+
+        this.markForCheck();
       }
     );
 
     // Enable/disable sub controls, from the 'enable history' checkbox
-    const subControls = [this.form.get('location'), this.form.get('periodDuration')];
-    this.form
-      .get('enableHistory')
-      .valueChanges.pipe(mergeMap((enable) => this.waitIdle({ stop: this.destroySubject }).then(() => enable)))
-      .subscribe((enable) => {
-        if (enable) {
-          subControls.forEach((control) => {
-            control.enable();
-            control.setValidators(Validators.required);
-          });
-        } else {
-          subControls.forEach((control) => {
-            control.disable();
-            control.setValidators(null);
-          });
-        }
-      });
+    const enableHistoryControl = this.form.get('enableHistory');
+    enableHistoryControl.valueChanges
+      .pipe(
+        startWith<boolean>(enableHistoryControl.value),
+        combineLatestWith(this.program$),
+        tap((ee) => console.log('TODO', ee)),
+        mergeMap(([enableHistory, program]) => this.waitIdle({ stop: this.destroySubject }).then(() => enableHistoryControl.value && !!program))
+      )
+      .subscribe((enable) => AppFormUtils.setControlsEnabled(this.form, enable, ['location', 'periodDuration'], { required: enable }));
 
     // Combo: vessels
-    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
+      this.registerAutocompleteField('vesselSnapshot', opts);
+      this.markForCheck();
+    });
   }
 
   async setValue(value: ObservedLocationOfflineFilter | any) {
@@ -252,7 +266,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     }
 
     // Strategy
-    if (isNotEmptyArray(value.strategyIds) && isNotNil(json.program.id)) {
+    if (isNotEmptyArray(value.strategyIds) && isNotNil(json.program?.id)) {
       json.strategy = (
         await this.strategyRefService.loadAll(0, value.strategyIds.length, 'label', 'asc', {
           levelId: json.program?.id,

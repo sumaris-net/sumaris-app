@@ -176,6 +176,7 @@ export abstract class AppDataEntityEditor<
     );
     const programLoaded$: Observable<Program> = this.program$.pipe(
       filter(isNotNil),
+      distinctUntilKeyChanged('label'),
       mergeMap(async (program) => {
         // Make sure to load strategy resolution
         //this.strategyResolution = program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);

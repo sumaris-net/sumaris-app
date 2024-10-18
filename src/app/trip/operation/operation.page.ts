@@ -84,7 +84,6 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export interface OperationState extends AppDataEditorState {
   hasIndividualMeasures?: boolean;
@@ -280,13 +279,11 @@ export class OperationPage<S extends OperationState = OperationState>
     );
 
     // Apply program
-    this._state.hold(this._state.select('program'), (program) => {
+    this._state.hold(this.program$, (program) => {
       // Update the context (to avoid a reload, when opening the another operation)
       if (this.context && this.context.program !== program) {
         this.context.setValue('program', program);
       }
-
-      return this.setProgram(program);
     });
 
     // Watch trip
@@ -729,7 +726,7 @@ export class OperationPage<S extends OperationState = OperationState>
           lineLayoutControl.valueChanges
             .pipe(
               debounceTime(400),
-              startWith<any, any>(lineLayoutControl.value),
+              startWith<any>(lineLayoutControl.value),
               map((qv) => qv?.label),
               distinctUntilChanged()
             )
@@ -737,41 +734,28 @@ export class OperationPage<S extends OperationState = OperationState>
               switch (qvLabel as string) {
                 case QualitativeLabels.LINE_LAYOUT_TYPE.LINEAR:
                   if (this.debug) console.debug('[operation] Enable linear details');
-
-                  AppSharedFormUtils.enableControl(lineLayoutLinearControl, { ...enableOptions, required: true });
-
-                  AppSharedFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
-
-                  AppSharedFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+                  AppFormUtils.enableControl(lineLayoutLinearControl, { ...enableOptions, required: true });
+                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
 
                   break;
                 case QualitativeLabels.LINE_LAYOUT_TYPE.ZIG_ZAG:
-                  if (this.debug) console.debug('[operation] Enable zig_zag details');
-
-                  AppSharedFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
-
-                  AppSharedFormUtils.enableControl(lineLayoutZigZagControl, { ...enableOptions, required: true });
-
-                  AppSharedFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+                  if (this.debug) console.debug('[operation] Enable zig-zag details');
+                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+                  AppFormUtils.enableControl(lineLayoutZigZagControl, { ...enableOptions, required: true });
+                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
 
                   break;
                 case QualitativeLabels.LINE_LAYOUT_TYPE.UNKNOWN:
                   if (this.debug) console.debug('[operation] Enable other details');
-
-                  AppSharedFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
-
-                  AppSharedFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
-
-                  AppSharedFormUtils.enableControl(lineLayoutUnknownControl, { ...enableOptions, required: false });
-
+                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+                  AppFormUtils.enableControl(lineLayoutUnknownControl, { ...enableOptions, required: false });
                   break;
                 default:
-                  AppSharedFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
-
-                  AppSharedFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
-
-                  AppSharedFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
-
+                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
                   break;
               }
               //this.markForCheck();
@@ -806,7 +790,7 @@ export class OperationPage<S extends OperationState = OperationState>
     const skipDates = isNotNil(skipDatesPmfmId) ? toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, skipDatesPmfmId), false) : false;
     const isGPSUsed =
       toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.CAMERA_USED), false) ||
-      toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), false);
+      toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true); // GPS is enable by default
     const enablePosition = !skipDates && isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
 
     this.opeForm.trip = this.trip;

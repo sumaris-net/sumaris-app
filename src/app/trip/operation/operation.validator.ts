@@ -46,7 +46,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
-import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export interface IPmfmForm {
   form: UntypedFormGroup;
@@ -803,7 +802,7 @@ export class OperationValidators {
                   if (pmfm.required) {
                     required = true;
                   }
-                  AppSharedFormUtils.enableControl(control, { onlySelf: true, required: required });
+                  AppFormUtils.enableControl(control, { onlySelf: true, required: required });
                 });
               if (markForCheck) markForCheck();
             }
@@ -815,7 +814,7 @@ export class OperationValidators {
                 )
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
-                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
+                  AppFormUtils.disableControl(control, { onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }
@@ -851,7 +850,7 @@ export class OperationValidators {
                   if (pmfm.required) {
                     required = true;
                   }
-                  AppSharedFormUtils.enableControl(control, { onlySelf: true, required: required });
+                  AppFormUtils.enableControl(control, { onlySelf: true, required: required });
                 });
               if (markForCheck) markForCheck();
             }
@@ -861,7 +860,7 @@ export class OperationValidators {
                 .filter((pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
-                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
+                  AppFormUtils.disableControl(control, { onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }
@@ -894,7 +893,7 @@ export class OperationValidators {
                   if (pmfm.required) {
                     required = true;
                   }
-                  AppSharedFormUtils.enableControl(control, { onlySelf: true, required: required });
+                  AppFormUtils.enableControl(control, { onlySelf: true, required: required });
                 });
               if (markForCheck) markForCheck();
             }
@@ -904,7 +903,7 @@ export class OperationValidators {
                 .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
-                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
+                  AppFormUtils.disableControl(control, { onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }
@@ -940,7 +939,7 @@ export class OperationValidators {
                   if (pmfm.required) {
                     required = true;
                   }
-                  AppSharedFormUtils.enableControl(control, { onlySelf: true, required: required });
+                  AppFormUtils.enableControl(control, { onlySelf: true, required: required });
                 });
               if (markForCheck) markForCheck();
             }
@@ -952,7 +951,7 @@ export class OperationValidators {
                 )
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
-                  AppSharedFormUtils.disableControl(control, { onlySelf: true });
+                  AppFormUtils.disableControl(control, { onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }

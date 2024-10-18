@@ -1,4 +1,4 @@
-<app-toolbar [title]="$title | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
+<app-toolbar [title]="title$ | async | translate" color="primary" [canGoBack]="false" [canShowMenu]="true">
   <ion-buttons slot="end">
     @if (selection | isEmptySelection) {
       @if (!mobile && !offline) {
@@ -317,26 +317,24 @@
   ></app-update-offline-mode-card>
 
   <!-- error -->
-  <ion-item *ngIf="errorSubject | async; let error" lines="none" @slideUpDownAnimation>
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  <app-error-item [message]="errorSubject | async"></app-error-item>
 
   <!-- Tab nav - synchro status-->
-  <ng-container *ngIf="hasOfflineMode">
-    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let syncStatus">
-      <a mat-tab-link [active]="syncStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
+  @if (hasOfflineMode) {
+    @let synchroStatus = synchronizationStatus$ | async;
+    <nav mat-tab-nav-bar [tabPanel]="tableContainer">
+      <a mat-tab-link [active]="synchroStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
         <mat-icon>cloud_off</mat-icon>
         &nbsp;
         <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
       </a>
-      <a mat-tab-link [active]="syncStatus === 'SYNC'" [disabled]="offline" (click)="setSynchronizationStatus('SYNC')">
+      <a mat-tab-link [active]="synchroStatus === 'SYNC'" [disabled]="offline" (click)="setSynchronizationStatus('SYNC')">
         <mat-icon>cloud_done</mat-icon>
         &nbsp;
         <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
       </a>
     </nav>
-  </ng-container>
+  }
 
   <!-- table -->
   <div #tableContainer class="table-container">

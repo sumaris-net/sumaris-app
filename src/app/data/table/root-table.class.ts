@@ -42,6 +42,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: 'filter',
@@ -60,10 +61,12 @@ export interface IRootDataEntitiesService<
 }
 
 export interface AppRootDataTableState extends BaseTableState {
+  title: string;
+
   programLabel: string;
   program: Program;
-
   selectionProgramLabels: string[];
+  pmfms: IPmfm[];
 
   enableReport: boolean;
   reportTypes: Property[];
@@ -88,15 +91,17 @@ export abstract class AppRootDataTable<
   protected readonly userEventService = inject(UserEventService);
   protected readonly programRefService = inject(ProgramRefService);
 
-  @RxStateSelect() protected program$: Observable<Program>;
   @RxStateSelect() protected title$: Observable<string>;
+  @RxStateSelect() protected program$: Observable<Program>;
   @RxStateSelect() protected selectionProgramLabels$: Observable<string[]>;
+  @RxStateSelect() protected pmfms$: Observable<IPmfm[]>;
 
   @RxStateProperty() protected programLabel: string;
   @RxStateProperty() protected program: Program;
+  @RxStateProperty() protected selectionProgramLabels: string[];
+  @RxStateProperty() protected pmfms: IPmfm[];
   @RxStateProperty() protected enableReport: boolean;
   @RxStateProperty() protected reportTypes: Property[];
-  @RxStateProperty() protected selectionProgramLabels: string[];
 
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
   protected defaultShowFilterProgram: boolean;

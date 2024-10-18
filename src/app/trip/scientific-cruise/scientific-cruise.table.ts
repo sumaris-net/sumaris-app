@@ -20,7 +20,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { TripFilter, TripSynchroImportFilter } from '@app/trip/trip/trip.filter';
 import { ScientificCruise } from '@app/trip/scientific-cruise/scientific-cruise.model';
-import { BehaviorSubject, tap } from 'rxjs';
+import { tap } from 'rxjs';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { OperationService } from '@app/trip/operation/operation.service';
@@ -46,6 +46,7 @@ import { ScientificCruiseComparators, ScientificCruiseService } from '@app/trip/
 import { SCIENTIFIC_CRUISE_CONFIG_OPTIONS, SCIENTIFIC_CRUISE_FEATURE_NAME } from '@app/trip/scientific-cruise/scientific-cruise.config';
 import { filter } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
+import { RxState } from '@rx-angular/state';
 
 export const ScientificCruiseTableSettingsEnum = {
   PAGE_ID: 'scientificCruises',
@@ -59,9 +60,9 @@ export const ScientificCruiseTableSettingsEnum = {
   styleUrls: ['./scientific-cruise.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [slideUpDownAnimation],
+  providers: [RxState],
 })
 export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, ScientificCruiseFilter> implements OnInit, OnDestroy {
-  $title = new BehaviorSubject<string>('');
   statusList = DataQualityStatusList;
   statusById = DataQualityStatusEnum;
   qualityFlags: ReferentialRef[];
@@ -193,8 +194,7 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
           tap((config) => {
             console.info('[scientific-cruises] Init from config', config);
 
-            const title = config && config.getProperty(SCIENTIFIC_CRUISE_CONFIG_OPTIONS.SCIENTIFIC_CRUISE_NAME);
-            this.$title.next(title);
+            this.title = config.getProperty(SCIENTIFIC_CRUISE_CONFIG_OPTIONS.SCIENTIFIC_CRUISE_NAME);
 
             this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
             this.setShowColumn('quality', this.showQuality, { emitEvent: false });

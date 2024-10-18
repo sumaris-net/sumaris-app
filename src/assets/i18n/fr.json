@@ -194,6 +194,7 @@
     "PROPERTIES_DIVIDER": "Options :",
     "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
+    "BTN_SHOW_OPTION_KEY": "Afficher les codes d'option",
     "BTN_ADD_OPTION": "Ajouter une option",
     "BTN_CLEAR_CACHE": "Vider le cache serveur",
     "CACHE_TITLE": "Statistique du cache serveur",
@@ -263,12 +264,12 @@
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
         "DEFAULT_FILTER_COUNTRY_ID": "Saisie > Navire: Pavillon (filtre)",
-        "DEFAULT_FILTER_TYPE_ID": "Saisie > Navire: Type de navire (filtre)",
-        "VESSEL_FILTER_DEFAULT_TYPE_IDS": "Saisie > Navire: Type(s) de navire (filtre)",
+        "DEFAULT_FILTER_TYPE_ID": "Saisie > Navire: Type de navire (filtre) (NE PLUS UTILISER)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
         "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires > Port d'attache: Nb caract. min pour recherche",
+        "FILTER_DEFAULT_TYPE_IDS": "Saisie > Navire: Type(s) de navire (filtre)",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Saisie > Navire: Nb caract. min pour recherche",
-        "FILTER_DEFAULT_SEARCH_ATTRIBUTES": "Saisie > Navire: Liste déroulantes",
+        "FILTER_DEFAULT_SEARCH_ATTRIBUTES": "Saisie > Navire: Liste déroulante",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Saisie > Navire: Recherche d'immatriculation par préfixe (immat, nom) ?",
         "NAME_REQUIRED": "Navire: Nom obligatoire ?",
         "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Saisie > Navire: Tri naturel des immatriculations ?"
@@ -418,7 +419,7 @@
       "DATA_SHOW_OBSERVERS": "Saisie > Afficher les observateurs ?",
       "DATA_IMPORT_DEFAULT_PERIOD": "Saisie hors-ligne > Période à importer (par défaut)",
       "DATA_IMAGES_ENABLE": "Saisie > Activer la gestion des images",
-      "DATA_VESSEL_TYPE_IDS": "Saisie > Navire : Type(s) de navire (ids)",
+      "DATA_VESSEL_TYPE_IDS": "Saisie > Navire: Type(s) de navire autorisé(s) (POD)",
       "LANDING": {
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
@@ -791,6 +792,8 @@
     },
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne",
+      "VESSELS": "Navire(s)",
+      "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
       "DURATION_PLACEHOLDER": "Période à importer"
     },
     "ERROR": {
@@ -1695,7 +1698,7 @@
     "PMFM": {},
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne",
-      "HISTORICAL_DATA_DIVIDER": "Historique de données",
+      "VESSELS": "Navire(s) (optionnel)",
       "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
       "DURATION_PLACEHOLDER": "Période à importer"
     },
@@ -2593,9 +2596,9 @@
         "LEGACY": "Par défaut",
         "SAMPLING": "Paramètres biologiques"
       },
-      "STRATEGY_EDITOR_LOCATION_LEVEL_IDS": "Stratégie > Éditeur : Niveau(x) de lieu (ids)",
-      "STRATEGY_EDITOR_PREDOC_ENABLE": "Stratégie > Éditeur : Activer le pré-filtrage des champs",
-      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Éditeur : Nb éléments affichés pour le pré-filtrage des champs",
+      "STRATEGY_EDITOR_LOCATION_LEVEL_IDS": "Stratégie > Éditeur: Niveau(x) de lieu (ids)",
+      "STRATEGY_EDITOR_PREDOC_ENABLE": "Stratégie > Éditeur: Activer le pré-filtrage des champs",
+      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Éditeur: Nb éléments affichés pour le pré-filtrage des champs",
       "STRATEGY_DEPARTMENT_ENABLE": "Stratégie > Activer les droits d'accès par département (STRATEGY_DEPARTMENT)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
       "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Valeurs qualitative > Nb valeurs max pour affichage en boutons (mobile)",
@@ -3536,7 +3539,10 @@
       }
     },
     "OFFLINE_MODAL": {
-      "TITLE": "Configuration du mode hors-ligne"
+      "TITLE": "Configuration du mode hors-ligne",
+      "VESSELS": "Navire(s)",
+      "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
+      "DURATION_PLACEHOLDER": "Période à importer"
     },
     "OPTIONS": {
       "ENABLE": "Calendrier d'activité > Activer ?",
@@ -3799,6 +3805,7 @@
     "ALERT_HEADER": "Avertissement",
     "OOPS_DOTS": "Oups...",
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>",
-    "DATE_IN_THE_FUTURE": "Date dans le futur"
+    "DATE_IN_THE_FUTURE": "Date dans le futur",
+    "EXPERIMENTAL_FEATURE": "Fonctionnalité expérimentale ! En cours de développement."
   }
 }

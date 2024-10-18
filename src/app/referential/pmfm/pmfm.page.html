@@ -156,9 +156,9 @@
         (onAfterDeletedRows)="onAfterDeleteQualitativeValueRows($event)"
         (onNewRow)="openSelectReferentialModal()"
       >
-        <ion-item lines="none" matToolbarEnd>
+        <ion-item matToolbarEnd lines="none" (click)="toggleUseDefaultQualitativeValues($event)">
           <ion-label>{{ 'REFERENTIAL.PMFM.USE_DEFAULT_QUALITATIVES_VALUES' | translate }}</ion-label>
-          <ion-toggle #btnUseDefaultQualitativeValues (click)="toggleUseDefaultQualitativeValues($event)" color="primary"></ion-toggle>
+          <ion-toggle color="primary" [checked]="useDefaultQualitativesValues"></ion-toggle>
         </ion-item>
       </app-simple-referential-table>
     </mat-tab>

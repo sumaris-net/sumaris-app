@@ -276,21 +276,19 @@ export class SamplingStrategiesTable
     this.registerSubscription(
       this.filterForm.valueChanges
         .pipe(
-          //debounceTime(250),
           filter((_) => this.filterForm.valid),
-          tap((value) => {
-            const filter = this.asFilter(value);
-            this.filterCriteriaCount = filter.countNotEmptyCriteria() - 1 /* remove the levelId (always exists) */;
-            this.markForCheck();
-            // Update the filter, without reloading the content
-            this.setFilter(filter, { emitEvent: false });
-          }),
+          // Update the filter, without reloading the content
+          tap((json) => this.setFilter(json, { emitEvent: false })),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
           tap((json) => this.settings.savePageSetting(this.settingsId, json, SamplingStrategiesPageSettingsEnum.FILTER_KEY))
         )
         .subscribe()
     );
+  }
+
+  protected countNotEmptyCriteria(filter: StrategyFilter): number {
+    return super.countNotEmptyCriteria(filter) - 1 /* remove the levelId (always exists) */;
   }
 
   highlightRow(row: TableElement<SamplingStrategy>) {

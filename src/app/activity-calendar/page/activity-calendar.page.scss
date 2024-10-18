@@ -11,6 +11,11 @@
   ::ng-deep .mat-mdc-tab-label-container {
     z-index: 100 !important; // To be over cell selection (see activity calendar)
   }
+
+  ::ng-deep .mat-mdc-tab-body.mat-mdc-tab-body-active.no-scroll-y {
+    // Avoid 2 scrollbars, after predoc panel was opened - fix issue #753
+    overflow-y: hidden !important;
+  }
 }
 
 app-entity-metadata {

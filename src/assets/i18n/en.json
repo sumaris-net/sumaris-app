@@ -263,10 +263,10 @@
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Vessel > Default status for new vessel",
         "DEFAULT_FILTER_COUNTRY_ID": "Data entry > Vessel: Default country (filter)",
-        "DEFAULT_FILTER_TYPE_ID": "Data entry > Vessel: Vessel type (filter)",
-        "VESSEL_FILTER_DEFAULT_TYPE_IDS": "Data entry > Vessel: Vessel type(s) (filter)",
+        "DEFAULT_FILTER_TYPE_ID": "Data entry > Vessel: Vessel type (filter) (DEPRECATED)",
         "BASE_PORT_LOCATION_VISIBLE": "Vessels: Show base port?",
         "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Vessels > Base port: Nb char. for search",
+        "FILTER_DEFAULT_TYPE_IDS": "Data entry > Vessel: Vessel type(s) (filter)",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Data entry > Vessel: Nb char. for search",
         "FILTER_DEFAULT_SEARCH_ATTRIBUTES": "Data entry > Vessel: Dropdown list",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Data entry > Vessel: search on registration code as prefix?",
@@ -765,6 +765,8 @@
     },
     "OFFLINE_MODAL": {
       "TITLE": "Configuring offline mode",
+      "VESSELS": "Vessel(s)",
+      "ENABLE_HISTORICAL_DATA": "Import data history?",
       "DURATION_PLACEHOLDER": "Period to import"
     },
     "ERROR": {
@@ -1537,7 +1539,7 @@
     "PMFM": {},
     "OFFLINE_MODAL": {
       "TITLE": "Configuring offline mode",
-      "HISTORICAL_DATA_DIVIDER": "Data history",
+      "VESSELS": "Vessel(s) (optional)",
       "ENABLE_HISTORICAL_DATA": "Import data history?",
       "DURATION_PLACEHOLDER": "Period to import"
     },
@@ -3274,7 +3276,10 @@
       }
     },
     "OFFLINE_MODAL": {
-      "TITLE": "Offline mode configuration"
+      "TITLE": "Offline mode configuration",
+      "VESSELS": "Vessel(s)",
+      "ENABLE_HISTORICAL_DATA": "Import data history?",
+      "DURATION_PLACEHOLDER": "Period to import"
     },
     "OPTIONS": {
       "ENABLE": "Activity calendar > Enable?",
@@ -3537,6 +3542,7 @@
     "ALERT_HEADER": "Warning",
     "OOPS_DOTS": "Oops...",
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "Historical data was not imported. <small>Please update the offline mode.</small>",
-    "DATE_IN_THE_FUTURE": "Date in the future"
+    "DATE_IN_THE_FUTURE": "Date in the future",
+    "EXPERIMENTAL_FEATURE": "Experimental feature! Under development."
   }
 }
