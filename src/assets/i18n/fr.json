@@ -3468,6 +3468,7 @@
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "VESSEL": "Navire",
+        "VESSEL_TYPE": "Type de navire",
         "OBSERVERS": "Observateur(s)",
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "YEAR": "Année"
