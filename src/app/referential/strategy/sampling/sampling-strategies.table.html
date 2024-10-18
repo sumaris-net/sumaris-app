@@ -19,17 +19,14 @@
     <!-- Show filter -->
     <button mat-icon-button (click)="filterExpansionPanel.toggle()">
       <mat-icon
-        *ngIf="filterCriteriaCount; else emptyFilter"
         [matBadge]="filterCriteriaCount"
+        [matBadgeHidden]="!filterCriteriaCount"
         matBadgeColor="accent"
         matBadgeSize="small"
         matBadgePosition="above after"
       >
         filter_list_alt
       </mat-icon>
-      <ng-template #emptyFilter>
-        <mat-icon>filter_list_alt</mat-icon>
-      </ng-template>
     </button>
 
     <!-- if row selection -->
