@@ -26,6 +26,7 @@ import {
   AccountService,
   Alerts,
   AppErrorWithDetails,
+  AppFormUtils,
   AppHelpModal,
   AppHelpModalOptions,
   DateUtils,
@@ -78,7 +79,6 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -848,9 +848,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
           const control = formGroup.controls[PmfmIds.GPS_USED];
 
           if (value == true) {
-            AppSharedFormUtils.disableControl(control, { onlySelf: true });
+            AppFormUtils.disableControl(control, { onlySelf: true });
           } else {
-            AppSharedFormUtils.enableControl(control, { onlySelf: true, required: true });
+            AppFormUtils.enableControl(control, { onlySelf: true, required: true });
           }
           this.markForCheck();
         })

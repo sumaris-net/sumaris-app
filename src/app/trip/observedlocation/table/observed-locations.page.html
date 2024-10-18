@@ -389,8 +389,9 @@
   <app-error-item [message]="errorSubject | async"></app-error-item>
 
   <!-- Tab nav - synchro status-->
-  <ng-container *ngIf="hasOfflineMode">
-    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let synchroStatus" [tabPanel]="tableContainer">
+  @if (hasOfflineMode) {
+    @let synchroStatus = synchronizationStatus$ | async;
+    <nav mat-tab-nav-bar [tabPanel]="tableContainer">
       <a mat-tab-link [active]="synchroStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
         <mat-icon>cloud_off</mat-icon>
         &nbsp;
@@ -402,7 +403,7 @@
         <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
       </a>
     </nav>
-  </ng-container>
+  }
 
   <!-- table -->
   <div #tableContainer class="table-container" [class.has-offline-nav]="hasOfflineMode" [class.has-toolbar]="showToolbar">
