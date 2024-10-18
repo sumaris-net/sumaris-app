@@ -310,7 +310,10 @@
             <ion-grid class="report-section ion-no-padding ion-padding-top font-compact" [style.--ion-padding]="'8px'">
               <ion-row>
                 <ion-col size="8" class="ion-padding-end">
-                  @if ((stats.pmfm.gpf | isNotEmptyArray) && (data.gearPhysicalFeatures | isNotEmptyArray)) {
+                  @if (
+                    ((stats.pmfm.forGpfTable | isNotEmptyArray) && (data.gearPhysicalFeatures | isNotEmptyArray)) ||
+                    (data.gearUseFeatures | isNotEmptyArray)
+                  ) {
                     <ion-grid class="ion-no-padding">
                       <ion-row class="section-title">
                         <ion-col>
@@ -336,16 +339,16 @@
                             </tr>
                           </thead>
                           <tbody>
-                            @for (pmfm of stats.pmfm.gpf; track pmfm.id) {
+                            @for (pmfm of stats.pmfm.forGpfTable; track pmfm.id) {
                               <tr [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
                                 <th>{{ pmfm | pmfmName: { withDetails: false } }}</th>
-                                @for (gpf of stats.filteredAndOrderedGpf; track $index) {
+                                @for (useFeature of stats.filteredAndOrderedGpf; track $index) {
                                   <td
                                     [style.--col-width]="
                                       'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearPhysicalFeatures.length + ')'
                                     "
                                   >
-                                    {{ gpf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
+                                    {{ useFeature | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
                                   </td>
                                 }
                               </tr>
