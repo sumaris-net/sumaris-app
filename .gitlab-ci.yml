@@ -226,7 +226,9 @@ package:android:
     - npm run electron:package:${BUILD_ENVIRONMENT}
   after_script:
     - mkdir -p "${CI_PROJECT_DIR}/release/"
-    - mv -f ${CI_PROJECT_DIR}/electron/dist/*.{AppImage,deb,exe} $CI_PROJECT_DIR/release/
+    # Fixme : 413 Request Entity Too Large
+    - mv -f ${CI_PROJECT_DIR}/electron/dist/*.{deb} $CI_PROJECT_DIR/release/
+    # - mv -f ${CI_PROJECT_DIR}/electron/dist/*.{AppImage,deb,exe} $CI_PROJECT_DIR/release/
   artifacts:
     paths:
       - release
