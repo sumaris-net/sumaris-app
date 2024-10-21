@@ -1215,6 +1215,18 @@ export const ProgramProperties = Object.freeze({
     type: 'string',
     defaultValue: 'ACTIVITY_CALENDAR.REPORT.PROGRESS.COPYRIGHT', // i18n key
   },
+  ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.progress.tooManyResults.waring',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING',
+    type: 'integer',
+    defaultValue: 250,
+  },
+  ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULT_ERROR: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.report.progress.tooManyResults.error',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULT_ERROR',
+    type: 'integer',
+    defaultValue: 1000,
+  },
   ACTIVITY_CALENDAR_IMAGES_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.images.enable',
     label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_IMAGES_ENABLE',

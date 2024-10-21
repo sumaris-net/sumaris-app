@@ -3,6 +3,7 @@ import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
 import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
+  Alerts,
   arrayDistinct,
   ConfigService,
   Configuration,
@@ -577,10 +578,35 @@ export class ActivityCalendarsTable
           throw new Error(`Report type "${reportPath}" not yet implemented !`);
       }
     }
+
     const url = ['activity-calendar', 'report', reportPath].join('/') + '?' + urlParams.toString();
     if (url.length > 2048) {
       this.setError('ACTIVITY_CALENDAR.ERROR.MAX_SELECTED_ID');
     } else {
+      const limitWarning = this.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING);
+      const limitError = this.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULT_ERROR);
+      const displayedItems = this.selection.selected.length > 0 ? this.selection.selected.length : this.totalRowCount;
+      if (limitError > 0 && displayedItems > limitError) {
+        Alerts.showError(
+          'ACTIVITY_CALENDAR.ERROR.TOO_MANY_RESULT_FOR_REPORT_GENERATION',
+          this.alertCtrl,
+          this.translate,
+          {},
+          { nbLimit: limitError }
+        );
+        return;
+      } else if (limitWarning > 0 && displayedItems > limitWarning) {
+        const confirmed = await Alerts.askConfirmation(
+          'ACTIVITY_CALENDAR.TABLE.CONFIRM.LONG_TIME_REPORT_GENERATION',
+          this.alertCtrl,
+          this.translate,
+          null,
+          {
+            nbLimit: limitWarning,
+          }
+        );
+        if (!confirmed) return;
+      }
       return this.router.navigateByUrl(url);
     }
   }

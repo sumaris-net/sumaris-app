@@ -2437,7 +2437,8 @@
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1": "Calendrier d'activité > Rapport > Formulaire vierge : Libellé caractéristique engin #1",
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2": "Calendrier d'activité > Rapport > Formulaire vierge : Libellé caractéristique engin #2",
       "ACTIVITY_CALENDAR_REPORT_PROGRESS_FOOTER": "Calendrier d'activité > Rapport d'avancement: Texte du pied de page",
-      "ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS": "Calendrier d'activité > Métier : Type(s) d'espèce",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING": "Calendrier d'activité > Limite du nombre de résultats à partir duquel un avertissement sur le temps long de génération du rapport sera affiché (une value de 0 signifie aucune limites)",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_LIMIT_NB_RESULT_ERROR": "Calendrier d'activité > Limite du nombre de résultats à partir duquel une erreur de refus de génération du rapport sera affiché dû au temps trop long de production de celui-ci (une value de 0 signifie aucune limites)",
       "ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS": "Calendrier d'activité > Zone de pêche : Niveau(x) de lieu",
       "ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID": "Calendrier d'activité > Pays d'immatriculation des navires",
       "ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE": "Calendrier d'activité > Activer la résolution des conflits ?",
@@ -3472,6 +3473,9 @@
         "OBSERVERS": "Observateur(s)",
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "YEAR": "Année"
+      },
+      "CONFIRM": {
+        "LONG_TIME_REPORT_GENERATION": "Vous souhaitez générer un rapport pour plus de {{nbLimit}} entrées. Cette requête risque de prendre beaucoup de temps à traiter. Il est recommandé que vous ajustiez votre filtre pour avoir moins d'entées. Souhaitez-vous tout de même générer ce rapport ?"
       }
     },
     "NEW": {
@@ -3667,7 +3671,8 @@
       "DUPLICATED_FISHING_AREA": "Zone(s) de pêche en doublon : {{fishingArea}}",
       "INVALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)",
       "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
-      "MAX_SELECTED_ID": "Nombre maximal d'item sélectionné atteint"
+      "MAX_SELECTED_ID": "Nombre maximal d'item sélectionné atteint",
+      "TOO_MANY_RESULT_FOR_REPORT_GENERATION": "Vous ne pouvez pas générer un rapport pour plus de {{nbLimit}} entrées, car cela demanderait trop de temps et de ressources. Veuillez-ajuster votre filtre pour avoir moins d'entrées."
     },
     "WARNING": {
       "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif.",
