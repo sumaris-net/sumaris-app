@@ -436,3 +436,10 @@ mat-toolbar {
   background-color: unset;
   pointer-events: none;
 }
+
+.cell-contextual-menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}

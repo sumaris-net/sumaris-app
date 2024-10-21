@@ -539,9 +539,9 @@ export class CalendarComponent
     if (!this.mobile) {
       console.debug(this.logPrefix + 'Add table shortcuts');
 
-      const copyKey = this.isIOS ? '' : 'control.c';
-      const pasteKey = this.isIOS ? '' : 'control.v';
-      const cutKey = this.isIOS ? '' : 'control.x';
+      const copyKey = this.isIOS ? 'command.c' : 'control.c';
+      const pasteKey = this.isIOS ? 'command.v' : 'control.v';
+      const cutKey = this.isIOS ? 'command.x' : 'control.x';
       this.registerSubscription(
         this.hotkeys
           .addShortcut({ keys: copyKey, description: 'COMMON.BTN_COPY', preventDefault: false /*keep copy in <input>*/ })
@@ -2393,7 +2393,7 @@ export class CalendarComponent
     }
   }
 
-  protected async clearCellSelection(event: Event | undefined, cellSelection?: TableCellSelection): Promise<boolean> {
+  protected async clearCellSelection(event?: Event | undefined, cellSelection?: TableCellSelection): Promise<boolean> {
     cellSelection = cellSelection || this.cellSelection;
     if (!cellSelection || event?.defaultPrevented) return false;
 
