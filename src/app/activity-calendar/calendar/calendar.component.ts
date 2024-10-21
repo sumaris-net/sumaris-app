@@ -397,8 +397,6 @@ export class CalendarComponent
         reservedEndColumns: ACTIVITY_MONTH_END_COLUMNS,
         i18nColumnPrefix: 'ACTIVITY_CALENDAR.EDIT.',
         i18nPmfmPrefix: 'ACTIVITY_CALENDAR.PMFM.',
-        // Cannot override mapPmfms (by options)
-        //mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onPrepareRowForm: (form) => this.onPrepareRowForm(form),
         initialState: <CalendarComponentState>{
           requiredStrategy: true,

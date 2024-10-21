@@ -3555,8 +3555,11 @@
       "BASE_PORT_LOCATION": "Port d'exploitation",
       "PMFM": {
         "DURATION_AT_SEA_DAYS": "Nb jours mer",
+        "DURATION_AT_SEA_JOUR": "Nb jours mer",
         "FISHING_DURATION_DAYS": "Nb jours pêche",
-        "NB_FISHERMEN": "Nb pers. à bord"
+        "FISHING_DURATION_JOUR": "Nb jours pêche",
+        "NB_FISHERMEN": "Nb pers. à bord",
+        "CREW_SIZE": "Nb pers. à bord"
       },
       "EFFORT_SECTION": {
         "TITLE": "Effort de pêche"

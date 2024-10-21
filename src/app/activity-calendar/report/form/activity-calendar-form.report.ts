@@ -14,13 +14,12 @@ import { environment } from '@environments/environment';
 import {
   ConfigService,
   EntityAsObjectOptions,
-  LoadResult,
-  TranslateContextService,
-  isInstanceOf,
   isNotNil,
+  LoadResult,
   referentialToString,
   sleep,
   splitById,
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../../activity-calendar.service';
 import { ActivityMonth } from '../../calendar/activity-month.model';
@@ -167,7 +166,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   private strategy: Strategy;
 
   constructor(injector: Injector) {
-    super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.FORM.PMFM.' });
+    super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
     this.activityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
