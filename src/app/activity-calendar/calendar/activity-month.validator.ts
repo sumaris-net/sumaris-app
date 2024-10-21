@@ -474,9 +474,22 @@ export class ActivityMonthValidators {
         if (fishingAreas.disabled) {
           fishingAreas.enable({ emitEvent: false });
         }
-        const hasFishingArea = (fishingAreas.value || []).some((fa) => isNotNil(fa.location?.id));
-        if (!hasFishingArea) {
+
+        // Check if metier has at least one fishing area
+        const hasAtLeastOneFishingArea = (fishingAreas.value || []).some((fa) => isNotNil(fa.location?.id));
+        if (!hasAtLeastOneFishingArea) {
           errorMetierLabels.push(metier.label);
+        }
+        // Check if distance to coast is set for every fishing areas
+        else {
+          (fishingAreas.value || []).forEach((fa) => {
+            const location = fa.location;
+            const distanceToCoast = fa.distanceToCoastGradient;
+
+            if (isNotNil(distanceToCoast) && isNil(location?.id)) {
+              errorMetierLabels.push(metier.label);
+            }
+          });
         }
       } else {
         if (fishingAreas.enabled) {
