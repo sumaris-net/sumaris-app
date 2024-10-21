@@ -2883,7 +2883,11 @@ export class CalendarComponent
     const listErrors = [];
 
     rows.forEach((row) => {
-      const form = this.validatorService.getFormGroup(row.currentData);
+      const form = this.validatorService.getFormGroup(row.currentData, { withMeasurements: true, pmfms: this.pmfms });
+
+      //TODO getFormGroup does not return the pmfms, to be fixed with BL
+      form.get('measurementValues')?.patchValue(row.currentData.measurementValues);
+
       const entity = form.value;
       const errorTranslate = this.formErrorAdapter.translateFormErrors(form, this.errorTranslateOptions);
 
@@ -2896,7 +2900,9 @@ export class CalendarComponent
     this.cd.detectChanges();
 
     // cannot be placed above the cd.detectChanges()
-    this.setError('ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS');
+    if (listErrors.length > 0) {
+      this.setError('ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS');
+    }
 
     return listErrors;
   }
