@@ -1,5 +1,5 @@
 <app-toolbar
-  [title]="$title | async"
+  [title]="titleSubject | async"
   color="primary"
   [hasValidate]="!loading && dirty"
   (onValidate)="save($event)"
@@ -18,7 +18,7 @@
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
-    dynamicHeight
+    dynamicHeight="true"
   >
     <!-- TAB: general -->
     <mat-tab label="{{ 'REFERENTIAL.PMFM.TAB_GENERAL' | translate }}">
