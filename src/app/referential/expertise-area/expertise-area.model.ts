@@ -1,21 +1,21 @@
 import { BaseReferential, EntityAsObjectOptions, EntityClass, ReferentialRef } from '@sumaris-net/ngx-components';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-@EntityClass({ typename: 'UserExpertiseAreaVO' })
-export class UserExpertiseArea extends BaseReferential<UserExpertiseArea> {
-  static ENTITY_NAME = 'UserExpertiseArea';
-  static fromObject: (source: any, opts?: any) => UserExpertiseArea;
+@EntityClass({ typename: 'ExpertiseAreaVO' })
+export class ExpertiseArea extends BaseReferential<ExpertiseArea> {
+  static ENTITY_NAME = 'ExpertiseArea';
+  static fromObject: (source: any, opts?: any) => ExpertiseArea;
 
   locations: ReferentialRef[] = null;
 
   constructor() {
-    super(UserExpertiseArea.TYPENAME);
-    this.entityName = UserExpertiseArea.ENTITY_NAME;
+    super(ExpertiseArea.TYPENAME);
+    this.entityName = ExpertiseArea.ENTITY_NAME;
   }
 
-  fromObject(source: any): UserExpertiseArea {
+  fromObject(source: any): ExpertiseArea {
     super.fromObject(source);
-    this.entityName = UserExpertiseArea.ENTITY_NAME;
+    this.entityName = ExpertiseArea.ENTITY_NAME;
     this.locations = (source.locations || []).map(ReferentialRef.fromObject);
     return this;
   }

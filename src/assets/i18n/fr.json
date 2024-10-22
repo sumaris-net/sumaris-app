@@ -2121,6 +2121,7 @@
     "PAGE_HISTORY_SUBTITLE": "Référentiel",
     "LAST_NAME": "Nom",
     "FIRST_NAME": "Prénom",
+    "TAB_GENERAL": "Détails",
     "DEPARTMENT": {
       "LABEL": "Code organisme",
       "NAME": "Libellé organisme"
@@ -2198,7 +2199,6 @@
       "NAME": "Libellé engin"
     },
     "PARAMETER": {
-      "TAB_GENERAL": "Détails",
       "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
       "TYPE": "Type de valeur",
       "CODE": "Code paramètre",
@@ -2219,7 +2219,6 @@
       }
     },
     "PMFM": {
-      "TAB_GENERAL": "Détails",
       "USE_DEFAULT_QUALITATIVES_VALUES": "Toutes les valeurs issues du paramètre",
       "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
       "TYPE": "Type",
@@ -2281,8 +2280,20 @@
       "STATUS_ID": "État",
       "TYPE": "Type de transcodage"
     },
+    "EXPERTISE_AREA": {
+      "LOCATION": "Lieu(x) de la zone",
+      "NEW": {
+        "TITLE": "Nouvelle zones de compétence"
+      },
+      "EDIT": {
+        "TITLE": "<small>Zones de compétence<br></small>{{name}}"
+      }
+    },
+    "LOCATION_LEVEL": {
+      "NAME": "Libellé du niveau de lieu"
+    },
     "LIST": {
-      "TITLE": "Référentiels",
+      "TITLE": "Référentiels<small><br></small><small>{{entity}}</small>",
       "BTN_IMPORT_OPTIONS_DOTS": "Options d'importation...",
       "FILTER": {
         "ENTITY": "Type de référentiel",
@@ -2332,6 +2343,7 @@
       "PARAMETER": "PSFM > Paramètres",
       "PARAMETER_GROUP": "PSFM > Groupes de paramètres",
       "USER_PROFILE": "Profils utilisateur",
+      "EXPERTISE_AREA": "Zones de compétence",
       "VESSEL_TYPE": "Types de navire",
       "PMFM": "PSFM > Quadruplets PSFM",
       "MATRIX": "PSFM > Supports de mesure",

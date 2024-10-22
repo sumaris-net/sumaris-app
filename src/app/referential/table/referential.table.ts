@@ -113,7 +113,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     TaxonName: '/referential/taxonName/:id?label=:label',
     TaxonGroup: '/referential/taxonGroup/:id?label=:label',
     Metier: '/referential/metier/:id?label=:label',
-    UserExpertiseArea: '/referential/user-expertise-area/:id?label=:label',
+    ExpertiseArea: '/referential/expertise-area/:id?label=:label',
     // Extraction (special case)
     ExtractionProduct: '/extraction/product/:id?label=:label',
   };

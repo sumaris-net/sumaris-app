@@ -7,15 +7,14 @@ import {
   Referential,
   ReferentialFilter,
   ReferentialRef,
-  referentialToString,
   splitById,
   StatusIds,
 } from '@sumaris-net/ngx-components';
 import { AppReferentialEditor } from '@app/referential/form/referential-editor.class';
 import { ReferentialForm } from '@app/referential/form/referential.form';
-import { UserExpertiseAreaService } from '@app/referential/expertise-area/user-expertise-area.service';
-import { UserExpertiseAreaValidatorService } from '@app/referential/expertise-area/user-expertise-area.validator';
-import { UserExpertiseArea } from '@app/referential/expertise-area/user-expertise-area.model';
+import { ExpertiseAreaService } from '@app/referential/expertise-area/expertise-area.service';
+import { ExpertiseAreaValidatorService } from '@app/referential/expertise-area/expertise-area.validator';
+import { ExpertiseArea } from '@app/referential/expertise-area/expertise-area.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
@@ -28,19 +27,19 @@ export class LocationRef extends ReferentialRef<LocationRef> {
   locationLevel: ReferentialRef;
 }
 
-export interface UserExpertiseAreaPageState {
+export interface ExpertiseAreaPageState {
   locationLevelById: { [key: number]: LocationRef };
 }
 
 @Component({
-  selector: 'app-user-expertise-area',
-  templateUrl: 'user-expertise-area.page.html',
-  styleUrls: ['user-expertise-area.page.scss'],
+  selector: 'app-expertise-area',
+  templateUrl: 'expertise-area.page.html',
+  styleUrls: ['expertise-area.page.scss'],
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserExpertiseAreaPage extends AppReferentialEditor<UserExpertiseArea, UserExpertiseAreaService> {
-  @RxStateRegister() protected readonly _state: RxState<UserExpertiseAreaPageState> = inject(RxState);
+export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, ExpertiseAreaService> {
+  @RxStateRegister() protected readonly _state: RxState<ExpertiseAreaPageState> = inject(RxState);
 
   @RxStateSelect() protected locationLevelById$: Observable<{ [key: number]: LocationRef }>;
 
@@ -50,9 +49,9 @@ export class UserExpertiseAreaPage extends AppReferentialEditor<UserExpertiseAre
 
   protected referentialService: ReferentialService;
 
-  constructor(injector: Injector, dataService: UserExpertiseAreaService, validatorService: UserExpertiseAreaValidatorService) {
-    super(injector, UserExpertiseArea, dataService, validatorService.getFormGroup(), {
-      entityName: UserExpertiseArea.ENTITY_NAME,
+  constructor(injector: Injector, dataService: ExpertiseAreaService, validatorService: ExpertiseAreaValidatorService) {
+    super(injector, ExpertiseArea, dataService, validatorService.getFormGroup(), {
+      entityName: ExpertiseArea.ENTITY_NAME,
       uniqueLabel: true,
       withLevels: false,
       tabCount: 1,
@@ -68,19 +67,25 @@ export class UserExpertiseAreaPage extends AppReferentialEditor<UserExpertiseAre
           entityName: 'Location',
         },
         attributes: ['id', 'label', 'name', 'locationLevel.name'],
-        displayWith: (item) => referentialToString(item, ['id', 'label']),
+        displayWith: (item) => `${item.label} - ${item.name} (${item.locationLevel?.name || '?'})`,
       },
     });
   }
 
   /* -- protected methods -- */
 
-  protected async onEntityLoaded(data: UserExpertiseArea, options?: EntityServiceLoadOptions): Promise<void> {
+  protected async onEntityLoaded(data: ExpertiseArea, options?: EntityServiceLoadOptions): Promise<void> {
     await this.loadLocationLevels();
+
+    data.locations = (data.locations || []).map((source) => {
+      const target = LocationRef.fromObject(source.asObject());
+      target.locationLevel = this.locationLevelById[source.levelId];
+      return target;
+    });
     return super.onEntityLoaded(data, options);
   }
 
-  protected async onNewEntity(data: UserExpertiseArea, options?: EntityServiceLoadOptions): Promise<void> {
+  protected async onNewEntity(data: ExpertiseArea, options?: EntityServiceLoadOptions): Promise<void> {
     await this.loadLocationLevels();
     return super.onNewEntity(data, options);
   }

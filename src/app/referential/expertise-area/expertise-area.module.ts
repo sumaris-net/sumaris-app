@@ -5,7 +5,7 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppReferentialFormModule } from '@app/referential/form/referential-form.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { AppReferentialTableModule } from '@app/referential/table/referential-table.module';
-import { UserExpertiseAreaPage } from '@app/referential/expertise-area/user-expertise-area.page';
+import { ExpertiseAreaPage } from '@app/referential/expertise-area/expertise-area.page';
 import { RxStateModule } from '@sumaris-net/ngx-components';
 
 @NgModule({
@@ -23,13 +23,13 @@ import { RxStateModule } from '@sumaris-net/ngx-components';
   ],
   declarations: [
     // Components
-    UserExpertiseAreaPage,
+    ExpertiseAreaPage,
   ],
   exports: [
     TranslateModule,
 
     // Components
-    UserExpertiseAreaPage,
+    ExpertiseAreaPage,
   ],
 })
-export class AppUserExpertiseAreaModule {}
+export class AppExpertiseAreaModule {}
