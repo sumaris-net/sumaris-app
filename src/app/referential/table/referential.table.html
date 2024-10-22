@@ -1,6 +1,8 @@
-<app-toolbar [title]="title | translate" color="primary" [canGoBack]="false">
+@let entity = $selectedEntity | async;
+<app-toolbar [title]="(title | translate: {entity: entity?.label})" color="primary" [canGoBack]="false">
   <ion-buttons slot="end">
-    <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+    <!-- no selection -->
+    @if (selection | isEmptySelection) {
       <!-- Add -->
       <button mat-icon-button *ngIf="!mobile && canEdit" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
         <mat-icon>add</mat-icon>
@@ -32,10 +34,9 @@
           <mat-icon>filter_list_alt</mat-icon>
         </ng-template>
       </button>
-    </ng-container>
 
-    <!-- if row selection -->
-    <ng-template #hasSelection>
+      <!-- if row selection -->
+    } @else {
       <!-- delete -->
       <button mat-icon-button *ngIf="canEdit" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
         <mat-icon>delete</mat-icon>
@@ -45,12 +46,12 @@
       <button mat-icon-button *ngIf="canDownload" [title]="'COMMON.BTN_DOWNLOAD' | translate" [matMenuTriggerFor]="downloadMenu">
         <mat-icon>download</mat-icon>
       </button>
-    </ng-template>
+    }
 
-    <!-- select entity -->
-    @if ($selectedEntity | async; as entity) {
-      <ion-button fill="solid" color="accent" [class.cdk-visually-hidden]="!canSelectEntity" [matMenuTriggerFor]="selectEntityMenu">
-        <ion-label>{{ entity.label }}</ion-label>
+    <!-- select entity (desktop) -->
+    @if (canSelectEntity) {
+      <ion-button fill="solid" color="accent" class="hidden-xs" [matMenuTriggerFor]="selectEntityMenu">
+        <ion-label>{{ entity?.label ||  ('COMMON.EMPTY_OPTION' | translate) }}</ion-label>
         <mat-icon slot="end">arrow_drop_down</mat-icon>
       </ion-button>
     }
@@ -183,6 +184,16 @@
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="applyFilterAndClosePanel($event)">
       <ion-grid>
         <ion-row>
+          <!-- select entity (very small screen) -->
+          @if (canSelectEntity) {
+            <ion-col size="12" class="visible-xs">
+              <ion-button fill="solid" color="accent" [matMenuTriggerFor]="selectEntityMenu">
+                <ion-label>{{ entity?.label || ('COMMON.EMPTY_OPTION' | translate) }}</ion-label>
+                <mat-icon slot="end">arrow_drop_down</mat-icon>
+              </ion-button>
+            </ion-col>
+          }
+
           <!-- search text -->
           <ion-col size="12" size-md="12" size-lg="4">
             <mat-form-field>
@@ -293,6 +304,11 @@
 
   <!-- table -->
   <div #tableContainer class="table-container">
+
+    <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)">
+      <ion-refresher-content></ion-refresher-content>
+    </ion-refresher>
+
     <table
       #table
       mat-table
