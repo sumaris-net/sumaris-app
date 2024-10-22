@@ -220,6 +220,7 @@
         [sticky]="true"
         [stickyEnd]="!mobile"
         [compactFields]="false"
+        [programLabel]="programLabel$ | push"
         (prepareRowForm)="onPrepareSampleForm($event)"
         (weightUnitChanges)="setWeightDisplayUnit($event)"
         [mobile]="mobile"
