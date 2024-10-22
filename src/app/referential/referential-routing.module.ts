@@ -124,6 +124,10 @@ const routes: Routes = [
     path: 'metier',
     loadChildren: () => import('./metier/metier-routing.module').then((m) => m.AppMetierRoutingModule),
   },
+  {
+    path: 'user-expertise-area',
+    loadChildren: () => import('./expertise-area/user-expertise-area-routing.module').then((m) => m.AppUserExpertiseAreaRoutingModule),
+  },
 ];
 
 @NgModule({
