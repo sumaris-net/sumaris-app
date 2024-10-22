@@ -1502,7 +1502,11 @@ export class CalendarComponent
   }
 
   async confirmEditCell(event: Event, row: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
+    if (event?.defaultPrevented) return;
+    event?.preventDefault(); // Avoid dual execution - fic issue #766
+
     console.debug(this.logPrefix + `Confirm cell month #${row.id} ${columnName}`, event);
+
     const confirmed = await this.confirmEditCreate(event, row);
     if (!confirmed) return;
 
@@ -1826,8 +1830,8 @@ export class CalendarComponent
     return editing;
   }
 
-  protected configureValidator(opts: MeasurementsTableValidatorOptions) {
-    super.configureValidator(opts);
+  protected async configureValidator(opts: MeasurementsTableValidatorOptions) {
+    await super.configureValidator(opts);
 
     this.validatorService.delegateOptions = {
       maxMetierCount: this.maxMetierCount,
@@ -1845,16 +1849,25 @@ export class CalendarComponent
     return super.confirmAndBackward(event, row);
   }
 
+  private confirmEditCreateId = 0;
+
   async confirmEditCreate(event?: Event, row?: AsyncTableElement<ActivityMonth>, opts?: { lock?: boolean }): Promise<boolean> {
     // If not given row: confirm all editing rows
     if (!row) {
       const editingRows = this.dataSource.getEditingRows();
+      if (isEmptyArray(editingRows)) return true; // No rows to confirm
+      console.debug(this.logPrefix + `lock rows`, new Error(), editingRows);
       return (await Promise.all(editingRows.map((editedRow) => this.confirmEditCreate(event, editedRow)))).every((c) => c === true);
     }
+    let confirmEditCreateId = this.confirmEditCreateId++;
 
     try {
+      console.debug(this.logPrefix + `lock row#${row?.id} - ID #${confirmEditCreateId}`, new Error());
+
       // Lock the row, or wait until can lock
       await this.confirmingRowMutex.lock(row);
+
+      console.debug(this.logPrefix + `lock row#${row?.id} resolved - ID #${confirmEditCreateId}`);
 
       if (!row || !row.editing) return true; // nothing to confirmed
 
@@ -1895,7 +1908,7 @@ export class CalendarComponent
     } finally {
       // Workaround used to avoid to focus the backward button
       setTimeout(() => {
-        console.debug(this.logPrefix + `unlock row#${row?.id}`);
+        console.debug(this.logPrefix + `unlock row#${row?.id} - ID #${confirmEditCreateId}`);
         this.confirmingRowMutex.unlock(row);
       }, 250);
     }
