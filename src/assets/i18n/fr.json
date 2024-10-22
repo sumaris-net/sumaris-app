@@ -1486,6 +1486,12 @@
         "VESSEL_NAME": "Nom du bateau",
         "DATE_TIME": "Date et heure",
         "NUM_OP": "N° OP",
+        "TYPE_OP": {
+          "PARENT_PMFM": "Filage (F)",
+          "CHILD_PMFM": "Virage (V)",
+          "PARENT": "F",
+          "CHILD": "V"
+        },
         "TRIP": {
           "TITLE": "Fiche sortie en mer",
           "HELP": "Rappel : Les informations et données relatives au programme ObsMer sont confidentielles et ne sauraient de quelque manière que ce soit être communiquées à des tiers.",
@@ -1497,6 +1503,7 @@
           "SAMPLING_STATA_LABEL": "Strate observée justifiant l’embarquement",
           "ATTACHMENT_PROGRAM": "Programme de rattachement",
           "OBSERVERS_NAMES": "Nom(s), Prénom(s) (société)",
+          "OTHER_FEATURES": "Caractéristiques autres",
           "VESSEL_REGISTRATION_CODE": "Immatriculation du navire",
           "VESSEL_NAME": "Nom du navire",
           "DEPARTURE_LOCATION": "Lieu de départ & Type de lieu",
@@ -1520,14 +1527,16 @@
           "TABLE": {
             "OPERATION_START": "Début de l'opération",
             "OPERATION_END": "Fin de l'opération",
-            "PARENT": "Filage (fin de mise à l’eau de l’engin)*",
-            "CHILD": "Virage (début de remontée de l’engin)*",
             "ECH_ON": "Échantillonnage (O/N)",
             "PROGRESS": "Déroulement normal ? (O/N)",
             "GEAR_SPECIES": "Engin* + Espèce(s) cible(s) si navire associé** (IMMAT du navire)",
             "CAPTURE": "Capture remontée sur navire observé (O/N)**",
             "LAT_LONG_LOCATION": "Position GPS Latitude + longitude (DD°MM)",
-            "COMMENTS": "Commentaires, préciser si possible le temps de traitement de la capture pour les OP échantillonnées"
+            "COMMENTS": "Commentaires, préciser si possible le temps de traitement de la capture pour les OP échantillonnées",
+            "OBSERVED_TRIP": {
+              "OPERATION_START": "Filage (fin de mise à l’eau de l’engin)*",
+              "OPERATION_END": "Virage (début de remontée de l’engin)*"
+            }
           },
           "HELP": {
             "ONE_STAR": "Attention, pour les arts dormants, la date de fin de mise à l'eau est le plus souvent la veille ou l'avant-veille de la marée observée.",
@@ -1545,8 +1554,10 @@
           "TITLE": "Dossier d'observation en mer"
         },
         "PMFM": {
+          "IS_ACOUSTIC_DEVICE": "Présence de répulsif acoustique ?",
           "OBSERVED_TRIP": {
-            "HAS_INDIVIDUAL_MEASURES": "Échantillonnage"
+            "HAS_INDIVIDUAL_MEASURES": "Échantillonnage ? O/N",
+            "TRIP_PROGRESS": "Déroulement normal ? O/N"
           }
         },
         "BATCH": {

@@ -337,7 +337,6 @@ html.print-pdf .reveal .slides section {
         &.text-vertical {
           padding: 0;
           > div {
-            width: var(--row-title-height);
             text-align: center;
             display: flex;
             justify-content: center;
@@ -346,13 +345,20 @@ html.print-pdf .reveal .slides section {
             height: var(--col-width);
             padding: 0 5px;
             position: relative;
-            left: calc(-1 * ((var(--row-title-height) - var(--col-width)) / 2));
           }
         }
       }
 
       thead {
         tr {
+          th {
+            &.text-vertical {
+              > div {
+                width: var(--row-title-height);
+                left: calc(-1 * ((var(--row-title-height) - var(--col-width)) / 2));
+              }
+            }
+          }
           height: var(--row-title-height);
           &.group-head {
             height: 25px;
@@ -362,8 +368,14 @@ html.print-pdf .reveal .slides section {
 
       tbody {
         tr {
-          height: var(--row-height);
           td {
+            &.text-vertical {
+              > div {
+                width: var(--row-height);
+                left: calc(-1 * ((var(--row-height) - var(--col-width)) / 2));
+              }
+            }
+            height: var(--row-height);
             span {
               &.place-holder {
                 color: var(--ion-color-medium);

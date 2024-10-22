@@ -1,37 +1,38 @@
 import { Component, Injector, ViewEncapsulation } from '@angular/core';
-import { FormTripReportService } from './form-trip-report.service';
-import { TripReportService } from '../trip-report.service';
+import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
+import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { BaseReportStats, IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
-import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
-import { TripService } from '../../trip.service';
-import { Operation, Trip } from '../../trip.model';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
-import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { Program } from '@app/referential/services/model/program.model';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
+import { DenormalizedBatch } from '@app/trip/denormalized-batch/denormalized-batch.model';
+import { DenormalizedBatchService } from '@app/trip/denormalized-batch/denormalized-batch.service';
+import { DenormalizedBatchUtils } from '@app/trip/denormalized-batch/denormalized-batch.utils';
+import { environment } from '@environments/environment';
 import {
   EntityAsObjectOptions,
   ImageAttachment,
+  LatLongPattern,
+  StatusIds,
+  TreeItemEntityUtils,
+  arrayDistinct,
   isNil,
   isNotEmptyArray,
   isNotNil,
-  LatLongPattern,
   sleep,
   splitById,
-  StatusIds,
-  TreeItemEntityUtils,
 } from '@sumaris-net/ngx-components';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
-import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
-import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
-import { Strategy } from '@app/referential/services/model/strategy.model';
-import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils } from '@app/data/measurement/measurement.model';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { DenormalizedBatchService } from '@app/trip/denormalized-batch/denormalized-batch.service';
-import { DenormalizedBatch } from '@app/trip/denormalized-batch/denormalized-batch.model';
-import { environment } from '@environments/environment';
-import { DenormalizedBatchUtils } from '@app/trip/denormalized-batch/denormalized-batch.utils';
+import { Operation, Trip } from '../../trip.model';
+import { TripService } from '../../trip.service';
+import { TripReportService } from '../trip-report.service';
+import { FormTripReportService } from './form-trip-report.service';
 
 export class FormTripReportStats extends BaseReportStats {
   readonly pmfmIdsMap = PmfmIds;
@@ -47,6 +48,7 @@ export class FormTripReportStats extends BaseReportStats {
   operationRankOrderByOperationIds: { [key: number]: number };
   operationsRankByGears: { [key: number]: number[] };
   pmfmByGearsId: { [key: number]: IPmfm[] };
+  operationTableHeadColspan: number;
   denormalizedBatchByOp: {
     [key: number]: {
       landing?: DenormalizedBatch[];
@@ -61,6 +63,7 @@ export class FormTripReportStats extends BaseReportStats {
   pmfms: {
     trip: IPmfm[];
     operation: IPmfm[];
+    childOperation: IPmfm[];
     gears?: IPmfm[];
     denormalizedBatch?: IPmfm[];
     samples: IPmfm[];
@@ -71,14 +74,42 @@ export class FormTripReportStats extends BaseReportStats {
     denormalizedBatch?: { [key: number]: IPmfm };
     samples: { [key: number]: IPmfm };
   };
+  hasPmfm: {
+    trip: {
+      nbFishermen: boolean;
+    };
+    operation: {
+      hasIndividualMeasure: boolean;
+      tripProgress: boolean;
+    };
+  };
+  pmfmsTipsByPmfmId: {
+    operation: {
+      [key: number]: {
+        tipsNum: number;
+        text: string;
+      };
+    };
+  };
   sampleImagesByOperationIds: { [key: number]: ImageAttachment[] };
   options: {
-    showFishingStartDateTime: boolean;
-    showFishingEndDateTime: boolean;
-    showEndDate: boolean;
-    sampleLabelEnabled: boolean;
-    sampleTaxonNameEnabled: boolean;
-    sampleTaxonGroupEnabled: boolean;
+    trip: {
+      strataEnabled?: boolean;
+      showObservers: boolean;
+      showSale: boolean;
+    };
+    operation: {
+      showStartDate: boolean;
+      showFishingStartDateTime: boolean;
+      showFishingEndDateTime: boolean;
+      showEndDate: boolean;
+      allowParentOperation: boolean;
+    };
+    samples: {
+      labelEnabled: boolean;
+      taxonNameEnabled: boolean;
+      taxonGroupEnabled: boolean;
+    };
   };
 
   fromObject(source: any) {
@@ -110,6 +141,7 @@ export class FormTripReportStats extends BaseReportStats {
     this.pmfms = {
       trip: source.pmfms.trip?.map(DenormalizedPmfmStrategy.fromObject),
       operation: source.pmfms.operation?.map(DenormalizedPmfmStrategy.fromObject),
+      childOperation: source.pmfms.childOperation?.map(DenormalizedPmfmStrategy.fromObject),
       gears: source.pmfms.gears?.map(DenormalizedPmfmStrategy.fromObject),
       denormalizedBatch: source.pmfms.denormalizedBatch?.map(DenormalizedPmfmStrategy.fromObject),
       samples: source.pmfms.samples?.map(DenormalizedPmfmStrategy.fromObject),
@@ -132,18 +164,14 @@ export class FormTripReportStats extends BaseReportStats {
         return acc;
       }, {}),
     };
+    this.hasPmfm = source.hasPmfm;
+    this.pmfmsTipsByPmfmId = source.pmfmsLegendByPmfmId;
     this.sampleImagesByOperationIds = Object.keys(source.sampleImagesByOperationIds).reduce((acc, key) => {
       acc[key] = source.sampleImagesByOperationIds[key]?.map(ImageAttachment.fromObject);
       return acc;
     }, {});
-    this.options = {
-      showFishingStartDateTime: source.showFishingStartDateTime,
-      showFishingEndDateTime: source.showFishingEndDateTime,
-      showEndDate: source.showEndDate,
-      sampleLabelEnabled: source.sampleLabelEnabled,
-      sampleTaxonNameEnabled: source.sampleTaxonNameEnabled,
-      sampleTaxonGroupEnabled: source.sampleTaxonGroupEnabled,
-    };
+
+    this.options = source.options;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -183,6 +211,8 @@ export class FormTripReportStats extends BaseReportStats {
         }, {});
         return acc;
       }, {}),
+      pmfmsLegendByPmfmId: this.pmfmsTipsByPmfmId,
+      hasPmfm: this.hasPmfm,
       sampleImagesByOperationIds: Object.keys(this.sampleImagesByOperationIds).reduce((acc, key) => {
         acc[key] = this.sampleImagesByOperationIds[key].map((item) => item.asObject(opts));
         return acc;
@@ -207,6 +237,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected subReportType: string;
   protected latLongPattern: LatLongPattern;
   protected readonly nbOfOpOnBlankPage = 9;
+  protected operationNbTableSplitArrayChunk = 9;
 
   protected readonly tripService: TripService;
   protected readonly referentialRefService: ReferentialRefService;
@@ -242,7 +273,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   }
 
   protected filterPmfmForOperationTable(pmfm: IPmfm): boolean {
-    return ![PmfmIds.HAS_INDIVIDUAL_MEASURES, PmfmIds.TRIP_PROGRESS].includes(pmfm.id);
+    return isNil(pmfm) || ![PmfmIds.HAS_INDIVIDUAL_MEASURES, PmfmIds.TRIP_PROGRESS].includes(pmfm.id);
   }
 
   protected async loadData(id: number, opts?: any): Promise<Trip> {
@@ -277,14 +308,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
 
     // Get program and options
     stats.program = await this.programRefService.loadByLabel(data.program.label);
-    stats.options = {
-      showFishingStartDateTime: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
-      showFishingEndDateTime: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
-      showEndDate: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
-      sampleLabelEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_LABEL_ENABLE),
-      sampleTaxonGroupEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_GROUP_ENABLE),
-      sampleTaxonNameEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_TAXON_NAME_ENABLE),
-    };
     stats.subtitle = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_SUBTITLE);
     stats.footerText = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_FOOTER);
     stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL);
@@ -315,6 +338,10 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
             acquisitionLevel: AcquisitionLevelCodes.OPERATION,
             strategyId,
           }),
+          childOperation: await this.programRefService.loadProgramPmfms(data.program.label, {
+            acquisitionLevel: AcquisitionLevelCodes.CHILD_OPERATION,
+            strategyId,
+          }),
           gears: await this.programRefService.loadProgramPmfms(data.program.label, {
             acquisitionLevel: AcquisitionLevelCodes.PHYSICAL_GEAR,
             strategyId,
@@ -337,6 +364,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       : {
           trip: [],
           operation: [],
+          childOperation: [],
           gears: [],
           samples: [],
         };
@@ -347,6 +375,36 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       denormalizedBatch: splitById(stats.pmfms.denormalizedBatch),
       samples: splitById(stats.pmfms.samples),
     };
+
+    // In case of allowParentOperation, also display child pmfm in it own
+    // header line for operation table. We also need each array (parent and
+    // child pmfms) has the same size to be displayed correctly as table column
+    if (stats.options.operation.allowParentOperation) {
+      const nbOperationPmfms = stats.pmfms.operation.filter(this.filterPmfmForOperationTable).length;
+      const nbChildOperationPmfms = stats.pmfms.childOperation.filter(this.filterPmfmForOperationTable).length;
+      if (nbOperationPmfms > nbChildOperationPmfms) {
+        const diff = nbOperationPmfms - nbChildOperationPmfms;
+        stats.pmfms.childOperation = [...stats.pmfms.childOperation, ...Array(diff - 1).fill(null)];
+      } else if (nbChildOperationPmfms > nbOperationPmfms) {
+        const diff = nbChildOperationPmfms - nbOperationPmfms;
+        stats.pmfms.operation = [...stats.pmfms.operation, ...Array(diff - 1).fill(null)];
+      }
+    }
+
+    stats.hasPmfm = {
+      trip: {
+        nbFishermen: isNotNil(stats.pmfmsByIds.trip?.[stats.pmfmIdsMap.NB_FISHERMEN]),
+      },
+      operation: {
+        hasIndividualMeasure: isNotNil(stats.pmfmsByIds.operation?.[stats.pmfmIdsMap.HAS_INDIVIDUAL_MEASURES]),
+        tripProgress: isNotNil(stats.pmfmsByIds.operation?.[stats.pmfmIdsMap.TRIP_PROGRESS]),
+      },
+    };
+
+    stats.operationTableHeadColspan = 2 + Object.values(stats.hasPmfm.operation).filter((v) => v).length;
+
+    // Remove it from pmfm list to avoid it displayed in the other features section
+    stats.pmfms.trip = stats.pmfms.trip.filter((pmfm) => pmfm.id !== stats.pmfmIdsMap.NB_FISHERMEN);
 
     stats.pmfmByGearsId = data.gears
       .map((physicalGear) => physicalGear.gear.id)
@@ -364,6 +422,24 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         return res;
       }, {});
 
+    // Compute automatic legend for operation table, for each qualitative value pmfms
+    {
+      const operationPmfmsForLegend = arrayDistinct(
+        stats.pmfms.operation
+          .concat(stats.options.operation.allowParentOperation ? stats.pmfms.childOperation : [])
+          .filter((pmfm) => isNotNil(pmfm) && PmfmUtils.isQualitative(pmfm)),
+        'id'
+      );
+      stats.pmfmsTipsByPmfmId = {
+        operation: operationPmfmsForLegend.reduce((res, pmfm, index) => {
+          res[pmfm.id] = {
+            tipsNum: index + 1,
+            text: pmfm.qualitativeValues.map((qv) => qv.label + ' : ' + qv.name).join(' ; '),
+          };
+          return res;
+        }, {}),
+      };
+    }
     // Get all needed measurement values in suitable format
     stats.measurementValues = {
       trip: MeasurementUtils.toMeasurementValues(data.measurements),
@@ -425,7 +501,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         .flatMap((s) => {
           // Add title to image
           s.images.forEach((image) => {
-            image.title = stats.options.sampleLabelEnabled ? s.label : `#${s.rankOrder}`;
+            image.title = stats.options.samples.labelEnabled ? s.label : `#${s.rankOrder}`;
           });
           return s.images;
         });
