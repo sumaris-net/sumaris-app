@@ -136,7 +136,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     return this.panelClass;
   }
 
-  @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
+  @Output('keyup.enter') onKeyupEnter = new EventEmitter<any>();
   // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('focus') focused = new EventEmitter<FocusEvent>();
   // eslint-disable-next-line @angular-eslint/no-output-native
@@ -260,7 +260,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     if (this.style === 'button') {
       this.updateSelectedIndex(value);
 
-      if (event) this.onPressEnter.emit(event);
+      if (event) this.onKeyupEnter.emit(event);
     }
   }
 
