@@ -59,14 +59,15 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
 
     this.registerFieldDefinition({
       key: 'locations',
-      label: `REFERENTIAL.USER_EXPERTISE_AREA.LOCATION`,
+      label: `REFERENTIAL.EXPERTISE_AREA.LOCATION`,
       type: 'entities',
       autocomplete: {
         suggestFn: (value, filter) => this.suggestLocations(value, filter),
         filter: <ReferentialRefFilter>{
           entityName: 'Location',
         },
-        attributes: ['id', 'label', 'name', 'locationLevel.name'],
+        attributes: ['label', 'name', 'locationLevel.name'],
+        columnNames: [undefined, undefined, 'REFERENTIAL.EXPERTISE_AREA.LOCATION_LEVEL'],
         displayWith: (item) => `${item.label} - ${item.name} (${item.locationLevel?.name || '?'})`,
       },
     });

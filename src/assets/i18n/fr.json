@@ -2282,15 +2282,13 @@
     },
     "EXPERTISE_AREA": {
       "LOCATION": "Lieu(x) de la zone",
+      "LOCATION_LEVEL": "Niveau de lieu",
       "NEW": {
         "TITLE": "Nouvelle zones de compétence"
       },
       "EDIT": {
         "TITLE": "<small>Zones de compétence<br></small>{{name}}"
       }
-    },
-    "LOCATION_LEVEL": {
-      "NAME": "Libellé du niveau de lieu"
     },
     "LIST": {
       "TITLE": "Référentiels<small><br></small><small>{{entity}}</small>",
