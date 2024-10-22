@@ -971,7 +971,7 @@
       },
       "PARENT": {
         "TITLE": "Sélectionner filage",
-        "SEARCH": "Recherche",
+        "SEARCH": "Rechercher",
         "CREATE": "Nouveau filage",
         "TRIP": "{{vessel}} - Marée {{departureDateTime}}",
         "FILTER": {

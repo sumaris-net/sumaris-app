@@ -10,8 +10,7 @@ import {
   OnInit,
   Optional,
   Output,
-} from '@angular/core';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+} from '@angular/core'; // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { OperationValidatorOptions, OperationValidatorService } from './operation.validator';
 import moment, { Moment } from 'moment';
 import {
@@ -38,6 +37,7 @@ import {
   LoadResult,
   MatAutocompleteField,
   OnReady,
+  PersonService,
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
@@ -63,7 +63,7 @@ import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
-import { LocationLevelGroups, PmfmIds, QualityFlagIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelGroups, PmfmIds, QualityFlagIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
@@ -74,6 +74,9 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { OverlayEventDetail } from '@ionic/core';
+import { RxState } from '@rx-angular/state';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -95,6 +98,7 @@ export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   templateUrl: './operation.form.html',
   styleUrls: ['./operation.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [RxState],
 })
 export class OperationForm extends AppForm<Operation> implements OnInit, OnDestroy, OnReady {
   private _trip: Trip;
@@ -156,6 +160,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   @Input() maxShootingDurationInHours: number;
   @Input() maxTotalDurationInHours: number;
   @Input() isInlineFishingArea: boolean;
+  @Input() gearId$: number;
+  @Input() requiredStrategy$: boolean;
+  @Input() strategyId$: number;
+  @Input() pmfms: IPmfm[];
 
   @Input() set usageMode(usageMode: UsageMode) {
     if (this._usageMode !== usageMode) {
@@ -363,10 +371,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     protected router: Router,
     protected dateFormat: DateFormatService,
     protected validatorService: OperationValidatorService,
+    protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
     protected alertCtrl: AlertController,
     protected accountService: AccountService,
+    protected personService: PersonService,
     protected operationService: OperationService,
     protected physicalGearService: PhysicalGearService,
     protected pmfmService: PmfmService,
@@ -731,6 +741,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
     const gearIds = removeDuplicatesFromArray((this._$physicalGears.value || []).map((physicalGear) => physicalGear.gear.id));
 
+    const defaultNewOperation = new Operation();
+    defaultNewOperation.recorderDepartment = this.accountService.department;
+    defaultNewOperation.childOperationId = currentOperation.id;
+    defaultNewOperation.childOperation = currentOperation as Operation;
+    defaultNewOperation.physicalGear = currentOperation.physicalGear;
+
     const modal = await this.modalCtrl.create({
       component: SelectOperationModal,
       componentProps: <ISelectOperationModalOptions>{
@@ -749,9 +765,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         enableGeolocation: this.enableGeolocation,
         allowMultiple: false,
         allowParentOperation: this.allowParentOperation,
-        // programLabel: this.programLabel,
-        // acquisitionLevel$: AcquisitionLevelCodes.OPERATION,
-        // strategyId: ,
+        programLabel: this.programLabel,
+        acquisitionLevel: AcquisitionLevelCodes.OPERATION,
+        strategyId: this.strategyId$,
+        requiredStrategy: this.requiredStrategy$,
+        gearId: this.gearId$,
+        defaultNewOperation: defaultNewOperation,
+        allowNewOperation: true,
+        debug: this.debug,
       },
       keyboardClose: true,
       cssClass: 'modal-large',

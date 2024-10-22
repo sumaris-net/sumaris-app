@@ -8,6 +8,7 @@ import {
   isNilOrBlank,
   isNotNil,
   isNotNilOrBlank,
+  PlatformService,
   sleep,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -42,6 +43,11 @@ export interface ISelectOperationModalOptions {
   selectedOperation?: Operation;
   allowParentOperation: boolean;
   allowMultiple: boolean;
+  strategyId: number;
+  acquisitionLevel: string;
+  allowNewOperation: boolean;
+  defaultNewOperation: Operation;
+  debug?: boolean;
 }
 
 @Component({
@@ -74,6 +80,20 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   @Input() programLabel: string;
   @Input() strategyId: number;
   @Input() acquisitionLevel: string;
+  @Input() allowNewOperation: boolean;
+  @Input() defaultNewOperation: Operation;
+  @Input() gearId: number;
+  @Input() requiredStrategy: boolean;
+
+  protected readonly platformService = inject(PlatformService);
+
+  protected readonly dateTimePattern: string;
+  protected readonly xsMobile: boolean;
+
+  displayAttributes: {
+    gear?: string[];
+    [key: string]: string[];
+  } = {};
 
   get loading(): boolean {
     return this.table && this.table.loading;
@@ -88,6 +108,10 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     @Optional() options?: AppDataEditorOptions
   ) {
     super(injector, Operation, options);
+
+    this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
+    this.displayAttributes.gear = this.settings.getFieldDisplayAttributes('gear');
+    this.xsMobile = this.mobile && !this.platformService.is('tablet');
   }
 
   ngOnInit() {
@@ -97,8 +121,32 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
 
     this.filter = OperationFilter.fromObject(this.filter);
     this.table.filter = this.filter;
-    // this.usageMode = 'FIELD';
     this.loadData();
+
+    if (this.allowNewOperation) {
+      if (this.defaultNewOperation) this.opeForm.setValue(this.defaultNewOperation);
+      this.opeForm.enable();
+      this.opeForm.markAsReady();
+    }
+
+    // // Get physical gear by form
+    // this._state.connect(
+    //   'physicalGear',
+    //   this.opeForm.physicalGearControl.valueChanges.pipe(
+    //     // skip if loading (when opening an existing operation, physicalGear will be set inside onEntityLoaded() )
+    //     filter((_) => !this.loading)
+    //   )
+    // );
+    //
+    // this._state.connect('gearId', this.physicalGear, (_, physicalGear) => toNumber(physicalGear?.gear?.id, null));
+    //
+    // this._state.hold(
+    //   this.gearId.pipe(
+    //     filter((gearId) => isNotNil(gearId) && this.loaded),
+    //     debounceTime(450)
+    //   ),
+    //   () => this.markForCheck()
+    // );
   }
 
   loadData() {
@@ -117,7 +165,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     }
   }
 
-  async closeRow(event?: any): Promise<boolean> {
+  async closeRow(): Promise<boolean> {
     try {
       if (this.hasSelection()) {
         const items = (this.table.selection.selected || [])
@@ -307,7 +355,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     let pmfms: IPmfm[] = event.detail.pmfms;
 
     // If PMFM date/time, set default date, in on field mode
-    if (this.isNewData && this.isOnFieldMode && pmfms?.some(PmfmUtils.isDate)) {
+    if (this.isNew && this.isOnFieldMode && pmfms?.some(PmfmUtils.isDate)) {
       pmfms = pmfms.map((p) => {
         if (PmfmUtils.isDate(p)) {
           p = p.clone();
