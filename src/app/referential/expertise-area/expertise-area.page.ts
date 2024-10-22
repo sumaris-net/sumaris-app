@@ -7,6 +7,7 @@ import {
   Referential,
   ReferentialFilter,
   ReferentialRef,
+  referentialToString,
   splitById,
   StatusIds,
 } from '@sumaris-net/ngx-components';
@@ -68,7 +69,7 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
         },
         attributes: ['label', 'name', 'locationLevel.name'],
         columnNames: [undefined, undefined, 'REFERENTIAL.EXPERTISE_AREA.LOCATION_LEVEL'],
-        displayWith: (item) => `${item.label} - ${item.name} (${item.locationLevel?.name || '?'})`,
+        displayWith: (item) => this.locationToString(item),
       },
     });
   }
@@ -89,6 +90,16 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
   protected async onNewEntity(data: ExpertiseArea, options?: EntityServiceLoadOptions): Promise<void> {
     await this.loadLocationLevels();
     return super.onNewEntity(data, options);
+  }
+
+  protected locationToString(item: LocationRef) {
+    if (!item) return '';
+    let name = referentialToString(item);
+    if (EntityUtils.isEntity(item.locationLevel)) {
+      name += ` (${item.locationLevel?.name})`;
+    }
+
+    return name;
   }
 
   protected async loadLocationLevels() {
