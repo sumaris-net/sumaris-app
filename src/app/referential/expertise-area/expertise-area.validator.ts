@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialValidatorService } from '@app/referential/services/validator/referential.validator';
-import { UserExpertiseArea } from '@app/referential/expertise-area/user-expertise-area.model';
+import { ExpertiseArea } from '@app/referential/expertise-area/expertise-area.model';
 
 @Injectable({ providedIn: 'root' })
-export class UserExpertiseAreaValidatorService extends ReferentialValidatorService {
+export class ExpertiseAreaValidatorService extends ReferentialValidatorService {
   constructor(protected formBuilder: UntypedFormBuilder) {
     super(formBuilder);
   }
@@ -13,7 +13,7 @@ export class UserExpertiseAreaValidatorService extends ReferentialValidatorServi
     return this.getFormGroup();
   }
 
-  getFormGroupConfig(data?: UserExpertiseArea, opts?: { withDescription?: boolean; withComments?: boolean }): { [p: string]: any } {
+  getFormGroupConfig(data?: ExpertiseArea, opts?: { withDescription?: boolean; withComments?: boolean }): { [p: string]: any } {
     const config = super.getFormGroupConfig(data, opts);
     return {
       ...config,

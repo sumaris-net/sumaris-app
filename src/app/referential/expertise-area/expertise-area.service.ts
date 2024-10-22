@@ -1,19 +1,19 @@
 import { Injectable } from '@angular/core';
 import { ReferentialService } from '@app/referential/services/referential.service';
 import { AccountService, GraphqlService, LocalSettingsService } from '@sumaris-net/ngx-components';
-import { UserExpertiseArea } from '@app/referential/expertise-area/user-expertise-area.model';
+import { ExpertiseArea } from '@app/referential/expertise-area/expertise-area.model';
 
 @Injectable({ providedIn: 'root' })
-export class UserExpertiseAreaService extends ReferentialService<UserExpertiseArea> {
+export class ExpertiseAreaService extends ReferentialService<ExpertiseArea> {
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService,
     protected settings: LocalSettingsService
   ) {
-    super(graphql, accountService, settings, UserExpertiseArea);
+    super(graphql, accountService, settings, ExpertiseArea);
   }
 
-  asObject(source: UserExpertiseArea, opts?: any): any {
+  asObject(source: ExpertiseArea, opts?: any): any {
     const target = super.asObject(source, opts);
     target.properties = {
       locations: target.locations,
@@ -23,9 +23,13 @@ export class UserExpertiseAreaService extends ReferentialService<UserExpertiseAr
     return target;
   }
 
-  fromObject(source: any, opts?: any): UserExpertiseArea {
-    const target = super.fromObject(source, opts);
-    target.locations = source.locations || source.properties?.locations || null;
-    return target;
+  fromObject(source: any, opts?: any): ExpertiseArea {
+    return super.fromObject(
+      {
+        ...source,
+        locations: source.locations || source.properties?.locations || null,
+      },
+      opts
+    );
   }
 }
