@@ -86,10 +86,12 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
       $sortBy: String
       $sortDirection: String
       $filter: ReferentialFilterVOInput
+      $withLevelId: Boolean!
       $withProperties: Boolean!
     ) {
       data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
         ...LightReferentialFragment
+        levelId @include(if: $withLevelId)
         properties @include(if: $withProperties)
       }
     }
@@ -104,10 +106,12 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
       $sortBy: String
       $sortDirection: String
       $filter: ReferentialFilterVOInput
+      $withLevelId: Boolean!
       $withProperties: Boolean!
     ) {
       data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
         ...LightReferentialFragment
+        levelId @include(if: $withLevelId)
         properties @include(if: $withProperties)
       }
       total: referentialsCount(entityName: $entityName, filter: $filter)
@@ -196,6 +200,7 @@ export class ReferentialRefService
       [key: string]: any;
       fetchPolicy?: FetchPolicy;
       withTotal?: boolean;
+      withLevelId?: boolean;
       withProperties?: boolean;
       toEntity?: boolean;
       debug?: boolean;
@@ -215,6 +220,7 @@ export class ReferentialRefService
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
+      withLevelId: opts?.withLevelId || false,
       withProperties: opts?.withProperties || false,
     };
 
@@ -266,6 +272,7 @@ export class ReferentialRefService
       [key: string]: any;
       fetchPolicy?: FetchPolicy;
       withTotal?: boolean;
+      withLevelId?: boolean;
       withProperties?: boolean;
       toEntity?: boolean | ((source: any) => E);
       debug?: boolean;
@@ -294,6 +301,7 @@ export class ReferentialRefService
       sortBy: sortBy || filter.searchAttribute || (filter.searchAttributes && filter.searchAttributes[0]) || 'label',
       sortDirection: sortDirection || 'asc',
       filter: filter.asPodObject(),
+      withLevelId: opts?.withLevelId || false,
       withProperties: opts?.withProperties || false,
     };
     const now = debug && Date.now();
@@ -554,6 +562,7 @@ export class ReferentialRefService
     opts?: {
       toEntity?: boolean | ((source: any) => E);
       fetchPolicy?: FetchPolicy;
+      withLevelId?: boolean;
       withProperties?: boolean;
     }
   ): Promise<LoadResult<E>> {
