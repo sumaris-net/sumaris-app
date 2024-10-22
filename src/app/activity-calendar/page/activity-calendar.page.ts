@@ -29,6 +29,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
+  PlatformService,
   Property,
   ReferentialRef,
   referentialToString,
@@ -165,6 +166,7 @@ export class ActivityCalendarPage
   protected isAdmin = this.accountService.isAdmin();
   protected isAdminOrManager = this.accountService.isAdmin();
   protected qualityWarning: string = null;
+  protected readonly predocHotkeySuffix: string;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
@@ -203,7 +205,8 @@ export class ActivityCalendarPage
     protected vesselService: VesselService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected context: ActivityCalendarContextService,
-    protected hotkeys: Hotkeys
+    protected hotkeys: Hotkeys,
+    protected platform: PlatformService
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
       pathIdAttribute: 'calendarId',
@@ -220,6 +223,8 @@ export class ActivityCalendarPage
 
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
+
+    this.predocHotkeySuffix = ` (${this.platform.isIOS() ? '⌘+P' : 'Ctrl+P'})`;
   }
 
   ngOnInit() {
