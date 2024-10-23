@@ -121,6 +121,7 @@ const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
   );
 const NAVIGATION_KEYS = ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Tab'];
 const NUMERIC_KEYS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Backspace'];
+const MISSING_FISHINGAREA_REGEXP = /^gearUseFeatures\.(\d+)\.fishingAreas\.(\d+)$/;
 export const ACTIVITY_MONTH_READONLY_COLUMNS = ['month', 'program', 'vesselOwner', 'registrationLocation'];
 export const ACTIVITY_MONTH_START_COLUMNS = [...ACTIVITY_MONTH_READONLY_COLUMNS, 'isActive', 'basePortLocation'];
 export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
@@ -1859,7 +1860,7 @@ export class CalendarComponent
       console.debug(this.logPrefix + `lock rows`, new Error(), editingRows);
       return (await Promise.all(editingRows.map((editedRow) => this.confirmEditCreate(event, editedRow)))).every((c) => c === true);
     }
-    let confirmEditCreateId = this.confirmEditCreateId++;
+    const confirmEditCreateId = this.confirmEditCreateId++;
 
     try {
       console.debug(this.logPrefix + `lock row#${row?.id} - ID #${confirmEditCreateId}`, new Error());
@@ -2165,20 +2166,39 @@ export class CalendarComponent
     return dynamicColumn?.path || (PMFM_ID_REGEXP.test(key) ? `measurementValues.${key}` : key);
   }
 
-  protected getI18nColumnName(key: string): string | undefined {
-    if (isNilOrBlank(key)) throw new Error('Missing column key');
+  protected getI18nColumnName(columnName: string): string | undefined {
+    if (isNilOrBlank(columnName)) throw new Error('Missing column key');
     // Get column
-    const dynamicColumn = this.dynamicColumns?.find((c) => c.key === key);
-    const validColumn = !!dynamicColumn || key === 'isActive' || key === 'basePortLocation' || PMFM_ID_REGEXP.test(key);
+    const dynamicColumn = this.dynamicColumns?.find((c) => c.path === columnName);
+    const validColumn =
+      !!dynamicColumn ||
+      columnName === 'isActive' ||
+      columnName === 'basePortLocation' ||
+      PMFM_ID_REGEXP.test(columnName) ||
+      MISSING_FISHINGAREA_REGEXP.test(columnName);
     if (!validColumn) return undefined;
 
     if (dynamicColumn?.label) return dynamicColumn.label;
-    if (PMFM_ID_REGEXP.test(key)) {
-      const pmfm = this.pmfms?.find((p) => p.id.toString() === key);
+
+    // Dynamic column not found for this path. Is it a missing fishing area?
+    const missingFishingArea = columnName.match(MISSING_FISHINGAREA_REGEXP);
+    if (missingFishingArea) {
+      const gearUseFeatureIndex = missingFishingArea[1];
+      const fishingAreaIndex = missingFishingArea[2];
+      const metierColumn = this.dynamicColumns?.find((c) => c.path === `gearUseFeatures.${gearUseFeatureIndex}.metier`);
+      const fishingAreaColumn = this.dynamicColumns?.find(
+        (c) => c.path === `gearUseFeatures.${gearUseFeatureIndex}.fishingAreas.${fishingAreaIndex}.location`
+      );
+
+      if (isNotNil(metierColumn) && isNotNil(fishingAreaColumn)) return `${metierColumn.label} > ${fishingAreaColumn.label} `;
+    }
+
+    if (PMFM_ID_REGEXP.test(columnName)) {
+      const pmfm = this.pmfms?.find((p) => p.id.toString() === columnName);
       if (pmfm) return this.getI18nPmfmName(pmfm);
     }
 
-    return this.translate.instant(this.i18nColumnPrefix + changeCaseToUnderscore(key).toUpperCase());
+    return this.translate.instant(this.i18nColumnPrefix + changeCaseToUnderscore(columnName).toUpperCase());
   }
 
   protected async copyVertically(sourceRow: AsyncTableElement<ActivityMonth>, columnName: string, colspan: number) {
