@@ -162,7 +162,18 @@ export class ActivityCalendarsTable
       injector,
       ActivityCalendar,
       ActivityCalendarFilter,
-      ['quality', 'program', 'vessel', 'year', 'directSurveyInvestigation', 'economicSurvey', 'observers', 'recorderPerson', 'comments'],
+      [
+        'quality',
+        'program',
+        'vessel',
+        'registrationLocation',
+        'year',
+        'directSurveyInvestigation',
+        'economicSurvey',
+        'observers',
+        'recorderPerson',
+        'comments',
+      ],
       _dataService,
       null
     );
