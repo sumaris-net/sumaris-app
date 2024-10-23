@@ -12,7 +12,7 @@ export class ActivityMonthRowErrorPipe implements PipeTransform, OnDestroy {
   private _value = '';
   private _lastRow: AsyncTableElement<ActivityMonth> | null = null;
   private _lastOptions: FormErrorTranslateOptions | null = null;
-  private _onFormStatusChanges: Subscription | undefined;
+  private _onFormValueChanges: Subscription | undefined;
 
   constructor(
     private service: FormErrorTranslator,
@@ -43,9 +43,9 @@ export class ActivityMonthRowErrorPipe implements PipeTransform, OnDestroy {
     this._dispose();
 
     // subscribe to onTranslationChange event, in case the translations change
-    if (!this._onFormStatusChanges && row.validator) {
-      this._onFormStatusChanges = row.validator.statusChanges.subscribe((status) => {
-        this._updateValue(row, opts, status);
+    if (!this._onFormValueChanges && row.validator) {
+      this._onFormValueChanges = row.validator.valueChanges.subscribe((val) => {
+        this._updateValue(row, opts);
       });
     }
 
@@ -56,9 +56,9 @@ export class ActivityMonthRowErrorPipe implements PipeTransform, OnDestroy {
     this._dispose();
   }
 
-  private _updateValue(row: AsyncTableElement<ActivityMonth>, opts?: FormErrorTranslateOptions, status?: any) {
+  private _updateValue(row: AsyncTableElement<ActivityMonth>, opts?: FormErrorTranslateOptions) {
     if (row.validator) {
-      if (status ? status === 'INVALID' : row.validator.invalid) {
+      if (row.validator.invalid) {
         const newValue = this.service.translateFormErrors(row.validator, opts);
         if (newValue !== this._value) {
           this._value = newValue;
@@ -81,7 +81,7 @@ export class ActivityMonthRowErrorPipe implements PipeTransform, OnDestroy {
    * Clean any existing subscription to change events
    */
   private _dispose(): void {
-    this._onFormStatusChanges?.unsubscribe();
-    this._onFormStatusChanges = undefined;
+    this._onFormValueChanges?.unsubscribe();
+    this._onFormValueChanges = undefined;
   }
 }
