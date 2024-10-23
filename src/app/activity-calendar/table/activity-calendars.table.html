@@ -546,12 +546,26 @@
 
       <!-- Vessel Column -->
       <ng-container matColumnDef="vessel">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <!-- FIXME Remove mat-sort-header because sort on vessel failed - see issue #723 -->
+        <th mat-header-cell *matHeaderCellDef>
           <ion-label translate>ACTIVITY_CALENDAR.TABLE.VESSEL</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-label *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton">
             {{ row.currentData.vesselSnapshot | referentialToString: autocompleteFields.vesselSnapshot.attributes }}
+          </ion-label>
+        </td>
+      </ng-container>
+
+      <!-- Vessel registration location Column -->
+      <ng-container matColumnDef="registrationLocation">
+        <!-- FIXME Remove mat-sort-header because sort on vessel failed - see issue #723 -->
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.REGISTRATION_LOCATION</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-label>
+            {{ row.currentData.vesselSnapshot?.registrationLocation | referentialToString: autocompleteFields.registrationLocation.attributes }}
           </ion-label>
         </td>
       </ng-container>
