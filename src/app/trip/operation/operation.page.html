@@ -448,36 +448,6 @@
           editor.tabCount: {{ tabCount }}
           <br />
         </ion-col>
-        <ion-col>
-          opeForm.ready: {{ opeForm.readySubject | async }}
-          <br />
-          opeForm.loading: {{ opeForm.loading }}
-          <br />
-          opeForm.enabled: {{ opeForm.enabled }}
-          <br />
-          opeForm.dirty: {{ opeForm.dirty }}
-          <br />
-          opeForm.valid: {{ opeForm.valid }}
-          <br />
-          <br />
-          opeForm.isInlineFishingArea: {{ opeForm.isInlineFishingArea }}
-          <br />
-          opeForm.showPosition: {{ opeForm.showPosition }}
-          <br />
-          opeForm.showFishingArea: {{ opeForm.showFishingArea }}
-          <br />
-          <br />
-          opeForm.startDateTime: {{ form | formGetValue: 'startDateTime' | dateFormat: { time: true } }}
-          <br />
-          opeForm.fishingStartDateTime:
-          {{ form.controls.fishingStartDateTime.valueChanges | async | dateFormat: { time: true } }}
-          <br />
-          opeForm.fishingEndDateTime:
-          {{ form.controls.fishingEndDateTime.valueChanges | async | dateFormat: { time: true } }}
-          <br />
-          opeForm.endDateTime: {{ form.controls.endDateTime.valueChanges | async | dateFormat: { time: true } }}
-          <br />
-        </ion-col>
         <ion-col *ngIf="allowParentOperation">
           <span *ngIf="opeForm.isChildOperation">
             parentOperation.startDateTime:

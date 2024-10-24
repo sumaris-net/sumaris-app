@@ -8,8 +8,8 @@
 ></app-modal-toolbar>
 
 <ion-content class="ion-no-padding">
-  <!-- main table -->
-  <mat-tab-group>
+  <mat-tab-group [selectedIndex]="debug ? 1 : 0">
+    <!--    main tab Search operation -->
     <mat-tab>
       <ng-template mat-tab-label>
         <mat-icon matPrefix slot="start">search</mat-icon>
@@ -29,16 +29,21 @@
       ></app-select-operation-by-trip-table>
     </mat-tab>
 
+    <!--    second tab Create operation -->
     <mat-tab>
       <ng-template mat-tab-label>
         <ion-icon matPrefix slot="start" name="add-circle-outline"></ion-icon>
         <ion-label translate>TRIP.OPERATION.PARENT.CREATE</ion-label>
       </ng-template>
       <div class="ion-padding">
+        @if (debug) {
+          <ng-template *ngTemplateOutlet="debugPanel"></ng-template>
+        }
         <app-form-operation
           #form
           [allowParentOperation]="true"
           [programLabel]="programLabel"
+          [trip]="trip"
           [showError]="false"
           [tabindex]="1"
           (onSubmit)="save($event)"
@@ -74,53 +79,6 @@
         </app-form-operation>
       </div>
     </mat-tab>
-    @if (debug) {
-      <mat-tab>
-        <app-debug>
-          <ion-grid class="ion-no-padding">
-            <ion-row>
-              <ion-col>
-                editor.ready: {{ readySubject | async }}
-                <br />
-                editor.loading: {{ loading }} - editor.saving: {{ saving }}
-                <br />
-                editor.enabled: {{ enabled }}
-                <br />
-                editor.dirty: {{ dirty }}
-                <br />
-                editor.valid: {{ valid }}
-                <br />
-                editor.program: {{ programLabel }}
-                <br />
-                editor.acquisitionLevel: {{ acquisitionLevel }}
-                <br />
-                editor.tabCount: {{ tabCount }}
-                <br />
-              </ion-col>
-              <ion-col>
-                opeForm.ready: {{ opeForm.readySubject | async }}
-                <br />
-                opeForm.loading: {{ opeForm.loading }}
-                <br />
-                opeForm.enabled: {{ opeForm.enabled }}
-                <br />
-                opeForm.dirty: {{ opeForm.dirty }}
-                <br />
-                opeForm.valid: {{ opeForm.valid }}
-                <br />
-                <br />
-                opeForm.isInlineFishingArea: {{ opeForm.isInlineFishingArea }}
-                <br />
-                opeForm.showPosition: {{ opeForm.showPosition }}
-                <br />
-                opeForm.showFishingArea: {{ opeForm.showFishingArea }}
-                <br />
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </app-debug>
-      </mat-tab>
-    }
   </mat-tab-group>
 </ion-content>
 
@@ -138,3 +96,31 @@
     </ion-row>
   </ion-toolbar>
 </ion-footer>
+
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          opeForm.ready: {{ opeForm.readySubject | async }}
+          <br />
+          opeForm.loading: {{ opeForm.loading }}
+          <br />
+          opeForm.enabled: {{ opeForm.enabled }}
+          <br />
+          opeForm.dirty: {{ opeForm.dirty }}
+          <br />
+          opeForm.valid: {{ opeForm.valid }}
+          <br />
+          <br />
+          opeForm.isInlineFishingArea: {{ opeForm.isInlineFishingArea }}
+          <br />
+          opeForm.showPosition: {{ opeForm.showPosition }}
+          <br />
+          opeForm.showFishingArea: {{ opeForm.showFishingArea }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>
