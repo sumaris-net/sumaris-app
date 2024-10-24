@@ -28,11 +28,13 @@ import moment from 'moment';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { GearPhysicalFeaturesUtils } from '@app/activity-calendar/model/gear-physical-features.utils';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 
 export async function computeCommonActivityCalendarFormReportStats(
   data: ActivityCalendar,
   stats: ActivityCalendarFormReportStats,
   programRefService: ProgramRefService,
+  vesselSnapshotService: VesselSnapshotService,
   program: Program,
   strategy: Strategy,
   isBlankForm: boolean
@@ -43,6 +45,7 @@ export async function computeCommonActivityCalendarFormReportStats(
   stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER);
   stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
   stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
+  stats.vesselAttributes = (await vesselSnapshotService.getAutocompleteFieldOptions('vesselSnapshot'))?.attributes;
 
   stats.pmfm = {
     activityMonth: await programRefService.loadProgramPmfms(data.program.label, {

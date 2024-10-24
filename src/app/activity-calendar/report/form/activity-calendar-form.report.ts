@@ -33,7 +33,7 @@ import {
   computeCommonActivityCalendarFormReportStats,
   computeIndividualActivityCalendarFormReportStats,
   fillActivityCalendarBlankData,
-} from './activity-calendar-from-report.utils';
+} from './activity-calendar-form-report.utils';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 
 export interface ActivityCalendarFormReportPageDimentions {
@@ -71,6 +71,7 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
   filteredAndOrderedGpf?: (GearPhysicalFeatures | GearUseFeatures)[];
   surveyQualificationQualitativeValues?: ReferentialRef[];
+  vesselAttributes: string[];
 
   static fromObject(source: any): ActivityCalendarFormReportStats {
     if (!source) return source;
@@ -91,10 +92,12 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     this.pmfm = {
       activityMonth: source?.pmfm?.activityMonth?.map(DenormalizedPmfmStrategy.fromObject) || null,
       activityCalendar: source?.pmfm?.activityCalendar?.map(DenormalizedPmfmStrategy.fromObject) || null,
-      gpf: source?.pmfm?.physicalGear?.map(DenormalizedPmfmStrategy.fromObject) || null,
+      gpf: source?.pmfm?.gpf?.map(DenormalizedPmfmStrategy.fromObject) || null,
+      guf: source?.pmfm?.guf?.map(DenormalizedPmfmStrategy.fromObject) || null,
     };
     this.activityMonthColspan = source.activityMonthColspan;
     this.metierTableChunks = source.metierTableChunks;
+    this.vesselAttributes = source.vesselAttributes;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -109,10 +112,12 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
       pmfm: {
         activityMonth: this?.pmfm?.activityMonth?.map((item) => item.asObject(opts)) || null,
         activityCalendar: this?.pmfm?.activityCalendar?.map((item) => item.asObject(opts)) || null,
-        physicalGear: this?.pmfm?.gpf?.map((item) => item.asObject(opts)) || null,
+        gpf: this?.pmfm?.gpf?.map((item) => item.asObject(opts)) || null,
+        guf: this?.pmfm?.guf?.map((item) => item.asObject(opts)) || null,
       },
       activityMonthColspan: this.activityMonthColspan,
       metierTableChunks: this.metierTableChunks,
+      vesselAttributes: this.vesselAttributes,
     };
   }
 }
@@ -244,10 +249,19 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   ): Promise<ActivityCalendarFormReportStats> {
     let stats = new ActivityCalendarFormReportStats();
 
-    stats = await computeCommonActivityCalendarFormReportStats(data, stats, this.programRefService, this.program, this.strategy, this.isBlankForm);
+    stats = await computeCommonActivityCalendarFormReportStats(
+      data,
+      stats,
+      this.programRefService,
+      this.vesselSnapshotService,
+      this.program,
+      this.strategy,
+      this.isBlankForm
+    );
 
     stats = await computeIndividualActivityCalendarFormReportStats(data, stats, this.pageDimensions, this.configService, this.isBlankForm);
 
+    console.debug('TODO data/stats', { data, stats });
     return stats;
   }
 

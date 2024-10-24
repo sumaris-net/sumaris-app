@@ -9,13 +9,25 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
-import { ConfigService, EntityAsObjectOptions, WaitForOptions, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
+import {
+  ConfigService,
+  EntityAsObjectOptions,
+  WaitForOptions,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+} from '@sumaris-net/ngx-components';
 import { ActivityCalendarFormReport, ActivityCalendarFormReportStats } from './activity-calendar-form.report';
 import {
   computeCommonActivityCalendarFormReportStats,
   computeIndividualActivityCalendarFormReportStats,
   fillActivityCalendarBlankData,
-} from './activity-calendar-from-report.utils';
+} from './activity-calendar-form-report.utils';
+import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 
 class ActivityCalendarFormsReportStats extends BaseReportStats {
   activityCalendarFormReportStatsByIds: { [key: number]: ActivityCalendarFormReportStats };
@@ -64,7 +76,8 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
     protected activityCalendarService: ActivityCalendarService,
     protected configService: ConfigService,
     protected programRefService: ProgramRefService,
-    protected strategyRefService: StrategyRefService
+    protected strategyRefService: StrategyRefService,
+    protected vesselSnapshotService: VesselSnapshotService
   ) {
     super(injector, Array, ActivityCalendarFormsReportStats);
 
@@ -108,7 +121,8 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
   }
 
   protected async loadData(ids: number[], opts?: any): Promise<ActivityCalendar[]> {
-    const filter = ActivityCalendarFilter.fromObject({ includedIds: ids });
+    // isEmptyArray(ids) ? :
+    const filter = isEmptyArray(ids) ? this.restoreLastTableFilter() : ActivityCalendarFilter.fromObject({ includedIds: ids });
     const result = [];
     const size = 500;
 
@@ -148,6 +162,11 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
     return result;
   }
 
+  protected restoreLastTableFilter(): ActivityCalendarFilter {
+    const tableFilter = this.settings.getPageSettings(ActivityCalendarsTableSettingsEnum.PAGE_ID, 'filter');
+    return ActivityCalendarFilter.fromObject(tableFilter);
+  }
+
   protected async computeStats(
     data: ActivityCalendar[],
     opts?: IComputeStatsOpts<ActivityCalendarFormsReportStats>
@@ -158,6 +177,7 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
       data[0],
       commonAcStats,
       this.programRefService,
+      this.vesselSnapshotService,
       this.program,
       this.strategy,
       this.isBlankForm

@@ -3475,7 +3475,7 @@
         "YEAR": "Année"
       },
       "CONFIRM": {
-        "LONG_TIME_REPORT_GENERATION": "Vous souhaitez générer un rapport pour plus de {{nbLimit}} entrées. Cette requête risque de prendre beaucoup de temps à traiter. Il est recommandé que vous ajustiez votre filtre pour avoir moins d'entées. Souhaitez-vous tout de même générer ce rapport ?"
+        "LONG_TIME_REPORT_GENERATION": "Vous souhaitez générer un rapport pour plus de {{nbLimit}} entrées. Cette requête risque de prendre beaucoup de temps à traiter. Il est recommandé que vous ajustiez votre filtre pour avoir moins d'entrées. Souhaitez-vous tout de même générer ce rapport ?"
       }
     },
     "NEW": {

@@ -123,7 +123,7 @@
                       <ion-col>
                         <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}</strong>
                         &nbsp;
-                        {{ data.vesselSnapshot.registrationCode || data.vesselSnapshot.intRegistrationCode }}
+                        {{ data.vesselSnapshot | referentialToString: stats.vesselAttributes }}
                       </ion-col>
                       <ion-col>
                         <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.VESSEL_NAME' | translate }}</strong>
