@@ -561,22 +561,22 @@ export class ActivityCalendarsTable
 
   async openReport(reportPath: string) {
     const urlParams = new URLSearchParams();
-    if (this.selection.selected.length > 0) {
-      const selectedIds = this.selection.selected.map((s) => s.currentData.id).toString();
-      switch (reportPath) {
-        case 'form':
-        case 'blank-form':
-        case 'progress':
-          {
+    const selectedIds = this.selection.selected.map((s) => s.currentData.id).toString();
+    switch (reportPath) {
+      case 'form':
+      case 'blank-form':
+      case 'progress':
+        {
+          if (this.selection.selected.length > 0) {
             urlParams.set('ids', selectedIds);
-            if (reportPath !== 'progress') {
-              reportPath = reportPath + 's';
-            }
           }
-          break;
-        default:
-          throw new Error(`Report type "${reportPath}" not yet implemented !`);
-      }
+          if (reportPath !== 'progress') {
+            reportPath = reportPath + 's';
+          }
+        }
+        break;
+      default:
+        throw new Error(`Report type "${reportPath}" not yet implemented !`);
     }
 
     const url = ['activity-calendar', 'report', reportPath].join('/') + '?' + urlParams.toString();

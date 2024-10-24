@@ -12,6 +12,7 @@ import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reve
 import {
   ConfigService,
   EntityAsObjectOptions,
+  LoadResult,
   WaitForOptions,
   isEmptyArray,
   isNil,
@@ -26,7 +27,6 @@ import {
   fillActivityCalendarBlankData,
 } from './activity-calendar-form-report.utils';
 import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 
 class ActivityCalendarFormsReportStats extends BaseReportStats {
@@ -73,11 +73,11 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
 
   constructor(
     injector: Injector,
-    protected activityCalendarService: ActivityCalendarService,
     protected configService: ConfigService,
     protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
-    protected vesselSnapshotService: VesselSnapshotService
+    protected vesselSnapshotService: VesselSnapshotService,
+    protected activityCalendarService: ActivityCalendarService
   ) {
     super(injector, Array, ActivityCalendarFormsReportStats);
 
@@ -102,31 +102,23 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
 
   protected async loadFromRoute(opts?: any): Promise<ActivityCalendar[]> {
     const idsStr = this.route.snapshot.queryParamMap.get('ids');
-
-    if (isNotNilOrBlank(idsStr)) {
-      const ids = idsStr
-        .split(',')
-        .map((id) => parseInt(id))
-        .filter((id) => !isNaN(id));
-
-      if (isNotEmptyArray(ids)) {
-        this.ids = ids;
-        const result = await this.loadData(ids);
-        return result;
-      }
-    }
-
+    const ids = isNotNilOrBlank(idsStr)
+      ? idsStr
+          .split(',')
+          .map((id) => parseInt(id))
+          .filter((id) => !isNaN(id))
+      : [];
+    const filter = isEmptyArray(ids) ? this.restoreLastTableFilter() : ActivityCalendarFilter.fromObject({ includedIds: ids });
+    const result = await this.loadData(filter);
     // Case no ids provided -> Data not found
-    return [];
+    return result;
   }
 
-  protected async loadData(ids: number[], opts?: any): Promise<ActivityCalendar[]> {
-    // isEmptyArray(ids) ? :
-    const filter = isEmptyArray(ids) ? this.restoreLastTableFilter() : ActivityCalendarFilter.fromObject({ includedIds: ids });
+  protected async loadData(filter: ActivityCalendarFilter, opts?: any): Promise<ActivityCalendar[]> {
     const result = [];
     const size = 500;
 
-    let loadResult;
+    let loadResult: LoadResult<ActivityCalendar>;
     if (this.isBlankForm) {
       loadResult = await this.activityCalendarService.loadAllVesselOnly(0, size, null, null, filter);
     } else {
@@ -138,8 +130,8 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
       result.push(...loadResult.data);
     }
 
-    if (isNotNil(loadResult.error)) {
-      throw loadResult.error;
+    if (isNotNil(loadResult.errors)) {
+      throw loadResult.errors;
     } else if (result.length == 0) {
       throw new Error('ERROR.LOAD_ENTITY_ERROR');
     }
