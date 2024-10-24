@@ -319,6 +319,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
       this.isBlankForm
     );
 
+    console.debug('TODO data/stats', { data, stats });
     return stats;
   }
 

@@ -112,7 +112,9 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
     return result;
   }
 
-  protected async loadData(filter: ActivityCalendarFilter, opts?: any): Promise<ActivityCalendar[]> {
+  protected async loadData(ids: number[], opts?: any): Promise<ActivityCalendar[]> {
+    // isEmptyArray(ids) ? :
+    const filter = isEmptyArray(ids) ? this.restoreLastTableFilter() : ActivityCalendarFilter.fromObject({ includedIds: ids });
     const result = [];
     const size = 500;
 
