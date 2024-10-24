@@ -808,7 +808,7 @@ export class ActivityCalendarPage
       this.titleMenu = null;
       return firstValueFrom(this.translate.get('ACTIVITY_CALENDAR.NEW.TITLE'));
     }
-    const vessel = referentialToString(this.data.vesselSnapshot, ['registrationLocation.name', 'registrationCode', 'name']);
+    const vessel = this.vesselToString(this.data.vesselSnapshot);
 
     this.titleMenu = this.translate.instant(`ACTIVITY_CALENDAR.EDIT.TITLE_MENU`, {
       vessel,
@@ -978,6 +978,10 @@ export class ActivityCalendarPage
     if (!equals(config, previousConfig)) {
       this.settings.savePageSetting(this.settingsId, config, ActivityCalendarPageSettingsEnum.PREDOC_PANEL_CONFIG);
     }
+  }
+
+  protected vesselToString(vessel: VesselSnapshot) {
+    return `${vessel.registrationLocation.label} ${vessel.registrationLocation.name} - ${vessel.registrationCode} - ${vessel.name}`;
   }
 
   protected clearCalendar(event?: Event) {
