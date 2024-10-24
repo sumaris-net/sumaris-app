@@ -16,7 +16,6 @@ import {
   WaitForOptions,
   isEmptyArray,
   isNil,
-  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
 } from '@sumaris-net/ngx-components';
@@ -57,6 +56,7 @@ class ActivityCalendarFormsReportStats extends BaseReportStats {
 @Component({
   selector: 'app-activity-calendar-forms-report',
   templateUrl: './activity-calendar-forms.report.html',
+  styleUrls: ['../../../data/report/base-form-report.scss', './activity-calendar-forms.report.scss'],
 })
 export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[], number[], ActivityCalendarFormsReportStats> {
   protected logPrefix = '[activity-calendar-forms-report] ';
