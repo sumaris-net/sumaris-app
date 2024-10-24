@@ -1,5 +1,7 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-  <ng-template *ngTemplateOutlet="debugPanel"></ng-template>
+  @if (debug) {
+    <ng-template *ngTemplateOutlet="debugPanel"></ng-template>
+  }
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
