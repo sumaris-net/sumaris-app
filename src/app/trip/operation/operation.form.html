@@ -1,7 +1,4 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-  @if (debug) {
-    <ng-template *ngTemplateOutlet="debugPanel"></ng-template>
-  }
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -9,6 +6,9 @@
   </ion-item>
 
   <ion-grid class="ion-no-padding">
+    @if (debug) {
+      <ng-template *ngTemplateOutlet="debugPanel"></ng-template>
+    }
     <ion-row [class.has-buttons]="mobile && canEditType" *ngIf="allowParentOperation">
       <ion-col size="0" size-md="3" size-lg="3">
         <ion-label class="ion-float-end hidden-xs hidden-sm" translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>

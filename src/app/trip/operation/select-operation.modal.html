@@ -36,6 +36,9 @@
         <ion-label translate>TRIP.OPERATION.PARENT.CREATE</ion-label>
       </ng-template>
       <div class="ion-padding">
+        @if (debug) {
+          <ng-template *ngTemplateOutlet="debugPanel"></ng-template>
+        }
         <app-form-operation
           #form
           [allowParentOperation]="true"
@@ -93,3 +96,31 @@
     </ion-row>
   </ion-toolbar>
 </ion-footer>
+
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          opeForm.ready: {{ opeForm.readySubject | async }}
+          <br />
+          opeForm.loading: {{ opeForm.loading }}
+          <br />
+          opeForm.enabled: {{ opeForm.enabled }}
+          <br />
+          opeForm.dirty: {{ opeForm.dirty }}
+          <br />
+          opeForm.valid: {{ opeForm.valid }}
+          <br />
+          <br />
+          opeForm.isInlineFishingArea: {{ opeForm.isInlineFishingArea }}
+          <br />
+          opeForm.showPosition: {{ opeForm.showPosition }}
+          <br />
+          opeForm.showFishingArea: {{ opeForm.showFishingArea }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>
