@@ -16,6 +16,7 @@ import {
   WaitForOptions,
   isEmptyArray,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
 } from '@sumaris-net/ngx-components';
