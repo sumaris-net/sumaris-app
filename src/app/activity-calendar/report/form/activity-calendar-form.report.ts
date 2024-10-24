@@ -98,6 +98,7 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     this.activityMonthColspan = source.activityMonthColspan;
     this.metierTableChunks = source.metierTableChunks;
     this.vesselAttributes = source.vesselAttributes;
+    this.surveyQualificationQualitativeValues = source?.surveyQualificationQualitativeValues?.map(ReferentialRef.fromObject);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -118,6 +119,7 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
       activityMonthColspan: this.activityMonthColspan,
       metierTableChunks: this.metierTableChunks,
       vesselAttributes: this.vesselAttributes,
+      surveyQualificationQualitativeValues: this.surveyQualificationQualitativeValues?.map((value) => value.asObject(opts)),
     };
   }
 }
