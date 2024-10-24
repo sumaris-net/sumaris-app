@@ -16,6 +16,7 @@ import {
   WaitForOptions,
   isEmptyArray,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
 } from '@sumaris-net/ngx-components';
@@ -69,7 +70,6 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
 
   private program: Program;
   private strategy: Strategy;
-  private ids: number[] = [];
 
   constructor(
     injector: Injector,
@@ -101,13 +101,7 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
   }
 
   protected async loadFromRoute(opts?: any): Promise<ActivityCalendar[]> {
-    const idsStr = this.route.snapshot.queryParamMap.get('ids');
-    const ids = isNotNilOrBlank(idsStr)
-      ? idsStr
-          .split(',')
-          .map((id) => parseInt(id))
-          .filter((id) => !isNaN(id))
-      : [];
+    const ids = this.computeIncludeIds();
     const filter = isEmptyArray(ids) ? this.restoreLastTableFilter() : ActivityCalendarFilter.fromObject({ includedIds: ids });
     const result = await this.loadData(filter);
     // Case no ids provided -> Data not found
@@ -236,8 +230,9 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
   computePrintHref(data: ActivityCalendar[], stats: ActivityCalendarFormsReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
     else {
-      const url = new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + this.reportPath);
-      url.searchParams.append('ids', this.ids.toString());
+      const ids = this.computeIncludeIds();
+      const url = new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + ids);
+      url.searchParams.append('ids', ids.toString());
       return url;
     }
   }
@@ -248,5 +243,22 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
 
   protected computeShareBasePath(): string {
     return `activity-calendar/report/${this.reportPath}`;
+  }
+
+  protected computeIncludeIds(): number[] {
+    const idsStr = this.route.snapshot.queryParamMap.get('ids');
+
+    if (isNotNilOrBlank(idsStr)) {
+      const ids = idsStr
+        .split(',')
+        .map((id) => parseInt(id))
+        .filter((id) => !isNaN(id));
+
+      if (isNotEmptyArray(ids)) {
+        return ids;
+      }
+    }
+
+    return null;
   }
 }

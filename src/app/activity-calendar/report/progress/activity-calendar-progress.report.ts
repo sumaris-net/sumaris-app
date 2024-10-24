@@ -244,7 +244,14 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
 
   computePrintHref(data: ActivityMonitoringExtractionData, stats: ActivityCalendarProgressReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
-    else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/progress/');
+    else {
+      const url = new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/progress/');
+      const ids = this.computeIncludeIds();
+      if (isNotEmptyArray(ids)) {
+        url.searchParams.set('ids', ids.toString());
+      }
+      return url;
+    }
   }
 
   protected computeShareBasePath(): string {
