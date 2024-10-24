@@ -30,8 +30,9 @@ import { TripService } from '@app/trip/trip/trip.service';
 import { ContextService } from '@app/shared/context.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment/moment';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
+import { Observable } from 'rxjs';
 
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
@@ -47,6 +48,7 @@ export interface ISelectOperationModalOptions {
   acquisitionLevel: string;
   allowNewOperation: boolean;
   defaultNewOperation: Operation;
+  trip?: Trip;
   debug?: boolean;
 }
 
@@ -64,8 +66,9 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   protected readonly context = inject(ContextService);
 
   @RxStateProperty() tripId: number;
-  @RxStateProperty() trip: Trip;
   @RxStateProperty() physicalGear: PhysicalGear;
+
+  @RxStateSelect() protected readonly gearId$: Observable<number>;
 
   @ViewChild('table', { static: true }) table: SelectOperationByTripTable;
   @ViewChild('form', { static: true }) opeForm: OperationForm;
@@ -83,6 +86,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   @Input() allowNewOperation: boolean;
   @Input() defaultNewOperation: Operation;
   @Input() gearId: number;
+  @Input() trip: Trip;
   @Input() requiredStrategy: boolean;
 
   protected readonly platformService = inject(PlatformService);
@@ -127,26 +131,8 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
       if (this.defaultNewOperation) this.opeForm.setValue(this.defaultNewOperation);
       this.opeForm.enable();
       this.opeForm.markAsReady();
+      this.opeForm.markAsLoaded();
     }
-
-    // // Get physical gear by form
-    // this._state.connect(
-    //   'physicalGear',
-    //   this.opeForm.physicalGearControl.valueChanges.pipe(
-    //     // skip if loading (when opening an existing operation, physicalGear will be set inside onEntityLoaded() )
-    //     filter((_) => !this.loading)
-    //   )
-    // );
-    //
-    // this._state.connect('gearId', this.physicalGear, (_, physicalGear) => toNumber(physicalGear?.gear?.id, null));
-    //
-    // this._state.hold(
-    //   this.gearId.pipe(
-    //     filter((gearId) => isNotNil(gearId) && this.loaded),
-    //     debounceTime(450)
-    //   ),
-    //   () => this.markForCheck()
-    // );
   }
 
   loadData() {

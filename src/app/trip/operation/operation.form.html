@@ -1,4 +1,5 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+  <ng-template *ngTemplateOutlet="debugPanel"></ng-template>
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -35,7 +36,7 @@
             [class.mat-form-field-invalid]="control.invalid"
             *ngVar="parentControl as control"
           >
-            <mat-label translate>TRIP.OPERATION.EDIT.PARENT_OPERATION</mat-label>
+            <mat-label style="cursor: pointer" (click)="addParentOperation()" translate>TRIP.OPERATION.EDIT.PARENT_OPERATION</mat-label>
             <input matInput type="text" hidden [placeholder]="" formControlName="parentOperation" />
             <input
               matInput
@@ -269,7 +270,7 @@
               context: {
                 fishingAreasForm: fishingAreasForm,
                 index: _dateIndexMap.start.valueOf(),
-                required: true
+                required: true,
               }
             "
           />
@@ -300,7 +301,7 @@
                   &nbsp;{{
                     {
                       startValue: form.controls.startDateTime.value,
-                      endValue: control.value
+                      endValue: control.value,
                     } | dateDiffDuration
                   }}
                 </mat-hint>
@@ -364,7 +365,7 @@
               context: {
                 fishingAreasForm: fishingAreasForm,
                 index: _dateIndexMap.startFishing.valueOf(),
-                required: _usageMode | isOnDesk
+                required: _usageMode | isOnDesk,
               }
             "
           />
@@ -448,7 +449,7 @@
               context: {
                 fishingAreasForm: fishingAreasForm,
                 index: _dateIndexMap.endFishing.valueOf(),
-                required: isChildOperation
+                required: isChildOperation,
               }
             "
           />
@@ -481,7 +482,7 @@
                   &nbsp;{{
                     {
                       startValue: previousEndDateTimeControl.value,
-                      endValue: value
+                      endValue: value,
                     } | dateDiffDuration
                   }}
                 </mat-hint>
@@ -543,7 +544,7 @@
               context: {
                 fishingAreasForm: fishingAreasForm,
                 index: _dateIndexMap.end.valueOf(),
-                required: _usageMode | isOnDesk
+                required: _usageMode | isOnDesk,
               }
             "
           />
@@ -677,6 +678,46 @@
     </ion-row>
   </ion-grid>
 </form>
+
+<ng-template #debugPanel>
+  <!-- DEBUG -->
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          opeForm.ready: {{ readySubject }}
+          <br />
+          opeForm.loading: {{ loading }}
+          <br />
+          opeForm.enabled: {{ form.enabled }}
+          <br />
+          opeForm.dirty: {{ form.dirty }}
+          <br />
+          opeForm.valid: {{ form.valid }}
+        </ion-col>
+        <ion-col>
+          opeForm.isInlineFishingArea: {{ isInlineFishingArea }}
+          <br />
+          opeForm.showPosition: {{ showPosition }}
+          <br />
+          opeForm.showFishingArea: {{ showFishingArea }}
+        </ion-col>
+        <ion-col>
+          opeForm.startDateTime: {{ form | formGetValue: 'startDateTime' | dateFormat: { time: true } }}
+          <br />
+          opeForm.fishingStartDateTime:
+          {{ form.controls.fishingStartDateTime.valueChanges | async | dateFormat: { time: true } }}
+          <br />
+          opeForm.fishingEndDateTime:
+          {{ form.controls.fishingEndDateTime.valueChanges | async | dateFormat: { time: true } }}
+          <br />
+          opeForm.endDateTime: {{ form.controls.endDateTime.valueChanges | async | dateFormat: { time: true } }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>
 
 <ng-template #fieldSkeleton>
   <mat-form-field class="mat-form-field-disabled">

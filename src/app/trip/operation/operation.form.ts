@@ -274,6 +274,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     return this._trip;
   }
 
+  @Input()
   set trip(value: Trip) {
     this.setTrip(value);
   }
@@ -742,10 +743,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     const gearIds = removeDuplicatesFromArray((this._$physicalGears.value || []).map((physicalGear) => physicalGear.gear.id));
 
     const defaultNewOperation = new Operation();
+    defaultNewOperation.programLabel = trip.program.label;
+    defaultNewOperation.physicalGear = currentOperation.physicalGear;
+    defaultNewOperation.trip = trip;
     defaultNewOperation.recorderDepartment = this.accountService.department;
     defaultNewOperation.childOperationId = currentOperation.id;
     defaultNewOperation.childOperation = currentOperation as Operation;
-    defaultNewOperation.physicalGear = currentOperation.physicalGear;
 
     const modal = await this.modalCtrl.create({
       component: SelectOperationModal,
@@ -770,6 +773,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         strategyId: this.strategyId$,
         requiredStrategy: this.requiredStrategy$,
         gearId: this.gearId$,
+        trip: trip,
         defaultNewOperation: defaultNewOperation,
         allowNewOperation: true,
         debug: this.debug,
