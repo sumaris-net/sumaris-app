@@ -56,7 +56,6 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
   setValue<K extends keyof S>(key: K, value: S[K]) {
     // DEBUG
     //console.debug(`[context-service] Set '${String(key)}'`, value);
-
     this.set(key, () => value);
   }
 
