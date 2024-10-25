@@ -22,6 +22,7 @@ import {
   JobUtils,
   LoadResult,
   LoadResultByPageFn,
+  LocalSettingsService,
   NetworkService,
   ObjectMap,
   Referential,
@@ -168,7 +169,8 @@ export class ReferentialRefService
     protected accountService: AccountService,
     protected configService: ConfigService,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    protected settings: LocalSettingsService
   ) {
     super(graphql, environment);
 
@@ -262,10 +264,10 @@ export class ReferentialRefService
     );
   }
 
-  async loadAll<E = ReferentialRef>(
+  async loadAll<E extends ReferentialRef = ReferentialRef>(
     offset: number,
     size: number,
-    sortBy?: string,
+    sortBy?: keyof E | string,
     sortDirection?: SortDirection,
     filter?: Partial<ReferentialRefFilter>,
     opts?: {
@@ -346,7 +348,7 @@ export class ReferentialRefService
   protected async loadAllLocally<E = ReferentialRef>(
     offset: number,
     size: number,
-    sortBy?: string,
+    sortBy?: keyof E | string,
     sortDirection?: SortDirection,
     filter?: Partial<ReferentialRefFilter>,
     opts?: {
@@ -366,7 +368,10 @@ export class ReferentialRefService
       offset: offset || 0,
       size: size || 100,
       sortBy:
-        sortBy || filter.searchAttribute || (filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]) || 'label',
+        (sortBy as string) ||
+        filter.searchAttribute ||
+        (filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]) ||
+        'label',
       sortDirection: sortDirection || 'asc',
       filter: filter.asFilterFn(),
     };
@@ -386,7 +391,7 @@ export class ReferentialRefService
     // Add fetch more function
     const nextOffset = (offset || 0) + entities.length;
     if (nextOffset < total) {
-      res.fetchMore = () => this.loadAll<E>(nextOffset, size, sortBy, sortDirection, filter, opts);
+      res.fetchMore = () => this.loadAllLocally<E>(nextOffset, size, sortBy, sortDirection, filter, opts);
     }
 
     return res;
@@ -554,10 +559,10 @@ export class ReferentialRefService
     return (data || []).map((e) => e.id);
   }
 
-  async suggest<E = ReferentialRef>(
+  async suggest<E extends ReferentialRef = ReferentialRef, F extends ReferentialRefFilter = ReferentialRefFilter>(
     value: any,
-    filter?: Partial<ReferentialRefFilter>,
-    sortBy?: keyof Referential | 'rankOrder',
+    filter?: Partial<F>,
+    sortBy?: keyof E | 'rankOrder',
     sortDirection?: SortDirection,
     opts?: {
       toEntity?: boolean | ((source: any) => E);

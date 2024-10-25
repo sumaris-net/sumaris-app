@@ -148,7 +148,7 @@
     "DEBUG": {
       "TITLE": "Debug",
       "BTN_DEBUG_DOTS": "Débogage...",
-      "BTN_ENABLE_DEBUG": "Activer le debuggage ?",
+      "BTN_ENABLE_DEBUG": "Activer le débogage ?",
       "BTN_COPY_LOCALLY": "Copier en local",
       "BTN_AUTO_FILL": "Remplissage auto ?"
     },
@@ -194,7 +194,7 @@
     "PROPERTIES_DIVIDER": "Options :",
     "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
-    "BTN_SHOW_OPTION_KEY": "Afficher les codes d'option",
+    "BTN_SHOW_OPTION_KEY": "Afficher le code des options",
     "BTN_ADD_OPTION": "Ajouter une option",
     "BTN_CLEAR_CACHE": "Vider le cache serveur",
     "CACHE_TITLE": "Statistique du cache serveur",
@@ -396,7 +396,7 @@
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métiers DCF niv 5",
         "VESSEL_TYPE_FISHING_VESSEL_ID": "Référentiel > Type de navire > Navire professionnel",
         "VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL_ID": "Référentiel > Type de navire > Navire scientifique",
-        "VESSEL_UNKNOWN_ID": "Référentiel > Navire inconnu (id)"
+        "VESSEL_UNKNOWN_ID": "Référentiel > Navire > Navire inconnu (id)"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
@@ -613,6 +613,7 @@
     "BTN_CHANGE_PEER": "Voir les nœuds disponibles",
     "BTN_DARK_MODE": "Mode sombre ? (expérimental)",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
+    "BTN_SHOW_OPTION_KEY": "Afficher le code des options ?",
     "BTN_CLEAR_CACHE": "Vider le cache",
     "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
@@ -653,6 +654,9 @@
         }
       }
     },
+    "DATA": {
+      "EXPERTISE_AREA": "Zone de compétence"
+    },
     "ERROR": {
       "PEER_NOT_REACHABLE": "Nœud injoignable"
     }
@@ -691,7 +695,11 @@
   },
   "DATA": {
     "BTN_WRITE_TO_RECORDER": "Écrire au saisisseur",
-    "MESSAGE_BODY": "Bonjour,\n\nà propos de [{{title}}]({{url}}),\n\n..."
+    "MESSAGE_BODY": "Bonjour,\n\nà propos de [{{title}}]({{url}}),\n\n...",
+    "SETTINGS": {
+      "EXPERTISE_AREA": "Zone de compétence",
+      "EXPERTISE_AREAS": "Zone(s) de compétence"
+    }
   },
   "TRIP": {
     "TITLE": "Marée",
@@ -3463,6 +3471,7 @@
       "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
       "ECONOMIC_SURVEY": "Objectif d'enquête éco ?",
       "VESSEL": "Navire",
+      "REGISTRATION_LOCATION": "Lieu d'immatriculation",
       "YEAR": "Année",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les calendriers <b>non synchronisés</b>)",
