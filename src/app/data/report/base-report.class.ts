@@ -344,7 +344,11 @@ export abstract class AppBaseReport<
     if (isNil(this.context.clipboard)) await this.context.restoreClipboard();
     // If data is not filled by input, fill it with the clipboard
     let clipboard: Clipboard<any>;
-    if (isNotNil(this.context.clipboard)) {
+    if (
+      hasFlag(clipboard?.pasteFlags, ReportDataPasteFlags.DATA) ||
+      hasFlag(clipboard?.pasteFlags, ReportDataPasteFlags.STATS) ||
+      hasFlag(clipboard?.pasteFlags, ReportDataPasteFlags.I18N_CONTEXT)
+    ) {
       clipboard = this.context.clipboard;
     } else if (isNotNilOrBlank(this.uuid) && (isNil(this.data) || isNil(this.stats))) {
       if (this.debug) console.debug(`[${this.logPrefix}] fill clipboard by downloading shared resource`);
@@ -681,7 +685,6 @@ export abstract class AppBaseReport<
   }
 
   protected async print() {
-    console.debug('TODO print');
     if (this._printing) return true; // Skip is already printing
     this._printing = true;
     await this.ready();
