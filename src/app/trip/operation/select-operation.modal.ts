@@ -24,7 +24,7 @@ import { Promise, setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { TripService } from '@app/trip/trip/trip.service';
 import { ContextService } from '@app/shared/context.service';
@@ -32,7 +32,7 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment/moment';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
@@ -62,8 +62,8 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   datasource: EntitiesTableDataSource<Operation, OperationFilter>;
   saveOptions: OperationSaveOptions = {};
 
-  protected readonly tripService = inject(TripService);
-  protected readonly context = inject(ContextService);
+  private _forceMeasurementAsOptionalOnFieldMode = false;
+  private _measurementSubscription: Subscription;
 
   @RxStateProperty() tripId: number;
   @RxStateProperty() physicalGear: PhysicalGear;
@@ -89,10 +89,15 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   @Input() trip: Trip;
   @Input() requiredStrategy: boolean;
 
+  protected readonly tripService = inject(TripService);
+  protected readonly context = inject(ContextService);
+
   protected readonly platformService = inject(PlatformService);
 
   protected readonly dateTimePattern: string;
   protected readonly xsMobile: boolean;
+
+  readonly forceOptionalExcludedPmfmIds: number[];
 
   displayAttributes: {
     gear?: string[];
@@ -101,6 +106,10 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
 
   get loading(): boolean {
     return this.table && this.table.loading;
+  }
+
+  get forceMeasurementAsOptional(): boolean {
+    return this._forceMeasurementAsOptionalOnFieldMode && this.isOnFieldMode;
   }
 
   constructor(
@@ -116,6 +125,13 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
     this.displayAttributes.gear = this.settings.getFieldDisplayAttributes('gear');
     this.xsMobile = this.mobile && !this.platformService.is('tablet');
+
+    this.forceOptionalExcludedPmfmIds = [
+      PmfmIds.SURVIVAL_SAMPLING_TYPE,
+      PmfmIds.HAS_ACCIDENTAL_CATCHES,
+      // Let the user save OP, even if not set
+      //PmfmIds.HAS_INDIVIDUAL_MEASURES
+    ];
   }
 
   ngOnInit() {
@@ -128,11 +144,19 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     this.loadData();
 
     if (this.allowNewOperation) {
-      if (this.defaultNewOperation) this.opeForm.setValue(this.defaultNewOperation);
+      if (this.defaultNewOperation) {
+        this.setValue(this.defaultNewOperation);
+        this.opeForm.setValue(this.defaultNewOperation);
+      }
+
       this.opeForm.enable();
       this.opeForm.markAsReady();
       this.opeForm.markAsLoaded();
     }
+  }
+
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
   }
 
   loadData() {
@@ -257,16 +281,13 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
       const isChildOperation = data.parentOperation || isNotNil(data.parentOperationId);
       const acquisitionLevel = isChildOperation ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
 
-      // Propagate acquisition level, if changed
-      if (this.acquisitionLevel !== acquisitionLevel) {
-        this.measurementsForm.unload();
-        this.measurementsForm.acquisitionLevel = acquisitionLevel;
-        this.measurementsForm.markAsReady();
-        this.acquisitionLevel = acquisitionLevel;
-      }
+      this.measurementsForm.unload();
+      this.measurementsForm.acquisitionLevel = acquisitionLevel;
+      this.measurementsForm.markAsReady();
+      this.measurementsForm.enable();
 
       // Do not wait measurements forms when no default gear (because of requiredGear=true)
-      if (this.isNewData && isNil(gearId)) {
+      if (this.isNew && isNil(gearId)) {
         this.measurementsForm.pmfms = [];
       }
       jobs.push(this.measurementsForm.setValue((data && data.measurements) || []));

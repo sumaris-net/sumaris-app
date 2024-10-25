@@ -10,6 +10,7 @@ import {
   OnInit,
   Optional,
   Output,
+  ViewChild,
 } from '@angular/core'; // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { OperationValidatorOptions, OperationValidatorService } from './operation.validator';
 import moment, { Moment } from 'moment';
@@ -77,6 +78,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { RxState } from '@rx-angular/state';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -366,6 +368,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   @Output() parentChanges = new EventEmitter<Operation>();
   @Output() lastEndDateChanges = new EventEmitter<Moment>();
   @Output() openParentOperation = new EventEmitter<Operation>();
+  @ViewChild(MeasurementsForm, { static: false }) measurementsForm: MeasurementsForm;
 
   constructor(
     injector: Injector,
@@ -401,7 +404,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this.enableGeolocation = isOnFieldMode && this.mobile;
     this._allowParentOperation = toBoolean(this._allowParentOperation, false);
     this.enableCopyPosition = !this.enableGeolocation;
-
     super.ngOnInit();
 
     // Combo: physicalGears
