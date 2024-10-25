@@ -94,11 +94,19 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
       activityCalendar: source?.pmfm?.activityCalendar?.map(DenormalizedPmfmStrategy.fromObject) || null,
       gpf: source?.pmfm?.gpf?.map(DenormalizedPmfmStrategy.fromObject) || null,
       guf: source?.pmfm?.guf?.map(DenormalizedPmfmStrategy.fromObject) || null,
+      forGpfTable: source?.pmfm?.forGpfTable?.map(DenormalizedPmfmStrategy.fromObject) || null,
     };
     this.activityMonthColspan = source.activityMonthColspan;
     this.metierTableChunks = source.metierTableChunks;
     this.vesselAttributes = source.vesselAttributes;
     this.surveyQualificationQualitativeValues = source?.surveyQualificationQualitativeValues?.map(ReferentialRef.fromObject);
+    this.filteredAndOrderedGpf = source?.filteredAndOrderedGpf?.map((value: any) => {
+      if (value.__typename === GearPhysicalFeatures.TYPENAME) {
+        return GearPhysicalFeatures.fromObject(value);
+      } else if (value.__typename === GearUseFeatures.TYPENAME) {
+        return GearUseFeatures.fromObject(value);
+      }
+    });
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -115,11 +123,13 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
         activityCalendar: this?.pmfm?.activityCalendar?.map((item) => item.asObject(opts)) || null,
         gpf: this?.pmfm?.gpf?.map((item) => item.asObject(opts)) || null,
         guf: this?.pmfm?.guf?.map((item) => item.asObject(opts)) || null,
+        forGpfTable: this?.pmfm?.forGpfTable?.map((item) => item.asObject(opts)) || null,
       },
       activityMonthColspan: this.activityMonthColspan,
       metierTableChunks: this.metierTableChunks,
       vesselAttributes: this.vesselAttributes,
       surveyQualificationQualitativeValues: this.surveyQualificationQualitativeValues?.map((value) => value.asObject(opts)),
+      filteredAndOrderedGpf: this.filteredAndOrderedGpf?.map((value) => value.asObject({ ...opts, keepTypename: true })),
     };
   }
 }
