@@ -203,7 +203,7 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
     this.cd.detectChanges();
     await this.waitIdle({ stop: this.destroySubject });
 
-    this.reveal.initialize();
+    await this.reveal.initialize();
   }
 
   dataFromObject(source: any): ActivityCalendar[] {
@@ -230,10 +230,7 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
   computePrintHref(data: ActivityCalendar[], stats: ActivityCalendarFormsReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
     else {
-      const ids = this.computeIncludeIds();
-      const url = new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + ids);
-      url.searchParams.append('ids', ids.toString());
-      return url;
+      return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + this.reportPath);
     }
   }
 

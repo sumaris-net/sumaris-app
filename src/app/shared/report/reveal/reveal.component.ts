@@ -26,19 +26,20 @@ import {
 } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
-import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
-import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
+import { DOCUMENT } from '@angular/common';
+import { ToastController } from '@ionic/angular';
+import { OverlayEventDetail } from '@ionic/core';
+import { TranslateService } from '@ngx-translate/core';
+import { isNotNil, ShowToastOptions, sleep, StorageService, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
 import { MarkdownComponent } from 'ngx-markdown';
 import { BehaviorSubject, lastValueFrom, Subscription } from 'rxjs';
-import { DOCUMENT } from '@angular/common';
-import { OverlayEventDetail } from '@ionic/core';
-import { ToastController } from '@ionic/angular';
-import { TranslateService } from '@ngx-translate/core';
+import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
 
 export interface IRevealExtendedOptions extends IRevealOptions {
   autoInitialize: boolean;
   autoPrint: boolean;
   printUrl: URL;
+  reportId: string;
 }
 
 export const REVEAL_COMPONENT = new InjectionToken<any>('REVEAL_COMPONENT');
@@ -109,6 +110,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     private appRef: ApplicationRef,
     @Inject(ChangeDetectorRef) private viewRef: ViewRef,
     @Inject(DOCUMENT) private _document: Document,
+    @Inject(StorageService) private _storageService: StorageService,
     private toastController: ToastController,
     private cd: ChangeDetectorRef,
     private translate: TranslateService,
@@ -270,43 +272,29 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     this._reveal.toggleHelp();
   }
 
-  async print(event?: Event) {
+  async print() {
     if (this.loading) return; // skip
 
     console.debug('[reveal] Print...');
 
-    if (this.isPrintingPDF()) {
-      await this.waitIdle();
-      await sleep(1000); // Wait end of render
-      window.print();
-    } else {
+    if (!this.isPrintingPDF()) {
       // Create a iframe with '?print-pdf'
       const printUrl = this.getPrintPdfUrl();
 
       this.markAsLoading();
 
       try {
-        // Already exists: use it
-        if (this._printIframe) {
-          this._printIframe.contentWindow.window.print();
-        } else {
-          this.showToast({ message: 'COMMON.PLEASE_WAIT' });
-          this._printIframe = this.createPrintHiddenIframe(printUrl);
-
-          // Remember to destroy the iframe, on destroy
-          const removeIframe = () => {
-            this._printIframe?.remove();
-            this._printIframe = null;
-          };
-          // destroy after 1min
-          setTimeout(removeIframe, 60000);
-
-          // destroy when destroy
-          this._subscription.add(removeIframe);
-        }
+        const toast = await this.showToast({ message: 'COMMON.PLEASE_WAIT', duration: 0 });
+        this._printIframe = this.createPrintHiddenIframe(printUrl);
+        await this._checkIfReadyToPrint();
+        await this.toastController.dismiss(toast);
+        this._printIframe.contentWindow.window.print();
       } catch (err) {
+        this.disablePrintJob();
         console.error('[reveal] Failed to create hidden iframe. Will opening a new window');
       } finally {
+        this._printIframe?.remove();
+        this._printIframe = null;
         this.markAsLoaded();
       }
     }
@@ -314,6 +302,21 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
   waitIdle(opts?: WaitForOptions): Promise<void> {
     return waitForFalse(this.loadingSubject, opts);
+  }
+
+  async hasPrintingJob(): Promise<boolean> {
+    const result = await this._storageService.get('prepare-printing-report-' + this.options.reportId);
+    return isNotNil(result);
+  }
+
+  async enablePrintJob() {
+    console.debug('[reveal] Enable print job', this.options.reportId);
+    await this._storageService.set('prepare-printing-report-' + this.options.reportId, '1');
+  }
+
+  async disablePrintJob() {
+    console.debug('[reveal] Disable print job', this.options.reportId);
+    await this._storageService.remove('prepare-printing-report-' + this.options.reportId);
   }
 
   protected markAsLoading() {
@@ -341,6 +344,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     if (!printUrl.searchParams.has('print-pdf')) {
       printUrl.searchParams.append('print-pdf', '1');
     }
+    printUrl.searchParams.append('report-id', this.options.reportId);
 
     return printUrl.href;
   }
@@ -360,5 +364,12 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   private async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     return await Toasts.show(this.toastController, this.translate, opts);
+  }
+
+  private async _checkIfReadyToPrint(): Promise<void> {
+    while (await this.hasPrintingJob()) {
+      console.debug('[reveal] Wait for printing iframe', this.options.reportId);
+      await sleep(1000);
+    }
   }
 }

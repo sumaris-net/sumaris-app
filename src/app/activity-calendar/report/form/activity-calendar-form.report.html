@@ -15,7 +15,7 @@
 
       <!-- Print -->
       <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
-      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+      <ion-button (click)="print()" *ngIf="!mobile">
         <!-- Print button -->
         <ion-icon name="print"></ion-icon>
       </ion-button>
@@ -149,7 +149,7 @@
                                 | mapGet: pmfmIdsMap.SURVEY_QUALIFICATION
                                 | pmfmValue
                                   : {
-                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmSurveyQualification | arrayFirst
+                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmSurveyQualification | arrayFirst,
                                     }) === qv.name
                                 ? 'checkbox-outline'
                                 : 'square-outline'
@@ -378,7 +378,7 @@
                                 | mapGet: pmfmIdsMap.AUCTION_HABIT
                                 | pmfmValue
                                   : {
-                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst
+                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst,
                                     }) === qv.name
                                 ? 'checkbox-outline'
                                 : 'square-outline'

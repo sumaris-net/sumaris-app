@@ -13,7 +13,7 @@
 
     <!-- Print -->
     <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
-    <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+    <ion-button (click)="print()" *ngIf="!mobile">
       <ion-icon name="print"></ion-icon>
     </ion-button>
 
@@ -53,6 +53,7 @@
     <app-reveal #reveal [options]="revealOptions">
       @for (activityCalendar of data; track $index) {
         <app-activity-calendar-form-report
+          [embedded]="true"
           [data]="activityCalendar"
           [stats]="stats.activityCalendarFormReportStatsByIds | mapGet: activityCalendar.id"
           [showToolbar]="false"

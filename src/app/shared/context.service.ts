@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
-import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
+import { Inject, Injectable, InjectionToken, Optional, inject } from '@angular/core';
 import { Moment } from 'moment';
-import { DateUtils, equals, fromDateISOString, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
+import { DateUtils, StorageService, equals, fromDateISOString, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -29,8 +29,12 @@ export const CONTEXT_DEFAULT_STATE = new InjectionToken<Record<string, any>>('Co
 
 @Injectable()
 export class ContextService<S extends Context<TClipboardData> = Context<any>, TClipboardData = any> extends RxState<S> {
+  static SHARED_CLIPBOARD_KEY = 'sharedClipboard';
+
   private static ID_SEQUENCE = 1;
   readonly id: number = ContextService.ID_SEQUENCE++;
+
+  protected storageService: StorageService = inject(StorageService);
 
   @RxStateProperty() program: Program;
   @RxStateProperty() strategy: Strategy;
@@ -53,6 +57,7 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
     // DEBUG
     //console.debug(`[context-service] Set '${String(key)}'`, value);
 
+    console.debug('TODO context setValue', key);
     this.set(key, () => value);
   }
 
@@ -69,6 +74,7 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
   }
 
   resetValue<K extends keyof S>(key: K) {
+    console.debug('TODO context resetValue', key);
     this.set(key, () => this.defaultState[key]);
   }
 
@@ -83,6 +89,7 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
   }
 
   resetClipboard(opts?: { onlySelf?: boolean }) {
+    console.debug('TODO resetClipboard');
     // Cascade to children
     if (opts?.onlySelf !== false) {
       this.children?.forEach((child) => child.resetClipboard(opts));
@@ -110,5 +117,20 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
 
     // Merge all children's states
     return [state, ...children.filter((c) => !c.empty).map((child) => child.getMerged())].reduce((res, state) => ({ ...res, ...state }), {});
+  }
+
+  async saveClipboard(): Promise<any> {
+    console.debug('TODO saveClipboard');
+    return await this.storageService.set(ContextService.SHARED_CLIPBOARD_KEY, JSON.stringify(this.clipboard));
+  }
+
+  async restoreClipboard(cleanContent: boolean = true) {
+    const raw = await this.storageService.get(ContextService.SHARED_CLIPBOARD_KEY);
+    console.debug('TODO restoreClipboard', raw);
+    this.clipboard = JSON.parse(raw);
+    if (cleanContent) {
+      console.debug('TODO restoreClipboard cleanContent');
+      this.storageService.remove(ContextService.SHARED_CLIPBOARD_KEY);
+    }
   }
 }
