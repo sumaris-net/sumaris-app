@@ -902,7 +902,6 @@ export class CalendarComponent
 
     if (cellSelection.colspan !== colspan || cellSelection.rowspan !== rowspan) {
       cellSelection.colspan = colspan;
-      // cellSelection.colspan = colspan < 0 ? colspan - 1 : colspan;
       cellSelection.rowspan = rowspan;
 
       // Apply resize
