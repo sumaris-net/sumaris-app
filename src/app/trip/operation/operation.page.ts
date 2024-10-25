@@ -47,7 +47,7 @@ import {
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { MatTabChangeEvent } from '@angular/material/tabs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import moment, { Moment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
@@ -138,6 +138,7 @@ export class OperationPage<S extends OperationState = OperationState>
   protected readonly dateTimePattern: string;
   protected readonly showLastOperations: boolean;
   protected readonly xsMobile: boolean;
+  protected isInlineFishingArea: boolean = false;
 
   saveOptions: OperationSaveOptions = {};
   selectedSubTabIndex = 0;
@@ -161,8 +162,6 @@ export class OperationPage<S extends OperationState = OperationState>
   operationPasteFlags: number;
   helpUrl: string;
   _defaultIsParentOperation = true;
-
-  protected isInlineFishingArea: boolean = false;
 
   readonly forceOptionalExcludedPmfmIds: number[];
 
@@ -325,7 +324,6 @@ export class OperationPage<S extends OperationState = OperationState>
         map((res) => (res && res.data) || [])
       )
     );
-
     // FOR DEV ONLY ----
     this.logPrefix = '[operation-page] ';
   }
@@ -480,13 +478,13 @@ export class OperationPage<S extends OperationState = OperationState>
 
     if (this.measurementsForm) {
       this.registerSubscription(
-        this.measurementsForm.pmfms$
-          .pipe(
-            filter(isNotNil),
-            mergeMap((_) => this.measurementsForm.ready$),
-            filter((ready) => ready === true)
-          )
-          .subscribe((_) => this.onMeasurementsFormReady())
+        this.measurementsForm.formReady.subscribe(() => {
+          this.onMeasurementsFormReady();
+        })
+        // this.measurementsForm.onUpdateFormGroup.subscribe(async (event) => {
+        //   await this.onMeasurementsFormReady();
+        //   event.detail.success();
+        // })
       );
     }
 
@@ -712,57 +710,7 @@ export class OperationPage<S extends OperationState = OperationState>
           })
       );
     }
-
-    // If PMFM "Line layout" exists, then use to use to enable/disable specifics details
-    const lineLayoutControl = formGroup?.controls[PmfmIds.LINE_LAYOUT];
-
-    if (isNotNil(lineLayoutControl)) {
-      const enableOptions = { onlySelf: true };
-      let lineLayoutLinearControl = formGroup.controls[PmfmIds.LINE_LAYOUT_LINEAR];
-      let lineLayoutZigZagControl = formGroup.controls[PmfmIds.LINE_LAYOUT_ZIGZAG];
-      let lineLayoutUnknownControl = formGroup.controls[PmfmIds.LINE_LAYOUT_UNKNOWN];
-      if (lineLayoutLinearControl && lineLayoutZigZagControl && lineLayoutUnknownControl) {
-        this._measurementSubscription.add(
-          lineLayoutControl.valueChanges
-            .pipe(
-              debounceTime(400),
-              startWith<any>(lineLayoutControl.value),
-              map((qv) => qv?.label),
-              distinctUntilChanged()
-            )
-            .subscribe((qvLabel) => {
-              switch (qvLabel as string) {
-                case QualitativeLabels.LINE_LAYOUT_TYPE.LINEAR:
-                  if (this.debug) console.debug('[operation] Enable linear details');
-                  AppFormUtils.enableControl(lineLayoutLinearControl, { ...enableOptions, required: true });
-                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
-                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
-
-                  break;
-                case QualitativeLabels.LINE_LAYOUT_TYPE.ZIG_ZAG:
-                  if (this.debug) console.debug('[operation] Enable zig-zag details');
-                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
-                  AppFormUtils.enableControl(lineLayoutZigZagControl, { ...enableOptions, required: true });
-                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
-
-                  break;
-                case QualitativeLabels.LINE_LAYOUT_TYPE.UNKNOWN:
-                  if (this.debug) console.debug('[operation] Enable other details');
-                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
-                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
-                  AppFormUtils.enableControl(lineLayoutUnknownControl, { ...enableOptions, required: false });
-                  break;
-                default:
-                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
-                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
-                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
-                  break;
-              }
-              //this.markForCheck();
-            })
-        );
-      }
-    }
+    OperationValidators.updateMeasurementFormGroup(formGroup, { debug: this.debug });
   }
 
   ngOnDestroy() {

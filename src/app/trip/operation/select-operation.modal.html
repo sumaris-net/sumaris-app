@@ -66,6 +66,8 @@
                   [strategyId]="strategyId"
                   [requiredGear]="true"
                   [gearId]="gearId"
+                  [forceOptional]="forceMeasurementAsOptional"
+                  [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
                   (mapPmfms)="mapPmfms($event)"
                   [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
                   [i18nSuffix]="i18nContext.suffix"
@@ -112,12 +114,19 @@
           <br />
           opeForm.valid: {{ opeForm.valid }}
           <br />
-          <br />
+        </ion-col>
+        <ion-col>
           opeForm.isInlineFishingArea: {{ opeForm.isInlineFishingArea }}
           <br />
           opeForm.showPosition: {{ opeForm.showPosition }}
           <br />
           opeForm.showFishingArea: {{ opeForm.showFishingArea }}
+          <br />
+        </ion-col>
+        <ion-col>
+          trip.gears.length: {{ trip.gears.length }}
+          <br />
+          trip.measurements.length: {{ trip.measurements.length }}
           <br />
         </ion-col>
       </ion-row>

@@ -28,15 +28,15 @@ import {
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Operation, Trip } from '../trip/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { forkJoin, merge, Observable, Subscription } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
+import { forkJoin, merge, Observable, Subscription, TeardownLogic } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, startWith } from 'rxjs/operators';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { BBox } from 'geojson';
@@ -996,6 +996,62 @@ export class OperationValidators {
       return { existsParent: true };
     }
     return null;
+  }
+
+  static updateMeasurementFormGroup(formGroup: UntypedFormGroup, opts?: { debug?: boolean }): TeardownLogic {
+    const subscription = new Subscription();
+    const debug = opts?.debug;
+    // If PMFM "Line layout" exists, then use to enable/disable specifics details
+    const lineLayoutControl = formGroup?.controls[PmfmIds.LINE_LAYOUT];
+
+    if (isNotNil(lineLayoutControl)) {
+      const enableOptions = { onlySelf: true };
+      let lineLayoutLinearControl = formGroup.controls[PmfmIds.LINE_LAYOUT_LINEAR];
+      let lineLayoutZigZagControl = formGroup.controls[PmfmIds.LINE_LAYOUT_ZIGZAG];
+      let lineLayoutUnknownControl = formGroup.controls[PmfmIds.LINE_LAYOUT_UNKNOWN];
+      if (lineLayoutLinearControl && lineLayoutZigZagControl && lineLayoutUnknownControl) {
+        subscription.add(
+          lineLayoutControl.valueChanges
+            .pipe(
+              debounceTime(400),
+              startWith<any>(lineLayoutControl.value),
+              map((qv) => qv?.label),
+              distinctUntilChanged()
+            )
+            .subscribe((qvLabel) => {
+              switch (qvLabel as string) {
+                case QualitativeLabels.LINE_LAYOUT_TYPE.LINEAR:
+                  if (debug) console.debug('[operation-validator] Line Layout: Enable linear details');
+                  AppFormUtils.enableControl(lineLayoutLinearControl, { ...enableOptions, required: true });
+                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+
+                  break;
+                case QualitativeLabels.LINE_LAYOUT_TYPE.ZIG_ZAG:
+                  if (debug) console.debug('[operation-validator] Line Layout: Enable zig-zag details');
+                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+                  AppFormUtils.enableControl(lineLayoutZigZagControl, { ...enableOptions, required: true });
+                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+
+                  break;
+                case QualitativeLabels.LINE_LAYOUT_TYPE.UNKNOWN:
+                  if (debug) console.debug('[operation-validator] Line Layout: Enable line other details');
+                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+                  AppFormUtils.enableControl(lineLayoutUnknownControl, { ...enableOptions, required: false });
+                  break;
+                default:
+                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
+                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
+                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+                  break;
+              }
+              //this.markForCheck();
+            })
+        );
+      }
+    }
+    return () => subscription.unsubscribe();
   }
 }
 

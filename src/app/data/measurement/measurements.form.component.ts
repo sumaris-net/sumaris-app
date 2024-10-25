@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -32,6 +33,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { OperationValidators } from '@app/trip/operation/operation.validator';
 
 export declare type MapPmfmEvent = PromiseEvent<IPmfm[], { pmfms: IPmfm[] }>;
 export declare type UpdateFormGroupEvent = PromiseEvent<void, { form: UntypedFormGroup }>;
@@ -43,7 +45,10 @@ export declare type UpdateFormGroupEvent = PromiseEvent<void, { form: UntypedFor
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [RxState],
 })
-export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsFormState> extends AppForm<Measurement[]> implements OnInit, OnDestroy {
+export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsFormState>
+  extends AppForm<Measurement[]>
+  implements OnInit, AfterViewInit, OnDestroy
+{
   @RxStateRegister() protected readonly _state: RxState<S> = inject(RxState, { self: true });
   protected readonly _pmfmNamePipe = inject(PmfmNamePipe);
   protected _logPrefix: string;
@@ -106,6 +111,8 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
   @Output() mapPmfms: EventEmitter<MapPmfmEvent> = createPromiseEventEmitter<IPmfm[], { pmfms: IPmfm[] }>();
   @Output('updateFormGroup') onUpdateFormGroup: EventEmitter<UpdateFormGroupEvent> = createPromiseEventEmitter<void, { form: UntypedFormGroup }>();
+
+  @Output() formReady = new EventEmitter<void>();
 
   get starting(): boolean {
     return this.readyStep === MeasurementsFormReadySteps.STARTING;
@@ -173,6 +180,15 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
     this._state.hold(this.filteredPmfms$, (pmfms) => this._updateFormGroup(pmfms));
 
+    this._state.hold(
+      this.pmfms$.pipe(
+        filter(isNotNil),
+        mergeMap((_) => this.ready$),
+        filter((ready) => ready === true)
+      ),
+      (_) => this.formReady.emit()
+    );
+
     // Initial state
     this._state.set(<Partial<S>>{
       readyStep: MeasurementsFormReadySteps.STARTING,
@@ -193,6 +209,15 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     this.mobile = this.mobile ?? this.settings.mobile;
     this.showDisabledPmfm = this.showDisabledPmfm ?? !this.mobile;
     super.ngOnInit();
+  }
+  ngAfterViewInit() {
+    if (this) {
+      this.registerSubscription(
+        this.formReady.subscribe(() => {
+          this.onFormReady();
+        })
+      );
+    }
   }
 
   ngOnDestroy() {
@@ -518,6 +543,10 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     }
 
     return true;
+  }
+
+  protected async onFormReady() {
+    OperationValidators.updateMeasurementFormGroup(this.form, { debug: this.debug });
   }
 
   protected updateViewState(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
