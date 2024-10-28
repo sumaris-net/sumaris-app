@@ -1,4 +1,4 @@
-import { DateUtils, equals, IEntity, isNotEmptyArray, lastArrayValue } from '@sumaris-net/ngx-components';
+import { DateUtils, equals, IEntity, isNotEmptyArray, lastArrayValue, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
 import { Moment, unitOfTime } from 'moment';
 import { VesselFeatures } from './vessel.model';
 
@@ -60,7 +60,9 @@ export class VesselFeaturesUtils {
         const previous = lastArrayValue(res);
         // previous != current
         if (previous) {
-          const changedProperties = Object.keys(current).filter((key) => !excludedProperties.includes(key) && !equals(previous[key], current[key]));
+          const changedProperties = Object.keys(current).filter(
+            (key) => !excludedProperties.includes(key) && !VesselFeaturesUtils.areKeysEqual(previous[key], current[key])
+          );
           if (isNotEmptyArray(changedProperties)) {
             current = current.clone();
             current.__changedProperties = changedProperties;
@@ -73,5 +75,11 @@ export class VesselFeaturesUtils {
       },
       <VesselFeatures[]>[]
     );
+  }
+
+  static areKeysEqual(key1: any, key2: any) {
+    const isReferentialRef = key1 instanceof ReferentialRef && key2 instanceof ReferentialRef;
+    const isEqual = isReferentialRef ? ReferentialUtils.equals(key1, key2) : equals(key1, key2);
+    return isEqual;
   }
 }
