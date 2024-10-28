@@ -580,6 +580,11 @@ export class ActivityCalendarService
     const withTotal = !opts || opts.withTotal !== false;
     const query = fullLoad ? ActivityCalendarQueries.loadAllFull : withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
 
+    // fix sort by
+    if (sortBy === 'recorderPerson') {
+      sortBy = 'recorderPerson.lastName';
+    }
+
     return super.watchAll(offset, size, sortBy, sortDirection, dataFilter as ActivityCalendarFilter, {
       query,
       fetchPolicy: opts?.fetchPolicy || 'cache-and-network',
@@ -1318,7 +1323,7 @@ export class ActivityCalendarService
     // Translate PMFM fields
     if ((MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) || MEASUREMENT_PMFM_ID_REGEXP.test(path)) && opts?.pmfms) {
       const pmfmId = parseInt(path.split('.').pop());
-      let pmfm = opts.pmfms.find((p) => p.id === pmfmId);
+      const pmfm = opts.pmfms.find((p) => p.id === pmfmId);
       return PmfmUtils.getPmfmName(pmfm);
     }
 
