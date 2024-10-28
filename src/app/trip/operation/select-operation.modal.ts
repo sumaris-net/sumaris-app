@@ -118,7 +118,6 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   }
 
   get isNewOperation(): boolean {
-    console.log('NEW OPERATION: ', this.selectedTabIndex);
     return this.selectedTabIndex === 1;
   }
 
