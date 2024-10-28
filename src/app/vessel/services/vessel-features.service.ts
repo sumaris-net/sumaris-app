@@ -106,7 +106,7 @@ export class VesselFeaturesService
     const mergeAll = typeof opts?.mergeAll === 'function' ? opts.mergeAll() : opts?.mergeAll;
     if (mergeAll) {
       // Get all items, ordered from last to older
-      return super.watchAll(offset, null, 'startDate', 'asc', dataFilter, opts).pipe(
+      return super.watchAll(null, null, 'startDate', 'asc', dataFilter, opts).pipe(
         map(({ data }) => {
           // Merge
           data = VesselFeaturesUtils.mergeAll(data);
