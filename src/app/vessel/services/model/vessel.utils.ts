@@ -61,7 +61,7 @@ export class VesselFeaturesUtils {
         // previous != current
         if (previous) {
           const changedProperties = Object.keys(current).filter(
-            (key) => !excludedProperties.includes(key) && !VesselFeaturesUtils.areKeysEqual(previous[key], current[key])
+            (key) => !excludedProperties.includes(key) && !VesselFeaturesUtils.arePropertiesEqual(previous[key], current[key])
           );
           if (isNotEmptyArray(changedProperties)) {
             current = current.clone();
@@ -77,9 +77,9 @@ export class VesselFeaturesUtils {
     );
   }
 
-  static areKeysEqual(key1: any, key2: any) {
-    const isReferentialRef = key1 instanceof ReferentialRef && key2 instanceof ReferentialRef;
-    const isEqual = isReferentialRef ? ReferentialUtils.equals(key1, key2) : equals(key1, key2);
+  static arePropertiesEqual(property1: any, property2: any) {
+    const isReferentialRef = property1 instanceof ReferentialRef && property2 instanceof ReferentialRef;
+    const isEqual = isReferentialRef ? ReferentialUtils.equals(property1, property2) : equals(property1, property2);
     return isEqual;
   }
 }
