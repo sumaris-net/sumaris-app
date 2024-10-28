@@ -32,7 +32,8 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment/moment';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
-import { Observable, Subscription } from 'rxjs';
+import { Observable } from 'rxjs';
+import { MatTabGroup } from '@angular/material/tabs';
 
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
@@ -63,7 +64,6 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   saveOptions: OperationSaveOptions = {};
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
-  private _measurementSubscription: Subscription;
 
   @RxStateProperty() tripId: number;
   @RxStateProperty() physicalGear: PhysicalGear;
@@ -73,6 +73,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   @ViewChild('table', { static: true }) table: SelectOperationByTripTable;
   @ViewChild('form', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
+  @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
   @Input() filter: OperationFilter;
   @Input() enableGeolocation: boolean;
@@ -112,6 +113,15 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     return this._forceMeasurementAsOptionalOnFieldMode && this.isOnFieldMode;
   }
 
+  get canValidate(): boolean {
+    return this.hasSelection();
+  }
+
+  get isNewOperation(): boolean {
+    console.log('NEW OPERATION: ', this.selectedTabIndex);
+    return this.selectedTabIndex === 1;
+  }
+
   constructor(
     injector: Injector,
     protected router: Router,
@@ -126,6 +136,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     this.displayAttributes.gear = this.settings.getFieldDisplayAttributes('gear');
     this.xsMobile = this.mobile && !this.platformService.is('tablet');
 
+    this.tabCount = 2;
     this.forceOptionalExcludedPmfmIds = [
       PmfmIds.SURVIVAL_SAMPLING_TYPE,
       PmfmIds.HAS_ACCIDENTAL_CATCHES,
