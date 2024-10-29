@@ -124,6 +124,7 @@ const NUMERIC_KEYS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Backspa
 export const ACTIVITY_MONTH_READONLY_COLUMNS = ['month', 'program', 'vesselOwner', 'registrationLocation'];
 export const ACTIVITY_MONTH_START_COLUMNS = [...ACTIVITY_MONTH_READONLY_COLUMNS, 'isActive', 'basePortLocation'];
 export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
+export const GEAR_USE_FEATURE_INDEX_REGEXP = /gearUseFeatures\.(\d+)/;
 
 export interface IIsActive extends IStatus {
   statusId: number;
@@ -1859,7 +1860,7 @@ export class CalendarComponent
       console.debug(this.logPrefix + `lock rows`, new Error(), editingRows);
       return (await Promise.all(editingRows.map((editedRow) => this.confirmEditCreate(event, editedRow)))).every((c) => c === true);
     }
-    let confirmEditCreateId = this.confirmEditCreateId++;
+    const confirmEditCreateId = this.confirmEditCreateId++;
 
     try {
       console.debug(this.logPrefix + `lock row#${row?.id} - ID #${confirmEditCreateId}`, new Error());
@@ -2525,6 +2526,8 @@ export class CalendarComponent
 
     const { rows: targetRows, paths: targetPaths } = this.getRowsFromSelection(targetCellSelection);
 
+    this.addMetierBlocksForPaste(sourcePaths, targetPaths);
+
     // Empty target rows
     if (isEmptyArray(targetRows) || isEmptyArray(targetPaths)) return false;
 
@@ -2903,5 +2906,46 @@ export class CalendarComponent
 
   hasErrorsInRows(): boolean {
     return this.getErrorsInRows()?.length > 0;
+  }
+
+  addMetierBlocksForPaste(sourcePaths: string[], targetPaths: string[]) {
+    let targetMetierPath = sourcePaths.filter((path) => path.includes('gearUseFeatures'));
+    let sourceMetierPath = targetPaths.filter((path) => path.includes('gearUseFeatures'));
+
+    if (isEmptyArray(targetMetierPath) || isEmptyArray(sourceMetierPath)) return;
+
+    targetMetierPath = this.extractGearUseFeatureIndex(targetMetierPath);
+    sourceMetierPath = this.extractGearUseFeatureIndex(sourceMetierPath);
+
+    if (isEmptyArray(targetMetierPath) || isEmptyArray(sourceMetierPath)) return;
+
+    const nbAvailableMetier = this.metierCount - parseInt(sourceMetierPath[0]);
+
+    const numberMetierToAdd = Math.abs(nbAvailableMetier - targetMetierPath.length);
+
+    for (let i = 0; i < numberMetierToAdd; i++) {
+      this.addMetierBlock(null, { emitEvent: true, updateRows: false, scrollToBottom: false });
+      targetPaths.push(`gearUseFeatures.${parseInt(sourceMetierPath.at(-1)) + i + 1}.metier`);
+      for (let j = 0; j < MAX_FISHING_AREA_COUNT; j++) {
+        targetPaths.push(
+          `gearUseFeatures.${parseInt(sourceMetierPath.at(-1)) + i + 1}.fishingAreas.${j}.location`,
+          `gearUseFeatures.${parseInt(sourceMetierPath.at(-1)) + i + 1}.fishingAreas.${j}.distanceToCoastGradient`,
+          `gearUseFeatures.${parseInt(sourceMetierPath.at(-1)) + i + 1}.fishingAreas.${j}.depthGradient`,
+          `gearUseFeatures.${parseInt(sourceMetierPath.at(-1)) + i + 1}.fishingAreas.${j}.nearbySpecificArea`
+        );
+      }
+    }
+  }
+
+  extractGearUseFeatureIndex(str: string[]): string[] {
+    if (isNil(str)) return [];
+    return removeDuplicatesFromArray(
+      str
+        .map((str) => {
+          const match = str.match(GEAR_USE_FEATURE_INDEX_REGEXP);
+          return match ? match[1] : null;
+        })
+        .filter((num) => num !== null)
+    );
   }
 }
