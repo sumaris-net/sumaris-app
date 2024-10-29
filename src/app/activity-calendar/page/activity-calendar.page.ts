@@ -85,6 +85,7 @@ import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-form.component';
 import { VesselUseFeaturesIsActiveEnum } from '../model/vessel-use-features.model';
+import { GearUseFeatures } from '../model/gear-use-features.model';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -1047,6 +1048,10 @@ export class ActivityCalendarPage
         registrationLocations: existingMonth.registrationLocations,
         readonly: existingMonth.readonly,
         updateDate: existingMonth.updateDate,
+        // Preserve gearUseFeatures start and end dates
+        gearUseFeatures: source?.gearUseFeatures.map((guf) =>
+          GearUseFeatures.fromObject({ ...guf, startDate: existingMonth.startDate, endDate: existingMonth.endDate })
+        ),
       });
     });
 
