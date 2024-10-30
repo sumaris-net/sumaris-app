@@ -8,6 +8,8 @@ import {
   CORE_CONFIG_OPTIONS,
   ConfigService,
   DateUtils,
+  StatusIds,
+  arrayDistinct,
   firstNotNilPromise,
   isEmptyArray,
   isNotEmptyArray,
@@ -15,7 +17,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -25,24 +27,25 @@ import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical
 import moment from 'moment';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { GearPhysicalFeaturesUtils } from '@app/activity-calendar/model/gear-physical-features.utils';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 
 export async function computeCommonActivityCalendarFormReportStats(
   data: ActivityCalendar,
   stats: ActivityCalendarFormReportStats,
-  configService: ConfigService,
   programRefService: ProgramRefService,
+  vesselSnapshotService: VesselSnapshotService,
   program: Program,
   strategy: Strategy,
   isBlankForm: boolean
 ): Promise<ActivityCalendarFormReportStats> {
-  const timezone = (await firstNotNilPromise(configService.config)).getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE) || DateUtils.moment().tz();
-
   stats.program = program;
   stats.strategy = strategy;
 
   stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER);
   stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
   stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
+  stats.vesselAttributes = (await vesselSnapshotService.getAutocompleteFieldOptions('vesselSnapshot'))?.attributes;
 
   stats.pmfm = {
     activityMonth: await programRefService.loadProgramPmfms(data.program.label, {
@@ -68,7 +71,18 @@ export async function computeCommonActivityCalendarFormReportStats(
             name: stats.program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2),
           }),
         ],
+    guf: !isBlankForm
+      ? await programRefService.loadProgramPmfms(data.program.label, {
+          acquisitionLevel: AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_USE_FEATURES,
+          strategyId: stats.strategy.id,
+        })
+      : [],
   };
+
+  stats.surveyQualificationQualitativeValues = stats.pmfm.activityCalendar
+    .filter((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION)[0]
+    ?.qualitativeValues.filter((qv) => (isBlankForm ? true : qv.statusId === StatusIds.ENABLE))
+    .sort((a, b) => (a.name > b.name ? 1 : a.name < b.name ? -1 : 0));
 
   return stats;
 }
@@ -77,22 +91,37 @@ export async function computeIndividualActivityCalendarFormReportStats(
   data: ActivityCalendar,
   stats: ActivityCalendarFormReportStats,
   pageDimensions: ActivityCalendarFormReportPageDimentions,
+  configService: ConfigService,
   isBlankForm: boolean
 ): Promise<ActivityCalendarFormReportStats> {
+  const timezone = (await firstNotNilPromise(configService.config)).getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE) || DateUtils.moment().tz();
   const fishingAreaCount: number = isBlankForm
     ? stats.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER)
     : null;
 
-  stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, { fillEmptyGuf: true, fillEmptyFishingArea: true, fishingAreaCount });
+  stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, {
+    fillEmptyGuf: true,
+    fillEmptyFishingArea: true,
+    fishingAreaCount,
+    timezone,
+  });
 
   computeActivityMonthColspan(stats, isBlankForm);
 
   if (!isBlankForm) {
-    const gearIds = data.gearPhysicalFeatures?.map((gph) => gph.gear.id) || [];
+    const gpfGearIds = data.gearPhysicalFeatures?.map((gph) => gph.gear.id) || [];
     stats.pmfm.gpf = stats.pmfm.gpf.filter(
-      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gearIds.includes(gearId))
+      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gpfGearIds.includes(gearId))
+    );
+    const gufGearIds = data.gearUseFeatures?.map((guf) => guf.gear.id) || [];
+    stats.pmfm.guf = stats.pmfm.guf.filter(
+      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gufGearIds.includes(gearId))
     );
   }
+
+  stats.pmfm.forGpfTable = arrayDistinct(stats.pmfm.gpf.concat(stats.pmfm.guf), 'id');
+
+  stats.filteredAndOrderedGpf = isBlankForm ? data.gearPhysicalFeatures : GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone });
 
   computeMetierTableChunk(stats, pageDimensions);
 
@@ -173,7 +202,7 @@ function computeMetierTableChunk(stats: ActivityCalendarFormReportStats, pageDim
     pageDimensions.marginTop / 2 +
     pageDimensions.sectionTitleHeight +
     pageDimensions.gpfTableRowTitleHeight +
-    stats.pmfm.gpf.length * pageDimensions.gpfTableRowHeight;
+    stats.pmfm.forGpfTable.length * pageDimensions.gpfTableRowHeight;
   const heighOfMetierTableHead = pageDimensions.marginTop + pageDimensions.sectionTitleHeight + pageDimensions.monthTableRowTitleHeight;
 
   const availableHeightOnFirstPage = totalAvailableHeightForContent - heightOfEffortSection - heighOfMetierTableHead;
