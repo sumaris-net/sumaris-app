@@ -587,11 +587,11 @@ export class ActivityCalendarsTable
 
     // Create extraction type and filter
     type = type || ExtractionType.fromLiveLabel('ACTIVITY_CALENDAR');
-    const programLabel = programs[0].label;
-    const activityCalendarIds = activityCalendars.map((t) => t.id);
 
-    // TODO
     const filter = ExtractionFilter.fromObject({});
+    // TODO
+    // const programLabel = programs[0].label;
+    // const activityCalendarIds = activityCalendars.map((t) => t.id);
     // = ExtractionUtils.createActivityCalendarFilter(programLabel, activityCalendarIds);
     const queryParams = ExtractionUtils.asQueryParams(type, filter);
 

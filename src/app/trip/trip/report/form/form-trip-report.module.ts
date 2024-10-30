@@ -6,10 +6,23 @@ import { AppOperationModule } from '@app/trip/operation/operation.module';
 import { FormTripReport } from './form-trip.report';
 import { AppDataModule } from '@app/data/data.module';
 import { DenormalizedBatchModule } from '@app/trip/denormalized-batch/denormalized-batch.module';
+import { SampleFormReportComponent } from '@app/trip/sample/report/form/sample-form.report-component';
+import { DenormalizedBatchFormReportComponent } from '@app/trip/denormalized-batch/report/form/denormalized-batch-form.report-component';
+import { ReportChunkModule } from '@app/data/report/component/form/report-chunk.module';
 
 @NgModule({
   declarations: [FormTripReport],
-  imports: [AppCoreModule, AppSharedReportModule, AppOperationModule, AppReferentialModule, AppDataModule, DenormalizedBatchModule],
+  imports: [
+    AppCoreModule,
+    AppSharedReportModule,
+    AppOperationModule,
+    AppReferentialModule,
+    AppDataModule,
+    DenormalizedBatchModule,
+    ReportChunkModule,
+    SampleFormReportComponent,
+    DenormalizedBatchFormReportComponent,
+  ],
   exports: [FormTripReport],
 })
 export class FormTripReportModule {}

@@ -1,0 +1,153 @@
+@if (loaded) {
+  <app-reveal #reveal [options]="revealOptions">
+    @for (operation of data; track operation.id) {
+      @if (operation.samples | isNotEmptyArray) {
+        <section *sectionDef>
+          @for (samplesChunk of operation.samples | splitArrayInChunks: samplesByPage; track samplesChunkIndex; let samplesChunkIndex = $index) {
+            <section class="landscape">
+              <page-header-from-report-chunk
+                [i18nContext]="i18nContext"
+                [title]="'TRIP.SAMPLE.TABLE.TITLE'"
+                [pageNumber]="samplesChunkIndex + 1"
+                [departureDateTime]="departureDateTime"
+                [vesselName]="vesselName"
+                [logoRightUrl]="logoHeadRightUrl"
+                [logoLeftUrl]="logoHeadLeftUrl"
+              ></page-header-from-report-chunk>
+              <ion-grid class="report-section ion-no-padding">
+                <ion-row class="section-title ion-margin-bottom">
+                  <ion-col size="auto">
+                    <h3>{{ 'TRIP.REPORT.FORM.NUM_OP' | translate }}</h3>
+                  </ion-col>
+                  <ion-col class="title-value ion-text-center font-large" size="auto">
+                    {{ operation.rankOrder }}
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+              <table [style.--row-height]="'30px'">
+                <thead>
+                  <tr>
+                    @if (stats.options.labelEnabled) {
+                      <th class="col-compact font-medium">
+                        <div>{{ 'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nContext.suffix }}</div>
+                      </th>
+                    } @else {
+                      <th class="col-tiny font-medium text-vertical">
+                        <div>{{ 'TRIP.SAMPLE.TABLE.RANK_ORDER' | translateContext: i18nContext.suffix }}</div>
+                      </th>
+                    }
+                    @if (stats.options.taxonNameEnabled) {
+                      <th class="col-medium font-medium">
+                        <div>{{ 'TRIP.SAMPLE.TABLE.TAXON_NAME' | translateContext: i18nContext.suffix }}</div>
+                      </th>
+                    }
+                    @if (stats.options.taxonGroupEnabled) {
+                      <th class="col-medium font-medium">
+                        <div>{{ 'TRIP.SAMPLE.TABLE.TAXON_GROUP' | translateContext: i18nContext.suffix }}</div>
+                      </th>
+                    }
+                    @for (pmfm of stats.pmfms; track pmfm.id) {
+                      <th class="col-compact ion-text-center font-medium">
+                        <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nSuffix: i18nContext.suffix }"></div>
+                      </th>
+                    }
+                    <th class="col-extra-large font-medium">
+                      <div>
+                        {{ 'TRIP.REPORT.FORM.COMMENTS' | translate }}
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (sample of samplesChunk; track sample.id) {
+                    <tr>
+                      @if (stats.options.labelEnabled) {
+                        <td class="col-compact font-medium">
+                          <div>
+                            <b>{{ sample.label }}</b>
+                          </div>
+                        </td>
+                      } @else {
+                        <td class="col-tiny ion-text-center font-medium" [style.padding]="0">
+                          <div>
+                            <b>{{ sample.rankOrder }}</b>
+                          </div>
+                        </td>
+                      }
+                      @if (stats.options.taxonNameEnabled) {
+                        <td class="col-medium">
+                          {{ sample.taxonName | referentialToString }}
+                        </td>
+                      }
+                      @if (stats.options.taxonGroupEnabled) {
+                        <td class="col-medium">
+                          {{ sample.taxonGroup | referentialToString }}
+                        </td>
+                      }
+                      @for (pmfm of stats.pmfms; track pmfm.id) {
+                        <td
+                          class="col-compact ion-text-center"
+                          [innerHtml]="
+                            sample.measurementValues
+                              | mapGet: pmfm.id
+                              | pmfmValue
+                                : {
+                                    pmfm: stats.pmfmsByIds | mapGet: pmfm.id,
+                                    propertyNames: ['label', 'name'],
+                                  }
+                          "
+                        ></td>
+                      }
+                      <td class="col-extra-large">
+                        {{ sample.comments }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              <page-footer-from-report-chunk [footerText]="footerText" [help]="footerHelp"></page-footer-from-report-chunk>
+            </section>
+          }
+          @for (
+            imagesChunk of stats.imagesByOperationId | mapGet: operation.id | splitArrayInChunks: 6;
+            track imagesChunkIndex;
+            let imagesChunkIndex = $index
+          ) {
+            <section class="landscape">
+              <page-header-from-report-chunk
+                [i18nContext]="i18nContext"
+                [title]="'TRIP.SAMPLE.TABLE.TITLE'"
+                [pageNumber]="imagesChunkIndex + 1"
+                [departureDateTime]="departureDateTime"
+                [vesselName]="vesselName"
+                [logoRightUrl]="logoHeadRightUrl"
+                [logoLeftUrl]="logoHeadLeftUrl"
+              ></page-header-from-report-chunk>
+              <ion-grid class="report-section ion-no-padding">
+                <ion-row class="section-title ion-margin-bottom">
+                  <ion-col size="auto">
+                    <h3>{{ 'TRIP.REPORT.FORM.NUM_OP' | translate }}</h3>
+                  </ion-col>
+                  <ion-col class="title-value ion-text-center font-large" size="auto">
+                    {{ operation.rankOrder }}
+                  </ion-col>
+                </ion-row>
+                <ion-row class="gallery">
+                  @for (image of imagesChunk; track $index) {
+                    <ion-col size="auto">
+                      <figure>
+                        <img [src]="image.url || image.dataUrl" [alt]="image.title" />
+                        <figcaption>{{ image.title }}</figcaption>
+                      </figure>
+                    </ion-col>
+                  }
+                </ion-row>
+              </ion-grid>
+              <page-footer-from-report-chunk [footerText]="footerText" [help]="footerHelp"></page-footer-from-report-chunk>
+            </section>
+          }
+        </section>
+      }
+    }
+  </app-reveal>
+}

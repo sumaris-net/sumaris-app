@@ -1,6 +1,7 @@
 import { IReportData } from '@app/data/report/base-report.class';
 import { DataQualityStatusIdType } from '@app/data/services/model/model.utils';
-import { Entity } from '@sumaris-net/ngx-components';
+import { Entity, EntityAsObjectOptions } from '@sumaris-net/ngx-components';
+import { sourceMapsEnabled } from 'process';
 
 export type ActivityMonitoringStatus = 'EMPTY' | 'COMPLETE' | 'INCOMPLETE';
 
@@ -25,9 +26,21 @@ export const ActivityMonitoringStatusErrorIds: { [K in ActivityMonitoringStatusE
   TOO_MANY_METIER: 5,
 });
 
-export interface ActivityMonitoringExtractionData extends IReportData {
+export class ActivityMonitoringExtractionData implements IReportData {
   AC: Calendar[];
   AM: ActivityMonitoring[];
+
+  fromObject(source: any) {
+    this.AC = source?.AC?.map((value: any) => Calendar.fromObject(value)) || [];
+    this.AM = source?.AM?.map((value: any) => ActivityMonitoring.fromObject(value)) || [];
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    return {
+      AC: this.AC.map((value) => value.asObject(opts)),
+      AM: this.AM.map((value) => value.asObject(opts)),
+    };
+  }
 }
 
 export class Calendar extends Entity<Calendar> {

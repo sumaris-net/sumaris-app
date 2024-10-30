@@ -610,7 +610,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-    reportType = reportType ?? (this.reportTypes.length === 1 ? <TripReportType>this.reportTypes[0].key : 'legacy');
+    reportType = (reportType ?? this.reportTypes.length === 1) ? <TripReportType>this.reportTypes[0].key : 'legacy';
     const reportPath = reportType !== <TripReportType>'legacy' ? reportType.split('-') : [];
     return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...reportPath].join('/'));
   }

@@ -137,7 +137,7 @@ export abstract class BaseTripReport<
   @ViewChild('mapTemplate') protected mapTemplate: TemplateRef<null>;
 
   protected constructor(injector: Injector, tripReportService: TripReportService<T>, @Optional() statsType?: new () => S) {
-    super(injector, null, statsType || (BaseTripReportStats as any));
+    super(null, statsType || (BaseTripReportStats as any));
     this.tripReportService = tripReportService;
     this.tripService = injector.get(TripService);
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
@@ -622,12 +622,15 @@ export abstract class BaseTripReport<
     );
   }
 
-  dataAsObject(source: RdbPmfmExtractionData, opts?: EntityAsObjectOptions): any {
+  dataAsObject(opts?: EntityAsObjectOptions): any {
+    if (!this.loaded) {
+      throw `${this.logPrefix} Data are not already loaded`;
+    }
     return {
-      TR: source.TR.map((item) => item.asObject(opts)),
-      HH: source.HH.map((item) => item.asObject(opts)),
-      SL: source.SL.map((item) => item.asObject(opts)),
-      HL: source.HL.map((item) => item.asObject(opts)),
+      TR: this.data.TR.map((item) => item.asObject(opts)),
+      HH: this.data.HH.map((item) => item.asObject(opts)),
+      SL: this.data.SL.map((item) => item.asObject(opts)),
+      HL: this.data.HL.map((item) => item.asObject(opts)),
     };
   }
 

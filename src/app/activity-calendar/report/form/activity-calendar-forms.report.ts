@@ -1,16 +1,17 @@
-import { Component, Injector, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { Component, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 import { ActivityCalendarService } from '@app/activity-calendar/activity-calendar.service';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
+import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
 import { AppBaseReport, BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import {
-  ConfigService,
   EntityAsObjectOptions,
   LoadResult,
   WaitForOptions,
@@ -20,7 +21,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
 } from '@sumaris-net/ngx-components';
-import { ActivityCalendarFormReport, ActivityCalendarFormReportStats } from './activity-calendar-form.report';
 import {
   computeCommonActivityCalendarFormReportStats,
   computeIndividualActivityCalendarFormReportStats,
@@ -61,7 +61,7 @@ class ActivityCalendarFormsReportStats extends BaseReportStats {
   templateUrl: './activity-calendar-forms.report.html',
   styleUrls: ['../../../data/report/base-form-report.scss', './activity-calendar-forms.report.scss'],
 })
-export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[], number[], ActivityCalendarFormsReportStats> {
+export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[], ActivityCalendarFormsReportStats> {
   protected logPrefix = '[activity-calendar-forms-report] ';
 
   @ViewChild(RevealComponent) reveal!: RevealComponent;
@@ -74,8 +74,6 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
   private strategy: Strategy;
 
   constructor(
-    injector: Injector,
-    protected configService: ConfigService,
     protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
     protected vesselSnapshotService: VesselSnapshotService,
@@ -83,7 +81,7 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
     protected vesselOwnerService: VesselOwnerService,
     protected vesselOwnerPeridodService: VesselOwnerPeridodService
   ) {
-    super(injector, Array, ActivityCalendarFormsReportStats);
+    super(Array<ActivityCalendar>, ActivityCalendarFormsReportStats);
 
     this.reportPath = this.route.snapshot.routeConfig.path;
     this.isBlankForm = this.route.snapshot.data?.isBlankForm;
@@ -214,11 +212,14 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
   }
 
   dataFromObject(source: any): ActivityCalendar[] {
-    return source.map((s) => ActivityCalendar.fromObject(s));
+    return source.map((s: any) => ActivityCalendar.fromObject(s));
   }
 
-  dataAsObject(source: ActivityCalendar[], opts?: EntityAsObjectOptions): any {
-    return source.map((activityCalendar) => activityCalendar.asObject(opts));
+  dataAsObject(opts?: EntityAsObjectOptions): any {
+    if (!this.loaded) {
+      throw `${this.logPrefix} Data are not already loaded`;
+    }
+    return this.data.map((activityCalendar) => activityCalendar.asObject(opts));
   }
 
   protected computeSlidesOptions(data: ActivityCalendar[], stats: ActivityCalendarFormsReportStats): Partial<IRevealExtendedOptions> {

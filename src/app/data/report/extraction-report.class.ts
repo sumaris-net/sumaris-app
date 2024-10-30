@@ -1,6 +1,6 @@
-import { AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { AfterViewInit, Directive, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { AppBaseReport, BaseReportOptions, BaseReportStats, IReportData } from '@app/data/report/base-report.class';
+import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { isNil, isNotNil } from '@sumaris-net/ngx-components';
 
 export class ExtractionReportStats extends BaseReportStats {}
@@ -11,7 +11,7 @@ export abstract class AppExtractionReport<
     S extends BaseReportStats = BaseReportStats,
     O extends BaseReportOptions = BaseReportOptions,
   >
-  extends AppBaseReport<T, number, S>
+  extends AppBaseReport<T, S>
   implements OnInit, AfterViewInit, OnDestroy
 {
   protected logPrefix = 'extraction-report';
@@ -20,18 +20,17 @@ export abstract class AppExtractionReport<
   @Input() type: ExtractionType;
 
   protected constructor(
-    injector: Injector,
     protected dataType: new () => T,
     protected statsType: new () => S,
     @Optional() protected options?: O
   ) {
-    super(injector, dataType, statsType);
+    super(dataType, statsType);
   }
 
   async ngOnStart(opts?: any) {
     await super.ngOnStart(opts);
 
-    // If data is not filled by the input or by the clipboad , fill it by loading and computing
+    // If data is not filled by the input or by the clipboard , fill it by loading and computing
 
     if (isNil(this.data))
       if (isNil(this.uuid))
@@ -49,4 +48,6 @@ export abstract class AppExtractionReport<
   }
 
   protected abstract load(filter: ExtractionFilter, opts?: any): Promise<T>;
+
+  protected abstract loadFromRoute(opts?: any): Promise<T>;
 }

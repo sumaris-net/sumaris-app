@@ -1,10 +1,15 @@
-import { Component, inject, Injector, ViewEncapsulation } from '@angular/core';
+import { Component, inject, ViewEncapsulation } from '@angular/core';
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
+import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { AppExtractionReport } from '@app/data/report/extraction-report.class';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ProgramLabels } from '@app/referential/services/model/model.enum';
+import { Program } from '@app/referential/services/model/program.model';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import {
   DateUtils,
@@ -17,6 +22,7 @@ import {
   toDateISOString,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
 import {
   ActivityMonitoring,
   ActivityMonitoringExtractionData,
@@ -24,12 +30,6 @@ import {
   ActivityMonitoringStatusErrorIds,
 } from './activity-calendar-progress-report.model';
 import { ActivityCalendarProgressReportService } from './activity-calendar-progress-report.service';
-import { Program } from '@app/referential/services/model/program.model';
-import { Moment } from 'moment';
-import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
-import { ProgramLabels } from '@app/referential/services/model/model.enum';
 
 export class ActivityCalendarProgressReportStats extends BaseReportStats {
   subtitle: string;
@@ -123,7 +123,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   protected readonly activityMonitoringStatusErrorIds = ActivityMonitoringStatusErrorIds;
   protected readonly months = new Array(12).fill(1).map((v, i) => 'month' + (v + i));
 
-  protected logPrefix = 'activity-calendar-progress-report';
+  protected logPrefix = '[activity-calendar-progress-report]';
 
   protected readonly pageDimensions = Object.freeze({
     height: 210 * 4,
@@ -146,8 +146,8 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   protected readonly strategyRefService = inject(StrategyRefService);
   protected readonly settings = inject(LocalSettingsService);
 
-  constructor(injector: Injector) {
-    super(injector, null, ActivityCalendarProgressReportStats);
+  constructor() {
+    super(ActivityMonitoringExtractionData, ActivityCalendarProgressReportStats);
   }
 
   protected computeSlidesOptions(
@@ -182,10 +182,13 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     return this.load(extractionFilter);
   }
 
-  dataAsObject(source: ActivityMonitoringExtractionData, opts?: EntityAsObjectOptions) {
+  dataAsObject(opts?: EntityAsObjectOptions) {
+    if (!this.loaded) {
+      throw `${this.logPrefix} Data are not already loaded`;
+    }
     return {
-      AC: source.AC.map((item) => item.asObject(opts)),
-      AM: source.AM.map((item) => item.asObject(opts)),
+      AC: this.data.AC.map((item) => item.asObject(opts)),
+      AM: this.data.AM.map((item) => item.asObject(opts)),
     };
   }
 

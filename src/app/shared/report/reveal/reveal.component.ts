@@ -14,6 +14,7 @@ import {
   InjectionToken,
   Input,
   OnDestroy,
+  OnInit,
   Optional,
   Output,
   QueryList,
@@ -43,6 +44,7 @@ import {
 import { MarkdownComponent } from 'ngx-markdown';
 import { BehaviorSubject, lastValueFrom, Subscription } from 'rxjs';
 import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
+import { InMemoryCache } from '@apollo/client/cache';
 
 export interface IRevealExtendedOptions extends IRevealOptions {
   autoInitialize: boolean;
@@ -62,6 +64,7 @@ export class RevealSectionOutletDirective {
   selector: '[sectionDef]',
 })
 export class RevealSectionDefDirective {
+  @Input() sectionDef: boolean = true;
   constructor(public template: TemplateRef<any>) {}
 }
 
@@ -180,6 +183,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   }
 
   registerSection(section: RevealSectionDefDirective) {
+    if (!section.sectionDef) return; // Skip is disabled
     if (!this._embedded) {
       const exists = this._sectionDefs.some((s) => s === section) || this._registeredSections.includes(section);
 

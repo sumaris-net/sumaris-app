@@ -252,22 +252,6 @@ html.print-pdf .reveal .slides section {
       &.report-section {
         margin: 0 var(--page-left-right-margin);
       }
-
-      &.report-footer {
-        margin: 20px var(--page-left-right-margin);
-        margin-top: 0;
-        flex: 1 1 auto;
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        flex-direction: column;
-        ion-row {
-          &.footer-text {
-            width: 100%;
-            margin: 5px 0;
-          }
-        }
-      }
     }
 
     table {
@@ -283,6 +267,7 @@ html.print-pdf .reveal .slides section {
       --col-maximum: (100% - (var(--page-left-right-margin) * 2));
       --col-width: var(--col-medium);
 
+      margin: 0 auto;
       border: 3px solid var(--text-color);
 
       th,

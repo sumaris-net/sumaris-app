@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { environment } from '@environments/environment';
-import { BaseLandingReport, LandingStats } from '@app/trip/landing/report/base-landing-report.class';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Landing } from '@app/trip/landing/landing.model';
+import { BaseLandingReport, LandingStats } from '@app/trip/landing/report/base-landing-report.class';
+import { environment } from '@environments/environment';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -11,8 +11,8 @@ import { firstValueFrom } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuctionControlReport extends BaseLandingReport {
-  constructor(injector: Injector) {
-    super(injector, LandingStats, {
+  constructor() {
+    super(LandingStats, {
       pathIdAttribute: 'controlId',
     });
   }

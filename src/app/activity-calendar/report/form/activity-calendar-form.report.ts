@@ -226,8 +226,8 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   private program: Program;
   private strategy: Strategy;
 
-  constructor(injector: Injector) {
-    super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
+  constructor() {
+    super(ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
     this.activityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
@@ -319,7 +319,6 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
       this.isBlankForm
     );
 
-    console.debug('TODO data/stats', { data, stats });
     return stats;
   }
 

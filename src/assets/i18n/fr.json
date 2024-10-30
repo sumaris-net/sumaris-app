@@ -1540,10 +1540,7 @@
           },
           "HELP": {
             "ONE_STAR": "Attention, pour les arts dormants, la date de fin de mise à l'eau est le plus souvent la veille ou l'avant-veille de la marée observée.",
-            "TWO_STAR": "Préciser longueur relevée en mètres pour les filets.",
-            "ONE": "De la corde de dos pour chalut.",
-            "TWO": "0 : Calme, 1 : Ridée, 2 : Belle, 3 : Peu agitée, 4 : Agitée, 5 : Forte, 6 : Très forte, 7 : Grosse, 8 : Très grosse, 9 : Enorme",
-            "THREE": "Si oui, se référer à la fiche dispositifs sélectifs"
+            "TWO_STAR": "Préciser longueur relevée en mètres pour les filets."
           }
         },
         "PHYSICAL_GEAR": {

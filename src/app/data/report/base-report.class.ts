@@ -1,20 +1,22 @@
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Directive,
-  EventEmitter,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Optional,
-  ViewChild,
-  inject,
-} from '@angular/core';
+import { APP_BASE_HREF } from '@angular/common';
+import { HttpClient, HttpEventType } from '@angular/common/http';
+import { AfterViewInit, Directive, EventEmitter, Input, OnDestroy, OnInit, Optional, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { Clipboard, ContextService } from '@app/shared/context.service';
+import { hasFlag } from '@app/shared/flags.utils';
+import { Function } from '@app/shared/functions';
+import { Popovers } from '@app/shared/popover/popover.utils';
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
+import { FileTransferService } from '@app/shared/service/file-transfer.service';
+import { SharedElement } from '@app/social/share/shared-page.model';
+import { SharedResourceUtils } from '@app/social/share/shared-resource.utils';
+import { Clipboard as CapacitorClipboard } from '@capacitor/clipboard';
+import { Share } from '@capacitor/share';
 import { environment } from '@environments/environment';
+import { ModalController, PopoverController, ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
@@ -23,44 +25,25 @@ import {
   DateFormatService,
   DateUtils,
   EntityAsObjectOptions,
+  JsonUtils,
+  LatLongPattern,
+  LocalSettingsService,
+  MenuService,
+  NetworkService,
+  Toasts,
+  TranslateContextService,
   firstFalsePromise,
   isNil,
   isNilOrBlank,
   isNotNil,
   isNotNilOrBlank,
   isNumber,
-  JsonUtils,
-  LatLongPattern,
-  LocalSettingsService,
-  MenuService,
-  NetworkService,
-  PlatformService,
-  sleep,
-  StorageService,
-  Toasts,
   toDateISOString,
-  TranslateContextService,
-  WaitForOptions,
-  waitForTrue,
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, lastValueFrom, Subject, Subscription } from 'rxjs';
-import { ModalController, PopoverController, ToastController } from '@ionic/angular';
-import { Share } from '@capacitor/share';
-import { Popovers } from '@app/shared/popover/popover.utils';
-import { SharedElement } from '@app/social/share/shared-page.model';
-import { v4 as uuidv4 } from 'uuid';
+import { BehaviorSubject, Subscription, lastValueFrom } from 'rxjs';
 import { filter, first, map, takeUntil } from 'rxjs/operators';
-import { HttpClient, HttpEventType } from '@angular/common/http';
-import { FileTransferService } from '@app/shared/service/file-transfer.service';
-import { APP_BASE_HREF } from '@angular/common';
-import { Clipboard, ContextService } from '@app/shared/context.service';
-import { instanceOf } from 'graphql/jsutils/instanceOf';
-import { Function } from '@app/shared/functions';
-import { hasFlag } from '@app/shared/flags.utils';
-import { SharedResourceUtils } from '@app/social/share/shared-resource.utils';
-import { Program } from '@app/referential/services/model/program.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { Clipboard as CapacitorClipboard } from '@capacitor/clipboard';
+import { v4 as uuidv4 } from 'uuid';
+import { CommonReport } from './common-report.class';
 
 export const ReportDataPasteFlags = Object.freeze({
   NONE: 0,
@@ -80,15 +63,12 @@ export interface BaseReportOptions {
 }
 
 export interface IReportData {
-  fromObject?: (source: any) => void;
-  asObject?: (opts?: EntityAsObjectOptions) => any;
+  fromObject: (source: any) => void;
+  asObject: (opts?: EntityAsObjectOptions) => any;
 }
 
 export class BaseReportStats {
   program: Program;
-
-  // TODO: A retirer à mon avis, cela ne sert à rien. il faut ajouter @Entity()
-  //static fromObject: (source: any) => BaseReportStats;
 
   fromObject(source: any) {
     this.program = isNotNil(source.program) ? Program.fromObject(source.program) : undefined;
@@ -116,25 +96,22 @@ export interface IComputeStatsOpts<S> {
 @Directive()
 export abstract class AppBaseReport<
     T extends IReportData | IReportData[],
-    ID = number | number[],
     S extends BaseReportStats = BaseReportStats,
     O extends BaseReportOptions = BaseReportOptions,
   >
+  extends CommonReport<T, S, O>
   implements OnInit, AfterViewInit, OnDestroy
 {
   private _printing = false;
-  private _embedded: boolean;
 
   protected logPrefix = 'base-report';
+
   protected readonly reportId = uuidv4();
   protected readonly route = inject(ActivatedRoute);
-  protected readonly cd = inject(ChangeDetectorRef);
   protected readonly dateFormat = inject(DateFormatService);
   protected readonly settings = inject(LocalSettingsService);
   protected readonly modalCtrl = inject(ModalController);
 
-  protected readonly injector: Injector;
-  protected readonly platform = inject(PlatformService);
   protected readonly translate = inject(TranslateService);
   protected readonly programRefService = inject(ProgramRefService);
   protected readonly fileTransferService = inject(FileTransferService);
@@ -144,14 +121,9 @@ export abstract class AppBaseReport<
   protected readonly configService = inject(ConfigService);
 
   protected readonly router = inject(Router);
-  protected readonly destroySubject = new Subject<void>();
-  protected readonly readySubject = new BehaviorSubject<boolean>(false);
-  protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
   protected readonly toastController = inject(ToastController);
   protected readonly network = inject(NetworkService);
 
-  protected _autoLoad = true;
-  protected _autoLoadDelay = 0;
   protected _pathIdAttribute: string;
   protected _pathParentIdAttribute: string;
   protected _stats: S = null;
@@ -162,8 +134,6 @@ export abstract class AppBaseReport<
   protected configSubscription: Subscription;
 
   error: string;
-  revealOptions: Partial<IRevealExtendedOptions>;
-  i18nContext: IReportI18nContext = null;
 
   $defaultBackHref = new BehaviorSubject<string>('');
   $title = new BehaviorSubject<string>('');
@@ -173,26 +143,6 @@ export abstract class AppBaseReport<
   @Input() showError = true;
   @Input() showToolbar = true;
   @Input() debug = !environment.production;
-
-  @Input() data: T;
-  @Input() set stats(value) {
-    if (isNil(value)) return;
-    if (instanceOf(value, this.statsType)) this._stats = value;
-    else this._stats = this.statsFromObject(value);
-  }
-  get stats(): S {
-    return this._stats;
-  }
-
-  @Input() set embedded(value: boolean) {
-    this._embedded = value;
-  }
-
-  get embedded(): boolean {
-    return isNotNil(this._embedded) ? this._embedded : this.reveal?.embedded || false;
-  }
-
-  @Input() i18nContextSuffix: string;
 
   @ViewChild(RevealComponent, { static: false }) protected reveal: RevealComponent;
 
@@ -232,12 +182,11 @@ export abstract class AppBaseReport<
   }
 
   protected constructor(
-    injector: Injector,
     protected dataType: new () => T,
     protected statsType: new () => S,
     @Optional() protected options?: O
   ) {
-    this.injector = injector;
+    super(dataType, statsType);
 
     this.mobile = this.settings.mobile;
     this.uuid = this.route.snapshot.queryParamMap.get('uuid');
@@ -265,9 +214,7 @@ export abstract class AppBaseReport<
   }
 
   ngAfterViewInit() {
-    if (this._autoLoad) {
-      setTimeout(() => this.start(), this._autoLoadDelay);
-    }
+    super.ngAfterViewInit();
     this.configSubscription = this.configService.config.subscribe((config) => {
       this._peerUrl = config.properties['server.app.url'] === undefined ? this.settings.settings?.peerUrl : config.properties['server.app.url'];
     });
@@ -276,7 +223,7 @@ export abstract class AppBaseReport<
   ngOnDestroy() {
     if (isNotNil(this.reveal)) this.reveal.disablePrintJob();
     this.configSubscription.unsubscribe();
-    this.destroySubject.next();
+    super.ngOnDestroy();
   }
 
   async start(opts?: any) {
@@ -365,8 +312,6 @@ export abstract class AppBaseReport<
     }
   }
 
-  protected abstract loadFromRoute(opts?: any): Promise<T>;
-
   protected async loadFromClipboard(clipboard: Clipboard, opts?: any): Promise<boolean> {
     if (this.debug) console.debug(`[${this.logPrefix}] loadFromClipboard`, clipboard);
 
@@ -399,8 +344,6 @@ export abstract class AppBaseReport<
 
   // NOTE : Can have parent. Can take param from interface ?
   protected abstract computeTitle(data: T, stats: S): Promise<string>;
-
-  protected abstract computeStats(data: T, opts?: IComputeStatsOpts<S>): Promise<S>;
 
   // NOTE : Can have parent. Can take param from interface ?
   protected abstract computeDefaultBackHref(data: T, stats: S): string;
@@ -452,49 +395,14 @@ export abstract class AppBaseReport<
   }
 
   async updateView() {
-    this.cd.detectChanges();
+    super.updateView();
     await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject });
     if (!this.embedded) await this.reveal.initialize();
     this.reveal.disablePrintJob();
   }
 
-  markAsReady() {
-    if (!this.readySubject.value) {
-      this.readySubject.next(true);
-    }
-  }
-
   protected isApp() {
     return this.mobile && this.platform.isApp();
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  protected markAsLoading(opts = { emitEvent: true }) {
-    if (!this.loadingSubject.value) {
-      this.loadingSubject.next(true);
-      if (opts.emitEvent !== false) this.markForCheck();
-    }
-  }
-
-  protected markAsLoaded(opts = { emitEvent: true }) {
-    if (this.loadingSubject.value) {
-      this.loadingSubject.next(false);
-      if (opts.emitEvent !== false) this.markForCheck();
-    }
-  }
-
-  async waitIdle(opts: WaitForOptions) {
-    console.debug(`[${this.constructor.name}]`);
-    if (this.loaded) return;
-    await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
-  }
-
-  async ready(opts?: WaitForOptions): Promise<void> {
-    if (this.readySubject.value) return;
-    await waitForTrue(this.readySubject, opts);
   }
 
   setError(
@@ -527,7 +435,7 @@ export abstract class AppBaseReport<
     }
   }
 
-  abstract dataAsObject(source: T, opts?: EntityAsObjectOptions): any;
+  abstract dataAsObject(opts?: EntityAsObjectOptions): any;
 
   dataFromObject(source: any): T {
     if (this.dataType) {
@@ -540,20 +448,6 @@ export abstract class AppBaseReport<
       }
     }
     return source as T;
-  }
-
-  dataArrayFromObject(source: any): T {
-    throw new Error('Method not implemented.');
-  }
-
-  statsAsObject(source: S, opts?: EntityAsObjectOptions): any {
-    return source.asObject(opts);
-  }
-
-  statsFromObject(source: any): S {
-    const stats = new this.statsType();
-    stats.fromObject(source);
-    return stats;
   }
 
   protected async showSharePopover(event?: UIEvent) {
@@ -696,7 +590,7 @@ export abstract class AppBaseReport<
     this._printing = false;
   }
 
-  private isPrintngPDF(): boolean {
+  protected isPrintingPDF(): boolean {
     if (this._printing) return true;
     const query = window.location.search || '?';
     return query.indexOf('print-pdf') !== -1;
@@ -705,8 +599,8 @@ export abstract class AppBaseReport<
   private computeShareContent(): any {
     return {
       data: {
-        data: this.dataAsObject(this.data),
-        stats: this.statsAsObject(this.stats),
+        data: this.dataAsObject(),
+        stats: this.statsAsObject(),
         i18nContext: this.i18nContext,
       },
       // eslint-disable-next-line no-bitwise
