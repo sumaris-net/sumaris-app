@@ -73,7 +73,7 @@ import {
   REFERENTIAL_GRAPHQL_TYPE_POLICIES,
   REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
 } from './referential/services/config/referential.config';
-import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES } from './data/data.config';
+import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES, DATA_LOCAL_SETTINGS_OPTIONS } from './data/data.config';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS } from './vessel/services/config/vessel.config';
 import { JDENTICON_CONFIG } from 'ngx-jdenticon';
 import { REFERENTIAL_TESTING_PAGES } from './referential/referential.testing.module';
@@ -298,6 +298,7 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           ...SHARED_LOCAL_SETTINGS_OPTIONS,
           ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
           ...VESSEL_LOCAL_SETTINGS_OPTIONS,
+          ...DATA_LOCAL_SETTINGS_OPTIONS,
           ...TRIP_LOCAL_SETTINGS_OPTIONS,
         },
       },

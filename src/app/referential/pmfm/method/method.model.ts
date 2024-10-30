@@ -1,4 +1,4 @@
-import { BaseReferential, EntityAsObjectOptions, EntityClass, toBoolean } from '@sumaris-net/ngx-components';
+import { BaseReferential, EntityClass } from '@sumaris-net/ngx-components';
 
 @EntityClass({ typename: 'MethodVO' })
 export class Method extends BaseReferential<Method> {
@@ -19,10 +19,5 @@ export class Method extends BaseReferential<Method> {
     this.isCalculated = source.isCalculated;
     this.isEstimated = source.isEstimated;
     return this;
-  }
-
-  asObject(options?: EntityAsObjectOptions): any {
-    const target: any = super.asObject(options);
-    return target;
   }
 }

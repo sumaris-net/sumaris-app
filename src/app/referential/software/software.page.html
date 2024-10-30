@@ -21,9 +21,9 @@
     <br />
   </app-debug>
 
-  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" [dynamicHeight]="false">
     <!-- TAB: general -->
-    <mat-tab label="{{ 'CONFIGURATION.TAB_GENERAL' | translate }}">
+    <mat-tab [label]="'CONFIGURATION.TAB_GENERAL' | translate">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>CONFIGURATION.TAB_GENERAL</ion-label>
