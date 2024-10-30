@@ -563,7 +563,7 @@ export class CalendarComponent
       this.registerSubscription(
         this.hotkeys
           .addShortcut({ keys: 'escape', description: 'COMMON.BTN_CLEAR_CLIPBOARD', preventDefault: true })
-          .pipe(filter((e) => !!this.cellClipboard))
+          .pipe(filter(() => !!this.cellClipboard))
           .subscribe((event) => this.clearClipboard(event))
       );
       this.registerSubscription(
