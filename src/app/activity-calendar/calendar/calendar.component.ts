@@ -504,7 +504,7 @@ export class CalendarComponent
           if (!equals(filter.programLabels, programLabels)) {
             filter.programLabels = programLabels;
             this.setFilter(filter);
-
+            this.collapseEmptyMetierBlock(programLabels);
             // Hide cell selection, because some columns can have disappeared
             this.removeCellSelection();
             this.clearClipboard(null, { clearContext: false });
@@ -563,7 +563,7 @@ export class CalendarComponent
       this.registerSubscription(
         this.hotkeys
           .addShortcut({ keys: 'escape', description: 'COMMON.BTN_CLEAR_CLIPBOARD', preventDefault: true })
-          .pipe(filter((e) => !!this.cellClipboard))
+          .pipe(filter(() => !!this.cellClipboard))
           .subscribe((event) => this.clearClipboard(event))
       );
       this.registerSubscription(
@@ -3002,5 +3002,30 @@ export class CalendarComponent
         })
         .filter((num) => num !== null)
     );
+  }
+
+  collapseEmptyMetierBlock(programLabels: string[]) {
+    if (programLabels.length === 1) {
+      const rows = this.dataSource.getData()?.filter((row) => row.program.label === programLabels[0]);
+      if (!rows || isEmptyArray(rows)) return;
+
+      this.collapseAll();
+      const gufNotEmpty = [];
+
+      rows.forEach((row) => {
+        row.gearUseFeatures.forEach((guf, index) => {
+          if (GearUseFeatures.isNotEmpty(guf)) {
+            gufNotEmpty.push('metier' + (index + 1));
+          }
+        });
+      });
+      const gufToExpand = removeDuplicatesFromArray(gufNotEmpty);
+
+      gufToExpand.forEach((guf) => {
+        this.toggleMetierBlock(event, guf);
+      });
+    } else {
+      this.expandAll();
+    }
   }
 }
