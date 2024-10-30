@@ -58,7 +58,7 @@ export class SampleFormReportComponent extends ReportComponent<Operation[], Samp
   protected logPrefix = '[sample-form-report] ';
 
   protected programRefService: ProgramRefService = inject(ProgramRefService);
-  @Input() samplesByPage = 18;
+  @Input() samplesByPage = 20;
 
   constructor() {
     super(Array<Operation>, SampleFromReportComponentStats);
