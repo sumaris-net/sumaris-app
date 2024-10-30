@@ -857,8 +857,8 @@ export class CalendarComponent
       Math.max(cellRect.height, Math.round((cellRect.height + Math.abs(movementY)) / cellRect.height) * cellRect.height) / cellRect.height;
 
     // Manage negative
-    if (movementX < 0 && colspan > 1) colspan = -1 * (colspan - 1);
-    if (movementY < 0 && rowspan > 1) rowspan = -1 * (rowspan - 1);
+    if (movementX < 0 && colspan > 1) colspan = -colspan;
+    if (movementY < 0 && rowspan > 1) rowspan = -rowspan;
 
     // Check row limits
     const rowIndex = row.id;
