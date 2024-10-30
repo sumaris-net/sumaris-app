@@ -9,18 +9,21 @@ This article will explain how to install your environment, then build the applic
 1. Install [NVM](https://github.com/nvm-sh/nvm)
 
 2. Install Node v18 (e.g. v18.19.0)
-```bash
-nvm install 18.19.0
-```
+   ```bash
+   nvm install 18.19.0
+   ```
+   > Check version in `package.json`
 
 3. Install global dependency: 
-```bash
-npm install -g @ionic/cli@7 @angular/cli@17
-```
+   ```bash
+   npm install -g @ionic/cli@7.2.0 @angular/cli@18.2.8
+   ```
+   > Check versions in `package.json`
 
 4. Get sources (clone the repo) : `git clone ...`
 
 ### Install additional tools (optional)
+
 ```bash
 sudo apt-get install chromium-browser docker.io
 ```
@@ -30,10 +33,10 @@ sudo apt-get install chromium-browser docker.io
 ### For development and test
 
 1. Install project's dependencies:
-```bash
-cd sumaris-app
-npm install --force
-```
+    ```bash
+    cd sumaris-app
+    npm install --force
+    ```
 
 2. Check environment configuration:
 
@@ -114,23 +117,23 @@ The application should be accessible at [localhost:4200](http://localhost:4200)
 ### Error on datasource, or angular material table
 
 - Checkout the project https://github.com/e-is/angular4-material-table
-```bash
-git clone https://github.com/e-is/angular4-material-table.git
-cd angular4-material-table
-```
+  ```bash
+  git clone https://github.com/e-is/angular4-material-table.git
+  cd angular4-material-table
+  ```
 - Build the project: 
-```bash
-npm install
-npm run build
-cp package*.json ./dist
-```
+  ```bash
+  npm install
+  npm run build
+  cp package*.json ./dist
+  ```
 - Link to your local NPM repo:
-```bash
-cd dist
-npm link 
-```
+  ```bash
+  cd dist
+  npm link 
+  ```
 - Use it from Sumaris project:
-```bash
-cd <sumaris_app_root>
-npm link angular4-material-table
-```
+  ```bash
+  cd <sumaris_app_root>
+  npm link angular4-material-table
+  ```

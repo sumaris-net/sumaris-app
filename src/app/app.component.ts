@@ -25,6 +25,7 @@ import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
+import { DATA_LOCAL_SETTINGS_OPTIONS } from '@app/data/data.config';
 
 @Component({
   selector: 'app-root',
@@ -68,7 +69,10 @@ export class AppComponent implements OnInit {
       )
       .subscribe((darkMode) => this.updateTheme({ darkMode }));
 
-    // Add additional account fields
+    // Add additional settings options
+    this.addLocalSettingsOptions();
+
+    // Add additional account options
     this.addAccountFields();
 
     // Add custom icons
@@ -250,6 +254,23 @@ export class AppComponent implements OnInit {
         departmentDefinition.autocomplete.displayWith = (value) => (value && joinPropertiesPath(value, attributes)) || undefined;
       }
     });
+  }
+
+  protected addLocalSettingsOptions() {
+    console.debug('[app] Add local settings options...');
+
+    // Expertise areas
+    {
+      const expertiseAreaDef = <FormFieldDefinition>{
+        ...DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA,
+        autocomplete: {
+          ...DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.autocomplete,
+          suggestFn: (value, filter, sortBy, sortDirection) => this.referentialRefService.suggest(value, filter),
+        },
+      };
+
+      this.settings.registerOption(expertiseAreaDef, { replaceIfExists: true });
+    }
   }
 
   protected addCustomSVGIcons() {

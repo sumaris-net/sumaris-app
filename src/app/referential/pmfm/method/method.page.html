@@ -1,5 +1,5 @@
 <app-toolbar
-  [title]="$title | async"
+  [title]="titleSubject | async"
   color="primary"
   [hasValidate]="!loading && dirty"
   (onValidate)="save($event)"
@@ -18,22 +18,21 @@
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
-    dynamicHeight
+    [dynamicHeight]="false"
   >
     <!-- TAB: general -->
-    <mat-tab label="{{ 'REFERENTIAL.PMFM.TAB_GENERAL' | translate }}">
+    <mat-tab [label]="'REFERENTIAL.TAB_GENERAL' | translate">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
-        <ion-label translate>REFERENTIAL.PMFM.TAB_GENERAL</ion-label>
+        <ion-label translate>REFERENTIAL.TAB_GENERAL</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && referentialForm.invalid"></ion-icon>
       </ng-template>
 
       <div class="ion-padding">
         <!-- error -->
-        <ion-item *ngIf="referentialForm.error || error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="referentialForm.error || error | translate"></ion-label>
-        </ion-item>
+        @if (mobile) {
+          <app-error-item [message]="referentialForm.error || error"></app-error-item>
+        }
 
         <!-- DEBUG -->
         <app-debug *ngIf="debug">
@@ -125,9 +124,6 @@
     [disabled]="!dirty || loading"
   >
     <!-- error -->
-    <ion-item *ngIf="error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-    </ion-item>
+    <app-error-item [message]="referentialForm.error || error"></app-error-item>
   </app-form-buttons-bar>
 </ion-footer>

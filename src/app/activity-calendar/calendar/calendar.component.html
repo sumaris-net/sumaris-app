@@ -351,9 +351,7 @@
 
           <!-- resize handlers -->
           @if (enableCellSelection) {
-            <ng-container
-              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive' }"
-            ></ng-container>
+            <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive' }"></ng-container>
           }
         </mat-cell>
       </ng-container>
@@ -388,12 +386,7 @@
 
           <!-- resize handlers -->
           @if (enableCellSelection) {
-            <ng-container
-              *ngTemplateOutlet="
-                cellHandlers;
-                context: { $implicit: row, cell: cell, col: 'basePortLocation' }
-              "
-            ></ng-container>
+            <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'basePortLocation' }"></ng-container>
           }
         </mat-cell>
       </ng-container>
@@ -416,7 +409,7 @@
                         withDetails: showPmfmDetails,
                         withUnit: false,
                         i18nPrefix: i18nPmfmPrefix,
-                        i18nSuffix: i18nColumnSuffix
+                        i18nSuffix: i18nColumnSuffix,
                       }
               "
             ></ion-label>
@@ -458,12 +451,7 @@
             }
             <!-- resize handlers -->
             @if (enableCellSelection) {
-              <ng-container
-                *ngTemplateOutlet="
-                  cellHandlers;
-                  context: { $implicit: row, cell: cell, col: pmfm.id.toString() }
-                "
-              ></ng-container>
+              <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: pmfm.id.toString() }"></ng-container>
             }
           </mat-cell>
         </ng-container>
@@ -506,10 +494,9 @@
               @let control = inlineEdition && (row.validator | formGetControl: col.path);
               @if (!control) {
                 <!-- readonly (mobile) -->
-                @let label = (row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes);
+                @let label = row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes;
                 <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
-              }
-              @else if (control.enabled) {
+              } @else if (control.enabled) {
                 <!-- writable (desktop) -->
                 <mat-autocomplete-field
                   floatLabel="never"
@@ -528,7 +515,6 @@
                 <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key }"></ng-container>
               }
             }
-
           </mat-cell>
         </ng-container>
       }
@@ -675,6 +661,8 @@
           acquisitionLevel: {{ acquisitionLevel }}
           <br />
           pmfms: {{ (pmfms$ | async)?.length }}
+          <br />
+          expertiseLocationIds: {{ expertiseLocationIds }}
           <br />
           <br />
           focusColumn: {{ focusColumn }}
