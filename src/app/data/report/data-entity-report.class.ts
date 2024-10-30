@@ -1,6 +1,6 @@
-import { AfterViewInit, Directive, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
+import { AfterViewInit, Directive, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { AppBaseReport, BaseReportOptions, BaseReportStats } from '@app/data/report/base-report.class';
-import { AccountService, DateFormatService, Entity, EntityAsObjectOptions, isNil, isNotNil } from '@sumaris-net/ngx-components';
+import { Entity, EntityAsObjectOptions, isNil, isNotNil } from '@sumaris-net/ngx-components';
 
 export type DataEntityReportOptions = BaseReportOptions;
 
@@ -13,26 +13,19 @@ export abstract class AppDataEntityReport<
     S extends BaseReportStats = BaseReportStats,
     O extends DataEntityReportOptions = DataEntityReportOptions,
   >
-  extends AppBaseReport<T, ID, S>
+  extends AppBaseReport<T, S>
   implements OnInit, AfterViewInit, OnDestroy
 {
   protected logPrefix = '[data-entity-report] ';
 
-  protected readonly accountService: AccountService;
-  protected readonly dateFormat: DateFormatService;
-
   @Input() id: ID;
 
   protected constructor(
-    protected injector: Injector,
     protected dataType: new () => T,
     protected statsType: new () => S,
     @Optional() options?: O
   ) {
-    super(injector, dataType, statsType, options);
-
-    this.accountService = injector.get(AccountService);
-    this.dateFormat = injector.get(DateFormatService);
+    super(dataType, statsType, options);
 
     this.revealOptions = {
       autoInitialize: false,
@@ -61,10 +54,13 @@ export abstract class AppDataEntityReport<
     };
   }
 
-  dataAsObject(source: T, opts?: EntityAsObjectOptions): any {
-    if (typeof source?.asObject === 'function') return source.asObject(opts);
+  dataAsObject(opts?: EntityAsObjectOptions): any {
+    if (!this.loaded) {
+      throw `${this.logPrefix} Data are not already loaded`;
+    }
+    if (typeof this.data?.asObject === 'function') return this.data.asObject(opts);
     const data = new this.dataType();
-    data.fromObject(source);
+    data.fromObject(this.data);
     return data.asObject(opts);
   }
 

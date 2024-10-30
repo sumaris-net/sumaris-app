@@ -1,31 +1,31 @@
-import { Directive, Injector, OnDestroy, Optional } from '@angular/core';
+import { Directive, OnDestroy, Optional, inject } from '@angular/core';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
+import { AppDataEntityReport, DataEntityReportOptions, DataReportStats } from '@app/data/report/data-entity-report.class';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { Landing } from '@app/trip/landing/landing.model';
+import { LandingService } from '@app/trip/landing/landing.service';
+import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
+import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
+import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
+import { Trip } from '@app/trip/trip/trip.model';
+import { environment } from '@environments/environment';
 import {
   EntityAsObjectOptions,
   EntityServiceLoadOptions,
   ImageAttachment,
+  ReferentialRef,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
-  ReferentialRef,
 } from '@sumaris-net/ngx-components';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { environment } from '@environments/environment';
-import { AppDataEntityReport, DataEntityReportOptions, DataReportStats } from '@app/data/report/data-entity-report.class';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
-import { Landing } from '@app/trip/landing/landing.model';
-import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
-import { LandingService } from '@app/trip/landing/landing.service';
-import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
-import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { Trip } from '@app/trip/trip/trip.model';
-import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 
 export class LandingStats extends DataReportStats {
   sampleCount: number;
@@ -42,8 +42,8 @@ export class LandingStats extends DataReportStats {
   fromObject(source: any) {
     super.fromObject(source);
     this.sampleCount = source.sampleCount;
-    this.images = source.images.map((item) => ImageAttachment.fromObject(item));
-    this.pmfms = source.pmfms.map((item) => DenormalizedPmfmStrategy.fromObject(item));
+    this.images = source.images.map((item: any) => ImageAttachment.fromObject(item));
+    this.pmfms = source.pmfms.map((item: any) => DenormalizedPmfmStrategy.fromObject(item));
     this.weightDisplayedUnit = source.weightDisplayedUnit;
     this.taxonGroup = TaxonGroupRef.fromObject(source.taxonGroup);
     this.taxonName = TaxonNameRef.fromObject(source.taxonName);
@@ -68,18 +68,15 @@ export class LandingStats extends DataReportStats {
 export abstract class BaseLandingReport<S extends LandingStats = LandingStats> extends AppDataEntityReport<Landing, number, S> implements OnDestroy {
   protected logPrefix = 'base-landing-report';
 
-  protected readonly observedLocationService: ObservedLocationService;
-  protected readonly landingService: LandingService;
-  protected readonly programRefService: ProgramRefService;
+  protected readonly observedLocationService: ObservedLocationService = inject(ObservedLocationService);
+  protected readonly landingService: LandingService = inject(LandingService);
+  protected readonly programRefService: ProgramRefService = inject(ProgramRefService);
 
   constructor(
-    protected injector: Injector,
     protected statsType: new () => S,
     @Optional() options?: DataEntityReportOptions
   ) {
-    super(injector, Landing, statsType, options);
-    this.observedLocationService = injector.get(ObservedLocationService);
-    this.landingService = injector.get(LandingService);
+    super(Landing, statsType, options);
 
     if (!this.route || isNilOrBlank(this._pathIdAttribute)) {
       throw new Error("Unable to load from route: missing 'route' or 'options.pathIdAttribute'.");

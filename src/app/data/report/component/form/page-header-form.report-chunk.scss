@@ -1,0 +1,34 @@
+ion-grid {
+  &.report-header {
+    padding: var(--ion-padding);
+    height: var(--header-height);
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    width: 100%;
+    ion-row {
+      align-items: center;
+      justify-content: space-between;
+      &.title-items {
+        align-items: flex-start;
+        ion-col {
+          margin: 0 5px;
+          font-size: var(--font-large);
+        }
+      }
+    }
+    .logo {
+      padding: var(--ion-padding);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: var(--logo-max-size);
+      width: var(--logo-max-size);
+      img {
+        max-height: var(--logo-max-size);
+        max-width: var(--logo-max-size);
+      }
+    }
+  }
+}

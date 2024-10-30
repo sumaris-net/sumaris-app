@@ -106,10 +106,14 @@ export class SelectivityTripReport extends BaseTripReport<SelectivityExtractionD
     super(injector, tripReportService, SelectivityTripReportStats);
   }
 
-  dataAsObject(source: SelectivityExtractionData, opts?: EntityAsObjectOptions): any {
+  dataAsObject(opts?: EntityAsObjectOptions): any {
+    if (!this.loaded) {
+      throw `${this.logPrefix} Data are not already loaded`;
+    }
+    const stats = super.dataAsObject(opts);
     return {
-      ...super.dataAsObject(source, opts),
-      FG: source.FG.map((item) => item.asObject(opts)),
+      ...stats,
+      FG: this.data.FG.map((item) => item.asObject(opts)),
     };
   }
 

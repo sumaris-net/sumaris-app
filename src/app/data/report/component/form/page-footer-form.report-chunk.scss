@@ -1,0 +1,21 @@
+:host {
+  margin-top: auto;
+}
+
+ion-grid {
+  &.report-footer {
+    margin: 20px var(--page-left-right-margin);
+    margin-top: 0;
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-direction: column;
+    ion-row {
+      &.footer-text {
+        width: 100%;
+        margin: 5px 0;
+      }
+    }
+  }
+}

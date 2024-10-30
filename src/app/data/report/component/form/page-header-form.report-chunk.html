@@ -1,0 +1,44 @@
+<ion-grid class="report-header ion-no-padding">
+  <ion-row class="page-title">
+    <ion-col class="logo" size="auto">
+      @if (logoLeftUrl | isNotNilOrBlank) {
+        <img [src]="logoLeftUrl" />
+      }
+    </ion-col>
+    <ion-col>
+      <ion-grid class="ion-no-padding">
+        <ion-row class="title-items">
+          <ion-col size="auto">
+            {{ 'TRIP.DEPARTURE_DATE_TIME' | translate }} :
+            @if (departureDateTime | isNotNil) {
+              {{ departureDateTime | dateFormat }}
+            } @else {
+              ...../...../......
+            }
+          </ion-col>
+          <ion-col size="auto">
+            {{ 'TRIP.REPORT.FORM.VESSEL_NAME' | translate }} :
+            @if (vesselName | isNotNilOrBlank) {
+              {{ vesselName }}
+            } @else {
+              .................................
+            }
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-col>
+    <ion-col>
+      <h2>
+        {{ title | translateContext: i18nContext.suffix : titleParams }}
+        @if (pageNumber; as pageNumber) {
+          ({{ 'COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber } }})
+        }
+      </h2>
+    </ion-col>
+    <ion-col class="logo" size="auto">
+      @if (logoLeftUrl | isNotNilOrBlank) {
+        <img [src]="logoRightUrl" />
+      }
+    </ion-col>
+  </ion-row>
+</ion-grid>

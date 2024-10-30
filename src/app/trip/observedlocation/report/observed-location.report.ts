@@ -1,30 +1,30 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Input, OnDestroy, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
+import { IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
+import { AppDataEntityReport, DataReportStats } from '@app/data/report/data-entity-report.class';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { IPmfm, Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
-import {
-  arrayDistinct,
-  EntityAsObjectOptions,
-  EntityServiceLoadOptions,
-  isNotEmptyArray,
-  isNotNil,
-  WaitForOptions,
-} from '@sumaris-net/ngx-components';
-import { LandingReport } from '@app/trip/landing/report/landing.report';
-import { AppDataEntityReport, DataReportStats } from '@app/data/report/data-entity-report.class';
-import { LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 import { AuctionControlReport } from '@app/trip/landing/auction-control/report/auction-control.report';
-import { SamplingLandingReport } from '../../landing/sampling/report/sampling-landing.report';
-import { IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
+import { Landing } from '@app/trip/landing/landing.model';
+import { LandingService } from '@app/trip/landing/landing.service';
+import { LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 import { LandingStats } from '@app/trip/landing/report/base-landing-report.class';
+import { LandingReport } from '@app/trip/landing/report/landing.report';
 import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
-import { LandingService } from '@app/trip/landing/landing.service';
+import {
+  EntityAsObjectOptions,
+  EntityServiceLoadOptions,
+  WaitForOptions,
+  arrayDistinct,
+  isNotEmptyArray,
+  isNotNil,
+} from '@sumaris-net/ngx-components';
 import { lastValueFrom } from 'rxjs';
-import { Landing } from '@app/trip/landing/landing.model';
+import { SamplingLandingReport } from '../../landing/sampling/report/sampling-landing.report';
 
 export class ObservedLocationStats extends DataReportStats {
   vesselCount: number;
@@ -89,8 +89,8 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
   protected readonly SamplingLandingReport = SamplingLandingReport;
   protected readonly LandingReport = LandingReport;
 
-  private readonly observedLocationService: ObservedLocationService;
-  private readonly landingService: LandingService;
+  private readonly observedLocationService: ObservedLocationService = inject(ObservedLocationService);
+  private readonly landingService: LandingService = inject(LandingService);
 
   @Input() showToolbar = true;
   @Input() showError = true;
@@ -98,14 +98,11 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
   @ViewChild(RevealComponent) reveal!: RevealComponent;
   @ViewChildren('landingReport') children!: QueryList<LandingReport>;
 
-  constructor(injector: Injector) {
-    super(injector, ObservedLocation, ObservedLocationStats, { pathIdAttribute: 'observedLocationId' });
-
-    this.observedLocationService = injector.get(ObservedLocationService);
-    this.landingService = injector.get(LandingService);
+  constructor() {
+    super(ObservedLocation, ObservedLocationStats, { pathIdAttribute: 'observedLocationId' });
   }
 
-  async loadData(id: number, opts?: EntityServiceLoadOptions & { [key: string]: string }): Promise<ObservedLocation> {
+  async loadData(id: number, _?: EntityServiceLoadOptions & { [key: string]: string }): Promise<ObservedLocation> {
     if (this.debug) console.log(`[${this.logPrefix}] load data...`);
     const data = await this.observedLocationService.load(id, { withLanding: true });
     if (!data) {
@@ -129,8 +126,11 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
     return result;
   }
 
-  dataAsObject(source: ObservedLocation, opts?: EntityAsObjectOptions): any {
-    const copySource = source.clone();
+  dataAsObject(_?: EntityAsObjectOptions): any {
+    if (!this.loaded) {
+      throw `${this.logPrefix} Data are not already loaded`;
+    }
+    const copySource = this.data.clone();
     // Clean observed location from exported data
     // (this is redundant because observed location is the root of data itself)
     copySource.landings.forEach((l) => delete l.observedLocation);
@@ -154,14 +154,15 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
     this.reveal.initialize();
   }
 
-  statsAsObject(source: ObservedLocationStats, opts?: EntityAsObjectOptions): any {
+  statsAsObject(opts?: EntityAsObjectOptions): any {
+    const result = this.stats.asObject(opts);
     // TODO This is not really the place and the moment for push children stats in this stats, try to find a better way to do this
     //      (can not be done in computeStats because children was not available at this moment)
-    source.landingsStats = this.children.map((c) => c.stats);
-    return source.asObject(opts);
+    result.landingsStats = this.children.map((c) => c.stats);
+    return result.asObject(opts);
   }
 
-  protected async computeTitle(data: ObservedLocation, stats: ObservedLocationStats): Promise<string> {
+  protected async computeTitle(data: ObservedLocation, _: ObservedLocationStats): Promise<string> {
     return await lastValueFrom(
       this.translate.get('OBSERVED_LOCATION.REPORT.TITLE', {
         location: data.location.name,

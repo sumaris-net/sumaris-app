@@ -1,9 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BaseLandingReport, LandingStats } from '@app/trip/landing/report/base-landing-report.class';
-import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
-import { LandingService } from '@app/trip/landing/landing.service';
 import { Landing } from '@app/trip/landing/landing.model';
+import { BaseLandingReport, LandingStats } from '@app/trip/landing/report/base-landing-report.class';
 import { lastValueFrom } from 'rxjs';
 
 @Component({
@@ -15,17 +12,13 @@ import { lastValueFrom } from 'rxjs';
 export class LandingReport extends BaseLandingReport {
   protected logPrefix = 'landing-report';
 
-  protected readonly observedLocationService: ObservedLocationService;
-  protected readonly landingService: LandingService;
-  protected readonly programRefService: ProgramRefService;
-
   constructor(protected injector: Injector) {
-    super(injector, LandingStats, { pathIdAttribute: 'landingId' });
+    super(LandingStats, { pathIdAttribute: 'landingId' });
   }
 
   /* -- protected function -- */
 
-  protected async computeTitle(data: Landing, stats: LandingStats): Promise<string> {
+  protected async computeTitle(data: Landing, _: LandingStats): Promise<string> {
     const titlePrefix = await lastValueFrom(
       this.translateContext.get('LANDING.TITLE_PREFIX', this.i18nContext.suffix, {
         location: data.location?.name || '',
@@ -36,7 +29,7 @@ export class LandingReport extends BaseLandingReport {
     return titlePrefix + title;
   }
 
-  protected computeDefaultBackHref(data: Landing, stats: LandingStats): string {
+  protected computeDefaultBackHref(data: Landing, _: LandingStats): string {
     return `/observations/${this.data.observedLocationId}/landing/${data.id}?tab=1`;
   }
 

@@ -179,57 +179,8 @@ html.print-pdf .reveal .slides section {
         }
       }
 
-      &.report-header {
-        padding: var(--ion-padding);
-        height: var(--header-height);
-        padding-bottom: 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-evenly;
-        width: 100%;
-        ion-row {
-          align-items: center;
-          justify-content: space-between;
-          &.title-items {
-            align-items: flex-start;
-            ion-col {
-              margin: 0 5px;
-              font-size: var(--font-large);
-            }
-          }
-        }
-        .logo {
-          padding: var(--ion-padding);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: var(--logo-max-size);
-          width: var(--logo-max-size);
-          img {
-            max-height: var(--logo-max-size);
-            max-width: var(--logo-max-size);
-          }
-        }
-      }
-
       &.report-section {
         margin: 0 var(--page-left-right-margin);
-      }
-
-      &.report-footer {
-        margin: 20px var(--page-left-right-margin);
-        margin-top: 0;
-        flex: 1 1 auto;
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        flex-direction: column;
-        ion-row {
-          &.footer-text {
-            width: 100%;
-            margin: 5px 0;
-          }
-        }
       }
     }
 
@@ -246,6 +197,7 @@ html.print-pdf .reveal .slides section {
       --col-maximum: (100% - (var(--page-left-right-margin) * 2));
       --col-width: var(--col-medium);
 
+      margin: 0 auto;
       border: 3px solid var(--text-color);
 
       th,
