@@ -32,6 +32,7 @@ import { Operation, Trip } from '../../trip.model';
 import { TripService } from '../../trip.service';
 import { TripReportService } from '../trip-report.service';
 import { FormTripReportService } from './form-trip-report.service';
+import { Sample } from '@app/trip/sample/sample.model';
 
 export class FormTripReportStats extends BaseReportStats {
   readonly pmfmIdsMap = PmfmIds;
@@ -179,6 +180,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected reportPath: string;
   protected latLongPattern: LatLongPattern;
   protected readonly nbOfOpOnBlankPage = 9;
+  protected readonly nbOfSamplePeerOpOnBlankPage = 20;
   protected operationNbTableSplitArrayChunk = 8;
 
   protected readonly tripService: TripService = inject(TripService);
@@ -238,7 +240,13 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         id: id,
         program: Program.fromObject({ label: realData.program.label }),
         gears: realData.gears,
-        operations: new Array(this.nbOfOpOnBlankPage).fill(null).map((_, index) => Operation.fromObject({ rankOrder: index + 1 })),
+        operations: new Array(this.nbOfOpOnBlankPage).fill(null).map((_, index) => {
+          const result = Operation.fromObject({ rankOrder: index + 1 });
+          result.samples = Array(this.nbOfSamplePeerOpOnBlankPage)
+            .fill(null)
+            .map((_, index) => Sample.fromObject({ rankOrder: index + 1 }));
+          return result;
+        }),
       });
     } else {
       data = await this.tripService.load(id, { ...opts, withOperation: true });

@@ -1408,6 +1408,27 @@
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Échantillons : Unite de poids"
+      },
+      "REPORT": {
+        "FORM": {
+          "EXHAUSTIVE_LANDING": "Exhaustivité des espèces de raies débarquées :",
+          "EXHAUSTIVE_DISCARD": "Exhaustivité des espèces de raies ralaché :",
+          "NB_EXHAUSTIVE_LANDING": "Nombre total d'échantillons individuel débarqué :",
+          "NB_EXHAUSTIVE_DISCARD": "Nombre total d'échantillons individuel ralaché :",
+          "NUM_OP": "N° OP",
+          "NUM_HAUL": "Haul N°",
+          "TITLE_LANDING": "Capture accidentelles",
+          "TITLE_DISCARD": "Capture ralaché",
+          "RANK_ORDER": "N°",
+          "TAXON_GROUP": "Espèce commerciale (FAO)",
+          "SEX": "Sex",
+          "TOTAL_LENGTH": "Longueur totale (cm)",
+          "IS_DEAD": "Mort ?",
+          "TAG_ID": "Référence de la marque",
+          "DATE_AND_TIME_OF_RELEASE": "Date et heure de la relâche",
+          "LATITUDE_OF_RELEASE": "Latitude de la relâche",
+          "LONGITUDE_OF_RELEASE": "Longitude de la relâche"
+        }
       }
     },
     "SUB_SAMPLE": {
