@@ -163,11 +163,7 @@
 
   @for (item of reportTypes; track item.key) {
     <!-- TODO enable all report type ?-->
-    <button
-      mat-menu-item
-      (click)="openReport(item.key)"
-      [disabled]="((selection | isEmptySelection) || (filter | mapGet: 'year' | isNilOrBlank)) && item.key !== 'progress'"
-    >
+    <button mat-menu-item (click)="openReport(item.key)">
       <ion-label>{{ item.value | translate }}</ion-label>
     </button>
   }
@@ -260,7 +256,7 @@
           <ion-col size="12" size-lg="6">
             <!-- Vessel Type  -->
             <mat-autocomplete-field
-              [placeholder]="'VESSEL.LIST.FILTER.VESSEL_TYPE' | translate"
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL_TYPE' | translate"
               formControlName="vesselType"
               [config]="autocompleteFields.vesselType"
               [clearable]="true"

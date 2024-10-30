@@ -13,7 +13,7 @@
 
     <!-- Print -->
     <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
-    <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+    <ion-button (click)="print()" *ngIf="!mobile">
       <ion-icon name="print"></ion-icon>
     </ion-button>
 
@@ -69,7 +69,7 @@
                   : {
                       i18nPrefix: i18nContext.pmfmPrefix,
                       i18nSuffix: i18nContext.suffix,
-                      html: true
+                      html: true,
                     }
             }}
             : {{ data | measurementValueGet: { pmfm: pmfm, html: true } }}
@@ -106,7 +106,7 @@
                       : {
                           i18nPrefix: stats.landingI18nPmfmPrefix,
                           i18nSuffix: i18nContext.suffix,
-                          html: true
+                          html: true,
                         }
                 }}
               </th>

@@ -15,7 +15,7 @@
 
       <!-- Print -->
       <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
-      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+      <ion-button (click)="print()" *ngIf="!mobile">
         <!-- Print button -->
         <ion-icon name="print"></ion-icon>
       </ion-button>
@@ -65,7 +65,7 @@
         <ul
           *ngVar="{
             startDate: stats.startDate | dateFormat: { time: false },
-            endDate: stats.endDate | dateFormat: { time: false }
+            endDate: stats.endDate | dateFormat: { time: false },
           } as vars"
         >
           <li>
@@ -119,7 +119,7 @@
                     : {
                         min: stats.gearSpeed.min,
                         max: stats.gearSpeed.max,
-                        avg: (stats.gearSpeed.avg | numberFormat: { fixedDecimals: 1 })
+                        avg: (stats.gearSpeed.avg | numberFormat: { fixedDecimals: 1 }),
                       }
               "
             ></span>
