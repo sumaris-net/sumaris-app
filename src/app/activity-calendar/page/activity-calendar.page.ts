@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ActivityCalendarForm } from '../form/activity-calendar.form';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
@@ -129,7 +129,7 @@ export interface ActivityCalendarPageState extends RootDataEntityEditorState {
 })
 export class ActivityCalendarPage
   extends AppRootDataEntityEditor<ActivityCalendar, ActivityCalendarService, number, ActivityCalendarPageState>
-  implements OnInit
+  implements OnInit, AfterViewInit
 {
   static TABS = {
     GENERAL: 0,
@@ -215,6 +215,7 @@ export class ActivityCalendarPage
       autoOpenNextTab: false,
     });
     this.defaultBackHref = '/activity-calendar';
+    this.expertiseAreaEnabled = true;
 
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
@@ -342,6 +343,7 @@ export class ActivityCalendarPage
       this._predocPanelSize = 0;
     }
   }
+
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
