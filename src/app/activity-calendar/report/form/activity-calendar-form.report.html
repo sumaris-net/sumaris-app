@@ -15,7 +15,7 @@
 
       <!-- Print -->
       <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
-      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+      <ion-button (click)="print()" *ngIf="!mobile">
         <!-- Print button -->
         <ion-icon name="print"></ion-icon>
       </ion-button>
@@ -59,7 +59,7 @@
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
     <section>
-      @for (metierChunk of stats.metierTableChunks; track pageIndex; let pageIndex = $index; let firstPage = $first; let lastPage = $last) {
+      @for (metierChunk of stats.metierTableChunks; track metierChunk; let pageIndex = $index; let firstPage = $first; let lastPage = $last) {
         <section
           *sectionDef
           [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight + 'px'"
@@ -123,7 +123,7 @@
                       <ion-col>
                         <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}</strong>
                         &nbsp;
-                        {{ data.vesselSnapshot.registrationCode || data.vesselSnapshot.intRegistrationCode }}
+                        {{ data.vesselSnapshot | referentialToString: stats.vesselAttributes }}
                       </ion-col>
                       <ion-col>
                         <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.VESSEL_NAME' | translate }}</strong>
@@ -141,10 +141,7 @@
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      @for (
-                        qv of stats.pmfm.activityCalendar | arrayFilter: filterPmfmSurveyQualification | arrayFirst | mapGet: 'qualitativeValues';
-                        track qv.id
-                      ) {
+                      @for (qv of stats.surveyQualificationQualitativeValues; track qv.id) {
                         <ion-col size="3">
                           <ion-icon
                             [name]="
@@ -152,7 +149,7 @@
                                 | mapGet: pmfmIdsMap.SURVEY_QUALIFICATION
                                 | pmfmValue
                                   : {
-                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmSurveyQualification | arrayFirst
+                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmSurveyQualification | arrayFirst,
                                     }) === qv.name
                                 ? 'checkbox-outline'
                                 : 'square-outline'
@@ -180,7 +177,7 @@
               <thead>
                 <tr>
                   <th></th>
-                  @for (month of stats.activityMonth; track month.id) {
+                  @for (month of stats.activityMonth; track $index) {
                     <th>
                       {{ month.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
                     </th>
@@ -193,7 +190,7 @@
                   <th class="col-label">
                     {{ 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate }}
                   </th>
-                  @for (month of stats.activityMonth; track month.id) {
+                  @for (month of stats.activityMonth; track $index) {
                     <td>
                       {{ isActiveMap[month.isActive] | mapGet: 'label' | translate }}
                     </td>
@@ -204,7 +201,7 @@
                   <th class="col-label">
                     {{ 'ACTIVITY_CALENDAR.REPORT.BASE_PORT_LOCATION' | translate }}
                   </th>
-                  @for (month of stats.activityMonth; track month.id) {
+                  @for (month of stats.activityMonth; track $index) {
                     <td [class.activity-not-exists]="(month | mapGet: 'isActive') === 2" class="fit-one-line">
                       <div>
                         <div [title]="month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] }">
@@ -219,7 +216,7 @@
                     <th class="col-label">
                       {{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix, withUnit: false } }}
                     </th>
-                    @for (month of stats.activityMonth; track month.id) {
+                    @for (month of stats.activityMonth; track $index) {
                       <td
                         [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
                         [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
@@ -244,7 +241,7 @@
               <thead>
                 <tr>
                   <th class="col-label"></th>
-                  @for (month of stats.activityMonth; track month.id) {
+                  @for (month of stats.activityMonth; track $index) {
                     <th>
                       {{ month.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
                     </th>
@@ -257,7 +254,7 @@
                     <th class="col-label">
                       {{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}
                     </th>
-                    @for (month of stats.activityMonth; track month.id; let monthIndex = $index) {
+                    @for (month of stats.activityMonth; track monthIndex; let monthIndex = $index) {
                       @if (stats.activityMonthColspan[monthIndex][metierIndex] > 0) {
                         <td
                           [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
@@ -283,7 +280,7 @@
                   @for (fishingAreasIndex of metierChunk[metierChunkIndex] | mapGet: 'fishingAreasIndexes'; track fishingAreasIndex) {
                     <tr>
                       <th class="col-label">{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_FISHING_AREA' | translate }}</th>
-                      @for (month of stats.activityMonth; track month.id) {
+                      @for (month of stats.activityMonth; track $index) {
                         <td
                           [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
                           [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
@@ -293,6 +290,14 @@
                               | mapGet: 'location'
                               | referentialToString: ['label']
                           }}
+                          @if (month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]['distanceToCoastGradient'] | isNotNil) {
+                            &nbsp;-&nbsp;
+                            {{
+                              month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]
+                                | mapGet: 'distanceToCoastGradient'
+                                | referentialToString: ['label']
+                            }}
+                          }
                         </td>
                       }
                     </tr>
@@ -305,19 +310,24 @@
             <ion-grid class="report-section ion-no-padding ion-padding-top font-compact" [style.--ion-padding]="'8px'">
               <ion-row>
                 <ion-col size="8" class="ion-padding-end">
-                  @if ((stats.pmfm.gpf | isNotEmptyArray) && (data.gearPhysicalFeatures | isNotEmptyArray)) {
+                  @if (
+                    ((stats.pmfm.forGpfTable | isNotEmptyArray) && (data.gearPhysicalFeatures | isNotEmptyArray)) ||
+                    (data.gearUseFeatures | isNotEmptyArray)
+                  ) {
                     <ion-grid class="ion-no-padding">
                       <ion-row class="section-title">
                         <ion-col>
-                          <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GUF_SECTION.TITLE' | translate }}</h2>
+                          <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GPF_SECTION.TITLE' | translate }}</h2>
                         </ion-col>
                       </ion-row>
                       <ion-row>
                         <table class="gpf-table" [style.width]="'100%'">
                           <thead>
                             <tr>
-                              <th [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'"></th>
-                              @for (labelMetier of data.gearPhysicalFeatures | arrayPluck: 'metier.label'; track labelMetier) {
+                              <th class="ion-text-left" [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
+                                {{ 'ACTIVITY_CALENDAR.REPORT.GPF_SECTION.METIER' | translate }}
+                              </th>
+                              @for (labelMetier of stats.filteredAndOrderedGpf | arrayPluck: 'metier.label'; track $index) {
                                 <th
                                   [style.--col-width]="
                                     'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearUseFeatures.length + ')'
@@ -329,16 +339,16 @@
                             </tr>
                           </thead>
                           <tbody>
-                            @for (pmfm of stats.pmfm.gpf; track pmfm.id) {
+                            @for (pmfm of stats.pmfm.forGpfTable; track pmfm.id) {
                               <tr [style.--col-width]="pageDimensions.gpfTableColTitleWidth + 'px'">
                                 <th>{{ pmfm | pmfmName: { withDetails: false } }}</th>
-                                @for (gpf of data.gearPhysicalFeatures; track gpf.id) {
+                                @for (useFeature of stats.filteredAndOrderedGpf; track $index) {
                                   <td
                                     [style.--col-width]="
                                       'calc((100% - ' + pageDimensions.gpfTableColTitleWidth + 'px' + ' / ' + data.gearPhysicalFeatures.length + ')'
                                     "
                                   >
-                                    {{ gpf | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
+                                    {{ useFeature | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
                                   </td>
                                 }
                               </tr>
@@ -368,7 +378,7 @@
                                 | mapGet: pmfmIdsMap.AUCTION_HABIT
                                 | pmfmValue
                                   : {
-                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst
+                                      pmfm: stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst,
                                     }) === qv.name
                                 ? 'checkbox-outline'
                                 : 'square-outline'

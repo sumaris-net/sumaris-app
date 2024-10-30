@@ -9,13 +9,25 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
-import { ConfigService, EntityAsObjectOptions, WaitForOptions, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
+import {
+  ConfigService,
+  EntityAsObjectOptions,
+  LoadResult,
+  WaitForOptions,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+} from '@sumaris-net/ngx-components';
 import { ActivityCalendarFormReport, ActivityCalendarFormReportStats } from './activity-calendar-form.report';
 import {
   computeCommonActivityCalendarFormReportStats,
   computeIndividualActivityCalendarFormReportStats,
   fillActivityCalendarBlankData,
-} from './activity-calendar-from-report.utils';
+} from './activity-calendar-form-report.utils';
+import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 
 class ActivityCalendarFormsReportStats extends BaseReportStats {
   activityCalendarFormReportStatsByIds: { [key: number]: ActivityCalendarFormReportStats };
@@ -45,6 +57,7 @@ class ActivityCalendarFormsReportStats extends BaseReportStats {
 @Component({
   selector: 'app-activity-calendar-forms-report',
   templateUrl: './activity-calendar-forms.report.html',
+  styleUrls: ['../../../data/report/base-form-report.scss', './activity-calendar-forms.report.scss'],
 })
 export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[], number[], ActivityCalendarFormsReportStats> {
   protected logPrefix = '[activity-calendar-forms-report] ';
@@ -57,14 +70,14 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
 
   private program: Program;
   private strategy: Strategy;
-  private ids: number[] = [];
 
   constructor(
     injector: Injector,
-    protected activityCalendarService: ActivityCalendarService,
     protected configService: ConfigService,
     protected programRefService: ProgramRefService,
-    protected strategyRefService: StrategyRefService
+    protected strategyRefService: StrategyRefService,
+    protected vesselSnapshotService: VesselSnapshotService,
+    protected activityCalendarService: ActivityCalendarService
   ) {
     super(injector, Array, ActivityCalendarFormsReportStats);
 
@@ -88,31 +101,18 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
   }
 
   protected async loadFromRoute(opts?: any): Promise<ActivityCalendar[]> {
-    const idsStr = this.route.snapshot.queryParamMap.get('ids');
-
-    if (isNotNilOrBlank(idsStr)) {
-      const ids = idsStr
-        .split(',')
-        .map((id) => parseInt(id))
-        .filter((id) => !isNaN(id));
-
-      if (isNotEmptyArray(ids)) {
-        this.ids = ids;
-        const result = await this.loadData(ids);
-        return result;
-      }
-    }
-
+    const ids = this.computeIncludeIds();
+    const filter = isEmptyArray(ids) ? this.restoreLastTableFilter() : ActivityCalendarFilter.fromObject({ includedIds: ids });
+    const result = await this.loadData(filter);
     // Case no ids provided -> Data not found
-    return [];
+    return result;
   }
 
-  protected async loadData(ids: number[], opts?: any): Promise<ActivityCalendar[]> {
-    const filter = ActivityCalendarFilter.fromObject({ includedIds: ids });
+  protected async loadData(filter: ActivityCalendarFilter, opts?: any): Promise<ActivityCalendar[]> {
     const result = [];
     const size = 500;
 
-    let loadResult;
+    let loadResult: LoadResult<ActivityCalendar>;
     if (this.isBlankForm) {
       loadResult = await this.activityCalendarService.loadAllVesselOnly(0, size, null, null, filter);
     } else {
@@ -124,8 +124,8 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
       result.push(...loadResult.data);
     }
 
-    if (isNotNil(loadResult.error)) {
-      throw loadResult.error;
+    if (isNotNil(loadResult.errors)) {
+      throw loadResult.errors;
     } else if (result.length == 0) {
       throw new Error('ERROR.LOAD_ENTITY_ERROR');
     }
@@ -148,6 +148,11 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
     return result;
   }
 
+  protected restoreLastTableFilter(): ActivityCalendarFilter {
+    const tableFilter = this.settings.getPageSettings(ActivityCalendarsTableSettingsEnum.PAGE_ID, 'filter');
+    return ActivityCalendarFilter.fromObject(tableFilter);
+  }
+
   protected async computeStats(
     data: ActivityCalendar[],
     opts?: IComputeStatsOpts<ActivityCalendarFormsReportStats>
@@ -157,8 +162,8 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
     commonAcStats = await computeCommonActivityCalendarFormReportStats(
       data[0],
       commonAcStats,
-      this.configService,
       this.programRefService,
+      this.vesselSnapshotService,
       this.program,
       this.strategy,
       this.isBlankForm
@@ -171,6 +176,7 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
         activityCalendar,
         indivStats,
         ActivityCalendarFormReport.pageDimensions,
+        this.configService,
         this.isBlankForm
       );
       stats.activityCalendarFormReportStatsByIds[activityCalendar.id] = indivStats;
@@ -197,7 +203,7 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
     this.cd.detectChanges();
     await this.waitIdle({ stop: this.destroySubject });
 
-    this.reveal.initialize();
+    await this.reveal.initialize();
   }
 
   dataFromObject(source: any): ActivityCalendar[] {
@@ -224,9 +230,7 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
   computePrintHref(data: ActivityCalendar[], stats: ActivityCalendarFormsReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
     else {
-      const url = new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + this.reportPath);
-      url.searchParams.append('ids', this.ids.toString());
-      return url;
+      return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + this.reportPath);
     }
   }
 
@@ -236,5 +240,22 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
 
   protected computeShareBasePath(): string {
     return `activity-calendar/report/${this.reportPath}`;
+  }
+
+  protected computeIncludeIds(): number[] {
+    const idsStr = this.route.snapshot.queryParamMap.get('ids');
+
+    if (isNotNilOrBlank(idsStr)) {
+      const ids = idsStr
+        .split(',')
+        .map((id) => parseInt(id))
+        .filter((id) => !isNaN(id));
+
+      if (isNotEmptyArray(ids)) {
+        return ids;
+      }
+    }
+
+    return null;
   }
 }
