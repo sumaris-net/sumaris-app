@@ -129,6 +129,7 @@ export const GEAR_USE_FEATURE_INDEX_REGEXP = /gearUseFeatures\.(\d+)/;
 export interface IIsActive extends IStatus {
   statusId: number;
 }
+
 export const IsActiveList: Readonly<IIsActive[]> = Object.freeze([
   {
     id: VesselUseFeaturesIsActiveEnum.ACTIVE,
@@ -289,10 +290,12 @@ export class CalendarComponent
   @Input() enableCellSelection: boolean;
   @Input() programHeaderLabel: string;
   @Input() showError = true;
+  @Input() expertiseLocationIds: number[];
 
   @Input() set month(value: number) {
     this.setFilter(ActivityMonthFilter.fromObject({ ...this.filter, month: value }));
   }
+
   get month(): number {
     return this.filter?.month;
   }
@@ -300,6 +303,7 @@ export class CalendarComponent
   @Input() set showVesselOwner(value: boolean) {
     this.setShowColumn('vesselOwner', value);
   }
+
   get showVesselOwner(): boolean {
     return this.getShowColumn('vesselOwner');
   }
@@ -307,18 +311,23 @@ export class CalendarComponent
   @Input() set showRegistrationLocation(value: boolean) {
     this.setShowColumn('registrationLocation', value);
   }
+
   get showRegistrationLocation(): boolean {
     return this.getShowColumn('registrationLocation');
   }
+
   @Input() set showProgram(value: boolean) {
     this.setShowColumn('program', value);
   }
+
   get showProgram(): boolean {
     return this.getShowColumn('program');
   }
+
   @Input() set showMonth(value: boolean) {
     this.setShowColumn('month', value);
   }
+
   get showMonth(): boolean {
     return this.getShowColumn('month');
   }
@@ -435,12 +444,7 @@ export class CalendarComponent
     await this.referentialRefService.ready();
 
     this.registerAutocompleteField('basePortLocation', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT] }),
-      filter: {
-        entityName: 'Location',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
+      suggestFn: (value, filter) => this.suggestBasePortLocations(value, filter),
       attributes: this.locationDisplayAttributes,
       panelClass: 'min-width-large',
       selectInputContentOnFocus: true,
@@ -460,44 +464,19 @@ export class CalendarComponent
       selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('distanceToCoastGradient', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
-      filter: {
-        entityName: 'DistanceToCoastGradient',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
+      suggestFn: (value, filter) => this.suggestDistanceToCoastGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('depthGradient', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(
-          value,
-          {
-            ...filter,
-
-            levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
-          },
-          'rankOrder',
-          'asc'
-        ),
-
-      filter: {
-        entityName: 'DepthGradient',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
+      suggestFn: (value, filter) => this.suggestDepthGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('nearbySpecificArea', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
-      filter: {
-        entityName: 'NearbySpecificArea',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
+      suggestFn: (value, filter) => this.suggestNearbySpecificArea(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
@@ -1662,6 +1641,18 @@ export class CalendarComponent
     }
   }
 
+  protected async suggestBasePortLocations(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    return this.referentialRefService.suggest(value, {
+      entityName: 'Location',
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      locationIds: this.expertiseLocationIds,
+      ...filter,
+      levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT],
+    });
+  }
+
   protected async suggestMetiers(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<Metier>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
@@ -1675,6 +1666,7 @@ export class CalendarComponent
         ...METIER_DEFAULT_FILTER,
         ...filter,
         excludedIds: existingMetierIds,
+        locationIds: this.expertiseLocationIds,
       },
       null,
       null,
@@ -1709,6 +1701,7 @@ export class CalendarComponent
         ...filter,
         levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
         excludedIds: existingFishingAreaLocationIds,
+        locationIds: this.expertiseLocationIds,
       },
       null,
       null,
@@ -1717,6 +1710,68 @@ export class CalendarComponent
         withProperties: false,
       }
     );
+  }
+
+  protected async suggestDistanceToCoastGradient(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    // Get current location
+    const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
+
+    return this.referentialRefService.suggest(value, {
+      entityName: 'DistanceToCoastGradient',
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      ...filter,
+      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+    });
+  }
+
+  protected async suggestDepthGradient(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    // Get current location
+    const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
+
+    return this.referentialRefService.suggest(
+      value,
+      {
+        entityName: 'DepthGradient',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        ...filter,
+        levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+        locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+      },
+      'rankOrder',
+      'asc'
+    );
+  }
+
+  protected async suggestNearbySpecificArea(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    // Get current location
+    const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
+
+    return this.referentialRefService.suggest(value, {
+      entityName: 'NearbySpecificArea',
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      ...filter,
+      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+    });
+  }
+
+  protected getCurrentFishingAreaLocationId(): number {
+    const columnName = this.getEditedCell()?.columnName;
+    const colPath = columnName && this.dynamicColumns.find((col) => col.key === columnName)?.path;
+    if (isNilOrBlank(colPath)) return undefined;
+    const fishingAreaLocationPath = `${colPath.substring(0, colPath.lastIndexOf('.'))}.location`;
+    const fishingAreaLocation = this.editedRow?.validator?.get(fishingAreaLocationPath)?.value;
+    if (this.debug) {
+      console.debug(`${this.logPrefix}Selected location`, fishingAreaLocation);
+    }
+    return fishingAreaLocation?.id;
   }
 
   protected onPrepareRowForm(

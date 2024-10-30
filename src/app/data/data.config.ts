@@ -168,20 +168,14 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
       },
     },
   },
-  // DATA_EXPERTISE_AREAS: <FormFieldDefinition>{
-  //   key: 'sumaris.data.expertiseAreas',
-  //   label: 'CONFIGURATION.OPTIONS.DATA_EXPERTISE_AREAS',
-  //   type: 'string',
-  //   defaultValue: null,
-  // },
 });
 
 export const DATA_LOCAL_SETTINGS_OPTIONS = {
   // Note: will be update in app.component.ts
-  DATA_EXPERTISE_AREAS: <FormFieldDefinition>{
+  DATA_EXPERTISE_AREA: <FormFieldDefinition>{
     key: 'sumaris.data.expertiseAreas',
     label: 'DATA.SETTINGS.EXPERTISE_AREAS',
-    type: 'entities',
+    type: 'entity',
     autocomplete: {
       attributes: ['name'],
       suggestFn: () => {

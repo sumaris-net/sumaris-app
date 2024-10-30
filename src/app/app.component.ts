@@ -262,9 +262,9 @@ export class AppComponent implements OnInit {
     // Expertise areas
     {
       const expertiseAreaDef = <FormFieldDefinition>{
-        ...DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREAS,
+        ...DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA,
         autocomplete: {
-          ...DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREAS.autocomplete,
+          ...DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.autocomplete,
           suggestFn: (value, filter, sortBy, sortDirection) => this.referentialRefService.suggest(value, filter),
         },
       };

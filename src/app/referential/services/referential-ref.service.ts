@@ -147,6 +147,7 @@ export const IMPORT_REFERENTIAL_ENTITIES = Object.freeze([
   'QualityFlag',
   'SaleType',
   'VesselType',
+  'ExpertiseArea',
 ]);
 
 export const WEIGHT_CONVERSION_ENTITIES = ['WeightLengthConversion', 'RoundWeightConversion'];
@@ -476,6 +477,7 @@ export class ReferentialRefService
       [key: string]: any;
       fetchPolicy?: FetchPolicy;
       debug?: boolean;
+      withProperties?: boolean;
       toEntity?: boolean;
     }
   ): Promise<ReferentialRef> {
@@ -857,6 +859,10 @@ export class ReferentialRefService
               },
               getLoadOptions(offset)
             );
+          break;
+
+        case 'ExpertiseArea':
+          loadPageFn = (offset, size) => this.loadAll(offset, size, 'id', 'asc', { statusIds }, { ...getLoadOptions(offset), withProperties: true });
           break;
 
         // Other entities
