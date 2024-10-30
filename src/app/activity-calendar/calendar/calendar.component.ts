@@ -2910,25 +2910,19 @@ export class CalendarComponent
       const rows = this.dataSource.getData()?.filter((row) => row.program.label === programLabels[0]);
       if (!rows || isEmptyArray(rows)) return;
 
-      const gufEmpty = [];
+      this.collapseAll();
+      const gufNotEmpty = [];
 
       rows.forEach((row) => {
         row.gearUseFeatures.forEach((guf, index) => {
-          if (GearUseFeatures.isEmpty(guf)) {
-            gufEmpty.push('metier' + (index + 1));
+          if (GearUseFeatures.isNotEmpty(guf)) {
+            gufNotEmpty.push('metier' + (index + 1));
           }
         });
       });
+      const gufToExpand = removeDuplicatesFromArray(gufNotEmpty);
 
-      // create a map of the count of each string
-      const gufCountMap = gufEmpty.reduce((acc, str) => {
-        acc[str] = (acc[str] || 0) + 1;
-        return acc;
-      }, {});
-
-      const gufEmptyFiltered = Object.keys(gufCountMap).filter((key) => gufCountMap[key] === 12);
-
-      gufEmptyFiltered.forEach((guf) => {
+      gufToExpand.forEach((guf) => {
         this.toggleMetierBlock(event, guf);
       });
     } else {
