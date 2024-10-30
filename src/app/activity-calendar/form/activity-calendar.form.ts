@@ -27,7 +27,7 @@ import {
   toDateISOString,
   UserProfileLabel,
 } from '@sumaris-net/ngx-components';
-import { ActivityCalendar, DirectSurveyInvestigationEnum } from '../model/activity-calendar.model';
+import { ActivityCalendar, DirectSurveyInvestigationList } from '../model/activity-calendar.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -47,21 +47,6 @@ export interface ActivityCalendarFormState extends MeasurementsFormState {
   showObservers: boolean;
   warnFutureYear: boolean;
 }
-
-export const DirectSurveyInvestigationList: Readonly<IStatus[]> = Object.freeze([
-  {
-    id: DirectSurveyInvestigationEnum.YES,
-    label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.YES',
-  },
-  {
-    id: DirectSurveyInvestigationEnum.NO,
-    label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.NO',
-  },
-  {
-    id: DirectSurveyInvestigationEnum.OPPORTUNISTIC,
-    label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.OPPORTUNISTIC',
-  },
-]);
 
 @Component({
   selector: 'app-form-activity-calendar',

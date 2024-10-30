@@ -4,6 +4,7 @@ import {
   fromDateISOString,
   isNil,
   isNotNil,
+  IStatus,
   Person,
   ReferentialAsObjectOptions,
   ReferentialUtils,
@@ -25,6 +26,21 @@ export const DirectSurveyInvestigationEnum = {
   YES: 1,
   OPPORTUNISTIC: 2,
 };
+
+export const DirectSurveyInvestigationList: Readonly<IStatus[]> = Object.freeze([
+  {
+    id: DirectSurveyInvestigationEnum.YES,
+    label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.YES',
+  },
+  {
+    id: DirectSurveyInvestigationEnum.NO,
+    label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.NO',
+  },
+  {
+    id: DirectSurveyInvestigationEnum.OPPORTUNISTIC,
+    label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.OPPORTUNISTIC',
+  },
+]);
 
 @EntityClass({ typename: 'ActivityCalendarVO' })
 export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> implements IWithObserversEntity<ActivityCalendar> {

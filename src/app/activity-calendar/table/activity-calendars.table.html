@@ -358,13 +358,30 @@
           <ion-row>
             <!-- Direct Survey Investigation -->
             <ion-col>
-              <mat-boolean-field
-                formControlName="directSurveyInvestigation"
-                [placeholder]="'ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION' | translate"
-                [clearable]="true"
-              >
-                <ion-icon matPrefix name="help-outline"></ion-icon>
-              </mat-boolean-field>
+              @if (filterForm | formGetControl: 'directSurveyInvestigation'; as directSurveyControl) {
+                <mat-form-field>
+                  <ion-icon matPrefix name="help-outline"></ion-icon>
+                  <mat-label>{{ 'ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION' | translate }}</mat-label>
+                  <mat-select [formControl]="directSurveyControl">
+                    @for (item of directSurveyInvestigationList; track item.id) {
+                      <mat-option [value]="item.id">
+                        {{ item.label | translate }}
+                      </mat-option>
+                    }
+                  </mat-select>
+
+                  <button
+                    matSuffix
+                    mat-icon-button
+                    tabindex="-1"
+                    type="button"
+                    (click)="clearFilterValue('directSurveyInvestigation', $event)"
+                    [hidden]="disabled || !directSurveyControl.value"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </mat-form-field>
+              }
             </ion-col>
 
             <!-- Economic Survey -->
