@@ -524,7 +524,7 @@ export class CalendarComponent
           if (!equals(filter.programLabels, programLabels)) {
             filter.programLabels = programLabels;
             this.setFilter(filter);
-
+            this.predocToggleMetierBlock(programLabels);
             // Hide cell selection, because some columns can have disappeared
             this.removeCellSelection();
             this.clearClipboard(null, { clearContext: false });
@@ -1859,7 +1859,7 @@ export class CalendarComponent
       console.debug(this.logPrefix + `lock rows`, new Error(), editingRows);
       return (await Promise.all(editingRows.map((editedRow) => this.confirmEditCreate(event, editedRow)))).every((c) => c === true);
     }
-    let confirmEditCreateId = this.confirmEditCreateId++;
+    const confirmEditCreateId = this.confirmEditCreateId++;
 
     try {
       console.debug(this.logPrefix + `lock row#${row?.id} - ID #${confirmEditCreateId}`, new Error());
@@ -2903,5 +2903,36 @@ export class CalendarComponent
 
   hasErrorsInRows(): boolean {
     return this.getErrorsInRows()?.length > 0;
+  }
+
+  predocToggleMetierBlock(programLabels: string[]) {
+    if (programLabels.length === 1) {
+      const rows = this.dataSource.getData()?.filter((row) => row.program.label === programLabels[0]);
+      if (!rows || isEmptyArray(rows)) return;
+
+      const gufEmpty = [];
+
+      rows.forEach((row) => {
+        row.gearUseFeatures.forEach((guf, index) => {
+          if (GearUseFeatures.isEmpty(guf)) {
+            gufEmpty.push('metier' + (index + 1));
+          }
+        });
+      });
+
+      // create a map of the count of each string
+      const gufCountMap = gufEmpty.reduce((acc, str) => {
+        acc[str] = (acc[str] || 0) + 1;
+        return acc;
+      }, {});
+
+      const gufEmptyFiltered = Object.keys(gufCountMap).filter((key) => gufCountMap[key] === 12);
+
+      gufEmptyFiltered.forEach((guf) => {
+        this.toggleMetierBlock(event, guf);
+      });
+    } else {
+      this.expandAll();
+    }
   }
 }
