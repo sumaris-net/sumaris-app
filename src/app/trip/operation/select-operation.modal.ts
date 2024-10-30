@@ -62,6 +62,7 @@ export interface ISelectOperationModalOptions {
 export class SelectOperationModal extends AppEntityEditorModal<Operation> implements OnInit, ISelectOperationModalOptions {
   datasource: EntitiesTableDataSource<Operation, OperationFilter>;
   saveOptions: OperationSaveOptions = {};
+  undefinedTrip: Trip;
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
 
@@ -114,7 +115,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   }
 
   get canValidate(): boolean {
-    return this.hasSelection();
+    return (this.enabled && this.valid && this.isNewOperation) || this.hasSelection();
   }
 
   get isNewOperation(): boolean {
@@ -145,6 +146,8 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   }
 
   ngOnInit() {
+    super.ngOnInit();
+
     // Init table
     if (!this.table) throw new Error('Missing table child component');
     if (!this.filter) throw new Error("Missing argument 'filter'");
@@ -156,12 +159,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     if (this.allowNewOperation) {
       if (this.defaultNewOperation) {
         this.setValue(this.defaultNewOperation);
-        this.opeForm.setValue(this.defaultNewOperation);
       }
-
-      this.opeForm.enable();
-      this.opeForm.markAsReady();
-      this.opeForm.markAsLoaded();
     }
   }
 
@@ -201,7 +199,13 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     }
   }
 
-  protected registerForms(): void {}
+  protected registerForms(): void {
+    this.addForms([
+      this.opeForm,
+      this.measurementsForm,
+      // Will be included by (ngInit)= (see template)
+    ]);
+  }
 
   async cancel() {
     await this.viewCtrl.dismiss();
@@ -216,7 +220,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
       console.debug('[data-editor] Skip save: editor is busy (loading or saving)');
       return false;
     }
-    if (!this.dirty) {
+    if (!this.opeForm.dirty) {
       console.debug('[data-editor] Skip save: editor not dirty');
       return true;
     }
@@ -230,17 +234,22 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
       this.markForCheck();
       return false; // Stop if failed
     }
+    // Continue to mark as saving, to avoid option menu to open
+    this.markAsSaving();
+
+    // Mark trip as dirty
+    if (RootDataEntityUtils.isReadyToSync(this.undefinedTrip)) {
+      RootDataEntityUtils.markAsDirty(this.undefinedTrip);
+      this.undefinedTrip = await this.tripService.save(this.undefinedTrip);
+    }
 
     // Force to pass specific saved options to dataService.save()
     const saved = await super.save(event, <OperationSaveOptions>{
       ...this.saveOptions,
-      trip: this.trip,
+      trip: this.undefinedTrip,
       updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
       ...opts,
     });
-
-    // Continue to mark as saving, to avoid option menu to open
-    this.markAsSaving();
 
     try {
       // Display form error on top
@@ -259,28 +268,17 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
 
           this.setError(error);
         }
-        this.scrollToTop();
-      } else {
-        // Workaround, to make sure the editor is not dirty anymore
-        // Mark trip as dirty
-        if (RootDataEntityUtils.isReadyToSync(this.trip)) {
-          RootDataEntityUtils.markAsDirty(this.trip);
-          this.trip = await this.tripService.save(this.trip);
-          // Update the context
-          this.context.setValue('trip', this.trip);
-        }
       }
-
       return saved;
     } finally {
       this.markAsSaved();
+      // await this.cancel();
     }
   }
 
   async setValue(data: Operation) {
     try {
       const isNewData = isNil(data?.id);
-      const jobs: Promise<any>[] = [this.opeForm.setValue(data)];
 
       // Get gear, from the physical gear
       const gearId = toNumber(data?.physicalGear?.gear?.id, null);
@@ -293,16 +291,17 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
 
       this.measurementsForm.unload();
       this.measurementsForm.acquisitionLevel = acquisitionLevel;
-      this.measurementsForm.markAsReady();
-      this.measurementsForm.enable();
-
       // Do not wait measurements forms when no default gear (because of requiredGear=true)
+
       if (this.isNew && isNil(gearId)) {
         this.measurementsForm.pmfms = [];
       }
-      jobs.push(this.measurementsForm.setValue((data && data.measurements) || []));
 
-      await Promise.all(jobs);
+      this.opeForm.markAsReady();
+      await this.opeForm.setValue(data);
+
+      this.measurementsForm.markAsReady();
+      await this.measurementsForm.setValue((data && data.measurements) || []);
 
       console.debug('[operation] children setValue() [OK]');
 
@@ -310,6 +309,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
       if (isNewData) {
         this.opeForm.fillWithTripDates();
       }
+      this.enable();
     } catch (err) {
       const error = err?.message || err;
       console.debug('[operation] Error during setValue(): ' + error, err);

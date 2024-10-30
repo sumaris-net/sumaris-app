@@ -2,9 +2,9 @@
   color="secondary"
   [title]="'TRIP.OPERATION.PARENT.TITLE' | translate"
   (cancel)="cancel()"
-  (validate)="close($event)"
+  (validate)="save($event)"
   [showSpinner]="loading"
-  [canValidate]="!loading && hasSelection()"
+  [canValidate]="!loading && canValidate"
 ></app-modal-toolbar>
 
 <ion-content class="ion-no-padding">
@@ -92,7 +92,7 @@
       <!-- buttons -->
       <ion-col size="auto">
         @if (isNewOperation) {
-          <ion-button [fill]="canValidate ? 'solid' : 'clear'" [disabled]="!canValidate" (click)="close($event)" color="tertiary">
+          <ion-button [fill]="canValidate ? 'solid' : 'clear'" [disabled]="!canValidate" (click)="save($event)" color="tertiary">
             <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
           </ion-button>
         }
@@ -109,6 +109,23 @@
   <app-debug>
     <ion-grid class="ion-no-padding">
       <ion-row>
+        <ion-col>
+          ready: {{ readySubject | async }}
+          <br />
+          loading: {{ loading }}
+          <br />
+          enabled: {{ enabled }}
+          <br />
+          disabled: {{ disabled }}
+          <br />
+          dirty: {{ dirty }}
+          <br />
+          valid: {{ valid }}
+          <br />
+          saving: {{ saving }}
+          <br />
+        </ion-col>
+
         <ion-col>
           opeForm.ready: {{ opeForm.readySubject | async }}
           <br />

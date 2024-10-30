@@ -224,7 +224,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
           SharedFormGroupValidators.dateMaxDuration(
             'startDateTime',
             'fishingStartDateTime',
-            opts?.maxShootingDurationInHours || OperationValidatorService.DEFAULT_MAX_SHOOTING_DURATION_HOURS,
+            opts?.maxShootingDurationInHours || OperationValidatorService.DEFAULT_MAX_SHOOTING_DURATION_HOURS, // TODO : REMEMBER DATE RANGE
             'hour'
           ),
         ]),
@@ -685,7 +685,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     };
   }
 
-  protected createTripDatesValidator(trip): ValidatorFn {
+  protected createTripDatesValidator(trip: Trip): ValidatorFn {
     return (control) => {
       const dateTime = fromDateISOString(control.value);
       const tripDepartureDateTime = fromDateISOString(trip.departureDateTime);
