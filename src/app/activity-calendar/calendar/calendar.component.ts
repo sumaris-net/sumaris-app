@@ -504,7 +504,7 @@ export class CalendarComponent
           if (!equals(filter.programLabels, programLabels)) {
             filter.programLabels = programLabels;
             this.setFilter(filter);
-            this.predocToggleMetierBlock(programLabels);
+            this.collapseEmptyMetierBlock(programLabels);
             // Hide cell selection, because some columns can have disappeared
             this.removeCellSelection();
             this.clearClipboard(null, { clearContext: false });
@@ -3004,7 +3004,7 @@ export class CalendarComponent
     );
   }
 
-  predocToggleMetierBlock(programLabels: string[]) {
+  collapseEmptyMetierBlock(programLabels: string[]) {
     if (programLabels.length === 1) {
       const rows = this.dataSource.getData()?.filter((row) => row.program.label === programLabels[0]);
       if (!rows || isEmptyArray(rows)) return;
