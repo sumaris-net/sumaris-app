@@ -79,6 +79,7 @@ import { RxState } from '@rx-angular/state';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
+import { TripService } from '@app/trip/trip/trip.service';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -103,6 +104,8 @@ export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   providers: [RxState],
 })
 export class OperationForm extends AppForm<Operation> implements OnInit, OnDestroy, OnReady {
+  protected readonly tripService = inject(TripService);
+
   private _trip: Trip;
   private _$physicalGears = new BehaviorSubject<PhysicalGear[]>(undefined);
   private _$metiers = new BehaviorSubject<LoadResult<IReferentialRef>>(undefined);
@@ -736,18 +739,36 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   }
 
   async openSelectOperationModal(): Promise<Operation> {
+    const trip = this.trip;
+
     const currentOperation = this.form.value as Partial<Operation>;
     const parent = currentOperation.parentOperation;
-    const trip = this.trip;
     const tripDate = (trip && fromDateISOString(trip.departureDateTime).clone()) || moment();
-    const startDate = tripDate.add(-15, 'day').startOf('day');
+    const startDate = tripDate.clone().subtract(15, 'day').startOf('day');
 
     const gearIds = removeDuplicatesFromArray((this._$physicalGears.value || []).map((physicalGear) => physicalGear.gear.id));
 
+    const tripFilter = {
+      startDate: startDate.startOf('day'),
+      endDate: trip?.returnDateTime.startOf('day'),
+      vesselSnapshot: trip.vesselSnapshot,
+      program: trip.program,
+      location: trip.departureLocation,
+      observers: trip.observers,
+      excludedIds: [trip.id],
+    };
+    let tripUndefined = (await this.tripService.loadAll(0, 1, null, null, tripFilter, { mutable: false }))?.data.at(0);
+
+    if (isNil(tripUndefined)) {
+      trip.id = -1;
+      trip.departureDateTime = startDate;
+      tripUndefined = await this.tripService.save(trip);
+    }
+
     const defaultNewOperation = new Operation();
-    defaultNewOperation.programLabel = trip.program.label;
+    defaultNewOperation.programLabel = tripUndefined.program.label;
     defaultNewOperation.physicalGear = currentOperation.physicalGear;
-    defaultNewOperation.trip = trip;
+    defaultNewOperation.trip = tripUndefined;
     defaultNewOperation.recorderDepartment = this.accountService.department;
     defaultNewOperation.childOperationId = currentOperation.id;
     defaultNewOperation.childOperation = currentOperation as Operation;
@@ -775,7 +796,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         strategyId: this.strategyId$,
         requiredStrategy: this.requiredStrategy$,
         gearId: this.gearId$,
-        trip: trip,
+        trip: tripUndefined,
         defaultNewOperation: defaultNewOperation,
         allowNewOperation: true,
         debug: this.debug,
