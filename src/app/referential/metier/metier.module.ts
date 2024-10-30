@@ -6,6 +6,9 @@ import { AppReferentialFormModule } from '@app/referential/form/referential-form
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { AppReferentialTableModule } from '@app/referential/table/referential-table.module';
 import { MetierPage } from '@app/referential/metier/metier.page';
+import { AppSpatialItemMapModule } from '@app/referential/spatial-item/spatial-item-map.module';
+import { AppActivityMapModule } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.module';
+import { SplitAreaComponent, SplitComponent } from 'angular-split';
 
 @NgModule({
   imports: [
@@ -18,6 +21,10 @@ import { MetierPage } from '@app/referential/metier/metier.page';
     AppReferentialFormModule,
     AppReferentialPipesModule,
     AppReferentialTableModule,
+    AppSpatialItemMapModule,
+    AppActivityMapModule,
+    SplitAreaComponent,
+    SplitComponent,
   ],
   declarations: [
     // Components
