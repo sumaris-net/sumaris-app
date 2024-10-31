@@ -31,7 +31,7 @@ type ActivityCalendarVO {
   comments: String
   controlDate: Date
   creationDate: Date
-  directSurveyInvestigation: Boolean
+  directSurveyInvestigation: Int
   economicSurvey: Boolean
   gearPhysicalFeatures: [GearPhysicalFeaturesVO]
   gearUseFeatures: [GearUseFeaturesVO]
@@ -2406,7 +2406,7 @@ input ActivityCalendarFilterVOInput {
   activityCalendarId: Int
   basePortLocationIds: [Int]
   dataQualityStatus: [DataQualityStatusEnum]
-  directSurveyInvestigation: Boolean
+  directSurveyInvestigation: Int
   economicSurvey: Boolean
   endDate: Date
   excludedIds: [Int]
@@ -2433,7 +2433,7 @@ input ActivityCalendarVOInput {
   comments: String
   controlDate: Date
   creationDate: Date
-  directSurveyInvestigation: Boolean
+  directSurveyInvestigation: Int
   economicSurvey: Boolean
   gearPhysicalFeatures: [GearPhysicalFeaturesVOInput]
   gearUseFeatures: [GearUseFeaturesVOInput]

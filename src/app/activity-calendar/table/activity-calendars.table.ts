@@ -26,13 +26,14 @@ import {
   ReferentialRef,
   SharedValidators,
   slideUpDownAnimation,
+  splitById,
   splitByProperty,
   StatusIds,
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
+import { ActivityCalendar, DirectSurveyInvestigationList } from '@app/activity-calendar/model/activity-calendar.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
@@ -96,6 +97,9 @@ export class ActivityCalendarsTable
   protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
   protected programVesselTypeIds: number[];
+
+  protected readonly directSurveyInvestigationList = DirectSurveyInvestigationList;
+  protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
 
   @Input() showFilterProgram = true;
   @Input() showRecorder = true;
