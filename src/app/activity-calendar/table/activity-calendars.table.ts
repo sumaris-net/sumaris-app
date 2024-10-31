@@ -146,6 +146,15 @@ export class ActivityCalendarsTable
     return this.getShowColumn('year');
   }
 
+  @Input()
+  set registrationLocationColumn(value: boolean) {
+    this.setShowColumn('registrationLocation', value);
+  }
+
+  get registrationLocationColumn(): boolean {
+    return this.getShowColumn('registrationLocation');
+  }
+
   get filterYearControl(): UntypedFormControl {
     return this.filterForm.controls.year as UntypedFormControl;
   }
