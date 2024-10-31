@@ -11,6 +11,23 @@
   --mat-table-row-item-label-text-color: var(--ion-text-color);
   --mat-table-row-item-outline-color: var(--ion-border-color);
 
+  // Compact mode
+  &.compact {
+    --mat-row-height: 33px !important;
+
+    .mat-mdc-row {
+      .mat-mdc-icon-button.mat-mdc-button-base {
+        --mdc-icon-button-state-layer-size: calc(var(--mat-row-height) - 1px) !important;
+        --ion-icon-size: 24px;
+        padding: calc((var(--mdc-icon-button-state-layer-size) - var(--ion-icon-size)) /  2);
+        ion-icon[slot] {
+          font-size: var(--ion-icon-size);
+          width: var(--ion-icon-size);
+          height: var(--ion-icon-size);
+        }
+      }
+    }
+  }
 
   .mat-mdc-row {
     overflow: hidden;

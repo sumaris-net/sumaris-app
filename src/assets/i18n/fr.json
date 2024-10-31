@@ -148,7 +148,7 @@
     "DEBUG": {
       "TITLE": "Debug",
       "BTN_DEBUG_DOTS": "Débogage...",
-      "BTN_ENABLE_DEBUG": "Activer le debuggage ?",
+      "BTN_ENABLE_DEBUG": "Activer le débogage ?",
       "BTN_COPY_LOCALLY": "Copier en local",
       "BTN_AUTO_FILL": "Remplissage auto ?"
     },
@@ -194,7 +194,7 @@
     "PROPERTIES_DIVIDER": "Options :",
     "PROPERTY_KEY": "Option",
     "PROPERTY_VALUE": "Valeur",
-    "BTN_SHOW_OPTION_KEY": "Afficher les codes d'option",
+    "BTN_SHOW_OPTION_KEY": "Afficher le code des options",
     "BTN_ADD_OPTION": "Ajouter une option",
     "BTN_CLEAR_CACHE": "Vider le cache serveur",
     "CACHE_TITLE": "Statistique du cache serveur",
@@ -396,7 +396,7 @@
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métiers DCF niv 5",
         "VESSEL_TYPE_FISHING_VESSEL_ID": "Référentiel > Type de navire > Navire professionnel",
         "VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL_ID": "Référentiel > Type de navire > Navire scientifique",
-        "VESSEL_UNKNOWN_ID": "Référentiel > Navire inconnu (id)"
+        "VESSEL_UNKNOWN_ID": "Référentiel > Navire > Navire inconnu (id)"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
@@ -613,6 +613,7 @@
     "BTN_CHANGE_PEER": "Voir les nœuds disponibles",
     "BTN_DARK_MODE": "Mode sombre ? (expérimental)",
     "BTN_SHOW_MORE_HELP": "Afficher plus de paramètres",
+    "BTN_SHOW_OPTION_KEY": "Afficher le code des options ?",
     "BTN_CLEAR_CACHE": "Vider le cache",
     "OFFLINE_MODE": "Forcer le mode hors-ligne ?",
     "DATA_ENTRY_DIVIDER": "Paramètres de saisie",
@@ -653,6 +654,9 @@
         }
       }
     },
+    "DATA": {
+      "EXPERTISE_AREA": "Zone de compétence"
+    },
     "ERROR": {
       "PEER_NOT_REACHABLE": "Nœud injoignable"
     }
@@ -691,7 +695,11 @@
   },
   "DATA": {
     "BTN_WRITE_TO_RECORDER": "Écrire au saisisseur",
-    "MESSAGE_BODY": "Bonjour,\n\nà propos de [{{title}}]({{url}}),\n\n..."
+    "MESSAGE_BODY": "Bonjour,\n\nà propos de [{{title}}]({{url}}),\n\n...",
+    "SETTINGS": {
+      "EXPERTISE_AREA": "Zone de compétence",
+      "EXPERTISE_AREAS": "Zone(s) de compétence"
+    }
   },
   "TRIP": {
     "TITLE": "Marée",
@@ -792,6 +800,8 @@
     },
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne",
+      "VESSELS": "Navire(s)",
+      "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
       "DURATION_PLACEHOLDER": "Période à importer"
     },
     "ERROR": {
@@ -1696,7 +1706,7 @@
     "PMFM": {},
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne",
-      "HISTORICAL_DATA_DIVIDER": "Historique de données",
+      "VESSELS": "Navire(s) (optionnel)",
       "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
       "DURATION_PLACEHOLDER": "Période à importer"
     },
@@ -2119,6 +2129,7 @@
     "PAGE_HISTORY_SUBTITLE": "Référentiel",
     "LAST_NAME": "Nom",
     "FIRST_NAME": "Prénom",
+    "TAB_GENERAL": "Détails",
     "DEPARTMENT": {
       "LABEL": "Code organisme",
       "NAME": "Libellé organisme"
@@ -2196,7 +2207,6 @@
       "NAME": "Libellé engin"
     },
     "PARAMETER": {
-      "TAB_GENERAL": "Détails",
       "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
       "TYPE": "Type de valeur",
       "CODE": "Code paramètre",
@@ -2217,7 +2227,6 @@
       }
     },
     "PMFM": {
-      "TAB_GENERAL": "Détails",
       "USE_DEFAULT_QUALITATIVES_VALUES": "Toutes les valeurs issues du paramètre",
       "TAB_QUALITATIVE_VALUE": "Valeurs qualitatives",
       "TYPE": "Type",
@@ -2279,8 +2288,18 @@
       "STATUS_ID": "État",
       "TYPE": "Type de transcodage"
     },
+    "EXPERTISE_AREA": {
+      "LOCATION": "Lieu(x) de la zone",
+      "LOCATION_LEVEL": "Niveau de lieu",
+      "NEW": {
+        "TITLE": "Nouvelle zones de compétence"
+      },
+      "EDIT": {
+        "TITLE": "<small>Zones de compétence<br></small>{{name}}"
+      }
+    },
     "LIST": {
-      "TITLE": "Référentiels",
+      "TITLE": "Référentiels<small><br></small><small>{{entity}}</small>",
       "BTN_IMPORT_OPTIONS_DOTS": "Options d'importation...",
       "FILTER": {
         "ENTITY": "Type de référentiel",
@@ -2330,6 +2349,7 @@
       "PARAMETER": "PSFM > Paramètres",
       "PARAMETER_GROUP": "PSFM > Groupes de paramètres",
       "USER_PROFILE": "Profils utilisateur",
+      "EXPERTISE_AREA": "Zones de compétence",
       "VESSEL_TYPE": "Types de navire",
       "PMFM": "PSFM > Quadruplets PSFM",
       "MATRIX": "PSFM > Supports de mesure",
@@ -2435,7 +2455,8 @@
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1": "Calendrier d'activité > Rapport > Formulaire vierge : Libellé caractéristique engin #1",
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2": "Calendrier d'activité > Rapport > Formulaire vierge : Libellé caractéristique engin #2",
       "ACTIVITY_CALENDAR_REPORT_PROGRESS_FOOTER": "Calendrier d'activité > Rapport d'avancement: Texte du pied de page",
-      "ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS": "Calendrier d'activité > Métier : Type(s) d'espèce",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING": "Calendrier d'activité > Limite du nombre de résultats à partir duquel un avertissement sur le temps long de génération du rapport sera affiché (une value de 0 signifie aucune limites)",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_LIMIT_NB_RESULT_ERROR": "Calendrier d'activité > Limite du nombre de résultats à partir duquel une erreur de refus de génération du rapport sera affiché dû au temps trop long de production de celui-ci (une value de 0 signifie aucune limites)",
       "ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS": "Calendrier d'activité > Zone de pêche : Niveau(x) de lieu",
       "ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID": "Calendrier d'activité > Pays d'immatriculation des navires",
       "ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE": "Calendrier d'activité > Activer la résolution des conflits ?",
@@ -3451,6 +3472,7 @@
       "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
       "ECONOMIC_SURVEY": "Objectif d'enquête éco ?",
       "VESSEL": "Navire",
+      "REGISTRATION_LOCATION": "Lieu d'immatriculation",
       "YEAR": "Année",
       "COMMENTS": "Commentaires",
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les calendriers <b>non synchronisés</b>)",
@@ -3466,9 +3488,13 @@
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "VESSEL": "Navire",
+        "VESSEL_TYPE": "Type de navire",
         "OBSERVERS": "Observateur(s)",
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "YEAR": "Année"
+      },
+      "CONFIRM": {
+        "LONG_TIME_REPORT_GENERATION": "Vous souhaitez générer un rapport pour plus de {{nbLimit}} entrées. Cette requête risque de prendre beaucoup de temps à traiter. Il est recommandé que vous ajustiez votre filtre pour avoir moins d'entrées. Souhaitez-vous tout de même générer ce rapport ?"
       }
     },
     "NEW": {
@@ -3484,6 +3510,8 @@
       "SOURCE_PREDOC": "",
       "BTN_ADD_METIER_BLOCK": "Ajouter un bloc métier",
       "BTN_REPORT": "Éditer le rapport...",
+      "BTN_EXPERTISE_AREA": "Zone de compétence...",
+      "BTN_ENABLE_EXPERTISE_AREA": "Activer la zone de compétence ?",
       "BTN_EXPAND_ALL": "Déplier tout",
       "BTN_COLLAPSE_ALL": "Replier tout",
       "BTN_CLEAR_MONTH": "Vider le mois",
@@ -3542,7 +3570,10 @@
       }
     },
     "OFFLINE_MODAL": {
-      "TITLE": "Configuration du mode hors-ligne"
+      "TITLE": "Configuration du mode hors-ligne",
+      "VESSELS": "Navire(s)",
+      "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
+      "DURATION_PLACEHOLDER": "Période à importer"
     },
     "OPTIONS": {
       "ENABLE": "Calendrier d'activité > Activer ?",
@@ -3555,8 +3586,11 @@
       "BASE_PORT_LOCATION": "Port d'exploitation",
       "PMFM": {
         "DURATION_AT_SEA_DAYS": "Nb jours mer",
+        "DURATION_AT_SEA_JOUR": "Nb jours mer",
         "FISHING_DURATION_DAYS": "Nb jours pêche",
-        "NB_FISHERMEN": "Nb pers. à bord"
+        "FISHING_DURATION_JOUR": "Nb jours pêche",
+        "NB_FISHERMEN": "Nb pers. à bord",
+        "CREW_SIZE": "Nb pers. à bord"
       },
       "EFFORT_SECTION": {
         "TITLE": "Effort de pêche"
@@ -3575,8 +3609,9 @@
       "SURVEY_QUALIFICATION_SECTION": {
         "TITLE": "Qualification de l'enquête"
       },
-      "GUF_SECTION": {
-        "TITLE": "Caractéristiques engins"
+      "GPF_SECTION": {
+        "TITLE": "Caractéristiques engins",
+        "METIER": "Metier(s)"
       },
       "SELL_SECTION": {
         "TITLE": "Ventes",
@@ -3662,7 +3697,8 @@
       "DUPLICATED_FISHING_AREA": "Zone(s) de pêche en doublon : {{fishingArea}}",
       "INVALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)",
       "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
-      "MAX_SELECTED_ID": "Nombre maximal d'item sélectionné atteint"
+      "MAX_SELECTED_ID": "Nombre maximal d'item sélectionné atteint",
+      "TOO_MANY_RESULT_FOR_REPORT_GENERATION": "Vous ne pouvez pas générer un rapport pour plus de {{nbLimit}} entrées, car cela demanderait trop de temps et de ressources. Veuillez-ajuster votre filtre pour avoir moins d'entrées."
     },
     "WARNING": {
       "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif.",
@@ -3805,6 +3841,7 @@
     "ALERT_HEADER": "Avertissement",
     "OOPS_DOTS": "Oups...",
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>",
-    "DATE_IN_THE_FUTURE": "Date dans le futur"
+    "DATE_IN_THE_FUTURE": "Date dans le futur",
+    "EXPERIMENTAL_FEATURE": "Fonctionnalité expérimentale ! En cours de développement."
   }
 }

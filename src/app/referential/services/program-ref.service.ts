@@ -67,6 +67,7 @@ import { ProgramPrivilegeUtils } from '@app/referential/services/model/model.uti
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
+import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 
 export const ProgramRefQueries = {
   // Load by id, with only properties
@@ -1083,21 +1084,26 @@ export class ProgramRefService
       // Clear cache
       await this.clearCache();
 
-      // Create search filter
+      // Create program filter
       filter = {
         ...filter,
         acquisitionLevelLabels: opts?.acquisitionLevels,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       };
-      const strategyFilter = StrategyFilter.fromObject({
-        includedIds: filter.strategyIds,
-        startDate: DateUtils.moment().startOf('day'), // Active strategies
-      });
 
-      // If strategy are filtered, import only ONE program - fix issue IMAGINE (avoid to import all DB programs)
-      if (strategyFilter) {
+      // When filtering strategies, import only ONE program - fix issue IMAGINE (avoid to import all DB programs)
+      if (isNotEmptyArray(filter.strategyIds)) {
         filter.label = filter.label || opts?.program?.label;
       }
+
+      // Create strategy filter
+      const strategyResolution = opts?.program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION) || 'last';
+      const strategyFilter = StrategyFilter.fromObject({
+        includedIds: filter.strategyIds,
+
+        // Limit to active strategies, for spatio-temporal resolution mode
+        startDate: strategyResolution === DataStrategyResolutions.SPATIO_TEMPORAL ? DateUtils.moment().startOf('day') : undefined,
+      });
 
       // Keep other programs, when ONLY ONE program is imported here
       // (e.g. imported from another offline feature)

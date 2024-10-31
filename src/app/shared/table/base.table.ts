@@ -589,7 +589,7 @@ export abstract class AppBaseTable<
       .find(isNotNil);
   }
 
-  restoreCompactMode(opts?: { emitEvent?: boolean }) {
+  async restoreCompactMode(opts?: { emitEvent?: boolean }) {
     if (!this.usePageSettings || isNilOrBlank(this.settingsId) || isNotNil(this.compact)) return;
 
     const compact = toBoolean(

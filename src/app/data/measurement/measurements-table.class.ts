@@ -330,9 +330,13 @@ export abstract class BaseMeasurementsTable<
     this._dataService?.stop();
   }
 
-  restoreCompactMode(opts?: { emitEvent?: boolean }) {
-    if (!this.programLabel) return;
-    super.restoreCompactMode(opts);
+  async restoreCompactMode(opts?: { emitEvent?: boolean }) {
+    if (!this.programLabel && this.generateTableIdWithProgramLabel) {
+      console.debug(this.logPrefix + 'Waiting programLabel, to be able restore compact mode...');
+      await firstNotNilPromise(this.programLabel$, { stop: this.destroySubject, timeout: 2000, stopError: false });
+      return;
+    }
+    await super.restoreCompactMode(opts);
   }
 
   protected configureValidator(opts?: MeasurementsTableValidatorOptions) {

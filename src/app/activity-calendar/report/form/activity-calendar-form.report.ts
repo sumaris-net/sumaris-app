@@ -1,4 +1,6 @@
 import { Component, Injector, ViewEncapsulation } from '@angular/core';
+import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
+import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -15,8 +17,9 @@ import {
   ConfigService,
   EntityAsObjectOptions,
   LoadResult,
+  LocalSettingsService,
+  ReferentialRef,
   TranslateContextService,
-  isInstanceOf,
   isNotNil,
   referentialToString,
   sleep,
@@ -30,8 +33,8 @@ import {
   computeCommonActivityCalendarFormReportStats,
   computeIndividualActivityCalendarFormReportStats,
   fillActivityCalendarBlankData,
-} from './activity-calendar-from-report.utils';
-import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
+} from './activity-calendar-form-report.utils';
+import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 
 export interface ActivityCalendarFormReportPageDimentions {
   height: number;
@@ -61,9 +64,14 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     activityMonth?: IPmfm[];
     activityCalendar?: IPmfm[];
     gpf?: IPmfm[];
+    guf?: IPmfm[];
+    forGpfTable?: IPmfm[];
   };
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
+  filteredAndOrderedGpf?: (GearPhysicalFeatures | GearUseFeatures)[];
+  surveyQualificationQualitativeValues?: ReferentialRef[];
+  vesselAttributes: string[];
 
   static fromObject(source: any): ActivityCalendarFormReportStats {
     if (!source) return source;
@@ -84,10 +92,21 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     this.pmfm = {
       activityMonth: source?.pmfm?.activityMonth?.map(DenormalizedPmfmStrategy.fromObject) || null,
       activityCalendar: source?.pmfm?.activityCalendar?.map(DenormalizedPmfmStrategy.fromObject) || null,
-      gpf: source?.pmfm?.physicalGear?.map(DenormalizedPmfmStrategy.fromObject) || null,
+      gpf: source?.pmfm?.gpf?.map(DenormalizedPmfmStrategy.fromObject) || null,
+      guf: source?.pmfm?.guf?.map(DenormalizedPmfmStrategy.fromObject) || null,
+      forGpfTable: source?.pmfm?.forGpfTable?.map(DenormalizedPmfmStrategy.fromObject) || null,
     };
     this.activityMonthColspan = source.activityMonthColspan;
     this.metierTableChunks = source.metierTableChunks;
+    this.vesselAttributes = source.vesselAttributes;
+    this.surveyQualificationQualitativeValues = source?.surveyQualificationQualitativeValues?.map(ReferentialRef.fromObject);
+    this.filteredAndOrderedGpf = source?.filteredAndOrderedGpf?.map((value: any) => {
+      if (value.__typename === GearPhysicalFeatures.TYPENAME) {
+        return GearPhysicalFeatures.fromObject(value);
+      } else if (value.__typename === GearUseFeatures.TYPENAME) {
+        return GearUseFeatures.fromObject(value);
+      }
+    });
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -102,10 +121,15 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
       pmfm: {
         activityMonth: this?.pmfm?.activityMonth?.map((item) => item.asObject(opts)) || null,
         activityCalendar: this?.pmfm?.activityCalendar?.map((item) => item.asObject(opts)) || null,
-        physicalGear: this?.pmfm?.gpf?.map((item) => item.asObject(opts)) || null,
+        gpf: this?.pmfm?.gpf?.map((item) => item.asObject(opts)) || null,
+        guf: this?.pmfm?.guf?.map((item) => item.asObject(opts)) || null,
+        forGpfTable: this?.pmfm?.forGpfTable?.map((item) => item.asObject(opts)) || null,
       },
       activityMonthColspan: this.activityMonthColspan,
       metierTableChunks: this.metierTableChunks,
+      vesselAttributes: this.vesselAttributes,
+      surveyQualificationQualitativeValues: this.surveyQualificationQualitativeValues?.map((value) => value.asObject(opts)),
+      filteredAndOrderedGpf: this.filteredAndOrderedGpf?.map((value) => value.asObject({ ...opts, keepTypename: true })),
     };
   }
 }
@@ -149,6 +173,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   protected readonly vesselSnapshotService: VesselSnapshotService;
   protected readonly translateContextService: TranslateContextService;
   protected readonly configService: ConfigService;
+  protected readonly localSettings: LocalSettingsService;
 
   protected readonly isActiveList = IsActiveList;
   protected readonly isActiveMap = Object.freeze(splitById(IsActiveList));
@@ -167,13 +192,14 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   private strategy: Strategy;
 
   constructor(injector: Injector) {
-    super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.FORM.PMFM.' });
+    super(injector, ActivityCalendar, ActivityCalendarFormReportStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
     this.activityCalendarService = this.injector.get(ActivityCalendarService);
     this.strategyRefService = this.injector.get(StrategyRefService);
     this.programRefService = this.injector.get(ProgramRefService);
     this.vesselSnapshotService = this.injector.get(VesselSnapshotService);
     this.translateContextService = this.injector.get(TranslateContextService);
     this.configService = this.injector.get(ConfigService);
+    this.localSettings = this.injector.get(LocalSettingsService);
 
     this.reportPath = this.route.snapshot.routeConfig.path;
     this.isBlankForm = this.route.snapshot.data?.isBlankForm;
@@ -197,7 +223,6 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   protected async loadData(id: number, opts?: any): Promise<ActivityCalendar> {
     console.log(`[${this.logPrefix}] loadData`);
     const filter: ActivityCalendarFilter = ActivityCalendarFilter.fromObject({ includedIds: [id] });
-    // const fetchedData = await this.ActivityCalendarService.load(id, { ...opts, forBlankFrom: this.isBlankForm });
     let loadResult: LoadResult<ActivityCalendar>;
     if (this.isBlankForm) {
       loadResult = await this.activityCalendarService.loadAllVesselOnly(0, 1, null, null, filter);
@@ -239,14 +264,14 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     stats = await computeCommonActivityCalendarFormReportStats(
       data,
       stats,
-      this.configService,
       this.programRefService,
+      this.vesselSnapshotService,
       this.program,
       this.strategy,
       this.isBlankForm
     );
 
-    stats = await computeIndividualActivityCalendarFormReportStats(data, stats, this.pageDimensions, this.isBlankForm);
+    stats = await computeIndividualActivityCalendarFormReportStats(data, stats, this.pageDimensions, this.configService, this.isBlankForm);
 
     console.debug('TODO data/stats', { data, stats });
     return stats;
@@ -259,7 +284,10 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
           '&nbsp' +
           this.translateContextService.instant('ACTIVITY_CALENDAR.EDIT.TITLE', this.i18nContext.suffix, {
             year: data.year,
-            vessel: referentialToString(data.vesselSnapshot, ['exteriorMarking', 'name']),
+            vessel: referentialToString(
+              data.vesselSnapshot,
+              this.localSettings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name'])
+            ),
           });
   }
 

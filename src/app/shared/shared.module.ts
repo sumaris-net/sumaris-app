@@ -9,7 +9,6 @@ import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
 import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-fields-skeleton.module';
 import { RxUnpatch } from '@rx-angular/template/unpatch';
-import { NoHtmlPipe } from '@app/shared/pipes/html.pipes';
 import { AppErrorItem } from '@app/shared/error/error-item.component';
 import { AppWarningItem } from '@app/shared/error/warning-item.component';
 import { DebounceTimePipe } from '@app/shared/pipes/debounceTime.pipe';
@@ -37,7 +36,6 @@ import { DebounceTimePipe } from '@app/shared/pipes/debounceTime.pipe';
     DebounceTimePipe,
     SplitArrayInChunksPipe,
     PaginationToStringPipe,
-    NoHtmlPipe,
   ],
   exports: [
     SharedModule,
@@ -55,7 +53,6 @@ import { DebounceTimePipe } from '@app/shared/pipes/debounceTime.pipe';
     DebounceTimePipe,
     SplitArrayInChunksPipe,
     PaginationToStringPipe,
-    NoHtmlPipe,
 
     //Sub modules
     MatFormFieldsSkeletonModule,

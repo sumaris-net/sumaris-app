@@ -38,7 +38,7 @@
           (blur)="filterInputTextBlurEvent($event)"
           [required]="required"
           [tabindex]="_tabindex"
-          (keyup.enter)="this.onPressEnter.emit($event)"
+          (keyup.enter)="this.onKeyupEnter.emit($event)"
         />
 
         <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="onShowDropdown.emit($event)" [hidden]="disabled">

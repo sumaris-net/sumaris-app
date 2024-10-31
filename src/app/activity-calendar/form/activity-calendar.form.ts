@@ -41,6 +41,7 @@ import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { ModalController } from '@ionic/angular';
 import { merge, Observable, tap } from 'rxjs';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export interface ActivityCalendarFormState extends MeasurementsFormState {
   showYear: boolean;
@@ -178,17 +179,7 @@ export class ActivityCalendarForm
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
       this.registerAutocompleteField('vesselSnapshot', {
         ...opts,
-        suggestFn: (value, filter) => {
-          const year = this.yearControl.value;
-          if (isNotNil(year)) {
-            const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
-            filter = {
-              ...filter,
-              date: startDate,
-            };
-          }
-          return this.vesselSnapshotService.suggest(value, filter);
-        },
+        suggestFn: (value, filter) => this.suggestVessel(value, filter),
       });
     });
 
@@ -367,6 +358,18 @@ export class ActivityCalendarForm
     } else {
       console.debug('${this._logPrefix}No vessel added (user cancelled)');
     }
+  }
+
+  protected suggestVessel(value: any, filter: Partial<VesselSnapshotFilter>) {
+    const year = this.yearControl.value;
+    if (isNotNil(year)) {
+      const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
+      filter = {
+        ...filter,
+        date: startDate,
+      };
+    }
+    return this.vesselSnapshotService.suggest(value, filter);
   }
 
   protected markForCheck() {

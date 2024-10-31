@@ -29,6 +29,7 @@ import { VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
 import { VesselFilter } from '../services/filter/vessel.filter';
 import { SearchbarChangeEventDetail as ISearchbarSearchbarChangeEventDetail } from '@ionic/core/dist/types/components/searchbar/searchbar-interface';
 import { debounceTime, filter } from 'rxjs/operators';
+import { RxState } from '@rx-angular/state';
 
 export const VesselsTableSettingsEnum = {
   TABLE_ID: 'vessels',
@@ -39,7 +40,7 @@ export const VesselsTableSettingsEnum = {
   selector: 'app-vessels-table',
   templateUrl: 'vessels.table.html',
   styleUrls: ['./vessels.table.scss'],
-  providers: [{ provide: ValidatorService, useClass: VesselValidatorService }],
+  providers: [{ provide: ValidatorService, useClass: VesselValidatorService }, RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> implements OnInit {

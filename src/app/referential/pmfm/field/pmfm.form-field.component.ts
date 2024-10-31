@@ -177,7 +177,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
     return this.panelClass;
   }
 
-  @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
+  @Output('app.keyup.enter') onKeyupEnter = new EventEmitter<any>();
   // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('focus') focused = new EventEmitter<FocusEvent>();
   // eslint-disable-next-line @angular-eslint/no-output-native

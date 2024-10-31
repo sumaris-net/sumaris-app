@@ -81,7 +81,7 @@ export class Mutex<T = any> {
 
   private async _lockObject(obj: any): Promise<() => void> {
     let queue = this._objectQueues.get(obj);
-    if (queue && queue.length > 0) {
+    if (queue?.length > 0) {
       await new Promise<void>((resolve, reject) => {
         queue.push({ resolve, reject });
       });
@@ -106,12 +106,15 @@ export class Mutex<T = any> {
     // Already unlock (nof found in objet queue)
     if (!queue) return;
 
-    if (queue.length > 1) {
-      // Resolve the last one
-      const { resolve } = queue.shift();
-      resolve();
-    } else {
+    // Get resolve from queue's top
+    const { resolve } = queue.shift();
+
+    // Remove queue if empty
+    if (queue.length === 0) {
       this._objectQueues.delete(obj);
     }
+
+    // Resolve top element
+    resolve();
   }
 }

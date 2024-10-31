@@ -26,6 +26,7 @@ import {
   AccountService,
   Alerts,
   AppErrorWithDetails,
+  AppFormUtils,
   AppHelpModal,
   AppHelpModalOptions,
   DateUtils,
@@ -78,7 +79,6 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -550,14 +550,12 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
-  async openReport(reportType?: TripReportType) {
+  async openReport(reportType?: TripReportType | string) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-
-    if (!reportType) reportType = this.reportTypes.length === 1 ? <TripReportType>this.reportTypes[0].key : 'legacy';
-
+    reportType = reportType ?? this.reportTypes.length === 1 ? <TripReportType>this.reportTypes[0].key : 'legacy';
     const reportPath = reportType !== <TripReportType>'legacy' ? reportType.split('-') : [];
     return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...reportPath].join('/'));
   }
@@ -848,9 +846,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
           const control = formGroup.controls[PmfmIds.GPS_USED];
 
           if (value == true) {
-            AppSharedFormUtils.disableControl(control, { onlySelf: true });
+            AppFormUtils.disableControl(control, { onlySelf: true });
           } else {
-            AppSharedFormUtils.enableControl(control, { onlySelf: true, required: true });
+            AppFormUtils.enableControl(control, { onlySelf: true, required: true });
           }
           this.markForCheck();
         })

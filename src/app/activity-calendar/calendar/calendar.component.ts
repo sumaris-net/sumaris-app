@@ -124,10 +124,12 @@ const NUMERIC_KEYS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Backspa
 export const ACTIVITY_MONTH_READONLY_COLUMNS = ['month', 'program', 'vesselOwner', 'registrationLocation'];
 export const ACTIVITY_MONTH_START_COLUMNS = [...ACTIVITY_MONTH_READONLY_COLUMNS, 'isActive', 'basePortLocation'];
 export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
+export const GEAR_USE_FEATURE_INDEX_REGEXP = /gearUseFeatures\.(\d+)/;
 
 export interface IIsActive extends IStatus {
   statusId: number;
 }
+
 export const IsActiveList: Readonly<IIsActive[]> = Object.freeze([
   {
     id: VesselUseFeaturesIsActiveEnum.ACTIVE,
@@ -288,10 +290,12 @@ export class CalendarComponent
   @Input() enableCellSelection: boolean;
   @Input() programHeaderLabel: string;
   @Input() showError = true;
+  @Input() expertiseLocationIds: number[];
 
   @Input() set month(value: number) {
     this.setFilter(ActivityMonthFilter.fromObject({ ...this.filter, month: value }));
   }
+
   get month(): number {
     return this.filter?.month;
   }
@@ -299,6 +303,7 @@ export class CalendarComponent
   @Input() set showVesselOwner(value: boolean) {
     this.setShowColumn('vesselOwner', value);
   }
+
   get showVesselOwner(): boolean {
     return this.getShowColumn('vesselOwner');
   }
@@ -306,18 +311,23 @@ export class CalendarComponent
   @Input() set showRegistrationLocation(value: boolean) {
     this.setShowColumn('registrationLocation', value);
   }
+
   get showRegistrationLocation(): boolean {
     return this.getShowColumn('registrationLocation');
   }
+
   @Input() set showProgram(value: boolean) {
     this.setShowColumn('program', value);
   }
+
   get showProgram(): boolean {
     return this.getShowColumn('program');
   }
+
   @Input() set showMonth(value: boolean) {
     this.setShowColumn('month', value);
   }
+
   get showMonth(): boolean {
     return this.getShowColumn('month');
   }
@@ -397,8 +407,6 @@ export class CalendarComponent
         reservedEndColumns: ACTIVITY_MONTH_END_COLUMNS,
         i18nColumnPrefix: 'ACTIVITY_CALENDAR.EDIT.',
         i18nPmfmPrefix: 'ACTIVITY_CALENDAR.PMFM.',
-        // Cannot override mapPmfms (by options)
-        //mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onPrepareRowForm: (form) => this.onPrepareRowForm(form),
         initialState: <CalendarComponentState>{
           requiredStrategy: true,
@@ -436,12 +444,7 @@ export class CalendarComponent
     await this.referentialRefService.ready();
 
     this.registerAutocompleteField('basePortLocation', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT] }),
-      filter: {
-        entityName: 'Location',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
+      suggestFn: (value, filter) => this.suggestBasePortLocations(value, filter),
       attributes: this.locationDisplayAttributes,
       panelClass: 'min-width-large',
       selectInputContentOnFocus: true,
@@ -461,44 +464,19 @@ export class CalendarComponent
       selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('distanceToCoastGradient', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
-      filter: {
-        entityName: 'DistanceToCoastGradient',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
+      suggestFn: (value, filter) => this.suggestDistanceToCoastGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('depthGradient', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(
-          value,
-          {
-            ...filter,
-
-            levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
-          },
-          'rankOrder',
-          'asc'
-        ),
-
-      filter: {
-        entityName: 'DepthGradient',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
+      suggestFn: (value, filter) => this.suggestDepthGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('nearbySpecificArea', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA }),
-      filter: {
-        entityName: 'NearbySpecificArea',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      },
+      suggestFn: (value, filter) => this.suggestNearbySpecificArea(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
@@ -526,7 +504,7 @@ export class CalendarComponent
           if (!equals(filter.programLabels, programLabels)) {
             filter.programLabels = programLabels;
             this.setFilter(filter);
-
+            this.collapseEmptyMetierBlock(programLabels);
             // Hide cell selection, because some columns can have disappeared
             this.removeCellSelection();
             this.clearClipboard(null, { clearContext: false });
@@ -585,7 +563,7 @@ export class CalendarComponent
       this.registerSubscription(
         this.hotkeys
           .addShortcut({ keys: 'escape', description: 'COMMON.BTN_CLEAR_CLIPBOARD', preventDefault: true })
-          .pipe(filter((e) => !!this.cellClipboard))
+          .pipe(filter(() => !!this.cellClipboard))
           .subscribe((event) => this.clearClipboard(event))
       );
       this.registerSubscription(
@@ -879,8 +857,8 @@ export class CalendarComponent
       Math.max(cellRect.height, Math.round((cellRect.height + Math.abs(movementY)) / cellRect.height) * cellRect.height) / cellRect.height;
 
     // Manage negative
-    if (movementX < 0 && colspan > 1) colspan = -1 * (colspan - 1);
-    if (movementY < 0 && rowspan > 1) rowspan = -1 * (rowspan - 1);
+    if (movementX < 0 && colspan > 1) colspan = -colspan;
+    if (movementY < 0 && rowspan > 1) rowspan = -rowspan;
 
     // Check row limits
     const rowIndex = row.id;
@@ -1504,7 +1482,11 @@ export class CalendarComponent
   }
 
   async confirmEditCell(event: Event, row: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
+    if (event?.defaultPrevented) return;
+    event?.preventDefault(); // Avoid dual execution - fic issue #766
+
     console.debug(this.logPrefix + `Confirm cell month #${row.id} ${columnName}`, event);
+
     const confirmed = await this.confirmEditCreate(event, row);
     if (!confirmed) return;
 
@@ -1659,6 +1641,18 @@ export class CalendarComponent
     }
   }
 
+  protected async suggestBasePortLocations(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    return this.referentialRefService.suggest(value, {
+      entityName: 'Location',
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      locationIds: this.expertiseLocationIds,
+      ...filter,
+      levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT],
+    });
+  }
+
   protected async suggestMetiers(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<Metier>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
@@ -1672,6 +1666,7 @@ export class CalendarComponent
         ...METIER_DEFAULT_FILTER,
         ...filter,
         excludedIds: existingMetierIds,
+        locationIds: this.expertiseLocationIds,
       },
       null,
       null,
@@ -1706,6 +1701,7 @@ export class CalendarComponent
         ...filter,
         levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
         excludedIds: existingFishingAreaLocationIds,
+        locationIds: this.expertiseLocationIds,
       },
       null,
       null,
@@ -1714,6 +1710,68 @@ export class CalendarComponent
         withProperties: false,
       }
     );
+  }
+
+  protected async suggestDistanceToCoastGradient(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    // Get current location
+    const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
+
+    return this.referentialRefService.suggest(value, {
+      entityName: 'DistanceToCoastGradient',
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      ...filter,
+      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+    });
+  }
+
+  protected async suggestDepthGradient(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    // Get current location
+    const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
+
+    return this.referentialRefService.suggest(
+      value,
+      {
+        entityName: 'DepthGradient',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        ...filter,
+        levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+        locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+      },
+      'rankOrder',
+      'asc'
+    );
+  }
+
+  protected async suggestNearbySpecificArea(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
+    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+
+    // Get current location
+    const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
+
+    return this.referentialRefService.suggest(value, {
+      entityName: 'NearbySpecificArea',
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      ...filter,
+      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+    });
+  }
+
+  protected getCurrentFishingAreaLocationId(): number {
+    const columnName = this.getEditedCell()?.columnName;
+    const colPath = columnName && this.dynamicColumns.find((col) => col.key === columnName)?.path;
+    if (isNilOrBlank(colPath)) return undefined;
+    const fishingAreaLocationPath = `${colPath.substring(0, colPath.lastIndexOf('.'))}.location`;
+    const fishingAreaLocation = this.editedRow?.validator?.get(fishingAreaLocationPath)?.value;
+    if (this.debug) {
+      console.debug(`${this.logPrefix}Selected location`, fishingAreaLocation);
+    }
+    return fishingAreaLocation?.id;
   }
 
   protected onPrepareRowForm(
@@ -1828,8 +1886,8 @@ export class CalendarComponent
     return editing;
   }
 
-  protected configureValidator(opts: MeasurementsTableValidatorOptions) {
-    super.configureValidator(opts);
+  protected async configureValidator(opts: MeasurementsTableValidatorOptions) {
+    await super.configureValidator(opts);
 
     this.validatorService.delegateOptions = {
       maxMetierCount: this.maxMetierCount,
@@ -1847,16 +1905,25 @@ export class CalendarComponent
     return super.confirmAndBackward(event, row);
   }
 
+  private confirmEditCreateId = 0;
+
   async confirmEditCreate(event?: Event, row?: AsyncTableElement<ActivityMonth>, opts?: { lock?: boolean }): Promise<boolean> {
     // If not given row: confirm all editing rows
     if (!row) {
       const editingRows = this.dataSource.getEditingRows();
+      if (isEmptyArray(editingRows)) return true; // No rows to confirm
+      console.debug(this.logPrefix + `lock rows`, new Error(), editingRows);
       return (await Promise.all(editingRows.map((editedRow) => this.confirmEditCreate(event, editedRow)))).every((c) => c === true);
     }
+    const confirmEditCreateId = this.confirmEditCreateId++;
 
     try {
+      console.debug(this.logPrefix + `lock row#${row?.id} - ID #${confirmEditCreateId}`, new Error());
+
       // Lock the row, or wait until can lock
       await this.confirmingRowMutex.lock(row);
+
+      console.debug(this.logPrefix + `lock row#${row?.id} resolved - ID #${confirmEditCreateId}`);
 
       if (!row || !row.editing) return true; // nothing to confirmed
 
@@ -1897,7 +1964,7 @@ export class CalendarComponent
     } finally {
       // Workaround used to avoid to focus the backward button
       setTimeout(() => {
-        console.debug(this.logPrefix + `unlock row#${row?.id}`);
+        console.debug(this.logPrefix + `unlock row#${row?.id} - ID #${confirmEditCreateId}`);
         this.confirmingRowMutex.unlock(row);
       }, 250);
     }
@@ -2514,6 +2581,8 @@ export class CalendarComponent
 
     const { rows: targetRows, paths: targetPaths } = this.getRowsFromSelection(targetCellSelection);
 
+    this.addMetierBlocksForPaste(sourcePaths, targetPaths);
+
     // Empty target rows
     if (isEmptyArray(targetRows) || isEmptyArray(targetPaths)) return false;
 
@@ -2892,5 +2961,71 @@ export class CalendarComponent
 
   hasErrorsInRows(): boolean {
     return this.getErrorsInRows()?.length > 0;
+  }
+
+  addMetierBlocksForPaste(sourcePaths: string[], targetPaths: string[]) {
+    let targetMetierPath = sourcePaths.filter((path) => path.includes('gearUseFeatures'));
+    let sourceMetierPath = targetPaths.filter((path) => path.includes('gearUseFeatures'));
+
+    if (isEmptyArray(targetMetierPath) || isEmptyArray(sourceMetierPath)) return;
+
+    targetMetierPath = this.extractGearUseFeatureIndex(targetMetierPath);
+    sourceMetierPath = this.extractGearUseFeatureIndex(sourceMetierPath);
+
+    if (isEmptyArray(targetMetierPath) || isEmptyArray(sourceMetierPath)) return;
+
+    const nbAvailableMetier = this.metierCount - parseInt(sourceMetierPath[0]);
+
+    const numberMetierToAdd = Math.abs(nbAvailableMetier - targetMetierPath.length);
+
+    for (let i = 0; i < numberMetierToAdd; i++) {
+      this.addMetierBlock(null, { emitEvent: true, updateRows: false, scrollToBottom: false });
+      targetPaths.push(`gearUseFeatures.${parseInt(sourceMetierPath.at(-1)) + i + 1}.metier`);
+      for (let j = 0; j < MAX_FISHING_AREA_COUNT; j++) {
+        targetPaths.push(
+          `gearUseFeatures.${parseInt(sourceMetierPath.at(-1)) + i + 1}.fishingAreas.${j}.location`,
+          `gearUseFeatures.${parseInt(sourceMetierPath.at(-1)) + i + 1}.fishingAreas.${j}.distanceToCoastGradient`,
+          `gearUseFeatures.${parseInt(sourceMetierPath.at(-1)) + i + 1}.fishingAreas.${j}.depthGradient`,
+          `gearUseFeatures.${parseInt(sourceMetierPath.at(-1)) + i + 1}.fishingAreas.${j}.nearbySpecificArea`
+        );
+      }
+    }
+  }
+
+  extractGearUseFeatureIndex(str: string[]): string[] {
+    if (isNil(str)) return [];
+    return removeDuplicatesFromArray(
+      str
+        .map((str) => {
+          const match = str.match(GEAR_USE_FEATURE_INDEX_REGEXP);
+          return match ? match[1] : null;
+        })
+        .filter((num) => num !== null)
+    );
+  }
+
+  collapseEmptyMetierBlock(programLabels: string[]) {
+    if (programLabels.length === 1) {
+      const rows = this.dataSource.getData()?.filter((row) => row.program.label === programLabels[0]);
+      if (!rows || isEmptyArray(rows)) return;
+
+      this.collapseAll();
+      const gufNotEmpty = [];
+
+      rows.forEach((row) => {
+        row.gearUseFeatures.forEach((guf, index) => {
+          if (GearUseFeatures.isNotEmpty(guf)) {
+            gufNotEmpty.push('metier' + (index + 1));
+          }
+        });
+      });
+      const gufToExpand = removeDuplicatesFromArray(gufNotEmpty);
+
+      gufToExpand.forEach((guf) => {
+        this.toggleMetierBlock(event, guf);
+      });
+    } else {
+      this.expandAll();
+    }
   }
 }

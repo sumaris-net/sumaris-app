@@ -21,12 +21,12 @@
           <button mat-icon-button [title]="'COMMON.BTN_ADD' | translate" (click)="addRow($event)">
             <mat-icon>add</mat-icon>
           </button>
-
-          <!-- Refresh -->
-          <button mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
-            <mat-icon>refresh</mat-icon>
-          </button>
         }
+
+        <!-- Refresh -->
+        <button mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
+          <mat-icon>refresh</mat-icon>
+        </button>
       }
 
       <!-- Reset filter -->
@@ -163,11 +163,7 @@
 
   @for (item of reportTypes; track item.key) {
     <!-- TODO enable all report type ?-->
-    <button
-      mat-menu-item
-      (click)="openReport(item.key)"
-      [disabled]="((selection | isEmptySelection) || (filter | mapGet: 'year' | isNilOrBlank)) && item.key !== 'progress'"
-    >
+    <button mat-menu-item (click)="openReport(item.key)">
       <ion-label>{{ item.value | translate }}</ion-label>
     </button>
   }
@@ -260,7 +256,7 @@
           <ion-col size="12" size-lg="6">
             <!-- Vessel Type  -->
             <mat-autocomplete-field
-              [placeholder]="'VESSEL.LIST.FILTER.VESSEL_TYPE' | translate"
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL_TYPE' | translate"
               formControlName="vesselType"
               [config]="autocompleteFields.vesselType"
               [clearable]="true"
@@ -486,26 +482,24 @@
   ></app-update-offline-mode-card>
 
   <!-- error -->
-  <ion-item *ngIf="errorSubject | async; let error" lines="none" @slideUpDownAnimation>
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  <app-error-item [message]="errorSubject | async"></app-error-item>
 
   <!-- Tab nav - synchro status-->
-  <ng-container *ngIf="hasOfflineMode">
-    <nav mat-tab-nav-bar *rxLet="synchronizationStatus$; let syncStatus" [tabPanel]="tableContainer">
-      <a mat-tab-link [active]="syncStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
+  @if (hasOfflineMode) {
+    @let synchroStatus = synchronizationStatus$ | async;
+    <nav mat-tab-nav-bar [tabPanel]="tableContainer">
+      <a mat-tab-link [active]="synchroStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
         <mat-icon>cloud_off</mat-icon>
         &nbsp;
         <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
       </a>
-      <a mat-tab-link [active]="syncStatus === 'SYNC'" [disabled]="offline" (click)="setSynchronizationStatus('SYNC')">
+      <a mat-tab-link [active]="synchroStatus === 'SYNC'" [disabled]="offline" (click)="setSynchronizationStatus('SYNC')">
         <mat-icon>cloud_done</mat-icon>
         &nbsp;
         <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
       </a>
     </nav>
-  </ng-container>
+  }
 
   <!-- table -->
   <div #tableContainer class="table-container">
@@ -565,12 +559,26 @@
 
       <!-- Vessel Column -->
       <ng-container matColumnDef="vessel">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <!-- FIXME Remove mat-sort-header because sort on vessel failed - see issue #723 -->
+        <th mat-header-cell *matHeaderCellDef>
           <ion-label translate>ACTIVITY_CALENDAR.TABLE.VESSEL</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-label *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton">
             {{ row.currentData.vesselSnapshot | referentialToString: autocompleteFields.vesselSnapshot.attributes }}
+          </ion-label>
+        </td>
+      </ng-container>
+
+      <!-- Vessel registration location Column -->
+      <ng-container matColumnDef="registrationLocation">
+        <!-- FIXME Remove mat-sort-header because sort on vessel failed - see issue #723 -->
+        <th mat-header-cell *matHeaderCellDef>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.REGISTRATION_LOCATION</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-label>
+            {{ row.currentData.vesselSnapshot?.registrationLocation | referentialToString: autocompleteFields.registrationLocation.attributes }}
           </ion-label>
         </td>
       </ng-container>

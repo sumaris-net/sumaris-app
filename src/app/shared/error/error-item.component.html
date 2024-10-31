@@ -1,6 +1,6 @@
 <!-- error -->
 @if (message) {
-  <ion-item lines="none" class="{{ size }} {{ classList }}" [@slideUpDownAnimation]="animated">
+  <ion-item lines="none" [color]="backgroundColor" class="{{ size }} {{ classList }}" [@slideUpDownAnimation]="animated">
     <ion-icon [color]="color" slot="start" [name]="icon"></ion-icon>
     <ion-label [color]="color" [innerHTML]="message | translate"></ion-label>
   </ion-item>
