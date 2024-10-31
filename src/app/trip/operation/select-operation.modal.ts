@@ -62,7 +62,6 @@ export interface ISelectOperationModalOptions {
 export class SelectOperationModal extends AppEntityEditorModal<Operation> implements OnInit, ISelectOperationModalOptions {
   datasource: EntitiesTableDataSource<Operation, OperationFilter>;
   saveOptions: OperationSaveOptions = {};
-  undefinedTrip: Trip;
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
 
@@ -137,6 +136,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     this.xsMobile = this.mobile && !this.platformService.is('tablet');
 
     this.tabCount = 2;
+
     this.forceOptionalExcludedPmfmIds = [
       PmfmIds.SURVIVAL_SAMPLING_TYPE,
       PmfmIds.HAS_ACCIDENTAL_CATCHES,
@@ -238,15 +238,15 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     this.markAsSaving();
 
     // Mark trip as dirty
-    if (RootDataEntityUtils.isReadyToSync(this.undefinedTrip)) {
-      RootDataEntityUtils.markAsDirty(this.undefinedTrip);
-      this.undefinedTrip = await this.tripService.save(this.undefinedTrip);
+    if (RootDataEntityUtils.isReadyToSync(this.trip)) {
+      RootDataEntityUtils.markAsDirty(this.trip);
+      this.trip = await this.tripService.save(this.trip);
     }
 
     // Force to pass specific saved options to dataService.save()
     const saved = await super.save(event, <OperationSaveOptions>{
       ...this.saveOptions,
-      trip: this.undefinedTrip,
+      trip: this.trip,
       updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
       ...opts,
     });
@@ -273,6 +273,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     } finally {
       this.markAsSaved();
       // await this.cancel();
+      return saved;
     }
   }
 
