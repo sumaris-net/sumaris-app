@@ -75,12 +75,28 @@
     <ion-row>
       <!-- Direct survey investigation-->
       <ion-col offset-md="2" offset-lg="3" size="12" size-md="">
-        <mat-boolean-field
-          formControlName="directSurveyInvestigation"
-          [placeholder]="'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION' | translate"
-          [tabindex]="-1"
-          required
-        ></mat-boolean-field>
+        @if (form | formGetControl: 'directSurveyInvestigation'; as control) {
+          <mat-form-field>
+            <mat-label>{{ 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION' | translate }}</mat-label>
+            <mat-select [formControl]="control">
+              <mat-select-trigger>
+                @if (directSurveyInvestigationMap | mapGet: control.value; as item) {
+                  <span>
+                    {{ item.label | translate }}
+                  </span>
+                }
+              </mat-select-trigger>
+              @for (item of directSurveyInvestigationList; track item.id) {
+                <mat-option [value]="item.id">
+                  {{ item.label | translate }}
+                </mat-option>
+              }
+            </mat-select>
+            @if (control.hasError('required')) {
+              <mat-error translate>ERROR.FIELD_REQUIRED</mat-error>
+            }
+          </mat-form-field>
+        }
       </ion-col>
 
       <!-- Economic survey ? -->

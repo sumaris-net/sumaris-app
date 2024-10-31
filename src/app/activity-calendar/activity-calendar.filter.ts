@@ -31,7 +31,7 @@ export class ActivityCalendarFilter extends RootDataEntityFilter<ActivityCalenda
   basePortLocations: ReferentialRef[] = null;
   includedIds: number[];
   excludedIds: number[];
-  directSurveyInvestigation: boolean;
+  directSurveyInvestigation: number;
   economicSurvey: boolean;
   observers?: Person[] = null;
 
