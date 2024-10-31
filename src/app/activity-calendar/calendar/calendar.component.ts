@@ -2708,9 +2708,15 @@ export class CalendarComponent
   protected onCopyAllClick(programLabel: string) {
     const sources = (this.getValue() || []).filter((month) => month?.program?.label === programLabel);
     const targets: ActivityMonth[] = new Array(12).fill(null).map((month) => ActivityMonth.fromObject({ month }));
+
+    // Clone sources to prevent unintended changes to original data
     sources.forEach((source) => {
-      targets[source.month] = source;
+      const target = source.clone();
+      EntityUtils.cleanIdAndUpdateDate(target);
+      EntityUtils.cleanIdsAndUpdateDates(target.gearUseFeatures);
+      targets[source.month] = target;
     });
+
     this.copyAllClick.emit(targets);
   }
 
