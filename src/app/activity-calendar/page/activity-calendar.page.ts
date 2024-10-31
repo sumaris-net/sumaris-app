@@ -984,7 +984,7 @@ export class ActivityCalendarPage
   }
 
   protected vesselToString(vessel: VesselSnapshot) {
-    return referentialToString(vessel, this.vesselSnapshotAttributes);
+    return `${vessel.registrationLocation.label} ${vessel.registrationLocation.name} - ${vessel.registrationCode} - ${vessel.name}`;
   }
 
   protected clearCalendar(event?: Event) {

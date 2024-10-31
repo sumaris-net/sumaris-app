@@ -3218,7 +3218,7 @@
     },
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Activity {{year}}",
-      "TITLE_MENU": "{{vessel}} ({{year}})",
+      "TITLE_MENU": "{{vessel}} - Activity {{year}}",
       "PREDOC_TITLE": "Predocumentation",
       "BASE_PORT_LOCATION": "Operation port",
       "SOURCE": "Source",
