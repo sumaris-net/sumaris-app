@@ -67,6 +67,24 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
     return this.getShowColumn('gear');
   }
 
+  @Input()
+  set showSelectColumn(value: boolean) {
+    this.setShowColumn('select', value);
+  }
+
+  get showSelectColumn(): boolean {
+    return this.getShowColumn('select');
+  }
+
+  @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
+  }
+
   set value(data: GearPhysicalFeatures[]) {
     this.setValue(data);
   }
@@ -107,6 +125,8 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
 
     this.showMetierColumn = false;
     this.showGearColumn = true;
+    this.showSelectColumn = false;
+    this.showIdColumn = false;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES;
