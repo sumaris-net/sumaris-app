@@ -156,10 +156,10 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
     this.table.filter = this.filter;
     this.loadData();
 
-    if (this.allowNewOperation) {
-      if (this.defaultNewOperation) {
-        this.setValue(this.defaultNewOperation);
-      }
+    this.selectedTabIndex = this.debug ? 1 : 0;
+
+    if (this.allowNewOperation && this.defaultNewOperation) {
+      setTimeout(() => this.setValue(this.defaultNewOperation));
     }
   }
 
@@ -286,6 +286,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
 
       // Set measurements form
       this.measurementsForm.gearId = gearId;
+      this.measurementsForm.requiredGear = false;
       this.measurementsForm.programLabel = this.programLabel;
       const isChildOperation = data.parentOperation || isNotNil(data.parentOperationId);
       const acquisitionLevel = isChildOperation ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
@@ -294,13 +295,14 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
       this.measurementsForm.acquisitionLevel = acquisitionLevel;
       // Do not wait measurements forms when no default gear (because of requiredGear=true)
 
-      if (this.isNew && isNil(gearId)) {
-        this.measurementsForm.pmfms = [];
-      }
+      // if (this.isNew && isNil(gearId)) {
+      //   this.measurementsForm.pmfms = [];
+      // }
 
       this.opeForm.markAsReady();
       await this.opeForm.setValue(data);
 
+      await this.measurementsForm.ready();
       this.measurementsForm.markAsReady();
       await this.measurementsForm.setValue((data && data.measurements) || []);
 

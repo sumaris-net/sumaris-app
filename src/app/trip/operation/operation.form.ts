@@ -740,20 +740,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   async openSelectOperationModal(): Promise<Operation> {
     const trip = this.trip;
-
-    const currentOperation = this.form.value as Partial<Operation>;
+    const newMoment = moment();
+    const currentOperation = Operation.fromObject(this.form.value);
     const parent = currentOperation.parentOperation;
-    const tripDate = (trip && fromDateISOString(trip.departureDateTime).clone()) || moment();
-    const startDate = tripDate.clone().subtract(15, 'day').startOf('day');
+    const startDate = newMoment.startOf('day');
+    const endDate = newMoment.endOf('day');
     const gearIds = removeDuplicatesFromArray((this._$physicalGears.value || []).map((physicalGear) => physicalGear.gear.id));
 
     const tripFilter = {
-      startDate: startDate,
-      endDate: trip?.returnDateTime.endOf('day'),
+      startDate,
+      endDate,
       vesselSnapshot: trip.vesselSnapshot,
       program: trip.program,
       location: trip.departureLocation,
       observers: trip.observers,
+      qualityFlagId: QualityFlagIds.UNDEFINED,
       excludedIds: [trip.id],
     };
     let undefinedTrip = (await this.tripService.loadAll(0, 1, null, null, tripFilter, { mutable: false }))?.data.at(0);
@@ -762,17 +763,25 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       undefinedTrip = trip.clone();
       undefinedTrip.id = -1;
       undefinedTrip.departureDateTime = startDate;
-      undefinedTrip.returnDateTime = trip?.returnDateTime.endOf('day');
-      undefinedTrip = await this.tripService.saveLocally(undefinedTrip);
+      undefinedTrip.returnDateTime = endDate;
+      undefinedTrip.qualityFlagId = QualityFlagIds.UNDEFINED;
     }
 
-    const defaultNewOperation = new Operation();
-    defaultNewOperation.programLabel = undefinedTrip.program.label;
-    defaultNewOperation.physicalGear = currentOperation.physicalGear;
+    // const defaultNewOperation = new Operation();
+    // defaultNewOperation.programLabel = undefinedTrip.program.label;
+    // defaultNewOperation.physicalGear = currentOperation.physicalGear;
+    // defaultNewOperation.measurements = currentOperation.measurements;
+    // defaultNewOperation.trip = undefinedTrip;
+    // defaultNewOperation.recorderDepartment = this.accountService.department;
+    // defaultNewOperation.childOperationId = currentOperation.id;
+    // defaultNewOperation.childOperation = currentOperation as Operation;
+
+    let defaultNewOperation = currentOperation.clone();
+    defaultNewOperation.id = null;
     defaultNewOperation.trip = undefinedTrip;
-    defaultNewOperation.recorderDepartment = this.accountService.department;
+    defaultNewOperation.tripId = undefinedTrip.id;
     defaultNewOperation.childOperationId = currentOperation.id;
-    defaultNewOperation.childOperation = currentOperation as Operation;
+    defaultNewOperation.childOperation = currentOperation;
 
     const modal = await this.modalCtrl.create({
       component: SelectOperationModal,
@@ -783,8 +792,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
           excludedIds: isNotNil(currentOperation.id) ? [currentOperation.id] : null,
           excludeChildOperation: true,
           hasNoChildOperation: true,
-          startDate: undefinedTrip.departureDateTime,
-          endDate: undefinedTrip?.returnDateTime.endOf('day'),
+          startDate,
+          endDate,
           gearIds,
         },
         gearIds,

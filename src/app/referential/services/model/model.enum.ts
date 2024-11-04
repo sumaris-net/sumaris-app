@@ -488,6 +488,7 @@ export const QualityFlagIds = {
   FIXED: 5,
   NOT_COMPLETED: 8,
   MISSING: 9,
+  UNDEFINED: 10,
 };
 
 export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => ({
