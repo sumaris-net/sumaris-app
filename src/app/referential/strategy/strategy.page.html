@@ -118,9 +118,9 @@
     <mat-tab [label]="'PROGRAM.STRATEGY.TAB_PROPERTIES' | translate" [disabled]="isNewData" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon matPrefix>build</mat-icon>
+        @let propertiesCount = propertiesForm.formArray?.length;
         <ion-label
-          *ngVar="propertiesForm.helper?.size() as propertiesCount"
-          [matBadge]="propertiesCount"
+          [matBadge]="propertiesCount | badgeNumber"
           [matBadgeHidden]="propertiesForm.invalid || !propertiesCount"
           matBadgeColor="primary"
           matBadgeOverlap="false"
