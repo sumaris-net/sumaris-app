@@ -3,7 +3,7 @@ import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validator
 import { PmfmStrategy } from '../model/pmfm-strategy.model';
 
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { SharedValidators } from '@sumaris-net/ngx-components';
+import { SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { isNotNil } from '@sumaris-net/ngx-components';
 
 @Injectable({ providedIn: 'root' })
@@ -63,8 +63,8 @@ export class PmfmStrategyValidatorService implements ValidatorService {
         (data && data.acquisitionNumber) || 1,
         Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)]),
       ];
-      config.minValue = [(data && data.minValue) || null, SharedValidators.decimal()];
-      config.maxValue = [(data && data.maxValue) || null, SharedValidators.decimal()];
+      config.minValue = [toNumber(data?.minValue, null), SharedValidators.decimal()];
+      config.maxValue = [toNumber(data?.maxValue, null), SharedValidators.decimal()];
       config.defaultValue = [isNotNil(data && data.defaultValue) ? data.defaultValue : null];
       config.gearIds = [(data && data.gearIds) || null];
       config.taxonGroupIds = [(data && data.taxonGroupIds) || null];
