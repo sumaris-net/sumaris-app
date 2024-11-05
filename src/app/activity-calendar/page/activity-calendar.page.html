@@ -107,7 +107,7 @@
   </ng-container>
 </mat-menu>
 
-<ion-content>
+<ion-content scroll-y="false">
   <mat-tab-group
     #tabGroup
     class="mat-mdc-tab-fixed-content mat-mdc-tab-disabled-hidden"
@@ -557,7 +557,9 @@
   @if (label) {
     <ion-button
       color="tertiary"
-      [title]="((_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate) + predocHotkeySuffix"
+      [title]="
+        ((_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate) + predocButtonTitleSuffix
+      "
       [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
       (click)="toggleShowPredoc($event)"
     >
@@ -567,7 +569,9 @@
   } @else {
     <button
       mat-icon-button
-      [title]="((_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate) + predocHotkeySuffix"
+      [title]="
+        ((_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate) + predocButtonTitleSuffix
+      "
       [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
       (click)="toggleShowPredoc($event)"
     >

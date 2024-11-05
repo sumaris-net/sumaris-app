@@ -25,42 +25,34 @@
     @if (enabled) {
       <button mat-menu-item (click)="cut()" [disabled]="!cellSelection">
         <mat-icon>content_cut</mat-icon>
-        <span class="cell-contextual-menu-item">
-          <ion-label translate>COMMON.BTN_CUT</ion-label>
-          <ion-label color="medium">
-            <small>{{ isIOS ? '⌘+X' : 'Ctrl+X' }}</small>
-          </ion-label>
-        </span>
+        <ion-label translate>COMMON.BTN_CUT</ion-label>
+        <ion-label color="medium" class="shortcut">
+          <small>{{ hotkeys.defaultControlKeyName + '+X' }}</small>
+        </ion-label>
       </button>
     }
     <button mat-menu-item (click)="copy()" [disabled]="!cellSelection">
       <mat-icon>content_copy</mat-icon>
-      <span class="cell-contextual-menu-item">
-        <ion-label translate>COMMON.BTN_COPY</ion-label>
-        <ion-label color="medium">
-          <small>{{ isIOS ? '⌘+C' : 'Ctrl+C' }}</small>
-        </ion-label>
-      </span>
+      <ion-label translate>COMMON.BTN_COPY</ion-label>
+      <ion-label color="medium">
+        <small>{{ hotkeys.defaultControlKeyName + '+C' }}</small>
+      </ion-label>
     </button>
     @if (enabled) {
       <button mat-menu-item (click)="paste()" [disabled]="!(hasClipboard$ | push)">
         <mat-icon>content_paste</mat-icon>
-        <span class="cell-contextual-menu-item">
-          <ion-label translate>COMMON.BTN_PASTE</ion-label>
-          <ion-label color="medium">
-            <small>{{ isIOS ? '⌘+V' : 'Ctrl+V' }}</small>
-          </ion-label>
-        </span>
+        <ion-label translate>COMMON.BTN_PASTE</ion-label>
+        <ion-label color="medium">
+          <small>{{ hotkeys.defaultControlKeyName + '+V' }}</small>
+        </ion-label>
       </button>
       <mat-divider></mat-divider>
       <button mat-menu-item (click)="clearCellSelection()" [disabled]="!cellSelection">
         <mat-icon>delete</mat-icon>
-        <span class="cell-contextual-menu-item">
-          <ion-label translate>COMMON.BTN_CLEAR</ion-label>
-          <ion-label color="medium">
-            <small>{{ isIOS ? 'Fn+Delete' : 'Suppr' }}</small>
-          </ion-label>
-        </span>
+        <ion-label translate>COMMON.BTN_CLEAR</ion-label>
+        <ion-label color="medium">
+          <small>{{ platform.isIOS() ? 'Fn+Delete' : 'Suppr' }}</small>
+        </ion-label>
       </button>
     }
   </ng-template>

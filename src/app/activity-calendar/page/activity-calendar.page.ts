@@ -166,7 +166,7 @@ export class ActivityCalendarPage
   protected isAdmin = this.accountService.isAdmin();
   protected isAdminOrManager = this.accountService.isAdmin();
   protected qualityWarning: string = null;
-  protected readonly predocHotkeySuffix: string;
+  protected readonly predocButtonTitleSuffix: string;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
@@ -220,11 +220,10 @@ export class ActivityCalendarPage
     });
     this.defaultBackHref = '/activity-calendar';
     this.expertiseAreaEnabled = true;
+    this.predocButtonTitleSuffix = ` (${hotkeys.defaultControlKeyName}+P)`;
 
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
-
-    this.predocHotkeySuffix = ` (${this.platform.isIOS() ? '⌘+P' : 'Ctrl+P'})`;
   }
 
   ngOnInit() {
@@ -338,7 +337,7 @@ export class ActivityCalendarPage
     if (!this.mobile) {
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.p', description: 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC', preventDefault: true })
+          .addShortcut({ keys: `${this.hotkeys.defaultControlKey}.p`, description: 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC', preventDefault: true })
           .pipe(filter(() => this.loaded))
           .subscribe(() => this.toggleShowPredoc())
       );

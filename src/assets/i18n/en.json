@@ -23,6 +23,7 @@
     "BTN_DOWNLOAD_JSON": "Download (JSON)",
     "BTN_DOWNLOAD_CSV": "Download (CSV)",
     "BTN_DOWNLOAD_GEOJSON": "Download (GeoJSON)",
+    "BTN_DOWNLOAD_AS_FORMATS_DOTS": "Download as format...",
     "BTN_IMPORT": "Import",
     "BTN_IMPORT_FROM_FILE_DOTS": "Import from file...",
     "BTN_DUPLICATE": "Duplicate",

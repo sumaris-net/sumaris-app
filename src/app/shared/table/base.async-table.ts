@@ -234,7 +234,11 @@ export abstract class AppBaseAsyncTable<
       console.debug(this.logPrefix + 'Add table shortcuts');
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.a', element, preventDefault: false /*will prevent default only if no row editing */ })
+          .addShortcut({
+            keys: `${this.hotkeys.defaultControlKey}.a`,
+            element,
+            preventDefault: false /*will prevent default only if no row editing */,
+          })
           .pipe(
             filter(() => this.canEdit && !this.focusColumn && !this.dataSource.hasSomeEditingRow()),
             tap((event: Event) => event?.preventDefault()),
@@ -252,7 +256,7 @@ export abstract class AppBaseAsyncTable<
       );
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.shift.+', description: 'COMMON.BTN_ADD', element })
+          .addShortcut({ keys: `${this.hotkeys.defaultControlKey}.shift.+`, description: 'COMMON.BTN_ADD', element })
           .pipe(filter((e) => !this.disabled && this.canEdit))
           .subscribe((event) => this.addRow(event))
       );

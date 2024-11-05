@@ -156,6 +156,15 @@ ion-fab {
   .mat-mdc-menu-item-text {
     overflow: hidden;
     text-overflow: ellipsis;
+
+    // Many label (e.g. for shortcut - see calendar component)
+    &:has(> ion-label:nth-child(2)),
+    &:has(> mat-label:nth-child(2)) {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
   }
 }
 

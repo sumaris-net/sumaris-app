@@ -167,10 +167,13 @@
 
     <!-- Control -->
     <button mat-menu-item [disabled]="disabled" (click)="saveAndControl($event)">
-      <ion-label>
-        <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>
-        <span translate>QUALITY.BTN_CONTROL</span>
-      </ion-label>
+      <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>
+      <ion-label translate>QUALITY.BTN_CONTROL</ion-label>
+      @if (!mobile) {
+        <ion-label color="medium">
+          <small>{{ hotkeys.defaultControlKeyName + '+O' }}</small>
+        </ion-label>
+      }
     </button>
 
     <!-- download button -->
@@ -212,7 +215,7 @@
   </ng-template>
 </mat-menu>
 
-<ion-content>
+<ion-content scroll-y="false">
   <mat-tab-group
     #tabGroup
     class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
@@ -247,9 +250,9 @@
           <ion-label color="danger" [innerHTML]="errorMsg | translate"></ion-label>
         </ion-item>
 
-        <ng-container *ngIf="debug">
+        @if (debug) {
           <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
-        </ng-container>
+        }
 
         <ion-grid class="ion-no-padding">
           <ion-row>
@@ -264,6 +267,7 @@
                 (onSubmit)="save($event)"
                 (lastEndDateChanges)="lastEndDate = $event"
                 (openParentOperation)="openParentOperation($event)"
+                [isInlineFishingArea]="isInlineFishingArea"
                 [debug]="debug"
               >
                 <!-- Other features (Measurements) -->
@@ -432,6 +436,8 @@
           <br />
           editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
           <br />
+          editor.tabCount: {{ tabCount }}
+          <br />
         </ion-col>
         <ion-col>
           opeForm.ready: {{ opeForm.readySubject | async }}
@@ -445,6 +451,13 @@
           opeForm.valid: {{ opeForm.valid }}
           <br />
           <br />
+          opeForm.isInlineFishingArea: {{ opeForm.isInlineFishingArea }}
+          <br />
+          opeForm.showPosition: {{ opeForm.showPosition }}
+          <br />
+          opeForm.showFishingArea: {{ opeForm.showFishingArea }}
+          <br />
+          <br />
           opeForm.startDateTime: {{ form | formGetValue: 'startDateTime' | dateFormat: { time: true } }}
           <br />
           opeForm.fishingStartDateTime:
@@ -454,24 +467,6 @@
           {{ form.controls.fishingEndDateTime.valueChanges | async | dateFormat: { time: true } }}
           <br />
           opeForm.endDateTime: {{ form.controls.endDateTime.valueChanges | async | dateFormat: { time: true } }}
-          <br />
-        </ion-col>
-        <ion-col>
-          measurementsForm.ready: {{ measurementsForm.readySubject | async }}
-          <br />
-          measurementsForm.loading: {{ measurementsForm.loading }}
-          <br />
-          measurementsForm.enabled: {{ measurementsForm.enabled }}
-          <br />
-          measurementsForm.dirty: {{ measurementsForm.dirty }}
-          <br />
-          measurementsForm.valid: {{ measurementsForm.valid }}
-          <br />
-          measurementsForm.gearId{{ measurementsForm.requiredGear ? ' (required)' : '' }}: {{ measurementsForm.gearId }}
-          <br />
-          measurementsForm.i18nPmfmPrefix: {{ measurementsForm.i18nPmfmPrefix }}
-          <br />
-          measurementsForm.i18nSuffix: {{ measurementsForm.i18nSuffix }}
           <br />
         </ion-col>
       </ion-row>
