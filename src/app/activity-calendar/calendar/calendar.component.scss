@@ -221,6 +221,10 @@ mat-toolbar {
         display: none;
       }
     }
+
+    &.outsideExpertiseArea {
+      border-color: orange;
+    }
   }
 
   .mat-mdc-cell .computed {

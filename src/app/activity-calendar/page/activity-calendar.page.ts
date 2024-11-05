@@ -1052,9 +1052,24 @@ export class ActivityCalendarPage
         registrationLocations: existingMonth.registrationLocations,
         readonly: existingMonth.readonly,
         updateDate: existingMonth.updateDate,
+        // Don't copy basePortLocation if flagged as outside the expertise are
+        basePortLocation: source.basePortLocation?.properties?.outsideExpertiseArea ? undefined : source.basePortLocation,
         // Preserve gearUseFeatures start and end dates
         gearUseFeatures: source?.gearUseFeatures.map((guf) =>
-          GearUseFeatures.fromObject({ ...guf, startDate: existingMonth.startDate, endDate: existingMonth.endDate })
+          GearUseFeatures.fromObject({
+            ...guf,
+            // Don't copy metier if flagged as outside the expertise are
+            metier: guf.metier?.properties?.outsideExpertiseArea ? undefined : guf.metier,
+            fishingAreas: guf.fishingAreas.map((fa) => ({
+              // Don't copy fishing area's location and gradients if flagged as outside the expertise are
+              location: fa.location?.properties?.outsideExpertiseArea ? undefined : fa.location,
+              distanceToCoastGradient: fa.distanceToCoastGradient?.properties?.outsideExpertiseArea ? undefined : fa.distanceToCoastGradient,
+              depthGradient: fa.depthGradient?.properties?.outsideExpertiseArea ? undefined : fa.depthGradient,
+              nearbySpecificArea: fa.nearbySpecificArea?.properties?.outsideExpertiseArea ? undefined : fa.nearbySpecificArea,
+            })),
+            startDate: existingMonth.startDate,
+            endDate: existingMonth.endDate,
+          })
         ),
       });
     });

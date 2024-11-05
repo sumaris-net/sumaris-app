@@ -496,7 +496,7 @@ export class ReferentialRefService
       toEntity?: boolean;
     }
   ): Promise<ReferentialRef> {
-    const { data } = await this.loadAll(0, 1, null, null, { label, entityName }, { ...opts, withTotal: false /*not need total*/ });
+    const { data } = await this.loadAll(0, 1, null, null, { ...filter, label, entityName }, { ...opts, withTotal: false /*not need total*/ });
     return data?.length ? data[0] : undefined;
   }
 

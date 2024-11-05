@@ -382,6 +382,7 @@
           *matCellDef="let row"
           class="odd mat-mdc-cell-resizable"
           #cell
+          [class.outsideExpertiseArea]="row.currentData.basePortLocation?.properties?.outsideExpertiseArea"
           (click)="clickCell($event, row, 'basePortLocation')"
           (dblclick)="dblClickCell($event, row, 'basePortLocation')"
           (contextmenu)="onContextMenu($event, cell, row, 'basePortLocation')"
@@ -502,6 +503,7 @@
             [class]="col.class"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
+            [class.outsideExpertiseArea]="(row.currentData | propertyGet: col.path)?.properties?.outsideExpertiseArea"
             (click)="col.hidden ? col.expand($event) : clickCell($event, row, col.key)"
             (dblclick)="!col.hidden && dblClickCell($event, row, col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
