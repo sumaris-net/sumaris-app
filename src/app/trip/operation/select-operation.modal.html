@@ -46,6 +46,8 @@
           [trip]="trip"
           [showError]="false"
           [tabindex]="1"
+          [isInlineFishingArea]="isInlineFishingArea"
+          [fishingStartDateTimeEnable]="true"
           (onSubmit)="save($event)"
         >
           <!--          Other features (Measurements)-->
@@ -150,6 +152,18 @@
           trip.gears.length: {{ trip.gears.length }}
           <br />
           trip.measurements.length: {{ trip.measurements.length }}
+          <br />
+        </ion-col>
+        <ion-col>
+          isChildOperation: {{ opeForm.isChildOperation }}
+          <br />
+          allowParentOperation: {{ opeForm.allowParentOperation }}
+          <br />
+          fishingStartDateTimeEnable : {{ opeForm.fishingStartDateTimeEnable }}
+          <br />
+          fishingEndDateTimeEnable: {{ opeForm.fishingEndDateTimeEnable }}
+          <br />
+          endDateTimeEnable: {{ opeForm.endDateTimeEnable }}
           <br />
         </ion-col>
       </ion-row>

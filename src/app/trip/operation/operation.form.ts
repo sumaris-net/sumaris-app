@@ -740,16 +740,17 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   async openSelectOperationModal(): Promise<Operation> {
     const trip = this.trip;
-    const newMoment = moment();
     const currentOperation = Operation.fromObject(this.form.value);
     const parent = currentOperation.parentOperation;
-    const startDate = newMoment.startOf('day');
-    const endDate = newMoment.endOf('day');
+    const tripDate = (trip && fromDateISOString(trip.departureDateTime).clone()) || moment();
+    const startDate = tripDate.add(-15, 'day').startOf('day');
+    const startDateTrip = moment().startOf('day');
+    const endDateTrip = moment().endOf('day');
     const gearIds = removeDuplicatesFromArray((this._$physicalGears.value || []).map((physicalGear) => physicalGear.gear.id));
 
     const tripFilter = {
-      startDate,
-      endDate,
+      startDate: startDateTrip,
+      endDate: endDateTrip,
       vesselSnapshot: trip.vesselSnapshot,
       program: trip.program,
       location: trip.departureLocation,
@@ -762,24 +763,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     if (isNil(undefinedTrip)) {
       undefinedTrip = trip.clone();
       undefinedTrip.id = -1;
-      undefinedTrip.departureDateTime = startDate;
-      undefinedTrip.returnDateTime = endDate;
+      undefinedTrip.departureDateTime = startDateTrip;
+      undefinedTrip.returnDateTime = endDateTrip;
       undefinedTrip.qualityFlagId = QualityFlagIds.UNDEFINED;
     }
-
-    // const defaultNewOperation = new Operation();
-    // defaultNewOperation.programLabel = undefinedTrip.program.label;
-    // defaultNewOperation.physicalGear = currentOperation.physicalGear;
-    // defaultNewOperation.measurements = currentOperation.measurements;
-    // defaultNewOperation.trip = undefinedTrip;
-    // defaultNewOperation.recorderDepartment = this.accountService.department;
-    // defaultNewOperation.childOperationId = currentOperation.id;
-    // defaultNewOperation.childOperation = currentOperation as Operation;
 
     let defaultNewOperation = currentOperation.clone();
     defaultNewOperation.id = null;
     defaultNewOperation.trip = undefinedTrip;
     defaultNewOperation.tripId = undefinedTrip.id;
+    defaultNewOperation.fishingStartDateTime = moment().startOf('day').add(1, 'seconds');
     defaultNewOperation.childOperationId = currentOperation.id;
     defaultNewOperation.childOperation = currentOperation;
 
@@ -793,7 +786,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
           excludeChildOperation: true,
           hasNoChildOperation: true,
           startDate,
-          endDate,
+          endDate: endDateTrip,
           gearIds,
         },
         gearIds,
@@ -809,6 +802,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         trip: undefinedTrip,
         defaultNewOperation: defaultNewOperation,
         allowNewOperation: true,
+        isInlineFishingArea: this.isInlineFishingArea,
         debug: this.debug,
       },
       keyboardClose: true,

@@ -48,6 +48,7 @@ export interface ISelectOperationModalOptions {
   strategyId: number;
   acquisitionLevel: string;
   allowNewOperation: boolean;
+  isInlineFishingArea: boolean;
   defaultNewOperation: Operation;
   trip?: Trip;
   debug?: boolean;
@@ -89,6 +90,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   @Input() gearId: number;
   @Input() trip: Trip;
   @Input() requiredStrategy: boolean;
+  @Input() isInlineFishingArea: boolean = false;
 
   protected readonly tripService = inject(TripService);
   protected readonly context = inject(ContextService);
