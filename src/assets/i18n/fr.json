@@ -123,6 +123,7 @@
 
     "UPDATED_ON": "Mis à jour le",
     "RECORDER": "Saisisseur",
+    "OBSERVERS": "Observateur(s)",
     "RESULT_COUNT": "{{count}} résultats",
     "NO_RESULT": "Aucun résultat",
     "LOADING_DOTS": "Chargement...",

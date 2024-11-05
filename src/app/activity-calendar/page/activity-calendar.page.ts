@@ -496,11 +496,8 @@ export class ActivityCalendarPage
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
       this.i18nContext.suffix = i18nSuffix;
 
-      this.baseForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
       this.isAdminOrManager = this.accountService.isAdmin() || this.programRefService.hasUserManagerPrivilege(program);
-      if (!this.baseForm.showObservers && this.data?.observers) {
-        this.data.observers = []; // make sure to reset data observers, if any
-      }
+      this.baseForm.showObservers = this.isAdminOrManager && program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
 
       if (this.baseForm) {
         this.baseForm.timezone = this.timezone;
