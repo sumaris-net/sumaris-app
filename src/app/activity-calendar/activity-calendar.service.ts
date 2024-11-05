@@ -1100,7 +1100,7 @@ export class ActivityCalendarService
       update: (proxy) => {
         // Update the cache
         this.removeFromMutableCachedQueriesByIds(proxy, {
-          queryNames: ['loadAll', 'loadAllWithTotal'],
+          queries: this.getLoadQueries(),
           ids,
         });
 
