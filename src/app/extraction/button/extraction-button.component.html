@@ -20,7 +20,7 @@
       <mat-icon><ion-icon [name]="icon"></ion-icon></mat-icon>
     }
     <ion-label>
-      <span>{{ title | translate }}</span>
+      <span>{{ label | translate }}</span>
     </ion-label>
   </button>
 </ng-container>
@@ -28,11 +28,9 @@
 <!-- Download menu -->
 <mat-menu #downloadMenu="matMenu" xPosition="before" class="ion-no-padding">
   <ng-template matMenuContent>
-    <ng-container *ngIf="!downloadAsJson.observed && downloadAsType.observed; else subMenu">
+    @if (!downloadAsJson.observed && downloadAsType.observed) {
       <ng-container *ngTemplateOutlet="typesTemplate"></ng-container>
-    </ng-container>
-
-    <ng-template #subMenu>
+    } @else {
       <!-- Extraction types -->
       <button
         mat-menu-item
@@ -41,7 +39,7 @@
         [matMenuTriggerFor]="typesMenu"
       >
         <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
-        <ion-label translate>COMMON.BTN_DOWNLOAD_DOTS</ion-label>
+        <ion-label translate>COMMON.BTN_DOWNLOAD_AS_FORMATS_DOTS</ion-label>
       </button>
 
       <!-- JSON -->
@@ -49,7 +47,7 @@
         <mat-icon>download</mat-icon>
         <ion-label translate>COMMON.BTN_DOWNLOAD_JSON</ion-label>
       </button>
-    </ng-template>
+    }
   </ng-template>
 </mat-menu>
 

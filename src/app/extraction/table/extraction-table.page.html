@@ -169,7 +169,7 @@
 </mat-menu>
 
 <!-- Programs menu -->
-<mat-menu #programsMenu="matMenu" xPosition="after" class="mat-menu-size-400 ion-no-padding">
+<mat-menu #programsMenu="matMenu" [xPosition]="type ? 'before' : 'after'" class="mat-menu-size-400 ion-no-padding">
   <ng-template matMenuContent>
     <!-- header-->
     <ion-row class="mat-menu-header ion-no-padding column">
