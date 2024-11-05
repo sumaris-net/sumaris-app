@@ -5,6 +5,7 @@ import { IMeasurementsFormOptions, MeasurementValuesForm } from '@app/data/measu
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AbstractControl, FormGroup, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
+  AccountService,
   AppFormArray,
   DateUtils,
   equals,
@@ -120,7 +121,8 @@ export class ActivityCalendarForm
     protected personService: PersonService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected network: NetworkService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected accountService: AccountService
   ) {
     super(
       injector,
@@ -237,7 +239,12 @@ export class ActivityCalendarForm
 
     // Make sure to have (at least) one observer
     // Resize observers array
-    data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
+    data.observers = isNotEmptyArray(data.observers)
+      ? data.observers
+      : [
+          // Current user
+          this.accountService.person?.asObject(),
+        ];
     // Update form group
     this.updateFormGroup();
   }

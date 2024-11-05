@@ -185,8 +185,8 @@
                 </ion-button>
 
                 <!-- Observers -->
-                <ng-container afterRecorder *ngIf="data?.observers | isNotEmptyArray">
-                  <ion-card-content>
+                @if (data?.observers | isNotEmptyArray) {
+                  <ion-card-content afterRecorder>
                     <ion-card-subtitle translate>{{ data.observers.length }} {{ 'COMMON.OBSERVERS' | translate }}</ion-card-subtitle>
                     <div class="observer-avatars">
                       <ng-container *ngFor="let observer of data.observers">
@@ -204,7 +204,7 @@
                       </ng-container>
                     </div>
                   </ion-card-content>
-                </ng-container>
+                }
 
                 <!-- Warning -->
                 @if (qualityWarning) {
