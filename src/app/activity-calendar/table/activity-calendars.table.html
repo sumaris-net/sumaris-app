@@ -647,6 +647,16 @@
         </td>
       </ng-container>
 
+      <!-- Update date Column -->
+      <ng-container matColumnDef="updateDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.UPDATE_DATE</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>{{ row.currentData.updateDate | dateFormat: { time: true } }}</ion-text>
+        </td>
+      </ng-container>
+
       <!-- Actions buttons column -->
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>

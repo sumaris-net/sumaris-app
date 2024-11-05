@@ -155,6 +155,15 @@ export class ActivityCalendarsTable
     return this.getShowColumn('registrationLocation');
   }
 
+  @Input()
+  set updateDateColumn(value: boolean) {
+    this.setShowColumn('updateDate', value);
+  }
+
+  get updateDateColumn(): boolean {
+    return this.getShowColumn('updateDate');
+  }
+
   get filterYearControl(): UntypedFormControl {
     return this.filterForm.controls.year as UntypedFormControl;
   }
@@ -186,6 +195,7 @@ export class ActivityCalendarsTable
         'observers',
         'recorderPerson',
         'comments',
+        'updateDate',
       ],
       _dataService,
       null
