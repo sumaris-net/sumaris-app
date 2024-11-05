@@ -255,6 +255,20 @@
           <ion-grid class="ion-no-padding ion-padding-start">
             <ion-row>
               <ion-col>
+                <app-vessel-registration-history-table
+                  #registrationHistoryTable
+                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATION_DIVIDER'"
+                  [i18nColumnSuffix]="'.ACTIVITY_CALENDAR'"
+                  [showRegistrationLocationColumn]="true"
+                  [showPagination]="true"
+                  [defaultPageSize]="5"
+                  [defaultPageSizeOptions]="[5, 10, 50]"
+                  [debug]="debug"
+                ></app-vessel-registration-history-table>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
                 <app-vessel-features-history-table
                   #featuresHistoryTable
                   [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES_DIVIDER'"
@@ -268,22 +282,9 @@
                   [showPagination]="true"
                   [defaultPageSize]="5"
                   [defaultPageSizeOptions]="[5, 10, 50]"
+                  [showExteriorMarkingColumn]="false"
                   [debug]="debug"
                 ></app-vessel-features-history-table>
-              </ion-col>
-            </ion-row>
-            <ion-row>
-              <ion-col>
-                <app-vessel-registration-history-table
-                  #registrationHistoryTable
-                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATION_DIVIDER'"
-                  [i18nColumnSuffix]="'.ACTIVITY_CALENDAR'"
-                  [showRegistrationLocationColumn]="true"
-                  [showPagination]="true"
-                  [defaultPageSize]="5"
-                  [defaultPageSizeOptions]="[5, 10, 50]"
-                  [debug]="debug"
-                ></app-vessel-registration-history-table>
               </ion-col>
             </ion-row>
             <ion-row>
