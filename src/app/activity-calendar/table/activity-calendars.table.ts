@@ -194,8 +194,8 @@ export class ActivityCalendarsTable
         'economicSurvey',
         'observers',
         'recorderPerson',
-        'comments',
         'updateDate',
+        'comments',
       ],
       _dataService,
       null

@@ -639,14 +639,6 @@
         </td>
       </ng-container>
 
-      <!-- Comments column -->
-      <ng-container matColumnDef="comments">
-        <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let row">
-          <mat-icon color="primary" class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
-        </td>
-      </ng-container>
-
       <!-- Update date Column -->
       <ng-container matColumnDef="updateDate">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
@@ -654,6 +646,14 @@
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-text>{{ row.currentData.updateDate | dateFormat: { time: true } }}</ion-text>
+        </td>
+      </ng-container>
+
+      <!-- Comments column -->
+      <ng-container matColumnDef="comments">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <mat-icon color="primary" class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
         </td>
       </ng-container>
 
