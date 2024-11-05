@@ -244,18 +244,18 @@ export class OperationPage<S extends OperationState = OperationState>
     if (!this.mobile) {
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
+          .addShortcut({ keys: 'F2', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
           .subscribe((event) => this.openHelpModal(event))
       );
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.+', description: 'COMMON.BTN_ADD', preventDefault: true })
+          .addShortcut({ keys: `${this.hotkeys.defaultControlKey}.shift.+`, description: 'COMMON.BTN_ADD', preventDefault: true })
           .pipe(filter((_) => !this.disabled && this.showFabButton))
           .subscribe((event) => this.onNewFabButtonClick(event))
       );
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.o', description: 'QUALITY.BTN_CONTROL', preventDefault: true })
+          .addShortcut({ keys: `${this.hotkeys.defaultControlKey}.o`, description: 'QUALITY.BTN_CONTROL', preventDefault: true })
           .pipe(filter(() => !this.disabled))
           .subscribe(() => this.saveAndControl())
       );

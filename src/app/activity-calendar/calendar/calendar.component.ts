@@ -238,7 +238,6 @@ export class CalendarComponent
   protected referentialRefService = inject(ReferentialRefService);
   protected debouncedExpandCellSelection$ = new Subject<TableCellSelection<ActivityMonth>>();
   protected confirmingRowMutex = new Mutex();
-  protected readonly isIOS: boolean;
 
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
@@ -427,7 +426,6 @@ export class CalendarComponent
     this.toolbarColor = 'medium';
     this.logPrefix = '[activity-calendar] ';
     this.loadingSubject.next(true);
-    this.isIOS = this.platform.isIOS();
   }
 
   async ngOnInit() {
@@ -537,26 +535,31 @@ export class CalendarComponent
 
     // Add shortcuts
     if (!this.mobile) {
-      console.debug(this.logPrefix + 'Add table shortcuts');
+      console.debug(this.logPrefix + `Add table shortcuts`);
 
-      const copyKey = this.isIOS ? '' : 'control.c';
-      const pasteKey = this.isIOS ? '' : 'control.v';
-      const cutKey = this.isIOS ? '' : 'control.x';
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: copyKey, description: 'COMMON.BTN_COPY', preventDefault: false /*keep copy in <input>*/ })
+          .addShortcut({
+            keys: `${this.hotkeys.defaultControlKey}.c`,
+            description: 'COMMON.BTN_COPY',
+            preventDefault: false /*keep copy in <input>*/,
+          })
           .pipe(filter(() => this.loaded && !!this.cellSelection))
           .subscribe((event) => this.copy(event))
       );
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: pasteKey, description: 'COMMON.BTN_PASTE', preventDefault: false /*keep past in <input>*/ })
+          .addShortcut({
+            keys: `${this.hotkeys.defaultControlKey}.v`,
+            description: 'COMMON.BTN_PASTE',
+            preventDefault: false /*keep paste in <input>*/,
+          })
           .pipe(filter(() => !this.disabled && this.canEdit))
           .subscribe((event) => this.pasteFromClipboard(event))
       );
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: cutKey, description: 'COMMON.BTN_CUT', preventDefault: false /*keep past in <input>*/ })
+          .addShortcut({ keys: `${this.hotkeys.defaultControlKey}.x`, description: 'COMMON.BTN_CUT', preventDefault: false /*keep past in <input>*/ })
           .pipe(filter(() => !this.disabled && this.canEdit))
           .subscribe((event) => this.cut(event))
       );
@@ -2393,7 +2396,7 @@ export class CalendarComponent
     }
   }
 
-  protected async clearCellSelection(event: Event | undefined, cellSelection?: TableCellSelection): Promise<boolean> {
+  protected async clearCellSelection(event?: Event | undefined, cellSelection?: TableCellSelection): Promise<boolean> {
     cellSelection = cellSelection || this.cellSelection;
     if (!cellSelection || event?.defaultPrevented) return false;
 
