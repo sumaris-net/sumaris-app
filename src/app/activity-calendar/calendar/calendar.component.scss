@@ -160,6 +160,10 @@ mat-toolbar {
     --mat-table-row-item-outline-width: 0px;
   }
 
+  .mdc-data-table__row:last-child .mat-mdc-cell {
+    --mat-table-row-item-outline-width: 1px;
+  }
+
   .mat-mdc-header-cell {
     padding: 0;
 
