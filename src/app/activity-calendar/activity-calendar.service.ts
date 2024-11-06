@@ -818,6 +818,9 @@ export class ActivityCalendarService
 
           // Update the entity and update GraphQL cache
           else {
+            // check if is a new entity
+            const isNew = RootDataEntityUtils.isNew(entity);
+
             // Remove existing entity from the local storage
             if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
               if (this._debug) console.debug(`[activity-calendar-service] Deleting activityCalendar {${entity.id}} from local storage`);
@@ -828,7 +831,7 @@ export class ActivityCalendarService
             this.copyIdAndUpdateDate(savedEntity, entity, opts);
 
             // Insert into the cache
-            if (RootDataEntityUtils.isNew(entity) && this.watchQueriesUpdatePolicy === 'update-cache') {
+            if (isNew && this.watchQueriesUpdatePolicy === 'update-cache') {
               this.insertIntoMutableCachedQueries(cache, {
                 queries: this.getLoadQueries(),
                 data: savedEntity,
@@ -1097,7 +1100,7 @@ export class ActivityCalendarService
       update: (proxy) => {
         // Update the cache
         this.removeFromMutableCachedQueriesByIds(proxy, {
-          queryNames: ['loadAll', 'loadAllWithTotal'],
+          queries: this.getLoadQueries(),
           ids,
         });
 
