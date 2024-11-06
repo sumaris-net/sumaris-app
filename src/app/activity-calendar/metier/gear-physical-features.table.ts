@@ -44,10 +44,13 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
   @Input() metierTaxonGroupIds: number[];
   @Input() canAdd: boolean = false;
   @Input() canDelete: boolean = false;
+  @Input() canEditMetier = true;
+  @Input() canEditGear = true;
   @Input() timezone: string = DateUtils.moment().tz();
   @Input() year: number;
-  @Input() canEditMetier: boolean;
-  @Input() canEditGear: boolean;
+
+  @Input() showSelectColumn = true;
+  @Input() showIdColumn = true;
 
   @Input()
   set showMetierColumn(value: boolean) {
@@ -65,24 +68,6 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
 
   get showGearColumn(): boolean {
     return this.getShowColumn('gear');
-  }
-
-  @Input()
-  set showSelectColumn(value: boolean) {
-    this.setShowColumn('select', value);
-  }
-
-  get showSelectColumn(): boolean {
-    return this.getShowColumn('select');
-  }
-
-  @Input()
-  set showIdColumn(value: boolean) {
-    this.setShowColumn('id', value);
-  }
-
-  get showIdColumn(): boolean {
-    return this.getShowColumn('id');
   }
 
   set value(data: GearPhysicalFeatures[]) {
