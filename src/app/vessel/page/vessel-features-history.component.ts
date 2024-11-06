@@ -65,6 +65,15 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
     return this.getShowColumn('ircs');
   }
 
+  @Input()
+  set showExteriorMarkingColumn(value: boolean) {
+    this.setShowColumn('exteriorMarking', value);
+  }
+
+  get showExteriorMarkingColumn(): boolean {
+    return this.getShowColumn('exteriorMarking');
+  }
+
   constructor(
     injector: Injector,
     protected accountService: AccountService,
