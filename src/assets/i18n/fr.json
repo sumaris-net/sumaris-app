@@ -3605,7 +3605,7 @@
       },
       "VESSEL_SECTION": {
         "TITLE": "Navire",
-        "EXTERIOR_MARKING": "Marquage extérieur",
+        "EXTERIOR_MARKING": "Marquage extérieur :",
         "REGISTRATION_CODE": "Immatriculation :",
         "REGISTRATION_LOCATION": "Lieux d'immat. :",
         "VESSEL_NAME": "Nom :"
