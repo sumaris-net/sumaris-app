@@ -223,7 +223,12 @@ mat-toolbar {
     }
 
     &.outsideExpertiseArea {
-      border-color: orange;
+      background-color: var(--ion-color-warning-tint);
+
+      &.mat-mdc-row-disabled:hover,
+      &.mat-row-disabled:hover {
+        background-color: var(--ion-color-warning-shade) !important;
+      }
     }
   }
 

@@ -101,7 +101,7 @@
 
   <ng-container *ngFor="let item of expertiseAreas$ | async">
     <button mat-menu-item [disabled]="!expertiseAreaEnabled" (click)="selectedExpertiseArea = item">
-      <mat-icon>{{ selectedExpertiseArea?.id === item.id ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+      <mat-icon>{{ selectedExpertiseArea?.id === item.id ? 'check' : '' }}</mat-icon>
       <ion-label>{{ item.name }}</ion-label>
     </button>
   </ng-container>

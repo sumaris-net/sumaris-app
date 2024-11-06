@@ -1793,7 +1793,7 @@ export class CalendarComponent
   }
 
   protected async patchReferentialOutsideExpertiseArea() {
-    const months = this.memoryDataService.value;
+    const months: ActivityMonth[] = this.dirty ? this.dataSource.getData() : this.memoryDataService.value;
     const needCheck = isNotEmptyArray(this.expertiseLocationIds);
 
     const now = this.debug && Date.now();
