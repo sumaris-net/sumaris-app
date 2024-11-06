@@ -467,11 +467,15 @@
           [requiredStrategy]="requiredStrategy$ | async"
           [strategyId]="(strategy$ | async)?.id"
           [timezone]="timezone"
+          [showSelectColumn]="false"
+          [showIdColumn]="false"
           [showGearColumn]="false"
           [showMetierColumn]="true"
           [showError]="!mobile"
           [canAdd]="false"
           [canDelete]="false"
+          [canEditMetier]="false"
+          [canEditGear]="false"
         ></app-gear-physical-features-table>
       </div>
     </mat-tab>

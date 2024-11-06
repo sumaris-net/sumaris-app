@@ -87,6 +87,7 @@ import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activit
 import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-form.component';
 import { VesselUseFeaturesIsActiveEnum } from '../model/vessel-use-features.model';
 import { GearUseFeatures } from '../model/gear-use-features.model';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -1071,6 +1072,14 @@ export class ActivityCalendarPage
       return;
     }
     return super.saveAndGetDataIfValid();
+  }
+
+  onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string) {
+    super.onTabChange(event);
+    if (event.index === ActivityCalendarPage.TABS.CALENDAR) {
+      this.calendar.onResize();
+    }
+    return true;
   }
 
   protected readonly equals = equals;

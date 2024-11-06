@@ -44,10 +44,13 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
   @Input() metierTaxonGroupIds: number[];
   @Input() canAdd: boolean = false;
   @Input() canDelete: boolean = false;
+  @Input() canEditMetier = true;
+  @Input() canEditGear = true;
   @Input() timezone: string = DateUtils.moment().tz();
   @Input() year: number;
-  @Input() canEditMetier: boolean;
-  @Input() canEditGear: boolean;
+
+  @Input() showSelectColumn = true;
+  @Input() showIdColumn = true;
 
   @Input()
   set showMetierColumn(value: boolean) {
@@ -107,6 +110,8 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
 
     this.showMetierColumn = false;
     this.showGearColumn = true;
+    this.showSelectColumn = true;
+    this.showIdColumn = true;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES;
