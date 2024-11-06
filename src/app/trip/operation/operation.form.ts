@@ -755,23 +755,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       program: trip.program,
       location: trip.departureLocation,
       observers: trip.observers,
-      qualityFlagId: QualityFlagIds.UNDEFINED,
       excludedIds: [trip.id],
     };
-    let undefinedTrip = (await this.tripService.loadAll(0, 1, null, null, tripFilter, { mutable: false }))?.data.at(0);
+    let undefinedTrip = (await this.tripService.loadAll(0, 999, null, null, tripFilter))?.data.at(0);
 
     if (isNil(undefinedTrip)) {
       undefinedTrip = trip.clone();
-      undefinedTrip.id = -1;
+      undefinedTrip.id = undefined;
       undefinedTrip.departureDateTime = startDateTrip;
       undefinedTrip.returnDateTime = endDateTrip;
       undefinedTrip.qualityFlagId = QualityFlagIds.UNDEFINED;
+      undefinedTrip.synchronizationStatus = 'READY_TO_SYNC';
     }
 
     let defaultNewOperation = currentOperation.clone();
     defaultNewOperation.id = null;
-    defaultNewOperation.trip = undefinedTrip;
-    defaultNewOperation.tripId = undefinedTrip.id;
     defaultNewOperation.fishingStartDateTime = moment().startOf('day').add(1, 'seconds');
     defaultNewOperation.childOperationId = currentOperation.id;
     defaultNewOperation.childOperation = currentOperation;

@@ -4,6 +4,7 @@ import {
   AppEntityEditorModal,
   DateUtils,
   EntitiesTableDataSource,
+  isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotNil,
@@ -23,7 +24,6 @@ import { AppDataEditorOptions } from '@app/data/form/data-editor.class';
 import { Promise, setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { TripService } from '@app/trip/trip/trip.service';
@@ -218,7 +218,7 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
   }
 
   async save(event: Event, opts?: OperationSaveOptions & { emitEvent?: boolean; updateRoute?: boolean; openTabIndex?: number }): Promise<boolean> {
-    if (this.loading || this.saving) {
+    if (this.loading || this.saving || this.disabled) {
       console.debug('[data-editor] Skip save: editor is busy (loading or saving)');
       return false;
     }
@@ -236,26 +236,22 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
       this.markForCheck();
       return false; // Stop if failed
     }
-    // Continue to mark as saving, to avoid option menu to open
-    this.markAsSaving();
 
-    // Mark trip as dirty
-    if (RootDataEntityUtils.isReadyToSync(this.trip)) {
-      RootDataEntityUtils.markAsDirty(this.trip);
-      this.trip = await this.tripService.save(this.trip);
+    const option = { opts, withOperation: true, withLanding: true };
+    const operation = await this.getValue();
+
+    if (isEmptyArray(this.trip.operations)) {
+      this.trip.operations = [];
     }
 
-    // Force to pass specific saved options to dataService.save()
-    const saved = await super.save(event, <OperationSaveOptions>{
-      ...this.saveOptions,
-      trip: this.trip,
-      updateLinkedOperation: this.opeForm.isParentOperation || this.opeForm.isChildOperation, // Apply updates on child operation if it exists
-      ...opts,
-    });
+    operation.measurements = this.measurementsForm.getValue();
+
+    this.trip.operations.push(operation);
+    this.trip = await this.tripService.save(this.trip, option);
 
     try {
       // Display form error on top
-      if (!saved) {
+      if (isNil(this.trip.id)) {
         let error = this.error;
         if (isNilOrBlank(error)) {
           // DEBUG
@@ -270,12 +266,12 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
 
           this.setError(error);
         }
+        return false;
       }
-      return saved;
     } finally {
       this.markAsSaved();
-      // await this.cancel();
-      return saved;
+      // await this.modalCtrl.dismiss(this.trip);
+      return true;
     }
   }
 
