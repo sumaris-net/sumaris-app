@@ -222,7 +222,7 @@ export class ActivityCalendarsTable
 
     this.autoLoad = false; // See restoreFilterOrLoad()
     this.inlineEdition = false;
-    this.defaultSortBy = 'year';
+    this.defaultSortBy = 'updateDate';
     this.defaultSortDirection = 'desc';
     this.confirmBeforeDelete = true;
     this.canEdit = false;
