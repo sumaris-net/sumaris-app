@@ -125,8 +125,8 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
 
     this.showMetierColumn = false;
     this.showGearColumn = true;
-    this.showSelectColumn = false;
-    this.showIdColumn = false;
+    this.showSelectColumn = true;
+    this.showIdColumn = true;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES;
