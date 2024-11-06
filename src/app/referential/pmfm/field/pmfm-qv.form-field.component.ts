@@ -28,10 +28,13 @@ import {
   focusInput,
   InputElement,
   IReferentialRef,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  LoadResult,
   LocalSettingsService,
+  ReferentialFilter,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
@@ -46,6 +49,7 @@ import {
 import { PmfmIds } from '../../services/model/model.enum';
 import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
 import { IonButton } from '@ionic/angular';
+import { SuggestFn } from '../../../../../ngx-sumaris-components/src/app/shared/services/entity-service.class';
 
 export declare type PmfmQvFormFieldStyle = 'autocomplete' | 'select' | 'button';
 
@@ -112,7 +116,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input({ transform: booleanAttribute }) disableRipple = false;
   @Input() panelClass: string;
   @Input() panelWidth: string;
-  @Input() excludedQualitativeValuesIds: number[];
+  @Input() suggestFn: SuggestFn<IReferentialRef, ReferentialFilter>;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -178,9 +182,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
     this._qualitativeValues = qualitativeValues
       // Exclude disabled values
-      .filter((qv) => qv.statusId !== StatusIds.DISABLE)
-      // Exclude additional values
-      .filter((qv) => !this.excludedQualitativeValuesIds?.includes(qv.id));
+      .filter((qv) => qv.statusId !== StatusIds.DISABLE);
 
     this.required = toBoolean(this.required, this.pmfm.required || false);
 
@@ -207,6 +209,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     this.placeholder = this.placeholder || PmfmUtils.getPmfmName(this.pmfm, { withUnit: !this.compact });
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
+    this.suggestFn = this.suggestFn ?? this.pmfm.qualitativeValuesSuggestFn;
 
     // On desktop, manage autocomplete
     if (!this.mobile) {
@@ -216,17 +219,12 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         this._items$ = merge(
           this.onShowDropdown.pipe(
             filter((event) => !event.defaultPrevented),
-            map((_) => this._sortedQualitativeValues.filter((qv) => !this.excludedQualitativeValuesIds?.includes(qv.id)))
+            map((_) => this.suggest('*'))
           ),
           this.formControl.valueChanges.pipe(
             filter(ReferentialUtils.isEmpty),
-            map((value) =>
-              suggestFromArray(this._sortedQualitativeValues, value, {
-                searchAttributes: this.searchAttributes,
-                excludedIds: this.excludedQualitativeValuesIds,
-              })
-            ),
-            map((res) => res && res.data),
+            map((value) => this.suggest(value)),
+            map((res) => res?.data || res),
             tap((items) => this.updateImplicitValue(items))
           )
         ).pipe(takeUntil(this.destroySubject));
@@ -400,6 +398,24 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   selectInputContent = AppFormUtils.selectInputContent;
 
   /* -- protected methods -- */
+
+  protected async suggest(value: any, filter: any): Promise<LoadResult<IReferentialRef>> {
+    // Replace '*' character by undefined
+    if (!value || value === '*') {
+      value = undefined;
+    }
+
+    if (isNilOrBlank(value)) return this._sortedQualitativeValues;
+
+    if (typeof this.suggestFn === 'function') {
+      return this.suggestFn(value, { ...filter, searchAttributes: this.searchAttributes, pmfm: this.pmfm });
+    }
+
+    return suggestFromArray(this._sortedQualitativeValues, value, {
+      ...filter,
+      searchAttributes: this.searchAttributes,
+    });
+  }
 
   protected updateImplicitValue(res: any[]) {
     // Store implicit value (will use it onBlur if not other value selected)

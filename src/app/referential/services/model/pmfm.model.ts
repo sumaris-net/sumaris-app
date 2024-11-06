@@ -9,6 +9,7 @@ import {
   isNotNilOrBlank,
   ReferentialRef,
   ReferentialUtils,
+  SuggestFn,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import {
@@ -53,6 +54,7 @@ export interface IPmfm<T extends IPmfm<T, ID> = IPmfm<any, any>, ID = number> ex
   methodId: number;
 
   qualitativeValues: ReferentialRef[];
+  qualitativeValuesSuggestFn?: SuggestFn<ReferentialRef, any>;
 
   unitLabel: string;
   rankOrder?: number;

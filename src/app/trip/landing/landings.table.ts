@@ -5,6 +5,7 @@ import {
   AccountService,
   AppValidatorService,
   DateUtils,
+  EntityUtils,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
@@ -44,12 +45,11 @@ import { ObservedLocationContextService } from '@app/trip/observedlocation/obser
 import { RxState } from '@rx-angular/state';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
-import { debounceTime, filter } from 'rxjs/operators';
+import { debounceTime, filter, first } from 'rxjs/operators';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { first } from 'rxjs/operators';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
@@ -111,7 +111,6 @@ export class LandingsTable
   protected dividerPmfm: IPmfm;
   protected statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
   protected statusById = DataQualityStatusEnum;
-  protected excludedTaxonGroups: number[] = [];
   @RxStateProperty() protected observedCount: number;
   @RxStateProperty() protected availableTaxonGroups: TaxonGroupRef[];
 
@@ -424,16 +423,23 @@ export class LandingsTable
     );
   }
 
+  /**
+   *
+   * @param form
+   */
   onPrepareRowForm(form: UntypedFormGroup) {
-    // Update measurement form
     if (this.isSaleDetailEditor) {
-      // Get taxon groups to exclude (already existing)
-      this.excludedTaxonGroups = this.dataSource
+      // Collect existing PETS taxon groups ids
+      const existingPetsTaxonGroupIds = this.dataSource
         .getRows()
         .filter((row) => this.isLandingPets(row))
-        .filter((row) => !!row.currentData.measurementValues[PmfmIds.TAXON_GROUP_ID])
-        .map((row) => row.currentData.measurementValues[PmfmIds.TAXON_GROUP_ID].id);
+        .map((row) => row.currentData.measurementValues[PmfmIds.TAXON_GROUP_ID])
+        .filter(EntityUtils.isEntity)
+        .map((taxonGroup) => taxonGroup.id);
 
+      // TODO: update suggest Taxon Group
+
+      // Update measurement form
       this.validatorService.updateFormGroup(form, { pmfms: this.pmfms });
     }
 

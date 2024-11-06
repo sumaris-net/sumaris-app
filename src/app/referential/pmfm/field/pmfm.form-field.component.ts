@@ -29,9 +29,11 @@ import {
 import {
   AppFloatLabelType,
   AppFormArray,
+  FilterFn,
   filterNumberInput,
   focusInput,
   InputElement,
+  IReferentialRef,
   isNil,
   isNilOrBlank,
   isNotNil,
@@ -52,6 +54,7 @@ import { RxState } from '@rx-angular/state';
 import { filter, map } from 'rxjs/operators';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { MatIconButton } from '@angular/material/button';
+import { SuggestFn } from '../../../../../ngx-sumaris-components/src/app/shared/services/entity-service.class';
 
 const noop = () => {};
 
@@ -155,7 +158,8 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input({ transform: booleanAttribute }) disableRipple = false;
   @Input() panelClass: string;
   @Input() panelWidth: string;
-  @Input() excludedQualitativeValuesIds: number[];
+  @Input() suggestFn: SuggestFn<any, any>;
+  @Input() qualitativeValueFilterFn: FilterFn<IReferentialRef>;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input({ transform: booleanAttribute }) listenStatusChanges = false;

@@ -144,19 +144,21 @@
           </mat-option>
 
           <!-- options -->
-          <mat-option *ngFor="let item of sortedQualitativeValues" [value]="item" class="ion-no-padding">
-            <ion-row class="ion-no-padding">
-              <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
-                <ng-container *ngSwitchCase="'label'">
-                  <ion-col *ngIf="compact" size="3">{{ item.label }}</ion-col>
-                  <ion-col *ngIf="!compact" size="3" size-lg="2">{{ item.label }}</ion-col>
+          @for (item of sortedQualitativeValues; track item.id) {
+            <mat-option [value]="item" class="ion-no-padding">
+              <ion-row class="ion-no-padding">
+                <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
+                  <ng-container *ngSwitchCase="'label'">
+                    <ion-col *ngIf="compact" size="3">{{ item.label }}</ion-col>
+                    <ion-col *ngIf="!compact" size="3" size-lg="2">{{ item.label }}</ion-col>
+                  </ng-container>
+                  <ion-col *ngSwitchCase="'name'">
+                    <ion-label>{{ item.name }}</ion-label>
+                  </ion-col>
                 </ng-container>
-                <ion-col *ngSwitchCase="'name'">
-                  <ion-label>{{ item.name }}</ion-label>
-                </ion-col>
-              </ng-container>
-            </ion-row>
-          </mat-option>
+              </ion-row>
+            </mat-option>
+          }
         </mat-select>
 
         <div matSuffix>
@@ -197,7 +199,7 @@
 
         @if (formControl.enabled || formControl.value != null) {
           <div class="mat-form-field-buttons" [style.--buttons-col-count]="buttonsColCount">
-            <ng-container *ngFor="let item of sortedQualitativeValues; index as i; trackBy: getQvId">
+            @for (item of sortedQualitativeValues; track item.id; let i = $index) {
               <ion-button
                 #button
                 *ngIf="showAllButtons || selectedIndex === i || i < maxVisibleButtons"
@@ -211,7 +213,7 @@
               >
                 {{ item.name || item.label }}
               </ion-button>
-            </ng-container>
+            }
           </div>
         } @else {
           <ion-label translate>COMMON.EMPTY_OPTION</ion-label>
