@@ -207,3 +207,17 @@ export function translateQualityFlag(qualityFlagId: number, qualityFlags?: Refer
   qualityFlag = qualityFlag || QualityFlags.find((qf) => qf.id === qualityFlagId);
   return qualityFlag ? 'QUALITY.QUALITY_FLAGS.' + qualityFlag.label : undefined;
 }
+
+export function markAsOutsideExpertiseArea(item: ReferentialRef, value = true) {
+  if (!item) return;
+  if (value === true) {
+    item.properties = item.properties || {};
+    item.properties.outsideExpertiseArea = true;
+  } else if (item.properties) {
+    delete item.properties.outsideExpertiseArea;
+  }
+}
+
+export function isOutsideExpertiseArea(item: ReferentialRef) {
+  return item?.properties?.outsideExpertiseArea === true;
+}

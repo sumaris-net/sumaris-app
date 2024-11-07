@@ -96,6 +96,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { Mutex } from '@app/shared/async/mutex.class';
+import { markAsOutsideExpertiseArea } from '@app/data/services/model/model.utils';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -269,7 +270,7 @@ export class CalendarComponent
   @RxStateProperty() hasClipboard: boolean;
   @RxStateProperty() availablePrograms: ReferentialRef[];
   @RxStateProperty() hasConflict: boolean;
-  @RxStateProperty() hasReferentialOutsideExpertiseArea: boolean; // TODO use this property to show an indication somewhere...
+  @RxStateProperty() hasDataOutsideExpertiseArea: boolean; // TODO use this property to show an indication somewhere...
 
   @Output() copyAllClick: EventEmitter<ActivityMonth[]> = new EventEmitter<ActivityMonth[]>();
   @Output() startCellSelection: EventEmitter<void> = new EventEmitter();
@@ -527,14 +528,12 @@ export class CalendarComponent
     this._state.hold(this.debouncedExpandCellSelection$.pipe(debounceTime(250)), (cellSelection) => this.expandCellSelection(cellSelection));
 
     // Execute the patch on each expertise area change or activation
-    this.registerSubscription(
-      this._state
-        .select('expertiseLocationIds')
-        .pipe(
-          distinctUntilChanged(),
-          filter(() => isNotEmptyArray(this.memoryDataService.value))
-        )
-        .subscribe(() => this.patchReferentialOutsideExpertiseArea())
+    this._state.hold(
+      this._state.select('expertiseLocationIds').pipe(
+        distinctUntilChanged(),
+        filter(() => isNotEmptyArray(this.memoryDataService.value))
+      ),
+      () => this.checkDataExpertiseArea()
     );
   }
 
@@ -665,7 +664,7 @@ export class CalendarComponent
         this.hasConflict = this.hasSomeConflictualMonth(data);
 
         // Set flags on referential outside expertise area (#732)
-        await this.patchReferentialOutsideExpertiseArea();
+        await this.checkDataExpertiseArea();
 
         break;
       }
@@ -1792,7 +1791,11 @@ export class CalendarComponent
     };
   }
 
-  protected async patchReferentialOutsideExpertiseArea() {
+  /**
+   * Check if some date are outside expertise area, and mark it (see issue #732)
+   * @protected
+   */
+  protected async checkDataExpertiseArea() {
     const months: ActivityMonth[] = this.dirty ? this.dataSource.getData() : this.memoryDataService.value;
     const needCheck = isNotEmptyArray(this.expertiseLocationIds);
 
@@ -1816,10 +1819,8 @@ export class CalendarComponent
             invalidBasePortLocationIds.push(month.basePortLocation.id);
           }
         }
-        month.basePortLocation.properties = {
-          ...month.basePortLocation.properties,
-          outsideExpertiseArea: invalidBasePortLocationIds.includes(month.basePortLocation.id),
-        };
+        // Update marker
+        markAsOutsideExpertiseArea(month.basePortLocation, invalidBasePortLocationIds.includes(month.basePortLocation.id));
       }
 
       // Flag gearUseFeature with inconsistent expertise location ids (metier, fishingArea & gradients)
@@ -1830,7 +1831,7 @@ export class CalendarComponent
               invalidMetierIds.push(guf.metier.id);
             }
           }
-          guf.metier.properties = { ...guf.metier.properties, outsideExpertiseArea: invalidMetierIds.includes(guf.metier.id) };
+          markAsOutsideExpertiseArea(guf.metier, invalidMetierIds.includes(guf.metier.id));
         }
 
         for (const fa of guf.fishingAreas || []) {
@@ -1843,7 +1844,7 @@ export class CalendarComponent
                 invalidFishingAreaLocationIds.push(faLocationId);
               }
             }
-            fa.location.properties = { ...fa.location.properties, outsideExpertiseArea: invalidFishingAreaLocationIds.includes(faLocationId) };
+            markAsOutsideExpertiseArea(fa.location, invalidFishingAreaLocationIds.includes(faLocationId));
           }
 
           const dtcId = fa.distanceToCoastGradient?.id;
@@ -1859,10 +1860,7 @@ export class CalendarComponent
                 invalidDistanceToCoastGradientIds.push(dtcId);
               }
             }
-            fa.distanceToCoastGradient.properties = {
-              ...fa.distanceToCoastGradient.properties,
-              outsideExpertiseArea: invalidDistanceToCoastGradientIds.includes(dtcId),
-            };
+            markAsOutsideExpertiseArea(fa.distanceToCoastGradient, invalidDistanceToCoastGradientIds.includes(dtcId));
           }
 
           const dgId = fa.depthGradient?.id;
@@ -1876,7 +1874,7 @@ export class CalendarComponent
                 invalidDepthGradientIds.push(dgId);
               }
             }
-            fa.depthGradient.properties = { ...fa.depthGradient.properties, outsideExpertiseArea: invalidDepthGradientIds.includes(dgId) };
+            markAsOutsideExpertiseArea(fa.depthGradient, invalidDepthGradientIds.includes(dgId));
           }
 
           const nsaId = fa.nearbySpecificArea?.id;
@@ -1892,16 +1890,13 @@ export class CalendarComponent
                 invalidNearbySpecificAreaIds.push(nsaId);
               }
             }
-            fa.nearbySpecificArea.properties = {
-              ...fa.nearbySpecificArea.properties,
-              outsideExpertiseArea: invalidNearbySpecificAreaIds.includes(nsaId),
-            };
+            markAsOutsideExpertiseArea(fa.nearbySpecificArea, invalidNearbySpecificAreaIds.includes(nsaId));
           }
         }
       }
     }
 
-    this.hasReferentialOutsideExpertiseArea =
+    this.hasDataOutsideExpertiseArea =
       isNotEmptyArray(invalidBasePortLocationIds) ||
       isNotEmptyArray(invalidMetierIds) ||
       isNotEmptyArray(invalidFishingAreaLocationIds) ||
@@ -1909,7 +1904,7 @@ export class CalendarComponent
       isNotEmptyArray(invalidDepthGradientIds) ||
       isNotEmptyArray(invalidNearbySpecificAreaIds);
 
-    if (this.debug) console.debug(`${this.logPrefix} patchReferentialOutsideExpertiseArea done in ${Date.now() - now}ms`);
+    if (this.debug) console.debug(`${this.logPrefix} checkDataExpertiseArea done in ${Date.now() - now}ms`);
 
     this.markForCheck();
   }

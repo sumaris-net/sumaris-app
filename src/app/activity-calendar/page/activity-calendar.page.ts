@@ -32,7 +32,6 @@ import {
   PlatformService,
   Property,
   ReferentialRef,
-  referentialToString,
   removeDuplicatesFromArray,
   splitByProperty,
   StatusIds,
@@ -88,6 +87,7 @@ import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-for
 import { VesselUseFeaturesIsActiveEnum } from '../model/vessel-use-features.model';
 import { GearUseFeatures } from '../model/gear-use-features.model';
 import { MatTabChangeEvent } from '@angular/material/tabs';
+import { isOutsideExpertiseArea } from '@app/data/services/model/model.utils';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -1053,19 +1053,19 @@ export class ActivityCalendarPage
         readonly: existingMonth.readonly,
         updateDate: existingMonth.updateDate,
         // Don't copy basePortLocation if flagged as outside the expertise are
-        basePortLocation: source.basePortLocation?.properties?.outsideExpertiseArea ? undefined : source.basePortLocation,
+        basePortLocation: isOutsideExpertiseArea(source.basePortLocation) ? undefined : source.basePortLocation,
         // Preserve gearUseFeatures start and end dates
         gearUseFeatures: source?.gearUseFeatures.map((guf) =>
           GearUseFeatures.fromObject({
             ...guf,
             // Don't copy metier if flagged as outside the expertise are
-            metier: guf.metier?.properties?.outsideExpertiseArea ? undefined : guf.metier,
+            metier: isOutsideExpertiseArea(guf.metier) ? undefined : guf.metier,
             fishingAreas: guf.fishingAreas.map((fa) => ({
               // Don't copy fishing area's location and gradients if flagged as outside the expertise are
-              location: fa.location?.properties?.outsideExpertiseArea ? undefined : fa.location,
-              distanceToCoastGradient: fa.distanceToCoastGradient?.properties?.outsideExpertiseArea ? undefined : fa.distanceToCoastGradient,
-              depthGradient: fa.depthGradient?.properties?.outsideExpertiseArea ? undefined : fa.depthGradient,
-              nearbySpecificArea: fa.nearbySpecificArea?.properties?.outsideExpertiseArea ? undefined : fa.nearbySpecificArea,
+              location: isOutsideExpertiseArea(fa.location) ? undefined : fa.location,
+              distanceToCoastGradient: isOutsideExpertiseArea(fa.distanceToCoastGradient) ? undefined : fa.distanceToCoastGradient,
+              depthGradient: isOutsideExpertiseArea(fa.depthGradient) ? undefined : fa.depthGradient,
+              nearbySpecificArea: isOutsideExpertiseArea(fa.nearbySpecificArea) ? undefined : fa.nearbySpecificArea,
             })),
             startDate: existingMonth.startDate,
             endDate: existingMonth.endDate,
