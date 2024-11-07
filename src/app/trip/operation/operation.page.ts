@@ -481,10 +481,6 @@ export class OperationPage<S extends OperationState = OperationState>
         this.measurementsForm.formReady.subscribe(() => {
           this.onMeasurementsFormReady();
         })
-        // this.measurementsForm.onUpdateFormGroup.subscribe(async (event) => {
-        //   await this.onMeasurementsFormReady();
-        //   event.detail.success();
-        // })
       );
     }
 
