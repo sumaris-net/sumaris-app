@@ -240,6 +240,7 @@ export class CalendarComponent
 {
   protected referentialRefService = inject(ReferentialRefService);
   protected debouncedExpandCellSelection$ = new Subject<TableCellSelection<ActivityMonth>>();
+  protected debouncedCheckExpertiseArea$ = new Subject<ActivityMonth[] | undefined>();
   protected confirmingRowMutex = new Mutex();
 
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
@@ -527,11 +528,15 @@ export class CalendarComponent
 
     this._state.hold(this.debouncedExpandCellSelection$.pipe(debounceTime(250)), (cellSelection) => this.expandCellSelection(cellSelection));
 
-    // Execute the patch on each expertise area change or activation
+    this._state.hold(this.debouncedCheckExpertiseArea$.pipe(debounceTime(650)), (months) =>
+      this.checkDataExpertiseArea(months, { debounced: false })
+    );
+
+    // Check data against expertise area, if changed
     this._state.hold(
       this._state.select('expertiseLocationIds').pipe(
         distinctUntilChanged(),
-        filter(() => isNotEmptyArray(this.memoryDataService.value))
+        filter(() => this.loaded)
       ),
       () => this.checkDataExpertiseArea()
     );
@@ -1795,11 +1800,25 @@ export class CalendarComponent
    * Check if some date are outside expertise area, and mark it (see issue #732)
    * @protected
    */
-  protected async checkDataExpertiseArea() {
-    const months: ActivityMonth[] = this.dirty ? this.dataSource.getData() : this.memoryDataService.value;
-    const needCheck = isNotEmptyArray(this.expertiseLocationIds);
+  protected async checkDataExpertiseArea(months?: ActivityMonth[], opts?: { debounced?: boolean }) {
+    if (opts?.debounced !== false) {
+      this.debouncedCheckExpertiseArea$.next(months);
+      return;
+    }
 
-    const now = this.debug && Date.now();
+    // Confirm current row
+    const confirmed = await this.confirmEditCreate();
+    if (!confirmed) {
+      console.warn(`${this.logPrefix}Trying to check data inside expertise areas, BUT an edited row cannot be confirmed!`);
+    }
+
+    months = months ?? (this.dirty ? this.dataSource.getData() : this.memoryDataService.value);
+    if (isEmptyArray(months)) return; // Skip if nothing to check
+
+    console.debug(`${this.logPrefix}Check data inside expertise areas... (locationIds: ${this.expertiseLocationIds?.join(',')}`);
+    const now = Date.now();
+
+    const needCheck = isNotEmptyArray(this.expertiseLocationIds);
     const invalidBasePortLocationIds: number[] = [];
     const invalidMetierIds: number[] = [];
     const invalidFishingAreaLocationIds: number[] = [];
@@ -1904,7 +1923,7 @@ export class CalendarComponent
       isNotEmptyArray(invalidDepthGradientIds) ||
       isNotEmptyArray(invalidNearbySpecificAreaIds);
 
-    if (this.debug) console.debug(`${this.logPrefix} checkDataExpertiseArea done in ${Date.now() - now}ms`);
+    console.debug(`${this.logPrefix}Check data inside expertise areas - done in ${Date.now() - now}ms`);
 
     this.markForCheck();
   }

@@ -222,12 +222,12 @@ mat-toolbar {
       }
     }
 
-    &.outsideExpertiseArea {
-      background-color: var(--ion-color-warning-tint);
+    &.mat-mdc-cell-error {
+      background-color: rgba(var(--ion-color-warning-rgb), 0.7);
 
       &.mat-mdc-row-disabled:hover,
       &.mat-row-disabled:hover {
-        background-color: var(--ion-color-warning-shade) !important;
+        background-color: rgba(var(--ion-color-warning-rgb), 0.7) !important;
       }
     }
   }

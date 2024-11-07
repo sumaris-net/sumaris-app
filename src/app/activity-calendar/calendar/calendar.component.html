@@ -382,12 +382,18 @@
           *matCellDef="let row"
           class="odd mat-mdc-cell-resizable"
           #cell
-          [class.outsideExpertiseArea]="row.currentData.basePortLocation?.properties?.outsideExpertiseArea"
+          [class.mat-mdc-cell-error]="row.currentData.basePortLocation?.properties?.outsideExpertiseArea"
           (click)="clickCell($event, row, 'basePortLocation')"
           (dblclick)="dblClickCell($event, row, 'basePortLocation')"
           (contextmenu)="onContextMenu($event, cell, row, 'basePortLocation')"
         >
-          @if (row.editing) {
+          @if (mobile) {
+            <!-- readonly -->
+            <ion-label appAutoTitle class="ion-text-nowrap">
+              {{ row.currentData.basePortLocation | referentialToString: locationDisplayAttributes }}
+            </ion-label>
+          } @else if (row.editing) {
+            <!-- readonly -->
             <mat-autocomplete-field
               #field
               [formControl]="row.validator | formGetControl: 'basePortLocation'"
@@ -397,9 +403,9 @@
               [floatLabel]="'never'"
             ></mat-autocomplete-field>
           } @else {
-            @if (row.currentData.basePortLocation | referentialToString: locationDisplayAttributes; as label) {
-              <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
-            }
+            <ion-label appAutoTitle class="ion-text-nowrap">
+              {{ row.validator | formGetValue: 'basePortLocation' | referentialToString: locationDisplayAttributes }}
+            </ion-label>
           }
 
           <!-- resize handlers -->
@@ -503,7 +509,7 @@
             [class]="col.class"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
-            [class.outsideExpertiseArea]="(row.currentData | propertyGet: col.path)?.properties?.outsideExpertiseArea"
+            [class.mat-mdc-cell-error]="(row.currentData | propertyGet: col.path)?.properties?.mat - mdc - cell - error"
             (click)="col.hidden ? col.expand($event) : clickCell($event, row, col.key)"
             (dblclick)="!col.hidden && dblClickCell($event, row, col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
