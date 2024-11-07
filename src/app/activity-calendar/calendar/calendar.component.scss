@@ -221,6 +221,15 @@ mat-toolbar {
         display: none;
       }
     }
+
+    &.mat-mdc-cell-error {
+      background-color: rgba(var(--ion-color-warning-rgb), 0.7);
+
+      &.mat-mdc-row-disabled:hover,
+      &.mat-row-disabled:hover {
+        background-color: rgba(var(--ion-color-warning-rgb), 0.7) !important;
+      }
+    }
   }
 
   .mat-mdc-cell .computed {

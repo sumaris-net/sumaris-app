@@ -1,6 +1,6 @@
 import { AfterViewInit, Directive, EventEmitter, inject, Injector, OnDestroy, OnInit } from '@angular/core';
 
-import { debounceTime, merge, Observable, of, Subscription } from 'rxjs';
+import { merge, Observable, of, Subscription } from 'rxjs';
 import {
   AddToPageHistoryOptions,
   AppEditorOptions,
@@ -28,7 +28,7 @@ import {
   toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
-import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, distinctUntilKeyChanged, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
@@ -276,9 +276,9 @@ export abstract class AppDataEntityEditor<
     this._state.hold(
       this._state.select('selectedExpertiseArea').pipe(
         debounceTime(1000),
-        distinctUntilChanged(),
+        map((expertiseArea) => expertiseArea?.id?.toString()),
         filter(isNotNil),
-        map((expertiseArea) => expertiseArea.id.toString())
+        distinctUntilChanged()
       ),
       (expertiseAreaId) => {
         const properties = { ...this.settings.settings.properties };
