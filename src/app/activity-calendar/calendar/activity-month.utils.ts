@@ -96,7 +96,7 @@ export class ActivityMonthUtils {
         const vesselRegistrationPeriods = removeDuplicatesFromArray(IUseFeaturesUtils.filterByPeriod(data.vesselRegistrationPeriods, target), 'id');
         // A user can edit a month if the first QIM est editable - see issue #764
         // (=a month is readonly, if the first QIM is readonly)
-        target.readonly = vesselRegistrationPeriods[0].readonly ?? true;
+        target.readonly = vesselRegistrationPeriods?.[0]?.readonly ?? true;
         target.registrationLocations = vesselRegistrationPeriods.map((vrp) => {
           return vrp.registrationLocation;
         });
