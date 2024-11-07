@@ -269,9 +269,9 @@ export class SelectOperationModal extends AppEntityEditorModal<Operation> implem
       }
     } finally {
       this.markAsSaved();
-      // await this.modalCtrl.dismiss(this.trip);
-      return true;
+      await this.modalCtrl.dismiss(operation);
     }
+    return true;
   }
 
   async setValue(data: Operation) {
