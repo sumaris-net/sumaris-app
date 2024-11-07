@@ -64,7 +64,7 @@
           *sectionDef
           [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight + 'px'"
           [style.--month-table-row-height]="pageDimensions.monthTableRowHeight + 'px'"
-          [style.--month-table-metier-row-height]="pageDimensions.monthTableMetierRowHeight + 'px'"
+          [style.--month-table-large-row-height]="pageDimensions.monthTableMetierRowHeight + 'px'"
           [style.--gear-table-title-row-height]="pageDimensions.gpfTableRowTitleHeight + 'px'"
           [style.--gear-table-row-height]="pageDimensions.gpfTableRowHeight + 'px'"
           [style.--header-height]="pageDimensions.headerHeight + 'px'"
@@ -92,7 +92,7 @@
           @if (firstPage) {
             <ion-grid class="report-section ion-no-padding font-compact">
               <ion-row>
-                <ion-col size="7" class="ion-padding-end">
+                <ion-col size="4">
                   <ion-grid class="ion-no-padding">
                     <ion-row class="section-title red-border-bottom">
                       <ion-col class="ion-padding-end">
@@ -100,7 +100,7 @@
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      <ion-col class="ion-margin-right">
+                      <ion-col class="ion-margin-right" size="7">
                         <ion-grid class="ion-no-padding">
                           <ion-row>
                             <ion-col size="auto">
@@ -109,7 +109,7 @@
                               </strong>
                               &nbsp;
                             </ion-col>
-                            <ion-col>
+                            <ion-col size="auto">
                               @for (registrationPeriod of data.vesselRegistrationPeriods; track registrationPeriod.id) {
                                 {{ registrationPeriod.registrationLocation | referentialToString: ['label', 'name'] }}
                                 @if (!$last) {
@@ -120,20 +120,38 @@
                           </ion-row>
                         </ion-grid>
                       </ion-col>
-                      <ion-col>
-                        <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}</strong>
-                        &nbsp;
-                        {{ data.vesselSnapshot | referentialToString: stats.vesselAttributes }}
-                      </ion-col>
-                      <ion-col>
-                        <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.VESSEL_NAME' | translate }}</strong>
-                        &nbsp;
-                        {{ data.vesselSnapshot.name }}
+                      <ion-col size="5">
+                        <ion-grid class="ion-no-padding">
+                          <ion-row>
+                            <ion-col>
+                              <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.VESSEL_NAME' | translate }}</strong>
+                              &nbsp;
+                              {{ data.vesselSnapshot.name }}
+                            </ion-col>
+                          </ion-row>
+                          <ion-row>
+                            <ion-col>
+                              <strong>
+                                @if (stats.displayAttributes.vesselSnapshot[0] == 'exteriorMarking') {
+                                  {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.EXTERIOR_MARKING' | translate }}
+                                } @else {
+                                  {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}
+                                }
+                                &nbsp;
+                              </strong>
+                              @if (!isBlankForm) {
+                                {{
+                                  (data.vesselSnapshot | mapGet: stats.displayAttributes.vesselSnapshot[0]) || data.vesselSnapshot.intRegistrationCode
+                                }}
+                              }
+                            </ion-col>
+                          </ion-row>
+                        </ion-grid>
                       </ion-col>
                     </ion-row>
                   </ion-grid>
                 </ion-col>
-                <ion-col size="5">
+                <ion-col size="5" class="ion-padding-horizontal">
                   <ion-grid class="ion-no-padding">
                     <ion-row class="section-title red-border-bottom">
                       <ion-col>
@@ -159,6 +177,34 @@
                           <strong>
                             {{ qv.name }}
                           </strong>
+                        </ion-col>
+                      }
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+                <ion-col size="3">
+                  <ion-grid class="ion-no-padding">
+                    <ion-row class="section-title red-border-bottom">
+                      <ion-col>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
+                      @if (isBlankForm) {
+                        <ion-col size="12">
+                          <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER_SECTION.NAME' | translate }}</strong>
+                        </ion-col>
+                        <ion-col size="12">
+                          <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER_SECTION.ADDRESS' | translate }}</strong>
+                        </ion-col>
+                      } @else {
+                        <ion-col size="12">
+                          {{
+                            stats.lastVesselOwner | referentialToString: { properties: stats.displayAttributes.vesselOwner, propertySeparator: ' ' }
+                          }}
+                        </ion-col>
+                        <ion-col size="12">
+                          {{ stats.lastVesselOwner | referentialToString: { properties: ['street', 'zipCode', 'city'], propertySeparator: ' ' } }}
                         </ion-col>
                       }
                     </ion-row>
@@ -197,7 +243,7 @@
                   }
                 </tr>
                 <!-- basePortLocation row -->
-                <tr>
+                <tr class="large-height-row">
                   <th class="col-label">
                     {{ 'ACTIVITY_CALENDAR.REPORT.BASE_PORT_LOCATION' | translate }}
                   </th>
@@ -205,7 +251,10 @@
                     <td [class.activity-not-exists]="(month | mapGet: 'isActive') === 2" class="fit-one-line">
                       <div>
                         <div [title]="month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] }">
-                          {{ month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] } }}
+                          {{ month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label'] } }}
+                        </div>
+                        <div>
+                          {{ month | mapGet: 'basePortLocation' | referentialToString: { properties: ['name'] } }}
                         </div>
                       </div>
                     </td>
@@ -250,7 +299,7 @@
               </thead>
               <tbody>
                 @for (metierIndex of metierChunk | arrayPluck: 'metierIndex'; track metierIndex; let metierChunkIndex = $index) {
-                  <tr class="metier-row">
+                  <tr class="large-height-row">
                     <th class="col-label">
                       {{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}
                     </th>
@@ -367,10 +416,7 @@
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      @for (
-                        qv of stats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst | mapGet: 'qualitativeValues';
-                        track qv.id
-                      ) {
+                      @for (qv of stats.pmfmById.activityCalendar | mapGet: pmfmIdsMap.AUCTION_HABIT | mapGet: 'qualitativeValues'; track qv.id) {
                         <ion-col size="12">
                           <ion-icon
                             [name]="

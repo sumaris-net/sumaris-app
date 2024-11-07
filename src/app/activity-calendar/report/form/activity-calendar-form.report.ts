@@ -1,6 +1,7 @@
 import { Component, Injector, ViewEncapsulation } from '@angular/core';
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
+import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -34,7 +35,9 @@ import {
   computeIndividualActivityCalendarFormReportStats,
   fillActivityCalendarBlankData,
 } from './activity-calendar-form-report.utils';
-import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
+import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
+import { VesselOwnerService } from '@app/vessel/services/vessel-owner.service';
+import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
 
 export interface ActivityCalendarFormReportPageDimentions {
   height: number;
@@ -67,11 +70,24 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     guf?: IPmfm[];
     forGpfTable?: IPmfm[];
   };
+  pmfmById: {
+    activityMonth?: { [key: number]: IPmfm };
+    activityCalendar?: { [key: number]: IPmfm };
+    gpf?: { [key: number]: IPmfm };
+    guf?: { [key: number]: IPmfm };
+    forGpfTable?: { [key: number]: IPmfm };
+  };
+
   activityMonthColspan?: number[][];
   metierTableChunks?: { gufId: number; fishingAreasIndexes: number[] }[][];
   filteredAndOrderedGpf?: (GearPhysicalFeatures | GearUseFeatures)[];
   surveyQualificationQualitativeValues?: ReferentialRef[];
   vesselAttributes: string[];
+  displayAttributes: {
+    vesselSnapshot: string[];
+    vesselOwner: string[];
+  };
+  lastVesselOwner: VesselOwner;
 
   static fromObject(source: any): ActivityCalendarFormReportStats {
     if (!source) return source;
@@ -96,6 +112,13 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
       guf: source?.pmfm?.guf?.map(DenormalizedPmfmStrategy.fromObject) || null,
       forGpfTable: source?.pmfm?.forGpfTable?.map(DenormalizedPmfmStrategy.fromObject) || null,
     };
+    this.pmfmById = {
+      activityMonth: splitById(this.pmfm.activityMonth),
+      activityCalendar: splitById(this.pmfm.activityCalendar),
+      gpf: splitById(this.pmfm.gpf),
+      guf: splitById(this.pmfm.guf),
+      forGpfTable: splitById(this.pmfm.forGpfTable),
+    };
     this.activityMonthColspan = source.activityMonthColspan;
     this.metierTableChunks = source.metierTableChunks;
     this.vesselAttributes = source.vesselAttributes;
@@ -107,6 +130,8 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
         return GearUseFeatures.fromObject(value);
       }
     });
+    this.displayAttributes = source.displayAttributes;
+    this.lastVesselOwner = VesselOwner.fromObject(source.lastVesselOwner);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -130,6 +155,8 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
       vesselAttributes: this.vesselAttributes,
       surveyQualificationQualitativeValues: this.surveyQualificationQualitativeValues?.map((value) => value.asObject(opts)),
       filteredAndOrderedGpf: this.filteredAndOrderedGpf?.map((value) => value.asObject({ ...opts, keepTypename: true })),
+      displayAttributes: this.displayAttributes,
+      lastVesselOwner: this.lastVesselOwner?.asObject(opts),
     };
   }
 }
@@ -171,6 +198,8 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   protected readonly strategyRefService: StrategyRefService;
   protected readonly programRefService: ProgramRefService;
   protected readonly vesselSnapshotService: VesselSnapshotService;
+  protected readonly vesselOwnerService: VesselOwnerService;
+  protected readonly vesselOwnerPeridodService: VesselOwnerPeridodService;
   protected readonly translateContextService: TranslateContextService;
   protected readonly configService: ConfigService;
   protected readonly localSettings: LocalSettingsService;
@@ -200,6 +229,8 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
     this.translateContextService = this.injector.get(TranslateContextService);
     this.configService = this.injector.get(ConfigService);
     this.localSettings = this.injector.get(LocalSettingsService);
+    this.vesselOwnerService = this.injector.get(VesselOwnerService);
+    this.vesselOwnerPeridodService = this.injector.get(VesselOwnerPeridodService);
 
     this.reportPath = this.route.snapshot.routeConfig.path;
     this.isBlankForm = this.route.snapshot.data?.isBlankForm;
@@ -266,14 +297,22 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
       stats,
       this.programRefService,
       this.vesselSnapshotService,
+      this.settings,
       this.program,
       this.strategy,
       this.isBlankForm
     );
 
-    stats = await computeIndividualActivityCalendarFormReportStats(data, stats, this.pageDimensions, this.configService, this.isBlankForm);
+    stats = await computeIndividualActivityCalendarFormReportStats(
+      data,
+      stats,
+      this.pageDimensions,
+      this.configService,
+      this.vesselOwnerService,
+      this.vesselOwnerPeridodService,
+      this.isBlankForm
+    );
 
-    console.debug('TODO data/stats', { data, stats });
     return stats;
   }
 
