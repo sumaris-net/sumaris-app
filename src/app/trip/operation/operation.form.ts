@@ -165,9 +165,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   @Input() maxShootingDurationInHours: number;
   @Input() maxTotalDurationInHours: number;
   @Input() isInlineFishingArea: boolean;
-  @Input() gearId$: number;
-  @Input() requiredStrategy$: boolean;
-  @Input() strategyId$: number;
+  @Input() requiredStrategy: boolean;
+  @Input() strategyId: number;
   @Input() pmfms: IPmfm[];
 
   @Input() set usageMode(usageMode: UsageMode) {
@@ -748,6 +747,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     const endDateTrip = moment().endOf('day');
     const gearIds = removeDuplicatesFromArray((this._$physicalGears.value || []).map((physicalGear) => physicalGear.gear.id));
 
+    const gearId = currentOperation?.physicalGear?.gear.id;
+
     const tripFilter = {
       startDate: startDateTrip,
       endDate: endDateTrip,
@@ -794,9 +795,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         allowParentOperation: this.allowParentOperation,
         programLabel: this.programLabel,
         acquisitionLevel: AcquisitionLevelCodes.OPERATION,
-        strategyId: this.strategyId$,
-        requiredStrategy: this.requiredStrategy$,
-        gearId: this.gearId$,
+        strategyId: this.strategyId,
+        requiredStrategy: this.requiredStrategy,
+        gearId,
         trip: undefinedTrip,
         defaultNewOperation: defaultNewOperation,
         allowNewOperation: true,
@@ -1408,4 +1409,5 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   }
 
   protected selectInputContent = selectInputContent;
+  gear;
 }

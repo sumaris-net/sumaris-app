@@ -270,9 +270,8 @@
                 (lastEndDateChanges)="lastEndDate = $event"
                 (openParentOperation)="openParentOperation($event)"
                 [isInlineFishingArea]="isInlineFishingArea"
-                [gearId$]="gearId$ | async"
-                [requiredStrategy$]="requiredStrategy$ | async"
-                [strategyId$]="strategy$ | async | propertyGet: 'id'"
+                [requiredStrategy]="requiredStrategy$ | async"
+                [strategyId]="strategy$ | async | propertyGet: 'id'"
                 [debug]="debug"
               >
                 <!-- Other features (Measurements) -->

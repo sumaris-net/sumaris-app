@@ -62,7 +62,6 @@ export interface ISelectOperationModalOptions {
 })
 export class SelectOperationModal extends AppEntityEditorModal<Operation> implements OnInit, ISelectOperationModalOptions {
   datasource: EntitiesTableDataSource<Operation, OperationFilter>;
-  saveOptions: OperationSaveOptions = {};
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
 
