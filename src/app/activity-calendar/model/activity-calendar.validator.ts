@@ -186,7 +186,9 @@ export class ActivityCalendarValidatorService<
     const maxLength = toNumber(opts?.maxLength, 12);
     const validators = [];
     if (required) {
-      validators.push(ActivityCalendarValidators.validMonthCount);
+      // Exclude month without registration location
+      const inexistentMonthCount = (data || []).filter((month) => isEmptyArray(month.registrationLocations)).length;
+      validators.push(ActivityCalendarValidators.validMonthCount(12 - inexistentMonthCount));
     } else if (opts?.maxLength) {
       validators.push(SharedFormArrayValidators.arrayMaxLength(maxLength));
     }
@@ -271,16 +273,18 @@ export class ActivityCalendarValidatorService<
 }
 
 export class ActivityCalendarValidators {
-  static validMonthCount(formArray: UntypedFormArray, expectedMonthCount = 12): ValidationErrors | null {
-    const actualCount = formArray.length;
-    if (actualCount !== expectedMonthCount) {
-      // DEBUG
-      //console.warn('Invalid month count - actual: ${actualCount} - expected: ${expectedMonthCount}');
+  static validMonthCount(expectedMonthCount = 12): ValidatorFn {
+    return (formArray: UntypedFormArray): ValidationErrors | null => {
+      const actualCount = formArray.length;
+      if (actualCount !== expectedMonthCount) {
+        // DEBUG
+        //console.warn('Invalid month count - actual: ${actualCount} - expected: ${expectedMonthCount}');
 
-      return { invalidMonths: true };
-    }
+        return { invalidMonths: true };
+      }
 
-    return null;
+      return null;
+    };
   }
 
   static validInactivityYear(form: UntypedFormGroup): ValidationErrors | null {
