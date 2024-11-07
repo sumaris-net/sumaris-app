@@ -44,6 +44,7 @@ import { UnitIds } from '@app/referential/services/model/model.enum';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy {
+  protected readonly mobile: boolean;
   form: UntypedFormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
   $parameter = new BehaviorSubject<Parameter>(null);
@@ -72,6 +73,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
   ) {
     super(injector, Pmfm, pmfmService, { tabCount: 2 });
     this.form = validatorService.getFormGroup();
+    this.mobile = this.settings.mobile;
 
     // default values
     this.defaultBackHref = '/referential/list?entity=Pmfm';

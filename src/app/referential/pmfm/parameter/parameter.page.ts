@@ -27,6 +27,7 @@ import { SimpleReferentialTable } from '../../table/referential-simple.table';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ParameterPage extends AppEntityEditor<Parameter> {
+  protected readonly mobile: boolean;
   canEdit: boolean;
   form: UntypedFormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
@@ -53,6 +54,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
       tabCount: 1,
     });
     this.form = validatorService.getFormGroup();
+    this.mobile = this.settings.mobile;
 
     // default values
     this.defaultBackHref = '/referential/list?entity=Parameter';
