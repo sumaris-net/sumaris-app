@@ -27,11 +27,21 @@
   <!-- report -->
   @if (enableReport && (reportTypes | isNotEmptyArray)) {
     <button mat-menu-item [disabled]="isNewData" [matMenuTriggerFor]="reportsMenu">
-      <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+      <mat-icon>
+        <ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon>
+      </mat-icon>
       <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
     </button>
     <mat-divider></mat-divider>
   }
+
+  <button mat-menu-item [matMenuTriggerFor]="expertiseAreaMenu">
+    <mat-icon>
+      <ion-icon slot="icon-only" name="earth-outline"></ion-icon>
+    </mat-icon>
+    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_EXPERTISE_AREA</ion-label>
+  </button>
+  <mat-divider></mat-divider>
 
   <!-- reset -->
   @if (mobile) {
@@ -46,7 +56,9 @@
 
   <!-- clean calendar -->
   <button mat-menu-item [disabled]="isNewData || disabled" (click)="clearCalendar($event)">
-    <mat-icon><ion-icon color="medium" name="calendar"></ion-icon></mat-icon>
+    <mat-icon>
+      <ion-icon color="medium" name="calendar"></ion-icon>
+    </mat-icon>
     <mat-icon color="warn" class="icon-secondary" style="left: 26px; top: 5px; font-weight: bold">close</mat-icon>
     <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_CALENDAR</ion-label>
   </button>
@@ -78,7 +90,24 @@
   </ng-container>
 </mat-menu>
 
-<ion-content>
+<mat-menu #expertiseAreaMenu="matMenu" class="ion-no-padding">
+  <!-- header-->
+  <button mat-menu-item (click)="expertiseAreaEnabled = !expertiseAreaEnabled">
+    <mat-icon>{{ expertiseAreaEnabled ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_ENABLE_EXPERTISE_AREA</ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <ng-container *ngFor="let item of expertiseAreas$ | async">
+    <button mat-menu-item [disabled]="!expertiseAreaEnabled" (click)="selectedExpertiseArea = item">
+      <mat-icon>{{ selectedExpertiseArea?.id === item.id ? 'check' : '' }}</mat-icon>
+      <ion-label>{{ item.name }}</ion-label>
+    </button>
+  </ng-container>
+</mat-menu>
+
+<ion-content scroll-y="false">
   <mat-tab-group
     #tabGroup
     class="mat-mdc-tab-fixed-content mat-mdc-tab-disabled-hidden"
@@ -155,6 +184,28 @@
                   <ion-icon slot="icon-only" name="mail"></ion-icon>
                 </ion-button>
 
+                <!-- Observers -->
+                @if (data?.observers | isNotEmptyArray) {
+                  <ion-card-content afterRecorder>
+                    <ion-card-subtitle translate>{{ data.observers.length }} {{ 'COMMON.OBSERVERS' | translate }}</ion-card-subtitle>
+                    <div class="observer-avatars">
+                      <ng-container *ngFor="let observer of data.observers">
+                        <!-- observer avatar -->
+                        <ion-chip>
+                          <ion-avatar *ngIf="observer">
+                            @if (observer.avatar) {
+                              <ion-img [src]="observer.avatar" />
+                            } @else {
+                              <svg *ngIf="observer.id; let personId" [data-jdenticon-value]="personId"></svg>
+                            }
+                          </ion-avatar>
+                          <ion-label>{{ observer?.firstName }} {{ observer?.lastName }}</ion-label>
+                        </ion-chip>
+                      </ng-container>
+                    </div>
+                  </ion-card-content>
+                }
+
                 <!-- Warning -->
                 @if (qualityWarning) {
                   <br />
@@ -177,7 +228,9 @@
     <!-- TAB: Vessel -->
     <mat-tab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_VESSEL' | translateContext: i18nContext.suffix" [disabled]="!showVesselTab" appSubMenuTab>
       <ng-template mat-tab-label>
-        <mat-icon><ion-icon matPrefix slot="start" name="boat"></ion-icon></mat-icon>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="boat"></ion-icon>
+        </mat-icon>
         <ion-label translate>ACTIVITY_CALENDAR.EDIT.TAB_VESSEL</ion-label>
       </ng-template>
 
@@ -202,6 +255,20 @@
           <ion-grid class="ion-no-padding ion-padding-start">
             <ion-row>
               <ion-col>
+                <app-vessel-registration-history-table
+                  #registrationHistoryTable
+                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATION_DIVIDER'"
+                  [i18nColumnSuffix]="'.ACTIVITY_CALENDAR'"
+                  [showRegistrationLocationColumn]="true"
+                  [showPagination]="true"
+                  [defaultPageSize]="5"
+                  [defaultPageSizeOptions]="[5, 10, 50]"
+                  [debug]="debug"
+                ></app-vessel-registration-history-table>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
                 <app-vessel-features-history-table
                   #featuresHistoryTable
                   [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_FEATURES_DIVIDER'"
@@ -215,22 +282,9 @@
                   [showPagination]="true"
                   [defaultPageSize]="5"
                   [defaultPageSizeOptions]="[5, 10, 50]"
+                  [showExteriorMarkingColumn]="false"
                   [debug]="debug"
                 ></app-vessel-features-history-table>
-              </ion-col>
-            </ion-row>
-            <ion-row>
-              <ion-col>
-                <app-vessel-registration-history-table
-                  #registrationHistoryTable
-                  [title]="'ACTIVITY_CALENDAR.EDIT.VESSEL_REGISTRATION_DIVIDER'"
-                  [i18nColumnSuffix]="'.ACTIVITY_CALENDAR'"
-                  [showRegistrationLocationColumn]="true"
-                  [showPagination]="true"
-                  [defaultPageSize]="5"
-                  [defaultPageSizeOptions]="[5, 10, 50]"
-                  [debug]="debug"
-                ></app-vessel-registration-history-table>
               </ion-col>
             </ion-row>
             <ion-row>
@@ -269,7 +323,9 @@
         <!-- TAB: vessel photo -->
         <mat-tab #vesselPhotoTab [disabled]="!showPictures">
           <ng-template mat-tab-label>
-            <mat-icon><ion-icon name="camera"></ion-icon></mat-icon>
+            <mat-icon>
+              <ion-icon name="camera"></ion-icon>
+            </mat-icon>
             &nbsp;
             <ion-label
               [matBadge]="gallery.value.length | badgeNumber"
@@ -303,7 +359,9 @@
       bodyClass="no-scroll-y"
     >
       <ng-template mat-tab-label>
-        <mat-icon><ion-icon name="calendar"></ion-icon></mat-icon>
+        <mat-icon>
+          <ion-icon name="calendar"></ion-icon>
+        </mat-icon>
         <ion-label
           [matBadge]="calendar?.validRowCount$ | push"
           [matBadgeHidden]="calendar.invalid || !(calendar?.validRowCount$ | push)"
@@ -339,6 +397,7 @@
             [requiredStrategy]="requiredStrategy$ | async"
             [strategyId]="(strategy$ | async)?.id"
             [timezone]="timezone"
+            [expertiseLocationIds]="expertiseLocationIds$ | async"
             [showError]="!mobile"
             [debug]="debug"
             (startCellSelection)="predocCalendar?.removeCellSelection()"
@@ -359,6 +418,7 @@
             [usePageSettings]="false"
             [toolbarColor]="'secondary'"
             [timezone]="timezone"
+            [expertiseLocationIds]="expertiseLocationIds$ | async"
             [sticky]="true"
             [canEdit]="false"
             [readOnly]="true"
@@ -380,7 +440,9 @@
     <!-- TAB: Métiers -->
     <mat-tab #metierTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_METIER' | translateContext: i18nContext.suffix" appSubMenuTab>
       <ng-template mat-tab-label>
-        <mat-icon><ion-icon name="settings"></ion-icon></mat-icon>
+        <mat-icon>
+          <ion-icon name="settings"></ion-icon>
+        </mat-icon>
         <ion-label
           [matBadge]="tableMetier?.visibleRowCount"
           [matBadgeHidden]="!tableMetier || tableMetier.invalid || !tableMetier.visibleRowCount"
@@ -407,11 +469,15 @@
           [requiredStrategy]="requiredStrategy$ | async"
           [strategyId]="(strategy$ | async)?.id"
           [timezone]="timezone"
+          [showSelectColumn]="false"
+          [showIdColumn]="false"
           [showGearColumn]="false"
           [showMetierColumn]="true"
           [showError]="!mobile"
           [canAdd]="false"
           [canDelete]="false"
+          [canEditMetier]="false"
+          [canEditGear]="false"
         ></app-gear-physical-features-table>
       </div>
     </mat-tab>
@@ -419,7 +485,9 @@
     <!-- TAB: Map -->
     <mat-tab #mapTab [label]="'ACTIVITY_CALENDAR.EDIT.TAB_MAP' | translateContext: i18nContext.suffix" [disabled]="!showMap" appSubMenuTab>
       <ng-template mat-tab-label>
-        <mat-icon><ion-icon name="location"></ion-icon></mat-icon>
+        <mat-icon>
+          <ion-icon name="location"></ion-icon>
+        </mat-icon>
         <ion-label>
           {{ mapTab.textLabel }}
         </ion-label>
@@ -495,7 +563,9 @@
   @if (label) {
     <ion-button
       color="tertiary"
-      [title]="(_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate"
+      [title]="
+        ((_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate) + predocButtonTitleSuffix
+      "
       [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
       (click)="toggleShowPredoc($event)"
     >
@@ -505,7 +575,9 @@
   } @else {
     <button
       mat-icon-button
-      [title]="(_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate"
+      [title]="
+        ((_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate) + predocButtonTitleSuffix
+      "
       [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
       (click)="toggleShowPredoc($event)"
     >

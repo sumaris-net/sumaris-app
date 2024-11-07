@@ -237,11 +237,11 @@ export abstract class BaseMeasurementsAsyncTable<
     super.ngOnInit();
 
     this.registerSubscription(
-      filterNotNil(this.pmfms$).subscribe((pmfms) => {
+      filterNotNil(this.pmfms$).subscribe(async (pmfms) => {
         console.debug(this.logPrefix + 'Received PMFMs to applied: ', pmfms);
 
         if (this.validatorService) {
-          this.configureValidator({ pmfms });
+          await this.configureValidator({ pmfms });
           this.validatorService.markAsReady();
         }
 
@@ -287,9 +287,12 @@ export abstract class BaseMeasurementsAsyncTable<
     super.restoreCompactMode(opts);
   }
 
-  protected configureValidator(opts?: MeasurementsTableValidatorOptions) {
+  protected async configureValidator(opts?: MeasurementsTableValidatorOptions) {
     // make sure to confirm editing row, before to change validator
-    this.confirmEditCreate();
+    const confirmed = await this.confirmEditCreate();
+    if (!confirmed) {
+      console.error(this.logPrefix + 'Trying to configure validator, but some rows cannot be confirmed!');
+    }
 
     // Update validator config
     if (opts) {

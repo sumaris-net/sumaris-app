@@ -12,6 +12,7 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
 
   gear: ReferentialRef = null;
   taxonGroup: ReferentialRef = null;
+  properties?: { [key: string]: any };
 
   constructor() {
     super(Metier.TYPENAME);
@@ -31,6 +32,9 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
 
       target.taxonGroup = (this.taxonGroup && this.taxonGroup.asObject(opts)) || undefined;
     }
+    if (opts?.minify) {
+      delete target.properties;
+    }
     return target;
   }
 
@@ -39,6 +43,7 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
     this.entityName = source.entityName || Metier.ENTITY_NAME;
     this.gear = source.gear && ReferentialRef.fromObject(source.gear);
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup);
+    this.properties = (source.properties && { ...source.properties }) || undefined;
 
     // Copy label/name from child (TaxonGroup or Gear)
     if (opts && opts.useChildAttributes) {

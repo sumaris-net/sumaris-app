@@ -160,6 +160,10 @@ mat-toolbar {
     --mat-table-row-item-outline-width: 0px;
   }
 
+  .mdc-data-table__row:last-child .mat-mdc-cell {
+    --mat-table-row-item-outline-width: 1px;
+  }
+
   .mat-mdc-header-cell {
     padding: 0;
 
@@ -215,6 +219,15 @@ mat-toolbar {
       * {
         visibility: hidden;
         display: none;
+      }
+    }
+
+    &.mat-mdc-cell-error {
+      background-color: rgba(var(--ion-color-warning-rgb), 0.7);
+
+      &.mat-mdc-row-disabled:hover,
+      &.mat-row-disabled:hover {
+        background-color: rgba(var(--ion-color-warning-rgb), 0.7) !important;
       }
     }
   }

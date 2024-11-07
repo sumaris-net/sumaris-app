@@ -23,6 +23,7 @@
     "BTN_DOWNLOAD_JSON": "Download (JSON)",
     "BTN_DOWNLOAD_CSV": "Download (CSV)",
     "BTN_DOWNLOAD_GEOJSON": "Download (GeoJSON)",
+    "BTN_DOWNLOAD_AS_FORMATS_DOTS": "Download as format...",
     "BTN_IMPORT": "Import",
     "BTN_IMPORT_FROM_FILE_DOTS": "Import from file...",
     "BTN_DUPLICATE": "Duplicate",
@@ -123,6 +124,7 @@
 
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
+    "OBSERVERS": "Observer(s)",
     "RESULT_COUNT": "{{count}} results",
     "NO_RESULT": "No result",
     "LOADING_DOTS": "Loading...",
@@ -194,6 +196,7 @@
     "PROPERTIES_DIVIDER": "Options:",
     "PROPERTY_KEY": "Key",
     "PROPERTY_VALUE": "Value",
+    "BTN_SHOW_OPTION_KEY": "Show options code",
     "BTN_ADD_OPTION": "Add an option",
     "BTN_CLEAR_CACHE": "Clear server cache",
     "CACHE_TITLE": "Server cache statistics",
@@ -586,6 +589,7 @@
     "BTN_CHANGE_PEER": "See available nodes",
     "BTN_DARK_MODE": "Dark theme? (experimental)",
     "BTN_SHOW_MORE_HELP": "Show more parameters",
+    "BTN_SHOW_OPTION_KEY": "Show options code?",
     "BTN_CLEAR_CACHE": "Clear data cache",
     "OFFLINE_MODE": "Force offline mode?",
     "DATA_ENTRY_DIVIDER": "Data entry settings",
@@ -2173,6 +2177,7 @@
       "PARAMETER": "PMFM > Parameters",
       "PARAMETER_GROUP": "PMFM > Parameter groups",
       "USER_PROFILE": "User profiles",
+      "EXPERTISE_AREA": "Expertise area",
       "VESSEL_TYPE": "Vessel types",
       "PMFM": "Collected parameters",
       "MATRIX": "PMFM > Matrices",
@@ -3215,7 +3220,7 @@
     },
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Activity {{year}}",
-      "TITLE_MENU": "{{vessel}} ({{year}})",
+      "TITLE_MENU": "{{vessel}} - Activity {{year}}",
       "PREDOC_TITLE": "Predocumentation",
       "BASE_PORT_LOCATION": "Operation port",
       "SOURCE": "Source",
@@ -3223,12 +3228,14 @@
       "SOURCE_PREDOC": "",
       "BTN_ADD_METIER_BLOCK": "Add a Metier block",
       "BTN_REPORT": "Edit report",
+      "BTN_EXPERTISE_AREA": "Expertise area...",
+      "BTN_ENABLE_EXPERTISE_AREA": "Enable expertise area ?",
       "BTN_EXPAND_ALL": "Expand all",
       "BTN_COLLAPSE_ALL": "Collapse all",
       "BTN_CLEAR_MONTH": "Clear month",
       "BTN_COPY_PASTE_ALL": "Copy and paste",
-      "HIDE_PREDOC": "Hide predocumentation (Ctrl+P)",
-      "SHOW_PREDOC": "Show predocumentation (Ctrl+P)",
+      "HIDE_PREDOC": "Hide predocumentation",
+      "SHOW_PREDOC": "Show predocumentation",
       "BTN_SHOW_PREDOC": "<u>P</u>redocumentation",
       "YEAR": "Year:",
       "VESSEL_SNAPSHOT": "Vessel",
@@ -3267,6 +3274,11 @@
         "ENABLE": "Active",
         "DISABLE": "Inactive",
         "NOT_EXISTS": "Non-existent"
+      },
+      "DIRECT_SURVEY_INVESTIGATION_ENUM": {
+        "NO": "No",
+        "YES": "Yes",
+        "OPPORTUNISTIC": "Opportunistic"
       },
       "SIH-ACTIFLOT": {
         "SOURCE_PREDOC": "Survey N-1"

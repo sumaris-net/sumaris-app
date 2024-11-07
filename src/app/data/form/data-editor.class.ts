@@ -1,4 +1,4 @@
-import { Directive, EventEmitter, inject, Injector, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Directive, EventEmitter, inject, Injector, OnDestroy, OnInit } from '@angular/core';
 
 import { merge, Observable, of, Subscription } from 'rxjs';
 import {
@@ -24,10 +24,11 @@ import {
   Person,
   PersonService,
   ReferentialUtils,
+  StatusIds,
   toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
-import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, distinctUntilKeyChanged, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
@@ -45,6 +46,10 @@ import { environment } from '@environments/environment';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import { ContextService } from '@app/shared/context.service';
 import { BaseDataService, IDataEntityService, IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
+import { ExpertiseAreaService } from '@app/referential/expertise-area/expertise-area.service';
+import { DATA_LOCAL_SETTINGS_OPTIONS } from '@app/data/data.config';
+import { ExpertiseArea } from '@app/referential/expertise-area/expertise-area.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 export abstract class AppDataEditorOptions extends AppEditorOptions {
   acquisitionLevel?: AcquisitionLevelType;
@@ -64,6 +69,11 @@ export interface AppDataEditorState {
   strategyFilter: Partial<StrategyFilter>;
 
   pmfms: IPmfm[];
+
+  expertiseAreaEnabled: boolean;
+  expertiseAreas: ExpertiseArea[];
+  selectedExpertiseArea: ExpertiseArea;
+  expertiseLocationIds: number[];
 }
 
 @Directive()
@@ -75,7 +85,7 @@ export abstract class AppDataEntityEditor<
     ST extends AppDataEditorState = AppDataEditorState,
   >
   extends AppEntityEditor<T, S, ID>
-  implements OnInit, OnDestroy, IFormPathTranslator
+  implements OnInit, AfterViewInit, OnDestroy, IFormPathTranslator
 {
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState);
 
@@ -88,6 +98,8 @@ export abstract class AppDataEntityEditor<
   protected readonly personService = inject(PersonService);
   protected readonly translateContext = inject(TranslateContextService);
   protected readonly context = inject(ContextService);
+  protected readonly referentialRefService = inject(ReferentialRefService);
+  protected readonly expertiseAreaService = inject(ExpertiseAreaService);
   protected readonly mobile: boolean;
   protected readonly settingsId: string;
 
@@ -108,6 +120,9 @@ export abstract class AppDataEntityEditor<
   @RxStateSelect() strategyFilter$: Observable<StrategyFilter>;
   @RxStateSelect() strategy$: Observable<Strategy>;
   @RxStateSelect() pmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() expertiseAreas$: Observable<ExpertiseArea[]>;
+  @RxStateSelect() selectedExpertiseArea$: Observable<ExpertiseArea>;
+  @RxStateSelect() expertiseLocationIds$: Observable<number[]>;
 
   @RxStateProperty() acquisitionLevel: AcquisitionLevelType;
   @RxStateProperty() programLabel: string;
@@ -117,6 +132,10 @@ export abstract class AppDataEntityEditor<
   @RxStateProperty() strategyFilter: Partial<StrategyFilter>;
   @RxStateProperty() strategy: Strategy;
   @RxStateProperty() pmfms: Partial<IPmfm[]>;
+  @RxStateProperty() expertiseAreaEnabled: boolean;
+  @RxStateProperty() expertiseAreas: ExpertiseArea[];
+  @RxStateProperty() selectedExpertiseArea: ExpertiseArea;
+  @RxStateProperty() expertiseLocationIds: number[];
 
   protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppDataEditorOptions) {
     super(injector, dataType, dataService, {
@@ -124,16 +143,12 @@ export abstract class AppDataEntityEditor<
       ...options,
     });
 
-    this.programRefService = injector.get(ProgramRefService);
-    this.strategyRefService = injector.get(StrategyRefService);
-    this.messageService = injector.get(MessageService);
-    this.personService = injector.get(PersonService);
-    this.configService = injector.get(ConfigService);
     this.mobile = this.settings.mobile;
     this.acquisitionLevel = options?.acquisitionLevel;
     this.settingsId = options?.settingsId || this.acquisitionLevel || `${this.constructor.name}`;
     this.canCopyLocally = options?.canCopyLocally || false;
     this.requiredStrategy = true;
+    this.expertiseAreaEnabled = false;
 
     // FOR DEV ONLY ----
     this.logPrefix = '[base-data-editor] ';
@@ -220,9 +235,79 @@ export abstract class AppDataEntityEditor<
     this._state.hold(this.strategy$, (strategy) => this.setStrategy(strategy));
 
     // Listen config
-    if (!this.mobile) {
-      this._state.hold(this.configService.config, (config) => this.onConfigLoaded(config));
-    }
+    this._state.hold(this.configService.config, (config) => this.onConfigLoaded(config));
+
+    // Listen expertise areas
+    this._state.connect(
+      'expertiseAreas',
+      of(this.referentialRefService.ready()).pipe(
+        mergeMap(async () => {
+          const referentialRefLoadResult = await this.referentialRefService.loadAll(
+            0,
+            100,
+            'name',
+            'asc',
+            {
+              entityName: ExpertiseArea.ENTITY_NAME,
+              statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+            },
+            {
+              withProperties: true,
+              toEntity: false,
+            }
+          );
+          return referentialRefLoadResult.data?.map((source) => this.expertiseAreaService.fromObject(source));
+        })
+      )
+    );
+
+    // Listen settings to initialize expertise area
+    this._state.connect(
+      'selectedExpertiseArea',
+      merge(of(this.settings.ready()), this._state.select('expertiseAreas')).pipe(
+        filter(() => isNil(this.selectedExpertiseArea)),
+        map(() => this.settings.getPropertyAsInt(DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA)),
+        filter(isNotNil),
+        map((selectedExpertiseAreaId) => this.expertiseAreas?.find((value) => value.id === selectedExpertiseAreaId))
+      )
+    );
+
+    // Save selected expertise area in settings
+    this._state.hold(
+      this._state.select('selectedExpertiseArea').pipe(
+        debounceTime(1000),
+        map((expertiseArea) => expertiseArea?.id?.toString()),
+        filter(isNotNil),
+        distinctUntilChanged()
+      ),
+      (expertiseAreaId) => {
+        const properties = { ...this.settings.settings.properties };
+        if (properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] !== expertiseAreaId) {
+          properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] = expertiseAreaId;
+          // Save remotely
+          this.settings.applyProperty('properties', properties);
+        }
+      }
+    );
+
+    // Listen settings on expertise activation and populate expertiseLocationIds
+    this._state.connect(
+      'expertiseLocationIds',
+      this._state
+        .select(['expertiseAreaEnabled', 'selectedExpertiseArea'], (res) => res)
+        .pipe(
+          map(({ expertiseAreaEnabled, selectedExpertiseArea }) => ({
+            selectedExpertiseArea,
+            locationIds: expertiseAreaEnabled ? selectedExpertiseArea?.locations?.map((l) => l.id) || [] : [],
+          })),
+          tap(({ selectedExpertiseArea, locationIds }) => {
+            if (this.debug) {
+              console.debug(`${this.logPrefix}expertiseLocationIds:`, selectedExpertiseArea?.name, locationIds);
+            }
+          }),
+          map(({ locationIds }) => locationIds)
+        )
+    );
   }
 
   ngAfterViewInit() {
@@ -483,11 +568,13 @@ export abstract class AppDataEntityEditor<
   }
 
   protected async onConfigLoaded(config: Configuration) {
-    console.info('[base-data-editor] Init using config', config);
-    const canSendMessage = config.getPropertyAsBoolean(APP_SOCIAL_CONFIG_OPTIONS.ENABLE_NOTIFICATION_ICONS);
-    if (this.canSendMessage !== canSendMessage) {
-      this.canSendMessage = canSendMessage;
-      this.markForCheck();
+    if (!this.mobile) {
+      console.info('[base-data-editor] Init using config', config);
+      const canSendMessage = config.getPropertyAsBoolean(APP_SOCIAL_CONFIG_OPTIONS.ENABLE_NOTIFICATION_ICONS);
+      if (this.canSendMessage !== canSendMessage) {
+        this.canSendMessage = canSendMessage;
+        this.markForCheck();
+      }
     }
   }
 

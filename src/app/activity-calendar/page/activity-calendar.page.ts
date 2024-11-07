@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ActivityCalendarForm } from '../form/activity-calendar.form';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
@@ -29,9 +29,9 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
+  PlatformService,
   Property,
   ReferentialRef,
-  referentialToString,
   removeDuplicatesFromArray,
   splitByProperty,
   StatusIds,
@@ -85,6 +85,9 @@ import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-form.component';
 import { VesselUseFeaturesIsActiveEnum } from '../model/vessel-use-features.model';
+import { GearUseFeatures } from '../model/gear-use-features.model';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { isOutsideExpertiseArea } from '@app/data/services/model/model.utils';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -129,7 +132,7 @@ export interface ActivityCalendarPageState extends RootDataEntityEditorState {
 })
 export class ActivityCalendarPage
   extends AppRootDataEntityEditor<ActivityCalendar, ActivityCalendarService, number, ActivityCalendarPageState>
-  implements OnInit
+  implements OnInit, AfterViewInit
 {
   static TABS = {
     GENERAL: 0,
@@ -164,6 +167,7 @@ export class ActivityCalendarPage
   protected isAdmin = this.accountService.isAdmin();
   protected isAdminOrManager = this.accountService.isAdmin();
   protected qualityWarning: string = null;
+  protected readonly predocButtonTitleSuffix: string;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
@@ -202,7 +206,8 @@ export class ActivityCalendarPage
     protected vesselService: VesselService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected context: ActivityCalendarContextService,
-    protected hotkeys: Hotkeys
+    protected hotkeys: Hotkeys,
+    protected platform: PlatformService
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
       pathIdAttribute: 'calendarId',
@@ -215,6 +220,8 @@ export class ActivityCalendarPage
       autoOpenNextTab: false,
     });
     this.defaultBackHref = '/activity-calendar';
+    this.expertiseAreaEnabled = true;
+    this.predocButtonTitleSuffix = ` (${hotkeys.defaultControlKeyName}+P)`;
 
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
@@ -331,7 +338,7 @@ export class ActivityCalendarPage
     if (!this.mobile) {
       this.registerSubscription(
         this.hotkeys
-          .addShortcut({ keys: 'control.p', description: 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC', preventDefault: true })
+          .addShortcut({ keys: `${this.hotkeys.defaultControlKey}.p`, description: 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC', preventDefault: true })
           .pipe(filter(() => this.loaded))
           .subscribe(() => this.toggleShowPredoc())
       );
@@ -342,6 +349,7 @@ export class ActivityCalendarPage
       this._predocPanelSize = 0;
     }
   }
+
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
@@ -493,11 +501,8 @@ export class ActivityCalendarPage
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
       this.i18nContext.suffix = i18nSuffix;
 
-      this.baseForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
       this.isAdminOrManager = this.accountService.isAdmin() || this.programRefService.hasUserManagerPrivilege(program);
-      if (!this.baseForm.showObservers && this.data?.observers) {
-        this.data.observers = []; // make sure to reset data observers, if any
-      }
+      this.baseForm.showObservers = this.isAdminOrManager && program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
 
       if (this.baseForm) {
         this.baseForm.timezone = this.timezone;
@@ -981,7 +986,7 @@ export class ActivityCalendarPage
   }
 
   protected vesselToString(vessel: VesselSnapshot) {
-    return referentialToString(vessel, this.vesselSnapshotAttributes);
+    return `${vessel.registrationLocation.label} ${vessel.registrationLocation.name} - ${vessel.registrationCode} - ${vessel.name}`;
   }
 
   protected clearCalendar(event?: Event) {
@@ -1047,6 +1052,25 @@ export class ActivityCalendarPage
         registrationLocations: existingMonth.registrationLocations,
         readonly: existingMonth.readonly,
         updateDate: existingMonth.updateDate,
+        // Don't copy basePortLocation if flagged as outside the expertise are
+        basePortLocation: isOutsideExpertiseArea(source.basePortLocation) ? undefined : source.basePortLocation,
+        // Preserve gearUseFeatures start and end dates
+        gearUseFeatures: source?.gearUseFeatures.map((guf) =>
+          GearUseFeatures.fromObject({
+            ...guf,
+            // Don't copy metier if flagged as outside the expertise are
+            metier: isOutsideExpertiseArea(guf.metier) ? undefined : guf.metier,
+            fishingAreas: guf.fishingAreas.map((fa) => ({
+              // Don't copy fishing area's location and gradients if flagged as outside the expertise are
+              location: isOutsideExpertiseArea(fa.location) ? undefined : fa.location,
+              distanceToCoastGradient: isOutsideExpertiseArea(fa.distanceToCoastGradient) ? undefined : fa.distanceToCoastGradient,
+              depthGradient: isOutsideExpertiseArea(fa.depthGradient) ? undefined : fa.depthGradient,
+              nearbySpecificArea: isOutsideExpertiseArea(fa.nearbySpecificArea) ? undefined : fa.nearbySpecificArea,
+            })),
+            startDate: existingMonth.startDate,
+            endDate: existingMonth.endDate,
+          })
+        ),
       });
     });
 
@@ -1063,6 +1087,14 @@ export class ActivityCalendarPage
       return;
     }
     return super.saveAndGetDataIfValid();
+  }
+
+  onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string) {
+    super.onTabChange(event);
+    if (event.index === ActivityCalendarPage.TABS.CALENDAR) {
+      this.calendar.onResize();
+    }
+    return true;
   }
 
   protected readonly equals = equals;

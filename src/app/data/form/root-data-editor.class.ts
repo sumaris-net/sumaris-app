@@ -1,4 +1,4 @@
-import { Directive, inject, Injector, OnDestroy, OnInit } from '@angular/core';
+import { Directive, HostListener, inject, Injector, OnDestroy, OnInit } from '@angular/core';
 
 import { Subscription } from 'rxjs';
 import {
@@ -116,5 +116,12 @@ export abstract class AppRootDataEntityEditor<
     data.program = ReferentialRef.fromObject(this.programControl.value);
 
     return data;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  handleRefresh(event: BeforeUnloadEvent): void {
+    if (this.dirty) {
+      event.preventDefault();
+    }
   }
 }

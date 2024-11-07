@@ -15,7 +15,7 @@
 
       <!-- Print -->
       <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
-      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+      <ion-button (click)="print()" *ngIf="!mobile">
         <!-- Print button -->
         <ion-icon name="print"></ion-icon>
       </ion-button>
@@ -39,7 +39,7 @@
       <ion-title [innerHTML]="$title | async"></ion-title>
 
       <!-- Print button -->
-      <ion-button slot="end" (click)="reveal.print($event)">
+      <ion-button slot="end" (click)="reveal.print()">
         <ion-icon name="print"></ion-icon>
       </ion-button>
 
@@ -625,7 +625,7 @@
                 context: {
                   $implicit: (batchesByType | mapGet: 'landing'),
                   batchType: 'landing',
-                  opId: opId
+                  opId: opId,
                 }
               "
             ></ng-content>
@@ -637,7 +637,7 @@
                 context: {
                   $implicit: batchesByType | mapGet: 'discard',
                   batchType: 'discard',
-                  opId: opId
+                  opId: opId,
                 }
               "
             ></ng-content>
@@ -736,7 +736,7 @@
                               | pmfmValue
                                 : {
                                     pmfm: stats.pmfmsByIds.samples | mapGet: pmfm.id,
-                                    propertyNames: ['label', 'name']
+                                    propertyNames: ['label', 'name'],
                                   }
                           "
                         ></td>
@@ -799,7 +799,7 @@
             pageHeader;
             context: {
               title: 'TRIP.REPORT.FORM.BATCH.TITLE_' + (batchType | uppercase),
-              titleParams: { pageNumber: $index + 1 }
+              titleParams: { pageNumber: $index + 1 },
             }
           "
         ></ng-content>
@@ -912,7 +912,7 @@
                                 | pmfmValue
                                   : {
                                       pmfm: stats.pmfmsByIds.denormalizedBatch | mapGet: pmfmId,
-                                      propertyNames: ['label', 'name']
+                                      propertyNames: ['label', 'name'],
                                     }
                             }}
                             @if (!last) {

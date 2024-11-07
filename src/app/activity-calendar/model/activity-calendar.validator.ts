@@ -94,7 +94,7 @@ export class ActivityCalendarValidatorService<
       __typename: [ActivityCalendar.TYPENAME],
       startDate: [data?.startDate || null, Validators.compose([Validators.required, SharedValidators.validDate])],
       year: [toNumber(data?.year, null), Validators.required],
-      directSurveyInvestigation: [toBoolean(data?.directSurveyInvestigation, null), Validators.required],
+      directSurveyInvestigation: [toNumber(data?.directSurveyInvestigation, null), Validators.required],
       economicSurvey: [toBoolean(data?.economicSurvey, null)],
       measurementValues: this.formBuilder.group({}),
     });
@@ -186,7 +186,9 @@ export class ActivityCalendarValidatorService<
     const maxLength = toNumber(opts?.maxLength, 12);
     const validators = [];
     if (required) {
-      validators.push(ActivityCalendarValidators.validMonthCount);
+      // Exclude month without registration location
+      const inexistentMonthCount = (data || []).filter((month) => isEmptyArray(month.registrationLocations)).length;
+      validators.push(ActivityCalendarValidators.validMonthCount(12 - inexistentMonthCount));
     } else if (opts?.maxLength) {
       validators.push(SharedFormArrayValidators.arrayMaxLength(maxLength));
     }
@@ -271,16 +273,18 @@ export class ActivityCalendarValidatorService<
 }
 
 export class ActivityCalendarValidators {
-  static validMonthCount(formArray: UntypedFormArray, expectedMonthCount = 12): ValidationErrors | null {
-    const actualCount = formArray.length;
-    if (actualCount !== expectedMonthCount) {
-      // DEBUG
-      //console.warn('Invalid month count - actual: ${actualCount} - expected: ${expectedMonthCount}');
+  static validMonthCount(expectedMonthCount = 12): ValidatorFn {
+    return (formArray: UntypedFormArray): ValidationErrors | null => {
+      const actualCount = formArray.length;
+      if (actualCount !== expectedMonthCount) {
+        // DEBUG
+        //console.warn('Invalid month count - actual: ${actualCount} - expected: ${expectedMonthCount}');
 
-      return { invalidMonths: true };
-    }
+        return { invalidMonths: true };
+      }
 
-    return null;
+      return null;
+    };
   }
 
   static validInactivityYear(form: UntypedFormGroup): ValidationErrors | null {
@@ -301,7 +305,7 @@ export class ActivityCalendarValidators {
       const inactivityYear = months.every((month) => month.isActive === 0);
 
       // Inactive in all year => inactivity year is required
-      if (inactivityYear && isNil(inactivityYearPmfmValue)) {
+      if (inactivityYear && (isNil(inactivityYearPmfmValue) || inactivityYearPmfmValue === false)) {
         inactivityYearControl.setErrors({ required: true });
         return {
           required: true,

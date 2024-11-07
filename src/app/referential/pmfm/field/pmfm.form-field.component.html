@@ -123,7 +123,7 @@
       [appAutofocus]="autofocus"
       [formControl]="vars.control"
       [placeholder]="floatLabel === 'never' && placeholder"
-      (keydown.enter)="onPressEnter.emit($event)"
+      (keyup.enter)="onKeyupEnter.emit($event)"
       (keypress)="filterNumberInput($event, false)"
       (focus)="focused.emit($event)"
       (blur)="blurred.emit($event)"
@@ -160,7 +160,7 @@
   </mat-form-field>
 
   <!-- double -->
-  <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel">
+  <mat-form-field *ngSwitchCase="'double'" [floatLabel]="floatLabel | asFloatLabelType">
     @if (placeholder && floatLabel !== 'never') {
       <mat-label>{{ placeholder }}</mat-label>
     }
@@ -177,7 +177,7 @@
       [appAutofocus]="autofocus"
       [placeholder]="floatLabel === 'never' && placeholder"
       [step]="numberInputStep"
-      (keyup.enter)="onPressEnter.emit($event)"
+      (keyup.enter)="onKeyupEnter.emit($event)"
       (keypress)="filterNumberInput($event, true)"
       (blur)="blurred.emit($event)"
       (focus)="focused.emit($event)"
@@ -317,7 +317,7 @@
     [panelClass]="panelClass"
     [panelWidth]="panelWidth"
     [disableRipple]="disableRipple"
-    (keyup.enter)="onPressEnter.emit($event)"
+    (keyup.enter)="onKeyupEnter.emit($event)"
     (click)="clicked.emit($event)"
   >
     <div matSuffix class="mat-form-field-suffix-container">
@@ -326,19 +326,22 @@
   </app-pmfm-qv-field>
 
   <!-- string -->
-  <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel">
-    <mat-label>{{ placeholder }}</mat-label>
+  <mat-form-field *ngSwitchCase="'string'" [floatLabel]="floatLabel | asFloatLabelType">
+    @if (placeholder && floatLabel !== 'never') {
+      <mat-label>{{ placeholder }}</mat-label>
+    }
     <input
       matInput
       #matInput
       autocomplete="off"
       [appAutofocus]="autofocus"
       [formControl]="control | formGetControl"
+      [placeholder]="floatLabel === 'never' && placeholder"
       [required]="required"
       [tabIndex]="tabindex"
       (click)="clicked.emit($event)"
-      (keydown)="filterAlphanumericalInput($event)"
-      (keyup.enter)="onPressEnter.emit($event)"
+      (keyup.enter)="onKeyupEnter.emit($event)"
+      (keypress)="filterAlphanumericalInput($event)"
       (focus)="focused.emit($event)"
       (blur)="blurred.emit($event)"
     />

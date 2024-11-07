@@ -10,6 +10,7 @@ import { BBox } from 'geojson';
 export class ReferentialRefFilter extends BaseReferentialFilter<ReferentialRefFilter, ReferentialRef> {
   static fromObject: (source, opts?: any) => ReferentialRefFilter;
 
+  locationIds: number[] = null;
   searchAttributes: string[] = null;
   boundingBox?: BBox;
 
@@ -33,6 +34,7 @@ export class ReferentialRefFilter extends BaseReferentialFilter<ReferentialRefFi
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
 
+    this.locationIds = source.locationIds;
     this.searchAttributes = source.searchAttributes;
   }
 

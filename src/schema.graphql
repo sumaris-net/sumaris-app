@@ -31,7 +31,7 @@ type ActivityCalendarVO {
   comments: String
   controlDate: Date
   creationDate: Date
-  directSurveyInvestigation: Boolean
+  directSurveyInvestigation: Int
   economicSurvey: Boolean
   gearPhysicalFeatures: [GearPhysicalFeaturesVO]
   gearUseFeatures: [GearUseFeaturesVO]
@@ -1576,6 +1576,8 @@ type Query {
     ): VesselVO
     "Get vessel features history"
     vesselFeaturesHistory(filter: VesselFeaturesFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselFeaturesVO]
+    "Get a vesselOwner"
+    vesselOwner(id: Int): VesselOwnerVO
     "Get vessel owner history"
     vesselOwnerHistory(filter: VesselOwnerFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselOwnerPeriodVO]
     "Get vessel registration history"
@@ -2406,7 +2408,7 @@ input ActivityCalendarFilterVOInput {
   activityCalendarId: Int
   basePortLocationIds: [Int]
   dataQualityStatus: [DataQualityStatusEnum]
-  directSurveyInvestigation: Boolean
+  directSurveyInvestigation: Int
   economicSurvey: Boolean
   endDate: Date
   excludedIds: [Int]
@@ -2433,7 +2435,7 @@ input ActivityCalendarVOInput {
   comments: String
   controlDate: Date
   creationDate: Date
-  directSurveyInvestigation: Boolean
+  directSurveyInvestigation: Int
   economicSurvey: Boolean
   gearPhysicalFeatures: [GearPhysicalFeaturesVOInput]
   gearUseFeatures: [GearUseFeaturesVOInput]

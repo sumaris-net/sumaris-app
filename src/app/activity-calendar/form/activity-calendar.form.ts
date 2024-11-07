@@ -5,6 +5,7 @@ import { IMeasurementsFormOptions, MeasurementValuesForm } from '@app/data/measu
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { AbstractControl, FormGroup, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
+  AccountService,
   AppFormArray,
   DateUtils,
   equals,
@@ -13,6 +14,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  IStatus,
   LoadResult,
   NetworkService,
   Person,
@@ -20,12 +22,13 @@ import {
   PersonUtils,
   ReferentialUtils,
   setPropertyByPath,
+  splitById,
   StatusIds,
   toBoolean,
   toDateISOString,
   UserProfileLabel,
 } from '@sumaris-net/ngx-components';
-import { ActivityCalendar } from '../model/activity-calendar.model';
+import { ActivityCalendar, DirectSurveyInvestigationList } from '../model/activity-calendar.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -39,6 +42,7 @@ import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { ModalController } from '@ionic/angular';
 import { merge, Observable, tap } from 'rxjs';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export interface ActivityCalendarFormState extends MeasurementsFormState {
   showYear: boolean;
@@ -60,6 +64,9 @@ export class ActivityCalendarForm
   private _lastValidatorOpts: any;
   private _readonlyControlNames: (keyof ActivityCalendar)[] = ['program', 'year', 'startDate', 'directSurveyInvestigation', 'economicSurvey', 'year'];
   protected observerFocusIndex = -1;
+
+  protected readonly directSurveyInvestigationList = DirectSurveyInvestigationList;
+  protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
 
   @RxStateSelect() protected showObservers$: Observable<boolean>;
   @RxStateSelect() protected warnFutureYear$: Observable<boolean>;
@@ -114,7 +121,8 @@ export class ActivityCalendarForm
     protected personService: PersonService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected network: NetworkService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected accountService: AccountService
   ) {
     super(
       injector,
@@ -173,17 +181,7 @@ export class ActivityCalendarForm
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
       this.registerAutocompleteField('vesselSnapshot', {
         ...opts,
-        suggestFn: (value, filter) => {
-          const year = this.yearControl.value;
-          if (isNotNil(year)) {
-            const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
-            filter = {
-              ...filter,
-              date: startDate,
-            };
-          }
-          return this.vesselSnapshotService.suggest(value, filter);
-        },
+        suggestFn: (value, filter) => this.suggestVessel(value, filter),
       });
     });
 
@@ -241,12 +239,12 @@ export class ActivityCalendarForm
 
     // Make sure to have (at least) one observer
     // Resize observers array
-    if (this.showObservers) {
-      data.observers = isNotEmptyArray(data.observers) ? data.observers : [null];
-    } else {
-      data.observers = [null];
-    }
-
+    data.observers = isNotEmptyArray(data.observers)
+      ? data.observers
+      : [
+          // Current user
+          this.accountService.person?.asObject(),
+        ];
     // Update form group
     this.updateFormGroup();
   }
@@ -362,6 +360,18 @@ export class ActivityCalendarForm
     } else {
       console.debug('${this._logPrefix}No vessel added (user cancelled)');
     }
+  }
+
+  protected suggestVessel(value: any, filter: Partial<VesselSnapshotFilter>) {
+    const year = this.yearControl.value;
+    if (isNotNil(year)) {
+      const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');
+      filter = {
+        ...filter,
+        date: startDate,
+      };
+    }
+    return this.vesselSnapshotService.suggest(value, filter);
   }
 
   protected markForCheck() {

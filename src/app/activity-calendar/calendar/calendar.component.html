@@ -26,16 +26,33 @@
       <button mat-menu-item (click)="cut()" [disabled]="!cellSelection">
         <mat-icon>content_cut</mat-icon>
         <ion-label translate>COMMON.BTN_CUT</ion-label>
+        <ion-label color="medium" class="shortcut">
+          <small>{{ hotkeys.defaultControlKeyName + '+X' }}</small>
+        </ion-label>
       </button>
     }
     <button mat-menu-item (click)="copy()" [disabled]="!cellSelection">
       <mat-icon>content_copy</mat-icon>
       <ion-label translate>COMMON.BTN_COPY</ion-label>
+      <ion-label color="medium">
+        <small>{{ hotkeys.defaultControlKeyName + '+C' }}</small>
+      </ion-label>
     </button>
     @if (enabled) {
       <button mat-menu-item (click)="paste()" [disabled]="!(hasClipboard$ | push)">
         <mat-icon>content_paste</mat-icon>
         <ion-label translate>COMMON.BTN_PASTE</ion-label>
+        <ion-label color="medium">
+          <small>{{ hotkeys.defaultControlKeyName + '+V' }}</small>
+        </ion-label>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="clearCellSelection()" [disabled]="!cellSelection">
+        <mat-icon>delete</mat-icon>
+        <ion-label translate>COMMON.BTN_CLEAR</ion-label>
+        <ion-label color="medium">
+          <small>{{ platform.isIOS() ? 'Fn+Delete' : 'Suppr' }}</small>
+        </ion-label>
       </button>
     }
   </ng-template>
@@ -351,9 +368,7 @@
 
           <!-- resize handlers -->
           @if (enableCellSelection) {
-            <ng-container
-              *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive' }"
-            ></ng-container>
+            <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'isActive' }"></ng-container>
           }
         </mat-cell>
       </ng-container>
@@ -367,11 +382,18 @@
           *matCellDef="let row"
           class="odd mat-mdc-cell-resizable"
           #cell
+          [class.mat-mdc-cell-error]="row.currentData.basePortLocation?.properties?.outsideExpertiseArea"
           (click)="clickCell($event, row, 'basePortLocation')"
           (dblclick)="dblClickCell($event, row, 'basePortLocation')"
           (contextmenu)="onContextMenu($event, cell, row, 'basePortLocation')"
         >
-          @if (row.editing) {
+          @if (mobile) {
+            <!-- readonly -->
+            <ion-label appAutoTitle class="ion-text-nowrap">
+              {{ row.currentData.basePortLocation | referentialToString: locationDisplayAttributes }}
+            </ion-label>
+          } @else if (row.editing) {
+            <!-- readonly -->
             <mat-autocomplete-field
               #field
               [formControl]="row.validator | formGetControl: 'basePortLocation'"
@@ -381,19 +403,14 @@
               [floatLabel]="'never'"
             ></mat-autocomplete-field>
           } @else {
-            @if (row.currentData.basePortLocation | referentialToString: locationDisplayAttributes; as label) {
-              <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
-            }
+            <ion-label appAutoTitle class="ion-text-nowrap">
+              {{ row.validator | formGetValue: 'basePortLocation' | referentialToString: locationDisplayAttributes }}
+            </ion-label>
           }
 
           <!-- resize handlers -->
           @if (enableCellSelection) {
-            <ng-container
-              *ngTemplateOutlet="
-                cellHandlers;
-                context: { $implicit: row, cell: cell, col: 'basePortLocation' }
-              "
-            ></ng-container>
+            <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: 'basePortLocation' }"></ng-container>
           }
         </mat-cell>
       </ng-container>
@@ -416,7 +433,7 @@
                         withDetails: showPmfmDetails,
                         withUnit: false,
                         i18nPrefix: i18nPmfmPrefix,
-                        i18nSuffix: i18nColumnSuffix
+                        i18nSuffix: i18nColumnSuffix,
                       }
               "
             ></ion-label>
@@ -458,12 +475,7 @@
             }
             <!-- resize handlers -->
             @if (enableCellSelection) {
-              <ng-container
-                *ngTemplateOutlet="
-                  cellHandlers;
-                  context: { $implicit: row, cell: cell, col: pmfm.id.toString() }
-                "
-              ></ng-container>
+              <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: pmfm.id.toString() }"></ng-container>
             }
           </mat-cell>
         </ng-container>
@@ -497,6 +509,7 @@
             [class]="col.class"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
+            [class.mat-mdc-cell-error]="(row.currentData | propertyGet: col.path)?.properties?.outsideExpertiseArea"
             (click)="col.hidden ? col.expand($event) : clickCell($event, row, col.key)"
             (dblclick)="!col.hidden && dblClickCell($event, row, col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"
@@ -506,10 +519,9 @@
               @let control = inlineEdition && (row.validator | formGetControl: col.path);
               @if (!control) {
                 <!-- readonly (mobile) -->
-                @let label = (row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes);
+                @let label = row.currentData | propertyGet: col.path | referentialToString: col.autocomplete.attributes;
                 <ion-label [title]="label" class="ion-text-nowrap">{{ label }}</ion-label>
-              }
-              @else if (control.enabled) {
+              } @else if (control.enabled) {
                 <!-- writable (desktop) -->
                 <mat-autocomplete-field
                   floatLabel="never"
@@ -528,7 +540,6 @@
                 <ng-container *ngTemplateOutlet="cellHandlers; context: { $implicit: row, cell: cell, col: col.key }"></ng-container>
               }
             }
-
           </mat-cell>
         </ng-container>
       }
@@ -675,6 +686,8 @@
           acquisitionLevel: {{ acquisitionLevel }}
           <br />
           pmfms: {{ (pmfms$ | async)?.length }}
+          <br />
+          expertiseLocationIds: {{ expertiseLocationIds }}
           <br />
           <br />
           focusColumn: {{ focusColumn }}

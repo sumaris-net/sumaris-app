@@ -15,7 +15,7 @@
 
       <!-- Print -->
       <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
-      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
+      <ion-button (click)="print()" *ngIf="!mobile">
         <!-- Print button -->
         <ion-icon name="print"></ion-icon>
       </ion-button>
@@ -39,7 +39,7 @@
       <ion-title [innerHTML]="$title | async"></ion-title>
 
       <!-- Print button -->
-      <ion-button slot="end" (click)="reveal.print($event)">
+      <ion-button slot="end" (click)="reveal.print()">
         <ion-icon name="print"></ion-icon>
       </ion-button>
 
@@ -59,7 +59,7 @@
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
     @for (tableChunk of stats.tableRowChunk; track chunkIndex; let chunkIndex = $index; let firstChunk = $first; let lastChunk = $last) {
-      <section class="landscape" *sectionDef>
+      <section *sectionDef>
         <!-- header -->
         <ion-grid class="report-header ion-no-padding">
           <ion-row class="page-title">
@@ -89,16 +89,6 @@
                 <ion-col class="form-value" size="4">{{ stats.filter.program?.label }}</ion-col>
               }
 
-              <!-- Base port location -->
-              @if (stats.filter.basePortLocations | isNotEmptyArray) {
-                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.BASE_PORT_LOCATION' | translate }}</ion-col>
-                <ion-col class="form-value" size="4">
-                  @for (item of stats.filter.basePortLocations; track item.id) {
-                    <ion-badge color="medium">{{ item | referentialToString }}</ion-badge>
-                  }
-                </ion-col>
-              }
-
               <!-- Registration location -->
               @if (stats.filter.registrationLocations | isNotEmptyArray) {
                 <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.REGISTRATION_LOCATION' | translate }}</ion-col>
@@ -109,19 +99,29 @@
                 </ion-col>
               }
 
+              <!-- Base port location -->
+              @if (stats.filter.basePortLocations | isNotEmptyArray) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.BASE_PORT_LOCATION' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  @for (item of stats.filter.basePortLocations; track item.id) {
+                    <ion-badge color="medium">{{ item | referentialToString }}</ion-badge>
+                  }
+                </ion-col>
+              }
+
               <!-- Vessel -->
               @if (stats.filter.vesselSnapshot) {
                 <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL' | translate }}</ion-col>
                 <ion-col class="form-value" size="4">
-                  <ion-badge color="medium">{{ stats.filter.vesselSnapshot | referentialToString: stats.vesselAttributes }}</ion-badge>
+                  {{ stats.filter.vesselSnapshot | referentialToString: stats.vesselAttributes }}
                 </ion-col>
               }
 
-              <!-- Recorder person -->
-              @if (stats.filter.recorderPerson) {
-                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate }}</ion-col>
+              <!-- VesselType -->
+              @if (stats.filter.vesselSnapshot) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL_TYPE' | translate }}</ion-col>
                 <ion-col class="form-value" size="4">
-                  <ion-badge color="medium">{{ stats.filter.recorderPerson | personToString }}</ion-badge>
+                  {{ stats.filter.vesselType | referentialToString: ['name'] }}
                 </ion-col>
               }
 
@@ -135,19 +135,51 @@
                 </ion-col>
               }
 
-              <!-- Recorder departement -->
-              @if (stats.filter.recorderDepartment | isNotEmptyReferential) {
-                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_DEPARTMENT' | translate }}</ion-col>
+              <!-- Data quality -->
+              @if (stats.filter.dataQualityStatus | isNotNilOrBlank) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</ion-col>
                 <ion-col class="form-value" size="4">
-                  <ion-badge color="medium">{{ stats.filter.recorderDepartment | departmentToString }}</ion-badge>
+                  {{ 'QUALITY.' + stats.filter.dataQualityStatus | translate }}
                 </ion-col>
               }
 
               <!-- Quality flag -->
-              @if (stats.filter.dataQualityStatus | isNotNilOrBlank) {
-                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</ion-col>
+              @if (stats.filter.qualityFlagId | isNotNil) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.QUALITY_FLAG_ID' | translate }}</ion-col>
                 <ion-col class="form-value" size="4">
-                  <ion-badge color="medium">{{ 'QUALITY.' + stats.filter.dataQualityStatus | translate }}</ion-badge>
+                  {{ stats.filter.qualityFlagId | qualityFlagToI18n | translate }}
+                </ion-col>
+              }
+
+              <!-- Direct Survey Investigation -->
+              @if (stats.filter.directSurveyInvestigation) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  {{ (stats.filter.directSurveyInvestigation ? 'COMMON.YES' : 'COMMON.NO') | translate }}
+                </ion-col>
+              }
+
+              <!-- Economic Survey -->
+              @if (stats.filter.economicSurvey | isNotNil) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.ECONOMIC_SURVEY' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  {{ (stats.filter.economicSurvey ? 'COMMON.YES' : 'COMMON.NO') | translate }}
+                </ion-col>
+              }
+
+              <!-- Recorder person -->
+              @if (stats.filter.recorderPerson) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_PERSON' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  {{ stats.filter.recorderPerson | personToString }}
+                </ion-col>
+              }
+
+              <!-- Recorder department -->
+              @if (stats.filter.recorderDepartment | isNotEmptyReferential) {
+                <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.RECORDER_DEPARTMENT' | translate }}</ion-col>
+                <ion-col class="form-value" size="4">
+                  {{ stats.filter.recorderDepartment | departmentToString }}
                 </ion-col>
               }
             </ion-row>
@@ -200,7 +232,7 @@
                   <td class="ion-text-center col-compact">
                     {{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.STATUS.' + row.status | translate }}
                   </td>
-                  <td class="ion-text-center col-compact">{{ row.observer }}</td>
+                  <td class="ion-text-center col-compact">{{ row.observerName }}</td>
                 </tr>
               }
             </tbody>

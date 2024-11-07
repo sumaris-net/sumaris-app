@@ -22,6 +22,7 @@ import {
   JobUtils,
   LoadResult,
   LoadResultByPageFn,
+  LocalSettingsService,
   NetworkService,
   ObjectMap,
   Referential,
@@ -86,10 +87,12 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
       $sortBy: String
       $sortDirection: String
       $filter: ReferentialFilterVOInput
+      $withLevelId: Boolean!
       $withProperties: Boolean!
     ) {
       data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
         ...LightReferentialFragment
+        levelId @include(if: $withLevelId)
         properties @include(if: $withProperties)
       }
     }
@@ -104,10 +107,12 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
       $sortBy: String
       $sortDirection: String
       $filter: ReferentialFilterVOInput
+      $withLevelId: Boolean!
       $withProperties: Boolean!
     ) {
       data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
         ...LightReferentialFragment
+        levelId @include(if: $withLevelId)
         properties @include(if: $withProperties)
       }
       total: referentialsCount(entityName: $entityName, filter: $filter)
@@ -142,6 +147,7 @@ export const IMPORT_REFERENTIAL_ENTITIES = Object.freeze([
   'QualityFlag',
   'SaleType',
   'VesselType',
+  'ExpertiseArea',
 ]);
 
 export const WEIGHT_CONVERSION_ENTITIES = ['WeightLengthConversion', 'RoundWeightConversion'];
@@ -164,7 +170,8 @@ export class ReferentialRefService
     protected accountService: AccountService,
     protected configService: ConfigService,
     protected network: NetworkService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    protected settings: LocalSettingsService
   ) {
     super(graphql, environment);
 
@@ -196,6 +203,7 @@ export class ReferentialRefService
       [key: string]: any;
       fetchPolicy?: FetchPolicy;
       withTotal?: boolean;
+      withLevelId?: boolean;
       withProperties?: boolean;
       toEntity?: boolean;
       debug?: boolean;
@@ -215,6 +223,7 @@ export class ReferentialRefService
       size: size || 100,
       sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
+      withLevelId: opts?.withLevelId || false,
       withProperties: opts?.withProperties || false,
     };
 
@@ -256,16 +265,17 @@ export class ReferentialRefService
     );
   }
 
-  async loadAll<E = ReferentialRef>(
+  async loadAll<E extends ReferentialRef = ReferentialRef>(
     offset: number,
     size: number,
-    sortBy?: string,
+    sortBy?: keyof E | string,
     sortDirection?: SortDirection,
     filter?: Partial<ReferentialRefFilter>,
     opts?: {
       [key: string]: any;
       fetchPolicy?: FetchPolicy;
       withTotal?: boolean;
+      withLevelId?: boolean;
       withProperties?: boolean;
       toEntity?: boolean | ((source: any) => E);
       debug?: boolean;
@@ -294,6 +304,7 @@ export class ReferentialRefService
       sortBy: sortBy || filter.searchAttribute || (filter.searchAttributes && filter.searchAttributes[0]) || 'label',
       sortDirection: sortDirection || 'asc',
       filter: filter.asPodObject(),
+      withLevelId: opts?.withLevelId || false,
       withProperties: opts?.withProperties || false,
     };
     const now = debug && Date.now();
@@ -338,7 +349,7 @@ export class ReferentialRefService
   protected async loadAllLocally<E = ReferentialRef>(
     offset: number,
     size: number,
-    sortBy?: string,
+    sortBy?: keyof E | string,
     sortDirection?: SortDirection,
     filter?: Partial<ReferentialRefFilter>,
     opts?: {
@@ -358,7 +369,10 @@ export class ReferentialRefService
       offset: offset || 0,
       size: size || 100,
       sortBy:
-        sortBy || filter.searchAttribute || (filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]) || 'label',
+        (sortBy as string) ||
+        filter.searchAttribute ||
+        (filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]) ||
+        'label',
       sortDirection: sortDirection || 'asc',
       filter: filter.asFilterFn(),
     };
@@ -378,7 +392,7 @@ export class ReferentialRefService
     // Add fetch more function
     const nextOffset = (offset || 0) + entities.length;
     if (nextOffset < total) {
-      res.fetchMore = () => this.loadAll<E>(nextOffset, size, sortBy, sortDirection, filter, opts);
+      res.fetchMore = () => this.loadAllLocally<E>(nextOffset, size, sortBy, sortDirection, filter, opts);
     }
 
     return res;
@@ -463,6 +477,7 @@ export class ReferentialRefService
       [key: string]: any;
       fetchPolicy?: FetchPolicy;
       debug?: boolean;
+      withProperties?: boolean;
       toEntity?: boolean;
     }
   ): Promise<ReferentialRef> {
@@ -481,7 +496,7 @@ export class ReferentialRefService
       toEntity?: boolean;
     }
   ): Promise<ReferentialRef> {
-    const { data } = await this.loadAll(0, 1, null, null, { label, entityName }, { ...opts, withTotal: false /*not need total*/ });
+    const { data } = await this.loadAll(0, 1, null, null, { ...filter, label, entityName }, { ...opts, withTotal: false /*not need total*/ });
     return data?.length ? data[0] : undefined;
   }
 
@@ -546,14 +561,15 @@ export class ReferentialRefService
     return (data || []).map((e) => e.id);
   }
 
-  async suggest<E = ReferentialRef>(
+  async suggest<E extends ReferentialRef = ReferentialRef, F extends ReferentialRefFilter = ReferentialRefFilter>(
     value: any,
-    filter?: Partial<ReferentialRefFilter>,
-    sortBy?: keyof Referential | 'rankOrder',
+    filter?: Partial<F>,
+    sortBy?: keyof E | 'rankOrder',
     sortDirection?: SortDirection,
     opts?: {
       toEntity?: boolean | ((source: any) => E);
       fetchPolicy?: FetchPolicy;
+      withLevelId?: boolean;
       withProperties?: boolean;
     }
   ): Promise<LoadResult<E>> {
@@ -843,6 +859,10 @@ export class ReferentialRefService
               },
               getLoadOptions(offset)
             );
+          break;
+
+        case 'ExpertiseArea':
+          loadPageFn = (offset, size) => this.loadAll(offset, size, 'id', 'asc', { statusIds }, { ...getLoadOptions(offset), withProperties: true });
           break;
 
         // Other entities

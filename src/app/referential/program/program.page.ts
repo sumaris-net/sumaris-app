@@ -20,12 +20,14 @@ import {
   fadeInOutAnimation,
   FormFieldDefinition,
   FormFieldDefinitionMap,
+  FormFieldDefinitionUtils,
   HistoryPageReference,
   IEntity,
   isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  MatAutocompleteFieldConfig,
   OnReady,
   Property,
   ReferentialRef,
@@ -50,6 +52,7 @@ import { RxState } from '@rx-angular/state';
 import { ReferentialImportPolicy } from '@app/referential/table/referential-file.service';
 import { PropertiesFileService } from '@app/referential/properties/properties-file.service';
 import { REFERENTIAL_CONFIG_OPTIONS } from '@app/referential/services/config/referential.config';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 export const PROGRAM_TABS = {
   GENERAL: 0,
@@ -141,18 +144,28 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.defaultBackHref = '/referential/programs';
     this._enabled = this.accountService.isAdmin();
 
-    this.propertyDefinitions = Object.values(ProgramProperties).map((def) => {
-      // Add default configuration for entity/entities
+    // Default autocomplete config
+    const defaultAutocomplete = <Partial<MatAutocompleteFieldConfig<ReferentialRef, ReferentialRefFilter>>>{
+      suggestFn: (value, filter, sortBy, sortDirection, opts) =>
+        this.referentialRefService.suggest(value, filter, sortBy as keyof ReferentialRef, sortDirection, opts),
+      attributes: ['label', 'name'],
+    };
+    // Convert map to list of options
+    const propertyDefinitions = Object.values(ProgramProperties).map((def) => {
       if (def.type === 'entity' || def.type === 'entities') {
-        def = Object.assign({}, def); // Copy
-        def.autocomplete = {
-          suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
-          attributes: ['label', 'name'],
-          ...(def.autocomplete || {}),
+        def = {
+          ...def,
+          autocomplete: {
+            ...defaultAutocomplete,
+            ...(def.autocomplete || {}),
+          },
         };
       }
       return def;
     });
+
+    // Resolve (injection tokens)
+    this.propertyDefinitions = FormFieldDefinitionUtils.prepareDefinitions(injector, propertyDefinitions);
 
     this.debug = !environment.production;
   }

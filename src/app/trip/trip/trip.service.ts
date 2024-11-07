@@ -649,6 +649,11 @@ export class TripService
     const withTotal = !opts || opts.withTotal !== false;
     const query = opts?.query || (withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll);
 
+    // fix sort by
+    if (sortBy === 'recorderPerson') {
+      sortBy = 'recorderPerson.lastName';
+    }
+
     return this.mutableWatchQuery<LoadResult<Trip>>({
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
       query,

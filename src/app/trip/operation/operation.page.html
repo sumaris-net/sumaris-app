@@ -169,10 +169,13 @@
 
     <!-- Control -->
     <button mat-menu-item [disabled]="disabled" (click)="saveAndControl($event)">
-      <ion-label>
-        <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>
-        <span translate>QUALITY.BTN_CONTROL</span>
-      </ion-label>
+      <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>
+      <ion-label translate>QUALITY.BTN_CONTROL</ion-label>
+      @if (!mobile) {
+        <ion-label color="medium">
+          <small>{{ hotkeys.defaultControlKeyName + '+O' }}</small>
+        </ion-label>
+      }
     </button>
 
     <!-- download button -->
@@ -214,7 +217,7 @@
   </ng-template>
 </mat-menu>
 
-<ion-content>
+<ion-content scroll-y="false">
   <mat-tab-group
     #tabGroup
     class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
@@ -532,11 +535,6 @@
           sampleTree.program: {{ sampleTree.programLabel || sampleTree.program?.label }}
           <br />
           sampleTree.strategy {{ sampleTree.requiredStrategy ? '(required)' : '' }}: {{ sampleTree.strategyId$ | async }}
-          <br />
-          <br />
-          sampleTree.showIndividualMonitoringTable: {{ sampleTree.showIndividualMonitoringTable }}
-          <br />
-          sampleTree.showIndividualReleaseTable: {{ sampleTree.showIndividualReleaseTable }}
         </ion-col>
       </ion-row>
     </ion-grid>

@@ -1,6 +1,7 @@
 import { TypePolicies } from '@apollo/client/core';
 import { FormFieldDefinition, PRIORITIZED_AUTHORITIES, StatusIds } from '@sumaris-net/ngx-components';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { ExpertiseArea } from '@app/referential/expertise-area/expertise-area.model';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
@@ -168,3 +169,23 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     },
   },
 });
+
+export const DATA_LOCAL_SETTINGS_OPTIONS = {
+  // Note: will be update in app.component.ts
+  DATA_EXPERTISE_AREA: <FormFieldDefinition>{
+    key: 'sumaris.data.expertiseAreas',
+    label: 'DATA.SETTINGS.EXPERTISE_AREAS',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['name'],
+      suggestFn: () => {
+        throw new Error('Should have been override by the app.component!!');
+      },
+      filter: <ReferentialRefFilter>{
+        entityName: ExpertiseArea.ENTITY_NAME,
+        statusIds: [StatusIds.ENABLE],
+      },
+    },
+    defaultValue: null,
+  },
+};

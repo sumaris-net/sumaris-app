@@ -30,6 +30,7 @@ export class AppExtractionButton extends RxState<EntityExtractionMenuState> {
   @Input() disabled = false;
   @Input() disabledDownloadAsType = false;
   @Input() title = 'COMMON.BTN_DOWNLOAD';
+  @Input() label = 'COMMON.BTN_DOWNLOAD_DOTS';
   @Input() typesTitle = 'EXTRACTION.TYPES_MENU.LIVE_DIVIDER';
   @Input() icon = null;
   @Input() matIcon = 'download';

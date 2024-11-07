@@ -43,6 +43,7 @@ import {
   isCapacitor,
   isIOS,
   isMobile,
+  isTouchUi,
   JobModule,
   LocalSettings,
   LocalSettingsOptions,
@@ -54,6 +55,7 @@ import {
   StorageService,
   TestingPage,
   UserEventModule,
+  testUserAgent,
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -73,7 +75,7 @@ import {
   REFERENTIAL_GRAPHQL_TYPE_POLICIES,
   REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
 } from './referential/services/config/referential.config';
-import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES } from './data/data.config';
+import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES, DATA_LOCAL_SETTINGS_OPTIONS } from './data/data.config';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS } from './vessel/services/config/vessel.config';
 import { JDENTICON_CONFIG } from 'ngx-jdenticon';
 import { REFERENTIAL_TESTING_PAGES } from './referential/referential.testing.module';
@@ -114,6 +116,16 @@ import { NamedFilterService } from '@app/shared/service/named-filter.service';
 import { ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS } from '@app/activity-calendar/calendar/activity-month.validator';
 import { ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS } from './activity-calendar/model/activity-calendar.validator';
 import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
+const isMac = (win: Window) => {
+  // iOS (but not iPad)
+  if (testUserAgent(win, /Macintosh/i) && !isTouchUi(win)) {
+    return true;
+  }
+
+  return false;
+};
+
+export const isIOS2 = (win: Window) => isIOS(win) || isMac(win);
 
 @NgModule({
   declarations: [AppComponent],
@@ -128,7 +140,7 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
       // Override platform detection (see issue #323)
       platform: {
         mobile: isMobile,
-        ios: isIOS,
+        ios: isIOS2,
         android: isAndroid,
         capacitor: isCapacitor,
       },
@@ -298,6 +310,7 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           ...SHARED_LOCAL_SETTINGS_OPTIONS,
           ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
           ...VESSEL_LOCAL_SETTINGS_OPTIONS,
+          ...DATA_LOCAL_SETTINGS_OPTIONS,
           ...TRIP_LOCAL_SETTINGS_OPTIONS,
         },
       },

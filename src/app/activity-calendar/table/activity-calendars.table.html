@@ -21,12 +21,12 @@
           <button mat-icon-button [title]="'COMMON.BTN_ADD' | translate" (click)="addRow($event)">
             <mat-icon>add</mat-icon>
           </button>
-
-          <!-- Refresh -->
-          <button mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
-            <mat-icon>refresh</mat-icon>
-          </button>
         }
+
+        <!-- Refresh -->
+        <button mat-icon-button [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
+          <mat-icon>refresh</mat-icon>
+        </button>
       }
 
       <!-- Reset filter -->
@@ -117,18 +117,19 @@
       <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_REPORT</ion-label>
     </button>
   }
+  @if (isAdmin) {
+    <!-- Update offline mode -->
+    <button mat-menu-item *ngIf="hasOfflineMode" [disabled]="offline" (click)="prepareOfflineMode($event)">
+      <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
+      <ion-label translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
+    </button>
 
-  <!-- Update offline mode -->
-  <button mat-menu-item *ngIf="hasOfflineMode" [disabled]="offline" (click)="prepareOfflineMode($event)">
-    <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
-    <ion-label translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
-  </button>
-
-  <!-- Init offline mode -->
-  <button mat-menu-item *ngIf="!hasOfflineMode" [disabled]="offline" (click)="prepareOfflineMode($event)">
-    <mat-icon>cloud_off</mat-icon>
-    <ion-label translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>
-  </button>
+    <!-- Init offline mode -->
+    <button mat-menu-item *ngIf="!hasOfflineMode" [disabled]="offline" (click)="prepareOfflineMode($event)">
+      <mat-icon>cloud_off</mat-icon>
+      <ion-label translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>
+    </button>
+  }
 
   <mat-divider></mat-divider>
 
@@ -163,11 +164,7 @@
 
   @for (item of reportTypes; track item.key) {
     <!-- TODO enable all report type ?-->
-    <button
-      mat-menu-item
-      (click)="openReport(item.key)"
-      [disabled]="((selection | isEmptySelection) || (filter | mapGet: 'year' | isNilOrBlank)) && item.key !== 'progress'"
-    >
+    <button mat-menu-item (click)="openReport(item.key)">
       <ion-label>{{ item.value | translate }}</ion-label>
     </button>
   }
@@ -260,7 +257,7 @@
           <ion-col size="12" size-lg="6">
             <!-- Vessel Type  -->
             <mat-autocomplete-field
-              [placeholder]="'VESSEL.LIST.FILTER.VESSEL_TYPE' | translate"
+              [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL_TYPE' | translate"
               formControlName="vesselType"
               [config]="autocompleteFields.vesselType"
               [clearable]="true"
@@ -358,13 +355,30 @@
           <ion-row>
             <!-- Direct Survey Investigation -->
             <ion-col>
-              <mat-boolean-field
-                formControlName="directSurveyInvestigation"
-                [placeholder]="'ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION' | translate"
-                [clearable]="true"
-              >
-                <ion-icon matPrefix name="help-outline"></ion-icon>
-              </mat-boolean-field>
+              @if (filterForm | formGetControl: 'directSurveyInvestigation'; as directSurveyControl) {
+                <mat-form-field>
+                  <ion-icon matPrefix name="help-outline"></ion-icon>
+                  <mat-label>{{ 'ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION' | translate }}</mat-label>
+                  <mat-select [formControl]="directSurveyControl">
+                    @for (item of directSurveyInvestigationList; track item.id) {
+                      <mat-option [value]="item.id">
+                        {{ item.label | translate }}
+                      </mat-option>
+                    }
+                  </mat-select>
+
+                  <button
+                    matSuffix
+                    mat-icon-button
+                    tabindex="-1"
+                    type="button"
+                    (click)="clearFilterValue('directSurveyInvestigation', $event)"
+                    [hidden]="disabled || !directSurveyControl.value"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </mat-form-field>
+              }
             </ion-col>
 
             <!-- Economic Survey -->
@@ -556,6 +570,18 @@
         </td>
       </ng-container>
 
+      <!-- Vessel registration location Column -->
+      <ng-container matColumnDef="registrationLocation">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.REGISTRATION_LOCATION</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-label>
+            {{ row.currentData.vesselSnapshot?.registrationLocation | referentialToString: autocompleteFields.registrationLocation.attributes }}
+          </ion-label>
+        </td>
+      </ng-container>
+
       <!-- year  -->
       <ng-container matColumnDef="year">
         <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
@@ -608,6 +634,16 @@
         </th>
         <td mat-cell *matCellDef="let row">
           <ion-text>{{ row.currentData.observers | personToString }}</ion-text>
+        </td>
+      </ng-container>
+
+      <!-- Update date Column -->
+      <ng-container matColumnDef="updateDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label translate>ACTIVITY_CALENDAR.TABLE.UPDATE_DATE</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <ion-text>{{ row.currentData.updateDate | dateFormat: { time: true } }}</ion-text>
         </td>
       </ng-container>
 

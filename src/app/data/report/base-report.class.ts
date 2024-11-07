@@ -1,4 +1,16 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Directive,
+  EventEmitter,
+  Injector,
+  Input,
+  OnDestroy,
+  OnInit,
+  Optional,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
@@ -23,6 +35,8 @@ import {
   MenuService,
   NetworkService,
   PlatformService,
+  sleep,
+  StorageService,
   Toasts,
   toDateISOString,
   TranslateContextService,
@@ -109,30 +123,32 @@ export abstract class AppBaseReport<
   implements OnInit, AfterViewInit, OnDestroy
 {
   private _printing = false;
+  private _embedded: boolean;
 
   protected logPrefix = 'base-report';
-  protected readonly route: ActivatedRoute;
-  protected readonly cd: ChangeDetectorRef;
-  protected readonly dateFormat: DateFormatService;
-  protected readonly settings: LocalSettingsService;
-  protected readonly modalCtrl: ModalController;
+  protected readonly reportId = uuidv4();
+  protected readonly route = inject(ActivatedRoute);
+  protected readonly cd = inject(ChangeDetectorRef);
+  protected readonly dateFormat = inject(DateFormatService);
+  protected readonly settings = inject(LocalSettingsService);
+  protected readonly modalCtrl = inject(ModalController);
 
   protected readonly injector: Injector;
-  protected readonly platform: PlatformService;
-  protected readonly translate: TranslateService;
-  protected readonly programRefService: ProgramRefService;
-  protected readonly fileTransferService: FileTransferService;
-  protected readonly baseHref: string;
-  protected readonly translateContext: TranslateContextService;
-  protected readonly context: ContextService;
-  protected readonly configService: ConfigService;
+  protected readonly platform = inject(PlatformService);
+  protected readonly translate = inject(TranslateService);
+  protected readonly programRefService = inject(ProgramRefService);
+  protected readonly fileTransferService = inject(FileTransferService);
+  protected readonly baseHref = inject(APP_BASE_HREF);
+  protected readonly translateContext = inject(TranslateContextService);
+  protected readonly context = inject(ContextService);
+  protected readonly configService = inject(ConfigService);
 
-  protected readonly router: Router;
+  protected readonly router = inject(Router);
   protected readonly destroySubject = new Subject<void>();
   protected readonly readySubject = new BehaviorSubject<boolean>(false);
   protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
-  protected readonly toastController: ToastController;
-  protected readonly network: NetworkService;
+  protected readonly toastController = inject(ToastController);
+  protected readonly network = inject(NetworkService);
 
   protected _autoLoad = true;
   protected _autoLoadDelay = 0;
@@ -168,8 +184,12 @@ export abstract class AppBaseReport<
     return this._stats;
   }
 
+  @Input() set embedded(value: boolean) {
+    this._embedded = value;
+  }
+
   get embedded(): boolean {
-    return this.reveal?.embedded || false;
+    return isNotNil(this._embedded) ? this._embedded : this.reveal?.embedded || false;
   }
 
   @Input() i18nContextSuffix: string;
@@ -218,26 +238,14 @@ export abstract class AppBaseReport<
     @Optional() protected options?: O
   ) {
     this.injector = injector;
-    this.baseHref = injector.get(APP_BASE_HREF);
-    this.translateContext = injector.get(TranslateContextService);
-    this.cd = injector.get(ChangeDetectorRef);
-    this.route = injector.get(ActivatedRoute);
-    this.router = injector.get(Router);
-    this.dateFormat = injector.get(DateFormatService);
-    this.settings = injector.get(LocalSettingsService);
-    this.modalCtrl = injector.get(ModalController);
-    this.toastController = injector.get(ToastController);
-    this.fileTransferService = injector.get(FileTransferService);
-    this.context = injector.get(ContextService);
-    this.network = injector.get(NetworkService);
-    this.configService = injector.get(ConfigService);
-
-    this.platform = injector.get(PlatformService);
-    this.translate = injector.get(TranslateService);
-    this.programRefService = injector.get(ProgramRefService);
 
     this.mobile = this.settings.mobile;
     this.uuid = this.route.snapshot.queryParamMap.get('uuid');
+
+    const reportId = this.uuid || this.route.snapshot.queryParamMap.get('report-id');
+    if (isNotNil(reportId)) {
+      this.reportId = reportId;
+    }
 
     this._pathParentIdAttribute = options?.pathParentIdAttribute;
     // NOTE: In route.snapshot data is optional. On which case it may be not set ???
@@ -266,6 +274,7 @@ export abstract class AppBaseReport<
   }
 
   ngOnDestroy() {
+    this.reveal.disablePrintJob();
     this.configSubscription.unsubscribe();
     this.destroySubject.next();
   }
@@ -282,6 +291,7 @@ export abstract class AppBaseReport<
     }
 
     this.markAsReady();
+
     try {
       // Load or fill this.data, this.stats and this.i18nContext
       await this.ngOnStart(opts);
@@ -294,6 +304,7 @@ export abstract class AppBaseReport<
 
       // Update the view: initialize reveal
       await this.updateView();
+      this.reveal.disablePrintJob();
     } catch (err) {
       console.error(err);
       this.setError(err);
@@ -329,9 +340,15 @@ export abstract class AppBaseReport<
       if (isNotNil(this.i18nContext)) console.debug(`[${this.logPrefix}] i18nContext present on starting`, this.i18nContext);
     }
 
+    // Try to restore data of shared clipboard from storage
+    if (isNil(this.context.clipboard)) await this.context.restoreClipboard();
     // If data is not filled by input, fill it with the clipboard
     let clipboard: Clipboard<any>;
-    if (isNotNil(this.context.clipboard)) {
+    if (
+      hasFlag(clipboard?.pasteFlags, ReportDataPasteFlags.DATA) ||
+      hasFlag(clipboard?.pasteFlags, ReportDataPasteFlags.STATS) ||
+      hasFlag(clipboard?.pasteFlags, ReportDataPasteFlags.I18N_CONTEXT)
+    ) {
       clipboard = this.context.clipboard;
     } else if (isNotNilOrBlank(this.uuid) && (isNil(this.data) || isNil(this.stats))) {
       if (this.debug) console.debug(`[${this.logPrefix}] fill clipboard by downloading shared resource`);
@@ -418,6 +435,7 @@ export abstract class AppBaseReport<
       disableLayout: mobile,
       touch: mobile,
       printUrl: this.computePrintHref(data, stats),
+      reportId: this.reportId,
     };
   }
 
@@ -437,6 +455,7 @@ export abstract class AppBaseReport<
     this.cd.detectChanges();
     await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject });
     if (!this.embedded) await this.reveal.initialize();
+    this.reveal.disablePrintJob();
   }
 
   markAsReady() {
@@ -612,21 +631,12 @@ export abstract class AppBaseReport<
     const uploadFileName = this.getExportFileName('json');
 
     const sharedElement: SharedElement = {
-      uuid: uuidv4(),
+      uuid: this.reportId,
       shareLink: '',
       path: this.computeShareBasePath(),
       queryParams: {},
       creationDate: toDateISOString(DateUtils.moment()),
-      content: {
-        // TODO Type data ?
-        data: {
-          data: this.dataAsObject(this.data),
-          stats: this.statsAsObject(this.stats),
-          i18nContext: this.i18nContext,
-        },
-        // eslint-disable-next-line no-bitwise
-        pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS | ReportDataPasteFlags.I18N_CONTEXT,
-      },
+      content: this.computeShareContent(),
     };
 
     const file = JsonUtils.writeToFile(sharedElement, { filename: uploadFileName });
@@ -674,16 +684,33 @@ export abstract class AppBaseReport<
     return `export.${format}`; // Default filename
   }
 
+  protected async print() {
+    if (this._printing) return true; // Skip is already printing
+    this._printing = true;
+    await this.ready();
+    this.context.clipboard = this.computeShareContent();
+    await this.context.saveClipboard();
+    this.context.resetValue('clipboard');
+    await this.reveal.enablePrintJob();
+    await this.reveal?.print();
+    this._printing = false;
+  }
+
   private isPrintngPDF(): boolean {
     if (this._printing) return true;
     const query = window.location.search || '?';
     return query.indexOf('print-pdf') !== -1;
   }
 
-  private async print() {
-    if (this._printing) return true; // Skip is already printing
-    this._printing = true;
-    await this.ready();
-    this.reveal?.print();
+  private computeShareContent(): any {
+    return {
+      data: {
+        data: this.dataAsObject(this.data),
+        stats: this.statsAsObject(this.stats),
+        i18nContext: this.i18nContext,
+      },
+      // eslint-disable-next-line no-bitwise
+      pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS | ReportDataPasteFlags.I18N_CONTEXT,
+    };
   }
 }

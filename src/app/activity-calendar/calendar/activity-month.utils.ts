@@ -93,14 +93,13 @@ export class ActivityMonthUtils {
         target.endDate = endDate;
         target.program = program;
 
-        target.readonly = true;
-        target.registrationLocations = removeDuplicatesFromArray(
-          IUseFeaturesUtils.filterByPeriod(data.vesselRegistrationPeriods, target).map((vrp) => {
-            target.readonly = target.readonly && vrp.readonly;
-            return vrp.registrationLocation;
-          }),
-          'id'
-        );
+        const vesselRegistrationPeriods = removeDuplicatesFromArray(IUseFeaturesUtils.filterByPeriod(data.vesselRegistrationPeriods, target), 'id');
+        // A user can edit a month if the first QIM est editable - see issue #764
+        // (=a month is readonly, if the first QIM is readonly)
+        target.readonly = vesselRegistrationPeriods?.[0]?.readonly ?? true;
+        target.registrationLocations = vesselRegistrationPeriods.map((vrp) => {
+          return vrp.registrationLocation;
+        });
         return target;
       })
       .filter(isNotNil);

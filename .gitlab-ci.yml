@@ -32,8 +32,6 @@ workflow:
         - electron/package-lock.json
         - electron/electron-builder.config.json
 
-
-
 # ---------------------------------------------------------------
 # Global variables
 # ---------------------------------------------------------------
@@ -44,7 +42,7 @@ variables:
   #DOCKER_DIND_VERSION: latest
   DOCKER_DIND_IMAGE: ${DOCKER_IMAGE_REGISTRY}docker:${DOCKER_DIND_VERSION}
   CI_BUILD_IMAGE: ${CI_REGISTRY_IMAGE}/build:develop
-  CI_BUILD_ELECTRON_IMAGE: electronuserland/builder:18-wine
+  CI_BUILD_ELECTRON_IMAGE: electronuserland/builder:20-wine
   BUILD_CACHE_DIR: /tmp/.build-cache
   BUILD_ENVIRONMENT: prod
   DOCKER_BUILDKIT: 1
@@ -116,6 +114,7 @@ variables:
     - cd ./electron/
     - npm rm @types/glob @types/minimatch
     - cd ..
+    - npm install --no-save --force tslib
 
 .configure-webext-template: &webext-setup
   image: ${CI_BUILD_IMAGE}
@@ -192,14 +191,13 @@ build:feature:
     - /^features\/.*/
   when: manual
 
-
 # ---------------------------------------------------------------
 # Package jobs
 #  : add force for npm install on build:feature---------------------------------------------------------------
 package:android:
   <<: *android-setup
   stage: package
-  needs: [ build ]
+  needs: [build]
   script:
     # Build APK
     - echo "--- Building Android APK ..."
@@ -228,7 +226,9 @@ package:android:
     - npm run electron:package:${BUILD_ENVIRONMENT}
   after_script:
     - mkdir -p "${CI_PROJECT_DIR}/release/"
-    - mv -f ${CI_PROJECT_DIR}/electron/dist/*.{AppImage,deb,exe} $CI_PROJECT_DIR/release/
+    # Fixme : 413 Request Entity Too Large
+    - mv -f ${CI_PROJECT_DIR}/electron/dist/*.{deb} $CI_PROJECT_DIR/release/
+    # - mv -f ${CI_PROJECT_DIR}/electron/dist/*.{AppImage,deb,exe} $CI_PROJECT_DIR/release/
   artifacts:
     paths:
       - release
@@ -237,13 +237,13 @@ package:android:
 
 package:electron:
   extends: .package:electron
-  needs: [ build ]
+  needs: [build]
   only:
     - develop
 
 package:electron:feature:
   extends: .package:electron
-  needs: [ build:feature ]
+  needs: [build:feature]
   only:
     - /^feature\/.*/
     - /^features\/.*/
@@ -263,13 +263,13 @@ package:electron:feature:
 
 package:webext:
   extends: .package:webext
-  needs: [ build ]
+  needs: [build]
   only:
     - develop
 
 package:webext:feature:
   extends: .package:webext
-  needs: [ build:feature ]
+  needs: [build:feature]
   only:
     - /^feature\/.*/
     - /^features\/.*/
@@ -687,4 +687,3 @@ pages:
   only:
     - develop
   when: manual
-
