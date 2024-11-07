@@ -32,7 +32,6 @@ import {
   PlatformService,
   Property,
   ReferentialRef,
-  referentialToString,
   removeDuplicatesFromArray,
   splitByProperty,
   StatusIds,
@@ -88,6 +87,7 @@ import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-for
 import { VesselUseFeaturesIsActiveEnum } from '../model/vessel-use-features.model';
 import { GearUseFeatures } from '../model/gear-use-features.model';
 import { MatTabChangeEvent } from '@angular/material/tabs';
+import { isOutsideExpertiseArea } from '@app/data/services/model/model.utils';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -1052,9 +1052,24 @@ export class ActivityCalendarPage
         registrationLocations: existingMonth.registrationLocations,
         readonly: existingMonth.readonly,
         updateDate: existingMonth.updateDate,
+        // Don't copy basePortLocation if flagged as outside the expertise are
+        basePortLocation: isOutsideExpertiseArea(source.basePortLocation) ? undefined : source.basePortLocation,
         // Preserve gearUseFeatures start and end dates
         gearUseFeatures: source?.gearUseFeatures.map((guf) =>
-          GearUseFeatures.fromObject({ ...guf, startDate: existingMonth.startDate, endDate: existingMonth.endDate })
+          GearUseFeatures.fromObject({
+            ...guf,
+            // Don't copy metier if flagged as outside the expertise are
+            metier: isOutsideExpertiseArea(guf.metier) ? undefined : guf.metier,
+            fishingAreas: guf.fishingAreas.map((fa) => ({
+              // Don't copy fishing area's location and gradients if flagged as outside the expertise are
+              location: isOutsideExpertiseArea(fa.location) ? undefined : fa.location,
+              distanceToCoastGradient: isOutsideExpertiseArea(fa.distanceToCoastGradient) ? undefined : fa.distanceToCoastGradient,
+              depthGradient: isOutsideExpertiseArea(fa.depthGradient) ? undefined : fa.depthGradient,
+              nearbySpecificArea: isOutsideExpertiseArea(fa.nearbySpecificArea) ? undefined : fa.nearbySpecificArea,
+            })),
+            startDate: existingMonth.startDate,
+            endDate: existingMonth.endDate,
+          })
         ),
       });
     });
