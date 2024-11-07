@@ -135,6 +135,7 @@ export class LandingsTable
   @Input() usageMode: UsageMode;
   @Input() minObservedSpeciesCount: number;
   @Input() unknownVesselId: number;
+  @Input() withDateFromNow: boolean = false;
 
   @Input() set detailEditor(value: LandingEditor) {
     if (value !== this._detailEditor) {

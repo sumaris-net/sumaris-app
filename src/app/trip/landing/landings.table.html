@@ -300,7 +300,7 @@
       <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
         <ion-text *ngIf="getLandingDate(row.currentData); let landingDateTime">
           {{ landingDateTime | dateFormat: { time: true } }}
-          <ion-text *ngIf="mobile" class="computed">
+          <ion-text *ngIf="mobile || withDateFromNow" class="computed">
             <br />
             <small>{{ landingDateTime | dateFromNow }}</small>
           </ion-text>
