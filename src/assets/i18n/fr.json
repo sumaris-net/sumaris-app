@@ -2457,8 +2457,8 @@
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1": "Calendrier d'activité > Rapport > Formulaire vierge : Libellé caractéristique engin #1",
       "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2": "Calendrier d'activité > Rapport > Formulaire vierge : Libellé caractéristique engin #2",
       "ACTIVITY_CALENDAR_REPORT_PROGRESS_FOOTER": "Calendrier d'activité > Rapport d'avancement: Texte du pied de page",
-      "ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING": "Calendrier d'activité > Limite du nombre de résultats à partir duquel un avertissement sur le temps long de génération du rapport sera affiché (une value de 0 signifie aucune limites)",
-      "ACTIVITY_CALENDAR_REPORT_PROGRESS_LIMIT_NB_RESULT_ERROR": "Calendrier d'activité > Limite du nombre de résultats à partir duquel une erreur de refus de génération du rapport sera affiché dû au temps trop long de production de celui-ci (une value de 0 signifie aucune limites)",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING": "Calendrier d'activité > Limite de résultats pour avertissement de génération lente (0 = pas de limite)",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULT_ERROR": "Calendrier d'activité > Limite de résultats pour erreur de génération due à un temps de production trop long (0 = aucune limite)",
       "ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS": "Calendrier d'activité > Zone de pêche : Niveau(x) de lieu",
       "ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID": "Calendrier d'activité > Pays d'immatriculation des navires",
       "ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE": "Calendrier d'activité > Activer la résolution des conflits ?",
@@ -3605,6 +3605,7 @@
       },
       "VESSEL_SECTION": {
         "TITLE": "Navire",
+        "EXTERIOR_MARKING": "Marquage extérieur :",
         "REGISTRATION_CODE": "Immatriculation :",
         "REGISTRATION_LOCATION": "Lieux d'immat. :",
         "VESSEL_NAME": "Nom :"
@@ -3615,6 +3616,11 @@
       "GPF_SECTION": {
         "TITLE": "Caractéristiques engins",
         "METIER": "Metier(s)"
+      },
+      "VESSEL_OWNER_SECTION": {
+        "TITLE": "Dernier armateur",
+        "NAME": "Nom :",
+        "ADDRESS": "Adresse :"
       },
       "SELL_SECTION": {
         "TITLE": "Ventes",

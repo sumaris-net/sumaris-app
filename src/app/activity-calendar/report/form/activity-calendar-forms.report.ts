@@ -28,6 +28,8 @@ import {
 } from './activity-calendar-form-report.utils';
 import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { VesselOwnerService } from '@app/vessel/services/vessel-owner.service';
+import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
 
 class ActivityCalendarFormsReportStats extends BaseReportStats {
   activityCalendarFormReportStatsByIds: { [key: number]: ActivityCalendarFormReportStats };
@@ -77,7 +79,9 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
     protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
     protected vesselSnapshotService: VesselSnapshotService,
-    protected activityCalendarService: ActivityCalendarService
+    protected activityCalendarService: ActivityCalendarService,
+    protected vesselOwnerService: VesselOwnerService,
+    protected vesselOwnerPeridodService: VesselOwnerPeridodService
   ) {
     super(injector, Array, ActivityCalendarFormsReportStats);
 
@@ -164,6 +168,7 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
       commonAcStats,
       this.programRefService,
       this.vesselSnapshotService,
+      this.settings,
       this.program,
       this.strategy,
       this.isBlankForm
@@ -177,6 +182,8 @@ export class ActivityCalendarFormsReport extends AppBaseReport<ActivityCalendar[
         indivStats,
         ActivityCalendarFormReport.pageDimensions,
         this.configService,
+        this.vesselOwnerService,
+        this.vesselOwnerPeridodService,
         this.isBlankForm
       );
       stats.activityCalendarFormReportStatsByIds[activityCalendar.id] = indivStats;

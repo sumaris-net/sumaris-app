@@ -8,12 +8,14 @@ import {
   CORE_CONFIG_OPTIONS,
   ConfigService,
   DateUtils,
+  LocalSettingsService,
   StatusIds,
   arrayDistinct,
   firstNotNilPromise,
   isEmptyArray,
   isNotEmptyArray,
   isNotNil,
+  splitById,
 } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -29,12 +31,17 @@ import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-mon
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { GearPhysicalFeaturesUtils } from '@app/activity-calendar/model/gear-physical-features.utils';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
+import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
+import { VesselOwnerService } from '@app/vessel/services/vessel-owner.service';
+import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
 
 export async function computeCommonActivityCalendarFormReportStats(
   data: ActivityCalendar,
   stats: ActivityCalendarFormReportStats,
   programRefService: ProgramRefService,
   vesselSnapshotService: VesselSnapshotService,
+  settings: LocalSettingsService,
   program: Program,
   strategy: Strategy,
   isBlankForm: boolean
@@ -46,6 +53,11 @@ export async function computeCommonActivityCalendarFormReportStats(
   stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
   stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
   stats.vesselAttributes = (await vesselSnapshotService.getAutocompleteFieldOptions('vesselSnapshot'))?.attributes;
+
+  stats.displayAttributes = {
+    vesselSnapshot: settings.getFieldDisplayAttributes('vesselSnapshot', ['registrationCode', 'name']),
+    vesselOwner: settings.getFieldDisplayAttributes('vesselOwner', ['lastName', 'firstName']),
+  };
 
   stats.pmfm = {
     activityMonth: await programRefService.loadProgramPmfms(data.program.label, {
@@ -79,6 +91,15 @@ export async function computeCommonActivityCalendarFormReportStats(
       : [],
   };
 
+  stats.pmfmById = {
+    activityMonth: splitById(stats.pmfm.activityMonth),
+    activityCalendar: splitById(stats.pmfm.activityCalendar),
+    gpf: splitById(stats.pmfm.gpf),
+    guf: splitById(stats.pmfm.guf),
+    forGpfTable: splitById(stats.pmfm.forGpfTable),
+  };
+
+  // Order survey qualification values by alphabetical order
   stats.surveyQualificationQualitativeValues = stats.pmfm.activityCalendar
     .filter((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION)[0]
     ?.qualitativeValues.filter((qv) => (isBlankForm ? true : qv.statusId === StatusIds.ENABLE))
@@ -92,6 +113,8 @@ export async function computeIndividualActivityCalendarFormReportStats(
   stats: ActivityCalendarFormReportStats,
   pageDimensions: ActivityCalendarFormReportPageDimentions,
   configService: ConfigService,
+  vesselOwnerService: VesselOwnerService,
+  vesselOwnerPeridodService: VesselOwnerPeridodService,
   isBlankForm: boolean
 ): Promise<ActivityCalendarFormReportStats> {
   const timezone = (await firstNotNilPromise(configService.config)).getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE) || DateUtils.moment().tz();
@@ -109,11 +132,11 @@ export async function computeIndividualActivityCalendarFormReportStats(
   computeActivityMonthColspan(stats, isBlankForm);
 
   if (!isBlankForm) {
-    const gpfGearIds = data.gearPhysicalFeatures?.map((gph) => gph.gear.id) || [];
+    const gpfGearIds = (data.gearPhysicalFeatures || []).filter((gpf) => isNotNil(gpf.gear)).map((gph) => gph.gear.id);
     stats.pmfm.gpf = stats.pmfm.gpf.filter(
       (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gpfGearIds.includes(gearId))
     );
-    const gufGearIds = data.gearUseFeatures?.map((guf) => guf.gear.id) || [];
+    const gufGearIds = (data.gearUseFeatures || []).filter((guf) => isNotNil(guf.gear)).map((guf) => guf.gear.id);
     stats.pmfm.guf = stats.pmfm.guf.filter(
       (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gufGearIds.includes(gearId))
     );
@@ -122,6 +145,25 @@ export async function computeIndividualActivityCalendarFormReportStats(
   stats.pmfm.forGpfTable = arrayDistinct(stats.pmfm.gpf.concat(stats.pmfm.guf), 'id');
 
   stats.filteredAndOrderedGpf = isBlankForm ? data.gearPhysicalFeatures : GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone });
+
+  // compute last vessel owner
+  if (isBlankForm) {
+    stats.lastVesselOwner = VesselOwner.fromObject({});
+  } else {
+    // TODO : get the start date and the end date relative to the clandar year ???
+    const startDate = (timezone ? DateUtils.moment().tz(timezone) : DateUtils.moment()).year(data.year).startOf('year');
+    const endDate = startDate.clone().endOf('year');
+    const filter = VesselOwnerPeriodFilter.fromObject({
+      vesselId: data.vesselSnapshot.id,
+      startDate,
+      endDate,
+    });
+    const vesselOwnerPeriods = await vesselOwnerPeridodService.loadAll(0, 100, 'startDate', 'asc', filter, {
+      fetchPolicy: 'cache-first',
+    });
+    const lastVesselOwner = isNotEmptyArray(vesselOwnerPeriods.data) ? vesselOwnerPeriods.data[0].vesselOwner : VesselOwner.fromObject({});
+    stats.lastVesselOwner = await vesselOwnerService.load(lastVesselOwner.id);
+  }
 
   computeMetierTableChunk(stats, pageDimensions);
 
