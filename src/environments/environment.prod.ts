@@ -16,7 +16,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   // Environment
   externalEnvironmentUrl: 'assets/environments/environment.json',
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '2.9.23.3',
+  peerMinVersion: '2.9.24',
 
   // Check Web new app version
   checkAppVersionIntervalInSeconds: 5 * 60, // every 5min
