@@ -11,6 +11,9 @@ html.print-pdf .reveal .slides section {
   --page-left-right-margin: 50px;
   --logo-max-size: 80px;
 
+  --margin-bottom: 16px;
+  --margin-top: 16px;
+
   --font-tiny: 6px;
   --font-small: 8px;
   --font-compact: 10px;
@@ -80,14 +83,39 @@ html.print-pdf .reveal .slides section {
       --ion-grid-column-padding: 0;
       flex: 0 0 auto;
 
+      &.report-section {
+        margin: 0 var(--page-left-right-margin);
+      }
+
+      &.report-footer {
+        margin-top: auto;
+        margin-bottom: var(--margin-bottom);
+        margin-left: var(--page-left-right-margin);
+        margin-right: var(--page-left-right-margin);
+      }
+
       ion-row {
         &.document-title {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: nowrap;
           h1,
           h2 {
             text-align: center;
             margin: 0;
           }
+
+          & > ion-col {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            &.title-and-subtitle {
+              flex-direction: column;
+            }
+          }
         }
+
         &.page-title {
           h2 {
             text-align: right;
@@ -172,6 +200,13 @@ html.print-pdf .reveal .slides section {
             border-bottom: none !important;
           }
 
+          &.logo {
+            img {
+              max-width: var(--logo-max-size) !important;
+              max-height: var(--logo-max-size) !important;
+            }
+          }
+
           figure {
             max-height: 250px;
             max-width: 250px;
@@ -180,13 +215,14 @@ html.print-pdf .reveal .slides section {
       }
 
       &.report-header {
-        padding: var(--ion-padding);
+        margin-top: var(--margin-top);
+        margin-left: var(--page-left-right-margin);
+        margin-right: var(--page-left-right-margin);
         height: var(--header-height);
         padding-bottom: 0;
         display: flex;
         flex-direction: column;
         justify-content: space-evenly;
-        width: 100%;
         ion-row {
           align-items: center;
           justify-content: space-between;
