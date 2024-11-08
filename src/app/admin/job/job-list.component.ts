@@ -20,6 +20,7 @@ import {
   AccountService,
   Alerts,
   APP_JOB_PROGRESSION_SERVICE,
+  DateUtils,
   EntityUtils,
   IJobProgressionService,
   isEmptyArray,
@@ -34,7 +35,7 @@ import {
   PersonService,
   StatusIds,
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, merge, Subscription } from 'rxjs';
+import { BehaviorSubject, debounceTime, merge, Subscription } from 'rxjs';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatExpansionPanel } from '@angular/material/expansion';
@@ -149,9 +150,11 @@ export class JobListComponent implements OnInit, OnDestroy {
         this.state.select(['issuer', 'status', 'types'], (res) => res),
         this.onRefresh.pipe(map((_) => ({ issuer: this.issuer, status: this.status, types: this.types })))
       ).pipe(
+        debounceTime(100),
         switchMap(({ issuer, status, types }) => {
           // Read filter's type
           const filter = this.getFilter({ issuer, status, types });
+          filter.lastUpdateDate = DateUtils.moment().add(-1, 'month');
           console.debug('[job-list] Refreshing using filter: ', filter);
           return this.jobService.watchAll(filter, { sortBy: 'id', sortDirection: 'DESC' }, { fetchPolicy: 'cache-and-network' }).pipe(
             // Listen for new jobs (if new job => force refresh)
@@ -159,7 +162,7 @@ export class JobListComponent implements OnInit, OnDestroy {
               const excludedIds = jobs?.map((j) => j.id);
               this._subscription.add(
                 this.jobService
-                  .listenChanges(<JobFilter>{ issuer, status, excludedIds })
+                  .listenChanges(<JobFilter>{ ...filter, excludedIds })
                   .pipe(takeUntil(this.onRefresh), first())
                   .subscribe((_) => this.onRefresh.emit())
               );
