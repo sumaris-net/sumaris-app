@@ -91,20 +91,24 @@
 </mat-menu>
 
 <mat-menu #expertiseAreaMenu="matMenu" class="ion-no-padding">
-  <!-- header-->
-  <button mat-menu-item (click)="expertiseAreaEnabled = !expertiseAreaEnabled">
-    <mat-icon>{{ expertiseAreaEnabled ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
-    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_ENABLE_EXPERTISE_AREA</ion-label>
-  </button>
-
-  <mat-divider></mat-divider>
-
-  <ng-container *ngFor="let item of expertiseAreas$ | async">
-    <button mat-menu-item [disabled]="!expertiseAreaEnabled" (click)="selectedExpertiseArea = item">
-      <mat-icon>{{ selectedExpertiseArea?.id === item.id ? 'check' : '' }}</mat-icon>
-      <ion-label>{{ item.name }}</ion-label>
+  <ng-template matMenuContent>
+    <!-- enable expertise area ? -->
+    <button mat-menu-item (click)="toggleEnableExpertiseArea($event)">
+      <mat-icon>{{ enableExpertiseArea ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+      <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_ENABLE_EXPERTISE_AREA</ion-label>
     </button>
-  </ng-container>
+
+    <mat-divider></mat-divider>
+
+    <!-- available expertise area -->
+    @for (item of availableExpertiseAreas$ | async; track item.id) {
+      @let selected = selectedExpertiseArea?.id === item.id;
+      <button mat-menu-item [disabled]="!enableExpertiseArea" (click)="selectedExpertiseArea = item">
+        <mat-icon [style.color]="selected ? 'var(--ion-color-primary)' : 'var(--ion-color-dark)'">{{ selected ? 'check' : '' }}</mat-icon>
+        <ion-label [color]="selected ? 'primary' : 'dark'">{{ item.name }}</ion-label>
+      </button>
+    }
+  </ng-template>
 </mat-menu>
 
 <ion-content scroll-y="false">
@@ -564,7 +568,7 @@
     <ion-button
       color="tertiary"
       [title]="
-        ((_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate) + predocButtonTitleSuffix
+        ((_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate) + ' ' + predocShortcutHelp
       "
       [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
       (click)="toggleShowPredoc($event)"
@@ -576,7 +580,7 @@
     <button
       mat-icon-button
       [title]="
-        ((_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate) + predocButtonTitleSuffix
+        ((_predocPanelVisible ? 'ACTIVITY_CALENDAR.EDIT.HIDE_PREDOC' : 'ACTIVITY_CALENDAR.EDIT.SHOW_PREDOC') | translate) + ' ' + predocShortcutHelp
       "
       [class.cdk-visually-hidden]="predocProgramLabels$ | async | isEmptyArray"
       (click)="toggleShowPredoc($event)"

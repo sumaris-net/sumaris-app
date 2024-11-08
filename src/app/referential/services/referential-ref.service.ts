@@ -17,6 +17,7 @@ import {
   GraphqlService,
   IEntitiesService,
   isEmptyArray,
+  isNil,
   isNotNil,
   isNotNilOrNaN,
   JobUtils,
@@ -463,10 +464,26 @@ export class ReferentialRefService
     }
   ): Promise<boolean> {
     if (!label) {
-      console.error("[referential-service] Missing 'label'");
+      console.error("[referential-service] Missing 'label' argument");
       throw { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' };
     }
     const total = await this.countAll({ ...filter, label }, opts);
+    return total > 0;
+  }
+
+  async existsById(
+    id: number,
+    filter?: Partial<ReferentialRefFilter>,
+    opts?: {
+      [key: string]: any;
+      fetchPolicy?: FetchPolicy;
+    }
+  ): Promise<boolean> {
+    if (isNil(id)) {
+      console.error("[referential-service] Missing 'id' argument");
+      throw { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' };
+    }
+    const total = await this.countAll({ ...filter, includedIds: [id] }, opts);
     return total > 0;
   }
 

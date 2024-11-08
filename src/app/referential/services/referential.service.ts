@@ -145,9 +145,9 @@ export interface ReferentialServiceLoadOptions extends EntityServiceLoadOptions 
 export const DATA_TYPE = new InjectionToken<new () => BaseReferential<any, any>>('dataType');
 
 @Injectable({ providedIn: 'root' })
-export class ReferentialService<T extends BaseReferential<T> = Referential>
-  extends BaseGraphqlService<T, ReferentialFilter>
-  implements IEntitiesService<T, ReferentialFilter>, IEntityService<T, number, ReferentialServiceLoadOptions>
+export class ReferentialService<T extends BaseReferential<T> = Referential, F extends ReferentialFilter = ReferentialFilter, ID = any, S = void>
+  extends BaseGraphqlService<T, F, ID, S>
+  implements IEntitiesService<T, F>, IEntityService<T, number, ReferentialServiceLoadOptions>
 {
   private readonly queries = ReferentialQueries;
   private readonly mutations = ReferentialMutations;
@@ -176,7 +176,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
-    filter?: Partial<ReferentialFilter>,
+    filter?: Partial<F>,
     opts?: EntitiesServiceWatchOptions
   ): Observable<LoadResult<T>> {
     if (!filter || !filter.entityName) {
@@ -234,7 +234,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
-    filter?: Partial<ReferentialFilter>,
+    filter?: Partial<F>,
     opts?: EntityServiceLoadOptions
   ): Promise<LoadResult<T>> {
     if (!filter || !filter.entityName) {
@@ -353,8 +353,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
       },
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
     });
-    const target = this.fromObject(data);
-    return target;
+    return this.fromObject(data);
   }
 
   delete(data: T, opts?: any): Promise<any> {
@@ -409,7 +408,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
 
   async existsByLabel(
     label: string,
-    filter?: Partial<ReferentialFilter>,
+    filter?: Partial<F>,
     opts?: {
       fetchPolicy: FetchPolicy;
     }
@@ -503,7 +502,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
     if (!entities.length) return;
 
     const entityName = entities[0].entityName;
-    const ids = entities.filter((e) => e.entityName === entityName).map((t) => t.id);
+    const ids = entities.filter((e) => e.entityName === entityName).map((t) => t.id as ID);
 
     // Check that all entities have the same entityName
     if (entities.length > ids.length) {
@@ -551,8 +550,8 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
       .pipe(map(({ data }) => data || []));
   }
 
-  asFilter(filter: Partial<ReferentialFilter>): ReferentialFilter {
-    return ReferentialFilter.fromObject(filter);
+  asFilter(filter: Partial<F>): F {
+    return ReferentialFilter.fromObject(filter) as F;
   }
 
   /* -- protected methods -- */

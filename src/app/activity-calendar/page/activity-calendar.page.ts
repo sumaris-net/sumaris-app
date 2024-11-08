@@ -87,7 +87,7 @@ import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-for
 import { VesselUseFeaturesIsActiveEnum } from '../model/vessel-use-features.model';
 import { GearUseFeatures } from '../model/gear-use-features.model';
 import { MatTabChangeEvent } from '@angular/material/tabs';
-import { isOutsideExpertiseArea } from '@app/data/services/model/model.utils';
+import { ExpertiseAreaUtils } from '@app/referential/expertise-area/expertise-area.utils';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -167,7 +167,7 @@ export class ActivityCalendarPage
   protected isAdmin = this.accountService.isAdmin();
   protected isAdminOrManager = this.accountService.isAdmin();
   protected qualityWarning: string = null;
-  protected readonly predocButtonTitleSuffix: string;
+  protected readonly predocShortcutHelp: string;
 
   @Input() showVesselType = false;
   @Input() showVesselBasePortLocation = true;
@@ -218,10 +218,11 @@ export class ActivityCalendarPage
       settingsId: ActivityCalendarPageSettingsEnum.PAGE_ID,
       canCopyLocally: accountService.isAdmin(),
       autoOpenNextTab: false,
+      canUseExpertiseArea: true, // Enable expertise area
     });
     this.defaultBackHref = '/activity-calendar';
-    this.expertiseAreaEnabled = true;
-    this.predocButtonTitleSuffix = ` (${hotkeys.defaultControlKeyName}+P)`;
+    this.enableExpertiseArea = true;
+    this.predocShortcutHelp = `(${hotkeys.defaultControlKeyName}+P)`;
 
     // FOR DEV ONLY ----
     this.logPrefix = '[activity-calendar-page] ';
@@ -1052,20 +1053,20 @@ export class ActivityCalendarPage
         registrationLocations: existingMonth.registrationLocations,
         readonly: existingMonth.readonly,
         updateDate: existingMonth.updateDate,
-        // Don't copy basePortLocation if flagged as outside the expertise are
-        basePortLocation: isOutsideExpertiseArea(source.basePortLocation) ? undefined : source.basePortLocation,
+        // Don't copy basePortLocation if flagged as outside the expertise area
+        basePortLocation: ExpertiseAreaUtils.isOutsideExpertiseArea(source.basePortLocation) ? undefined : source.basePortLocation,
         // Preserve gearUseFeatures start and end dates
         gearUseFeatures: source?.gearUseFeatures.map((guf) =>
           GearUseFeatures.fromObject({
             ...guf,
-            // Don't copy metier if flagged as outside the expertise are
-            metier: isOutsideExpertiseArea(guf.metier) ? undefined : guf.metier,
+            // Don't copy metier if flagged as outside the expertise area
+            metier: ExpertiseAreaUtils.isOutsideExpertiseArea(guf.metier) ? undefined : guf.metier,
             fishingAreas: guf.fishingAreas.map((fa) => ({
               // Don't copy fishing area's location and gradients if flagged as outside the expertise are
-              location: isOutsideExpertiseArea(fa.location) ? undefined : fa.location,
-              distanceToCoastGradient: isOutsideExpertiseArea(fa.distanceToCoastGradient) ? undefined : fa.distanceToCoastGradient,
-              depthGradient: isOutsideExpertiseArea(fa.depthGradient) ? undefined : fa.depthGradient,
-              nearbySpecificArea: isOutsideExpertiseArea(fa.nearbySpecificArea) ? undefined : fa.nearbySpecificArea,
+              location: ExpertiseAreaUtils.isOutsideExpertiseArea(fa.location) ? undefined : fa.location,
+              distanceToCoastGradient: ExpertiseAreaUtils.isOutsideExpertiseArea(fa.distanceToCoastGradient) ? undefined : fa.distanceToCoastGradient,
+              depthGradient: ExpertiseAreaUtils.isOutsideExpertiseArea(fa.depthGradient) ? undefined : fa.depthGradient,
+              nearbySpecificArea: ExpertiseAreaUtils.isOutsideExpertiseArea(fa.nearbySpecificArea) ? undefined : fa.nearbySpecificArea,
             })),
             startDate: existingMonth.startDate,
             endDate: existingMonth.endDate,

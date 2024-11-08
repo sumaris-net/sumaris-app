@@ -1,6 +1,7 @@
 import {
   AccountService,
   BaseGraphqlService,
+  DateUtils,
   GraphqlService,
   IJobProgressionService,
   isNil,
@@ -106,6 +107,7 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
             {
               issuer: account.pubkey,
               status: ['PENDING', 'RUNNING'],
+              lastUpdateDate: DateUtils.moment().add(-1, 'day'),
             },
             null,
             { toEntity: false }

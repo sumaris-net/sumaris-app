@@ -265,7 +265,7 @@ export class AppComponent implements OnInit {
         ...DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA,
         autocomplete: {
           ...DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.autocomplete,
-          suggestFn: (value, filter, sortBy, sortDirection) => this.referentialRefService.suggest(value, filter),
+          suggestFn: (value, filter, sortBy, sortDirection) => this.referentialRefService.suggest(value, filter, sortBy, sortDirection),
         },
       };
 

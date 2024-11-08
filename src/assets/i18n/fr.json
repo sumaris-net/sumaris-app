@@ -3301,7 +3301,8 @@
         "SYS_P_FILL_TAXON_GROUP_HIERARCHY": "Mise à jour de la hiérarchie des groupes de taxons",
         "SYS_P_FILL_LOCATION_HIERARCHY": "Mise à jour de la hiérarchie des lieux",
         "SUMARIS_EXTRACTION": "Extraction de données",
-        "DENORMALIZE_BATCH": "Dénormalisation des lots"
+        "DENORMALIZE_BATCH": "Dénormalisation des lots",
+        "ACTIVITY_CALENDARS_IMPORTATION": "Importation de calendrier d'activités"
       },
       "ERROR": {
         "LOAD_TYPES_ERROR": "Erreur de chargement des types de traitement",
