@@ -9,6 +9,7 @@ import {
   ConfigService,
   Configuration,
   DateUtils,
+  EntityUtils,
   fromDateISOString,
   HistoryPageReference,
   IFormPathTranslator,
@@ -24,7 +25,6 @@ import {
   Person,
   PersonService,
   ReferentialUtils,
-  StatusIds,
   toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
@@ -55,6 +55,7 @@ export abstract class AppDataEditorOptions extends AppEditorOptions {
   acquisitionLevel?: AcquisitionLevelType;
   settingsId?: string;
   canCopyLocally?: boolean;
+  canUseExpertiseArea?: boolean;
 }
 
 export interface AppDataEditorState {
@@ -70,8 +71,8 @@ export interface AppDataEditorState {
 
   pmfms: IPmfm[];
 
-  expertiseAreaEnabled: boolean;
-  expertiseAreas: ExpertiseArea[];
+  enableExpertiseArea: boolean;
+  availableExpertiseAreas: ExpertiseArea[];
   selectedExpertiseArea: ExpertiseArea;
   expertiseLocationIds: number[];
 }
@@ -102,6 +103,7 @@ export abstract class AppDataEntityEditor<
   protected readonly expertiseAreaService = inject(ExpertiseAreaService);
   protected readonly mobile: boolean;
   protected readonly settingsId: string;
+  protected readonly canUseExpertiseArea: boolean;
 
   protected logPrefix: string = null;
   protected remoteProgramSubscription: Subscription;
@@ -120,7 +122,7 @@ export abstract class AppDataEntityEditor<
   @RxStateSelect() strategyFilter$: Observable<StrategyFilter>;
   @RxStateSelect() strategy$: Observable<Strategy>;
   @RxStateSelect() pmfms$: Observable<IPmfm[]>;
-  @RxStateSelect() expertiseAreas$: Observable<ExpertiseArea[]>;
+  @RxStateSelect() availableExpertiseAreas$: Observable<ExpertiseArea[]>;
   @RxStateSelect() selectedExpertiseArea$: Observable<ExpertiseArea>;
   @RxStateSelect() expertiseLocationIds$: Observable<number[]>;
 
@@ -132,23 +134,25 @@ export abstract class AppDataEntityEditor<
   @RxStateProperty() strategyFilter: Partial<StrategyFilter>;
   @RxStateProperty() strategy: Strategy;
   @RxStateProperty() pmfms: Partial<IPmfm[]>;
-  @RxStateProperty() expertiseAreaEnabled: boolean;
-  @RxStateProperty() expertiseAreas: ExpertiseArea[];
+  @RxStateProperty() enableExpertiseArea: boolean;
+  @RxStateProperty() availableExpertiseAreas: ExpertiseArea[];
   @RxStateProperty() selectedExpertiseArea: ExpertiseArea;
   @RxStateProperty() expertiseLocationIds: number[];
 
   protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppDataEditorOptions) {
     super(injector, dataType, dataService, {
       autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
+      canUseExpertiseArea: false,
       ...options,
     });
 
     this.mobile = this.settings.mobile;
     this.acquisitionLevel = options?.acquisitionLevel;
-    this.settingsId = options?.settingsId || this.acquisitionLevel || `${this.constructor.name}`;
-    this.canCopyLocally = options?.canCopyLocally || false;
+    this.settingsId = options?.settingsId ?? this.acquisitionLevel ?? `${this.constructor.name}`;
+    this.canCopyLocally = options?.canCopyLocally ?? false;
+    this.canUseExpertiseArea = options?.canUseExpertiseArea ?? false;
+    this.enableExpertiseArea = false;
     this.requiredStrategy = true;
-    this.expertiseAreaEnabled = false;
 
     // FOR DEV ONLY ----
     this.logPrefix = '[base-data-editor] ';
@@ -237,77 +241,59 @@ export abstract class AppDataEntityEditor<
     // Listen config
     this._state.hold(this.configService.config, (config) => this.onConfigLoaded(config));
 
-    // Listen expertise areas
-    this._state.connect(
-      'expertiseAreas',
-      of(this.referentialRefService.ready()).pipe(
-        mergeMap(async () => {
-          const referentialRefLoadResult = await this.referentialRefService.loadAll(
-            0,
-            100,
-            'name',
-            'asc',
-            {
-              entityName: ExpertiseArea.ENTITY_NAME,
-              statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-            },
-            {
-              withProperties: true,
-              toEntity: false,
-            }
-          );
-          return referentialRefLoadResult.data?.map((source) => this.expertiseAreaService.fromObject(source));
-        })
-      )
-    );
+    // Manage expertise areas, if enable on this editor (see constructor options)
+    if (this.canUseExpertiseArea) {
+      // Listen expertise areas
+      this._state.connect('availableExpertiseAreas', this.expertiseAreaService.items$);
 
-    // Listen settings to initialize expertise area
-    this._state.connect(
-      'selectedExpertiseArea',
-      merge(of(this.settings.ready()), this._state.select('expertiseAreas')).pipe(
-        filter(() => isNil(this.selectedExpertiseArea)),
-        map(() => this.settings.getPropertyAsInt(DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA)),
-        filter(isNotNil),
-        map((selectedExpertiseAreaId) => this.expertiseAreas?.find((value) => value.id === selectedExpertiseAreaId))
-      )
-    );
-
-    // Save selected expertise area in settings
-    this._state.hold(
-      this._state.select('selectedExpertiseArea').pipe(
-        debounceTime(1000),
-        map((expertiseArea) => expertiseArea?.id?.toString()),
-        filter(isNotNil),
-        distinctUntilChanged()
-      ),
-      (expertiseAreaId) => {
-        const properties = { ...this.settings.settings.properties };
-        if (properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] !== expertiseAreaId) {
-          properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] = expertiseAreaId;
-          // Save remotely
-          this.settings.applyProperty('properties', properties);
-        }
-      }
-    );
-
-    // Listen settings on expertise activation and populate expertiseLocationIds
-    this._state.connect(
-      'expertiseLocationIds',
-      this._state
-        .select(['expertiseAreaEnabled', 'selectedExpertiseArea'], (res) => res)
-        .pipe(
-          map(({ expertiseAreaEnabled, selectedExpertiseArea }) => ({
-            selectedExpertiseArea,
-            locationIds: expertiseAreaEnabled ? selectedExpertiseArea?.locations?.map((l) => l.id) || [] : [],
-          })),
-          tap(({ selectedExpertiseArea, locationIds }) => {
-            if (this.debug) {
-              console.debug(`${this.logPrefix}expertiseLocationIds:`, selectedExpertiseArea?.name, locationIds);
-            }
-          }),
-          map(({ locationIds }) => locationIds)
+      // Listen settings to initialize expertise area
+      this._state.connect(
+        'selectedExpertiseArea',
+        merge(of(this.settings.ready()), this.availableExpertiseAreas$).pipe(
+          filter(() => isNil(this.selectedExpertiseArea)),
+          map(() => this.settings.getPropertyAsInt(DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA)),
+          filter(isNotNil),
+          map((selectedExpertiseAreaId) => this.availableExpertiseAreas?.find((value) => value.id === selectedExpertiseAreaId))
         )
-    );
+      );
+
+      // Save selected expertise area in settings
+      this._state.hold(
+        this._state.select('selectedExpertiseArea').pipe(
+          debounceTime(1000),
+          map((expertiseArea) => expertiseArea?.id?.toString()),
+          filter(isNotNil),
+          distinctUntilChanged()
+        ),
+        (expertiseAreaId) => {
+          const properties = { ...this.settings.settings.properties };
+          if (properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] !== expertiseAreaId) {
+            properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] = expertiseAreaId;
+            // Save remotely
+            this.settings.applyProperty('properties', properties);
+          }
+        }
+      );
+
+      // Listen settings on expertise activation and populate expertiseLocationIds
+      this._state.connect(
+        'expertiseLocationIds',
+        this._state
+          .select(['enableExpertiseArea', 'selectedExpertiseArea'], (res) => res)
+          .pipe(
+            map(({ enableExpertiseArea, selectedExpertiseArea }) => ({
+              selectedExpertiseArea,
+              locationIds: enableExpertiseArea ? EntityUtils.collectById(selectedExpertiseArea?.locations) || [] : [],
+            })),
+            tap(({ selectedExpertiseArea, locationIds }) => {
+              if (this.debug) {
+                console.debug(`${this.logPrefix}expertiseLocationIds:`, selectedExpertiseArea?.name, locationIds);
+              }
+            }),
+            map(({ locationIds }) => locationIds)
+          )
+      );
+    }
   }
 
   ngAfterViewInit() {
@@ -615,5 +601,16 @@ export abstract class AppDataEntityEditor<
 
   async devFillTestValue(program: Program) {
     // Can be overridden by subclasses
+  }
+
+  protected toggleEnableExpertiseArea(event?: Event) {
+    const enable = !this.enableExpertiseArea;
+    this.enableExpertiseArea = enable;
+
+    // If enable without selected expertise area: keep open
+    if (event && enable && !this.selectedExpertiseArea) {
+      event?.preventDefault(); // Avoid to close the menu
+      event?.stopPropagation();
+    }
   }
 }

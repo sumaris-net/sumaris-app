@@ -96,7 +96,8 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { Mutex } from '@app/shared/async/mutex.class';
-import { markAsOutsideExpertiseArea } from '@app/data/services/model/model.utils';
+import { FetchPolicy } from '@apollo/client/core';
+import { ExpertiseAreaUtils } from '@app/referential/expertise-area/expertise-area.utils';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -1801,6 +1802,7 @@ export class CalendarComponent
    * @protected
    */
   protected async checkDataExpertiseArea(months?: ActivityMonth[], opts?: { debounced?: boolean }) {
+    // By default, add debounced (avoid multiple call during loading)
     if (opts?.debounced !== false) {
       this.debouncedCheckExpertiseArea$.next(months);
       return;
@@ -1825,91 +1827,92 @@ export class CalendarComponent
     const invalidDistanceToCoastGradientIds: number[] = [];
     const invalidDepthGradientIds: number[] = [];
     const invalidNearbySpecificAreaIds: number[] = [];
+    const basePortLocationFilter = this.buildBasePortLocationFilter();
+    const metierFilter = this.buildMetierFilter();
+    const faFilter = this.buildFishingAreaFilter();
+    const cacheFirstOptions = { fetchPolicy: <FetchPolicy>'cache-first' };
 
     for (const month of months) {
       // Flag vesselUseFeature with inconsistent expertise location ids (basePortLocation)
       if (month.basePortLocation?.id) {
         if (needCheck && !invalidBasePortLocationIds.includes(month.basePortLocation.id)) {
-          if (
-            !(await this.referentialRefService.existsByLabel(month.basePortLocation.label, this.buildBasePortLocationFilter(), {
-              fetchPolicy: 'cache-first',
-            }))
-          ) {
+          if (!(await this.referentialRefService.existsByLabel(month.basePortLocation.label, basePortLocationFilter, cacheFirstOptions))) {
             invalidBasePortLocationIds.push(month.basePortLocation.id);
           }
         }
         // Update marker
-        markAsOutsideExpertiseArea(month.basePortLocation, invalidBasePortLocationIds.includes(month.basePortLocation.id));
+        ExpertiseAreaUtils.markAsOutsideExpertiseArea(month.basePortLocation, invalidBasePortLocationIds.includes(month.basePortLocation.id));
       }
 
       // Flag gearUseFeature with inconsistent expertise location ids (metier, fishingArea & gradients)
       for (const guf of month.gearUseFeatures || []) {
-        if (guf.metier?.id) {
-          if (needCheck && !invalidMetierIds.includes(guf.metier.id)) {
-            if (!(await this.referentialRefService.existsByLabel(guf.metier.label, this.buildMetierFilter(), { fetchPolicy: 'cache-first' }))) {
-              invalidMetierIds.push(guf.metier.id);
+        const metierId = guf.metier?.id;
+        if (isNotNil(metierId)) {
+          if (needCheck && !invalidMetierIds.includes(metierId)) {
+            if (!(await this.referentialRefService.existsByLabel(guf.metier.label, metierFilter, cacheFirstOptions))) {
+              invalidMetierIds.push(metierId);
             }
           }
-          markAsOutsideExpertiseArea(guf.metier, invalidMetierIds.includes(guf.metier.id));
+          ExpertiseAreaUtils.markAsOutsideExpertiseArea(guf.metier, invalidMetierIds.includes(metierId));
         }
 
         for (const fa of guf.fishingAreas || []) {
           const faLocationId = fa.location?.id;
-          if (faLocationId) {
+          if (isNotNil(faLocationId)) {
             if (needCheck && !invalidFishingAreaLocationIds.includes(faLocationId)) {
-              if (
-                !(await this.referentialRefService.existsByLabel(fa.location.label, this.buildFishingAreaFilter(), { fetchPolicy: 'cache-first' }))
-              ) {
+              if (!(await this.referentialRefService.existsByLabel(fa.location.label, faFilter, cacheFirstOptions))) {
                 invalidFishingAreaLocationIds.push(faLocationId);
               }
             }
-            markAsOutsideExpertiseArea(fa.location, invalidFishingAreaLocationIds.includes(faLocationId));
+            ExpertiseAreaUtils.markAsOutsideExpertiseArea(fa.location, invalidFishingAreaLocationIds.includes(faLocationId));
           }
 
           const dtcId = fa.distanceToCoastGradient?.id;
-          if (dtcId) {
+          if (isNotNil(dtcId)) {
             if (needCheck && !invalidDistanceToCoastGradientIds.includes(dtcId)) {
               if (
                 !(await this.referentialRefService.existsByLabel(
                   fa.distanceToCoastGradient.label,
                   this.buildDistanceToCoastGradientFilter(undefined, faLocationId),
-                  { fetchPolicy: 'cache-first' }
+                  cacheFirstOptions
                 ))
               ) {
                 invalidDistanceToCoastGradientIds.push(dtcId);
               }
             }
-            markAsOutsideExpertiseArea(fa.distanceToCoastGradient, invalidDistanceToCoastGradientIds.includes(dtcId));
+            ExpertiseAreaUtils.markAsOutsideExpertiseArea(fa.distanceToCoastGradient, invalidDistanceToCoastGradientIds.includes(dtcId));
           }
 
           const dgId = fa.depthGradient?.id;
-          if (dgId) {
+          if (isNotNil(dgId)) {
             if (needCheck && !invalidDepthGradientIds.includes(dgId)) {
               if (
-                !(await this.referentialRefService.existsByLabel(fa.depthGradient.label, this.buildDepthGradientFilter(undefined, faLocationId), {
-                  fetchPolicy: 'cache-first',
-                }))
+                !(await this.referentialRefService.existsByLabel(
+                  fa.depthGradient.label,
+                  this.buildDepthGradientFilter(undefined, faLocationId),
+                  cacheFirstOptions
+                ))
               ) {
                 invalidDepthGradientIds.push(dgId);
               }
             }
-            markAsOutsideExpertiseArea(fa.depthGradient, invalidDepthGradientIds.includes(dgId));
+            ExpertiseAreaUtils.markAsOutsideExpertiseArea(fa.depthGradient, invalidDepthGradientIds.includes(dgId));
           }
 
           const nsaId = fa.nearbySpecificArea?.id;
-          if (nsaId) {
+          if (isNotNil(nsaId)) {
             if (needCheck && !invalidNearbySpecificAreaIds.includes(nsaId)) {
               if (
                 !(await this.referentialRefService.existsByLabel(
                   fa.nearbySpecificArea.label,
                   this.buildNearbySpecificAreaFilter(undefined, faLocationId),
-                  { fetchPolicy: 'cache-first' }
+                  cacheFirstOptions
                 ))
               ) {
                 invalidNearbySpecificAreaIds.push(nsaId);
               }
             }
-            markAsOutsideExpertiseArea(fa.nearbySpecificArea, invalidNearbySpecificAreaIds.includes(nsaId));
+            ExpertiseAreaUtils.markAsOutsideExpertiseArea(fa.nearbySpecificArea, invalidNearbySpecificAreaIds.includes(nsaId));
           }
         }
       }

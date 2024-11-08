@@ -174,10 +174,12 @@ export const DATA_LOCAL_SETTINGS_OPTIONS = {
   // Note: will be update in app.component.ts
   DATA_EXPERTISE_AREA: <FormFieldDefinition>{
     key: 'sumaris.data.expertiseAreas',
-    label: 'DATA.SETTINGS.EXPERTISE_AREAS',
+    label: 'DATA.SETTINGS.EXPERTISE_AREA',
     type: 'entity',
     autocomplete: {
       attributes: ['name'],
+      showAllOnFocus: true,
+      panelWidth: '350px',
       suggestFn: () => {
         throw new Error('Should have been override by the app.component!!');
       },

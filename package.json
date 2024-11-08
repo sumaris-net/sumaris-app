@@ -25,7 +25,7 @@
     "android:i18n:build": "npm run i18n:build android/app/src/main/assets/public/assets/i18n",
     "android:package": "cd android && ./gradlew assembleDebug --warning-mode all",
     "android:package:prod": "cd android && ./gradlew assembleRelease",
-    "android:install": "node scripts/node/android-install.js",
+    "android:install": "npm install --force @e-is/capacitor-bluetooth-serial && node scripts/node/android-install.js",
     "android:clean": "cd android && ./gradlew clean",
     "android:list": "native-run android --list",
     "ios:init": "ionic cap add ios && npm run resources",
@@ -72,8 +72,7 @@
     "d3": "~7.6.1",
     "localforage": "~1.10.0",
     "rxjs": "~7.8.1",
-    "zone.js": "0.14.10",
-    "@typescript-eslint/utils": "7.2.0"
+    "zone.js": "~0.14.10"
   },
   "dependencies": {
     "@angular/animations": "~18.2.8",
@@ -122,7 +121,7 @@
     "@rx-angular/state": "~18.1.0",
     "@rx-angular/template": "~18.0.3",
     "@sgratzl/chartjs-chart-boxplot": "~3.9.1",
-    "@sumaris-net/ngx-components": "18.0.9",
+    "@sumaris-net/ngx-components": "18.0.10",
     "angular-split": "~18.0.0-beta.2",
     "apollo-angular": "~7.2.0",
     "apollo-link-logger": "~2.0.1",
@@ -199,6 +198,7 @@
     "@types/uuid": "^7.0.6",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/utils": "^6.21.0",
     "cordova-res": "^0.15.4",
     "eslint": "~8.57.0",
     "eslint-config-prettier": "~9.1.0",
