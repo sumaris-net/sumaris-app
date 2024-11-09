@@ -1,7 +1,7 @@
 {
   "name": "sumaris-app",
   "description": "SUMARiS app",
-  "version": "2.9.24.2",
+  "version": "2.9.24.3",
   "author": "contact@e-is.pro",
   "license": "AGPL-3.0",
   "readmeFilename": "README.md",
@@ -108,7 +108,7 @@
     "@ionic-native/audio-management": "^5.36.0",
     "@ionic-native/core": "^5.36.0",
     "@ionic-native/downloader": "^5.36.0",
-    "@ionic/angular": "~8.4.0",
+    "@ionic/angular": "~7.8.6",
     "@ionic/pwa-elements": "~3.3.0",
     "@ionic/storage": "~4.0.0",
     "@ionic/storage-angular": "~4.0.0",
