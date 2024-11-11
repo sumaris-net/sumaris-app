@@ -791,7 +791,7 @@
     "PHYSICAL_GEAR": {
       "COMMENTS": "Comments",
       "RANK_ORDER": "#",
-      "SEARCH_EXISTING_BTN": "Search among the data already entered",
+      "BTN_SEARCH_EXISTING_HELP": "Search among existing gears",
       "NEW": {
         "TITLE": "New gear",
         "CHILD": {
@@ -817,6 +817,8 @@
         "SUB_GEARS_COUNT": "Sub-gears count",
         "LAST_USED": "Last use",
         "COMMENTS": "Comments",
+        "BTN_ADD_NEW": "New",
+        "BTN_SEARCH_ADD": "Search",
         "FILTER": {
           "START_DATE": "Start period",
           "END_DATE": "End period"

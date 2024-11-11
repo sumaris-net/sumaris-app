@@ -5,6 +5,7 @@ import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.
 import {
   createPromiseEventEmitter,
   IEntitiesService,
+  isNil,
   isNotNil,
   LoadResult,
   ReferentialRef,
@@ -366,9 +367,9 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   }
 
   async openDetailModal(dataToOpen?: PhysicalGear): Promise<OverlayEventDetail<PhysicalGear | undefined>> {
-    const isNew = !dataToOpen && true;
+    const isNew = !dataToOpen || isNil(dataToOpen?.id);
     if (isNew) {
-      dataToOpen = new PhysicalGear();
+      dataToOpen = dataToOpen ?? new PhysicalGear();
       await this.onNewEntity(dataToOpen);
     }
     dataToOpen.tripId = this.tripId;
@@ -420,6 +421,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
 
     return { data: data instanceof PhysicalGear ? data : undefined, role };
   }
+
   pressRow(event: Event | undefined, row: TableElement<PhysicalGear>): boolean {
     return super.pressRow(event, row);
   }

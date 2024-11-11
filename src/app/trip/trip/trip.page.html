@@ -333,121 +333,121 @@
     [disabled]="!dirty || loading"
   >
     <!-- error -->
-    <ion-item *ngIf="error as errorMsg" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="errorMsg | translate"></ion-label>
-    </ion-item>
+    <app-error-item [message]="error"></app-error-item>
   </app-form-buttons-bar>
 </ion-footer>
 
-<ng-container *ngIf="mobile" [ngSwitch]="selectedTabIndex">
-  <!-- FAB button: add gear -->
-  <ion-fab
-    *ngSwitchCase="1"
-    slot="fixed"
-    vertical="bottom"
-    horizontal="end"
-    [class.cdk-visually-hidden]="physicalGearsTable.disabled"
-    @fadeInOutAnimation
-  >
-    <ion-fab-button color="tertiary" (click)="physicalGearsTable.addRow($event)">
-      <ion-icon name="add"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
-
-  <!-- FAB button: add operation -->
-  <ng-container *ngSwitchCase="2">
-    <ion-fab
-      slot="fixed"
-      vertical="bottom"
-      horizontal="end"
-      *ngIf="!operationsTable.allowParentOperation; else allowParentFabButton"
-      [class.cdk-visually-hidden]="operationsTable.disabled"
-      @fadeInOutAnimation
-    >
-      <ion-fab-button color="tertiary" (click)="!saving && operationsTable.addRow($event)">
-        <ion-icon name="add"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
-
-    <ng-template #allowParentFabButton>
-      <ion-fab slot="fixed" vertical="bottom" horizontal="end" [class.cdk-visually-hidden]="operationsTable.disabled" @fadeInOutAnimation>
+@if (mobile) {
+  @switch (_selectedTabIndex) {
+    <!-- physical gear tab -->
+    @case (1) {
+      <!-- FAB button: add gear -->
+      <ion-fab slot="fixed" vertical="bottom" horizontal="end" [class.cdk-visually-hidden]="physicalGearsTable.disabled" @fadeInOutAnimation>
         <ion-fab-button color="tertiary">
           <ion-icon name="add"></ion-icon>
         </ion-fab-button>
-
         <ion-fab-list side="top">
-          <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.CHILD' | translate" (click)="onNewOperation($event, { type: 'child' })">
-            <mat-icon color="primary" svgIcon="rollback-arrow"></mat-icon>
-            <ion-icon class="icon-secondary" name="add"></ion-icon>
+          <ion-fab-button [title]="'TRIP.PHYSICAL_GEAR.TABLE.BTN_ADD_NEW' | translate" (click)="physicalGearsTable.addRow($event)">
+            <ion-icon color="primary" name="add"></ion-icon>
           </ion-fab-button>
-
-          <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.PARENT' | translate" (click)="onNewOperation($event, { type: 'parent' })">
-            <mat-icon color="primary" svgIcon="down-arrow"></mat-icon>
+          <ion-fab-button [title]="'TRIP.PHYSICAL_GEAR.TABLE.BTN_SEARCH_ADD' | translate" (click)="searchAndAddPhysicalGear($event)">
+            <ion-icon color="primary" name="search"></ion-icon>
             <ion-icon class="icon-secondary" name="add"></ion-icon>
           </ion-fab-button>
         </ion-fab-list>
       </ion-fab>
-    </ng-template>
-  </ng-container>
-</ng-container>
+    }
+    <!-- operation tab -->
+    @case (2) {
+      @if (!operationsTable.allowParentOperation) {
+        <ion-fab slot="fixed" vertical="bottom" horizontal="end" [class.cdk-visually-hidden]="operationsTable.disabled" @fadeInOutAnimation>
+          <ion-fab-button color="tertiary" (click)="!saving && operationsTable.addRow($event)">
+            <ion-icon name="add"></ion-icon>
+          </ion-fab-button>
+        </ion-fab>
+      } @else {
+        <ion-fab slot="fixed" vertical="bottom" horizontal="end" [class.cdk-visually-hidden]="operationsTable.disabled" @fadeInOutAnimation>
+          <ion-fab-button color="tertiary">
+            <ion-icon name="add"></ion-icon>
+          </ion-fab-button>
 
-<ng-template #debugPanel>
-  <app-debug title="Editor and Form">
-    <ion-grid class="ion-no-padding">
-      <ion-row>
-        <ion-col>
-          editor.ready: {{ readySubject | async }}
-          <br />
-          editor.loading: {{ loading }}
-          <br />
-          editor.enabled: {{ enabled }}
-          <br />
-          editor.dirty: {{ dirty }}
-          <br />
-          editor.valid: {{ valid }}
-          <br />
-          editor.program: {{ (program$ | async)?.label }}
-          <br />
-          editor.strategy ({{ strategyResolution$ | async }}){{ requiredStrategy ? ' (required)' : '' }}: {{ (strategy$ | async)?.id }}
-          <br />
-          <br />
-          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
-          <br />
-        </ion-col>
-        <ion-col>
-          form.ready: {{ tripForm.readySubject | async }}
-          <br />
-          form.loading: {{ tripForm.loading }}
-          <br />
-          form.enabled: {{ tripForm.enabled }}
-          <br />
-          form.dirty: {{ tripForm.dirty }}
-          <br />
-          form.valid: {{ tripForm.valid }}
-          <br />
-        </ion-col>
-        <ion-col>
-          measurementsForm.ready: {{ measurementsForm.readySubject | async }}
-          <br />
-          measurementsForm.loading: {{ measurementsForm.loading }}
-          <br />
-          measurementsForm.enabled: {{ measurementsForm.enabled }}
-          <br />
-          measurementsForm.dirty: {{ measurementsForm.dirty }}
-          <br />
-          measurementsForm.valid: {{ measurementsForm.valid }}
-          <br />
-          measurementsForm.program: {{ measurementsForm.programLabel }}
-          <br />
-          measurementsForm.strategy{{ measurementsForm.requiredStrategy ? ' (required)' : '' }}:
-          {{ measurementsForm.strategyId || measurementsForm.strategyLabel }}
-          <br />
-          <br />
-          measurementsForm.acquisitionLevel: {{ measurementsForm.acquisitionLevel }}
-          <br />
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-  </app-debug>
-</ng-template>
+          <ion-fab-list side="top">
+            <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.CHILD' | translate" (click)="onNewOperation($event, { type: 'child' })">
+              <mat-icon color="primary" svgIcon="rollback-arrow"></mat-icon>
+              <ion-icon class="icon-secondary" name="add"></ion-icon>
+            </ion-fab-button>
+
+            <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.PARENT' | translate" (click)="onNewOperation($event, { type: 'parent' })">
+              <mat-icon color="primary" svgIcon="down-arrow"></mat-icon>
+              <ion-icon class="icon-secondary" name="add"></ion-icon>
+            </ion-fab-button>
+          </ion-fab-list>
+        </ion-fab>
+      }
+    }
+  }
+}
+<ng-container *ngIf="mobile" [ngSwitch]="selectedTabIndex">
+  <!-- FAB button: add operation -->
+  <ng-container *ngSwitchCase="2"></ng-container>
+
+  <ng-template #debugPanel>
+    <app-debug title="Editor and Form">
+      <ion-grid class="ion-no-padding">
+        <ion-row>
+          <ion-col>
+            editor.ready: {{ readySubject | async }}
+            <br />
+            editor.loading: {{ loading }}
+            <br />
+            editor.enabled: {{ enabled }}
+            <br />
+            editor.dirty: {{ dirty }}
+            <br />
+            editor.valid: {{ valid }}
+            <br />
+            editor.program: {{ (program$ | async)?.label }}
+            <br />
+            editor.strategy ({{ strategyResolution$ | async }}){{ requiredStrategy ? ' (required)' : '' }}: {{ (strategy$ | async)?.id }}
+            <br />
+            <br />
+            editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
+            <br />
+          </ion-col>
+          <ion-col>
+            form.ready: {{ tripForm.readySubject | async }}
+            <br />
+            form.loading: {{ tripForm.loading }}
+            <br />
+            form.enabled: {{ tripForm.enabled }}
+            <br />
+            form.dirty: {{ tripForm.dirty }}
+            <br />
+            form.valid: {{ tripForm.valid }}
+            <br />
+          </ion-col>
+          <ion-col>
+            measurementsForm.ready: {{ measurementsForm.readySubject | async }}
+            <br />
+            measurementsForm.loading: {{ measurementsForm.loading }}
+            <br />
+            measurementsForm.enabled: {{ measurementsForm.enabled }}
+            <br />
+            measurementsForm.dirty: {{ measurementsForm.dirty }}
+            <br />
+            measurementsForm.valid: {{ measurementsForm.valid }}
+            <br />
+            measurementsForm.program: {{ measurementsForm.programLabel }}
+            <br />
+            measurementsForm.strategy{{ measurementsForm.requiredStrategy ? ' (required)' : '' }}:
+            {{ measurementsForm.strategyId || measurementsForm.strategyLabel }}
+            <br />
+            <br />
+            measurementsForm.acquisitionLevel: {{ measurementsForm.acquisitionLevel }}
+            <br />
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </app-debug>
+  </ng-template>
+</ng-container>

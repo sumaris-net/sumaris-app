@@ -79,6 +79,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -555,7 +556,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-    reportType = reportType ?? this.reportTypes.length === 1 ? <TripReportType>this.reportTypes[0].key : 'legacy';
+    reportType = reportType ?? (this.reportTypes.length === 1 ? <TripReportType>this.reportTypes[0].key : 'legacy');
     const reportPath = reportType !== <TripReportType>'legacy' ? reportType.split('-') : [];
     return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', ...reportPath].join('/'));
   }
@@ -682,16 +683,14 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
    *
    * @param event
    */
-  async openSearchPhysicalGearModal(event: PromiseEvent<PhysicalGear>) {
-    if (!event || !event.detail.success) return; // Skip (missing callback)
-
+  async openSearchPhysicalGearModal(event?: PromiseEvent<PhysicalGear>) {
     const trip = Trip.fromObject(this.tripForm.value);
     const vessel = trip.vesselSnapshot;
     const date = trip.departureDateTime || trip.returnDateTime;
     const withOffline = EntityUtils.isLocal(trip) || trip.synchronizationStatus === 'DIRTY';
     if (!vessel || !date) return; // Skip
 
-    const acquisitionLevel = event.type || this.physicalGearsTable.acquisitionLevel;
+    const acquisitionLevel = event?.type || this.physicalGearsTable.acquisitionLevel;
     const programLabel = this.programLabel;
     const strategyId = toNumber(this.strategy?.id, this.physicalGearsTable.strategyId);
     const filter = <PhysicalGearFilter>{
@@ -741,10 +740,36 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       const gearToCopy = PhysicalGear.fromObject(data[0]);
       console.debug('[trip] Result of select gear modal:', gearToCopy);
       // Call resolve callback
-      event.detail.success(gearToCopy);
+      if (typeof event?.detail?.success === 'function') event.detail.success(gearToCopy);
+      else return gearToCopy;
     } else {
       // User cancelled
-      event.detail.error('CANCELLED');
+      if (typeof event?.detail?.error === 'function') event.detail.error('CANCELLED');
+      else return;
+    }
+  }
+
+  async searchAndAddPhysicalGear(event?: Event) {
+    try {
+      const selectedData = await this.openSearchPhysicalGearModal();
+
+      if (!selectedData) return; // User cancelled: skip
+
+      // Create a copy
+      const data = PhysicalGear.fromObject({
+        gear: selectedData.gear,
+        rankOrder: selectedData.rankOrder,
+        // Convert measurementValues as JSON, in order to force values of not required PMFM to be converted, in the form
+        measurementValues: MeasurementValuesUtils.asObject(selectedData.measurementValues, { minify: true }),
+        measurements: selectedData.measurements,
+      });
+
+      const { data: dataToSave, role } = await this.physicalGearsTable.openDetailModal(data);
+      if (!dataToSave) return; // Skip if not added
+
+      await this.physicalGearsTable.addOrUpdateEntityToTable(dataToSave);
+    } catch (err) {
+      this.physicalGearsTable.setError(err);
     }
   }
 

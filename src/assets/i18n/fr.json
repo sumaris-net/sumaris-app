@@ -824,7 +824,7 @@
     "PHYSICAL_GEAR": {
       "COMMENTS": "Commentaires",
       "RANK_ORDER": "#",
-      "SEARCH_EXISTING_BTN": "Chercher parmi les données déjà saisis",
+      "BTN_SEARCH_EXISTING_HELP": "Chercher parmi les engins existants",
       "NEW": {
         "TITLE": "Nouvel engin",
         "CHILD": {
@@ -850,6 +850,8 @@
         "SUB_GEARS_COUNT": "Nb Sous-engins",
         "LAST_USED": "Dernière utilisation",
         "COMMENTS": "Commentaires",
+        "BTN_ADD_NEW": "Nouveau",
+        "BTN_SEARCH_ADD": "Rechercher",
         "FILTER": {
           "START_DATE": "Début de période",
           "END_DATE": "Fin de période"
