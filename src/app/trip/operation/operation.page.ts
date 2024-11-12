@@ -330,6 +330,64 @@ export class OperationPage<S extends OperationState = OperationState>
     this.logPrefix = '[operation-page] ';
   }
 
+  ngOnInit() {
+    super.ngOnInit();
+
+    // Update the data context
+    this.registerSubscription(
+      merge(this.selectedTabIndexChange.pipe(filter((tabIndex) => tabIndex === OperationPage.TABS.CATCH && this.showBatchTables)), from(this.ready()))
+        .pipe(debounceTime(500), throttleTime(500))
+        .subscribe((_) => this.updateDataContext())
+    );
+
+    // Get physical gear by form
+    this._state.connect(
+      'physicalGear',
+      this.opeForm.physicalGearControl.valueChanges.pipe(
+        // skip if loading (when opening an existing operation, physicalGear will be set inside onEntityLoaded() )
+        filter((_) => !this.loading)
+      )
+    );
+
+    this._state.connect('gearId', this.physicalGear$, (_, physicalGear) => toNumber(physicalGear?.gear?.id, null));
+
+    this._state.hold(
+      this.gearId$.pipe(
+        filter((gearId) => isNotNil(gearId) && this.loaded),
+        debounceTime(450)
+      ),
+      () => this.markForCheck()
+    );
+
+    // Connect pmfms (used by translateFormPath)
+    this._state.connect('pmfms', this.measurementsForm.pmfms$);
+  }
+
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
+
+    if (this.measurementsForm) {
+      this.registerSubscription(
+        this.measurementsForm.pmfms$
+          .pipe(
+            filter(isNotNil),
+            mergeMap((_) => this.measurementsForm.ready$),
+            filter((ready) => ready === true)
+          )
+          .subscribe((_) => this.onMeasurementsFormReady())
+      );
+    }
+
+    // Manage tab group
+    const queryParams = this.route.snapshot.queryParams;
+    this.selectedSubTabIndex = toNumber(queryParams['subtab'], 0);
+
+    // Manage toolbar color
+    if (isNotNilOrBlank(queryParams['color'])) {
+      this.toolbarColor = queryParams['color'];
+    }
+  }
+
   // TODO Hide lastOperation on to small screen
   /*@HostListener('window:resize', ['$event'])
   onResize(event?: Event) {
@@ -378,28 +436,15 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   async control(data: Operation, opts?: any): Promise<AppErrorWithDetails> {
+    const pmfms = await firstNotNilPromise(this.measurementsForm.initialPmfms$, { stop: this.destroySubject });
     const errors = await this.service.control(data, {
       ...opts,
       trip: this.trip,
+      initialPmfms: pmfms,
     });
 
     if (errors) {
-      const pmfms = await firstNotNilPromise(this.measurementsForm.pmfms$, { stop: this.destroySubject });
-      const errorMessage = this.errorTranslator.translateErrors(errors, {
-        pathTranslator: {
-          translateFormPath: (path) =>
-            this.service.translateFormPath(path, {
-              i18nPrefix: this.i18nContext.prefix,
-              pmfms,
-            }),
-        },
-      });
-      return {
-        details: {
-          errors,
-          message: errorMessage,
-        },
-      };
+      return { details: { errors } };
     }
 
     // Show success toast
@@ -408,10 +453,6 @@ export class OperationPage<S extends OperationState = OperationState>
     }
 
     return; // No errors
-  }
-
-  translateFormPath(controlPath: string): string {
-    return this.dataService.translateFormPath(controlPath, { i18nPrefix: this.i18nContext.prefix, pmfms: this.measurementsForm.pmfms });
   }
 
   canUserWrite(data: Operation, opts?: any): boolean {
@@ -443,61 +484,6 @@ export class OperationPage<S extends OperationState = OperationState>
       backdropDismiss: true,
     });
     return modal.present();
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
-
-    // Update the data context
-    this.registerSubscription(
-      merge(this.selectedTabIndexChange.pipe(filter((tabIndex) => tabIndex === OperationPage.TABS.CATCH && this.showBatchTables)), from(this.ready()))
-        .pipe(debounceTime(500), throttleTime(500))
-        .subscribe((_) => this.updateDataContext())
-    );
-
-    // Get physical gear by form
-    this._state.connect(
-      'physicalGear',
-      this.opeForm.physicalGearControl.valueChanges.pipe(
-        // skip if loading (when opening an existing operation, physicalGear will be set inside onEntityLoaded() )
-        filter((_) => !this.loading)
-      )
-    );
-
-    this._state.connect('gearId', this.physicalGear$, (_, physicalGear) => toNumber(physicalGear?.gear?.id, null));
-
-    this._state.hold(
-      this.gearId$.pipe(
-        filter((gearId) => isNotNil(gearId) && this.loaded),
-        debounceTime(450)
-      ),
-      () => this.markForCheck()
-    );
-  }
-
-  ngAfterViewInit() {
-    super.ngAfterViewInit();
-
-    if (this.measurementsForm) {
-      this.registerSubscription(
-        this.measurementsForm.pmfms$
-          .pipe(
-            filter(isNotNil),
-            mergeMap((_) => this.measurementsForm.ready$),
-            filter((ready) => ready === true)
-          )
-          .subscribe((_) => this.onMeasurementsFormReady())
-      );
-    }
-
-    // Manage tab group
-    const queryParams = this.route.snapshot.queryParams;
-    this.selectedSubTabIndex = toNumber(queryParams['subtab'], 0);
-
-    // Manage toolbar color
-    if (isNotNilOrBlank(queryParams['color'])) {
-      this.toolbarColor = queryParams['color'];
-    }
   }
 
   protected async mapPmfms(event: MapPmfmEvent) {

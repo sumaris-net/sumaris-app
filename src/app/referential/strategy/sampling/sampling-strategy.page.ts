@@ -139,7 +139,6 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
   protected setProgram(program: Program) {
     if (program && isNotNil(program.id)) {
       const backHref = RouteUtils.getParentPath(this.route?.snapshot.parent, { tab: '' + PROGRAM_TABS.STRATEGIES }) || PROGRAMS_PAGE_PATH;
-      //console.log('TODO backHref=' + backHref);
       const defaultProgramPath = [PROGRAMS_PAGE_PATH, program.id].join('/');
       if (backHref.startsWith(defaultProgramPath)) {
         this.defaultBackHref = `${defaultProgramPath}?tab=${PROGRAM_TABS.STRATEGIES}`;

@@ -272,8 +272,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   }
 
   protected registerPmfmColumnDefinition(showPmfmLabel: boolean) {
-    console.log('TODO register pmfm column definition', showPmfmLabel);
-
     const basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']);
     const pmfmAttributes = basePmfmAttributes
       .map((attr) => (attr === 'label' && !showPmfmLabel ? 'parameter.label' : attr === 'name' ? 'parameter.name' : attr))

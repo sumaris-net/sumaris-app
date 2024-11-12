@@ -189,25 +189,25 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
   getFormGroupConfig(data?: Operation, opts?: O): { [key: string]: any } {
     const formConfig = Object.assign(super.getFormGroupConfig(data, opts), {
       __typename: [Operation.TYPENAME],
-      startDateTime: [(data && data.startDateTime) || null, Validators.required],
-      fishingStartDateTime: [(data && data.fishingStartDateTime) || null],
-      fishingEndDateTime: [(data && data.fishingEndDateTime) || null],
-      endDateTime: [(data && data.endDateTime) || null, SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])],
+      startDateTime: [data?.startDateTime || null, Validators.required],
+      fishingStartDateTime: [data?.fishingStartDateTime || null],
+      fishingEndDateTime: [data?.fishingEndDateTime || null],
+      endDateTime: [data?.endDateTime || null, SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])],
       tripId: [toNumber(data?.tripId, null)],
       rankOrder: [toNumber(data?.rankOrder, null)],
       rankOrderOnPeriod: [toNumber(data?.rankOrderOnPeriod, null)],
       // Use object validator instead of entity because physical gear may have no id when it's adding from parent operation and doesn't exist yet on trip
-      physicalGear: [(data && data.physicalGear) || null, Validators.compose([Validators.required, SharedValidators.object])],
-      comments: [(data && data.comments) || null, Validators.maxLength(2000)],
+      physicalGear: [data?.physicalGear || null, Validators.compose([Validators.required, SharedValidators.object])],
+      comments: [data?.comments || null, Validators.maxLength(2000)],
       // Parent / child
-      parentOperation: [(data && data.parentOperation) || null], // Validators define later, in updateFormGroup
-      parentOperationId: [toNumber(data && data.parentOperationId, null)],
-      childOperationId: [toNumber(data && data.childOperationId, null)],
+      parentOperation: [data?.parentOperation || null], // Validators define later, in updateFormGroup
+      parentOperationId: [toNumber(data?.parentOperationId, null)],
+      childOperationId: [toNumber(data?.childOperationId, null)],
     });
 
     // Add metier
     if (opts.withMetier) {
-      formConfig['metier'] = [(data && data.metier) || null, Validators.compose([Validators.required, SharedValidators.entity])];
+      formConfig['metier'] = [data?.metier || null, Validators.compose([Validators.required, SharedValidators.entity])];
     }
 
     return formConfig;
@@ -721,11 +721,11 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
   protected createChildOperationControl(data?: Operation): AbstractControl {
     return this.formBuilder.group({
-      id: [toNumber(data && data.id, null)],
-      startDateTime: [(data && data.startDateTime) || null],
-      fishingStartDateTime: [(data && data.fishingStartDateTime) || null],
-      fishingEndDateTime: [(data && data.fishingEndDateTime) || null],
-      endDateTime: [(data && data.endDateTime) || null],
+      id: [toNumber(data?.id, null)],
+      startDateTime: [data?.startDateTime || null],
+      fishingStartDateTime: [data?.fishingStartDateTime || null],
+      fishingEndDateTime: [data?.fishingEndDateTime || null],
+      endDateTime: [data?.endDateTime || null],
     });
   }
 }

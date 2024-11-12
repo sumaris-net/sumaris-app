@@ -23,7 +23,7 @@ import {
 import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '@app/referential/services/program-ref.service';
-import { map, mergeMap, startWith, tap } from 'rxjs/operators';
+import { map, mergeMap, startWith } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ObservedLocationOfflineFilter } from '../observed-location.filter';
 import { DATA_IMPORT_PERIODS } from '@app/data/data.config';
@@ -228,7 +228,6 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       .pipe(
         startWith<boolean>(enableHistoryControl.value),
         combineLatestWith(this.program$),
-        tap((ee) => console.log('TODO', ee)),
         mergeMap(([enableHistory, program]) => this.waitIdle({ stop: this.destroySubject }).then(() => enableHistoryControl.value && !!program))
       )
       .subscribe((enable) => AppFormUtils.setControlsEnabled(this.form, enable, ['location', 'periodDuration'], { required: enable }));

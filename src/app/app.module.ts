@@ -43,7 +43,6 @@ import {
   isCapacitor,
   isIOS,
   isMobile,
-  isTouchUi,
   JobModule,
   LocalSettings,
   LocalSettingsOptions,
@@ -55,7 +54,6 @@ import {
   StorageService,
   TestingPage,
   UserEventModule,
-  testUserAgent,
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -116,16 +114,6 @@ import { NamedFilterService } from '@app/shared/service/named-filter.service';
 import { ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS } from '@app/activity-calendar/calendar/activity-month.validator';
 import { ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS } from './activity-calendar/model/activity-calendar.validator';
 import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
-const isMac = (win: Window) => {
-  // iOS (but not iPad)
-  if (testUserAgent(win, /Macintosh/i) && !isTouchUi(win)) {
-    return true;
-  }
-
-  return false;
-};
-
-export const isIOS2 = (win: Window) => isIOS(win) || isMac(win);
 
 @NgModule({
   declarations: [AppComponent],
@@ -140,9 +128,9 @@ export const isIOS2 = (win: Window) => isIOS(win) || isMac(win);
       // Override platform detection (see issue #323)
       platform: {
         mobile: isMobile,
-        ios: isIOS2,
-        android: isAndroid,
         capacitor: isCapacitor,
+        android: isAndroid,
+        ios: isIOS,
       },
     }),
     CacheModule.forRoot({

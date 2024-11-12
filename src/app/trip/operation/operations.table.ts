@@ -398,9 +398,10 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter, Op
       this.latLongPattern = this.settings.latLongFormat;
     }
 
+    const gearAttributes = this.settings.getFieldDisplayAttributes('gear');
     this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
-      physicalGear: this.settings.getFieldDisplayAttributes('gear', ['rankOrder', 'gear.label', 'gear.name']),
+      physicalGear: this.settings.getFieldDisplayAttributes('physicalGear', ['rankOrder', ...gearAttributes.map((attr) => `gear.${attr}`)]),
       taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
       fishingArea: this.settings.getFieldDisplayAttributes('fishingArea', ['label']),
     };

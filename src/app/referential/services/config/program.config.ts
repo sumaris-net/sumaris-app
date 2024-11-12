@@ -1356,8 +1356,8 @@ export const ProgramProperties = Object.freeze({
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_TRAWL_SELECTIVITY',
       },
       {
-        key: 'ONBOARD_OBSERVATION.',
-        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ONBOARD_OBSERVATION',
+        key: 'OBSERVED_TRIP.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_OBSERVED_TRIP',
       },
       {
         key: 'OBSERVED_SALE.',

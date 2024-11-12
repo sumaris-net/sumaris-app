@@ -56,37 +56,48 @@
   </ion-grid>
 </app-debug>
 
-<mat-toolbar *ngIf="showToolbar">
-  <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-    <!-- Add -->
-    <button mat-icon-button *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
-      <mat-icon>add</mat-icon>
-    </button>
+@if (showToolbar) {
+  <mat-toolbar>
+    @if (selection | isEmptySelection) {
+      <!-- Add -->
+      <button mat-icon-button *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
+        <mat-icon>add</mat-icon>
+      </button>
 
-    <!-- Refresh -->
-    <button mat-icon-button *ngIf="debug && !mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
-      <mat-icon>refresh</mat-icon>
-    </button>
-  </ng-container>
+      <!-- Search to add  -->
+      <button
+        mat-icon-button
+        *ngIf="!mobile && enabled"
+        [title]="'TRIP.PHYSICAL_GEAR.TABLE.BTN_SEARCH_ADD' | translate"
+        (click)="searchAndAddRow($event)"
+      >
+        <mat-icon>search</mat-icon>
+        <mat-icon class="icon-secondary" style="left: 18px; top: 10px; font-weight: bold">add</mat-icon>
+      </button>
 
-  <ng-template #hasSelection>
-    <!-- Delete -->
-    <button mat-icon-button color="light" *ngIf="enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
-      <mat-icon>delete</mat-icon>
-    </button>
-  </ng-template>
+      <!-- Refresh -->
+      <button mat-icon-button *ngIf="debug && !mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    } @else {
+      <!-- Delete -->
+      <button mat-icon-button color="light" *ngIf="enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+        <mat-icon>delete</mat-icon>
+      </button>
+    }
 
-  <ion-item *ngIf="showError && !mobile && (errorSubject | push); let error" lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+    <ion-item *ngIf="showError && !mobile && (errorSubject | push); let error" lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
+    </ion-item>
 
-  <!-- separator -->
-  <ion-text class="toolbar-spacer ion-text-center">
-    <!-- title -->
-    <span *ngIf="title" [innerHTML]="title"></span>
-  </ion-text>
-</mat-toolbar>
+    <!-- separator -->
+    <ion-text class="toolbar-spacer ion-text-center">
+      <!-- title -->
+      <span *ngIf="title" [innerHTML]="title"></span>
+    </ion-text>
+  </mat-toolbar>
+}
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
@@ -195,7 +206,7 @@
                     html: true,
                     withDetails: showPmfmDetails,
                     i18nPrefix: i18nPmfmPrefix,
-                    i18nSuffix: i18nColumnSuffix
+                    i18nSuffix: i18nColumnSuffix,
                   }
           "
         ></ion-label>

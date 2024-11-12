@@ -110,7 +110,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _positionSubscription: Subscription;
   private _emitGeolocationBusy = true;
   private _lastValidatorOpts: any;
-  private _showFishingDate: boolean = false;
   protected _usageMode: UsageMode;
   protected toastController = inject(ToastController);
   protected _dateIndexMap = {

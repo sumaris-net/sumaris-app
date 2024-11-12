@@ -13,7 +13,7 @@ import {
 import { RxState } from '@rx-angular/state';
 import { BluetoothDevice, BluetoothDeviceCheckFn, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { distinctUntilKeyChanged, map } from 'rxjs/operators';
-import { equals, FilterFn, IconRef, isEmptyArray, isNil, MatBadgeFill, toBoolean } from '@sumaris-net/ngx-components';
+import { equals, FilterFn, IconRef, isEmptyArray, isNil, isNilOrBlank, MatBadgeFill, toBoolean } from '@sumaris-net/ngx-components';
 import { PopoverController } from '@ionic/angular';
 import { BluetoothPopover, BluetoothPopoverOptions } from '@app/shared/bluetooth/bluetooth.popover';
 import { MatBadgePosition, MatBadgeSize } from '@angular/material/badge';
@@ -127,7 +127,7 @@ export class AppBluetoothIcon<S extends BluetoothIconState<D> = BluetoothIconSta
 
   @Input() badgeSize: MatBadgeSize = 'small';
   @Input() badgePosition: MatBadgePosition = 'above after';
-  @Input() badgeHidden = false;
+  @Input() badgeHidden = true;
 
   constructor(
     injector: Injector,
@@ -254,12 +254,14 @@ export class AppBluetoothIcon<S extends BluetoothIconState<D> = BluetoothIconSta
     }
 
     // Set icon
-    const icon = { color, matIcon, badge, badgeIcon, badgeColor, badgeFill, badgeMatIcon };
+    const icon: BluetoothMatIconRef = { color, matIcon, badge, badgeIcon, badgeColor, badgeFill, badgeMatIcon };
     if (!equals(this.icon, icon)) {
       // DEBUG
       //console.debug('[bluetooth-icon] Changing icon to: ' + JSON.stringify(icon));
 
       this._state.set('icon', () => icon);
+      this.badgeHidden = isNilOrBlank(icon.badge) || !!badgeIcon || !!badgeMatIcon;
+      this.cd.markForCheck();
     }
 
     // Blink animation

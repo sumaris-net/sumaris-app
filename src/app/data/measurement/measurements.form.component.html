@@ -70,6 +70,8 @@
           gear {{ requiredGear ? '(required)' : '' }}: {{ gearId }}
           <br />
           pmfms count: {{ (pmfms$ | push)?.length || 0 }}
+          <br />
+          forceOptional?: {{ forceOptional }}
         </ion-col>
       </ion-row>
     </ion-grid>

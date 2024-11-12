@@ -417,14 +417,9 @@ export class PhysicalGearModal extends AppEntityEditorModal<PhysicalGear> implem
 
       if (selectedData) {
         // Create a copy
-        const data = PhysicalGear.fromObject({
-          gear: selectedData.gear,
-          rankOrder: selectedData.rankOrder,
-          // Convert measurementValues as JSON, in order to force values of not required PMFM to be converted, in the form
-          measurementValues: MeasurementValuesUtils.asObject(selectedData.measurementValues, { minify: true }),
-          measurements: selectedData.measurements,
-        }).asObject();
-        event.detail.success(data);
+        const data = new PhysicalGear();
+        data.paste(selectedData);
+        event.detail.success(data.asObject());
       }
 
       // User cancelled

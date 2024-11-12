@@ -487,7 +487,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     //   return undefined;
     // }
 
-    const allowSamplingBatches = opts?.allowSamplingBatches || BatchUtils.sumObservedIndividualCount(entity.children) > 0;
+    const allowSamplingBatches = opts?.allowSamplingBatches || BatchUtils.sumObservedIndividualCount(entity.children) > 0 || false;
     const allowDiscard = allowSamplingBatches;
 
     const [catchPmfms, sortingPmfms] = await Promise.all([
@@ -522,8 +522,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
             translateFormPath: (path) => {
               const cleanPath = opts?.controlName ? path.substring(opts.controlName.length + 1) : path;
               const controlName = this.translateFormPath(cleanPath, translatePathOption);
-              const modelPath = cleanPath.replace(/\.weight\.value$|.individualCount$|.label$|.rankOrder$|/gi, '');
-              const batchModel = model.get(modelPath);
+              const modelPath = cleanPath.replace(/\.?weight\.value$|\.?individualCount$|\.?label$|\.?rankOrder$|/gi, '');
+              const batchModel = isNotNilOrBlank(modelPath) ? model.get(modelPath) : model;
               if (batchModel) batchModel.valid = false;
               return batchModel?.name ? `${batchModel.name} > ${controlName}` : controlName;
             },
@@ -555,9 +555,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     //   return undefined;
     // }
 
-    const allowSamplingBatches = opts?.allowSamplingBatches || BatchUtils.sumObservedIndividualCount(entity.children) > 0;
+    const allowSamplingBatches = opts?.allowSamplingBatches || BatchUtils.sumObservedIndividualCount(entity.children) > 0 || false;
     const allowDiscard = allowSamplingBatches;
-    const allowChildrenGears = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN);
 
     const [catchPmfms, sortingPmfms] = await Promise.all([
       this.programRefService.loadProgramPmfms(program.label, { acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH, gearId: opts?.gearId }),
@@ -591,8 +590,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
             translateFormPath: (path) => {
               const cleanPath = opts?.controlName ? path.substring(opts.controlName.length + 1) : path;
               const controlName = this.translateFormPath(cleanPath, translatePathOption);
-              const modelPath = cleanPath.replace(/\.weight\.value$|.individualCount$|.label$|.rankOrder$|/gi, '');
-              const batchModel = model.get(modelPath);
+              const modelPath = cleanPath.replace(/\.?weight\.value$|\.?individualCount$|\.?label$|\.?rankOrder$|/gi, '');
+              const batchModel = isNotNilOrBlank(modelPath) ? model.get(modelPath) : model;
               if (batchModel) batchModel.valid = false;
               return batchModel?.name ? `${batchModel.name} > ${controlName}` : controlName;
             },

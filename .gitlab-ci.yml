@@ -223,12 +223,15 @@ package:android:
   script:
     - echo "--- Building Electron packages ..."
     - npm run electron:build:${BUILD_ENVIRONMENT}
-    - npm run electron:package:${BUILD_ENVIRONMENT}
+    # Fixme : 413 Request Entity Too Large
+    - npm run electron:package:linux
+    # - npm run electron:package:${BUILD_ENVIRONMENT}
   after_script:
     - mkdir -p "${CI_PROJECT_DIR}/release/"
     # Fixme : 413 Request Entity Too Large
     - mv -f ${CI_PROJECT_DIR}/electron/dist/*.{deb} $CI_PROJECT_DIR/release/
     # - mv -f ${CI_PROJECT_DIR}/electron/dist/*.{AppImage,deb,exe} $CI_PROJECT_DIR/release/
+    - ls -l "${CI_PROJECT_DIR}/release/"
   artifacts:
     paths:
       - release
@@ -508,8 +511,10 @@ deploy:android:tags:
     - fileName=${baseName}.deb
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
+    - echo "$(cd ${CI_PROJECT_DIR}/release && sha256sum ${baseName}.*)" > ${CI_PROJECT_DIR}/release/${baseName}.sha256
+    - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${CI_PROJECT_DIR}/release/${baseName}.sha256" "link_release"
     # Deploy Linux AppImage
-    - baseName=${CI_PROJECT_NAME}-${APP_VERSION}-linux-amd64
+    - baseName=${CI_PROJECT_NAME}-${APP_VERSION}-linux-x86_64
     - fileName=${baseName}.AppImage
     - releaseFile=${CI_PROJECT_DIR}/release/${fileName}
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
@@ -522,6 +527,7 @@ deploy:android:tags:
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${releaseFile}" "link_release"
     - echo "$(cd ${CI_PROJECT_DIR}/release && sha256sum ${fileName})" > ${CI_PROJECT_DIR}/release/${baseName}.sha256
     - npm run release:upload_file --token=${CI_JOB_TOKEN} "${CI_PROJECT_NAME}" "${APP_VERSION}" "${CI_PROJECT_DIR}/release/${baseName}.sha256" "link_release"
+  # FIXME : to remove when ready for production
   allow_failure: true
 
 deploy:electron:
