@@ -29,7 +29,7 @@ import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { environment } from '@environments/environment';
-import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
 import { BatchContext, SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
@@ -757,7 +757,20 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     const { data } = await modal.onDidDismiss();
     if (data) {
-      console.log('SubSortingCriteriaModal data:', data);
+      // Create subbatches
+      const subBatchesToAdd = [];
+      let rankOrder = 1;
+
+      for (let size = data.minStep; size <= data.maxStep; size += data.pmfm.precision) {
+        const subBatch = new SubBatch();
+        subBatch.individualCount = 0;
+        subBatch.taxonName = data.taxonName;
+        subBatch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] = size; // TODO: Use data.pmfm
+        subBatch.rankOrder = rankOrder++;
+        subBatchesToAdd.push(subBatch);
+      }
+
+      this.addEntitiesToTable(subBatchesToAdd, { editing: false });
     }
 
     return data;
