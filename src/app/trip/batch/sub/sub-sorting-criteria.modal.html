@@ -13,7 +13,7 @@
   </ion-toolbar>
 </ion-header>
 <ion-content>
-  <form [formGroup]="sortingCriteriaForm" (ngSubmit)="confirm()">
+  <form [formGroup]="sortingCriteriaForm" class="form-container ion-padding" (ngSubmit)="confirm()">
     <mat-autocomplete-field
       [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME' | translate"
       formControlName="taxonName"
@@ -21,7 +21,50 @@
       [clearable]="true"
     ></mat-autocomplete-field>
 
-    <app-form-field floatLabel="never" formControlName="pmfm" [definition]="pmfmDefinition" [compact]="true"></app-form-field>
+    <app-form-field
+      floatLabel="never"
+      formControlName="pmfm"
+      [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA' | translate"
+      [definition]="pmfmDefinition"
+      [compact]="true"
+    ></app-form-field>
+
+    <mat-form-field>
+      <mat-label>{{ 'REFERENTIAL.PMFM.METHOD' | translate }}</mat-label>
+      <input matInput readonly="true" disabled [value]="methode" />
+    </mat-form-field>
+
+    <mat-form-field disabled>
+      <mat-label>{{ 'REFERENTIAL.PMFM.UNIT' | translate }}</mat-label>
+      <input matInput readonly="true" disabled [value]="unit" />
+    </mat-form-field>
+    <ion-row>
+      <ion-col size="6">
+        <ion-item>
+          <ion-label position="stacked" translate>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN' | translate }}</ion-label>
+          <ion-input
+            type="number"
+            formControlName="minStep"
+            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN_DESCRIPTION' | translate"
+          ></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="6">
+        <ion-item>
+          <ion-label position="stacked" translate>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX' | translate }}</ion-label>
+          <ion-input
+            type="number"
+            formControlName="maxStep"
+            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX_DESCRIPTION' | translate"
+          ></ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <br />
+    <mat-form-field>
+      <mat-label>{{ 'REFERENTIAL.PMFM.PRECISION' | translate }}</mat-label>
+      <input matInput readonly="true" disabled [value]="precision" />
+    </mat-form-field>
   </form>
 </ion-content>
 <ion-footer hidden-xs hidden-sm hidden-mobile>
@@ -35,7 +78,7 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button color="tertiary">
+        <ion-button color="tertiary" (click)="confirm()">
           <ion-label translate>COMMON.BTN_APPLY</ion-label>
         </ion-button>
       </ion-col>
