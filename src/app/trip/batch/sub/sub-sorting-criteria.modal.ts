@@ -1,5 +1,5 @@
 import { Component, Inject, Injector, Input, input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { FormFieldDefinition, isNil, isNotNil, LoadResult, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { BatchGroup } from '../group/batch-group.model';
@@ -29,7 +29,7 @@ import { Pmfm } from '@app/referential/services/model/pmfm.model';
       useFactory: (settings: LocalSettingsService) => ({
         prependNewElements: settings.mobile,
         suppressErrors: true,
-        reservedStartColumns: ['taxonName', 'pmfm'],
+        reservedStartColumns: ['taxonName', 'pmfm', 'minStep', 'maxStep'],
       }),
       deps: [LocalSettingsService],
     },
@@ -41,6 +41,9 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
   protected pmfmDefinition: FormFieldDefinition;
   sortingCriteriaForm: FormGroup;
   speciesList: any[] = [];
+  methode: string = '';
+  unit: string = '';
+  precision: string = '';
 
   @Input() parentGroup: BatchGroup;
   @Input() programLabel: string;
@@ -57,14 +60,33 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
     // autres services nécessaires
   ) {
     super(injector, settings.mobile ? null : validatorService /*no validator = not editable*/, options);
-    this.sortingCriteriaForm = this.fb.group({
-      taxonName: ['', Validators.required],
-      pmfm: [''],
-    });
   }
 
   ngOnInit() {
+    this.sortingCriteriaForm = this.fb.group({
+      taxonName: ['', Validators.required],
+      pmfm: ['', Validators.required],
+      minStep: ['', [Validators.required]],
+      maxStep: ['', [Validators.required]],
+    });
+
     console.log('SubSortingCriteriaModal');
+    this.registerSubscription(
+      this.sortingCriteriaForm.get('pmfm').valueChanges.subscribe((value) => {
+        console.log('SubSortingCriteriaModal pmfm', value);
+        this.methode = value.method.name;
+        this.unit = value.unit.label;
+        this.precision = value.precision;
+      })
+    );
+
+    this.registerSubscription(
+      this.sortingCriteriaForm.valueChanges.subscribe(() => {
+        if (this.sortingCriteriaForm.hasError('minMaxError')) {
+          this.sortingCriteriaForm.get('maxStep').setErrors({ minMaxError: true });
+        }
+      })
+    );
 
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value, filter) => this.suggestTaxonNames(value, filter),
@@ -72,13 +94,17 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
       selectInputContentOnFocus: true,
     });
 
-    const basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['label', 'name']);
-    const pmfmAttributes = basePmfmAttributes
-      .map((attr) => (attr === 'label' && true ? 'parameter.label' : attr === 'name' ? 'parameter.name' : attr))
-      .concat(['unit.label', 'matrix.name', 'fraction.name', 'method.name']);
+    const basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['name']);
+    const pmfmAttributes = basePmfmAttributes.concat(['unit.label', 'matrix.name', 'fraction.name', 'method.name', 'precision']);
     const pmfmColumnNames = basePmfmAttributes
       .map((attr) => 'REFERENTIAL.' + attr.toUpperCase())
-      .concat(['REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD']);
+      .concat([
+        'REFERENTIAL.PMFM.UNIT',
+        'REFERENTIAL.PMFM.MATRIX',
+        'REFERENTIAL.PMFM.FRACTION',
+        'REFERENTIAL.PMFM.METHOD',
+        'REFERENTIAL.PMFM.PRECISION',
+      ]);
 
     this.pmfmDefinition = {
       key: 'pmfm',
@@ -88,20 +114,6 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
       autocomplete: this.registerAutocompleteField('pmfm', {
         suggestFn: (value, opts) => this.suggestPmfms(value, opts),
         attributes: pmfmAttributes,
-        columnSizes: pmfmAttributes.map((attr) => {
-          switch (attr) {
-            case 'label':
-              return 2;
-            case 'name':
-              return 3;
-            case 'unit.label':
-              return 1;
-            case 'method.name':
-              return 4;
-            default:
-              return undefined;
-          }
-        }),
         columnNames: pmfmColumnNames,
         displayWith: (pmfm) => this.displayPmfm(pmfm, { withUnit: true, withDetails: true }),
         showAllOnFocus: false,
@@ -118,25 +130,20 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
     await this.dismiss();
   }
 
-  async confirm(data?: any) {
-    await this.dismiss(data);
-  }
-
-  async openSortingCriteriaModal() {
-    const modal = await this.modalCtrl.create({
-      component: SubSortingCriteriaModal,
-    });
-    console.log('SubSortingCriteriaModal openSortingCriteriaModal');
-    // Open the modal
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
-    if (data) {
-      // Traiter les données retournées
-      // this.handleSortingCriteria(data);
+  async confirm() {
+    //TODO: temporaire à supprimer une fois que le poc sera validé
+    const data = this.sortingCriteriaForm.value;
+    const minStep = this.sortingCriteriaForm.get('minStep').value;
+    const maxStep = this.sortingCriteriaForm.get('maxStep').value;
+    if (minStep > maxStep) {
+      this.sortingCriteriaForm.setErrors({ minMaxError: true });
+      return;
     }
-
-    return data;
+    if (this.sortingCriteriaForm.invalid) {
+      this.sortingCriteriaForm.markAllAsTouched();
+      return;
+    }
+    await this.dismiss(data);
   }
 
   protected async suggestTaxonNames(value?: any, options?: any): Promise<LoadResult<TaxonNameRef>> {
@@ -152,6 +159,7 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
   protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<Pmfm>> {
     return this.pmfmService.suggest(value, {
       searchJoin: 'parameter',
+      includedIds: [441, 442, 443, 444, 445],
       //searchAttribute: !this.showPmfmLabel ? 'name' : undefined /*label + name*/,
       // ...this.pmfmFilter,
     });
