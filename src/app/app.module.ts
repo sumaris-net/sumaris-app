@@ -43,7 +43,6 @@ import {
   isCapacitor,
   isIOS,
   isMobile,
-  isTouchUi,
   JobModule,
   LocalSettings,
   LocalSettingsOptions,
@@ -55,8 +54,6 @@ import {
   StorageService,
   TestingPage,
   UserEventModule,
-  testUserAgent,
-  isMac,
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
