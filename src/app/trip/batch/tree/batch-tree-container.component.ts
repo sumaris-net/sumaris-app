@@ -31,6 +31,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  isOnFieldMode,
   LocalSettingsService,
   toBoolean,
   toNumber,
@@ -100,6 +101,7 @@ interface BatchTreeContainerState {
   batchTreeStatus: IBatchTreeStatus;
   currentBadge: BadgeState;
   treePanelFloating: boolean;
+  usageMode: UsageMode;
 }
 
 export const BatchTreeContainerSettingsEnum = {
@@ -159,7 +161,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
   @Input() showAutoFillButton: boolean;
   @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
   @Input() selectedTabIndex: number;
-  @Input() usageMode: UsageMode;
   @Input() i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
   @Input() useSticky = true;
   @Input() mobile: boolean;
@@ -171,6 +172,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
   @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
   @Input() controlButtonText: 'QUALITY.BTN_CONTROL';
 
+  @Input() @RxStateProperty() usageMode: UsageMode;
   @Input() @RxStateProperty() programLabel: string;
   @Input() @RxStateProperty() requiredStrategy: boolean;
   @Input() @RxStateProperty() strategyId: number;
@@ -250,7 +252,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
   }
 
   get isOnFieldMode() {
-    return this.usageMode === 'FIELD';
+    return isOnFieldMode(this.usageMode);
   }
 
   @Output() control = new EventEmitter<Event>();
@@ -335,13 +337,13 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
     this._state.connect(
       'form',
       this._state
-        .select(['model', 'allowSpeciesSampling'], (s) => s)
+        .select(['model', 'allowSpeciesSampling', 'usageMode'], (s) => s)
         .pipe(
-          filter(({ model }) => !!model),
-          map(({ model, allowSpeciesSampling }) => {
+          filter(({ model, usageMode }) => !!model && !!usageMode),
+          map(({ model, allowSpeciesSampling, usageMode }) => {
             const form = this.batchModelValidatorService.createFormGroupByModel(model, {
               allowSpeciesSampling,
-              isOnFieldMode: this.isOnFieldMode,
+              isOnFieldMode: isOnFieldMode(usageMode),
             });
             form.disable();
             return form;

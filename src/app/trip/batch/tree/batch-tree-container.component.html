@@ -375,6 +375,8 @@
           lastEditingBatch.path: {{ _lastEditingBatchPath }}
           <br />
           lastEditingBatch.path: {{ (_lastEditingBatchPath && model.get(_lastEditingBatchPath)?.originalData.label) || '' }}
+          <br />
+          isOnFieldMode: {{ isOnFieldMode }}
         </ion-col>
         <ion-col *ngIf="form">
           form.dirty: {{ form.dirty }}
