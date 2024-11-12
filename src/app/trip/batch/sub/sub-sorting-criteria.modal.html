@@ -40,24 +40,16 @@
     </mat-form-field>
     <ion-row>
       <ion-col size="6">
-        <ion-item>
-          <ion-label position="stacked" translate>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN' | translate }}</ion-label>
-          <ion-input
-            type="number"
-            formControlName="minStep"
-            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN_DESCRIPTION' | translate"
-          ></ion-input>
-        </ion-item>
+        <mat-form-field>
+          <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN' | translate }}</mat-label>
+          <input matInput type="number" formControlName="minStep" [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN_DESCRIPTION' | translate" />
+        </mat-form-field>
       </ion-col>
       <ion-col size="6">
-        <ion-item>
-          <ion-label position="stacked" translate>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX' | translate }}</ion-label>
-          <ion-input
-            type="number"
-            formControlName="maxStep"
-            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX_DESCRIPTION' | translate"
-          ></ion-input>
-        </ion-item>
+        <mat-form-field>
+          <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX' | translate }}</mat-label>
+          <input matInput type="number" formControlName="maxStep" [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX_DESCRIPTION' | translate" />
+        </mat-form-field>
       </ion-col>
     </ion-row>
     <br />
