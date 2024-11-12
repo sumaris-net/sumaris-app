@@ -4,6 +4,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import {
   createPromiseEventEmitter,
+  emitPromiseEvent,
   IEntitiesService,
   isNil,
   isNotNil,
@@ -20,7 +21,7 @@ import { PhysicalGearFilter } from './physical-gear.filter';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { PhysicalGear, PhysicalGearPasteFlags } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
 import { merge, Subscription } from 'rxjs';
 import { OverlayEventDetail } from '@ionic/core';
@@ -437,6 +438,33 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       return this.deleteRow(null, row, { interactive: false /*already confirmed*/ });
     }
     return confirmed;
+  }
+
+  async searchAndAddRow(event?: Event) {
+    if (!this.openSelectPreviousGearModal.observed) {
+      console.warn('Missing openSelectPreviousGearModal observers');
+      return; // skip
+    }
+
+    try {
+      const selectedData = await emitPromiseEvent(this.openSelectPreviousGearModal, this.acquisitionLevel);
+
+      // No result (user cancelled): skip
+      if (!selectedData) return;
+
+      // Create a copy
+      let data = new PhysicalGear();
+      data.paste(selectedData, PhysicalGearPasteFlags.GEAR & PhysicalGearPasteFlags.RANK_ORDER & PhysicalGearPasteFlags.MEASUREMENT);
+
+      const dataToSave = (await this.openDetailModal(data))?.data;
+      if (!dataToSave) return; // Skip if not added
+
+      await this.addOrUpdateEntityToTable(dataToSave);
+    } catch (err) {
+      if (err !== 'CANCELLED') {
+        this.setError(err);
+      }
+    }
   }
 
   markAsReady(opts?: { emitEvent?: boolean }) {

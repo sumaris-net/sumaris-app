@@ -350,7 +350,7 @@
           <ion-fab-button [title]="'TRIP.PHYSICAL_GEAR.TABLE.BTN_ADD_NEW' | translate" (click)="physicalGearsTable.addRow($event)">
             <ion-icon color="primary" name="add"></ion-icon>
           </ion-fab-button>
-          <ion-fab-button [title]="'TRIP.PHYSICAL_GEAR.TABLE.BTN_SEARCH_ADD' | translate" (click)="searchAndAddPhysicalGear($event)">
+          <ion-fab-button [title]="'TRIP.PHYSICAL_GEAR.TABLE.BTN_SEARCH_ADD' | translate" (click)="physicalGearsTable.searchAndAddRow($event)">
             <ion-icon color="primary" name="search"></ion-icon>
             <ion-icon class="icon-secondary" name="add"></ion-icon>
           </ion-fab-button>
@@ -387,67 +387,68 @@
     }
   }
 }
-<ng-container *ngIf="mobile" [ngSwitch]="selectedTabIndex">
-  <!-- FAB button: add operation -->
-  <ng-container *ngSwitchCase="2"></ng-container>
 
-  <ng-template #debugPanel>
-    <app-debug title="Editor and Form">
-      <ion-grid class="ion-no-padding">
-        <ion-row>
-          <ion-col>
-            editor.ready: {{ readySubject | async }}
-            <br />
-            editor.loading: {{ loading }}
-            <br />
-            editor.enabled: {{ enabled }}
-            <br />
-            editor.dirty: {{ dirty }}
-            <br />
-            editor.valid: {{ valid }}
-            <br />
-            editor.program: {{ (program$ | async)?.label }}
-            <br />
-            editor.strategy ({{ strategyResolution$ | async }}){{ requiredStrategy ? ' (required)' : '' }}: {{ (strategy$ | async)?.id }}
-            <br />
-            <br />
-            editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
-            <br />
-          </ion-col>
-          <ion-col>
-            form.ready: {{ tripForm.readySubject | async }}
-            <br />
-            form.loading: {{ tripForm.loading }}
-            <br />
-            form.enabled: {{ tripForm.enabled }}
-            <br />
-            form.dirty: {{ tripForm.dirty }}
-            <br />
-            form.valid: {{ tripForm.valid }}
-            <br />
-          </ion-col>
-          <ion-col>
-            measurementsForm.ready: {{ measurementsForm.readySubject | async }}
-            <br />
-            measurementsForm.loading: {{ measurementsForm.loading }}
-            <br />
-            measurementsForm.enabled: {{ measurementsForm.enabled }}
-            <br />
-            measurementsForm.dirty: {{ measurementsForm.dirty }}
-            <br />
-            measurementsForm.valid: {{ measurementsForm.valid }}
-            <br />
-            measurementsForm.program: {{ measurementsForm.programLabel }}
-            <br />
-            measurementsForm.strategy{{ measurementsForm.requiredStrategy ? ' (required)' : '' }}:
-            {{ measurementsForm.strategyId || measurementsForm.strategyLabel }}
-            <br />
-            <br />
-            measurementsForm.acquisitionLevel: {{ measurementsForm.acquisitionLevel }}
-            <br />
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </app-debug>
-  </ng-template>
-</ng-container>
+<ng-template #debugPanel>
+  <app-debug title="Editor and Form">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          editor.ready: {{ readySubject | async }}
+          <br />
+          editor.loading: {{ loading }}
+          <br />
+          editor.enabled: {{ enabled }}
+          <br />
+          editor.dirty: {{ dirty }}
+          <br />
+          editor.valid: {{ valid }}
+          <br />
+          editor.program: {{ (program$ | async)?.label }}
+          <br />
+          editor.strategy ({{ strategyResolution$ | async }}){{ requiredStrategy ? ' (required)' : '' }}: {{ (strategy$ | async)?.id }}
+          <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
+          <br />
+          editor.tabCount: {{ tabCount }}
+          <br />
+          editor.isOnFieldMode: {{ isOnFieldMode }}
+          <br />
+          editor.forceMeasurementAsOptional: {{ forceMeasurementAsOptional }}
+        </ion-col>
+        <ion-col>
+          form.ready: {{ tripForm.readySubject | async }}
+          <br />
+          form.loading: {{ tripForm.loading }}
+          <br />
+          form.enabled: {{ tripForm.enabled }}
+          <br />
+          form.dirty: {{ tripForm.dirty }}
+          <br />
+          form.valid: {{ tripForm.valid }}
+          <br />
+        </ion-col>
+        <ion-col>
+          measurementsForm.ready: {{ measurementsForm.readySubject | async }}
+          <br />
+          measurementsForm.loading: {{ measurementsForm.loading }}
+          <br />
+          measurementsForm.enabled: {{ measurementsForm.enabled }}
+          <br />
+          measurementsForm.dirty: {{ measurementsForm.dirty }}
+          <br />
+          measurementsForm.valid: {{ measurementsForm.valid }}
+          <br />
+          measurementsForm.program: {{ measurementsForm.programLabel }}
+          <br />
+          measurementsForm.strategy{{ measurementsForm.requiredStrategy ? ' (required)' : '' }}:
+          {{ measurementsForm.strategyId || measurementsForm.strategyLabel }}
+          <br />
+          <br />
+          measurementsForm.acquisitionLevel: {{ measurementsForm.acquisitionLevel }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

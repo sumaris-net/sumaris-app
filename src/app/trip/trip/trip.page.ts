@@ -79,7 +79,6 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -198,6 +197,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
         })
       )
     );
+
+    // Connect pmfms (used by translateFormPath)
+    this._state.connect('pmfms', this.measurementsForm.pmfms$);
 
     // Update the data context
     this.registerSubscription(
@@ -746,30 +748,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       // User cancelled
       if (typeof event?.detail?.error === 'function') event.detail.error('CANCELLED');
       else return;
-    }
-  }
-
-  async searchAndAddPhysicalGear(event?: Event) {
-    try {
-      const selectedData = await this.openSearchPhysicalGearModal();
-
-      if (!selectedData) return; // User cancelled: skip
-
-      // Create a copy
-      const data = PhysicalGear.fromObject({
-        gear: selectedData.gear,
-        rankOrder: selectedData.rankOrder,
-        // Convert measurementValues as JSON, in order to force values of not required PMFM to be converted, in the form
-        measurementValues: MeasurementValuesUtils.asObject(selectedData.measurementValues, { minify: true }),
-        measurements: selectedData.measurements,
-      });
-
-      const { data: dataToSave, role } = await this.physicalGearsTable.openDetailModal(data);
-      if (!dataToSave) return; // Skip if not added
-
-      await this.physicalGearsTable.addOrUpdateEntityToTable(dataToSave);
-    } catch (err) {
-      this.physicalGearsTable.setError(err);
     }
   }
 
