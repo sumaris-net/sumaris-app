@@ -10,6 +10,7 @@ import {
   CORE_CONFIG_OPTIONS,
   DateUtils,
   FilesUtils,
+  firstNotNilPromise,
   HammerSwipeEvent,
   isEmptyArray,
   isNil,
@@ -94,6 +95,7 @@ export class ActivityCalendarsTable
 
   protected readonly directSurveyInvestigationList = DirectSurveyInvestigationList;
   protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
+  protected readonly defaultProgramLabel = 'SIH-ACTIFLOT';
 
   @Input() showFilterProgram = true;
   @Input() showRecorder = true;
@@ -409,6 +411,12 @@ export class ActivityCalendarsTable
     if (this.loaded) this.updateColumns();
   }
 
+  protected async setDefaultProgram() {
+    console.warn(`${this.logPrefix} Use default program "${this.defaultProgramLabel}"`);
+    this.programLabel = this.defaultProgramLabel;
+    await firstNotNilPromise(this.program$);
+  }
+
   protected async resetProgram() {
     await super.resetProgram();
 
@@ -584,6 +592,10 @@ export class ActivityCalendarsTable
   }
 
   async openReport(reportPath: string) {
+    if (isNil(this.program)) {
+      await this.setDefaultProgram();
+    }
+
     const urlParams = new URLSearchParams();
     const selectedIds = this.selection.selected.map((s) => s.currentData.id).toString();
     switch (reportPath) {
