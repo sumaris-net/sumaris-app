@@ -1,6 +1,5 @@
-import { Component, Inject, Injector, Input, input, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { ModalController } from '@ionic/angular';
+import { Component, Inject, Injector, Input, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormFieldDefinition, isNil, isNotNil, LoadResult, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { BatchGroup } from '../group/batch-group.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
@@ -52,7 +51,6 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
     injector: Injector,
     settings: LocalSettingsService,
     protected pmfmService: PmfmService,
-    modalCtrl: ModalController,
     protected programRefService: ProgramRefService,
     validatorService: SubBatchValidatorService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>,
@@ -95,16 +93,10 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
     });
 
     const basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['name']);
-    const pmfmAttributes = basePmfmAttributes.concat(['unit.label', 'matrix.name', 'fraction.name', 'method.name', 'precision']);
+    const pmfmAttributes = basePmfmAttributes.concat(['matrix.name', 'fraction.name', 'method.name']);
     const pmfmColumnNames = basePmfmAttributes
       .map((attr) => 'REFERENTIAL.' + attr.toUpperCase())
-      .concat([
-        'REFERENTIAL.PMFM.UNIT',
-        'REFERENTIAL.PMFM.MATRIX',
-        'REFERENTIAL.PMFM.FRACTION',
-        'REFERENTIAL.PMFM.METHOD',
-        'REFERENTIAL.PMFM.PRECISION',
-      ]);
+      .concat(['REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD']);
 
     this.pmfmDefinition = {
       key: 'pmfm',
