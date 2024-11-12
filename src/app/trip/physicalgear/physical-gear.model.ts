@@ -21,6 +21,7 @@ import { SortDirection } from '@angular/material/sort';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { TripRef } from '@app/trip/trip/trip-ref.model';
+import { hasFlag } from '@app/shared/flags.utils';
 
 export interface PhysicalGearAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -28,6 +29,17 @@ export interface PhysicalGearAsObjectOptions extends DataEntityAsObjectOptions {
 export interface PhysicalGearFromObjectOptions {
   withChildren?: boolean;
 }
+
+export const PhysicalGearPasteFlags = Object.freeze({
+  NONE: 0,
+
+  GEAR: 1,
+  RANK_ORDER: 2,
+  MEASUREMENT: 4,
+
+  // ALL FLAGS
+  ALL: 1 + 2 + 4,
+});
 
 @EntityClass({ typename: 'PhysicalGearVO' })
 export class PhysicalGear
@@ -224,6 +236,28 @@ export class PhysicalGear
     if (opts && opts.keepLocalId === false && target.tripId < 0) delete target.tripId;
 
     return target;
+  }
+
+  /**
+   * Copies specified attributes from a source PhysicalGear object to the current instance based on the provided flags.
+   *
+   * @param {PhysicalGear} source - The source object from which to copy attributes.
+   * @param {PhysicalGearPasteFlags} [flags=PhysicalGearPasteFlags.ALL] - Flags determining which attributes to copy.
+   * @return {PhysicalGear}
+   */
+  paste(source: PhysicalGear, flags: number = PhysicalGearPasteFlags.ALL): PhysicalGear {
+    if (hasFlag(flags, PhysicalGearPasteFlags.GEAR)) {
+      this.gear = source.gear;
+    }
+    if (hasFlag(flags, PhysicalGearPasteFlags.RANK_ORDER)) {
+      this.rankOrder = source.rankOrder;
+    }
+    if (hasFlag(flags, PhysicalGearPasteFlags.MEASUREMENT)) {
+      // Convert measurementValues as JSON, in order to force values of not required PMFM to be converted, in the form
+      this.measurementValues = MeasurementValuesUtils.asObject(source.measurementValues, { minify: true });
+      this.measurements = source.measurements;
+    }
+    return this;
   }
 
   equals(other: PhysicalGear, opts = { withMeasurementValues: false }): boolean {
