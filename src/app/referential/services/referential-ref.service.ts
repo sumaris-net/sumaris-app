@@ -879,7 +879,8 @@ export class ReferentialRefService
           break;
 
         case 'ExpertiseArea':
-          loadPageFn = (offset, size) => this.loadAll(offset, size, 'id', 'asc', { statusIds }, { ...getLoadOptions(offset), withProperties: true });
+          loadPageFn = (offset, size) =>
+            this.loadAll(offset, size, 'id', 'asc', { ...filter, statusIds }, { ...getLoadOptions(offset), withProperties: true });
           break;
 
         // Other entities

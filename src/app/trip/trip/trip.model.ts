@@ -388,7 +388,7 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
         : undefined;
   }
 
-  paste(source: Operation, flags = OperationPasteFlags.ALL) {
+  paste(source: Operation, flags = OperationPasteFlags.ALL): Operation {
     if (hasFlag(flags, OperationPasteFlags.DATE)) {
       if (hasFlag(flags, OperationPasteFlags.TIME)) {
         this.startDateTime = source.startDateTime;
@@ -423,6 +423,7 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
       //TODO : measurements are empty when duplicate from table
       this.measurements = source.measurements;
     }
+    return this;
   }
 
   equals(other: Operation): boolean {
