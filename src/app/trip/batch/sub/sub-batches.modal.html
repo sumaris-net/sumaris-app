@@ -69,14 +69,14 @@
         @if (allowIndividualCountOnly && (modalForm | formGetControl: 'showSubBatchForm'); as showSubBatchFormControl) {
           <form class="form-container" [formGroup]="modalForm">
             <!-- measure/count toggle -->
-            <mat-boolean-field
+            <!-- <mat-boolean-field
               [formControl]="showSubBatchFormControl"
               [style]="mobile ? 'button' : 'radio'"
               [yesLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_MEASURE' | translate"
               [noLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_COUNT' | translate"
               [floatLabel]="'always'"
               [showButtonIcons]="false"
-            ></mat-boolean-field>
+            ></mat-boolean-field> -->
 
             <!-- Individual count -->
             @if ((showSubBatchFormControl | formGetValue) === false) {
@@ -154,6 +154,15 @@
             <!-- Add -->
             <button mat-icon-button *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
               <mat-icon>add</mat-icon>
+            </button>
+            <!-- Individual count-->
+            <button
+              mat-icon-button
+              *ngIf="!mobile && enabled"
+              [title]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_COUNT' | translate"
+              (click)="openSortingCriteriaModal()"
+            >
+              <mat-icon>control_point_duplicate</mat-icon>
             </button>
             <!-- Refresh -->
             <button mat-icon-button *ngIf="debug && !mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">

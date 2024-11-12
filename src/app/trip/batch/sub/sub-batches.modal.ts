@@ -37,7 +37,18 @@ import { RxState } from '@rx-angular/state';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ModalUtils } from '@app/shared/modal/modal.utils';
 import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { SubSortingCriteriaModal } from './sub-sorting-criteria.modal';
 
+export interface SubBatchSortingCriteria {
+  scientificSpecies: TaxonNameRef;
+  sortingCriteria: string; // dan sle noveau d'acquisition
+  method: string;
+  unit: string;
+  min: number;
+  max: number;
+  measurementPrecision: number;
+  analysisInstrument: string;
+}
 export interface ISubBatchesModalOptions {
   disabled: boolean;
   showParentGroup: boolean;
@@ -727,6 +738,29 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       this.setError((err && err.message) || err);
       this.markAsLoaded();
     }
+  }
+
+  async openSortingCriteriaModal() {
+    const modal = await this.modalCtrl.create({
+      component: SubSortingCriteriaModal,
+      backdropDismiss: false,
+      cssClass: 'modal-small',
+      componentProps: {
+        parentGroup: this.parentGroup,
+        programLabel: this.programLabel,
+      },
+    });
+    // add backdrop opacity to modal
+    modal.style.setProperty('--backdrop-opacity', '0.4');
+    // Open the modal
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+    if (data) {
+      console.log('SubSortingCriteriaModal data:', data);
+    }
+
+    return data;
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
