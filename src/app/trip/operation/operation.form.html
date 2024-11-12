@@ -269,7 +269,7 @@
               context: {
                 fishingAreasForm: fishingAreasForm,
                 index: _dateIndexMap.start.valueOf(),
-                required: true
+                required: true,
               }
             "
           />
@@ -300,7 +300,7 @@
                   &nbsp;{{
                     {
                       startValue: form.controls.startDateTime.value,
-                      endValue: control.value
+                      endValue: control.value,
                     } | dateDiffDuration
                   }}
                 </mat-hint>
@@ -364,7 +364,7 @@
               context: {
                 fishingAreasForm: fishingAreasForm,
                 index: _dateIndexMap.startFishing.valueOf(),
-                required: _usageMode | isOnDesk
+                required: _usageMode | isOnDesk,
               }
             "
           />
@@ -448,7 +448,7 @@
               context: {
                 fishingAreasForm: fishingAreasForm,
                 index: _dateIndexMap.endFishing.valueOf(),
-                required: isChildOperation
+                required: isChildOperation,
               }
             "
           />
@@ -481,7 +481,7 @@
                   &nbsp;{{
                     {
                       startValue: previousEndDateTimeControl.value,
-                      endValue: value
+                      endValue: value,
                     } | dateDiffDuration
                   }}
                 </mat-hint>
@@ -543,7 +543,7 @@
               context: {
                 fishingAreasForm: fishingAreasForm,
                 index: _dateIndexMap.end.valueOf(),
-                required: _usageMode | isOnDesk
+                required: _usageMode | isOnDesk,
               }
             "
           />
