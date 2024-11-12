@@ -40,6 +40,8 @@
     "electron:i18n:build": "npm run i18n:build electron/app/assets/i18n",
     "electron:install": "npm install --force @capacitor-community/electron && cd electron && npm install",
     "electron:package": "cd electron && npm run package:linux",
+    "electron:package:linux": "cd electron && npm run package:linux",
+    "electron:package:windows": "cd electron && npm run package:windows",
     "electron:package:prod": "cd electron && npm run package:linux && npm run package:windows",
     "release:create": "node scripts/node/release.js --token=${npm_config_token} --release",
     "release:upload_file": "node scripts/node/release.js --token=${npm_config_token} --upload",
