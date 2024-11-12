@@ -1172,7 +1172,12 @@
           "BTN_MANUAL_ENTRY": "Saisie manuelle"
         },
         "INDIVIDUAL_COUNT": {
-          "TITLE": "Dénombrement"
+          "TITLE": "Dénombrement",
+          "SORT_CRITERIA": "Critère de classement",
+          "MIN_DESCRIPTION": "Valeur minimum",
+          "MAX_DESCRIPTION": "Valeur maximum",
+          "MIN": "Minimum",
+          "MAX": "Maximum"
         }
       },
       "TABLE": {
