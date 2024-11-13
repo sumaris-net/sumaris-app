@@ -484,9 +484,10 @@ export class ActivityMonthValidators {
         else {
           (fishingAreas.value || []).forEach((fa) => {
             const location = fa.location;
-            const distanceToCoast = fa.distanceToCoastGradient;
+            const gradients = [fa.distanceToCoastGradient, fa.depthGradient, fa.nearbySpecificArea];
 
-            if (isNotNil(distanceToCoast) && isNil(location?.id)) {
+            // Required a location, if at least one gradient filled
+            if (ReferentialUtils.isEmpty(location) && gradients.some(ReferentialUtils.isNotEmpty)) {
               errorMetierLabels.push(metier.label);
             }
           });
@@ -520,7 +521,7 @@ export class ActivityMonthValidators {
           const location = fa.location;
           const distanceToCoast = fa.distanceToCoastGradient;
 
-          if (isNotNil(location?.id) && isNil(distanceToCoast)) {
+          if (ReferentialUtils.isEmpty(location) && ReferentialUtils.isNotEmpty(distanceToCoast)) {
             errorFishingAreas.push({ fishingArea: location.label, metier: metier.label });
           }
         });
@@ -547,10 +548,12 @@ export class ActivityMonthValidators {
       const fishingAreas = control.get('fishingAreas').value;
       (fishingAreas || []).forEach((fa) => {
         const location = fa.location;
-        const distanceToCoast = fa.distanceToCoastGradient;
+        const gradients = [fa.distanceToCoastGradient, fa.depthGradient, fa.nearbySpecificArea];
+
         if (
+          !inconsistentData &&
           ReferentialUtils.isEmpty(metier) &&
-          (ReferentialUtils.isNotEmpty(fishingAreas) || ReferentialUtils.isNotEmpty(location) || ReferentialUtils.isNotEmpty(distanceToCoast))
+          (ReferentialUtils.isNotEmpty(location) || gradients.some(ReferentialUtils.isNotEmpty))
         ) {
           //console.debug('[activity-month-validator] inconsistentData', metier, location, distanceToCoast, fishingAreas);
           inconsistentData = true;
