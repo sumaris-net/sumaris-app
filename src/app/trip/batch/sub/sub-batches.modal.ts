@@ -39,6 +39,7 @@ import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 import { MenuCloseReason } from '@angular/material/menu';
 import { SubSortingCriteriaModal } from './sub-sorting-criteria.modal';
+import { PmfmService } from '@app/referential/services/pmfm.service';
 
 export interface SubBatchSortingCriteria {
   scientificSpecies: TaxonNameRef;
@@ -199,6 +200,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     settings: LocalSettingsService,
     validatorService: SubBatchValidatorService,
     protected viewCtrl: ModalController,
+    protected pmfmService: PmfmService,
     protected audio: AudioProvider,
     protected platform: PlatformService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>
@@ -754,6 +756,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async openSortingCriteriaModal() {
+    const goodPmfm = (
+      await this.pmfmService.loadAll(0, 100, null, null, { includedIds: this.pmfms.map((pmfm) => pmfm.id) }, { withDetails: true })
+    ).data.filter((pmfm) => PmfmUtils.isNumeric(pmfm) && pmfm.unitLabel === 'cm');
+
     const modal = await this.modalCtrl.create({
       component: SubSortingCriteriaModal,
       backdropDismiss: false,
@@ -761,6 +767,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       componentProps: {
         parentGroup: this.parentGroup,
         programLabel: this.programLabel,
+        sortcriteriaPmfms: goodPmfm,
       },
     });
     // add backdrop opacity to modal
@@ -774,7 +781,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       const subBatchesToAdd = [];
       let rankOrder = await this.getMaxRankOrder();
 
-      for (let size = data.minStep; size <= data.maxStep; size += data.pmfm.precision) {
+      const precision = data.pmfm.precision || 1;
+      for (let size = data.minStep; size <= data.maxStep; size += precision) {
         const subBatch = new SubBatch();
         subBatch.individualCount = 0;
         subBatch.taxonName = data.taxonName;
