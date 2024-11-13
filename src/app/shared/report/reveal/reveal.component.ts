@@ -30,7 +30,7 @@ import { DOCUMENT } from '@angular/common';
 import { ToastController } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
-import { isNotNil, ShowToastOptions, sleep, StorageService, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
+import { isNotNil, isSafari, ShowToastOptions, sleep, StorageService, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
 import { MarkdownComponent } from 'ngx-markdown';
 import { BehaviorSubject, lastValueFrom, Subscription } from 'rxjs';
 import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
@@ -73,6 +73,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   private _printing = false;
   private _printIframe: HTMLIFrameElement;
   private _registeredSections: RevealSectionDefDirective[] = [];
+  private _window = window;
 
   get loading(): boolean {
     return this.loadingSubject.value;
@@ -118,6 +119,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   ) {
     this._parent = parent !== this ? parent : undefined;
     this._embedded = !!this._parent;
+    this._window = _document.defaultView;
 
     if (this.isPrintingPDF()) {
       this.configurePrintPdfCss();
@@ -276,6 +278,10 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     if (this.loading) return; // skip
 
     console.debug('[reveal] Print...');
+
+    if (isSafari(this._window)) {
+      this.showToast({ type: 'warning', message: 'WARNING.REPORT_PRINT_SAFARI_INCOMPATIBLE', duration: 5000 });
+    }
 
     if (!this.isPrintingPDF()) {
       // Create a iframe with '?print-pdf'
