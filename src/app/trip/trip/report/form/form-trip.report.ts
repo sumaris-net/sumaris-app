@@ -39,6 +39,8 @@ export class FormTripReportStats extends BaseReportStats {
   footerText?: string;
   logoHeadLeftUrl?: string;
   logoHeadRightUrl?: string;
+  colorPrimary: string;
+  colorSecondary: string;
   strataEnabled?: boolean;
   saleTypes?: string[];
   strategy: Strategy;
@@ -85,6 +87,8 @@ export class FormTripReportStats extends BaseReportStats {
     this.footerText = source.footerText;
     this.logoHeadLeftUrl = source.logoHeadLeftUrl;
     this.logoHeadRightUrl = source.logoHeadRightUrl;
+    this.colorPrimary = source.colorPrimary;
+    this.colorSecondary = source.colorSecondary;
     this.strataEnabled = source.strataEnabled;
     this.saleTypes = source.saleTypes;
     this.strategy = Strategy.fromObject(source.strategy);
@@ -149,6 +153,8 @@ export class FormTripReportStats extends BaseReportStats {
       footerText: this.footerText,
       logoHeadLeftUrl: this.logoHeadLeftUrl,
       logoHeadRightUrl: this.logoHeadRightUrl,
+      colorPrimary: this.colorPrimary,
+      colorSecondary: this.colorSecondary,
       strataEnabled: this.strataEnabled,
       saleType: this.saleTypes,
       strategy: this.strategy.asObject(opts),
@@ -283,6 +289,8 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     stats.footerText = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_FOOTER);
     stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL);
     stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
+    stats.colorPrimary = stats.program.getProperty(ProgramProperties.DATA_REPORT_COLOR_PRIMARY);
+    stats.colorSecondary = stats.program.getProperty(ProgramProperties.DATA_REPORT_COLOR_SECONDARY);
     stats.strataEnabled = stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
 
     // Get strategy
