@@ -71,7 +71,6 @@ export interface AppDataEditorState {
 
   pmfms: IPmfm[];
 
-  enableExpertiseArea: boolean;
   availableExpertiseAreas: ExpertiseArea[];
   selectedExpertiseArea: ExpertiseArea;
   expertiseLocationIds: number[];
@@ -134,7 +133,6 @@ export abstract class AppDataEntityEditor<
   @RxStateProperty() strategyFilter: Partial<StrategyFilter>;
   @RxStateProperty() strategy: Strategy;
   @RxStateProperty() pmfms: Partial<IPmfm[]>;
-  @RxStateProperty() enableExpertiseArea: boolean;
   @RxStateProperty() availableExpertiseAreas: ExpertiseArea[];
   @RxStateProperty() selectedExpertiseArea: ExpertiseArea;
   @RxStateProperty() expertiseLocationIds: number[];
@@ -151,7 +149,6 @@ export abstract class AppDataEntityEditor<
     this.settingsId = options?.settingsId ?? this.acquisitionLevel ?? `${this.constructor.name}`;
     this.canCopyLocally = options?.canCopyLocally ?? false;
     this.canUseExpertiseArea = options?.canUseExpertiseArea ?? false;
-    this.enableExpertiseArea = false;
     this.requiredStrategy = true;
 
     // FOR DEV ONLY ----
@@ -262,13 +259,16 @@ export abstract class AppDataEntityEditor<
         this._state.select('selectedExpertiseArea').pipe(
           debounceTime(1000),
           map((expertiseArea) => expertiseArea?.id?.toString()),
-          filter(isNotNil),
           distinctUntilChanged()
         ),
         (expertiseAreaId) => {
           const properties = { ...this.settings.settings.properties };
           if (properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] !== expertiseAreaId) {
-            properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] = expertiseAreaId;
+            if (expertiseAreaId) {
+              properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] = expertiseAreaId;
+            } else {
+              delete properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key];
+            }
             // Save remotely
             this.settings.applyProperty('properties', properties);
           }
@@ -278,20 +278,18 @@ export abstract class AppDataEntityEditor<
       // Listen settings on expertise activation and populate expertiseLocationIds
       this._state.connect(
         'expertiseLocationIds',
-        this._state
-          .select(['enableExpertiseArea', 'selectedExpertiseArea'], (res) => res)
-          .pipe(
-            map(({ enableExpertiseArea, selectedExpertiseArea }) => ({
-              selectedExpertiseArea,
-              locationIds: enableExpertiseArea ? EntityUtils.collectById(selectedExpertiseArea?.locations) || [] : [],
-            })),
-            tap(({ selectedExpertiseArea, locationIds }) => {
-              if (this.debug) {
-                console.debug(`${this.logPrefix}expertiseLocationIds:`, selectedExpertiseArea?.name, locationIds);
-              }
-            }),
-            map(({ locationIds }) => locationIds)
-          )
+        this._state.select('selectedExpertiseArea').pipe(
+          map((selectedExpertiseArea) => ({
+            selectedExpertiseArea,
+            locationIds: EntityUtils.collectIds(selectedExpertiseArea?.locations) || [],
+          })),
+          tap(({ selectedExpertiseArea, locationIds }) => {
+            if (this.debug) {
+              console.debug(`${this.logPrefix}expertiseLocationIds:`, selectedExpertiseArea?.name, locationIds);
+            }
+          }),
+          map(({ locationIds }) => locationIds)
+        )
       );
     }
   }
@@ -601,16 +599,5 @@ export abstract class AppDataEntityEditor<
 
   async devFillTestValue(program: Program) {
     // Can be overridden by subclasses
-  }
-
-  protected toggleEnableExpertiseArea(event?: Event) {
-    const enable = !this.enableExpertiseArea;
-    this.enableExpertiseArea = enable;
-
-    // If enable without selected expertise area: keep open
-    if (event && enable && !this.selectedExpertiseArea) {
-      event?.preventDefault(); // Avoid to close the menu
-      event?.stopPropagation();
-    }
   }
 }

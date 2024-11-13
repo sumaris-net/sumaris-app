@@ -1819,7 +1819,7 @@ export class CalendarComponent
     months = months ?? (this.dirty ? this.dataSource.getData() : this.memoryDataService.value);
     if (isEmptyArray(months)) return; // Skip if nothing to check
 
-    console.debug(`${this.logPrefix}Check data inside expertise areas... (locationIds: ${this.expertiseLocationIds?.join(',')}`);
+    console.debug(`${this.logPrefix}Check data inside expertise areas... (locationIds: ${this.expertiseLocationIds?.join(',')})`);
     const now = Date.now();
 
     try {

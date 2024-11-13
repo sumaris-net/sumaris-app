@@ -3517,7 +3517,7 @@
       "BTN_ADD_METIER_BLOCK": "Ajouter un bloc métier",
       "BTN_REPORT": "Éditer le rapport...",
       "BTN_EXPERTISE_AREA": "Zone de compétence...",
-      "BTN_ENABLE_EXPERTISE_AREA": "Activer la zone de compétence ?",
+      "BTN_REMOVE_EXPERTISE_AREA": "Aucune zone d'expertise",
       "BTN_EXPAND_ALL": "Déplier tout",
       "BTN_COLLAPSE_ALL": "Replier tout",
       "BTN_CLEAR_MONTH": "Vider le mois",
