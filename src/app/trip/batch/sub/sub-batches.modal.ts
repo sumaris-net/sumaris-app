@@ -26,7 +26,7 @@ import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { environment } from '@environments/environment';
 import { PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
@@ -38,6 +38,7 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ModalUtils } from '@app/shared/modal/modal.utils';
 import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { SubSortingCriteriaModal } from './sub-sorting-criteria.modal';
+import { PmfmService } from '@app/referential/services/pmfm.service';
 
 export interface SubBatchSortingCriteria {
   scientificSpecies: TaxonNameRef;
@@ -198,6 +199,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     settings: LocalSettingsService,
     validatorService: SubBatchValidatorService,
     protected viewCtrl: ModalController,
+    protected pmfmService: PmfmService,
     protected audio: AudioProvider,
     protected platform: PlatformService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>
@@ -745,6 +747,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async openSortingCriteriaModal() {
+    const goodPmfm = (
+      await this.pmfmService.loadAll(0, 100, null, null, { includedIds: this.pmfms.map((pmfm) => pmfm.id) }, { withDetails: true })
+    ).data.filter((pmfm) => PmfmUtils.isNumeric(pmfm) && pmfm.unitLabel === 'cm');
+
     const modal = await this.modalCtrl.create({
       component: SubSortingCriteriaModal,
       backdropDismiss: false,
@@ -752,6 +758,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       componentProps: {
         parentGroup: this.parentGroup,
         programLabel: this.programLabel,
+        sortcriteriaPmfms: goodPmfm,
       },
     });
     // add backdrop opacity to modal
@@ -765,7 +772,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       const subBatchesToAdd = [];
       let rankOrder = await this.getMaxRankOrder();
 
-      for (let size = data.minStep; size <= data.maxStep; size += data.pmfm.precision) {
+      const precision = data.pmfm.precision || 1;
+      for (let size = data.minStep; size <= data.maxStep; size += precision) {
         const subBatch = new SubBatch();
         subBatch.individualCount = 0;
         subBatch.taxonName = data.taxonName;
