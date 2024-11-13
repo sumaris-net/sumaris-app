@@ -4,7 +4,7 @@
 
   .mat-column-id {
     min-width: 50px;
-    max-width: 120px;
+    max-width: 130px;
     padding-right: var(--mat-cell-horizontal-padding, 4px);
   }
 
@@ -22,21 +22,34 @@
   }
 
   .mat-column-program {
-    min-width: 90px;
+    min-width: 100px;
   }
 
   .mat-column-vessel {
     min-width: 200px;
   }
 
-  .mat-column-departureLocation,
-  .mat-column-returnLocation {
-    min-width: 150px;
+  .mat-column-registrationLocation {
+    min-width: 160px;
+  }
+
+  .mat-column-year {
+    min-width: 60px;
   }
 
   .mat-column-observers,
   .mat-column-recorderPerson {
     min-width: 180px;
+  }
+
+  .mat-column-directSurveyInvestigation,
+  .mat-column-economicSurvey {
+    min-width: 90px;
+  }
+
+  .mat-column-updateDate {
+    min-width: 120px;
+    max-width: 120px;
   }
 
   .mat-column-actions {
