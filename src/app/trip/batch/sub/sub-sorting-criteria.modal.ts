@@ -11,7 +11,7 @@ import { SubBatch } from './sub-batch.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { RxState } from '@rx-angular/state';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import { Pmfm } from '@app/referential/services/model/pmfm.model';
+import { Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-sub-sorting-criteria.modal',
@@ -43,9 +43,9 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
   methode: string = '';
   unit: string = '';
   precision: string = '';
-
   @Input() parentGroup: BatchGroup;
   @Input() programLabel: string;
+  @Input() sortcriteriaPmfms: Pmfm[];
 
   constructor(
     injector: Injector,
@@ -68,7 +68,6 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
       maxStep: ['', [Validators.required]],
     });
 
-    console.log('SubSortingCriteriaModal');
     this.registerSubscription(
       this.sortingCriteriaForm.get('pmfm').valueChanges.subscribe((value) => {
         console.log('SubSortingCriteriaModal pmfm', value);
@@ -112,6 +111,9 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
         panelClass: 'full-width',
       }),
     };
+    if (this.sortcriteriaPmfms.length === 1) {
+      this.sortingCriteriaForm.get('pmfm').setValue(this.sortcriteriaPmfms[0]);
+    }
   }
 
   async dismiss(data?: any) {
@@ -151,9 +153,7 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
   protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<Pmfm>> {
     return this.pmfmService.suggest(value, {
       searchJoin: 'parameter',
-      includedIds: [441, 442, 443, 444, 445],
-      //searchAttribute: !this.showPmfmLabel ? 'name' : undefined /*label + name*/,
-      // ...this.pmfmFilter,
+      includedIds: this.sortcriteriaPmfms.map((pmfm) => pmfm.id),
     });
   }
 
