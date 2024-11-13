@@ -708,6 +708,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '2400', // 100 days
     type: 'integer',
   },
+  TRIP_OPERATION_UPDATE_CHILD_DATE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.updateChildDate',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_UPDATE_CHILD_DATE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
   TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.fishingArea.locationLevel.ids',
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS',

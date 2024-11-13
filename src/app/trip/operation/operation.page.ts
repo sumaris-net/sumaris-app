@@ -127,6 +127,7 @@ export class OperationPage<S extends OperationState = OperationState>
   @RxStateSelect() protected readonly gearId$: Observable<number>;
   @RxStateSelect() protected readonly lastOperations$: Observable<Operation[]>;
   @RxStateSelect() protected readonly lastEndDate$: Observable<Moment>;
+  @RxStateSelect() protected enableUpdateChildDate$: Observable<boolean>;
 
   protected readonly tripService = inject(TripService);
   protected readonly tripContext = inject(TripContextService);
@@ -172,6 +173,7 @@ export class OperationPage<S extends OperationState = OperationState>
   @RxStateProperty() physicalGear: PhysicalGear;
   @RxStateProperty() lastEndDate: Moment;
   @RxStateProperty() hasIndividualMeasures: boolean;
+  @RxStateProperty() enableUpdateChildDate: boolean;
 
   get form(): UntypedFormGroup {
     return this.opeForm.form;
@@ -833,6 +835,7 @@ export class OperationPage<S extends OperationState = OperationState>
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);
 
     this.isInlineFishingArea = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_AREA_INLINE);
+    this.enableUpdateChildDate = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_UPDATE_CHILD_DATE);
 
     if (!this.allowParentOperation) {
       this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;
