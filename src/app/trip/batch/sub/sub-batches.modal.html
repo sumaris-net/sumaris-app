@@ -20,6 +20,11 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
   <ng-template matMenuContent>
+    <button mat-menu-item (click)="toggleIndividualCount()">
+      <mat-icon *ngIf="showIndividualCount">check_box</mat-icon>
+      <mat-icon *ngIf="!showIndividualCount">check_box_outline_blank</mat-icon>
+      <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
+    </button>
     <!-- DEV only -->
     <button mat-menu-item (click)="devToggleDebug()">
       <mat-icon *ngIf="debug">check_box</mat-icon>

@@ -266,6 +266,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       // Read data
       const data = isObservable(this.data) ? await this.data.toPromise() : this.data;
 
+      // Update individual count column display depending on sub batches individual counts
+      this.showIndividualCount = data.some((subBatch) => subBatch.individualCount !== 1);
+      this.updateColumns();
+
       // Apply data to table
       await this.setValue(data);
 
@@ -759,14 +763,14 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     if (data) {
       // Create subbatches
       const subBatchesToAdd = [];
-      let rankOrder = 1;
+      let rankOrder = await this.getMaxRankOrder();
 
       for (let size = data.minStep; size <= data.maxStep; size += data.pmfm.precision) {
         const subBatch = new SubBatch();
         subBatch.individualCount = 0;
         subBatch.taxonName = data.taxonName;
-        subBatch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] = size; // TODO: Use data.pmfm
-        subBatch.rankOrder = rankOrder++;
+        subBatch.measurementValues[data.pmfm.id] = size;
+        subBatch.rankOrder = ++rankOrder;
         subBatchesToAdd.push(subBatch);
       }
 
@@ -774,6 +778,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     }
 
     return data;
+  }
+
+  protected toggleIndividualCount() {
+    this.showIndividualCount = !this.showIndividualCount;
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
