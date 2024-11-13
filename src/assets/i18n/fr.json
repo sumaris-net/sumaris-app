@@ -3864,6 +3864,6 @@
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>",
     "DATE_IN_THE_FUTURE": "Date dans le futur",
     "EXPERIMENTAL_FEATURE": "Fonctionnalité expérimentale ! En cours de développement.",
-    "REPORT_PRINT_SAFARI_INCOMPATIBLE": "<b>L'impression de rapport sur Safari n'est pas totalement prise en charge et les documents peuvent ne pas être correctement formatée.<b>"
+    "PARTIALLY_COMPATIBLE_WEB_BROWSER": "Fonctionnalité partiellement compatible avec ce navigateur. <small><br/>Nous recommandons l'utilisation de Chrome ou Firefox.</small>"
   }
 }

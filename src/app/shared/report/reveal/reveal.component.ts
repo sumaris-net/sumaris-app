@@ -73,7 +73,6 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   private _printing = false;
   private _printIframe: HTMLIFrameElement;
   private _registeredSections: RevealSectionDefDirective[] = [];
-  private _window = window;
 
   get loading(): boolean {
     return this.loadingSubject.value;
@@ -119,7 +118,6 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   ) {
     this._parent = parent !== this ? parent : undefined;
     this._embedded = !!this._parent;
-    this._window = _document.defaultView;
 
     if (this.isPrintingPDF()) {
       this.configurePrintPdfCss();
@@ -279,8 +277,8 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
     console.debug('[reveal] Print...');
 
-    if (isSafari(this._window)) {
-      this.showToast({ type: 'warning', message: 'WARNING.REPORT_PRINT_SAFARI_INCOMPATIBLE', duration: 5000 });
+    if (isSafari(window)) {
+      this.showToast({ type: 'warning', message: 'WARNING.PARTIALLY_COMPATIBLE_WEB_BROWSER', duration: 5000 });
     }
 
     if (!this.isPrintingPDF()) {

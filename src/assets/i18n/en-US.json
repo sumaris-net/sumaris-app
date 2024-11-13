@@ -3679,6 +3679,6 @@
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "Historical data was not imported. <small>Please update the offline mode.</small>",
     "DATE_IN_THE_FUTURE": "Date in the future",
     "EXPERIMENTAL_FEATURE": "Experimental feature! Under development.",
-    "REPORT_PRINT_SAFARI_INCOMPATIBLE": "<b>Report printing on Safari is not fully supported and documents may not be formatted correctly.<b>"
+    "PARTIALLY_COMPATIBLE_WEB_BROWSER": "Feature partially compatible with this browser.<small><br/>We recommend using Chrome or Firefox.</small>"
   }
 }
