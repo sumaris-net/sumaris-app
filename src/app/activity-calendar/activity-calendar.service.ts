@@ -838,7 +838,7 @@ export class ActivityCalendarService
               });
             }
 
-            if (opts && opts.update) {
+            if (opts?.update) {
               opts.update(cache, { data });
             }
 
@@ -1053,11 +1053,6 @@ export class ActivityCalendarService
     }
 
     if (opts?.progression) opts.progression.increment(progressionStep);
-
-    // If activityCalendar is valid: continue
-    if (!opts) {
-      // Control operations
-    }
 
     if (this._debug) console.debug(`[activity-calendar-service] Control activityCalendar {${entity.id}} [OK] in ${Date.now() - now}ms`);
 

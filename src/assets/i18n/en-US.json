@@ -3212,9 +3212,13 @@
         "RECORDER_PERSON": "Recorder",
         "RECORDER_DEPARTMENT": "Recoder department(s)",
         "VESSEL": "Vessel",
+        "VESSEL_TYPE": "Vessel type",
         "OBSERVERS": "Observer(s)",
         "QUALITY_FLAG_ID": "Quality flag",
         "YEAR": "Year"
+      },
+      "CONFIRM": {
+        "LONG_TIME_REPORT_GENERATION": "Beyond <b>{{nbLimit}} calendars</b> report generation may take a long time.<br/><br/><b>Are you sure</b> you want to continue?"
       }
     },
     "NEW": {

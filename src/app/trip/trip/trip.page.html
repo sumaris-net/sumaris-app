@@ -132,12 +132,13 @@
 <ion-content scroll-y="false">
   <mat-tab-group
     #tabGroup
-    class="mat-mdc-tab-fixed-content"
+    class="mat-mdc-tab-fixed-content mat-mdc-tab-label-width-auto"
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
     [dynamicHeight]="false"
+    [mat-stretch-tabs]="true"
   >
     <!-- TAB: general -->
     <mat-tab

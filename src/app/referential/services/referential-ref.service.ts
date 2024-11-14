@@ -10,8 +10,10 @@ import {
   chainPromises,
   ConfigService,
   Configuration,
+  EntitiesServiceLoadOptions,
   EntitiesStorage,
   EntityServiceLoadOptions,
+  EntityUtils,
   firstNotNilPromise,
   fromDateISOString,
   GraphqlService,
@@ -206,7 +208,7 @@ export class ReferentialRefService
       withTotal?: boolean;
       withLevelId?: boolean;
       withProperties?: boolean;
-      toEntity?: boolean;
+      toEntity?: boolean | ((source: any) => ReferentialRef);
       debug?: boolean;
     }
   ): Observable<LoadResult<ReferentialRef>> {
@@ -253,7 +255,7 @@ export class ReferentialRefService
 
     return res.pipe(
       map(({ data, total }) => {
-        const entities = !opts || opts.toEntity !== false ? (data || []).map(ReferentialRef.fromObject) : ((data || []) as ReferentialRef[]);
+        const entities = this.fromObjects(data, opts?.toEntity);
         if (now) {
           console.debug(`[referential-ref-service] References on ${entityName} loaded in ${Date.now() - now}ms`);
           now = undefined;
@@ -321,8 +323,7 @@ export class ReferentialRefService
       fetchPolicy: (opts && opts.fetchPolicy) || 'cache-first',
     });
 
-    const toEntityFn = typeof opts?.toEntity === 'function' ? opts.toEntity : (ReferentialRef.fromObject as (source: any) => E);
-    const entities = !opts || opts.toEntity !== false ? (data || []).map(toEntityFn) : ((data || []) as E[]);
+    const entities = this.fromObjects(data, opts?.toEntity);
 
     // Force entity name (if searchJoin)
     if (filter.entityName !== uniqueEntityName) {
@@ -380,8 +381,7 @@ export class ReferentialRefService
 
     const { data, total } = await this.entities.loadAll(uniqueEntityName + 'VO', variables);
 
-    const toEntityFn = typeof opts?.toEntity === 'function' ? opts.toEntity : (ReferentialRef.fromObject as (source: any) => E);
-    const entities = !opts || opts.toEntity !== false ? (data || []).map(toEntityFn) : ((data || []) as E[]);
+    const entities = this.fromObjects(data, opts?.toEntity);
 
     // Force entity name (if searchJoin)
     if (filter.entityName !== uniqueEntityName) {
@@ -490,12 +490,9 @@ export class ReferentialRefService
   async loadById(
     id: number,
     entityName: string,
-    opts?: {
-      [key: string]: any;
-      fetchPolicy?: FetchPolicy;
+    opts?: EntityServiceLoadOptions & {
       debug?: boolean;
       withProperties?: boolean;
-      toEntity?: boolean;
     }
   ): Promise<ReferentialRef> {
     const { data } = await this.loadAll(0, 1, null, null, { includedIds: [id], entityName }, { ...opts, withTotal: false /*not need total*/ });
@@ -506,11 +503,8 @@ export class ReferentialRefService
     label: string,
     entityName: string,
     filter?: Partial<ReferentialRefFilter>,
-    opts?: {
-      [key: string]: any;
-      fetchPolicy?: FetchPolicy;
+    opts?: EntityServiceLoadOptions & {
       debug?: boolean;
-      toEntity?: boolean;
     }
   ): Promise<ReferentialRef> {
     const { data } = await this.loadAll(0, 1, null, null, { ...filter, label, entityName }, { ...opts, withTotal: false /*not need total*/ });
@@ -521,11 +515,8 @@ export class ReferentialRefService
     labels: string[],
     entityName: string,
     filter?: Partial<ReferentialRefFilter>,
-    opts?: {
-      [key: string]: any;
-      fetchPolicy?: FetchPolicy;
+    opts?: EntitiesServiceLoadOptions & {
       debug?: boolean;
-      toEntity?: boolean;
     }
   ): Promise<ReferentialRef[]> {
     const items = await Promise.all(
@@ -546,11 +537,8 @@ export class ReferentialRefService
     sortBy?: keyof Referential | 'rankOrder',
     sortDirection?: SortDirection,
     filter?: Partial<ReferentialRefFilter>,
-    opts?: {
-      [key: string]: any;
-      fetchPolicy?: FetchPolicy;
+    opts?: EntitiesServiceLoadOptions & {
       debug?: boolean;
-      toEntity?: boolean;
     }
   ): Promise<ReferentialRef[]> {
     if (isEmptyArray(ids)) return [];
@@ -575,7 +563,7 @@ export class ReferentialRefService
     const { data } = await JobUtils.fetchAllPages((offset, size) =>
       this.loadAll(offset, size, 'id', 'asc', filter, { ...opts, toEntity: false, withTotal: offset === 0 })
     );
-    return (data || []).map((e) => e.id);
+    return EntityUtils.collectIds(data);
   }
 
   async suggest<E extends ReferentialRef = ReferentialRef, F extends ReferentialRefFilter = ReferentialRefFilter>(
@@ -584,10 +572,10 @@ export class ReferentialRefService
     sortBy?: keyof E | 'rankOrder',
     sortDirection?: SortDirection,
     opts?: {
-      toEntity?: boolean | ((source: any) => E);
       fetchPolicy?: FetchPolicy;
       withLevelId?: boolean;
       withProperties?: boolean;
+      toEntity?: boolean | ((source: any) => E);
     }
   ): Promise<LoadResult<E>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
@@ -614,8 +602,9 @@ export class ReferentialRefService
    */
   async loadLevels(
     entityName: string,
-    options?: {
+    opts?: {
       fetchPolicy?: FetchPolicy;
+      toEntity?: boolean | ((source: any) => ReferentialRef);
     }
   ): Promise<ReferentialRef[]> {
     const now = Date.now();
@@ -627,10 +616,10 @@ export class ReferentialRefService
         entityName,
       },
       error: { code: ErrorCodes.LOAD_REFERENTIAL_LEVELS_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_LEVELS_ERROR' },
-      fetchPolicy: (options && options.fetchPolicy) || 'cache-first',
+      fetchPolicy: (opts && opts.fetchPolicy) || 'cache-first',
     });
 
-    const entities = (data || []).map(ReferentialRef.fromObject);
+    const entities = this.fromObjects(data, opts?.toEntity);
 
     if (this._debug) console.debug(`[referential-ref-service] Levels for ${entityName} loading in ${Date.now() - now}`, entities);
 
@@ -909,10 +898,6 @@ export class ReferentialRefService
     }
   }
 
-  asFilter(filter: Partial<ReferentialRefFilter>): ReferentialRefFilter {
-    return ReferentialRefFilter.fromObject(filter);
-  }
-
   async loadQualityFlags(): Promise<ReferentialRef[]> {
     const { data: items } = await this.loadAll(
       0,
@@ -932,6 +917,27 @@ export class ReferentialRefService
     items?.forEach((flag) => (flag.label = translateQualityFlag(flag.id) || flag.label));
 
     return items;
+  }
+
+  fromObject(source: any, toEntity?: boolean | ((source: any) => ReferentialRef)): ReferentialRef {
+    // Simple cast (skip conversion)
+    if (!source || toEntity === false) return source as T;
+
+    // User defined function
+    if (typeof toEntity === 'function') {
+      return toEntity(toEntity);
+    }
+
+    // Entity conversion
+    return ReferentialRef.fromObject(source);
+  }
+
+  asFilter(filter: Partial<ReferentialRefFilter>): ReferentialRefFilter {
+    return ReferentialRefFilter.fromObject(filter);
+  }
+
+  protected fromObjects(sources: any[], toEntity?: boolean | ((source: any) => ReferentialRef)): ReferentialRef[] {
+    return (sources || []).map((source) => this.fromObject(source, toEntity));
   }
 
   private updateModelEnumerations(config: Configuration) {

@@ -85,13 +85,11 @@ export declare interface LandingSaveOptions extends EntitySaveOptions {
   enableOptimisticResponse?: boolean;
 }
 
-export type LandingServiceLoadOptions = EntityServiceLoadOptions;
+export type LandingServiceLoadOptions = EntityServiceLoadOptions<Landing>;
 
-export declare interface LandingServiceWatchOptions extends EntitiesServiceWatchOptions {
-  computeRankOrder?: boolean;
+export declare interface LandingServiceWatchOptions extends EntitiesServiceWatchOptions<Landing> {
   fullLoad?: boolean;
-  toEntity?: boolean;
-  withTotal?: boolean;
+  computeRankOrder?: boolean;
 }
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
@@ -451,7 +449,7 @@ export class LandingService
       // Skip update during load()
       filter(() => !this.loading),
       map(({ data, total }) => {
-        let entities = !opts || opts.toEntity !== false ? (data || []).map(Landing.fromObject) : ((data || []) as Landing[]);
+        let entities = this.fromObjects(data, opts?.toEntity);
         if (this._debug) {
           if (now) {
             console.debug(`[landing-service] Loaded {${entities.length || 0}} landings in ${Date.now() - now}ms`, entities);
@@ -488,7 +486,7 @@ export class LandingService
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<LandingFilter>,
-    opts?: LandingServiceWatchOptions
+    opts?: LandingServiceLoadOptions
   ): Promise<LoadResult<Landing>> {
     const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
     if (offlineData) {
@@ -504,7 +502,7 @@ export class LandingService
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<LandingFilter>,
-    opts?: LandingServiceWatchOptions & {
+    opts?: LandingServiceLoadOptions & {
       fullLoad?: boolean;
     }
   ): Promise<LoadResult<Landing>> {

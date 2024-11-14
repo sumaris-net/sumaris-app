@@ -123,7 +123,7 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
     const locationLevelById = await firstValueFrom(this.locationLevelById$);
     const excludedIds = (this.form.get('locations').value || []).map((item) => item.id);
 
-    const { data, total } = await this.referentialService.loadAll(0, 20, 'label', 'asc', {
+    const { data, total, fetchMore } = await this.referentialService.loadAll(0, 20, 'label', 'asc', {
       searchText: value,
       ...filter,
       excludedIds,
@@ -136,7 +136,7 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
       return item;
     });
 
-    return { data: entities, total };
+    return { data: entities, total, fetchMore };
   }
 
   protected registerForms() {

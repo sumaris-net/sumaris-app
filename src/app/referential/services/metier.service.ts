@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { FetchPolicy, gql } from '@apollo/client/core';
+import { gql } from '@apollo/client/core';
 import { ErrorCodes } from './errors';
 import {
   AccountService,
   BaseEntityGraphqlQueries,
   BaseGraphqlService,
+  EntitiesServiceLoadOptions,
   EntitiesStorage,
   GraphqlService,
   isNil,
@@ -96,11 +97,8 @@ export class MetierService extends BaseGraphqlService implements SuggestService<
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<MetierFilter>,
-    opts?: {
-      [key: string]: any;
-      fetchPolicy?: FetchPolicy;
+    opts?: EntitiesServiceLoadOptions & {
       debug?: boolean;
-      toEntity?: boolean;
     }
   ): Promise<LoadResult<Metier>> {
     filter = this.asFilter(filter);

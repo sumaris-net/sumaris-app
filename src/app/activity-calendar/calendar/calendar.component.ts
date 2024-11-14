@@ -1134,7 +1134,7 @@ export class CalendarComponent
     const isActiveControl = row.validator.get('isActive');
     const isActive = isActiveControl?.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
     const pmfmControl = row.validator.get(`measurementValues.${pmfm.id}`);
-    if (!pmfmControl) return;
+    if (!pmfmControl) return; // Skip if no control
 
     // Compute new control's value
     let valueStr: string = pmfmControl.value?.toString() || '';
@@ -3141,18 +3141,16 @@ export class CalendarComponent
     rows.forEach((row) => {
       const form = this.validatorService.getFormGroup(row.currentData, { withMeasurements: true, pmfms: this.pmfms });
 
-      //TODO getFormGroup does not return the pmfms, to be fixed with BL
-      form.get('measurementValues')?.patchValue(row.currentData.measurementValues);
-
-      const entity = form.value;
       const errorTranslate = this.formErrorAdapter.translateFormErrors(form, this.errorTranslateOptions);
 
       if (form.errors) {
-        DataEntityUtils.markAsInvalid(entity, errorTranslate);
-        row.validator.patchValue(entity, { emitEvent: false });
+        DataEntityUtils.markFormAsInvalid(row.validator, errorTranslate, { emitEvent: false });
         listErrors.push(errorTranslate);
+      } else {
+        DataEntityUtils.resetFormQualification(row.validator, { emitEvent: false });
       }
     });
+
     this.cd.detectChanges();
 
     // cannot be placed above the cd.detectChanges()
