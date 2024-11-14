@@ -60,7 +60,7 @@
   @if (loaded) {
     <app-reveal #reveal [options]="revealOptions">
       <!-- Trip card -->
-      <section *sectionDef class="portrait">
+      <section *sectionDef class="portrait" [style.--page-horizontal-margin]="this.pageDimensions.pageHorizontalMargin + 'px'">
         <!-- Header section -->
         <ion-grid class="report-header ion-no-padding">
           <ion-row class="document-title">
@@ -330,7 +330,7 @@
 
       <!-- Operations table -->
       @if (data.operations | isNotEmptyArray) {
-        <section *sectionDef="true">
+        <section *sectionDef="true" [style.--page-horizontal-margin]="this.pageDimensions.pageHorizontalMargin + 'px'">
           @for (ops of data.operations | splitArrayInChunks: operationNbTableSplitArrayChunk; track $index) {
             <section class="landscape">
               <page-header-from-report-chunk
@@ -668,7 +668,7 @@
 
       <!-- Physical gears -->
       @if (data.gears | isNotEmptyArray) {
-        <section *sectionDef>
+        <section *sectionDef [style.--page-horizontal-margin]="this.pageDimensions.pageHorizontalMargin + 'px'">
           @for (physicalGears of data.gears | splitArrayInChunks: 3; track physicalGearSplitIndex; let physicalGearSplitIndex = $index) {
             <section class="portrait">
               <page-header-from-report-chunk
@@ -765,6 +765,7 @@
         [vesselName]="data.vesselSnapshot?.name"
         [revealOptions]="revealOptions"
         [samplesByPage]="nbOfSamplePeerOpOnBlankPage"
+        [parentPageDimension]="this.pageDimensions"
       ></sample-form-report-component>
     </app-reveal>
   } @else {

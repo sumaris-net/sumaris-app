@@ -6,7 +6,7 @@ html.print-pdf .reveal .slides section {
 
 .slides {
   --form-field-height: 30px;
-  --page-left-right-margin: 50px;
+  --page-horizontal-margin: 50px;
   --logo-max-size: 80px;
   --color-primary: var(--ion-color-primary);
   --color-secondary: var(--ion-color-secondary);
@@ -250,7 +250,7 @@ html.print-pdf .reveal .slides section {
       }
 
       &.report-section {
-        margin: 0 var(--page-left-right-margin);
+        margin: 0 var(--page-horizontal-margin-margin);
       }
     }
 
@@ -264,7 +264,7 @@ html.print-pdf .reveal .slides section {
       --col-large: 200px;
       --col-extra-large: 250px;
       --col-extra-extra-large: 300px;
-      --col-maximum: (100% - (var(--page-left-right-margin) * 2));
+      --col-maximum: (100% - (var(--page-horizontal-margin) * 2));
       --col-width: var(--col-medium);
 
       margin: 0 auto;
@@ -388,7 +388,7 @@ html.print-pdf .reveal .slides section {
       }
 
       &.table-full-width {
-        width: calc(100% - (var(--page-left-right-margin) * 2));
+        width: calc(100% - (var(--page-horizontal-margin) * 2));
       }
 
       .icon-check-box {
@@ -411,7 +411,7 @@ html.print-pdf .reveal .slides section {
 
     ul {
       &.caption {
-        margin: 0 var(--page-left-right-margin);
+        margin: 0 var(--page-horizontal-margin);
         padding: 0;
         list-style: none;
         font-size: var(--font-small);

@@ -34,6 +34,14 @@ import { TripReportService } from '../trip-report.service';
 import { FormTripReportService } from './form-trip-report.service';
 import { Sample } from '@app/trip/sample/sample.model';
 
+export interface FormTripReportPageDimensions {
+  pageWidth: number;
+  pageHeight: number;
+  pageHorizontalMargin: number;
+  availableWidthForTableLandscape: number;
+  availableWidthForTablePortrait: number;
+}
+
 export class FormTripReportStats extends BaseReportStats {
   readonly pmfmIdsMap = PmfmIds;
   subtitle?: string;
@@ -186,6 +194,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected readonly tripService: TripService = inject(TripService);
   protected readonly referentialRefService: ReferentialRefService = inject(ReferentialRefService);
   protected readonly strategyRefService: StrategyRefService = inject(StrategyRefService);
+  protected readonly pageDimensions: FormTripReportPageDimensions;
 
   @ViewChild(RevealComponent) reveal!: RevealComponent;
   @ViewChild(SampleFormReportComponent) sampleFormReport: SampleFormReportComponent;
@@ -199,6 +208,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     this.isBlankForm = this.route.snapshot.data?.isBlankForm;
 
     this.debug = !environment.production;
+    this.pageDimensions = this.computePageDimentions();
   }
 
   computePrintHref(data: Trip, stats: FormTripReportStats): URL {
@@ -457,6 +467,21 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     return {
       ...super.computeI18nContext(stats),
       pmfmPrefix: 'TRIP.REPORT.FORM.PMFM.',
+    };
+  }
+
+  private computePageDimentions(): FormTripReportPageDimensions {
+    const pageWidth = 210 * 4;
+    const pageHeight = 297 * 4;
+    const pageHorizontalMargin = 50;
+    const availableWidthForTablePortrait = pageWidth - pageHorizontalMargin * 2;
+    const availableWidthForTableLandscape = pageHeight - pageHorizontalMargin * 2;
+    return {
+      pageWidth,
+      pageHeight,
+      pageHorizontalMargin,
+      availableWidthForTableLandscape,
+      availableWidthForTablePortrait,
     };
   }
 }

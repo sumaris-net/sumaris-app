@@ -11,6 +11,8 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
+import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
+import { VesselOwnerService } from '@app/vessel/services/vessel-owner.service';
 import {
   EntityAsObjectOptions,
   LoadResult,
@@ -26,10 +28,7 @@ import {
   computeIndividualActivityCalendarFormReportStats,
   fillActivityCalendarBlankData,
 } from './activity-calendar-form-report.utils';
-import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
-import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { VesselOwnerService } from '@app/vessel/services/vessel-owner.service';
-import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
+import { ActivityCalendarFormReport, ActivityCalendarFormReportStats } from './activity-calendar-form.report';
 
 class ActivityCalendarFormsReportStats extends BaseReportStats {
   activityCalendarFormReportStatsByIds: { [key: number]: ActivityCalendarFormReportStats };
