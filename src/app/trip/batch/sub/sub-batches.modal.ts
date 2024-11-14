@@ -40,16 +40,6 @@ import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { SubSortingCriteriaModal } from './sub-sorting-criteria.modal';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 
-export interface SubBatchSortingCriteria {
-  scientificSpecies: TaxonNameRef;
-  sortingCriteria: string; // dan sle noveau d'acquisition
-  method: string;
-  unit: string;
-  min: number;
-  max: number;
-  measurementPrecision: number;
-  analysisInstrument: string;
-}
 export interface ISubBatchesModalOptions {
   disabled: boolean;
   showParentGroup: boolean;
@@ -747,10 +737,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async openSortingCriteriaModal() {
-    const goodPmfm = (
-      await this.pmfmService.loadAll(0, 100, null, null, { includedIds: this.pmfms.map((pmfm) => pmfm.id) }, { withDetails: true })
-    ).data.filter((pmfm) => PmfmUtils.isNumeric(pmfm) && pmfm.unitLabel === 'cm');
-
+    const pmfms = await this.loadFilteredPmfms();
     const modal = await this.modalCtrl.create({
       component: SubSortingCriteriaModal,
       backdropDismiss: false,
@@ -758,9 +745,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       componentProps: {
         parentGroup: this.parentGroup,
         programLabel: this.programLabel,
-        sortcriteriaPmfms: goodPmfm,
+        sortcriteriaPmfms: pmfms,
       },
     });
+
     // add backdrop opacity to modal
     modal.style.setProperty('--backdrop-opacity', '0.4');
     // Open the modal
@@ -772,8 +760,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       const subBatchesToAdd = [];
       let rankOrder = await this.getMaxRankOrder();
 
-      const precision = data.pmfm.precision || 1;
-      for (let size = data.minStep; size <= data.maxStep; size += precision) {
+      for (let size = data.min; size <= data.max; size += data.precision) {
         const subBatch = new SubBatch();
         subBatch.individualCount = 0;
         subBatch.taxonName = data.taxonName;
@@ -790,6 +777,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   protected toggleIndividualCount() {
     this.showIndividualCount = !this.showIndividualCount;
+  }
+
+  protected async loadFilteredPmfms(): Promise<Pmfm[]> {
+    return (
+      await this.pmfmService.loadAll(0, 100, null, null, { includedIds: this.pmfms.map((pmfm) => pmfm.id) }, { withDetails: true })
+    ).data.filter((pmfm) => PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isComputed(pmfm));
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
