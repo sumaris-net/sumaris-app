@@ -28,7 +28,6 @@ import { Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
       useFactory: (settings: LocalSettingsService) => ({
         prependNewElements: settings.mobile,
         suppressErrors: true,
-        reservedStartColumns: ['taxonName', 'pmfm', 'minStep', 'maxStep'],
       }),
       deps: [LocalSettingsService],
     },
@@ -36,13 +35,10 @@ import { Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
   ],
 })
 export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
-  protected columnDefinitions: FormFieldDefinition[] = [];
   protected pmfmDefinition: FormFieldDefinition;
   sortingCriteriaForm: FormGroup;
-  speciesList: any[] = [];
-  methode: string = '';
-  unit: string = '';
-  precision: string = '';
+  disabledPrecision: boolean = false;
+  pmfmSelected: Pmfm = new Pmfm();
   @Input() parentGroup: BatchGroup;
   @Input() programLabel: string;
   @Input() sortcriteriaPmfms: Pmfm[];
@@ -64,16 +60,20 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
     this.sortingCriteriaForm = this.fb.group({
       taxonName: ['', Validators.required],
       pmfm: ['', Validators.required],
-      minStep: ['', [Validators.required]],
-      maxStep: ['', [Validators.required]],
+      min: ['', [Validators.required]],
+      max: ['', [Validators.required]],
+      precision: ['', [Validators.required]],
     });
 
     this.registerSubscription(
       this.sortingCriteriaForm.get('pmfm').valueChanges.subscribe((value) => {
-        console.log('SubSortingCriteriaModal pmfm', value);
-        this.methode = value.method.name;
-        this.unit = value.unit.label;
-        this.precision = value.precision;
+        if (value.precision) {
+          this.sortingCriteriaForm.get('precision').setValue(value.precision);
+          this.disabledPrecision = true;
+        } else {
+          this.disabledPrecision = false;
+        }
+        this.pmfmSelected = value;
       })
     );
 
@@ -106,7 +106,6 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
         suggestFn: (value, opts) => this.suggestPmfms(value, opts),
         attributes: pmfmAttributes,
         columnNames: pmfmColumnNames,
-        displayWith: (pmfm) => this.displayPmfm(pmfm, { withUnit: true, withDetails: true }),
         showAllOnFocus: false,
         panelClass: 'full-width',
       }),
@@ -127,9 +126,9 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
   async confirm() {
     //TODO: temporaire à supprimer une fois que le poc sera validé
     const data = this.sortingCriteriaForm.value;
-    const minStep = this.sortingCriteriaForm.get('minStep').value;
-    const maxStep = this.sortingCriteriaForm.get('maxStep').value;
-    if (minStep > maxStep) {
+    const min = this.sortingCriteriaForm.get('min').value;
+    const max = this.sortingCriteriaForm.get('max').value;
+    if (min > max) {
       this.sortingCriteriaForm.setErrors({ minMaxError: true });
       return;
     }
@@ -155,32 +154,5 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
       searchJoin: 'parameter',
       includedIds: this.sortcriteriaPmfms.map((pmfm) => pmfm.id),
     });
-  }
-
-  protected displayPmfm(
-    pmfm: Pmfm,
-    opts?: {
-      withUnit?: boolean;
-      html?: boolean;
-      withDetails?: boolean;
-    }
-  ): string {
-    if (!pmfm) return undefined;
-
-    let name = pmfm.parameter?.name;
-    if (opts?.withDetails) {
-      name = [name, pmfm.matrix?.name, pmfm.fraction?.name, pmfm.method?.name].filter(isNotNil).join(' - ');
-    }
-
-    // Append unit
-    const unitLabel = (pmfm.type === 'integer' || pmfm.type === 'double') && pmfm.unit?.label;
-    if ((!opts || opts.withUnit !== false) && unitLabel) {
-      if (opts?.html) {
-        name += `<small><br/>(${unitLabel})</small>`;
-      } else {
-        name += ` (${unitLabel})`;
-      }
-    }
-    return name;
   }
 }
