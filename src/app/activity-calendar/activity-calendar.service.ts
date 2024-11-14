@@ -194,7 +194,6 @@ export const ActivityCalendarFragments = {
 };
 
 export interface ActivityCalendarLoadOptions extends EntityServiceLoadOptions {
-  toEntity?: boolean;
   fullLoad?: boolean;
 }
 
@@ -501,11 +500,8 @@ export class ActivityCalendarService
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<ActivityCalendarFilter>,
-    opts?: EntityServiceLoadOptions & {
-      query?: any;
+    opts?: ActivityCalendarLoadOptions & {
       debug?: boolean;
-      withTotal?: boolean;
-      fullLoad?: boolean;
     }
   ): Promise<LoadResult<ActivityCalendar>> {
     const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
@@ -523,10 +519,8 @@ export class ActivityCalendarService
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<ActivityCalendarFilter>,
-    opts?: EntityServiceLoadOptions & {
-      query?: any;
+    opts?: ActivityCalendarLoadOptions & {
       debug?: boolean;
-      withTotal?: boolean;
     }
   ): Promise<LoadResult<ActivityCalendar>> {
     filter = this.asFilter(filter);
@@ -540,11 +534,11 @@ export class ActivityCalendarService
       filter: filter.asFilterFn(),
     };
 
-    const res = await this.entities.loadAll<ActivityCalendar>('ActivityCalendarVO', variables, { fullLoad: opts && opts.fullLoad });
+    const res = await this.entities.loadAll<ActivityCalendar>('ActivityCalendarVO', variables, { fullLoad: opts?.fullLoad });
     const entities =
       !opts || opts.toEntity !== false ? (res.data || []).map((json) => this.fromObject(json)) : ((res.data || []) as ActivityCalendar[]);
 
-    return { data: entities, total: res.total };
+    return { data: entities, total: res.total, fetchMore: res.fetchMore };
   }
 
   /**
@@ -805,7 +799,7 @@ export class ActivityCalendarService
         refetchQueries: this.getRefetchQueriesForMutation(opts),
         awaitRefetchQueries: opts && opts.awaitRefetchQueries,
         error: { code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR' },
-        update: async (cache, { data }) => {
+        update: async (cache, { data }, { context, variables }) => {
           const savedEntity = data && data.data;
 
           // Local entity (optimistic response): save it
@@ -839,7 +833,7 @@ export class ActivityCalendarService
             }
 
             if (opts?.update) {
-              opts.update(cache, { data });
+              opts.update(cache, { data }, { context, variables });
             }
 
             if (this._debug) console.debug(`[activity-calendar-service] ActivityCalendar saved remotely in ${Date.now() - now}ms`, entity);

@@ -354,10 +354,7 @@ export class ReferentialRefService
     sortBy?: keyof E | string,
     sortDirection?: SortDirection,
     filter?: Partial<ReferentialRefFilter>,
-    opts?: {
-      [key: string]: any;
-      toEntity?: boolean | ((source: any) => E);
-    }
+    opts?: EntitiesServiceLoadOptions<E>
   ): Promise<LoadResult<E>> {
     if (!filter || !filter.entityName) {
       console.error("[referential-ref-service] Missing argument 'filter.entityName'");
@@ -919,9 +916,9 @@ export class ReferentialRefService
     return items;
   }
 
-  fromObject(source: any, toEntity?: boolean | ((source: any) => ReferentialRef)): ReferentialRef {
+  fromObject<E = ReferentialRef>(source: any, toEntity?: boolean | ((source: any) => E)): E {
     // Simple cast (skip conversion)
-    if (!source || toEntity === false) return source as T;
+    if (!source || toEntity === false) return source as E;
 
     // User defined function
     if (typeof toEntity === 'function') {
@@ -929,14 +926,14 @@ export class ReferentialRefService
     }
 
     // Entity conversion
-    return ReferentialRef.fromObject(source);
+    return ReferentialRef.fromObject(source) as E;
   }
 
   asFilter(filter: Partial<ReferentialRefFilter>): ReferentialRefFilter {
     return ReferentialRefFilter.fromObject(filter);
   }
 
-  protected fromObjects(sources: any[], toEntity?: boolean | ((source: any) => ReferentialRef)): ReferentialRef[] {
+  protected fromObjects<E = ReferentialRef>(sources: any[], toEntity?: boolean | ((source: any) => E)): E[] {
     return (sources || []).map((source) => this.fromObject(source, toEntity));
   }
 

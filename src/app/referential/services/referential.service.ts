@@ -1,5 +1,5 @@
 import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
-import { DocumentNode, FetchPolicy, gql, MutationUpdaterFn } from '@apollo/client/core';
+import { ApolloCache, DocumentNode, FetchPolicy, gql, MutationUpdaterFn, MutationUpdaterFunction } from '@apollo/client/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ErrorCodes } from './errors';
@@ -438,9 +438,9 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
    * Save a referential entity
    *
    * @param entity
-   * @param options
+   * @param opts
    */
-  async save(entity: T, options?: EntitySaveOptions): Promise<T> {
+  async save(entity: T, opts?: EntitySaveOptions): Promise<T> {
     if (!entity.entityName) {
       console.error('[referential-service] Missing entityName');
       throw { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' };
@@ -459,7 +459,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
         data: [json],
       },
       error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' },
-      update: (cache, { data }) => {
+      update: (cache, { data }, { context, variables }) => {
         // Update entity
         const savedEntity = data && data.data && data.data[0];
         if (savedEntity !== entity) {
@@ -475,8 +475,8 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
           });
         }
 
-        if (options?.update) {
-          options.update(cache, { data });
+        if (opts?.update) {
+          opts.update(cache, { data }, { context, variables });
         }
       },
     });
@@ -489,9 +489,9 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
    */
   async deleteAll(
     entities: BaseReferential<any>[],
-    options?:
+    opts?:
       | Partial<{
-          update: MutationUpdaterFn<any>;
+          update: MutationUpdaterFn<any> | MutationUpdaterFunction<any, any, any, ApolloCache<any>>;
         }>
       | any
   ): Promise<any> {
@@ -520,15 +520,15 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
         ids,
       },
       error: { code: ErrorCodes.DELETE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.DELETE_REFERENTIAL_ERROR' },
-      update: (proxy) => {
+      update: (cache, result, { context, variables }) => {
         // Remove from cache
-        this.removeFromMutableCachedQueriesByIds(proxy, {
+        this.removeFromMutableCachedQueriesByIds(cache, {
           queries: this.getLoadQueries(),
           ids,
         });
 
-        if (options && options.update) {
-          options.update(proxy);
+        if (opts?.update) {
+          opts.update(cache, result, { context, variables });
         }
 
         if (this._debug) console.debug(`[referential-service] ${entityName} deleted in ${new Date().getTime() - now.getTime()}ms`);
