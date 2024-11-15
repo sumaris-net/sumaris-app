@@ -6,7 +6,7 @@ import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -17,22 +17,14 @@ import {
   DenormalizedBatchReportFormComponentStats,
 } from '@app/trip/denormalized-batch/report/form/denormalized-batch-form.report-component';
 import { SampleFormReportComponent, SampleFromReportComponentStats } from '@app/trip/sample/report/form/sample-form.report-component';
+import { Sample } from '@app/trip/sample/sample.model';
 import { environment } from '@environments/environment';
-import {
-  EntityAsObjectOptions,
-  LatLongPattern,
-  StatusIds,
-  WaitForOptions,
-  arrayDistinct,
-  isNil,
-  isNotNil,
-  splitById,
-} from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, LatLongPattern, StatusIds, WaitForOptions, isNil, isNotNil, splitById } from '@sumaris-net/ngx-components';
 import { Operation, Trip } from '../../trip.model';
 import { TripService } from '../../trip.service';
 import { TripReportService } from '../trip-report.service';
 import { FormTripReportService } from './form-trip-report.service';
-import { Sample } from '@app/trip/sample/sample.model';
+import { OperationFormReportComponent, OperationFromReportComponentStats } from '@app/trip/operation/report/form/operation-form.report-component';
 
 export interface FormTripReportPageDimensions {
   pageWidth: number;
@@ -57,35 +49,19 @@ export class FormTripReportStats extends BaseReportStats {
   operationTableHeadColspan: number;
   measurementValues: {
     trip: MeasurementFormValues;
-    operations: MeasurementFormValues[];
     gears: (MeasurementFormValues | MeasurementModelValues)[];
   };
   pmfms: {
     trip: IPmfm[];
-    operation: IPmfm[];
-    childOperation: IPmfm[];
     gears?: IPmfm[];
   };
   pmfmsByIds?: {
     trip?: { [key: number]: IPmfm };
-    operation?: { [key: number]: IPmfm };
   };
   pmfmsByGearsId: { [key: number]: IPmfm[] };
   hasPmfm: {
     trip: {
       nbFishermen: boolean;
-    };
-    operation: {
-      hasIndividualMeasure: boolean;
-      tripProgress: boolean;
-    };
-  };
-  pmfmsTipsByPmfmId: {
-    operation: {
-      [key: number]: {
-        tipsNum: number;
-        text: string;
-      };
     };
   };
   options: {
@@ -94,14 +70,8 @@ export class FormTripReportStats extends BaseReportStats {
       showObservers: boolean;
       showSale: boolean;
     };
-    operation: {
-      showStartDate: boolean;
-      showFishingStartDateTime: boolean;
-      showFishingEndDateTime: boolean;
-      showEndDate: boolean;
-      allowParentOperation: boolean;
-    };
   };
+  operationTableStats?: OperationFromReportComponentStats;
   samplesTableStats?: SampleFromReportComponentStats;
   denormalizedBatchTableStats?: DenormalizedBatchReportFormComponentStats;
 
@@ -119,25 +89,20 @@ export class FormTripReportStats extends BaseReportStats {
     this.operationsRankByGears = source.operationsRankByGears;
     this.measurementValues = {
       trip: source.measurementValues.trip,
-      operations: source.measurementValues.operations,
       gears: source.measurementValues.gears,
     };
     this.pmfms = {
       trip: source.pmfms.trip?.map(DenormalizedPmfmStrategy.fromObject),
-      operation: source.pmfms.operation?.map(DenormalizedPmfmStrategy.fromObject),
-      childOperation: source.pmfms.childOperation?.map(DenormalizedPmfmStrategy.fromObject),
       gears: source.pmfms.gears?.map(DenormalizedPmfmStrategy.fromObject),
     };
     this.pmfmsByIds = {
       trip: splitById(this.pmfms.trip),
-      operation: splitById(this.pmfms.operation),
     };
     this.pmfmsByGearsId = Object.keys(source.pmfmsByGearsId).reduce((result, key) => {
       result[key] = source.pmfmsByGearsId[key].map(DenormalizedPmfmStrategy.fromObject);
       return result;
     }, {});
     this.hasPmfm = source.hasPmfm;
-    this.pmfmsTipsByPmfmId = source.pmfmsLegendByPmfmId;
 
     this.options = source.options;
   }
@@ -158,15 +123,12 @@ export class FormTripReportStats extends BaseReportStats {
       measurementValues: this.measurementValues,
       pmfms: {
         trip: this.pmfms.trip.map((item) => item.asObject(opts)),
-        operation: this.pmfms.operation.map((item) => item.asObject(opts)),
-
         gears: this.pmfms.gears.map((item) => item.asObject(opts)),
       },
       pmfmsByGearsId: Object.keys(this.pmfmsByGearsId).reduce((result, key) => {
         result[key] = this.pmfmsByGearsId[key].map((pmfm: DenormalizedPmfmStrategy) => pmfm.asObject(opts));
         return result;
       }, {}),
-      pmfmsLegendByPmfmId: this.pmfmsTipsByPmfmId,
       hasPmfm: this.hasPmfm,
       options: this.options,
     };
@@ -199,6 +161,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   @ViewChild(RevealComponent) reveal!: RevealComponent;
   @ViewChild(SampleFormReportComponent) sampleFormReport: SampleFormReportComponent;
   @ViewChild(DenormalizedBatchFormReportComponent) denormalizedBatchFormReportComponent: DenormalizedBatchFormReportComponent;
+  @ViewChild(OperationFormReportComponent) operationFormReportComponent: OperationFormReportComponent;
 
   constructor() {
     super(Trip, FormTripReportStats);
@@ -208,7 +171,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     this.isBlankForm = this.route.snapshot.data?.isBlankForm;
 
     this.debug = !environment.production;
-    this.pageDimensions = this.computePageDimentions();
+    this.pageDimensions = this.computePageDimensions();
   }
 
   computePrintHref(data: Trip, stats: FormTripReportStats): URL {
@@ -217,7 +180,12 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   }
   async waitIdle(opts: WaitForOptions) {
     await super.waitIdle(opts);
-    await Promise.all([this.sampleFormReport.waitIdle(opts), this.denormalizedBatchFormReportComponent.waitIdle(opts)]);
+    // Order of following line set the order of loading component
+    // (else the order in the template will be not respected because of
+    // reveal detach *sectionDef)
+    await this.operationFormReportComponent.waitIdle(opts);
+    await this.sampleFormReport.waitIdle(opts);
+    await this.denormalizedBatchFormReportComponent.waitIdle(opts);
   }
 
   async updateView() {
@@ -292,19 +260,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         showSale: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE),
         strataEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE),
       },
-      operation: {
-        showStartDate: !stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
-        showEndDate: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
-        showFishingStartDateTime: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
-        showFishingEndDateTime: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
-        allowParentOperation: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION),
-      },
     };
-
-    // In the case the header will be more hight, so we have less place du displat lines
-    if (stats.options.operation.allowParentOperation) {
-      this.operationNbTableSplitArrayChunk = 8;
-    }
 
     // Get strategy
     stats.strategy = await this.loadStrategy(stats.program, data);
@@ -321,14 +277,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
             acquisitionLevel: AcquisitionLevelCodes.TRIP,
             strategyId,
           }),
-          operation: await this.programRefService.loadProgramPmfms(data.program.label, {
-            acquisitionLevel: AcquisitionLevelCodes.OPERATION,
-            strategyId,
-          }),
-          childOperation: await this.programRefService.loadProgramPmfms(data.program.label, {
-            acquisitionLevel: AcquisitionLevelCodes.CHILD_OPERATION,
-            strategyId,
-          }),
           gears: await this.programRefService.loadProgramPmfms(data.program.label, {
             acquisitionLevel: AcquisitionLevelCodes.PHYSICAL_GEAR,
             strategyId,
@@ -336,42 +284,18 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         }
       : {
           trip: [],
-          operation: [],
-          childOperation: [],
           gears: [],
         };
 
     stats.pmfmsByIds = {
       trip: splitById(stats.pmfms.trip),
-      operation: splitById(stats.pmfms.operation),
     };
-
-    // In case of allowParentOperation, also display child pmfm in it own
-    // header line for operation table. We also need each array (parent and
-    // child pmfms) has the same size to be displayed correctly as table column
-    if (stats.options.operation.allowParentOperation) {
-      const nbOperationPmfms = stats.pmfms.operation.filter(this.filterPmfmForOperationTable).length;
-      const nbChildOperationPmfms = stats.pmfms.childOperation.filter(this.filterPmfmForOperationTable).length;
-      if (nbOperationPmfms > nbChildOperationPmfms) {
-        const diff = nbOperationPmfms - nbChildOperationPmfms;
-        stats.pmfms.childOperation = [...stats.pmfms.childOperation, ...Array(diff - 1).fill(null)];
-      } else if (nbChildOperationPmfms > nbOperationPmfms) {
-        const diff = nbChildOperationPmfms - nbOperationPmfms;
-        stats.pmfms.operation = [...stats.pmfms.operation, ...Array(diff - 1).fill(null)];
-      }
-    }
 
     stats.hasPmfm = {
       trip: {
         nbFishermen: isNotNil(stats.pmfmsByIds.trip?.[stats.pmfmIdsMap.NB_FISHERMEN]),
       },
-      operation: {
-        hasIndividualMeasure: isNotNil(stats.pmfmsByIds.operation?.[stats.pmfmIdsMap.HAS_INDIVIDUAL_MEASURES]),
-        tripProgress: isNotNil(stats.pmfmsByIds.operation?.[stats.pmfmIdsMap.TRIP_PROGRESS]),
-      },
     };
-
-    stats.operationTableHeadColspan = 2 + Object.values(stats.hasPmfm.operation).filter((v) => v).length;
 
     // Remove it from pmfm list to avoid it displayed in the other features section
     stats.pmfms.trip = stats.pmfms.trip.filter((pmfm) => pmfm.id !== stats.pmfmIdsMap.NB_FISHERMEN);
@@ -392,28 +316,9 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         return res;
       }, {});
 
-    // Compute automatic legend for operation table, for each qualitative value pmfms
-    {
-      const operationPmfmsForLegend = arrayDistinct(
-        stats.pmfms.operation
-          .concat(stats.options.operation.allowParentOperation ? stats.pmfms.childOperation : [])
-          .filter((pmfm) => isNotNil(pmfm) && PmfmUtils.isQualitative(pmfm)),
-        'id'
-      );
-      stats.pmfmsTipsByPmfmId = {
-        operation: operationPmfmsForLegend.reduce((res, pmfm, index) => {
-          res[pmfm.id] = {
-            tipsNum: index + 1,
-            text: pmfm.qualitativeValues.map((qv) => qv.label + ' : ' + qv.name).join(' ; '),
-          };
-          return res;
-        }, {}),
-      };
-    }
     // Get all needed measurement values in suitable format
     stats.measurementValues = {
       trip: MeasurementUtils.toMeasurementValues(data.measurements),
-      operations: data.operations.map((op) => MeasurementUtils.toMeasurementValues(op.measurements)),
       gears: data.gears.map((gear) => gear.measurementValues),
     };
 
@@ -470,7 +375,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     };
   }
 
-  private computePageDimentions(): FormTripReportPageDimensions {
+  private computePageDimensions(): FormTripReportPageDimensions {
     const pageWidth = 210 * 4;
     const pageHeight = 297 * 4;
     const pageHorizontalMargin = 50;
