@@ -40,7 +40,7 @@ export abstract class ReportComponent<
       this.updateView();
     } catch (err) {
       // TODO Push error to parent
-      // console.error(err);
+      console.error(err);
       // this.setError(err);
       this.markAsLoaded();
     }

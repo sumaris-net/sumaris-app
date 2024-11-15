@@ -35,9 +35,9 @@ export class SampleFromReportComponentStats extends BaseReportStats {
   fromObject(source: any): void {
     super.fromObject(source);
     this.options = source.options;
-    this.samplePmfm = source.pmfms.map(DenormalizedPmfmStrategy.fromObject);
+    this.samplePmfm = source.samplePmfm.map(DenormalizedPmfmStrategy.fromObject);
     this.samplePmfmById = splitById(this.samplePmfm);
-    this.releasedPmfm = source.pmfms.map(DenormalizedPmfmStrategy.fromObject);
+    this.releasedPmfm = source.releasedPmfm.map(DenormalizedPmfmStrategy.fromObject);
     this.releasedPmfmById = splitById(this.samplePmfm);
     this.individualSample = source.individualSample?.map((sample: any) => Sample.fromObject(sample));
     this.releasedSample = source.releasedSample?.map((sample: any) => Sample.fromObject(sample));
@@ -51,6 +51,7 @@ export class SampleFromReportComponentStats extends BaseReportStats {
 
   asObject(opts?: EntityAsObjectOptions): any {
     return {
+      ...super.asObject(opts),
       options: this.options,
       samplePmfm: this.samplePmfm.map((pmfm) => pmfm.asObject(opts)),
       releasedPmfm: this.releasedPmfm.map((pmfm) => pmfm.asObject(opts)),

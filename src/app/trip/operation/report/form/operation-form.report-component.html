@@ -1,0 +1,348 @@
+@if (loaded) {
+  <app-reveal #reveal [options]="revealOptions">
+    @if (data | isNotEmptyArray) {
+      <section *sectionDef="true" [style.--page-horizontal-margin]="this.parentPageDimension.pageHorizontalMargin + 'px'">
+        @for (ops of data | splitArrayInChunks: nbOperationByPage; track $index) {
+          <section class="landscape">
+            <page-header-from-report-chunk
+              [i18nContext]="i18nContext"
+              [title]="'TRIP.REPORT.FORM.OPERATION.TITLE'"
+              [pageNumber]="$index + 1"
+              [departureDateTime]="departureDateTime"
+              [vesselName]="vesselName"
+              [logoRightUrl]="logoHeadRightUrl"
+              [logoLeftUrl]="logoHeadLeftUrl"
+            ></page-header-from-report-chunk>
+            <ion-grid class="report-section ion-no-padding">
+              <ion-row class="section-title ion-no-margin">
+                <ion-col size="auto">
+                  <h3>{{ 'TRIP.REPORT.FORM.OPERATION.NB_OP' | translate }}</h3>
+                </ion-col>
+                <ion-col class="title-value ion-text-center font-large no-border-bottom" size="auto">
+                  @if (!isBlankForm) {
+                    {{ data?.length }}
+                  }
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+            <table>
+              <thead>
+                <tr [class.group-head]="!stats.options.allowParentOperation">
+                  <th [attr.colspan]="stats.tableHeadColspan"></th>
+                  <th colspan="2" class="font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.OPERATION_START' | translateContext: this.i18nContext.suffix }}</div>
+                  </th>
+                  <th colspan="2" class="font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.OPERATION_END' | translateContext: this.i18nContext.suffix }}</div>
+                  </th>
+                  @if (stats.options.allowParentOperation) {
+                    <th class="col-tiny font-small text-vertical">
+                      <div>{{ 'TRIP.REPORT.FORM.TYPE_OP.CHILD_PMFM' | translate }}&nbsp;&#x2B07;</div>
+                    </th>
+                    @for (pmfm of stats.pmfms | arrayFilter: filterPmfmForOperationTable; track pmfm) {
+                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm }"></ng-content>
+                    }
+                  }
+                </tr>
+                <tr>
+                  <th class="col-tiny font-medium text-vertical">
+                    <div>{{ 'TRIP.REPORT.FORM.NUM_OP' | translate }}</div>
+                  </th>
+                  @if (stats.hasPmfm.hasIndividualMeasure) {
+                    <th class="col-tiny font-small text-vertical">
+                      <div class="text-vertical">
+                        {{
+                          stats.pmfmsById[pmfmIdsMap.HAS_INDIVIDUAL_MEASURES]
+                            | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix }
+                        }}
+                      </div>
+                    </th>
+                  }
+                  @if (stats.hasPmfm.tripProgress) {
+                    <th class="col-tiny font-small text-vertical">
+                      <div>
+                        {{
+                          stats.pmfmsById[pmfmIdsMap.TRIP_PROGRESS] | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix }
+                        }}
+                      </div>
+                    </th>
+                  }
+                  <th class="col-extra-large font-medium ion-text-center">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.GEAR_SPECIES' | translate }}</div>
+                  </th>
+                  <!-- TODO : Which pmfms use for this -->
+                  <!-- <th class="col-small font-small text-vertical"> -->
+                  <!--   <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.CAPTURE' | translate }}</div> -->
+                  <!-- </th> -->
+                  @if (stats.options.showStartDate) {
+                    <th class="col-compact font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+                    </th>
+                    <th class="col-medium font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                    </th>
+                  }
+                  @if (stats.options.showFishingStartDateTime) {
+                    <th class="col-compact font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+                    </th>
+                    <th class="col-medium font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                    </th>
+                  }
+                  @if (stats.options.showFishingEndDateTime) {
+                    <th class="col-compact font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+                    </th>
+                    <th class="col-medium font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                    </th>
+                  }
+                  @if (stats.options.showEndDate) {
+                    <th class="col-compact font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+                    </th>
+                    <th class="col-medium font-medium ion-text-center">
+                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                    </th>
+                  }
+                  @if (stats.options.allowParentOperation) {
+                    <th class="col-tiny font-small text-vertical">
+                      <div>{{ 'TRIP.REPORT.FORM.TYPE_OP.PARENT_PMFM' | translate }}&nbsp;&#x2B07;</div>
+                    </th>
+                    @for (pmfm of stats.childPmfms | arrayFilter: filterPmfmForOperationTable; track pmfm) {
+                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm }"></ng-content>
+                    }
+                  } @else {
+                    @for (pmfm of stats.pmfms | arrayFilter: filterPmfmForOperationTable; track pmfm) {
+                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm }"></ng-content>
+                    }
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (op of ops; track op.id; let index = $index) {
+                  <tr>
+                    <td class="col-tiny ion-text-center font-medium" [style.padding]="0">
+                      <div>
+                        <b>{{ op.rankOrder }}</b>
+                      </div>
+                    </td>
+                    @if (stats.hasPmfm.hasIndividualMeasure) {
+                      <td class="col-tiny ion-text-center">
+                        <div
+                          [innerHTML]="
+                            stats.measurementValues
+                              | mapGet: index
+                              | mapGet: pmfmIdsMap.HAS_INDIVIDUAL_MEASURES
+                              | pmfmValue: { pmfm: stats.pmfmsById | mapGet: pmfmIdsMap.HAS_INDIVIDUAL_MEASURES, showYesOrNo: true }
+                          "
+                        ></div>
+                      </td>
+                    }
+                    @if (stats.hasPmfm.tripProgress) {
+                      <td class="col-tiny ion-text-center">
+                        <div
+                          [innerHTML]="
+                            stats.measurementValues
+                              | mapGet: index
+                              | mapGet: pmfmIdsMap.TRIP_PROGRESS
+                              | pmfmValue: { pmfm: stats.pmfmsById | mapGet: pmfmIdsMap.TRIP_PROGRESS, showYesOrNo: true }
+                          "
+                        ></div>
+                      </td>
+                    }
+                    <!-- metier -->
+                    <td class="col-extra-large">
+                      @if (!isBlankForm) {
+                        <b>[{{ op.physicalGear?.rankOrder }}]</b>
+                        {{ op.physicalGear?.gear?.label }}{{ op.metier?.label }} - {{ op.physicalGear?.gear?.name }} {{ op.metier?.name }}
+                      }
+                    </td>
+                    <!-- TODO : See comment on thead -->
+                    <!-- <td class="col-tiny ion-text-center"></td> -->
+                    <!-- Start date time -->
+                    @if (stats.options.showStartDate) {
+                      <td class="col-compact">
+                        @if (!isBlankForm) {
+                          {{ op.startDateTime | dateFormat: { time: true } }}
+                        }
+                      </td>
+                      <!-- Start position -->
+                      <td class="col-medium">
+                        @if (isBlankForm) {
+                          <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
+                        } @else {
+                          {{ op.startPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                          <br />
+                          {{ op.startPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                        }
+                      </td>
+                    }
+                    @if (stats.options.showFishingStartDateTime) {
+                      <!-- Fishing start Date time -->
+                      <td class="col-compact">
+                        @if (!isBlankForm) {
+                          {{ op.fishingStartDateTime | dateFormat: { time: true } }}
+                        }
+                      </td>
+                      <!-- Start fishing position -->
+                      <td class="col-medium">
+                        @if (isBlankForm) {
+                          <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
+                        } @else {
+                          {{ op.fishingStartPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                          <br />
+                          {{ op.fishingStartPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                        }
+                      </td>
+                    }
+                    @if (stats.options.showFishingEndDateTime) {
+                      <!-- Fishing end date time -->
+                      <td class="col-compact">
+                        @if (!isBlankForm) {
+                          {{ op.fishingEndDateTime | dateFormat: { time: true } }}
+                        }
+                      </td>
+                      <!-- Fishing end position -->
+                      <td class="col-medium">
+                        @if (isBlankForm) {
+                          <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
+                        } @else {
+                          {{ op.fishingEndPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                          <br />
+                          {{ op.fishingEndPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                        }
+                      </td>
+                    }
+                    @if (stats.options.showEndDate) {
+                      <!-- End date time -->
+                      <td class="col-compact">
+                        @if (!isBlankForm) {
+                          {{ op.endDateTime | dateFormat: { time: true } }}
+                        }
+                      </td>
+                      <!-- End position -->
+                      <td class="col-medium">
+                        @if (isBlankForm) {
+                          <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
+                        } @else {
+                          {{ op.endPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                          <br />
+                          {{ op.endPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                        }
+                      </td>
+                    }
+                    @if (stats.options.allowParentOperation) {
+                      <td class="col-tiny font-small ion-text-center">
+                        <div>
+                          @if (op.parentOperationId | isNil) {
+                            {{ 'TRIP.REPORT.FORM.TYPE_OP.PARENT' | translate }}
+                          } @else {
+                            {{ 'TRIP.REPORT.FORM.TYPE_OP.CHILD' | translate }}
+                          }
+                        </div>
+                      </td>
+                    }
+                    @for (
+                      pmfm of ((op.parentOperationId | isNotNil) ? stats.childPmfms : stats.pmfms) | arrayFilter: filterPmfmForOperationTable;
+                      track pmfm
+                    ) {
+                      <td class="col-tiny font-small ion-text-center">
+                        @if (pmfm | isNotNil) {
+                          <div
+                            [innerHTML]="
+                              stats.measurementValues
+                                | mapGet: index
+                                | mapGet: pmfm.id
+                                | pmfmValue: { pmfm: pmfm, html: false, showYesOrNo: true, propertyNames: ['label'] }
+                            "
+                          ></div>
+                        }
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+            <ng-template #tableOperationHeadPmfmName let-pmfm="pmfm">
+              <th class="col-tiny font-small text-vertical">
+                @if (pmfm | isNotNil) {
+                  <div>
+                    {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix } }}
+                    @if (stats.pmfmsTipsByPmfmId | mapGet: pmfm.id | isNotNil) {
+                      <sup>
+                        <em>*{{ stats.pmfmsTipsByPmfmId | mapGet: pmfm.id | mapGet: 'tipsNum' }}</em>
+                      </sup>
+                    }
+                  </div>
+                }
+              </th>
+            </ng-template>
+            <ul class="caption" [style.margin-top]="'10px'">
+              <li>* : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.ONE_STAR' | translate }}</li>
+              <li>** : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.TWO_STAR' | translate }}</li>
+              @for (key of stats.pmfmsTipsByPmfmId | mapKeys; track $index) {
+                <li>
+                  *{{ stats.pmfmsTipsByPmfmId | mapGet: key | mapGet: 'tipsNum' }} :
+                  {{ stats.pmfmsTipsByPmfmId | mapGet: key | mapGet: 'text' }}
+                </li>
+              }
+            </ul>
+            <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
+          </section>
+
+          <!-- Comments -->
+          <section class="landscape">
+            <page-header-from-report-chunk
+              [i18nContext]="i18nContext"
+              [title]="'TRIP.REPORT.FORM.OPERATION.TITLE_VERSO'"
+              [pageNumber]="$index + 1"
+              [departureDateTime]="departureDateTime"
+              [vesselName]="vesselName"
+              [logoRightUrl]="logoHeadRightUrl"
+              [logoLeftUrl]="logoHeadLeftUrl"
+            ></page-header-from-report-chunk>
+            <table class="table-full-width" [style.margin-top]="'50px'">
+              <thead>
+                <tr>
+                  <th class="col-tiny font-medium text-vertical">
+                    <div>{{ 'TRIP.REPORT.FORM.NUM_OP' | translate }}</div>
+                  </th>
+                  <th class="col-maximum font-medium">
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.COMMENTS' | translate }}</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (op of ops; track $index) {
+                  <tr>
+                    <td class="col-tiny font-medium ion-text-center" [style.padding]="0">
+                      <div>
+                        <b>{{ op.rankOrder }}</b>
+                      </div>
+                    </td>
+                    <td class="col-maximum ion-text-left">
+                      <div>{{ op.comments }}</div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
+          </section>
+        }
+      </section>
+    }
+  </app-reveal>
+}
+
+<ng-template #latLongPlaceHolder>
+  <span class="font-large place-holder">
+    <span [style.letter-spacing]="'3px'">__°__.___</span>
+    N
+    <br />
+    <span [style.letter-spacing]="'3px'">__°__.___</span>
+    E ou W
+  </span>
+</ng-template>
