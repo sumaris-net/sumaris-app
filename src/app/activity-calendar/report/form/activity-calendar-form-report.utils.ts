@@ -99,10 +99,17 @@ export async function computeCommonActivityCalendarFormReportStats(
     forGpfTable: splitById(stats.pmfm.forGpfTable),
   };
 
+  // Sort AUCTION_HABIT qualitativeValues in alphabetical order
+  if (isNotNil(stats.pmfmById.activityCalendar[PmfmIds.AUCTION_HABIT])) {
+    stats.pmfmById.activityCalendar[PmfmIds.AUCTION_HABIT].qualitativeValues = stats.pmfmById.activityCalendar[
+      PmfmIds.AUCTION_HABIT
+    ].qualitativeValues.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   // Order survey qualification values by alphabetical order
   stats.surveyQualificationQualitativeValues = stats.pmfm.activityCalendar
     .filter((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION)[0]
-    ?.qualitativeValues.filter((qv) => (isBlankForm ? true : qv.statusId === StatusIds.ENABLE))
+    ?.qualitativeValues.filter((qv) => (isBlankForm ? qv.statusId === StatusIds.ENABLE : true))
     .sort((a, b) => (a.name > b.name ? 1 : a.name < b.name ? -1 : 0));
 
   return stats;
@@ -147,23 +154,19 @@ export async function computeIndividualActivityCalendarFormReportStats(
   stats.filteredAndOrderedGpf = isBlankForm ? data.gearPhysicalFeatures : GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone });
 
   // compute last vessel owner
-  if (isBlankForm) {
-    stats.lastVesselOwner = VesselOwner.fromObject({});
-  } else {
-    // TODO : get the start date and the end date relative to the clandar year ???
-    const startDate = (timezone ? DateUtils.moment().tz(timezone) : DateUtils.moment()).year(data.year).startOf('year');
-    const endDate = startDate.clone().endOf('year');
-    const filter = VesselOwnerPeriodFilter.fromObject({
-      vesselId: data.vesselSnapshot.id,
-      startDate,
-      endDate,
-    });
-    const vesselOwnerPeriods = await vesselOwnerPeridodService.loadAll(0, 100, 'startDate', 'asc', filter, {
-      fetchPolicy: 'cache-first',
-    });
-    const lastVesselOwner = isNotEmptyArray(vesselOwnerPeriods.data) ? vesselOwnerPeriods.data[0].vesselOwner : VesselOwner.fromObject({});
-    stats.lastVesselOwner = await vesselOwnerService.load(lastVesselOwner.id);
-  }
+  // TODO : get the start date and the end date relative to the clandar year ???
+  const startDate = (timezone ? DateUtils.moment().tz(timezone) : DateUtils.moment()).year(data.year).startOf('year');
+  const endDate = startDate.clone().endOf('year');
+  const filter = VesselOwnerPeriodFilter.fromObject({
+    vesselId: data.vesselSnapshot.id,
+    startDate,
+    endDate,
+  });
+  const vesselOwnerPeriods = await vesselOwnerPeridodService.loadAll(0, 100, 'startDate', 'asc', filter, {
+    fetchPolicy: 'cache-first',
+  });
+  const lastVesselOwner = isNotEmptyArray(vesselOwnerPeriods.data) ? vesselOwnerPeriods.data[0].vesselOwner : VesselOwner.fromObject({});
+  stats.lastVesselOwner = await vesselOwnerService.load(lastVesselOwner.id);
 
   computeMetierTableChunk(stats, pageDimensions);
 
