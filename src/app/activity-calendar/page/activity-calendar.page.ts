@@ -551,14 +551,14 @@ export class ActivityCalendarPage
     }
 
     if (detailsErrors?.months) {
-      this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS';
+      this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.VALID_MONTHS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
       super.setError(undefined, opts);
       return;
     }
 
     if (detailsErrors?.metiers) {
-      this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_METIERS';
+      this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.VALID_METIERS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
       super.setError(undefined, opts);
       return;

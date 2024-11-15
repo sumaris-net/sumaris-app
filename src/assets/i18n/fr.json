@@ -3700,18 +3700,18 @@
     "ERROR": {
       "CANNOT_PASTE_HERE": "Vous ne pouvez pas coller ici.",
       "CONFLICTUAL_MONTH": "Conflit détecté lors de la sauvegarde du calendrier",
-      "DUPLICATED_METIER": "Métier(s) en doublon : {{metiers}}",
+      "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+      "MAX_SELECTED_ITEMS": "Trop d'éléments sélectionnés",
+      "REQUIRED_METIER": "Métier obligatoire",
       "REQUIRED_FISHING_AREA": "Zone de pêche obligatoire pour le(s) métier(s) : {{metiers}}",
       "REQUIRED_INACTIVITY_YEAR": "Inactivité annuelle à confirmer",
       "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}",
-      "INVALID_MONTHS": "Veuillez corriger le(s) mois invalide(s)",
-      "INCONSISTENT_DATA": "Données incohérentes",
-      "INCONSISTENCY_DAY_NUMBER": "Nombre de jours incohérent",
-      "DUPLICATED_FISHING_AREA": "Zone(s) de pêche en doublon : {{fishingArea}}",
-      "INVALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)",
-      "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
-      "MAX_SELECTED_ID": "Nombre maximal d'item sélectionné atteint",
-      "TOO_MANY_RESULT_FOR_REPORT_GENERATION": "Vous ne pouvez pas générer un rapport pour plus de {{nbLimit}} calendriers. Veuillez ajuster votre filtre."
+      "TOO_MANY_RESULT_FOR_REPORT_GENERATION": "Vous ne pouvez pas générer un rapport pour plus de {{nbLimit}} calendriers. Veuillez ajuster votre filtre.",
+      "UNIQUE_METIER": "Métier(s) en doublon : {{metiers}}",
+      "UNIQUE_FISHING_AREA": "Zone(s) de pêche en doublon : {{fishingArea}}",
+      "VALID_MONTHS": "Veuillez corriger le(s) mois invalide(s)",
+      "VALID_DAY_COUNT": "Nombre de jours incorrect pour le mois",
+      "VALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)"
     },
     "WARNING": {
       "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif.",

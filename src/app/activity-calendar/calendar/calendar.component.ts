@@ -452,6 +452,7 @@ export class CalendarComponent
       attributes: this.locationDisplayAttributes,
       panelClass: 'min-width-large',
       selectInputContentOnFocus: true,
+      selectInputContentOnFocusDelay: 200,
     });
 
     this.registerAutocompleteField('metier', {
@@ -2949,7 +2950,12 @@ export class CalendarComponent
   protected async onContextMenu(event: MouseEvent, cell?: HTMLElement, row?: AsyncTableElement<ActivityMonth>, columnName?: string) {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
-    if (!row || !columnName) {
+    if (
+      !row ||
+      !columnName ||
+      // Do not show contextual menu, if row is editing
+      row.editing
+    ) {
       event.preventDefault();
       return; // Skip
     }
@@ -3155,7 +3161,7 @@ export class CalendarComponent
 
     // cannot be placed above the cd.detectChanges()
     if (listErrors.length > 0) {
-      this.setError('ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS');
+      this.setError('ACTIVITY_CALENDAR.ERROR.VALID_MONTHS');
     }
 
     return listErrors;

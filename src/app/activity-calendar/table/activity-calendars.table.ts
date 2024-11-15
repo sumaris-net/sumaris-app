@@ -615,7 +615,7 @@ export class ActivityCalendarsTable
 
     const url = ['activity-calendar', 'report', reportPath].join('/') + '?' + urlParams.toString();
     if (url.length > 2048) {
-      this.setError('ACTIVITY_CALENDAR.ERROR.MAX_SELECTED_ID');
+      this.setError('ACTIVITY_CALENDAR.ERROR.MAX_SELECTED_ITEMS');
     } else {
       const limitWarning = this.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING);
       const limitError = this.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULT_ERROR);

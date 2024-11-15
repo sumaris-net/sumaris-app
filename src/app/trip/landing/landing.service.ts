@@ -449,7 +449,7 @@ export class LandingService
       // Skip update during load()
       filter(() => !this.loading),
       map(({ data, total }) => {
-        let entities = this.fromObjects(data, opts?.toEntity);
+        let entities = this.fromObjects(data, opts);
         if (this._debug) {
           if (now) {
             console.debug(`[landing-service] Loaded {${entities.length || 0}} landings in ${Date.now() - now}ms`, entities);

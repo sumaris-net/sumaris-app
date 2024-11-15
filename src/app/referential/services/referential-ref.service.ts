@@ -255,7 +255,7 @@ export class ReferentialRefService
 
     return res.pipe(
       map(({ data, total }) => {
-        const entities = this.fromObjects(data, opts?.toEntity);
+        const entities = this.fromObjects(data, opts);
         if (now) {
           console.debug(`[referential-ref-service] References on ${entityName} loaded in ${Date.now() - now}ms`);
           now = undefined;
@@ -323,7 +323,7 @@ export class ReferentialRefService
       fetchPolicy: (opts && opts.fetchPolicy) || 'cache-first',
     });
 
-    const entities = this.fromObjects(data, opts?.toEntity);
+    const entities = this.fromObjects(data, opts);
 
     // Force entity name (if searchJoin)
     if (filter.entityName !== uniqueEntityName) {
@@ -378,7 +378,7 @@ export class ReferentialRefService
 
     const { data, total } = await this.entities.loadAll(uniqueEntityName + 'VO', variables);
 
-    const entities = this.fromObjects(data, opts?.toEntity);
+    const entities = this.fromObjects(data, opts);
 
     // Force entity name (if searchJoin)
     if (filter.entityName !== uniqueEntityName) {
@@ -616,7 +616,7 @@ export class ReferentialRefService
       fetchPolicy: (opts && opts.fetchPolicy) || 'cache-first',
     });
 
-    const entities = this.fromObjects(data, opts?.toEntity);
+    const entities = this.fromObjects(data, opts);
 
     if (this._debug) console.debug(`[referential-ref-service] Levels for ${entityName} loading in ${Date.now() - now}`, entities);
 
@@ -916,25 +916,37 @@ export class ReferentialRefService
     return items;
   }
 
-  fromObject<E = ReferentialRef>(source: any, toEntity?: boolean | ((source: any) => E)): E {
+  fromObject<E = ReferentialRef>(
+    source: any,
+    opts?: {
+      toEntity?: boolean | ((source: any, opts?: any) => E);
+      [key: string]: any;
+    }
+  ): E {
     // Simple cast (skip conversion)
-    if (!source || toEntity === false) return source as E;
+    if (!source || opts?.toEntity === false) return source as E;
 
     // User defined function
-    if (typeof toEntity === 'function') {
-      return toEntity(toEntity);
+    if (typeof opts?.toEntity === 'function') {
+      return opts.toEntity(source, opts);
     }
 
     // Entity conversion
-    return ReferentialRef.fromObject(source) as E;
+    return ReferentialRef.fromObject(source, opts) as E;
   }
 
   asFilter(filter: Partial<ReferentialRefFilter>): ReferentialRefFilter {
     return ReferentialRefFilter.fromObject(filter);
   }
 
-  protected fromObjects<E = ReferentialRef>(sources: any[], toEntity?: boolean | ((source: any) => E)): E[] {
-    return (sources || []).map((source) => this.fromObject(source, toEntity));
+  protected fromObjects<E = ReferentialRef>(
+    sources: any[],
+    opts?: {
+      toEntity?: boolean | ((source: any, opts?: any) => E);
+      [key: string]: any;
+    }
+  ): E[] {
+    return (sources || []).map((source) => this.fromObject(source, opts));
   }
 
   private updateModelEnumerations(config: Configuration) {

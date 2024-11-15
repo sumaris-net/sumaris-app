@@ -10,6 +10,7 @@ import {
   BaseEntityGraphqlSubscriptions,
   BaseGraphqlService,
   BaseReferential,
+  EntitiesServiceLoadOptions,
   EntitiesServiceWatchOptions,
   EntitySaveOptions,
   EntityServiceLoadOptions,
@@ -235,7 +236,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<F>,
-    opts?: EntityServiceLoadOptions
+    opts?: EntitiesServiceLoadOptions<T>
   ): Promise<LoadResult<T>> {
     if (!filter || !filter.entityName) {
       console.error('[referential-service] Missing filter.entityName');
@@ -262,30 +263,40 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
 
     const withTotal = !opts || opts.withTotal !== false;
     const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
-    const res = await this.graphql.query<LoadResult<any>>({
+    let { data, total } = await this.graphql.query<LoadResult<any>>({
       query,
       variables,
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
       fetchPolicy: (opts && opts.fetchPolicy) || 'network-only',
     });
-    let data = ((res && res.data) || []) as FullReferential[];
 
-    // Always use unique entityName, if need
+    // Always set the unique entityName, if need
     if (filter.entityName !== uniqueEntityName) {
       data = data.map((r) => <FullReferential>{ ...r, entityName: uniqueEntityName });
     }
 
     // Convert to entities
-    const entities = !opts || opts.toEntity !== false ? data.map((json) => this.fromObject(json)) : data;
+    const entities = this.fromObjects(data, opts);
+
+    const res: LoadResult<T> = {
+      data: entities as unknown as T[],
+      total,
+    };
+
+    // Add fetch more capability, if total was fetched
+    if (withTotal) {
+      const nextOffset = (offset || 0) + entities.length;
+      if (nextOffset < total) {
+        res.fetchMore = () => this.loadAll(nextOffset, size, sortBy, sortDirection, filter, opts);
+      }
+    }
 
     if (debug) console.debug(`[referential-service] ${uniqueEntityName} items loaded in ${Date.now() - now}ms`);
-    return {
-      data: entities as unknown as T[],
-      total: res.total,
-    };
+
+    return res;
   }
 
-  async saveAll(entities: T[], options?: any): Promise<T[]> {
+  async saveAll(entities: T[], opts?: EntitySaveOptions<T>): Promise<T[]> {
     if (!entities) return entities;
 
     // Nothing to save: skip
@@ -313,7 +324,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
         data: json,
       },
       error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' },
-      update: (cache, { data }) => {
+      update: (cache, { data }, { context, variables }) => {
         const savedEntities = data?.data;
         if (savedEntities) {
           // Update entities (id and update date)
@@ -329,6 +340,10 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
             queries: this.getLoadQueries(),
             data: savedEntities,
           });
+        }
+
+        if (opts?.update) {
+          opts.update(cache, { data }, { context, variables });
         }
 
         if (this._debug) console.debug(`[referential-service] ${entityName} saved in ${Date.now() - now}ms`, entities);
@@ -395,7 +410,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
       })
       .pipe(
         map(({ data }) => {
-          const entity = !opts || opts.toEntity !== false ? data && this.fromObject(data) : data;
+          const entity = this.fromObject(data, opts);
           if (entity && this._debug) console.debug(this._logPrefix + `[WS] Received changes on ${opts.entityName}#${id}`, entity);
 
           // TODO: missing = deleted ?
@@ -554,9 +569,21 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
     return ReferentialFilter.fromObject(filter) as F;
   }
 
-  /* -- protected methods -- */
+  fromObject(
+    source: any,
+    opts?: {
+      toEntity?: boolean | ((source: any, opts?: any) => T);
+      [key: string]: any;
+    }
+  ) {
+    // Simple cast (skip conversion)
+    if (!source || opts?.toEntity === false) return source as T;
 
-  fromObject(source: any, opts?: any) {
+    // User defined function
+    if (typeof opts?.toEntity === 'function') {
+      return opts.toEntity(source, opts);
+    }
+
     const target = new this.dataType();
     target.fromObject(source, opts);
     return target;
@@ -564,6 +591,18 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
 
   asObject(source: T, opts?: any) {
     return source.asObject(opts);
+  }
+
+  /* -- protected methods -- */
+
+  protected fromObjects(
+    sources: any[],
+    opts?: {
+      toEntity?: boolean | ((source: any, opts?: any) => T);
+      [key: string]: any;
+    }
+  ): T[] {
+    return (sources || []).map((source) => this.fromObject(source, opts));
   }
 
   protected fillDefaultProperties(entity: Referential) {

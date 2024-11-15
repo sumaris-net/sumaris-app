@@ -12,6 +12,7 @@ import {
   chainPromises,
   changeCaseToUnderscore,
   DateUtils,
+  EntitiesServiceLoadOptions,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
@@ -660,7 +661,7 @@ export class ActivityCalendarService
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<ActivityCalendarFilter>,
-    opts?: ActivityCalendarLoadOptions
+    opts?: EntitiesServiceLoadOptions<ImageAttachment>
   ): Promise<ImageAttachment[]> {
     filter = this.asFilter(filter);
     const variables = {
@@ -678,7 +679,7 @@ export class ActivityCalendarService
     });
     const images = data.flatMap((activityCalendar) => activityCalendar.images);
 
-    return opts?.toEntity === false ? ((images || []) as ImageAttachment[]) : images.map(ImageAttachment.fromObject) || [];
+    return opts?.toEntity !== false ? (images || []).map(ImageAttachment.fromObject) : ((images || []) as ImageAttachment[]);
   }
 
   async hasOfflineData(): Promise<boolean> {
