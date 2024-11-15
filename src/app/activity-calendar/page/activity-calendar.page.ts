@@ -1038,6 +1038,11 @@ export class ActivityCalendarPage
       const source = sources[index];
       if (!source) return target; // Keep original, if missing a month
 
+      if (existingMonth.readonly) {
+        this.calendar.showUnautorizedToast('ACTIVITY_CALENDAR.WARNING.UNAUTHORIZED_PREDOC_PASTE');
+        return existingMonth;
+      }
+
       // Clean isActive if equals to not exists (see issue #687)
       if (source.isActive === VesselUseFeaturesIsActiveEnum.NOT_EXISTS) {
         source.isActive = null;

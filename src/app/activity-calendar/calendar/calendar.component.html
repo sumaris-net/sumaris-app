@@ -585,17 +585,19 @@
               <!--   </mat-icon> -->
               <!-- </button> -->
             } @else if (row.validator | formGetValue: 'isActive' | isNotNil) {
-              <!-- clear button -->
-              <button
-                mat-icon-button
-                [class.cdk-visually-hidden]="cellSelection?.resizing"
-                [class.visible-hover]="!row.editing"
-                [title]="'ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_MONTH' | translate"
-                (click)="clear($event, row)"
-                tabIndex="-1"
-              >
-                <mat-icon [style.color]="row.editing ? 'var(--ion-color-dark)' : 'var(--ion-color-medium)'">delete</mat-icon>
-              </button>
+              @if (!row.currentData.readonly) {
+                <!-- clear button -->
+                <button
+                  mat-icon-button
+                  [class.cdk-visually-hidden]="cellSelection?.resizing"
+                  [class.visible-hover]="!row.editing"
+                  [title]="'ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_MONTH' | translate"
+                  (click)="clear($event, row)"
+                  tabIndex="-1"
+                >
+                  <mat-icon [style.color]="row.editing ? 'var(--ion-color-dark)' : 'var(--ion-color-medium)'">delete</mat-icon>
+                </button>
+              }
             }
           }
         </ng-template>
