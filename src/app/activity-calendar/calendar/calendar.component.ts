@@ -242,6 +242,7 @@ export class CalendarComponent
   protected referentialRefService = inject(ReferentialRefService);
   protected debouncedExpandCellSelection$ = new Subject<TableCellSelection<ActivityMonth>>();
   protected debouncedCheckExpertiseArea$ = new Subject<ActivityMonth[] | undefined>();
+  protected unauthorizedToast$ = new Subject<void | string>();
   protected confirmingRowMutex = new Mutex();
 
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
@@ -446,6 +447,21 @@ export class CalendarComponent
 
     // Wait enumerations to be set
     await this.referentialRefService.ready();
+
+    this.registerSubscription(
+      this.unauthorizedToast$
+        .pipe(
+          debounceTime(100),
+          tap((error) =>
+            this.showToast({
+              icon: 'warning-outline',
+              type: 'warning',
+              message: error || 'ACTIVITY_CALENDAR.WARNING.UNAUTHORIZED_ACTION',
+            })
+          )
+        )
+        .subscribe()
+    );
 
     this.registerAutocompleteField('basePortLocation', {
       suggestFn: (value, filter) => this.suggestBasePortLocations(value, filter),
@@ -1169,6 +1185,10 @@ export class CalendarComponent
       pmfmControl.patchValue(newValue);
       this.markAsDirty();
     }
+  }
+
+  async showUnautorizedToast(error?: string) {
+    this.unauthorizedToast$.next(error);
   }
 
   async shiftClick(event?: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
@@ -2040,11 +2060,7 @@ export class CalendarComponent
 
       // Warn user that he cannot edit
       if (month.readonly === true) {
-        await this.showToast({
-          icon: 'warning-outline',
-          type: 'warning',
-          message: 'ACTIVITY_CALENDAR.WARNING.UNAUTHORIZED_REGISTRATION_LOCATION',
-        });
+        this.showUnautorizedToast();
       }
       return false;
     }
@@ -2225,8 +2241,10 @@ export class CalendarComponent
 
     const rows = this.dataSource.getRows();
     for (const row of rows) {
-      const isActive = row.currentData.isActive;
-      if (isNotNil(isActive)) await this.clear(event, row, { interactive: false });
+      if (!row.currentData.readonly) {
+        const isActive = row.currentData.isActive;
+        if (isNotNil(isActive)) await this.clear(event, row, { interactive: false });
+      }
     }
 
     // Clear valid row counter
@@ -2455,6 +2473,10 @@ export class CalendarComponent
 
     let dirty = false;
     targetRows.forEach((row, index) => {
+      if (row.currentData.readonly) {
+        this.showUnautorizedToast();
+        return;
+      }
       const form = row.validator;
       if (form) {
         const isActiveControl = form.get('isActive');
@@ -2598,6 +2620,10 @@ export class CalendarComponent
 
     for (const row of rows) {
       paths.forEach((path) => {
+        if (row.currentData.readonly) {
+          this.showUnautorizedToast();
+          return;
+        }
         setPropertyByPath(row, path, null);
         if (this.error) this.resetError();
         this.validatorService.updateFormGroup(row.validator);
@@ -2825,6 +2851,12 @@ export class CalendarComponent
 
       // Creating a form
       const targetForm = this.validatorService.getFormGroup(targetRow.currentData, { withMeasurements: true, pmfms: this.pmfms });
+
+      if (targetForm.value.readonly) {
+        this.showUnautorizedToast();
+        return;
+      }
+
       //TODO getFormGroup does not return the pmfms, to be fixed with BL
       targetForm.get('measurementValues')?.patchValue(targetRow.currentData.measurementValues);
 

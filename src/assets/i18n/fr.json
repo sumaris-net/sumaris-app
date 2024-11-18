@@ -3716,6 +3716,8 @@
     },
     "WARNING": {
       "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif.",
+      "UNAUTHORIZED_ACTION": "Vous n'êtes <b>pas autorisé</b> à effectuer cette action.",
+      "UNAUTHORIZED_PREDOC_PASTE": "Seuls les mois <b>autorisés</b> ont été collés dans le calendrier.",
       "UNAUTHORIZED_REGISTRATION_LOCATION": "Vous n'êtes <b>pas autorisé</b> à saisir sur ce lieu d'immatriculation."
     }
   },
