@@ -452,6 +452,7 @@ export class CalendarComponent
       attributes: this.locationDisplayAttributes,
       panelClass: 'min-width-large',
       selectInputContentOnFocus: true,
+      selectInputContentOnFocusDelay: 200,
     });
 
     this.registerAutocompleteField('metier', {
@@ -1134,7 +1135,7 @@ export class CalendarComponent
     const isActiveControl = row.validator.get('isActive');
     const isActive = isActiveControl?.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
     const pmfmControl = row.validator.get(`measurementValues.${pmfm.id}`);
-    if (!pmfmControl) return;
+    if (!pmfmControl) return; // Skip if no control
 
     // Compute new control's value
     let valueStr: string = pmfmControl.value?.toString() || '';
@@ -1487,9 +1488,8 @@ export class CalendarComponent
       await sleep(HAMMER_TAP_TIME + 10);
     }
 
-    if (event?.defaultPrevented || row.editing) return false; // Skip
-
     this.closeContextMenu();
+    if (event?.defaultPrevented || row.editing) return false; // Skip
 
     // Wait of resizing or validating
     if (this.cellSelection?.resizing || this.cellSelection?.validating) {
@@ -2080,13 +2080,17 @@ export class CalendarComponent
     if (!row) {
       const editingRows = this.dataSource.getEditingRows();
       if (isEmptyArray(editingRows)) return true; // No rows to confirm
-      console.debug(this.logPrefix + `lock rows`, new Error(), editingRows);
+
+      // DEBUG
+      // console.debug(this.logPrefix + `lock rows`, editingRows);
+
       return (await Promise.all(editingRows.map((editedRow) => this.confirmEditCreate(event, editedRow)))).every((c) => c === true);
     }
     const confirmEditCreateId = this.confirmEditCreateId++;
 
     try {
-      console.debug(this.logPrefix + `lock row#${row?.id} - ID #${confirmEditCreateId}`, new Error());
+      // DEBUG
+      //console.debug(this.logPrefix + `lock row#${row?.id} - ID #${confirmEditCreateId}`);
 
       // Lock the row, or wait until can lock
       await this.confirmingRowMutex.lock(row);
@@ -2095,7 +2099,8 @@ export class CalendarComponent
 
       if (!row || !row.editing) return true; // nothing to confirmed
 
-      console.debug(this.logPrefix + `confirmEditCreate row#${row?.id}`);
+      // DEBUG
+      //console.debug(this.logPrefix + `confirmEditCreate row#${row?.id}`);
 
       // Allow to confirm when invalid
       const form = row.validator;
@@ -2949,14 +2954,18 @@ export class CalendarComponent
   protected async onContextMenu(event: MouseEvent, cell?: HTMLElement, row?: AsyncTableElement<ActivityMonth>, columnName?: string) {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
-    if (!row || !columnName) {
+    if (!row || !columnName) return; // Skip
+
+    // Do not show contextual menu, if row is editing
+    if (row.editing) {
+      this.closeContextMenu();
       event.preventDefault();
-      return; // Skip
+      return;
     }
 
     // select current row
     if (!this.isInsideCellSelection(this.cellSelection, cell)) {
-      this.selectCell(event, row, columnName);
+      await this.confirmEditCell(event, row, columnName);
     }
     event.preventDefault();
 
@@ -2977,7 +2986,9 @@ export class CalendarComponent
     columnName = columnName ?? this.focusColumn;
     if (!row || !columnName) return; //
 
-    this.focusColumn = columnName;
+    if (row === this.editedRow) {
+      this.focusColumn = columnName;
+    }
 
     const cellElement = this.getEventCellElement(event);
     this.cellSelection = {
@@ -3141,23 +3152,21 @@ export class CalendarComponent
     rows.forEach((row) => {
       const form = this.validatorService.getFormGroup(row.currentData, { withMeasurements: true, pmfms: this.pmfms });
 
-      //TODO getFormGroup does not return the pmfms, to be fixed with BL
-      form.get('measurementValues')?.patchValue(row.currentData.measurementValues);
-
-      const entity = form.value;
       const errorTranslate = this.formErrorAdapter.translateFormErrors(form, this.errorTranslateOptions);
 
       if (form.errors) {
-        DataEntityUtils.markAsInvalid(entity, errorTranslate);
-        row.validator.patchValue(entity, { emitEvent: false });
+        DataEntityUtils.markFormAsInvalid(row.validator, errorTranslate, { emitEvent: false });
         listErrors.push(errorTranslate);
+      } else {
+        DataEntityUtils.resetFormQualification(row.validator, { emitEvent: false });
       }
     });
+
     this.cd.detectChanges();
 
     // cannot be placed above the cd.detectChanges()
     if (listErrors.length > 0) {
-      this.setError('ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS');
+      this.setError('ACTIVITY_CALENDAR.ERROR.VALID_MONTHS');
     }
 
     return listErrors;

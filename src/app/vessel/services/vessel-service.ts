@@ -520,7 +520,7 @@ export class VesselService
           });
         }
 
-        if (opts && opts.update) {
+        if (opts?.update) {
           opts.update(proxy, res);
         }
 

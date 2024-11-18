@@ -15,61 +15,80 @@
 </ion-header>
 
 <ion-content>
+  <!-- prettier-ignore -->
   <app-reveal [options]="revealOptions" #reveal>
     <section *sectionDef>
-      <section markdown ngPreserveWhitespaces>
-        # Title 1 ## Title 2 ### Title 3 Paragraph **bold** with a [link](https://www.sumaris.net) > A quoted text
-      </section>
+      <section markdown>
+        # Title 1
+        ## Title 2
+        ### Title 3
 
-      <section markdown ngPreserveWhitespaces>
-        # A table Item | Price | # In stock | --------------|-----------|------------| Juicy Apples | 1.99 | *7* | Bananas | **1.89** | 5234 |
+        Paragraph **bold** with a [link](https://www.sumaris.net)
+        > A quoted text
+      </section>
+      <section markdown>
+        # A table
+        |Item | Price | # In stock  |
+        | --------------|-----------|------------|
+        | Juicy Apples | 1.99 | *7* |
+        | Bananas | **1.89** | 5234 |
       </section>
     </section>
 
-    <section markdown ngPreserveWhitespaces *sectionDef>
-      # Démo [Reveal.js](https://revealjs.com/) La démo utilise d'autres plugins utiles : `Markdown`, `Chart`
+    <section markdown *sectionDef>
+      # Démo
+
+      [Reveal.js](https://revealjs.com/)
+
+      La démo utilise d'autres plugins utiles : `Markdown`, `Chart`
     </section>
+
     <!-- Markdown -->
     <section *sectionDef>
-      <section markdown ngPreserveWhitespaces>
-        # Markdown Écrivez vos diapos directement au format [Markdown](https://www.markdownguide.org/basic-syntax).
+      <section markdown>
+        # Markdown
+        Écrivez vos diapos directement au format [Markdown](https://www.markdownguide.org/basic-syntax).
       </section>
 
-      <section markdown ngPreserveWhitespaces>## Diapo 1 Un paragraphe avec un [lien](https://www.sumaris.net).</section>
+      <section markdown>
+        ## Diapo 1
+        Un paragraphe avec un [lien](https://www.sumaris.net).
+      </section>
 
-      <section markdown ngPreserveWhitespaces>## Diapo 2 ![image](assets/img/logo/logo-sumaris.png)</section>
-      <section data-markdown ngPreserveWhitespaces>
-        # Documentation - [Guide de la syntaxe Markdown](https://www.markdownguide.org/basic-syntax) - [Configuration du plugin Reveal.js
+      <section markdown>
+        ## Diapo 2
+        ![image](assets/img/logo/logo-sumaris.png)
+      </section>
+      <section data-markdown>
+        # Documentation
+
+        - [Guide de la syntaxe Markdown](https://www.markdownguide.org/basic-syntax)
+        - [Configuration du plugin Reveal.js
         Markdown](https://revealjs.com/markdown/)
       </section>
     </section>
 
     <!-- Chart -->
     <section *sectionDef>
+
       <section>
-        <p>
-          Today's winning 3 digit number is :
-          <span class="random"></span>
-          ,
-          <span class="random"></span>
-          ,
-          <span class="random"></span>
-          .
-        </p>
-      </section>
-      <section>
-        <div markdown ngPreserveWhitespaces># Chart Insérez des graphiques [Chart.js](https://www.chartjs.org/) dans vos diapos.</div>
+        <div markdown>
+          # Chart
+
+          Insérez des graphiques [Chart.js](https://www.chartjs.org/) dans vos diapos.
+          Cool, non ?
+        </div>
 
         <div style="height: 450px">
           <canvas baseChart [type]="'bar'" [data]="chart.data" [options]="chart.options"></canvas>
         </div>
-
-        <div markdown ngPreserveWhitespaces>Cool, non ?</div>
       </section>
 
-      <section markdown ngPreserveWhitespaces>
-        # Documentation - [Documentation de Chart.js](https://www.chartjs.org/) - [Documentation du plugin Reveal.js
-        Chart](https://github.com/rajgoel/reveal.js-plugins/tree/master/chart) ([démo](https://rajgoel.github.io/reveal.js-demos/chart-demo.html#/))
+      <section markdown>
+        # Documentation
+
+        - [Documentation de Chart.js](https://www.chartjs.org/)
+        - [Documentation du plugin Reveal.js Chart](https://github.com/rajgoel/reveal.js-plugins/tree/master/chart) ([démo](https://rajgoel.github.io/reveal.js-demos/chart-demo.html#/))
       </section>
     </section>
   </app-reveal>

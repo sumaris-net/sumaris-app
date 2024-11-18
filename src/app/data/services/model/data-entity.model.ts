@@ -213,6 +213,24 @@ export abstract class DataEntityUtils {
     );
   }
 
+  static resetQualification(entity: DataEntity<any, any> | undefined) {
+    entity.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
+    entity.qualificationComments = null;
+    entity.qualificationDate = null;
+  }
+
+  static resetFormQualification(formGroup: UntypedFormGroup, opts?: { emitEvent?: boolean }) {
+    if (!formGroup) return; // skip
+    formGroup.patchValue(
+      <Partial<DataEntity<any, any>>>{
+        qualityFlagId: QualityFlagIds.NOT_QUALIFIED,
+        qualificationComments: null,
+        qualificationDate: null,
+      },
+      opts
+    );
+  }
+
   /**
    * Check if an entity has been mark as invalid
    *

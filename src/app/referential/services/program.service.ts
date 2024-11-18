@@ -34,7 +34,7 @@ import { ProgramFilter } from './filter/program.filter';
 import { ProgramPrivilegeIds } from '@app/referential/services/model/model.enum';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-export interface ProgramSaveOptions extends EntitySaveOptions {
+export interface ProgramSaveOptions extends EntitySaveOptions<Program, any> {
   withStrategies?: boolean; // False by default
   withDepartments?: boolean; // True by default
   withPersons?: boolean; // True by default
@@ -257,16 +257,15 @@ export class ProgramService
       ...opts,
     };
 
-    const options: EntitySaveOptions = {
-      awaitRefetchQueries: opts.awaitRefetchQueries,
-      refetchQueries: opts.refetchQueries,
-      update: opts.update,
-    };
-
     if (!this.mutations.save) {
       if (!this.mutations.saveAll) throw new Error('Not implemented');
 
-      const data = await this.saveAll([entity], options);
+      const saveAllOptions: EntitySaveOptions<Program, any> = {
+        awaitRefetchQueries: opts.awaitRefetchQueries,
+        refetchQueries: opts.refetchQueries,
+        update: opts.update,
+      };
+      const data = await this.saveAll([entity], saveAllOptions);
       return data && data[0];
     }
 
@@ -283,8 +282,8 @@ export class ProgramService
 
     await this.graphql.mutate<{ data: any }>({
       mutation: this.mutations.save,
-      refetchQueries: this.getRefetchQueriesForMutation(options),
-      awaitRefetchQueries: options && options.awaitRefetchQueries,
+      refetchQueries: this.getRefetchQueriesForMutation(opts),
+      awaitRefetchQueries: opts && opts.awaitRefetchQueries,
       variables: {
         data: json,
         options: {
@@ -294,7 +293,7 @@ export class ProgramService
         },
       },
       error: { code: ErrorCodes.SAVE_PROGRAM_ERROR, message: 'PROGRAM.ERROR.SAVE_PROGRAM_ERROR' },
-      update: (cache, { data }) => {
+      update: (cache, { data }, { context, variables }) => {
         // Update entity
         const savedEntity = data && data.data;
         this.copyIdAndUpdateDate(savedEntity, entity);
@@ -307,8 +306,8 @@ export class ProgramService
           });
         }
 
-        if (options && options.update) {
-          options.update(cache, { data });
+        if (opts?.update) {
+          opts.update(cache, { data }, { context, variables });
         }
 
         if (this._debug) console.debug(this._logPrefix + `${entity.__typename} saved in ${Date.now() - now}ms`, entity);

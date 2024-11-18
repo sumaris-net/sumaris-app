@@ -12,13 +12,14 @@ import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
             <h1>Diapo 3 a</h1>
           </section>
           <section>
-            <h1>Dipo 3 b</h1>
+            <h1>Diapo 3 b</h1>
           </section>
         </section>
       </ng-template>
       <ng-content></ng-content>
     </app-reveal>
   `,
+  preserveWhitespaces: true,
 })
 export class ReportEmbeddedChildTestPage implements AfterViewInit {
   revealOptions: Partial<IRevealOptions> = {};
@@ -33,6 +34,7 @@ export class ReportEmbeddedChildTestPage implements AfterViewInit {
 @Component({
   selector: 'app-report-embedded-test-page',
   templateUrl: './report-embedded.testing.html',
+  preserveWhitespaces: true,
 })
 export class ReportEmbeddedTestPage implements AfterViewInit {
   revealOptions: Partial<IRevealOptions> = {};
