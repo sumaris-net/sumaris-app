@@ -1,5 +1,5 @@
 <app-toolbar
-  [title]="$title | async"
+  [title]="titleSubject | async"
   color="primary"
   [hasValidate]="!loading"
   (onValidate)="save($event)"
@@ -40,58 +40,14 @@
 
       <div class="ion-no-padding">
         <!-- error -->
-        <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-        </ion-item>
+        @if (mobile) {
+          <app-error-item [message]="errorSubject | async"></app-error-item>
+        }
 
-        <!-- debug -->
-        <app-debug *ngIf="debug">
-          <ion-grid>
-            <ion-row>
-              <ion-col>
-                ready: {{ readySubject | async }}
-                <br />
-                loading: {{ loading }}
-                <br />
-                enabled: {{ enabled }}
-                <br />
-                dirty: {{ dirty }}
-                <br />
-              </ion-col>
-              <ion-col>
-                productForm.ready: {{ productForm.readySubject | async }}
-                <br />
-                productForm.loading: {{ productForm.loading }}
-                <br />
-                productForm.enabled: {{ productForm.enabled }}
-                <br />
-                productForm.dirty: {{ productForm.dirty }}
-                <br />
-              </ion-col>
-              <ion-col *ngIf="datasourceTable">
-                datasourceTable.ready: {{ datasourceTable.readySubject | async }}
-                <br />
-                datasourceTable.loading: {{ datasourceTable.loading }}
-                <br />
-                datasourceTable.enabled: {{ datasourceTable.enabled }}
-                <br />
-                datasourceTable.dirty: {{ datasourceTable.dirty }}
-                <br />
-              </ion-col>
-              <ion-col *ngIf="resultTable">
-                resultTable.ready: {{ resultTable.readySubject | async }}
-                <br />
-                resultTable.loading: {{ resultTable.loading }}
-                <br />
-                resultTable.enabled: {{ resultTable.enabled }}
-                <br />
-                resultTable.dirty: {{ resultTable.dirty }}
-                <br />
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </app-debug>
+        <!-- DEBUG -->
+        @if (debug) {
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        }
 
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
@@ -193,3 +149,53 @@
     </ion-item>
   </app-form-buttons-bar>
 </ion-footer>
+
+<!-- debug -->
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid>
+      <ion-row>
+        <ion-col>
+          ready: {{ readySubject | async }}
+          <br />
+          loading: {{ loading }}
+          <br />
+          enabled: {{ enabled }}
+          <br />
+          dirty: {{ dirty }}
+          <br />
+        </ion-col>
+        <ion-col>
+          productForm.ready: {{ productForm.readySubject | async }}
+          <br />
+          productForm.loading: {{ productForm.loading }}
+          <br />
+          productForm.enabled: {{ productForm.enabled }}
+          <br />
+          productForm.dirty: {{ productForm.dirty }}
+          <br />
+        </ion-col>
+        <ion-col *ngIf="datasourceTable">
+          datasourceTable.ready: {{ datasourceTable.readySubject | async }}
+          <br />
+          datasourceTable.loading: {{ datasourceTable.loading }}
+          <br />
+          datasourceTable.enabled: {{ datasourceTable.enabled }}
+          <br />
+          datasourceTable.dirty: {{ datasourceTable.dirty }}
+          <br />
+        </ion-col>
+        <ion-col *ngIf="resultTable">
+          resultTable.ready: {{ resultTable.readySubject | async }}
+          <br />
+          resultTable.loading: {{ resultTable.loading }}
+          <br />
+          resultTable.enabled: {{ resultTable.enabled }}
+          <br />
+          resultTable.dirty: {{ resultTable.dirty }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

@@ -897,7 +897,7 @@ export class TripService
       refetchQueries: this.getRefetchQueriesForMutation(opts),
       awaitRefetchQueries: opts && opts.awaitRefetchQueries,
       error: { code: DataErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR' },
-      update: async (cache, { data }) => {
+      update: async (cache, { data }, options) => {
         const savedEntity = data && data.data;
 
         // Local entity (optimistic response): save it
@@ -936,8 +936,8 @@ export class TripService
             });
           }
 
-          if (opts && opts.update) {
-            opts.update(cache, { data });
+          if (opts?.update) {
+            opts.update(cache, { data }, options);
           }
 
           if (this._debug) console.debug(`[trip-service] Trip saved remotely in ${Date.now() - now}ms`, entity);

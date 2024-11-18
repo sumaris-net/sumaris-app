@@ -201,10 +201,10 @@
           </ion-col>
         </ion-row>
 
-        <!-- Recorder criteria -->
-        @if (showRecorder && !mobile) {
-          <ion-row>
-            <ion-col>
+        <ion-row>
+          <!-- Recorder (desktop only) -->
+          @if (!mobile && showRecorder) {
+            <ion-col size="12" size-lg="6">
               <!-- Recorder department -->
               <mat-autocomplete-field
                 [placeholder]="'TRIP.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
@@ -216,7 +216,7 @@
               </mat-autocomplete-field>
             </ion-col>
 
-            <ion-col>
+            <ion-col size="12" size-lg="6">
               <!-- Recorder person -->
               <mat-autocomplete-field
                 [placeholder]="'TRIP.TABLE.FILTER.RECORDER_PERSON' | translate"
@@ -228,46 +228,76 @@
                 <ion-icon matPrefix name="person"></ion-icon>
               </mat-autocomplete-field>
             </ion-col>
-          </ion-row>
-        }
+          }
 
-        @if ((showObservers || showQuality) && !mobile) {
-          <ion-row>
-            <!-- Observers -->
-            @if (showObservers) {
-              <ion-col size="12" size-lg="6">
-                <mat-autocomplete-field
-                  [placeholder]="'TRIP.TABLE.FILTER.OBSERVERS' | translate"
-                  [formControl]="filterObserversForm.at(0)"
-                  [config]="autocompleteFields.person"
-                  [i18nPrefix]="'USER.'"
-                  [clearable]="true"
-                >
-                  <ion-icon matPrefix name="person"></ion-icon>
-                </mat-autocomplete-field>
-              </ion-col>
-            }
+          <!-- Observers (desktop only) -->
+          @if (!mobile && showObservers) {
+            <ion-col size="12" size-lg="6">
+              <mat-autocomplete-field
+                [placeholder]="'TRIP.TABLE.FILTER.OBSERVERS' | translate"
+                [formControl]="filterObserversForm.at(0)"
+                [config]="autocompleteFields.person"
+                [i18nPrefix]="'USER.'"
+                [clearable]="true"
+              >
+                <ion-icon matPrefix name="person"></ion-icon>
+              </mat-autocomplete-field>
+            </ion-col>
+          }
 
-            @if (showQuality && filterForm | formGetControl: 'dataQualityStatus'; as control) {
-              <!-- Data quality status -->
-              <ion-col [sizeLg]="control.value !== 'QUALIFIED' ? 6 : 3">
-                <mat-form-field>
-                  <ion-icon matPrefix name="create"></ion-icon>
-                  <mat-label>{{ 'TRIP.TABLE.QUALITY' | translate }}</mat-label>
-                  <mat-select [formControl]="control">
-                    <mat-select-trigger>
-                      @if (statusById | mapGet: control.value; as item) {
-                        <span>
-                          {{ item.label | translate }}
-                        </span>
-                      }
-                    </mat-select-trigger>
-                    @for (item of statusList; track item.id) {
+          <!-- Data quality (desktop only) -->
+          @if (!mobile && filterForm | formGetControl: 'dataQualityStatus'; as control) {
+            <!-- Data quality status -->
+            <ion-col [sizeLg]="!showQuality || control.value !== 'QUALIFIED' ? 6 : 3">
+              <mat-form-field>
+                <ion-icon matPrefix name="create"></ion-icon>
+                <mat-label>{{ 'TRIP.TABLE.QUALITY' | translate }}</mat-label>
+                <mat-select [formControl]="control">
+                  <mat-select-trigger>
+                    @if (dataQualityStatusById | mapGet: control.value; as item) {
+                      <span>
+                        {{ item.label | translate }}
+                      </span>
+                    }
+                  </mat-select-trigger>
+                  @for (item of dataQualityStatusList; track item.id) {
+                    @if (showQuality || item.id !== 'QUALIFIED') {
                       <mat-option [value]="item.id">
                         <ion-icon [name]="item.icon"></ion-icon>
                         {{ item.label | translate }}
                       </mat-option>
                     }
+                  }
+                </mat-select>
+
+                <button
+                  matSuffix
+                  mat-icon-button
+                  tabindex="-1"
+                  type="button"
+                  (click)="clearFilterValue('dataQualityStatus', $event)"
+                  [hidden]="disabled || !control.value"
+                >
+                  <mat-icon>close</mat-icon>
+                </button>
+              </mat-form-field>
+            </ion-col>
+
+            <!-- Quality flag -->
+            @if (showQuality && filterForm | formGetControl: 'qualityFlagId'; as flagControl) {
+              <ion-col size="12" size-lg="3" [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'">
+                <mat-form-field>
+                  <mat-label>{{ 'TRIP.TABLE.FILTER.QUALITY_FLAG_ID' | translate }}</mat-label>
+                  <mat-select [formControl]="flagControl">
+                    <mat-option
+                      *ngFor="let item of qualityFlags | arrayFilter: excludeNotQualified"
+                      style="background-color: var(--ion-color-{{ item.id | qualityFlagToColor }}); color: var(--ion-color-{{
+                        item.id | qualityFlagToColor
+                      }}-contrast)"
+                      [value]="item.id"
+                    >
+                      {{ item.label | translate }}
+                    </mat-option>
                   </mat-select>
 
                   <button
@@ -275,47 +305,16 @@
                     mat-icon-button
                     tabindex="-1"
                     type="button"
-                    (click)="clearFilterValue('dataQualityStatus', $event)"
-                    [hidden]="disabled || !control.value"
+                    (click)="clearFilterValue('qualityFlagId', $event)"
+                    [hidden]="disabled || !flagControl.value"
                   >
                     <mat-icon>close</mat-icon>
                   </button>
                 </mat-form-field>
               </ion-col>
-
-              <!-- Quality flag -->
-              @if (filterForm | formGetControl: 'qualityFlagId'; as flagControl) {
-                <ion-col size="12" size-lg="3" [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'">
-                  <mat-form-field>
-                    <mat-label>{{ 'TRIP.TABLE.FILTER.QUALITY_FLAG_ID' | translate }}</mat-label>
-                    <mat-select [formControl]="flagControl">
-                      <mat-option
-                        *ngFor="let item of qualityFlags | arrayFilter: excludeNotQualified"
-                        style="background-color: var(--ion-color-{{ item.id | qualityFlagToColor }}); color: var(--ion-color-{{
-                          item.id | qualityFlagToColor
-                        }}-contrast)"
-                        [value]="item.id"
-                      >
-                        {{ item.label | translate }}
-                      </mat-option>
-                    </mat-select>
-
-                    <button
-                      matSuffix
-                      mat-icon-button
-                      tabindex="-1"
-                      type="button"
-                      (click)="clearFilterValue('qualityFlagId', $event)"
-                      [hidden]="disabled || !flagControl.value"
-                    >
-                      <mat-icon>close</mat-icon>
-                    </button>
-                  </mat-form-field>
-                </ion-col>
-              }
             }
-          </ion-row>
-        }
+          }
+        </ion-row>
       </ion-grid>
     </form>
 

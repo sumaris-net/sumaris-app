@@ -334,14 +334,16 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <ng-container *ngIf="type?.sheetNames as sheetNames">
-    <nav mat-tab-nav-bar *ngIf="sheetNames | isArrayLength: { greaterThan: 1 }" [tabPanel]="tableContainer">
-      <a mat-tab-link *ngFor="let item of sheetNames" (click)="setSheetName(item)" [active]="item === sheetName">
-        <ion-text>{{ getI18nSheetName(item) }}</ion-text>
-        <mat-icon *ngIf="hasFilterCriteria(item)">filter_list_alt</mat-icon>
-      </a>
-    </nav>
-  </ng-container>
+  @if (type?.sheetNames; as sheetNames) {
+    @if (sheetNames | isArrayLength: { greaterThan: 1 }) {
+      <nav mat-tab-nav-bar [tabPanel]="tableContainer">
+        <a mat-tab-link *ngFor="let item of sheetNames" (click)="setSheetName(item)" [active]="item === sheetName">
+          <ion-text>{{ getI18nSheetName(item) }}</ion-text>
+          <mat-icon *ngIf="hasFilterCriteria(item)">filter_list_alt</mat-icon>
+        </a>
+      </nav>
+    }
+  }
 
   <!-- filter panel -->
   <mat-expansion-panel
@@ -402,10 +404,9 @@
   </mat-expansion-panel>
 
   <!-- error -->
-  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (mobile) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
 
   <div
     #tableContainer
@@ -506,17 +507,7 @@
   <ion-toolbar class="hidden-xs hidden-sm hidden-mobile" *ngIf="!embedded">
     <ion-row class="ion-no-padding" nowrap>
       <ion-col>
-        <ion-item *rxIf="errorSubject; let error; else: debugPanel" lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-        </ion-item>
-
-        <ng-template #debugPanel>
-          <app-debug *ngIf="debug">
-            loading: {{ loading }}
-            <br />
-          </app-debug>
-        </ng-template>
+        <app-error-item [message]="errorSubject | async"></app-error-item>
       </ion-col>
 
       <ion-col size="auto">

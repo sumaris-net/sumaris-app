@@ -26,3 +26,12 @@
     pointer-events: none !important;
   }
 }
+
+
+html {
+  &.plt-mobile {
+    .mat-tab {
+      min-width: fit-content !important;
+    }
+  }
+}

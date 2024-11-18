@@ -139,11 +139,8 @@
       }
 
       <!-- error -->
-      @if (showError && errorSubject | async; as error) {
-        <ion-item lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-        </ion-item>
+      @if (showError) {
+        <app-error-item [message]="errorSubject | async"></app-error-item>
       }
 
       <!-- spacer + title -->
@@ -261,10 +258,10 @@
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            @if (row.currentData.qualificationComments | isNilOrBlank) {
-              {{ row | activityMonthRowError: errorTranslateOptions }}
+            @if (row.currentData.qualificationComments; as error) {
+              {{ error }}
             } @else {
-              {{ row.currentData.qualificationComments }}
+              <!--              {{ row | activityMonthRowError: errorTranslateOptions }}-->
             }
           </span>
         </mat-header-cell>

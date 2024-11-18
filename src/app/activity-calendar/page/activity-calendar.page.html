@@ -473,6 +473,7 @@
           [requiredStrategy]="requiredStrategy$ | async"
           [strategyId]="(strategy$ | async)?.id"
           [timezone]="timezone"
+          [showToolbar]="false"
           [showSelectColumn]="false"
           [showIdColumn]="false"
           [showGearColumn]="false"
@@ -482,6 +483,9 @@
           [canDelete]="false"
           [canEditMetier]="false"
           [canEditGear]="false"
+          noResultLabel="ACTIVITY_CALENDAR.EDIT.NO_DATA_REQUIRED"
+          noResultColor="primary100"
+          [debug]="debug"
         ></app-gear-physical-features-table>
       </div>
     </mat-tab>

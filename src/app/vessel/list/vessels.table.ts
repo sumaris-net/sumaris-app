@@ -22,7 +22,6 @@ import { Observable, tap } from 'rxjs';
 import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { AppRootDataTable } from '@app/data/table/root-table.class';
 import { VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
@@ -44,14 +43,13 @@ export const VesselsTableSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> implements OnInit {
-  locations: Observable<ReferentialRef[]>;
+  protected locations: Observable<ReferentialRef[]>;
+  protected readonly statusList = StatusList;
+  protected readonly statusById = StatusById;
 
-  readonly statusList = StatusList;
-  readonly statusById = StatusById;
   readonly onSearchBarChanged = new EventEmitter<string>();
   readonly searchTextControl: UntypedFormControl;
 
-  @Input() canDelete: boolean;
   @Input() showFabButton = false;
   @Input() disableStatusFilter = false;
   @Input() showVesselTypeFilter = true;
@@ -95,8 +93,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     formBuilder: UntypedFormBuilder,
     settings: LocalSettingsService,
     accountService: AccountService,
-    protected vesselService: VesselService,
-    protected referentialRefService: ReferentialRefService
+    protected vesselService: VesselService
   ) {
     super(
       injector,

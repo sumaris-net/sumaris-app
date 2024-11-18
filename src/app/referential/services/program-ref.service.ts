@@ -390,7 +390,7 @@ export class ProgramRefService
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<ProgramFilter>,
-    opts?: EntitiesServiceLoadOptions & { debug?: boolean }
+    opts?: EntitiesServiceLoadOptions<Program> & { debug?: boolean }
   ): Promise<LoadResult<Program>> {
     // Use search attribute as default sort, is set
     sortBy =
@@ -411,10 +411,7 @@ export class ProgramRefService
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<ProgramFilter>,
-    opts?: {
-      [key: string]: any;
-      toEntity?: boolean;
-    }
+    opts?: EntitiesServiceLoadOptions<Program>
   ): Promise<LoadResult<Program>> {
     filter = this.asFilter(filter);
 

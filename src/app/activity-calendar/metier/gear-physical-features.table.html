@@ -130,7 +130,14 @@
 
     <!-- Pmfms columns -->
     <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm | pmfmIdString">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm" class="mat-column-pmfm">
+      <th
+        mat-header-cell
+        *matHeaderCellDef
+        mat-sort-header
+        class="mat-column-pmfm"
+        [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
+        [class.odd]="pmfm.rankOrder | odd"
+      >
         <ion-label [innerHTML]="pmfm | pmfmName: { html: true, withDetails: true }"></ion-label>
       </th>
       <td
@@ -139,6 +146,7 @@
         class="mat-column-pmfm"
         [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
         [class.mat-mdc-cell-computed]="pmfm | isComputedPmfm"
+        [class.odd]="pmfm.rankOrder | odd"
         (click)="focusColumn = pmfm.id.toString()"
       >
         @if (row.editing) {
@@ -206,7 +214,7 @@
     </ion-item>
   } @else if (totalRowCount === 0) {
     <ion-item>
-      <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+      <ion-text [color]="noResultColor" class="text-italic">{{ noResultLabel | translate }}</ion-text>
       <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
     </ion-item>
   }

@@ -502,7 +502,7 @@ export class ActivityCalendarPage
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
       this.i18nContext.suffix = i18nSuffix;
 
-      this.isAdminOrManager = this.accountService.isAdmin() || this.programRefService.hasUserManagerPrivilege(program);
+      this.isAdminOrManager = this.accountService.isSupervisor() || this.programRefService.hasUserManagerPrivilege(program);
       this.baseForm.showObservers = this.isAdminOrManager && program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
 
       if (this.baseForm) {
@@ -551,14 +551,14 @@ export class ActivityCalendarPage
     }
 
     if (detailsErrors?.months) {
-      this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS';
+      this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.VALID_MONTHS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
       super.setError(undefined, opts);
       return;
     }
 
     if (detailsErrors?.metiers) {
-      this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_METIERS';
+      this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.VALID_METIERS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
       super.setError(undefined, opts);
       return;

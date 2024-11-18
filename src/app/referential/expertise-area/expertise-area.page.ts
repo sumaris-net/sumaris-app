@@ -20,7 +20,6 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import { firstValueFrom, Observable } from 'rxjs';
-import { ReferentialService } from '@app/referential/services/referential.service';
 
 export class LocationRef extends ReferentialRef<LocationRef> {
   static fromObject: (source: any, opts?: any) => LocationRef;
@@ -47,8 +46,6 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
   @RxStateProperty() protected locationLevelById: { [key: number]: LocationRef };
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
-
-  protected referentialService: ReferentialService;
 
   constructor(injector: Injector, dataService: ExpertiseAreaService, validatorService: ExpertiseAreaValidatorService) {
     super(injector, ExpertiseArea, dataService, validatorService.getFormGroup(), {
@@ -123,20 +120,25 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
     const locationLevelById = await firstValueFrom(this.locationLevelById$);
     const excludedIds = (this.form.get('locations').value || []).map((item) => item.id);
 
-    const { data, total } = await this.referentialService.loadAll(0, 20, 'label', 'asc', {
-      searchText: value,
-      ...filter,
-      excludedIds,
-    });
-
-    // Fill location levels
-    const entities = (data || []).map((json) => {
-      const item = LocationRef.fromObject(json);
-      if (isNotNil(item.levelId)) item.locationLevel = locationLevelById[item.levelId];
-      return item;
-    });
-
-    return { data: entities, total };
+    return this.referentialService.loadAll(
+      0,
+      20,
+      'label',
+      'asc',
+      {
+        searchText: value,
+        ...filter,
+        excludedIds,
+      },
+      {
+        toEntity: (source: any, opts?: any) => {
+          const target = LocationRef.fromObject(source, opts);
+          // Fill location levels
+          if (isNotNil(target.levelId)) target.locationLevel = locationLevelById[target.levelId];
+          return target as unknown as Referential<any>;
+        },
+      }
+    );
   }
 
   protected registerForms() {

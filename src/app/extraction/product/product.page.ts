@@ -40,7 +40,8 @@ export const ProductPageTabs = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductPage extends AppEntityEditor<ExtractionProduct> implements OnInit {
-  columns: ExtractionColumn[];
+  protected columns: ExtractionColumn[];
+  protected readonly mobile = this.settings.mobile;
 
   @ViewChild('productForm', { static: true }) productForm: ProductForm;
   @ViewChild('datasourceTable', { static: true }) datasourceTable: ExtractionTablePage;

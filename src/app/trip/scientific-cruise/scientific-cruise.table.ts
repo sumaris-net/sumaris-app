@@ -3,6 +3,7 @@ import {
   arrayDistinct,
   chainPromises,
   ConfigService,
+  Configuration,
   FilesUtils,
   HammerSwipeEvent,
   isEmptyArray,
@@ -15,16 +16,12 @@ import {
   ReferentialRef,
   SharedValidators,
   slideUpDownAnimation,
-  splitByProperty,
   StatusIds,
 } from '@sumaris-net/ngx-components';
 import { TripFilter, TripSynchroImportFilter } from '@app/trip/trip/trip.filter';
 import { ScientificCruise } from '@app/trip/scientific-cruise/scientific-cruise.model';
-import { tap } from 'rxjs';
-import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { OperationService } from '@app/trip/operation/operation.service';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/trip-context.service';
@@ -63,11 +60,6 @@ export const ScientificCruiseTableSettingsEnum = {
   providers: [RxState],
 })
 export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, ScientificCruiseFilter> implements OnInit, OnDestroy {
-  statusList = DataQualityStatusList;
-  statusById = DataQualityStatusEnum;
-  qualityFlags: ReferentialRef[];
-  qualityFlagsById: { [id: number]: ReferentialRef };
-
   @Input() showRecorder = true;
   @Input() showObservers = true;
   @Input() canDownload = false;
@@ -87,7 +79,6 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
     dataService: ScientificCruiseService,
     protected operationService: OperationService,
     protected personService: PersonService,
-    protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
     protected context: ContextService,
@@ -187,33 +178,7 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
       mobile: this.mobile,
     });
 
-    this.registerSubscription(
-      this.configService.config
-        .pipe(
-          filter(isNotNil),
-          tap((config) => {
-            console.info('[scientific-cruises] Init from config', config);
-
-            this.title = config.getProperty(SCIENTIFIC_CRUISE_CONFIG_OPTIONS.SCIENTIFIC_CRUISE_NAME);
-
-            this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-            this.setShowColumn('quality', this.showQuality, { emitEvent: false });
-
-            if (this.showQuality) {
-              this.referentialRefService.loadQualityFlags().then((items) => {
-                this.qualityFlags = items;
-                this.qualityFlagsById = splitByProperty(items, 'id');
-              });
-            }
-
-            this.updateColumns();
-
-            // Restore filter from settings, or load all
-            this.restoreFilterOrLoad();
-          })
-        )
-        .subscribe()
-    );
+    this.registerSubscription(this.configService.config.pipe(filter(isNotNil)).subscribe((config) => this.onConfigLoaded(config)));
 
     // Clear the existing trip context
     this.resetContext();
@@ -447,6 +412,24 @@ export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, Sc
   }
 
   /* -- protected methods -- */
+
+  protected async onConfigLoaded(config: Configuration) {
+    console.info('[scientific-cruises] Init from config', config);
+
+    this.title = config.getProperty(SCIENTIFIC_CRUISE_CONFIG_OPTIONS.SCIENTIFIC_CRUISE_NAME);
+
+    this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
+    // Allow show status column - (see issue #816)
+    //this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+
+    // Load quality flags
+    if (this.showQuality) this.loadQualityFlags();
+
+    this.updateColumns();
+
+    // Restore filter from settings, or load all
+    this.restoreFilterOrLoad();
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();
