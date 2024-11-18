@@ -12,6 +12,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
   styleUrls: ['../../report/landing.report.scss', '../../../../data/report/base-report.scss'],
   templateUrl: './sampling-landing.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  preserveWhitespaces: true,
 })
 export class SamplingLandingReport extends BaseLandingReport {
   protected referentialRefService: ReferentialRefService;

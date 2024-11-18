@@ -22,12 +22,17 @@
       </section>
     </section>
 
+    <!-- prettier-ignore -->
     <app-reveal [options]="revealOptions" [embedded]="true">
       <section *sectionDef>
         <section>
           <h1>Diapo 2 a</h1>
         </section>
-        <section markdown ngPreserveWhitespaces># Diapo 2 b Test [link](www.sumaris.net)</section>
+        <section markdown>
+          # Diapo 2 b
+
+          Test [link](www.sumaris.net)
+        </section>
       </section>
     </app-reveal>
 

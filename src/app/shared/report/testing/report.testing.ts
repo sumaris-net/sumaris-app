@@ -6,6 +6,7 @@ import { ChartConfiguration } from 'chart.js';
 @Component({
   selector: 'app-report-test-page',
   templateUrl: './report.testing.html',
+  preserveWhitespaces: true,
 })
 export class ReportTestPage {
   revealOptions: Partial<IRevealOptions> = {};

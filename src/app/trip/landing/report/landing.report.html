@@ -45,6 +45,7 @@
       <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
     </div>
 
+    <!-- prettier-ignore -->
     <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
       <section *sectionDef>
         <section class="summary">
@@ -72,7 +73,7 @@
         </section>
       </section>
       <section *sectionDef>
-        <section markdown ngPreserveWhitespaces *ngFor="let samples of data.samples | splitArrayInChunks: 14; index as index; count as count">
+        <section markdown *ngFor="let samples of data.samples | splitArrayInChunks: 14; index as index; count as count">
           ### {{ 'LANDING.REPORT.TITLE' | translate }} {{ index | paginationToString: count }}
           <ng-container *ngTemplateOutlet="samplesTable; context: { $implicit: samples, pmfms: stats.pmfms }"></ng-container>
         </section>

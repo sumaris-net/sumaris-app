@@ -502,7 +502,7 @@ export class ActivityCalendarPage
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
       this.i18nContext.suffix = i18nSuffix;
 
-      this.isAdminOrManager = this.accountService.isAdmin() || this.programRefService.hasUserManagerPrivilege(program);
+      this.isAdminOrManager = this.accountService.isSupervisor() || this.programRefService.hasUserManagerPrivilege(program);
       this.baseForm.showObservers = this.isAdminOrManager && program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
 
       if (this.baseForm) {
