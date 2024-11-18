@@ -12,13 +12,11 @@
 
   <ion-buttons slot="end">
     <!-- option menu -->
-    <ion-button
-      *ngIf="showOptionsMenu && ((enabled && !isNewData) || canDebug)"
-      [matMenuTriggerFor]="optionsMenu"
-      [title]="'COMMON.BTN_OPTIONS' | translate"
-    >
-      <mat-icon slot="icon-only">more_vert</mat-icon>
-    </ion-button>
+    @if (showOptionsMenu && (!isNewData || canDebug)) {
+      <ion-button [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.BTN_OPTIONS' | translate">
+        <mat-icon slot="icon-only">more_vert</mat-icon>
+      </ion-button>
+    }
   </ion-buttons>
 </app-toolbar>
 
@@ -53,22 +51,23 @@
     </button>
     <mat-divider></mat-divider>
   }
-
-  <!-- clean calendar -->
-  <button mat-menu-item [disabled]="isNewData || disabled" (click)="clearCalendar($event)">
-    <mat-icon>
-      <ion-icon color="medium" name="calendar"></ion-icon>
-    </mat-icon>
-    <mat-icon color="warn" class="icon-secondary" style="left: 26px; top: 5px; font-weight: bold">close</mat-icon>
-    <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_CALENDAR</ion-label>
-  </button>
-
-  <!-- delete -->
-  @if (isAdmin) {
-    <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
-      <mat-icon color="warn">delete</mat-icon>
-      <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_DELETE_CALENDAR</ion-label>
+  @if (enable) {
+    <!-- clean calendar -->
+    <button mat-menu-item [disabled]="isNewData || disabled" (click)="clearCalendar($event)">
+      <mat-icon>
+        <ion-icon color="medium" name="calendar"></ion-icon>
+      </mat-icon>
+      <mat-icon color="warn" class="icon-secondary" style="left: 26px; top: 5px; font-weight: bold">close</mat-icon>
+      <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_CALENDAR</ion-label>
     </button>
+
+    <!-- delete -->
+    @if (isAdmin) {
+      <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
+        <mat-icon color="warn">delete</mat-icon>
+        <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_DELETE_CALENDAR</ion-label>
+      </button>
+    }
   }
 
   <!-- DEV only -->
