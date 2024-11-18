@@ -18,10 +18,7 @@ import { EntityAsObjectOptions, LatLongPattern, LocalSettingsService, arrayDisti
 
 export class OperationFromReportComponentStats extends BaseReportStats {
   options: {
-    showStartDate: boolean;
     showEndDate: boolean;
-    showFishingStartDateTime: boolean;
-    showFishingEndDateTime: boolean;
     allowParentOperation: boolean;
     latLongPattern: LatLongPattern;
   };
@@ -41,6 +38,7 @@ export class OperationFromReportComponentStats extends BaseReportStats {
     };
   };
   measurementValues: MeasurementFormValues[];
+  pmfmsTablePart: number[][];
 
   fromObject(source: any): void {
     super.fromObject(source);
@@ -53,6 +51,7 @@ export class OperationFromReportComponentStats extends BaseReportStats {
     this.hasPmfm = source.hasPmfm;
     this.pmfmsTipsByPmfmId = source.pmfmsLegendByPmfmId;
     this.measurementValues = source.measurementValues;
+    this.pmfmsTablePart = source.releasedTableParts;
   }
 
   asObject(opts?: EntityAsObjectOptions) {
@@ -65,6 +64,7 @@ export class OperationFromReportComponentStats extends BaseReportStats {
       hasPmfm: this.hasPmfm,
       pmfmsLegendByPmfmId: this.pmfmsTipsByPmfmId,
       measurementValues: this.measurementValues,
+      releasedTableParts: this.pmfmsTablePart,
     };
   }
 }
@@ -78,7 +78,15 @@ export class OperationFromReportComponentStats extends BaseReportStats {
 })
 export class OperationFormReportComponent extends ReportComponent<Operation[], OperationFromReportComponentStats> {
   readonly pmfmIdsMap = PmfmIds;
-  readonly pageDimensions = Object.freeze({});
+  readonly pageDimensions = Object.freeze({
+    columnNumOpWidth: 30,
+    columnIndividualMeasureWidth: 30,
+    columnTripProgressWidth: 30,
+    columnGearSpeciesWidth: 250,
+    columnDateWidth: 90,
+    columnLatLongWidth: 140,
+    columnPmfmWidth: 30,
+  });
 
   @Input() nbOperationByPage = 20;
   @Input({ required: true }) parentPageDimension: FormTripReportPageDimensions;
@@ -99,10 +107,9 @@ export class OperationFormReportComponent extends ReportComponent<Operation[], O
     const strategyId = this.strategy?.id;
 
     stats.options = {
-      showStartDate: !this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
-      showEndDate: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
-      showFishingStartDateTime: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
-      showFishingEndDateTime: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
+      showEndDate: this.program.getPropertyAsBoolean(
+        ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE || ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE
+      ),
       allowParentOperation: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION),
       latLongPattern: this.settings.latLongFormat,
     };
@@ -165,6 +172,14 @@ export class OperationFormReportComponent extends ReportComponent<Operation[], O
     // Get all needed measurement values in suitable format
     stats.measurementValues = data.map((op) => MeasurementUtils.toMeasurementValues(op.measurements));
 
+    const pmfmForComputeTablePart =
+      stats.options.allowParentOperation && stats.childPmfms.length > stats.pmfms.length ? stats.childPmfms : stats.pmfms;
+    stats.pmfmsTablePart = this.computeTablePart(pmfmForComputeTablePart, {
+      hasIndividualMeasure: stats.hasPmfm.hasIndividualMeasure,
+      hasTripProgress: stats.hasPmfm.tripProgress,
+      ...stats.options,
+    });
+
     return stats;
   }
 
@@ -177,5 +192,36 @@ export class OperationFormReportComponent extends ReportComponent<Operation[], O
       this.loadingSubject.next(false);
       if (opts.emitEvent !== false) this.markForCheck();
     }
+  }
+
+  private computeTablePart(
+    pmfms: IPmfm[],
+    opts: {
+      hasIndividualMeasure: boolean;
+      hasTripProgress: boolean;
+      showEndDate: boolean;
+    }
+  ): number[][] {
+    const columnDatePlusLatLongWidth = this.pageDimensions.columnDateWidth + this.pageDimensions.columnLatLongWidth;
+    const rightPartWidth =
+      this.pageDimensions.columnNumOpWidth +
+      (opts.hasIndividualMeasure ? this.pageDimensions.columnIndividualMeasureWidth : 0) +
+      (opts.hasTripProgress ? this.pageDimensions.columnTripProgressWidth : 0) +
+      this.pageDimensions.columnGearSpeciesWidth +
+      columnDatePlusLatLongWidth + // start date
+      (opts.showEndDate ? columnDatePlusLatLongWidth : 0);
+
+    const nbPmfmsThatCanFitOnOnePart = Math.trunc(
+      (this.parentPageDimension.availableWidthForTableLandscape - rightPartWidth) / this.pageDimensions.columnPmfmWidth
+    );
+
+    if (pmfms.length <= nbPmfmsThatCanFitOnOnePart) {
+      return [[0, pmfms.length]];
+    }
+
+    return [
+      [0, nbPmfmsThatCanFitOnOnePart - 1],
+      [nbPmfmsThatCanFitOnOnePart - 1, pmfms.length],
+    ];
   }
 }
