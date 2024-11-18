@@ -1488,9 +1488,8 @@ export class CalendarComponent
       await sleep(HAMMER_TAP_TIME + 10);
     }
 
-    if (event?.defaultPrevented || row.editing) return false; // Skip
-
     this.closeContextMenu();
+    if (event?.defaultPrevented || row.editing) return false; // Skip
 
     // Wait of resizing or validating
     if (this.cellSelection?.resizing || this.cellSelection?.validating) {
@@ -2081,13 +2080,17 @@ export class CalendarComponent
     if (!row) {
       const editingRows = this.dataSource.getEditingRows();
       if (isEmptyArray(editingRows)) return true; // No rows to confirm
-      console.debug(this.logPrefix + `lock rows`, new Error(), editingRows);
+
+      // DEBUG
+      // console.debug(this.logPrefix + `lock rows`, editingRows);
+
       return (await Promise.all(editingRows.map((editedRow) => this.confirmEditCreate(event, editedRow)))).every((c) => c === true);
     }
     const confirmEditCreateId = this.confirmEditCreateId++;
 
     try {
-      console.debug(this.logPrefix + `lock row#${row?.id} - ID #${confirmEditCreateId}`, new Error());
+      // DEBUG
+      //console.debug(this.logPrefix + `lock row#${row?.id} - ID #${confirmEditCreateId}`);
 
       // Lock the row, or wait until can lock
       await this.confirmingRowMutex.lock(row);
@@ -2096,7 +2099,8 @@ export class CalendarComponent
 
       if (!row || !row.editing) return true; // nothing to confirmed
 
-      console.debug(this.logPrefix + `confirmEditCreate row#${row?.id}`);
+      // DEBUG
+      //console.debug(this.logPrefix + `confirmEditCreate row#${row?.id}`);
 
       // Allow to confirm when invalid
       const form = row.validator;
@@ -2950,19 +2954,18 @@ export class CalendarComponent
   protected async onContextMenu(event: MouseEvent, cell?: HTMLElement, row?: AsyncTableElement<ActivityMonth>, columnName?: string) {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
-    if (
-      !row ||
-      !columnName ||
-      // Do not show contextual menu, if row is editing
-      row.editing
-    ) {
+    if (!row || !columnName) return; // Skip
+
+    // Do not show contextual menu, if row is editing
+    if (row.editing) {
+      this.closeContextMenu();
       event.preventDefault();
-      return; // Skip
+      return;
     }
 
     // select current row
     if (!this.isInsideCellSelection(this.cellSelection, cell)) {
-      this.selectCell(event, row, columnName);
+      await this.confirmEditCell(event, row, columnName);
     }
     event.preventDefault();
 
@@ -2983,7 +2986,9 @@ export class CalendarComponent
     columnName = columnName ?? this.focusColumn;
     if (!row || !columnName) return; //
 
-    this.focusColumn = columnName;
+    if (row === this.editedRow) {
+      this.focusColumn = columnName;
+    }
 
     const cellElement = this.getEventCellElement(event);
     this.cellSelection = {
