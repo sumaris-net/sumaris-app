@@ -24,6 +24,7 @@ import {
   GraphqlService,
   IEntitiesService,
   IEntityService,
+  IPosition,
   isEmptyArray,
   isNil,
   isNilOrBlank,
@@ -1230,10 +1231,9 @@ export class OperationService
    */
   async getCurrentPosition(
     options?: PositionOptions & { showToast?: boolean; stop?: Observable<any>; toastOptions?: ToastOptions; cancellable?: boolean }
-  ): Promise<{ latitude: number; longitude: number }> {
-    const timeout = options?.timeout || this.settings.getPropertyAsInt(TRIP_LOCAL_SETTINGS_OPTIONS.OPERATION_GEOLOCATION_TIMEOUT) * 1000;
-    const maximumAge = options?.maximumAge || timeout * 2;
-
+  ): Promise<IPosition> {
+    const timeout = options?.timeout ?? this.settings.getPropertyAsInt(TRIP_LOCAL_SETTINGS_OPTIONS.OPERATION_GEOLOCATION_TIMEOUT) * 1000;
+    const maximumAge = options?.maximumAge ?? timeout * 2;
     // Opening a toast
     if (options?.showToast) {
       return new Promise(async (resolve, reject) => {
@@ -1276,7 +1276,6 @@ export class OperationService
       maximumAge,
       timeout,
       enableHighAccuracy: false, // Not need at sea
-      ...options,
     });
   }
 
