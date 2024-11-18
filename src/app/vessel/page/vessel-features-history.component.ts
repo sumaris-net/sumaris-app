@@ -104,7 +104,7 @@ export class VesselFeaturesHistoryComponent extends AppBaseTable<VesselFeatures,
 
       {
         watchAllOptions: <VesselFeaturesServiceWatchOptions>{
-          mergeAll: () => this.mergeAll,
+          mergeAll: () => (this.mergeAll ? this.excludesColumns : null),
         },
 
         saveOnlyDirtyRows: true,

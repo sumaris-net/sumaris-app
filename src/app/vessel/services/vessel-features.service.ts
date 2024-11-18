@@ -6,6 +6,7 @@ import {
   EntityUtils,
   GraphqlService,
   IEntitiesService,
+  isNotEmptyArray,
   isNotNil,
   LoadResult,
   PlatformService,
@@ -18,7 +19,8 @@ import { FetchPolicy, gql } from '@apollo/client/core';
 import { VesselFeaturesUtils } from './model/vessel.utils';
 
 export declare interface VesselFeaturesServiceWatchOptions extends EntitiesServiceWatchOptions {
-  mergeAll?: boolean | (() => boolean);
+  /** Indicates which columns should be excluded from the merge process. */
+  mergeAll?: string[] | (() => string[]);
 }
 export const VesselFeaturesFragments = {
   vesselFeatures: gql`
@@ -103,13 +105,13 @@ export class VesselFeaturesService
     opts?: VesselFeaturesServiceWatchOptions
   ): Observable<LoadResult<VesselFeatures>> {
     // Merge items
-    const mergeAll = typeof opts?.mergeAll === 'function' ? opts.mergeAll() : opts?.mergeAll;
-    if (mergeAll) {
+    const excludedColumns = typeof opts?.mergeAll === 'function' ? opts.mergeAll() : opts?.mergeAll;
+    if (isNotEmptyArray(excludedColumns)) {
       // Get all items, ordered from last to older
       return super.watchAll(null, null, 'startDate', 'asc', dataFilter, opts).pipe(
         map(({ data }) => {
           // Merge
-          data = VesselFeaturesUtils.mergeAll(data);
+          data = VesselFeaturesUtils.mergeAll(data, excludedColumns);
 
           // Fill changed properties
           data = VesselFeaturesUtils.fillChangedProperties(data);

@@ -20,10 +20,20 @@ export class VesselFeaturesUtils {
     '__changedProperties',
   ];
 
-  static mergeAll(sources: VesselFeatures[]): VesselFeatures[] {
+  static mergeAll(sources: VesselFeatures[], excludedColumns: string[]): VesselFeatures[] {
     return (sources || []).reduce(
       (res, current) => {
-        let previous = lastArrayValue(res);
+        // Keep original items unchanged
+        const previous = lastArrayValue(res)?.clone();
+        current = current.clone();
+
+        // Exclude properties before merge process
+        excludedColumns.forEach((column) => {
+          delete current[column];
+          if (previous) {
+            delete previous[column];
+          }
+        });
 
         // If contiguous AND same content
         const canMerge =
@@ -32,7 +42,6 @@ export class VesselFeaturesUtils {
           VesselFeatures.equals(previous, current, { withId: false, withDates: false });
         // Merge: keep previous with an extended period
         if (canMerge) {
-          previous = previous.clone(); // Keep original item unchanged
           previous.startDate = DateUtils.min(previous.startDate, current.startDate);
           previous.endDate = DateUtils.max(previous.endDate, current.endDate);
           return res
