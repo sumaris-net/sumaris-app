@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
   Alerts,
@@ -34,7 +33,6 @@ import { ObservedLocationOfflineModal } from '../observedlocation/offline/observ
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observedlocation/observed-location.filter';
 import { filter } from 'rxjs/operators';
-import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { Landing } from '@app/trip/landing/landing.model';
@@ -107,8 +105,6 @@ export class LandingsPage
   @RxStateSelect() protected observedLocationTitle$: Observable<string>;
 
   protected i18nPmfmPrefix: string;
-  protected statusList = DataQualityStatusList;
-  protected statusById = DataQualityStatusEnum;
   protected selectedSegment = '';
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
@@ -129,10 +125,6 @@ export class LandingsPage
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
-  }
-
-  get filterDataQualityControl(): UntypedFormControl {
-    return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
 
   @Input()
@@ -220,7 +212,6 @@ export class LandingsPage
     injector: Injector,
     dataService: LandingService,
     protected personService: PersonService,
-    protected referentialRefService: ReferentialRefService,
     protected strategyRefService: StrategyRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected observedLocationService: ObservedLocationService,
@@ -259,6 +250,8 @@ export class LandingsPage
       observers: formBuilder.array([[null, SharedValidators.entity]]),
       sampleLabel: [null],
       sampleTagId: [null],
+      dataQualityStatus: [null],
+      qualityFlagId: [null, SharedValidators.integer],
     });
     this.autoLoad = false;
     this.defaultSortBy = 'dateTime';
@@ -396,7 +389,11 @@ export class LandingsPage
 
     // Quality
     this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-    this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+    // Allow show status column - (see issue #816)
+    //this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+
+    // Load quality flags
+    if (this.showQuality) this.loadQualityFlags();
 
     // Recorder
     this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);

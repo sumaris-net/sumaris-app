@@ -266,7 +266,7 @@
             </mat-autocomplete-field>
           </ion-col>
 
-          <!-- Observers criteria (desktop only) -->
+          <!-- Observers (desktop only) -->
           @if (!mobile && showObservers) {
             <ion-col size="12" size-lg="6">
               <mat-chips-field
@@ -283,25 +283,27 @@
           }
 
           <!-- Data quality (desktop only) -->
-          @if (!mobile && showQuality && filterForm | formGetControl: 'dataQualityStatus'; as control) {
+          @if (!mobile && filterForm | formGetControl: 'dataQualityStatus'; as control) {
             <!-- Data quality status -->
-            <ion-col [sizeLg]="control.value !== 'QUALIFIED' ? 6 : 3">
+            <ion-col [sizeLg]="!showQuality || control.value !== 'QUALIFIED' ? 6 : 3">
               <mat-form-field>
                 <ion-icon matPrefix name="create"></ion-icon>
                 <mat-label>{{ 'ACTIVITY_CALENDAR.TABLE.QUALITY' | translate }}</mat-label>
                 <mat-select [formControl]="control">
                   <mat-select-trigger>
-                    @if (statusById | mapGet: control.value; as item) {
+                    @if (dataQualityStatusById | mapGet: control.value; as item) {
                       <span>
                         {{ item.label | translate }}
                       </span>
                     }
                   </mat-select-trigger>
-                  @for (item of statusList; track item.id) {
-                    <mat-option [value]="item.id">
-                      <ion-icon [name]="item.icon"></ion-icon>
-                      {{ item.label | translate }}
-                    </mat-option>
+                  @for (item of dataQualityStatusList; track item.id) {
+                    @if (showQuality || item.id !== 'QUALIFIED') {
+                      <mat-option [value]="item.id">
+                        <ion-icon [name]="item.icon"></ion-icon>
+                        {{ item.label | translate }}
+                      </mat-option>
+                    }
                   }
                 </mat-select>
 
@@ -319,7 +321,7 @@
             </ion-col>
 
             <!-- Quality flag -->
-            @if (filterForm | formGetControl: 'qualityFlagId'; as flagControl) {
+            @if (showQuality && filterForm | formGetControl: 'qualityFlagId'; as flagControl) {
               <ion-col [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'">
                 <mat-form-field>
                   <mat-select [formControl]="flagControl" [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.QUALITY_FLAG_ID' | translate">
@@ -394,10 +396,10 @@
           </ion-row>
         }
 
-        <!-- Recorder criteria -->
-        @if (showRecorder && !mobile) {
+        <!-- Recorder criteria (desktop only) -->
+        @if (!mobile && showRecorder) {
           <ion-row>
-            <ion-col>
+            <ion-col size="12" size-lg="6">
               <!-- Recorder department -->
               <mat-autocomplete-field
                 formControlName="recorderDepartment"
@@ -409,7 +411,7 @@
               </mat-autocomplete-field>
             </ion-col>
 
-            <ion-col>
+            <ion-col size="12" size-lg="6">
               <!-- Recorder person -->
               <mat-autocomplete-field
                 formControlName="recorderPerson"

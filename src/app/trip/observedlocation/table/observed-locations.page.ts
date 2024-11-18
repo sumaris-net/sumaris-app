@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
@@ -27,7 +26,6 @@ import { ObservedLocationOfflineModal } from '../offline/observed-location-offli
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observed-location.filter';
 import { filter } from 'rxjs/operators';
-import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { Program } from '@app/referential/services/model/program.model';
@@ -61,8 +59,6 @@ export class ObservedLocationsPage
   implements OnInit
 {
   @RxStateSelect() protected landingsTitle$: Observable<string>;
-  protected statusList = DataQualityStatusList;
-  protected statusById = DataQualityStatusEnum;
   protected selectedSegment = 'observations';
 
   @RxStateProperty() protected landingsTitle: string;
@@ -105,7 +101,6 @@ export class ObservedLocationsPage
     injector: Injector,
     _dataService: ObservedLocationService,
     protected personService: PersonService,
-    protected referentialRefService: ReferentialRefService,
     protected formBuilder: UntypedFormBuilder,
     protected configService: ConfigService,
     protected context: ContextService
@@ -327,7 +322,11 @@ export class ObservedLocationsPage
 
     // Quality
     this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-    this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+    // Allow show status column - (see issue #816)
+    //this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+
+    // Load quality flags
+    if (this.showQuality) this.loadQualityFlags();
 
     // Recorder
     this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);

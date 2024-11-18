@@ -34,7 +34,6 @@ import {
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ActivityCalendar, DirectSurveyInvestigationList } from '@app/activity-calendar/model/activity-calendar.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
@@ -47,7 +46,6 @@ import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { ActivityCalendarOfflineModal, ActivityCalendarOfflineModalOptions } from '../offline/activity-calendar-offline.modal';
-import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
@@ -91,10 +89,6 @@ export class ActivityCalendarsTable
   @RxStateProperty() protected years: number[];
   @RxStateProperty() protected canImportCsvFile: boolean;
 
-  protected statusList = DataQualityStatusList;
-  protected statusById = DataQualityStatusEnum;
-  protected qualityFlags: ReferentialRef[];
-  protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
   protected programVesselTypeIds: number[];
 
@@ -172,7 +166,6 @@ export class ActivityCalendarsTable
     injector: Injector,
     protected _dataService: ActivityCalendarService,
     protected personService: PersonService,
-    protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
     protected context: ContextService,
@@ -371,14 +364,11 @@ export class ActivityCalendarsTable
     this.timezone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
 
     this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-    this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+    // Allow show status column - (see issue #816)
+    //this.setShowColumn('quality', this.showQuality, { emitEvent: false });
 
-    if (this.showQuality) {
-      this.referentialRefService.loadQualityFlags().then((items) => {
-        this.qualityFlags = items;
-        this.qualityFlagsById = splitByProperty(items, 'id');
-      });
-    }
+    // Load quality flags
+    if (this.showQuality) this.loadQualityFlags();
 
     // Recorder
     this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
