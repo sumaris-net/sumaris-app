@@ -305,7 +305,7 @@ export class ActivityCalendarValidators {
       const inactivityYear = months.every((month) => month.isActive === 0);
 
       // Inactive in all year => inactivity year is required
-      if (inactivityYear && (isNil(inactivityYearPmfmValue) || inactivityYearPmfmValue === false)) {
+      if (inactivityYear && isNil(inactivityYearPmfmValue)) {
         inactivityYearControl.setErrors({ required: true });
         return {
           required: true,
