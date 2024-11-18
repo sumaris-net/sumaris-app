@@ -42,8 +42,10 @@ export interface ExpertiseAreaPageState {
 export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, ExpertiseAreaService> {
   @RxStateRegister() protected readonly _state: RxState<ExpertiseAreaPageState> = inject(RxState);
 
+  @RxStateSelect() protected locationLevels$: Observable<ReferentialRef[]>;
   @RxStateSelect() protected locationLevelById$: Observable<{ [key: number]: LocationRef }>;
 
+  @RxStateProperty() protected locationLevels: ReferentialRef[];
   @RxStateProperty() protected locationLevelById: { [key: number]: LocationRef };
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
@@ -60,7 +62,7 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
 
     this.registerFieldDefinition({
       key: 'locations',
-      label: `REFERENTIAL.EXPERTISE_AREA.LOCATION`,
+      label: `REFERENTIAL.EXPERTISE_AREA.LOCATIONS`,
       type: 'entities',
       autocomplete: {
         suggestFn: (value, filter) => this.suggestLocations(value, filter),
@@ -70,6 +72,16 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
         attributes: ['label', 'name', 'locationLevel.name'],
         columnNames: [undefined, undefined, 'REFERENTIAL.EXPERTISE_AREA.LOCATION_LEVEL'],
         displayWith: (item) => this.locationToString(item),
+      },
+    });
+
+    this.registerFieldDefinition({
+      key: 'locationLevels',
+      label: 'REFERENTIAL.EXPERTISE_AREA.LOCATION_LEVELS',
+      type: 'entities',
+      autocomplete: {
+        items: this.locationLevels$,
+        attributes: ['id', 'name'],
       },
     });
   }
@@ -103,7 +115,7 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
   }
 
   protected async loadLocationLevels() {
-    const { data: locationLevels } = await this.referentialRefService.loadAll(
+    const { data } = await this.referentialRefService.loadAll(
       0,
       1000,
       'id',
@@ -114,7 +126,8 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
       },
       { withProperties: true }
     );
-    this.locationLevelById = splitById(locationLevels || []);
+    this.locationLevels = data;
+    this.locationLevelById = splitById(this.locationLevels || []);
   }
 
   protected async suggestLocations(value: any, filter: ReferentialFilter): Promise<LoadResult<ReferentialRef>> {

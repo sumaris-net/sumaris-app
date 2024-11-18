@@ -98,6 +98,7 @@ import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { Mutex } from '@app/shared/async/mutex.class';
 import { FetchPolicy } from '@apollo/client/core';
 import { ExpertiseAreaUtils } from '@app/referential/expertise-area/expertise-area.utils';
+import { IExpertiseAreaProperties } from '@app/referential/expertise-area/expertise-area.model';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -183,7 +184,7 @@ export interface CalendarComponentState extends BaseMeasurementsTableState {
   hasClipboard: boolean;
   availablePrograms: ReferentialRef[];
   hasConflict: boolean;
-  expertiseLocationIds: number[];
+  expertiseAreaProperties: IExpertiseAreaProperties;
 }
 
 export type CalendarComponentStyle = 'table' | 'accordion';
@@ -295,7 +296,7 @@ export class CalendarComponent
   @Input() enableCellSelection: boolean;
   @Input() programHeaderLabel: string;
   @Input() showError = true;
-  @Input() @RxStateProperty() expertiseLocationIds: number[];
+  @Input() @RxStateProperty() expertiseAreaProperties: IExpertiseAreaProperties;
 
   @Input() set month(value: number) {
     this.setFilter(ActivityMonthFilter.fromObject({ ...this.filter, month: value }));
@@ -535,7 +536,7 @@ export class CalendarComponent
 
     // Check data against expertise area, if changed
     this._state.hold(
-      this._state.select('expertiseLocationIds').pipe(
+      this._state.select('expertiseAreaProperties').pipe(
         distinctUntilChanged(),
         filter(() => this.loaded)
       ),
@@ -1677,7 +1678,7 @@ export class CalendarComponent
       entityName: 'Location',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      locationIds: this.expertiseLocationIds,
+      locationIds: this.expertiseAreaProperties?.locationIds,
       levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT],
     };
   }
@@ -1701,7 +1702,7 @@ export class CalendarComponent
       ...METIER_DEFAULT_FILTER,
       ...filter,
       excludedIds: existingMetierIds,
-      locationIds: this.expertiseLocationIds,
+      locationIds: this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1731,9 +1732,9 @@ export class CalendarComponent
       entityName: 'Location',
       statusId: StatusIds.ENABLE,
       ...filter,
-      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
       excludedIds: existingFishingAreaLocationIds,
-      locationIds: this.expertiseLocationIds,
+      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1754,8 +1755,8 @@ export class CalendarComponent
       entityName: 'DistanceToCoastGradient',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
-      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1773,8 +1774,8 @@ export class CalendarComponent
       entityName: 'DepthGradient',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
-      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1792,8 +1793,8 @@ export class CalendarComponent
       entityName: 'NearbySpecificArea',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
-      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1819,11 +1820,14 @@ export class CalendarComponent
     months = months ?? (this.dirty ? this.dataSource.getData() : this.memoryDataService.value);
     if (isEmptyArray(months)) return; // Skip if nothing to check
 
-    console.debug(`${this.logPrefix}Check data inside expertise areas... (locationIds: ${this.expertiseLocationIds?.join(',')}`);
-    const now = Date.now();
+    let now: number;
+    if (this.debug) {
+      console.debug(`${this.logPrefix}Check data inside expertise areas... (locationIds: ${this.expertiseAreaProperties?.locationIds?.join(',')})`);
+      now = Date.now();
+    }
 
     try {
-      const needCheck = isNotEmptyArray(this.expertiseLocationIds);
+      const needCheck = isNotEmptyArray(this.expertiseAreaProperties?.locationIds);
       const invalidBasePortLocationIds: number[] = [];
       const invalidMetierIds: number[] = [];
       const invalidFishingAreaLocationIds: number[] = [];
@@ -1924,7 +1928,9 @@ export class CalendarComponent
         isNotEmptyArray(invalidDepthGradientIds) ||
         isNotEmptyArray(invalidNearbySpecificAreaIds);
 
-      console.debug(`${this.logPrefix}Check data inside expertise areas - done in ${Date.now() - now}ms`);
+      if (this.debug) {
+        console.debug(`${this.logPrefix}Check data inside expertise areas - done in ${Date.now() - now}ms`);
+      }
     } finally {
       this.markForCheck();
     }

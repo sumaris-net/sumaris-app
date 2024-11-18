@@ -2293,8 +2293,9 @@
       "TYPE": "Type de transcodage"
     },
     "EXPERTISE_AREA": {
-      "LOCATION": "Lieu(x) de la zone",
+      "LOCATIONS": "Lieu(x) de la zone",
       "LOCATION_LEVEL": "Niveau de lieu",
+      "LOCATION_LEVELS": "Niveau(x) de lieu",
       "NEW": {
         "TITLE": "Nouvelle zones de compétence"
       },
@@ -3517,7 +3518,7 @@
       "BTN_ADD_METIER_BLOCK": "Ajouter un bloc métier",
       "BTN_REPORT": "Éditer le rapport...",
       "BTN_EXPERTISE_AREA": "Zone de compétence...",
-      "BTN_ENABLE_EXPERTISE_AREA": "Activer la zone de compétence ?",
+      "BTN_NO_EXPERTISE_AREA": "Aucune zone de compétence",
       "BTN_EXPAND_ALL": "Déplier tout",
       "BTN_COLLAPSE_ALL": "Replier tout",
       "BTN_CLEAR_MONTH": "Vider le mois",
