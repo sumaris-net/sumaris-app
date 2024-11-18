@@ -1,7 +1,7 @@
 <!-- DEBUG -->
-<ng-container *ngIf="debug">
+@if (debug) {
   <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
-</ng-container>
+}
 
 <mat-toolbar *ngIf="showToolbar" [class.expanded]="filterExpansionPanel.expanded">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
@@ -368,7 +368,7 @@
                       pmfm: pmfm,
                       html: true,
                       propertyNames: pmfm.isMultiple ? [qualitativeValueAttributes[0]] : qualitativeValueAttributes,
-                      showYesOrNo: true
+                      showYesOrNo: true,
                     }
             "
           ></ion-label>
@@ -382,7 +382,7 @@
                       pmfm: pmfm,
                       html: true,
                       propertyNames: pmfm.isMultiple ? [qualitativeValueAttributes[0]] : qualitativeValueAttributes,
-                      showYesOrNo: true
+                      showYesOrNo: true,
                     }
             "
           ></ion-label>

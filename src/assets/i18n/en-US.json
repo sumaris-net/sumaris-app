@@ -278,9 +278,20 @@
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Referential > Program for vessels",
+        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_LABEL": "Referential > Acquisition Level > Activity Calendar",
+        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES_LABEL": "Referential > Acquisition Level > Activity Calendar: Gear Physical Features",
+        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_USE_FEATURES_LABEL": "Referential > Acquisition Level > Activity Calendar: Gear Use Features",
+        "ACQUISITION_LEVEL_MONTHLY_ACTIVITY": "Referential > Acquisition Level > Activity Calendar: Month",
         "ACQUISITION_LEVEL_OPERATION_LABEL": "Referential > Acquisition level > Operation",
-        "ACQUISITION_LEVEL_TRIP_LABEL": "Referential > Acquisition level > Trip",
         "ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL": "Referential > Acquisition level > Physical gear",
+        "ACQUISITION_LEVEL_PRODUCT_LABEL": "Referential > Acquisition Level > Product",
+        "ACQUISITION_LEVEL_PRODUCT_SALE_LABEL": "Referential > Acquisition Level > Product (from a sale)",
+        "ACQUISITION_LEVEL_CATCH_BATCH_LABEL": "Referential > Acquisition Level > Catch",
+        "ACQUISITION_LEVEL_SORTING_BATCH_LABEL": "Referential > Acquisition Level > Sorting batch",
+        "ACQUISITION_LEVEL_SORTING_BATCH_INDIVIDUAL_LABEL": "Referential > Acquisition Level > Individual measure",
+        "ACQUISITION_LEVEL_SALE_LABEL": "Referential > Acquisition Level > Sale",
+        "ACQUISITION_LEVEL_SAMPLE_LABEL": "Referential > Acquisition Level > Sample",
+        "ACQUISITION_LEVEL_TRIP_LABEL": "Referential > Acquisition Level > Trip",
         "LOCATION_LEVEL_COUNTRY_ID": "Referential > Location level de lieu > Country",
         "LOCATION_LEVEL_PORT_ID": "Referential > Location level > Port",
         "LOCATION_LEVEL_MARITIME_DISTRICT_ID": "Referential > Location level > Maritime district",
@@ -302,11 +313,16 @@
         "TAXONOMIC_LEVEL_SPECIES_ID": "Referential > Taxonomic level > Species",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
         "PMFM_STRATEGY_LABEL_ID": "Referential > PMFM > Strategy label",
+        "PMFM_NB_FISHERMEN_ID": "Referential > PMFM > Number of Fishermen on Board (Integer)",
+        "PMFM_GPS_USED_ID": "Referential > PMFM > Use of GPS? (Boolean)",
+        "PMFM_CAMERA_USED_ID": "Referential > PMFM > Use of Camera? (Boolean)",
+        "PMFM_SEA_STATE_ID": "Referential > PMFM > Sea State",
         "PMFM_TAG_ID": "Referential > PMFM > Sample Tag-ID",
         "PMFM_TRIP_PROGRESS": "Referential > PMFM > Trip progress? (Boolean)",
         "PMFM_DRESSING": "Referential > PMFM > Dressing (Whole, ...)",
         "PMFM_PRESERVATION": "Referential > PMFM > Preservation (Fresh, ...)",
         "PMFM_TRAWL_SIZE_CAT": "Referential > PMFM > Sorting category for trawl (NONE, ...)",
+        "PMFM_DIURNAL_OPERATION_ID": "Referential > PMFM > Diurnal operation ? (Boolean)",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "PMFM_GEAR_LABEL_ID": "Referential > PMFM > Physical gear label",
@@ -316,6 +332,9 @@
         "PMFM_BATCH_SORTING_ID": "Referential > PMFM > Bulk/Not Bulk",
         "PMFM_DISCARD_WEIGHT_ID": "Referential > PMFM > Catch weight",
         "PMFM_CATCH_WEIGHT_ID": "Referential > PMFM > Discard weight",
+        "PMFM_BATCH_CALCULATED_WEIGHT_ID": "Referential > PMFM > Batch Weight (Calculated)",
+        "PMFM_BATCH_ESTIMATED_WEIGHT_ID": "Referential > PMFM > Batch Weight (Estimated)",
+        "PMFM_BATCH_MEASURED_WEIGHT_ID": "Referential > PMFM > Batch Weight (Measured by an Observer)",
         "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID": "Referential > PMFM > Poids du lot calculé par RTP",
         "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Referential > PMFM > Sommes de poids RTP des lots fils",
         "PMFM_SELECTIVITY_DEVICE_ID": "Referential > PMFM > Selectivity device (gear)",
@@ -325,6 +344,7 @@
         "PMFM_SALE_ESTIMATED_RATIO_ID": "Referential > PMFM > Sale ratio (product)",
         "PMFM_SALE_RANK_ORDER_ID": "Referential > PMFM > Rank order of the sale",
         "PMFM_LANDING_CATEGORY_ID": "Referential > PMFM > Landing product destination",
+        "PMFM_IS_SAMPLING_ID": "Referential > PMFM > Is the batch detailed or not? (Boolean)",
         "PMFM_HAS_PETS_ID": "Referential > PMFM > Presence of PETS? (Boolean)",
         "PMFM_TAXON_GROUP_ID": "Referential > PMFM > Commercial species",
         "PMFM_SALE_TYPE_ID": "Referential > PMFM > Sale type",
@@ -337,6 +357,11 @@
         "PMFM_IS_OBSERVED_ID": "Referential > PMFM > Observed species? (Boolean)",
         "PMFM_NON_OBSERVATION_REASON_ID": "Referential > PMFM > Non-observation reason (of a species)",
         "PMFM_SPECIES_LIST_ORIGIN_ID": "Referential > PMFM > Origin of species list (PETS/Random)",
+        "PMFM_DISCARD_REASON_ID": "Referential > PMFM > Discard reason (batch)",
+        "PMFM_DISCARD_TYPE_ID": "Referential > PMFM > Discard type (batch)",
+        "PMFM_EMV_CATEGORY_ID": "Referential > PMFM > EMV category (batch)",
+        "PMFM_SIZE_CATEGORY_ID": "Referential > PMFM > Sorting category (batch)",
+        "PMFM_SIZE_UNLI_CAT_ID": "Referential > PMFM > On-site sorting category (batch)",
         "PARAMETER_HULL_MATERIAL_ID": "Referential > Parameter > Hull material",
         "PARAMETER_GROUP_SURVEY_ID": "Referential > Parameter group > Survey characteristics",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Referential > Method > Measured by observer",
@@ -367,6 +392,7 @@
         "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Referential > Qualitative value > Sex / Unsexed",
         "QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_PETS_ID": "Referential > Qualitative value > Species origin / PETS",
         "QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_RANDOM_ID": "Referential > Qualitative value > Species origin / Random",
+        "QUALITATIVE_VALUE_SURVEY_QUALIFICATION_DIRECT_ID": "Referential > Qualitative Value > Survey Qualification / Direct",
         "TAXON_GROUP_TYPE_FAO_ID": "Referential > Taxon group type / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Referential > Taxon group type / National metier",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Referential > Taxon group type / DCF metier lvl 5",
@@ -630,6 +656,9 @@
         }
       }
     },
+    "DATA": {
+      "EXPERTISE_AREA": "Expertise area"
+    },
     "ERROR": {
       "PEER_NOT_REACHABLE": "Unreachable node"
     }
@@ -668,7 +697,11 @@
   },
   "DATA": {
     "BTN_WRITE_TO_RECORDER": "Write to the recorder",
-    "MESSAGE_BODY": "Hello,\n\nregarding [{{title}}]({{url}}),\n\n..."
+    "MESSAGE_BODY": "Hello,\n\nregarding [{{title}}]({{url}}),\n\n...",
+    "SETTINGS": {
+      "EXPERTISE_AREA": "Expertise area",
+      "EXPERTISE_AREAS": "Expertise area(s)"
+    }
   },
   "TRIP": {
     "TITLE": "Fishing trip",
@@ -726,7 +759,7 @@
       "OBSERVERS": "Observers",
       "RECORDER_PERSON": "Recorder",
       "COMMENTS": "Comments",
-      "NO_LOCAL_RESULT": "No result (in trips NOT sent)",
+      "NO_LOCAL_RESULT": "No result (among <b>unsynchronized</b> trips)",
       "BTN_NEW_OFFLINE": "Field input mode (offline)",
       "BTN_NEW_ONLINE": "Desktop input mode (online)",
       "DOWNLOAD_JSON_FILENAME": "Trips.json",
@@ -1163,6 +1196,16 @@
           "BATCH_CALCULATED_WEIGHT": "Total weight (kg)"
         }
       },
+      "PMFM_QUALITATIVE_VALUES": {
+        "DISCARD_OR_LANDING": {
+          "LANDING": "Landing",
+          "DISCARD": "Discard",
+          "OBSERVED_TRIP": {
+            "LANDING": "Landing",
+            "DISCARD": "Discard"
+          }
+        }
+      },
       "ERROR": {
         "INVALID_WEIGHT_FOR_INDIVIDUAL_COUNT": "Invalid weight for {{individualCount}} indiv."
       }
@@ -1208,6 +1251,10 @@
         "ACCIDENTAL_CATCH": {
           "TITLE": "Catch {{label}}",
           "TAXON_GROUP_PLACEHOLDER": "Species (FAO)",
+          "TAXON_NAME_PLACEHOLDER": "Scientific species"
+        },
+        "OBSERVED_TRIP": {
+          "TITLE": "Catch {{label}}",
           "TAXON_NAME_PLACEHOLDER": "Scientific species"
         }
       },
@@ -1263,6 +1310,7 @@
         },
         "OBSERVED_TRIP": {
           "TITLE": "Accidental catch",
+          "RANK_ORDER": "#",
           "TAB_SAMPLES": "Individual measures",
           "TAXON_NAME": "Scientific species",
           "TAG_COUNT": "<b>{{tagCount}}</b> tagged individual"
@@ -1521,7 +1569,7 @@
     },
     "TABLE": {
       "PROGRAM": "Program",
-      "DATE_TIME": "Date/Heure",
+      "DATE_TIME": "Date/Time",
       "START_DATE_TIME": "Start date",
       "END_DATE_TIME": "End date",
       "QUALITY": "State",
@@ -1530,7 +1578,7 @@
       "OBSERVERS": "Observers",
       "RECORDER_PERSON": "Recorder",
       "COMMENTS": "Comments",
-      "NO_LOCAL_RESULT": "No result (in occasions <b>NOT sent</b>)",
+      "NO_LOCAL_RESULT": "No result (among <b>unsynchronized</b> occasions)",
       "FILTER": {
         "PROGRAM": "Data collection program",
         "STRATEGY": "Strategy",
@@ -1539,7 +1587,8 @@
         "END_DATE": "End period",
         "RECORDER_PERSON": "Recorder person",
         "RECORDER_DEPARTMENT": "Recorder department",
-        "OBSERVERS": "Observers"
+        "OBSERVERS": "Observers",
+        "QUALITY_FLAG_ID": "Quality flag"
       }
     },
     "PMFM": {},
@@ -1968,6 +2017,7 @@
     "PAGE_HISTORY_SUBTITLE": "Referential",
     "LAST_NAME": "Last name",
     "FIRST_NAME": "First name",
+    "TAB_GENERAL": "Details",
     "DEPARTMENT": {
       "LABEL": "Organization code",
       "NAME": "Organization name"
@@ -2045,7 +2095,6 @@
       "NAME": "Gear label"
     },
     "PARAMETER": {
-      "TAB_GENERAL": "Details",
       "TAB_QUALITATIVE_VALUE": "Qualitative value",
       "TYPE": "Value type",
       "CODE": "Parameter code",
@@ -2066,7 +2115,6 @@
       }
     },
     "PMFM": {
-      "TAB_GENERAL": "Details",
       "USE_DEFAULT_QUALITATIVES_VALUES": "All values from the parameter",
       "TAB_QUALITATIVE_VALUE": "Qualitative values",
       "TYPE": "Type",
@@ -2125,11 +2173,21 @@
       "OBJECT": "Reference",
       "LABEL": "Transcribing code",
       "NAME": "Transcribing name",
-      "STATUS_ID": "tatus",
+      "STATUS_ID": "Status",
       "TYPE": "Transcribing type"
     },
+    "EXPERTISE_AREA": {
+      "LOCATION": "Expertise area location(s)",
+      "LOCATION_LEVEL": "Location level",
+      "NEW": {
+        "TITLE": "New expertise area"
+      },
+      "EDIT": {
+        "TITLE": "<small>Expertise area<br></small>{{name}}"
+      }
+    },
     "LIST": {
-      "TITLE": "Referential",
+      "TITLE": "Referential<small><br></small><small>{{entity}}</small>",
       "BTN_IMPORT_OPTIONS_DOTS": "Import options...",
       "FILTER": {
         "ENTITY": "Kind",
@@ -2164,7 +2222,7 @@
       "DISTANCE_TO_COAST_GRADIENT": "Location/Area > Distance to coast gradients",
       "DEPTH_GRADIENT": "Location/Area > Depth gradients",
       "EXTRACTION_PRODUCT": "Extraction > Product",
-      "EXTRACTION_TABLE": "Extraction > Product tables",
+      "EXTRACTION_PRODUCT_TABLE": "Extraction > Product tables",
       "FISHERY": "Regulation > Fisheries",
       "SALE_TYPE": "Sale type",
       "LOCATION": "Location/Area > Location",
@@ -2179,7 +2237,7 @@
       "PARAMETER": "PMFM > Parameters",
       "PARAMETER_GROUP": "PMFM > Parameter groups",
       "USER_PROFILE": "User profiles",
-      "EXPERTISE_AREA": "Expertise area",
+      "EXPERTISE_AREA": "Location/Area > Expertise area",
       "VESSEL_TYPE": "Vessel types",
       "PMFM": "Collected parameters",
       "MATRIX": "PMFM > Matrices",
@@ -2205,7 +2263,7 @@
       "TRANSCRIBING_SYSTEM": "Transcribing > Systems",
       "UNIT": "PMFM > Unit",
       "METIER": "Gear/Metier > Metiers",
-      "SOFTWARE": "System > Softwares",
+      "SOFTWARE": "System > Software",
       "STATUS": "Status",
       "SAMPLING_STRATA": "Administration > Sampling strata",
       "SAMPLING_SCHEME": "Administration > Sampling scheme",
@@ -2275,6 +2333,24 @@
       "TAB_STRATEGIES": "Sampling stratum"
     },
     "OPTIONS": {
+      "ACTIVITY_CALENDAR_REPORT_ENABLE": "Activity Calendar > Report: Enable report editing?",
+      "ACTIVITY_CALENDAR_REPORT_TYPES": "Activity Calendar > Report: Allowed report types:",
+      "ACTIVITY_CALENDAR_REPORT_FORM_FOOTER": "Activity Calendar > Report > Forms: Footer text",
+      "ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Activity Calendar > Report: Header left logo",
+      "ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Activity Calendar > Report: Header right logo",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER_BLOCK": "Activity Calendar > Report > Blank Form: Number of métier blocks",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GEARS_COLUMN": "Activity Calendar > Report > Blank Form: Number of gear columns",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER": "Activity Calendar > Report > Blank Form: Number of fishing areas per métier block",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1": "Activity Calendar > Report > Blank Form: Physical gear characteristic label #1",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2": "Activity Calendar > Report > Blank Form: Physical gear characteristic label #2",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_FOOTER": "Activity Calendar > Progress Report: Footer text",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING": "Activity Calendar > Result limit for slow generation warning (0 = no limit)",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULT_ERROR": "Activity Calendar > Result limit for error due to excessively long production time (0 = no limit)",
+      "ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS": "Activity Calendar > Fishing Area: Location level(s)",
+      "ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID": "Activity Calendar > Vessel registration country",
+      "ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE": "Activity Calendar > Enable conflict resolution?",
+      "ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS": "Activity Calendar > Predocumentation: Program code(s)",
+      "ACTIVITY_CALENDAR_IMAGES_ENABLE": "Activity Calendar > Enable photos?",
       "ACTIVITY_CALENDAR_OBSERVERS_ENABLE": "Activity Calendar: Enter inspector?",
       "EXTRACTION_FORMATS": "Extraction > Available formats:",
       "I18N_SUFFIX": "Thematic dictionary",
@@ -2340,7 +2416,7 @@
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Trip > Position > Longitude: Default direction:",
       "TRIP_ALLOW_PARENT_OPERATION": "Trip > Operation: Associated operations (laying/hauling)?",
       "TRIP_REPORT_ENABLE": "Trip > Enable report edition?",
-      "TRIP_REPORT_TYPE": "Trip > Report type",
+      "TRIP_REPORT_TYPES": "Trip > Report type(s)",
       "TRIP_REPORT_FORM_SUBTITLE": "Trip > Form report subtitle",
       "TRIP_REPORT_FORM_FOOTER": "Trip > Form report footer",
       "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Trip > Report: Logo for the left header",
@@ -2370,6 +2446,8 @@
         "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Gear, Metier, Position/Fishing area, Features"
       },
       "TRIP_OPERATION_HELP_URL": "Trip > Operation: Online helper (URL)",
+      "TRIP_OPERATION_FISHING_AREA_INLINE": "Trip > Operation: Align fishing areas with dates",
+      "TRIP_OPERATION_SKIP_DATES_TRIP_PMFM_ID": "Trip > Operation: Trip PMFM (boolean) to disable dates?",
       "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Trips: Column 'SAMPLING_METHOD'",
       "TRIP_EXTRACTION_SAMPLING_METHODS": {
         "OBSERVER": "Observer",
@@ -2383,6 +2461,7 @@
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Occasion: Fill observers?",
       "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Occasion > Add landing: Can add vessel?",
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Occasion > Add landing: Show history?",
+      "OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE": "Occasion > Enable sampling plan data entry?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Occasion > Location level(s)",
       "OBSERVED_LOCATION_CONTROL_ENABLE": "Occasion: Enable control at end of data entry?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Occasion > Weekly activity calendar?",
@@ -2392,6 +2471,8 @@
       "OBSERVED_LOCATION_REPORT_ENABLE": "Occasion > Enable report edition?",
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Occasion > Offline > Location level(s) to import",
       "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Occasion > Show strategy card?",
+      "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Occasion > Automatically fill landings? (e.g., by species)",
+      "LANDING_BATCH_ENABLE": "Occasion > Landing: Enable batches?",
       "LANDING_EDITOR": "Occasion > Landing: editor",
       "LANDING_EDITOR_LANDING": "Landing",
       "LANDING_EDITOR_CONTROL": "Control",
@@ -2407,13 +2488,17 @@
       "LANDING_LOCATION_ENABLE": "Occasion > Landings: Show harbour?",
       "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Landing > Fishing area: Location level(s)",
       "LANDING_SAMPLES_COUNT_ENABLE": "Occasion > Landings: Show samples count?",
+      "LANDING_SAMPLE_ENABLE": "Occasion > Landing > Enable samples?",
       "LANDING_SAMPLE_WEIGHT_UNIT": "Occasion > Landing > Individual measures: Weight unit",
       "LANDING_SAMPLE_LABEL_ENABLE": "Occasion > Landing > Individual measures: Enter label?",
       "LANDING_COLUMNS_PMFM_IDS": "Occasion > Landings: Additional column(s) (PMFM)",
+      "LANDING_ROWS_DIVIDER_PMFM_ID": "Occasion > Landings: Row divider (qualitative PMFM)",
       "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Occasion > Landings: Min. number of observed species",
       "LANDING_TOP_PMFM_IDS": "Occasion > Landings: Top PMFM(s)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Fishing area: Location level(s)",
       "PROGRAM_PRIVILEGE_READONLY": "Programme > Access rights: read only?",
+      "SALE_LOCATION_LEVEL_IDS": "Occasion > Sale: Location level(s)",
+      "SALE_BATCH_ENABLE": "Occasion > Sale: Enable batches?",
       "STRATEGY_EDITOR": "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Default",
@@ -2497,6 +2582,8 @@
         "ANALYTIC_REFERENCE": "Analytic reference",
         "RECORDER_DEPARTMENTS": "Recoder department(s)",
         "TAXON_NAMES": "Scientific specie(s)",
+        "START_YEAR": "Start year",
+        "END_YEAR": "End year",
         "EFFORT_Q1": "Quarter Q1",
         "EFFORT_Q2": "Quarter Q2",
         "EFFORT_Q3": "Quarter Q3",
@@ -2518,13 +2605,7 @@
           "RECORDER_DEPARTMENTS": "Recorder laboratory(s)",
           "TAXON_NAMES": "Target species",
           "QUARTERS_DOTS": "Quarters:",
-          "START_YEAR": "Start year",
-          "END_YEAR": "End year",
           "PARAMETER_GROUPS": "Parameters to be measured",
-          "EFFORT_Q1": "QUarter Q1",
-          "EFFORT_Q2": "QUarter Q2",
-          "EFFORT_Q3": "QUarter Q3",
-          "EFFORT_Q4": "QUarter Q4",
           "PARAMETERS": "Measured parameters",
           "PARAMETERS_DOTS": "Measured parameters:",
           "COMMENTS": "Comments",
@@ -2899,6 +2980,14 @@
         "TITLE_PROGRAM": "Raw trips {{label}}",
         "NAME": "Generic"
       },
+      "ACTIMONIT": {
+        "TITLE": "Activity calendar progress",
+        "NAME": "Activity calendar progress",
+        "SHEET": {
+          "AC": "Activity calendar (AC)",
+          "AM": "Data entry monitoring (AM)"
+        }
+      },
       "STRAT": {
         "TITLE": "Data collection strategies",
         "NAME": "Data collection strategies",
@@ -3038,7 +3127,8 @@
         "SYS_P_FILL_TAXON_GROUP_HIERARCHY": "Update taxon group hierarchy",
         "SYS_P_FILL_LOCATION_HIERARCHY": "Update location hierarchy",
         "SUMARIS_EXTRACTION": "Data extraction",
-        "DENORMALIZE_BATCH": "Batches denormalization"
+        "DENORMALIZE_BATCH": "Batches denormalization",
+        "ACTIVITY_CALENDARS_IMPORTATION": "Activity calendar import"
       },
       "ERROR": {
         "LOAD_TYPES_ERROR": "Error while loading job types",
@@ -3048,6 +3138,7 @@
     "MESSAGE": {
       "TYPE": "Message type",
       "RECIPIENTS": "Recipients",
+      "RECIPIENT_FILTER_COUNT": "{{count}} filtered user(s)",
       "SUBJECT": "Object",
       "BODY_HELP": "Your message...",
       "NEW": {
@@ -3118,6 +3209,15 @@
       "BROWSE": "Browse",
       "IMPORTING": "Import in progress",
       "ERROR": "Error while uploading file"
+    },
+    "PROPERTIES": {
+      "CSV_FILENAME": "{{label}}-options.csv",
+      "LABEL_HEADER": "Code",
+      "VALUE_HEADER": "Value",
+      "DESCRIPTION_HEADER": "Description",
+      "ERROR": {
+        "IMPORT_ERROR": "Import failed:<br/>{{error}}"
+      }
     }
   },
   "IMAGE": {
@@ -3200,8 +3300,14 @@
       "RECORDER_DEPARTMENT": "Recoder department(s)",
       "DIRECT_SURVEY_INVESTIGATION": "Direct survey investigation objective?",
       "ECONOMIC_SURVEY": "Economic survey?",
+      "REGISTRATION_LOCATION": "Registration location",
       "VESSEL": "Vessel",
+      "UPDATE_DATE": "Modification date",
       "YEAR": "Year",
+      "COMMENTS": "Comments",
+      "NO_LOCAL_RESULT": "No result (among <b>unsynchronized</b> calendars)",
+      "BTN_NEW_OFFLINE": "Field input mode (offline)",
+      "BTN_NEW_ONLINE": "Desktop input mode (online)",
       "OBSERVERS": "Observer(s)",
       "FILTER": {
         "PROGRAM": "Data collection programme",
@@ -3331,7 +3437,13 @@
         "TITLE": "Survey qualification"
       },
       "GUF_SECTION": {
-        "TITLE": "Gear characteristics"
+        "TITLE": "Gear features",
+        "METIER": "Métier(s)"
+      },
+      "VESSEL_OWNER_SECTION": {
+        "TITLE": "Last owner",
+        "NAME": "Name:",
+        "ADDRESS": "Address:"
       },
       "SELL_SECTION": {
         "TITLE": "Sales",
@@ -3407,17 +3519,18 @@
     "ERROR": {
       "CANNOT_PASTE_HERE": "You cannot paste here.",
       "CONFLICTUAL_MONTH": "Conflict detected while saving the calendar",
-      "DUPLICATED_METIER": "Duplicated métier(s): {{metiers}}",
-      "REQUIRED_FISHING_AREA": "Fishing area required for the métier(s): {{metiers}}",
-      "REQUIRED_INACTIVITY_YEAR": "Annual inactivity to be confirmed",
-      "REQUIRED_DISTANCE_TO_COAST": "Distance to coast required for the area(s): {{fishingArea}}",
-      "INVALID_MONTHS": "Please correct the invalid month(s)",
-      "INCONSISTENT_DATA": "Inconsistent data",
-      "INCONSISTENCY_DAY_NUMBER": "Inconsistent number of days",
-      "DUPLICATED_FISHING_AREA": "Duplicated fishing area(s): {{fishingArea}}",
-      "INVALID_METIERS": "Please correct the invalid métier(s)",
-      "CSV_IMPORT_ERROR": "CSV file import failed.<small><br/>If the problem persists, please contact your administrator.</small>",
-      "MAX_SELECTED_ID": "Maximum number of selected items reached"
+      "CSV_IMPORT_ERROR": "Failed to import the CSV file.<small><br/>If the problem persists, please contact your administrator.</small>",
+      "MAX_SELECTED_ITEMS": "Too many selected items",
+      "REQUIRED_METIER": "Metier is required",
+      "REQUIRED_FISHING_AREA": "Fishing area is required for the metier(s): {{metiers}}",
+      "REQUIRED_INACTIVITY_YEAR": "Annual inactivity must be confirmed",
+      "REQUIRED_DISTANCE_TO_COAST": "Distance to coast is required for the area(s) {{fishingArea}}",
+      "TOO_MANY_RESULT_FOR_REPORT_GENERATION": "You cannot generate a report for more than {{nbLimit}} calendars. Please adjust your filter.",
+      "UNIQUE_METIER": "Duplicate metier(s): {{metiers}}",
+      "UNIQUE_FISHING_AREA": "Duplicate fishing area(s): {{fishingArea}}",
+      "VALID_MONTHS": "Please correct the invalid month(s)",
+      "VALID_DAY_COUNT": "Incorrect number of days for the month",
+      "VALID_METIERS": "Please correct the invalid metier(s)"
     },
     "WARNING": {
       "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Survey qualification <b>{{surveyQualification}}</b> inconsistent with the objective.",

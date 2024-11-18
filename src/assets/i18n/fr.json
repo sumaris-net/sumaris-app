@@ -322,7 +322,7 @@
         "PMFM_DRESSING": "Référentiel > PSFM > Présentation de l'espèce (Entier, ...)",
         "PMFM_PRESERVATION": "Référentiel > PSFM > État de l'espèce (Frais, ...)",
         "PMFM_TRAWL_SIZE_CAT": "Référentiel > PSFM > Catégorie de tri chalut (NA, ...)",
-        "PMFM_DIURNAL_OPERATION_ID": "Référentiel > PSFM > Opération diurne (jour) ? (Booléen)",
+        "PMFM_DIURNAL_OPERATION_ID": "Référentiel > PSFM > Opération diurne ? (Booléen)",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "PMFM_GEAR_LABEL_ID": "Référentiel > PSFM > Libellé de l'engin physique",
@@ -1704,7 +1704,8 @@
         "END_DATE": "Fin de période",
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
-        "OBSERVERS": "Observateurs"
+        "OBSERVERS": "Observateurs",
+        "QUALITY_FLAG_ID": "Niveau de qualité"
       }
     },
     "PMFM": {},
@@ -2338,7 +2339,7 @@
       "DISTANCE_TO_COAST_GRADIENT": "Lieu/Zone > Gradients de distance à la côte",
       "DEPTH_GRADIENT": "Lieu/Zone > Gradients de profondeur",
       "EXTRACTION_PRODUCT": "Extraction > Produits",
-      "EXTRACTION_TABLE": "Extraction > Tables de produit",
+      "EXTRACTION_PRODUCT_TABLE": "Extraction > Tables de produit",
       "FISHERY": "Réglementation > Pêcheries",
       "SALE_TYPE": "Types de vente",
       "LOCATION": "Lieu/Zone > Lieux",
@@ -2353,7 +2354,7 @@
       "PARAMETER": "PSFM > Paramètres",
       "PARAMETER_GROUP": "PSFM > Groupes de paramètres",
       "USER_PROFILE": "Profils utilisateur",
-      "EXPERTISE_AREA": "Zones de compétence",
+      "EXPERTISE_AREA": "Lieu/Zone > Zones de compétence",
       "VESSEL_TYPE": "Types de navire",
       "PMFM": "PSFM > Quadruplets PSFM",
       "MATRIX": "PSFM > Supports de mesure",
@@ -2531,7 +2532,7 @@
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
       "TRIP_REPORT_ENABLE": "Marée > Rapport : Activer l'édition de rapport ?",
-      "TRIP_REPORT_TYPES": "Marée > Rapport : Types de rapport :",
+      "TRIP_REPORT_TYPES": "Marée > Rapport : Type(s) de rapport",
       "TRIP_REPORT_FORM_SUBTITLE": "Marée > Rapport : Sous-titre du rapport",
       "TRIP_REPORT_FORM_FOOTER": "Marée > Rapport : Texte de pied de page",
       "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Marée > Rapport : Logo à gauche de l'entête",
@@ -2607,7 +2608,7 @@
       "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Mesures : Unité de poids",
       "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
       "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
-      "LANDING_ROWS_DIVIDER_PMFM_ID": "Sortie > Débarquements : Séparateur de lignes (PSFM)",
+      "LANDING_ROWS_DIVIDER_PMFM_ID": "Sortie > Débarquements : Séparateur de lignes (PSFM qualitatif)",
       "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Sortie > Débarquements : Nombre min. d'espèces à observer",
       "LANDING_TOP_PMFM_IDS": "Sortie > Débarquements : PSFM(s) en en-tête",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
@@ -3161,7 +3162,7 @@
         "NAME": "Avancement des calendriers d'activité",
         "SHEET": {
           "AC": "Calendriers bruts (AC)",
-          "AM": "Calendriers (AM)"
+          "AM": "Suivi de la saisie (AM)"
         }
       },
       "STRAT": {
@@ -3314,7 +3315,7 @@
     "MESSAGE": {
       "TYPE": "Type d'envoi",
       "RECIPIENTS": "Destinataires",
-      "RECIPIENT_FILTER_COUNT": "{{count}} utilisateurs filtrés",
+      "RECIPIENT_FILTER_COUNT": "{{count}} utilisateur(s) filtré(s)",
       "SUBJECT": "Objet",
       "BODY_HELP": "Votre message...",
       "NEW": {
@@ -3619,7 +3620,7 @@
       },
       "GPF_SECTION": {
         "TITLE": "Caractéristiques engins",
-        "METIER": "Metier(s)"
+        "METIER": "Métier(s)"
       },
       "VESSEL_OWNER_SECTION": {
         "TITLE": "Dernier armateur",
