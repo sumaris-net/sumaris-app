@@ -1388,7 +1388,8 @@
         "INVALID_TAG_ID_LENGTH": "La longueur du code prélévement doit être {{length}}",
         "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire",
         "OUT_OF_RANGE": "Hors fourchette",
-        "DUPLICATED_TAG_ID": "Duplication de {{name}}"
+        "DUPLICATED_TAG_ID": "Duplication de {{name}}",
+        "REQUIRED": "La saisie des captures accidentelles est obligatoire"
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Échantillons : Unite de poids"
@@ -2528,6 +2529,7 @@
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Marée > Échantillon : Espèces scientifiques ?",
       "TRIP_SAMPLE_LABEL_ENABLE": "Marée > Échantillon : Libellé ?",
       "TRIP_SAMPLE_IMAGES_ENABLE": "Marée > Échantillon : Images ?",
+      "TRIP_SAMPLE_REQUIRED_NOT_EMPTY_PMFM_ID": "Marée > Échantillon : Captures accidentelles : Saisie obligatoire ?",
       "TRIP_POSITION_ENABLE": "Marée > Position : Activer ?",
       "TRIP_POSITION_BOUNDING_BOX": "Marée > Position : Boite limite ([x1, y1, x2, y2]) :",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",

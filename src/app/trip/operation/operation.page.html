@@ -375,7 +375,12 @@
         >
           {{ sampleTab.textLabel }}
         </ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && sampleTree.invalid"></ion-icon>
+        <ion-icon
+          slot="end"
+          name="alert-circle"
+          color="danger"
+          *ngIf="(submitted && sampleTree.invalid) || (this.sampleTree.samplesTable.required && sampleTree.samplesTable.totalRowCount == 0)"
+        ></ion-icon>
       </ng-template>
 
       <app-sample-tree

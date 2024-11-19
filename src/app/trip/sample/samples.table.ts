@@ -401,6 +401,12 @@ export class SamplesTable
         super.setError(error, opts);
         return;
       }
+    } else if (error && this.required && this.totalRowCount == 0) {
+      const errorMessage = this.translate.instant('TRIP.SAMPLE.ERROR.REQUIRED');
+      DataEntityUtils.markAsInvalid(undefined, errorMessage);
+      this.showError = true;
+      super.setError(error, opts);
+      return;
     } else {
       this.showError = false;
       super.setError(error, opts);

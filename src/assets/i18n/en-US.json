@@ -1374,7 +1374,8 @@
         "INVALID_TAG_ID_LENGTH": "Tag length must have {{length}} characters",
         "WEIGHT_OR_LENGTH_REQUIRED": "Weight or length is required",
         "OUT_OF_RANGE": "Out of range",
-        "DUPLICATED_TAG_ID": "Duplication of {{name}}"
+        "DUPLICATED_TAG_ID": "Duplication of {{name}}",
+        "REQUIRED": "Accidental catches are required"
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Sample: Weight unit"

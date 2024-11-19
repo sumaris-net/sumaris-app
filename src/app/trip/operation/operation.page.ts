@@ -163,6 +163,7 @@ export class OperationPage<S extends OperationState = OperationState>
   _defaultIsParentOperation = true;
 
   protected isInlineFishingArea: boolean = false;
+  protected samplesTableRequiredPmfmId: number;
 
   readonly forceOptionalExcludedPmfmIds: number[];
 
@@ -585,6 +586,7 @@ export class OperationPage<S extends OperationState = OperationState>
             this.showSamplesTab = this.showSampleTablesByProgram;
             this.showCatchTab = this.showBatchTables || this.batchTree?.showCatchForm || false;
             this.tabCount = this.showSamplesTab ? 3 : this.showCatchTab ? 2 : 1;
+            this.sampleTree.required(hasAccidentalCatches);
 
             // Force first tab index
             if (this.selectedTabIndex === OperationPage.TABS.GENERAL) {
@@ -815,6 +817,7 @@ export class OperationPage<S extends OperationState = OperationState>
     this.measurementsForm.forceOptional = this.forceMeasurementAsOptional;
     this.measurementsForm.maxVisibleButtons = program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS);
     this.measurementsForm.maxItemCountForButtons = program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS);
+    this.samplesTableRequiredPmfmId = program.getPropertyAsInt(ProgramProperties.TRIP_SAMPLE_REQUIRED_PMFM_ID);
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount =

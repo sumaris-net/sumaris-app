@@ -92,6 +92,7 @@ export abstract class AppBaseTable<
   @Input({ transform: booleanAttribute }) sticky = false;
   @Input({ transform: booleanAttribute }) stickyEnd = false;
   @Input({ transform: booleanAttribute }) compact: boolean = null;
+  @Input({ transform: booleanAttribute }) required: boolean = false;
   @Input({ transform: booleanAttribute }) mobile = false;
   @Input({ transform: numberAttribute }) pressHighlightDuration = 10000; // 10s
   @Input({ transform: numberAttribute }) highlightedRowId: number;

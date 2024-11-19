@@ -496,6 +496,13 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  TRIP_SAMPLE_REQUIRED_PMFM_ID: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.required.pmfmId',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_REQUIRED_PMFM_ID',
+    type: 'entity',
+    autocomplete: pmfmAutocomplete,
+    defaultValue: PmfmIds.HAS_ACCIDENTAL_CATCHES,
+  },
   TRIP_LATITUDE_SIGN: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.latitude.defaultSign',
     label: 'PROGRAM.OPTIONS.TRIP_LATITUDE_DEFAULT_SIGN',
