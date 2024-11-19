@@ -221,7 +221,6 @@ export class ActivityCalendarPage
       canUseExpertiseArea: true, // Enable expertise area
     });
     this.defaultBackHref = '/activity-calendar';
-    this.enableExpertiseArea = true;
     this.predocShortcutHelp = `(${hotkeys.defaultControlKeyName}+P)`;
 
     // FOR DEV ONLY ----

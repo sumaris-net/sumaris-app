@@ -18,6 +18,7 @@ export class ExpertiseAreaValidatorService extends ReferentialValidatorService {
     return {
       ...config,
       locations: [data?.locations || null, Validators.required],
+      locationLevels: [data?.locationLevels || null, Validators.required],
     };
   }
 }

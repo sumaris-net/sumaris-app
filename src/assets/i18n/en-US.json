@@ -3341,7 +3341,7 @@
       "BTN_ADD_METIER_BLOCK": "Add a Metier block",
       "BTN_REPORT": "Edit report",
       "BTN_EXPERTISE_AREA": "Expertise area...",
-      "BTN_ENABLE_EXPERTISE_AREA": "Enable expertise area ?",
+      "BTN_NO_EXPERTISE_AREA": "No expertise area",
       "BTN_EXPAND_ALL": "Expand all",
       "BTN_COLLAPSE_ALL": "Collapse all",
       "BTN_CLEAR_MONTH": "Clear month",

@@ -30,8 +30,10 @@ export class ExpertiseAreaService extends ReferentialService<ExpertiseArea, Refe
     const target = super.asObject(source, opts);
     target.properties = {
       locations: target.locations,
+      locationLevels: target.locationLevels,
     };
     delete target.locations;
+    delete target.locationLevels;
 
     return target;
   }
@@ -41,6 +43,7 @@ export class ExpertiseAreaService extends ReferentialService<ExpertiseArea, Refe
       {
         ...source,
         locations: source.locations || source.properties?.locations || null,
+        locationLevels: source.locationLevels || source.properties?.locationLevels || null,
       },
       opts
     );
