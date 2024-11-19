@@ -92,17 +92,18 @@
 <mat-menu #expertiseAreaMenu="matMenu" class="ion-no-padding">
   <ng-template matMenuContent>
     <!-- enable expertise area ? -->
-    <button mat-menu-item (click)="toggleEnableExpertiseArea($event)">
-      <mat-icon>{{ enableExpertiseArea ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
-      <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_ENABLE_EXPERTISE_AREA</ion-label>
-    </button>
-
-    <mat-divider></mat-divider>
+    @if (isAdminOrSupervisor) {
+      @let selected = selectedExpertiseArea | isNil;
+      <button mat-menu-item (click)="selectedExpertiseArea = null">
+        <mat-icon [style.color]="selected ? 'var(--ion-color-primary)' : 'var(--ion-color-dark)'">{{ selected ? 'check' : '' }}</mat-icon>
+        <ion-label [color]="selected ? 'primary' : 'dark'" translate>ACTIVITY_CALENDAR.EDIT.BTN_NO_EXPERTISE_AREA</ion-label>
+      </button>
+    }
 
     <!-- available expertise area -->
     @for (item of availableExpertiseAreas$ | async; track item.id) {
       @let selected = selectedExpertiseArea?.id === item.id;
-      <button mat-menu-item [disabled]="!enableExpertiseArea" (click)="selectedExpertiseArea = item">
+      <button mat-menu-item (click)="selectedExpertiseArea = item">
         <mat-icon [style.color]="selected ? 'var(--ion-color-primary)' : 'var(--ion-color-dark)'">{{ selected ? 'check' : '' }}</mat-icon>
         <ion-label [color]="selected ? 'primary' : 'dark'">{{ item.name }}</ion-label>
       </button>
@@ -400,7 +401,7 @@
             [requiredStrategy]="requiredStrategy$ | async"
             [strategyId]="(strategy$ | async)?.id"
             [timezone]="timezone"
-            [expertiseLocationIds]="expertiseLocationIds$ | async"
+            [expertiseAreaProperties]="expertiseAreaProperties$ | async"
             [showError]="!mobile"
             [debug]="debug"
             (startCellSelection)="predocCalendar?.removeCellSelection()"
@@ -421,7 +422,7 @@
             [usePageSettings]="false"
             [toolbarColor]="'secondary'"
             [timezone]="timezone"
-            [expertiseLocationIds]="expertiseLocationIds$ | async"
+            [expertiseAreaProperties]="expertiseAreaProperties$ | async"
             [sticky]="true"
             [canEdit]="false"
             [readOnly]="true"

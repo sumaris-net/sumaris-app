@@ -166,6 +166,7 @@ export class ActivityCalendarPage
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
   protected isAdmin = this.accountService.isAdmin();
   protected isAdminOrManager = this.accountService.isAdmin();
+  protected isAdminOrSupervisor = this.accountService.isSupervisor();
   protected qualityWarning: string = null;
   protected readonly predocShortcutHelp: string;
 
@@ -221,7 +222,6 @@ export class ActivityCalendarPage
       canUseExpertiseArea: true, // Enable expertise area
     });
     this.defaultBackHref = '/activity-calendar';
-    this.enableExpertiseArea = true;
     this.predocShortcutHelp = `(${hotkeys.defaultControlKeyName}+P)`;
 
     // FOR DEV ONLY ----
@@ -503,6 +503,7 @@ export class ActivityCalendarPage
       this.i18nContext.suffix = i18nSuffix;
 
       this.isAdminOrManager = this.accountService.isSupervisor() || this.programRefService.hasUserManagerPrivilege(program);
+      this.isAdminOrSupervisor = this.accountService.isSupervisor() || this.programRefService.hasUserManagerPrivilege(program);
       this.baseForm.showObservers = this.isAdminOrManager && program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
 
       if (this.baseForm) {
