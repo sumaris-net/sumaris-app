@@ -8,10 +8,6 @@ export const ProgramLabels = {
   SIH_ACTIPRED: 'SIH-ACTIPRED',
 };
 
-export const ProgramIds = {
-  SIH_ACTIFLOT: 25,
-  SIH_ACTIPRED: 54,
-};
 // LP 17/08/2020 : Location level are overridden in ConfigService.overrideEnums
 export const LocationLevelIds = {
   // Lands

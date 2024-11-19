@@ -168,6 +168,19 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
       },
     },
   },
+  PROGRAM_FILTER_HIDDEN: <FormFieldDefinition>{
+    key: 'sumaris.data.program.filter.hidden',
+    label: 'CONFIGURATION.OPTIONS.PROGRAM_FILTER_HIDDEN',
+    type: 'entities',
+    autocomplete: {
+      attributes: ['label'],
+      filter: <ReferentialRefFilter>{
+        entityName: 'Program',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+    },
+    defaultValue: '',
+  },
 });
 
 export const DATA_LOCAL_SETTINGS_OPTIONS = {

@@ -1,6 +1,6 @@
 import { EntitiesStorageTypePolicies, EntityStoreTypePolicy, FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
 import { TypePolicies } from '@apollo/client/core';
-import { AcquisitionLevelCodes, ProgramIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 
@@ -11,7 +11,6 @@ export const ACTIVITY_CALENDAR_FEATURE_NAME = 'activityCalendar';
 export const ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER: Partial<ProgramFilter> = Object.freeze({
   statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
   acquisitionLevelLabels: [AcquisitionLevelCodes.ACTIVITY_CALENDAR, AcquisitionLevelCodes.MONTHLY_ACTIVITY],
-  excludedIds: [ProgramIds.SIH_ACTIPRED],
 });
 
 /**
