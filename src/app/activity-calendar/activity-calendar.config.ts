@@ -3,6 +3,7 @@ import { TypePolicies } from '@apollo/client/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 /**
  * Name of the features (e.g. to be used by settings)
@@ -33,6 +34,19 @@ export const ACTIVITY_CALENDAR_CONFIG_OPTIONS = Object.freeze({
       },
     ],
     defaultValue: 'MENU.ACTIVITY_CALENDAR',
+  },
+  ACTIVITY_CALENDAR_HIDDEN_PROGRAM_IDS: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.hidden.program.ids',
+    label: 'ACTIVITY_CALENDAR.OPTIONS.HIDDEN_PROGRAM_IDS',
+    type: 'entities',
+    autocomplete: {
+      attributes: ['label'],
+      filter: <ReferentialRefFilter>{
+        entityName: 'Program',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+    },
+    defaultValue: '',
   },
 });
 

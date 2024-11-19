@@ -228,7 +228,6 @@
       "BATCH_HASH_OPTIMIZATION": "Persistance > Batch : Optimiser la sauvegarde (hash)",
       "PHYSICAL_GEAR_HASH_OPTIMIZATION": "Persistance > Physical Gear : Optimiser la sauvegarde (hash)",
       "ACTIVITY_CALENDAR_HASH_OPTIMIZATION": "Persistance > Activity Calendar : Optimiser la sauvegarde (hash)",
-      "PROGRAM_FILTER_HIDDEN": "Calendrier d'activité > Masquer > Programmes de collecte (Filtre)",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HELP_URL": "App > Adresse du manuel utilisateur (URL)",
       "FORUM_URL": "App > Adresse du forum (URL)",
@@ -3589,6 +3588,7 @@
     },
     "OPTIONS": {
       "ENABLE": "Calendrier d'activité > Activer ?",
+      "HIDDEN_PROGRAM_IDS": "Calendrier d'activité > Masquer > Programmes de collecte (Filtre)",
       "NAME": "Calendrier d'activité > Titre (menu, etc.)"
     },
     "REPORT": {
