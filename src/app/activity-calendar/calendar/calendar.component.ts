@@ -495,6 +495,7 @@ export class CalendarComponent
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
+      reloadItemsOnFocus: true,
     });
     this.registerAutocompleteField('depthGradient', {
       suggestFn: (value, filter) => this.suggestDepthGradient(value, filter),
@@ -507,6 +508,7 @@ export class CalendarComponent
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
+      reloadItemsOnFocus: true,
     });
 
     this._state.connect(
@@ -1808,7 +1810,6 @@ export class CalendarComponent
       entityName: 'DistanceToCoastGradient',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
       locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
@@ -1819,16 +1820,14 @@ export class CalendarComponent
     // Get current location
     const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
 
-    return this.referentialRefService.suggest(value, this.buildDepthGradientFilter(filter, fishingAreaLocationId), 'rankOrder', 'asc');
+    return this.referentialRefService.suggest(value, this.buildDepthGradientFilter(filter), 'rankOrder', 'asc');
   }
 
-  protected buildDepthGradientFilter(filter?: Partial<ReferentialRefFilter>, fishingAreaLocationId?: number): Partial<ReferentialRefFilter> {
+  protected buildDepthGradientFilter(filter?: Partial<ReferentialRefFilter>): Partial<ReferentialRefFilter> {
     return {
       entityName: 'DepthGradient',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
-      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1846,7 +1845,6 @@ export class CalendarComponent
       entityName: 'NearbySpecificArea',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
       locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
@@ -1885,7 +1883,6 @@ export class CalendarComponent
       const invalidMetierIds: number[] = [];
       const invalidFishingAreaLocationIds: number[] = [];
       const invalidDistanceToCoastGradientIds: number[] = [];
-      const invalidDepthGradientIds: number[] = [];
       const invalidNearbySpecificAreaIds: number[] = [];
       const basePortLocationFilter = this.buildBasePortLocationFilter();
       const metierFilter = this.buildMetierFilter();
@@ -1944,16 +1941,6 @@ export class CalendarComponent
               ExpertiseAreaUtils.markAsOutsideExpertiseArea(fa.distanceToCoastGradient, invalidDistanceToCoastGradientIds.includes(dtcId));
             }
 
-            const dgId = fa.depthGradient?.id;
-            if (isNotNil(dgId)) {
-              if (needCheck && !invalidDepthGradientIds.includes(dgId)) {
-                if (!(await this.referentialRefService.existsById(dgId, this.buildDepthGradientFilter(undefined, faLocationId), cacheFirstOptions))) {
-                  invalidDepthGradientIds.push(dgId);
-                }
-              }
-              ExpertiseAreaUtils.markAsOutsideExpertiseArea(fa.depthGradient, invalidDepthGradientIds.includes(dgId));
-            }
-
             const nsaId = fa.nearbySpecificArea?.id;
             if (isNotNil(nsaId)) {
               if (needCheck && !invalidNearbySpecificAreaIds.includes(nsaId)) {
@@ -1978,7 +1965,6 @@ export class CalendarComponent
         isNotEmptyArray(invalidMetierIds) ||
         isNotEmptyArray(invalidFishingAreaLocationIds) ||
         isNotEmptyArray(invalidDistanceToCoastGradientIds) ||
-        isNotEmptyArray(invalidDepthGradientIds) ||
         isNotEmptyArray(invalidNearbySpecificAreaIds);
 
       if (this.debug) {
