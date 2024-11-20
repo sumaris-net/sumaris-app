@@ -45,7 +45,7 @@
                       pmfm of stats.pmfms.slice(stats.pmfmsTablePart[0][0], stats.pmfmsTablePart[0][1]) | arrayFilter: filterPmfmForOperationTable;
                       track pmfm
                     ) {
-                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm }"></ng-content>
+                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm, tipsPart: 0 }"></ng-content>
                     }
                   }
                   <!-- TODO else -->
@@ -80,14 +80,14 @@
                     <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
                   </th>
                   <th class="col-medium font-medium ion-text-center">
-                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.' + (enablePosition ? 'LAT_LONG_LOCATION' : 'FISHING_AREA') | translate }}</div>
                   </th>
                   @if (stats.options.showEndDate) {
                     <th class="col-compact font-medium ion-text-center">
                       <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
                     </th>
                     <th class="col-medium font-medium ion-text-center">
-                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.LAT_LONG_LOCATION' | translate }}</div>
+                      <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.' + (enablePosition ? 'LAT_LONG_LOCATION' : 'FISHING_AREA') | translate }}</div>
                     </th>
                   }
                   @if (stats.options.allowParentOperation) {
@@ -99,14 +99,14 @@
                         | arrayFilter: filterPmfmForOperationTable;
                       track pmfm
                     ) {
-                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm }"></ng-content>
+                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm, tipsPart: 0 }"></ng-content>
                     }
                   } @else {
                     @for (
                       pmfm of stats.pmfms.slice(stats.pmfmsTablePart[0][0], stats.pmfmsTablePart[0][1]) | arrayFilter: filterPmfmForOperationTable;
                       track pmfm
                     ) {
-                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm }"></ng-content>
+                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm, tipsPart: 0 }"></ng-content>
                     }
                   }
                 </tr>
@@ -166,14 +166,22 @@
                       @if (isBlankForm) {
                         <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
                       } @else {
-                        @if (op.parentOperationId | isNil) {
-                          {{ op.startPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
-                          <br />
-                          {{ op.startPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                        @if (enablePosition) {
+                          @if (op.parentOperationId | isNil) {
+                            @if (op.startPosition?.latitude | isNotNil) {
+                              {{ op.startPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                              <br />
+                              {{ op.startPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                            } @else {}
+                          } @else {
+                            {{ op.fishingEndPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                            <br />
+                            {{ op.fishingEndPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                          }
                         } @else {
-                          {{ op.fishingEndPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
-                          <br />
-                          {{ op.fishingEndPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                          {{
+                            op.fishingAreas | arrayPluck: { property: 'location' } | referentialToString: stats.options.fishingAreaDisplayAttributes
+                          }}
                         }
                       }
                     </td>
@@ -181,7 +189,7 @@
                     @if (stats.options.showEndDate) {
                       <td class="col-compact">
                         @if (!isBlankForm) {
-                          @if (op.parentOperationId | isNil) {
+                          @if (stats.options.allowParentOperation && (op.parentOperationId | isNil)) {
                             {{ op.fishingStartDateTime | dateFormat: { time: true } }}
                           } @else {
                             {{ op.endDateTime | dateFormat: { time: true } }}
@@ -192,16 +200,24 @@
                         @if (isBlankForm) {
                           <ng-content *ngTemplateOutlet="latLongPlaceHolder"></ng-content>
                         } @else {
-                          @if (op.parentOperationId | isNil) {
-                            {{ op.fishingStartPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
-                            <br />
-                            {{
-                              op.fishingStartPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' }
-                            }}
+                          @if (enablePosition) {
+                            @if (stats.options.allowParentOperation && (op.parentOperationId | isNil)) {
+                              {{
+                                op.fishingStartPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' }
+                              }}
+                              <br />
+                              {{
+                                op.fishingStartPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' }
+                              }}
+                            } @else {
+                              {{ op.endPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                              <br />
+                              {{ op.endPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                            }
                           } @else {
-                            {{ op.endPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
-                            <br />
-                            {{ op.endPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                            {{
+                              op.fishingAreas | arrayPluck: { property: 'location' } | referentialToString: stats.options.fishingAreaDisplayAttributes
+                            }}
                           }
                         }
                       </td>
@@ -241,27 +257,13 @@
                 }
               </tbody>
             </table>
-            <ng-template #tableOperationHeadPmfmName let-pmfm="pmfm">
-              <th class="col-tiny font-small text-vertical">
-                @if (pmfm | isNotNil) {
-                  <div>
-                    {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix } }}
-                    @if (stats.pmfmsTipsByPmfmId | mapGet: pmfm.id | isNotNil) {
-                      <sup>
-                        <em>*{{ stats.pmfmsTipsByPmfmId | mapGet: pmfm.id | mapGet: 'tipsNum' }}</em>
-                      </sup>
-                    }
-                  </div>
-                }
-              </th>
-            </ng-template>
             <ul class="caption" [style.margin-top]="'10px'">
               <li>* : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.ONE_STAR' | translate }}</li>
               <li>** : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.TWO_STAR' | translate }}</li>
-              @for (key of stats.pmfmsTipsByPmfmId | mapKeys; track $index) {
+              @for (key of stats.pmfmsTips[0] | mapKeys; track $index) {
                 <li>
-                  *{{ stats.pmfmsTipsByPmfmId | mapGet: key | mapGet: 'tipsNum' }} :
-                  {{ stats.pmfmsTipsByPmfmId | mapGet: key | mapGet: 'text' }}
+                  *{{ stats.pmfmsTips[0] | mapGet: key | mapGet: 'tipsNum' }} :
+                  {{ stats.pmfmsTips[0] | mapGet: key | mapGet: 'text' }}
                 </li>
               }
             </ul>
@@ -295,7 +297,7 @@
                       pmfm of stats.pmfms.slice(stats.pmfmsTablePart[1][0], stats.pmfmsTablePart[1][1]) | arrayFilter: filterPmfmForOperationTable;
                       track pmfm
                     ) {
-                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm }"></ng-content>
+                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm, tipsPart: 1 }"></ng-content>
                     }
                   }
                   <th class="col-maximum font-medium" [attr.rowspan]="stats.pmfmsTablePart.length > 1 ? 2 : 1">
@@ -313,7 +315,7 @@
                           | arrayFilter: filterPmfmForOperationTable;
                         track pmfm
                       ) {
-                        <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm }"></ng-content>
+                        <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm, tipsPart: 1 }"></ng-content>
                       }
                     }
                   </tr>
@@ -366,6 +368,14 @@
                 }
               </tbody>
             </table>
+            <ul class="caption" [style.margin-top]="'10px'">
+              @for (key of stats.pmfmsTips[1] | mapKeys; track $index) {
+                <li>
+                  *{{ stats.pmfmsTips[1] | mapGet: key | mapGet: 'tipsNum' }} :
+                  {{ stats.pmfmsTips[1] | mapGet: key | mapGet: 'text' }}
+                </li>
+              }
+            </ul>
             <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
           </section>
         }
@@ -373,6 +383,21 @@
     }
   </app-reveal>
 }
+
+<ng-template #tableOperationHeadPmfmName let-pmfm="pmfm" let-tipsPart="tipsPart">
+  <th class="col-tiny font-small text-vertical">
+    @if (pmfm | isNotNil) {
+      <div>
+        {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix } }}
+        @if (stats.pmfmsTips[tipsPart] | mapGet: pmfm.id | isNotNil) {
+          <sup>
+            <em>*{{ stats.pmfmsTips[tipsPart] | mapGet: pmfm.id | mapGet: 'tipsNum' }}</em>
+          </sup>
+        }
+      </div>
+    }
+  </th>
+</ng-template>
 
 <ng-template #latLongPlaceHolder>
   <span class="font-large place-holder">
