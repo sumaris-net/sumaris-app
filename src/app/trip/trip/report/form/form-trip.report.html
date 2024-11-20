@@ -97,7 +97,7 @@
         </ion-grid>
 
         <!-- Link with the sampling plan section -->
-        @if (stats.options.trip.strataEnabled || (data.samplingStrata | isNotNil)) {
+        @if (stats.options.strataEnabled || (data.samplingStrata | isNotNil)) {
           <ion-grid class="report-section">
             <ion-row class="section-title">
               <ion-col>
@@ -124,7 +124,7 @@
         }
 
         <!-- Observers section -->
-        @if (stats.options.trip.showObservers) {
+        @if (stats.options.showObservers) {
           <ion-grid class="report-section">
             <ion-row class="section-title">
               <ion-col>
@@ -224,7 +224,7 @@
         </ion-grid>
 
         <!-- Sales section -->
-        @if (stats.options.trip.showSale) {
+        @if (stats.options.showSale) {
           <ion-grid class="report-section">
             <ion-row class="section-title">
               <ion-col>
@@ -342,6 +342,7 @@
         [vesselName]="data.vesselSnapshot?.name"
         [revealOptions]="revealOptions"
         [parentPageDimension]="this.pageDimensions"
+        [enablePosition]="stats.options.enablePosition"
       ></operation-form-report-component>
 
       <!-- Physical gears -->

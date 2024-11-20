@@ -19,7 +19,7 @@ import {
 import { SampleFormReportComponent, SampleFromReportComponentStats } from '@app/trip/sample/report/form/sample-form.report-component';
 import { Sample } from '@app/trip/sample/sample.model';
 import { environment } from '@environments/environment';
-import { EntityAsObjectOptions, LatLongPattern, StatusIds, WaitForOptions, isNil, isNotNil, splitById } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, LatLongPattern, StatusIds, WaitForOptions, isNil, isNotNil, splitById, toBoolean } from '@sumaris-net/ngx-components';
 import { Operation, Trip } from '../../trip.model';
 import { TripService } from '../../trip.service';
 import { TripReportService } from '../trip-report.service';
@@ -65,11 +65,10 @@ export class FormTripReportStats extends BaseReportStats {
     };
   };
   options: {
-    trip: {
-      strataEnabled?: boolean;
-      showObservers: boolean;
-      showSale: boolean;
-    };
+    strataEnabled?: boolean;
+    showObservers: boolean;
+    showSale: boolean;
+    enablePosition: boolean;
   };
   operationTableStats?: OperationFromReportComponentStats;
   samplesTableStats?: SampleFromReportComponentStats;
@@ -254,12 +253,14 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     stats.colorPrimary = stats.program.getProperty(ProgramProperties.DATA_REPORT_COLOR_PRIMARY);
     stats.colorSecondary = stats.program.getProperty(ProgramProperties.DATA_REPORT_COLOR_SECONDARY);
     stats.strataEnabled = stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
+    const isGPSUsed =
+      toBoolean(MeasurementUtils.asBooleanValue(data?.measurements, PmfmIds.CAMERA_USED), false) ||
+      toBoolean(MeasurementUtils.asBooleanValue(data?.measurements, PmfmIds.GPS_USED), true); // GPS is enable by default
     stats.options = {
-      trip: {
-        showObservers: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
-        showSale: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE),
-        strataEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE),
-      },
+      showObservers: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
+      showSale: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE),
+      strataEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE),
+      enablePosition: isGPSUsed && stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE),
     };
 
     // Get strategy

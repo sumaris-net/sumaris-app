@@ -21,6 +21,7 @@ export class OperationFromReportComponentStats extends BaseReportStats {
     showEndDate: boolean;
     allowParentOperation: boolean;
     latLongPattern: LatLongPattern;
+    fishingAreaDisplayAttributes: string[];
   };
   pmfms: IPmfm[];
   pmfmsById: { [key: number]: IPmfm };
@@ -31,12 +32,12 @@ export class OperationFromReportComponentStats extends BaseReportStats {
     hasIndividualMeasure: boolean;
     tripProgress: boolean;
   };
-  pmfmsTipsByPmfmId: {
+  pmfmsTips: {
     [key: number]: {
       tipsNum: number;
       text: string;
     };
-  };
+  }[];
   measurementValues: MeasurementFormValues[];
   pmfmsTablePart: number[][];
 
@@ -49,7 +50,7 @@ export class OperationFromReportComponentStats extends BaseReportStats {
     this.childPmfmsById = splitById(this.childPmfms);
     this.tableHeadColspan = source.tableHeadColspan;
     this.hasPmfm = source.hasPmfm;
-    this.pmfmsTipsByPmfmId = source.pmfmsLegendByPmfmId;
+    this.pmfmsTips = source.pmfmsTips;
     this.measurementValues = source.measurementValues;
     this.pmfmsTablePart = source.releasedTableParts;
   }
@@ -62,7 +63,7 @@ export class OperationFromReportComponentStats extends BaseReportStats {
       childPmfms: this.childPmfms.map((pmfm) => pmfm.asObject(opts)),
       tableHeadColspan: this.tableHeadColspan,
       hasPmfm: this.hasPmfm,
-      pmfmsLegendByPmfmId: this.pmfmsTipsByPmfmId,
+      pmfmsTips: this.pmfmsTips,
       measurementValues: this.measurementValues,
       releasedTableParts: this.pmfmsTablePart,
     };
@@ -89,6 +90,7 @@ export class OperationFormReportComponent extends ReportComponent<Operation[], O
   });
 
   @Input() nbOperationByPage = 20;
+  @Input({ required: true }) enablePosition: boolean;
   @Input({ required: true }) parentPageDimension: FormTripReportPageDimensions;
 
   protected logPrefix = '[operation-form-report] ';
@@ -107,11 +109,12 @@ export class OperationFormReportComponent extends ReportComponent<Operation[], O
     const strategyId = this.strategy?.id;
 
     stats.options = {
-      showEndDate: this.program.getPropertyAsBoolean(
-        ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE || ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE
-      ),
+      showEndDate:
+        this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE) ||
+        this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
       allowParentOperation: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION),
       latLongPattern: this.settings.latLongFormat,
+      fishingAreaDisplayAttributes: this.settings.getFieldDisplayAttributes('fishingArea', ['label', 'name']),
     };
 
     // In the case the header will be more hight, so we have less place du display lines
@@ -156,19 +159,6 @@ export class OperationFormReportComponent extends ReportComponent<Operation[], O
 
     stats.tableHeadColspan = 2 + Object.values(stats.hasPmfm).filter((v) => v).length;
 
-    stats.pmfmsTipsByPmfmId = arrayDistinct(
-      stats.pmfms
-        .concat(stats.options.allowParentOperation ? stats.childPmfms : [])
-        .filter((pmfm) => isNotNil(pmfm) && PmfmUtils.isQualitative(pmfm)),
-      'id'
-    ).reduce((res, pmfm, index) => {
-      res[pmfm.id] = {
-        tipsNum: index + 1,
-        text: pmfm.qualitativeValues.map((qv) => qv.label + ' : ' + qv.name).join(' ; '),
-      };
-      return res;
-    }, {});
-
     // Get all needed measurement values in suitable format
     stats.measurementValues = data.map((op) => MeasurementUtils.toMeasurementValues(op.measurements));
 
@@ -179,6 +169,23 @@ export class OperationFormReportComponent extends ReportComponent<Operation[], O
       hasTripProgress: stats.hasPmfm.tripProgress,
       ...stats.options,
     });
+
+    stats.pmfmsTips = stats.pmfmsTablePart.reduce((result: Array<any>, part, index) => {
+      result[index] = arrayDistinct(
+        stats.pmfms
+          .slice(part[0], part[1])
+          .concat(stats.options.allowParentOperation ? stats.childPmfms.slice(part[0], part[1]) : [])
+          .filter((pmfm) => isNotNil(pmfm) && PmfmUtils.isQualitative(pmfm)),
+        'id'
+      ).reduce((res, pmfm, index) => {
+        res[pmfm.id] = {
+          tipsNum: index + 1,
+          text: pmfm.qualitativeValues.map((qv) => qv.label + ' : ' + qv.name).join(' ; '),
+        };
+        return res;
+      }, {});
+      return result;
+    }, []);
 
     return stats;
   }
