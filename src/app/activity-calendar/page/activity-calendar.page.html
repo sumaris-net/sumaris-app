@@ -22,6 +22,14 @@
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
+  <button mat-menu-item [matMenuTriggerFor]="expertiseAreaMenu">
+    <mat-icon>
+      <ion-icon slot="icon-only" name="earth-outline"></ion-icon>
+    </mat-icon>
+    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_EXPERTISE_AREA</ion-label>
+  </button>
+  <mat-divider></mat-divider>
+
   <!-- report -->
   @if (enableReport && (reportTypes | isNotEmptyArray)) {
     <button mat-menu-item [disabled]="isNewData" [matMenuTriggerFor]="reportsMenu">
@@ -32,14 +40,6 @@
     </button>
     <mat-divider></mat-divider>
   }
-
-  <button mat-menu-item [matMenuTriggerFor]="expertiseAreaMenu">
-    <mat-icon>
-      <ion-icon slot="icon-only" name="earth-outline"></ion-icon>
-    </mat-icon>
-    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_EXPERTISE_AREA</ion-label>
-  </button>
-  <mat-divider></mat-divider>
 
   <!-- reset -->
   @if (mobile) {
