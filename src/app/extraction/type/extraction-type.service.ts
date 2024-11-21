@@ -88,6 +88,7 @@ const fixWorkaroundDataFn = ({ data, total }) => {
     }
     return true;
   });
+
   return { data, total };
 };
 

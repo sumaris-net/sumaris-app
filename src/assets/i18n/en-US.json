@@ -2780,7 +2780,8 @@
       "TITLE": "Data extraction",
       "BTN_SELECT_TYPE": "Data sources",
       "SELECT_TYPE_HELP": "Please <b>choose a data source</b>, to start an extraction:",
-      "BTN_REPORT": "Edit report"
+      "BTN_REPORT": "Edit report",
+      "NO_ACCESS": "You <b>do not have access rights</b> to extract data.<small><br/>Please try again later or contact your administrator.</small>"
     },
     "MAP": {
       "BTN_MAP_LIST": "List of maps",

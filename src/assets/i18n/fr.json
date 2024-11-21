@@ -2925,7 +2925,8 @@
       "TITLE": "Extraction de données",
       "BTN_SELECT_TYPE": "Sources<span class=\"hidden-xs hidden-sm\"> de données</span>",
       "SELECT_TYPE_HELP": "Veuillez <b>choisir une source de données</b>, pour lancer une extraction :",
-      "BTN_REPORT": "Éditer le rapport..."
+      "BTN_REPORT": "Éditer le rapport...",
+      "NO_ACCESS": "Vous n'avez <b>pas les droits d'accès</b> à l'extraction de données.<small><br/>Veuillez ressayer plus tard ou bien contacter votre administrateur.</small>"
     },
     "MAP": {
       "BTN_MAP_LIST": "Liste des cartes",
