@@ -105,7 +105,7 @@
                 }
               }
               @for (pmfm of pmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
-                <th class="ion-text-center font-medium" [style.--col-width]="pageDimensions.pmfmColumnWidth + 'px'">
+                <th class="ion-text-center font-medium column-{{ pmfm.label }}" [style.--col-width]="pageDimensions.pmfmColumnWidth + 'px'">
                   <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nSuffix: i18nContext.suffix }"></div>
                 </th>
               }
@@ -152,7 +152,7 @@
                 }
                 @for (pmfm of pmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
                   <td
-                    class="ion-text-center"
+                    class="ion-text-center column-{{ pmfm.label }} "
                     [style.--col-width]="pageDimensions.pmfmColumnWidth + 'px'"
                     [innerHtml]="
                       sample.measurementValues
