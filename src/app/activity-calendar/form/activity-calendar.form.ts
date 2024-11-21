@@ -243,7 +243,7 @@ export class ActivityCalendarForm
       ? data.observers
       : [
           // Current user
-          this.accountService.person?.asObject(),
+          this.accountService.person,
         ];
     // Update form group
     this.updateFormGroup();
