@@ -1,4 +1,4 @@
-import { FormFieldDefinition } from '@sumaris-net/ngx-components';
+import { FormFieldDefinition, PRIORITIZED_AUTHORITIES } from '@sumaris-net/ngx-components';
 
 export const APP_CORE_CONFIG_OPTIONS = Object.freeze({
   UPDATE_TECHNICAL_TABLES: <FormFieldDefinition>{
@@ -12,6 +12,17 @@ export const APP_CORE_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.GEOMETRY_SRID',
     type: 'integer',
     defaultValue: 0,
+  },
+
+  CONFIRM_USER_PROFILE: <FormFieldDefinition>{
+    key: 'sumaris.server.account.register.confirm.userProfile',
+    label: 'CONFIGURATION.OPTIONS.REGISTER_CONFIRMED_USER_PROFILE',
+    type: 'enum',
+    defaultValue: 'GUEST',
+    values: PRIORITIZED_AUTHORITIES.map((key) => ({
+      key,
+      value: 'USER.PROFILE_ENUM.' + key,
+    })),
   },
 
   // Enumerations

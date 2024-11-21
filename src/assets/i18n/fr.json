@@ -404,10 +404,11 @@
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
       "UPDATE_TECHNICAL_TABLES": "Pod > Tables techniques : mise à jour auto  ?",
       "GEOMETRY_SRID": "Pod > Géometries : SRID (0=Aucun, 4326=WGS84)",
+      "REGISTER_CONFIRMED_USER_PROFILE": "Sécurité > Profile d'un utilisateur nouvellement confirmé",
       "ELASTICSEARCH_ENABLED": "Elasticsearch > Activer ?",
       "ELASTICSEARCH_URIS": "Elasticsearch > URI(s)",
       "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?",
-      "AUTH_TOKEN_TYPE_PLACEHOLDER": "Securité > Type d'authentification",
+      "AUTH_TOKEN_TYPE_PLACEHOLDER": "Sécurité > Type d'authentification",
       "AUTH_TOKEN_TYPE": {
         "BASIC": "Basique",
         "TOKEN": "Cryptographique",

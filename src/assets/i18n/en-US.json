@@ -404,6 +404,7 @@
       "ENTITY_TRASH": "Pod > Enable trash?",
       "UPDATE_TECHNICAL_TABLES": "Pod > Automatically update technical tables?",
       "GEOMETRY_SRID": "Geometries: SRID (0=None, 4326=WGS84)",
+      "REGISTER_CONFIRMED_USER_PROFILE": "Security > User profile of a newly confirmed user",
       "ELASTICSEARCH_ENABLED": "Elasticsearch > Enable?",
       "ELASTICSEARCH_URIS": "Elasticsearch > Node URI(s)",
       "ANALYTIC_REFERENCES_ENABLE": "Strategy > Analytic references: Enable?",
@@ -413,7 +414,7 @@
         "TOKEN": "Crypto",
         "BASIC_AND_TOKEN": "Basic and crypto"
       },
-      "ENABLE_AUTH_API_TOKENS": "My account > Enable authentication tokens?",
+      "ENABLE_AUTH_API_TOKENS": "API > Enable authentication tokens?",
       "ENABLE_AUTH_API_TOKENS_SCOPE": "API > Enable rights on auth tokens",
       "DEFAULT_AUTH_API_TOKEN_SCOPE": "API > Default right on new auth token",
       "DATA_QUALITY_PROCESS_ENABLE": "Forms > Enable quality process?",
