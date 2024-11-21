@@ -28,7 +28,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import gql from 'graphql-tag';
-import { Observable } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 import { FetchPolicy } from '@apollo/client/core';
 import { UserEvent, UserEventFilter, UserEventTypeEnum } from '@app/social/user-event/user-event.model';
 import { environment } from '@environments/environment';
@@ -181,6 +181,11 @@ export class UserEventService
     filter?: Partial<UserEventFilter>,
     options?: UserEventWatchOptions<UserEvent>
   ): Observable<LoadResult<UserEvent>> {
+    // Make sure to get the min profile (USER) - required by the pod
+    if (!this.accountService.isUser()) {
+      return this.accountService.onLogin.pipe(switchMap((_) => this.watchAll(offset, size, sortBy, sortDirection, filter, options)));
+    }
+
     return super.watchAll(offset, size, sortBy, sortDirection, filter, options);
   }
 
@@ -200,10 +205,24 @@ export class UserEventService
     return super.listenAllChanges(filter, { ...options, withContent: true });
   }
 
+  async count(dataFilter: Partial<UserEventFilter>, options?: { fetchPolicy?: FetchPolicy }): Promise<number> {
+    // Make sure to get the min profile (USER) - required by the pod
+    if (!this.accountService.isUser()) {
+      return 0;
+    }
+
+    return super.count(dataFilter, options);
+  }
+
   listenCountChanges(
     filter: Partial<UserEventFilter>,
     options?: Omit<UserEventLoadOptions<UserEvent>, 'toEntity'> & { interval?: number }
   ): Observable<number> {
+    // Make sure to get the min profile (USER) - required by the pod
+    if (!this.accountService.isUser()) {
+      return this.accountService.onLogin.pipe(switchMap((_) => this.listenCountChanges(filter, options)));
+    }
+
     return super.listenCountChanges(filter, { ...options, fetchPolicy: 'no-cache' });
   }
 
