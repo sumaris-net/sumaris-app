@@ -1730,8 +1730,8 @@ export class CalendarComponent
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
     // Get gearUseFeature index
-    const columnName = this.getEditedCell().columnName;
-    const gearUseFeatureIndex = parseInt(columnName.match(/\d/)?.[0], 10);
+    const columnName = this.getEditedCell()?.columnName;
+    const gearUseFeatureIndex = columnName ? parseInt(columnName.match(/\d/)?.[0], 10) : null;
 
     // Get fishingArea to exclude (already existing in gearUseFeature)
     const existingFishingAreaLocationIds =
