@@ -1675,6 +1675,28 @@ export class CalendarComponent
     }
   }
 
+  protected expandMore(event?: Event) {
+    // Get currently collapsed metiers
+    const metierBlocksToExpand = [];
+    for (let i = 0; i < this.metierCount; i++) {
+      const metierColumn = this.dynamicColumns.find((col) => col.blockIndex === i);
+      if (metierColumn && !metierColumn.expanded) {
+        metierBlocksToExpand.push(i);
+      }
+    }
+
+    if (isNotEmptyArray(metierBlocksToExpand)) {
+      // Expand remaining collapsed metiers
+      metierBlocksToExpand.forEach((blockIndex) => this.expandMetierBlock(null, blockIndex, { emitEvent: false, expandChildren: false }));
+    } else {
+      // Expand all
+      this.expandAll(event, { emitEvent: false });
+    }
+
+    this.markForCheck();
+    setTimeout(() => this.onResize());
+  }
+
   protected expandAll(event?: Event, opts?: { emitEvent?: boolean }) {
     for (let i = 0; i < this.metierCount; i++) {
       this.expandMetierBlock(null, i, { emitEvent: false });
@@ -2223,6 +2245,27 @@ export class CalendarComponent
     this.markForCheck();
   }
 
+  protected collapseMore(event?: Event) {
+    // Check if some distanceToCoastGradient are not collapsed
+    const blockColumnNames = [`distanceToCoastGradient`, `depthGradient`, `nearbySpecificArea`];
+    const blockColumns = this.dynamicColumns.filter((col) => blockColumnNames.some((blockColName) => col.key.includes(blockColName)));
+
+    const masterBlockColumns = blockColumns.filter((col) => isNotNil(col.expanded));
+    const childBlockColumns = blockColumns.filter((col) => !isNotNil(col.expanded));
+
+    if (masterBlockColumns.some((col) => col.expanded)) {
+      // Collapse remaining
+      masterBlockColumns.forEach((col) => (col.expanded = false));
+      childBlockColumns.forEach((col) => (col.hidden = true));
+    } else {
+      // Collapse all
+      this.collapseAll(event, { emitEvent: false });
+    }
+
+    this.markForCheck();
+    setTimeout(() => this.onResize());
+  }
+
   collapseAll(event?: Event, opts?: { emitEvent?: boolean }) {
     if (event?.defaultPrevented) return; // Skip
 
@@ -2322,7 +2365,7 @@ export class CalendarComponent
     setTimeout(() => this.onResize());
   }
 
-  expandMetierBlock(event: Event, blockIndex: number, opts?: { emitEvent?: boolean }) {
+  expandMetierBlock(event: Event, blockIndex: number, opts?: { emitEvent?: boolean; expandChildren?: boolean }) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
@@ -2360,7 +2403,7 @@ export class CalendarComponent
 
   /* -- protected functions -- */
 
-  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean, opts?: { emitEvent?: boolean }) {
+  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean, opts?: { emitEvent?: boolean; expandChildren?: boolean }) {
     const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return;
 
@@ -2371,11 +2414,20 @@ export class CalendarComponent
 
     // Update sub columns
     blockColumns.slice(1).forEach((col) => {
-      col.hidden = !expanded;
+      if (opts?.expandChildren === false) {
+        col.hidden = col.key.includes('depthGradient') || col.key.includes('nearbySpecificArea');
 
-      // Expanded state for all columns to fix divergences states
-      if (isNotNil(col.expanded)) {
-        col.expanded = expanded;
+        // Collapsed state for all columns
+        if (isNotNil(col.expanded)) {
+          col.expanded = false;
+        }
+      } else {
+        col.hidden = !expanded;
+
+        // Expanded state for all columns to fix divergences states
+        if (isNotNil(col.expanded)) {
+          col.expanded = expanded;
+        }
       }
     });
 
