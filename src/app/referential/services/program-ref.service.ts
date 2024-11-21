@@ -274,6 +274,8 @@ export class ProgramRefService
             (_) =>
               this.networkService.online &&
               this.accountService.isLogin() &&
+              // Pod required to have the USER profile
+              this.accountService.isUser() &&
               // Skip if admin (can see all programs)
               !this.accountService.isAdmin()
           ),
@@ -1209,7 +1211,7 @@ export class ProgramRefService
   protected startListenAuthorizedProgram(opts?: { intervalInSeconds?: number }) {
     if (this._listenAuthorizedSubscription) this.stopListenAuthorizedProgram();
 
-    console.debug(`${this._logPrefix}Watching authorized programs...`);
+    console.debug(`${this._logPrefix}Watching authorized programs...`, this.accountService.isUser());
 
     const variables = {
       interval: Math.max(10, opts?.intervalInSeconds || environment['program']?.listenIntervalInSeconds || 10),
