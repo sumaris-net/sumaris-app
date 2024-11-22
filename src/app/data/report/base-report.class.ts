@@ -274,7 +274,7 @@ export abstract class AppBaseReport<
   }
 
   ngOnDestroy() {
-    this.reveal.disablePrintJob();
+    if (isNotNil(this.reveal)) this.reveal.disablePrintJob();
     this.configSubscription.unsubscribe();
     this.destroySubject.next();
   }

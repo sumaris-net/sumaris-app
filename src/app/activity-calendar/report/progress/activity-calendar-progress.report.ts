@@ -210,7 +210,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     // Compute AGG
     const agg = {
       vesselCount: data.AM.length,
-      totalDirectSurveyCount: data.AM.filter((item) => item.surveyQualification == 'Directe').length,
+      totalDirectSurveyCount: data.AM.filter((item) => item.directSurveyInvestigation == 'Y').length,
       emptyVesselCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.EMPTY).length,
       uncompletedVesselCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.INCOMPLETE).length,
       completedCalendarCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.COMPLETE).length,

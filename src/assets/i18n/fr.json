@@ -3821,7 +3821,8 @@
     "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée",
     "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
     "GEOLOCATION_ERROR": "Géolocalisation <b>impossible</b>.<small><br/>{{message}}</small>",
-    "SHARE_AS_PUBLIC_FAIL": "Échec du partage"
+    "SHARE_AS_PUBLIC_FAIL": "Échec du partage",
+    "INCOMPATIBLE_WEB_BROWSER": "Fonctionnalité non compatible avec votre navigateur Internet. <small><br/>Veuillez contacter votre administrateur, ou tester un autre navigateur.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
