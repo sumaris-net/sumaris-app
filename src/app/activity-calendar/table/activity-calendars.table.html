@@ -600,7 +600,9 @@
           <ion-label translate>ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION</ion-label>
         </th>
         <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
-          <ion-text>{{ (row.currentData.directSurveyInvestigation ? 'COMMON.YES' : 'COMMON.NO') | translate }}</ion-text>
+          <ion-text>
+            {{ directSurveyInvestigationMap[row.currentData.directSurveyInvestigation]?.label | translate }}
+          </ion-text>
         </td>
       </ng-container>
 
