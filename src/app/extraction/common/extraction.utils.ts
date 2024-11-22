@@ -260,6 +260,15 @@ export class ExtractionUtils {
       });
     }
 
+    if (isNotNil(source.vesselType)) {
+      criteria.push({
+        sheetName: 'AC',
+        name: 'vessel_type_id',
+        operator: '=',
+        value: source.vesselType.id.toString(),
+      });
+    }
+
     if (isNotEmptyArray(source.basePortLocations)) {
       criteria.push({
         sheetName: 'AC',
