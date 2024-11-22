@@ -1389,7 +1389,7 @@
         "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire",
         "OUT_OF_RANGE": "Hors fourchette",
         "DUPLICATED_TAG_ID": "Duplication de {{name}}",
-        "REQUIRED": "La saisie des captures accidentelles est obligatoire"
+        "REQUIRED": "Veuillez ajouter au moins une ligne"
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Échantillons : Unite de poids"

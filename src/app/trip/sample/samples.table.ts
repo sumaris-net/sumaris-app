@@ -222,6 +222,14 @@ export class SamplesTable
     return this.enableTagIdGeneration ? this.forcedTagIdGenerationMode || this.defaultTagIdGenerationMode : 'none';
   }
 
+  get invalid(): boolean {
+    return super.invalid || (this.required && this.totalRowCount === 0);
+  }
+
+  get valid(): boolean {
+    return super.valid && (!this.required || this.totalRowCount > 0);
+  }
+
   @Output() prepareRowForm = new EventEmitter<IPmfmForm>();
   @Output() weightUnitChanges = new EventEmitter<WeightUnitSymbol>();
 
@@ -402,10 +410,8 @@ export class SamplesTable
         return;
       }
     } else if (error && this.required && this.totalRowCount == 0) {
-      const errorMessage = this.translate.instant('TRIP.SAMPLE.ERROR.REQUIRED');
-      DataEntityUtils.markAsInvalid(undefined, errorMessage);
       this.showError = true;
-      super.setError(error, opts);
+      super.setError('TRIP.SAMPLE.ERROR.REQUIRED', opts);
       return;
     } else {
       this.showError = false;

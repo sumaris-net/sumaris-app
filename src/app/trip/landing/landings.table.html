@@ -574,7 +574,7 @@
   </span>
 </ng-template>
 
-<!-- error-->
+<!-- error or warning -->
 <ng-template #errorItem>
   @if (errorSubject | async; as error) {
     <app-error-item [message]="error"></app-error-item>

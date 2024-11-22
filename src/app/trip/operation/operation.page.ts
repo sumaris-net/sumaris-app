@@ -586,8 +586,8 @@ export class OperationPage<S extends OperationState = OperationState>
             this.showSamplesTab = this.showSampleTablesByProgram;
             this.showCatchTab = this.showBatchTables || this.batchTree?.showCatchForm || false;
             this.tabCount = this.showSamplesTab ? 3 : this.showCatchTab ? 2 : 1;
-            if (isNotNil(this.samplesTableRequiredPmfmId)) {
-              this.sampleTree.required(hasAccidentalCatches);
+            if (this.samplesTableRequiredPmfmId === PmfmIds.HAS_ACCIDENTAL_CATCHES) {
+              this.sampleTree.required = hasAccidentalCatches;
             }
 
             // Force first tab index

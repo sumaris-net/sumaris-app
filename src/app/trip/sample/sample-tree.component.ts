@@ -101,8 +101,11 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   @Input() showTaxonNameColumn: boolean; // By default, resolved from program properties
   @Input() showSampleDateColumn: boolean;
   @Input() pmfmGroups: ObjectMap<number[]>;
-  @Input() required(value: boolean) {
+  @Input() set required(value: boolean) {
     this.samplesTable.required = value;
+  }
+  get required(): boolean {
+    return this.samplesTable.required;
   }
 
   @Input() set defaultSampleDate(value: Moment) {
@@ -445,12 +448,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   }
 
   getValue(): Sample[] {
-    if (this.samplesTable.required && this.samplesTable.totalRowCount == 0) {
-      this.samplesTable.setError('TRIP.SAMPLE.ERROR.REQUIRED');
-      this.data = undefined;
-    } else {
-      return this.data;
-    }
+    return this.data;
   }
 
   load(id?: number, options?: any): Promise<void> {
