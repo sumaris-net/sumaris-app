@@ -574,7 +574,8 @@
 
       <!-- Vessel registration location Column -->
       <ng-container matColumnDef="registrationLocation">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <!-- FIXME remove mat-sort-header because filter+sort is not correct, in POD -->
+        <th mat-header-cell *matHeaderCellDef>
           <ion-label translate>ACTIVITY_CALENDAR.TABLE.REGISTRATION_LOCATION</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">

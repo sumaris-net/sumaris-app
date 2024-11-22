@@ -59,6 +59,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { intersectArrays } from '@app/shared/functions';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -90,7 +91,9 @@ export class ActivityCalendarsTable
   @RxStateProperty() protected canImportCsvFile: boolean;
 
   protected timezone = DateUtils.moment().tz();
-  protected programVesselTypeIds: number[];
+  protected programVesselTypeIds: number[] = [];
+  protected configVesselTypeIds: number[] = [];
+  protected excludedProgramIds: number[] = [];
 
   protected readonly directSurveyInvestigationList = DirectSurveyInvestigationList;
   protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
@@ -223,6 +226,7 @@ export class ActivityCalendarsTable
 
     this.settingsId = ActivityCalendarsTableSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureName = ActivityCalendarsTableSettingsEnum.FEATURE_ID;
+    this.programLabel = ProgramLabels.SIH_ACTIFLOT;
 
     // Load years
     {
@@ -246,9 +250,9 @@ export class ActivityCalendarsTable
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
-      service: this.programRefService,
       filter: ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
       mobile: this.mobile,
+      suggestFn: (value, filter) => this.suggestPrograms(value, filter),
     });
 
     // Combo: vessels
@@ -268,7 +272,7 @@ export class ActivityCalendarsTable
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       mobile: this.mobile,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, { ...filter, includedIds: this.programVesselTypeIds }),
+      suggestFn: (value, filter) => this.suggestVesselTypes(value, filter),
     });
 
     const locationConfig: MatAutocompleteFieldConfig = {
@@ -378,6 +382,12 @@ export class ActivityCalendarsTable
     // Observers
     this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
 
+    // Exclude predoc programs (by default)
+    this.excludedProgramIds = await this.loadExcludedProgramIds();
+
+    // Vessel type filter
+    this.configVesselTypeIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_IDS);
+
     // Locations filter
     this.registrationLocationLevelIds = [LocationLevelIds.MARITIME_DISTRICT];
     this.basePortLocationLevelIds = [LocationLevelIds.PORT];
@@ -394,14 +404,19 @@ export class ActivityCalendarsTable
   protected async setProgram(program: Program) {
     await super.setProgram(program);
 
-    // Allow to filter on program, if user can access more than one program
-    this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
+    const isAdminOrManager = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
+    this.canImportCsvFile = isAdminOrManager;
 
-    // Hide program if cannot change it
+    // Allow to filter on program, if admin or manager
+    this.showFilterProgram = this.defaultShowFilterProgram && isAdminOrManager;
+    // Hide program column if filter has been hidden
     this.showProgramColumn = this.showFilterProgram;
-    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
+
+    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [];
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
-    this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
+
+    // Load programs to exclude
+    this.excludedProgramIds = await this.loadExcludedProgramIds(program);
 
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
     const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
@@ -413,12 +428,12 @@ export class ActivityCalendarsTable
   protected async resetProgram() {
     await super.resetProgram();
 
+    this.canImportCsvFile = this.isAdmin;
     this.showFilterProgram = this.defaultShowFilterProgram;
     this.showProgramColumn = this.defaultShowFilterProgram;
     this.programVesselTypeIds = null;
     this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
-    this.canImportCsvFile = this.isAdmin;
-
+    this.excludedProgramIds = await this.loadExcludedProgramIds();
     this.enableReport = toBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE.defaultValue, false);
     const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
     this.reportTypes = (ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.defaultValue || '').split(',').map((key) => reportTypeByKey[key]);
@@ -720,5 +735,37 @@ export class ActivityCalendarsTable
       vesselTypeIds,
       ...filter,
     });
+  }
+
+  protected suggestVesselTypes(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    let vesselTypeIds;
+    const hasConfig = isNotEmptyArray(this.configVesselTypeIds);
+    const hasProgram = isNotEmptyArray(this.programVesselTypeIds);
+
+    if (!hasConfig && hasProgram) {
+      vesselTypeIds = this.programVesselTypeIds;
+    } else if (hasConfig && !hasProgram) {
+      vesselTypeIds = this.configVesselTypeIds;
+    } else if (hasConfig && hasProgram) {
+      vesselTypeIds = intersectArrays([this.programVesselTypeIds, this.configVesselTypeIds]);
+    } else {
+      vesselTypeIds = [];
+    }
+
+    return this.referentialRefService.suggest(value, { ...filter, includedIds: vesselTypeIds });
+  }
+
+  protected suggestPrograms(value: any, filter?: any): Promise<LoadResult<Program>> {
+    return this.programRefService.suggest(value, { ...filter, excludedIds: this.excludedProgramIds });
+  }
+
+  protected async loadExcludedProgramIds(program?: Program, defaultValue?: number[]) {
+    const predocProgramLabels = program
+      ? program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS)
+      : [ProgramLabels.SIH_ACTIPRED];
+    if (isNotEmptyArray(predocProgramLabels)) {
+      return (await this.programRefService.loadAllByLabels(predocProgramLabels)).map((p) => p.id);
+    }
+    return defaultValue ?? [];
   }
 }
