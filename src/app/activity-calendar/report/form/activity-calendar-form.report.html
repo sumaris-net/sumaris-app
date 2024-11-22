@@ -139,11 +139,9 @@
                                 }
                                 &nbsp;
                               </strong>
-                              @if (!isBlankForm) {
-                                {{
-                                  (data.vesselSnapshot | mapGet: stats.displayAttributes.vesselSnapshot[0]) || data.vesselSnapshot.intRegistrationCode
-                                }}
-                              }
+                              {{
+                                (data.vesselSnapshot | mapGet: stats.displayAttributes.vesselSnapshot[0]) || data.vesselSnapshot.intRegistrationCode
+                              }}
                             </ion-col>
                           </ion-row>
                         </ion-grid>
@@ -190,23 +188,12 @@
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      @if (isBlankForm) {
-                        <ion-col size="12">
-                          <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER_SECTION.NAME' | translate }}</strong>
-                        </ion-col>
-                        <ion-col size="12">
-                          <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER_SECTION.ADDRESS' | translate }}</strong>
-                        </ion-col>
-                      } @else {
-                        <ion-col size="12">
-                          {{
-                            stats.lastVesselOwner | referentialToString: { properties: stats.displayAttributes.vesselOwner, propertySeparator: ' ' }
-                          }}
-                        </ion-col>
-                        <ion-col size="12">
-                          {{ stats.lastVesselOwner | referentialToString: { properties: ['street', 'zipCode', 'city'], propertySeparator: ' ' } }}
-                        </ion-col>
-                      }
+                      <ion-col size="12">
+                        {{ stats.lastVesselOwner | referentialToString: { properties: stats.displayAttributes.vesselOwner, propertySeparator: ' ' } }}
+                      </ion-col>
+                      <ion-col size="12">
+                        {{ stats.lastVesselOwner | referentialToString: { properties: ['street', 'zipCode', 'city'], propertySeparator: ' ' } }}
+                      </ion-col>
                     </ion-row>
                   </ion-grid>
                 </ion-col>
