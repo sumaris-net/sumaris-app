@@ -170,8 +170,7 @@
               {{ 'TRIP.REPORT.FORM.TRIP.DEPARTURE_LOCATION' | translate }}
             </ion-col>
             <ion-col class="form-value no-border-top" size="8">
-              <!-- TODO : Location type -->
-              {{ data.departureLocation?.name }}
+              {{ data.departureLocation | referentialToString: stats.options.displayAttributeLocation }}
             </ion-col>
           </ion-row>
           <ion-row class="form-field">
@@ -210,7 +209,7 @@
               {{ 'TRIP.REPORT.FORM.TRIP.RETURN_LOCATION' | translate }}
             </ion-col>
             <ion-col class="form-value" size="8">
-              {{ data.returnLocation?.name }}
+              {{ data.returnLocation | referentialToString: stats.options.displayAttributeLocation }}
             </ion-col>
           </ion-row>
           <ion-row class="form-field">
@@ -236,7 +235,7 @@
                 {{ 'TRIP.REPORT.FORM.TRIP.SELL_LOCATION' | translate }}
               </ion-col>
               <ion-col class="form-value" size="8">
-                {{ data.sale?.saleLocation?.name }}
+                {{ data.sale?.saleLocation | referentialToString: stats.options.displayAttributeLocation }}
               </ion-col>
             </ion-row>
             <ion-row class="form-field">

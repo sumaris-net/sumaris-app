@@ -9,11 +9,6 @@ const routes: Routes = [
     pathMatch: 'full',
     component: FormTripReport,
   },
-  {
-    path: 'blank',
-    pathMatch: 'full',
-    component: FormTripReport,
-  },
 ];
 
 @NgModule({

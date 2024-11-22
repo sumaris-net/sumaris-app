@@ -59,6 +59,8 @@ export class FormTripReportStats extends BaseReportStats {
     showObservers: boolean;
     showSale: boolean;
     enablePosition: boolean;
+    latLongPattern: LatLongPattern;
+    displayAttributeLocation: string[];
   };
   operationTableStats?: OperationFromReportComponentStats;
   samplesTableStats?: SampleFromReportComponentStats;
@@ -131,7 +133,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected logPrefix = 'trip-form-report';
   protected isBlankForm: boolean;
   protected reportPath: string;
-  protected latLongPattern: LatLongPattern;
   protected readonly nbOfOpOnBlankPage = 9;
   protected readonly nbOfSamplePeerOpOnBlankPage = 20;
   protected operationNbTableSplitArrayChunk = 8;
@@ -148,7 +149,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
 
   constructor() {
     super(Trip, FormTripReportStats);
-    this.latLongPattern = this.settings.latLongFormat;
 
     this.reportPath = this.route.snapshot.routeConfig.path;
     this.isBlankForm = this.route.snapshot.data?.isBlankForm;
@@ -243,6 +243,8 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         showSale: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE),
         strataEnabled: stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE),
         enablePosition: isGPSUsed && stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE),
+        latLongPattern: this.settings.latLongFormat,
+        displayAttributeLocation: this.settings.getFieldDisplayAttributes('location'),
       };
     }
 
