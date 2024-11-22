@@ -3,18 +3,33 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppDataModule } from '@app/data/data.module';
 import { MeasurementFormValues, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
+import { FormReportPageDimensions } from '@app/data/report/common-report.class';
 import { ReportChunkModule } from '@app/data/report/component/form/report-chunk.module';
-import { ReportComponent } from '@app/data/report/report-component.class';
+import {
+  ReportPmfmsTipsByPmfmIds,
+  ReportTableComponent,
+  ReportTableComponentPageDimension,
+  TableHeadPmfmNameReportChunk,
+  TableTipsReportChunk,
+} from '@app/data/report/report-table-component.class';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
-import { FormTripReportPageDimensions } from '@app/trip/trip/report/form/form-trip.report';
 import { Operation } from '@app/trip/trip/trip.model';
 import { EntityAsObjectOptions, LatLongPattern, LocalSettingsService, arrayDistinct, isNil, isNotNil, splitById } from '@sumaris-net/ngx-components';
+
+interface OperationFormReportComponentPageDimension extends ReportTableComponentPageDimension {
+  columnNumOpWidth: number;
+  columnIndividualMeasureWidth: number;
+  columnTripProgressWidth: number;
+  columnGearSpeciesWidth: number;
+  columnDateWidth: number;
+  columnLatLongWidth: number;
+}
 
 export class OperationFromReportComponentStats extends BaseReportStats {
   options: {
@@ -32,12 +47,7 @@ export class OperationFromReportComponentStats extends BaseReportStats {
     hasIndividualMeasure: boolean;
     tripProgress: boolean;
   };
-  pmfmsTips: {
-    [key: number]: {
-      tipsNum: number;
-      text: string;
-    };
-  }[];
+  pmfmsTips: ReportPmfmsTipsByPmfmIds;
   measurementValues: MeasurementFormValues[];
   pmfmsTablePart: number[][];
 
@@ -72,32 +82,47 @@ export class OperationFromReportComponentStats extends BaseReportStats {
 
 @Component({
   standalone: true,
-  imports: [AppCoreModule, AppSharedReportModule, AppReferentialModule, AppDataModule, ReportChunkModule],
+  imports: [
+    AppCoreModule,
+    AppSharedReportModule,
+    AppReferentialModule,
+    AppDataModule,
+    ReportChunkModule,
+    TableTipsReportChunk,
+    TableHeadPmfmNameReportChunk,
+  ],
   selector: 'operation-form-report-component',
   templateUrl: './operation-form.report-component.html',
   styleUrls: ['./operation-form.report-component.scss', '../../../../data/report/base-form-report.scss'],
 })
-export class OperationFormReportComponent extends ReportComponent<Operation[], OperationFromReportComponentStats> {
+export class OperationFormReportComponent extends ReportTableComponent<
+  Operation[],
+  OperationFromReportComponentStats,
+  OperationFormReportComponentPageDimension
+> {
   readonly pmfmIdsMap = PmfmIds;
-  readonly pageDimensions = Object.freeze({
-    columnNumOpWidth: 30,
-    columnIndividualMeasureWidth: 30,
-    columnTripProgressWidth: 30,
-    columnGearSpeciesWidth: 250,
-    columnDateWidth: 90,
-    columnLatLongWidth: 140,
-    columnPmfmWidth: 30,
-  });
 
   @Input() nbOperationByPage = 20;
   @Input({ required: true }) enablePosition: boolean;
-  @Input({ required: true }) parentPageDimension: FormTripReportPageDimensions;
+  @Input({ required: true }) parentPageDimension: FormReportPageDimensions;
 
   protected logPrefix = '[operation-form-report] ';
   protected programRefService: ProgramRefService = inject(ProgramRefService);
 
   constructor(protected settings: LocalSettingsService) {
     super(Array<Operation>, OperationFromReportComponentStats);
+  }
+
+  protected computePageDimensions(): OperationFormReportComponentPageDimension {
+    return {
+      columnPmfmWidth: 30,
+      columnNumOpWidth: 30,
+      columnIndividualMeasureWidth: 30,
+      columnTripProgressWidth: 30,
+      columnGearSpeciesWidth: 250,
+      columnDateWidth: 90,
+      columnLatLongWidth: 140,
+    };
   }
 
   protected async computeStats(
@@ -162,31 +187,26 @@ export class OperationFormReportComponent extends ReportComponent<Operation[], O
     // Get all needed measurement values in suitable format
     stats.measurementValues = data.map((op) => MeasurementUtils.toMeasurementValues(op.measurements));
 
-    const pmfmForComputeTablePart =
-      stats.options.allowParentOperation && stats.childPmfms.length > stats.pmfms.length ? stats.childPmfms : stats.pmfms;
-    stats.pmfmsTablePart = this.computeTablePart(pmfmForComputeTablePart, {
-      hasIndividualMeasure: stats.hasPmfm.hasIndividualMeasure,
-      hasTripProgress: stats.hasPmfm.tripProgress,
-      ...stats.options,
-    });
+    const tableLeftColumnsWidth =
+      this.pageDimensions.columnNumOpWidth +
+      (stats.hasPmfm.hasIndividualMeasure ? this.pageDimensions.columnIndividualMeasureWidth : 0) +
+      (stats.hasPmfm.tripProgress ? this.pageDimensions.columnTripProgressWidth : 0) +
+      this.pageDimensions.columnGearSpeciesWidth +
+      this.pageDimensions.columnDateWidth +
+      this.pageDimensions.columnLatLongWidth + // start date
+      (stats.options.showEndDate ? this.pageDimensions.columnDateWidth + this.pageDimensions.columnLatLongWidth : 0);
+    const tableRightColumnsWidth = 0;
 
-    stats.pmfmsTips = stats.pmfmsTablePart.reduce((result: Array<any>, part, index) => {
-      result[index] = arrayDistinct(
-        stats.pmfms
-          .slice(part[0], part[1])
-          .concat(stats.options.allowParentOperation ? stats.childPmfms.slice(part[0], part[1]) : [])
-          .filter((pmfm) => isNotNil(pmfm) && PmfmUtils.isQualitative(pmfm)),
-        'id'
-      ).reduce((res, pmfm, index) => {
-        res[pmfm.id] = {
-          tipsNum: index + 1,
-          text: pmfm.qualitativeValues.map((qv) => qv.label + ' : ' + qv.name).join(' ; '),
-        };
-        return res;
-      }, {});
-      return result;
-    }, []);
+    stats.pmfmsTablePart = this.computeTablePart(
+      stats.pmfms,
+      this.parentPageDimension.availableWidthForTableLandscape,
+      tableLeftColumnsWidth,
+      tableRightColumnsWidth,
+      this.pageDimensions.columnPmfmWidth
+    );
 
+    const allPmfms = arrayDistinct(stats.pmfms.concat(stats.childPmfms), 'id');
+    stats.pmfmsTips = this.computeReportPmfmsTips(stats.pmfmsTablePart, allPmfms);
     return stats;
   }
 
@@ -199,36 +219,5 @@ export class OperationFormReportComponent extends ReportComponent<Operation[], O
       this.loadingSubject.next(false);
       if (opts.emitEvent !== false) this.markForCheck();
     }
-  }
-
-  private computeTablePart(
-    pmfms: IPmfm[],
-    opts: {
-      hasIndividualMeasure: boolean;
-      hasTripProgress: boolean;
-      showEndDate: boolean;
-    }
-  ): number[][] {
-    const columnDatePlusLatLongWidth = this.pageDimensions.columnDateWidth + this.pageDimensions.columnLatLongWidth;
-    const rightPartWidth =
-      this.pageDimensions.columnNumOpWidth +
-      (opts.hasIndividualMeasure ? this.pageDimensions.columnIndividualMeasureWidth : 0) +
-      (opts.hasTripProgress ? this.pageDimensions.columnTripProgressWidth : 0) +
-      this.pageDimensions.columnGearSpeciesWidth +
-      columnDatePlusLatLongWidth + // start date
-      (opts.showEndDate ? columnDatePlusLatLongWidth : 0);
-
-    const nbPmfmsThatCanFitOnOnePart = Math.trunc(
-      (this.parentPageDimension.availableWidthForTableLandscape - rightPartWidth) / this.pageDimensions.columnPmfmWidth
-    );
-
-    if (pmfms.length <= nbPmfmsThatCanFitOnOnePart) {
-      return [[0, pmfms.length]];
-    }
-
-    return [
-      [0, nbPmfmsThatCanFitOnOnePart - 1],
-      [nbPmfmsThatCanFitOnOnePart - 1, pmfms.length],
-    ];
   }
 }

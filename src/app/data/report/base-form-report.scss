@@ -337,6 +337,7 @@ html.print-pdf .reveal .slides section {
       thead {
         tr {
           th {
+            padding: 0;
             &.text-vertical {
               > div {
                 width: var(--row-title-height);
@@ -376,13 +377,6 @@ html.print-pdf .reveal .slides section {
         }
       }
 
-      caption {
-        margin-top: 5px;
-        caption-side: bottom;
-        font-weight: bold;
-        text-align: left;
-      }
-
       &.table-full-width {
         width: calc(100% - (var(--page-horizontal-margin) * 2));
       }
@@ -402,15 +396,6 @@ html.print-pdf .reveal .slides section {
 
       .invalid {
         color: var(--ion-color-danger);
-      }
-    }
-
-    ul {
-      &.caption {
-        margin: 0 var(--page-horizontal-margin);
-        padding: 0;
-        list-style: none;
-        font-size: var(--font-small);
       }
     }
   }

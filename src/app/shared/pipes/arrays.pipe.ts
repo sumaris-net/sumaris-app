@@ -26,3 +26,13 @@ export class SplitArrayInChunksPipe implements PipeTransform {
     return result;
   }
 }
+
+@Pipe({
+  name: 'arraySort',
+})
+export class ArraySortPipe implements PipeTransform {
+  transform<T = any>(val: unknown | T[], filterFn: (a: T, b: T) => number): T[] | null {
+    if (!Array.isArray(val)) return null;
+    return val.sort(filterFn);
+  }
+}

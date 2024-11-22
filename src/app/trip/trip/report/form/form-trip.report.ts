@@ -25,14 +25,7 @@ import { TripService } from '../../trip.service';
 import { TripReportService } from '../trip-report.service';
 import { FormTripReportService } from './form-trip-report.service';
 import { OperationFormReportComponent, OperationFromReportComponentStats } from '@app/trip/operation/report/form/operation-form.report-component';
-
-export interface FormTripReportPageDimensions {
-  pageWidth: number;
-  pageHeight: number;
-  pageHorizontalMargin: number;
-  availableWidthForTableLandscape: number;
-  availableWidthForTablePortrait: number;
-}
+import { FormReportPageDimensions } from '@app/data/report/common-report.class';
 
 export class FormTripReportStats extends BaseReportStats {
   readonly pmfmIdsMap = PmfmIds;
@@ -155,7 +148,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected readonly tripService: TripService = inject(TripService);
   protected readonly referentialRefService: ReferentialRefService = inject(ReferentialRefService);
   protected readonly strategyRefService: StrategyRefService = inject(StrategyRefService);
-  protected readonly pageDimensions: FormTripReportPageDimensions;
+  protected readonly pageDimensions: FormReportPageDimensions;
 
   @ViewChild(RevealComponent) reveal!: RevealComponent;
   @ViewChild(SampleFormReportComponent) sampleFormReport: SampleFormReportComponent;
@@ -211,7 +204,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     let data: Trip;
     if (this.isBlankForm) {
       // Keep id : needed by method like `computeDefaultBackHref`
-      // TODO custom request with only nessesary datas (like ActivityCalendarFormReport)
+      // TODO custom request with only necessary data (like ActivityCalendarFormReport)
       const realData = await this.tripService.load(id, { ...opts, withOperation: false });
       data = Trip.fromObject({
         id: id,
@@ -376,7 +369,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
     };
   }
 
-  private computePageDimensions(): FormTripReportPageDimensions {
+  private computePageDimensions(): FormReportPageDimensions {
     const pageWidth = 210 * 4;
     const pageHeight = 297 * 4;
     const pageHorizontalMargin = 50;
