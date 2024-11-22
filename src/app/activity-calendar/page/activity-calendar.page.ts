@@ -835,7 +835,7 @@ export class ActivityCalendarPage
   }
 
   protected async onEntitySaved(data: ActivityCalendar): Promise<void> {
-    this.calendar?.collapseAll();
+    this.calendar?.onAfterSave();
     await super.onEntitySaved(data);
     this.setDataStartDate(data);
   }
