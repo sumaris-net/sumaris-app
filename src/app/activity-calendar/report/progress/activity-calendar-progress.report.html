@@ -59,7 +59,8 @@
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
     @for (tableChunk of stats.tableRowChunk; track chunkIndex; let chunkIndex = $index; let firstChunk = $first; let lastChunk = $last) {
-      <section *sectionDef [style.--margin-bottom]="pageDimensions.marginBottom + 'px'">
+      <section *sectionDef [style.--margin-bottom]="pageDimensions.marginBottom + 'px'"
+               [style.--color-primary]="stats.colorPrimary" [style.--color-secondary]="stats.colorSecondary">
         <!-- header -->
         <ion-grid class="report-section report-header ion-no-padding">
           <ion-row class="document-title">

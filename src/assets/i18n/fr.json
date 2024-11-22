@@ -2637,6 +2637,10 @@
         "USER_SELECT": "Sélection par utilisateur",
         "SPATIO_TEMPORAL": "Spatio-temporelle",
         "NONE": "Aucune"
+      },
+      "DATA_REPORT_COLORS": {
+        "PRIMARY": "Thème > Rapport > Couleur primaire",
+        "SECONDARY": "Thème > Rapport > Couleur secondaire"
       }
     },
 

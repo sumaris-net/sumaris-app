@@ -59,7 +59,7 @@
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
     <!-- Trip card -->
-    <section *sectionDef class="portrait">
+    <section *sectionDef class="portrait" [style.--color-primary]="stats.colorPrimary" [style.--color-secondary]="stats.colorSecondary">
       <ion-grid class="report-header ion-no-padding">
         <ion-row class="document-title">
           <ion-col class="logo" size="auto">
@@ -293,7 +293,7 @@
 
     <!-- Operations table -->
     @if (data.operations | isNotEmptyArray) {
-      <section *sectionDef>
+      <section *sectionDef [style.--color-primary]="stats.colorPrimary" [style.--color-secondary]="stats.colorSecondary">
         @for (ops of data.operations | splitArrayInChunks: 9; track $index) {
           <section class="landscape">
             <ng-content *ngTemplateOutlet="pageHeader; context: { title: 'TRIP.REPORT.FORM.OPERATION.TITLE' }"></ng-content>
@@ -554,7 +554,7 @@
 
     <!-- Physical gears -->
     @if (data.gears | isNotEmptyArray) {
-      <section *sectionDef>
+      <section *sectionDef [style.--color-primary]="stats.colorPrimary" [style.--color-secondary]="stats.colorSecondary">
         @for (physicalGears of data.gears | splitArrayInChunks: 3; track physicalGearSplitIndex; let physicalGearSplitIndex = $index) {
           <section class="portrait">
             <ng-content
@@ -617,7 +617,7 @@
     <!-- Batch section by operation -->
     @for (opId of stats.denormalizedBatchByOp | mapKeys; track opId) {
       @if (stats.denormalizedBatchByOp | mapGet: opId; as batchesByType) {
-        <section *sectionDef>
+        <section *sectionDef [style.--color-primary]="stats.colorPrimary" [style.--color-secondary]="stats.colorSecondary">
           @if (batchesByType | mapGet: 'landing' | isNotEmptyArray) {
             <ng-content
               *ngTemplateOutlet="
@@ -649,7 +649,7 @@
     <!-- Sample by operation -->
     @for (operation of data?.operations; track operation.id) {
       @if (operation?.samples | isNotEmptyArray) {
-        <section *sectionDef>
+        <section *sectionDef [style.--color-primary]="stats.colorPrimary" [style.--color-secondary]="stats.colorSecondary">
           @for (samplesChunk of operation?.samples | splitArrayInChunks: 18; track operationChunkIndex; let operationChunkIndex = $index) {
             <section class="landscape">
               <ng-content

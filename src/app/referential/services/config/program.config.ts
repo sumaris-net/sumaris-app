@@ -90,6 +90,18 @@ export const ProgramProperties = Object.freeze({
     // defaultValue: DataStrategyResolutions.SPATIO_TEMPORAL
   },
 
+  // Report options
+  DATA_REPORT_COLOR_PRIMARY: <FormFieldDefinition>{
+    key: 'sumaris.data.report.color.primary',
+    label: 'PROGRAM.OPTIONS.DATA_REPORT_COLORS.PRIMARY',
+    type: 'color',
+  },
+  DATA_REPORT_COLOR_SECONDARY: <FormFieldDefinition>{
+    key: 'sumaris.data.report.color.secondary',
+    label: 'PROGRAM.OPTIONS.DATA_REPORT_COLORS.SECONDARY',
+    type: 'color',
+  },
+
   // Trip
   TRIP_SAMPLING_STRATA_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.samplingStrata.enable',
