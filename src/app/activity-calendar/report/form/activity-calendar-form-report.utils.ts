@@ -133,12 +133,13 @@ export async function computeIndividualActivityCalendarFormReportStats(
 
   if (!isBlankForm) {
     const gpfGearIds = (data.gearPhysicalFeatures || []).filter((gpf) => isNotNil(gpf.gear)).map((gph) => gph.gear.id);
-    stats.pmfm.gpf = stats.pmfm.gpf.filter(
-      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gpfGearIds.includes(gearId))
-    );
     const gufGearIds = (data.gearUseFeatures || []).filter((guf) => isNotNil(guf.gear)).map((guf) => guf.gear.id);
+    const mergedGearIds = arrayDistinct(gpfGearIds.concat(gufGearIds));
+    stats.pmfm.gpf = stats.pmfm.gpf.filter(
+      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => mergedGearIds.includes(gearId))
+    );
     stats.pmfm.guf = stats.pmfm.guf.filter(
-      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gufGearIds.includes(gearId))
+      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => mergedGearIds.includes(gearId))
     );
   }
 
