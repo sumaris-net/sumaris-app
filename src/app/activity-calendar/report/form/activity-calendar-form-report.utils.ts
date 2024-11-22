@@ -167,7 +167,13 @@ export async function computeIndividualActivityCalendarFormReportStats(
     fetchPolicy: 'cache-first',
   });
   const lastVesselOwner = isNotEmptyArray(vesselOwnerPeriods.data) ? vesselOwnerPeriods.data[0].vesselOwner : VesselOwner.fromObject({});
-  stats.lastVesselOwner = await vesselOwnerService.load(lastVesselOwner.id);
+
+    if (isNotNil(lastVesselOwner?.id)) {
+      stats.lastVesselOwner = await vesselOwnerService.load(lastVesselOwner.id);
+    } else {
+      stats.lastVesselOwner = VesselOwner.fromObject({});
+    }
+  }
 
   computeMetierTableChunk(stats, pageDimensions);
 
