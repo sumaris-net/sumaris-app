@@ -34,7 +34,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ActivityCalendar, DirectSurveyInvestigationList } from '@app/activity-calendar/model/activity-calendar.model';
-import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, ProgramLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
@@ -94,6 +94,7 @@ export class ActivityCalendarsTable
 
   protected readonly directSurveyInvestigationList = DirectSurveyInvestigationList;
   protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
+  protected readonly defaultProgramLabel = ProgramLabels.SIH_ACTIFLOT;
 
   @Input() showFilterProgram = true;
   @Input() showRecorder = true;
@@ -584,6 +585,9 @@ export class ActivityCalendarsTable
   }
 
   async openReport(reportPath: string) {
+    if (isNil(this.program)) console.warn(`${this.logPrefix} No defined program, use "${this.defaultProgramLabel}" as default`);
+    const program = isNil(this.program) ? await this.programRefService.loadByLabel(this.defaultProgramLabel) : this.program;
+
     const urlParams = new URLSearchParams();
     const selectedIds = this.selection.selected.map((s) => s.currentData.id).toString();
     switch (reportPath) {
@@ -607,8 +611,8 @@ export class ActivityCalendarsTable
     if (url.length > 2048) {
       this.setError('ACTIVITY_CALENDAR.ERROR.MAX_SELECTED_ITEMS');
     } else {
-      const limitWarning = this.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING);
-      const limitError = this.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULT_ERROR);
+      const limitWarning = program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING);
+      const limitError = program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULT_ERROR);
       const displayedItems = this.selection.selected.length > 0 ? this.selection.selected.length : this.totalRowCount;
       if (limitError > 0 && displayedItems > limitError) {
         Alerts.showError(
