@@ -3588,7 +3588,6 @@
     },
     "OPTIONS": {
       "ENABLE": "Calendrier d'activité > Activer ?",
-      "HIDDEN_PROGRAM_IDS": "Calendrier d'activité > Masquer > Programmes de collecte (Filtre)",
       "NAME": "Calendrier d'activité > Titre (menu, etc.)"
     },
     "REPORT": {
