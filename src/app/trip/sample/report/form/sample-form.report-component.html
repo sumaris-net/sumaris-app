@@ -13,8 +13,9 @@
                 tableParts: stats.sampleTableParts,
                 tableTitle: 'TRIP.SAMPLE.TABLE.TITLE',
                 options: stats.options,
-                pmfms: stats.samplePmfm,
-                pmfmsByIds: stats.samplePmfmById,
+                pmfms: stats.samplePmfms,
+                pmfmsByIds: stats.samplePmfmsById,
+                pmfmsTips: stats.samplePmfmsTips,
               }
             "
           ></ng-content>
@@ -30,8 +31,9 @@
                 tableParts: stats.releasedTableParts,
                 tableTitle: 'TRIP.SAMPLE.TABLE.TAB_INDIVIDUAL_RELEASES',
                 options: releasedTableOptions,
-                pmfms: stats.releasedPmfm,
-                pmfmsByIds: stats.releasedPmfmById,
+                pmfms: stats.releasedPmfms,
+                pmfmsByIds: stats.releasedPmfmsById,
+                pmfmsTips: stats.releasedPmfmsTips,
               }
             "
           ></ng-content>
@@ -51,6 +53,7 @@
   let-options="options"
   let-pmfms="pmfms"
   let-pmfmsByIds="pmfmsByIds"
+  let-pmfmsTips="pmfmsTips"
 >
   @for (
     samplesChunk of samples | splitArrayInChunks: chunkSize;
@@ -84,33 +87,43 @@
           <thead>
             <tr>
               @if (options.labelEnabled) {
-                <th class="font-medium ion-text-center" [style.--col-width]="pageDimensions.labelColumnWidth + 'px'">
+                <th class="font-medium ion-text-center" [style.--col-width]="pageDimensions.columnLabelWidth + 'px'">
                   <div>{{ 'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nContext.suffix }}</div>
                 </th>
               } @else {
-                <th class="font-medium ion-text-center" [style.--col-width]="pageDimensions.rankOrderColumnWidth + 'px'">
+                <th class="font-medium ion-text-center" [style.--col-width]="pageDimensions.columnRankOrderWidth + 'px'">
                   <div>{{ 'TRIP.SAMPLE.TABLE.RANK_ORDER' | translateContext: i18nContext.suffix }}</div>
                 </th>
               }
               @if (firstPart) {
                 @if (options.taxonNameEnabled) {
-                  <th class="font-medium ion-text-center" [style.--col-width]="pageDimensions.taxonNameColumnWidth + 'px'">
+                  <th class="font-medium ion-text-center" [style.--col-width]="pageDimensions.columnTaxonNameWidth + 'px'">
                     <div>{{ 'TRIP.SAMPLE.TABLE.TAXON_NAME' | translateContext: i18nContext.suffix }}</div>
                   </th>
                 }
                 @if (options.taxonGroupEnabled) {
-                  <th class="font-medium ion-text-center" [style.--col-width]="pageDimensions.taxonGroupColumnWidth + 'px'">
+                  <th class="font-medium ion-text-center" [style.--col-width]="pageDimensions.columnTaxonGroupWidth + 'px'">
                     <div>{{ 'TRIP.SAMPLE.TABLE.TAXON_GROUP' | translateContext: i18nContext.suffix }}</div>
                   </th>
                 }
               }
               @for (pmfm of pmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
-                <th class="ion-text-center font-medium column-{{ pmfm.label }}" [style.--col-width]="pageDimensions.pmfmColumnWidth + 'px'">
-                  <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nSuffix: i18nContext.suffix }"></div>
-                </th>
+                @if (compactPmfmsColumn) {
+                  <th class="col-tiny font-small">
+                    <table-head-pmfm-name-report-chunk
+                      [pmfm]="pmfm"
+                      [i18nContext]="i18nContext"
+                      [pmfmTipsByPmfmIds]="pmfmsTips[partIndex]"
+                    ></table-head-pmfm-name-report-chunk>
+                  </th>
+                } @else {
+                  <th class="ion-text-center font-medium column-{{ pmfm.label }}" [style.--col-width]="pageDimensions.columnPmfmWidth + 'px'">
+                    <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nSuffix: i18nContext.suffix }"></div>
+                  </th>
+                }
               }
               @if (lastPart) {
-                <th class="font-medium" [style.--col-width]="pageDimensions.commentColumnWidth + 'px'">
+                <th class="font-medium col-maximum">
                   <div class="ion-text-center">
                     {{ 'TRIP.REPORT.FORM.COMMENTS' | translate }}
                   </div>
@@ -122,7 +135,7 @@
             @for (sample of samplesChunk; track sample.id) {
               <tr>
                 @if (options.labelEnabled) {
-                  <td class="font-medium" [style.--col-width]="pageDimensions.labelColumnWidth + 'px'">
+                  <td class="font-medium" [style.--col-width]="pageDimensions.columnLabelWidth + 'px'">
                     <div>
                       <b>{{ sample.label }}</b>
                     </div>
@@ -131,7 +144,7 @@
                   <td
                     class="col-tiny ion-text-center font-medium"
                     [style.padding]="0"
-                    [style.--col-width]="pageDimensions.rankOrderColumnWidth + 'px'"
+                    [style.--col-width]="pageDimensions.columnRankOrderWidth + 'px'"
                   >
                     <div>
                       <b>{{ sample.rankOrder }}</b>
@@ -140,34 +153,48 @@
                 }
                 @if (firstPart) {
                   @if (options.taxonNameEnabled) {
-                    <td [style.--col-width]="pageDimensions.taxonNameColumnWidth + 'px'">
+                    <td [style.--col-width]="pageDimensions.columnTaxonNameWidth + 'px'">
                       {{ sample.taxonName | referentialToString }}
                     </td>
                   }
                   @if (options.taxonGroupEnabled) {
-                    <td [style.--col-width]="pageDimensions.taxonGroupColumnWidth + 'px'">
+                    <td [style.--col-width]="pageDimensions.columnTaxonGroupWidth + 'px'">
                       {{ sample.taxonGroup | referentialToString }}
                     </td>
                   }
                 }
                 @for (pmfm of pmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
-                  <td
-                    class="ion-text-center column-{{ pmfm.label }} "
-                    [style.--col-width]="pageDimensions.pmfmColumnWidth + 'px'"
-                    [innerHtml]="
-                      sample.measurementValues
-                        | mapGet: pmfm.id
-                        | pmfmValue
-                          : {
-                              pmfm: pmfmsByIds | mapGet: pmfm.id,
-                              propertyNames: ['label', 'name'],
-                              showYesOrNo: true,
-                            }
-                    "
-                  ></td>
+                  @if (compactPmfmsColumn) {
+                    <td class="col-tiny font-small ion-text-center">
+                      @if (pmfm | isNotNil) {
+                        <div
+                          [innerHTML]="
+                            sample.measurementValues
+                              | mapGet: pmfm.id
+                              | pmfmValue: { pmfm: pmfm, html: false, showYesOrNo: true, propertyNames: ['label'] }
+                          "
+                        ></div>
+                      }
+                    </td>
+                  } @else {
+                    <td
+                      class="ion-text-center column-{{ pmfm.label }} "
+                      [style.--col-width]="pageDimensions.columnPmfmWidth + 'px'"
+                      [innerHtml]="
+                        sample.measurementValues
+                          | mapGet: pmfm.id
+                          | pmfmValue
+                            : {
+                                pmfm: pmfmsByIds | mapGet: pmfm.id,
+                                propertyNames: ['label', 'name'],
+                                showYesOrNo: true,
+                              }
+                      "
+                    ></td>
+                  }
                 }
                 @if (lastPart) {
-                  <td [style.--col-width]="pageDimensions.commentColumnWidth + 'px'">
+                  <td class="col-maximum">
                     {{ sample.comments }}
                   </td>
                 }
@@ -175,6 +202,7 @@
             }
           </tbody>
         </table>
+        <table-tips-report-chunk [tips]="pmfmsTips[partIndex] | mapValues | arraySort: sortByTipsIndex"></table-tips-report-chunk>
         <page-footer-from-report-chunk [footerText]="footerText" [help]="footerHelp"></page-footer-from-report-chunk>
       </section>
     }

@@ -5,7 +5,7 @@ import { RxStateModule, SharedDebugModule, SharedModule, SharedModuleConfig } fr
 import { APP_MAIN_CONTEXT_SERVICE, Context, ContextService } from './context.service';
 import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
 import { DelayPipe } from '@app/shared/pipes/delay.pipe';
-import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
+import { ArraySortPipe, SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
 import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-fields-skeleton.module';
 import { RxUnpatch } from '@rx-angular/template/unpatch';
@@ -35,6 +35,7 @@ import { DebounceTimePipe } from '@app/shared/pipes/debounceTime.pipe';
     DelayPipe,
     DebounceTimePipe,
     SplitArrayInChunksPipe,
+    ArraySortPipe,
     PaginationToStringPipe,
   ],
   exports: [
@@ -52,6 +53,7 @@ import { DebounceTimePipe } from '@app/shared/pipes/debounceTime.pipe';
     DelayPipe,
     DebounceTimePipe,
     SplitArrayInChunksPipe,
+    ArraySortPipe,
     PaginationToStringPipe,
 
     //Sub modules

@@ -2,8 +2,15 @@ import { Component, Input, inject } from '@angular/core';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppDataModule } from '@app/data/data.module';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
+import { FormReportPageDimensions } from '@app/data/report/common-report.class';
 import { ReportChunkModule } from '@app/data/report/component/form/report-chunk.module';
-import { ReportComponent } from '@app/data/report/report-component.class';
+import {
+  ReportPmfmsTipsByPmfmIds,
+  ReportTableComponent,
+  ReportTableComponentPageDimension,
+  TableHeadPmfmNameReportChunk,
+  TableTipsReportChunk,
+} from '@app/data/report/report-table-component.class';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -14,7 +21,15 @@ import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { Operation } from '@app/trip/trip/trip.model';
 import { EntityAsObjectOptions, ImageAttachment, isNil, isNotEmptyArray, isNotNil, splitById } from '@sumaris-net/ngx-components';
 import { Sample } from '../../sample.model';
-import { FormTripReportPageDimensions } from '@app/trip/trip/report/form/form-trip.report';
+
+interface SampleFormReportComponentPageDimension extends ReportTableComponentPageDimension {
+  columnRankOrderWidth: number;
+  columnLabelWidth: number;
+  columnPmfmWidth: number;
+  columnTaxonGroupWidth: number;
+  columnTaxonNameWidth: number;
+  columnCommentWidth: number;
+}
 
 export class SampleFromReportComponentStats extends BaseReportStats {
   options: {
@@ -22,23 +37,25 @@ export class SampleFromReportComponentStats extends BaseReportStats {
     taxonNameEnabled: boolean;
     taxonGroupEnabled: boolean;
   };
-  samplePmfm: IPmfm[];
-  samplePmfmById: { [key: number]: IPmfm };
-  releasedPmfm: IPmfm[];
-  releasedPmfmById: { [key: number]: IPmfm };
+  samplePmfms: IPmfm[];
+  samplePmfmsById: { [key: number]: IPmfm };
+  releasedPmfms: IPmfm[];
+  releasedPmfmsById: { [key: number]: IPmfm };
   imagesByOperationId: { [key: number]: ImageAttachment[] };
   individualSample: Sample[];
   releasedSample: Sample[];
   sampleTableParts: number[][];
   releasedTableParts: number[][];
+  samplePmfmsTips: ReportPmfmsTipsByPmfmIds;
+  releasedPmfmsTips: ReportPmfmsTipsByPmfmIds;
 
   fromObject(source: any): void {
     super.fromObject(source);
     this.options = source.options;
-    this.samplePmfm = source.samplePmfm.map(DenormalizedPmfmStrategy.fromObject);
-    this.samplePmfmById = splitById(this.samplePmfm);
-    this.releasedPmfm = source.releasedPmfm.map(DenormalizedPmfmStrategy.fromObject);
-    this.releasedPmfmById = splitById(this.samplePmfm);
+    this.samplePmfms = source.samplePmfm.map(DenormalizedPmfmStrategy.fromObject);
+    this.samplePmfmsById = splitById(this.samplePmfms);
+    this.releasedPmfms = source.releasedPmfm.map(DenormalizedPmfmStrategy.fromObject);
+    this.releasedPmfmsById = splitById(this.samplePmfms);
     this.individualSample = source.individualSample?.map((sample: any) => Sample.fromObject(sample));
     this.releasedSample = source.releasedSample?.map((sample: any) => Sample.fromObject(sample));
     this.imagesByOperationId = Object.keys(source.sampleImagesByOperationIds).reduce((acc, key) => {
@@ -47,14 +64,16 @@ export class SampleFromReportComponentStats extends BaseReportStats {
     }, {});
     this.sampleTableParts = source.sampleTablePart;
     this.releasedTableParts = source.releasedTableParts;
+    this.samplePmfmsTips = source.samplePmfmsTips;
+    this.releasedPmfmsTips = source.releasedPmfmsTips;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     return {
       ...super.asObject(opts),
       options: this.options,
-      samplePmfm: this.samplePmfm.map((pmfm) => pmfm.asObject(opts)),
-      releasedPmfm: this.releasedPmfm.map((pmfm) => pmfm.asObject(opts)),
+      samplePmfm: this.samplePmfms.map((pmfm) => pmfm.asObject(opts)),
+      releasedPmfm: this.releasedPmfms.map((pmfm) => pmfm.asObject(opts)),
       individualSample: this.individualSample?.map((sample) => sample.asObject(opts)),
       releasedSample: this.releasedSample?.map((sample) => sample.asObject(opts)),
       imagesByOperationId: Object.keys(this.imagesByOperationId).reduce((result, key) => {
@@ -63,29 +82,36 @@ export class SampleFromReportComponentStats extends BaseReportStats {
       }, {}),
       sampleTablePart: this.sampleTableParts,
       releasedTableParts: this.releasedTableParts,
+      samplePmfmsTips: this.samplePmfmsTips,
+      releasedPmfmsTips: this.releasedPmfmsTips,
     };
   }
 }
 
 @Component({
   standalone: true,
-  imports: [AppCoreModule, AppSharedReportModule, AppReferentialModule, AppDataModule, ReportChunkModule],
+  imports: [
+    AppCoreModule,
+    AppSharedReportModule,
+    AppReferentialModule,
+    AppDataModule,
+    ReportChunkModule,
+    TableTipsReportChunk,
+    TableHeadPmfmNameReportChunk,
+  ],
   selector: 'sample-form-report-component',
   templateUrl: './sample-form.report-component.html',
   styleUrls: ['./sample-form.report-component.scss', '../../../../data/report/base-form-report.scss'],
 })
-export class SampleFormReportComponent extends ReportComponent<Operation[], SampleFromReportComponentStats> {
-  readonly pageDimensions = Object.freeze({
-    rankOrderColumnWidth: 30,
-    labelColumnWidth: 90,
-    pmfmColumnWidth: 90,
-    taxonGroupColumnWidth: 140,
-    taxonNameColumnWidth: 140,
-    commentColumnWidth: 300,
-  });
+export class SampleFormReportComponent extends ReportTableComponent<
+  Operation[],
+  SampleFromReportComponentStats,
+  SampleFormReportComponentPageDimension
+> {
+  @Input() compactPmfmsColumn = true;
 
   @Input() samplesByPage = 20;
-  @Input({ required: true }) parentPageDimension: FormTripReportPageDimensions;
+  @Input({ required: true }) parentPageDimension: FormReportPageDimensions;
 
   protected logPrefix = '[sample-form-report] ';
   protected programRefService: ProgramRefService = inject(ProgramRefService);
@@ -93,6 +119,17 @@ export class SampleFormReportComponent extends ReportComponent<Operation[], Samp
 
   constructor() {
     super(Array<Operation>, SampleFromReportComponentStats);
+  }
+
+  protected computePageDimensions(): SampleFormReportComponentPageDimension {
+    return {
+      columnPmfmWidth: this.compactPmfmsColumn ? 30 : 60,
+      columnRankOrderWidth: 30,
+      columnLabelWidth: 90,
+      columnTaxonGroupWidth: 140,
+      columnTaxonNameWidth: 140,
+      columnCommentWidth: 400,
+    };
   }
 
   protected async computeStats(data: Operation[], _?: IComputeStatsOpts<SampleFromReportComponentStats>): Promise<SampleFromReportComponentStats> {
@@ -110,23 +147,41 @@ export class SampleFormReportComponent extends ReportComponent<Operation[], Samp
 
     // pmfm
 
-    stats.samplePmfm = isNotNil(strategyId)
+    stats.samplePmfms = isNotNil(strategyId)
       ? await this.programRefService.loadProgramPmfms(this.program.label, {
           acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
           strategyId,
         })
       : [];
-    stats.samplePmfmById = splitById(stats.samplePmfm);
-    stats.releasedPmfm = isNotNil(strategyId)
+    stats.samplePmfmsById = splitById(stats.samplePmfms);
+    stats.releasedPmfms = isNotNil(strategyId)
       ? await this.programRefService.loadProgramPmfms(this.program.label, {
           acquisitionLevel: AcquisitionLevelCodes.INDIVIDUAL_RELEASE,
           strategyId,
         })
       : [];
-    stats.releasedPmfmById = splitById(stats.releasedPmfm);
+    stats.releasedPmfmsById = splitById(stats.releasedPmfms);
 
-    stats.sampleTableParts = this.computeTablePart(stats.samplePmfm, stats.options);
-    stats.releasedTableParts = this.computeTablePart(stats.releasedPmfm, this.releasedTableOptions);
+    const tableLeftColumnsWidth =
+      (stats.options.labelEnabled ? this.pageDimensions.columnLabelWidth : this.pageDimensions.columnRankOrderWidth) +
+      (stats.options.taxonGroupEnabled ? this.pageDimensions.columnTaxonGroupWidth : 0) +
+      (stats.options.taxonNameEnabled ? this.pageDimensions.columnTaxonNameWidth : 0);
+    const tableRightColumnsWidth = this.pageDimensions.columnCommentWidth;
+
+    stats.sampleTableParts = this.computeTablePart(
+      stats.samplePmfms,
+      this.parentPageDimension.availableWidthForTableLandscape,
+      tableLeftColumnsWidth,
+      tableRightColumnsWidth,
+      this.pageDimensions.columnPmfmWidth
+    );
+    stats.releasedTableParts = this.computeTablePart(
+      stats.releasedPmfms,
+      this.parentPageDimension.availableWidthForTableLandscape,
+      tableLeftColumnsWidth,
+      tableRightColumnsWidth,
+      this.pageDimensions.columnPmfmWidth
+    );
 
     const samples = data.reduce((result, op) => {
       return result.concat(op.samples);
@@ -144,6 +199,9 @@ export class SampleFormReportComponent extends ReportComponent<Operation[], Samp
       }
     });
 
+    stats.samplePmfmsTips = this.computeReportPmfmsTips(stats.sampleTableParts, stats.samplePmfms);
+    stats.releasedPmfmsTips = this.computeReportPmfmsTips(stats.releasedTableParts, stats.releasedPmfms);
+
     stats.imagesByOperationId = {};
     for (const operation of data || []) {
       stats.imagesByOperationId[operation.id] = (operation.samples || [])
@@ -158,48 +216,5 @@ export class SampleFormReportComponent extends ReportComponent<Operation[], Samp
     }
 
     return stats;
-  }
-
-  private computeTablePart(pmfms: IPmfm[], opts: { labelEnabled: boolean; taxonGroupEnabled: boolean; taxonNameEnabled: boolean }): number[][] {
-    const firstColumnWidth = opts.labelEnabled ? this.pageDimensions.labelColumnWidth : this.pageDimensions.rankOrderColumnWidth;
-    const rightPartWidth =
-      firstColumnWidth +
-      (opts.taxonGroupEnabled ? this.pageDimensions.taxonGroupColumnWidth : 0) +
-      (opts.taxonNameEnabled ? this.pageDimensions.taxonNameColumnWidth : 0);
-
-    const nbPmfmsThatCanFitOnOnePart = Math.trunc(
-      (this.parentPageDimension.availableWidthForTableLandscape - rightPartWidth - this.pageDimensions.commentColumnWidth) /
-        this.pageDimensions.pmfmColumnWidth
-    );
-
-    // If all pmfm column can fit in one page : there is only one table part that contain all pmfms
-    if (pmfms.length <= nbPmfmsThatCanFitOnOnePart) return [[0, pmfms.length]];
-
-    const nbPmfmsThatCanFitOnFirstPage = Math.trunc(
-      (this.parentPageDimension.availableWidthForTableLandscape - rightPartWidth) / this.pageDimensions.pmfmColumnWidth
-    );
-    const nbPmfmsThatCanFitOnLastPage = Math.trunc(
-      (this.parentPageDimension.availableWidthForTableLandscape - this.pageDimensions.commentColumnWidth) / this.pageDimensions.pmfmColumnWidth
-    );
-
-    // If all columns can fit in tow table part : return two table part with all the content
-    if (pmfms.length <= nbPmfmsThatCanFitOnFirstPage + nbPmfmsThatCanFitOnLastPage) {
-      return [
-        [0, nbPmfmsThatCanFitOnFirstPage - 1],
-        [nbPmfmsThatCanFitOnFirstPage - 1, pmfms.length],
-      ];
-    }
-
-    // Else add enough part to display everything
-    const remainNbOfPmfms = this.stats.samplePmfm.length - (nbPmfmsThatCanFitOnFirstPage + nbPmfmsThatCanFitOnLastPage);
-    const nbOfPmfmThatCanFitOnFullPage = Math.trunc(
-      (this.parentPageDimension.availableWidthForTableLandscape - firstColumnWidth) / this.pageDimensions.pmfmColumnWidth
-    );
-    const result = [[0, nbPmfmsThatCanFitOnFirstPage]];
-    for (let i = nbOfPmfmThatCanFitOnFullPage; i <= pmfms.length - remainNbOfPmfms; i += nbOfPmfmThatCanFitOnFullPage) {
-      result.push([i, i + nbOfPmfmThatCanFitOnFullPage]);
-    }
-    // concat add the last part
-    return result.concat([result[-1][1], pmfms.length]);
   }
 }

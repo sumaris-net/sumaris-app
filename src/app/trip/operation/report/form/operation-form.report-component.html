@@ -45,7 +45,13 @@
                       pmfm of stats.pmfms.slice(stats.pmfmsTablePart[0][0], stats.pmfmsTablePart[0][1]) | arrayFilter: filterPmfmForOperationTable;
                       track pmfm
                     ) {
-                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm, tipsPart: 0 }"></ng-content>
+                      <th class="col-tiny font-small ion-no-padding">
+                        <table-head-pmfm-name-report-chunk
+                          [pmfm]="pmfm"
+                          [i18nContext]="i18nContext"
+                          [pmfmTipsByPmfmIds]="stats.pmfmsTips[0]"
+                        ></table-head-pmfm-name-report-chunk>
+                      </th>
                     }
                   }
                   <!-- TODO else -->
@@ -99,14 +105,26 @@
                         | arrayFilter: filterPmfmForOperationTable;
                       track pmfm
                     ) {
-                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm, tipsPart: 0 }"></ng-content>
+                      <th class="col-tiny font-small ion-no-padding">
+                        <table-head-pmfm-name-report-chunk
+                          [pmfm]="pmfm"
+                          [i18nContext]="i18nContext"
+                          [pmfmTipsByPmfmIds]="stats.pmfmsTips[0]"
+                        ></table-head-pmfm-name-report-chunk>
+                      </th>
                     }
                   } @else {
                     @for (
                       pmfm of stats.pmfms.slice(stats.pmfmsTablePart[0][0], stats.pmfmsTablePart[0][1]) | arrayFilter: filterPmfmForOperationTable;
                       track pmfm
                     ) {
-                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm, tipsPart: 0 }"></ng-content>
+                      <th class="col-tiny font-small ion-no-padding">
+                        <table-head-pmfm-name-report-chunk
+                          [pmfm]="pmfm"
+                          [i18nContext]="i18nContext"
+                          [pmfmTipsByPmfmIds]="stats.pmfmsTablePart[0]"
+                        ></table-head-pmfm-name-report-chunk>
+                      </th>
                     }
                   }
                 </tr>
@@ -257,16 +275,10 @@
                 }
               </tbody>
             </table>
-            <ul class="caption" [style.margin-top]="'10px'">
+            <table-tips-report-chunk [tips]="stats.pmfmsTips[0] | mapValues | arraySort: sortByTipsIndex">
               <li>* : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.ONE_STAR' | translate }}</li>
               <li>** : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.TWO_STAR' | translate }}</li>
-              @for (key of stats.pmfmsTips[0] | mapKeys; track $index) {
-                <li>
-                  *{{ stats.pmfmsTips[0] | mapGet: key | mapGet: 'tipsNum' }} :
-                  {{ stats.pmfmsTips[0] | mapGet: key | mapGet: 'text' }}
-                </li>
-              }
-            </ul>
+            </table-tips-report-chunk>
             <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
           </section>
 
@@ -297,7 +309,13 @@
                       pmfm of stats.pmfms.slice(stats.pmfmsTablePart[1][0], stats.pmfmsTablePart[1][1]) | arrayFilter: filterPmfmForOperationTable;
                       track pmfm
                     ) {
-                      <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm, tipsPart: 1 }"></ng-content>
+                      <th class="col-tiny font-small ion-no-padding">
+                        <table-head-pmfm-name-report-chunk
+                          [pmfm]="pmfm"
+                          [i18nContext]="i18nContext"
+                          [pmfmTipsByPmfmIds]="stats.pmfmsTablePart[1]"
+                        ></table-head-pmfm-name-report-chunk>
+                      </th>
                     }
                   }
                   <th class="col-maximum font-medium" [attr.rowspan]="stats.pmfmsTablePart.length > 1 ? 2 : 1">
@@ -315,14 +333,20 @@
                           | arrayFilter: filterPmfmForOperationTable;
                         track pmfm
                       ) {
-                        <ng-content *ngTemplateOutlet="tableOperationHeadPmfmName; context: { pmfm: pmfm, tipsPart: 1 }"></ng-content>
+                        <th class="col-tiny font-small">
+                          <table-head-pmfm-name-report-chunk
+                            [pmfm]="pmfm"
+                            [i18nContext]="i18nContext"
+                            [pmfmTipsByPmfmIds]="stats.pmfmsTips[1]"
+                          ></table-head-pmfm-name-report-chunk>
+                        </th>
                       }
                     }
                   </tr>
                 }
               </thead>
               <tbody>
-                @for (op of ops; track $index) {
+                @for (op of ops; track op.id; let index = $index) {
                   <tr>
                     <td class="col-tiny font-medium ion-text-center" [style.padding]="0">
                       <div>
@@ -368,14 +392,7 @@
                 }
               </tbody>
             </table>
-            <ul class="caption" [style.margin-top]="'10px'">
-              @for (key of stats.pmfmsTips[1] | mapKeys; track $index) {
-                <li>
-                  *{{ stats.pmfmsTips[1] | mapGet: key | mapGet: 'tipsNum' }} :
-                  {{ stats.pmfmsTips[1] | mapGet: key | mapGet: 'text' }}
-                </li>
-              }
-            </ul>
+            <table-tips-report-chunk [tips]="stats.pmfmsTips[1] | mapValues | arraySort: sortByTipsIndex"></table-tips-report-chunk>
             <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
           </section>
         }
@@ -383,21 +400,6 @@
     }
   </app-reveal>
 }
-
-<ng-template #tableOperationHeadPmfmName let-pmfm="pmfm" let-tipsPart="tipsPart">
-  <th class="col-tiny font-small text-vertical">
-    @if (pmfm | isNotNil) {
-      <div>
-        {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix } }}
-        @if (stats.pmfmsTips[tipsPart] | mapGet: pmfm.id | isNotNil) {
-          <sup>
-            <em>*{{ stats.pmfmsTips[tipsPart] | mapGet: pmfm.id | mapGet: 'tipsNum' }}</em>
-          </sup>
-        }
-      </div>
-    }
-  </th>
-</ng-template>
 
 <ng-template #latLongPlaceHolder>
   <span class="font-large place-holder">

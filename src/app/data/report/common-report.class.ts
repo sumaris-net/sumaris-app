@@ -8,6 +8,14 @@ import { IComputeStatsOpts, IReportData, IReportI18nContext } from './base-repor
 
 export class CommonReportOptions {}
 
+export interface FormReportPageDimensions {
+  pageWidth: number;
+  pageHeight: number;
+  pageHorizontalMargin: number;
+  availableWidthForTableLandscape: number;
+  availableWidthForTablePortrait: number;
+}
+
 export abstract class CommonReportStats {
   abstract fromObject(source: any);
   abstract asObject: (opts?: EntityAsObjectOptions) => any;
