@@ -69,20 +69,21 @@
           [style.--gear-table-row-height]="pageDimensions.gpfTableRowHeight + 'px'"
           [style.--header-height]="pageDimensions.headerHeight + 'px'"
           [style.--section-title-height]="pageDimensions.sectionTitleHeight + 'px'"
+          [style.--margin-bottom]="pageDimensions.marginBottom + 'px'"
         >
-          <ion-grid class="report-header ion-no-padding">
+          <ion-grid class="report-section report-header">
             <ion-row class="document-title">
-              <ion-col class="logo" size="2">
+              <ion-col class="logo" size="auto">
                 @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
                   <img [src]="stats.logoHeadLeftUrl" />
                 }
               </ion-col>
-              <ion-col size="8">
+              <ion-col size="auto">
                 <h1 class="ion-text-uppercase">
                   {{ 'ACTIVITY_CALENDAR.REPORT.TITLE' | translateContext: i18nContext.suffix : { year: data.year } }}
                 </h1>
               </ion-col>
-              <ion-col class="logo" size="2">
+              <ion-col class="logo" size="auto">
                 @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
                   <img [src]="stats.logoHeadRightUrl" />
                 }

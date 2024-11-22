@@ -14,12 +14,12 @@
     table {
       table-layout: fixed;
       border: 1px solid var(--text-color) !important;
+      border-top: solid 3px var(--section-title-color) !important;
       &.month-table {
         --row-title-height: var(--month-table-title-row-height);
         --row-height: var(--month-table-row-height);
         min-width: calc(100% - (var(--page-left-right-margin) * 2));
         max-width: calc(100% - (var(--page-left-right-margin) * 2));
-        border-top: solid 3px var(--section-title-color) !important;
         --col-width-label: 100px;
         --col-width: calc((1136px - 100px) / 12);
         tbody,

@@ -59,16 +59,16 @@
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
     @for (tableChunk of stats.tableRowChunk; track chunkIndex; let chunkIndex = $index; let firstChunk = $first; let lastChunk = $last) {
-      <section *sectionDef>
+      <section *sectionDef [style.--margin-bottom]="pageDimensions.marginBottom + 'px'">
         <!-- header -->
-        <ion-grid class="report-header ion-no-padding">
-          <ion-row class="page-title">
+        <ion-grid class="report-section report-header ion-no-padding">
+          <ion-row class="document-title">
             <ion-col class="logo" size="auto">
               @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
                 <img [src]="stats.logoHeadLeftUrl" />
               }
             </ion-col>
-            <ion-col>
+            <ion-col size="auto">
               <h2>{{ $title | async }}</h2>
             </ion-col>
             <ion-col class="logo" size="auto">

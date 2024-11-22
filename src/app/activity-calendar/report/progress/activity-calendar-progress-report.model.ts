@@ -85,7 +85,6 @@ export class ActivityMonitoring extends Entity<ActivityMonitoring> {
   vesselRegistrationCode: string;
   vesselIntRegistrationCode: string;
   observerName: string;
-  surveyQualification: string;
   emptyMonthCount: number;
   errorMonthCount: number;
   recorderPerson: string;
@@ -131,7 +130,6 @@ export class ActivityMonitoring extends Entity<ActivityMonitoring> {
     this.vesselRegistrationCode = source.vesselRegistrationCode?.replace('|', ', ');
     this.vesselIntRegistrationCode = source.vesselIntRegistrationCode?.replace('|', ', ');
     this.observerName = source.observerName;
-    this.surveyQualification = source.surveyQualification;
     this.recorderPerson = source.recorderPerson;
     this.emptyMonthCount = source.emptyMonthCount;
     this.errorMonthCount = source.errorMonthCount;

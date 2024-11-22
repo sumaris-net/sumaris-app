@@ -5,17 +5,17 @@ import {
   ActivityCalendarFormReportStats,
 } from './activity-calendar-form.report';
 import {
-  CORE_CONFIG_OPTIONS,
-  ConfigService,
-  DateUtils,
-  LocalSettingsService,
-  StatusIds,
   arrayDistinct,
+  ConfigService,
+  CORE_CONFIG_OPTIONS,
+  DateUtils,
   firstNotNilPromise,
   isEmptyArray,
   isNotEmptyArray,
   isNotNil,
+  LocalSettingsService,
   splitById,
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -168,11 +168,10 @@ export async function computeIndividualActivityCalendarFormReportStats(
   });
   const lastVesselOwner = isNotEmptyArray(vesselOwnerPeriods.data) ? vesselOwnerPeriods.data[0].vesselOwner : VesselOwner.fromObject({});
 
-    if (isNotNil(lastVesselOwner?.id)) {
-      stats.lastVesselOwner = await vesselOwnerService.load(lastVesselOwner.id);
-    } else {
-      stats.lastVesselOwner = VesselOwner.fromObject({});
-    }
+  if (isNotNil(lastVesselOwner?.id)) {
+    stats.lastVesselOwner = await vesselOwnerService.load(lastVesselOwner.id);
+  } else {
+    stats.lastVesselOwner = VesselOwner.fromObject({});
   }
 
   computeMetierTableChunk(stats, pageDimensions);

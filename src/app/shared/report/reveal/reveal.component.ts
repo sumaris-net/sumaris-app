@@ -25,12 +25,21 @@ import {
   ViewRef,
 } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { DOCUMENT } from '@angular/common';
 import { ToastController } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
-import { isNotNil, ShowToastOptions, sleep, StorageService, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
+import {
+  isNotNil,
+  isSafari,
+  getUserAgent,
+  ShowToastOptions,
+  sleep,
+  StorageService,
+  Toasts,
+  waitForFalse,
+  WaitForOptions,
+} from '@sumaris-net/ngx-components';
 import { MarkdownComponent } from 'ngx-markdown';
 import { BehaviorSubject, lastValueFrom, Subscription } from 'rxjs';
 import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
@@ -278,6 +287,13 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     console.debug('[reveal] Print...');
 
     if (!this.isPrintingPDF()) {
+      // Safari print feature seems to hide some part...
+      // As a workaround, we display a warning message
+      if (isSafari(window)) {
+        console.warn('[reveal] Detecting Safari - User-Agent: ', getUserAgent(window));
+        this.showToast({ type: 'warning', message: 'ERROR.INCOMPATIBLE_WEB_BROWSER', duration: 5000 });
+      }
+
       // Create a iframe with '?print-pdf'
       const printUrl = this.getPrintPdfUrl();
 
