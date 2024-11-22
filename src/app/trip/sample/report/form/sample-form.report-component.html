@@ -16,6 +16,7 @@
                 pmfms: stats.samplePmfms,
                 pmfmsByIds: stats.samplePmfmsById,
                 pmfmsTips: stats.samplePmfmsTips,
+                compactPmfmsColumn: true,
               }
             "
           ></ng-content>
@@ -34,6 +35,7 @@
                 pmfms: stats.releasedPmfms,
                 pmfmsByIds: stats.releasedPmfmsById,
                 pmfmsTips: stats.releasedPmfmsTips,
+                compactPmfmsColumn: false,
               }
             "
           ></ng-content>
@@ -54,6 +56,7 @@
   let-pmfms="pmfms"
   let-pmfmsByIds="pmfmsByIds"
   let-pmfmsTips="pmfmsTips"
+  let-compactPmfmsColumn="compactPmfmsColumn"
 >
   @for (
     samplesChunk of samples | splitArrayInChunks: chunkSize;
@@ -109,7 +112,7 @@
               }
               @for (pmfm of pmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
                 @if (compactPmfmsColumn) {
-                  <th class="col-tiny font-small">
+                  <th class="col-tiny font-small column-{{ pmfm.label }}">
                     <table-head-pmfm-name-report-chunk
                       [pmfm]="pmfm"
                       [i18nContext]="i18nContext"
@@ -118,7 +121,7 @@
                   </th>
                 } @else {
                   <th class="ion-text-center font-medium column-{{ pmfm.label }}" [style.--col-width]="pageDimensions.columnPmfmWidth + 'px'">
-                    <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nSuffix: i18nContext.suffix }"></div>
+                    <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: i18nContext.prefix, i18nSuffix: i18nContext.suffix }"></div>
                   </th>
                 }
               }
@@ -165,7 +168,7 @@
                 }
                 @for (pmfm of pmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
                   @if (compactPmfmsColumn) {
-                    <td class="col-tiny font-small ion-text-center">
+                    <td class="col-tiny font-small ion-text-center column-{{ pmfm.label }}">
                       @if (pmfm | isNotNil) {
                         <div
                           [innerHTML]="

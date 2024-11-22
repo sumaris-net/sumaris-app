@@ -23,6 +23,7 @@ import { Operation } from '@app/trip/trip/trip.model';
 import { EntityAsObjectOptions, LatLongPattern, LocalSettingsService, arrayDistinct, isNil, isNotNil, splitById } from '@sumaris-net/ngx-components';
 
 interface OperationFormReportComponentPageDimension extends ReportTableComponentPageDimension {
+  columnPmfmWidth: number;
   columnNumOpWidth: number;
   columnIndividualMeasureWidth: number;
   columnTripProgressWidth: number;

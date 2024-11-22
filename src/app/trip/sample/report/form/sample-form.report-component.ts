@@ -23,9 +23,10 @@ import { EntityAsObjectOptions, ImageAttachment, isNil, isNotEmptyArray, isNotNi
 import { Sample } from '../../sample.model';
 
 interface SampleFormReportComponentPageDimension extends ReportTableComponentPageDimension {
+  columnPmfmWidthCompact: number;
+  columnPmfmWidth: number;
   columnRankOrderWidth: number;
   columnLabelWidth: number;
-  columnPmfmWidth: number;
   columnTaxonGroupWidth: number;
   columnTaxonNameWidth: number;
   columnCommentWidth: number;
@@ -108,8 +109,6 @@ export class SampleFormReportComponent extends ReportTableComponent<
   SampleFromReportComponentStats,
   SampleFormReportComponentPageDimension
 > {
-  @Input() compactPmfmsColumn = true;
-
   @Input() samplesByPage = 20;
   @Input({ required: true }) parentPageDimension: FormReportPageDimensions;
 
@@ -123,7 +122,8 @@ export class SampleFormReportComponent extends ReportTableComponent<
 
   protected computePageDimensions(): SampleFormReportComponentPageDimension {
     return {
-      columnPmfmWidth: this.compactPmfmsColumn ? 30 : 60,
+      columnPmfmWidth: 90,
+      columnPmfmWidthCompact: 30,
       columnRankOrderWidth: 30,
       columnLabelWidth: 90,
       columnTaxonGroupWidth: 140,
@@ -173,7 +173,7 @@ export class SampleFormReportComponent extends ReportTableComponent<
       this.parentPageDimension.availableWidthForTableLandscape,
       tableLeftColumnsWidth,
       tableRightColumnsWidth,
-      this.pageDimensions.columnPmfmWidth
+      this.pageDimensions.columnPmfmWidthCompact
     );
     stats.releasedTableParts = this.computeTablePart(
       stats.releasedPmfms,
