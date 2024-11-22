@@ -210,6 +210,10 @@ export function isSingleCellSelection(selection: TableCellSelection) {
   return selection && selection.rowspan === 1 && selection.rowspan === 1;
 }
 
+export const CALENDAR_SETTINGS_ENUM = {
+  COLLAPSE_AFTER_SAVE_KEY: 'collapseAfterSave',
+};
+
 @Component({
   selector: 'app-calendar',
   templateUrl: './calendar.component.html',
@@ -266,6 +270,7 @@ export class CalendarComponent
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
   protected readonlyColumnCount: number;
+  protected collapseAfterSave: boolean = null;
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -559,6 +564,12 @@ export class CalendarComponent
       ),
       () => this.checkDataExpertiseArea()
     );
+
+    this._state.hold(this.programLabel$, () => {
+      // Update the settings id, as program could have changed
+      this.settingsId = this.generateTableId();
+      this.restoreCollapseAfterSave();
+    });
   }
 
   ngAfterViewInit() {
@@ -1675,6 +1686,28 @@ export class CalendarComponent
     }
   }
 
+  protected expandMore(event?: Event) {
+    // Get currently collapsed metiers
+    const metierBlocksToExpand = [];
+    for (let i = 0; i < this.metierCount; i++) {
+      const metierColumn = this.dynamicColumns.find((col) => col.blockIndex === i);
+      if (metierColumn && !metierColumn.expanded) {
+        metierBlocksToExpand.push(i);
+      }
+    }
+
+    if (isNotEmptyArray(metierBlocksToExpand)) {
+      // Expand remaining collapsed metiers
+      metierBlocksToExpand.forEach((blockIndex) => this.expandMetierBlock(null, blockIndex, { emitEvent: false, expandChildren: false }));
+    } else {
+      // Expand all
+      this.expandAll(event, { emitEvent: false });
+    }
+
+    this.markForCheck();
+    setTimeout(() => this.onResize());
+  }
+
   protected expandAll(event?: Event, opts?: { emitEvent?: boolean }) {
     for (let i = 0; i < this.metierCount; i++) {
       this.expandMetierBlock(null, i, { emitEvent: false });
@@ -2223,7 +2256,28 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  collapseAll(event?: Event, opts?: { emitEvent?: boolean }) {
+  protected collapseMore(event?: Event) {
+    // Check if some distanceToCoastGradient are not collapsed
+    const blockColumnNames = [`distanceToCoastGradient`, `depthGradient`, `nearbySpecificArea`];
+    const blockColumns = this.dynamicColumns.filter((col) => blockColumnNames.some((blockColName) => col.key.includes(blockColName)));
+
+    const masterBlockColumns = blockColumns.filter((col) => isNotNil(col.expanded));
+    const childBlockColumns = blockColumns.filter((col) => !isNotNil(col.expanded));
+
+    if (masterBlockColumns.some((col) => col.expanded)) {
+      // Collapse remaining
+      masterBlockColumns.forEach((col) => (col.expanded = false));
+      childBlockColumns.forEach((col) => (col.hidden = true));
+    } else {
+      // Collapse all
+      this.collapseAll(event, { emitEvent: false });
+    }
+
+    this.markForCheck();
+    setTimeout(() => this.onResize());
+  }
+
+  protected collapseAll(event?: Event, opts?: { emitEvent?: boolean }) {
     if (event?.defaultPrevented) return; // Skip
 
     for (let i = 0; i < this.metierCount; i++) {
@@ -2322,7 +2376,7 @@ export class CalendarComponent
     setTimeout(() => this.onResize());
   }
 
-  expandMetierBlock(event: Event, blockIndex: number, opts?: { emitEvent?: boolean }) {
+  expandMetierBlock(event: Event, blockIndex: number, opts?: { emitEvent?: boolean; expandChildren?: boolean }) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
@@ -2360,7 +2414,7 @@ export class CalendarComponent
 
   /* -- protected functions -- */
 
-  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean, opts?: { emitEvent?: boolean }) {
+  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean, opts?: { emitEvent?: boolean; expandChildren?: boolean }) {
     const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return;
 
@@ -2371,11 +2425,20 @@ export class CalendarComponent
 
     // Update sub columns
     blockColumns.slice(1).forEach((col) => {
-      col.hidden = !expanded;
+      if (opts?.expandChildren === false) {
+        col.hidden = col.key.includes('depthGradient') || col.key.includes('nearbySpecificArea');
 
-      // Expanded state for all columns to fix divergences states
-      if (isNotNil(col.expanded)) {
-        col.expanded = expanded;
+        // Collapsed state for all columns
+        if (isNotNil(col.expanded)) {
+          col.expanded = false;
+        }
+      } else {
+        col.hidden = !expanded;
+
+        // Expanded state for all columns to fix divergences states
+        if (isNotNil(col.expanded)) {
+          col.expanded = expanded;
+        }
       }
     });
 
@@ -3183,6 +3246,12 @@ export class CalendarComponent
     }
   }
 
+  onAfterSave() {
+    if (this.collapseAfterSave) {
+      this.collapseAll();
+    }
+  }
+
   getErrorsInRows(): string[] {
     const rows = this.dataSource.getRows();
     const listErrors = [];
@@ -3277,6 +3346,25 @@ export class CalendarComponent
       });
     } else {
       this.expandAll();
+    }
+  }
+
+  protected async toggleCollapseAfterSave() {
+    this.collapseAfterSave = !this.collapseAfterSave;
+    if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) {
+      await this.savePageSettings(this.collapseAfterSave, CALENDAR_SETTINGS_ENUM.COLLAPSE_AFTER_SAVE_KEY);
+    }
+  }
+
+  protected restoreCollapseAfterSave() {
+    if (!this.usePageSettings || isNilOrBlank(this.settingsId)) return;
+
+    const collapseAfterSave = toBoolean(
+      this.settings.getPageSettings(this.settingsId, CALENDAR_SETTINGS_ENUM.COLLAPSE_AFTER_SAVE_KEY),
+      toBoolean(this.collapseAfterSave, true)
+    );
+    if (this.collapseAfterSave !== collapseAfterSave) {
+      this.collapseAfterSave = collapseAfterSave;
     }
   }
 }
