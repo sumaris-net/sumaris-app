@@ -210,6 +210,10 @@ export function isSingleCellSelection(selection: TableCellSelection) {
   return selection && selection.rowspan === 1 && selection.rowspan === 1;
 }
 
+export const CALENDAR_SETTINGS_ENUM = {
+  COLLAPSE_AFTER_SAVE_KEY: 'collapseAfterSave',
+};
+
 @Component({
   selector: 'app-calendar',
   templateUrl: './calendar.component.html',
@@ -266,6 +270,7 @@ export class CalendarComponent
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
   protected readonlyColumnCount: number;
+  protected collapseAfterSave: boolean = null;
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -559,6 +564,12 @@ export class CalendarComponent
       ),
       () => this.checkDataExpertiseArea()
     );
+
+    this._state.hold(this.programLabel$, () => {
+      // Update the settings id, as program could have changed
+      this.settingsId = this.generateTableId();
+      this.restoreCollapseAfterSave();
+    });
   }
 
   ngAfterViewInit() {
@@ -2266,7 +2277,7 @@ export class CalendarComponent
     setTimeout(() => this.onResize());
   }
 
-  collapseAll(event?: Event, opts?: { emitEvent?: boolean }) {
+  protected collapseAll(event?: Event, opts?: { emitEvent?: boolean }) {
     if (event?.defaultPrevented) return; // Skip
 
     for (let i = 0; i < this.metierCount; i++) {
@@ -3235,6 +3246,12 @@ export class CalendarComponent
     }
   }
 
+  onAfterSave() {
+    if (this.collapseAfterSave) {
+      this.collapseAll();
+    }
+  }
+
   getErrorsInRows(): string[] {
     const rows = this.dataSource.getRows();
     const listErrors = [];
@@ -3329,6 +3346,25 @@ export class CalendarComponent
       });
     } else {
       this.expandAll();
+    }
+  }
+
+  protected async toggleCollapseAfterSave() {
+    this.collapseAfterSave = !this.collapseAfterSave;
+    if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) {
+      await this.savePageSettings(this.collapseAfterSave, CALENDAR_SETTINGS_ENUM.COLLAPSE_AFTER_SAVE_KEY);
+    }
+  }
+
+  protected restoreCollapseAfterSave() {
+    if (!this.usePageSettings || isNilOrBlank(this.settingsId)) return;
+
+    const collapseAfterSave = toBoolean(
+      this.settings.getPageSettings(this.settingsId, CALENDAR_SETTINGS_ENUM.COLLAPSE_AFTER_SAVE_KEY),
+      toBoolean(this.collapseAfterSave, true)
+    );
+    if (this.collapseAfterSave !== collapseAfterSave) {
+      this.collapseAfterSave = collapseAfterSave;
     }
   }
 }

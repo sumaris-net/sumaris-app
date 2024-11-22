@@ -14,6 +14,15 @@
     }
     <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
   </button>
+  <!-- Collapse after save -->
+  <button mat-menu-item (click)="toggleCollapseAfterSave()">
+    @if (collapseAfterSave) {
+      <mat-icon>check_box</mat-icon>
+    } @else {
+      <mat-icon>check_box_outline_blank</mat-icon>
+    }
+    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_COLLAPSE_AFTER_SAVE</ion-label>
+  </button>
 </mat-menu>
 
 <!-- Déclencheur invisible pour le mat-menu -->
