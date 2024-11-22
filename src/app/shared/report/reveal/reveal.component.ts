@@ -279,6 +279,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     // Safari print feature seems to hide some part...
     // As a workaround, we display a warning message
     if (isSafari(window)) {
+      console.warn('[reveal] Detecting Safari - User-Agent: ', window.navigator.userAgent || window.navigator.vendor || (window as any).opera);
       this.showToast({ type: 'warning', message: 'ERROR.INCOMPATIBLE_WEB_BROWSER', duration: 5000 });
     }
 
