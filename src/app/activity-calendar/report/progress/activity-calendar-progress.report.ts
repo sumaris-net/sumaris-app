@@ -36,6 +36,8 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
   footerText: string;
   logoHeadLeftUrl: string;
   logoHeadRightUrl: string;
+  colorPrimary: string;
+  colorSecondary: string;
   filter: ActivityCalendarFilter;
   tableRowChunk: ActivityMonitoring[][];
   reportDate: Moment;
@@ -59,6 +61,8 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
     this.footerText = source.footerText;
     this.logoHeadLeftUrl = source.logoHeadLeftUrl;
     this.logoHeadRightUrl = source.logoHeadRightUrl;
+    this.colorPrimary = source.colorPrimary;
+    this.colorSecondary = source.colorSecondary;
     this.filter = ActivityCalendarFilter.fromObject(source.filter);
     this.tableRowChunk = source.tableRowChunk;
     this.reportDate = fromDateISOString(source.reportDate);
@@ -84,6 +88,8 @@ export class ActivityCalendarProgressReportStats extends BaseReportStats {
       footerText: this.footerText,
       logoHeadLeftUrl: this.logoHeadLeftUrl,
       logoHeadRightUrl: this.logoHeadRightUrl,
+      colorPrimary: this.colorPrimary,
+      colorSecondary: this.colorSecondary,
       filter: this.filter.asObject(opts),
       tableRowChunk: this.tableRowChunk,
       reportDate: toDateISOString(this.reportDate),
@@ -206,6 +212,8 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     stats.footerText = program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_FOOTER);
     stats.logoHeadLeftUrl = program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
     stats.logoHeadRightUrl = program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
+    stats.colorPrimary = program.getProperty(ProgramProperties.DATA_REPORT_COLOR_PRIMARY);
+    stats.colorSecondary = program.getProperty(ProgramProperties.DATA_REPORT_COLOR_SECONDARY);
 
     // Compute AGG
     const agg = {

@@ -2520,6 +2520,10 @@
         "USER_SELECT": "User selection",
         "SPATIO_TEMPORAL": "Spatio-temporal",
         "NONE": "None"
+      },
+      "DATA_REPORT_COLORS": {
+        "PRIMARY": "Theme > Report > Primary color",
+        "SECONDARY": "Theme > Report > Secondary color"
       }
     },
     "STRATEGY": {

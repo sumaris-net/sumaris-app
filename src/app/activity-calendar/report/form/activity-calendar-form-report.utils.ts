@@ -52,6 +52,8 @@ export async function computeCommonActivityCalendarFormReportStats(
   stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER);
   stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
   stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
+  stats.colorPrimary = program.getProperty(ProgramProperties.DATA_REPORT_COLOR_PRIMARY);
+  stats.colorSecondary = program.getProperty(ProgramProperties.DATA_REPORT_COLOR_SECONDARY);
   stats.vesselAttributes = (await vesselSnapshotService.getAutocompleteFieldOptions('vesselSnapshot'))?.attributes;
 
   stats.displayAttributes = {
