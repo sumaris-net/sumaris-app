@@ -29,7 +29,6 @@ import {
   IReferentialRef,
   isEmptyArray,
   isNil,
-  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -47,12 +46,13 @@ import {
   suggestFromArray,
   Toasts,
   toBoolean,
+  toDateISOString,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Operation, Trip } from '../trip/trip.model';
-import { BehaviorSubject, combineLatest, firstValueFrom, merge, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, firstValueFrom, merge, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -78,8 +78,6 @@ import { OverlayEventDetail } from '@ionic/core';
 type FilterableFieldName = 'fishingArea' | 'metier';
 
 type PositionField = 'startPosition' | 'fishingStartPosition' | 'fishingEndPosition' | 'endPosition';
-
-type DateField = 'startDateTime' | 'fishingStartDateTime' | 'fishingEndDateTime' | 'endDateTime';
 
 export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   {
@@ -110,6 +108,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _showFishingArea = false;
   private _requiredComment = false;
   private _positionSubscription: Subscription;
+  private _autoFillNextDateSubscription: Subscription;
   private _emitGeolocationBusy = true;
   private _lastValidatorOpts: any;
   protected _usageMode: UsageMode;
@@ -157,7 +156,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   @Input() maxShootingDurationInHours: number;
   @Input() maxTotalDurationInHours: number;
   @Input() isInlineFishingArea: boolean;
-  @Input() enableUpdateChildDate$: Observable<boolean>;
+  @Input() autoFillNextDate: boolean;
 
   @Input() set usageMode(usageMode: UsageMode) {
     if (this._usageMode !== usageMode) {
@@ -418,29 +417,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       mobile: this.mobile,
       showAllOnFocus: true,
     });
-    this.registerSubscription(
-      this.enableUpdateChildDate$.subscribe((enableUpdateChildDate) => {
-        if (enableUpdateChildDate) {
-          const startDateTimeControl = this.form.get('startDateTime');
-          if (startDateTimeControl) {
-            this.registerSubscription(
-              startDateTimeControl.valueChanges
-                .pipe(debounceTime(100), distinctUntilChanged())
-                .subscribe(() => this.updateChildDate('startDateTime', 'fishingStartDateTime'))
-            );
-          }
-
-          const fishingEndDateTimeControl = this.form.get('fishingEndDateTime');
-          if (fishingEndDateTimeControl) {
-            this.registerSubscription(
-              fishingEndDateTimeControl.valueChanges
-                .pipe(debounceTime(100), distinctUntilChanged())
-                .subscribe(() => this.updateChildDate('fishingEndDateTime', 'endDateTime'))
-            );
-          }
-        }
-      })
-    );
 
     // Listen parent operation
     this.registerSubscription(this.parentControl.valueChanges.subscribe((value) => this.onParentOperationChanged(value)));
@@ -494,31 +470,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       suggestLengthThreshold: 2,
       mobile: this.mobile,
     });
-
-    if (this.enableUpdateChildDate$) {
-      const startDateTimeControl = this.form.get('startDateTime');
-      const fishingEndDateTimeControl = this.form.get('fishingEndDateTime');
-      this.registerSubscription(
-        combineLatest([
-          startDateTimeControl.valueChanges.pipe(
-            filter((_) => this.startDateTimeEnable),
-            startWith<any>(startDateTimeControl.value) // Need by combineLatest (must be after filter)
-          ),
-          fishingEndDateTimeControl.valueChanges.pipe(
-            filter((_) => this.fishingStartDateTimeEnable),
-            startWith<any>(fishingEndDateTimeControl.value) // Need by combineLatest (must be after filter)
-          ),
-        ])
-          .pipe(
-            debounceTime(250),
-            map(([d1, d2]) => DateUtils.max(fromDateISOString(d1), fromDateISOString(d2))),
-            distinctUntilChanged()
-            // DEBUG
-            //tap(max => console.debug('[operation-form] max date changed: ' + toDateISOString(max)))
-          )
-          .subscribe((max) => this.lastEndDateChanges.next(max))
-      );
-    }
   }
 
   ngOnReady() {
@@ -532,6 +483,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this._$metiers.complete();
     this.$parentOperationLabel.complete();
     this._positionSubscription?.unsubscribe();
+    this._autoFillNextDateSubscription?.unsubscribe();
     this.busySubject.complete();
     this.busySubject.unsubscribe();
   }
@@ -965,21 +917,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     return parentOperation;
   }
 
-  updateChildDate(source: DateField, target: DateField) {
-    const value = this.form.get(source).value as Moment;
-
-    if (!target && source === 'startDateTime') {
-      target = (this.fishingStartDateTimeEnable && 'fishingStartDateTime') || (this.endDateTimeEnable && 'endDateTime') || undefined;
-    }
-    if (!target) return; // Skip
-
-    const t = this.form.get(target);
-    if (!isNilOrBlank(t.value)) return; // Skip
-    t.patchValue(value.startOf('day'), { emitEvent: true });
-
-    this.markAsDirty();
-  }
-
   addFishingArea() {
     this.fishingAreasForm.add();
     if (!this.mobile) {
@@ -1060,6 +997,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       this.validatorService.updateFormGroup(this.form, validatorOpts);
 
       this.initPositionSubscription();
+      this.initAutoFillNextDate();
 
       if (!opts || opts.emitEvent !== false) {
         this.form.updateValueAndValidity();
@@ -1395,12 +1333,89 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     const subscription = merge(this.form.get('startPosition').valueChanges, this.lastActivePositionControl.valueChanges)
       .pipe(debounceTime(200))
       .subscribe((_) => this.updateDistance());
+
+    // Register subscription
     this.registerSubscription(subscription);
     this._positionSubscription = subscription;
     subscription.add(() => {
       this.unregisterSubscription(subscription);
       this._positionSubscription = null;
     });
+  }
+
+  protected initAutoFillNextDate() {
+    this._autoFillNextDateSubscription?.unsubscribe();
+    if (!this.autoFillNextDate) return;
+
+    const subscription = new Subscription();
+
+    // Copy start => fishingStart
+    if (this.startDateTimeEnable && this.fishingStartDateTimeEnable) {
+      const startDateTimeControl = this.form.get('startDateTime');
+      const fishingStartDateTimeControl = this.form.get('fishingStartDateTime');
+      if (startDateTimeControl && fishingStartDateTimeControl) {
+        subscription.add(
+          startDateTimeControl.valueChanges
+            .pipe(
+              debounceTime(100),
+              distinctUntilChanged(),
+              filter(() => this.enabled)
+            )
+            .subscribe(() => this.copyDateNoTime(startDateTimeControl, fishingStartDateTimeControl))
+        );
+      }
+    }
+
+    // Copy fishingEnd => end
+    if (this.fishingEndDateTimeEnable && this.endDateTimeEnable) {
+      const fishingEndDateTimeControl = this.form.get('fishingEndDateTime');
+      const endDateTimeControl = this.form.get('endDateTime');
+      if (fishingEndDateTimeControl && endDateTimeControl) {
+        subscription.add(
+          fishingEndDateTimeControl.valueChanges
+            .pipe(
+              debounceTime(100),
+              distinctUntilChanged(),
+              filter(() => this.enabled)
+            )
+            .subscribe(() => this.copyDateNoTime(fishingEndDateTimeControl, endDateTimeControl))
+        );
+      }
+    }
+
+    // Register subscription
+    this.registerSubscription(subscription);
+    this._autoFillNextDateSubscription = subscription;
+    subscription.add(() => {
+      this.unregisterSubscription(subscription);
+      this._autoFillNextDateSubscription = null;
+    });
+  }
+
+  /**
+   * Copies the date (without the time) from the source AbstractControl to the target AbstractControl.
+   *
+   * @param {AbstractControl<Moment>} source - The source control containing the date to copy.
+   * @param {AbstractControl<Moment>} target - The target control where the date will be copied to, with time removed.
+   * @return {void}
+   */
+  protected copyDateNoTime(source: AbstractControl<Moment>, target: AbstractControl<Moment>) {
+    const sourceValue = fromDateISOString(source.value);
+    if (isNil(sourceValue)) return;
+
+    // DEBUG
+    console.debug(`[operation] Copying date (without the time) from ${toDateISOString(source)} to ${toDateISOString(target)}`);
+
+    const targetValue = fromDateISOString(target.value);
+
+    // Skip if target value already set (with a time)
+    if (isNotNil(targetValue) && !DateUtils.isNoTime(targetValue)) return;
+
+    const targetDateNoTime = DateUtils.markNoTime(sourceValue.clone().startOf('day'));
+    target.patchValue(targetDateNoTime, { emitEvent: true });
+
+    // TODO voir quel intéret
+    //this.markAsDirty();
   }
 
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {

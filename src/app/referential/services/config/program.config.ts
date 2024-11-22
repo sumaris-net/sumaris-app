@@ -708,9 +708,9 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '2400', // 100 days
     type: 'integer',
   },
-  TRIP_OPERATION_UPDATE_CHILD_DATE: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.updateChildDate',
-    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_UPDATE_CHILD_DATE',
+  TRIP_OPERATION_AUTO_FILL_NEXT_DATE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.autoFillNextDate',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_AUTO_FILL_NEXT_DATE',
     defaultValue: 'false',
     type: 'boolean',
   },
