@@ -808,7 +808,6 @@ export abstract class AppRootDataTable<
   protected async loadProgram(programLabel?: string, filter?: Partial<ProgramFilter>): Promise<Program | undefined> {
     filter = filter ?? this.autocompleteFields.program?.filter;
     if (isNotNilOrBlank(programLabel)) {
-      console.log('loadByLabel program=' + programLabel);
       return this.programRefService.loadByLabel(programLabel);
     }
     // Check if user can access more than one program
