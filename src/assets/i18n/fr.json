@@ -2639,8 +2639,8 @@
         "NONE": "Aucune"
       },
       "DATA_REPORT_COLORS": {
-        "PRIMARY": "Rapport > Couleur primaire utilisée dans les rapports",
-        "SECONDARY": "Rapport > Couleur secondaire utilisée dans les rapports"
+        "PRIMARY": "Thème > Rapport > Couleur primaire",
+        "SECONDARY": "Thème > Rapport > Couleur secondaire"
       }
     },
 

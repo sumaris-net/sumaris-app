@@ -2522,8 +2522,8 @@
         "NONE": "None"
       },
       "DATA_REPORT_COLORS": {
-        "PRIMARY": "Report > Primary color used in reports",
-        "SECONDARY": "Report > Secondary color used in reports"
+        "PRIMARY": "Theme > Report > Primary color",
+        "SECONDARY": "Theme > Report > Secondary color"
       }
     },
     "STRATEGY": {
