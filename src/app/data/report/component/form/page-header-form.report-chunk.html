@@ -11,7 +11,7 @@
           <ion-col size="auto">
             {{ 'TRIP.DEPARTURE_DATE_TIME' | translate }} :
             @if (departureDateTime | isNotNil) {
-              {{ departureDateTime | dateFormat }}
+              {{ departureDateTime | dateFormat: { time: true } }}
             } @else {
               ...../...../......
             }
