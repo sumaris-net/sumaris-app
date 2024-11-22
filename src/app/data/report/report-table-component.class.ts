@@ -12,9 +12,7 @@ export interface ReportTableTip {
   text: string;
 }
 
-export interface ReportTableComponentPageDimension {
-  columnPmfmWidth: number;
-}
+export interface ReportTableComponentPageDimension {}
 
 export interface ReportPmfmsTipsByPmfmIds {
   [key: number]: ReportTableTip;
@@ -56,7 +54,7 @@ export class TableTipsReportChunk {
   template: `
     @if (pmfm | isNotNil) {
       <div>
-        {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix } }}
+        {{ pmfm | pmfmName: { i18nPrefix: i18nContext.prefix, i18nSuffix: i18nContext.suffix } }}
         @if (pmfmTipsByPmfmIds | mapGet: pmfm.id | isNotNil) {
           <sup
             ><b>({{ pmfmTipsByPmfmIds | mapGet: pmfm.id | mapGet: 'tipsNum' }})</b></sup

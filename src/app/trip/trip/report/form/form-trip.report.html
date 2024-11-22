@@ -433,7 +433,7 @@
       <!-- Sample by operation -->
       <sample-form-report-component
         [data]="data.operations"
-        [i18nContext]="i18nContext"
+        [i18nContext]="{ prefix: 'TRIP.SAMPLE.PMFM.', suffix: i18nContext.suffix }"
         [isBlankForm]="isBlankForm"
         [program]="stats.program"
         [strategy]="stats.strategy"
