@@ -470,8 +470,11 @@
                         </ion-col>
                       } @else {
                         <ion-col size="12">
-                          @for (observer of data.observers; track observer.id) {
-                            {{ observer | personToString: ', ' }}
+                          @for (observer of data.observers; track observer.id; let lastObserver = $last) {
+                            {{ observer | personToString }}
+                            @if (!lastObserver) {
+                              <br />
+                            }
                           }
                         </ion-col>
                       }

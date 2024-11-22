@@ -325,7 +325,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
             year: data.year,
             vessel: referentialToString(
               data.vesselSnapshot,
-              this.localSettings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name'])
+              this.localSettings.getFieldDisplayAttributes('vesselSnapshot', ['registrationCode', 'name'])
             ),
           });
   }
