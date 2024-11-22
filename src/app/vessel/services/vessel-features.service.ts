@@ -6,7 +6,6 @@ import {
   EntityUtils,
   GraphqlService,
   IEntitiesService,
-  isNotEmptyArray,
   isNotNil,
   LoadResult,
   PlatformService,
@@ -19,9 +18,12 @@ import { FetchPolicy, gql } from '@apollo/client/core';
 import { VesselFeaturesUtils } from './model/vessel.utils';
 
 export declare interface VesselFeaturesServiceWatchOptions extends EntitiesServiceWatchOptions {
-  /** Indicates which columns should be excluded from the merge process. */
-  mergeAll?: string[] | (() => string[]);
+  /** Should merge similar rows (on contiguous periods) **/
+  merge: boolean | (() => boolean);
+  /** Indicates which properties to ignore, when merging rows. */
+  mergeIgnoreProperties?: string[] | (() => string[]);
 }
+
 export const VesselFeaturesFragments = {
   vesselFeatures: gql`
     fragment VesselFeaturesFragment on VesselFeaturesVO {
@@ -101,17 +103,18 @@ export class VesselFeaturesService
     size: number,
     sortBy?: string,
     sortDirection?: SortDirection,
-    dataFilter?: VesselFeaturesFilter,
+    filter?: VesselFeaturesFilter,
     opts?: VesselFeaturesServiceWatchOptions
   ): Observable<LoadResult<VesselFeatures>> {
-    // Merge items
-    const excludedColumns = typeof opts?.mergeAll === 'function' ? opts.mergeAll() : opts?.mergeAll;
-    if (isNotEmptyArray(excludedColumns)) {
+    const enableMerge = typeof opts?.merge === 'function' ? opts.merge() : opts?.merge;
+    if (enableMerge === true) {
       // Get all items, ordered from last to older
-      return super.watchAll(null, null, 'startDate', 'asc', dataFilter, opts).pipe(
+      return super.watchAll(null, null, 'startDate', 'asc', filter, { ...opts, toEntity: true }).pipe(
         map(({ data }) => {
-          // Merge
-          data = VesselFeaturesUtils.mergeAll(data, excludedColumns);
+          // Apply merge (BEFORE any sort)
+          const mergeIgnoreProperties =
+            typeof opts?.mergeIgnoreProperties === 'function' ? opts.mergeIgnoreProperties() : opts?.mergeIgnoreProperties;
+          data = VesselFeaturesUtils.mergeAll(data, mergeIgnoreProperties);
 
           // Fill changed properties
           data = VesselFeaturesUtils.fillChangedProperties(data);
@@ -128,7 +131,7 @@ export class VesselFeaturesService
       );
     }
 
-    return super.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts);
+    return super.watchAll(offset, size, sortBy, sortDirection, filter, opts);
   }
 
   async count(
