@@ -1,9 +1,8 @@
 <div>
   <!-- error -->
-  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (mobile) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
 
   @if (title) {
     <h3>
@@ -18,7 +17,7 @@
   matSort
   matSortActive="startDate"
   matSortDirection="desc"
-  matSortDisableClear
+  matSortDisableClear="true"
   [trackBy]="trackByFn"
   [class.compact]="compact"
 >

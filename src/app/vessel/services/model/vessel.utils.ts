@@ -20,24 +20,33 @@ export class VesselFeaturesUtils {
     '__changedProperties',
   ];
 
-  static mergeAll(sources: VesselFeatures[]): VesselFeatures[] {
+  static mergeAll(sources: VesselFeatures[], excludedProperties?: string[]): VesselFeatures[] {
+    // Function to clean ignored properties
+    const cloneAndSanitize = (source: VesselFeatures) =>
+      source &&
+      (excludedProperties || []).reduce((res, key) => {
+        delete res[key];
+        return res;
+      }, source.clone());
+
     return (sources || []).reduce(
       (res, current) => {
+        // Keep original items unchanged
         let previous = lastArrayValue(res);
+        current = cloneAndSanitize(current);
 
         // If contiguous AND same content
         const canMerge =
           previous &&
           VesselFeaturesUtils.isContiguousPeriod(previous, current, 24, 'hours') &&
           VesselFeatures.equals(previous, current, { withId: false, withDates: false });
-        // Merge: keep previous with an extended period
+
+        // Merge: keep previous item, with an extended period
         if (canMerge) {
-          previous = previous.clone(); // Keep original item unchanged
           previous.startDate = DateUtils.min(previous.startDate, current.startDate);
           previous.endDate = DateUtils.max(previous.endDate, current.endDate);
-          return res
-            .slice(0, res.length - 1) // remove previous
-            .concat(previous); // Reinsert previous
+          res[res.length - 1] = previous;
+          return res;
         }
 
         return res.concat(current);
@@ -48,8 +57,8 @@ export class VesselFeaturesUtils {
 
   static isContiguousPeriod(o1: IVesselPeriodEntity, o2: IVesselPeriodEntity, maxDelta: number = 24, deltaUnit: unitOfTime.Base = 'hours') {
     return (
-      (o1.endDate && DateUtils.moment.duration(o1.endDate.diff(o2.startDate)).abs().as(deltaUnit) <= maxDelta) ||
-      (o2.endDate && DateUtils.moment.duration(o1.startDate.diff(o2.endDate)).abs().as(deltaUnit) <= maxDelta)
+      (o1.endDate && DateUtils.diffAbs(o1.endDate, o2.startDate, deltaUnit) <= maxDelta) ||
+      (o2.endDate && DateUtils.diffAbs(o1.startDate, o2.endDate, deltaUnit) <= maxDelta)
     );
   }
 
