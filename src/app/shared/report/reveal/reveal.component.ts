@@ -25,7 +25,6 @@ import {
   ViewRef,
 } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { DOCUMENT } from '@angular/common';
 import { ToastController } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
@@ -277,8 +276,10 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
     console.debug('[reveal] Print...');
 
+    // Safari print feature seems to hide some part...
+    // As a workaround, we display a warning message
     if (isSafari(window)) {
-      this.showToast({ type: 'warning', message: 'WARNING.PARTIALLY_COMPATIBLE_WEB_BROWSER', duration: 5000 });
+      this.showToast({ type: 'warning', message: 'ERROR.INCOMPATIBLE_WEB_BROWSER', duration: 5000 });
     }
 
     if (!this.isPrintingPDF()) {

@@ -3822,7 +3822,7 @@
     "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
     "GEOLOCATION_ERROR": "Géolocalisation <b>impossible</b>.<small><br/>{{message}}</small>",
     "SHARE_AS_PUBLIC_FAIL": "Échec du partage",
-    "INCOMPATIBLE_WEB_BROWSER": "Fonctionnalité non compatible avec ce navigateur. <small><br/>Veuillez contacter votre administrateur.</small>"
+    "INCOMPATIBLE_WEB_BROWSER": "Fonctionnalité non compatible avec votre navigateur Internet. <small><br/>Veuillez contacter votre administrateur, ou tester un autre navigateur.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -3863,7 +3863,6 @@
     "OOPS_DOTS": "Oups...",
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>",
     "DATE_IN_THE_FUTURE": "Date dans le futur",
-    "EXPERIMENTAL_FEATURE": "Fonctionnalité expérimentale ! En cours de développement.",
-    "PARTIALLY_COMPATIBLE_WEB_BROWSER": "Fonctionnalité partiellement compatible avec ce navigateur. <small><br/>Nous recommandons l'utilisation de Chrome ou Firefox.</small>"
+    "EXPERIMENTAL_FEATURE": "Fonctionnalité expérimentale ! En cours de développement."
   }
 }

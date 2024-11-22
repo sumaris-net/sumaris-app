@@ -3637,7 +3637,7 @@
     "FEATURE_NOT_IMPLEMENTED": "Feature not implemented! <small><br/>Please contact your administrator.</small>",
     "GEOLOCATION_ERROR": "Geolocation <b>impossible</b>.<small><br/>{{message}}</small>",
     "SHARE_AS_PUBLIC_FAIL": "Failed to share publicly",
-    "INCOMPATIBLE_WEB_BROWSER": "Feature not supported in this browser. <small><br/>Please contact your administrator.</small>"
+    "INCOMPATIBLE_WEB_BROWSER": "Feature not compatible with your web browser. <small><br/>Please contact your administrator, or try another web browser.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",
@@ -3678,7 +3678,6 @@
     "OOPS_DOTS": "Oops...",
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "Historical data was not imported. <small>Please update the offline mode.</small>",
     "DATE_IN_THE_FUTURE": "Date in the future",
-    "EXPERIMENTAL_FEATURE": "Experimental feature! Under development.",
-    "PARTIALLY_COMPATIBLE_WEB_BROWSER": "Feature partially compatible with this browser.<small><br/>We recommend using Chrome or Firefox.</small>"
+    "EXPERIMENTAL_FEATURE": "Experimental feature! Under development."
   }
 }
