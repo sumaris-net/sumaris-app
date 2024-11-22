@@ -10,7 +10,6 @@ import {
   CORE_CONFIG_OPTIONS,
   DateUtils,
   FilesUtils,
-  firstNotNilPromise,
   HammerSwipeEvent,
   isEmptyArray,
   isNil,
@@ -35,7 +34,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ActivityCalendar, DirectSurveyInvestigationList } from '@app/activity-calendar/model/activity-calendar.model';
-import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, ProgramLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
@@ -95,7 +94,7 @@ export class ActivityCalendarsTable
 
   protected readonly directSurveyInvestigationList = DirectSurveyInvestigationList;
   protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
-  protected readonly defaultProgramLabel = 'SIH-ACTIFLOT';
+  protected readonly defaultProgramLabel = ProgramLabels.SIH_ACTIFLOT;
 
   @Input() showFilterProgram = true;
   @Input() showRecorder = true;
