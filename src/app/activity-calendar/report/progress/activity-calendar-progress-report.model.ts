@@ -17,14 +17,6 @@ export type ActivityMonitoringStatusError =
   | 'REQUIRED_FISHING_AREA'
   | 'REQUIRED_DISTANCE_TO_COAST_GRADIENT';
 
-export const ActivityMonitoringStatusErrorEnum = Object.freeze({
-  REQUIRED_PORT: <ActivityMonitoringStatusError>'REQUIRED_PORT',
-  TOO_MANY_METIER: <ActivityMonitoringStatusError>'TOO_MANY_METIER',
-  REQUIRED_METIER: <ActivityMonitoringStatusError>'REQUIRED_METIER',
-  REQUIRED_FISHING_AREA: <ActivityMonitoringStatusError>'REQUIRED_FISHING_AREA',
-  REQUIRED_DISTANCE_TO_COAST_GRADIENT: <ActivityMonitoringStatusError>'REQUIRED_DISTANCE_TO_COAST_GRADIENT',
-});
-
 export const ActivityMonitoringStatusErrorIds: { [K in ActivityMonitoringStatusError]: number } = Object.freeze({
   REQUIRED_PORT: 1,
   REQUIRED_METIER: 2,
@@ -85,11 +77,11 @@ export class ActivityMonitoring extends Entity<ActivityMonitoring> {
   vesselRegistrationCode: string;
   vesselIntRegistrationCode: string;
   observerName: string;
-  surveyQualification: string;
   emptyMonthCount: number;
   errorMonthCount: number;
   recorderPerson: string;
   recorderDepartment: string;
+  surveyQualification: string;
   status: ActivityMonitoringStatus;
   qualityStatus: DataQualityStatusIdType;
   directSurveyInvestigation: string;
@@ -131,8 +123,8 @@ export class ActivityMonitoring extends Entity<ActivityMonitoring> {
     this.vesselRegistrationCode = source.vesselRegistrationCode?.replace('|', ', ');
     this.vesselIntRegistrationCode = source.vesselIntRegistrationCode?.replace('|', ', ');
     this.observerName = source.observerName;
-    this.surveyQualification = source.surveyQualification;
     this.recorderPerson = source.recorderPerson;
+    this.surveyQualification = source.surveyQualification;
     this.emptyMonthCount = source.emptyMonthCount;
     this.errorMonthCount = source.errorMonthCount;
     this.directSurveyInvestigation = source.directSurveyInvestigation;

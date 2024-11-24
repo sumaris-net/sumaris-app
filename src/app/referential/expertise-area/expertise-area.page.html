@@ -84,8 +84,20 @@
                       <app-form-field
                         [definition]="fieldDefinitions.locations"
                         formControlName="locations"
+                        chipColor="accent"
                         required="true"
                         tabindex="10"
+                      ></app-form-field>
+                    </ion-col>
+                  </ion-row>
+                  <!-- Location Levels -->
+                  <ion-row>
+                    <ion-col>
+                      <app-form-field
+                        [definition]="fieldDefinitions.locationLevels"
+                        formControlName="locationLevels"
+                        required="true"
+                        tabindex="11"
                       ></app-form-field>
                     </ion-col>
                   </ion-row>

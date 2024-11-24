@@ -1,4 +1,4 @@
-<ng-container *ngIf="!embedded">
+@if (!embedded) {
   <app-toolbar [defaultBackHref]="$defaultBackHref | async" [canGoBack]="false">
     <ion-title [innerHTML]="$title | async"></ion-title>
 
@@ -45,6 +45,7 @@
       <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
     </div>
 
+    <!-- prettier-ignore -->
     <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
       <section *sectionDef>
         <section class="summary">
@@ -102,7 +103,7 @@
           </ul>
         </section>
 
-        <section markdown ngPreserveWhitespaces *ngFor="let samples of data.samples | splitArrayInChunks: 14; index as index; count as count">
+        <section markdown *ngFor="let samples of data.samples | splitArrayInChunks: 14; index as index; count as count">
           ### {{ 'LANDING.REPORT.SAMPLING.SAMPLES_TITLE' | translate }} {{ index | paginationToString: count }}
           <ng-container *ngTemplateOutlet="samplesTable; context: { $implicit: samples, pmfms: stats.pmfms }"></ng-container>
         </section>
@@ -115,37 +116,40 @@
       </div>
     </ng-template>
   </ion-content>
-</ng-container>
-
-<ng-container *ngIf="embedded && loaded">
-  <ng-container *ngFor="let samples of data.samples | splitArrayInChunks: 14; index as index; count as count">
-    <section markdown ngPreserveWhitespaces *sectionDef>
+} @else if (loaded) {
+  <!-- embedded mode -->
+  @for (samples of data.samples | splitArrayInChunks: 14; track index; let index = $index; let count = $count) {
+    <!-- prettier-ignore -->
+    <section markdown *sectionDef>
       ### {{ data.vesselSnapshot?.name }} {{ data.dateTime | dateFormat: { time: false } }} - {{ stats.strategyLabel }}
       {{ index | paginationToString: count }}
       <ng-container *ngTemplateOutlet="samplesTable; context: { $implicit: samples, pmfms: stats.pmfms }"></ng-container>
     </section>
-  </ng-container>
-</ng-container>
+  }
+}
 
 <ng-template #samplesTable let-samples let-pmfms="pmfms">
-  <table [style.--col-count]="pmfms.length">
+  <table [style.--col-count]="pmfms?.length">
     <thead>
       <tr>
-        <th
-          *ngFor="let pmfm of pmfms"
-          [innerHTML]="pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix, html: true, withDetails: true }"
-        ></th>
+        @for (pmfm of pmfms; track $index) {
+          <th
+            [innerHTML]="pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix, html: true, withDetails: true }"
+          ></th>
+        }
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let sample of samples; even as even" [class.even]="even">
-        <td
-          *ngFor="let pmfm of pmfms"
-          [innerHTML]="
-            sample.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, html: true, propertyNames: ['name'], applyDisplayConversion: true }
-          "
-        ></td>
-      </tr>
+      @for (sample of samples; track $index; let even = $even) {
+        <tr [class.even]="even">
+          <td
+            *ngFor="let pmfm of pmfms"
+            [innerHTML]="
+              sample.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm, html: true, propertyNames: ['name'], applyDisplayConversion: true }
+            "
+          ></td>
+        </tr>
+      }
     </tbody>
   </table>
 </ng-template>

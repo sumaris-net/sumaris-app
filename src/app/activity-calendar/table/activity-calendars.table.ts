@@ -34,8 +34,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ActivityCalendar, DirectSurveyInvestigationList } from '@app/activity-calendar/model/activity-calendar.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, ProgramLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
   ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
@@ -47,7 +46,6 @@ import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { ActivityCalendarOfflineModal, ActivityCalendarOfflineModalOptions } from '../offline/activity-calendar-offline.modal';
-import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
@@ -61,6 +59,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { intersectArrays } from '@app/shared/functions';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -91,15 +90,14 @@ export class ActivityCalendarsTable
   @RxStateProperty() protected years: number[];
   @RxStateProperty() protected canImportCsvFile: boolean;
 
-  protected statusList = DataQualityStatusList;
-  protected statusById = DataQualityStatusEnum;
-  protected qualityFlags: ReferentialRef[];
-  protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected timezone = DateUtils.moment().tz();
-  protected programVesselTypeIds: number[];
+  protected programVesselTypeIds: number[] = [];
+  protected configVesselTypeIds: number[] = [];
+  protected excludedProgramIds: number[] = [];
 
   protected readonly directSurveyInvestigationList = DirectSurveyInvestigationList;
   protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
+  protected readonly defaultProgramLabel = ProgramLabels.SIH_ACTIFLOT;
 
   @Input() showFilterProgram = true;
   @Input() showRecorder = true;
@@ -172,7 +170,6 @@ export class ActivityCalendarsTable
     injector: Injector,
     protected _dataService: ActivityCalendarService,
     protected personService: PersonService,
-    protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
     protected context: ContextService,
@@ -229,6 +226,7 @@ export class ActivityCalendarsTable
 
     this.settingsId = ActivityCalendarsTableSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureName = ActivityCalendarsTableSettingsEnum.FEATURE_ID;
+    this.programLabel = ProgramLabels.SIH_ACTIFLOT;
 
     // Load years
     {
@@ -252,9 +250,9 @@ export class ActivityCalendarsTable
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
-      service: this.programRefService,
       filter: ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER,
       mobile: this.mobile,
+      suggestFn: (value, filter) => this.suggestPrograms(value, filter),
     });
 
     // Combo: vessels
@@ -274,7 +272,7 @@ export class ActivityCalendarsTable
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       mobile: this.mobile,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, { ...filter, includedIds: this.programVesselTypeIds }),
+      suggestFn: (value, filter) => this.suggestVesselTypes(value, filter),
     });
 
     const locationConfig: MatAutocompleteFieldConfig = {
@@ -371,14 +369,11 @@ export class ActivityCalendarsTable
     this.timezone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
 
     this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-    this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+    // Allow show status column - (see issue #816)
+    //this.setShowColumn('quality', this.showQuality, { emitEvent: false });
 
-    if (this.showQuality) {
-      this.referentialRefService.loadQualityFlags().then((items) => {
-        this.qualityFlags = items;
-        this.qualityFlagsById = splitByProperty(items, 'id');
-      });
-    }
+    // Load quality flags
+    if (this.showQuality) this.loadQualityFlags();
 
     // Recorder
     this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
@@ -386,6 +381,12 @@ export class ActivityCalendarsTable
 
     // Observers
     this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
+
+    // Exclude predoc programs (by default)
+    this.excludedProgramIds = await this.loadExcludedProgramIds();
+
+    // Vessel type filter
+    this.configVesselTypeIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_IDS);
 
     // Locations filter
     this.registrationLocationLevelIds = [LocationLevelIds.MARITIME_DISTRICT];
@@ -403,14 +404,19 @@ export class ActivityCalendarsTable
   protected async setProgram(program: Program) {
     await super.setProgram(program);
 
-    // Allow to filter on program, if user can access more than one program
-    this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
+    const isAdminOrManager = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
+    this.canImportCsvFile = isAdminOrManager;
 
-    // Hide program if cannot change it
+    // Allow to filter on program, if admin or manager
+    this.showFilterProgram = this.defaultShowFilterProgram && isAdminOrManager;
+    // Hide program column if filter has been hidden
     this.showProgramColumn = this.showFilterProgram;
-    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
+
+    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [];
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
-    this.canImportCsvFile = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
+
+    // Load programs to exclude
+    this.excludedProgramIds = await this.loadExcludedProgramIds(program);
 
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
     const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
@@ -422,12 +428,12 @@ export class ActivityCalendarsTable
   protected async resetProgram() {
     await super.resetProgram();
 
+    this.canImportCsvFile = this.isAdmin;
     this.showFilterProgram = this.defaultShowFilterProgram;
     this.showProgramColumn = this.defaultShowFilterProgram;
     this.programVesselTypeIds = null;
     this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
-    this.canImportCsvFile = this.isAdmin;
-
+    this.excludedProgramIds = await this.loadExcludedProgramIds();
     this.enableReport = toBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE.defaultValue, false);
     const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
     this.reportTypes = (ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.defaultValue || '').split(',').map((key) => reportTypeByKey[key]);
@@ -594,6 +600,9 @@ export class ActivityCalendarsTable
   }
 
   async openReport(reportPath: string) {
+    if (isNil(this.program)) console.warn(`${this.logPrefix} No defined program, use "${this.defaultProgramLabel}" as default`);
+    const program = isNil(this.program) ? await this.programRefService.loadByLabel(this.defaultProgramLabel) : this.program;
+
     const urlParams = new URLSearchParams();
     const selectedIds = this.selection.selected.map((s) => s.currentData.id).toString();
     switch (reportPath) {
@@ -615,10 +624,10 @@ export class ActivityCalendarsTable
 
     const url = ['activity-calendar', 'report', reportPath].join('/') + '?' + urlParams.toString();
     if (url.length > 2048) {
-      this.setError('ACTIVITY_CALENDAR.ERROR.MAX_SELECTED_ID');
+      this.setError('ACTIVITY_CALENDAR.ERROR.MAX_SELECTED_ITEMS');
     } else {
-      const limitWarning = this.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING);
-      const limitError = this.program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULT_ERROR);
+      const limitWarning = program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING);
+      const limitError = program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULT_ERROR);
       const displayedItems = this.selection.selected.length > 0 ? this.selection.selected.length : this.totalRowCount;
       if (limitError > 0 && displayedItems > limitError) {
         Alerts.showError(
@@ -726,5 +735,37 @@ export class ActivityCalendarsTable
       vesselTypeIds,
       ...filter,
     });
+  }
+
+  protected suggestVesselTypes(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    let vesselTypeIds;
+    const hasConfig = isNotEmptyArray(this.configVesselTypeIds);
+    const hasProgram = isNotEmptyArray(this.programVesselTypeIds);
+
+    if (!hasConfig && hasProgram) {
+      vesselTypeIds = this.programVesselTypeIds;
+    } else if (hasConfig && !hasProgram) {
+      vesselTypeIds = this.configVesselTypeIds;
+    } else if (hasConfig && hasProgram) {
+      vesselTypeIds = intersectArrays([this.programVesselTypeIds, this.configVesselTypeIds]);
+    } else {
+      vesselTypeIds = [];
+    }
+
+    return this.referentialRefService.suggest(value, { ...filter, includedIds: vesselTypeIds });
+  }
+
+  protected suggestPrograms(value: any, filter?: any): Promise<LoadResult<Program>> {
+    return this.programRefService.suggest(value, { ...filter, excludedIds: this.excludedProgramIds });
+  }
+
+  protected async loadExcludedProgramIds(program?: Program, defaultValue?: number[]) {
+    const predocProgramLabels = program
+      ? program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS)
+      : [ProgramLabels.SIH_ACTIPRED];
+    if (isNotEmptyArray(predocProgramLabels)) {
+      return (await this.programRefService.loadAllByLabels(predocProgramLabels)).map((p) => p.id);
+    }
+    return defaultValue ?? [];
   }
 }

@@ -322,7 +322,7 @@
         "PMFM_DRESSING": "Référentiel > PSFM > Présentation de l'espèce (Entier, ...)",
         "PMFM_PRESERVATION": "Référentiel > PSFM > État de l'espèce (Frais, ...)",
         "PMFM_TRAWL_SIZE_CAT": "Référentiel > PSFM > Catégorie de tri chalut (NA, ...)",
-        "PMFM_DIURNAL_OPERATION_ID": "Référentiel > PSFM > Opération diurne (jour) ? (Booléen)",
+        "PMFM_DIURNAL_OPERATION_ID": "Référentiel > PSFM > Opération diurne ? (Booléen)",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "PMFM_GEAR_LABEL_ID": "Référentiel > PSFM > Libellé de l'engin physique",
@@ -404,10 +404,11 @@
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
       "UPDATE_TECHNICAL_TABLES": "Pod > Tables techniques : mise à jour auto  ?",
       "GEOMETRY_SRID": "Pod > Géometries : SRID (0=Aucun, 4326=WGS84)",
+      "REGISTER_CONFIRMED_USER_PROFILE": "Sécurité > Profile d'un utilisateur nouvellement confirmé",
       "ELASTICSEARCH_ENABLED": "Elasticsearch > Activer ?",
       "ELASTICSEARCH_URIS": "Elasticsearch > URI(s)",
       "ANALYTIC_REFERENCES_ENABLE": "Stratégie > Références analytiques : Activer ?",
-      "AUTH_TOKEN_TYPE_PLACEHOLDER": "Securité > Type d'authentification",
+      "AUTH_TOKEN_TYPE_PLACEHOLDER": "Sécurité > Type d'authentification",
       "AUTH_TOKEN_TYPE": {
         "BASIC": "Basique",
         "TOKEN": "Cryptographique",
@@ -1704,7 +1705,8 @@
         "END_DATE": "Fin de période",
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
-        "OBSERVERS": "Observateurs"
+        "OBSERVERS": "Observateurs",
+        "QUALITY_FLAG_ID": "Niveau de qualité"
       }
     },
     "PMFM": {},
@@ -2293,8 +2295,9 @@
       "TYPE": "Type de transcodage"
     },
     "EXPERTISE_AREA": {
-      "LOCATION": "Lieu(x) de la zone",
+      "LOCATIONS": "Lieu(x) de la zone",
       "LOCATION_LEVEL": "Niveau de lieu",
+      "LOCATION_LEVELS": "Niveau(x) de lieu",
       "NEW": {
         "TITLE": "Nouvelle zones de compétence"
       },
@@ -2338,7 +2341,7 @@
       "DISTANCE_TO_COAST_GRADIENT": "Lieu/Zone > Gradients de distance à la côte",
       "DEPTH_GRADIENT": "Lieu/Zone > Gradients de profondeur",
       "EXTRACTION_PRODUCT": "Extraction > Produits",
-      "EXTRACTION_TABLE": "Extraction > Tables de produit",
+      "EXTRACTION_PRODUCT_TABLE": "Extraction > Tables de produit",
       "FISHERY": "Réglementation > Pêcheries",
       "SALE_TYPE": "Types de vente",
       "LOCATION": "Lieu/Zone > Lieux",
@@ -2353,7 +2356,7 @@
       "PARAMETER": "PSFM > Paramètres",
       "PARAMETER_GROUP": "PSFM > Groupes de paramètres",
       "USER_PROFILE": "Profils utilisateur",
-      "EXPERTISE_AREA": "Zones de compétence",
+      "EXPERTISE_AREA": "Lieu/Zone > Zones de compétence",
       "VESSEL_TYPE": "Types de navire",
       "PMFM": "PSFM > Quadruplets PSFM",
       "MATRIX": "PSFM > Supports de mesure",
@@ -2531,7 +2534,7 @@
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
       "TRIP_REPORT_ENABLE": "Marée > Rapport : Activer l'édition de rapport ?",
-      "TRIP_REPORT_TYPES": "Marée > Rapport : Types de rapport :",
+      "TRIP_REPORT_TYPES": "Marée > Rapport : Type(s) de rapport",
       "TRIP_REPORT_FORM_SUBTITLE": "Marée > Rapport : Sous-titre du rapport",
       "TRIP_REPORT_FORM_FOOTER": "Marée > Rapport : Texte de pied de page",
       "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Marée > Rapport : Logo à gauche de l'entête",
@@ -2607,7 +2610,7 @@
       "LANDING_SAMPLE_WEIGHT_UNIT": "Sortie > Débarquement > Mesures : Unité de poids",
       "LANDING_SAMPLE_LABEL_ENABLE": "Sortie > Débarquement > Mesures : Saisir le libellé ?",
       "LANDING_COLUMNS_PMFM_IDS": "Sortie > Débarquements : Colonne(s) supplémentaire(s) (PSFM)",
-      "LANDING_ROWS_DIVIDER_PMFM_ID": "Sortie > Débarquements : Séparateur de lignes (PSFM)",
+      "LANDING_ROWS_DIVIDER_PMFM_ID": "Sortie > Débarquements : Séparateur de lignes (PSFM qualitatif)",
       "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Sortie > Débarquements : Nombre min. d'espèces à observer",
       "LANDING_TOP_PMFM_IDS": "Sortie > Débarquements : PSFM(s) en en-tête",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
@@ -2634,6 +2637,10 @@
         "USER_SELECT": "Sélection par utilisateur",
         "SPATIO_TEMPORAL": "Spatio-temporelle",
         "NONE": "Aucune"
+      },
+      "DATA_REPORT_COLORS": {
+        "PRIMARY": "Thème > Rapport > Couleur primaire",
+        "SECONDARY": "Thème > Rapport > Couleur secondaire"
       }
     },
 
@@ -2922,7 +2929,8 @@
       "TITLE": "Extraction de données",
       "BTN_SELECT_TYPE": "Sources<span class=\"hidden-xs hidden-sm\"> de données</span>",
       "SELECT_TYPE_HELP": "Veuillez <b>choisir une source de données</b>, pour lancer une extraction :",
-      "BTN_REPORT": "Éditer le rapport..."
+      "BTN_REPORT": "Éditer le rapport...",
+      "NO_ACCESS": "Vous n'avez <b>pas les droits d'accès</b> à l'extraction de données.<small><br/>Veuillez ressayer plus tard ou bien contacter votre administrateur.</small>"
     },
     "MAP": {
       "BTN_MAP_LIST": "Liste des cartes",
@@ -3161,7 +3169,7 @@
         "NAME": "Avancement des calendriers d'activité",
         "SHEET": {
           "AC": "Calendriers bruts (AC)",
-          "AM": "Calendriers (AM)"
+          "AM": "Suivi de la saisie (AM)"
         }
       },
       "STRAT": {
@@ -3314,7 +3322,7 @@
     "MESSAGE": {
       "TYPE": "Type d'envoi",
       "RECIPIENTS": "Destinataires",
-      "RECIPIENT_FILTER_COUNT": "{{count}} utilisateurs filtrés",
+      "RECIPIENT_FILTER_COUNT": "{{count}} utilisateur(s) filtré(s)",
       "SUBJECT": "Objet",
       "BODY_HELP": "Votre message...",
       "NEW": {
@@ -3500,7 +3508,7 @@
         "YEAR": "Année"
       },
       "CONFIRM": {
-        "LONG_TIME_REPORT_GENERATION": "Vous souhaitez générer un rapport pour plus de {{nbLimit}} entrées. Cette requête risque de prendre beaucoup de temps à traiter. Il est recommandé que vous ajustiez votre filtre pour avoir moins d'entrées. Souhaitez-vous tout de même générer ce rapport ?"
+        "LONG_TIME_REPORT_GENERATION": "Au delà de <b>{{nbLimit}} calendriers</b> la génération du rapport peut-être longue.<br/><br/><b>Êtes-vous sûr</b> de vouloir continuer ?"
       }
     },
     "NEW": {
@@ -3517,11 +3525,12 @@
       "BTN_ADD_METIER_BLOCK": "Ajouter un bloc métier",
       "BTN_REPORT": "Éditer le rapport...",
       "BTN_EXPERTISE_AREA": "Zone de compétence...",
-      "BTN_ENABLE_EXPERTISE_AREA": "Activer la zone de compétence ?",
-      "BTN_EXPAND_ALL": "Déplier tout",
-      "BTN_COLLAPSE_ALL": "Replier tout",
+      "BTN_NO_EXPERTISE_AREA": "Aucune zone de compétence",
+      "BTN_EXPAND_ALL": "Déplier les lignes\n(double-cliquer pour tout déplier)",
+      "BTN_COLLAPSE_ALL": "Replier les lignes\n(double-cliquer pour tout replier)",
       "BTN_CLEAR_MONTH": "Vider le mois",
       "BTN_COPY_PASTE_ALL": "Copier et coller",
+      "BTN_COLLAPSE_AFTER_SAVE": "Replier tout à la sauvegarde",
       "HIDE_PREDOC": "Masquer la prédocumentation",
       "SHOW_PREDOC": "Afficher la prédocumentation",
       "BTN_SHOW_PREDOC": "<u>P</u>rédocumentation",
@@ -3558,6 +3567,7 @@
       "BTN_DELETE_CALENDAR": "Supprimer",
       "BTN_CLEAR_CALENDAR": "Vider le calendrier",
       "BTN_DELETE_CONFLICT": "Supprimer ce mois en conflit",
+      "NO_DATA_REQUIRED": "Aucune donnée requise",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Actif",
         "DISABLE": "Inactif",
@@ -3618,7 +3628,7 @@
       },
       "GPF_SECTION": {
         "TITLE": "Caractéristiques engins",
-        "METIER": "Metier(s)"
+        "METIER": "Métier(s)"
       },
       "VESSEL_OWNER_SECTION": {
         "TITLE": "Dernier armateur",
@@ -3699,21 +3709,23 @@
     "ERROR": {
       "CANNOT_PASTE_HERE": "Vous ne pouvez pas coller ici.",
       "CONFLICTUAL_MONTH": "Conflit détecté lors de la sauvegarde du calendrier",
-      "DUPLICATED_METIER": "Métier(s) en doublon : {{metiers}}",
+      "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+      "MAX_SELECTED_ITEMS": "Trop d'éléments sélectionnés",
+      "REQUIRED_METIER": "Métier obligatoire",
       "REQUIRED_FISHING_AREA": "Zone de pêche obligatoire pour le(s) métier(s) : {{metiers}}",
       "REQUIRED_INACTIVITY_YEAR": "Inactivité annuelle à confirmer",
       "REQUIRED_DISTANCE_TO_COAST": "Distance à la côte obligatoire pour la(les) zone(s) {{fishingArea}}",
-      "INVALID_MONTHS": "Veuillez corriger le(s) mois invalide(s)",
-      "INCONSISTENT_DATA": "Données incohérentes",
-      "INCONSISTENCY_DAY_NUMBER": "Nombre de jours incohérent",
-      "DUPLICATED_FISHING_AREA": "Zone(s) de pêche en doublon : {{fishingArea}}",
-      "INVALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)",
-      "CSV_IMPORT_ERROR": "Échec de l'importation du fichier CSV.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
-      "MAX_SELECTED_ID": "Nombre maximal d'item sélectionné atteint",
-      "TOO_MANY_RESULT_FOR_REPORT_GENERATION": "Vous ne pouvez pas générer un rapport pour plus de {{nbLimit}} entrées, car cela demanderait trop de temps et de ressources. Veuillez-ajuster votre filtre pour avoir moins d'entrées."
+      "TOO_MANY_RESULT_FOR_REPORT_GENERATION": "Vous ne pouvez pas générer un rapport pour plus de {{nbLimit}} calendriers. Veuillez ajuster votre filtre.",
+      "UNIQUE_METIER": "Métier(s) en doublon : {{metiers}}",
+      "UNIQUE_FISHING_AREA": "Zone(s) de pêche en doublon : {{fishingArea}}",
+      "VALID_MONTHS": "Veuillez corriger le(s) mois invalide(s)",
+      "VALID_DAY_COUNT": "Nombre de jours incorrect pour le mois",
+      "VALID_METIERS": "Veuillez corriger le(s) métiers invalide(s)"
     },
     "WARNING": {
       "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualification <b>{{surveyQualification}}</b> incohérente avec l'objectif.",
+      "UNAUTHORIZED_ACTION": "Vous n'êtes <b>pas autorisé</b> à effectuer cette action.",
+      "UNAUTHORIZED_PREDOC_PASTE": "Seuls les mois <b>autorisés</b> ont été collés dans le calendrier.",
       "UNAUTHORIZED_REGISTRATION_LOCATION": "Vous n'êtes <b>pas autorisé</b> à saisir sur ce lieu d'immatriculation."
     }
   },
@@ -3813,7 +3825,8 @@
     "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée",
     "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
     "GEOLOCATION_ERROR": "Géolocalisation <b>impossible</b>.<small><br/>{{message}}</small>",
-    "SHARE_AS_PUBLIC_FAIL": "Échec du partage"
+    "SHARE_AS_PUBLIC_FAIL": "Échec du partage",
+    "INCOMPATIBLE_WEB_BROWSER": "Fonctionnalité non compatible avec votre navigateur Internet. <small><br/>Veuillez contacter votre administrateur, ou tester un autre navigateur.</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

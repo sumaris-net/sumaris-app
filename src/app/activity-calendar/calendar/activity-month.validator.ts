@@ -136,10 +136,10 @@ export class ActivityMonthValidatorService<
       validators: [
         ActivityMonthValidators.uniqueMetier,
         SharedFormGroupValidators.dateRange('startDate', 'endDate'),
-        ActivityMonthValidators.fishingAreaRequiredIfMetier,
-        ActivityMonthValidators.checkInconsistenciesInGearUseFeatures,
-        ActivityMonthValidators.distanceToCoastRequiredIfFishingArea,
-        ActivityMonthValidators.validateDayCountConsistency,
+        ActivityMonthValidators.requiredFishingAreaIfMetier,
+        ActivityMonthValidators.requiredMetier,
+        ActivityMonthValidators.requiredDistanceToCoastIfFishingArea,
+        ActivityMonthValidators.validDayCount,
         ActivityMonthValidators.uniqueFishingAreaInMetier,
         SharedFormGroupValidators.requiredIf('basePortLocation', 'isActive', {
           predicate: (control) => control.value === VesselUseFeaturesIsActiveEnum.ACTIVE || control.value === VesselUseFeaturesIsActiveEnum.INACTIVE,
@@ -455,7 +455,7 @@ export class ActivityMonthValidators {
     return isNotEmptyArray(duplicatedMetierLabels) ? { uniqueMetier: { metiers: duplicatedMetierLabels.join(',') } } : null;
   }
 
-  static fishingAreaRequiredIfMetier(formGroup: FormArray): ValidationErrors | null {
+  static requiredFishingAreaIfMetier(formGroup: FormArray): ValidationErrors | null {
     // Make sure month is active
     const isActiveControl = formGroup.get('isActive');
     const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
@@ -484,9 +484,10 @@ export class ActivityMonthValidators {
         else {
           (fishingAreas.value || []).forEach((fa) => {
             const location = fa.location;
-            const distanceToCoast = fa.distanceToCoastGradient;
+            const gradients = [fa.distanceToCoastGradient, fa.depthGradient, fa.nearbySpecificArea];
 
-            if (isNotNil(distanceToCoast) && isNil(location?.id)) {
+            // Required a location, if at least one gradient filled
+            if (ReferentialUtils.isEmpty(location) && gradients.some(ReferentialUtils.isNotEmpty)) {
               errorMetierLabels.push(metier.label);
             }
           });
@@ -501,7 +502,7 @@ export class ActivityMonthValidators {
     return isNotEmptyArray(errorMetierLabels) ? { requiredFishingArea: { metiers: errorMetierLabels.join(', ') } } : null;
   }
 
-  static distanceToCoastRequiredIfFishingArea(formGroup: FormArray): ValidationErrors | null {
+  static requiredDistanceToCoastIfFishingArea(formGroup: FormArray): ValidationErrors | null {
     // Make sure month is active
     const isActiveControl = formGroup.get('isActive');
     const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
@@ -520,7 +521,7 @@ export class ActivityMonthValidators {
           const location = fa.location;
           const distanceToCoast = fa.distanceToCoastGradient;
 
-          if (isNotNil(location?.id) && isNil(distanceToCoast)) {
+          if (ReferentialUtils.isEmpty(location) && ReferentialUtils.isNotEmpty(distanceToCoast)) {
             errorFishingAreas.push({ fishingArea: location.label, metier: metier.label });
           }
         });
@@ -536,32 +537,38 @@ export class ActivityMonthValidators {
       : null;
   }
 
-  static checkInconsistenciesInGearUseFeatures(formGroup: FormArray): ValidationErrors | null {
+  static requiredMetier(formGroup: FormArray): ValidationErrors | null {
+    // Make sure month is active
+    const isActiveControl = formGroup.get('isActive');
+    const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
+    if (!isActive) return null;
     const gufArray = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
     if (!gufArray || !(gufArray instanceof FormArray)) {
       return null;
     }
-    let inconsistentData = false;
-    gufArray.controls.forEach((control) => {
+    let hasSomeMetier = false;
+    let hasInvalidBlock = gufArray.controls.some((control) => {
       const metier = control.get('metier')?.value;
+
+      // Mark if the month has at least one metier
+      hasSomeMetier = hasSomeMetier || !!metier;
+
       const fishingAreas = control.get('fishingAreas').value;
       (fishingAreas || []).forEach((fa) => {
         const location = fa.location;
-        const distanceToCoast = fa.distanceToCoastGradient;
-        if (
-          ReferentialUtils.isEmpty(metier) &&
-          (ReferentialUtils.isNotEmpty(fishingAreas) || ReferentialUtils.isNotEmpty(location) || ReferentialUtils.isNotEmpty(distanceToCoast))
-        ) {
+        const gradients = [fa.distanceToCoastGradient, fa.depthGradient, fa.nearbySpecificArea];
+
+        if (ReferentialUtils.isEmpty(metier) && (ReferentialUtils.isNotEmpty(location) || gradients.some(ReferentialUtils.isNotEmpty))) {
           //console.debug('[activity-month-validator] inconsistentData', metier, location, distanceToCoast, fishingAreas);
-          inconsistentData = true;
+          return true;
         }
       });
     });
 
-    return inconsistentData ? { inconsistentData: true } : null;
+    return hasInvalidBlock || !hasSomeMetier ? { requiredMetier: true } : null;
   }
 
-  static validateDayCountConsistency(formGroup: FormArray): ValidationErrors | null {
+  static validDayCount(formGroup: FormArray): ValidationErrors | null {
     const measurementValues = formGroup.get('measurementValues')?.value as MeasurementFormValues;
     const startDate: Moment = fromDateISOString(formGroup.get('startDate')?.value);
     const endDate: Moment = fromDateISOString(formGroup.get('endDate')?.value);
@@ -580,7 +587,7 @@ export class ActivityMonthValidators {
     const invalid =
       (isNotNil(fishingDurationDays) && +fishingDurationDays > maxMonthDay) || (isNotNil(durationAtSeaDays) && +durationAtSeaDays > maxMonthDay);
 
-    return invalid ? { inconsistencyDayNumber: true } : null;
+    return invalid ? { validDayCount: true } : null;
   }
 
   static uniqueFishingAreaInMetier(formGroup: UntypedFormGroup): ValidationErrors | null {
@@ -612,7 +619,7 @@ export class ActivityMonthValidators {
     });
     return isNotEmptyArray(fishingAreasErrors)
       ? {
-          duplicatedFishingArea: {
+          uniqueFishingArea: {
             fishingArea: fishingAreasErrors.map(({ fishingArea }) => ` ${fishingArea}`).join('\n '),
           },
         }
@@ -621,10 +628,10 @@ export class ActivityMonthValidators {
 }
 
 export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
-  uniqueMetier: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_METIER',
+  requiredMetier: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_METIER',
   requiredFishingArea: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_FISHING_AREA',
   requiredDistanceToCoast: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_DISTANCE_TO_COAST',
-  inconsistentData: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENT_DATA',
-  inconsistencyDayNumber: 'ACTIVITY_CALENDAR.ERROR.INCONSISTENCY_DAY_NUMBER',
-  duplicatedFishingArea: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_FISHING_AREA',
+  uniqueMetier: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_METIER',
+  uniqueFishingArea: 'ACTIVITY_CALENDAR.ERROR.UNIQUE_FISHING_AREA',
+  validDayCount: 'ACTIVITY_CALENDAR.ERROR.VALID_DAY_COUNT',
 };

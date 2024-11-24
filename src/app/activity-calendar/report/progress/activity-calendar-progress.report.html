@@ -59,16 +59,21 @@
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
     @for (tableChunk of stats.tableRowChunk; track chunkIndex; let chunkIndex = $index; let firstChunk = $first; let lastChunk = $last) {
-      <section *sectionDef>
+      <section
+        *sectionDef
+        [style.--margin-bottom]="pageDimensions.marginBottom + 'px'"
+        [style.--color-primary]="stats.colorPrimary"
+        [style.--color-secondary]="stats.colorSecondary"
+      >
         <!-- header -->
-        <ion-grid class="report-header ion-no-padding">
-          <ion-row class="page-title">
+        <ion-grid class="report-section report-header ion-no-padding">
+          <ion-row class="document-title">
             <ion-col class="logo" size="auto">
               @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
                 <img [src]="stats.logoHeadLeftUrl" />
               }
             </ion-col>
-            <ion-col>
+            <ion-col size="auto">
               <h2>{{ $title | async }}</h2>
             </ion-col>
             <ion-col class="logo" size="auto">
@@ -110,7 +115,7 @@
               }
 
               <!-- Vessel -->
-              @if (stats.filter.vesselSnapshot) {
+              @if (stats.filter.vesselSnapshot | isNotNil) {
                 <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL' | translate }}</ion-col>
                 <ion-col class="form-value" size="4">
                   {{ stats.filter.vesselSnapshot | referentialToString: stats.vesselAttributes }}
@@ -118,7 +123,7 @@
               }
 
               <!-- VesselType -->
-              @if (stats.filter.vesselSnapshot) {
+              @if (stats.filter.vesselType | isNotNil) {
                 <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL_TYPE' | translate }}</ion-col>
                 <ion-col class="form-value" size="4">
                   {{ stats.filter.vesselType | referentialToString: ['name'] }}
@@ -152,7 +157,7 @@
               }
 
               <!-- Direct Survey Investigation -->
-              @if (stats.filter.directSurveyInvestigation) {
+              @if (stats.filter.directSurveyInvestigation | isNotNil) {
                 <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION' | translate }}</ion-col>
                 <ion-col class="form-value" size="4">
                   {{ (stats.filter.directSurveyInvestigation ? 'COMMON.YES' : 'COMMON.NO') | translate }}
@@ -203,7 +208,7 @@
                 <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL' | translate }}</th>
                 <th class="ion-text-center col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_NAME' | translate }}</th>
                 <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_REGISTRATION_LOCATION' | translate }}</th>
-                <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_LENGTH' | translate }}</th>
+                <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_LENGTH' | translate }}</th>
                 <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.SURVEY_QUALIFICATION_SECTION' | translate }}</th>
                 @for (month of months; track $index) {
                   <th class="ion-text-center col-tiny">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.' + month | uppercase | translate }}</th>

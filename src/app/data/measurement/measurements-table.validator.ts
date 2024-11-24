@@ -6,7 +6,7 @@ import { Injector } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TranslateService } from '@ngx-translate/core';
-import { AppFormArray, isNotNil, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
+import { AppFormArray, AppFormUtils, isNotNil, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
 
 export interface MeasurementsTableValidatorOptions extends MeasurementsValidatorOptions {
   pmfms: IPmfm[]; // Required pmfms
@@ -64,8 +64,8 @@ export class MeasurementsTableValidatorService<
     });
 
     // Add measurement Values
-    // Can be disable (e.g. in Batch Group table) if pmfms = null
-    if (isNotNil(this._measurementsOptions?.pmfms)) {
+    // Can be disabled (e.g. in Batch Group table) if pmfms = null
+    if (isNotNil(this._measurementsOptions?.pmfms) && this._measurementsOptions?.withMeasurements !== false) {
       form.setControl('measurementValues', this.getMeasurementValuesFormGroup(data?.measurementValues, this._measurementsOptions), {
         emitEvent: false,
       });
@@ -98,37 +98,38 @@ export class MeasurementsTableValidatorService<
   protected getMeasurementValuesFormGroup(
     data: MeasurementFormValues | MeasurementModelValues | undefined,
     opts: MeasurementsTableValidatorOptions
-  ): { [key: string]: any } {
+  ): UntypedFormGroup {
     // Create a cached config
     let controlsConfig = this._measurementsConfigCache;
 
-    // If no cache defined
+    // If no cache : create if
     if (!controlsConfig) {
       // Compute the form group
       controlsConfig = this.measurementsValidatorService.getFormGroupConfig(null, opts);
       // Fill the cache
       this._measurementsConfigCache = controlsConfig;
 
-      return this.formBuilder.group(controlsConfig);
+      // Create the form group
+      const form = this.formBuilder.group(controlsConfig);
+
+      if (data) AppFormUtils.copyEntity2Form(data, form, { emitEvent: false });
+
+      return form;
     }
 
     // Use cache if exists
     else {
       const form = this.formBuilder.group(controlsConfig);
 
-      // Re-create new instance for each array control
-      Object.entries(controlsConfig)
-        .filter(([key, cachedControl]) => cachedControl instanceof AppFormArray)
-        .forEach(([pmfmId, cachedControl]) => {
-          const control = new AppFormArray(cachedControl.createControl, cachedControl.equals, cachedControl.isEmpty, cachedControl.options);
-          const value = data ? data[pmfmId] : null;
-          if (Array.isArray(value)) {
-            control.setValue(value, { emitEvent: false });
-          } else {
-            control.setValue([null], { emitEvent: false });
-          }
+      Object.entries(controlsConfig).forEach(([pmfmId, cachedControl]) => {
+        // Re-create new instance for each array control
+        if (cachedControl instanceof AppFormArray) {
+          const control = cachedControl.clone();
           form.setControl(pmfmId, control, { emitEvent: false });
-        });
+        }
+      });
+
+      if (data) AppFormUtils.copyEntity2Form(data, form, { emitEvent: false });
 
       return form;
     }

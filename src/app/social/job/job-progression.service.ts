@@ -13,7 +13,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import gql from 'graphql-tag';
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, filter, Observable } from 'rxjs';
 import { FetchPolicy } from '@apollo/client/core';
 import { map, mergeMap, takeUntil } from 'rxjs/operators';
 import { environment } from '@environments/environment';
@@ -102,6 +102,7 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
     return combineLatest([
       this.dataSubject.asObservable(),
       this.accountService.onLogin.pipe(
+        filter(() => this.accountService.isUser()),
         mergeMap((account) =>
           this.jobService.watchAll(
             {

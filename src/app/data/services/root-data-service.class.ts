@@ -40,8 +40,8 @@ export abstract class BaseRootDataService<
     T extends RootDataEntity<T, ID>,
     F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
     ID = number,
-    WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
-    LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
+    WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions<T>,
+    LO extends EntityServiceLoadOptions = EntityServiceLoadOptions<T>,
     Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
     M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
     S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions,
@@ -110,6 +110,7 @@ export abstract class BaseRootDataService<
    * Validate an root entity
    *
    * @param entity
+   * @param opts
    */
   async validate(entity: T, opts?: VO): Promise<T> {
     if (!this.mutations.validate) throw Error('Not implemented');

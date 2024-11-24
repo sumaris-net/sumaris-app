@@ -2,7 +2,7 @@ import { ChangeDetectorRef, OnDestroy, Pipe, PipeTransform } from '@angular/core
 import { Subscription } from 'rxjs';
 import { AsyncTableElement } from '@e-is/ngx-material-table';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
-import { equals, FormErrorTranslateOptions, FormErrorTranslator } from '@sumaris-net/ngx-components';
+import { equals, FormErrorTranslateOptions, FormErrorTranslator, isNilOrBlank } from '@sumaris-net/ngx-components';
 
 @Pipe({
   name: 'activityMonthRowError',
@@ -57,23 +57,15 @@ export class ActivityMonthRowErrorPipe implements PipeTransform, OnDestroy {
   }
 
   private _updateValue(row: AsyncTableElement<ActivityMonth>, opts?: FormErrorTranslateOptions) {
-    if (row.validator) {
-      if (row.validator.invalid) {
-        const newValue = this.service.translateFormErrors(row.validator, opts);
-        if (newValue !== this._value) {
-          this._value = newValue;
-          this._ref.markForCheck();
-        }
-      } else if (this._value !== undefined) {
-        this._value = undefined;
-        this._ref.markForCheck();
-      }
+    let newValue: string = row.currentData.qualificationComments;
+    if (isNilOrBlank(newValue) && row.validator?.invalid) {
+      newValue = this.service.translateFormErrors(row.validator, opts);
     } else {
-      const newValue = row.currentData.qualificationComments || '';
-      if (newValue !== this._value) {
-        this._value = newValue;
-        this._ref.markForCheck();
-      }
+      newValue = undefined;
+    }
+    if (newValue !== this._value) {
+      this._value = newValue;
+      this._ref.markForCheck();
     }
   }
 

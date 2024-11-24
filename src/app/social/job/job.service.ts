@@ -11,7 +11,7 @@ import {
 import { Injectable } from '@angular/core';
 import gql from 'graphql-tag';
 import { ErrorCodes } from '@app/referential/services/errors';
-import { Observable, Subject } from 'rxjs';
+import { Observable, Subject, switchMap } from 'rxjs';
 import { FetchPolicy, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { Job, JobFilter } from '@app/social/job/job.model';
@@ -173,6 +173,11 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
   }
 
   watchAll(filter: Partial<JobFilter>, page?: Page, opts?: { fetchPolicy?: WatchQueryFetchPolicy; toEntity?: boolean }): Observable<Job[]> {
+    // Make sure to get the min profile (USER) - required by the pod
+    if (!this.accountService.isUser()) {
+      return this.accountService.onLogin.pipe(switchMap((_) => this.watchAll(filter, page, opts)));
+    }
+
     filter = JobFilter.fromObject(filter);
 
     let now = Date.now();

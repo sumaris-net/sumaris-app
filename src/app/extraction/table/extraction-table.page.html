@@ -4,7 +4,7 @@
   </ion-title>
 
   <ion-buttons slot="end" *ngIf="type; let type">
-    <!-- Trip report -->
+    <!-- Open trip report -->
     <button
       mat-icon-button
       *rxIf="($enableTripReport | push) && !(loadingSubject | push)"
@@ -49,7 +49,7 @@
       </mat-icon>
     </button>
 
-    <ng-container *ngIf="showFilter">
+    @if (showFilter) {
       <!-- reset filter -->
       <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount$ | async">
         <mat-icon color="accent">filter_list_alt</mat-icon>
@@ -71,26 +71,24 @@
           <mat-icon>filter_list_alt</mat-icon>
         </ng-template>
       </button>
-    </ng-container>
+    }
 
     &nbsp;
 
-    <ion-button
-      *ngIf="types$ | push | isArrayLength: { greaterThan: 1 }"
-      [matMenuTriggerFor]="selectTypeMenu"
-      [matMenuTriggerData]="{ $implicit: ($categories | async) }"
-      color="accent"
-      fill="solid"
-    >
-      <ion-icon slot="start" name="server"></ion-icon>
-      <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE' | translate"></ion-label>
-      <mat-icon slot="end">arrow_drop_down</mat-icon>
-    </ion-button>
+    @if (types$ | push | isArrayLength: { greaterThan: 0 }) {
+      <ion-button [matMenuTriggerFor]="selectTypeMenu" [matMenuTriggerData]="{ $implicit: ($categories | async) }" color="accent" fill="solid">
+        <ion-icon slot="start" name="server"></ion-icon>
+        <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE' | translate"></ion-label>
+        <mat-icon slot="end">arrow_drop_down</mat-icon>
+      </ion-button>
+    }
     &nbsp;
     <!-- options menu -->
-    <ion-button *ngIf="mobile || canEdit || canCreateProduct" [matMenuTriggerFor]="optionsMenu" [matMenuTriggerData]="{ $implicit: type }">
-      <mat-icon slot="icon-only">more_vert</mat-icon>
-    </ion-button>
+    @if (mobile || canEdit || canCreateProduct) {
+      <ion-button [matMenuTriggerFor]="optionsMenu" [matMenuTriggerData]="{ $implicit: type }">
+        <mat-icon slot="icon-only">more_vert</mat-icon>
+      </ion-button>
+    }
   </ion-buttons>
 </app-toolbar>
 
@@ -98,10 +96,10 @@
 <mat-menu #selectTypeMenu="matMenu" xPosition="after">
   <ng-template matMenuContent let-categories>
     <!-- only one category (e.g. for all public users) -->
-    <ng-container *ngIf="categories | isArrayLength: { equals: 1 }; else manyCategories">
-      <ng-container *ngFor="let type of categories[0].types">
+    @if (categories | isArrayLength: { equals: 1 }) {
+      @for (type of categories[0].types; track type.id) {
         <!-- programs -->
-        <ng-container *ngIf="type.category === 'LIVE'; else types">
+        @if (type.category === 'LIVE') {
           <button
             mat-menu-item
             *rxFor="let program of $programs"
@@ -112,9 +110,7 @@
               <span>{{ program | referentialToString }}</span>
             </ion-label>
           </button>
-        </ng-container>
-
-        <ng-template #types>
+        } @else {
           <button mat-menu-item (click)="setType(type)">
             <ion-label class="ion-text-nowrap">
               <ion-icon name="eye-off" *ngIf="type.statusId === 2"></ion-icon>
@@ -122,17 +118,16 @@
               <span>{{ type.name }}</span>
             </ion-label>
           </button>
-        </ng-template>
-      </ng-container>
-    </ng-container>
-
-    <!-- More than 1 categories -->
-    <ng-template #manyCategories>
-      <ng-container *ngFor="let item of categories">
-        <button mat-menu-item *ngIf="item.label === 'LIVE'; else typesMenuButton" [matMenuTriggerFor]="programsMenu">
-          {{ 'EXTRACTION.CATEGORY.' + item.label | uppercase | translate }}
-        </button>
-        <ng-template #typesMenuButton>
+        }
+      }
+    } @else {
+      <!-- More than 1 categories -->
+      @for (item of categories; track item.id) {
+        @if (item.label === 'LIVE') {
+          <button mat-menu-item [matMenuTriggerFor]="programsMenu">
+            {{ 'EXTRACTION.CATEGORY.' + item.label | uppercase | translate }}
+          </button>
+        } @else {
           <button
             mat-menu-item
             *ngIf="item.label === 'PRODUCT'"
@@ -141,9 +136,9 @@
           >
             {{ 'EXTRACTION.CATEGORY.' + item.label | uppercase | translate }}
           </button>
-        </ng-template>
-      </ng-container>
-    </ng-template>
+        }
+      }
+    }
   </ng-template>
 </mat-menu>
 
@@ -279,10 +274,9 @@
       <mat-icon>refresh</mat-icon>
     </button>
 
-    <ion-item *ngIf="!mobile && error; let error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-    </ion-item>
+    @if (mobile) {
+      <app-error-item [message]="errorSubject | async"></app-error-item>
+    }
 
     <div class="toolbar-spacer"></div>
 
@@ -300,7 +294,7 @@
       <ion-label [innerHTML]="'COMMON.BTN_DOWNLOAD' | translate | uppercase" [matTooltip]="'EXTRACTION.BTN_DOWNLOAD_HELP' | translate"></ion-label>
     </button>
 
-    <ng-container *ngIf="showFilter">
+    @if (showFilter) {
       <!-- reset filter -->
       <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount$ | async">
         <mat-icon color="accent">filter_list_alt</mat-icon>
@@ -327,21 +321,23 @@
       <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
-    </ng-container>
+    }
   </mat-toolbar>
 
   <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <ng-container *ngIf="type?.sheetNames as sheetNames">
-    <nav mat-tab-nav-bar *ngIf="sheetNames | isArrayLength: { greaterThan: 1 }" [tabPanel]="tableContainer">
-      <a mat-tab-link *ngFor="let item of sheetNames" (click)="setSheetName(item)" [active]="item === sheetName">
-        <ion-text>{{ getI18nSheetName(item) }}</ion-text>
-        <mat-icon *ngIf="hasFilterCriteria(item)">filter_list_alt</mat-icon>
-      </a>
-    </nav>
-  </ng-container>
+  @if (type?.sheetNames; as sheetNames) {
+    @if (sheetNames | isArrayLength: { greaterThan: 1 }) {
+      <nav mat-tab-nav-bar [tabPanel]="tableContainer">
+        <a mat-tab-link *ngFor="let item of sheetNames" (click)="setSheetName(item)" [active]="item === sheetName">
+          <ion-text>{{ getI18nSheetName(item) }}</ion-text>
+          <mat-icon *ngIf="hasFilterCriteria(item)">filter_list_alt</mat-icon>
+        </a>
+      </nav>
+    }
+  }
 
   <!-- filter panel -->
   <mat-expansion-panel
@@ -402,10 +398,9 @@
   </mat-expansion-panel>
 
   <!-- error -->
-  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (mobile && !(embedded && showToolbar)) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
 
   <div
     #tableContainer
@@ -445,7 +440,7 @@
     </table>
 
     <!-- loading skeleton -->
-    <ng-container *ngIf="loading; else loaded">
+    @if (loading) {
       <table class="mat-mdc-table">
         <tr class="mat-mdc-header-row">
           <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
@@ -462,33 +457,37 @@
           <td class="mat-mdc-cell" colspan="12"><ion-skeleton-text animated></ion-skeleton-text></td>
         </tr>
       </table>
-    </ng-container>
-
-    <ng-template #loaded>
+    } @else {
       <ion-item *ngIf="data?.total === 0">
         <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
       </ion-item>
 
-      <ng-container *ngIf="!type">
-        <p class="ion-text-center">
-          <ion-icon color="primary100" name="information-circle"></ion-icon>
-          <ion-text color="primary100" class="text-italic" [innerHTML]="'EXTRACTION.TABLE.SELECT_TYPE_HELP' | translate"></ion-text>
-        </p>
-        <p class="ion-text-center">
-          <ion-button
-            *ngIf="types$ | async | isArrayLength: { greaterThan: 1 }"
-            [matMenuTriggerFor]="selectTypeMenu"
-            [matMenuTriggerData]="{ $implicit: ($categories | async) }"
-            color="tertiary"
-            fill="solid"
-          >
-            <ion-icon slot="start" name="server"></ion-icon>
-            <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE' | translate"></ion-label>
-            <mat-icon slot="end">arrow_drop_down</mat-icon>
-          </ion-button>
-        </p>
-      </ng-container>
-    </ng-template>
+      @if (!(type$ | async)) {
+        @let enabled = types$ | push | isArrayLength: { greaterThan: 0 };
+        @if (enabled) {
+          <p class="ion-text-center">
+            <ion-icon color="primary100" name="information-circle"></ion-icon>
+            <ion-text color="primary100" class="text-italic" [innerHTML]="'EXTRACTION.TABLE.SELECT_TYPE_HELP' | translate"></ion-text>
+          </p>
+          <p class="ion-text-center">
+            <ion-button
+              [matMenuTriggerFor]="selectTypeMenu"
+              [matMenuTriggerData]="{ $implicit: ($categories | async) }"
+              color="tertiary"
+              fill="solid"
+            >
+              <ion-icon slot="start" name="server"></ion-icon>
+              <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE' | translate"></ion-label>
+              <mat-icon slot="end">arrow_drop_down</mat-icon>
+            </ion-button>
+          </p>
+        } @else {
+          <p class="ion-text-center">
+            <ion-text color="danger" [innerHTML]="'EXTRACTION.TABLE.NO_ACCESS' | translate"></ion-text>
+          </p>
+        }
+      }
+    }
   </div>
 </ion-content>
 
@@ -506,17 +505,7 @@
   <ion-toolbar class="hidden-xs hidden-sm hidden-mobile" *ngIf="!embedded">
     <ion-row class="ion-no-padding" nowrap>
       <ion-col>
-        <ion-item *rxIf="errorSubject; let error; else: debugPanel" lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-        </ion-item>
-
-        <ng-template #debugPanel>
-          <app-debug *ngIf="debug">
-            loading: {{ loading }}
-            <br />
-          </app-debug>
-        </ng-template>
+        <app-error-item [message]="errorSubject | async"></app-error-item>
       </ion-col>
 
       <ion-col size="auto">

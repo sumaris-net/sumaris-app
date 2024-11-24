@@ -742,8 +742,6 @@ type MinMaxVO {
 type Mutation {
   "Cancel a running Job"
   cancelJob(id: Int!): JobVO
-  "Confirm an account email"
-  confirmAccountEmail(code: String, email: String): Boolean!
   "Control a activityCalendar"
   controlActivityCalendar(activityCalendar: ActivityCalendarVOInput!): ActivityCalendarVO
   "Control a landing"
@@ -772,7 +770,7 @@ type Mutation {
   deleteLanding(id: Int!): Boolean!
   "Delete many observed locations"
   deleteLandings(ids: [Int]!): Boolean!
-  "Delete a named filter by id"
+  "Delete many named filters by ids"
   deleteNamedFilter(id: Int, ids: [Int]): Boolean!
   "Delete an observed location"
   deleteObservedLocation(id: Int!): Boolean!
@@ -918,8 +916,6 @@ type Mutation {
   saveVessels(vessels: [VesselVOInput]!): [VesselVO]
   "Save many weight length conversions"
   saveWeightLengthConversions(data: [WeightLengthConversionVOInput]): [WeightLengthConversionVO]
-  "Resent confirmation email"
-  sendAccountConfirmationEmail(email: String, locale: String = "en_GB"): Boolean!
   "Sent a message"
   sendMessage(message: MessageVOInput): Boolean!
   "Share an existing file"
@@ -1362,238 +1358,254 @@ type QuantificationMeasurementVO {
 
 "Query root"
 type Query {
-    "Load a user account"
-    account(pubkey: String): AccountVO
-    "Get an activity calendar, by id"
-    activityCalendar(id: Int!): ActivityCalendarVO
-    "Search in activity calendars"
-    activityCalendars(filter: ActivityCalendarFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "year", sortDirection: String = "desc", trash: Boolean = false): [ActivityCalendarVO]
-    "Get total number of observed locations"
-    activityCalendarsCount(filter: ActivityCalendarFilterVOInput, trash: Boolean = false): Long!
-    "Find aggregated landings by filter"
-    aggregatedLandings(filter: AggregatedLandingFilterVOInput): [AggregatedLandingVO]
-    "Execute an aggregation and return as GeoJson"
-    aggregationGeoJson(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): ObjectScalar
-    "Execute an aggregation and return as GeoJson"
-    aggregationTech(filter: ExtractionFilterVOInput, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): AggregationTechResultVO
-    "Execute an aggregation and return as GeoJson"
-    aggregationTechMinMax(filter: ExtractionFilterVOInput, strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): MinMaxVO
-    "Search in analytic references"
-    analyticReferences(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
-    "Get analytic references count"
-    analyticReferencesCount(filter: ReferentialFilterVOInput): Long
-    "Ask for a new auth challenge"
-    authChallenge: AuthTokenVO
-    "Authenticate using a token"
-    authenticate(token: String): Boolean!
-    "Get cache statistics"
-    cacheStatistics: Map_String_Map_String_LongScalar
-    "Clear a single cache or all caches"
-    clearCache(name: String = ""): Boolean!
-    "Load pod configuration"
-    configuration(
-        "Should included all enumerations values in properties ?"
-        inherited: Boolean = true
-    ): ConfigurationVO
-    "Check if trip has been denormalized or not"
-    denormalizeTrip(id: Int!): DenormalizedTripResultVO
-    "Get denormalized batches"
-    denormalizedBatches(filter: DenormalizedBatchesFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [DenormalizedBatchVO]
-    "Get a department"
-    department(id: Int!): DepartmentVO
-    "Search in departments"
-    departments(filter: DepartmentFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [DepartmentVO]
-    "Find device position by id"
-    devicePosition(fetchOptions: DataFetchOptionsInput, id: Int): DevicePositionVO
-    "Find device positions by filter"
-    devicePositions(fetchOptions: DataFetchOptionsInput, filter: DevicePositionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [DevicePositionVO]
-    "Get device position count"
-    devicePositionsCount(filter: DevicePositionFilterVOInput): Long!
-    "Read extraction data"
-    extraction(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): Json
-    "Read columns from an extraction"
-    extractionColumns(sheet: String, type: ExtractionTypeVOInput!): [ExtractionTableColumnVO]
-    "Extract data into a file"
-    extractionFile(filter: ExtractionFilterVOInput, strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): String
-    "Read extraction data for monitoring"
-    extractionMonitoring(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput): Json
-    "Get one extraction product"
-    extractionProduct(id: Int!): ExtractionProductVO
-    "Get all available extraction products"
-    extractionProducts(filter: ExtractionTypeFilterVOInput): [ExtractionProductVO]
-    "Preview some extraction rows"
-    extractionRows(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): ExtractionResultVO
-    "Get all available extraction types"
-    extractionTypes(filter: ExtractionTypeFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [ExtractionTypeVO] @deprecated(reason: "Use liveExtractionTypes and aggregationTypes")
-    "Search filter"
-    images(filter: ImageAttachmentFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "desc"): [ImageAttachmentVO]
-    "Import vessels from a SIOP file"
-    importSiopVessels(fileName: String): JobVO
-    "Check if email exists (from a md5 hash)"
-    isEmailExists(email: String, hash: String): Boolean!
-    "Get a job"
-    job(id: Int!): JobVO
-    "Get all job types"
-    jobTypes: [String]
-    "Search in jobs"
-    jobs(filter: JobFilterVOInput, page: PageInput): [JobVO]
-    "Get a landing, by id"
-    landing(id: Int!): LandingVO
-    "Search in landings"
-    landings(filter: LandingFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "dateTime", sortDirection: String = "asc", trash: Boolean = false): [LandingVO]
-    "Get total number of landings"
-    landingsCount(filter: LandingFilterVOInput, trash: Boolean = false): Long!
-    "Get last update date of all referential"
-    lastUpdateDate: Date
-    "Get a metier by id"
-    metier(id: Int!): MetierVO
-    "Search in metiers"
-    metiers(filter: MetierFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [MetierVO]
-    "Count metiers"
-    metiersCount(filter: MetierFilterVOInput): Long
-    "Find NamedFilter by id"
-    namedFilter(id: Int): NamedFilterVO
-    "Find many named filters"
-    namedFilters(filter: NamedFilterFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [NamedFilterVO]
-    "Get named filters count"
-    namedFiltersCount(filter: NamedFilterFilterVOInput): Long!
-    "Get an observed location, by id"
-    observedLocation(id: Int!): ObservedLocationVO
-    "Search in observed locations"
-    observedLocations(filter: ObservedLocationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc", trash: Boolean = false): [ObservedLocationVO]
-    "Get total number of observed locations"
-    observedLocationsCount(filter: ObservedLocationFilterVOInput, trash: Boolean = false): Long!
-    "Get an operation"
-    operation(id: Int!): OperationVO
-    "Get trip's operation groups"
-    operationGroups(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "rankOrderOnPeriod", sortDirection: String = "asc"): [OperationGroupVO]
-    "Search in operations"
-    operations(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "desc"): [OperationVO]
-    "Get operations count"
-    operationsCount(filter: OperationFilterVOInput): Long!
-    "Get a parameter"
-    parameter(id: Int, label: String): ParameterVO
-    "Search in persons"
-    persons(filter: PersonFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "pubkey", sortDirection: String = "asc"): [PersonVO]
-    "Get total persons count"
-    personsCount(filter: PersonFilterVOInput): Long!
-    "Get a physical gear"
-    physicalGear(id: Int!): PhysicalGearVO
-    "Get physical gears"
-    physicalGears(filter: PhysicalGearFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "rankOrder", sortDirection: String = "asc"): [PhysicalGearVO]
-    "Get a PMFM"
-    pmfm(id: Int, label: String): PmfmVO
-    "Search in PMFM"
-    pmfms(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [PmfmVO]
-    "Get a program"
-    program(id: Int, label: String): ProgramVO
-    "Search in programs"
-    programs(filter: ProgramFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ProgramVO]
-    "Get programs count"
-    programsCount(filter: ProgramFilterVOInput): Long
-    "Search in referenceTaxons"
-    referenceTaxonExists(id: Int): Boolean
-    "Load one referential, by entityName and id"
-    referential(entityName: String, id: Int): ReferentialVO
-    "Get all levels from entityName"
-    referentialLevels(entityName: String): [ReferentialVO]
-    "Get all types of referential"
-    referentialTypes: [ReferentialTypeVO]
-    "Search in referentials"
-    referentials(entityName: String, filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
-    "Get referentials count"
-    referentialsCount(entityName: String, filter: ReferentialFilterVOInput): Long
-    "Search in round weight conversions"
-    roundWeightConversions(filter: RoundWeightConversionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [RoundWeightConversionVO]
-    "Search in round weight conversions"
-    roundWeightConversionsCount(filter: RoundWeightConversionFilterVOInput): Long
-    "Get sale by id"
-    sale(id: Int!): SaleVO
-    "Get total number of samples"
-    samplesCount(filter: SampleFilterVOInput): Long!
-    "A software config"
-    software(id: Int, label: String): SoftwareVO
-    "Search in strategies"
-    strategies(filter: StrategyFilterVOInput!, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [StrategyVO]
-    "Get already filled analytic references"
-    strategiesAnalyticReferences(programId: Int!): [String]
-    "Get strategies count"
-    strategiesCount(filter: StrategyFilterVOInput): Long
-    "Get already filled departments"
-    strategiesDepartments(programId: Int!): [Int]
-    "Get already filled locations"
-    strategiesLocations(locationClassification: LocationClassificationEnum, programId: Int!): [Int]
-    "Get already filled PMFM or one of parameter, matrix, fraction, method"
-    strategiesPmfms(field: String = "pmfm", programId: Int!, referenceTaxonId: Int): [Int]
-    "Get already filled values from entityName"
-    strategiesReferentials(
-        entityName: String,
-        "only for Location entities"
-        locationClassification: LocationClassificationEnum,
-        offset: Int = 0,
-        programId: Int!,
-        size: Int = 100,
-        sortBy: String = "label",
-        sortDirection: String = "asc"
-    ): [ReferentialVO]
-    "Get already filled taxon names"
-    strategiesTaxonNames(programId: Int!): [Int]
-    "Get a strategy"
-    strategy(id: Int!): StrategyVO
-    "Get next label for strategy"
-    strategyNextLabel(labelPrefix: String = "", nbDigit: Int = 0, programId: Int!): String
-    "Get next sample label for strategy"
-    strategyNextSampleLabel(labelSeparator: String = "", nbDigit: Int = 0, strategyLabel: String!): String
-    "Search in taxon groups"
-    taxonGroups(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonGroupVO]
-    "Count taxon groups"
-    taxonGroupsCount(filter: ReferentialFilterVOInput): Long
-    "Get a Taxon Name"
-    taxonName(id: Int, label: String): TaxonNameVO
-    "Get taxon name count"
-    taxonNameCount(filter: TaxonNameFilterVOInput): Long
-    "Search in taxon names"
-    taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
-    "Get trash content"
-    trashEntities(entityName: String, offset: Int = 0, size: Int = 1000, sortBy: String = "updateDate", sortDirection: String = "desc"): [String]
-    "Get trash file content"
-    trashEntity(entityName: String, id: String): String
-    "Get a trip, by id"
-    trip(id: Int!): TripVO
-    "Search in trips"
-    trips(filter: TripFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc", trash: Boolean = false): [TripVO]
-    "Get trips count"
-    tripsCount(filter: TripFilterVOInput, trash: Boolean = false): Long!
-    "Search in user events"
-    userEvents(filter: UserEventFilterVOInput, page: PageInput): [UserEventVO]
-    "Count user events"
-    userEventsCount(filter: UserEventFilterVOInput): Long
-    "Get a vessel"
-    vessel(
-        id: Int,
-        "@deprecated Use 'id'"
-        vesselId: Int
-    ): VesselVO
-    "Get vessel features history"
-    vesselFeaturesHistory(filter: VesselFeaturesFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselFeaturesVO]
-    "Get a vesselOwner"
-    vesselOwner(id: Int): VesselOwnerVO
-    "Get vessel owner history"
-    vesselOwnerHistory(filter: VesselOwnerFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselOwnerPeriodVO]
-    "Get vessel registration history"
-    vesselRegistrationHistory(filter: VesselRegistrationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselRegistrationPeriodVO]
-    "Search in vessel snapshots"
-    vesselSnapshots(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "exteriorMarking", sortDirection: String = "asc"): [VesselSnapshotVO]
-    "Get total vessel snapshots count"
-    vesselSnapshotsCount(filter: VesselFilterVOInput): Long
-    "Search in vessels"
-    vessels(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc"): [VesselVO]
-    "Get total vessels count"
-    vesselsCount(filter: VesselFilterVOInput): Long!
-    "Search in weight length conversions"
-    weightLengthConversions(filter: WeightLengthConversionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [WeightLengthConversionVO]
-    "Search in weight length conversions"
-    weightLengthConversionsCount(filter: WeightLengthConversionFilterVOInput): Long
+  "Load a user account"
+  account(pubkey: String): AccountVO
+  "Get an activity calendar, by id"
+  activityCalendar(id: Int!): ActivityCalendarVO
+  "Search in activity calendars"
+  activityCalendars(filter: ActivityCalendarFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "year", sortDirection: String = "desc", trash: Boolean = false): [ActivityCalendarVO]
+  "Get total number of observed locations"
+  activityCalendarsCount(filter: ActivityCalendarFilterVOInput, trash: Boolean = false): Long!
+  "Find aggregated landings by filter"
+  aggregatedLandings(filter: AggregatedLandingFilterVOInput): [AggregatedLandingVO]
+  "Execute an aggregation and return as GeoJson"
+  aggregationGeoJson(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): ObjectScalar
+  "Execute an aggregation and return as GeoJson"
+  aggregationTech(filter: ExtractionFilterVOInput, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): AggregationTechResultVO
+  "Execute an aggregation and return as GeoJson"
+  aggregationTechMinMax(filter: ExtractionFilterVOInput, strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): MinMaxVO
+  "Search in analytic references"
+  analyticReferences(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
+  "Get analytic references count"
+  analyticReferencesCount(filter: ReferentialFilterVOInput): Long
+  "Ask for a new auth challenge"
+  authChallenge: AuthTokenVO
+  "Authenticate using a token"
+  authenticate(token: String): Boolean!
+  "Get cache statistics"
+  cacheStatistics: Map_String_Map_String_LongScalar
+  "Clear a single cache or all caches"
+  clearCache(name: String = ""): Boolean!
+  "Load pod configuration"
+  configuration(
+    "Should included all enumerations values in properties ?"
+    inherited: Boolean = true
+  ): ConfigurationVO
+  "Confirm an account email"
+  confirmAccountEmail(code: String, email: String): Boolean!
+  "Check if trip has been denormalized or not"
+  denormalizeTrip(id: Int!): DenormalizedTripResultVO
+  "Get denormalized batches"
+  denormalizedBatches(filter: DenormalizedBatchesFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [DenormalizedBatchVO]
+  "Get a department"
+  department(id: Int!): DepartmentVO
+  "Search in departments"
+  departments(filter: DepartmentFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [DepartmentVO]
+  "Find device position by id"
+  devicePosition(fetchOptions: DataFetchOptionsInput, id: Int): DevicePositionVO
+  "Find device positions by filter"
+  devicePositions(fetchOptions: DataFetchOptionsInput, filter: DevicePositionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [DevicePositionVO]
+  "Get device position count"
+  devicePositionsCount(filter: DevicePositionFilterVOInput): Long!
+  "Read extraction data"
+  extraction(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): Json
+  "Read columns from an extraction"
+  extractionColumns(sheet: String, type: ExtractionTypeVOInput!): [ExtractionTableColumnVO]
+  "Extract data into a file"
+  extractionFile(filter: ExtractionFilterVOInput, strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): String
+  "Get one extraction product"
+  extractionProduct(id: Int!): ExtractionProductVO
+  "Get all available extraction products"
+  extractionProducts(filter: ExtractionTypeFilterVOInput): [ExtractionProductVO]
+  "Preview some extraction rows"
+  extractionRows(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): ExtractionResultVO
+  "Get all available extraction types"
+  extractionTypes(filter: ExtractionTypeFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [ExtractionTypeVO] @deprecated(reason: "Use liveExtractionTypes and aggregationTypes")
+  "Search filter"
+  images(filter: ImageAttachmentFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "desc"): [ImageAttachmentVO]
+  "Import a list of activity calendar from a CSV file"
+  importActivityCalendars(fileName: String): JobVO
+  "Import vessels from a SIOP file"
+  importSiopVessels(fileName: String): JobVO
+  "Check if email exists (from a md5 hash)"
+  isEmailExists(email: String, hash: String): Boolean!
+  "Get a job"
+  job(id: Int!): JobVO
+  "Get all job types"
+  jobTypes: [String]
+  "Search in jobs"
+  jobs(filter: JobFilterVOInput, page: PageInput): [JobVO]
+  "Get a landing, by id"
+  landing(id: Int!): LandingVO
+  "Search in landings"
+  landings(filter: LandingFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "dateTime", sortDirection: String = "asc", trash: Boolean = false): [LandingVO]
+  "Get total number of landings"
+  landingsCount(filter: LandingFilterVOInput, trash: Boolean = false): Long!
+  "Get last update date of all referential"
+  lastUpdateDate: Date
+  "Get a metier by id"
+  metier(id: Int!): MetierVO
+  "Search in metiers"
+  metiers(filter: MetierFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [MetierVO]
+  "Count metiers"
+  metiersCount(filter: MetierFilterVOInput): Long
+  "Find NamedFilter by id"
+  namedFilter(id: Int): NamedFilterVO
+  "Find many named filters"
+  namedFilters(filter: NamedFilterFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [NamedFilterVO]
+  "Get named filters count"
+  namedFiltersCount(filter: NamedFilterFilterVOInput): Long!
+  "Get an observed location, by id"
+  observedLocation(id: Int!): ObservedLocationVO
+  "Search in observed locations"
+  observedLocations(filter: ObservedLocationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "asc", trash: Boolean = false): [ObservedLocationVO]
+  "Get total number of observed locations"
+  observedLocationsCount(filter: ObservedLocationFilterVOInput, trash: Boolean = false): Long!
+  "Get an operation"
+  operation(id: Int!): OperationVO
+  "Get trip's operation groups"
+  operationGroups(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "rankOrderOnPeriod", sortDirection: String = "asc"): [OperationGroupVO]
+  "Search in operations"
+  operations(filter: OperationFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDateTime", sortDirection: String = "desc"): [OperationVO]
+  "Get operations count"
+  operationsCount(filter: OperationFilterVOInput): Long!
+  "Get a parameter"
+  parameter(id: Int, label: String): ParameterVO
+  "Search in persons"
+  persons(filter: PersonFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "pubkey", sortDirection: String = "asc"): [PersonVO]
+  "Get total persons count"
+  personsCount(filter: PersonFilterVOInput): Long!
+  "Get a physical gear"
+  physicalGear(id: Int!): PhysicalGearVO
+  "Get physical gears"
+  physicalGears(filter: PhysicalGearFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "rankOrder", sortDirection: String = "asc"): [PhysicalGearVO]
+  "Get a PMFM"
+  pmfm(id: Int, label: String): PmfmVO
+  "Search in PMFM"
+  pmfms(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [PmfmVO]
+  "Get a program"
+  program(id: Int, label: String): ProgramVO
+  "Search in programs"
+  programs(filter: ProgramFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ProgramVO]
+  "Get programs count"
+  programsCount(filter: ProgramFilterVOInput): Long
+  "Search in referenceTaxons"
+  referenceTaxonExists(id: Int): Boolean
+  "Load one referential, by entityName and id"
+  referential(entityName: String, id: Int): ReferentialVO
+  "Get all levels from entityName"
+  referentialLevels(entityName: String): [ReferentialVO]
+  "Get all types of referential"
+  referentialTypes: [ReferentialTypeVO]
+  "Search in referentials"
+  referentials(entityName: String, filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
+  "Get referentials count"
+  referentialsCount(entityName: String, filter: ReferentialFilterVOInput): Long
+  "Reset account pubkey"
+  resetAccountPubkey(token: String, username: String): Boolean!
+  "Search in round weight conversions"
+  roundWeightConversions(filter: RoundWeightConversionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [RoundWeightConversionVO]
+  "Search in round weight conversions"
+  roundWeightConversionsCount(filter: RoundWeightConversionFilterVOInput): Long
+  "Get sale by id"
+  sale(id: Int!): SaleVO
+  "Get total number of samples"
+  samplesCount(filter: SampleFilterVOInput): Long!
+  "Resent confirmation email"
+  sendAccountConfirmationEmail(email: String, locale: String = "en_GB"): Boolean!
+  "Send an email to be able to reset account password"
+  sendResetPasswordEmail(locale: String = "en_GB", username: String): Boolean!
+  "A software config"
+  software(id: Int, label: String): SoftwareVO
+  "Search in strategies"
+  strategies(filter: StrategyFilterVOInput!, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [StrategyVO]
+  "Get already filled analytic references"
+  strategiesAnalyticReferences(programId: Int!): [String]
+  "Get strategies count"
+  strategiesCount(filter: StrategyFilterVOInput): Long
+  "Get already filled departments"
+  strategiesDepartments(programId: Int!): [Int]
+  "Get already filled locations"
+  strategiesLocations(locationClassification: LocationClassificationEnum, programId: Int!): [Int]
+  "Get already filled PMFM or one of parameter, matrix, fraction, method"
+  strategiesPmfms(field: String = "pmfm", programId: Int!, referenceTaxonId: Int): [Int]
+  "Get already filled values from entityName"
+  strategiesReferentials(
+    entityName: String,
+    "only for Location entities"
+    locationClassification: LocationClassificationEnum,
+    offset: Int = 0,
+    programId: Int!,
+    size: Int = 100,
+    sortBy: String = "label",
+    sortDirection: String = "asc"
+  ): [ReferentialVO]
+  "Get already filled taxon names"
+  strategiesTaxonNames(programId: Int!): [Int]
+  "Get a strategy"
+  strategy(id: Int!): StrategyVO
+  "Get next label for strategy"
+  strategyNextLabel(labelPrefix: String = "", nbDigit: Int = 0, programId: Int!): String
+  "Get next sample label for strategy"
+  strategyNextSampleLabel(labelSeparator: String = "", nbDigit: Int = 0, strategyLabel: String!): String
+  "Search in taxon groups"
+  taxonGroups(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonGroupVO]
+  "Count taxon groups"
+  taxonGroupsCount(filter: ReferentialFilterVOInput): Long
+  "Get a Taxon Name"
+  taxonName(id: Int, label: String): TaxonNameVO
+  "Get taxon name count"
+  taxonNameCount(filter: TaxonNameFilterVOInput): Long
+  "Search in taxon names"
+  taxonNames(filter: TaxonNameFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonNameVO]
+  "Get trash content"
+  trashEntities(entityName: String, offset: Int = 0, size: Int = 1000, sortBy: String = "updateDate", sortDirection: String = "desc"): [String]
+  "Get trash file content"
+  trashEntity(entityName: String, id: String): String
+  "Get a trip, by id"
+  trip(id: Int!): TripVO
+  "Search in trips"
+  trips(filter: TripFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc", trash: Boolean = false): [TripVO]
+  "Get trips count"
+  tripsCount(filter: TripFilterVOInput, trash: Boolean = false): Long!
+  "Update account pubkey"
+  updateAccountPubkey(pubkey: String): Boolean!
+  "Search in user events"
+  userEvents(filter: UserEventFilterVOInput, page: PageInput): [UserEventVO]
+  "Count user events"
+  userEventsCount(filter: UserEventFilterVOInput): Long
+  "Get a vessel"
+  vessel(
+    id: Int,
+    "@deprecated Use 'id'"
+    vesselId: Int
+  ): VesselVO
+  "Get vessel features history"
+  vesselFeaturesHistory(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselFeaturesVO]
+  "Get vessel features history count"
+  vesselFeaturesHistoryCount(filter: VesselFilterVOInput, vesselId: Int): Long
+  "Get a vesselOwner"
+  vesselOwner(id: Int): VesselOwnerVO
+  "Get vessel owner history"
+  vesselOwnerHistory(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselOwnerPeriodVO]
+  "Get total vessel owner history count"
+  vesselOwnerHistoryCount(filter: VesselFilterVOInput, vesselId: Int): Long
+  "Get vessel registration history"
+  vesselRegistrationHistory(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "startDate", sortDirection: String = "asc", vesselId: Int): [VesselRegistrationPeriodVO]
+  "Get vessel registration history count"
+  vesselRegistrationHistoryCount(filter: VesselFilterVOInput, vesselId: Int): Long
+  "Search in vessel snapshots"
+  vesselSnapshots(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "exteriorMarking", sortDirection: String = "asc"): [VesselSnapshotVO]
+  "Get total vessel snapshots count"
+  vesselSnapshotsCount(filter: VesselFilterVOInput): Long
+  "Search in vessels"
+  vessels(filter: VesselFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc"): [VesselVO]
+  "Get total vessels count"
+  vesselsCount(filter: VesselFilterVOInput): Long!
+  "Search in weight length conversions"
+  weightLengthConversions(filter: WeightLengthConversionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "id", sortDirection: String = "asc"): [WeightLengthConversionVO]
+  "Search in weight length conversions"
+  weightLengthConversionsCount(filter: WeightLengthConversionFilterVOInput): Long
 }
 
 type ReferentialTypeVO {
@@ -2309,6 +2321,7 @@ enum EventLevelEnum {
 }
 
 enum EventTypeEnum {
+  COMMENT
   DEBUG_DATA
   EMAIL
   FEED
@@ -2337,6 +2350,7 @@ enum LocationClassificationEnum {
 }
 
 enum MessageTypeEnum {
+  COMMENT
   DEBUG_DATA
   EMAIL
   FEED
@@ -2421,12 +2435,14 @@ input ActivityCalendarFilterVOInput {
   qualityFlagIds: [Int]
   recorderDepartmentId: Int
   recorderPersonId: Int
+  recorderPersonIds: [Int]
   registrationLocationId: Int
   registrationLocationIds: [Int]
   startDate: Date
   vesselId: Int
   vesselIds: [Int]
   vesselTypeId: Int
+  vesselTypeIds: [Int]
   year: Int
 }
 
@@ -3000,6 +3016,8 @@ input LandingFilterVOInput {
   tripId: Int
   vesselId: Int
   vesselIds: [Int]
+  vesselTypeId: Int
+  vesselTypeIds: [Int]
 }
 
 input LandingVOInput {
@@ -3121,6 +3139,7 @@ input MetierFilterVOInput {
   levelIds: [Int]
   levelLabel: String
   levelLabels: [String]
+  locationIds: [Int]
   name: String
   programLabel: String
   searchAttribute: String
@@ -3377,6 +3396,7 @@ input PersonFilterVOInput {
   email: String
   excludedIds: [Int]
   firstName: String
+  fullName: String
   id: Int
   includedIds: [Int]
   label: String
@@ -3396,6 +3416,7 @@ input PersonFilterVOInput {
   userProfileId: Int
   userProfileIds: [Int]
   userProfiles: [String]
+  username: String
 }
 
 input PersonVOInput {
@@ -3666,6 +3687,7 @@ input ReferentialFilterVOInput {
   levelIds: [Int]
   levelLabel: String
   levelLabels: [String]
+  locationIds: [Int]
   name: String
   searchAttribute: String
   searchJoin: String
@@ -4025,6 +4047,8 @@ input TripFilterVOInput {
   tripId: Int
   vesselId: Int
   vesselIds: [Int]
+  vesselTypeId: Int
+  vesselTypeIds: [Int]
 }
 
 input TripSaveOptionsInput {
@@ -4355,4 +4379,3 @@ input WeightLengthConversionVOInput {
   updateDate: Date
   year: Int
 }
-

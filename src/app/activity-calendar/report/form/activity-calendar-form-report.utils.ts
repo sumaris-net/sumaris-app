@@ -5,17 +5,17 @@ import {
   ActivityCalendarFormReportStats,
 } from './activity-calendar-form.report';
 import {
-  CORE_CONFIG_OPTIONS,
-  ConfigService,
-  DateUtils,
-  LocalSettingsService,
-  StatusIds,
   arrayDistinct,
+  ConfigService,
+  CORE_CONFIG_OPTIONS,
+  DateUtils,
   firstNotNilPromise,
   isEmptyArray,
   isNotEmptyArray,
   isNotNil,
+  LocalSettingsService,
   splitById,
+  StatusIds,
 } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -52,6 +52,8 @@ export async function computeCommonActivityCalendarFormReportStats(
   stats.footerText = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_FOOTER);
   stats.logoHeadLeftUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL);
   stats.logoHeadRightUrl = stats.program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL);
+  stats.colorPrimary = program.getProperty(ProgramProperties.DATA_REPORT_COLOR_PRIMARY);
+  stats.colorSecondary = program.getProperty(ProgramProperties.DATA_REPORT_COLOR_SECONDARY);
   stats.vesselAttributes = (await vesselSnapshotService.getAutocompleteFieldOptions('vesselSnapshot'))?.attributes;
 
   stats.displayAttributes = {
@@ -99,10 +101,17 @@ export async function computeCommonActivityCalendarFormReportStats(
     forGpfTable: splitById(stats.pmfm.forGpfTable),
   };
 
+  // Sort AUCTION_HABIT qualitativeValues in alphabetical order
+  if (isNotNil(stats.pmfmById.activityCalendar[PmfmIds.AUCTION_HABIT])) {
+    stats.pmfmById.activityCalendar[PmfmIds.AUCTION_HABIT].qualitativeValues = stats.pmfmById.activityCalendar[
+      PmfmIds.AUCTION_HABIT
+    ].qualitativeValues.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   // Order survey qualification values by alphabetical order
   stats.surveyQualificationQualitativeValues = stats.pmfm.activityCalendar
     .filter((pmfm) => pmfm.id === PmfmIds.SURVEY_QUALIFICATION)[0]
-    ?.qualitativeValues.filter((qv) => (isBlankForm ? true : qv.statusId === StatusIds.ENABLE))
+    ?.qualitativeValues.filter((qv) => (isBlankForm ? qv.statusId === StatusIds.ENABLE : true))
     .sort((a, b) => (a.name > b.name ? 1 : a.name < b.name ? -1 : 0));
 
   return stats;
@@ -133,12 +142,13 @@ export async function computeIndividualActivityCalendarFormReportStats(
 
   if (!isBlankForm) {
     const gpfGearIds = (data.gearPhysicalFeatures || []).filter((gpf) => isNotNil(gpf.gear)).map((gph) => gph.gear.id);
-    stats.pmfm.gpf = stats.pmfm.gpf.filter(
-      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gpfGearIds.includes(gearId))
-    );
     const gufGearIds = (data.gearUseFeatures || []).filter((guf) => isNotNil(guf.gear)).map((guf) => guf.gear.id);
+    const mergedGearIds = arrayDistinct(gpfGearIds.concat(gufGearIds));
+    stats.pmfm.gpf = stats.pmfm.gpf.filter(
+      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => mergedGearIds.includes(gearId))
+    );
     stats.pmfm.guf = stats.pmfm.guf.filter(
-      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => gufGearIds.includes(gearId))
+      (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => mergedGearIds.includes(gearId))
     );
   }
 
@@ -147,22 +157,23 @@ export async function computeIndividualActivityCalendarFormReportStats(
   stats.filteredAndOrderedGpf = isBlankForm ? data.gearPhysicalFeatures : GearPhysicalFeaturesUtils.fromActivityCalendar(data, { timezone });
 
   // compute last vessel owner
-  if (isBlankForm) {
-    stats.lastVesselOwner = VesselOwner.fromObject({});
-  } else {
-    // TODO : get the start date and the end date relative to the clandar year ???
-    const startDate = (timezone ? DateUtils.moment().tz(timezone) : DateUtils.moment()).year(data.year).startOf('year');
-    const endDate = startDate.clone().endOf('year');
-    const filter = VesselOwnerPeriodFilter.fromObject({
-      vesselId: data.vesselSnapshot.id,
-      startDate,
-      endDate,
-    });
-    const vesselOwnerPeriods = await vesselOwnerPeridodService.loadAll(0, 100, 'startDate', 'asc', filter, {
-      fetchPolicy: 'cache-first',
-    });
-    const lastVesselOwner = isNotEmptyArray(vesselOwnerPeriods.data) ? vesselOwnerPeriods.data[0].vesselOwner : VesselOwner.fromObject({});
+  // TODO : get the start date and the end date relative to the clandar year ???
+  const startDate = (timezone ? DateUtils.moment().tz(timezone) : DateUtils.moment()).year(data.year).startOf('year');
+  const endDate = startDate.clone().endOf('year');
+  const filter = VesselOwnerPeriodFilter.fromObject({
+    vesselId: data.vesselSnapshot.id,
+    startDate,
+    endDate,
+  });
+  const vesselOwnerPeriods = await vesselOwnerPeridodService.loadAll(0, 100, 'startDate', 'asc', filter, {
+    fetchPolicy: 'cache-first',
+  });
+  const lastVesselOwner = isNotEmptyArray(vesselOwnerPeriods.data) ? vesselOwnerPeriods.data[0].vesselOwner : VesselOwner.fromObject({});
+
+  if (isNotNil(lastVesselOwner?.id)) {
     stats.lastVesselOwner = await vesselOwnerService.load(lastVesselOwner.id);
+  } else {
+    stats.lastVesselOwner = VesselOwner.fromObject({});
   }
 
   computeMetierTableChunk(stats, pageDimensions);

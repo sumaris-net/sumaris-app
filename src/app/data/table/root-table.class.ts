@@ -19,7 +19,9 @@ import {
   NamedFilterSelector,
   NetworkService,
   Property,
+  ReferentialRef,
   referentialToString,
+  splitByProperty,
   StatusIds,
   toBoolean,
   toDateISOString,
@@ -27,7 +29,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { RootDataEntity, RootDataEntityUtils } from '../services/model/root-data-entity.model';
-import { SynchronizationStatus } from '../services/model/model.utils';
+import { DataQualityStatusEnum, DataQualityStatusList, SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
 import { TableElement } from '@e-is/ngx-material-table';
 import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
@@ -43,6 +45,8 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: 'filter',
@@ -90,6 +94,7 @@ export abstract class AppRootDataTable<
   protected readonly accountService = inject(AccountService);
   protected readonly userEventService = inject(UserEventService);
   protected readonly programRefService = inject(ProgramRefService);
+  protected readonly referentialRefService = inject(ReferentialRefService);
 
   @RxStateSelect() protected title$: Observable<string>;
   @RxStateSelect() protected program$: Observable<Program>;
@@ -105,6 +110,10 @@ export abstract class AppRootDataTable<
 
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
   protected defaultShowFilterProgram: boolean;
+  protected qualityFlags: ReferentialRef[];
+  protected qualityFlagsById: { [id: number]: ReferentialRef };
+  protected dataQualityStatusList = DataQualityStatusList;
+  protected dataQualityStatusById = DataQualityStatusEnum;
 
   @Input() @RxStateProperty() title: string;
 
@@ -799,7 +808,6 @@ export abstract class AppRootDataTable<
   protected async loadProgram(programLabel?: string, filter?: Partial<ProgramFilter>): Promise<Program | undefined> {
     filter = filter ?? this.autocompleteFields.program?.filter;
     if (isNotNilOrBlank(programLabel)) {
-      console.log('loadByLabel program=' + programLabel);
       return this.programRefService.loadByLabel(programLabel);
     }
     // Check if user can access more than one program
@@ -836,5 +844,15 @@ export abstract class AppRootDataTable<
     console.debug(`${this.logPrefix}Reset filter program`);
     this.i18nColumnSuffix = '';
     this.markForCheck();
+  }
+
+  protected excludeNotQualified(qualityFlag: ReferentialRef): boolean {
+    return qualityFlag?.id !== QualityFlagIds.NOT_QUALIFIED;
+  }
+
+  protected async loadQualityFlags() {
+    const items = await this.referentialRefService.loadQualityFlags();
+    this.qualityFlags = items;
+    this.qualityFlagsById = splitByProperty(items, 'id');
   }
 }

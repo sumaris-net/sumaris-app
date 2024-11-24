@@ -61,6 +61,8 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
   footerText?: string;
   logoHeadLeftUrl?: string;
   logoHeadRightUrl?: string;
+  colorPrimary: string;
+  colorSecondary: string;
   strategy: Strategy;
   activityMonth?: ActivityMonth[];
   pmfm?: {
@@ -103,6 +105,8 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
     this.footerText = source.footerText;
     this.logoHeadLeftUrl = source.logoHeadLeftUrl;
     this.logoHeadRightUrl = source.logoHeadRightUrl;
+    this.colorPrimary = source.colorPrimary;
+    this.colorSecondary = source.colorSecondary;
     this.strategy = Strategy.fromObject(source.strategy);
     this.activityMonth = source?.activityMonth?.map(ActivityMonth.fromObject) || null;
     this.pmfm = {
@@ -141,6 +145,8 @@ export class ActivityCalendarFormReportStats extends BaseReportStats {
       footerText: this.footerText,
       logoHeadRightUrl: this.logoHeadRightUrl,
       logoHeadLeftUrl: this.logoHeadLeftUrl,
+      colorPrimary: this.colorPrimary,
+      colorSecondary: this.colorSecondary,
       strategy: this.strategy.asObject(opts),
       activityMonth: this?.activityMonth?.map((item) => item.asObject(opts)) || null,
       pmfm: {
@@ -325,7 +331,7 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
             year: data.year,
             vessel: referentialToString(
               data.vesselSnapshot,
-              this.localSettings.getFieldDisplayAttributes('vesselSnapshot', ['exteriorMarking', 'name'])
+              this.localSettings.getFieldDisplayAttributes('vesselSnapshot', ['registrationCode', 'name'])
             ),
           });
   }

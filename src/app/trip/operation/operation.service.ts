@@ -24,6 +24,7 @@ import {
   GraphqlService,
   IEntitiesService,
   IEntityService,
+  IPosition,
   isEmptyArray,
   isNil,
   isNilOrBlank,
@@ -856,7 +857,7 @@ export class OperationService
       },
       refetchQueries: this.getRefetchQueriesForMutation(opts),
       awaitRefetchQueries: opts && opts.awaitRefetchQueries,
-      update: async (cache, { data }) => {
+      update: async (cache, { data }, options) => {
         const savedEntity = data?.data?.[0];
 
         // Local entity (from an optimistic response): save it
@@ -899,8 +900,8 @@ export class OperationService
             });
           }
 
-          if (opts && opts.update) {
-            opts.update(cache, { data });
+          if (opts?.update) {
+            opts.update(cache, { data }, options);
           }
 
           if (this._debug) console.debug(`[operation-service] Operation saved in ${Date.now() - now}ms`, entity);
@@ -941,7 +942,7 @@ export class OperationService
         variables: { ids },
         refetchQueries: this.getRefetchQueriesForMutation(opts),
         awaitRefetchQueries: opts && opts.awaitRefetchQueries,
-        update: (cache, res) => {
+        update: (cache, res, options) => {
           // Remove from cached queries
           if (this._watchQueriesUpdatePolicy === 'update-cache') {
             this.removeFromMutableCachedQueriesByIds(cache, {
@@ -950,8 +951,8 @@ export class OperationService
             });
           }
 
-          if (opts && opts.update) {
-            opts.update(cache, res);
+          if (opts?.update) {
+            opts.update(cache, res, options);
           }
 
           if (this._debug) console.debug(`[operation-service] Operations deleted in ${Date.now() - now}ms`);
@@ -1230,10 +1231,9 @@ export class OperationService
    */
   async getCurrentPosition(
     options?: PositionOptions & { showToast?: boolean; stop?: Observable<any>; toastOptions?: ToastOptions; cancellable?: boolean }
-  ): Promise<{ latitude: number; longitude: number }> {
-    const timeout = options?.timeout || this.settings.getPropertyAsInt(TRIP_LOCAL_SETTINGS_OPTIONS.OPERATION_GEOLOCATION_TIMEOUT) * 1000;
-    const maximumAge = options?.maximumAge || timeout * 2;
-
+  ): Promise<IPosition> {
+    const timeout = options?.timeout ?? this.settings.getPropertyAsInt(TRIP_LOCAL_SETTINGS_OPTIONS.OPERATION_GEOLOCATION_TIMEOUT) * 1000;
+    const maximumAge = options?.maximumAge ?? timeout * 2;
     // Opening a toast
     if (options?.showToast) {
       return new Promise(async (resolve, reject) => {
@@ -1276,7 +1276,6 @@ export class OperationService
       maximumAge,
       timeout,
       enableHighAccuracy: false, // Not need at sea
-      ...options,
     });
   }
 

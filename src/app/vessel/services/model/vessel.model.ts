@@ -89,6 +89,8 @@ export class Vessel extends RootDataEntity<Vessel> {
 export class VesselFeatures extends Entity<VesselFeatures> implements IVesselPeriodEntity<VesselFeatures> {
   static fromObject: (source: any, opts?: any) => VesselFeatures;
 
+  static asObject: (source: any, opts?: any) => any;
+
   static equals(o1: VesselFeatures | any, o2: VesselFeatures | any, opts?: { withId?: boolean; withDates?: boolean }): boolean {
     return (!o1 && !o2) || (o1 && VesselFeatures.fromObject(o1).equals(o2, opts));
   }

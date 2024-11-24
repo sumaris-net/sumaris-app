@@ -221,7 +221,6 @@ export class ActivityCalendarPage
       canUseExpertiseArea: true, // Enable expertise area
     });
     this.defaultBackHref = '/activity-calendar';
-    this.enableExpertiseArea = true;
     this.predocShortcutHelp = `(${hotkeys.defaultControlKeyName}+P)`;
 
     // FOR DEV ONLY ----
@@ -502,7 +501,7 @@ export class ActivityCalendarPage
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
       this.i18nContext.suffix = i18nSuffix;
 
-      this.isAdminOrManager = this.accountService.isAdmin() || this.programRefService.hasUserManagerPrivilege(program);
+      this.isAdminOrManager = this.accountService.isSupervisor() || this.programRefService.hasUserManagerPrivilege(program);
       this.baseForm.showObservers = this.isAdminOrManager && program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
 
       if (this.baseForm) {
@@ -551,14 +550,14 @@ export class ActivityCalendarPage
     }
 
     if (detailsErrors?.months) {
-      this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS';
+      this.calendar.error = 'ACTIVITY_CALENDAR.ERROR.VALID_MONTHS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.CALENDAR;
       super.setError(undefined, opts);
       return;
     }
 
     if (detailsErrors?.metiers) {
-      this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.INVALID_METIERS';
+      this.tableMetier.error = 'ACTIVITY_CALENDAR.ERROR.VALID_METIERS';
       this.selectedTabIndex = ActivityCalendarPage.TABS.METIER;
       super.setError(undefined, opts);
       return;
@@ -836,7 +835,7 @@ export class ActivityCalendarPage
   }
 
   protected async onEntitySaved(data: ActivityCalendar): Promise<void> {
-    this.calendar?.collapseAll();
+    this.calendar?.onAfterSave();
     await super.onEntitySaved(data);
     this.setDataStartDate(data);
   }
@@ -1037,6 +1036,11 @@ export class ActivityCalendarPage
     const target = existingMonths.map((existingMonth, index) => {
       const source = sources[index];
       if (!source) return target; // Keep original, if missing a month
+
+      if (existingMonth.readonly) {
+        this.calendar.showUnautorizedToast('ACTIVITY_CALENDAR.WARNING.UNAUTHORIZED_PREDOC_PASTE');
+        return existingMonth;
+      }
 
       // Clean isActive if equals to not exists (see issue #687)
       if (source.isActive === VesselUseFeaturesIsActiveEnum.NOT_EXISTS) {

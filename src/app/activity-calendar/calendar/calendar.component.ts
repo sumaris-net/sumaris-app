@@ -98,6 +98,7 @@ import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { Mutex } from '@app/shared/async/mutex.class';
 import { FetchPolicy } from '@apollo/client/core';
 import { ExpertiseAreaUtils } from '@app/referential/expertise-area/expertise-area.utils';
+import { IExpertiseAreaProperties } from '@app/referential/expertise-area/expertise-area.model';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 10;
@@ -183,7 +184,7 @@ export interface CalendarComponentState extends BaseMeasurementsTableState {
   hasClipboard: boolean;
   availablePrograms: ReferentialRef[];
   hasConflict: boolean;
-  expertiseLocationIds: number[];
+  expertiseAreaProperties: IExpertiseAreaProperties;
 }
 
 export type CalendarComponentStyle = 'table' | 'accordion';
@@ -208,6 +209,10 @@ export interface TableCellSelection<T = any> {
 export function isSingleCellSelection(selection: TableCellSelection) {
   return selection && selection.rowspan === 1 && selection.rowspan === 1;
 }
+
+export const CALENDAR_SETTINGS_ENUM = {
+  COLLAPSE_AFTER_SAVE_KEY: 'collapseAfterSave',
+};
 
 @Component({
   selector: 'app-calendar',
@@ -242,6 +247,7 @@ export class CalendarComponent
   protected referentialRefService = inject(ReferentialRefService);
   protected debouncedExpandCellSelection$ = new Subject<TableCellSelection<ActivityMonth>>();
   protected debouncedCheckExpertiseArea$ = new Subject<ActivityMonth[] | undefined>();
+  protected unauthorizedToast$ = new Subject<void | string>();
   protected confirmingRowMutex = new Mutex();
 
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
@@ -264,6 +270,7 @@ export class CalendarComponent
   protected editedRowFocusedElement: HTMLElement;
   protected programSelection = new SelectionModel<ReferentialRef>(true);
   protected readonlyColumnCount: number;
+  protected collapseAfterSave: boolean = null;
 
   @RxStateProperty() vesselOwners: VesselOwner[][];
   @RxStateProperty() dynamicColumns: ColumnDefinition[];
@@ -295,7 +302,7 @@ export class CalendarComponent
   @Input() enableCellSelection: boolean;
   @Input() programHeaderLabel: string;
   @Input() showError = true;
-  @Input() @RxStateProperty() expertiseLocationIds: number[];
+  @Input() @RxStateProperty() expertiseAreaProperties: IExpertiseAreaProperties;
 
   @Input() set month(value: number) {
     this.setFilter(ActivityMonthFilter.fromObject({ ...this.filter, month: value }));
@@ -447,11 +454,27 @@ export class CalendarComponent
     // Wait enumerations to be set
     await this.referentialRefService.ready();
 
+    this.registerSubscription(
+      this.unauthorizedToast$
+        .pipe(
+          debounceTime(100),
+          tap((error) =>
+            this.showToast({
+              icon: 'warning-outline',
+              type: 'warning',
+              message: error || 'ACTIVITY_CALENDAR.WARNING.UNAUTHORIZED_ACTION',
+            })
+          )
+        )
+        .subscribe()
+    );
+
     this.registerAutocompleteField('basePortLocation', {
       suggestFn: (value, filter) => this.suggestBasePortLocations(value, filter),
       attributes: this.locationDisplayAttributes,
       panelClass: 'min-width-large',
       selectInputContentOnFocus: true,
+      selectInputContentOnFocusDelay: 200,
     });
 
     this.registerAutocompleteField('metier', {
@@ -535,12 +558,18 @@ export class CalendarComponent
 
     // Check data against expertise area, if changed
     this._state.hold(
-      this._state.select('expertiseLocationIds').pipe(
+      this._state.select('expertiseAreaProperties').pipe(
         distinctUntilChanged(),
         filter(() => this.loaded)
       ),
       () => this.checkDataExpertiseArea()
     );
+
+    this._state.hold(this.programLabel$, () => {
+      // Update the settings id, as program could have changed
+      this.settingsId = this.generateTableId();
+      this.restoreCollapseAfterSave();
+    });
   }
 
   ngAfterViewInit() {
@@ -1134,7 +1163,7 @@ export class CalendarComponent
     const isActiveControl = row.validator.get('isActive');
     const isActive = isActiveControl?.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
     const pmfmControl = row.validator.get(`measurementValues.${pmfm.id}`);
-    if (!pmfmControl) return;
+    if (!pmfmControl) return; // Skip if no control
 
     // Compute new control's value
     let valueStr: string = pmfmControl.value?.toString() || '';
@@ -1168,6 +1197,10 @@ export class CalendarComponent
       pmfmControl.patchValue(newValue);
       this.markAsDirty();
     }
+  }
+
+  async showUnautorizedToast(error?: string) {
+    this.unauthorizedToast$.next(error);
   }
 
   async shiftClick(event?: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
@@ -1487,9 +1520,8 @@ export class CalendarComponent
       await sleep(HAMMER_TAP_TIME + 10);
     }
 
-    if (event?.defaultPrevented || row.editing) return false; // Skip
-
     this.closeContextMenu();
+    if (event?.defaultPrevented || row.editing) return false; // Skip
 
     // Wait of resizing or validating
     if (this.cellSelection?.resizing || this.cellSelection?.validating) {
@@ -1654,6 +1686,28 @@ export class CalendarComponent
     }
   }
 
+  protected expandMore(event?: Event) {
+    // Get currently collapsed metiers
+    const metierBlocksToExpand = [];
+    for (let i = 0; i < this.metierCount; i++) {
+      const metierColumn = this.dynamicColumns.find((col) => col.blockIndex === i);
+      if (metierColumn && !metierColumn.expanded) {
+        metierBlocksToExpand.push(i);
+      }
+    }
+
+    if (isNotEmptyArray(metierBlocksToExpand)) {
+      // Expand remaining collapsed metiers
+      metierBlocksToExpand.forEach((blockIndex) => this.expandMetierBlock(null, blockIndex, { emitEvent: false, expandChildren: false }));
+    } else {
+      // Expand all
+      this.expandAll(event, { emitEvent: false });
+    }
+
+    this.markForCheck();
+    setTimeout(() => this.onResize());
+  }
+
   protected expandAll(event?: Event, opts?: { emitEvent?: boolean }) {
     for (let i = 0; i < this.metierCount; i++) {
       this.expandMetierBlock(null, i, { emitEvent: false });
@@ -1677,7 +1731,7 @@ export class CalendarComponent
       entityName: 'Location',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      locationIds: this.expertiseLocationIds,
+      locationIds: this.expertiseAreaProperties?.locationIds,
       levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT],
     };
   }
@@ -1701,7 +1755,7 @@ export class CalendarComponent
       ...METIER_DEFAULT_FILTER,
       ...filter,
       excludedIds: existingMetierIds,
-      locationIds: this.expertiseLocationIds,
+      locationIds: this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1709,8 +1763,8 @@ export class CalendarComponent
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
     // Get gearUseFeature index
-    const columnName = this.getEditedCell().columnName;
-    const gearUseFeatureIndex = parseInt(columnName.match(/\d/)?.[0], 10);
+    const columnName = this.getEditedCell()?.columnName;
+    const gearUseFeatureIndex = columnName ? parseInt(columnName.match(/\d/)?.[0], 10) : null;
 
     // Get fishingArea to exclude (already existing in gearUseFeature)
     const existingFishingAreaLocationIds =
@@ -1731,9 +1785,9 @@ export class CalendarComponent
       entityName: 'Location',
       statusId: StatusIds.ENABLE,
       ...filter,
-      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
       excludedIds: existingFishingAreaLocationIds,
-      locationIds: this.expertiseLocationIds,
+      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1754,8 +1808,8 @@ export class CalendarComponent
       entityName: 'DistanceToCoastGradient',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
-      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1773,8 +1827,8 @@ export class CalendarComponent
       entityName: 'DepthGradient',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
-      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1792,8 +1846,8 @@ export class CalendarComponent
       entityName: 'NearbySpecificArea',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
-      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseLocationIds,
+      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1819,11 +1873,14 @@ export class CalendarComponent
     months = months ?? (this.dirty ? this.dataSource.getData() : this.memoryDataService.value);
     if (isEmptyArray(months)) return; // Skip if nothing to check
 
-    console.debug(`${this.logPrefix}Check data inside expertise areas... (locationIds: ${this.expertiseLocationIds?.join(',')}`);
-    const now = Date.now();
+    let now: number;
+    if (this.debug) {
+      console.debug(`${this.logPrefix}Check data inside expertise areas... (locationIds: ${this.expertiseAreaProperties?.locationIds?.join(',')})`);
+      now = Date.now();
+    }
 
     try {
-      const needCheck = isNotEmptyArray(this.expertiseLocationIds);
+      const needCheck = isNotEmptyArray(this.expertiseAreaProperties?.locationIds);
       const invalidBasePortLocationIds: number[] = [];
       const invalidMetierIds: number[] = [];
       const invalidFishingAreaLocationIds: number[] = [];
@@ -1924,7 +1981,9 @@ export class CalendarComponent
         isNotEmptyArray(invalidDepthGradientIds) ||
         isNotEmptyArray(invalidNearbySpecificAreaIds);
 
-      console.debug(`${this.logPrefix}Check data inside expertise areas - done in ${Date.now() - now}ms`);
+      if (this.debug) {
+        console.debug(`${this.logPrefix}Check data inside expertise areas - done in ${Date.now() - now}ms`);
+      }
     } finally {
       this.markForCheck();
     }
@@ -2040,11 +2099,7 @@ export class CalendarComponent
 
       // Warn user that he cannot edit
       if (month.readonly === true) {
-        await this.showToast({
-          icon: 'warning-outline',
-          type: 'warning',
-          message: 'ACTIVITY_CALENDAR.WARNING.UNAUTHORIZED_REGISTRATION_LOCATION',
-        });
+        this.showUnautorizedToast();
       }
       return false;
     }
@@ -2080,13 +2135,17 @@ export class CalendarComponent
     if (!row) {
       const editingRows = this.dataSource.getEditingRows();
       if (isEmptyArray(editingRows)) return true; // No rows to confirm
-      console.debug(this.logPrefix + `lock rows`, new Error(), editingRows);
+
+      // DEBUG
+      // console.debug(this.logPrefix + `lock rows`, editingRows);
+
       return (await Promise.all(editingRows.map((editedRow) => this.confirmEditCreate(event, editedRow)))).every((c) => c === true);
     }
     const confirmEditCreateId = this.confirmEditCreateId++;
 
     try {
-      console.debug(this.logPrefix + `lock row#${row?.id} - ID #${confirmEditCreateId}`, new Error());
+      // DEBUG
+      //console.debug(this.logPrefix + `lock row#${row?.id} - ID #${confirmEditCreateId}`);
 
       // Lock the row, or wait until can lock
       await this.confirmingRowMutex.lock(row);
@@ -2095,7 +2154,8 @@ export class CalendarComponent
 
       if (!row || !row.editing) return true; // nothing to confirmed
 
-      console.debug(this.logPrefix + `confirmEditCreate row#${row?.id}`);
+      // DEBUG
+      //console.debug(this.logPrefix + `confirmEditCreate row#${row?.id}`);
 
       // Allow to confirm when invalid
       const form = row.validator;
@@ -2196,7 +2256,28 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  collapseAll(event?: Event, opts?: { emitEvent?: boolean }) {
+  protected collapseMore(event?: Event) {
+    // Check if some distanceToCoastGradient are not collapsed
+    const blockColumnNames = [`distanceToCoastGradient`, `depthGradient`, `nearbySpecificArea`];
+    const blockColumns = this.dynamicColumns.filter((col) => blockColumnNames.some((blockColName) => col.key.includes(blockColName)));
+
+    const masterBlockColumns = blockColumns.filter((col) => isNotNil(col.expanded));
+    const childBlockColumns = blockColumns.filter((col) => !isNotNil(col.expanded));
+
+    if (masterBlockColumns.some((col) => col.expanded)) {
+      // Collapse remaining
+      masterBlockColumns.forEach((col) => (col.expanded = false));
+      childBlockColumns.forEach((col) => (col.hidden = true));
+    } else {
+      // Collapse all
+      this.collapseAll(event, { emitEvent: false });
+    }
+
+    this.markForCheck();
+    setTimeout(() => this.onResize());
+  }
+
+  protected collapseAll(event?: Event, opts?: { emitEvent?: boolean }) {
     if (event?.defaultPrevented) return; // Skip
 
     for (let i = 0; i < this.metierCount; i++) {
@@ -2220,8 +2301,10 @@ export class CalendarComponent
 
     const rows = this.dataSource.getRows();
     for (const row of rows) {
-      const isActive = row.currentData.isActive;
-      if (isNotNil(isActive)) await this.clear(event, row, { interactive: false });
+      if (!row.currentData.readonly) {
+        const isActive = row.currentData.isActive;
+        if (isNotNil(isActive)) await this.clear(event, row, { interactive: false });
+      }
     }
 
     // Clear valid row counter
@@ -2293,7 +2376,7 @@ export class CalendarComponent
     setTimeout(() => this.onResize());
   }
 
-  expandMetierBlock(event: Event, blockIndex: number, opts?: { emitEvent?: boolean }) {
+  expandMetierBlock(event: Event, blockIndex: number, opts?: { emitEvent?: boolean; expandChildren?: boolean }) {
     if (event?.defaultPrevented) return; // Skip^
     event?.preventDefault();
 
@@ -2331,7 +2414,7 @@ export class CalendarComponent
 
   /* -- protected functions -- */
 
-  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean, opts?: { emitEvent?: boolean }) {
+  protected setMetierBlockExpanded(blockIndex: number, expanded: boolean, opts?: { emitEvent?: boolean; expandChildren?: boolean }) {
     const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return;
 
@@ -2342,11 +2425,20 @@ export class CalendarComponent
 
     // Update sub columns
     blockColumns.slice(1).forEach((col) => {
-      col.hidden = !expanded;
+      if (opts?.expandChildren === false) {
+        col.hidden = col.key.includes('depthGradient') || col.key.includes('nearbySpecificArea');
 
-      // Expanded state for all columns to fix divergences states
-      if (isNotNil(col.expanded)) {
-        col.expanded = expanded;
+        // Collapsed state for all columns
+        if (isNotNil(col.expanded)) {
+          col.expanded = false;
+        }
+      } else {
+        col.hidden = !expanded;
+
+        // Expanded state for all columns to fix divergences states
+        if (isNotNil(col.expanded)) {
+          col.expanded = expanded;
+        }
       }
     });
 
@@ -2450,6 +2542,10 @@ export class CalendarComponent
 
     let dirty = false;
     targetRows.forEach((row, index) => {
+      if (row.currentData.readonly) {
+        this.showUnautorizedToast();
+        return;
+      }
       const form = row.validator;
       if (form) {
         const isActiveControl = form.get('isActive');
@@ -2593,6 +2689,10 @@ export class CalendarComponent
 
     for (const row of rows) {
       paths.forEach((path) => {
+        if (row.currentData.readonly) {
+          this.showUnautorizedToast();
+          return;
+        }
         setPropertyByPath(row, path, null);
         if (this.error) this.resetError();
         this.validatorService.updateFormGroup(row.validator);
@@ -2820,6 +2920,12 @@ export class CalendarComponent
 
       // Creating a form
       const targetForm = this.validatorService.getFormGroup(targetRow.currentData, { withMeasurements: true, pmfms: this.pmfms });
+
+      if (targetForm.value.readonly) {
+        this.showUnautorizedToast();
+        return;
+      }
+
       //TODO getFormGroup does not return the pmfms, to be fixed with BL
       targetForm.get('measurementValues')?.patchValue(targetRow.currentData.measurementValues);
 
@@ -2949,14 +3055,18 @@ export class CalendarComponent
   protected async onContextMenu(event: MouseEvent, cell?: HTMLElement, row?: AsyncTableElement<ActivityMonth>, columnName?: string) {
     row = row || this.editedRow;
     columnName = columnName || this.focusColumn;
-    if (!row || !columnName) {
+    if (!row || !columnName) return; // Skip
+
+    // Do not show contextual menu, if row is editing
+    if (row.editing) {
+      this.closeContextMenu();
       event.preventDefault();
-      return; // Skip
+      return;
     }
 
     // select current row
     if (!this.isInsideCellSelection(this.cellSelection, cell)) {
-      this.selectCell(event, row, columnName);
+      await this.confirmEditCell(event, row, columnName);
     }
     event.preventDefault();
 
@@ -2977,7 +3087,9 @@ export class CalendarComponent
     columnName = columnName ?? this.focusColumn;
     if (!row || !columnName) return; //
 
-    this.focusColumn = columnName;
+    if (row === this.editedRow) {
+      this.focusColumn = columnName;
+    }
 
     const cellElement = this.getEventCellElement(event);
     this.cellSelection = {
@@ -3134,6 +3246,12 @@ export class CalendarComponent
     }
   }
 
+  onAfterSave() {
+    if (this.collapseAfterSave) {
+      this.collapseAll();
+    }
+  }
+
   getErrorsInRows(): string[] {
     const rows = this.dataSource.getRows();
     const listErrors = [];
@@ -3141,23 +3259,21 @@ export class CalendarComponent
     rows.forEach((row) => {
       const form = this.validatorService.getFormGroup(row.currentData, { withMeasurements: true, pmfms: this.pmfms });
 
-      //TODO getFormGroup does not return the pmfms, to be fixed with BL
-      form.get('measurementValues')?.patchValue(row.currentData.measurementValues);
-
-      const entity = form.value;
       const errorTranslate = this.formErrorAdapter.translateFormErrors(form, this.errorTranslateOptions);
 
       if (form.errors) {
-        DataEntityUtils.markAsInvalid(entity, errorTranslate);
-        row.validator.patchValue(entity, { emitEvent: false });
+        DataEntityUtils.markFormAsInvalid(row.validator, errorTranslate, { emitEvent: false });
         listErrors.push(errorTranslate);
+      } else {
+        DataEntityUtils.resetFormQualification(row.validator, { emitEvent: false });
       }
     });
+
     this.cd.detectChanges();
 
     // cannot be placed above the cd.detectChanges()
     if (listErrors.length > 0) {
-      this.setError('ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS');
+      this.setError('ACTIVITY_CALENDAR.ERROR.VALID_MONTHS');
     }
 
     return listErrors;
@@ -3230,6 +3346,25 @@ export class CalendarComponent
       });
     } else {
       this.expandAll();
+    }
+  }
+
+  protected async toggleCollapseAfterSave() {
+    this.collapseAfterSave = !this.collapseAfterSave;
+    if (this.usePageSettings && isNotNilOrBlank(this.settingsId)) {
+      await this.savePageSettings(this.collapseAfterSave, CALENDAR_SETTINGS_ENUM.COLLAPSE_AFTER_SAVE_KEY);
+    }
+  }
+
+  protected restoreCollapseAfterSave() {
+    if (!this.usePageSettings || isNilOrBlank(this.settingsId)) return;
+
+    const collapseAfterSave = toBoolean(
+      this.settings.getPageSettings(this.settingsId, CALENDAR_SETTINGS_ENUM.COLLAPSE_AFTER_SAVE_KEY),
+      toBoolean(this.collapseAfterSave, true)
+    );
+    if (this.collapseAfterSave !== collapseAfterSave) {
+      this.collapseAfterSave = collapseAfterSave;
     }
   }
 }

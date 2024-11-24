@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { BehaviorSubject, EMPTY, merge, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, EMPTY, merge, Observable, Subject, switchMap } from 'rxjs';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
   Alerts,
@@ -185,19 +185,24 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
     this._state.connect(
       'programs',
-      this.programRefService.watchAll(0, 100, 'label', 'asc', <ProgramFilter>{
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        acquisitionLevelLabels: [
-          // Acquisition levels used by Trip -> Operation
-          AcquisitionLevelCodes.TRIP,
-          AcquisitionLevelCodes.OPERATION,
-          AcquisitionLevelCodes.CHILD_OPERATION,
-          // Acquisition levels used by ObservedLocation -> Landing
-          AcquisitionLevelCodes.OBSERVED_LOCATION,
-          AcquisitionLevelCodes.LANDING,
-          AcquisitionLevelCodes.ACTIVITY_CALENDAR,
-        ],
-      }),
+      merge(this.programRefService.startSubject, this.accountService.onLogin).pipe(
+        filter(() => this.accountService.isUser()),
+        switchMap(() =>
+          this.programRefService.watchAll(0, 100, 'label', 'asc', <ProgramFilter>{
+            statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+            acquisitionLevelLabels: [
+              // Acquisition levels used by Trip -> Operation
+              AcquisitionLevelCodes.TRIP,
+              AcquisitionLevelCodes.OPERATION,
+              AcquisitionLevelCodes.CHILD_OPERATION,
+              // Acquisition levels used by ObservedLocation -> Landing
+              AcquisitionLevelCodes.OBSERVED_LOCATION,
+              AcquisitionLevelCodes.LANDING,
+              AcquisitionLevelCodes.ACTIVITY_CALENDAR,
+            ],
+          })
+        )
+      ),
       (s, { data }) => data
     );
 

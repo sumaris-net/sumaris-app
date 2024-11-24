@@ -28,15 +28,13 @@ import {
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Operation, Trip } from './trip.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
 import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
 import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter } from 'rxjs/operators';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
-import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -67,10 +65,6 @@ export interface TripTableState extends AppRootDataTableState {}
   animations: [slideUpDownAnimation],
 })
 export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, any, number, TripTableState> implements OnInit, OnDestroy {
-  protected statusList = DataQualityStatusList;
-  protected statusById = DataQualityStatusEnum;
-  protected qualityFlags: ReferentialRef[];
-  protected qualityFlagsById: { [id: number]: ReferentialRef };
   protected programVesselTypeIds: number[];
 
   @Input() showFilterProgram = true;
@@ -98,7 +92,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     _dataService: TripService,
     protected operationService: OperationService,
     protected personService: PersonService,
-    protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
     protected context: ContextService,
@@ -474,14 +467,11 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     this.title = config.getProperty(TRIP_CONFIG_OPTIONS.TRIP_NAME);
 
     this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
-    this.setShowColumn('quality', this.showQuality, { emitEvent: false });
+    // Allow show status column - (see issue #816)
+    //this.setShowColumn('quality', this.showQuality, { emitEvent: false });
 
-    if (this.showQuality) {
-      this.referentialRefService.loadQualityFlags().then((items) => {
-        this.qualityFlags = items;
-        this.qualityFlagsById = splitByProperty(items, 'id');
-      });
-    }
+    // Load quality flags
+    if (this.showQuality) this.loadQualityFlags();
 
     // Recorder
     this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
@@ -525,10 +515,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
       filename: this.translate.instant('TRIP.TABLE.DOWNLOAD_JSON_FILENAME'),
       type: 'application/json',
     });
-  }
-
-  protected excludeNotQualified(qualityFlag: ReferentialRef): boolean {
-    return qualityFlag?.id !== QualityFlagIds.NOT_QUALIFIED;
   }
 
   protected async setProgram(program: Program) {

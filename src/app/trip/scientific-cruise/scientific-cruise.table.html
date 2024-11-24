@@ -164,52 +164,55 @@
 
         <!-- Period criteria -->
         <ion-row>
-          <ion-col>
+          <ion-col size="12" size-sm="6">
             <!-- Start date -->
             <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.START_DATE' | translate" formControlName="startDate" [clearable]="true">
               <ion-icon matPrefix name="calendar-outline"></ion-icon>
             </mat-date-field>
           </ion-col>
 
-          <ion-col>
+          <ion-col size="12" size-sm="6">
             <!-- End date -->
             <mat-date-field [placeholder]="'TRIP.TABLE.FILTER.END_DATE' | translate" formControlName="endDate" [clearable]="true"></mat-date-field>
           </ion-col>
         </ion-row>
 
-        <!-- Recorder criteria -->
-        <ion-row *ngIf="showRecorder">
-          <ion-col>
-            <!-- Recorder department -->
-            <mat-autocomplete-field
-              [placeholder]="'TRIP.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
-              formControlName="recorderDepartment"
-              [config]="autocompleteFields.department"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="business"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-        </ion-row>
+        <ion-row>
+          <!-- Recorder (desktop only) -->
+          @if (showRecorder) {
+            <ion-col size="12" size-sm="6">
+              <!-- Recorder department -->
+              <mat-autocomplete-field
+                [placeholder]="'TRIP.TABLE.FILTER.RECORDER_DEPARTMENT' | translate"
+                formControlName="recorderDepartment"
+                [config]="autocompleteFields.department"
+                [clearable]="true"
+              >
+                <ion-icon matPrefix name="business"></ion-icon>
+              </mat-autocomplete-field>
+            </ion-col>
+          }
 
-        @if (showQuality && filterForm | formGetControl: 'dataQualityStatus'; as control) {
-          <ion-row>
+          <!-- Data quality (desktop only) -->
+          @if (!mobile && filterForm | formGetControl: 'dataQualityStatus'; as control) {
             <!-- Data quality status -->
-            <ion-col>
+            <ion-col [sizeLg]="!showQuality || control.value !== 'QUALIFIED' ? 6 : 3">
               <mat-form-field>
                 <mat-select [formControl]="control" [placeholder]="'TRIP.TABLE.QUALITY' | translate">
                   <mat-select-trigger>
-                    @if (statusById | mapGet: control.value; as item) {
+                    @if (dataQualityStatusById | mapGet: control.value; as item) {
                       <span>
                         {{ item.label | translate }}
                       </span>
                     }
                   </mat-select-trigger>
-                  @for (item of statusList; track item.id) {
-                    <mat-option [value]="item.id">
-                      <ion-icon [name]="item.icon"></ion-icon>
-                      {{ item.label | translate }}
-                    </mat-option>
+                  @for (item of dataQualityStatusList; track item.id) {
+                    @if (showQuality || item.id !== 'QUALIFIED') {
+                      <mat-option [value]="item.id">
+                        <ion-icon [name]="item.icon"></ion-icon>
+                        {{ item.label | translate }}
+                      </mat-option>
+                    }
                   }
                 </mat-select>
 
@@ -227,7 +230,7 @@
             </ion-col>
 
             <!-- Quality flag -->
-            @if (filterForm | formGetControl: 'qualityFlagId'; as flagControl) {
+            @if (showQuality && filterForm | formGetControl: 'qualityFlagId'; as flagControl) {
               <ion-col [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'">
                 <mat-form-field>
                   <mat-select [formControl]="flagControl" [placeholder]="'TRIP.TABLE.FILTER.QUALITY_FLAG_ID' | translate">
@@ -255,8 +258,8 @@
                 </mat-form-field>
               </ion-col>
             }
-          </ion-row>
-        }
+          }
+        </ion-row>
       </ion-grid>
     </form>
 

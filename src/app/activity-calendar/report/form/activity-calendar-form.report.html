@@ -69,20 +69,23 @@
           [style.--gear-table-row-height]="pageDimensions.gpfTableRowHeight + 'px'"
           [style.--header-height]="pageDimensions.headerHeight + 'px'"
           [style.--section-title-height]="pageDimensions.sectionTitleHeight + 'px'"
+          [style.--margin-bottom]="pageDimensions.marginBottom + 'px'"
+          [style.--color-primary]="stats.colorPrimary"
+          [style.--color-secondary]="stats.colorSecondary"
         >
-          <ion-grid class="report-header ion-no-padding">
+          <ion-grid class="report-section report-header">
             <ion-row class="document-title">
-              <ion-col class="logo" size="2">
+              <ion-col class="logo" size="auto">
                 @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
                   <img [src]="stats.logoHeadLeftUrl" />
                 }
               </ion-col>
-              <ion-col size="8">
+              <ion-col size="auto">
                 <h1 class="ion-text-uppercase">
                   {{ 'ACTIVITY_CALENDAR.REPORT.TITLE' | translateContext: i18nContext.suffix : { year: data.year } }}
                 </h1>
               </ion-col>
-              <ion-col class="logo" size="2">
+              <ion-col class="logo" size="auto">
                 @if (stats?.logoHeadLeftUrl | isNotNilOrBlank) {
                   <img [src]="stats.logoHeadRightUrl" />
                 }
@@ -139,11 +142,9 @@
                                 }
                                 &nbsp;
                               </strong>
-                              @if (!isBlankForm) {
-                                {{
-                                  (data.vesselSnapshot | mapGet: stats.displayAttributes.vesselSnapshot[0]) || data.vesselSnapshot.intRegistrationCode
-                                }}
-                              }
+                              {{
+                                (data.vesselSnapshot | mapGet: stats.displayAttributes.vesselSnapshot[0]) || data.vesselSnapshot.intRegistrationCode
+                              }}
                             </ion-col>
                           </ion-row>
                         </ion-grid>
@@ -190,23 +191,12 @@
                       </ion-col>
                     </ion-row>
                     <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
-                      @if (isBlankForm) {
-                        <ion-col size="12">
-                          <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER_SECTION.NAME' | translate }}</strong>
-                        </ion-col>
-                        <ion-col size="12">
-                          <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER_SECTION.ADDRESS' | translate }}</strong>
-                        </ion-col>
-                      } @else {
-                        <ion-col size="12">
-                          {{
-                            stats.lastVesselOwner | referentialToString: { properties: stats.displayAttributes.vesselOwner, propertySeparator: ' ' }
-                          }}
-                        </ion-col>
-                        <ion-col size="12">
-                          {{ stats.lastVesselOwner | referentialToString: { properties: ['street', 'zipCode', 'city'], propertySeparator: ' ' } }}
-                        </ion-col>
-                      }
+                      <ion-col size="12">
+                        {{ stats.lastVesselOwner | referentialToString: { properties: stats.displayAttributes.vesselOwner, propertySeparator: ' ' } }}
+                      </ion-col>
+                      <ion-col size="12">
+                        {{ stats.lastVesselOwner | referentialToString: { properties: ['street', 'zipCode', 'city'], propertySeparator: ' ' } }}
+                      </ion-col>
                     </ion-row>
                   </ion-grid>
                 </ion-col>
@@ -470,8 +460,11 @@
                         </ion-col>
                       } @else {
                         <ion-col size="12">
-                          @for (observer of data.observers; track observer.id) {
-                            {{ observer | personToString: ', ' }}
+                          @for (observer of data.observers; track observer.id; let lastObserver = $last) {
+                            {{ observer | personToString }}
+                            @if (!lastObserver) {
+                              <br />
+                            }
                           }
                         </ion-col>
                       }

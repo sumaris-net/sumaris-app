@@ -14,6 +14,15 @@
     }
     <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
   </button>
+  <!-- Collapse after save -->
+  <button mat-menu-item (click)="toggleCollapseAfterSave()">
+    @if (collapseAfterSave) {
+      <mat-icon>check_box</mat-icon>
+    } @else {
+      <mat-icon>check_box_outline_blank</mat-icon>
+    }
+    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_COLLAPSE_AFTER_SAVE</ion-label>
+  </button>
 </mat-menu>
 
 <!-- Déclencheur invisible pour le mat-menu -->
@@ -139,11 +148,8 @@
       }
 
       <!-- error -->
-      @if (showError && errorSubject | async; as error) {
-        <ion-item lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-        </ion-item>
+      @if (showError) {
+        <app-error-item [message]="errorSubject | async"></app-error-item>
       }
 
       <!-- spacer + title -->
@@ -261,10 +267,10 @@
             </ion-text>
           </ion-label>
           <span hidden #errorSpan>
-            @if (row.currentData.qualificationComments | isNilOrBlank) {
-              {{ row | activityMonthRowError: errorTranslateOptions }}
+            @if (row.currentData.qualificationComments; as error) {
+              {{ error }}
             } @else {
-              {{ row.currentData.qualificationComments }}
+              <!--              {{ row | activityMonthRowError: errorTranslateOptions }}-->
             }
           </span>
         </mat-header-cell>
@@ -585,17 +591,19 @@
               <!--   </mat-icon> -->
               <!-- </button> -->
             } @else if (row.validator | formGetValue: 'isActive' | isNotNil) {
-              <!-- clear button -->
-              <button
-                mat-icon-button
-                [class.cdk-visually-hidden]="cellSelection?.resizing"
-                [class.visible-hover]="!row.editing"
-                [title]="'ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_MONTH' | translate"
-                (click)="clear($event, row)"
-                tabIndex="-1"
-              >
-                <mat-icon [style.color]="row.editing ? 'var(--ion-color-dark)' : 'var(--ion-color-medium)'">delete</mat-icon>
-              </button>
+              @if (!row.currentData.readonly) {
+                <!-- clear button -->
+                <button
+                  mat-icon-button
+                  [class.cdk-visually-hidden]="cellSelection?.resizing"
+                  [class.visible-hover]="!row.editing"
+                  [title]="'ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_MONTH' | translate"
+                  (click)="clear($event, row)"
+                  tabIndex="-1"
+                >
+                  <mat-icon [style.color]="row.editing ? 'var(--ion-color-dark)' : 'var(--ion-color-medium)'">delete</mat-icon>
+                </button>
+              }
             }
           }
         </ng-template>
@@ -645,13 +653,13 @@
   }
 
   <!-- Expand all -->
-  <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_EXPAND_ALL' | translate" (click)="expandAll($event)">
+  <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_EXPAND_ALL' | translate" (click)="expandMore($event)">
     <!--    <mat-icon>unfold_more</mat-icon>-->
     <ion-icon name="chevron-expand"></ion-icon>
   </button>
 
   <!-- Collapse all -->
-  <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COLLAPSE_ALL' | translate" (click)="collapseAll($event)">
+  <button mat-icon-button [title]="'ACTIVITY_CALENDAR.EDIT.BTN_COLLAPSE_ALL' | translate" (click)="collapseMore($event)">
     <!--    <mat-icon>unfold_less</mat-icon>-->
     <ion-icon name="chevron-collapse"></ion-icon>
   </button>
@@ -687,8 +695,9 @@
           <br />
           pmfms: {{ (pmfms$ | async)?.length }}
           <br />
-          expertiseLocationIds: {{ expertiseLocationIds }}
+          expertiseArea.locationIds: {{ expertiseAreaProperties?.locationIds }}
           <br />
+          expertiseArea.locationLevelIds: {{ expertiseAreaProperties?.locationLevelIds }}
           <br />
           focusColumn: {{ focusColumn }}
           <br />

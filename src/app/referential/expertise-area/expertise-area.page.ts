@@ -20,7 +20,6 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import { firstValueFrom, Observable } from 'rxjs';
-import { ReferentialService } from '@app/referential/services/referential.service';
 
 export class LocationRef extends ReferentialRef<LocationRef> {
   static fromObject: (source: any, opts?: any) => LocationRef;
@@ -42,13 +41,13 @@ export interface ExpertiseAreaPageState {
 export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, ExpertiseAreaService> {
   @RxStateRegister() protected readonly _state: RxState<ExpertiseAreaPageState> = inject(RxState);
 
+  @RxStateSelect() protected locationLevels$: Observable<ReferentialRef[]>;
   @RxStateSelect() protected locationLevelById$: Observable<{ [key: number]: LocationRef }>;
 
+  @RxStateProperty() protected locationLevels: ReferentialRef[];
   @RxStateProperty() protected locationLevelById: { [key: number]: LocationRef };
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
-
-  protected referentialService: ReferentialService;
 
   constructor(injector: Injector, dataService: ExpertiseAreaService, validatorService: ExpertiseAreaValidatorService) {
     super(injector, ExpertiseArea, dataService, validatorService.getFormGroup(), {
@@ -60,7 +59,7 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
 
     this.registerFieldDefinition({
       key: 'locations',
-      label: `REFERENTIAL.EXPERTISE_AREA.LOCATION`,
+      label: `REFERENTIAL.EXPERTISE_AREA.LOCATIONS`,
       type: 'entities',
       autocomplete: {
         suggestFn: (value, filter) => this.suggestLocations(value, filter),
@@ -70,6 +69,16 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
         attributes: ['label', 'name', 'locationLevel.name'],
         columnNames: [undefined, undefined, 'REFERENTIAL.EXPERTISE_AREA.LOCATION_LEVEL'],
         displayWith: (item) => this.locationToString(item),
+      },
+    });
+
+    this.registerFieldDefinition({
+      key: 'locationLevels',
+      label: 'REFERENTIAL.EXPERTISE_AREA.LOCATION_LEVELS',
+      type: 'entities',
+      autocomplete: {
+        items: this.locationLevels$,
+        attributes: ['id', 'name'],
       },
     });
   }
@@ -103,7 +112,7 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
   }
 
   protected async loadLocationLevels() {
-    const { data: locationLevels } = await this.referentialRefService.loadAll(
+    const { data } = await this.referentialRefService.loadAll(
       0,
       1000,
       'id',
@@ -114,7 +123,8 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
       },
       { withProperties: true }
     );
-    this.locationLevelById = splitById(locationLevels || []);
+    this.locationLevels = data;
+    this.locationLevelById = splitById(this.locationLevels || []);
   }
 
   protected async suggestLocations(value: any, filter: ReferentialFilter): Promise<LoadResult<ReferentialRef>> {
@@ -123,20 +133,25 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
     const locationLevelById = await firstValueFrom(this.locationLevelById$);
     const excludedIds = (this.form.get('locations').value || []).map((item) => item.id);
 
-    const { data, total } = await this.referentialService.loadAll(0, 20, 'label', 'asc', {
-      searchText: value,
-      ...filter,
-      excludedIds,
-    });
-
-    // Fill location levels
-    const entities = (data || []).map((json) => {
-      const item = LocationRef.fromObject(json);
-      if (isNotNil(item.levelId)) item.locationLevel = locationLevelById[item.levelId];
-      return item;
-    });
-
-    return { data: entities, total };
+    return this.referentialService.loadAll(
+      0,
+      20,
+      'label',
+      'asc',
+      {
+        searchText: value,
+        ...filter,
+        excludedIds,
+      },
+      {
+        toEntity: (source: any, opts?: any) => {
+          const target = LocationRef.fromObject(source, opts);
+          // Fill location levels
+          if (isNotNil(target.levelId)) target.locationLevel = locationLevelById[target.levelId];
+          return target as unknown as Referential<any>;
+        },
+      }
+    );
   }
 
   protected registerForms() {

@@ -280,7 +280,7 @@ export class ActivityCalendarValidators {
         // DEBUG
         //console.warn('Invalid month count - actual: ${actualCount} - expected: ${expectedMonthCount}');
 
-        return { invalidMonths: true };
+        return { validMonths: true };
       }
 
       return null;
@@ -305,7 +305,7 @@ export class ActivityCalendarValidators {
       const inactivityYear = months.every((month) => month.isActive === 0);
 
       // Inactive in all year => inactivity year is required
-      if (inactivityYear && (isNil(inactivityYearPmfmValue) || inactivityYearPmfmValue === false)) {
+      if (inactivityYear && isNil(inactivityYearPmfmValue)) {
         inactivityYearControl.setErrors({ required: true });
         return {
           required: true,
@@ -329,6 +329,6 @@ export class ActivityCalendarValidators {
 }
 
 export const ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS = {
-  invalidMonths: 'ACTIVITY_CALENDAR.ERROR.INVALID_MONTHS',
+  validMonths: 'ACTIVITY_CALENDAR.ERROR.VALID_MONTHS',
   inconsistent: 'ERROR.FIELD_INCONSISTENT', // TODO to remove after upgrade to ngx-components 2.18
 };

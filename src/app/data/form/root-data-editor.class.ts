@@ -120,7 +120,7 @@ export abstract class AppRootDataEntityEditor<
 
   @HostListener('window:beforeunload', ['$event'])
   handleRefresh(event: BeforeUnloadEvent): void {
-    if (this.dirty) {
+    if (this.environment.production && this.dirty) {
       event.preventDefault();
     }
   }

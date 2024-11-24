@@ -12,18 +12,24 @@
 
   <ion-buttons slot="end">
     <!-- option menu -->
-    <ion-button
-      *ngIf="showOptionsMenu && ((enabled && !isNewData) || canDebug)"
-      [matMenuTriggerFor]="optionsMenu"
-      [title]="'COMMON.BTN_OPTIONS' | translate"
-    >
-      <mat-icon slot="icon-only">more_vert</mat-icon>
-    </ion-button>
+    @if (showOptionsMenu && (!isNewData || canDebug)) {
+      <ion-button [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.BTN_OPTIONS' | translate">
+        <mat-icon slot="icon-only">more_vert</mat-icon>
+      </ion-button>
+    }
   </ion-buttons>
 </app-toolbar>
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
+  <button mat-menu-item [matMenuTriggerFor]="expertiseAreaMenu">
+    <mat-icon>
+      <ion-icon slot="icon-only" name="earth-outline"></ion-icon>
+    </mat-icon>
+    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_EXPERTISE_AREA</ion-label>
+  </button>
+  <mat-divider></mat-divider>
+
   <!-- report -->
   @if (enableReport && (reportTypes | isNotEmptyArray)) {
     <button mat-menu-item [disabled]="isNewData" [matMenuTriggerFor]="reportsMenu">
@@ -35,14 +41,6 @@
     <mat-divider></mat-divider>
   }
 
-  <button mat-menu-item [matMenuTriggerFor]="expertiseAreaMenu">
-    <mat-icon>
-      <ion-icon slot="icon-only" name="earth-outline"></ion-icon>
-    </mat-icon>
-    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_EXPERTISE_AREA</ion-label>
-  </button>
-  <mat-divider></mat-divider>
-
   <!-- reset -->
   @if (mobile) {
     <button mat-menu-item [disabled]="disabled || !dirty" (click)="cancel($event)">
@@ -53,22 +51,23 @@
     </button>
     <mat-divider></mat-divider>
   }
-
-  <!-- clean calendar -->
-  <button mat-menu-item [disabled]="isNewData || disabled" (click)="clearCalendar($event)">
-    <mat-icon>
-      <ion-icon color="medium" name="calendar"></ion-icon>
-    </mat-icon>
-    <mat-icon color="warn" class="icon-secondary" style="left: 26px; top: 5px; font-weight: bold">close</mat-icon>
-    <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_CALENDAR</ion-label>
-  </button>
-
-  <!-- delete -->
-  @if (isAdmin) {
-    <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
-      <mat-icon color="warn">delete</mat-icon>
-      <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_DELETE_CALENDAR</ion-label>
+  @if (enabled) {
+    <!-- clean calendar -->
+    <button mat-menu-item [disabled]="isNewData || disabled" (click)="clearCalendar($event)">
+      <mat-icon>
+        <ion-icon color="medium" name="calendar"></ion-icon>
+      </mat-icon>
+      <mat-icon color="warn" class="icon-secondary" style="left: 26px; top: 5px; font-weight: bold">close</mat-icon>
+      <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_CALENDAR</ion-label>
     </button>
+
+    <!-- delete -->
+    @if (isAdmin) {
+      <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
+        <mat-icon color="warn">delete</mat-icon>
+        <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_DELETE_CALENDAR</ion-label>
+      </button>
+    }
   }
 
   <!-- DEV only -->
@@ -93,17 +92,18 @@
 <mat-menu #expertiseAreaMenu="matMenu" class="ion-no-padding">
   <ng-template matMenuContent>
     <!-- enable expertise area ? -->
-    <button mat-menu-item (click)="toggleEnableExpertiseArea($event)">
-      <mat-icon>{{ enableExpertiseArea ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
-      <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_ENABLE_EXPERTISE_AREA</ion-label>
-    </button>
-
-    <mat-divider></mat-divider>
+    @if (isAdminOrManager) {
+      @let selected = selectedExpertiseArea | isNil;
+      <button mat-menu-item (click)="selectedExpertiseArea = null">
+        <mat-icon [style.color]="selected ? 'var(--ion-color-primary)' : 'var(--ion-color-dark)'">{{ selected ? 'check' : '' }}</mat-icon>
+        <ion-label [color]="selected ? 'primary' : 'dark'" translate>ACTIVITY_CALENDAR.EDIT.BTN_NO_EXPERTISE_AREA</ion-label>
+      </button>
+    }
 
     <!-- available expertise area -->
     @for (item of availableExpertiseAreas$ | async; track item.id) {
       @let selected = selectedExpertiseArea?.id === item.id;
-      <button mat-menu-item [disabled]="!enableExpertiseArea" (click)="selectedExpertiseArea = item">
+      <button mat-menu-item (click)="selectedExpertiseArea = item">
         <mat-icon [style.color]="selected ? 'var(--ion-color-primary)' : 'var(--ion-color-dark)'">{{ selected ? 'check' : '' }}</mat-icon>
         <ion-label [color]="selected ? 'primary' : 'dark'">{{ item.name }}</ion-label>
       </button>
@@ -282,7 +282,7 @@
                   [showIsFpcColumn]="true"
                   [showCommentsColumn]="false"
                   [showIrcsColumn]="false"
-                  [mergeAll]="true"
+                  [mergeRows]="true"
                   [showPagination]="true"
                   [defaultPageSize]="5"
                   [defaultPageSizeOptions]="[5, 10, 50]"
@@ -401,7 +401,7 @@
             [requiredStrategy]="requiredStrategy$ | async"
             [strategyId]="(strategy$ | async)?.id"
             [timezone]="timezone"
-            [expertiseLocationIds]="expertiseLocationIds$ | async"
+            [expertiseAreaProperties]="expertiseAreaProperties$ | async"
             [showError]="!mobile"
             [debug]="debug"
             (startCellSelection)="predocCalendar?.removeCellSelection()"
@@ -422,7 +422,7 @@
             [usePageSettings]="false"
             [toolbarColor]="'secondary'"
             [timezone]="timezone"
-            [expertiseLocationIds]="expertiseLocationIds$ | async"
+            [expertiseAreaProperties]="expertiseAreaProperties$ | async"
             [sticky]="true"
             [canEdit]="false"
             [readOnly]="true"
@@ -473,6 +473,7 @@
           [requiredStrategy]="requiredStrategy$ | async"
           [strategyId]="(strategy$ | async)?.id"
           [timezone]="timezone"
+          [showToolbar]="false"
           [showSelectColumn]="false"
           [showIdColumn]="false"
           [showGearColumn]="false"
@@ -482,6 +483,9 @@
           [canDelete]="false"
           [canEditMetier]="false"
           [canEditGear]="false"
+          noResultLabel="ACTIVITY_CALENDAR.EDIT.NO_DATA_REQUIRED"
+          noResultColor="primary100"
+          [debug]="debug"
         ></app-gear-physical-features-table>
       </div>
     </mat-tab>

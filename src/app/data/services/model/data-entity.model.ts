@@ -17,6 +17,7 @@ import { IWithObserversEntity, IWithRecorderDepartmentEntity } from './model.uti
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { StoreObject } from '@apollo/client/core';
 import { UntypedFormGroup } from '@angular/forms';
+import { SortDirection } from '@angular/material/sort';
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
   keepSynchronizationStatus?: boolean;
@@ -213,6 +214,24 @@ export abstract class DataEntityUtils {
     );
   }
 
+  static resetQualification(entity: DataEntity<any, any> | undefined) {
+    entity.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
+    entity.qualificationComments = null;
+    entity.qualificationDate = null;
+  }
+
+  static resetFormQualification(formGroup: UntypedFormGroup, opts?: { emitEvent?: boolean }) {
+    if (!formGroup) return; // skip
+    formGroup.patchValue(
+      <Partial<DataEntity<any, any>>>{
+        qualityFlagId: QualityFlagIds.NOT_QUALIFIED,
+        qualificationComments: null,
+        qualificationDate: null,
+      },
+      opts
+    );
+  }
+
   /**
    * Check if an entity has been mark as invalid
    *
@@ -262,6 +281,18 @@ export abstract class DataEntityUtils {
   static getMaxRankOrder(data?: (IEntity<any> & { rankOrder?: number })[]): number {
     if (!data) return 0;
     return Math.max(0, ...data.map((entity) => entity?.rankOrder || 0));
+  }
+
+  static rankOrderComparator<T extends IEntity<any> & { rankOrder?: number }>(sortDirection: SortDirection = 'asc'): (n1: T, n2: T) => number {
+    return !sortDirection || sortDirection !== 'desc' ? DataEntityUtils.sortByAscRankOrder : DataEntityUtils.sortByDescRankOrder;
+  }
+
+  static sortByAscRankOrder<T extends IEntity<any> & { rankOrder?: number }>(n1: T, n2: T): number {
+    return n1.rankOrder === n2.rankOrder ? 0 : n1.rankOrder > n2.rankOrder ? 1 : -1;
+  }
+
+  static sortByDescRankOrder<T extends IEntity<any> & { rankOrder?: number }>(n1: T, n2: T): number {
+    return n1.rankOrder === n2.rankOrder ? 0 : n1.rankOrder > n2.rankOrder ? -1 : 1;
   }
 
   static markAsConflictual(entity: DataEntity<any, any> | undefined, errorMessage?: string) {

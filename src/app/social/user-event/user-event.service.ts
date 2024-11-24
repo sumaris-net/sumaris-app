@@ -23,11 +23,12 @@ import {
   PersonUtils,
   ShowToastOptions,
   Toasts,
+  UserEventLoadOptions,
   UserEventWatchOptions,
 } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import gql from 'graphql-tag';
-import { Observable } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 import { FetchPolicy } from '@apollo/client/core';
 import { UserEvent, UserEventFilter, UserEventTypeEnum } from '@app/social/user-event/user-event.model';
 import { environment } from '@environments/environment';
@@ -178,12 +179,17 @@ export class UserEventService
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: Partial<UserEventFilter>,
-    options?: UserEventWatchOptions
+    options?: UserEventWatchOptions<UserEvent>
   ): Observable<LoadResult<UserEvent>> {
+    // Make sure to get the min profile (USER) - required by the pod
+    if (!this.accountService.isUser()) {
+      return this.accountService.onLogin.pipe(switchMap((_) => this.watchAll(offset, size, sortBy, sortDirection, filter, options)));
+    }
+
     return super.watchAll(offset, size, sortBy, sortDirection, filter, options);
   }
 
-  watchPage(page: Page, filter?: Partial<UserEventFilter>, opts?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
+  watchPage(page: Page, filter?: Partial<UserEventFilter>, opts?: UserEventWatchOptions<UserEvent>): Observable<LoadResult<UserEvent>> {
     filter = filter || this.defaultFilter();
     if (!filter.startDate) {
       filter.startDate = fromDateISOString('1970-01-01T00:00:00.000Z');
@@ -195,21 +201,32 @@ export class UserEventService
     });
   }
 
-  listenAllChanges(
-    filter: Partial<UserEventFilter>,
-    options?: UserEventWatchOptions & { interval?: number; fetchPolicy?: FetchPolicy }
-  ): Observable<UserEvent[]> {
+  listenAllChanges(filter: Partial<UserEventFilter>, options?: UserEventLoadOptions<UserEvent> & { interval?: number }): Observable<UserEvent[]> {
     return super.listenAllChanges(filter, { ...options, withContent: true });
+  }
+
+  async count(dataFilter: Partial<UserEventFilter>, options?: { fetchPolicy?: FetchPolicy }): Promise<number> {
+    // Make sure to get the min profile (USER) - required by the pod
+    if (!this.accountService.isUser()) {
+      return 0;
+    }
+
+    return super.count(dataFilter, options);
   }
 
   listenCountChanges(
     filter: Partial<UserEventFilter>,
-    options?: UserEventWatchOptions & { interval?: number; fetchPolicy?: FetchPolicy }
+    options?: Omit<UserEventLoadOptions<UserEvent>, 'toEntity'> & { interval?: number }
   ): Observable<number> {
+    // Make sure to get the min profile (USER) - required by the pod
+    if (!this.accountService.isUser()) {
+      return this.accountService.onLogin.pipe(switchMap((_) => this.listenCountChanges(filter, options)));
+    }
+
     return super.listenCountChanges(filter, { ...options, fetchPolicy: 'no-cache' });
   }
 
-  async load(id: number, opts?: EntityServiceLoadOptions & { withContent?: boolean }): Promise<UserEvent> {
+  async load(id: number, opts?: EntityServiceLoadOptions<UserEvent> & { withContent?: boolean }): Promise<UserEvent> {
     const filter: Partial<UserEventFilter> = { includedIds: [id] };
 
     // Allow admin to load SYSTEM notifications
@@ -222,8 +239,7 @@ export class UserEventService
       ...opts,
       withTotal: false,
     });
-    const entity = data && data[0];
-    return entity;
+    return data && data[0];
   }
 
   canUserWrite(data: UserEvent, opts?: any): boolean {
@@ -334,8 +350,7 @@ export class UserEventService
 
     // TODO use this.personService.loadByPubkey() instead
     const { data } = await this.personService.loadAll(0, 1, null, null, { pubkey }, { withTotal: false, ...opts });
-    const entity = isNonEmptyArray(data) ? data[0] : opts?.toEntity !== false ? Person.fromObject({ pubkey }) : ({ pubkey } as Person);
-    return entity;
+    return isNonEmptyArray(data) ? data[0] : opts?.toEntity !== false ? Person.fromObject({ pubkey }) : ({ pubkey } as Person);
   }
 
   /* -- protected methods -- */
@@ -501,7 +516,7 @@ export class UserEventService
     switch (job.type) {
       case 'SUMARIS_EXTRACTION': {
         source.addDefaultAction({
-          executeAction: (e) => this.navigate(['exraction', 'data']),
+          executeAction: (e) => this.navigate(['extraction', 'data']),
         });
         break;
       }
