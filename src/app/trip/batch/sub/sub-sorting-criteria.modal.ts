@@ -1,4 +1,4 @@
-import { Component, Inject, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Injector, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormFieldDefinition, isNil, isNotNil, LoadResult, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { BatchGroup } from '../group/batch-group.model';
@@ -12,6 +12,7 @@ import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.se
 import { RxState } from '@rx-angular/state';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 @Component({
   selector: 'app-sub-sorting-criteria.modal',
@@ -35,13 +36,18 @@ import { Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
   ],
 })
 export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
-  protected pmfmDefinition: FormFieldDefinition;
-  sortingCriteriaForm: FormGroup;
+  protected pmfmDefinition: FormFieldDefinition[];
+  protected sortingCriteriaForm: FormGroup;
+  protected criteriaPmfms: Pmfm[];
+  protected qvPmfms: Pmfm[];
+  isMandatoryQvPmfm: boolean = false;
   disabledPrecision: boolean = false;
-  pmfmSelected: Pmfm = new Pmfm();
+  showQvPmfm: boolean = false;
+
   @Input() parentGroup: BatchGroup;
   @Input() programLabel: string;
   @Input() sortcriteriaPmfms: Pmfm[];
+  @Input() denormalizedPmfmStrategy: DenormalizedPmfmStrategy[];
 
   constructor(
     injector: Injector,
@@ -57,23 +63,37 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
   }
 
   ngOnInit() {
+    // Pmfms filtered by type
+    this.qvPmfms = this.sortcriteriaPmfms.filter((pmfm) => PmfmUtils.isQualitative(pmfm));
+    this.criteriaPmfms = this.sortcriteriaPmfms.filter((pmfm) => !PmfmUtils.isQualitative(pmfm));
+
+    // TODO MF à REVOIR SI Y A PLUSIEUR PMFM OBLIGATOIRE OU UN OBLIGATOIRE ET UN OPTIONNEL
+    this.isMandatoryQvPmfm = this.denormalizedPmfmStrategy
+      .filter((strategy) => {
+        return this.qvPmfms.find((pmfm) => pmfm.id === strategy.id);
+      })
+      .some((strategy) => strategy.isMandatory);
+
+    console.log('cucou', this.isMandatoryQvPmfm, this.showQvPmfm);
+
     this.sortingCriteriaForm = this.fb.group({
       taxonName: ['', Validators.required],
-      pmfm: ['', Validators.required],
+      criteriaPmfm: ['', Validators.required],
       min: ['', [Validators.required]],
       max: ['', [Validators.required]],
       precision: ['', [Validators.required]],
+      qvPmfm: [''],
+      useOptionalCriteria: [false],
     });
 
     this.registerSubscription(
-      this.sortingCriteriaForm.get('pmfm').valueChanges.subscribe((value) => {
+      this.sortingCriteriaForm.get('criteriaPmfm').valueChanges.subscribe((value) => {
         if (value.precision) {
           this.sortingCriteriaForm.get('precision').setValue(value.precision);
           this.disabledPrecision = true;
         } else {
           this.disabledPrecision = false;
         }
-        this.pmfmSelected = value;
       })
     );
 
@@ -97,22 +117,35 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
       .map((attr) => 'REFERENTIAL.' + attr.toUpperCase())
       .concat(['REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD']);
 
-    this.pmfmDefinition = {
-      key: 'pmfm',
-      type: 'entity',
-      label: 'REFERENTIAL.PMFM',
-      required: false,
-      autocomplete: this.registerAutocompleteField('pmfm', {
-        suggestFn: (value, opts) => this.suggestPmfms(value, opts),
-        attributes: pmfmAttributes,
-        columnNames: pmfmColumnNames,
-        showAllOnFocus: false,
-        panelClass: 'full-width',
-      }),
-    };
-    if (this.sortcriteriaPmfms.length === 1) {
-      this.sortingCriteriaForm.get('pmfm').setValue(this.sortcriteriaPmfms[0]);
-    }
+    this.pmfmDefinition = [
+      {
+        key: 'criteriaPmfm',
+        type: 'entity',
+        label: 'REFERENTIAL.PMFM',
+        required: true,
+        autocomplete: this.registerAutocompleteField('criteriaPmfm', {
+          suggestFn: (value, opts) => this.suggestPmfms(value, { ...opts, isQvPmfm: false }),
+          attributes: pmfmAttributes,
+          columnNames: pmfmColumnNames,
+          showAllOnFocus: false,
+          panelClass: 'width-medium',
+        }),
+      },
+      {
+        key: 'qvPmfm',
+        type: 'entity',
+        label: 'REFERENTIAL.PMFM',
+        required: false,
+        autocomplete: this.registerAutocompleteField('qvPmfm', {
+          suggestFn: (value, opts) => this.suggestPmfms(value, { ...opts, isQvPmfm: true }),
+          attributes: basePmfmAttributes,
+          columnNames: pmfmColumnNames,
+          showAllOnFocus: false,
+          panelClass: 'width-large',
+        }),
+      },
+    ];
+    this.autoUpdateForm();
   }
 
   async dismiss(data?: any) {
@@ -149,10 +182,25 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
     });
   }
 
-  protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<Pmfm>> {
+  protected async suggestPmfms(value: any, opts?: { isQvPmfm?: boolean }): Promise<LoadResult<Pmfm>> {
+    const pmfms = opts.isQvPmfm ? this.qvPmfms : this.criteriaPmfms;
     return this.pmfmService.suggest(value, {
       searchJoin: 'parameter',
-      includedIds: this.sortcriteriaPmfms.map((pmfm) => pmfm.id),
+      includedIds: pmfms.map((pmfm) => pmfm.id),
     });
+  }
+
+  protected autoUpdateForm() {
+    //check if there is only one pmfm in the mandatory pmfms
+    if (this.criteriaPmfms.length === 1) {
+      this.sortingCriteriaForm.get('criteriaPmfm').setValue(this.criteriaPmfms[0]);
+      this.markAllAsTouched();
+    }
+    if (isNotNil(this.qvPmfms) && this.qvPmfms.length === 1 && this.isMandatoryQvPmfm) {
+      this.showQvPmfm = true;
+      this.sortingCriteriaForm.get('qvPmfm').setValue(this.qvPmfms[0]);
+    } else if (isNotNil(this.qvPmfms)) {
+      this.showQvPmfm = true;
+    }
   }
 }
