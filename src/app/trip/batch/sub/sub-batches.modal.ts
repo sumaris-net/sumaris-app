@@ -737,7 +737,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async openSortingCriteriaModal() {
-    const pmfms = await this.loadFilteredPmfms();
+    const sortcriteriaPmfms = await this.loadFilteredPmfms();
+
     const modal = await this.modalCtrl.create({
       component: SubSortingCriteriaModal,
       backdropDismiss: false,
@@ -745,7 +746,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       componentProps: {
         parentGroup: this.parentGroup,
         programLabel: this.programLabel,
-        sortcriteriaPmfms: pmfms,
+        sortcriteriaPmfms: sortcriteriaPmfms,
+        denormalizedPmfmStrategy: this.pmfms,
       },
     });
 
@@ -782,7 +784,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected async loadFilteredPmfms(): Promise<Pmfm[]> {
     return (
       await this.pmfmService.loadAll(0, 100, null, null, { includedIds: this.pmfms.map((pmfm) => pmfm.id) }, { withDetails: true })
-    ).data.filter((pmfm) => PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isComputed(pmfm));
+    ).data.filter(
+      (pmfm) => (PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isComputed(pmfm)) || (PmfmUtils.isQualitative(pmfm) && !PmfmUtils.isComputed(pmfm))
+    );
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
