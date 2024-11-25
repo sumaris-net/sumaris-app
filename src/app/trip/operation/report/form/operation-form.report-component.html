@@ -170,9 +170,7 @@
                     </td>
                     <!-- Start date and position -->
                     <td class="col-compact">
-                      @if (isBlankForm) {
-                        // TODO
-                      } @else {
+                      @if (!isBlankForm) {
                         @if (op.parentOperationId | isNil) {
                           {{ op.startDateTime | dateFormat: { time: true } }}
                         } @else {
@@ -242,13 +240,15 @@
                     }
                     @if (stats.options.allowParentOperation) {
                       <td class="col-tiny font-small ion-text-center">
-                        <div>
-                          @if (op.parentOperationId | isNil) {
-                            {{ 'TRIP.REPORT.FORM.TYPE_OP.PARENT' | translate }}
-                          } @else {
-                            {{ 'TRIP.REPORT.FORM.TYPE_OP.CHILD' | translate }}
-                          }
-                        </div>
+                        @if (!isBlankForm) {
+                          <div>
+                            @if (op.parentOperationId | isNil) {
+                              {{ 'TRIP.REPORT.FORM.TYPE_OP.PARENT' | translate }}
+                            } @else {
+                              {{ 'TRIP.REPORT.FORM.TYPE_OP.CHILD' | translate }}
+                            }
+                          </div>
+                        }
                       </td>
                     }
                     @for (

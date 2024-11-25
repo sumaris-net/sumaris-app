@@ -1,6 +1,6 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
 import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
-import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
+import { ExtendedPmfmType, IPmfm, PmfmUtils } from '../services/model/pmfm.model';
 import {
   ColorName,
   DateFormatService,
@@ -141,6 +141,16 @@ export class PmfmValuePipe implements PipeTransform {
       default:
         return PmfmValueUtils.valueToString(value, opts);
     }
+  }
+}
+
+@Pipe({
+  name: 'getPmfmExtendedType',
+})
+@Injectable({ providedIn: 'root' })
+export class GetPmfmExtendedTypePipe implements PipeTransform {
+  transform(pmfm: IPmfm): ExtendedPmfmType {
+    return PmfmUtils.getExtendedType(pmfm);
   }
 }
 

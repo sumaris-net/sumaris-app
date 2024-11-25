@@ -1,14 +1,14 @@
 @if (loaded) {
   <app-reveal #reveal [options]="revealOptions">
     @for (operation of data; track operation.id) {
-      @if (operation.samples | isNotEmptyArray) {
+      @if (stats.individualSamplePeerOpId[operation.id] | isNotEmptyArray) {
         <section *sectionDef [style.--page-horizontal-margin]="this.parentPageDimension.pageHorizontalMargin + 'px'">
           <ng-content
             *ngTemplateOutlet="
               table;
               context: {
                 operation: operation,
-                samples: stats.individualSample,
+                samples: stats.individualSamplePeerOpId[operation.id],
                 chunkSize: samplesByPage,
                 tableParts: stats.sampleTableParts,
                 tableTitle: 'TRIP.SAMPLE.TABLE.TITLE',
@@ -16,18 +16,20 @@
                 pmfms: stats.samplePmfms,
                 pmfmsByIds: stats.samplePmfmsById,
                 pmfmsTips: stats.samplePmfmsTips,
-                compactPmfmsColumn: true,
+                compactPmfmsColumn: !isBlankForm,
               }
             "
           ></ng-content>
         </section>
+      }
+      @if (stats.releasedSamplePeerOpId[operation.id] | isNotEmptyArray) {
         <section *sectionDef [style.--page-horizontal-margin]="this.parentPageDimension.pageHorizontalMargin + 'px'">
           <ng-content
             *ngTemplateOutlet="
               table;
               context: {
                 operation: operation,
-                samples: stats.releasedSample,
+                samples: stats.releasedSamplePeerOpId[operation.id],
                 chunkSize: samplesByPage,
                 tableParts: stats.releasedTableParts,
                 tableTitle: 'TRIP.SAMPLE.TABLE.TAB_INDIVIDUAL_RELEASES',
@@ -112,7 +114,7 @@
               }
               @for (pmfm of pmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
                 @if (compactPmfmsColumn) {
-                  <th class="col-tiny font-small column-{{ pmfm.label }}">
+                  <th class="col-tiny font-small column-{{ pmfm.label }} no-padding">
                     <table-head-pmfm-name-report-chunk
                       [pmfm]="pmfm"
                       [i18nContext]="i18nContext"
@@ -180,20 +182,53 @@
                       }
                     </td>
                   } @else {
-                    <td
-                      class="ion-text-center column-{{ pmfm.label }} "
-                      [style.--col-width]="pageDimensions.columnPmfmWidth + 'px'"
-                      [innerHtml]="
-                        sample.measurementValues
-                          | mapGet: pmfm.id
-                          | pmfmValue
-                            : {
-                                pmfm: pmfmsByIds | mapGet: pmfm.id,
-                                propertyNames: ['label', 'name'],
-                                showYesOrNo: true,
-                              }
-                      "
-                    ></td>
+                    @if (isBlankForm) {
+                      <td class="ion-text-center column-{{ pmfm.label }} " [style.--col-width]="pageDimensions.columnPmfmWidth + 'px'">
+                        @switch (pmfm | getPmfmExtendedType) {
+                          @case ('boolean') {
+                            <ion-grid class="value-grid ion-no-padding">
+                              <ion-row>
+                                <ion-col>
+                                  {{ 'COMMON.YES' | translate }}&nbsp;
+                                  <ion-icon name="square-outline"></ion-icon>
+                                </ion-col>
+                                <ion-col>
+                                  {{ 'COMMON.NO' | translate }}&nbsp;
+                                  <ion-icon name="square-outline"></ion-icon>
+                                </ion-col>
+                              </ion-row>
+                            </ion-grid>
+                          }
+                          @case ('qualitative_value') {
+                            <ion-grid class="value-grid ion-no-padding">
+                              <ion-row>
+                                @for (qv of pmfm.qualitativeValues; track qv.id) {
+                                  <ion-col>
+                                    {{ qv.label }}&nbsp;
+                                    <ion-icon name="square-outline"></ion-icon>
+                                  </ion-col>
+                                }
+                              </ion-row>
+                            </ion-grid>
+                          }
+                        }
+                      </td>
+                    } @else {
+                      <td
+                        class="ion-text-center column-{{ pmfm.label }} "
+                        [style.--col-width]="pageDimensions.columnPmfmWidth + 'px'"
+                        [innerHtml]="
+                          sample.measurementValues
+                            | mapGet: pmfm.id
+                            | pmfmValue
+                              : {
+                                  pmfm: pmfmsByIds | mapGet: pmfm.id,
+                                  propertyNames: ['label', 'name'],
+                                  showYesOrNo: true,
+                                }
+                        "
+                      ></td>
+                    }
                   }
                 }
                 @if (lastPart) {
@@ -205,7 +240,9 @@
             }
           </tbody>
         </table>
-        <table-tips-report-chunk [tips]="pmfmsTips[partIndex] | mapValues | arraySort: sortByTipsIndex"></table-tips-report-chunk>
+        @if (compactPmfmsColumn || isBlankForm) {
+          <table-tips-report-chunk [tips]="pmfmsTips[partIndex] | mapValues | arraySort: sortByTipsIndex"></table-tips-report-chunk>
+        }
         <page-footer-from-report-chunk [footerText]="footerText" [help]="footerHelp"></page-footer-from-report-chunk>
       </section>
     }
