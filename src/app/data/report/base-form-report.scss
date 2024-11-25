@@ -272,6 +272,7 @@ html.print-pdf .reveal .slides section {
 
       th,
       td {
+        padding: 2px;
         font-size: var(--font-compact);
         border: solid 1px var(--text-color);
 
@@ -320,7 +321,6 @@ html.print-pdf .reveal .slides section {
         }
 
         &.text-vertical {
-          padding: 0;
           > div {
             text-align: center;
             display: flex;
@@ -337,7 +337,6 @@ html.print-pdf .reveal .slides section {
       thead {
         tr {
           th {
-            padding: 0;
             &.text-vertical {
               > div {
                 width: var(--row-title-height);

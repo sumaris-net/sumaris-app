@@ -302,8 +302,23 @@
                 <ion-col class="form-label" size="6">
                   {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix } }}
                 </ion-col>
-                <ion-col class="form-value" size="6" [class.no-border-bottom]="!$last">
-                  {{ stats.measurementValues.trip | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm, showYesOrNo: true } }}
+                <ion-col class="form-value" [class.horiz-checkbox]="isBlankForm" size="6" [class.no-border-bottom]="!$last">
+                  @if (isBlankForm) {
+                    <ion-grid>
+                      <ion-row>
+                        <ion-col>
+                          {{ 'COMMON.YES' | translate }}&nbsp;
+                          <ion-icon name="square-outline"></ion-icon>
+                        </ion-col>
+                        <ion-col>
+                          {{ 'COMMON.NO' | translate }}&nbsp;
+                          <ion-icon name="square-outline"></ion-icon>
+                        </ion-col>
+                      </ion-row>
+                    </ion-grid>
+                  } @else {
+                    {{ stats.measurementValues.trip | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm, showYesOrNo: true } }}
+                  }
                 </ion-col>
               </ion-row>
             }

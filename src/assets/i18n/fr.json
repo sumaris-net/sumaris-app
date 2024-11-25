@@ -1551,7 +1551,8 @@
             "CAPTURE": "Capture remontée sur navire observé (O/N)**",
             "LAT_LONG_LOCATION": "Position GPS Latitude + longitude (DD°MM)",
             "FISHING_AREA": "Zone de pêche",
-            "COMMENTS": "Commentaires, préciser si possible le temps de traitement de la capture pour les OP échantillonnées"
+            "COMMENTS": "Commentaires, préciser si possible le temps de traitement de la capture pour les OP échantillonnées",
+            "GEAR_SPECIES": "Engin* + Espèce(s) cible(s) / si navire associé** (IMMAT du navire)"
           },
           "HELP": {
             "ONE_STAR": "Attention, pour les arts dormants, la date de fin de mise à l'eau est le plus souvent la veille ou l'avant-veille de la marée observée.",

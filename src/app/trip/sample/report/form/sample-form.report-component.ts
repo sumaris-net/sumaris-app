@@ -43,8 +43,8 @@ export class SampleFromReportComponentStats extends BaseReportStats {
   releasedPmfms: IPmfm[];
   releasedPmfmsById: { [key: number]: IPmfm };
   imagesByOperationId: { [key: number]: ImageAttachment[] };
-  individualSample: Sample[];
-  releasedSample: Sample[];
+  individualSamplePeerOpId: { [key: number]: Sample[] };
+  releasedSamplePeerOpId: { [key: number]: Sample[] };
   sampleTableParts: number[][];
   releasedTableParts: number[][];
   samplePmfmsTips: ReportPmfmsTipsByPmfmIds;
@@ -57,8 +57,14 @@ export class SampleFromReportComponentStats extends BaseReportStats {
     this.samplePmfmsById = splitById(this.samplePmfms);
     this.releasedPmfms = source.releasedPmfm.map(DenormalizedPmfmStrategy.fromObject);
     this.releasedPmfmsById = splitById(this.samplePmfms);
-    this.individualSample = source.individualSample?.map((sample: any) => Sample.fromObject(sample));
-    this.releasedSample = source.releasedSample?.map((sample: any) => Sample.fromObject(sample));
+    this.individualSamplePeerOpId = Object.keys(source.individualSamplePeerOpId).reduce((acc, key) => {
+      acc[key] = source.individualSamplePeerOpId[key]?.map(Sample.fromObject);
+      return acc;
+    }, {});
+    this.releasedSamplePeerOpId = Object.keys(source.releasedSamplePeerOpId).reduce((acc, key) => {
+      acc[key] = source.releasedSamplePeerOpId[key]?.map(Sample.fromObject);
+      return acc;
+    }, {});
     this.imagesByOperationId = Object.keys(source.sampleImagesByOperationIds).reduce((acc, key) => {
       acc[key] = source.sampleImagesByOperationIds[key]?.map(ImageAttachment.fromObject);
       return acc;
@@ -75,8 +81,14 @@ export class SampleFromReportComponentStats extends BaseReportStats {
       options: this.options,
       samplePmfm: this.samplePmfms.map((pmfm) => pmfm.asObject(opts)),
       releasedPmfm: this.releasedPmfms.map((pmfm) => pmfm.asObject(opts)),
-      individualSample: this.individualSample?.map((sample) => sample.asObject(opts)),
-      releasedSample: this.releasedSample?.map((sample) => sample.asObject(opts)),
+      individualSamplePeerOpId: Object.keys(this.individualSamplePeerOpId).reduce((result, key) => {
+        result[key] = this.individualSamplePeerOpId[key].map((item: IPmfm) => item.asObject(opts));
+        return result;
+      }, {}),
+      releasedSample: Object.keys(this.releasedSamplePeerOpId).reduce((result, key) => {
+        result[key] = this.releasedSamplePeerOpId[key].map((item: IPmfm) => item.asObject(opts));
+        return result;
+      }, {}),
       imagesByOperationId: Object.keys(this.imagesByOperationId).reduce((result, key) => {
         result[key] = this.imagesByOperationId[key].map((item: IPmfm) => item.asObject(opts));
         return result;
@@ -173,7 +185,7 @@ export class SampleFormReportComponent extends ReportTableComponent<
       this.parentPageDimension.availableWidthForTableLandscape,
       tableLeftColumnsWidth,
       tableRightColumnsWidth,
-      this.pageDimensions.columnPmfmWidthCompact
+      this.isBlankForm ? this.pageDimensions.columnPmfmWidth : this.pageDimensions.columnPmfmWidthCompact
     );
     stats.releasedTableParts = this.computeTablePart(
       stats.releasedPmfms,
@@ -183,21 +195,24 @@ export class SampleFormReportComponent extends ReportTableComponent<
       this.pageDimensions.columnPmfmWidth
     );
 
-    const samples = data.reduce((result, op) => {
-      return result.concat(op.samples);
-    }, []);
-    stats.individualSample = samples.filter((sample) => isNil(sample.parentId));
-    stats.releasedSample = samples.filter((samples) => isNotNil(samples.parentId));
-    // Put the parent tagId in the children
-    stats.releasedSample.forEach((sample) => {
-      const parent = stats.individualSample.find((parent) => parent.id == sample.parentId);
-      if (parent) {
-        const tagIdMeasure = parent.measurementValues?.[PmfmIds.TAG_ID];
-        if (tagIdMeasure) {
-          sample.measurementValues[PmfmIds.TAG_ID] = tagIdMeasure;
+    stats.individualSamplePeerOpId = data.reduce((result, op) => {
+      result[op.id] = op.samples.filter((s) => isNil(s.parentId));
+      return result;
+    }, {});
+    stats.releasedSamplePeerOpId = data.reduce((result, op) => {
+      result[op.id] = op.samples.filter((s) => isNotNil(s.parentId));
+      // Put the parent tagId in the children
+      result[op.id].forEach((sample) => {
+        const parent = stats.individualSamplePeerOpId[op.id].find((parent) => parent.id == sample.parentId);
+        if (parent) {
+          const tagIdMeasure = parent.measurementValues?.[PmfmIds.TAG_ID];
+          if (tagIdMeasure) {
+            sample.measurementValues[PmfmIds.TAG_ID] = tagIdMeasure;
+          }
         }
-      }
-    });
+      });
+      return result;
+    }, {});
 
     stats.samplePmfmsTips = this.computeReportPmfmsTips(stats.sampleTableParts, stats.samplePmfms);
     stats.releasedPmfmsTips = this.computeReportPmfmsTips(stats.releasedTableParts, stats.releasedPmfms);

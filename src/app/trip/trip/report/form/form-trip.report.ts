@@ -142,8 +142,8 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   protected logPrefix = 'trip-form-report';
   protected isBlankForm: boolean;
   protected reportPath: string;
-  protected readonly nbOfOpOnBlankPage = 9;
-  protected readonly nbOfSamplePeerOpOnBlankPage = 20;
+  protected readonly nbOfOpOnBlankPage = 8;
+  protected readonly nbOfSamplePeerOpOnBlankPage = 16;
   protected operationNbTableSplitArrayChunk = 8;
 
   protected readonly tripService: TripService = inject(TripService);
@@ -210,6 +210,7 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
         id: id,
         program: Program.fromObject({ label: realData.program.label }),
         gears: realData.gears,
+        vesselSnapshot: realData.vesselSnapshot,
         operations: new Array(this.nbOfOpOnBlankPage).fill(null).map((_, index) => {
           const result = Operation.fromObject({ rankOrder: index + 1 });
           result.samples = Array(this.nbOfSamplePeerOpOnBlankPage)
