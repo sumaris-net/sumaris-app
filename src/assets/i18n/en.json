@@ -2435,7 +2435,7 @@
       "TRIP_OPERATION_DISTANCE_MAX_ERROR": "Trip > Operation: Max travelled distance before error (miles): ",
       "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Trip > Operation: Maximum duration of shooting (hours)",
       "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Trip > Operation: Maximum total duration (hours)",
-      "TRIP_OPERATION_UPDATE_CHILD_DATE": "Trip > Operation: Automatic update of date",
+      "TRIP_OPERATION_AUTO_FILL_NEXT_DATE": "Trip > Operation: Copy the day to the next date",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Trip > Operation: Initialize dates with trip's dates?",
       "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Trip > Operation: Fishing area: Location level(s)",
       "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Trip > Operation: Target species: Level(s)",
