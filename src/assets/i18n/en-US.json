@@ -3541,7 +3541,10 @@
     },
     "WARNING": {
       "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Survey qualification <b>{{surveyQualification}}</b> inconsistent with the objective.",
-      "UNAUTHORIZED_REGISTRATION_LOCATION": "You are  <b>not allowed</b> to complete data on this registration location."
+      "UNAUTHORIZED_ACTION": "You are <b>not authorized</b> to perform this action.",
+      "OUTSIDE_EXPERTISE_AREA_PASTE": "Values <b>outside the area of expertise</b> were not pasted.",
+      "UNAUTHORIZED_PREDOC_PASTE": "Only the <b>authorized</b> months were pasted into the calendar.",
+      "UNAUTHORIZED_REGISTRATION_LOCATION": "You are <b>not allowed</b> to complete data on this registration location."
     }
   },
   "ERROR": {

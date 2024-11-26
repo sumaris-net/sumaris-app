@@ -2939,7 +2939,7 @@ export class CalendarComponent
           // Don't copy value if flagged as outside the expertise are
           if (sourceValue?.properties?.outsideExpertiseArea) {
             sourceValue = undefined;
-            this.showUnautorizedToast('ACTIVITY_CALENDAR.WARNING.REGIONALIZED_DATA_WARNING');
+            this.showUnautorizedToast('ACTIVITY_CALENDAR.WARNING.OUTSIDE_EXPERTISE_AREA_PASTE');
           }
 
           // Force isActive if paste some not null value, that is relative to an fishing activity (e.g metier, fishing area, etc.)
