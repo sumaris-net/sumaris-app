@@ -74,8 +74,6 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
       })
       .some((strategy) => strategy.isMandatory);
 
-    console.log('cucou', this.isMandatoryQvPmfm, this.showQvPmfm);
-
     this.sortingCriteriaForm = this.fb.group({
       taxonName: ['', Validators.required],
       criteriaPmfm: ['', Validators.required],
@@ -169,6 +167,11 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
       this.sortingCriteriaForm.markAllAsTouched();
       return;
     }
+
+    // map pmfm
+    if (isNotNil(data.qvPmfm)) {
+      data.qvPmfm = this.denormalizedPmfmStrategy.find((strategy) => strategy.id === data.qvPmfm.id);
+    }
     await this.dismiss(data);
   }
 
@@ -186,6 +189,7 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
     const pmfms = opts.isQvPmfm ? this.qvPmfms : this.criteriaPmfms;
     return this.pmfmService.suggest(value, {
       searchJoin: 'parameter',
+
       includedIds: pmfms.map((pmfm) => pmfm.id),
     });
   }
