@@ -185,6 +185,14 @@
             <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
             <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
           </ion-item>
+
+          <div class="toolbar-spacer"></div>
+
+          <!-- Reset filter -->
+          <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
+            <mat-icon color="accent">filter_list_alt</mat-icon>
+            <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
+          </button>
         </mat-toolbar>
         <table
           mat-table
