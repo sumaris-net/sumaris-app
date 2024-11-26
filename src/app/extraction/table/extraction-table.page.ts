@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { BehaviorSubject, EMPTY, merge, Observable, Subject, switchMap } from 'rxjs';
+import { BehaviorSubject, EMPTY, from, merge, Observable, Subject, switchMap } from 'rxjs';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
   Alerts,
@@ -185,7 +185,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
     this._state.connect(
       'programs',
-      merge(this.programRefService.startSubject, this.accountService.onLogin).pipe(
+      merge(from(this.programRefService.ready()), this.accountService.onLogin).pipe(
         filter(() => this.accountService.isUser()),
         switchMap(() =>
           this.programRefService.watchAll(0, 100, 'label', 'asc', <ProgramFilter>{

@@ -13,6 +13,7 @@ import {
   OnInit,
   Output,
   QueryList,
+  Renderer2,
   ViewChild,
   ViewChildren,
 } from '@angular/core';
@@ -629,8 +630,17 @@ export class CalendarComponent
           .addShortcut({ keys: 'delete', description: 'COMMON.BTN_CLEAR_SELECTION', preventDefault: false /*keep delete in <input>*/ })
           .subscribe((event) => this.clearCellSelection(event))
       );
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'backspace', description: 'COMMON.BTN_CLEAR_SELECTION', preventDefault: false /*keep delete in <input>*/ })
+          .subscribe((event) => this.clearCellSelection(event))
+      );
 
-      this.registerSubscription(fromEvent(element, 'scroll').subscribe(() => this.onResize()));
+      this.registerSubscription(
+        fromEvent(element, 'scroll').subscribe((event: any) => {
+          this.onResize();
+        })
+      );
     }
   }
 
@@ -3226,7 +3236,7 @@ export class CalendarComponent
     const isTopLeftInside = cellRect.left >= divRect.left && cellRect.top >= divRect.top;
 
     // Vérifier si le coin inférieur droit de cellElement est à l'intérieur de divElement
-    const isBottomRightInside = cellRect.right <= divRect.right && cellRect.bottom <= divRect.bottom;
+    const isBottomRightInside = cellRect.right - 1 <= divRect.right && cellRect.bottom - 1 <= divRect.bottom;
 
     // Si les deux coins sont à l'intérieur, alors cellElement est entièrement à l'intérieur de divElement
     return isTopLeftInside && isBottomRightInside;
