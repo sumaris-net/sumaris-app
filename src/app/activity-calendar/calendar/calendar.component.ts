@@ -2948,6 +2948,7 @@ export class CalendarComponent
           // Don't copy value if flagged as outside the expertise are
           if (sourceValue?.properties?.outsideExpertiseArea) {
             sourceValue = undefined;
+            this.showUnautorizedToast('ACTIVITY_CALENDAR.WARNING.REGIONALIZED_DATA_WARNING');
           }
 
           // Force isActive if paste some not null value, that is relative to an fishing activity (e.g metier, fishing area, etc.)
@@ -3293,6 +3294,8 @@ export class CalendarComponent
     sourceMetierPath = this.extractGearUseFeatureIndex(sourceMetierPath);
 
     if (isEmptyArray(targetMetierPath) || isEmptyArray(sourceMetierPath)) return;
+
+    if (parseInt(sourceMetierPath[0]) + targetMetierPath.length < this.metierCount) return;
 
     const nbAvailableMetier = this.metierCount - parseInt(sourceMetierPath[0]);
 
