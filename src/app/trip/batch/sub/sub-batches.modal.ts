@@ -215,6 +215,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.showCommentsColumn = false;
     this.showParentGroupColumn = false;
     this.settingsId = 'sub-batches-modal';
+
+    this.filterForm = this.formBuilder.group({});
   }
 
   ngOnInit() {
@@ -779,7 +781,16 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
         subBatchesToAdd.push(subBatch);
       }
 
-      this.addEntitiesToTable(subBatchesToAdd, { editing: false });
+      await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
+
+      // Only show added entities
+      this.showIndividualCount = true; // TODO: Obligé pour l'instant pour que ça fonctionne (voir onLoadData)
+      const filter = new SubBatchFilter();
+      filter.numericalMinValue = data.min;
+      filter.numericalMaxValue = data.max;
+      filter.numericalPmfmId = data.criteriaPmfm.id;
+      filter.taxonNameId = data.taxonName.id;
+      this.setFilter(filter);
     }
 
     return data;
