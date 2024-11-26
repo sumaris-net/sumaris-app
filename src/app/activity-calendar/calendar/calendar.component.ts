@@ -124,7 +124,7 @@ const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
   );
 const NAVIGATION_KEYS = ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Tab'];
 const NUMERIC_KEYS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Backspace'];
-const MISSING_FISHINGAREA_REGEXP = /^gearUseFeatures\.(\d+)\.fishingAreas\.(\d+)$/;
+const FISHING_AREA_PATH_REGEXP = /^gearUseFeatures\.(\d+)\.fishingAreas\.(\d+)$/;
 export const ACTIVITY_MONTH_READONLY_COLUMNS = ['month', 'program', 'vesselOwner', 'registrationLocation'];
 export const ACTIVITY_MONTH_START_COLUMNS = [...ACTIVITY_MONTH_READONLY_COLUMNS, 'isActive', 'basePortLocation'];
 export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
@@ -473,6 +473,8 @@ export class CalendarComponent
       selectInputContentOnFocus: true,
       reloadItemsOnFocus: !this.mobile,
       clearInvalidValueOnBlur: !this.mobile,
+      // TODO: to test well
+      //previewImplicitValue: !this.mobile,
     };
 
     this.registerAutocompleteField('basePortLocation', {
@@ -2479,16 +2481,16 @@ export class CalendarComponent
       columnName === 'isActive' ||
       columnName === 'basePortLocation' ||
       PMFM_ID_REGEXP.test(columnName) ||
-      MISSING_FISHINGAREA_REGEXP.test(columnName);
+      FISHING_AREA_PATH_REGEXP.test(columnName);
     if (!validColumn) return undefined;
 
     if (dynamicColumn?.label) return dynamicColumn.label;
 
-    // Dynamic column not found for this path. Is it a missing fishing area?
-    const missingFishingArea = columnName.match(MISSING_FISHINGAREA_REGEXP);
-    if (missingFishingArea) {
-      const gearUseFeatureIndex = missingFishingArea[1];
-      const fishingAreaIndex = missingFishingArea[2];
+    // Dynamic column not found for this path. Is it a fishing area path?
+    const fishingAreaPathIndexes = columnName.match(FISHING_AREA_PATH_REGEXP);
+    if (fishingAreaPathIndexes) {
+      const gearUseFeatureIndex = fishingAreaPathIndexes[1];
+      const fishingAreaIndex = fishingAreaPathIndexes[2];
       const metierColumn = this.dynamicColumns?.find((c) => c.path === `gearUseFeatures.${gearUseFeatureIndex}.metier`);
       const fishingAreaColumn = this.dynamicColumns?.find(
         (c) => c.path === `gearUseFeatures.${gearUseFeatureIndex}.fishingAreas.${fishingAreaIndex}.location`
