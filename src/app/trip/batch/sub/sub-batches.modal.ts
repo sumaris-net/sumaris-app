@@ -740,7 +740,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async openSortingCriteriaModal() {
-    const sortcriteriaPmfms = await this.loadFilteredPmfms();
+    let sortcriteriaPmfms = await this.loadFilteredPmfms();
+    if (isEmptyArray(this.pmfms)) sortcriteriaPmfms = [];
 
     const modal = await this.modalCtrl.create({
       component: SubSortingCriteriaModal,
@@ -810,12 +811,16 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     this.dynamicColumns = ColumnDefinition;
 
+    this.options.reservedEndColumns = SUB_BATCH_RESERVED_END_COLUMNS.concat(columnNames);
+
     // clear old pmfm columns , to be  hide rtp column ???
     this.setShowColumn(pmfm.id.toString(), false), (this.showIndividualCount = false);
 
     // Insert the new columns in the displayedColumns
-    const insertIndex = this.displayedColumns.indexOf('comments');
-    this.displayedColumns.splice(insertIndex, 0, ...columnNames);
+    // const insertIndex = this.displayedColumns.indexOf('comments');
+    // this.displayedColumns.splice(insertIndex, 0, ...columnNames);
+
+    this.updateColumns();
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
