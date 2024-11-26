@@ -19,7 +19,7 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
-import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
+import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable, SubBatchFilter } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Animation, IonContent, ModalController } from '@ionic/angular';
 import { isObservable, Observable, Subject } from 'rxjs';
@@ -766,12 +766,21 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
         const subBatch = new SubBatch();
         subBatch.individualCount = 0;
         subBatch.taxonName = data.taxonName;
-        subBatch.measurementValues[data.pmfm.id] = size;
+        subBatch.measurementValues[data.criteriaPmfm.id] = size;
         subBatch.rankOrder = ++rankOrder;
         subBatchesToAdd.push(subBatch);
       }
 
-      this.addEntitiesToTable(subBatchesToAdd, { editing: false });
+      await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
+
+      // Only show added entities
+      this.showIndividualCount = true; // TODO: Obligé pour l'instant pour que ça fonctionne (voir onLoadData)
+      const filter = new SubBatchFilter();
+      filter.numericalMinValue = data.min;
+      filter.numericalMaxValue = data.max;
+      filter.numericalPmfmId = data.criteriaPmfm.id;
+      filter.taxonNameId = data.taxonName.id;
+      this.setFilter(filter);
     }
 
     return data;
