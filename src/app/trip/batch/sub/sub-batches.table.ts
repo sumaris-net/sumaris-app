@@ -5,6 +5,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
   AppFormUtils,
+  EntityAsObjectOptions,
   EntityFilter,
   EntityUtils,
   FilterFn,
@@ -39,6 +40,7 @@ import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { RxState } from '@rx-angular/state';
+import { StoreObject } from '@apollo/client/cache';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -46,15 +48,68 @@ export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'com
 export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<BaseMeasurementsTableConfig<SubBatch>>('SubBatchesTableOptions');
 
 export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch> {
+  static fromObject: (source: any, opts?: any) => SubBatchFilter;
+
   parentId?: number;
   operationId?: number;
   landingId?: number;
+  numericalMinValue?: number;
+  numericalMaxValue?: number;
+  numericalPmfmId?: number;
+  taxonNameId?: number;
 
-  asFilterFn<E extends Batch>(): FilterFn<E> {
-    return (data) => (isNil(this.operationId) || data.operationId === this.operationId) && (isNil(this.parentId) || data.parentId === this.parentId);
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+    this.parentId = source.parentId;
+    this.operationId = source.operationId;
+    this.landingId = source.landingId;
+    this.numericalMinValue = source.numericalMinValue;
+    this.numericalMaxValue = source.numericalMaxValue;
+    this.numericalPmfmId = source.numericalPmfmId;
+    this.taxonNameId = source.taxonNameId;
+  }
+
+  asObject(opts?: EntityAsObjectOptions): StoreObject {
+    const target = super.asObject(opts);
+    target.parentId = this.parentId;
+    target.operationId = this.operationId;
+    target.landingId = this.landingId;
+    target.numericalMinValue = this.numericalMinValue;
+    target.numericalMaxValue = this.numericalMaxValue;
+    target.numericalPmfmId = this.numericalPmfmId;
+    target.taxonNameId = this.taxonNameId;
+    return target;
+  }
+
+  protected buildFilter(): FilterFn<SubBatch>[] {
+    const filterFns = super.buildFilter();
+
+    if (isNotNil(this.parentId)) {
+      filterFns.push((item) => item.parentId === this.parentId);
+    }
+
+    if (isNotNil(this.operationId)) {
+      filterFns.push((item) => item.operationId === this.operationId);
+    }
 
     // TODO enable this:
-    // && (isNil(this.landingId) || data.landingId === this.landingId))
+    // if (isNotNil(this.landingId)) {
+    //   filterFns.push((item) => item.landingId === this.landingId);
+    // }
+
+    if (isNotNil(this.numericalPmfmId) && isNotNil(this.numericalMinValue)) {
+      filterFns.push((item) => item.measurementValues[this.numericalPmfmId] >= this.numericalMinValue);
+    }
+
+    if (isNotNil(this.numericalPmfmId) && isNotNil(this.numericalMaxValue)) {
+      filterFns.push((item) => item.measurementValues[this.numericalPmfmId] <= this.numericalMaxValue);
+    }
+
+    if (isNotNil(this.taxonNameId)) {
+      filterFns.push((item) => item.taxonName?.id === this.taxonNameId);
+    }
+
+    return filterFns;
   }
 }
 
