@@ -75,7 +75,7 @@
 
     &nbsp;
 
-    @if (types$ | push | isArrayLength: { greaterThan: 0 }) {
+    @if (types$ | async | isNotEmptyArray) {
       <ion-button [matMenuTriggerFor]="selectTypeMenu" [matMenuTriggerData]="{ $implicit: ($categories | async) }" color="accent" fill="solid">
         <ion-icon slot="start" name="server"></ion-icon>
         <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE' | translate"></ion-label>
@@ -100,16 +100,17 @@
       @for (type of categories[0].types; track type.id) {
         <!-- programs -->
         @if (type.category === 'LIVE') {
-          <button
-            mat-menu-item
-            *rxFor="let program of $programs"
-            [matMenuTriggerFor]="programTypesMenu"
-            [matMenuTriggerData]="{ programLabel: program.label, title: 'EXTRACTION.TYPES_MENU.LIVE_DIVIDER' }"
-          >
-            <ion-label class="ion-text-nowrap">
-              <span>{{ program | referentialToString }}</span>
-            </ion-label>
-          </button>
+          @for (program of $programs | async; track program.id) {
+            <button
+              mat-menu-item
+              [matMenuTriggerFor]="programTypesMenu"
+              [matMenuTriggerData]="{ programLabel: program.label, title: 'EXTRACTION.TYPES_MENU.LIVE_DIVIDER' }"
+            >
+              <ion-label class="ion-text-nowrap">
+                <span>{{ program | referentialToString }}</span>
+              </ion-label>
+            </button>
+          }
         } @else {
           <button mat-menu-item (click)="setType(type)">
             <ion-label class="ion-text-nowrap">
@@ -122,15 +123,14 @@
       }
     } @else {
       <!-- More than 1 categories -->
-      @for (item of categories; track item.id) {
+      @for (item of categories; track item.label) {
         @if (item.label === 'LIVE') {
           <button mat-menu-item [matMenuTriggerFor]="programsMenu">
             {{ 'EXTRACTION.CATEGORY.' + item.label | uppercase | translate }}
           </button>
-        } @else {
+        } @else if (item.label === 'PRODUCT') {
           <button
             mat-menu-item
-            *ngIf="item.label === 'PRODUCT'"
             [matMenuTriggerFor]="typesMenu"
             [matMenuTriggerData]="{ types: item.types, title: 'EXTRACTION.TYPES_MENU.' + item.label + '_DIVIDER' }"
           >
@@ -174,16 +174,17 @@
     </ion-row>
 
     <!-- programs -->
-    <button
-      mat-menu-item
-      *rxFor="let program of $programs"
-      [matMenuTriggerFor]="programTypesMenu"
-      [matMenuTriggerData]="{ programLabel: program.label, title: 'EXTRACTION.TYPES_MENU.LIVE_DIVIDER' }"
-    >
-      <ion-label class="ion-text-nowrap">
-        <span>{{ program | referentialToString }}</span>
-      </ion-label>
-    </button>
+    @for (program of $programs | async; track program.id) {
+      <button
+        mat-menu-item
+        [matMenuTriggerFor]="programTypesMenu"
+        [matMenuTriggerData]="{ programLabel: program.label, title: 'EXTRACTION.TYPES_MENU.LIVE_DIVIDER' }"
+      >
+        <ion-label class="ion-text-nowrap">
+          <span>{{ program | referentialToString }}</span>
+        </ion-label>
+      </button>
+    }
   </ng-template>
 </mat-menu>
 
@@ -274,7 +275,7 @@
       <mat-icon>refresh</mat-icon>
     </button>
 
-    @if (mobile) {
+    @if (!mobile) {
       <app-error-item [message]="errorSubject | async"></app-error-item>
     }
 
@@ -440,7 +441,7 @@
     </table>
 
     <!-- loading skeleton -->
-    @if (loading) {
+    @if (loadingSubject | async) {
       <table class="mat-mdc-table">
         <tr class="mat-mdc-header-row">
           <th class="mat-mdc-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
@@ -457,36 +458,26 @@
           <td class="mat-mdc-cell" colspan="12"><ion-skeleton-text animated></ion-skeleton-text></td>
         </tr>
       </table>
-    } @else {
+    } @else if (type$ | push) {
       <ion-item *ngIf="data?.total === 0">
         <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
       </ion-item>
-
-      @if (!(type$ | async)) {
-        @let enabled = types$ | push | isArrayLength: { greaterThan: 0 };
-        @if (enabled) {
-          <p class="ion-text-center">
-            <ion-icon color="primary100" name="information-circle"></ion-icon>
-            <ion-text color="primary100" class="text-italic" [innerHTML]="'EXTRACTION.TABLE.SELECT_TYPE_HELP' | translate"></ion-text>
-          </p>
-          <p class="ion-text-center">
-            <ion-button
-              [matMenuTriggerFor]="selectTypeMenu"
-              [matMenuTriggerData]="{ $implicit: ($categories | async) }"
-              color="tertiary"
-              fill="solid"
-            >
-              <ion-icon slot="start" name="server"></ion-icon>
-              <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE' | translate"></ion-label>
-              <mat-icon slot="end">arrow_drop_down</mat-icon>
-            </ion-button>
-          </p>
-        } @else {
-          <p class="ion-text-center">
-            <ion-text color="danger" [innerHTML]="'EXTRACTION.TABLE.NO_ACCESS' | translate"></ion-text>
-          </p>
-        }
-      }
+    } @else if (types$ | push | isNotEmptyArray) {
+      <p class="ion-text-center">
+        <ion-icon color="primary100" name="information-circle"></ion-icon>
+        <ion-text color="primary100" class="text-italic" [innerHTML]="'EXTRACTION.TABLE.SELECT_TYPE_HELP' | translate"></ion-text>
+      </p>
+      <p class="ion-text-center">
+        <ion-button [matMenuTriggerFor]="selectTypeMenu" [matMenuTriggerData]="{ $implicit: ($categories | async) }" color="tertiary" fill="solid">
+          <ion-icon slot="start" name="server"></ion-icon>
+          <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE' | translate"></ion-label>
+          <mat-icon slot="end">arrow_drop_down</mat-icon>
+        </ion-button>
+      </p>
+    } @else {
+      <p class="ion-text-center">
+        <ion-text color="danger" [innerHTML]="'EXTRACTION.TABLE.NO_ACCESS' | translate"></ion-text>
+      </p>
     }
   </div>
 </ion-content>
