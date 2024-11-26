@@ -342,6 +342,29 @@
             </td>
           </ng-container>
 
+          @for (col of dynamicColumns; track col.id) {
+            <ng-container [matColumnDef]="col.id">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                <ion-label>{{ col.label }}</ion-label>
+              </th>
+              <td mat-cell *matCellDef="let row">
+                <mat-form-field>
+                  <input
+                    matInput
+                    autocomplete="off"
+                    [appAutofocus]="row.editing && focusColumn === 'individualCount'"
+                    min="1"
+                    type="number"
+                    step="1"
+                    pattern="[0-9]*"
+                    (click)="selectInputContent($event)"
+                    [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT' | translate"
+                  />
+                </mat-form-field>
+              </td>
+            </ng-container>
+          }
+
           <!-- Comment column -->
           <ng-container matColumnDef="comments">
             <th mat-header-cell *matHeaderCellDef>

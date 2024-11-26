@@ -9,6 +9,7 @@ import {
   firstNotNilPromise,
   isEmptyArray,
   isNil,
+  isNotNil,
   isNotNilOrBlank,
   LoadResult,
   LocalSettingsService,
@@ -39,6 +40,7 @@ import { ModalUtils } from '@app/shared/modal/modal.utils';
 import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { SubSortingCriteriaModal } from './sub-sorting-criteria.modal';
 import { PmfmService } from '@app/referential/services/pmfm.service';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -124,6 +126,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected modalForm: UntypedFormGroup;
   protected showSubBatchFormControl: AbstractControl;
   protected individualCountControl: AbstractControl;
+  protected dynamicColumns: any[] = [];
 
   get selectedRow(): TableElement<SubBatch> {
     return this.singleSelectedRow || this.editedRow;
@@ -762,6 +765,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       const subBatchesToAdd = [];
       let rankOrder = await this.getMaxRankOrder();
 
+      if (isNotNil(data.qvPmfm)) {
+        this.generateDynamicColumns(data.qvPmfm);
+      }
+
       for (let size = data.min; size <= data.max; size += data.precision) {
         const subBatch = new SubBatch();
         subBatch.individualCount = 0;
@@ -771,16 +778,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
         subBatchesToAdd.push(subBatch);
       }
 
-      await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
-
-      // Only show added entities
-      this.showIndividualCount = true; // TODO: Obligé pour l'instant pour que ça fonctionne (voir onLoadData)
-      const filter = new SubBatchFilter();
-      filter.numericalMinValue = data.min;
-      filter.numericalMaxValue = data.max;
-      filter.numericalPmfmId = data.criteriaPmfm.id;
-      filter.taxonNameId = data.taxonName.id;
-      this.setFilter(filter);
+      this.addEntitiesToTable(subBatchesToAdd, { editing: false });
     }
 
     return data;
@@ -796,6 +794,28 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     ).data.filter(
       (pmfm) => (PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isComputed(pmfm)) || (PmfmUtils.isQualitative(pmfm) && !PmfmUtils.isComputed(pmfm))
     );
+  }
+
+  protected generateDynamicColumns(pmfm: DenormalizedPmfmStrategy) {
+    const columnNames = pmfm.qualitativeValues.map((value) => value.label);
+    const ColumnDefinition = [];
+
+    columnNames.forEach((columnName) => {
+      const col = {
+        id: columnName,
+        label: 'Longeur totale (' + columnName + ')', // todo to be  translate with i18n
+      };
+      ColumnDefinition.push(col);
+    });
+
+    this.dynamicColumns = ColumnDefinition;
+
+    // clear old pmfm columns , to be  hide rtp column ???
+    this.setShowColumn(pmfm.id.toString(), false), (this.showIndividualCount = false);
+
+    // Insert the new columns in the displayedColumns
+    const insertIndex = this.displayedColumns.indexOf('comments');
+    this.displayedColumns.splice(insertIndex, 0, ...columnNames);
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
