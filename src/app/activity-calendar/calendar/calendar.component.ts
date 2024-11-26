@@ -474,7 +474,7 @@ export class CalendarComponent
       attributes: this.locationDisplayAttributes,
       panelClass: 'min-width-large',
       selectInputContentOnFocus: true,
-      selectInputContentOnFocusDelay: 200,
+      reloadItemsOnFocus: !this.mobile,
     });
 
     this.registerAutocompleteField('metier', {
@@ -482,6 +482,7 @@ export class CalendarComponent
       displayWith: (obj) => obj?.label || '',
       panelClass: 'min-width-large',
       selectInputContentOnFocus: true,
+      reloadItemsOnFocus: !this.mobile,
     });
 
     this.registerAutocompleteField('fishingAreaLocation', {
@@ -489,26 +490,28 @@ export class CalendarComponent
       displayWith: (obj) => obj?.label || '',
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
+      reloadItemsOnFocus: !this.mobile,
     });
     this.registerAutocompleteField('distanceToCoastGradient', {
       suggestFn: (value, filter) => this.suggestDistanceToCoastGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
-      reloadItemsOnFocus: true,
+      reloadItemsOnFocus: !this.mobile,
     });
     this.registerAutocompleteField('depthGradient', {
       suggestFn: (value, filter) => this.suggestDepthGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
+      reloadItemsOnFocus: !this.mobile,
     });
     this.registerAutocompleteField('nearbySpecificArea', {
       suggestFn: (value, filter) => this.suggestNearbySpecificArea(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
       selectInputContentOnFocus: true,
-      reloadItemsOnFocus: true,
+      reloadItemsOnFocus: !this.mobile,
     });
 
     this._state.connect(
