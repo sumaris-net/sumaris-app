@@ -54,6 +54,8 @@ mat-toolbar {
   .toolbar-background-color {
     background-color: var(--ion-toolbar-background) !important;
   }
+
+
 }
 
 .mat-mdc-table {
@@ -80,6 +82,10 @@ mat-toolbar {
     min-width: var(--col-header-size) !important;
     width: var(--col-header-size) !important;
     max-width: var(--col-header-size) !important;
+
+    .position-top-zero {
+      top: 0 !important;
+    }
   }
 
   .mat-mdc-row {
@@ -146,6 +152,7 @@ mat-toolbar {
       &.mat-column-reset-background-color {
         --mat-table-background-color: var(--ion-color-step-100) !important;
       }
+
     }
 
     &.conflictual {
@@ -173,16 +180,6 @@ mat-toolbar {
 
     &.tappable:hover {
       cursor: pointer;
-    }
-
-    &.mat-column-month {
-      //display: flex;
-      //flex-basis: 33%;
-      //button {
-      //  flex-shrink: 1 !important;
-      //  flex-grow: 1 !important;
-      //  flex-wrap: wrap;
-      //}
     }
   }
 

@@ -13,6 +13,7 @@ import {
   OnInit,
   Output,
   QueryList,
+  Renderer2,
   ViewChild,
   ViewChildren,
 } from '@angular/core';
@@ -635,7 +636,11 @@ export class CalendarComponent
           .subscribe((event) => this.clearCellSelection(event))
       );
 
-      this.registerSubscription(fromEvent(element, 'scroll').subscribe(() => this.onResize()));
+      this.registerSubscription(
+        fromEvent(element, 'scroll').subscribe((event: any) => {
+          this.onResize();
+        })
+      );
     }
   }
 

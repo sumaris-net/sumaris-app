@@ -236,7 +236,7 @@
       }
 
       <ng-container matColumnDef="month" [sticky]="sticky" [class.mat-mdc-column-sticky]="sticky">
-        <mat-header-cell *matHeaderCellDef [class.toolbar-background-color]="!showToolbar">
+        <mat-header-cell *matHeaderCellDef [class.toolbar-background-color]="!showToolbar" class="position-top-zero">
           @if (!showToolbar) {
             <!-- metier buttons -->
             <ng-container *ngTemplateOutlet="metierButtons"></ng-container>
@@ -248,6 +248,7 @@
           [title]="errorSpan?.innerText || ''"
           class="mat-column-reset-background-color"
           (click)="clickMonthHeader($event, row)"
+          [style.top.px]="sticky ? tableContainer.scrollTop : 0"
         >
           <ion-label class="ion-text-center">
             <ion-text
@@ -270,7 +271,7 @@
             @if (row.currentData.qualificationComments; as error) {
               {{ error }}
             } @else {
-              <!--              {{ row | activityMonthRowError: errorTranslateOptions }}-->
+              {{ row | activityMonthRowError: errorTranslateOptions }}
             }
           </span>
         </mat-header-cell>
