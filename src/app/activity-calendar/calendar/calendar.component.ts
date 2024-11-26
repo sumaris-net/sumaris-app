@@ -469,49 +469,49 @@ export class CalendarComponent
         .subscribe()
     );
 
+    const autocompleteBaseConfig = <Partial<MatAutocompleteFieldConfig>>{
+      selectInputContentOnFocus: true,
+      reloadItemsOnFocus: !this.mobile,
+      clearInvalidValueOnBlur: !this.mobile,
+    };
+
     this.registerAutocompleteField('basePortLocation', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestBasePortLocations(value, filter),
       attributes: this.locationDisplayAttributes,
       panelClass: 'min-width-large',
-      selectInputContentOnFocus: true,
-      reloadItemsOnFocus: !this.mobile,
     });
 
     this.registerAutocompleteField('metier', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestMetiers(value, filter),
       displayWith: (obj) => obj?.label || '',
       panelClass: 'min-width-large',
-      selectInputContentOnFocus: true,
-      reloadItemsOnFocus: !this.mobile,
     });
 
     this.registerAutocompleteField('fishingAreaLocation', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, filter),
       displayWith: (obj) => obj?.label || '',
       panelClass: 'mat-select-panel-fit-content',
-      selectInputContentOnFocus: true,
-      reloadItemsOnFocus: !this.mobile,
     });
     this.registerAutocompleteField('distanceToCoastGradient', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestDistanceToCoastGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
-      selectInputContentOnFocus: true,
-      reloadItemsOnFocus: !this.mobile,
     });
     this.registerAutocompleteField('depthGradient', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestDepthGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
-      selectInputContentOnFocus: true,
-      reloadItemsOnFocus: !this.mobile,
     });
     this.registerAutocompleteField('nearbySpecificArea', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestNearbySpecificArea(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
-      selectInputContentOnFocus: true,
-      reloadItemsOnFocus: !this.mobile,
     });
 
     this._state.connect(
