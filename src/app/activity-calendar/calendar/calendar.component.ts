@@ -124,7 +124,7 @@ const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
   );
 const NAVIGATION_KEYS = ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Tab'];
 const NUMERIC_KEYS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Backspace'];
-const MISSING_FISHINGAREA_REGEXP = /^gearUseFeatures\.(\d+)\.fishingAreas\.(\d+)$/;
+const FISHING_AREA_PATH_REGEXP = /^gearUseFeatures\.(\d+)\.fishingAreas\.(\d+)$/;
 export const ACTIVITY_MONTH_READONLY_COLUMNS = ['month', 'program', 'vesselOwner', 'registrationLocation'];
 export const ACTIVITY_MONTH_START_COLUMNS = [...ACTIVITY_MONTH_READONLY_COLUMNS, 'isActive', 'basePortLocation'];
 export const ACTIVITY_MONTH_END_COLUMNS = [...DYNAMIC_COLUMNS];
@@ -469,44 +469,51 @@ export class CalendarComponent
         .subscribe()
     );
 
+    const autocompleteBaseConfig = <Partial<MatAutocompleteFieldConfig>>{
+      selectInputContentOnFocus: true,
+      reloadItemsOnFocus: !this.mobile,
+      clearInvalidValueOnBlur: !this.mobile,
+      // TODO: to test well
+      //previewImplicitValue: !this.mobile,
+    };
+
     this.registerAutocompleteField('basePortLocation', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestBasePortLocations(value, filter),
       attributes: this.locationDisplayAttributes,
       panelClass: 'min-width-large',
-      selectInputContentOnFocus: true,
-      selectInputContentOnFocusDelay: 200,
     });
 
     this.registerAutocompleteField('metier', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestMetiers(value, filter),
       displayWith: (obj) => obj?.label || '',
       panelClass: 'min-width-large',
-      selectInputContentOnFocus: true,
     });
 
     this.registerAutocompleteField('fishingAreaLocation', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, filter),
       displayWith: (obj) => obj?.label || '',
       panelClass: 'mat-select-panel-fit-content',
-      selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('distanceToCoastGradient', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestDistanceToCoastGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
-      selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('depthGradient', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestDepthGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
-      selectInputContentOnFocus: true,
     });
     this.registerAutocompleteField('nearbySpecificArea', {
+      ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestNearbySpecificArea(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
-      selectInputContentOnFocus: true,
     });
 
     this._state.connect(
@@ -1808,7 +1815,6 @@ export class CalendarComponent
       entityName: 'DistanceToCoastGradient',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
       locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
@@ -1819,16 +1825,14 @@ export class CalendarComponent
     // Get current location
     const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
 
-    return this.referentialRefService.suggest(value, this.buildDepthGradientFilter(filter, fishingAreaLocationId), 'rankOrder', 'asc');
+    return this.referentialRefService.suggest(value, this.buildDepthGradientFilter(filter), 'rankOrder', 'asc');
   }
 
-  protected buildDepthGradientFilter(filter?: Partial<ReferentialRefFilter>, fishingAreaLocationId?: number): Partial<ReferentialRefFilter> {
+  protected buildDepthGradientFilter(filter?: Partial<ReferentialRefFilter>): Partial<ReferentialRefFilter> {
     return {
       entityName: 'DepthGradient',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
-      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1846,7 +1850,6 @@ export class CalendarComponent
       entityName: 'NearbySpecificArea',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
       locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
@@ -1885,7 +1888,6 @@ export class CalendarComponent
       const invalidMetierIds: number[] = [];
       const invalidFishingAreaLocationIds: number[] = [];
       const invalidDistanceToCoastGradientIds: number[] = [];
-      const invalidDepthGradientIds: number[] = [];
       const invalidNearbySpecificAreaIds: number[] = [];
       const basePortLocationFilter = this.buildBasePortLocationFilter();
       const metierFilter = this.buildMetierFilter();
@@ -1944,16 +1946,6 @@ export class CalendarComponent
               ExpertiseAreaUtils.markAsOutsideExpertiseArea(fa.distanceToCoastGradient, invalidDistanceToCoastGradientIds.includes(dtcId));
             }
 
-            const dgId = fa.depthGradient?.id;
-            if (isNotNil(dgId)) {
-              if (needCheck && !invalidDepthGradientIds.includes(dgId)) {
-                if (!(await this.referentialRefService.existsById(dgId, this.buildDepthGradientFilter(undefined, faLocationId), cacheFirstOptions))) {
-                  invalidDepthGradientIds.push(dgId);
-                }
-              }
-              ExpertiseAreaUtils.markAsOutsideExpertiseArea(fa.depthGradient, invalidDepthGradientIds.includes(dgId));
-            }
-
             const nsaId = fa.nearbySpecificArea?.id;
             if (isNotNil(nsaId)) {
               if (needCheck && !invalidNearbySpecificAreaIds.includes(nsaId)) {
@@ -1978,7 +1970,6 @@ export class CalendarComponent
         isNotEmptyArray(invalidMetierIds) ||
         isNotEmptyArray(invalidFishingAreaLocationIds) ||
         isNotEmptyArray(invalidDistanceToCoastGradientIds) ||
-        isNotEmptyArray(invalidDepthGradientIds) ||
         isNotEmptyArray(invalidNearbySpecificAreaIds);
 
       if (this.debug) {
@@ -2490,16 +2481,16 @@ export class CalendarComponent
       columnName === 'isActive' ||
       columnName === 'basePortLocation' ||
       PMFM_ID_REGEXP.test(columnName) ||
-      MISSING_FISHINGAREA_REGEXP.test(columnName);
+      FISHING_AREA_PATH_REGEXP.test(columnName);
     if (!validColumn) return undefined;
 
     if (dynamicColumn?.label) return dynamicColumn.label;
 
-    // Dynamic column not found for this path. Is it a missing fishing area?
-    const missingFishingArea = columnName.match(MISSING_FISHINGAREA_REGEXP);
-    if (missingFishingArea) {
-      const gearUseFeatureIndex = missingFishingArea[1];
-      const fishingAreaIndex = missingFishingArea[2];
+    // Dynamic column not found for this path. Is it a fishing area path?
+    const fishingAreaPathIndexes = columnName.match(FISHING_AREA_PATH_REGEXP);
+    if (fishingAreaPathIndexes) {
+      const gearUseFeatureIndex = fishingAreaPathIndexes[1];
+      const fishingAreaIndex = fishingAreaPathIndexes[2];
       const metierColumn = this.dynamicColumns?.find((c) => c.path === `gearUseFeatures.${gearUseFeatureIndex}.metier`);
       const fishingAreaColumn = this.dynamicColumns?.find(
         (c) => c.path === `gearUseFeatures.${gearUseFeatureIndex}.fishingAreas.${fishingAreaIndex}.location`
@@ -2948,6 +2939,7 @@ export class CalendarComponent
           // Don't copy value if flagged as outside the expertise are
           if (sourceValue?.properties?.outsideExpertiseArea) {
             sourceValue = undefined;
+            this.showUnautorizedToast('ACTIVITY_CALENDAR.WARNING.OUTSIDE_EXPERTISE_AREA_PASTE');
           }
 
           // Force isActive if paste some not null value, that is relative to an fishing activity (e.g metier, fishing area, etc.)
@@ -3293,6 +3285,8 @@ export class CalendarComponent
     sourceMetierPath = this.extractGearUseFeatureIndex(sourceMetierPath);
 
     if (isEmptyArray(targetMetierPath) || isEmptyArray(sourceMetierPath)) return;
+
+    if (parseInt(sourceMetierPath[0]) + targetMetierPath.length < this.metierCount) return;
 
     const nbAvailableMetier = this.metierCount - parseInt(sourceMetierPath[0]);
 
