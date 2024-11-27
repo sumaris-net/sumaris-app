@@ -21,7 +21,7 @@ import { PhysicalGearFilter } from './physical-gear.filter';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { PhysicalGear, PhysicalGearPasteFlags } from '@app/trip/physicalgear/physical-gear.model';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
 import { merge, Subscription } from 'rxjs';
 import { OverlayEventDetail } from '@ionic/core';
@@ -453,8 +453,8 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       if (!selectedData) return;
 
       // Create a copy
-      let data = new PhysicalGear();
-      data.paste(selectedData, PhysicalGearPasteFlags.GEAR & PhysicalGearPasteFlags.RANK_ORDER & PhysicalGearPasteFlags.MEASUREMENT);
+      const data = new PhysicalGear();
+      data.paste(selectedData);
 
       const dataToSave = (await this.openDetailModal(data))?.data;
       if (!dataToSave) return; // Skip if not added
