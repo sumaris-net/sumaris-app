@@ -15,6 +15,7 @@ import { PositionValidatorService } from '@app/data/position/position.validator'
 import {
   AppFormArray,
   AppFormUtils,
+  DateUtils,
   equals,
   FormErrors,
   fromDateISOString,
@@ -168,7 +169,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       form.addControl(
         'fishingAreas',
         this.getFishingAreasArray(data?.fishingAreas, {
-          required: true,
+          required: opts && !opts.isOnFieldMode,
           allowManyNullValues: opts?.isInlineFishingArea,
           allowDuplicateValue: opts?.isInlineFishingArea,
         })
@@ -214,13 +215,13 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
   }
 
   getFormGroupOptions(data?: Operation, opts?: O): AbstractControlOptions {
-    // Parent operation (=Filage)
+    // Parent operation (= Filage)
     if (opts?.isParent || data?.childOperation) {
       return {
         validators: Validators.compose([
           // Make sure date range
-          SharedFormGroupValidators.dateRange('startDateTime', 'fishingStartDateTime'),
-          // Check shooting (=Filage) max duration
+          SharedFormGroupValidators.dateRange('startDateTime', 'fishingStartDateTime', { skipIfNoTime: true }),
+          // Check shooting (= Filage) max duration
           SharedFormGroupValidators.dateMaxDuration(
             'startDateTime',
             'fishingStartDateTime',
@@ -236,7 +237,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       return {
         validators: Validators.compose([
           // Make sure date range
-          SharedFormGroupValidators.dateRange('fishingEndDateTime', 'endDateTime'),
+          SharedFormGroupValidators.dateRange('fishingEndDateTime', 'endDateTime', { skipIfNoTime: true }),
           // Check shooting (=Virage) max duration
           SharedFormGroupValidators.dateMaxDuration(
             'fishingEndDateTime',
@@ -259,7 +260,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     else {
       return {
         validators: Validators.compose([
-          SharedFormGroupValidators.dateRange('startDateTime', 'endDateTime'),
+          SharedFormGroupValidators.dateRange('startDateTime', 'endDateTime', { skipIfNoTime: true }),
           // Check total max duration
           SharedFormGroupValidators.dateMaxDuration(
             'startDateTime',
@@ -369,7 +370,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // End position
     if (opts.withPosition && opts.withEnd && !opts.isParent) {
-      if (!form.controls.endPosition) {
+      if (form.controls.endPosition) {
         form.addControl(
           'endPosition',
           this.positionValidator.getFormGroup(null, {
@@ -393,7 +394,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       if (!fishingAreasArray) {
         fishingAreasArray = this.getFishingAreasArray(null, {
-          required: true,
+          required: opts && !opts.isOnFieldMode,
           allowManyNullValues: opts.isInlineFishingArea,
           allowDuplicateValue: opts.isInlineFishingArea,
         });
@@ -691,13 +692,14 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       const tripDepartureDateTime = fromDateISOString(trip.departureDateTime);
       const tripReturnDateTime = fromDateISOString(trip.returnDateTime);
 
+      const hasDateTime = dateTime && !DateUtils.isNoTime(dateTime);
       // Make sure trip.departureDateTime < operation.endDateTime
-      if (dateTime && tripDepartureDateTime && tripDepartureDateTime.isBefore(dateTime) === false) {
+      if (hasDateTime && tripDepartureDateTime && tripDepartureDateTime.isBefore(dateTime) === false) {
         console.warn(`[operation] Invalid operation: before the trip`, dateTime, tripDepartureDateTime);
         return <ValidationErrors>{ msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP' };
       }
       // Make sure operation.endDateTime < trip.returnDateTime
-      else if (dateTime && tripReturnDateTime && dateTime.isBefore(tripReturnDateTime) === false) {
+      else if (hasDateTime && tripReturnDateTime && dateTime.isBefore(tripReturnDateTime) === false) {
         console.warn(`[operation] Invalid operation: after the trip`, dateTime, tripReturnDateTime);
         return <ValidationErrors>{ msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP' };
       }

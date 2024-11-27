@@ -10,8 +10,7 @@ import {
   OnInit,
   Optional,
   Output,
-} from '@angular/core';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+} from '@angular/core'; // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { OperationValidatorOptions, OperationValidatorService } from './operation.validator';
 import moment, { Moment } from 'moment';
 import {
@@ -47,6 +46,7 @@ import {
   suggestFromArray,
   Toasts,
   toBoolean,
+  toDateISOString,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -108,6 +108,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _showFishingArea = false;
   private _requiredComment = false;
   private _positionSubscription: Subscription;
+  private _autoFillNextDateSubscription: Subscription;
   private _emitGeolocationBusy = true;
   private _lastValidatorOpts: any;
   protected _usageMode: UsageMode;
@@ -155,6 +156,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   @Input() maxShootingDurationInHours: number;
   @Input() maxTotalDurationInHours: number;
   @Input() isInlineFishingArea: boolean;
+  @Input() autoFillNextDate: boolean;
 
   @Input() set usageMode(usageMode: UsageMode) {
     if (this._usageMode !== usageMode) {
@@ -481,6 +483,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this._$metiers.complete();
     this.$parentOperationLabel.complete();
     this._positionSubscription?.unsubscribe();
+    this._autoFillNextDateSubscription?.unsubscribe();
     this.busySubject.complete();
     this.busySubject.unsubscribe();
   }
@@ -994,6 +997,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       this.validatorService.updateFormGroup(this.form, validatorOpts);
 
       this.initPositionSubscription();
+      this.initAutoFillNextDate();
 
       if (!opts || opts.emitEvent !== false) {
         this.form.updateValueAndValidity();
@@ -1329,12 +1333,84 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     const subscription = merge(this.form.get('startPosition').valueChanges, this.lastActivePositionControl.valueChanges)
       .pipe(debounceTime(200))
       .subscribe((_) => this.updateDistance());
+
+    // Register subscription
     this.registerSubscription(subscription);
     this._positionSubscription = subscription;
     subscription.add(() => {
       this.unregisterSubscription(subscription);
       this._positionSubscription = null;
     });
+  }
+
+  protected initAutoFillNextDate() {
+    this._autoFillNextDateSubscription?.unsubscribe();
+    if (!this.autoFillNextDate) return;
+
+    const subscription = new Subscription();
+
+    // Copy start => fishingStart
+    if (this.startDateTimeEnable && this.fishingStartDateTimeEnable) {
+      const startDateTimeControl = this.form.get('startDateTime');
+      const fishingStartDateTimeControl = this.form.get('fishingStartDateTime');
+      if (startDateTimeControl && fishingStartDateTimeControl) {
+        subscription.add(
+          merge(startDateTimeControl.valueChanges.pipe(distinctUntilChanged()), startDateTimeControl.statusChanges)
+            .pipe(
+              debounceTime(100),
+              filter(() => fishingStartDateTimeControl.enabled)
+            )
+            .subscribe(() => this.copyDateNoTime(startDateTimeControl, fishingStartDateTimeControl))
+        );
+      }
+    }
+
+    // Copy fishingEnd => end
+    if (this.fishingEndDateTimeEnable && this.endDateTimeEnable) {
+      const fishingEndDateTimeControl = this.form.get('fishingEndDateTime');
+      const endDateTimeControl = this.form.get('endDateTime');
+      if (fishingEndDateTimeControl && endDateTimeControl) {
+        subscription.add(
+          merge(fishingEndDateTimeControl.valueChanges.pipe(distinctUntilChanged()), fishingEndDateTimeControl.statusChanges)
+            .pipe(
+              debounceTime(100),
+              filter(() => endDateTimeControl.enabled)
+            )
+            .subscribe(() => this.copyDateNoTime(fishingEndDateTimeControl, endDateTimeControl))
+        );
+      }
+    }
+
+    // Register subscription
+    this.registerSubscription(subscription);
+    this._autoFillNextDateSubscription = subscription;
+    subscription.add(() => {
+      this.unregisterSubscription(subscription);
+      this._autoFillNextDateSubscription = null;
+    });
+  }
+
+  /**
+   * Copies the date (without the time) from the source AbstractControl to the target AbstractControl.
+   *
+   * @param {AbstractControl<Moment>} source - The source control containing the date to copy.
+   * @param {AbstractControl<Moment>} target - The target control where the date will be copied to, with time removed.
+   * @return {void}
+   */
+  protected copyDateNoTime(source: AbstractControl<Moment>, target: AbstractControl<Moment>): void {
+    const sourceValue = fromDateISOString(source.value);
+    if (isNil(sourceValue)) return;
+
+    // DEBUG
+    console.debug(`[operation] Copying date (without the time) from ${toDateISOString(source.value)} to ${toDateISOString(target.value)}`);
+
+    const targetValue = fromDateISOString(target.value);
+
+    // Skip if target value already set (with a time)
+    if (isNotNil(targetValue) && !DateUtils.isNoTime(targetValue)) return;
+
+    const targetDateNoTime = DateUtils.markNoTime(sourceValue.clone().startOf('day'));
+    target.patchValue(targetDateNoTime, { emitEvent: true });
   }
 
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
