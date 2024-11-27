@@ -26,7 +26,7 @@
       [disabled]="disabled || vars.loading || vars.saving"
       (click)="saveAndNew($event)"
     >
-      <ion-icon slot="start" name="add-circle"></ion-icon>
+      <ion-icon slot="start" name="add-circle-outline"></ion-icon>
       {{ 'TRIP.OPERATION.EDIT.BTN_NEW' | translate }}
     </ion-button>
 
@@ -169,7 +169,7 @@
 
     <!-- Control -->
     <button mat-menu-item [disabled]="disabled" (click)="saveAndControl($event)">
-      <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>
+      <mat-icon><ion-icon name="shield-checkmark-outline"></ion-icon></mat-icon>
       <ion-label translate>QUALITY.BTN_CONTROL</ion-label>
       @if (!mobile) {
         <ion-label color="medium">
@@ -221,6 +221,7 @@
   <mat-tab-group
     #tabGroup
     class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
+    [class.mat-mdc-tab-group-header-hidden]="tabCount === 1"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
@@ -288,7 +289,7 @@
                         entityName="VesselUseMeasurement"
                         [acquisitionLevel]="acquisitionLevel$ | async"
                         [requiredStrategy]="requiredStrategy$ | async"
-                        [strategyId]="strategy$ | async | propertyGet: 'id'"
+                        [strategyId]="strategy$ | async | mapGet: 'id'"
                         [requiredGear]="true"
                         [gearId]="gearId$ | async"
                         [forceOptional]="forceMeasurementAsOptional"
@@ -306,12 +307,14 @@
               </app-form-operation>
             </ion-col>
 
-            <!-- quality metadata (+ control button) only if 'on desk' mode -->
-            <ion-col size="12" size-xl="3" class="ion-no-padding" *ngIf="!mobile">
-              <app-entity-metadata [value]="data" [showRecorder]="data?.updateDate | isNotNil">
-                <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
-              </app-entity-metadata>
-            </ion-col>
+            <!-- quality metadata (+ control button) only on desktop -->
+            @if (!mobile) {
+              <ion-col size="12" size-xl="3" class="ion-no-padding">
+                <app-entity-metadata [value]="data" [showRecorder]="data?.updateDate | isNotNil">
+                  <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
+                </app-entity-metadata>
+              </ion-col>
+            }
           </ion-row>
         </ion-grid>
       </div>
@@ -405,19 +408,18 @@
     [disabled]="!dirty || loading"
   >
     <!-- error -->
-    <ion-item *ngIf="error as errorMsg" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="errorMsg | translate"></ion-label>
-    </ion-item>
+    <app-error-item [message]="errorSubject | async"></app-error-item>
   </app-form-buttons-bar>
 </ion-footer>
 
 <!-- FAB button -->
-<ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && showFabButton" visible-xs visible-sm visible-mobile @fadeInOutAnimation>
-  <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+@if (enabled && showFabButton) {
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" visible-xs visible-sm visible-mobile @fadeInOutAnimation>
+    <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}
 
 <!-- DEBUG -->
 <ng-template #debugPanel>

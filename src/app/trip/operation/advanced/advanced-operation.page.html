@@ -1,3 +1,5 @@
+<ion-backdrop *ngIf="opeForm.busySubject | push"></ion-backdrop>
+
 <!-- Top toolbar -->
 <app-toolbar
   *ngVar="{ saving: (savingSubject | push), loading: (loadingSubject | push) } as vars"
@@ -24,7 +26,7 @@
       [disabled]="disabled || vars.loading || vars.saving"
       (click)="saveAndNew($event)"
     >
-      <ion-icon slot="start" name="add-circle"></ion-icon>
+      <ion-icon slot="start" name="add-circle-outline"></ion-icon>
       {{ 'TRIP.OPERATION.EDIT.BTN_NEW' | translate }}
     </ion-button>
 
@@ -167,7 +169,7 @@
 
     <!-- Control -->
     <button mat-menu-item [disabled]="disabled" (click)="saveAndControl($event)">
-      <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>
+      <mat-icon><ion-icon name="shield-checkmark-outline"></ion-icon></mat-icon>
       <ion-label translate>QUALITY.BTN_CONTROL</ion-label>
       @if (!mobile) {
         <ion-label color="medium">
@@ -219,11 +221,13 @@
   <mat-tab-group
     #tabGroup
     class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
+    [class.mat-mdc-tab-group-header-hidden]="tabCount === 1"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
     [disablePagination]="true"
     [dynamicHeight]="false"
+    [mat-stretch-tabs]="mobile"
   >
     <!-- TAB: general -->
     <mat-tab
@@ -285,7 +289,7 @@
                         entityName="VesselUseMeasurement"
                         [acquisitionLevel]="acquisitionLevel$ | async"
                         [requiredStrategy]="requiredStrategy$ | async"
-                        [strategyId]="strategy$ | async | propertyGet: 'id'"
+                        [strategyId]="strategy$ | async | mapGet: 'id'"
                         [requiredGear]="true"
                         [gearId]="gearId$ | async"
                         [forceOptional]="forceMeasurementAsOptional"
@@ -303,12 +307,14 @@
               </app-form-operation>
             </ion-col>
 
-            <!-- quality metadata (+ control button) only if 'on desk' mode -->
-            <ion-col size="12" size-xl="3" class="ion-no-padding" *ngIf="!mobile">
-              <app-entity-metadata [value]="data" [showRecorder]="data?.updateDate | isNotNil">
-                <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
-              </app-entity-metadata>
-            </ion-col>
+            <!-- quality metadata (+ control button) only on desktop -->
+            @if (!mobile) {
+              <ion-col size="12" size-xl="3" class="ion-no-padding">
+                <app-entity-metadata [value]="data" [showRecorder]="data?.updateDate | isNotNil">
+                  <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
+                </app-entity-metadata>
+              </ion-col>
+            }
           </ion-row>
         </ion-grid>
       </div>
@@ -345,6 +351,7 @@
         [physicalGear]="physicalGear$ | async"
         [showAutoFillButton]="false"
         [useSticky]="mobile"
+        [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
         [useModal]="xsMobile"
         [mobile]="mobile"
         [debug]="debug"
@@ -403,11 +410,13 @@
 </ion-footer>
 
 <!-- FAB button -->
-<ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && showFabButton" visible-xs visible-sm visible-mobile @fadeInAnimation>
-  <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+@if (enabled && showFabButton) {
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" visible-xs visible-sm visible-mobile @fadeInOutAnimation>
+    <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}
 
 <!-- DEBUG -->
 <ng-template #debugPanel>

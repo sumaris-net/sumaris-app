@@ -92,6 +92,7 @@ export abstract class AppBaseTable<
   @Input({ transform: booleanAttribute }) sticky = false;
   @Input({ transform: booleanAttribute }) stickyEnd = false;
   @Input({ transform: booleanAttribute }) compact: boolean = null;
+  @Input({ transform: booleanAttribute }) required: boolean = false;
   @Input({ transform: booleanAttribute }) mobile = false;
   @Input({ transform: numberAttribute }) pressHighlightDuration = 10000; // 10s
   @Input({ transform: numberAttribute }) highlightedRowId: number;
@@ -116,6 +117,14 @@ export abstract class AppBaseTable<
 
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;
+  }
+
+  get invalid(): boolean {
+    return super.invalid || (this.required && this.totalRowCount === 0);
+  }
+
+  get valid(): boolean {
+    return super.valid && (!this.required || this.totalRowCount > 0);
   }
 
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {

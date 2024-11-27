@@ -558,11 +558,13 @@
 </ion-footer>
 
 <!-- Add Fab Button  -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="enabled && showFabButton" visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+@if (enabled && showFabButton) {
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>
+    <ion-fab-button color="tertiary" (click)="addRow()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}
 
 <ng-template #addRowButton>
   <span *ngIf="!mobile && enabled">
@@ -574,7 +576,7 @@
   </span>
 </ng-template>
 
-<!-- error-->
+<!-- error or warning -->
 <ng-template #errorItem>
   @if (errorSubject | async; as error) {
     <app-error-item [message]="error"></app-error-item>
