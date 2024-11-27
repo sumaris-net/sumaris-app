@@ -453,12 +453,18 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       if (!selectedData) return;
 
       // Create a copy
-      let data = new PhysicalGear();
-      data.paste(selectedData, PhysicalGearPasteFlags.GEAR & PhysicalGearPasteFlags.RANK_ORDER & PhysicalGearPasteFlags.MEASUREMENT);
+      const data = new PhysicalGear();
+      await this.onNewEntity(data);
+
+      // Paste only some fields (and rankOrder only if editable in th modal, otherwise keep the generated rankOrder)
+      const pasteFlags =
+        PhysicalGearPasteFlags.GEAR | PhysicalGearPasteFlags.MEASUREMENT | (this.canEditRankOrder ? PhysicalGearPasteFlags.RANK_ORDER : 0);
+      data.paste(selectedData, pasteFlags);
 
       const dataToSave = (await this.openDetailModal(data))?.data;
       if (!dataToSave) return; // Skip if not added
 
+      // Add entity to table
       await this.addOrUpdateEntityToTable(dataToSave);
     } catch (err) {
       if (err !== 'CANCELLED') {

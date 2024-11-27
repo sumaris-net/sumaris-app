@@ -222,8 +222,8 @@ export class PhysicalGearModal extends AppEntityEditorModal<PhysicalGear> implem
       this.showChildrenTable = false;
     }
 
-    // Focus on the first field, is not in mobile
-    if (this.isNew && !this.mobile && this.enabled) {
+    // Focus on the first field, is not in mobile and no gear already filled (e.g. by copy/paste)
+    if (this.isNew && !this.mobile && this.enabled && !PhysicalGear.hasGear(this.data)) {
       setTimeout(() => this.physicalGearForm.focusFirstInput(), 400);
     }
   }

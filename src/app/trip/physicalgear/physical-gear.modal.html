@@ -57,70 +57,14 @@
         </ion-item>
 
         <!-- error -->
-        <ion-item *ngIf="error || physicalGearForm.error as error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-        </ion-item>
+        @if (mobile) {
+          <app-error-item [message]="error || physicalGearForm.error"></app-error-item>
+        }
 
-        <!-- DEBUG -->
-        <app-debug *ngIf="debug">
-          <ion-grid class="ion-no-padding">
-            <ion-row>
-              <ion-col>
-                modal.ready: {{ readySubject | async }}
-                <br />
-                modal.loading: {{ loading }}
-                <br />
-                modal.dirty: {{ dirty }}
-                <br />
-                modal.valid: {{ valid }}
-                <br />
-                modal.i18nSuffix: {{ i18nSuffix }}
-                <br />
-                modal.allowChildrenGears: {{ allowChildrenGears }}
-                <br />
-                modal.minChildrenCount: {{ minChildrenCount }}
-                <br />
-                modal.showChildrenTable: {{ showChildrenTable$ | push: 'immediate' }}
-                <br />
-                modal.usageMode: {{ usageMode }}
-                <br />
-                modal.maxVisibleButtons: {{ maxVisibleButtons }}
-                <br />
-                modal.maxItemCountForButtons: {{ maxItemCountForButtons }}
-                <br />
-              </ion-col>
-              <ion-col>
-                form.loading: {{ physicalGearForm.loading }}
-                <br />
-                form.ready: {{ physicalGearForm.readySubject | async }}
-                <br />
-                form.dirty: {{ physicalGearForm.dirty }}
-                <br />
-                form.valid: {{ physicalGearForm.valid }}
-                <br />
-                form.errors: {{ physicalGearForm.form | formError }}
-                <br />
-              </ion-col>
-              <ion-col>
-                form.acquisitionLevel: {{ physicalGearForm.acquisitionLevel$ | async }}
-                <br />
-                form.programLabel: {{ physicalGearForm.programLabel$ | async }}
-                <br />
-                form.strategy{{ physicalGearForm.requiredStrategy ? ' (required)' : '' }}:
-                {{ physicalGearForm.strategyId || physicalGearForm.strategyLabel }}
-                <br />
-                form.gear{{ physicalGearForm.requiredGear ? ' (required)' : '' }}: {{ physicalGearForm.gearId }}
-                <br />
-                form.pmfms count: {{ (physicalGearForm.pmfms$ | async)?.length }}
-                <br />
-                modal.maxVisibleButtons: {{ maxVisibleButtons }}
-                <br />
-                modal.maxItemCountForButtons: {{ maxItemCountForButtons }}
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </app-debug>
+        <!-- debug -->
+        @if (debug) {
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        }
 
         <!-- base form -->
         <app-physical-gear-form
@@ -225,3 +169,64 @@
     </ion-row>
   </ion-toolbar>
 </ion-footer>
+
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          modal.ready: {{ readySubject | async }}
+          <br />
+          modal.loading: {{ loading }}
+          <br />
+          modal.dirty: {{ dirty }}
+          <br />
+          modal.valid: {{ valid }}
+          <br />
+          modal.i18nSuffix: {{ i18nSuffix }}
+          <br />
+          modal.allowChildrenGears: {{ allowChildrenGears }}
+          <br />
+          modal.minChildrenCount: {{ minChildrenCount }}
+          <br />
+          modal.showChildrenTable: {{ showChildrenTable$ | push: 'immediate' }}
+          <br />
+          modal.usageMode: {{ usageMode }}
+          <br />
+          modal.maxVisibleButtons: {{ maxVisibleButtons }}
+          <br />
+          modal.maxItemCountForButtons: {{ maxItemCountForButtons }}
+          <br />
+        </ion-col>
+        <ion-col>
+          form.loading: {{ physicalGearForm.loading }}
+          <br />
+          form.ready: {{ physicalGearForm.readySubject | async }}
+          <br />
+          form.dirty: {{ physicalGearForm.dirty }}
+          <br />
+          form.valid: {{ physicalGearForm.valid }}
+          <br />
+          form.errors: {{ physicalGearForm.form | formError }}
+          <br />
+        </ion-col>
+        <ion-col>
+          form.acquisitionLevel: {{ physicalGearForm.acquisitionLevel$ | async }}
+          <br />
+          form.programLabel: {{ physicalGearForm.programLabel$ | async }}
+          <br />
+          form.strategy{{ physicalGearForm.requiredStrategy ? ' (required)' : '' }}:
+          {{ physicalGearForm.strategyId || physicalGearForm.strategyLabel }}
+          <br />
+          form.gear{{ physicalGearForm.requiredGear ? ' (required)' : '' }}: {{ physicalGearForm.gearId }}
+          <br />
+          form.pmfms count: {{ (physicalGearForm.pmfms$ | async)?.length }}
+          <br />
+          modal.maxVisibleButtons: {{ maxVisibleButtons }}
+          <br />
+          modal.maxItemCountForButtons: {{ maxItemCountForButtons }}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>
