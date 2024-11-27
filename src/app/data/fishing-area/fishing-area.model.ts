@@ -34,6 +34,10 @@ export class FishingArea extends DataEntity<FishingArea> {
     );
   }
 
+  static hasLocation(fa: Partial<FishingArea>): boolean {
+    return ReferentialUtils.isNotEmpty(fa?.location);
+  }
+
   location: ReferentialRef;
 
   distanceToCoastGradient: ReferentialRef;

@@ -221,7 +221,7 @@
   <mat-tab-group
     #tabGroup
     class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
-    [class.mat-mdc-tab-group-header-hidden]="tabCount === 1"
+    [class.mat-mdc-tab-group-header-hidden]="mobile && tabCount === 1"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
@@ -272,6 +272,7 @@
                 (lastEndDateChanges)="lastEndDate = $event"
                 (openParentOperation)="openParentOperation($event)"
                 [isInlineFishingArea]="isInlineFishingArea"
+                [autoFillNextDate]="autoFillNextDate"
                 [debug]="debug"
               >
                 <!-- Other features (Measurements) -->

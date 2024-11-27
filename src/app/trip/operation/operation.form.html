@@ -295,7 +295,7 @@
                 [startDate]="form.controls.startDateTime.valueChanges | async"
               >
                 <mat-icon matPrefix *ngIf="mobile">today</mat-icon>
-                <mat-hint align="end" *ngIf="control.value && control.valid">
+                <mat-hint align="end" *ngIf="(control.value | isValidDate: { requiredTime: true }) && control.valid">
                   <span translate>COMMON.DURATION_DOTS</span>
                   &nbsp;{{
                     {
@@ -476,12 +476,12 @@
                 [clearable]="_usageMode | isOnField"
               >
                 <mat-icon matPrefix *ngIf="mobile">insert_invitation</mat-icon>
-                <mat-hint align="end" *ngIf="control.valid && control.value as value">
+                <mat-hint align="end" *ngIf="(control.value | isValidDate: { requiredTime: true }) && control.valid">
                   <span translate>COMMON.DURATION_DOTS</span>
                   &nbsp;{{
                     {
                       startValue: previousEndDateTimeControl.value,
-                      endValue: value,
+                      endValue: control.value,
                     } | dateDiffDuration
                   }}
                 </mat-hint>
