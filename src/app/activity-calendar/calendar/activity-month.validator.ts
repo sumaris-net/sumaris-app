@@ -505,7 +505,7 @@ export class ActivityMonthValidators {
   static requiredDistanceToCoastIfFishingArea(formGroup: FormArray): ValidationErrors | null {
     // Make sure month is active
     const isActiveControl = formGroup.get('isActive');
-    const isActive = isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
+    const isActive = isActiveControl?.value === VesselUseFeaturesIsActiveEnum.ACTIVE;
     if (!isActive) return null;
 
     const gufArray = formGroup.get('gearUseFeatures') as AppFormArray<VesselUseFeatures, UntypedFormGroup>;
@@ -521,7 +521,7 @@ export class ActivityMonthValidators {
           const location = fa.location;
           const distanceToCoast = fa.distanceToCoastGradient;
 
-          if (ReferentialUtils.isEmpty(location) && ReferentialUtils.isNotEmpty(distanceToCoast)) {
+          if (ReferentialUtils.isNotEmpty(location) && ReferentialUtils.isEmpty(distanceToCoast)) {
             errorFishingAreas.push({ fishingArea: location.label, metier: metier.label });
           }
         });
@@ -631,7 +631,7 @@ export const ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS = {
   requiredMetier: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_METIER',
   requiredFishingArea: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_FISHING_AREA',
   requiredDistanceToCoast: 'ACTIVITY_CALENDAR.ERROR.REQUIRED_DISTANCE_TO_COAST',
-  uniqueMetier: 'ACTIVITY_CALENDAR.ERROR.DUPLICATED_METIER',
+  uniqueMetier: 'ACTIVITY_CALENDAR.ERROR.UNIQUE_METIER',
   uniqueFishingArea: 'ACTIVITY_CALENDAR.ERROR.UNIQUE_FISHING_AREA',
   validDayCount: 'ACTIVITY_CALENDAR.ERROR.VALID_DAY_COUNT',
 };
