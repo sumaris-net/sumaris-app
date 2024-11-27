@@ -7,6 +7,7 @@ import {
   isNotNil,
   ITreeItemEntity,
   ReferentialRef,
+  ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import {
@@ -155,6 +156,10 @@ export class PhysicalGear
           }, [])) ||
       undefined
     );
+  }
+
+  static hasGear(source: Partial<PhysicalGear>): boolean {
+    return ReferentialUtils.isNotEmpty(source?.gear);
   }
 
   rankOrder: number = null;
