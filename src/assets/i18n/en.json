@@ -1375,8 +1375,7 @@
         "WEIGHT_OR_LENGTH_REQUIRED": "Weight or length is required",
         "OUT_OF_RANGE": "Out of range",
         "DUPLICATED_TAG_ID": "Duplication of {{name}}",
-        "REQUIRED": "Accidental catches are required"
-
+        "REQUIRED": "Please add at least one row"
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Sample: Weight unit"

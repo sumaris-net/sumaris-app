@@ -119,6 +119,14 @@ export abstract class AppBaseTable<
     return this.filterCriteriaCount === 0;
   }
 
+  get invalid(): boolean {
+    return super.invalid || (this.required && this.totalRowCount === 0);
+  }
+
+  get valid(): boolean {
+    return super.valid && (!this.required || this.totalRowCount > 0);
+  }
+
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     if (this.memoryDataService?.dirty) return; // Skip if service still dirty
     super.markAsPristine(opts);

@@ -222,14 +222,6 @@ export class SamplesTable
     return this.enableTagIdGeneration ? this.forcedTagIdGenerationMode || this.defaultTagIdGenerationMode : 'none';
   }
 
-  get invalid(): boolean {
-    return super.invalid || (this.required && this.totalRowCount === 0);
-  }
-
-  get valid(): boolean {
-    return super.valid && (!this.required || this.totalRowCount > 0);
-  }
-
   @Output() prepareRowForm = new EventEmitter<IPmfmForm>();
   @Output() weightUnitChanges = new EventEmitter<WeightUnitSymbol>();
 
