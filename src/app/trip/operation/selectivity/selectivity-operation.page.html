@@ -1,3 +1,5 @@
+<ion-backdrop *ngIf="opeForm.busySubject | push"></ion-backdrop>
+
 <!-- Top toolbar -->
 <app-toolbar
   *ngVar="{ saving: (savingSubject | push), loading: (loadingSubject | push) } as vars"
@@ -167,10 +169,13 @@
 
     <!-- Control -->
     <button mat-menu-item [disabled]="disabled" (click)="saveAndControl($event)">
-      <ion-label>
-        <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>
-        <span translate>QUALITY.BTN_CONTROL</span>
-      </ion-label>
+      <mat-icon><ion-icon name="shield-checkmark-outline"></ion-icon></mat-icon>
+      <ion-label translate>QUALITY.BTN_CONTROL</ion-label>
+      @if (!mobile) {
+        <ion-label color="medium">
+          <small>{{ hotkeys.defaultControlKeyName + '+O' }}</small>
+        </ion-label>
+      }
     </button>
 
     <!-- download button -->
@@ -212,15 +217,17 @@
   </ng-template>
 </mat-menu>
 
-<ion-content>
+<ion-content scroll-y="false">
   <mat-tab-group
     #tabGroup
     class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
+    [class.mat-mdc-tab-group-header-hidden]="tabCount === 1"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
     [disablePagination]="true"
     [dynamicHeight]="false"
+    [mat-stretch-tabs]="mobile"
   >
     <!-- TAB: general -->
     <mat-tab
@@ -247,9 +254,9 @@
           <ion-label color="danger" [innerHTML]="errorMsg | translate"></ion-label>
         </ion-item>
 
-        <ng-container *ngIf="debug">
+        @if (debug) {
           <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
-        </ng-container>
+        }
 
         <ion-grid class="ion-no-padding">
           <ion-row>
@@ -267,7 +274,7 @@
               >
                 <!-- Other features (Measurements) -->
                 <ion-grid
-                  class="ion-no-padding ion-padding-top form-container"
+                  class="form-container ion-no-padding ion-padding-top"
                   [class.cdk-visually-hidden]="measurementsForm.pmfms$ | async | isEmptyArray"
                 >
                   <ion-row>
@@ -298,12 +305,14 @@
               </app-form-operation>
             </ion-col>
 
-            <!-- quality metadata (+ control button) only if 'on desk' mode -->
-            <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="usageMode | isOnDesk">
-              <app-entity-metadata [value]="data" [showRecorder]="data?.updateDate | isNotNil">
-                <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
-              </app-entity-metadata>
-            </ion-col>
+            <!-- quality metadata (+ control button) only on desktop -->
+            @if (!mobile) {
+              <ion-col size="12" size-xl="3" class="ion-no-padding">
+                <app-entity-metadata [value]="data" [showRecorder]="data?.updateDate | isNotNil">
+                  <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
+                </app-entity-metadata>
+              </ion-col>
+            }
           </ion-row>
         </ion-grid>
       </div>
@@ -338,9 +347,12 @@
         [physicalGear]="physicalGear$ | async"
         [showAutoFillButton]="false"
         [useSticky]="mobile"
+        [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
         [useModal]="xsMobile"
         [mobile]="mobile"
         [debug]="debug"
+        [controlButtonText]="'QUALITY.BTN_CONTROL_WITH_SHORTCUT' | translate"
+        (control)="saveAndControl($event)"
       ></app-batch-tree-container>
     </mat-tab>
   </mat-tab-group>
@@ -354,10 +366,7 @@
     [disabled]="!dirty || loading"
   >
     <!-- error -->
-    <ion-item *ngIf="error as errorMsg" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="errorMsg | translate"></ion-label>
-    </ion-item>
+    <app-error-item [message]="errorSubject | async"></app-error-item>
   </app-form-buttons-bar>
 </ion-footer>
 
@@ -369,7 +378,7 @@
         <ion-col>
           editor.ready: {{ readySubject | async }}
           <br />
-          editor.loading: {{ loading }}
+          editor.loading: {{ loading }} - editor.saving: {{ saving }}
           <br />
           editor.enabled: {{ enabled }}
           <br />
@@ -377,8 +386,19 @@
           <br />
           editor.valid: {{ valid }}
           <br />
-          editor.saving: {{ saving }}
+          editor.program: {{ programLabel$ | async }}
           <br />
+          editor.strategy{{ requiredStrategy ? ' (required)' : '' }} ({{ strategyResolution$ | async }}): {{ (strategy$ | async)?.id }} (context:
+          {{ tripContext.strategy?.id }})
+          <br />
+          <br />
+          editor.acquisitionLevel: {{ acquisitionLevel$ | async }}
+          <br />
+          editor.tabCount: {{ tabCount }}
+          <br />
+          editor.isOnFieldMode: {{ isOnFieldMode }}
+          <br />
+          editor.forceMeasurementAsOptional: {{ forceMeasurementAsOptional }}
         </ion-col>
         <ion-col>
           opeForm.ready: {{ opeForm.readySubject | async }}
@@ -392,6 +412,13 @@
           opeForm.valid: {{ opeForm.valid }}
           <br />
           <br />
+          opeForm.isInlineFishingArea: {{ opeForm.isInlineFishingArea }}
+          <br />
+          opeForm.showPosition: {{ opeForm.showPosition }}
+          <br />
+          opeForm.showFishingArea: {{ opeForm.showFishingArea }}
+          <br />
+          <br />
           opeForm.startDateTime: {{ form | formGetValue: 'startDateTime' | dateFormat: { time: true } }}
           <br />
           opeForm.fishingStartDateTime:
@@ -401,24 +428,6 @@
           {{ form.controls.fishingEndDateTime.valueChanges | async | dateFormat: { time: true } }}
           <br />
           opeForm.endDateTime: {{ form.controls.endDateTime.valueChanges | async | dateFormat: { time: true } }}
-          <br />
-        </ion-col>
-        <ion-col>
-          measurementsForm.ready: {{ measurementsForm.readySubject | async }}
-          <br />
-          measurementsForm.loading: {{ measurementsForm.loading }}
-          <br />
-          measurementsForm.enabled: {{ measurementsForm.enabled }}
-          <br />
-          measurementsForm.dirty: {{ measurementsForm.dirty }}
-          <br />
-          measurementsForm.valid: {{ measurementsForm.valid }}
-          <br />
-          measurementsForm.gearId{{ measurementsForm.requiredGear ? ' (required)' : '' }}: {{ measurementsForm.gearId }}
-          <br />
-          measurementsForm.i18nPmfmPrefix: {{ measurementsForm.i18nPmfmPrefix }}
-          <br />
-          measurementsForm.i18nSuffix: {{ measurementsForm.i18nSuffix }}
           <br />
         </ion-col>
       </ion-row>
