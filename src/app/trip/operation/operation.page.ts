@@ -127,6 +127,7 @@ export class OperationPage<S extends OperationState = OperationState>
   @RxStateSelect() protected readonly gearId$: Observable<number>;
   @RxStateSelect() protected readonly lastOperations$: Observable<Operation[]>;
   @RxStateSelect() protected readonly lastEndDate$: Observable<Moment>;
+
   protected readonly tripService = inject(TripService);
   protected readonly tripContext = inject(TripContextService);
   protected readonly referentialRefService = inject(ReferentialRefService);
@@ -139,6 +140,7 @@ export class OperationPage<S extends OperationState = OperationState>
   protected readonly xsMobile: boolean;
   protected isInlineFishingArea: boolean = false;
   protected autoFillNextDate: boolean = false;
+  protected samplesTableRequiredPmfmId: number;
 
   saveOptions: OperationSaveOptions = {};
   selectedSubTabIndex = 0;
@@ -162,9 +164,6 @@ export class OperationPage<S extends OperationState = OperationState>
   operationPasteFlags: number;
   helpUrl: string;
   _defaultIsParentOperation = true;
-
-  protected isInlineFishingArea: boolean = false;
-  protected samplesTableRequiredPmfmId: number;
 
   readonly forceOptionalExcludedPmfmIds: number[];
 

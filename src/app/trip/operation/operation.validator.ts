@@ -21,7 +21,6 @@ import {
   fromDateISOString,
   isNil,
   isNotNil,
-  isNotNilOrBlank,
   LocalSettingsService,
   SharedFormArrayValidators,
   SharedFormGroupValidators,
@@ -216,13 +215,13 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
   }
 
   getFormGroupOptions(data?: Operation, opts?: O): AbstractControlOptions {
-    // Parent operation (=Filage)
+    // Parent operation (= Filage)
     if (opts?.isParent || data?.childOperation) {
       return {
         validators: Validators.compose([
           // Make sure date range
-          OperationValidators.dateRange('startDateTime', 'fishingStartDateTime', { skipIfNoTime: true }),
-          // Check shooting (=Filage) max duration
+          SharedFormGroupValidators.dateRange('startDateTime', 'fishingStartDateTime', { skipIfNoTime: true }),
+          // Check shooting (= Filage) max duration
           SharedFormGroupValidators.dateMaxDuration(
             'startDateTime',
             'fishingStartDateTime',
@@ -238,7 +237,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       return {
         validators: Validators.compose([
           // Make sure date range
-          OperationValidators.dateRange('fishingEndDateTime', 'endDateTime', { skipIfNoTime: true }),
+          SharedFormGroupValidators.dateRange('fishingEndDateTime', 'endDateTime', { skipIfNoTime: true }),
           // Check shooting (=Virage) max duration
           SharedFormGroupValidators.dateMaxDuration(
             'fishingEndDateTime',
@@ -261,7 +260,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     else {
       return {
         validators: Validators.compose([
-          OperationValidators.dateRange('startDateTime', 'endDateTime', { skipIfNoTime: true }),
+          SharedFormGroupValidators.dateRange('startDateTime', 'endDateTime', { skipIfNoTime: true }),
           // Check total max duration
           SharedFormGroupValidators.dateMaxDuration(
             'startDateTime',
@@ -999,40 +998,6 @@ export class OperationValidators {
       return { existsParent: true };
     }
     return null;
-  }
-
-  static dateRange(
-    startDateField: string,
-    endDateField: string,
-    opts?: { msg?: string; fieldOnly?: boolean; skipIfNoTime?: boolean } | string
-  ): ValidatorFn {
-    const msg = typeof opts === 'string' ? opts : opts?.msg;
-    const fieldOnly = typeof opts === 'object' ? opts?.fieldOnly : undefined;
-    const skipIfNoTime = typeof opts === 'object' ? opts?.skipIfNoTime : undefined;
-
-    const errorCode = isNotNilOrBlank(msg) ? 'msg' : 'dateRange';
-    const rangeError = msg ? { msg } : { dateRange: true };
-    return (group: UntypedFormGroup): ValidationErrors | null => {
-      const startDate = fromDateISOString(group.get(startDateField).value);
-      const endField = group.get(endDateField);
-      const endDate = fromDateISOString(endField.value);
-
-      const hasStartDate = isNotNil(startDate) && (!skipIfNoTime || DateUtils.isNoTime(startDate));
-      const hasEndDate = isNotNil(endDate) && (!skipIfNoTime || DateUtils.isNoTime(endDate));
-      if (hasStartDate && hasEndDate && startDate.isAfter(endDate)) {
-        // Update end field
-        endField.markAsPending();
-        endField.setErrors({
-          ...endField.errors,
-          ...rangeError,
-        });
-        // Return the error (should be applied to the parent form, by default)
-        return fieldOnly ? null : rangeError;
-      }
-      // OK: remove the existing on the end field
-      SharedValidators.clearError(endField, errorCode);
-      return null;
-    };
   }
 }
 
