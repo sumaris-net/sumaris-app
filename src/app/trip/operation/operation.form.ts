@@ -1404,7 +1404,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     if (isNil(sourceValue)) return;
 
     // DEBUG
-    console.debug(`[operation] Copying date (without the time) from ${toDateISOString(source)} to ${toDateISOString(target)}`);
+    console.debug(`[operation] Copying date (without the time) from ${toDateISOString(source.value)} to ${toDateISOString(target.value)}`);
 
     const targetValue = fromDateISOString(target.value);
 
@@ -1413,9 +1413,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
     const targetDateNoTime = DateUtils.markNoTime(sourceValue.clone().startOf('day'));
     target.patchValue(targetDateNoTime, { emitEvent: true });
-
-    // TODO voir quel intéret
-    //this.markAsDirty();
   }
 
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
