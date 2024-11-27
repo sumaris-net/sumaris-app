@@ -21,7 +21,7 @@ import { PhysicalGearFilter } from './physical-gear.filter';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { PhysicalGear, PhysicalGearPasteFlags } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
 import { merge, Subscription } from 'rxjs';
 import { OverlayEventDetail } from '@ionic/core';
@@ -454,11 +454,17 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
 
       // Create a copy
       const data = new PhysicalGear();
-      data.paste(selectedData);
+      await this.onNewEntity(data);
+
+      // Paste only some fields (and rankOrder only if editable in th modal, otherwise keep the generated rankOrder)
+      const pasteFlags =
+        PhysicalGearPasteFlags.GEAR | PhysicalGearPasteFlags.MEASUREMENT | (this.canEditRankOrder ? PhysicalGearPasteFlags.RANK_ORDER : 0);
+      data.paste(selectedData, pasteFlags);
 
       const dataToSave = (await this.openDetailModal(data))?.data;
       if (!dataToSave) return; // Skip if not added
 
+      // Add entity to table
       await this.addOrUpdateEntityToTable(dataToSave);
     } catch (err) {
       if (err !== 'CANCELLED') {
