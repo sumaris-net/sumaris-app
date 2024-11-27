@@ -1,10 +1,7 @@
 <mat-toolbar *ngIf="showToolbar && !showGroupHeader">
   <ng-container *ngTemplateOutlet="toolbarButtons"></ng-container>
 
-  <ion-item *ngIf="showError && !mobile && error; let error" lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  <ng-container *ngTemplateOutlet="errorItem"></ng-container>
 
   <span class="toolbar-spacer"></span>
 
@@ -127,10 +124,9 @@
 </mat-menu>
 
 <!-- error -->
-<ion-item *ngIf="showError && mobile && error" lines="none">
-  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-</ion-item>
+@if (mobile) {
+  <ng-container *ngTemplateOutlet="errorItem"></ng-container>
+}
 
 <div
   #tableContainer
@@ -234,7 +230,7 @@
               mat-cell
               *ngVar="{
                 formError: row.validator.enabled && (row.validator | formError: errorTranslateOptions),
-                entityError: row.currentData | dataEntityError
+                entityError: row.currentData | dataEntityError,
               } as vars"
               [title]="vars.formError || vars.entityError || ''"
             >
@@ -361,7 +357,7 @@
                         html: true,
                         withDetails: showPmfmDetails,
                         i18nPrefix: i18nPmfmPrefix,
-                        i18nSuffix: i18nColumnSuffix
+                        i18nSuffix: i18nColumnSuffix,
                       }
               "
             ></ion-label>
@@ -647,7 +643,7 @@
                         html: true,
                         withDetails: showPmfmDetails,
                         i18nPrefix: i18nPmfmPrefix,
-                        i18nSuffix: i18nColumnSuffix
+                        i18nSuffix: i18nColumnSuffix,
                       }
               "
             ></ion-label>
@@ -776,11 +772,22 @@
   }
 </div>
 
-<ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="enabled && showFabButton" visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+@if (enabled && showFabButton) {
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" visible-xs visible-sm visible-mobile>
+    <ion-fab-button color="tertiary" (click)="addRow()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}
+
+<!-- error or warning -->
+<ng-template #errorItem>
+  @if (errorSubject | async; as error) {
+    <app-error-item [message]="error"></app-error-item>
+  } @else if (required && totalRowCount === 0) {
+    <app-warning-item size="small" [message]="'TRIP.SAMPLE.ERROR.REQUIRED' | translateContext: i18nColumnSuffix"></app-warning-item>
+  }
+</ng-template>
 
 <ng-template #addRowButton>
   <span *ngIf="!mobile && enabled">

@@ -401,6 +401,10 @@ export class SamplesTable
         super.setError(error, opts);
         return;
       }
+    } else if (error && this.required && this.totalRowCount == 0) {
+      this.showError = true;
+      super.setError('TRIP.SAMPLE.ERROR.REQUIRED', opts);
+      return;
     } else {
       this.showError = false;
       super.setError(error, opts);

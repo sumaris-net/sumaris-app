@@ -1374,7 +1374,8 @@
         "INVALID_TAG_ID_LENGTH": "Tag length must have {{length}} characters",
         "WEIGHT_OR_LENGTH_REQUIRED": "Weight or length is required",
         "OUT_OF_RANGE": "Out of range",
-        "DUPLICATED_TAG_ID": "Duplication of {{name}}"
+        "DUPLICATED_TAG_ID": "Duplication of {{name}}",
+        "REQUIRED": "Please add at least one row"
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Sample: Weight unit"
@@ -2411,6 +2412,7 @@
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Sample: Scientific species?",
       "TRIP_SAMPLE_LABEL_ENABLE": "Trip > Sample: Label?",
       "TRIP_SAMPLE_IMAGES_ENABLE": "Trip > Sample: Images?",
+      "TRIP_SAMPLE_REQUIRED_NOT_EMPTY_PMFM_ID": "Trip > Sample : Accidental catches : Mandatory entry ?",
       "TRIP_POSITION_ENABLE": "Trip > Position: Enable?",
       "TRIP_POSITION_BOUNDING_BOX": "Trip > Position: Bounding box ([x1, y1, x2, y2]):",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Trip > Position > Latitude: Default direction:",

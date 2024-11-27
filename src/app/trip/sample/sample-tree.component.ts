@@ -101,6 +101,12 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
   @Input() showTaxonNameColumn: boolean; // By default, resolved from program properties
   @Input() showSampleDateColumn: boolean;
   @Input() pmfmGroups: ObjectMap<number[]>;
+  @Input() set required(value: boolean) {
+    this.samplesTable.required = value;
+  }
+  get required(): boolean {
+    return this.samplesTable.required;
+  }
 
   @Input() set defaultSampleDate(value: Moment) {
     this.samplesTable.defaultSampleDate = value;
