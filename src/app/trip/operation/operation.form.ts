@@ -1355,11 +1355,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       const fishingStartDateTimeControl = this.form.get('fishingStartDateTime');
       if (startDateTimeControl && fishingStartDateTimeControl) {
         subscription.add(
-          startDateTimeControl.valueChanges
+          merge(startDateTimeControl.valueChanges.pipe(distinctUntilChanged()), startDateTimeControl.statusChanges)
             .pipe(
               debounceTime(100),
-              distinctUntilChanged(),
-              filter(() => this.enabled)
+              filter(() => fishingStartDateTimeControl.enabled)
             )
             .subscribe(() => this.copyDateNoTime(startDateTimeControl, fishingStartDateTimeControl))
         );
@@ -1372,11 +1371,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       const endDateTimeControl = this.form.get('endDateTime');
       if (fishingEndDateTimeControl && endDateTimeControl) {
         subscription.add(
-          fishingEndDateTimeControl.valueChanges
+          merge(fishingEndDateTimeControl.valueChanges.pipe(distinctUntilChanged()), fishingEndDateTimeControl.statusChanges)
             .pipe(
               debounceTime(100),
-              distinctUntilChanged(),
-              filter(() => this.enabled)
+              filter(() => endDateTimeControl.enabled)
             )
             .subscribe(() => this.copyDateNoTime(fishingEndDateTimeControl, endDateTimeControl))
         );
@@ -1399,7 +1397,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
    * @param {AbstractControl<Moment>} target - The target control where the date will be copied to, with time removed.
    * @return {void}
    */
-  protected copyDateNoTime(source: AbstractControl<Moment>, target: AbstractControl<Moment>) {
+  protected copyDateNoTime(source: AbstractControl<Moment>, target: AbstractControl<Moment>): void {
     const sourceValue = fromDateISOString(source.value);
     if (isNil(sourceValue)) return;
 

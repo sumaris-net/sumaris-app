@@ -170,7 +170,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       form.addControl(
         'fishingAreas',
         this.getFishingAreasArray(data?.fishingAreas, {
-          required: true,
+          required: opts && !opts.isOnFieldMode,
           allowManyNullValues: opts?.isInlineFishingArea,
           allowDuplicateValue: opts?.isInlineFishingArea,
         })
@@ -395,7 +395,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       if (!fishingAreasArray) {
         fishingAreasArray = this.getFishingAreasArray(null, {
-          required: true, // TODO: CONSTRAINT NOT_NULL => FISHING_AREA.LOCATION_FK
+          required: opts && !opts.isOnFieldMode,
           allowManyNullValues: opts.isInlineFishingArea,
           allowDuplicateValue: opts.isInlineFishingArea,
         });
