@@ -9,6 +9,7 @@ import {
   firstNotNilPromise,
   isEmptyArray,
   isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
@@ -19,7 +20,6 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable, SubBatchFilter } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Animation, IonContent, ModalController } from '@ionic/angular';
@@ -30,14 +30,14 @@ import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { IPmfm, Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { environment } from '@environments/environment';
-import { PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
 import { BatchContext, SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
 import { RxState } from '@rx-angular/state';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ModalUtils } from '@app/shared/modal/modal.utils';
-import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { SubSortingCriteriaModal } from './sub-sorting-criteria.modal';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -127,6 +127,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected showSubBatchFormControl: AbstractControl;
   protected individualCountControl: AbstractControl;
   protected dynamicColumns: any[] = [];
+  dynamicColumnsForm: FormArray;
 
   get selectedRow(): TableElement<SubBatch> {
     return this.singleSelectedRow || this.editedRow;
@@ -195,10 +196,14 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     protected pmfmService: PmfmService,
     protected audio: AudioProvider,
     protected platform: PlatformService,
+    protected formBuilder: UntypedFormBuilder,
+    private fb: FormBuilder,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>
   ) {
     super(injector, settings.mobile ? null : validatorService /*no validator = not editable*/, options);
+
     this.inlineEdition = !this.mobile; // Disable row edition (no validator)
+
     this.confirmBeforeDelete = true; // Ask confirmation before delete
     this.allowRowDetail = false; // Disable click on a row
     this.defaultSortBy = 'id';
@@ -215,11 +220,17 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.showCommentsColumn = false;
     this.showParentGroupColumn = false;
     this.settingsId = 'sub-batches-modal';
-
+    this.dynamicColumnsForm = this.fb.array([]);
     this.filterForm = this.formBuilder.group({});
   }
 
   ngOnInit() {
+    this.filterForm = this.formBuilder.group({
+      minValue: [null],
+      maxValue: [null],
+      taxonNameFilter: [null],
+    });
+
     this.canDebug = toBoolean(this.canDebug, !environment.production);
     this.canEdit = this._enabled;
     this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
@@ -528,7 +539,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
         maxRankOrder = Math.max(maxRankOrder, b.rankOrder || 0);
         // Filter on individual count = 1 when individual count is hide
         // AND same parent
-        if ((showIndividualCount || b.individualCount === 1) && Batch.equals(this.parentGroup, b.parentGroup)) {
+        if (
+          (showIndividualCount || b.individualCount === 1 || isNotEmptyArray(this.dynamicColumns)) &&
+          Batch.equals(this.parentGroup, b.parentGroup)
+        ) {
           return res.concat(b);
         }
         hiddenData.push(b);
@@ -768,10 +782,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       const subBatchesToAdd = [];
       let rankOrder = await this.getMaxRankOrder();
 
-      if (isNotNil(data.qvPmfm)) {
-        this.generateDynamicColumns(data.qvPmfm);
-      }
-
       for (let size = data.min; size <= data.max; size += data.precision) {
         const subBatch = new SubBatch();
         subBatch.individualCount = 0;
@@ -783,13 +793,20 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
       await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
 
+      if (isNotNil(data.qvPmfm)) {
+        this.generateDynamicColumns(data.qvPmfm);
+      }
+
       // Only show added entities
-      this.showIndividualCount = true; // TODO: Obligé pour l'instant pour que ça fonctionne (voir onLoadData)
       const filter = new SubBatchFilter();
       filter.numericalMinValue = data.min;
       filter.numericalMaxValue = data.max;
       filter.numericalPmfmId = data.criteriaPmfm.id;
       filter.taxonNameId = data.taxonName.id;
+
+      const formValue = { minValue: data.min, maxValue: data.max, taxonNameFilter: data.taxonName };
+      this.filterForm.patchValue(formValue);
+
       this.setFilter(filter);
     }
 
@@ -809,15 +826,26 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   protected generateDynamicColumns(pmfm: DenormalizedPmfmStrategy) {
-    const columnNames = pmfm.qualitativeValues.map((value) => value.label);
+    const columnNames = pmfm.qualitativeValues.map((value) => value.name);
+    columnNames.push('label'); //Pour recuperer l'id de la ligne mais à supprimer
     const ColumnDefinition = [];
 
     columnNames.forEach((columnName) => {
       const col = {
         id: columnName,
-        label: 'Longeur totale (' + columnName + ')', // todo to be  translate with i18n
+        label: `${columnName}<br> <small> (Nb. indiv) </small>`,
       };
       ColumnDefinition.push(col);
+    });
+
+    // Pour chaque ligne de données, créer un FormGroup
+    this.dataSource.getRows().forEach(() => {
+      const rowGroup = this.fb.group({});
+      // Ajouter un contrôle pour chaque colonne
+      columnNames.forEach((colName) => {
+        rowGroup.addControl(colName, this.fb.control(''));
+      });
+      this.dynamicColumnsForm.push(rowGroup);
     });
 
     this.dynamicColumns = ColumnDefinition;
@@ -827,11 +855,71 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     // clear old pmfm columns , to be  hide rtp column ???
     this.setShowColumn(pmfm.id.toString(), false), (this.showIndividualCount = false);
 
-    // Insert the new columns in the displayedColumns
-    // const insertIndex = this.displayedColumns.indexOf('comments');
-    // this.displayedColumns.splice(insertIndex, 0, ...columnNames);
-
     this.updateColumns();
+  }
+
+  getValue(): SubBatch[] {
+    const original = super.getValue();
+    const test = this.getDynamicColumnValues(); // test à supprimer
+
+    return original;
+  }
+
+  getFormControl(rowIndex: number, columnId: string, rowData?: any) {
+    // Pas viable à supprimer	pour les virtual PMFM
+    const rowGroup = this.dynamicColumnsForm.at(rowIndex) as FormGroup;
+    if (rowGroup && columnId === 'label') rowGroup.get(columnId).setValue(rowData.label);
+    this.setShowColumn('label', false);
+    return rowGroup.get(columnId);
+  }
+
+  getRowId(row: any): number {
+    return row.id; // Assurez-vous que chaque ligne a un champ `id`
+  }
+
+  // Méthode pour récupérer les valeurs des colonnes dynamiques
+  getDynamicColumnValues() {
+    const dataSource = this.table.dataSource as any;
+    return dataSource.currentData.map((row, rowIndex) => {
+      const rowGroup = this.dynamicColumnsForm.at(rowIndex) as FormGroup;
+      const rowValues: { [key: string]: any } = {};
+      this.dynamicColumns.forEach((col) => {
+        rowValues[col.id] = rowGroup.get(col.id)?.value;
+      });
+      return rowValues;
+    });
+  }
+
+  applyFilterAndClosePanel() {
+    //Application du filtre
+    const data = this.filterForm.value;
+    const filter = new SubBatchFilter();
+
+    const test = this.pmfms.filter((pmfm) => PmfmUtils.isNumeric(pmfm));
+
+    if (isNotNil(data.maxValue)) {
+      filter.numericalMaxValue = data.maxValue;
+    }
+    if (isNotNil(data.minValue)) {
+      filter.numericalMinValue = data.minValue;
+    }
+    if (isNotNil(data.taxonNameFilter)) {
+      filter.taxonNameId = data.taxonNameFilter?.id;
+    }
+    // Penser à trouver une solution dans le cas ou il ya plusieurs QV PMFM
+    filter.numericalPmfmId = test[0].id;
+
+    this.setFilter(filter);
+  }
+
+  resetFilter() {
+    if (isNotEmptyArray(this.dynamicColumns)) {
+      this.dynamicColumns.forEach((col) => {
+        this.setShowColumn(col.id, false);
+      });
+      this.dynamicColumns = [];
+    }
+    super.resetFilter();
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
