@@ -6,11 +6,13 @@ import {
   arrayDistinct,
   chainPromises,
   ConnectionType,
+  EntityUtils,
   FileEvent,
   FileResponse,
   FilesUtils,
   IEntitiesService,
   isEmptyArray,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -27,7 +29,7 @@ import {
   toDateISOString,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, merge, Observable, of } from 'rxjs';
 import { RootDataEntity, RootDataEntityUtils } from '../services/model/root-data-entity.model';
 import { DataQualityStatusEnum, DataQualityStatusList, SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
@@ -47,6 +49,9 @@ import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorato
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { ExpertiseArea, IExpertiseAreaProperties } from '@app/referential/expertise-area/expertise-area.model';
+import { ExpertiseAreaService } from '@app/referential/expertise-area/expertise-area.service';
+import { DATA_LOCAL_SETTINGS_OPTIONS } from '../data.config';
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: 'filter',
@@ -74,6 +79,10 @@ export interface AppRootDataTableState extends BaseTableState {
 
   enableReport: boolean;
   reportTypes: Property[];
+
+  availableExpertiseAreas: ExpertiseArea[];
+  selectedExpertiseArea: ExpertiseArea;
+  expertiseAreaProperties: IExpertiseAreaProperties;
 }
 
 @Directive()
@@ -95,11 +104,16 @@ export abstract class AppRootDataTable<
   protected readonly userEventService = inject(UserEventService);
   protected readonly programRefService = inject(ProgramRefService);
   protected readonly referentialRefService = inject(ReferentialRefService);
+  protected readonly expertiseAreaService = inject(ExpertiseAreaService);
+  protected readonly canUseExpertiseArea: boolean;
 
   @RxStateSelect() protected title$: Observable<string>;
   @RxStateSelect() protected program$: Observable<Program>;
   @RxStateSelect() protected selectionProgramLabels$: Observable<string[]>;
   @RxStateSelect() protected pmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() availableExpertiseAreas$: Observable<ExpertiseArea[]>;
+  @RxStateSelect() selectedExpertiseArea$: Observable<ExpertiseArea>;
+  @RxStateSelect() expertiseAreaProperties$: Observable<IExpertiseAreaProperties>;
 
   @RxStateProperty() protected programLabel: string;
   @RxStateProperty() protected program: Program;
@@ -107,6 +121,9 @@ export abstract class AppRootDataTable<
   @RxStateProperty() protected pmfms: IPmfm[];
   @RxStateProperty() protected enableReport: boolean;
   @RxStateProperty() protected reportTypes: Property[];
+  @RxStateProperty() availableExpertiseAreas: ExpertiseArea[];
+  @RxStateProperty() selectedExpertiseArea: ExpertiseArea;
+  @RxStateProperty() expertiseAreaProperties: IExpertiseAreaProperties;
 
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
   protected defaultShowFilterProgram: boolean;
@@ -187,6 +204,7 @@ export abstract class AppRootDataTable<
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
+    this.canUseExpertiseArea = options?.canUseExpertiseArea ?? false;
 
     // Load program, from label
     this._state.connect(
@@ -277,6 +295,61 @@ export abstract class AppRootDataTable<
         )
         .subscribe()
     );
+
+    // Manage expertise areas, if enable on this table (see constructor options)
+    if (this.canUseExpertiseArea) {
+      // Listen expertise areas
+      this._state.connect('availableExpertiseAreas', this.expertiseAreaService.items$);
+
+      // Listen settings to initialize expertise area
+      this._state.connect(
+        'selectedExpertiseArea',
+        merge(of(this.settings.ready()), this.availableExpertiseAreas$).pipe(
+          filter(() => isNil(this.selectedExpertiseArea)),
+          map(() => this.settings.getPropertyAsInt(DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA)),
+          filter(isNotNil),
+          map((selectedExpertiseAreaId) => this.availableExpertiseAreas?.find((value) => value.id === selectedExpertiseAreaId))
+        )
+      );
+
+      // Save selected expertise area in settings
+      this._state.hold(
+        this._state.select('selectedExpertiseArea').pipe(
+          debounceTime(1000),
+          map((expertiseArea) => expertiseArea?.id?.toString()),
+          filter(isNotNil), // Prevent saving undefined expertise area
+          distinctUntilChanged()
+        ),
+        (expertiseAreaId) => {
+          const properties = { ...this.settings.settings.properties };
+          if (properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] !== expertiseAreaId) {
+            properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] = expertiseAreaId;
+            // Save remotely
+            this.settings.applyProperty('properties', properties);
+          }
+        }
+      );
+
+      // Listen settings on expertise activation and populate expertiseAreaProperties
+      this._state.connect(
+        'expertiseAreaProperties',
+        this._state.select('selectedExpertiseArea').pipe(
+          map((selectedExpertiseArea) => ({
+            selectedExpertiseArea,
+            properties: <IExpertiseAreaProperties>{
+              locationIds: EntityUtils.collectIds(selectedExpertiseArea?.locations),
+              locationLevelIds: EntityUtils.collectIds(selectedExpertiseArea?.locationLevels),
+            },
+          })),
+          tap(({ selectedExpertiseArea, properties }) => {
+            if (this.debug) {
+              console.debug(`${this.logPrefix}selected expertiseArea :`, selectedExpertiseArea?.name, properties);
+            }
+          }),
+          map(({ properties }) => properties)
+        )
+      );
+    }
   }
 
   ngOnDestroy() {

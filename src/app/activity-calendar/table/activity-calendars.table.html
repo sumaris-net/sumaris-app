@@ -110,6 +110,13 @@
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
+  <button mat-menu-item [matMenuTriggerFor]="expertiseAreaMenu">
+    <mat-icon>
+      <ion-icon slot="icon-only" name="earth-outline"></ion-icon>
+    </mat-icon>
+    <ion-label translate>ACTIVITY_CALENDAR.EDIT.BTN_EXPERTISE_AREA</ion-label>
+  </button>
+  <mat-divider></mat-divider>
   <!-- report -->
   @if (enableReport && (reportTypes | isNotEmptyArray)) {
     <button mat-menu-item [matMenuTriggerFor]="reportsMenu">
@@ -168,6 +175,28 @@
       <ion-label>{{ item.value | translate }}</ion-label>
     </button>
   }
+</mat-menu>
+
+<mat-menu #expertiseAreaMenu="matMenu" class="ion-no-padding">
+  <ng-template matMenuContent>
+    <!-- enable expertise area ? -->
+    @if (isAdminOrManager) {
+      @let selected = selectedExpertiseArea | isNil;
+      <button mat-menu-item (click)="selectedExpertiseArea = null">
+        <mat-icon [style.color]="selected ? 'var(--ion-color-primary)' : 'var(--ion-color-dark)'">{{ selected ? 'check' : '' }}</mat-icon>
+        <ion-label [color]="selected ? 'primary' : 'dark'" translate>ACTIVITY_CALENDAR.EDIT.BTN_NO_EXPERTISE_AREA</ion-label>
+      </button>
+    }
+
+    <!-- available expertise area -->
+    @for (item of availableExpertiseAreas$ | async; track item.id) {
+      @let selected = selectedExpertiseArea?.id === item.id;
+      <button mat-menu-item (click)="selectedExpertiseArea = item">
+        <mat-icon [style.color]="selected ? 'var(--ion-color-primary)' : 'var(--ion-color-dark)'">{{ selected ? 'check' : '' }}</mat-icon>
+        <ion-label [color]="selected ? 'primary' : 'dark'">{{ item.name }}</ion-label>
+      </button>
+    }
+  </ng-template>
 </mat-menu>
 
 <ion-content class="ion-no-padding ion-flex-direction-column" scroll-y="false" scroll-x="false">
