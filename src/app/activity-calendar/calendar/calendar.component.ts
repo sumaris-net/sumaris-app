@@ -1803,7 +1803,9 @@ export class CalendarComponent
       statusId: StatusIds.ENABLE,
       ...filter,
       excludedIds: existingFishingAreaLocationIds,
-      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      levelIds: isNotEmptyArray(this.expertiseAreaProperties?.locationLevelIds)
+        ? this.expertiseAreaProperties.locationLevelIds
+        : this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
       locationIds: this.expertiseAreaProperties?.locationIds,
     };
   }
