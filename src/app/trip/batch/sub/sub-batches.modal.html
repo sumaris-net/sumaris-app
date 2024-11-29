@@ -64,6 +64,7 @@
         [pushLg]="showSubBatchForm ? 9 : null"
         class="ion-col-form"
         [class.mobile]="mobile"
+        class="ion-padding"
       >
         <!-- error -->
         <ion-item *ngIf="form.error; let error" lines="none">
@@ -216,6 +217,20 @@
         >
           <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
             <ion-grid>
+              <!-- pmfm -->
+              <ion-row>
+                <mat-autocomplete-field
+                  floatLabel="never"
+                  panelClass="min-width-large"
+                  [formControl]="filterForm | formGetControl: 'taxonNameFilter'"
+                  [autofocus]="focusColumn === 'taxonName'"
+                  [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME' | translate"
+                  [required]="showTaxonNameColumn"
+                  [config]="autocompleteFields.taxonName"
+                ></mat-autocomplete-field>
+              </ion-row>
+
+              <!-- Critère de classement-->
               <!-- Min / Max -->
               <ion-row>
                 <ion-col>
@@ -241,19 +256,6 @@
                     />
                   </mat-form-field>
                 </ion-col>
-              </ion-row>
-
-              <!-- pmfm -->
-              <ion-row>
-                <mat-autocomplete-field
-                  floatLabel="never"
-                  panelClass="min-width-large"
-                  [formControl]="filterForm | formGetControl: 'taxonNameFilter'"
-                  [autofocus]="focusColumn === 'taxonName'"
-                  [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME' | translate"
-                  [required]="showTaxonNameColumn"
-                  [config]="autocompleteFields.taxonName"
-                ></mat-autocomplete-field>
               </ion-row>
             </ion-grid>
           </form>
@@ -305,6 +307,7 @@
           [matSortActive]="defaultSortBy"
           [matSortDirection]="defaultSortDirection"
           matSortDisableClear
+          class="ion-padding"
         >
           <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
             <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
@@ -444,28 +447,6 @@
               }
             </td>
           </ng-container>
-
-          @for (col of dynamicColumns; track col.id) {
-            <ng-container [matColumnDef]="col.id">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header>
-                <ion-label [innerHTML]="col.label"></ion-label>
-              </th>
-              <td mat-cell *matCellDef="let row; let rowIndex = index">
-                <mat-form-field>
-                  <input
-                    matInput
-                    [formControl]="getFormControl(rowIndex, col.id, row.currentData)"
-                    autocomplete="off"
-                    min="1"
-                    type="string"
-                    step="1"
-                    pattern="[0-9]*"
-                    [placeholder]=""
-                  />
-                </mat-form-field>
-              </td>
-            </ng-container>
-          }
 
           <!-- </div> -->
           <!-- Comment column -->
