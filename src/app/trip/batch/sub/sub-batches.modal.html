@@ -237,7 +237,7 @@
                   <app-form-field
                     [formControl]="filterForm | formGetControl: 'criteriaPmfm'"
                     [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA' | translate"
-                    [definition]="pmfmDefinitionFilter[0]"
+                    [definition]="criteriaPmfmDefinition"
                     [clearable]="true"
                   ></app-form-field>
                 </ion-col>
@@ -459,7 +459,6 @@
             </td>
           </ng-container>
 
-          <!-- </div> -->
           <!-- Comment column -->
           <ng-container matColumnDef="comments">
             <th mat-header-cell *matHeaderCellDef>
