@@ -370,7 +370,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // End position
     if (opts.withPosition && opts.withEnd && !opts.isParent) {
-      if (form.controls.endPosition) {
+      if (!form.controls.endPosition) {
         form.addControl(
           'endPosition',
           this.positionValidator.getFormGroup(null, {
