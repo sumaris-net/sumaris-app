@@ -119,7 +119,7 @@
         <mat-icon matPrefix>build</mat-icon>
         <ion-label
           [matBadge]="propertiesForm.length | badgeNumber"
-          [matBadgeHidden]="!propertiesForm.length"
+          [matBadgeHidden]="!propertiesForm.length || propertiesForm.invalid"
           matBadgeColor="primary"
           matBadgeOverlap="false"
           matBadgeSize="small"
