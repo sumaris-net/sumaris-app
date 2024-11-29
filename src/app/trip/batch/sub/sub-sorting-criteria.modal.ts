@@ -1,6 +1,15 @@
 import { ChangeDetectorRef, Component, Inject, Injector, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { FormFieldDefinition, isEmptyArray, isNil, isNotEmptyArray, isNotNil, LoadResult, LocalSettingsService } from '@sumaris-net/ngx-components';
+import {
+  FormFieldDefinition,
+  FormFieldDefinitionMap,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  LoadResult,
+  LocalSettingsService,
+} from '@sumaris-net/ngx-components';
 import { BatchGroup } from '../group/batch-group.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -36,13 +45,15 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
   ],
 })
 export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
-  protected pmfmDefinition: FormFieldDefinition[];
+  protected readonly minimumValue = 0;
+  protected readonly maximumValue = 100;
+  protected fieldDefinitions: FormFieldDefinitionMap = {};
   protected sortingCriteriaForm: FormGroup;
   protected criteriaPmfms: Pmfm[];
   protected qvPmfms: Pmfm[];
-  isMandatoryQvPmfm: boolean = false;
-  disabledPrecision: boolean = false;
-  showQvPmfm: boolean = false;
+  protected isMandatoryQvPmfm: boolean = false;
+  protected disabledPrecision: boolean = false;
+  protected showQvPmfm: boolean = false;
 
   @Input() parentGroup: BatchGroup;
   @Input() programLabel: string;
@@ -77,8 +88,8 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
     this.sortingCriteriaForm = this.fb.group({
       taxonName: ['', Validators.required],
       criteriaPmfm: ['', Validators.required],
-      min: ['', [Validators.required]],
-      max: ['', [Validators.required]],
+      min: ['', [Validators.required, Validators.min(this.minimumValue)]],
+      max: ['', [Validators.required, Validators.max(this.maximumValue)]],
       precision: ['', [Validators.required]],
       qvPmfm: [''],
       useOptionalCriteria: [false],
@@ -115,8 +126,8 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
       .map((attr) => 'REFERENTIAL.' + attr.toUpperCase())
       .concat(['REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD']);
 
-    this.pmfmDefinition = [
-      {
+    this.fieldDefinitions = {
+      criteriaPmfm: {
         key: 'criteriaPmfm',
         type: 'entity',
         label: 'REFERENTIAL.PMFM',
@@ -129,7 +140,7 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
           panelClass: 'width-medium',
         }),
       },
-      {
+      qvPmfm: {
         key: 'qvPmfm',
         type: 'entity',
         label: 'REFERENTIAL.PMFM',
@@ -142,8 +153,20 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
           panelClass: 'width-large',
         }),
       },
-    ];
-    this.autoUpdateForm();
+    };
+
+    // Fill form default values
+    // Check if there is only one pmfm in the mandatory pmfms
+    if (this.criteriaPmfms.length === 1) {
+      this.sortingCriteriaForm.get('criteriaPmfm').setValue(this.criteriaPmfms[0]);
+      this.markAllAsTouched();
+    }
+    if (isNotEmptyArray(this.qvPmfms) && this.qvPmfms.length === 1 && this.isMandatoryQvPmfm) {
+      this.showQvPmfm = true;
+      this.sortingCriteriaForm.get('qvPmfm').setValue(this.qvPmfms[0]);
+    } else if (isNotEmptyArray(this.qvPmfms)) {
+      this.showQvPmfm = true;
+    }
   }
 
   async dismiss(data?: any) {
@@ -193,19 +216,5 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
 
       includedIds: pmfms.map((pmfm) => pmfm.id),
     });
-  }
-
-  protected autoUpdateForm() {
-    //check if there is only one pmfm in the mandatory pmfms
-    if (this.criteriaPmfms.length === 1) {
-      this.sortingCriteriaForm.get('criteriaPmfm').setValue(this.criteriaPmfms[0]);
-      this.markAllAsTouched();
-    }
-    if (isNotEmptyArray(this.qvPmfms) && this.qvPmfms.length === 1 && this.isMandatoryQvPmfm) {
-      this.showQvPmfm = true;
-      this.sortingCriteriaForm.get('qvPmfm').setValue(this.qvPmfms[0]);
-    } else if (isNotEmptyArray(this.qvPmfms)) {
-      this.showQvPmfm = true;
-    }
   }
 }
