@@ -56,7 +56,7 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch> {
   landingId?: number;
   numericalMinValue?: number;
   numericalMaxValue?: number;
-  numericalPmfmId?: number;
+  numericalPmfm?: IPmfm;
   taxonNameId?: number;
 
   fromObject(source: any, opts?: any) {
@@ -66,7 +66,7 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch> {
     this.landingId = source.landingId;
     this.numericalMinValue = source.numericalMinValue;
     this.numericalMaxValue = source.numericalMaxValue;
-    this.numericalPmfmId = source.numericalPmfmId;
+    this.numericalPmfm = source.numericalPmfm;
     this.taxonNameId = source.taxonNameId;
   }
 
@@ -77,7 +77,7 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch> {
     target.landingId = this.landingId;
     target.numericalMinValue = this.numericalMinValue;
     target.numericalMaxValue = this.numericalMaxValue;
-    target.numericalPmfmId = this.numericalPmfmId;
+    target.numericalPmfm = this.numericalPmfm;
     target.taxonNameId = this.taxonNameId;
     return target;
   }
@@ -98,12 +98,12 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch> {
     //   filterFns.push((item) => item.landingId === this.landingId);
     // }
 
-    if (isNotNil(this.numericalPmfmId) && isNotNil(this.numericalMinValue)) {
-      filterFns.push((item) => item.measurementValues[this.numericalPmfmId] >= this.numericalMinValue);
+    if (isNotNil(this.numericalPmfm) && isNotNil(this.numericalMinValue)) {
+      filterFns.push((item) => item.measurementValues[this.numericalPmfm.id] >= this.numericalMinValue);
     }
 
-    if (isNotNil(this.numericalPmfmId) && isNotNil(this.numericalMaxValue)) {
-      filterFns.push((item) => item.measurementValues[this.numericalPmfmId] <= this.numericalMaxValue);
+    if (isNotNil(this.numericalPmfm) && isNotNil(this.numericalMaxValue)) {
+      filterFns.push((item) => item.measurementValues[this.numericalPmfm.id] <= this.numericalMaxValue);
     }
 
     if (isNotNil(this.taxonNameId)) {

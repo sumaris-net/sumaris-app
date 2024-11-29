@@ -196,6 +196,7 @@
           </button>
 
           <!-- Show filter -->
+          <!-- todo mf for demo -1 -->
           <button mat-icon-button (click)="filterExpansionPanel.toggle()">
             <mat-icon
               [matBadge]="filterCriteriaCount - 1"
@@ -225,12 +226,23 @@
                   [formControl]="filterForm | formGetControl: 'taxonNameFilter'"
                   [autofocus]="focusColumn === 'taxonName'"
                   [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME' | translate"
-                  [required]="showTaxonNameColumn"
                   [config]="autocompleteFields.taxonName"
                 ></mat-autocomplete-field>
               </ion-row>
 
               <!-- Critère de classement-->
+
+              <ion-row>
+                <ion-col>
+                  <app-form-field
+                    [formControl]="filterForm | formGetControl: 'criteriaPmfm'"
+                    [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA' | translate"
+                    [definition]="pmfmDefinitionFilter[0]"
+                    [clearable]="true"
+                  ></app-form-field>
+                </ion-col>
+              </ion-row>
+
               <!-- Min / Max -->
               <ion-row>
                 <ion-col>
@@ -307,7 +319,6 @@
           [matSortActive]="defaultSortBy"
           [matSortDirection]="defaultSortDirection"
           matSortDisableClear
-          class="ion-padding"
         >
           <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
             <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
