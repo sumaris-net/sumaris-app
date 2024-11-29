@@ -63,6 +63,7 @@
     [maxVisibleButtons]="pmfm.qualitativeValues?.length || maxVisibleButtons"
   >
     <!-- checkbox to freeze -->
+    <!-- TODO MF FOR DEMO -->
     <mat-checkbox
       matSuffix
       *ngIf="!mobile"
@@ -70,6 +71,7 @@
       [title]="'COMMON.BTN_FREEZE_VALUE_HELP' | translate"
       (click)="$event.stopPropagation()"
       [tabIndex]="-1"
+      class="ion-padding-end"
     >
       <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
     </mat-checkbox>
@@ -89,13 +91,15 @@
       [tabindex]="tabindex + 2"
       (keyup.enter)="focusNextInput($event)"
     >
-      <!-- checkbox to freeze value -->
+      <!-- checkbox to freeze value  -->
+      <!-- TODO MF FOR DEMO -->
       <mat-checkbox
         matSuffix
         [formControl]="freezeTaxonNameControl"
         [title]="'COMMON.BTN_FREEZE_VALUE_HELP' | translate"
         (click)="$event.stopPropagation()"
         [tabIndex]="-1"
+        class="ion-padding-end"
       >
         <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
       </mat-checkbox>
@@ -230,7 +234,8 @@
       </mat-error>
 
       <!-- checkbox (to manually set the individual count, otherwise it increment one by one) -->
-      <mat-checkbox matSuffix [formControl]="enableIndividualCountControl" labelPosition="after" [tabIndex]="-1">
+      <!-- TODO MF FOR DEMO  class="ion-padding-end" -->
+      <mat-checkbox matSuffix [formControl]="enableIndividualCountControl" labelPosition="after" [tabIndex]="-1" class="ion-padding-end">
         <ion-text><small translate>TRIP.BATCH.EDIT.INDIVIDUAL.BTN_MANUAL_ENTRY</small></ion-text>
       </mat-checkbox>
     </mat-form-field>
