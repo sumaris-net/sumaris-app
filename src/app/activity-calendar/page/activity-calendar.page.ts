@@ -503,8 +503,8 @@ export class ActivityCalendarPage
       this.i18nContext.suffix = i18nSuffix;
 
       const isManager = this.programRefService.hasUserManagerPrivilege(program);
-      this.isAdminOrManager = this.accountService.isAdmin() || isManager;
-      this.isSupervisorOrManager = this.accountService.isSupervisor() || isManager;
+      this.isAdminOrManager = isManager || this.accountService.isAdmin();
+      this.isSupervisorOrManager = isManager || this.accountService.isSupervisor();
       this.baseForm.showObservers = this.isAdminOrManager && program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
 
       if (this.baseForm) {
