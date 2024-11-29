@@ -107,11 +107,11 @@ export class ActivityCalendarsTable
   protected programVesselTypeIds: number[] = [];
   protected configVesselTypeIds: number[] = [];
   protected excludedProgramIds: number[] = [];
+  protected isSupervisorOrManager = this.accountService.isAdmin();
 
   protected readonly directSurveyInvestigationList = DirectSurveyInvestigationList;
   protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
   protected readonly defaultProgramLabel = ProgramLabels.SIH_ACTIFLOT;
-  protected readonly isAdminOrManager = this.accountService.isAdmin();
 
   @Input() showFilterProgram = true;
   @Input() showRecorder = true;
@@ -446,6 +446,8 @@ export class ActivityCalendarsTable
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
     const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
     this.reportTypes = (program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES) || []).map((key) => reportTypeByKey[key]);
+
+    this.isSupervisorOrManager = this.programRefService.hasUserManagerPrivilege(program) || this.accountService.isSupervisor();
 
     if (this.loaded) this.updateColumns();
   }
