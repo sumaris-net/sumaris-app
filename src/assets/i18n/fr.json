@@ -2481,6 +2481,7 @@
       "I18N_SUFFIX_TRAWL_SELECTIVITY": "Sélectivité chalut",
       "I18N_SUFFIX_OBSERVED_TRIP": "Observation des marées en mer (ObsMer)",
       "I18N_SUFFIX_OBSERVED_SALE": "Observation des ventes (ObsVentes)",
+      "PROGRAM_LOGO": "Programme > Lien du logo du programme",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",

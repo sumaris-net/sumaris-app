@@ -2364,6 +2364,7 @@
       "I18N_SUFFIX_TRAWL_SELECTIVITY": "Trawl selectivity",
       "I18N_SUFFIX_OBSERVED_TRIP": "Observation of trips on board (ObsMer)",
       "I18N_SUFFIX_OBSERVED_SALE": "Observation of sales (ObsVentes)",
+      "PROGRAM_LOGO": "Program > Link to program logo",
       "TRIP_LOCATION_LEVEL_IDS": "Trip: Location level(s)",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Trip > Location: Min nb char. to search",
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",

@@ -102,6 +102,13 @@ export const ProgramProperties = Object.freeze({
     type: 'color',
   },
 
+  PROGRAM_LOGO: <FormFieldDefinition>{
+    key: 'sumaris.program.logo',
+    label: 'PROGRAM.OPTIONS.TRIP_PROGRAM_LOGO',
+    defaultValue: null,
+    type: 'string',
+  },
+
   // Trip
   TRIP_SAMPLING_STRATA_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.samplingStrata.enable',
