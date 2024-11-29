@@ -94,10 +94,10 @@
     "DATE_TIME_PLACEHOLDER": "dd/mm/yyyy hh:mm",
 
     "LAT_LONG": {
-      "DDMMSS_PLACEHOLDER": "DD° MM' SS\"",
+      "DDMMSS_PLACEHOLDER": "DD° MM' SS.SS\"",
       "DDMM_PLACEHOLDER": "DD° MM.MMM'",
       "DD_PLACEHOLDER": "+DD.DDD°",
-      "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\"",
+      "DDDMMSS_PLACEHOLDER": "DDD° MM' SS.SS\"",
       "DDDMM_PLACEHOLDER": "DDD° MM.MMM'",
       "DDD_PLACEHOLDER": "+DDD.DDD°",
       "LAT_SIGN_PLACEHOLDER": "N|S",
@@ -207,7 +207,8 @@
       "TITLE": "Configuration {{label}}"
     },
     "OPTIONS": {
-      "ANDROID_INSTALL_URL": "Android > Install App URL",
+      "ANDROID_INSTALL_URL": "App > Android > Install App URL",
+      "IOS_INSTALL_URL": "App > iOS > Install App URL",
       "DB_TIMEZONE": "Persistence > Database timezone (readonly option)",
       "LOGO": "Menu > Logo (max width 110px)",
       "FAVICON": "favicon",
@@ -618,7 +619,7 @@
     "BTN_SHOW_MORE_HELP": "Show more parameters",
     "BTN_SHOW_OPTION_KEY": "Show options code?",
     "BTN_CLEAR_CACHE": "Clear data cache",
-    "OFFLINE_MODE": "Force offline mode?",
+    "OFFLINE_MODE": "Force offline mode? (experimental)",
     "DATA_ENTRY_DIVIDER": "Data entry settings",
     "USAGE_MODE": "Usage mode",
     "USAGE_MODE_FIELD": "Mode on <b>field</b>",
@@ -656,6 +657,10 @@
           "REGISTRATION_CODE_NAME": "Registration code - Name"
         }
       }
+    },
+    "FILTER": {
+      "SEARCH": "Search : Option",
+      "ONLY_NOT_DEFAULT": "Show only personal options"
     },
     "DATA": {
       "EXPERTISE_AREA": "Expertise area"
@@ -3041,8 +3046,12 @@
       "OFFLINE": "Unreachable node",
       "SELECT_MODAL": {
         "TITLE": "Network nodes",
+        "STARTUP_TITLE": "Startup",
+        "TAB_NETWORK": "Databases",
+        "TAB_FEATURES": "Data collection programmes",
         "BTN_SET_MANUALLY": "Define manually",
-        "HELP": "Please choose a network node to connect to:",
+        "NETWORK_HELP": "Please choose a <b>database</b> node to connect to:",
+        "FEATURES_HELP": "Please choose a <b>data collection programme</b> you would like to participate in:",
         "NOT_COMPATIBLE_HELP": "Required version: v{{version}} or +"
       }
     },

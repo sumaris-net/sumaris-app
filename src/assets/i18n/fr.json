@@ -94,12 +94,12 @@
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
 
     "LAT_LONG": {
-      "DDMMSS_PLACEHOLDER": "DD° MM' SS\"",
+      "DDMMSS_PLACEHOLDER": "DD° MM' SS.SS\"",
       "DDMM_PLACEHOLDER": "DD° MM.MMM'",
-      "DD_PLACEHOLDER": "+ DD.DDDDDDD°",
-      "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\"",
+      "DD_PLACEHOLDER": "± DD.DDDDDDD°",
+      "DDDMMSS_PLACEHOLDER": "DDD° MM' SS.SS\"",
       "DDDMM_PLACEHOLDER": "DDD° MM.MMM'",
-      "DDD_PLACEHOLDER": "+DDD.DDDDDDD°",
+      "DDD_PLACEHOLDER": "±DDD.DDDDDDD°",
       "LAT_SIGN_PLACEHOLDER": "N|S",
       "LAT_SIGN_N": "N",
       "LAT_SIGN_S": "S",
@@ -207,7 +207,8 @@
       "TITLE": "Configuration {{label}}"
     },
     "OPTIONS": {
-      "ANDROID_INSTALL_URL": "Android > URL d'installation App",
+      "ANDROID_INSTALL_URL": "App >  Android > URL d'installation App",
+      "IOS_INSTALL_URL": "App > iOS > URL d'installation App",
       "DB_TIMEZONE": "Persistance > Timezone de la base de données (option non modifiable)",
       "LOGO": "Menu > Logo (largeur max 110px)",
       "FAVICON": "favicon",
@@ -656,6 +657,10 @@
           "REGISTRATION_CODE_NAME": "Code d'immatriculation - Nom"
         }
       }
+    },
+    "FILTER": {
+      "SEARCH": "Recherche : Option",
+      "ONLY_NOT_DEFAULT": "Afficher seulement les options personnelles"
     },
     "DATA": {
       "EXPERTISE_AREA": "Zone de compétence"
@@ -3218,9 +3223,13 @@
     "PEER": {
       "OFFLINE": "Nœud injoignable",
       "SELECT_MODAL": {
-        "TITLE": "Nœuds réseau",
+        "TITLE": "Sélection du nœud réseau",
+        "STARTUP_TITLE": "Démarrage",
+        "TAB_NETWORK": "Bases de données",
+        "TAB_FEATURES": "Programmes de collecte",
         "BTN_SET_MANUALLY": "Saisir manuellement",
-        "HELP": "Veuillez choisir un nœud réseau auquel vous connecter :",
+        "NETWORK_HELP": "Veuillez choisir la <b>base de données</b> à laquelle vous souhaitez vous connecter :",
+        "FEATURES_HELP": "Veuillez choisir un <b>programme de collecte ou d'expérimentation</b> auquel vous souhaitez participer :",
         "NOT_COMPATIBLE_HELP": "Version requise : v{{version}} ou +"
       }
     },
