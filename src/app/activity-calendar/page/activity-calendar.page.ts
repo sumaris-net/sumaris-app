@@ -166,6 +166,7 @@ export class ActivityCalendarPage
   protected vesselSnapshotAttributes = VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES;
   protected isAdmin = this.accountService.isAdmin();
   protected isAdminOrManager = this.accountService.isAdmin();
+  protected isSupervisorOrManager = this.accountService.isAdmin();
   protected qualityWarning: string = null;
   protected readonly predocShortcutHelp: string;
 
@@ -501,7 +502,9 @@ export class ActivityCalendarPage
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
       this.i18nContext.suffix = i18nSuffix;
 
-      this.isAdminOrManager = this.accountService.isSupervisor() || this.programRefService.hasUserManagerPrivilege(program);
+      const isManager = this.programRefService.hasUserManagerPrivilege(program);
+      this.isAdminOrManager = isManager || this.accountService.isAdmin();
+      this.isSupervisorOrManager = isManager || this.accountService.isSupervisor();
       this.baseForm.showObservers = this.isAdminOrManager && program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_OBSERVERS_ENABLE);
 
       if (this.baseForm) {

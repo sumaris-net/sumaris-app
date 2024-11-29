@@ -18,6 +18,9 @@ export const environment = Object.freeze(<AppEnvironment>{
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
   peerMinVersion: '2.9.24',
 
+  // Enable selection by programs
+  enableSelectPeerByFeature: true,
+
   // Check Web new app version
   checkAppVersionIntervalInSeconds: 5 * 60, // every 5min
 

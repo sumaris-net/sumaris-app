@@ -138,6 +138,9 @@ export class OperationPage<S extends OperationState = OperationState>
   protected readonly dateTimePattern: string;
   protected readonly showLastOperations: boolean;
   protected readonly xsMobile: boolean;
+  protected isInlineFishingArea: boolean = false;
+  protected autoFillNextDate: boolean = false;
+  protected samplesTableRequiredPmfmId: number;
 
   saveOptions: OperationSaveOptions = {};
   selectedSubTabIndex = 0;
@@ -161,8 +164,6 @@ export class OperationPage<S extends OperationState = OperationState>
   operationPasteFlags: number;
   helpUrl: string;
   _defaultIsParentOperation = true;
-
-  protected isInlineFishingArea: boolean = false;
 
   readonly forceOptionalExcludedPmfmIds: number[];
 
@@ -585,6 +586,9 @@ export class OperationPage<S extends OperationState = OperationState>
             this.showSamplesTab = this.showSampleTablesByProgram;
             this.showCatchTab = this.showBatchTables || this.batchTree?.showCatchForm || false;
             this.tabCount = this.showSamplesTab ? 3 : this.showCatchTab ? 2 : 1;
+            if (this.samplesTableRequiredPmfmId === PmfmIds.HAS_ACCIDENTAL_CATCHES) {
+              this.sampleTree.required = hasAccidentalCatches;
+            }
 
             // Force first tab index
             if (this.selectedTabIndex === OperationPage.TABS.GENERAL) {
@@ -815,6 +819,7 @@ export class OperationPage<S extends OperationState = OperationState>
     this.measurementsForm.forceOptional = this.forceMeasurementAsOptional;
     this.measurementsForm.maxVisibleButtons = program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS);
     this.measurementsForm.maxItemCountForButtons = program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS);
+    this.samplesTableRequiredPmfmId = program.getPropertyAsInt(ProgramProperties.TRIP_SAMPLE_REQUIRED_PMFM_ID);
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount =
@@ -828,6 +833,7 @@ export class OperationPage<S extends OperationState = OperationState>
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);
 
     this.isInlineFishingArea = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_AREA_INLINE);
+    this.autoFillNextDate = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_AUTO_FILL_NEXT_DATE);
 
     if (!this.allowParentOperation) {
       this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;

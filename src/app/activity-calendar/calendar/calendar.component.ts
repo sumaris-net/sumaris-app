@@ -1803,7 +1803,9 @@ export class CalendarComponent
       statusId: StatusIds.ENABLE,
       ...filter,
       excludedIds: existingFishingAreaLocationIds,
-      levelIds: this.expertiseAreaProperties?.locationLevelIds || this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
+      levelIds: isNotEmptyArray(this.expertiseAreaProperties?.locationLevelIds)
+        ? this.expertiseAreaProperties.locationLevelIds
+        : this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
       locationIds: this.expertiseAreaProperties?.locationIds,
     };
   }
@@ -1831,9 +1833,6 @@ export class CalendarComponent
 
   protected async suggestDepthGradient(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
-
-    // Get current location
-    const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
 
     return this.referentialRefService.suggest(value, this.buildDepthGradientFilter(filter), 'rankOrder', 'asc');
   }

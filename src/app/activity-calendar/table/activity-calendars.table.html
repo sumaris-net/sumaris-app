@@ -375,7 +375,7 @@
                     tabindex="-1"
                     type="button"
                     (click)="clearFilterValue('directSurveyInvestigation', $event)"
-                    [hidden]="disabled || !directSurveyControl.value"
+                    [hidden]="disabled || (directSurveyControl.value | isNilOrBlank)"
                   >
                     <mat-icon>close</mat-icon>
                   </button>
@@ -383,11 +383,11 @@
               }
             </ion-col>
 
-            <!-- Economic Survey -->
+            <!-- Economic survey ? -->
             <ion-col>
               <mat-boolean-field
                 formControlName="economicSurvey"
-                [placeholder]="'ACTIVITY_CALENDAR.TABLE.ECONOMIC_SURVEY' | translate"
+                [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.ECONOMIC_SURVEY' | translate"
                 [clearable]="true"
               >
                 <ion-icon matPrefix name="help-outline"></ion-icon>
@@ -574,8 +574,7 @@
 
       <!-- Vessel registration location Column -->
       <ng-container matColumnDef="registrationLocation">
-        <!-- FIXME remove mat-sort-header because filter+sort is not correct, in POD -->
-        <th mat-header-cell *matHeaderCellDef>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
           <ion-label translate>ACTIVITY_CALENDAR.TABLE.REGISTRATION_LOCATION</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">

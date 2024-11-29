@@ -32,6 +32,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
 
 export declare type MapPmfmEvent = PromiseEvent<IPmfm[], { pmfms: IPmfm[] }>;
 export declare type UpdateFormGroupEvent = PromiseEvent<void, { form: UntypedFormGroup }>;
@@ -112,7 +113,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   }
 
   get formError(): string {
-    return this.getFormError(this.form);
+    return this.getFormError(this.form, <IDataFormPathTranslatorOptions>{ pmfms: this.initialPmfms, i18nPmfmPrefix: this.i18nPmfmPrefix });
   }
 
   constructor(
@@ -259,10 +260,10 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     this._state.set('initialPmfms', () => undefined);
   }
 
-  translateFormPath(path: string, pmfms?: IPmfm[]) {
+  translateFormPath(path: string, opts?: IDataFormPathTranslatorOptions) {
     if (PMFM_ID_REGEXP.test(path)) {
       const pmfmId = parseInt(path);
-      const pmfm = (pmfms || this.initialPmfms)?.find((p) => p.id === pmfmId);
+      const pmfm = (opts?.pmfms || this.initialPmfms)?.find((p) => p.id === pmfmId);
       if (pmfm) {
         return this._pmfmNamePipe.transform(pmfm, { i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nSuffix });
       }
@@ -315,7 +316,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   }
 
   protected onApplyingEntity(data: Measurement[], opts?: { [key: string]: any }) {
-    // Can be override by subclasses
+    // Can be overridden by subclasses
   }
 
   protected async updateView(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
@@ -378,7 +379,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   }
 
   /**
-   * Check if can load (must have: program, acquisition - and gear if required)
+   * Check can load (must have: program, acquisition - and gear if required)
    */
   protected canLoadPmfms(): boolean {
     // Check if can load (must have: program, acquisition - and gear if required)

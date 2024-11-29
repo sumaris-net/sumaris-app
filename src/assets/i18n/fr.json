@@ -94,12 +94,12 @@
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
 
     "LAT_LONG": {
-      "DDMMSS_PLACEHOLDER": "DD° MM' SS\"",
+      "DDMMSS_PLACEHOLDER": "DD° MM' SS.SS\"",
       "DDMM_PLACEHOLDER": "DD° MM.MMM'",
-      "DD_PLACEHOLDER": "+ DD.DDDDDDD°",
-      "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\"",
+      "DD_PLACEHOLDER": "± DD.DDDDDDD°",
+      "DDDMMSS_PLACEHOLDER": "DDD° MM' SS.SS\"",
       "DDDMM_PLACEHOLDER": "DDD° MM.MMM'",
-      "DDD_PLACEHOLDER": "+DDD.DDDDDDD°",
+      "DDD_PLACEHOLDER": "±DDD.DDDDDDD°",
       "LAT_SIGN_PLACEHOLDER": "N|S",
       "LAT_SIGN_N": "N",
       "LAT_SIGN_S": "S",
@@ -207,7 +207,8 @@
       "TITLE": "Configuration {{label}}"
     },
     "OPTIONS": {
-      "ANDROID_INSTALL_URL": "Android > URL d'installation App",
+      "ANDROID_INSTALL_URL": "App >  Android > URL d'installation App",
+      "IOS_INSTALL_URL": "App > iOS > URL d'installation App",
       "DB_TIMEZONE": "Persistance > Timezone de la base de données (option non modifiable)",
       "LOGO": "Menu > Logo (largeur max 110px)",
       "FAVICON": "favicon",
@@ -656,6 +657,10 @@
           "REGISTRATION_CODE_NAME": "Code d'immatriculation - Nom"
         }
       }
+    },
+    "FILTER": {
+      "SEARCH": "Recherche : Option",
+      "ONLY_NOT_DEFAULT": "Afficher seulement les options personnelles"
     },
     "DATA": {
       "EXPERTISE_AREA": "Zone de compétence"
@@ -1388,7 +1393,8 @@
         "INVALID_TAG_ID_LENGTH": "La longueur du code prélévement doit être {{length}}",
         "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire",
         "OUT_OF_RANGE": "Hors fourchette",
-        "DUPLICATED_TAG_ID": "Duplication de {{name}}"
+        "DUPLICATED_TAG_ID": "Duplication de {{name}}",
+        "REQUIRED": "Veuillez ajouter au moins une ligne"
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Échantillons : Unite de poids"
@@ -2528,6 +2534,7 @@
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Marée > Échantillon : Espèces scientifiques ?",
       "TRIP_SAMPLE_LABEL_ENABLE": "Marée > Échantillon : Libellé ?",
       "TRIP_SAMPLE_IMAGES_ENABLE": "Marée > Échantillon : Images ?",
+      "TRIP_SAMPLE_REQUIRED_NOT_EMPTY_PMFM_ID": "Marée > Échantillon : Captures accidentelles : Saisie obligatoire ?",
       "TRIP_POSITION_ENABLE": "Marée > Position : Activer ?",
       "TRIP_POSITION_BOUNDING_BOX": "Marée > Position : Boite limite ([x1, y1, x2, y2]) :",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
@@ -2550,6 +2557,7 @@
       "TRIP_OPERATION_DISTANCE_MAX_ERROR": "Marée > Opération : Distance max parcourue avant erreur (miles) :",
       "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Marée > Opération : Durée maximale de pose ou relève (heures)",
       "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Marée > Opération : Durée maximale totale (heures)",
+      "TRIP_OPERATION_AUTO_FILL_NEXT_DATE": "Marée > Opération: Recopier le jour de la date suivante",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Marée > Opération : Initialiser les dates avec celles de la marée ?",
       "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée > Opération : Zone de pêche: Niveau(x) de lieu",
       "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Marée > Opération : Espèce cible: Niveau(x)",
@@ -3215,9 +3223,13 @@
     "PEER": {
       "OFFLINE": "Nœud injoignable",
       "SELECT_MODAL": {
-        "TITLE": "Nœuds réseau",
+        "TITLE": "Sélection du nœud réseau",
+        "STARTUP_TITLE": "Démarrage",
+        "TAB_NETWORK": "Bases de données",
+        "TAB_FEATURES": "Programmes de collecte",
         "BTN_SET_MANUALLY": "Saisir manuellement",
-        "HELP": "Veuillez choisir un nœud réseau auquel vous connecter :",
+        "NETWORK_HELP": "Veuillez choisir la <b>base de données</b> à laquelle vous souhaitez vous connecter :",
+        "FEATURES_HELP": "Veuillez choisir un <b>programme de collecte ou d'expérimentation</b> auquel vous souhaitez participer :",
         "NOT_COMPATIBLE_HELP": "Version requise : v{{version}} ou +"
       }
     },
@@ -3498,7 +3510,7 @@
         "REGISTRATION_LOCATION": "Lieu d'immatriculation",
         "BASE_PORT_LOCATION": "Port d'exploitation",
         "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
-        "ECONOMIC_SURVEY": "Enquête économique ?",
+        "ECONOMIC_SURVEY": "Objectif d'enquête éco ?",
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "VESSEL": "Navire",
@@ -3537,7 +3549,7 @@
       "YEAR": "Année :",
       "VESSEL_SNAPSHOT": "Navire",
       "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
-      "ECONOMIC_SURVEY": "Enquête économique ?",
+      "ECONOMIC_SURVEY": "Objectif d'enquête éco ?",
       "YEAR_PLACEHOLDER": "Année",
       "METIER": "Métier",
       "GEAR": "Engin",

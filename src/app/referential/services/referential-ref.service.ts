@@ -304,7 +304,12 @@ export class ReferentialRefService
       entityName,
       offset: offset || 0,
       size: size || 100,
-      sortBy: sortBy || filter.searchAttribute || (filter.searchAttributes && filter.searchAttributes[0]) || 'label',
+      sortBy:
+        sortBy ||
+        filter.searchAttribute ||
+        // Sort by the first search attributes (excluding those with a composite path)
+        filter.searchAttributes?.find((attr) => attr?.indexOf('.') === -1) ||
+        'label',
       sortDirection: sortDirection || 'asc',
       filter: filter.asPodObject(),
       withLevelId: opts?.withLevelId || false,

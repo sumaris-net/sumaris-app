@@ -207,7 +207,8 @@
       "TITLE": "Configuration {{label}}"
     },
     "OPTIONS": {
-      "ANDROID_INSTALL_URL": "Android > Install App URL",
+      "ANDROID_INSTALL_URL": "App > Android > Install App URL",
+      "IOS_INSTALL_URL": "App > iOS > Install App URL",
       "DB_TIMEZONE": "Persistence > Database timezone (readonly option)",
       "LOGO": "Menu > Logo (max width 110px)",
       "FAVICON": "favicon",
@@ -618,7 +619,7 @@
     "BTN_SHOW_MORE_HELP": "Show more parameters",
     "BTN_SHOW_OPTION_KEY": "Show options code?",
     "BTN_CLEAR_CACHE": "Clear data cache",
-    "OFFLINE_MODE": "Force offline mode?",
+    "OFFLINE_MODE": "Force offline mode? (experimental)",
     "DATA_ENTRY_DIVIDER": "Data entry settings",
     "USAGE_MODE": "Usage mode",
     "USAGE_MODE_FIELD": "Mode on <b>field</b>",
@@ -656,6 +657,10 @@
           "REGISTRATION_CODE_NAME": "Registration code - Name"
         }
       }
+    },
+    "FILTER": {
+      "SEARCH": "Search : Option",
+      "ONLY_NOT_DEFAULT": "Show only personal options"
     },
     "DATA": {
       "EXPERTISE_AREA": "Expertise area"
@@ -1374,7 +1379,8 @@
         "INVALID_TAG_ID_LENGTH": "Tag length must have {{length}} characters",
         "WEIGHT_OR_LENGTH_REQUIRED": "Weight or length is required",
         "OUT_OF_RANGE": "Out of range",
-        "DUPLICATED_TAG_ID": "Duplication of {{name}}"
+        "DUPLICATED_TAG_ID": "Duplication of {{name}}",
+        "REQUIRED": "Please add at least one row"
       },
       "SETTINGS": {
         "SAMPLE_WEIGHT_UNIT": "Sample: Weight unit"
@@ -2256,7 +2262,7 @@
       "TAXON_NAME": "Species > Scientific species",
       "TAXONOMIC_LEVEL": "Species > Taxonomic levels",
       "REFERENCE_TAXON": "Species > Scientific species identifier",
-      "PROGRAM": "Administration > Data collection programmes",
+      "PROGRAM": "Administration > Data collection program",
       "STRATEGY": "Administration > Collection strategies",
       "ACQUISITION_LEVEL": "Acquisition levels",
       "TRANSCRIBING_ITEM": "Transcribing > Item",
@@ -2411,6 +2417,7 @@
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Sample: Scientific species?",
       "TRIP_SAMPLE_LABEL_ENABLE": "Trip > Sample: Label?",
       "TRIP_SAMPLE_IMAGES_ENABLE": "Trip > Sample: Images?",
+      "TRIP_SAMPLE_REQUIRED_NOT_EMPTY_PMFM_ID": "Trip > Sample : Accidental catches : Mandatory entry ?",
       "TRIP_POSITION_ENABLE": "Trip > Position: Enable?",
       "TRIP_POSITION_BOUNDING_BOX": "Trip > Position: Bounding box ([x1, y1, x2, y2]):",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Trip > Position > Latitude: Default direction:",
@@ -2433,6 +2440,7 @@
       "TRIP_OPERATION_DISTANCE_MAX_ERROR": "Trip > Operation: Max travelled distance before error (miles): ",
       "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Trip > Operation: Maximum duration of shooting (hours)",
       "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Trip > Operation: Maximum total duration (hours)",
+      "TRIP_OPERATION_AUTO_FILL_NEXT_DATE": "Trip > Operation: Copy the day to the next date",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Trip > Operation: Initialize dates with trip's dates?",
       "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Trip > Operation: Fishing area: Location level(s)",
       "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Trip > Operation: Target species: Level(s)",
@@ -2497,7 +2505,7 @@
       "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Occasion > Landings: Min. number of observed species",
       "LANDING_TOP_PMFM_IDS": "Occasion > Landings: Top PMFM(s)",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Fishing area: Location level(s)",
-      "PROGRAM_PRIVILEGE_READONLY": "Programme > Access rights: read only?",
+      "PROGRAM_PRIVILEGE_READONLY": "Program > Access rights: read only?",
       "SALE_LOCATION_LEVEL_IDS": "Occasion > Sale: Location level(s)",
       "SALE_BATCH_ENABLE": "Occasion > Sale: Enable batches?",
       "STRATEGY_EDITOR": "Strategy > editor",
@@ -3038,8 +3046,12 @@
       "OFFLINE": "Unreachable node",
       "SELECT_MODAL": {
         "TITLE": "Network nodes",
+        "STARTUP_TITLE": "Startup",
+        "TAB_NETWORK": "Databases",
+        "TAB_FEATURES": "Data collection programs",
         "BTN_SET_MANUALLY": "Define manually",
-        "HELP": "Please choose a network node to connect to:",
+        "NETWORK_HELP": "Please choose a <b>database</b> node to connect to:",
+        "FEATURES_HELP": "Please choose a <b>data collection program</b> you would like to participate in:",
         "NOT_COMPATIBLE_HELP": "Required version: v{{version}} or +"
       }
     },
@@ -3301,7 +3313,7 @@
   "ACTIVITY_CALENDAR": {
     "TABLE": {
       "QUALITY": "State",
-      "PROGRAM": "Programme",
+      "PROGRAM": "Program",
       "RECORDER_PERSON": "Recorder",
       "RECORDER_DEPARTMENT": "Recoder department(s)",
       "DIRECT_SURVEY_INVESTIGATION": "Direct survey investigation objective?",
@@ -3316,7 +3328,7 @@
       "BTN_NEW_ONLINE": "Desktop input mode (online)",
       "OBSERVERS": "Observer(s)",
       "FILTER": {
-        "PROGRAM": "Data collection programme",
+        "PROGRAM": "Data collection program",
         "REGISTRATION_LOCATION": "Registration location",
         "BASE_PORT_LOCATION": "Operation port",
         "DIRECT_SURVEY_INVESTIGATION": "Direct survey investigation objective?",

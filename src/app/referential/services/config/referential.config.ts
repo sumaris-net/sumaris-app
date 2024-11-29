@@ -1,5 +1,12 @@
 import { TypePolicies } from '@apollo/client/core';
-import { changeCaseToUnderscore, FormFieldDefinition, MatAutocompleteFieldConfig, StatusIds } from '@sumaris-net/ngx-components';
+import {
+  changeCaseToUnderscore,
+  FormFieldDefinition,
+  MatAutocompleteFieldConfig,
+  referentialsToString,
+  referentialToString,
+  StatusIds,
+} from '@sumaris-net/ngx-components';
 import {
   AcquisitionLevelCodes,
   FractionIdGroups,
@@ -20,6 +27,7 @@ import {
   VesselTypeIds,
 } from '../model/model.enum';
 import { FieldMergeFunction } from '@apollo/client/cache/inmemory/policies';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 // Keep existing cache object, when incoming is minified (without entityName)
 const mergeNotMinified: FieldMergeFunction = (existing, incoming) => (incoming?.__ref?.includes('"entityName":null') ? existing : incoming);
@@ -68,11 +76,42 @@ const LocationLevelAutocompleteConfig = <MatAutocompleteFieldConfig>{
   },
 };
 const PmfmAutocompleteConfig = <MatAutocompleteFieldConfig>{
-  attributes: ['id', 'label'],
-  columnSizes: [3, 'auto'],
-  filter: {
+  attributes: [
+    'id',
+    'label',
+    'properties.parameter.name',
+    'properties.unit.label',
+    'properties.matrix.name',
+    'properties.fraction.name',
+    'properties.method.name',
+  ],
+  columnNames: [
+    null,
+    null,
+    'REFERENTIAL.NAME',
+    'REFERENTIAL.PMFM.UNIT',
+    'REFERENTIAL.PMFM.MATRIX',
+    'REFERENTIAL.PMFM.FRACTION',
+    'REFERENTIAL.PMFM.METHOD',
+  ],
+  columnSizes: [1, 1, 3, 1, 1, 1, 4],
+  panelClass: 'full-width',
+  filter: <ReferentialRefFilter>{
     entityName: 'Pmfm',
     statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+    searchAttributes: ['parameter.label'],
+  },
+  displayWith: (value) => {
+    if (Array.isArray(value)) return referentialsToString(value, ['id', 'label', 'properties.parameter.name']);
+    return referentialToString(value, [
+      'id',
+      'label',
+      'properties.parameter.name',
+      'properties.unit.label',
+      'properties.matrix.name',
+      'properties.fraction.name',
+      'properties.method.name',
+    ]);
   },
 };
 const QualitativeValueAutocompleteConfig = <MatAutocompleteFieldConfig>{

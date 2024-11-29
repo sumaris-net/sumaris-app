@@ -19,6 +19,9 @@ export const environment = Object.freeze(<AppEnvironment>{
   // Check Web new app version
   checkAppVersionIntervalInSeconds: 5 * 60, // every 5min
 
+  // Enable selection by programs
+  enableSelectPeerByFeature: true,
+
   // FIXME: enable cache
   persistCache: false,
 

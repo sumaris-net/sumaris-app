@@ -35,6 +35,8 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   peerMinVersion: '2.9.24',
 
+  enableSelectPeerByFeature: true,
+
   // Not need during DEV
   //checkAppVersionIntervalInSeconds: 0,
 

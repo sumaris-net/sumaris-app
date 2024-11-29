@@ -496,6 +496,13 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  TRIP_SAMPLE_REQUIRED_PMFM_ID: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.sample.required.pmfmId',
+    label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_REQUIRED_PMFM_ID',
+    type: 'entity',
+    autocomplete: pmfmAutocomplete,
+    defaultValue: PmfmIds.HAS_ACCIDENTAL_CATCHES,
+  },
   TRIP_LATITUDE_SIGN: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.latitude.defaultSign',
     label: 'PROGRAM.OPTIONS.TRIP_LATITUDE_DEFAULT_SIGN',
@@ -700,6 +707,12 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS',
     defaultValue: '2400', // 100 days
     type: 'integer',
+  },
+  TRIP_OPERATION_AUTO_FILL_NEXT_DATE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.autoFillNextDate',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_AUTO_FILL_NEXT_DATE',
+    defaultValue: 'false',
+    type: 'boolean',
   },
   TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.fishingArea.locationLevel.ids',

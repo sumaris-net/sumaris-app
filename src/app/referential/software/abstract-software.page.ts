@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Directive, Injector, OnInit, ViewChild } from '@angular/core';
+import { Directive, inject, Injector, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
@@ -26,13 +26,12 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEntityService<T>> extends AppEntityEditor<T, S> implements OnInit {
-  protected accountService: AccountService;
-  protected platform: PlatformService;
-  protected cd: ChangeDetectorRef;
-  protected referentialRefService: ReferentialRefService;
+  protected accountService: AccountService = inject(AccountService);
+  protected platform: PlatformService = inject(PlatformService);
+  protected referentialRefService: ReferentialRefService = inject(ReferentialRefService);
 
-  propertyDefinitions: FormFieldDefinition[];
-  form: UntypedFormGroup;
+  protected propertyDefinitions: FormFieldDefinition[];
+  protected form: UntypedFormGroup;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
 
@@ -47,15 +46,11 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEnt
     options?: AppEditorOptions
   ) {
     super(injector, dataType, dataService, options);
-    this.platform = injector.get(PlatformService);
-    this.accountService = injector.get(AccountService);
-    this.cd = injector.get(ChangeDetectorRef);
-    this.referentialRefService = injector.get(ReferentialRefService);
 
     // Default autocomplete config
     const defaultAutocomplete = <Partial<MatAutocompleteFieldConfig<ReferentialRef, ReferentialRefFilter>>>{
       suggestFn: (value, filter, sortBy, sortDirection, opts) =>
-        this.referentialRefService.suggest(value, filter, sortBy as keyof ReferentialRef, sortDirection, opts),
+        this.referentialRefService.suggest(value, filter, sortBy as keyof ReferentialRef, sortDirection, { withProperties: true, ...opts }),
       attributes: ['label', 'name'],
     };
     // Convert map to list of options
