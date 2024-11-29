@@ -51,6 +51,8 @@
         "@rx-angular/no-zone-critical-rxjs-creation-apis": "warn",
         "@rx-angular/no-zone-critical-browser-apis": "warn",
         "@rx-angular/prefer-no-layout-sensitive-apis": "warn",
+        "@rx-angular/no-rxstate-subscriptions-outside-constructor": "warn",
+        "@rx-angular/no-rxstate-imperative-in-reactive": "warn",
         "@typescript-eslint/explicit-member-accessibility": [
           "off",
           {
