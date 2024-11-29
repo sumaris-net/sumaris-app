@@ -92,7 +92,7 @@
 <mat-menu #expertiseAreaMenu="matMenu" class="ion-no-padding">
   <ng-template matMenuContent>
     <!-- enable expertise area ? -->
-    @if (isAdminOrManager) {
+    @if (isSupervisorOrManager) {
       @let selected = selectedExpertiseArea | isNil;
       <button mat-menu-item (click)="selectedExpertiseArea = null">
         <mat-icon [style.color]="selected ? 'var(--ion-color-primary)' : 'var(--ion-color-dark)'">{{ selected ? 'check' : '' }}</mat-icon>
