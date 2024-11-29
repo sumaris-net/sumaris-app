@@ -181,7 +181,22 @@
       [tabindex]="tabindex + 20 + i * 2"
       (keydown.tab)="focusNextInputOrSubmit($event, last)"
       (keyup.enter)="focusNextInputOrSubmit($event, last)"
-    ></app-pmfm-field>
+    >
+      <!-- TODO MF FOR DEMO -->
+      @if (pmfm.name === 'Sex') {
+        <mat-checkbox
+          matSuffix
+          *ngIf="!mobile"
+          [formControl]="freezeQvPmfmControl"
+          [title]="'COMMON.BTN_FREEZE_VALUE_HELP' | translate"
+          (click)="$event.stopPropagation()"
+          [tabIndex]="-1"
+          class="ion-padding-end"
+        >
+          <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
+        </mat-checkbox>
+      }
+    </app-pmfm-field>
   </ng-container>
 
   <!-- Individual count -->
