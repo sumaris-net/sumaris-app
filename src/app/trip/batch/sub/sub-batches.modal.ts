@@ -7,6 +7,7 @@ import {
   AppFormUtils,
   AudioProvider,
   firstNotNilPromise,
+  FormFieldDefinition,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
@@ -128,7 +129,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected modalForm: UntypedFormGroup;
   protected showSubBatchFormControl: AbstractControl;
   protected individualCountControl: AbstractControl;
-  dynamicColumnsForm: FormArray;
+  protected pmfmDefinitionFilter: FormFieldDefinition[];
   virtualPmfms: DenormalizedPmfmStrategy[];
 
   get selectedRow(): TableElement<SubBatch> {
@@ -222,7 +223,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.showCommentsColumn = false;
     this.showParentGroupColumn = false;
     this.settingsId = 'sub-batches-modal';
-    this.dynamicColumnsForm = this.fb.array([]);
     this.filterForm = this.formBuilder.group({});
   }
 
@@ -231,6 +231,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       minValue: [null],
       maxValue: [null],
       taxonNameFilter: [null],
+      criteriaPmfm: [null],
     });
 
     this.canDebug = toBoolean(this.canDebug, !environment.production);
@@ -260,6 +261,24 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     } else {
       this.showIndividualCountOnly = false;
     }
+
+    const basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['name']);
+
+    this.pmfmDefinitionFilter = [
+      {
+        key: 'criteriaPmfm',
+        type: 'entity',
+        label: 'REFERENTIAL.PMFM',
+        required: false,
+        autocomplete: this.registerAutocompleteField('criteriaPmfm', {
+          suggestFn: (value, opts) => this.suggestPmfms(value),
+          attributes: basePmfmAttributes,
+          columnNames: basePmfmAttributes,
+          showAllOnFocus: false,
+          panelClass: 'width-medium',
+        }),
+      },
+    ];
 
     this.markAsReady();
 
@@ -810,7 +829,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       const filter = new SubBatchFilter();
       filter.numericalMinValue = data.min;
       filter.numericalMaxValue = data.max;
-      filter.numericalPmfmId = data.criteriaPmfm.id;
+      filter.numericalPmfm = data.criteriaPmfm;
       filter.taxonNameId = data.taxonName.id;
 
       const formValue = { minValue: data.min, maxValue: data.max, taxonNameFilter: data.taxonName };
@@ -882,8 +901,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       filter.taxonNameId = data.taxonNameFilter?.id;
     }
     // Penser à trouver une solution dans le cas ou il ya plusieurs QV PMFM
-    if (isNil(data.numericalPmfmId)) {
-      filter.numericalPmfmId = test[0].id;
+    if (isNil(data.numericalPmfm)) {
+      filter.numericalPmfm = test[0];
     }
 
     this.setFilter(filter);
@@ -897,6 +916,16 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     }
     this.showIndividualCount = true;
     super.resetFilter();
+  }
+
+  protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<Pmfm>> {
+    const pmfms = this.pmfms.filter((pmfm) => PmfmUtils.isQualitative(pmfm) && !PmfmUtils.isComputed(pmfm));
+    if (isEmptyArray(pmfms)) return { data: [] };
+    return this.pmfmService.suggest(value, {
+      searchJoin: 'parameter',
+
+      includedIds: pmfms.map((pmfm) => pmfm.id),
+    });
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
