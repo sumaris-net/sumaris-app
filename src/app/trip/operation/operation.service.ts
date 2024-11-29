@@ -2057,18 +2057,22 @@ export class OperationService
       opts.program = await this.programRefService.loadByLabel(programLabel);
     }
 
-    const showPosition =
-      toBoolean(MeasurementUtils.asBooleanValue(opts.trip.measurements, PmfmIds.GPS_USED), true) &&
-      opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+    const skipDatesPmfmId = opts.program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_SKIP_DATES_PMFM_ID);
+    const skipDates = isNotNil(skipDatesPmfmId) ? toBoolean(MeasurementUtils.asBooleanValue(opts.trip?.measurements, skipDatesPmfmId), false) : false;
+    const isGPSUsed =
+      toBoolean(MeasurementUtils.asBooleanValue(opts.trip?.measurements, PmfmIds.CAMERA_USED), false) ||
+      toBoolean(MeasurementUtils.asBooleanValue(opts.trip?.measurements, PmfmIds.GPS_USED), true); // GPS is enable by default
+    const enablePosition = !skipDates && isGPSUsed && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
 
     return {
       ...opts,
-      withPosition: showPosition,
-      withFishingAreas: !showPosition,
+      withPosition: enablePosition,
+      withFishingAreas: !skipDates && !enablePosition,
       allowParentOperation: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION),
-      withFishingStart: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
-      withFishingEnd: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
-      withEnd: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
+      withStart: skipDates || opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
+      withFishingStart: !skipDates && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
+      withFishingEnd: !skipDates && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
+      withEnd: !skipDates && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
       maxDistance: opts.program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR),
       boundingBox: Geometries.parseAsBBox(opts.program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX)),
       maxTotalDurationInHours: opts.program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS),
