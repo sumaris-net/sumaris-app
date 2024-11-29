@@ -879,8 +879,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     const data = this.filterForm.value;
     const filter = new SubBatchFilter();
 
-    const test = this.pmfms.filter((pmfm) => PmfmUtils.isNumeric(pmfm));
-
     if (isNotNil(data.maxValue)) {
       filter.numericalMaxValue = data.maxValue;
     }
@@ -891,8 +889,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       filter.taxonNameId = data.taxonNameFilter?.id;
     }
     // Penser à trouver une solution dans le cas ou il ya plusieurs QV PMFM
-    if (isNil(data.numericalPmfm)) {
-      filter.numericalPmfm = test[0];
+    if (isNotNil(data.criteriaPmfm)) {
+      filter.numericalPmfm = data.criteriaPmfm;
     }
 
     this.setFilter(filter);
@@ -909,7 +907,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<Pmfm>> {
-    const pmfms = this.pmfms.filter((pmfm) => PmfmUtils.isQualitative(pmfm) && !PmfmUtils.isComputed(pmfm));
+    const pmfms = this.pmfms.filter((pmfm) => PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isComputed(pmfm));
     if (isEmptyArray(pmfms)) return { data: [] };
     return this.pmfmService.suggest(value, {
       searchJoin: 'parameter',
