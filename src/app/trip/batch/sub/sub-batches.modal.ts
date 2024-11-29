@@ -126,8 +126,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected modalForm: UntypedFormGroup;
   protected showSubBatchFormControl: AbstractControl;
   protected individualCountControl: AbstractControl;
-  protected dynamicColumns: any[] = [];
   dynamicColumnsForm: FormArray;
+  virtualPmfms: DenormalizedPmfmStrategy[];
 
   get selectedRow(): TableElement<SubBatch> {
     return this.singleSelectedRow || this.editedRow;
@@ -262,6 +262,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.markAsReady();
 
     this.load();
+    //todo mf for demo
+    this.filterPanelFloating = false;
   }
 
   async load() {
@@ -275,7 +277,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       const data = isObservable(this.data) ? await this.data.toPromise() : this.data;
 
       // Update individual count column display depending on sub batches individual counts
-      this.showIndividualCount = data.some((subBatch) => subBatch.individualCount !== 1);
+      this.showIndividualCount = true; ///data.some((subBatch) => subBatch.individualCount !== 1);
       this.updateColumns();
 
       // Apply data to table
@@ -539,10 +541,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
         maxRankOrder = Math.max(maxRankOrder, b.rankOrder || 0);
         // Filter on individual count = 1 when individual count is hide
         // AND same parent
-        if (
-          (showIndividualCount || b.individualCount === 1 || isNotEmptyArray(this.dynamicColumns)) &&
-          Batch.equals(this.parentGroup, b.parentGroup)
-        ) {
+        if ((showIndividualCount || b.individualCount === 1 || isNotEmptyArray(this.virtualPmfms)) && Batch.equals(this.parentGroup, b.parentGroup)) {
           return res.concat(b);
         }
         hiddenData.push(b);
@@ -827,67 +826,33 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   protected generateDynamicColumns(pmfm: DenormalizedPmfmStrategy) {
     const columnNames = pmfm.qualitativeValues.map((value) => value.name);
-    columnNames.push('label'); //Pour recuperer l'id de la ligne mais à supprimer
-    const ColumnDefinition = [];
+    // columnNames.push('label'); //Pour recuperer l'id de la ligne mais à supprimer
+    const virtualPmfms: DenormalizedPmfmStrategy[] = [];
 
-    columnNames.forEach((columnName) => {
-      const col = {
-        id: columnName,
-        label: `${columnName}<br> <small> (Nb. indiv) </small>`,
-      };
-      ColumnDefinition.push(col);
+    columnNames.forEach((columnName, index) => {
+      const virtualPmfm = new DenormalizedPmfmStrategy();
+      virtualPmfm.id = -Math.abs(index) - 1;
+      virtualPmfm.name = columnName;
+      virtualPmfm.minValue = 0;
+      virtualPmfm.maxValue = 999;
+      virtualPmfm.isMandatory = false;
+      virtualPmfm.type = 'integer';
+      virtualPmfm.unitLabel = 'Nb. indiv';
+
+      virtualPmfms.push(virtualPmfm);
     });
 
-    // Pour chaque ligne de données, créer un FormGroup
-    this.dataSource.getRows().forEach(() => {
-      const rowGroup = this.fb.group({});
-      // Ajouter un contrôle pour chaque colonne
-      columnNames.forEach((colName) => {
-        rowGroup.addControl(colName, this.fb.control(''));
-      });
-      this.dynamicColumnsForm.push(rowGroup);
-    });
-
-    this.dynamicColumns = ColumnDefinition;
-
-    this.options.reservedEndColumns = SUB_BATCH_RESERVED_END_COLUMNS.concat(columnNames);
-
-    // clear old pmfm columns , to be  hide rtp column ???
-    this.setShowColumn(pmfm.id.toString(), false), (this.showIndividualCount = false);
-
+    if (isEmptyArray(this.virtualPmfms)) this.virtualPmfms = virtualPmfms;
+    this.pmfms = this.pmfms.concat(virtualPmfms);
+    this.showIndividualCount = false;
     this.updateColumns();
   }
 
   getValue(): SubBatch[] {
     const original = super.getValue();
-    const test = this.getDynamicColumnValues(); // test à supprimer
-
+    // const test = this.table.dataSource;
+    // console.log('original', original, test);
     return original;
-  }
-
-  getFormControl(rowIndex: number, columnId: string, rowData?: any) {
-    // Pas viable à supprimer	pour les virtual PMFM
-    const rowGroup = this.dynamicColumnsForm.at(rowIndex) as FormGroup;
-    if (rowGroup && columnId === 'label') rowGroup.get(columnId).setValue(rowData.label);
-    this.setShowColumn('label', false);
-    return rowGroup.get(columnId);
-  }
-
-  getRowId(row: any): number {
-    return row.id; // Assurez-vous que chaque ligne a un champ `id`
-  }
-
-  // Méthode pour récupérer les valeurs des colonnes dynamiques
-  getDynamicColumnValues() {
-    const dataSource = this.table.dataSource as any;
-    return dataSource.currentData.map((row, rowIndex) => {
-      const rowGroup = this.dynamicColumnsForm.at(rowIndex) as FormGroup;
-      const rowValues: { [key: string]: any } = {};
-      this.dynamicColumns.forEach((col) => {
-        rowValues[col.id] = rowGroup.get(col.id)?.value;
-      });
-      return rowValues;
-    });
   }
 
   applyFilterAndClosePanel() {
@@ -907,18 +872,20 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       filter.taxonNameId = data.taxonNameFilter?.id;
     }
     // Penser à trouver une solution dans le cas ou il ya plusieurs QV PMFM
-    filter.numericalPmfmId = test[0].id;
+    if (isNil(data.numericalPmfmId)) {
+      filter.numericalPmfmId = test[0].id;
+    }
 
     this.setFilter(filter);
   }
 
   resetFilter() {
-    if (isNotEmptyArray(this.dynamicColumns)) {
-      this.dynamicColumns.forEach((col) => {
-        this.setShowColumn(col.id, false);
+    if (isNotEmptyArray(this.virtualPmfms)) {
+      this.virtualPmfms.forEach((col) => {
+        this.setShowColumn(col.id.toString(), false);
       });
-      this.dynamicColumns = [];
     }
+    this.showIndividualCount = true;
     super.resetFilter();
   }
 
