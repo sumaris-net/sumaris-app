@@ -38,7 +38,7 @@ import { BatchContext, SubBatchValidatorService } from '@app/trip/batch/sub/sub-
 import { RxState } from '@rx-angular/state';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ModalUtils } from '@app/shared/modal/modal.utils';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { SubSortingCriteriaModal } from './sub-sorting-criteria.modal';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -127,8 +127,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected modalForm: UntypedFormGroup;
   protected showSubBatchFormControl: AbstractControl;
   protected individualCountControl: AbstractControl;
-  protected pmfmDefinitionFilter: FormFieldDefinition[];
-  virtualPmfms: DenormalizedPmfmStrategy[];
+  protected criteriaPmfmDefinition: FormFieldDefinition;
+  protected virtualPmfms: DenormalizedPmfmStrategy[];
 
   get selectedRow(): TableElement<SubBatch> {
     return this.singleSelectedRow || this.editedRow;
@@ -202,9 +202,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>
   ) {
     super(injector, settings.mobile ? null : validatorService /*no validator = not editable*/, options);
-
     this.inlineEdition = !this.mobile; // Disable row edition (no validator)
-
     this.confirmBeforeDelete = true; // Ask confirmation before delete
     this.allowRowDetail = false; // Disable click on a row
     this.defaultSortBy = 'id';
@@ -221,17 +219,15 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.showCommentsColumn = false;
     this.showParentGroupColumn = false;
     this.settingsId = 'sub-batches-modal';
-    this.filterForm = this.formBuilder.group({});
-  }
-
-  ngOnInit() {
     this.filterForm = this.formBuilder.group({
       minValue: [null],
       maxValue: [null],
       taxonNameFilter: [null],
       criteriaPmfm: [null],
     });
+  }
 
+  ngOnInit() {
     this.canDebug = toBoolean(this.canDebug, !environment.production);
     this.canEdit = this._enabled;
     this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
@@ -262,21 +258,19 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     const basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['name']);
 
-    this.pmfmDefinitionFilter = [
-      {
-        key: 'criteriaPmfm',
-        type: 'entity',
-        label: 'REFERENTIAL.PMFM',
-        required: false,
-        autocomplete: this.registerAutocompleteField('criteriaPmfm', {
-          suggestFn: (value, opts) => this.suggestPmfms(value),
-          attributes: basePmfmAttributes,
-          columnNames: basePmfmAttributes,
-          showAllOnFocus: false,
-          panelClass: 'width-medium',
-        }),
-      },
-    ];
+    this.criteriaPmfmDefinition = {
+      key: 'criteriaPmfm',
+      type: 'entity',
+      label: 'REFERENTIAL.PMFM',
+      required: false,
+      autocomplete: this.registerAutocompleteField('criteriaPmfm', {
+        suggestFn: (value, opts) => this.suggestPmfms(value),
+        attributes: basePmfmAttributes,
+        columnNames: basePmfmAttributes,
+        showAllOnFocus: false,
+        panelClass: 'width-medium',
+      }),
+    };
 
     this.markAsReady();
 
@@ -867,13 +861,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.updateColumns();
   }
 
-  getValue(): SubBatch[] {
-    const original = super.getValue();
-    // const test = this.table.dataSource;
-    // console.log('original', original, test);
-    return original;
-  }
-
   applyFilterAndClosePanel() {
     //Application du filtre
     const data = this.filterForm.value;
@@ -911,7 +898,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     if (isEmptyArray(pmfms)) return { data: [] };
     return this.pmfmService.suggest(value, {
       searchJoin: 'parameter',
-
       includedIds: pmfms.map((pmfm) => pmfm.id),
     });
   }
