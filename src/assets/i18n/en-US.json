@@ -1354,7 +1354,7 @@
         "ACCIDENTAL_CATCH": {
           "MEASURE_TIME": "Release date",
           "IS_DEAD": "Is dead?",
-          "TAG_ID": "Tag-ID"
+          "TAG_ID": "Pelagis ring number"
         },
         "AUCTION_CONTROL": {
           "SAMPLE_MEASURED_WEIGHT": "Sample weight (g)",

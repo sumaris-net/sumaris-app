@@ -1368,7 +1368,7 @@
         "ACCIDENTAL_CATCH": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "IS_DEAD": "Mort ?",
-          "TAG_ID": "Référence de la marque"
+          "TAG_ID": "Numéro de la bague Pélagis"
         },
         "AUCTION_CONTROL": {
           "SAMPLE_MEASURED_WEIGHT": "Poids échantillon",
