@@ -261,6 +261,11 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     }
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this._measurementSubscription?.unsubscribe();
+  }
+
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
     // If errors in operations
     if (typeof error !== 'string' && error?.details?.errors?.operations) {
