@@ -13,6 +13,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  isNumber,
   LoadResult,
   LocalSettingsService,
   PlatformService,
@@ -24,14 +25,14 @@ import {
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable, SubBatchFilter } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Animation, IonContent, ModalController } from '@ionic/angular';
-import { isObservable, Observable, Subject } from 'rxjs';
+import { debounceTime, filter, isObservable, Observable, Subject, Subscription } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { IPmfm, Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { environment } from '@environments/environment';
-import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
 import { BatchContext, SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
@@ -121,6 +122,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   private _previousMaxRankOrder: number;
   private _hiddenData: SubBatch[];
   private _isOnFieldMode: boolean;
+  private _footerRowsSubscription: Subscription;
   protected titleSubject = new Subject<string>();
 
   protected animationSelection = new SelectionModel<TableElement<SubBatch>>(false, []);
@@ -129,6 +131,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected individualCountControl: AbstractControl;
   protected criteriaPmfmDefinition: FormFieldDefinition;
   protected virtualPmfms: DenormalizedPmfmStrategy[];
+  protected footerValues: { [key: string]: number } = {};
 
   get selectedRow(): TableElement<SubBatch> {
     return this.singleSelectedRow || this.editedRow;
@@ -277,6 +280,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.load();
     //todo mf for demo
     this.filterPanelFloating = false;
+
+    // Add footer listener
+    this.registerSubscription(this.pmfms$.subscribe((pmfms) => this.addFooterListener(pmfms)));
   }
 
   async load() {
@@ -838,14 +844,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   protected generateDynamicColumns(pmfm: DenormalizedPmfmStrategy) {
-    const columnNames = pmfm.qualitativeValues.map((value) => value.name);
-    // columnNames.push('label'); //Pour recuperer l'id de la ligne mais à supprimer
     const virtualPmfms: DenormalizedPmfmStrategy[] = [];
 
-    columnNames.forEach((columnName, index) => {
+    pmfm.qualitativeValues.forEach((pmfmQv, index) => {
       const virtualPmfm = new DenormalizedPmfmStrategy();
-      virtualPmfm.id = -Math.abs(index) - 1;
-      virtualPmfm.name = columnName;
+      virtualPmfm.id = -pmfmQv.id;
+      virtualPmfm.name = pmfmQv.name;
       virtualPmfm.minValue = 0;
       virtualPmfm.maxValue = 999;
       virtualPmfm.isMandatory = false;
@@ -856,8 +860,14 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     });
 
     if (isEmptyArray(this.virtualPmfms)) this.virtualPmfms = virtualPmfms;
-    this.pmfms = this.pmfms.concat(virtualPmfms);
+
+    // Update columns - only show virtualPmfms, hide other columns (sex, weight....)
+    // Do not add virtualPmfms if already exists in pmfms
+    const missingVirtualPmfms = virtualPmfms.filter((pmfm) => !this.pmfms.some((col) => col.id === pmfm.id));
+    this.pmfms = this.pmfms.concat(missingVirtualPmfms);
     this.showIndividualCount = false;
+    this.setShowColumn(PmfmIds.SEX.toString(), false);
+    this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), false);
     this.updateColumns();
   }
 
@@ -890,6 +900,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       });
     }
     this.showIndividualCount = true;
+    this.setShowColumn(PmfmIds.SEX.toString(), true);
+    this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), true);
     super.resetFilter();
   }
 
@@ -900,6 +912,55 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       searchJoin: 'parameter',
       includedIds: pmfms.map((pmfm) => pmfm.id),
     });
+  }
+
+  protected addFooterListener(pmfms: IPmfm[]) {
+    this.showFooter = true;
+
+    // DEBUG
+    console.debug(`${this.logPrefix}Show footer ?`, this.showFooter);
+
+    // Remove previous rows listener
+    if (!this.showFooter) {
+      this._footerRowsSubscription?.unsubscribe();
+      this._footerRowsSubscription = null;
+    }
+    // Create footer subscription
+    else if (!this._footerRowsSubscription) {
+      const footerRowsSubscription = this.dataSource
+        .connect(null)
+        .pipe(
+          debounceTime(500),
+          filter((_) => !this.filterCriteriaCount) // Only if no filter criteria
+        )
+        .subscribe((rows) => this.updateFooter(rows));
+      footerRowsSubscription.add(() => this.unregisterSubscription(footerRowsSubscription));
+      this._footerRowsSubscription = footerRowsSubscription;
+    }
+  }
+
+  private updateFooter(rows: TableElement<SubBatch>[] | readonly TableElement<SubBatch>[]) {
+    this.footerValues = {};
+
+    // Individual count
+    if (this.showIndividualCount) {
+      const individualCounts: number[] = rows.map((row) => row.currentData.individualCount).filter(isNumber);
+      this.footerValues['individualCount'] = individualCounts.reduce((sum, count) => sum + count, 0);
+    }
+
+    // this.pmfms
+    //   .filter((pmfm) => PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isComputed(pmfm))
+    //   .forEach((pmfm) => {
+    //     this.footerValues[pmfm.id] = 0;
+    //     rows.forEach((row) => {
+    //       const value = row.currentData.measurementValues[pmfm.id];
+    //       if (isNumber(value)) {
+    //         this.footerValues[pmfm.id] += value;
+    //       }
+    //     });
+    //   });
+
+    this.markForCheck();
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
