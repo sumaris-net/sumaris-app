@@ -29,7 +29,7 @@
         </ion-col>
 
         <!-- parent operation -->
-        <ion-col size="12" size-sm="6" size-md="" size-lg="" class="ion-align-self-end">
+        <ion-col size="12" size-sm="6" size-md="" size-lg="" (click)="addParentOperation($event)" class="ion-align-self-end cursor-pointer">
           <mat-form-field
             [class.cdk-visually-hidden]="!isChildOperation"
             [class.mat-form-field-invalid]="control.invalid"
@@ -37,23 +37,8 @@
           >
             <mat-label translate>TRIP.OPERATION.EDIT.PARENT_OPERATION</mat-label>
             <input matInput type="text" hidden [placeholder]="" formControlName="parentOperation" />
-            <input
-              matInput
-              type="text"
-              class="cursor-pointer"
-              [value]="$parentOperationLabel | async"
-              (click)="addParentOperation()"
-              [tabindex]="tabindex + 1"
-              readonly
-            />
-            <button
-              *ngIf="!(control | formGetValue); else otherButtons"
-              matSuffix
-              mat-icon-button
-              type="button"
-              tabindex="-1"
-              (click)="addParentOperation()"
-            >
+            <input matInput type="text" [value]="$parentOperationLabel | async" [tabindex]="tabindex + 1" readonly />
+            <button *ngIf="!(control | formGetValue); else otherButtons" matSuffix mat-icon-button type="button" tabindex="-1">
               <mat-icon>more_horiz</mat-icon>
             </button>
             <ng-template #otherButtons>
@@ -64,7 +49,6 @@
                 type="button"
                 tabindex="-1"
                 style="color: var(--ion-color-danger)"
-                (click)="addParentOperation()"
                 [title]="msg | translate"
               >
                 <mat-icon>error</mat-icon>
@@ -83,7 +67,7 @@
               <!-- Parent = options menu -->
               <mat-menu #parentFieldMenu="matMenu" xPosition="after">
                 <ng-template matMenuContent>
-                  <button mat-menu-item type="button" tabindex="-1" (click)="addParentOperation()">
+                  <button mat-menu-item type="button" tabindex="-1">
                     <ion-label>
                       <mat-icon>list</mat-icon>
                       <span translate>TRIP.OPERATION.EDIT.BTN_SELECT_PARENT</span>

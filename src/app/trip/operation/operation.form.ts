@@ -790,7 +790,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this.$parentOperationLabel.next(parentLabel);
   }
 
-  async addParentOperation(): Promise<Operation> {
+  async addParentOperation(event?: Event): Promise<Operation> {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    }
     const parentOperation = await this.openSelectOperationModal();
 
     // User cancelled
