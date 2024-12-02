@@ -2987,9 +2987,11 @@ export class CalendarComponent
             DataEntityUtils.markAsInvalid(targetEntity, errorMessage);
           }
         }
-
+        // do not update empty sourcemonth column
+        const isEmptySourcePaths = sourcePaths.every((path) => isNil(getPropertyByPath(sourceMonth, path)));
+        const isEmptyTargetPaths = targetPaths.every((path) => isNil(getPropertyByPath(targetRow.currentData, path)));
         // Update the row, using the computed entity
-        await this.updateEntityToTable(targetEntity, targetRow, { confirmEdit: true });
+        if (!isEmptyTargetPaths || !isEmptySourcePaths) await this.updateEntityToTable(targetEntity, targetRow, { confirmEdit: true });
       }
     }
 
