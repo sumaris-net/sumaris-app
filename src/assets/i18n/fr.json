@@ -819,6 +819,7 @@
       "INVALID_OPERATIONS": "Veuillez corriger les opérations invalides ci-dessous"
     },
     "WARNING": {
+      "HELP_MESSAGE": "Pour votre première marée, veuillez commencer par un filage.",
       "NO_HELP_URL": "Il semble que le programme de collecte {{programLabel}} <b>n'a pas encore d'aide en ligne</b> spécifique mise à disposition.<br/><small><br/>Si le problème persiste, veuillez <b>contacter votre administrateur</b>.</small>"
     },
     "MEASUREMENT": {

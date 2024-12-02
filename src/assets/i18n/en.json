@@ -2455,6 +2455,7 @@
         "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Gear, Metier, Position/Fishing area, Features"
       },
       "TRIP_OPERATION_HELP_URL": "Trip > Operation: Online helper (URL)",
+      "TRIP_OPERATION_HELP_MESSAGE": "Trip > Operation: Help message",
       "TRIP_OPERATION_FISHING_AREA_INLINE": "Trip > Operation: Align fishing areas with dates",
       "TRIP_OPERATION_SKIP_DATES_TRIP_PMFM_ID": "Trip > Operation: Trip PMFM (boolean) to disable dates?",
       "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Trips: Column 'SAMPLING_METHOD'",

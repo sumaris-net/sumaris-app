@@ -79,6 +79,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { slideDownAnimation } from '@app/shared/material/material.animation';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -96,7 +97,7 @@ export interface TripPageState extends RootDataEntityEditorState {
   selector: 'app-trip-page',
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss'],
-  animations: [fadeInOutAnimation],
+  animations: [fadeInOutAnimation, slideDownAnimation],
   providers: [
     { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => TripPage) },
     {
@@ -132,6 +133,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   protected operationPasteFlags: number;
   protected canDownload = false;
   protected helpUrl: string;
+  protected helpMessage: string;
   @RxStateProperty() protected reportTypes: Property[];
 
   @Input() toolbarColor: PredefinedColors = 'primary';
@@ -161,6 +163,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     protected operationService: OperationService,
     protected tripContext: TripContextService,
     protected accountService: AccountService,
+    protected tripService: TripService,
     @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) public physicalGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector, Trip, injector.get(TripService), {
@@ -256,11 +259,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
           .subscribe(() => this.onMeasurementsFormReady())
       );
     }
-  }
-
-  ngOnDestroy() {
-    super.ngOnDestroy();
-    this._measurementSubscription?.unsubscribe();
   }
 
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
@@ -518,6 +516,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
         data.program = ReferentialRef.fromObject(contextualProgram);
       }
     }
+    const trip = (await this.tripService.loadAll(0, 1, null, null, { observers: [this.accountService.person] })).data;
+    this.helpMessage = trip.length == 0 ? 'TRIP.WARNING.HELP_MESSAGE' : null;
 
     this.showGearTable = false;
     this.showOperationTable = false;
