@@ -332,6 +332,7 @@
             <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || !canEdit">
               <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection.isSelected(row)" [tabIndex]="-1"></mat-checkbox>
             </td>
+            <td mat-footer-cell *matFooterCellDef></td>
           </ng-container>
 
           <!-- rankOrder Column = id -->
@@ -342,6 +343,7 @@
             <td mat-cell *matCellDef="let row">
               <ion-label>{{ row.currentData.rankOrder }}</ion-label>
             </td>
+            <td mat-footer-cell *matFooterCellDef></td>
           </ng-container>
 
           <!-- parent -->
@@ -356,6 +358,7 @@
                 {{ row.currentData.parentGroup | displayWith: autocompleteFields.parentGroup.displayWith }}
               </ion-text>
             </td>
+            <td mat-footer-cell *matFooterCellDef></td>
           </ng-container>
 
           <!-- taxon name (scientific species) -->
@@ -380,6 +383,7 @@
                 {{ row.currentData.taxonName | referentialToString: ['name'] }}
               }
             </td>
+            <td mat-footer-cell *matFooterCellDef></td>
           </ng-container>
 
           <!-- Pmfms columns -->
@@ -420,6 +424,9 @@
                 ></span>
               }
             </td>
+            <td mat-footer-cell *matFooterCellDef>
+              <b>{{ footerValues | mapGet: pmfm.id }}</b>
+            </td>
           </ng-container>
 
           <!-- individualCount column -->
@@ -457,6 +464,9 @@
                 {{ row.currentData.individualCount }}
               }
             </td>
+            <td mat-footer-cell *matFooterCellDef>
+              <b>{{ footerValues | mapGet: 'individualCount' }}</b>
+            </td>
           </ng-container>
 
           <!-- Comment column -->
@@ -467,6 +477,7 @@
             <td mat-cell *matCellDef="let row">
               <mat-icon color="primary" class="comment" *ngIf="row.currentData.comments" [title]="row.currentData.comments"></mat-icon>
             </td>
+            <td mat-footer-cell *matFooterCellDef></td>
           </ng-container>
 
           <!-- Actions buttons column -->
@@ -499,6 +510,9 @@
             (keydown.escape)="escapeEditingRow($event)"
             [cdkTrapFocus]="row.editing && !row.validator.valid"
           ></tr>
+
+          <!-- footer -->
+          <tr mat-footer-row *matFooterRowDef="displayedColumns; sticky: true" [class.cdk-visually-hidden]="!totalRowCount"></tr>
         </table>
       </ion-col>
     </ion-row>
@@ -583,6 +597,8 @@
           _dataService.acquisitionLevel: {{ _dataService.acquisitionLevel }}
           <br />
           _dataService.pmfms: {{ (_dataService.pmfms$ | async)?.length }}
+          <br />
+          showFooter: {{ showFooter }}
         </ion-col>
 
         <ion-col *ngIf="form">
