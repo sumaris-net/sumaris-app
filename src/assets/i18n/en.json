@@ -819,6 +819,7 @@
       "INVALID_OPERATIONS": "Please correct invalid operations below"
     },
     "WARNING": {
+      "HELP_MESSAGE": "For your first trip, you have to create a setting.",
       "NO_HELP_URL": "It seems that the data collection program {{programLabel}} <b>does not yet have specific online help</b> available.<br/><small><br/>If the issue persists, please <b>contact your administrator</b>.</small>"
     },
     "MEASUREMENT": {

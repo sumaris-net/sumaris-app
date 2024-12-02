@@ -287,47 +287,49 @@
 
     <!-- TAB: operations -->
     <mat-tab [label]="'TRIP.TAB_OPERATIONS' | translate" [disabled]="!showOperationTable" appSubMenuTab>
-      <ng-template mat-tab-label>
-        <mat-icon>
-          <ion-icon matPrefix slot="start" name="navigate"></ion-icon>
-        </mat-icon>
-        <ion-label
-          [matBadge]="operationsTable.totalRowCount | badgeNumber"
-          [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount || !!operationsTable.error"
-          matBadgeColor="primary"
-          matBadgeOverlap="false"
-          matBadgeSize="small"
-          translate
-        >
-          TRIP.TAB_OPERATIONS
-        </ion-label>
-        <mat-icon>
-          <ion-icon
-            slot="end"
-            name="alert-circle"
-            color="danger"
-            *ngIf="operationsTable.error || (operationsTable.invalid && operationsTable.dirty)"
-          ></ion-icon>
-        </mat-icon>
-      </ng-template>
+      <ion-content>
+        <!-- help message (only in leaf modal) -->
+        <ion-item *ngIf="enabled && helpMessage" color="accent" lines="none" @slideDownAnimation>
+          <ion-icon slot="start" name="information-circle-outline"></ion-icon>
+          <ion-label [innerHTML]="helpMessage | translate"></ion-label>
+        </ion-item>
 
-      <!-- help message (only in leaf modal) -->
-      <ion-item *ngIf="enabled && helpMessage" color="accent" lines="none" @slideDownAnimation>
-        <ion-icon slot="start" name="information-circle-outline"></ion-icon>
-        <ion-label [innerHTML]="helpMessage | translate"></ion-label>
-      </ion-item>
+        <ng-template mat-tab-label>
+          <mat-icon>
+            <ion-icon matPrefix slot="start" name="navigate"></ion-icon>
+          </mat-icon>
+          <ion-label
+            [matBadge]="operationsTable.totalRowCount | badgeNumber"
+            [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount || !!operationsTable.error"
+            matBadgeColor="primary"
+            matBadgeOverlap="false"
+            matBadgeSize="small"
+            translate
+          >
+            TRIP.TAB_OPERATIONS
+          </ion-label>
+          <mat-icon>
+            <ion-icon
+              slot="end"
+              name="alert-circle"
+              color="danger"
+              *ngIf="operationsTable.error || (operationsTable.invalid && operationsTable.dirty)"
+            ></ion-icon>
+          </mat-icon>
+        </ng-template>
 
-      <app-operations-table
-        #operationsTable
-        (onOpenRow)="onOpenOperation($event)"
-        (onNewRow)="onNewOperation($event)"
-        (duplicateRow)="onDuplicateOperation($event)"
-        [canDuplicate]="operationPasteFlags !== 0"
-        [programLabel]="programLabel$ | async"
-        [showToolbar]="!mobile"
-        [defaultSortBy]="mobile ? 'startDateTime' : 'endDateTime'"
-        [defaultSortDirection]="mobile ? 'desc' : 'asc'"
-      ></app-operations-table>
+        <app-operations-table
+          #operationsTable
+          (onOpenRow)="onOpenOperation($event)"
+          (onNewRow)="onNewOperation($event)"
+          (duplicateRow)="onDuplicateOperation($event)"
+          [canDuplicate]="operationPasteFlags !== 0"
+          [programLabel]="programLabel$ | async"
+          [showToolbar]="!mobile"
+          [defaultSortBy]="mobile ? 'startDateTime' : 'endDateTime'"
+          [defaultSortDirection]="mobile ? 'desc' : 'asc'"
+        ></app-operations-table>
+      </ion-content>
     </mat-tab>
   </mat-tab-group>
 </ion-content>

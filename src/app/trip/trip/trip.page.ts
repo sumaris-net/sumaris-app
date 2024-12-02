@@ -516,7 +516,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
         data.program = ReferentialRef.fromObject(contextualProgram);
       }
     }
-    const trip = (await this.tripService.loadAll(0, 1, null, null, { observers: [this.accountService.person] })).data;
+    const trip = (await this.tripService.loadAll(0, 1, null, null, { recorderPerson: this.accountService.person })).data;
     this.helpMessage = trip.length == 0 ? 'TRIP.WARNING.HELP_MESSAGE' : null;
 
     this.showGearTable = false;
@@ -534,6 +534,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
     this.canDownload = !this.mobile && EntityUtils.isRemoteId(data?.id);
+
+    const trip = (await this.tripService.loadAll(0, 1, null, null, { recorderPerson: this.accountService.person, excludedIds: [data.id] })).data;
+    this.helpMessage = trip.length == 0 ? 'TRIP.WARNING.HELP_MESSAGE' : null;
 
     this._state.set({ departureDateTime: data.departureDateTime, departureLocation: data.departureLocation });
   }
