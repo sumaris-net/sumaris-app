@@ -166,11 +166,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
-  TRIP_HELP_MESSAGE: <FormFieldDefinition>{
-    key: 'sumaris.trip.help.message',
-    label: 'PROGRAM.OPTIONS.TRIP_HELP_MESSAGE',
-    type: 'string',
-  },
   TRIP_HELP_URL: <FormFieldDefinition>{
     key: 'sumaris.trip.help.url',
     label: 'PROGRAM.OPTIONS.TRIP_HELP_URL',
@@ -231,6 +226,11 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_MAP_ZOOM',
     defaultValue: 5,
     type: 'integer',
+  },
+  TRIP_OPERATIONS_HELP_MESSAGE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operations.help.message',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATIONS_HELP_MESSAGE',
+    type: 'string',
   },
   TRIP_OPERATION_PASTE_FLAGS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.paste.flags',
@@ -568,9 +568,9 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '2400', // 100 days
     type: 'integer',
   },
-  TRIP_APPLY_DATE_ON_NEW_OPERATION: <FormFieldDefinition>{
+  TRIP_OPERATION_COPY_TRIP_DATE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.copyTripDates',
-    label: 'PROGRAM.OPTIONS.TRIP_APPLY_DATE_ON_NEW_OPERATION',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_COPY_TRIP_DATE',
     defaultValue: 'false',
     type: 'boolean',
   },

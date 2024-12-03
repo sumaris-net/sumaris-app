@@ -17,8 +17,7 @@ import { TripForm } from './trip.form';
 import { SaleForm } from '../sale/sale.form';
 import { OperationsTable } from '../operation/operations.table';
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
-import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+import { PhysicalGearTable } from '../physicalgear/physical-gears.table'; // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
@@ -36,6 +35,7 @@ import {
   equals,
   fadeInOutAnimation,
   FilesUtils,
+  fromDateISOString,
   HistoryPageReference,
   InMemoryEntitiesService,
   isNil,
@@ -61,7 +61,7 @@ import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, start
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { TRIP_FEATURE_NAME } from '@app/trip/trip.config';
-import { firstValueFrom, from, merge, Observable, Subscription } from 'rxjs';
+import { combineLatestWith, firstValueFrom, from, merge, Observable, Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { Sale } from '@app/trip/sale/sale.model';
@@ -79,7 +79,6 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { slideDownAnimation } from '@app/shared/material/material.animation';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -91,13 +90,14 @@ export interface TripPageState extends RootDataEntityEditorState {
   departureLocation: ReferentialRef;
   reportTypes: Property[];
   returnDateTime: Moment;
+  showOperationHelpMessage: boolean;
 }
 
 @Component({
   selector: 'app-trip-page',
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss'],
-  animations: [fadeInOutAnimation, slideDownAnimation],
+  animations: [fadeInOutAnimation],
   providers: [
     { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => TripPage) },
     {
@@ -133,8 +133,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   protected operationPasteFlags: number;
   protected canDownload = false;
   protected helpUrl: string;
-  protected helpMessage: string;
-  protected showMessage: boolean;
+  protected operationHelpMessage: string;
+  @RxStateProperty() protected showOperationHelpMessage: boolean;
   @RxStateProperty() protected reportTypes: Property[];
 
   @Input() toolbarColor: PredefinedColors = 'primary';
@@ -198,6 +198,29 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
             const values = ProgramProperties.TRIP_REPORT_TYPES.values as Property[];
             return values.find((item) => item.key === key);
           });
+        })
+      )
+    );
+    this._state.connect(
+      'showOperationHelpMessage',
+      this.tripForm.vesselChanges.pipe(
+        combineLatestWith(this.program$, this.tripForm.departureDateTimeChanges),
+        mergeMap(async ([vesselSnapshot, program, departureDateTime]) => {
+          if (!vesselSnapshot || !program || !departureDateTime) return false; // Skip if vessel or program is missing
+
+          // Count existing (and recent) operations (before the current trip, on same vessel and program)
+          const startDate = fromDateISOString(departureDateTime).clone().add(-7, 'day').startOf('day');
+          const synchronizationStatus = this.data?.synchronizationStatus;
+          const existingOperationCount = await this.operationService.countAll({
+            startDate,
+            endDate: departureDateTime,
+            programLabel: program.label,
+            vesselId: vesselSnapshot.id,
+            synchronizationStatus: synchronizationStatus && synchronizationStatus !== 'SYNC' ? ['DIRTY', 'READY_TO_SYNC'] : null,
+          });
+
+          // Show operation help message, only when no recent operation exists
+          return existingOperationCount === 0;
         })
       )
     );
@@ -387,7 +410,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.operationsTable.detailEditor = this.operationEditor;
     this.operationPasteFlags = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_PASTE_FLAGS);
     this.helpUrl = program.getProperty(ProgramProperties.TRIP_HELP_URL);
-    this.helpMessage = program.getProperty(ProgramProperties.TRIP_HELP_MESSAGE);
+    this.operationHelpMessage = program.getProperty(ProgramProperties.TRIP_OPERATIONS_HELP_MESSAGE);
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
@@ -531,8 +554,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     const programLabel = data.program && data.program.label;
     this.programLabel = programLabel;
 
-    this.showMessage = (await this.tripService.countAll({ recorderPerson: this.accountService.person, program: data.program })) == 0;
-
     // Enable forms (do not wait for program load)
     if (!programLabel) this.markAsReady();
   }
@@ -541,9 +562,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     const programLabel = data.program?.label;
     if (programLabel) this.programLabel = programLabel;
     this.canDownload = !this.mobile && EntityUtils.isRemoteId(data?.id);
-
-    this.showMessage =
-      (await this.tripService.countAll({ recorderPerson: this.accountService.person, program: data.program, excludedIds: [data.id] })) == 0;
 
     this._state.set({ departureDateTime: data.departureDateTime, departureLocation: data.departureLocation });
   }
