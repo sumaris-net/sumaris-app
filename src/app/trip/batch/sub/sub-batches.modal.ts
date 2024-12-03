@@ -931,25 +931,32 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     this.markForCheck();
   }
+
   async generateSubBatchesFromRange(data: any) {
     // Create subbatches
     const subBatchesToAdd = [];
     let rankOrder = await this.getMaxRankOrder();
 
     for (let size = data.min; size <= data.max; size += data.precision) {
-      const subBatch = new SubBatch();
-      subBatch.individualCount = 0;
-      subBatch.taxonName = data.taxonName;
-      subBatch.measurementValues[data.criteriaPmfm.id] = size;
-      subBatch.rankOrder = ++rankOrder;
-      subBatchesToAdd.push(subBatch);
+      // Do not add already existing row for this taxonname and size
+      const existing = this.getValue().some(
+        (subbatch) => subbatch.measurementValues[data.criteriaPmfm.id] === size && subbatch.taxonName?.id === data.taxonName.id
+      );
+      if (!existing) {
+        const subBatch = new SubBatch();
+        subBatch.individualCount = 0;
+        subBatch.taxonName = data.taxonName;
+        subBatch.measurementValues[data.criteriaPmfm.id] = size;
+        subBatch.rankOrder = ++rankOrder;
+        subBatchesToAdd.push(subBatch);
+      }
     }
 
     await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
 
     if (isNotNil(data.qvPmfm)) {
       // find the qv pmfm
-      const qv = this.pmfms.find((pmfmA) => pmfmA.id === data.qvPmfm.id);
+      const qv = this.pmfms.find((pmfm) => pmfm.id === data.qvPmfm.id);
       this.generateDynamicColumns(qv);
     }
 
