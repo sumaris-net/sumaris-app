@@ -12,7 +12,7 @@
  * These status values are mutually exclusive, so a control cannot be
  * both valid AND invalid or invalid AND disabled.
  */
-import { AbstractControl, FormArray, FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormArray, FormControl, FormGroup, UntypedFormGroup } from '@angular/forms';
 import { isNil } from '@sumaris-net/ngx-components';
 
 export type FormControlStatus = 'VALID' | 'INVALID' | 'DISABLED' | 'PENDING';
@@ -128,5 +128,12 @@ export class AppSharedFormUtils {
     }
 
     return result;
+  }
+
+  static isEmptyForm(form: UntypedFormGroup): boolean {
+    const formValues = form.value;
+    return Object.values(formValues).every(
+      (value) => value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)
+    );
   }
 }
