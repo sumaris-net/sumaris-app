@@ -25,7 +25,7 @@ import {
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable, SubBatchFilter } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Animation, IonContent, ModalController } from '@ionic/angular';
-import { debounceTime, filter, isObservable, Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, filter, isObservable, Observable, Subject, Subscription, tap } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
@@ -813,7 +813,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     );
   }
 
-  protected generateDynamicColumns(pmfm: DenormalizedPmfmStrategy) {
+  protected generateDynamicColumns(pmfm: IPmfm) {
     const virtualPmfms: DenormalizedPmfmStrategy[] = [];
 
     pmfm.qualitativeValues.forEach((pmfmQv, index) => {
@@ -931,6 +931,40 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     //   });
 
     this.markForCheck();
+  }
+  async appliyFilterCriteria(data: any) {
+    // Create subbatches
+    const subBatchesToAdd = [];
+    let rankOrder = await this.getMaxRankOrder();
+
+    for (let size = data.min; size <= data.max; size += data.precision) {
+      const subBatch = new SubBatch();
+      subBatch.individualCount = 0;
+      subBatch.taxonName = data.taxonName;
+      subBatch.measurementValues[data.criteriaPmfm.id] = size;
+      subBatch.rankOrder = ++rankOrder;
+      subBatchesToAdd.push(subBatch);
+    }
+
+    await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
+
+    if (isNotNil(data.qvPmfm)) {
+      // find the qv pmfm
+      const qv = this.pmfms.find((pmfmA) => pmfmA.id === data.qvPmfm.id);
+      this.generateDynamicColumns(qv);
+    }
+
+    // Only show added entities
+    const filter = new SubBatchFilter();
+    filter.numericalMinValue = data.min;
+    filter.numericalMaxValue = data.max;
+    filter.numericalPmfm = data.criteriaPmfm;
+    filter.taxonNameId = data.taxonName.id;
+
+    const formValue = { minValue: data.min, maxValue: data.max, taxonNameFilter: data.taxonName };
+    this.filterForm.patchValue(formValue);
+
+    this.setFilter(filter);
   }
 
   getFormErrors = AppFormUtils.getFormErrors;

@@ -78,6 +78,7 @@
             [pmfmDenormalized]="pmfms || []"
             [programLabel]="programLabel"
             [pmfmsFiltered]="pmfmsFiltered || []"
+            (onSubmit)="appliyFilterCriteria($event)"
           ></app-sub-sorting-criteria-form>
         }
         <app-sub-batch-form
