@@ -910,10 +910,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     else if (!this._footerRowsSubscription) {
       const footerRowsSubscription = this.dataSource
         .connect(null)
-        .pipe(
-          debounceTime(500),
-          filter((_) => !this.filterCriteriaCount) // Only if no filter criteria
-        )
+        .pipe(debounceTime(500))
         .subscribe((rows) => this.updateFooter(rows));
       footerRowsSubscription.add(() => this.unregisterSubscription(footerRowsSubscription));
       this._footerRowsSubscription = footerRowsSubscription;
@@ -929,17 +926,16 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       this.footerValues['individualCount'] = individualCounts.reduce((sum, count) => sum + count, 0);
     }
 
-    // this.pmfms
-    //   .filter((pmfm) => PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isComputed(pmfm))
-    //   .forEach((pmfm) => {
-    //     this.footerValues[pmfm.id] = 0;
-    //     rows.forEach((row) => {
-    //       const value = row.currentData.measurementValues[pmfm.id];
-    //       if (isNumber(value)) {
-    //         this.footerValues[pmfm.id] += value;
-    //       }
-    //     });
-    //   });
+    // Individual count for virtual columns
+    this.virtualPmfms?.forEach((pmfm) => {
+      this.footerValues[pmfm.id] = 0;
+      rows.forEach((row) => {
+        const value = row.currentData.measurementValues[pmfm.id];
+        if (isNumber(value)) {
+          this.footerValues[pmfm.id] += value;
+        }
+      });
+    });
 
     this.markForCheck();
   }
