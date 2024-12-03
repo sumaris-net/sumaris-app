@@ -153,6 +153,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
             computeRankOrder: false,
             mutable: false, // use a simple load query, not mutable
             withOffline: true,
+            toEntity: (source, opts) => this.toEntity(source, opts),
           },
         }
       )
@@ -242,6 +243,12 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   }
 
   /* -- protected methods -- */
+
+  protected toEntity(source: any, opts?: any) {
+    const target = Operation.fromObject(source, opts);
+    target.trip = Trip.fromObject(source.trip);
+    return target;
+  }
 
   protected configureFromSettings(settings: LocalSettings) {
     console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...');

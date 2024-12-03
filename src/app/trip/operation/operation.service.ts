@@ -548,12 +548,30 @@ export class OperationService
       }
 
       // Transform to entity
-      const data = !opts || opts.toEntity !== false ? Operation.fromObject(json) : (json as Operation);
+      const data = this.fromObject(json, opts);
       if (data && this._debug) console.debug(`[operation-service] Operation #${id} loaded in ${Date.now() - now}ms`, data);
       return data;
     } finally {
       this.loading = false;
     }
+  }
+
+  fromObject(
+    source: any,
+    opts?: OperationFromObjectOptions & {
+      toEntity?: boolean | ((source: any, opts?: any) => Operation);
+    }
+  ): Operation {
+    // Simple cast (skip conversion)
+    if (!source || opts?.toEntity === false) return source as Operation;
+
+    // User defined function
+    if (typeof opts?.toEntity === 'function') {
+      return opts.toEntity(source, opts);
+    }
+
+    // Entity conversion
+    return Operation.fromObject(source, opts);
   }
 
   canUserWrite(data: Operation, opts?: OperationValidatorOptions): boolean {
@@ -1975,8 +1993,7 @@ export class OperationService
     filter?: Partial<OperationFilter>,
     opts?: OperationServiceWatchOptions
   ): Promise<LoadResult<Operation>> {
-    let entities =
-      !opts || opts.toEntity !== false ? (data || []).map((source) => Operation.fromObject(source, opts)) : ((data || []) as Operation[]);
+    let entities = (data || []).map((source) => this.fromObject(source, opts));
 
     if (opts?.mapFn) {
       entities = await opts.mapFn(entities);
