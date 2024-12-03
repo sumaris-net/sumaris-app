@@ -63,7 +63,7 @@
     [maxVisibleButtons]="pmfm.qualitativeValues?.length || maxVisibleButtons"
   >
     <!-- checkbox to freeze -->
-    <!-- TODO MF FOR DEMO -->
+    <!-- TODO MF FOR DEMO class="ion-padding-end" -->
     <mat-checkbox
       matSuffix
       *ngIf="!mobile"
@@ -92,7 +92,7 @@
       (keyup.enter)="focusNextInput($event)"
     >
       <!-- checkbox to freeze value  -->
-      <!-- TODO MF FOR DEMO -->
+      <!-- TODO MF FOR DEMO class="ion-padding-end" -->
       <mat-checkbox
         matSuffix
         [formControl]="freezeTaxonNameControl"
@@ -186,12 +186,12 @@
       (keydown.tab)="focusNextInputOrSubmit($event, last)"
       (keyup.enter)="focusNextInputOrSubmit($event, last)"
     >
-      <!-- TODO MF FOR DEMO -->
-      @if (pmfm.name === 'Sex') {
+      @if (showFreezeQvPmfms && pmfm.type === 'qualitative_value') {
+        <!-- checkbox to freeze value -->
         <mat-checkbox
           matSuffix
           *ngIf="!mobile"
-          [formControl]="freezeQvPmfmControl"
+          [formControl]="freezeQvPmfmsControl"
           [title]="'COMMON.BTN_FREEZE_VALUE_HELP' | translate"
           (click)="$event.stopPropagation()"
           [tabIndex]="-1"

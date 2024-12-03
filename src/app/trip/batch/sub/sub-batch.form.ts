@@ -100,6 +100,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   enableIndividualCountControl: UntypedFormControl;
   freezeTaxonNameControl: UntypedFormControl;
   freezeQvPmfmControl: UntypedFormControl;
+  freezeQvPmfmsControl: UntypedFormControl;
   selectedTaxonNameIndex = -1;
   warning: string;
   weightPmfm: IPmfm;
@@ -161,6 +162,12 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     if (!value) {
       this.form.get('measurements.' + this.qvPmfm.id).reset(null);
     }
+  }
+
+  @Input() showFreezeQvPmfms = false;
+
+  get freezeQvPmfms(): boolean {
+    return this.freezeQvPmfmsControl.value;
   }
 
   get parentGroup(): any {
@@ -225,6 +232,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     this.freezeQvPmfmControl.setValue(true, { emitEvent: false });
 
     this.freezeTaxonNameControl = this.formBuilder.control(!this.mobile, Validators.required);
+
+    this.freezeQvPmfmsControl = this.formBuilder.control(false, Validators.required);
 
     // Listen pending status
     this._state.connect(
