@@ -968,7 +968,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     filter.numericalPmfm = data.criteriaPmfm;
     filter.taxonNameId = data.taxonName.id;
 
-    const formValue = { minValue: data.min, maxValue: data.max, taxonNameFilter: data.taxonName };
+    const formValue = { minValue: data.min, maxValue: data.max, taxonNameFilter: data.taxonName, criteriaPmfm: data.criteriaPmfm };
     this.filterForm.patchValue(formValue);
     this.setFilter(filter);
   }

@@ -145,10 +145,9 @@
           </button>
 
           <!-- Show filter -->
-          <!-- todo mf for demo -1 -->
           <button mat-icon-button (click)="filterExpansionPanel.toggle()">
             <mat-icon
-              [matBadge]="filterCriteriaCount - 1"
+              [matBadge]="filterCriteriaCount"
               [matBadgeHidden]="filterIsEmpty"
               matBadgeColor="accent"
               matBadgeSize="small"
@@ -180,7 +179,6 @@
               </ion-row>
 
               <!-- Critère de classement-->
-
               <ion-row>
                 <ion-col>
                   <app-form-field
