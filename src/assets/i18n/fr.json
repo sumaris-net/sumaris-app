@@ -958,7 +958,7 @@
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "TYPE": {
           "TITLE": "Type d'opération :",
-          "PLACEHOLDER": "Type",
+          "PLACEHOLDER": "Type d'opération",
           "PARENT": "Filage",
           "CHILD": "Virage"
         },
@@ -1368,7 +1368,7 @@
         "ACCIDENTAL_CATCH": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "IS_DEAD": "Mort ?",
-          "TAG_ID": "Numéro de la bague Pélagis"
+          "TAG_ID": "Numéro de la bague (Pélagis)"
         },
         "AUCTION_CONTROL": {
           "SAMPLE_MEASURED_WEIGHT": "Poids échantillon",

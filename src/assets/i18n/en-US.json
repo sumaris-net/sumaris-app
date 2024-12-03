@@ -952,7 +952,7 @@
         "QUALITY_FLAG_ID": "Quality flag",
         "TYPE": {
           "TITLE": "Operation type:",
-          "PLACEHOLDER": "Type",
+          "PLACEHOLDER": "Operation type:",
           "PARENT": "Setting",
           "CHILD": "Hauling"
         },
@@ -1354,7 +1354,7 @@
         "ACCIDENTAL_CATCH": {
           "MEASURE_TIME": "Release date",
           "IS_DEAD": "Is dead?",
-          "TAG_ID": "Pelagis ring number"
+          "TAG_ID": "Tag-ID"
         },
         "AUCTION_CONTROL": {
           "SAMPLE_MEASURED_WEIGHT": "Sample weight (g)",
