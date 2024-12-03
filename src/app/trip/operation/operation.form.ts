@@ -790,7 +790,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this.$parentOperationLabel.next(parentLabel);
   }
 
-  async addParentOperation(): Promise<Operation> {
+  async addParentOperation(event?: Event): Promise<Operation> {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+    }
     const parentOperation = await this.openSelectOperationModal();
 
     // User cancelled
@@ -880,7 +885,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       // Init child default position
       const lastParentDateTime = parentOperation.fishingStartPosition || parentOperation.startPosition;
       if (this.fishingEndDateTimeEnable) this.setPosition(fishingEndPositionControl, lastParentDateTime);
-      else if (this.endDateTimeEnable) this.setPosition(endPositionControl, lastParentDateTime);
+      if (this.endDateTimeEnable) this.setPosition(endPositionControl, lastParentDateTime);
     }
 
     // Copy fishing area

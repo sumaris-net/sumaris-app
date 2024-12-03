@@ -3,7 +3,6 @@ import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { RxStateModule, SharedDebugModule, SharedModule, SharedModuleConfig } from '@sumaris-net/ngx-components';
 import { APP_MAIN_CONTEXT_SERVICE, Context, ContextService } from './context.service';
-import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
 import { DelayPipe } from '@app/shared/pipes/delay.pipe';
 import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
@@ -31,7 +30,6 @@ import { DebounceTimePipe } from '@app/shared/pipes/debounceTime.pipe';
   ],
   declarations: [
     // Pipes
-    DisplayWithPipe,
     DelayPipe,
     DebounceTimePipe,
     SplitArrayInChunksPipe,
@@ -48,7 +46,6 @@ import { DebounceTimePipe } from '@app/shared/pipes/debounceTime.pipe';
     RxUnpatch,
 
     // Pipes
-    DisplayWithPipe,
     DelayPipe,
     DebounceTimePipe,
     SplitArrayInChunksPipe,

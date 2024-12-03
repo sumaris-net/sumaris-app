@@ -105,7 +105,16 @@
       "LAT_SIGN_S": "S",
       "LONG_SIGN_PLACEHOLDER": "E|W",
       "LONG_SIGN_E": "E",
-      "LONG_SIGN_W": "W"
+      "LONG_SIGN_W": "W",
+      "SINGLE_FIELD_PATTERN": {
+        "DD": "DD",
+        "DD_PLACEHOLDER": "± DD.DDDDDDD",
+        "DDD": "DDD",
+        "DDD_PLACEHOLDER": "±DDD.DDDDDDD",
+        "MM": "MM",
+        "MM_MMM": "MM.MMM",
+        "SS_SS": "SS.SS"
+      }
     },
 
     "METADATA": "Metadata:",
@@ -949,7 +958,7 @@
         "QUALITY_FLAG_ID": "Niveau de qualité",
         "TYPE": {
           "TITLE": "Type d'opération :",
-          "PLACEHOLDER": "Type",
+          "PLACEHOLDER": "Type d'opération",
           "PARENT": "Filage",
           "CHILD": "Virage"
         },
@@ -1359,7 +1368,7 @@
         "ACCIDENTAL_CATCH": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "IS_DEAD": "Mort ?",
-          "TAG_ID": "Référence de la marque"
+          "TAG_ID": "Numéro bague Pélagis"
         },
         "AUCTION_CONTROL": {
           "SAMPLE_MEASURED_WEIGHT": "Poids échantillon",
@@ -2546,6 +2555,7 @@
       "TRIP_REPORT_FORM_FOOTER": "Marée > Rapport : Texte de pied de page",
       "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Marée > Rapport : Logo à gauche de l'entête",
       "TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Marée > Rapport : Logo à droite de l'entête",
+      "TRIP_OPERATIONS_HELP_MESSAGE": "Marée > Opérations : Message d'aide",
       "TRIP_OPERATION_EDITOR": "Marée > Opération : Éditeur",
       "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
       "TRIP_OPERATION_EDITOR_TRAWL_SELECTIVITY": "Sélectivité châlut",
@@ -2558,7 +2568,7 @@
       "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Marée > Opération : Durée maximale de pose ou relève (heures)",
       "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Marée > Opération : Durée maximale totale (heures)",
       "TRIP_OPERATION_AUTO_FILL_NEXT_DATE": "Marée > Opération: Recopier le jour de la date suivante",
-      "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Marée > Opération : Initialiser les dates avec celles de la marée ?",
+      "TRIP_OPERATION_COPY_TRIP_DATE": "Marée > Opération : Initialiser les dates avec celles de la marée ?",
       "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée > Opération : Zone de pêche: Niveau(x) de lieu",
       "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Marée > Opération : Espèce cible: Niveau(x)",
       "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Marée > Opération : Date de début de pêche ?",

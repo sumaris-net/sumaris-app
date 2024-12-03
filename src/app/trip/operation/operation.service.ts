@@ -372,7 +372,7 @@ export declare interface OperationServiceWatchOptions extends OperationFromObjec
   sortByDistance?: boolean;
 }
 
-export declare interface OperationServiceLoadOptions extends EntityServiceLoadOptions {
+export declare interface OperationServiceLoadOptions extends EntityServiceLoadOptions<Operation> {
   query?: any;
   fullLoad?: boolean;
 }
@@ -474,7 +474,10 @@ export class OperationService
     dataFilter?: OperationFilter | any,
     opts?: OperationServiceWatchOptions
   ): Observable<LoadResult<Operation>> {
-    const forceOffline = this.network.offline || (dataFilter && dataFilter.tripId < 0);
+    const forceOffline =
+      this.network.offline ||
+      (dataFilter && dataFilter.tripId < 0) ||
+      (isNotEmptyArray(dataFilter.synchronizationStatus) && !dataFilter.synchronizationStatus.includes('SYNC'));
     const offline = forceOffline || opts?.withOffline || false;
     const online = !forceOffline;
 
@@ -511,6 +514,11 @@ export class OperationService
     return offline$ || online$;
   }
 
+  async countAll(dataFilter?: Partial<OperationFilter>, opts?: OperationServiceLoadOptions): Promise<number> {
+    const { total } = await this.loadAll(0, 0, null, null, dataFilter, { ...opts, withTotal: true });
+    return total || 0;
+  }
+
   async load(id: number, opts?: OperationServiceLoadOptions): Promise<Operation | null> {
     if (isNil(id)) throw new Error("Missing argument 'id' ");
 
@@ -540,12 +548,30 @@ export class OperationService
       }
 
       // Transform to entity
-      const data = !opts || opts.toEntity !== false ? Operation.fromObject(json) : (json as Operation);
+      const data = this.fromObject(json, opts);
       if (data && this._debug) console.debug(`[operation-service] Operation #${id} loaded in ${Date.now() - now}ms`, data);
       return data;
     } finally {
       this.loading = false;
     }
+  }
+
+  fromObject(
+    source: any,
+    opts?: OperationFromObjectOptions & {
+      toEntity?: boolean | ((source: any, opts?: any) => Operation);
+    }
+  ): Operation {
+    // Simple cast (skip conversion)
+    if (!source || opts?.toEntity === false) return source as Operation;
+
+    // User defined function
+    if (typeof opts?.toEntity === 'function') {
+      return opts.toEntity(source, opts);
+    }
+
+    // Entity conversion
+    return Operation.fromObject(source, opts);
   }
 
   canUserWrite(data: Operation, opts?: OperationValidatorOptions): boolean {
@@ -1967,8 +1993,7 @@ export class OperationService
     filter?: Partial<OperationFilter>,
     opts?: OperationServiceWatchOptions
   ): Promise<LoadResult<Operation>> {
-    let entities =
-      !opts || opts.toEntity !== false ? (data || []).map((source) => Operation.fromObject(source, opts)) : ((data || []) as Operation[]);
+    let entities = (data || []).map((source) => this.fromObject(source, opts));
 
     if (opts?.mapFn) {
       entities = await opts.mapFn(entities);

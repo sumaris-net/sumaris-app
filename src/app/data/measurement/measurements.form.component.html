@@ -2,7 +2,7 @@
   {{pmfm.name}}
 </ion-col>-->
 
-<form [formGroup]="form" (ngSubmit)="doSubmit($event)" class="form-container" [class.pmfm-disabled-hidden]="!showDisabledPmfm">
+<form [formGroup]="form" (ngSubmit)="doSubmit($event)" class="form-container" [class.pmfm-disabled-hidden]="!showDisabledPmfm && !readonly">
   <!-- debug -->
   @if (debug) {
     <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
@@ -15,16 +15,18 @@
 
   <!-- pmfms -->
   <ng-container *rxLet="pmfms$; let pmfms; suspense: measurementsSkeleton; strategy: 'immediate'; parent: false">
-    <app-pmfm-field
-      *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; strategy: 'userBLocking'; parent: false"
-      [pmfm]="pmfm"
-      [compact]="compact"
-      [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
-      [style]="pmfm | pmfmFieldStyle: maxItemCountForButtons"
-      [maxVisibleButtons]="maxVisibleButtons"
-      [showButtonIcons]="showButtonIcons"
-      [floatLabel]="floatLabel"
-    ></app-pmfm-field>
+    @for (pmfm of pmfms; track pmfm.id) {
+      <app-pmfm-field
+        [pmfm]="pmfm"
+        [compact]="compact"
+        [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
+        [style]="pmfm | pmfmFieldStyle: maxItemCountForButtons"
+        [maxVisibleButtons]="maxVisibleButtons"
+        [showButtonIcons]="showButtonIcons"
+        [floatLabel]="floatLabel"
+        [readonly]="readonly"
+      ></app-pmfm-field>
+    }
   </ng-container>
 </form>
 

@@ -105,7 +105,16 @@
       "LAT_SIGN_S": "S",
       "LONG_SIGN_PLACEHOLDER": "E|W",
       "LONG_SIGN_E": "E",
-      "LONG_SIGN_W": "W"
+      "LONG_SIGN_W": "W",
+      "SINGLE_FIELD_PATTERN": {
+        "DD": "DD",
+        "DD_PLACEHOLDER": "± DD.DDDDDDD",
+        "DDD": "DDD",
+        "DDD_PLACEHOLDER": "±DDD.DDDDDDD",
+        "MM": "MM",
+        "MM_MMM": "MM.MMM",
+        "SS_SS": "SS.SS"
+      }
     },
 
     "METADATA": "Metadata:",
@@ -943,7 +952,7 @@
         "QUALITY_FLAG_ID": "Quality flag",
         "TYPE": {
           "TITLE": "Operation type:",
-          "PLACEHOLDER": "Type",
+          "PLACEHOLDER": "Operation type:",
           "PARENT": "Setting",
           "CHILD": "Hauling"
         },
@@ -2380,6 +2389,7 @@
       "TRIP_METIERS_HISTORY_NB_DAYS": "Trip: Filtered metiers > Nb. days",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip: Are other features optional, when on field?",
       "TRIP_HELP_URL": "Trip: Online help (URL)",
+      "TRIP_HELP_MESSAGE": "Trip > Operation: Help message",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Trip > Gears: Optional pmfms to show (ids)",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY": "Trip > Gears: Hide empty pmfm columns?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
@@ -2429,6 +2439,7 @@
       "TRIP_REPORT_FORM_FOOTER": "Trip > Form report footer",
       "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Trip > Report: Logo for the left header",
       "TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Trip > Report: Logo for the right header",
+      "TRIP_OPERATIONS_HELP_MESSAGE": "Trip > Operations: Help message",
       "TRIP_OPERATION_EDITOR": "Trip > Operation: Editor",
       "TRIP_OPERATION_EDITOR_LEGACY": "Default",
       "TRIP_OPERATION_EDITOR_TRAWL_SELECTIVITY": "Trawl selectivity",
@@ -2441,7 +2452,7 @@
       "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Trip > Operation: Maximum duration of shooting (hours)",
       "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Trip > Operation: Maximum total duration (hours)",
       "TRIP_OPERATION_AUTO_FILL_NEXT_DATE": "Trip > Operation: Copy the day to the next date",
-      "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Trip > Operation: Initialize dates with trip's dates?",
+      "TRIP_OPERATION_COPY_TRIP_DATE": "Trip > Operation: Initialize dates with trip's dates?",
       "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Trip > Operation: Fishing area: Location level(s)",
       "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Trip > Operation: Target species: Level(s)",
       "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Trip > Operation: Fishing start date?",
