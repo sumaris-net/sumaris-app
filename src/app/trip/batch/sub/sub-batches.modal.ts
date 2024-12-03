@@ -41,6 +41,7 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { AbstractControl, FormBuilder, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -131,6 +132,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected virtualPmfms: DenormalizedPmfmStrategy[];
   protected pmfmsFiltered: IPmfm[];
   protected footerValues: { [key: string]: number } = {};
+  canShowEnumeration: boolean = true;
 
   get selectedRow(): TableElement<SubBatch> {
     return this.singleSelectedRow || this.editedRow;
@@ -299,6 +301,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       await this.computeTitle();
 
       this.pmfmsFiltered = await this.loadFilteredPmfms();
+
+      this.canShowEnumeration = this.pmfms.filter((pmfm) => PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isComputed(pmfm)).length === 1;
+      // hide # column
+      this.setShowColumn('id', false);
     } catch (err) {
       console.error(this.logPrefix + 'Error while loading modal');
     }
@@ -859,19 +865,16 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     if (isNotNil(data.criteriaPmfm)) {
       filter.numericalPmfm = data.criteriaPmfm;
     }
-
+    this.toggleDisplayVirtualColumns();
     this.setFilter(filter);
   }
 
   resetFilter() {
-    if (isNotEmptyArray(this.virtualPmfms)) {
-      this.virtualPmfms.forEach((col) => {
-        this.setShowColumn(col.id.toString(), false);
-      });
-    }
     this.showIndividualCount = true;
     this.setShowColumn(PmfmIds.SEX.toString(), true);
     this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), true);
+    this.filterForm.reset();
+    this.toggleDisplayVirtualColumns();
     super.resetFilter();
   }
 
@@ -928,7 +931,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     this.markForCheck();
   }
-  async appliyFilterCriteria(data: any) {
+  async generateSubBatchesFromRange(data: any) {
     // Create subbatches
     const subBatchesToAdd = [];
     let rankOrder = await this.getMaxRankOrder();
@@ -959,8 +962,21 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     const formValue = { minValue: data.min, maxValue: data.max, taxonNameFilter: data.taxonName };
     this.filterForm.patchValue(formValue);
-
     this.setFilter(filter);
+  }
+
+  toggleDisplayVirtualColumns() {
+    let isToggle = false;
+    const formIsEmpty = AppSharedFormUtils.isEmptyForm(this.filterForm);
+
+    if (isNotEmptyArray(this.virtualPmfms) && !formIsEmpty) isToggle = true;
+    this.virtualPmfms.forEach((col) => {
+      this.setShowColumn(col.id.toString(), isToggle);
+    });
+
+    this.showIndividualCount = !isToggle;
+    this.setShowColumn(PmfmIds.SEX.toString(), !isToggle);
+    this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), !isToggle);
   }
 
   getFormErrors = AppFormUtils.getFormErrors;

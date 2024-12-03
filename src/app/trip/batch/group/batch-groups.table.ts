@@ -1192,7 +1192,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       },
       backdropDismiss: false,
       keyboardClose: true,
-      cssClass: (hasTopModal ? 'stack-modal ' : '') + (showIndividualCountOnly ? 'modal-small' : 'modal-large'),
+      cssClass: 'modal-large',
     });
 
     // Open the modal
