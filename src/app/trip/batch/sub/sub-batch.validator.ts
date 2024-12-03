@@ -83,7 +83,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
       updateDate: [data?.updateDate || null],
       rankOrder: !opts || opts.rankOrderRequired !== false ? [rankOrder, Validators.required] : [rankOrder],
       label: [data?.label || null],
-      individualCount: [toNumber(data?.individualCount, null), Validators.compose([Validators.min(1), SharedValidators.integer])],
+      individualCount: [toNumber(data?.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
       samplingRatio: [typeof data?.samplingRatio === 'object' ? null : toNumber(data?.samplingRatio, null), SharedValidators.empty], // Make no sense to have sampling ratio
       samplingRatioText: [data?.samplingRatioText || null, SharedValidators.empty], // Make no sense to have sampling ratio
       taxonGroup: [data?.taxonGroup || null, SharedValidators.entity],
