@@ -819,7 +819,6 @@
       "INVALID_OPERATIONS": "Please correct invalid operations below"
     },
     "WARNING": {
-      "HELP_MESSAGE": "For your first trip, you have to create a setting.",
       "NO_HELP_URL": "It seems that the data collection program {{programLabel}} <b>does not yet have specific online help</b> available.<br/><small><br/>If the issue persists, please <b>contact your administrator</b>.</small>"
     },
     "MEASUREMENT": {
@@ -2381,6 +2380,7 @@
       "TRIP_METIERS_HISTORY_NB_DAYS": "Trip: Filtered metiers > Nb. days",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip: Are other features optional, when on field?",
       "TRIP_HELP_URL": "Trip: Online help (URL)",
+      "TRIP_HELP_MESSAGE": "Trip > Operation: Help message",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Trip > Gears: Optional pmfms to show (ids)",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY": "Trip > Gears: Hide empty pmfm columns?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",

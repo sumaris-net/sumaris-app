@@ -166,6 +166,11 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  TRIP_HELP_MESSAGE: <FormFieldDefinition>{
+    key: 'sumaris.trip.help.message',
+    label: 'PROGRAM.OPTIONS.TRIP_HELP_MESSAGE',
+    type: 'string',
+  },
   TRIP_HELP_URL: <FormFieldDefinition>{
     key: 'sumaris.trip.help.url',
     label: 'PROGRAM.OPTIONS.TRIP_HELP_URL',

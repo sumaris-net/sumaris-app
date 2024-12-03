@@ -134,6 +134,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   protected canDownload = false;
   protected helpUrl: string;
   protected helpMessage: string;
+  protected showMessage: boolean;
   @RxStateProperty() protected reportTypes: Property[];
 
   @Input() toolbarColor: PredefinedColors = 'primary';
@@ -386,6 +387,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.operationsTable.detailEditor = this.operationEditor;
     this.operationPasteFlags = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_PASTE_FLAGS);
     this.helpUrl = program.getProperty(ProgramProperties.TRIP_HELP_URL);
+    this.helpMessage = program.getProperty(ProgramProperties.TRIP_HELP_MESSAGE);
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
@@ -521,8 +523,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
         data.program = ReferentialRef.fromObject(contextualProgram);
       }
     }
-    const trip = (await this.tripService.loadAll(0, 1, null, null, { recorderPerson: this.accountService.person })).data;
-    this.helpMessage = trip.length == 0 ? 'TRIP.WARNING.HELP_MESSAGE' : null;
 
     this.showGearTable = false;
     this.showOperationTable = false;
@@ -530,6 +530,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     // Propagate program
     const programLabel = data.program && data.program.label;
     this.programLabel = programLabel;
+
+    this.showMessage = (await this.tripService.countAll({ recorderPerson: this.accountService.person, program: data.program })) == 0;
 
     // Enable forms (do not wait for program load)
     if (!programLabel) this.markAsReady();
@@ -540,8 +542,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     if (programLabel) this.programLabel = programLabel;
     this.canDownload = !this.mobile && EntityUtils.isRemoteId(data?.id);
 
-    const trip = (await this.tripService.loadAll(0, 1, null, null, { recorderPerson: this.accountService.person, excludedIds: [data.id] })).data;
-    this.helpMessage = trip.length == 0 ? 'TRIP.WARNING.HELP_MESSAGE' : null;
+    this.showMessage =
+      (await this.tripService.countAll({ recorderPerson: this.accountService.person, program: data.program, excludedIds: [data.id] })) == 0;
 
     this._state.set({ departureDateTime: data.departureDateTime, departureLocation: data.departureLocation });
   }

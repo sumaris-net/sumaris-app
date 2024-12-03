@@ -819,7 +819,6 @@
       "INVALID_OPERATIONS": "Veuillez corriger les opérations invalides ci-dessous"
     },
     "WARNING": {
-      "HELP_MESSAGE": "Pour votre première marée, veuillez commencer par un filage.",
       "NO_HELP_URL": "Il semble que le programme de collecte {{programLabel}} <b>n'a pas encore d'aide en ligne</b> spécifique mise à disposition.<br/><small><br/>Si le problème persiste, veuillez <b>contacter votre administrateur</b>.</small>"
     },
     "MEASUREMENT": {
@@ -2498,6 +2497,7 @@
       "TRIP_METIERS_HISTORY_NB_DAYS": "Marée: Prédoc métiers > Nb. de jours",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée: Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_HELP_URL": "Marée: Aide en ligne (URL)",
+      "TRIP_HELP_MESSAGE": "Marée : Message d'information pour les opérations",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Marée > Engins: Colonne(s) PSFM supplémentaire(s)",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY": "Marée > Engins: Masquer les colonnes PSFM vides ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",

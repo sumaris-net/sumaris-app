@@ -289,7 +289,7 @@
     <mat-tab [label]="'TRIP.TAB_OPERATIONS' | translate" [disabled]="!showOperationTable" appSubMenuTab>
       <ion-content>
         <!-- help message (only in leaf modal) -->
-        <ion-item *ngIf="enabled && helpMessage" color="accent" lines="none" @slideDownAnimation>
+        <ion-item *ngIf="enabled && showMessage && helpMessage" color="accent" lines="none" @slideDownAnimation>
           <ion-icon slot="start" name="information-circle-outline"></ion-icon>
           <ion-label [innerHTML]="helpMessage | translate"></ion-label>
         </ion-item>
