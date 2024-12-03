@@ -14,6 +14,7 @@ import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { AppBaseTable } from '@app/shared/table/base.table';
 import { OperationEditor } from '@app/referential/services/config/program.config';
+import { slideDownAnimation } from '@app/shared/material/material.animation';
 
 @Component({
   selector: 'app-operations-table',
@@ -21,6 +22,7 @@ import { OperationEditor } from '@app/referential/services/config/program.config
   styleUrls: ['operations.table.scss'],
   providers: [{ provide: ValidatorService, useExisting: OperationValidatorService }],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [slideDownAnimation],
 })
 export class OperationsTable extends AppBaseTable<Operation, OperationFilter, OperationService> implements OnInit, OnDestroy {
   displayAttributes: {
@@ -38,6 +40,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter, Op
   @Input() showRowError = false;
   @Input() detailEditor: OperationEditor;
   @Input() canDuplicate: boolean;
+  @Input() helpMessage: string;
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);

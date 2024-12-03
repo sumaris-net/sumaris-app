@@ -158,17 +158,16 @@
         ></ion-icon>
       </ng-template>
 
-      <div class="ion-no-padding">
+      <ion-content class="ion-no-padding" #generaleTabContent>
         <!-- debug -->
         <ng-container *ngIf="debug">
           <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
         </ng-container>
 
         <!-- error -->
-        <ion-item *ngIf="mobile && (error || tripForm.error); let errorMsg" lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
-        </ion-item>
+        @if (mobile) {
+          <app-error-item [message]="(errorSubject | async) || (tripForm.errorSubject | async)"></app-error-item>
+        }
 
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
@@ -213,6 +212,7 @@
                         [tabindex]="30"
                         [mobile]="mobile"
                         [debug]="debug"
+                        [readonly]="!!data?.validationDate"
                       ></app-form-measurements>
                     </ion-col>
                   </ion-row>
@@ -248,7 +248,7 @@
             </ion-col>
           </ion-row>
         </ion-grid>
-      </div>
+      </ion-content>
     </mat-tab>
 
     <!-- TAB: Gear -->
@@ -286,7 +286,7 @@
     </mat-tab>
 
     <!-- TAB: operations -->
-    <mat-tab [label]="'TRIP.TAB_OPERATIONS' | translate" [disabled]="!showOperationTable" appSubMenuTab>
+    <mat-tab #opeTab [label]="'TRIP.TAB_OPERATIONS' | translate" [disabled]="!showOperationTable" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="navigate"></ion-icon>
@@ -299,7 +299,7 @@
           matBadgeSize="small"
           translate
         >
-          TRIP.TAB_OPERATIONS
+          {{ opeTab.textLabel }}
         </ion-label>
         <mat-icon>
           <ion-icon
@@ -321,6 +321,7 @@
         [showToolbar]="!mobile"
         [defaultSortBy]="mobile ? 'startDateTime' : 'endDateTime'"
         [defaultSortDirection]="mobile ? 'desc' : 'asc'"
+        [helpMessage]="showOperationHelpMessage && operationHelpMessage"
       ></app-operations-table>
     </mat-tab>
   </mat-tab-group>
@@ -334,7 +335,7 @@
     [disabled]="!dirty || loading"
   >
     <!-- error -->
-    <app-error-item [message]="error"></app-error-item>
+    <app-error-item [message]="errorSubject | async"></app-error-item>
   </app-form-buttons-bar>
 </ion-footer>
 

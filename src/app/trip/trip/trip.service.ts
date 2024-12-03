@@ -376,6 +376,13 @@ const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
     }
     ${TripFragments.landedTrip}
   `,
+
+  // Load a landed trip
+  countAll: gql`
+    query TripCount($trash: Boolean, $filter: TripFilterVOInput) {
+      total: tripsCount(filter: $filter, trash: $trash)
+    }
+  `,
 };
 
 // Save a trip
@@ -705,6 +712,20 @@ export class TripService
         return { data, total };
       })
     );
+  }
+
+  countAll(dataFilter?: Partial<TripFilter>, opts?: EntityServiceLoadOptions<Trip>): Promise<number> {
+    // Load offline
+    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    if (offline) {
+      return this.countAllLocally(dataFilter, opts);
+    }
+
+    return super.countAll(dataFilter, opts);
+  }
+
+  async countAllLocally(dataFilter?: Partial<TripFilter>, opts?: EntityServiceLoadOptions<Trip>): Promise<number> {
+    return (await this.loadAllLocally(0, 0, null, null, dataFilter, { ...opts, withTotal: true }))?.total || 0;
   }
 
   async load(id: number, opts?: TripLoadOptions): Promise<Trip | null> {
@@ -1714,6 +1735,7 @@ export class TripService
       }
 
       // Add it to the trip
+      trip.gears = trip.gears || [];
       trip.gears.push(entity);
 
       // Save the full trip

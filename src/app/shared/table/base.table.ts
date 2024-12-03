@@ -269,9 +269,21 @@ export abstract class AppBaseTable<
   }
 
   /**
+   * Scroll to top
+   */
+  async scrollToTop(): Promise<void> {
+    if (this.tableContainerRef) {
+      this.tableContainerRef.nativeElement.scroll({
+        top: 0,
+        behavior: 'smooth',
+      });
+    }
+  }
+
+  /**
    * Scroll to bottom
    */
-  scrollToBottom() {
+  async scrollToBottom(): Promise<void> {
     if (this.tableContainerRef) {
       this.tableContainerRef.nativeElement.scroll({
         top: this.tableContainerRef.nativeElement.scrollHeight,

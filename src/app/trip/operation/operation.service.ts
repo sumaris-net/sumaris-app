@@ -372,7 +372,7 @@ export declare interface OperationServiceWatchOptions extends OperationFromObjec
   sortByDistance?: boolean;
 }
 
-export declare interface OperationServiceLoadOptions extends EntityServiceLoadOptions {
+export declare interface OperationServiceLoadOptions extends EntityServiceLoadOptions<Operation> {
   query?: any;
   fullLoad?: boolean;
 }
@@ -474,7 +474,10 @@ export class OperationService
     dataFilter?: OperationFilter | any,
     opts?: OperationServiceWatchOptions
   ): Observable<LoadResult<Operation>> {
-    const forceOffline = this.network.offline || (dataFilter && dataFilter.tripId < 0);
+    const forceOffline =
+      this.network.offline ||
+      (dataFilter && dataFilter.tripId < 0) ||
+      (isNotEmptyArray(dataFilter.synchronizationStatus) && !dataFilter.synchronizationStatus.includes('SYNC'));
     const offline = forceOffline || opts?.withOffline || false;
     const online = !forceOffline;
 
@@ -509,6 +512,11 @@ export class OperationService
       );
     }
     return offline$ || online$;
+  }
+
+  async countAll(dataFilter?: Partial<OperationFilter>, opts?: OperationServiceLoadOptions): Promise<number> {
+    const { total } = await this.loadAll(0, 0, null, null, dataFilter, { ...opts, withTotal: true });
+    return total || 0;
   }
 
   async load(id: number, opts?: OperationServiceLoadOptions): Promise<Operation | null> {

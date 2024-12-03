@@ -26,10 +26,14 @@
     }
   }
 
-  <ion-item *ngIf="!mobile && error; let error" lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (!mobile) {
+    <!-- error -->
+    @if (errorSubject | async; as error) {
+      <app-error-item [message]="error"></app-error-item>
+    } @else {
+      <app-warning-item [message]="helpMessage" color="tertiary" icon="information-circle-outline"></app-warning-item>
+    }
+  }
 
   <div class="toolbar-spacer"></div>
 
@@ -107,13 +111,17 @@
   </ion-grid>
 </app-debug>
 
-<!-- error -->
-<ion-item *ngIf="mobile && error" lines="none">
-  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-</ion-item>
-
 <div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="showPaginator">
+  @if (mobile) {
+    @if (errorSubject | async; as error) {
+      <!-- error -->
+      <app-error-item [message]="errorSubject | async | translate"></app-error-item>
+    } @else {
+      <!-- help message -->
+      <app-warning-item [message]="helpMessage" backgroundColor="accent" icon="information-circle-outline"></app-warning-item>
+    }
+  }
+
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel class="filter-panel" [class.ion-no-padding]="mobile" [class.filter-panel-floating]="filterPanelFloating">
     <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">

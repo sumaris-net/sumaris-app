@@ -69,6 +69,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   @Input() entityName: MeasurementType;
   @Input() animated = false;
   @Input() mobile: boolean;
+  @Input() readonly: boolean;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
   @Input() showButtonIcons: boolean;
@@ -192,7 +193,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
   ngOnInit() {
     this.mobile = this.mobile ?? this.settings.mobile;
-    this.showDisabledPmfm = this.showDisabledPmfm ?? !this.mobile;
+    this.showDisabledPmfm = this.showDisabledPmfm ?? (!this.mobile || this.readonly);
     super.ngOnInit();
   }
 

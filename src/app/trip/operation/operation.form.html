@@ -207,7 +207,7 @@
               </mat-date-time-field>
             </ion-col>
 
-            @if (showPosition && form.controls.startPosition; as position) {
+            @if (showPosition && form.controls.startPosition | formGetGroup; as position) {
               <!-- lat -->
               <ion-col size="5" size-lg="3" [formGroup]="position">
                 <mat-latlong-field
@@ -285,74 +285,78 @@
       <ion-col>
         <ion-grid class="ion-no-padding" style="--ion-grid-columns: 10">
           <ion-row>
-            <ion-col *ngIf="form.controls.fishingStartDateTime | formGetControl as control" size="10" [sizeLg]="showPosition ? 4 : 10">
-              <mat-date-time-field
-                [placeholder]="'COMMON.DATE' | translate"
-                [formControl]="control"
-                [required]="_usageMode | isOnDesk"
-                [clearable]="_usageMode | isOnField"
-                [tabindex]="tabindex + 9"
-                [startDate]="form.controls.startDateTime.valueChanges | async"
-              >
-                <mat-icon matPrefix *ngIf="mobile">today</mat-icon>
-                <mat-hint align="end" *ngIf="(control.value | isValidDate: { requiredTime: true }) && control.valid">
-                  <span translate>COMMON.DURATION_DOTS</span>
-                  &nbsp;{{
-                    {
-                      startValue: form.controls.startDateTime.value,
-                      endValue: control.value,
-                    } | dateDiffDuration
-                  }}
-                </mat-hint>
-              </mat-date-time-field>
-            </ion-col>
+            @if (form.controls.fishingStartDateTime | formGetControl; as control) {
+              <ion-col size="10" [sizeLg]="showPosition ? 4 : 10">
+                <mat-date-time-field
+                  [placeholder]="'COMMON.DATE' | translate"
+                  [formControl]="control"
+                  [required]="_usageMode | isOnDesk"
+                  [clearable]="_usageMode | isOnField"
+                  [tabindex]="tabindex + 9"
+                  [startDate]="form.controls.startDateTime.valueChanges | async"
+                >
+                  <mat-icon matPrefix *ngIf="mobile">today</mat-icon>
+                  <mat-hint align="end" *ngIf="(control.value | isValidDate: { requiredTime: true }) && control.valid">
+                    <span translate>COMMON.DURATION_DOTS</span>
+                    &nbsp;{{
+                      {
+                        startValue: form.controls.startDateTime.value,
+                        endValue: control.value,
+                      } | dateDiffDuration
+                    }}
+                  </mat-hint>
+                </mat-date-time-field>
+              </ion-col>
+            }
 
             <!-- latitude / longitude -->
-            <ion-col size="5" size-lg="3" *ngIf="form.controls.fishingStartPosition as position" [formGroup]="position">
-              <mat-latlong-field
-                formControlName="latitude"
-                type="latitude"
-                [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE' | translate"
-                [latLongPattern]="latLongFormat"
-                [tabindex]="tabindex + 11"
-                [required]="_usageMode | isOnDesk"
-                [defaultSign]="defaultLatitudeSign"
-              >
-                <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
-              </mat-latlong-field>
-            </ion-col>
-            <ion-col size="5" size-lg="3" *ngIf="form.controls.fishingStartPosition as position" [formGroup]="position">
-              <mat-latlong-field
-                formControlName="longitude"
-                type="longitude"
-                [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
-                [latLongPattern]="latLongFormat"
-                [tabindex]="tabindex + 13"
-                [required]="_usageMode | isOnDesk"
-                [defaultSign]="defaultLongitudeSign"
-              >
-                <button
-                  type="button"
-                  mat-icon-button
-                  matSuffix
-                  (click)="onFillPositionClick($event, 'fishingStartPosition')"
-                  tabindex="-1"
-                  [hidden]="!enableGeolocation"
+            @if (form.controls.fishingStartPosition | formGetGroup; as position) {
+              <ion-col size="5" size-lg="3" [formGroup]="position" class="size-xxs-10">
+                <mat-latlong-field
+                  formControlName="latitude"
+                  type="latitude"
+                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE' | translate"
+                  [latLongPattern]="latLongFormat"
+                  [tabindex]="tabindex + 11"
+                  [required]="_usageMode | isOnDesk"
+                  [defaultSign]="defaultLatitudeSign"
                 >
-                  <mat-icon>gps_fixed</mat-icon>
-                </button>
-                <mat-error *ngIf="position.hasError('maxDistance')">
-                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: position.errors.maxDistance }}
-                </mat-error>
-                <mat-hint align="end" *ngIf="position.valid && distanceWarning && distance">
-                  <mat-icon color="warn">warning</mat-icon>
-                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: { distance: distance } }}
-                </mat-hint>
-                <mat-hint align="end" *ngIf="position.valid && !distanceWarning && distance >= 0">
-                  {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate: { distance: distance } }}
-                </mat-hint>
-              </mat-latlong-field>
-            </ion-col>
+                  <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
+                </mat-latlong-field>
+              </ion-col>
+              <ion-col size="5" size-lg="3" [formGroup]="position" class="size-xxs-10">
+                <mat-latlong-field
+                  formControlName="longitude"
+                  type="longitude"
+                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
+                  [latLongPattern]="latLongFormat"
+                  [tabindex]="tabindex + 13"
+                  [required]="_usageMode | isOnDesk"
+                  [defaultSign]="defaultLongitudeSign"
+                >
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matSuffix
+                    (click)="onFillPositionClick($event, 'fishingStartPosition')"
+                    tabindex="-1"
+                    [hidden]="!enableGeolocation"
+                  >
+                    <mat-icon>gps_fixed</mat-icon>
+                  </button>
+                  <mat-error *ngIf="position.hasError('maxDistance')">
+                    {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: position.errors.maxDistance }}
+                  </mat-error>
+                  <mat-hint align="end" *ngIf="position.valid && distanceWarning && distance">
+                    <mat-icon color="warn">warning</mat-icon>
+                    {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: { distance: distance } }}
+                  </mat-hint>
+                  <mat-hint align="end" *ngIf="position.valid && !distanceWarning && distance >= 0">
+                    {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate: { distance: distance } }}
+                  </mat-hint>
+                </mat-latlong-field>
+              </ion-col>
+            }
           </ion-row>
         </ion-grid>
       </ion-col>

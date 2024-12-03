@@ -718,7 +718,8 @@ export class OperationPage<S extends OperationState = OperationState>
               debounceTime(400),
               startWith<any>(lineLayoutControl.value),
               map((qv) => qv?.label),
-              distinctUntilChanged()
+              distinctUntilChanged(),
+              filter(() => this.enabled)
             )
             .subscribe((qvLabel) => {
               switch (qvLabel as string) {
@@ -773,7 +774,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     this.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
     this.autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
-    this.autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
+    this.autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_COPY_TRIP_DATE);
     this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
 
     const skipDatesPmfmId = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_SKIP_DATES_PMFM_ID);
@@ -1344,6 +1345,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
       // Update the current trip object
       if (!this.trip.gears?.some((g) => PhysicalGear.equals(g, savedPhysicalGear))) {
+        this.trip.gears = this.trip.gears || [];
         this.trip.gears.push(savedPhysicalGear);
       }
 

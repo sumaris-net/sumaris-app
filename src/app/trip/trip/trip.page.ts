@@ -17,8 +17,7 @@ import { TripForm } from './trip.form';
 import { SaleForm } from '../sale/sale.form';
 import { OperationsTable } from '../operation/operations.table';
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
-import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+import { PhysicalGearTable } from '../physicalgear/physical-gears.table'; // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup } from '@angular/forms';
@@ -36,6 +35,7 @@ import {
   equals,
   fadeInOutAnimation,
   FilesUtils,
+  fromDateISOString,
   HistoryPageReference,
   InMemoryEntitiesService,
   isNil,
@@ -53,7 +53,7 @@ import {
 import { TripsPageSettingsEnum } from './trips.table';
 import { Operation, Trip } from './trip.model';
 import { ISelectPhysicalGearModalOptions, SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
-import { ModalController } from '@ionic/angular';
+import { IonContent, ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
 import { OperationEditor, ProgramProperties, TripReportType } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
@@ -61,7 +61,7 @@ import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, start
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { TRIP_FEATURE_NAME } from '@app/trip/trip.config';
-import { firstValueFrom, from, merge, Observable, Subscription } from 'rxjs';
+import { combineLatestWith, firstValueFrom, from, merge, Observable, Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { Sale } from '@app/trip/sale/sale.model';
@@ -90,6 +90,7 @@ export interface TripPageState extends RootDataEntityEditorState {
   departureLocation: ReferentialRef;
   reportTypes: Property[];
   returnDateTime: Moment;
+  showOperationHelpMessage: boolean;
 }
 
 @Component({
@@ -132,6 +133,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   protected operationPasteFlags: number;
   protected canDownload = false;
   protected helpUrl: string;
+  protected operationHelpMessage: string;
+  @RxStateProperty() protected showOperationHelpMessage: boolean;
   @RxStateProperty() protected reportTypes: Property[];
 
   @Input() toolbarColor: PredefinedColors = 'primary';
@@ -141,6 +144,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   @ViewChild('physicalGearsTable', { static: true }) physicalGearsTable: PhysicalGearTable;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
   @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
+  @ViewChild('generaleTabContent', { static: true }) generalTabContent: IonContent;
 
   get dirty(): boolean {
     return (
@@ -161,6 +165,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     protected operationService: OperationService,
     protected tripContext: TripContextService,
     protected accountService: AccountService,
+    protected tripService: TripService,
     @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) public physicalGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector, Trip, injector.get(TripService), {
@@ -194,6 +199,29 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
             const values = ProgramProperties.TRIP_REPORT_TYPES.values as Property[];
             return values.find((item) => item.key === key);
           });
+        })
+      )
+    );
+    this._state.connect(
+      'showOperationHelpMessage',
+      this.tripForm.vesselChanges.pipe(
+        combineLatestWith(this.program$, this.tripForm.departureDateTimeChanges),
+        mergeMap(async ([vesselSnapshot, program, departureDateTime]) => {
+          if (!vesselSnapshot || !program || !departureDateTime) return false; // Skip if vessel or program is missing
+
+          // Count existing (and recent) operations (before the current trip, on same vessel and program)
+          const startDate = fromDateISOString(departureDateTime).clone().add(-7, 'day').startOf('day');
+          const synchronizationStatus = this.data?.synchronizationStatus;
+          const existingOperationCount = await this.operationService.countAll({
+            startDate,
+            endDate: departureDateTime,
+            programLabel: program.label,
+            vesselId: vesselSnapshot.id,
+            synchronizationStatus: synchronizationStatus && synchronizationStatus !== 'SYNC' ? ['DIRTY', 'READY_TO_SYNC'] : null,
+          });
+
+          // Show operation help message, only when no recent operation exists
+          return existingOperationCount === 0;
         })
       )
     );
@@ -264,6 +292,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
+    console.log('TODO setError', error, opts);
     // If errors in operations
     if (typeof error !== 'string' && error?.details?.errors?.operations) {
       // Show error in operation table
@@ -300,6 +329,18 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       this.physicalGearsTable.resetError(opts);
       this.operationsTable.resetError(opts);
     }
+  }
+
+  protected scrollToTop(duration?: number): Promise<void> {
+    switch (this.selectedTabIndex) {
+      case TripPage.TABS.GENERAL:
+        return this.generalTabContent.scrollToTop(duration);
+      case TripPage.TABS.PHYSICAL_GEARS:
+        return this.physicalGearsTable.scrollToTop();
+      case TripPage.TABS.OPERATIONS:
+        return this.operationsTable.scrollToTop();
+    }
+    return super.scrollToTop(duration);
   }
 
   // change visibility to public
@@ -383,6 +424,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.operationsTable.detailEditor = this.operationEditor;
     this.operationPasteFlags = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_PASTE_FLAGS);
     this.helpUrl = program.getProperty(ProgramProperties.TRIP_HELP_URL);
+    this.operationHelpMessage = program.getProperty(ProgramProperties.TRIP_OPERATIONS_HELP_MESSAGE);
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
@@ -466,9 +508,11 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
     console.debug('[trip] New entity: applying defaults...');
+    let dirty = false;
 
     if (this.isOnFieldMode) {
       data.departureDateTime = DateUtils.moment();
+      dirty = true;
 
       // Listen first opening the operations tab, then save
       this.registerSubscription(
@@ -477,7 +521,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
             filter((event) => this.showOperationTable && event.index === TripPage.TABS.OPERATIONS),
             // Save trip when opening the operation tab
             mergeMap(() => this.save()),
-            filter((saved) => saved === true),
+            filter((saved) => saved === true && isNotNil(this.data.id)),
             first(),
             // If save succeed, propagate the tripId to the table
             tap(() => this.operationsTable.setTripId(this.data.id))
@@ -493,21 +537,25 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       // Synchronization status
       if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
         data.synchronizationStatus = 'DIRTY';
+        dirty = true;
       }
 
       // program
       if (searchFilter.program && searchFilter.program.label) {
         data.program = ReferentialRef.fromObject(searchFilter.program);
+        dirty = true;
       }
 
       // Vessel
       if (searchFilter.vesselSnapshot) {
         data.vesselSnapshot = VesselSnapshot.fromObject(searchFilter.vesselSnapshot);
+        dirty = true;
       }
 
       // Location
       if (searchFilter.location) {
         data.departureLocation = ReferentialRef.fromObject(searchFilter.location);
+        dirty = true;
       }
     }
 
@@ -516,6 +564,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       const contextualProgram = this.tripContext.getValue('program') as Program;
       if (contextualProgram?.label) {
         data.program = ReferentialRef.fromObject(contextualProgram);
+        dirty = true;
       }
     }
 
@@ -528,6 +577,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Enable forms (do not wait for program load)
     if (!programLabel) this.markAsReady();
+
+    // Mark as dirty, to force a save()
+    if (dirty) this.markAsDirty({ emitEvent: false });
   }
 
   protected async onEntityLoaded(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
