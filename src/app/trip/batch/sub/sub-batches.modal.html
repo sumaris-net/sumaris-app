@@ -61,16 +61,18 @@
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
         </ion-item>
-        <form class="form-container" [formGroup]="modalForm">
-          <mat-boolean-field
-            [formControl]="showSubBatchFormControl"
-            [style]="mobile ? 'button' : 'radio'"
-            [yesLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_MEASURE' | translate"
-            [noLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_COUNT' | translate"
-            [floatLabel]="'always'"
-            [showButtonIcons]="false"
-          ></mat-boolean-field>
-        </form>
+        @if (canShowEnumeration) {
+          <form class="form-container" [formGroup]="modalForm">
+            <mat-boolean-field
+              [formControl]="showSubBatchFormControl"
+              [style]="mobile ? 'button' : 'radio'"
+              [yesLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_MEASURE' | translate"
+              [noLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_COUNT' | translate"
+              [floatLabel]="'always'"
+              [showButtonIcons]="false"
+            ></mat-boolean-field>
+          </form>
+        }
         @if (pmfmsFiltered?.length > 0 && pmfms?.length > 0) {
           <app-sub-sorting-criteria-form
             [class.cdk-visually-hidden]="!showIndividualCountOnly"
@@ -78,7 +80,7 @@
             [pmfmDenormalized]="pmfms || []"
             [programLabel]="programLabel"
             [pmfmsFiltered]="pmfmsFiltered || []"
-            (onSubmit)="appliyFilterCriteria($event)"
+            (onSubmit)="generateSubBatchesFromRange($event)"
           ></app-sub-sorting-criteria-form>
         }
         <app-sub-batch-form
@@ -116,6 +118,7 @@
             <button mat-icon-button *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
               <mat-icon>add</mat-icon>
             </button>
+
             <!-- Refresh -->
             <button mat-icon-button *ngIf="debug && !mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
               <mat-icon>refresh</mat-icon>
