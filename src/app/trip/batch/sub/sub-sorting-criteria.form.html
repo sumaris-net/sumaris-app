@@ -1,4 +1,4 @@
-<form [formGroup]="sortingCriteriaForm" class="form-container ion-no-padding" (ngSubmit)="confirm()">
+<form [formGroup]="form" class="form-container ion-no-padding">
   <ion-grid>
     <ion-row>
       <ion-col>
@@ -26,7 +26,7 @@
       <ion-col>
         <mat-form-field>
           <mat-label>{{ 'REFERENTIAL.PMFM.METHOD' | translate }}</mat-label>
-          <input matInput readonly disabled [value]="(sortingCriteriaForm | formGetValue: 'criteriaPmfm')?.method?.name || ''" />
+          <input matInput readonly disabled [value]="(form | formGetValue: 'criteriaPmfm')?.method?.name || ''" />
         </mat-form-field>
       </ion-col>
     </ion-row>
@@ -34,7 +34,7 @@
       <ion-col>
         <mat-form-field>
           <mat-label>{{ 'REFERENTIAL.PMFM.UNIT' | translate }}</mat-label>
-          <input matInput readonly disabled [value]="(sortingCriteriaForm | formGetValue: 'criteriaPmfm')?.unit?.label || ''" />
+          <input matInput readonly disabled [value]="(form | formGetValue: 'criteriaPmfm')?.unit?.label || ''" />
         </mat-form-field>
       </ion-col>
     </ion-row>
@@ -86,7 +86,7 @@
           [placeholder]="'Pmfm qualitatif (optionnel)'"
           [definition]="fieldDefinitions.qvPmfm"
           [clearable]="true"
-          [readonly]="!(sortingCriteriaForm | formGetValue: 'useOptionalCriteria')"
+          [readonly]="!(form | formGetValue: 'useOptionalCriteria')"
         ></app-form-field>
       </ion-col>
     </ion-row>
@@ -113,7 +113,7 @@
       fill="solid"
       shape="round"
       [disabled]="invalid"
-      (click)="!mobile && doSubmit($event)"
+      (click)="doSubmit()"
       [tabindex]="tabindex + 101"
     >
       <ion-label translate>COMMON.BTN_ADD</ion-label>
