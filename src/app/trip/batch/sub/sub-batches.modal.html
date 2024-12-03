@@ -55,67 +55,31 @@
   <!-- sub batch form -->
   <ion-grid class="ion-no-padding" [class.disabled]="disabled && showSubBatchForm">
     <ion-row>
-      <ion-col
-        size="12"
-        push=""
-        [sizeMd]="showSubBatchForm ? 4 : null"
-        [pushMd]="showSubBatchForm ? 8 : null"
-        [sizeLg]="showSubBatchForm ? 3 : 12"
-        [pushLg]="showSubBatchForm ? 9 : null"
-        class="ion-col-form"
-        [class.mobile]="mobile"
-        class="ion-padding"
-      >
+      <ion-col size="12" push="" [sizeMd]="4" [pushMd]="8" [sizeLg]="3" [pushLg]="9" class="ion-col-form" [class.mobile]="mobile" class="ion-padding">
         <!-- error -->
         <ion-item *ngIf="form.error; let error" lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
         </ion-item>
-
-        @if (allowIndividualCountOnly && (modalForm | formGetControl: 'showSubBatchForm'); as showSubBatchFormControl) {
-          <form class="form-container" [formGroup]="modalForm">
-            <!-- measure/count toggle -->
-            <!-- <mat-boolean-field
-              [formControl]="showSubBatchFormControl"
-              [style]="mobile ? 'button' : 'radio'"
-              [yesLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_MEASURE' | translate"
-              [noLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_COUNT' | translate"
-              [floatLabel]="'always'"
-              [showButtonIcons]="false"
-            ></mat-boolean-field> -->
-
-            <!-- Individual count -->
-            @if ((showSubBatchFormControl | formGetValue) === false) {
-              <mat-form-field [floatLabel]="floatLabel">
-                @if (floatLabel !== 'never') {
-                  <mat-label translate>TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT</mat-label>
-                }
-                <input
-                  matInput
-                  autocomplete="off"
-                  [formControl]="modalForm | formGetControl: 'individualCount'"
-                  min="1"
-                  type="number"
-                  step="1"
-                  pattern="[0-9]*"
-                  (keypress)="filterNumberInput($event, false)"
-                  (keyup.enter)="closeWithIndividualCount($event)"
-                  (focus)="selectInputContent($event)"
-                  [required]="true"
-                  [tabindex]="1"
-                />
-                <mat-error *ngIf="modalForm.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-                <mat-error *ngIf="modalForm.controls.individualCount.hasError('min')">
-                  {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate: modalForm.controls.individualCount.errors['min'] }}
-                </mat-error>
-                <mat-error *ngIf="modalForm.controls.individualCount.hasError('integer')">
-                  {{ 'ERROR.FIELD_NOT_VALID_INTEGER' | translate }}
-                </mat-error>
-              </mat-form-field>
-            }
-          </form>
+        <form class="form-container" [formGroup]="modalForm">
+          <mat-boolean-field
+            [formControl]="showSubBatchFormControl"
+            [style]="mobile ? 'button' : 'radio'"
+            [yesLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_MEASURE' | translate"
+            [noLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_COUNT' | translate"
+            [floatLabel]="'always'"
+            [showButtonIcons]="false"
+          ></mat-boolean-field>
+        </form>
+        @if (pmfmsFiltered?.length > 0 && pmfms?.length > 0) {
+          <app-sub-sorting-criteria-form
+            [class.cdk-visually-hidden]="!showIndividualCountOnly"
+            [parentGroup]="parentGroup"
+            [pmfmDenormalized]="pmfms || []"
+            [programLabel]="programLabel"
+            [pmfmsFiltered]="pmfmsFiltered || []"
+          ></app-sub-sorting-criteria-form>
         }
-
         <app-sub-batch-form
           [class.cdk-visually-hidden]="showIndividualCountOnly"
           #form
@@ -144,17 +108,7 @@
       </ion-col>
 
       <!-- table -->
-      <ion-col
-        size="12"
-        pull=""
-        size-md="8"
-        pull-md="4"
-        size-lg="9"
-        pull-lg="3"
-        class="table-container compact"
-        [class.mobile]="mobile"
-        [class.cdk-visually-hidden]="showIndividualCountOnly"
-      >
+      <ion-col size="12" pull="" size-md="8" pull-md="4" size-lg="9" pull-lg="3" class="table-container compact" [class.mobile]="mobile">
         <mat-toolbar *ngIf="showToolbar">
           <ng-container *ngIf="!selection.hasValue(); else hasSelection">
             <!-- Add -->
