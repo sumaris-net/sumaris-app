@@ -1,0 +1,127 @@
+<form [formGroup]="sortingCriteriaForm" class="form-container ion-no-padding" (ngSubmit)="confirm()">
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <mat-autocomplete-field
+          formControlName="taxonName"
+          [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME' | translate"
+          [config]="autocompleteFields.taxonName"
+          [clearable]="true"
+          [required]="true"
+        ></mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <app-form-field
+          formControlName="criteriaPmfm"
+          [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA' | translate"
+          [definition]="fieldDefinitions.criteriaPmfm"
+          [clearable]="true"
+          [required]="true"
+        ></app-form-field>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <mat-form-field>
+          <mat-label>{{ 'REFERENTIAL.PMFM.METHOD' | translate }}</mat-label>
+          <input matInput readonly disabled [value]="(sortingCriteriaForm | formGetValue: 'criteriaPmfm')?.method?.name || ''" />
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <mat-form-field>
+          <mat-label>{{ 'REFERENTIAL.PMFM.UNIT' | translate }}</mat-label>
+          <input matInput readonly disabled [value]="(sortingCriteriaForm | formGetValue: 'criteriaPmfm')?.unit?.label || ''" />
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <mat-form-field>
+          <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN' | translate }}</mat-label>
+          <input
+            matInput
+            type="number"
+            formControlName="min"
+            [min]="minimumValue"
+            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN_DESCRIPTION' | translate"
+          />
+        </mat-form-field>
+      </ion-col>
+
+      <ion-col>
+        <mat-form-field>
+          <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX' | translate }}</mat-label>
+          <input
+            matInput
+            type="number"
+            formControlName="max"
+            [max]="maximumValue"
+            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX_DESCRIPTION' | translate"
+          />
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <mat-form-field>
+          <mat-label>{{ 'REFERENTIAL.PMFM.PRECISION' | translate }}</mat-label>
+          <input matInput type="number" [readonly]="disabledPrecision" formControlName="precision" />
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+  @if (showQvPmfm && !isMandatoryQvPmfm) {
+    <mat-divider></mat-divider>
+    <ion-row>
+      <ion-col>
+        <mat-checkbox formControlName="useOptionalCriteria" color="primary">Ajouter un critère ?</mat-checkbox>
+      </ion-col>
+      <ion-col>
+        <app-form-field
+          formControlName="qvPmfm"
+          [placeholder]="'Pmfm qualitatif (optionnel)'"
+          [definition]="fieldDefinitions.qvPmfm"
+          [clearable]="true"
+          [readonly]="!(sortingCriteriaForm | formGetValue: 'useOptionalCriteria')"
+        ></app-form-field>
+      </ion-col>
+    </ion-row>
+  } @else if (showQvPmfm && isMandatoryQvPmfm) {
+    <ion-row>
+      <ion-col>
+        <app-form-field
+          formControlName="qvPmfm"
+          [placeholder]="'Pmfm qualitatif '"
+          [definition]="fieldDefinitions.qvPmfm"
+          [clearable]="true"
+          [required]="true"
+        ></app-form-field>
+      </ion-col>
+    </ion-row>
+  }
+
+  <!-- submit button -->
+  <div class="ion-no-padding ion-align-items-end">
+    <ion-button
+      #submitButton
+      color="tertiary"
+      expand="block"
+      fill="solid"
+      shape="round"
+      [disabled]="invalid"
+      (click)="!mobile && doSubmit($event)"
+      [tabindex]="tabindex + 101"
+    >
+      <ion-label translate>COMMON.BTN_ADD</ion-label>
+    </ion-button>
+
+    <ng-content select="[endButton]"></ng-content>
+  </div>
+</form>
+<ng-template #measurementsSkeleton>
+  <mat-form-fields-skeleton count="2"></mat-form-fields-skeleton>
+</ng-template>

@@ -28,7 +28,7 @@ import { BatchModelTreeComponent } from '@app/trip/batch/tree/batch-model-tree.c
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { AppIchthyometerModule } from '@app/shared/ichthyometer/ichthyometer.module';
 import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
-import { SubSortingCriteriaModal } from './sub/sub-sorting-criteria.modal';
+import { SubSortingCriteriaForm } from './sub/sub-sorting-criteria.form';
 
 @NgModule({
   imports: [
@@ -77,7 +77,7 @@ import { SubSortingCriteriaModal } from './sub/sub-sorting-criteria.modal';
     SubBatchForm,
     SubBatchModal,
     SubBatchesModal,
-    SubSortingCriteriaModal,
+    SubSortingCriteriaForm,
   ],
   exports: [
     // Modules
@@ -105,7 +105,7 @@ import { SubSortingCriteriaModal } from './sub/sub-sorting-criteria.modal';
     SubBatchForm,
     SubBatchModal,
     SubBatchesModal,
-    SubSortingCriteriaModal,
+    SubSortingCriteriaForm,
   ],
 })
 export class AppBatchModule {}

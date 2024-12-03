@@ -1,32 +1,25 @@
-import { ChangeDetectorRef, Component, Inject, Injector, Input, OnInit } from '@angular/core';
+import { Component, Inject, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import {
-  FormFieldDefinition,
-  FormFieldDefinitionMap,
-  isEmptyArray,
-  isNil,
-  isNotEmptyArray,
-  isNotNil,
-  LoadResult,
-  LocalSettingsService,
-} from '@sumaris-net/ngx-components';
+import { FormFieldDefinitionMap, isEmptyArray, isNil, isNotEmptyArray, LoadResult, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { BatchGroup } from '../group/batch-group.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { SubBatchValidatorService } from './sub-batch.validator';
-import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { SubBatch } from './sub-batch.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { RxState } from '@rx-angular/state';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import { Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
+import { SubBatchFormState } from './sub-batch.form';
+import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 
 @Component({
-  selector: 'app-sub-sorting-criteria.modal',
-  styleUrls: ['sub-sorting-criteria.modal.scss'],
-  templateUrl: 'sub-sorting-criteria.modal.html',
+  selector: 'app-sub-sorting-criteria-form',
+  styleUrls: ['sub-sorting-criteria.form.scss'],
+  templateUrl: 'sub-sorting-criteria.form.html',
   providers: [
     {
       provide: ContextService,
@@ -44,47 +37,34 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
     RxState,
   ],
 })
-export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
+export class SubSortingCriteriaForm extends MeasurementValuesForm<SubBatch, SubBatchFormState> implements OnInit, OnDestroy {
   protected readonly minimumValue = 0;
   protected readonly maximumValue = 100;
   protected fieldDefinitions: FormFieldDefinitionMap = {};
   protected sortingCriteriaForm: FormGroup;
-  protected criteriaPmfms: Pmfm[];
-  protected qvPmfms: Pmfm[];
+  protected criteriaPmfms: IPmfm[];
+  protected qvPmfms: IPmfm[];
+  // protected pmfmsFiltered: IPmfm[];
   protected isMandatoryQvPmfm: boolean = false;
   protected disabledPrecision: boolean = false;
   protected showQvPmfm: boolean = false;
 
   @Input() parentGroup: BatchGroup;
   @Input() programLabel: string;
-  @Input() sortcriteriaPmfms: Pmfm[];
-  @Input() denormalizedPmfmStrategy: DenormalizedPmfmStrategy[];
+  @Input() pmfmDenormalized: DenormalizedPmfmStrategy[];
+  @Input() pmfmsFiltered: IPmfm[];
 
   constructor(
     injector: Injector,
-    settings: LocalSettingsService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected pmfmService: PmfmService,
     protected programRefService: ProgramRefService,
-    validatorService: SubBatchValidatorService,
-    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>,
     private fb: FormBuilder
-    // autres services nécessaires
   ) {
-    super(injector, settings.mobile ? null : validatorService /*no validator = not editable*/, options);
+    super(injector, measurementsValidatorService, fb, programRefService);
   }
 
-  ngOnInit() {
-    // Pmfms filtered by type
-    this.qvPmfms = this.sortcriteriaPmfms.filter((pmfm) => PmfmUtils.isQualitative(pmfm));
-    this.criteriaPmfms = this.sortcriteriaPmfms.filter((pmfm) => !PmfmUtils.isQualitative(pmfm));
-
-    // TODO MF à REVOIR SI Y A PLUSIEUR PMFM OBLIGATOIRE OU UN OBLIGATOIRE ET UN OPTIONNEL
-    this.isMandatoryQvPmfm = this.denormalizedPmfmStrategy
-      .filter((strategy) => {
-        return this.qvPmfms.find((pmfm) => pmfm.id === strategy.id);
-      })
-      .some((strategy) => strategy.isMandatory);
-
+  async ngOnInit() {
     this.sortingCriteriaForm = this.fb.group({
       taxonName: ['', Validators.required],
       criteriaPmfm: ['', Validators.required],
@@ -94,6 +74,17 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
       qvPmfm: [''],
       useOptionalCriteria: [false],
     });
+
+    // Pmfms filtered by type
+    this.qvPmfms = this.pmfmsFiltered.filter((pmfm) => PmfmUtils.isQualitative(pmfm));
+    this.criteriaPmfms = this.pmfmsFiltered.filter((pmfm) => !PmfmUtils.isQualitative(pmfm));
+
+    // TODO MF à REVOIR SI Y A PLUSIEUR PMFM OBLIGATOIRE OU UN OBLIGATOIRE ET UN OPTIONNEL
+    this.isMandatoryQvPmfm = this.pmfmDenormalized
+      .filter((strategy) => {
+        return this.qvPmfms.find((pmfm) => pmfm.id === strategy.id);
+      })
+      .some((strategy) => strategy.isMandatory);
 
     this.registerSubscription(
       this.sortingCriteriaForm.get('criteriaPmfm').valueChanges.subscribe((value) => {
@@ -167,35 +158,6 @@ export class SubSortingCriteriaModal extends SubBatchesTable implements OnInit {
     } else if (isNotEmptyArray(this.qvPmfms)) {
       this.showQvPmfm = true;
     }
-  }
-
-  async dismiss(data?: any) {
-    await this.modalCtrl.dismiss(data);
-  }
-
-  async cancel() {
-    await this.dismiss();
-  }
-
-  async confirm() {
-    //TODO: temporaire à supprimer une fois que le poc sera validé
-    const data = this.sortingCriteriaForm.value;
-    const min = this.sortingCriteriaForm.get('min').value;
-    const max = this.sortingCriteriaForm.get('max').value;
-    if (min > max) {
-      this.sortingCriteriaForm.setErrors({ minMaxError: true });
-      return;
-    }
-    if (this.sortingCriteriaForm.invalid) {
-      this.sortingCriteriaForm.markAllAsTouched();
-      return;
-    }
-
-    // map pmfm
-    if (isNotNil(data.qvPmfm)) {
-      data.qvPmfm = this.denormalizedPmfmStrategy.find((strategy) => strategy.id === data.qvPmfm.id);
-    }
-    await this.dismiss(data);
   }
 
   protected async suggestTaxonNames(value?: any, options?: any): Promise<LoadResult<TaxonNameRef>> {
