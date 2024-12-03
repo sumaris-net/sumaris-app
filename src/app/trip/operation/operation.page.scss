@@ -7,9 +7,14 @@
   ion-title {
     --color: var(--ion-color-primary-contrast);
   }
-  //--table-container-offset: var(--mat-tab-link-height, 0px);
+
 
   .mat-tab-group-root {
+
+    &.mat-mdc-tab-group-header-hidden {
+      --mat-tab-link-height: 0 !important;
+    }
+
     --mat-tab-body-content-height-root: calc(
       100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-form-buttons-bar-height, 0px) - 2px
     );
@@ -18,6 +23,7 @@
     mat-tab-group {
       --mat-tab-body-content-height: unset;
     }
+
   }
 }
 ion-col > ion-label {
@@ -28,3 +34,4 @@ ion-col > ion-label {
 .mat-tab-body.mat-tab-body-active {
   overflow-y: visible; // Workaround for iPad
 }
+

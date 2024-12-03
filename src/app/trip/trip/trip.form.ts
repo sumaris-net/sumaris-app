@@ -196,6 +196,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this.form.controls.metiers as AppFormArray<ReferentialRef<any>, UntypedFormControl>;
   }
 
+  @Output() vesselChanges = new EventEmitter<VesselSnapshot>();
   @Output() departureDateTimeChanges = new EventEmitter<Moment>();
   @Output() departureLocationChanges = new EventEmitter<ReferentialRef>();
   @Output() maxDateChanges = new EventEmitter<Moment>();
@@ -321,12 +322,16 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   ngOnReady() {
     this.updateFormGroup();
 
-    const departureLocation$ = this.form.get('departureLocation').valueChanges;
     const departureDateTime$ = this.form.get('departureDateTime').valueChanges;
     const returnDateTime$ = this.form.get('returnDateTime').valueChanges;
 
     this.registerSubscription(
-      departureLocation$.subscribe((departureLocation) => this.departureLocationChanges.next(ReferentialRef.fromObject(departureLocation)))
+      this.form.get('vesselSnapshot').valueChanges.subscribe((vesselSnapshot) => this.vesselChanges.next(VesselSnapshot.fromObject(vesselSnapshot)))
+    );
+    this.registerSubscription(
+      this.form
+        .get('departureLocation')
+        .valueChanges.subscribe((departureLocation) => this.departureLocationChanges.next(ReferentialRef.fromObject(departureLocation)))
     );
     this.registerSubscription(
       departureDateTime$.subscribe((departureDateTime) => this.departureDateTimeChanges.next(fromDateISOString(departureDateTime)))
