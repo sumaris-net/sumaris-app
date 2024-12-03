@@ -1152,7 +1152,6 @@
         "WITHOUT_MEASURE": "Sans mesure",
         "IS_SAMPLING": "Saisir le poids échantillonné (si mesure) :",
         "IS_INDIVIDUAL_MEASURE": "Mensurations",
-        "NUMERICAL_RANKING_CRITERIA": "Critère de classement numérique",
         "IS_INDIVIDUAL_COUNT": "Dénombrement",
         "SAMPLING_BATCH": "Échantillon",
         "SAMPLING_WEIGHT": "Poids échant. (kg)",
