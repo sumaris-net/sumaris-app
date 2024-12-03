@@ -718,7 +718,8 @@ export class OperationPage<S extends OperationState = OperationState>
               debounceTime(400),
               startWith<any>(lineLayoutControl.value),
               map((qv) => qv?.label),
-              distinctUntilChanged()
+              distinctUntilChanged(),
+              filter(() => this.enabled)
             )
             .subscribe((qvLabel) => {
               switch (qvLabel as string) {

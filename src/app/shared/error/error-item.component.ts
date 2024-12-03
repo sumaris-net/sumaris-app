@@ -1,14 +1,15 @@
 import { booleanAttribute, ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
-import { SharedPipesModule, slideUpDownAnimation } from '@sumaris-net/ngx-components';
+import { SharedPipesModule } from '@sumaris-net/ngx-components';
 import { AppColors } from '@app/shared/colors.utils';
 import { IonicModule } from '@ionic/angular';
 import { TranslateModule } from '@ngx-translate/core';
+import { slideDownAnimation } from '@app/shared/material/material.animation';
 
 @Component({
   selector: 'app-error-item',
   templateUrl: './error-item.component.html',
   styleUrls: ['./error-item.component.scss'],
-  animations: [slideUpDownAnimation],
+  animations: [slideDownAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [IonicModule, TranslateModule, SharedPipesModule],

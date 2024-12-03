@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { slideUpDownAnimation } from '@sumaris-net/ngx-components';
 import { IonicModule } from '@ionic/angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppErrorItem } from '@app/shared/error/error-item.component';
+import { slideDownAnimation } from '@app/shared/material/material.animation';
 
 @Component({
   selector: 'app-warning-item',
   templateUrl: './error-item.component.html',
   styleUrls: ['./error-item.component.scss'],
-  animations: [slideUpDownAnimation],
+  animations: [slideDownAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [IonicModule, TranslateModule],

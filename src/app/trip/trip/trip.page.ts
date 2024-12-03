@@ -53,7 +53,7 @@ import {
 import { TripsPageSettingsEnum } from './trips.table';
 import { Operation, Trip } from './trip.model';
 import { ISelectPhysicalGearModalOptions, SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
-import { ModalController } from '@ionic/angular';
+import { IonContent, ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
 import { OperationEditor, ProgramProperties, TripReportType } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
@@ -144,6 +144,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   @ViewChild('physicalGearsTable', { static: true }) physicalGearsTable: PhysicalGearTable;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
   @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
+  @ViewChild('generaleTabContent', { static: true }) generalTabContent: IonContent;
 
   get dirty(): boolean {
     return (
@@ -291,6 +292,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
+    console.log('TODO setError', error, opts);
     // If errors in operations
     if (typeof error !== 'string' && error?.details?.errors?.operations) {
       // Show error in operation table
@@ -327,6 +329,18 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       this.physicalGearsTable.resetError(opts);
       this.operationsTable.resetError(opts);
     }
+  }
+
+  protected scrollToTop(duration?: number): Promise<void> {
+    switch (this.selectedTabIndex) {
+      case TripPage.TABS.GENERAL:
+        return this.generalTabContent.scrollToTop(duration);
+      case TripPage.TABS.PHYSICAL_GEARS:
+        return this.physicalGearsTable.scrollToTop();
+      case TripPage.TABS.OPERATIONS:
+        return this.operationsTable.scrollToTop();
+    }
+    return super.scrollToTop(duration);
   }
 
   // change visibility to public
@@ -494,9 +508,11 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
     console.debug('[trip] New entity: applying defaults...');
+    let dirty = false;
 
     if (this.isOnFieldMode) {
       data.departureDateTime = DateUtils.moment();
+      dirty = true;
 
       // Listen first opening the operations tab, then save
       this.registerSubscription(
@@ -505,7 +521,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
             filter((event) => this.showOperationTable && event.index === TripPage.TABS.OPERATIONS),
             // Save trip when opening the operation tab
             mergeMap(() => this.save()),
-            filter((saved) => saved === true),
+            filter((saved) => saved === true && isNotNil(this.data.id)),
             first(),
             // If save succeed, propagate the tripId to the table
             tap(() => this.operationsTable.setTripId(this.data.id))
@@ -521,21 +537,25 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       // Synchronization status
       if (searchFilter.synchronizationStatus && searchFilter.synchronizationStatus !== 'SYNC') {
         data.synchronizationStatus = 'DIRTY';
+        dirty = true;
       }
 
       // program
       if (searchFilter.program && searchFilter.program.label) {
         data.program = ReferentialRef.fromObject(searchFilter.program);
+        dirty = true;
       }
 
       // Vessel
       if (searchFilter.vesselSnapshot) {
         data.vesselSnapshot = VesselSnapshot.fromObject(searchFilter.vesselSnapshot);
+        dirty = true;
       }
 
       // Location
       if (searchFilter.location) {
         data.departureLocation = ReferentialRef.fromObject(searchFilter.location);
+        dirty = true;
       }
     }
 
@@ -544,6 +564,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       const contextualProgram = this.tripContext.getValue('program') as Program;
       if (contextualProgram?.label) {
         data.program = ReferentialRef.fromObject(contextualProgram);
+        dirty = true;
       }
     }
 
@@ -556,6 +577,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Enable forms (do not wait for program load)
     if (!programLabel) this.markAsReady();
+
+    // Mark as dirty, to force a save()
+    if (dirty) this.markAsDirty({ emitEvent: false });
   }
 
   protected async onEntityLoaded(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {

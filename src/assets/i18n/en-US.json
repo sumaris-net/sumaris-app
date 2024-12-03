@@ -105,7 +105,16 @@
       "LAT_SIGN_S": "S",
       "LONG_SIGN_PLACEHOLDER": "E|W",
       "LONG_SIGN_E": "E",
-      "LONG_SIGN_W": "W"
+      "LONG_SIGN_W": "W",
+      "SINGLE_FIELD_PATTERN": {
+        "DD": "DD",
+        "DD_PLACEHOLDER": "± DD.DDDDDDD",
+        "DDD": "DDD",
+        "DDD_PLACEHOLDER": "±DDD.DDDDDDD",
+        "MM": "MM",
+        "MM_MMM": "MM.MMM",
+        "SS_SS": "SS.SS"
+      }
     },
 
     "METADATA": "Metadata:",

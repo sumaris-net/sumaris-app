@@ -7,3 +7,18 @@
     }
   }
 }
+
+@media (max-width: 400px) {
+
+  ::ng-deep {
+    .mat-form-field-buttons {
+      --buttons-col-count: 3 !important;
+    }
+    ion-button{
+      //font-size: 0.875rem;
+      font-size: 0.855rem;
+      letter-spacing: -0.005rem;
+      //word-break: break-word;
+    }
+  }
+}

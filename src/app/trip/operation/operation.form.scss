@@ -18,25 +18,6 @@ form {
     }
   }
 
-  // Compact lat/long fields, to be able to display one one row in small screen
-  mat-latlong-field {
-    ion-col.text {
-      .mdc-text-field {
-        padding-left: unset; // 4px !important;
-        padding-right: 0 !important;
-      }
-    }
-    ion-col.sign {
-      --max-width: var(--min-width) !important;
-      &.latitude {
-        --min-width: 38px !important;
-      }
-      &.longitude {
-        --min-width: 58px !important;
-      }
-    }
-  }
-
   .has-buttons {
     // Fix field height, for rows with buttons (e.g. operation type)
     .mat-form-field-infix {
@@ -63,5 +44,23 @@ input.cursor-pointer {
     &.parentOperation {
       max-height: 63px;
     }
+  }
+}
+
+// Set lat/long fields to full width, on small screens
+@media screen and (max-width: 349px) {
+  ion-col:has(mat-latlong-field),
+  ion-col:has(mat-date-time-field),
+  ion-col:has(mat-autocomplete-field) {
+    mat-icon[matPrefix],
+    ion-icon[matPrefix] {
+      visibility: hidden;
+      display: none;
+    }
+  }
+}
+@media screen and (max-width: 299px) {
+  ion-col:has(mat-latlong-field) {
+    min-width: 100% !important;
   }
 }
