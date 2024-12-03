@@ -116,15 +116,6 @@
             <button mat-icon-button *ngIf="!mobile && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
               <mat-icon>add</mat-icon>
             </button>
-            <!-- Individual count-->
-            <button
-              mat-icon-button
-              *ngIf="!mobile && enabled"
-              [title]="'TRIP.BATCH.EDIT.NUMERICAL_RANKING_CRITERIA' | translate"
-              (click)="openSortingCriteriaModal()"
-            >
-              <mat-icon>control_point_duplicate</mat-icon>
-            </button>
             <!-- Refresh -->
             <button mat-icon-button *ngIf="debug && !mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
               <mat-icon>refresh</mat-icon>
@@ -379,8 +370,10 @@
                 ></span>
               }
             </td>
-            <td mat-footer-cell *matFooterCellDef>
-              <b>{{ footerValues | mapGet: pmfm.id }}</b>
+            <td mat-footer-cell *matFooterCellDef class="mat-mdc-cell-content-start-padding">
+              <ion-text color="primary">
+                <b>{{ footerValues | mapGet: pmfm.id }}</b>
+              </ion-text>
             </td>
           </ng-container>
 
@@ -419,8 +412,10 @@
                 {{ row.currentData.individualCount }}
               }
             </td>
-            <td mat-footer-cell *matFooterCellDef>
-              <b>{{ footerValues | mapGet: 'individualCount' }}</b>
+            <td mat-footer-cell *matFooterCellDef class="mat-mdc-cell-content-start-padding">
+              <ion-text color="primary">
+                <b>{{ footerValues | mapGet: 'individualCount' }}</b>
+              </ion-text>
             </td>
           </ng-container>
 
