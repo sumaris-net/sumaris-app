@@ -315,6 +315,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     // Configure form's properties
     this.form.qvPmfm = this.qvPmfm;
+    this.form.showFreezeQvPmfms = true; // TODO: Program option?
 
     // Mark form as ready
     this.form.markAsReady();

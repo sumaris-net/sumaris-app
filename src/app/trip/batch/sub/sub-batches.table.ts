@@ -546,6 +546,15 @@ export class SubBatchesTable
           newBatch.taxonName = taxonNames[0];
         }
       }
+
+      // Copy qv pmfms (if freezed)
+      if (this.form.freezeQvPmfms) {
+        this.pmfms
+          .filter((pmfm) => PmfmUtils.isQualitative(pmfm))
+          .forEach((pmfm) => {
+            newBatch.measurementValues[pmfm.id] = previousBatch.measurementValues[pmfm.id];
+          });
+      }
     }
 
     // Reset the form with the new batch
