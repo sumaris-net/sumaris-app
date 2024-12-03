@@ -1,8 +1,7 @@
-import { booleanAttribute, ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { SharedPipesModule, slideUpDownAnimation } from '@sumaris-net/ngx-components';
 import { AppColors } from '@app/shared/colors.utils';
 import { IonicModule } from '@ionic/angular';
-import { NgIf } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
@@ -12,16 +11,27 @@ import { TranslateModule } from '@ngx-translate/core';
   animations: [slideUpDownAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [IonicModule, NgIf, TranslateModule, SharedPipesModule],
+  imports: [IonicModule, TranslateModule, SharedPipesModule],
 })
-export class AppErrorItem {
+export class AppErrorItem implements OnInit {
+  protected defaultColor: AppColors;
+
   @Input() message: string;
   @Input() icon = 'alert-circle';
   @Input() backgroundColor: AppColors = 'transparent';
-  @Input() color: AppColors = 'danger';
+  @Input() color: AppColors;
   @Input({ transform: booleanAttribute }) animated = true;
   // eslint-disable-next-line @angular-eslint/no-input-rename
   @Input('class') classList: string;
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
-  constructor() {}
+  constructor() {
+    this.defaultColor = 'danger';
+  }
+
+  ngOnInit() {
+    this.backgroundColor = this.backgroundColor ?? 'transparent';
+    if ((!this.backgroundColor || this.backgroundColor === 'transparent') && !this.color) {
+      this.color = this.defaultColor || 'danger';
+    }
+  }
 }
