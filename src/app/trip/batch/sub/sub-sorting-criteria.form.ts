@@ -60,7 +60,9 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
     );
   }
 
-  async ngOnInit() {
+  ngOnInit() {
+    super.ngOnInit();
+
     // Pmfms filtered by type
     this.qvPmfms = this.pmfmsFiltered.filter((pmfm) => PmfmUtils.isQualitative(pmfm));
     this.criteriaPmfms = this.pmfmsFiltered.filter((pmfm) => !PmfmUtils.isQualitative(pmfm));
@@ -143,6 +145,8 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
     } else if (isNotEmptyArray(this.qvPmfms)) {
       this.showQvPmfm = true;
     }
+
+    this.enable();
   }
 
   protected async suggestTaxonNames(value?: any, options?: any): Promise<LoadResult<TaxonNameRef>> {
