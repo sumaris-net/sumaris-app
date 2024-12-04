@@ -13,7 +13,6 @@ import {
   OnInit,
   Output,
   QueryList,
-  Renderer2,
   ViewChild,
   ViewChildren,
 } from '@angular/core';
@@ -3175,10 +3174,12 @@ export class CalendarComponent
           if (rowElement?.contains(event.target as Node)) {
             if (this.editedRowFocusedElement !== event.target) {
               // DEBUG
-              //console.debug(`${this.logPrefix}Focused element is now:`, event.target);
+              //console.debug(`${this.logPrefix}Focused element changed to:`, event.target);
               this.editedRowFocusedElement = event.target as HTMLElement;
             }
           } else {
+            // DEBUG
+            //console.debug(`${this.logPrefix}Forget the focused element`);
             this.editedRowFocusedElement = null;
           }
         })
