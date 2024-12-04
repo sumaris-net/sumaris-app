@@ -756,13 +756,15 @@ export class OperationValidators {
       pmfms.filter((p) => p.isComputed).map((p) => `measurementValues.${p.id}`),
       { onlySelf: true, emitEvent: false }
     );
+    const observables = [OperationValidators.listenIndividualOnDeck(pmfmForm), OperationValidators.listenIsTangledIndividual(pmfmForm)];
 
-    const observables = [
-      OperationValidators.listenIndividualOnDeck(pmfmForm),
-      OperationValidators.listenIsTangledIndividual(pmfmForm),
-      OperationValidators.listenIsPingerAccessible(pmfmForm),
-      OperationValidators.listenIsDeadIndividual(pmfmForm),
-    ].filter(isNotNil);
+    if (pmfms.find((pmfm) => pmfm.id === PmfmIds.PINGER_ACCESSIBLE)) {
+      observables.push(OperationValidators.listenIsPingerAccessible(pmfmForm));
+    }
+    if (pmfms.find((pmfm) => pmfm.id === PmfmIds.DECOMPOSITION_STATE)) {
+      observables.push(OperationValidators.listenIsDeadIndividual(pmfmForm));
+    }
+    observables.filter(isNotNil);
 
     if (!observables.length) return null;
     if (observables.length > 0) {
@@ -796,7 +798,8 @@ export class OperationValidators {
             if (form.enabled) {
               pmfms
                 .filter(
-                  (pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.rankOrder <= isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
+                  (pmfm) =>
+                    (pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.rankOrder <= isTangledPmfm.rankOrder) || pmfm.id === PmfmIds.TAG_ID
                 )
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
@@ -811,9 +814,7 @@ export class OperationValidators {
           } else {
             if (form.enabled) {
               pmfms
-                .filter(
-                  (pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.rankOrder <= isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
-                )
+                .filter((pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder)
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
                   AppFormUtils.disableControl(control, { onlySelf: true });
@@ -825,7 +826,6 @@ export class OperationValidators {
         })
       );
     }
-    return null;
   }
 
   static listenIsTangledIndividual(event: IPmfmForm): Observable<any> | null {
