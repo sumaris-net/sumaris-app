@@ -41,7 +41,6 @@
 }
 
 .table-container {
-  --table-toolbar-height: 0px;
   height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
   min-width: 100%;
   overflow: auto;
