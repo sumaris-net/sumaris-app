@@ -88,7 +88,7 @@
     "@angular/platform-browser-dynamic": "~18.2.11",
     "@angular/router": "~18.2.11",
     "@apollo/client": "~3.11.10",
-    "@asymmetrik/ngx-leaflet": "~18.0.1",
+    "@bluehalo/ngx-leaflet": "~18.0.2",
     "@awesome-cordova-plugins/core": "~6.8.0",
     "@awesome-cordova-plugins/network": "~6.8.0",
     "@bepo65/leaflet.fullscreen": "~2.0.2",

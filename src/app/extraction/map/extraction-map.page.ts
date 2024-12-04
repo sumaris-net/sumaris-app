@@ -60,7 +60,7 @@ import { ExtractionUtils } from '../common/extraction.utils';
 import { UnitLabel, UnitLabelPatterns } from '@app/referential/services/model/model.enum';
 import { MapGraticule } from '@app/shared/map/map.graticule';
 
-import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
+import { LeafletControlLayersConfig } from '@bluehalo/ngx-leaflet';
 import { FetchPolicy } from '@apollo/client/core';
 import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.config';
 import { ExtractionProduct } from '@app/extraction/product/product.model';

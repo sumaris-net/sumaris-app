@@ -8,7 +8,7 @@ import { SelectExtractionTypeModal } from './type/select-extraction-type.modal';
 import { ExtractionCriteriaForm } from './criteria/extraction-criteria.form';
 import { ProductForm } from './product/product.form';
 import { AppReferentialModule } from '../referential/referential.module';
-import { LeafletModule } from '@asymmetrik/ngx-leaflet';
+import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import { MarkdownModule } from 'ngx-markdown';
 import { ExtractionHelpModal } from './help/help.modal';
 import { TranslateModule } from '@ngx-translate/core';
