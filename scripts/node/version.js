@@ -206,7 +206,8 @@ async function main() {
   console.info(`${LOG_PREFIX} Computed version ${options.set ? 'updated' : 'current'}:`,
     `\n\tstandard : ${version}`,
     `\n\twebext : ${webExtVersionCode}`,
-    `\n\tandroid : ${androidVersionCode}`);
+    `\n\tandroid : ${androidVersionCode}`,
+    `\n\tios : ${iosVersionCode} - ${iosVersionName}`);
 }
 
 main();
