@@ -62,7 +62,6 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
 
   ngOnInit() {
     super.ngOnInit();
-
     // Pmfms filtered by type
     this.qvPmfms = this.pmfmsFiltered.filter((pmfm) => PmfmUtils.isQualitative(pmfm));
     this.criteriaPmfms = this.pmfmsFiltered.filter((pmfm) => !PmfmUtils.isQualitative(pmfm));

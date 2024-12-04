@@ -3,8 +3,13 @@
   --toolbar-min-height: 56px;
   --mat-row-height: 33px !important;
 }
+
+ion-modal {
+  --height: 90%;
+  --overflow: hidden;
+}
 .table-container {
-  max-height: calc(100vh - var(--toolbar-min-height, 56px));
+  max-height: calc(90vh - 100px);
   min-width: unset !important;
   overflow-x: hidden;
   overflow-y: auto;
