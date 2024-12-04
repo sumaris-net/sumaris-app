@@ -988,27 +988,19 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.setShowColumn(PmfmIds.SEX.toString(), !show);
     this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), !show);
 
-    await this.mergeVirtualColumns(show);
-  }
-
-  async mergeVirtualColumns(virtualColumnsAreDisplay: boolean) {
+    // Add/remove rows depending on virtual columns presence
     const formIsEmpty = AppSharedFormUtils.isEmptyForm(this.filterForm);
-
-    if (virtualColumnsAreDisplay && !formIsEmpty) {
+    if (show && !formIsEmpty) {
       const data = this.dataSource.getRows();
-      const groupedData = this.groupByProperty(data, '81');
-
+      const groupedData = this.groupByProperty(data, PmfmIds.LENGTH_TOTAL_CM.toString());
       await this.concatRows(groupedData);
-    } else if (!virtualColumnsAreDisplay) {
-      //delete rows with all virtual pmfms empty
-      await this.deleteRowsWithQvPmfmsAreEmpty();
+    } else if (!show) {
       await this.splitRows();
-      // this.cd.detectChanges();
     }
   }
 
-  groupByProperty(objects: TableElement<SubBatch>[], property: string): TableElement<SubBatch>[][] {
-    const groups: { [key: string]: any[] } = {};
+  private groupByProperty(objects: TableElement<SubBatch>[], property: string): TableElement<SubBatch>[][] {
+    const groups: { [key: string]: TableElement<SubBatch>[] } = {};
 
     objects.forEach((obj) => {
       const key = obj?.currentData?.measurementValues[property];
@@ -1021,22 +1013,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return Object.values(groups);
   }
 
-  async deleteRowsWithQvPmfmsAreEmpty() {
-    const rows = this.dataSource.getRows();
-    const rowsToDelete = [];
-    for (const row of rows) {
-      const virtualPmfmAreEmpty = this.virtualPmfms?.every(
-        (pmfm) => isNil(row.currentData.measurementValues[pmfm.id]) && row.currentData.individualCount === 0
-      );
-
-      if (virtualPmfmAreEmpty) {
-        rowsToDelete.push(row);
-      }
-    }
-    await this.deleteRows(null, rowsToDelete, { interactive: false });
-  }
-
-  async concatRows(groupRows: TableElement<SubBatch>[][]) {
+  private async concatRows(groupRows: TableElement<SubBatch>[][]) {
     let rankOrder = await this.getMaxRankOrder();
     let virtualPmfmValue = [];
     const newRows = [];
@@ -1071,14 +1048,19 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     }
   }
 
-  async splitRows() {
+  private async splitRows() {
     let rankOrder = await this.getMaxRankOrder();
-    const rows = this.dataSource.getRows();
+    const existingRows = this.dataSource.getRows();
 
     const newRows = [];
-    const rowsToDelete = [];
 
-    for (const row of rows) {
+    // Rows with all virtual pmfms empty need to be deleted
+    const rowsToDelete = existingRows.filter((row) =>
+      this.virtualPmfms?.every((pmfm) => isNil(row.currentData.measurementValues[pmfm.id]) && row.currentData.individualCount === 0)
+    );
+
+    // Convert rows
+    for (const row of existingRows) {
       this.virtualPmfms?.forEach((pmfm) => {
         const individualCount = row.currentData.measurementValues[pmfm.id];
         const lengthTotalCm = row.currentData.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()];
@@ -1091,7 +1073,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
           newRow.taxonName = row.currentData.taxonName;
           newRow.measurementValues[PmfmIds.SEX.toString()] = qualitativeValue;
           newRow.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()] = lengthTotalCm;
-          newRow.rankOrder = rankOrder++;
+          newRow.rankOrder = ++rankOrder;
 
           newRows.push(newRow);
         }
@@ -1099,6 +1081,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       rowsToDelete.push(row);
     }
 
+    // Apply changes
     await this.deleteRows(null, rowsToDelete, { interactive: false });
     if (isNotEmptyArray(newRows)) {
       await this.addEntitiesToTable(newRows, { editing: false });
