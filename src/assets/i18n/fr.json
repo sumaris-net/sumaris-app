@@ -1201,7 +1201,8 @@
         "WEIGHT": "Poids (kg)",
         "COMMENTS": "Commentaires",
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?",
-        "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
+        "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?",
+        "TOTAL_DOTS": "Nombre d'individus totaux :"
       },
       "TREE": {
         "SELECT_PARENT_HELP": "Sélectionner un lot, dans l'arbre ci-contre",

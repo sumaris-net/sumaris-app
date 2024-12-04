@@ -1182,7 +1182,8 @@
         "WEIGHT": "Weight (kg)",
         "COMMENTS": "Comments",
         "ESTIMATED_WEIGHT_QUESTION": "Estimated weight?",
-        "ESTIMATED_WEIGHT_QUESTION_SHORT": "Estim. wht?"
+        "ESTIMATED_WEIGHT_QUESTION_SHORT": "Estim. wht?",
+        "TOTAL_DOTS": "Individual counts totals:"
       },
       "TREE": {
         "SELECT_PARENT_HELP": "Select a batch, in the tree",
