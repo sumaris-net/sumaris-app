@@ -842,10 +842,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     // Do not add virtualPmfms if already exists in pmfms
     const missingVirtualPmfms = virtualPmfms.filter((pmfm) => !this.pmfms.some((col) => col.id === pmfm.id));
     this.pmfms = this.pmfms.concat(missingVirtualPmfms);
-    this.showIndividualCount = false;
-    this.setShowColumn(PmfmIds.SEX.toString(), false);
-    this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), false);
     this.updateColumns();
+
+    // Ensure virtal columns are displayed if available
+    this.setShowVirtualColumns(isNotEmptyArray(this.virtualPmfms));
   }
 
   applyFilterAndClosePanel() {
@@ -871,11 +871,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   resetFilter() {
-    this.showIndividualCount = true;
-    this.setShowColumn(PmfmIds.SEX.toString(), true);
-    this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), true);
-    this.filterForm.reset();
-    this.toggleDisplayVirtualColumns();
+    this.setShowVirtualColumns(false);
     super.resetFilter();
   }
 
@@ -974,17 +970,19 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   toggleDisplayVirtualColumns() {
-    let isToggle = false;
     const formIsEmpty = AppSharedFormUtils.isEmptyForm(this.filterForm);
+    const isToggle = isNotEmptyArray(this.virtualPmfms) && !formIsEmpty;
+    this.setShowVirtualColumns(isToggle);
+  }
 
-    if (isNotEmptyArray(this.virtualPmfms) && !formIsEmpty) isToggle = true;
-    this.virtualPmfms.forEach((col) => {
-      this.setShowColumn(col.id.toString(), isToggle);
+  private setShowVirtualColumns(show: boolean) {
+    this.virtualPmfms?.forEach((col) => {
+      this.setShowColumn(col.id.toString(), show);
     });
 
-    this.showIndividualCount = !isToggle;
-    this.setShowColumn(PmfmIds.SEX.toString(), !isToggle);
-    this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), !isToggle);
+    this.showIndividualCount = !show;
+    this.setShowColumn(PmfmIds.SEX.toString(), !show);
+    this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), !show);
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
