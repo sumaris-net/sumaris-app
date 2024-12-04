@@ -329,7 +329,12 @@
                 {{ row.currentData.taxonName | referentialToString: ['name'] }}
               }
             </td>
-            <td mat-footer-cell *matFooterCellDef></td>
+            <td mat-footer-cell *matFooterCellDef class="ion-text-end">
+              <ion-text color="primary">
+                <b translate>TRIP.BATCH.TABLE.TOTAL_DOTS</b>
+                &nbsp;
+              </ion-text>
+            </td>
           </ng-container>
 
           <!-- Pmfms columns -->
@@ -371,7 +376,7 @@
                 ></span>
               }
             </td>
-            <td mat-footer-cell *matFooterCellDef class="mat-mdc-cell-content-start-padding">
+            <td mat-footer-cell *matFooterCellDef>
               <ion-text color="primary">
                 <b>{{ footerValues | mapGet: pmfm.id }}</b>
               </ion-text>
@@ -413,7 +418,7 @@
                 {{ row.currentData.individualCount }}
               }
             </td>
-            <td mat-footer-cell *matFooterCellDef class="mat-mdc-cell-content-start-padding">
+            <td mat-footer-cell *matFooterCellDef>
               <ion-text color="primary">
                 <b>{{ footerValues | mapGet: 'individualCount' }}</b>
               </ion-text>
