@@ -197,21 +197,22 @@
 
         @if (formControl.enabled || formControl.value != null) {
           <div class="mat-form-field-buttons" [style.--buttons-col-count]="buttonsColCount">
-            <ng-container *ngFor="let item of sortedQualitativeValues; index as i; trackBy: getQvId">
-              <ion-button
-                #button
-                *ngIf="showAllButtons || selectedIndex === i || i < maxVisibleButtons"
-                [disabled]="disabled"
-                [class.cdk-visually-hidden]="selectedIndex !== i && item.statusId === 0"
-                class="mat-form-field-button ion-text-wrap"
-                [tabindex]="_tabindex && _tabindex + i"
-                [color]="selectedIndex === -1 ? 'tertiary' : selectedIndex === i ? 'accent' : 'light'"
-                (click)="writeValue(item)"
-                (keyup.enter)="writeValue(item, $event)"
-              >
-                {{ item.name || item.label }}
-              </ion-button>
-            </ng-container>
+            @for (item of sortedQualitativeValues; track item.id; let i = $index) {
+              @if (showAllButtons || selectedIndex === i || i < maxVisibleButtons) {
+                <ion-button
+                  #button
+                  [disabled]="disabled"
+                  [class.cdk-visually-hidden]="selectedIndex !== i && item.statusId === 0"
+                  class="mat-form-field-button ion-text-wrap"
+                  [tabindex]="_tabindex && _tabindex + i"
+                  [color]="selectedIndex === -1 ? 'tertiary' : selectedIndex === i ? 'accent' : 'light'"
+                  (click)="writeValue(item)"
+                  (keyup.enter)="writeValue(item, $event)"
+                >
+                  {{ item.name || item.label }}
+                </ion-button>
+              }
+            }
           </div>
         } @else {
           <ion-label translate>COMMON.EMPTY_OPTION</ion-label>

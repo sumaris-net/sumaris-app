@@ -945,7 +945,8 @@
         "START_DATE_TIME": "Début d'opération",
         "FISHING_START_DATE_TIME": "Début de pêche",
         "FISHING_END_DATE_TIME": "Fin de pêche",
-        "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
+        "FISHING_AREA_RANK": "Zone de pêche #",
+        "FISHING_AREA": "Zone de pêche",
         "FISHING_AREAS_DOTS": "Zones de pêche :",
         "FISHING_AREAS": "Zones de pêche",
         "END_DATE_TIME": "Fin d'opération",
@@ -1268,23 +1269,23 @@
       },
       "EDIT": {
         "TITLE": "Individu {{label}}",
-        "LABEL_PLACEHOLDER": "Libellé",
-        "SAMPLE_DATE_PLACEHOLDER": "Date de la mesure",
-        "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
-        "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
+        "LABEL": "Libellé",
+        "SAMPLE_DATE": "Date de la mesure",
+        "TAXON_GROUP": "Espèce commerciale (FAO)",
+        "TAXON_NAME": "Espèce scientifique (FAO)",
         "IMAGES": "Photos",
         "AUCTION_CONTROL": {
           "TITLE": "Lot n°{{label}}",
-          "LABEL_PLACEHOLDER": "Numéro du lot"
+          "LABEL": "Numéro du lot"
         },
         "ACCIDENTAL_CATCH": {
           "TITLE": "Capture {{label}}",
-          "TAXON_GROUP_PLACEHOLDER": "Espèce (FAO)",
-          "TAXON_NAME_PLACEHOLDER": "Espèce scientifique"
+          "TAXON_GROUP": "Espèce (FAO)",
+          "TAXON_NAME": "Espèce scientifique"
         },
         "OBSERVED_TRIP": {
           "TITLE": "Capture {{label}}",
-          "TAXON_NAME_PLACEHOLDER": "Espèce scientifique"
+          "TAXON_NAME": "Espèce scientifique"
         }
       },
       "TABLE": {

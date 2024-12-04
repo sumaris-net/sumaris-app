@@ -22,7 +22,7 @@
             formControlName="label"
             [appAutofocus]="enabled && focusFieldName === 'label'"
             [tabindex]="tabindex"
-            [placeholder]="'TRIP.SAMPLE.EDIT.LABEL_PLACEHOLDER' | translateContext: i18nSuffix"
+            [placeholder]="'TRIP.SAMPLE.EDIT.LABEL' | translateContext: i18nSuffix"
             (click)="selectInputContent($event)"
             [required]="requiredLabel"
           />
@@ -38,7 +38,7 @@
           <mat-autocomplete-field
             formControlName="taxonGroup"
             [autofocus]="enabled && focusFieldName === 'taxonGroup'"
-            [placeholder]="'TRIP.SAMPLE.EDIT.TAXON_GROUP_PLACEHOLDER' | translateContext: i18nSuffix"
+            [placeholder]="'TRIP.SAMPLE.EDIT.TAXON_GROUP' | translateContext: i18nSuffix"
             [tabindex]="tabindex + 2"
             [required]="showTaxonGroup"
             [config]="autocompleteFields.taxonGroup"
@@ -54,7 +54,7 @@
           <mat-autocomplete-field
             formControlName="taxonName"
             [autofocus]="enabled && focusFieldName === 'taxonName'"
-            [placeholder]="'TRIP.SAMPLE.EDIT.TAXON_NAME_PLACEHOLDER' | translateContext: i18nSuffix"
+            [placeholder]="'TRIP.SAMPLE.EDIT.TAXON_NAME' | translateContext: i18nSuffix"
             [tabindex]="tabindex + 3"
             [required]="showTaxonName"
             [config]="autocompleteFields.taxonName"
@@ -69,7 +69,7 @@
         <ion-col size="12" size-sm="6" size-md="">
           <mat-date-time-field
             formControlName="sampleDate"
-            [placeholder]="'TRIP.SAMPLE.EDIT.SAMPLE_DATE_PLACEHOLDER' | translateContext: i18nSuffix"
+            [placeholder]="'TRIP.SAMPLE.EDIT.SAMPLE_DATE' | translateContext: i18nSuffix"
             [tabindex]="tabindex + 4"
             [required]="usageMode | isOnDesk"
             [clearable]="usageMode | isOnField"
@@ -92,7 +92,7 @@
               pmfmValueColor && form.valueChanges
               | push
               | propertyGet: 'measurementValues.' + pmfm.id.toString()
-              | pmfmValueIcon: { pmfm: pmfm, mapWith: pmfmValueColor } : value
+              | pmfmValueIcon: { pmfm: pmfm, mapWith: pmfmValueColor } : value,
           } as vars"
           class="ion-no-padding"
           [class.cdk-visually-hidden]="enabled && matInput.disabled"

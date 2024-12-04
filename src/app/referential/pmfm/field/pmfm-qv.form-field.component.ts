@@ -230,8 +230,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
     // If button, listen enable/disable changes (hack using statusChanges)
     if (this.style === 'button') {
-      this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 4);
-      this.buttonsColCount = toNumber(this.buttonsColCount, Math.min(this.maxVisibleButtons, 4));
+      this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 6);
+      this.buttonsColCount = toNumber(this.buttonsColCount, Math.min(this.maxVisibleButtons, 6));
       if (this._qualitativeValues.length <= this.maxVisibleButtons) {
         this.maxVisibleButtons = 999; // Hide the expand button
       }

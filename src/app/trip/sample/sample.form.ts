@@ -6,6 +6,7 @@ import {
   AppFormUtils,
   FormArrayHelper,
   IFormPathTranslator,
+  IFormPathTranslatorOptions,
   IReferentialRef,
   isNil,
   isNilOrBlank,
@@ -25,6 +26,7 @@ import { SubSampleValidatorService } from '@app/trip/sample/sub-sample.validator
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 import { RxState } from '@rx-angular/state';
+import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
 
 @Component({
   selector: 'app-sample-form',
@@ -126,6 +128,30 @@ export class SampleForm extends MeasurementValuesForm<Sample> implements OnInit,
     if (!this.showComment && isNotNilOrBlank(this.form.get('comments').value)) this.form.markAsDirty();
 
     this.markForCheck();
+  }
+
+  translateFormPath(path: string, opts?: IDataFormPathTranslatorOptions): string {
+    opts = { i18nPrefix: this.i18nFieldPrefix, i18nSuffix: this.i18nSuffix, ...opts };
+    // Translate specific path
+    let fieldName: string;
+    switch (path) {
+      case 'sampleDate':
+        fieldName = 'SAMPLE_DATE';
+        break;
+      case 'taxonGroup':
+        fieldName = 'TAXON_GROUP';
+        break;
+      case 'taxonName':
+        fieldName = 'TAXON_NAME';
+        break;
+    }
+    if (fieldName) {
+      const i18nKey = (opts.i18nFieldPrefix || 'TRIP.SAMPLE.EDIT.') + fieldName;
+      return this.translateContext.instant(i18nKey, opts.i18nSuffix);
+    }
+
+    // Default translation (pmfms)
+    return super.translateFormPath(path, { ...opts, pmfms: this.initialPmfms /*give the full list*/ });
   }
 
   /* -- protected methods -- */

@@ -3,16 +3,3 @@
 app-physical-gears-table {
   width: 100%;
 }
-
-@media screen and (max-width: #{$screen-xs-max}) {
-
-  ::ng-deep {
-    .mat-form-field-buttons {
-      --buttons-col-count: 3 !important;
-    }
-    ion-button{
-      font-size: 0.855rem;
-      letter-spacing: -0.005rem;
-    }
-  }
-}
