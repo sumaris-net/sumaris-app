@@ -218,7 +218,7 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy, IAppForm {
     this.dataSource = new EntitiesTableDataSource<ImageAttachment, ImageAttachmentFilter>(ImageAttachment, this.dataService, null, {
       prependNewElements: false,
     });
-    this.debug = !environment.production;
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
