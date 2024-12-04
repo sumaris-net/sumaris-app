@@ -108,7 +108,7 @@ if (fs.existsSync(`${projectDir}/.local`)) {
   // Write project environment variables to a .env file.
   fs.writeFileSync(
     path.join(projectDir, '.local', 'env.sh'),
-    '#!/bin/bash\n\n');
+    '#!/bin/bash\n\nset +e\n\n');
   fs.appendFileSync(
     path.join(projectDir, '.local', 'env.sh'),
     Object.entries(process.env)
