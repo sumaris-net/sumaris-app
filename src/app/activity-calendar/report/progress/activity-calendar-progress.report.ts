@@ -14,6 +14,7 @@ import {
   isNotEmptyArray,
   isNotNilOrBlank,
   LocalSettingsService,
+  splitById,
   toDateISOString,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
@@ -30,6 +31,7 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
 import { ProgramLabels } from '@app/referential/services/model/model.enum';
+import { DirectSurveyInvestigationEnum, DirectSurveyInvestigationList } from '@app/activity-calendar/model/activity-calendar.model';
 
 export class ActivityCalendarProgressReportStats extends BaseReportStats {
   subtitle: string;
@@ -145,6 +147,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   protected readonly translateContextService = inject(TranslateContextService);
   protected readonly strategyRefService = inject(StrategyRefService);
   protected readonly settings = inject(LocalSettingsService);
+  protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
 
   constructor(injector: Injector) {
     super(injector, null, ActivityCalendarProgressReportStats);
@@ -177,6 +180,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     if (includedIds) {
       tableFilter.includedIds = includedIds;
     }
+
     const extractionFilter = ExtractionUtils.createActivityCalendarFilter(tableFilter.program.label, tableFilter);
 
     return this.load(extractionFilter);
@@ -218,7 +222,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     // Compute AGG
     const agg = {
       vesselCount: data.AM.length,
-      totalDirectSurveyCount: data.AM.filter((item) => item.directSurveyInvestigation == 'Y').length,
+      totalDirectSurveyCount: data.AM.filter((item) => item.directSurveyInvestigation == 'YES').length,
       emptyVesselCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.EMPTY).length,
       uncompletedVesselCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.INCOMPLETE).length,
       completedCalendarCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.COMPLETE).length,
