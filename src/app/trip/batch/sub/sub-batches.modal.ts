@@ -851,6 +851,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   async applyFilterAndClosePanel() {
     //Application du filtre
     const data = this.filterForm.value;
+    const formIsEmpty = AppSharedFormUtils.isEmptyForm(this.filterForm);
     const filter = new SubBatchFilter();
 
     if (isNotNil(data.maxValue)) {
@@ -866,8 +867,11 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     if (isNotNil(data.criteriaPmfm)) {
       filter.numericalPmfm = data.criteriaPmfm;
     }
-    await this.toggleDisplayVirtualColumns();
-    this.setFilter(filter);
+
+    if (!formIsEmpty) {
+      await this.toggleDisplayVirtualColumns();
+      this.setFilter(filter);
+    }
   }
 
   async resetFilter() {
@@ -988,11 +992,13 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async mergeVirtualColumns(virtualColumnsAreDisplay: boolean) {
-    const data = this.getValue();
+    const formIsEmpty = AppSharedFormUtils.isEmptyForm(this.filterForm);
 
-    if (virtualColumnsAreDisplay) {
+    if (virtualColumnsAreDisplay && !formIsEmpty) {
+      const data = this.dataSource.getRows();
       const groupedData = this.groupByProperty(data, '81');
-      console.log('groupedData', groupedData);
+
+      await this.concatRows(groupedData);
     } else if (!virtualColumnsAreDisplay) {
       //delete rows with all virtual pmfms empty
       await this.deleteRowsWithQvPmfmsAreEmpty();
@@ -1001,11 +1007,11 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     }
   }
 
-  groupByProperty(objects: any[], property: string): any[][] {
+  groupByProperty(objects: TableElement<SubBatch>[], property: string): TableElement<SubBatch>[][] {
     const groups: { [key: string]: any[] } = {};
 
     objects.forEach((obj) => {
-      const key = obj?.measurementValues[property];
+      const key = obj?.currentData?.measurementValues[property];
       if (!groups[key]) {
         groups[key] = [];
       }
@@ -1014,20 +1020,56 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     return Object.values(groups);
   }
+
   async deleteRowsWithQvPmfmsAreEmpty() {
     const rows = this.dataSource.getRows();
+    const rowsToDelete = [];
     for (const row of rows) {
       const virtualPmfmAreEmpty = this.virtualPmfms.every(
         (pmfm) => isNil(row.currentData.measurementValues[pmfm.id]) && row.currentData.individualCount === 0
       );
 
       if (virtualPmfmAreEmpty) {
-        await this.deleteRow(null, row, { interactive: false });
+        rowsToDelete.push(row);
       }
     }
+    await this.deleteRows(null, rowsToDelete, { interactive: false });
   }
 
-  async concatRows(groupRows: [][]) {}
+  async concatRows(groupRows: TableElement<SubBatch>[][]) {
+    let rankOrder = await this.getMaxRankOrder();
+    let virtualPmfmValue = [];
+    const newRows = [];
+    const rowsToDelete = [];
+
+    for (const group of groupRows) {
+      group.forEach((row) => {
+        const virtualPmfm = this.virtualPmfms.find((pmfm) => {
+          return pmfm.name === row.currentData.measurementValues[PmfmIds.SEX.toString()].name;
+        });
+        virtualPmfmValue.push({ virtualPmfm: virtualPmfm, individualCount: row.currentData.individualCount });
+        rowsToDelete.push(row);
+      });
+
+      const newRow = new SubBatch();
+      newRow.individualCount = group[0].currentData.individualCount;
+      newRow.measurementValues[PmfmIds.SEX.toString()] = group[0].currentData.measurementValues[PmfmIds.SEX.toString()];
+      newRow.taxonName = group[0].currentData.taxonName;
+      newRow.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()] = group[0].currentData.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()];
+      virtualPmfmValue.forEach((pmfm) => {
+        newRow.measurementValues[pmfm.virtualPmfm.id.toString()] = pmfm.individualCount;
+      });
+
+      newRow.rankOrder = rankOrder++;
+
+      newRows.push(newRow);
+      virtualPmfmValue = [];
+    }
+    await this.deleteRows(null, rowsToDelete, { interactive: false });
+    if (isNotEmptyArray(newRows)) {
+      await this.addEntitiesToTable(newRows, { editing: false });
+    }
+  }
 
   async splitRows() {
     let rankOrder = await this.getMaxRankOrder();
