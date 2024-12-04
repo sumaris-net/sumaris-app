@@ -951,7 +951,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
 
-    if (isNotNil(data.qvPmfm)) {
+    if (isNotNilOrBlank(data.qvPmfm)) {
       // find the qv pmfm
       const qv = this.pmfms.find((pmfm) => pmfm.id === data.qvPmfm.id);
       this.generateDynamicColumns(qv);
