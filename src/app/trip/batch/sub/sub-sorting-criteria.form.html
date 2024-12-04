@@ -46,7 +46,7 @@
             matInput
             type="number"
             formControlName="min"
-            [min]="minimumValue"
+            [min]="0"
             [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN_DESCRIPTION' | translate"
           />
         </mat-form-field>
@@ -59,7 +59,7 @@
             matInput
             type="number"
             formControlName="max"
-            [max]="maximumValue"
+            [max]="100"
             [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX_DESCRIPTION' | translate"
           />
         </mat-form-field>
@@ -75,10 +75,10 @@
     </ion-row>
   </ion-grid>
   @if (showQvPmfm && !isMandatoryQvPmfm) {
-    <mat-divider></mat-divider>
+    <mat-divider class="ion-padding-bottom"></mat-divider>
     <ion-row>
       <ion-col>
-        <mat-checkbox formControlName="useOptionalCriteria" color="primary">Ajouter un critère ?</mat-checkbox>
+        <mat-checkbox formControlName="useOptionalCriteria">Ajouter un critère ?</mat-checkbox>
       </ion-col>
       <ion-col>
         <app-form-field

@@ -1025,7 +1025,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     const rows = this.dataSource.getRows();
     const rowsToDelete = [];
     for (const row of rows) {
-      const virtualPmfmAreEmpty = this.virtualPmfms.every(
+      const virtualPmfmAreEmpty = this.virtualPmfms?.every(
         (pmfm) => isNil(row.currentData.measurementValues[pmfm.id]) && row.currentData.individualCount === 0
       );
 
@@ -1079,7 +1079,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     const rowsToDelete = [];
 
     for (const row of rows) {
-      this.virtualPmfms.forEach((pmfm) => {
+      this.virtualPmfms?.forEach((pmfm) => {
         const individualCount = row.currentData.measurementValues[pmfm.id];
         const lengthTotalCm = row.currentData.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()];
 
