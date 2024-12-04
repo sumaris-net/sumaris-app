@@ -939,7 +939,8 @@
         "START_DATE_TIME": "Start of operation",
         "FISHING_START_DATE_TIME": "Start of fishing",
         "FISHING_END_DATE_TIME": "End of fishing",
-        "FISHING_AREA_PLACEHOLDER": "Fishing area #",
+        "FISHING_AREA_RANK": "Fishing area #",
+        "FISHING_AREA": "Fishing area",
         "FISHING_AREAS_DOTS": "Fishing areas:",
         "FISHING_AREAS": "Fishing areas",
         "END_DATE_TIME": "End of operation",
@@ -1255,22 +1256,22 @@
       "EDIT": {
         "TITLE": "Batch {{label}}",
         "LABEL_PLACEHOLDER": "Batch",
-        "SAMPLE_DATE_PLACEHOLDER": "Sample date",
-        "TAXON_GROUP_PLACEHOLDER": "Commercial species (FAO)",
-        "TAXON_NAME_PLACEHOLDER": "Scientific species (FAO)",
+        "SAMPLE_DATE": "Sample date",
+        "TAXON_GROUP": "Commercial species (FAO)",
+        "TAXON_NAME": "Scientific species (FAO)",
         "IMAGES": "Pictures",
         "AUCTION_CONTROL": {
           "TITLE": "Batch {{label}}",
-          "LABEL_PLACEHOLDER": "Batch number"
+          "LABEL": "Batch number"
         },
         "ACCIDENTAL_CATCH": {
           "TITLE": "Catch {{label}}",
-          "TAXON_GROUP_PLACEHOLDER": "Species (FAO)",
-          "TAXON_NAME_PLACEHOLDER": "Scientific species"
+          "TAXON_GROUP": "Species (FAO)",
+          "TAXON_NAME": "Scientific species"
         },
         "OBSERVED_TRIP": {
           "TITLE": "Catch {{label}}",
-          "TAXON_NAME_PLACEHOLDER": "Scientific species"
+          "TAXON_NAME": "Scientific species"
         }
       },
       "TABLE": {

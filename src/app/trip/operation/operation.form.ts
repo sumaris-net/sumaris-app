@@ -240,6 +240,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     return this._showFishingArea;
   }
 
+  get showInlineFishingArea(): boolean {
+    return this._showFishingArea && this.isInlineFishingArea;
+  }
+
+  get showFishingAreaArray(): boolean {
+    return this._showFishingArea && !this.isInlineFishingArea;
+  }
+
   @Input() set requiredComment(value: boolean) {
     if (this._requiredComment !== value) {
       this._requiredComment = value;

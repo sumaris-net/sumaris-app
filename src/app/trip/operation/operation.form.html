@@ -182,7 +182,7 @@
       <ion-col>
         <ion-grid class="ion-no-padding" style="--ion-grid-columns: 10">
           <ion-row>
-            <ion-col size="10" [sizeLg]="showPosition ? 4 : 10">
+            <ion-col size="10" [sizeLg]="showPosition ? 4 : showInlineFishingArea ? 5 : 10">
               <mat-date-time-field
                 [placeholder]="'COMMON.DATE' | translate"
                 formControlName="startDateTime"
@@ -244,24 +244,23 @@
                   </button>
                 </mat-latlong-field>
               </ion-col>
+            } @else if (showInlineFishingArea) {
+              <ion-col size="10" size-lg="5">
+                <ng-container
+                  *ngTemplateOutlet="
+                    fishingArea;
+                    context: {
+                      fishingAreasForm: fishingAreasForm,
+                      index: _dateIndexMap.start,
+                      required: true,
+                    }
+                  "
+                />
+              </ion-col>
             }
           </ion-row>
         </ion-grid>
       </ion-col>
-      @if (isInlineFishingArea && showFishingArea) {
-        <ion-col size="10" size-lg="4">
-          <ng-container
-            *ngTemplateOutlet="
-              fishingArea;
-              context: {
-                fishingAreasForm: fishingAreasForm,
-                index: _dateIndexMap.start.valueOf(),
-                required: true,
-              }
-            "
-          />
-        </ion-col>
-      }
     </ion-row>
 
     <!-- Start fishing -->
@@ -273,7 +272,7 @@
         <ion-grid class="ion-no-padding" style="--ion-grid-columns: 10">
           <ion-row>
             @if (form.controls.fishingStartDateTime | formGetControl; as control) {
-              <ion-col size="10" [sizeLg]="showPosition ? 4 : 10">
+              <ion-col size="10" [sizeLg]="showPosition ? 4 : showInlineFishingArea ? 5 : 10">
                 <mat-date-time-field
                   [placeholder]="'COMMON.DATE' | translate"
                   [formControl]="control"
@@ -343,24 +342,23 @@
                   </mat-hint>
                 </mat-latlong-field>
               </ion-col>
+            } @else if (showInlineFishingArea) {
+              <ion-col size="10" size-lg="5">
+                <ng-container
+                  *ngTemplateOutlet="
+                    fishingArea;
+                    context: {
+                      fishingAreasForm: fishingAreasForm,
+                      index: _dateIndexMap.startFishing,
+                      required: _usageMode | isOnDesk,
+                    }
+                  "
+                />
+              </ion-col>
             }
           </ion-row>
         </ion-grid>
       </ion-col>
-      @if (isInlineFishingArea && showFishingArea) {
-        <ion-col size="10" size-lg="4">
-          <ng-container
-            *ngTemplateOutlet="
-              fishingArea;
-              context: {
-                fishingAreasForm: fishingAreasForm,
-                index: _dateIndexMap.startFishing.valueOf(),
-                required: _usageMode | isOnDesk,
-              }
-            "
-          />
-        </ion-col>
-      }
     </ion-row>
 
     <!-- Fishing end  -->
@@ -371,7 +369,7 @@
       <ion-col>
         <ion-grid class="ion-no-padding" style="--ion-grid-columns: 10">
           <ion-row>
-            <ion-col size="10" [sizeLg]="showPosition ? 4 : 10">
+            <ion-col size="10" [sizeLg]="showPosition ? 4 : showInlineFishingArea ? 5 : 10">
               <mat-date-time-field
                 formControlName="fishingEndDateTime"
                 [placeholder]="'COMMON.DATE' | translate"
@@ -396,55 +394,57 @@
                 <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
               </mat-latlong-field>
             </ion-col>
-            <ion-col size="5" size-lg="3" *ngIf="form.controls.fishingEndPosition as position" [formGroup]="position">
-              <mat-latlong-field
-                formControlName="longitude"
-                type="longitude"
-                [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
-                [latLongPattern]="latLongFormat"
-                [tabindex]="tabindex + 6"
-                [required]="isChildOperation"
-                [defaultSign]="defaultLongitudeSign"
-              >
-                <button
-                  type="button"
-                  mat-icon-button
-                  matSuffix
-                  (click)="onFillPositionClick($event, 'fishingEndPosition')"
-                  tabindex="-1"
-                  [hidden]="!enableGeolocation"
+
+            @if (form.controls.fishingEndPosition; as position) {
+              <ion-col size="5" size-lg="3" [formGroup]="position">
+                <mat-latlong-field
+                  formControlName="longitude"
+                  type="longitude"
+                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
+                  [latLongPattern]="latLongFormat"
+                  [tabindex]="tabindex + 6"
+                  [required]="isChildOperation"
+                  [defaultSign]="defaultLongitudeSign"
                 >
-                  <mat-icon>gps_fixed</mat-icon>
-                </button>
-                <button
-                  type="button"
-                  mat-icon-button
-                  matSuffix
-                  [hidden]="enableGeolocation || position.invalid || !endDateTimeEnable"
-                  (click)="copyPosition($event, 'fishingEndPosition', 'endPosition')"
-                  [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
-                >
-                  <mat-icon>arrow_downward</mat-icon>
-                </button>
-              </mat-latlong-field>
-            </ion-col>
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matSuffix
+                    (click)="onFillPositionClick($event, 'fishingEndPosition')"
+                    tabindex="-1"
+                    [hidden]="!enableGeolocation"
+                  >
+                    <mat-icon>gps_fixed</mat-icon>
+                  </button>
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matSuffix
+                    [hidden]="enableGeolocation || position.invalid || !endDateTimeEnable"
+                    (click)="copyPosition($event, 'fishingEndPosition', 'endPosition')"
+                    [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
+                  >
+                    <mat-icon>arrow_downward</mat-icon>
+                  </button>
+                </mat-latlong-field>
+              </ion-col>
+            } @else if (showInlineFishingArea) {
+              <ion-col size="10" size-lg="5">
+                <ng-container
+                  *ngTemplateOutlet="
+                    fishingArea;
+                    context: {
+                      fishingAreasForm: fishingAreasForm,
+                      index: _dateIndexMap.endFishing,
+                      required: isChildOperation,
+                    }
+                  "
+                />
+              </ion-col>
+            }
           </ion-row>
         </ion-grid>
       </ion-col>
-      @if (isInlineFishingArea && showFishingArea) {
-        <ion-col size="10" size-lg="4">
-          <ng-container
-            *ngTemplateOutlet="
-              fishingArea;
-              context: {
-                fishingAreasForm: fishingAreasForm,
-                index: _dateIndexMap.endFishing.valueOf(),
-                required: isChildOperation,
-              }
-            "
-          />
-        </ion-col>
-      }
     </ion-row>
 
     <!-- End -->
@@ -457,103 +457,110 @@
       <ion-col>
         <ion-grid class="ion-no-padding" style="--ion-grid-columns: 10">
           <ion-row>
-            <ion-col size="10" [sizeLg]="showPosition ? 4 : 10" *ngIf="form.controls.endDateTime | formGetControl as control">
-              <mat-date-time-field
-                [formControl]="control"
-                [placeholder]="'COMMON.DATE' | translate"
-                [tabindex]="tabindex + 10"
-                [startDate]="previousEndDateTimeControl.value"
-                [required]="_usageMode | isOnDesk"
-                [clearable]="_usageMode | isOnField"
-              >
-                <mat-icon matPrefix *ngIf="mobile">insert_invitation</mat-icon>
-                <mat-hint align="end" *ngIf="(control.value | isValidDate: { requiredTime: true }) && control.valid">
-                  <span translate>COMMON.DURATION_DOTS</span>
-                  &nbsp;{{
-                    {
-                      startValue: previousEndDateTimeControl.value,
-                      endValue: control.value,
-                    } | dateDiffDuration
-                  }}
-                </mat-hint>
-              </mat-date-time-field>
-            </ion-col>
-            <ion-col size="5" size-lg="3" *ngIf="form.controls.endPosition | formGetGroup as position" [formGroup]="position">
-              <mat-latlong-field
-                formControlName="latitude"
-                type="latitude"
-                [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE' | translate"
-                [latLongPattern]="latLongFormat"
-                [tabindex]="tabindex + 12"
-                [required]="_usageMode | isOnDesk"
-                [defaultSign]="defaultLatitudeSign"
-              >
-                <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
-              </mat-latlong-field>
-            </ion-col>
-            <ion-col size="5" size-lg="3" *ngIf="form.controls.endPosition | formGetGroup as position" [formGroup]="position">
-              <mat-latlong-field
-                formControlName="longitude"
-                type="longitude"
-                [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
-                [latLongPattern]="latLongFormat"
-                [tabindex]="tabindex + 15"
-                [required]="_usageMode | isOnDesk"
-                [defaultSign]="defaultLongitudeSign"
-              >
-                <button
-                  type="button"
-                  mat-icon-button
-                  matSuffix
-                  (click)="onFillPositionClick($event, 'endPosition')"
-                  tabindex="-1"
-                  [hidden]="!enableGeolocation"
+            @if (form.controls.endDateTime | formGetControl; as control) {
+              <ion-col size="10" [sizeLg]="showPosition ? 4 : showInlineFishingArea ? 5 : 10">
+                <mat-date-time-field
+                  formControlName="endDateTime"
+                  [placeholder]="'COMMON.DATE' | translate"
+                  [tabindex]="tabindex + 10"
+                  [startDate]="previousEndDateTimeControl.value"
+                  [required]="_usageMode | isOnDesk"
+                  [clearable]="_usageMode | isOnField"
                 >
-                  <mat-icon>gps_fixed</mat-icon>
-                </button>
-                <mat-error *ngIf="position.hasError('maxDistance')">
-                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: position.errors.maxDistance }}
-                </mat-error>
-                <mat-hint align="end" *ngIf="position.valid && distanceWarning && distance">
-                  <mat-icon color="warn">warning</mat-icon>
-                  {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: { distance: distance } }}
-                </mat-hint>
-                <mat-hint align="end" *ngIf="position.valid && !distanceWarning && distance >= 0">
-                  {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate: { distance: distance } }}
-                </mat-hint>
-              </mat-latlong-field>
-            </ion-col>
+                  <mat-icon matPrefix *ngIf="mobile">insert_invitation</mat-icon>
+                  <mat-hint align="end" *ngIf="(control.value | isValidDate: { requiredTime: true }) && control.valid">
+                    <span translate>COMMON.DURATION_DOTS</span>
+                    &nbsp;{{
+                      {
+                        startValue: previousEndDateTimeControl.value,
+                        endValue: control.value,
+                      } | dateDiffDuration
+                    }}
+                  </mat-hint>
+                </mat-date-time-field>
+              </ion-col>
+            }
+
+            @if (form.controls.endPosition | formGetGroup; as position) {
+              <ion-col size="5" size-lg="3" [formGroup]="position">
+                <mat-latlong-field
+                  formControlName="latitude"
+                  type="latitude"
+                  [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE' | translate"
+                  [latLongPattern]="latLongFormat"
+                  [tabindex]="tabindex + 12"
+                  [required]="_usageMode | isOnDesk"
+                  [defaultSign]="defaultLatitudeSign"
+                >
+                  <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
+                </mat-latlong-field>
+              </ion-col>
+
+              <ion-col size="5" size-lg="3" [formGroup]="position">
+                <mat-latlong-field
+                  formControlName="longitude"
+                  type="longitude"
+                  [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
+                  [latLongPattern]="latLongFormat"
+                  [tabindex]="tabindex + 15"
+                  [required]="_usageMode | isOnDesk"
+                  [defaultSign]="defaultLongitudeSign"
+                >
+                  <button
+                    type="button"
+                    mat-icon-button
+                    matSuffix
+                    (click)="onFillPositionClick($event, 'endPosition')"
+                    tabindex="-1"
+                    [hidden]="!enableGeolocation"
+                  >
+                    <mat-icon>gps_fixed</mat-icon>
+                  </button>
+                  <mat-error *ngIf="position.hasError('maxDistance')">
+                    {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: position.errors.maxDistance }}
+                  </mat-error>
+                  <mat-hint align="end" *ngIf="position.valid && distanceWarning && distance">
+                    <mat-icon color="warn">warning</mat-icon>
+                    {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: { distance: distance } }}
+                  </mat-hint>
+                  <mat-hint align="end" *ngIf="position.valid && !distanceWarning && distance >= 0">
+                    {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate: { distance: distance } }}
+                  </mat-hint>
+                </mat-latlong-field>
+              </ion-col>
+            } @else if (showInlineFishingArea) {
+              <ion-col size="10" size-lg="5">
+                <ng-container
+                  *ngTemplateOutlet="
+                    fishingArea;
+                    context: {
+                      fishingAreasForm: fishingAreasForm,
+                      index: _dateIndexMap.end,
+                      required: _usageMode | isOnDesk,
+                    }
+                  "
+                />
+              </ion-col>
+            }
           </ion-row>
         </ion-grid>
       </ion-col>
-      @if (isInlineFishingArea && showFishingArea) {
-        <ion-col size="10" size-lg="4">
-          <ng-container
-            *ngTemplateOutlet="
-              fishingArea;
-              context: {
-                fishingAreasForm: fishingAreasForm,
-                index: _dateIndexMap.end.valueOf(),
-                required: _usageMode | isOnDesk,
-              }
-            "
-          />
-        </ion-col>
-      }
     </ion-row>
 
-    <!-- Fishing areas -->
-    @if (!isInlineFishingArea && showFishingArea) {
-      <ng-container>
-        <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; let i = index; first as first; last as last">
+    <!-- Fishing areas (as array) -->
+    @if (showFishingAreaArray) {
+      @for (fishingAreaForm of fishingAreasForm?.controls; track i; let i = $index; let first = $first; let last = $last) {
+        <ion-row>
           <ion-col size="12" size-md="3" size-lg="3">
-            <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS</ion-label>
+            @if (first) {
+              <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.FISHING_AREAS_DOTS</ion-label>
+            }
           </ion-col>
           <ion-col [formGroup]="fishingAreaForm | formGetGroup">
             <mat-autocomplete-field
               #fishingAreaField
               formControlName="location"
-              [placeholder]="('TRIP.OPERATION.EDIT.FISHING_AREA_PLACEHOLDER' | translate) + (i + 1)"
+              [placeholder]="('TRIP.OPERATION.EDIT.FISHING_AREA_RANK' | translate) + (i + 1)"
               [autofocus]="fishingAreaFocusIndex === i"
               [config]="autocompleteFields.fishingAreaLocation"
               [tabindex]="tabindex + 30 + i * 3"
@@ -602,7 +609,7 @@
             </button>
           </ion-col>
         </ion-row>
-      </ng-container>
+      }
     }
 
     <!-- Fishing areas inline mode with date -->
@@ -612,7 +619,7 @@
           <mat-autocomplete-field
             #fishingAreaField
             formControlName="location"
-            [placeholder]="'TRIP.OPERATION.EDIT.FISHING_AREAS' | translate"
+            [placeholder]="'TRIP.OPERATION.EDIT.FISHING_AREA' | translate"
             [autofocus]="fishingAreaFocusIndex === index"
             [config]="autocompleteFields.fishingAreaLocation"
             [tabindex]="tabindex + 30 + index * 3"

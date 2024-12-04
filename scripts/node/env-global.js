@@ -65,10 +65,15 @@ if (!process.env.JAVA_HOME || process.env.JAVA_HOME === 'null') {
   }
   else {
     // Assuming Java is installed under /usr/lib/jvm
-    const ALTERNATIVE_JAVA_HOME = [`/usr/lib/jvm/java-${major}-openjdk`,
+    const ALTERNATIVE_JAVA_HOME = [
+      // Linux paths
+      `/usr/lib/jvm/java-${major}-openjdk`,
       `/usr/lib/jvm/java-${major}-openjdk-amd64`,
       `/usr/lib/jvm/java-1.${major}.${minor}-openjdk`,
-      `/usr/lib/jvm/java-1.${major}.${minor}-openjdk-amd64`];
+      `/usr/lib/jvm/java-1.${major}.${minor}-openjdk-amd64`,
+      // Mac paths
+      `/Library/Java/JavaVirtualMachines/jdk-${major}.jdk/Contents/Home`
+    ];
     for (const path of ALTERNATIVE_JAVA_HOME) {
       if (fs.existsSync(path)) {
         console.debug(`JAVA_HOME=${path}`);
@@ -98,10 +103,12 @@ process.env.PATH = `${process.env.JAVA_HOME}/bin:${process.env.ANDROID_SDK_CLI_R
 
 if (fs.existsSync(`${projectDir}/.local`)) {
 
+  console.info(`--- Creating '.local/env.sh' file...`);
+
   // Write project environment variables to a .env file.
   fs.writeFileSync(
     path.join(projectDir, '.local', 'env.sh'),
-    '#!/bin/bash\n\n');
+    '#!/bin/bash\n\nset +e\n\n');
   fs.appendFileSync(
     path.join(projectDir, '.local', 'env.sh'),
     Object.entries(process.env)
@@ -118,4 +125,9 @@ if (fs.existsSync(`${projectDir}/.local`)) {
     + `export JAVA_HOME="${process.env.JAVA_HOME}"\n`
     + `export PATH="${process.env.PATH}"\n`
   );
+
+  console.info(`--- Creating '.local/env.sh' file [OK]`);
+}
+else {
+  console.warn(`--- Cannot create '.local/env.sh' - Directory '.local' not exists!`);
 }

@@ -33,19 +33,36 @@ function parseVersion(version) {
   }
 }
 
-function standardizeVersionForWebExt(version) {
+function computeWebExtVersionCode(version) {
   const v = parseVersion(version);
-  v.type = undefined;
-  return Object.values(v).filter(i => !!i).join('.');
+  return [v.maj, v.min, v.patch, v.num]
+    .map(i => (isNaN(i) ? 0 : i))
+    .join('.');
 }
 
-function standardizeVersionForAndroid(version) {
+function computeAndroidVersionCode(version) {
   const v = parseVersion(version);
-  v.type = undefined;
   // 99 rather 0 to avoid to set alpha, beta, rc greater version number greater than stable
   v.num = !v.num ? '99' : v.num;
-  return Object.values(v)
-    .filter(i => !isNaN(i))
+  return [v.maj, v.min, v.patch, v.num]
+    .map(i => (isNaN(i) ? 0 : i))
+    .map((i, index) => (index !== 0 && parseInt(i) < 10) ? ('0' + i) : i)
+    .join('');
+}
+
+function computeIOSVersionName(version) {
+  const v = parseVersion(version);
+  return [v.maj, v.min, v.patch] // Valid version is  x.y.z
+    .map(i => (isNaN(i) ? 0 : i))
+    .join('.');
+}
+
+function computeIOSVersionCode(version) {
+  const v = parseVersion(version);
+  // 99 rather 0 to avoid to set alpha, beta, rc greater version number greater than stable
+  v.num = !v.num ? '99' : v.num;
+  return [v.maj, v.min, v.patch, v.num]
+    .map(i => (isNaN(i) ? 0 : i))
     .map((i, index) => (index !== 0 && parseInt(i) < 10) ? ('0' + i) : i)
     .join('');
 }
@@ -122,6 +139,26 @@ function updateAndroidVersion(versionCode, versionName) {
     });
 }
 
+function updateIOSVersion(versionCode, versionName) {
+  const regexpVersionCode = /(^\s+CURRENT_PROJECT_VERSION)\s*=\s*[^;]+;$/;
+  const regexpVersionName = /(^\s+MARKETING_VERSION)\s*=\s*[^;]+;$/;
+  [
+    path.join(PROJECT_DIR, 'ios', 'App', 'App.xcodeproj', 'project.pbxproj'),
+  ].forEach(file => {
+    console.info(`${LOG_PREFIX} update version iOS in ${file}`);
+    utils.replaceTextInFile(file, [
+      {
+        searchValue: regexpVersionCode,
+        replaceValue: `$1 = ${versionCode};`,
+      },
+      {
+        searchValue: regexpVersionName,
+        replaceValue: `$1 = ${versionName};`,
+      }
+    ])
+  });
+}
+
 function updateInstallSh(version) {
   const file = path.join(PROJECT_DIR, 'install.sh');
   console.info(`${LOG_PREFIX} update version in ${file}`);
@@ -152,21 +189,25 @@ async function main() {
 
 
   checkVersion(version);
-  const versionWebext = standardizeVersionForWebExt(version);
-  const versionAndroid = standardizeVersionForAndroid(version);
+  const webExtVersionCode = computeWebExtVersionCode(version);
+  const androidVersionCode = computeAndroidVersionCode(version);
+  const iosVersionCode = computeIOSVersionCode(version);
+  const iosVersionName = computeIOSVersionName(version);
 
   if (options.set) {
     updateVersion(version);
     updateElectronBuilderVersion(version);
-    updateWebExtVersion(versionWebext, version);
-    updateAndroidVersion(versionAndroid, version);
+    updateWebExtVersion(webExtVersionCode, version);
+    updateAndroidVersion(androidVersionCode, version);
+    updateIOSVersion(iosVersionCode, iosVersionName);
     updateInstallSh(version);
   }
 
   console.info(`${LOG_PREFIX} Computed version ${options.set ? 'updated' : 'current'}:`,
     `\n\tstandard : ${version}`,
-    `\n\twebext : ${versionWebext}`,
-    `\n\tandroid : ${versionAndroid}`);
+    `\n\twebext : ${webExtVersionCode}`,
+    `\n\tandroid : ${androidVersionCode}`,
+    `\n\tios : ${iosVersionCode} - ${iosVersionName}`);
 }
 
 main();

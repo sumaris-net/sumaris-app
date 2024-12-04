@@ -81,8 +81,10 @@ variables:
     - ls -artl "${BUILD_CACHE_DIR}"
     - ln -s "${BUILD_CACHE_DIR}/node_modules" node_modules
     # Install Android environment (e.g. will create local.properties)
-    - mkdir -p .local
+    - mkdir -p "${CI_PROJECT_DIR}/.local"
     - npm run android:install
+    - if [[ ! -f "${CI_PROJECT_DIR}/.local/env.sh" ]]; then echo "Missing required environment file at .local/env.sh (should have been created by android:install)"; exit 1; fi
+    - cat .local/env.sh
     - source .local/env.sh
     # Prepare local.properties file
     - echo "--- Preparing Android 'local.properties' file ..."

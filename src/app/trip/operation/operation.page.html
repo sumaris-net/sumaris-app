@@ -15,35 +15,39 @@
   <ion-title [innerHTML]="titleSubject | async"></ion-title>
 
   <ion-buttons slot="end">
-    <!-- New operation -->
-    <ion-button
-      fill="solid"
-      color="tertiary"
-      *ngIf="mobile"
-      hidden-xxs
-      hidden-xs
-      class="ion-margin-end"
-      [disabled]="disabled || vars.loading || vars.saving"
-      (click)="saveAndNew($event)"
-    >
-      <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-      {{ 'TRIP.OPERATION.EDIT.BTN_NEW' | translate }}
-    </ion-button>
+    @if (mobile && !xsMobile) {
+      <!-- New operation -->
+      <ion-button
+        fill="solid"
+        color="tertiary"
+        hidden-xxs
+        class="ion-margin-end"
+        [disabled]="disabled || vars.loading || vars.saving"
+        (click)="saveAndNew($event)"
+      >
+        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+        {{ 'TRIP.OPERATION.EDIT.BTN_NEW' | translate }}
+      </ion-button>
+    }
 
     <!-- last operation (history) -->
-    <ion-button
-      *ngIf="showLastOperations"
-      color="light"
-      fill="outline"
-      hidden-xxs
-      [disabled]="vars.loading || vars.saving"
-      [title]="'TRIP.OPERATION.LAST_OPERATIONS' | translate"
-      [matMenuTriggerFor]="lastOperationsMenu"
-    >
-      {{ 'TRIP.OPERATION.EDIT.BTN_LOG' | translate }}
-      <!--<ion-icon slot="end" name="caret-down-outline"></ion-icon>-->
-      <mat-icon slot="end">expand_more</mat-icon>
-    </ion-button>
+    @if (showLastOperations) {
+      <ion-button
+        color="light"
+        [fill]="xsMobile ? 'clear' : 'outline'"
+        hidden-xxs
+        [disabled]="vars.loading || vars.saving"
+        [title]="'TRIP.OPERATION.LAST_OPERATIONS' | translate"
+        [matMenuTriggerFor]="lastOperationsMenu"
+      >
+        @if (xsMobile) {
+          <mat-icon slot="icon-only">history</mat-icon>
+        } @else {
+          {{ 'TRIP.OPERATION.EDIT.BTN_LOG' | translate }}
+          <mat-icon slot="end">expand_more</mat-icon>
+        }
+      </ion-button>
+    }
 
     <!-- spacer -->
     <div hidden-xxs hidden-xs class="ion-padding-start toolbar-spacer"></div>

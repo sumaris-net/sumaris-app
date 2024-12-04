@@ -226,7 +226,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
             'startDateTime',
             'fishingStartDateTime',
             opts?.maxShootingDurationInHours || OperationValidatorService.DEFAULT_MAX_SHOOTING_DURATION_HOURS,
-            'hour'
+            'hour',
+            { skipIfNoTime: true }
           ),
         ]),
       };
@@ -243,14 +244,16 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
             'fishingEndDateTime',
             'endDateTime',
             opts?.maxShootingDurationInHours || OperationValidatorService.DEFAULT_MAX_SHOOTING_DURATION_HOURS,
-            'hour'
+            'hour',
+            { skipIfNoTime: true }
           ),
           // Check total max duration
           SharedFormGroupValidators.dateMaxDuration(
             'startDateTime',
             'endDateTime',
             opts?.maxTotalDurationInHours || OperationValidatorService.DEFAULT_MAX_TOTAL_DURATION_HOURS,
-            'hour'
+            'hour',
+            { skipIfNoTime: true }
           ),
         ]),
       };
@@ -759,9 +762,9 @@ export class OperationValidators {
 
     const observables = [
       OperationValidators.listenIndividualOnDeck(pmfmForm),
+      OperationValidators.listenIsDeadIndividual(pmfmForm),
       OperationValidators.listenIsTangledIndividual(pmfmForm),
       OperationValidators.listenIsPingerAccessible(pmfmForm),
-      OperationValidators.listenIsDeadIndividual(pmfmForm),
     ].filter(isNotNil);
 
     if (!observables.length) return null;
@@ -796,7 +799,8 @@ export class OperationValidators {
             if (form.enabled) {
               pmfms
                 .filter(
-                  (pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.rankOrder <= isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
+                  (pmfm) =>
+                    (pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.rankOrder <= isTangledPmfm.rankOrder) || pmfm.id === PmfmIds.TAG_ID
                 )
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
@@ -811,9 +815,7 @@ export class OperationValidators {
           } else {
             if (form.enabled) {
               pmfms
-                .filter(
-                  (pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.rankOrder <= isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
-                )
+                .filter((pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder)
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];
                   AppFormUtils.disableControl(control, { onlySelf: true });
@@ -825,7 +827,6 @@ export class OperationValidators {
         })
       );
     }
-    return null;
   }
 
   static listenIsTangledIndividual(event: IPmfmForm): Observable<any> | null {
@@ -881,39 +882,39 @@ export class OperationValidators {
     const isPingerAccessiblePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.PINGER_ACCESSIBLE);
     const isPingerAccessibleControl = isPingerAccessiblePmfm && measFormGroup.controls[isPingerAccessiblePmfm.id];
 
-    if (isPingerAccessibleControl) {
-      return isPingerAccessibleControl.valueChanges.pipe(
-        startWith(isPingerAccessibleControl.value),
-        map((isPingerAccessible) => {
-          if (isPingerAccessible) {
-            if (form.enabled) {
-              pmfms
-                .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
-                .map((pmfm) => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  let required = false;
-                  if (pmfm.required) {
-                    required = true;
-                  }
-                  AppFormUtils.enableControl(control, { onlySelf: true, required: required });
-                });
-              if (markForCheck) markForCheck();
-            }
-          } else {
-            if (form.enabled) {
-              pmfms
-                .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
-                .map((pmfm) => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  AppFormUtils.disableControl(control, { onlySelf: true });
-                });
-              if (markForCheck) markForCheck();
-            }
+    if (!isPingerAccessibleControl) return null; // Skip if missing pmfm
+
+    return isPingerAccessibleControl.valueChanges.pipe(
+      startWith(isPingerAccessibleControl.value),
+      map((isPingerAccessible) => {
+        if (isPingerAccessible) {
+          if (form.enabled) {
+            pmfms
+              .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+              .map((pmfm) => {
+                const control = measFormGroup.controls[pmfm.id];
+                let required = false;
+                if (pmfm.required) {
+                  required = true;
+                }
+                AppFormUtils.enableControl(control, { onlySelf: true, required: required });
+              });
+            if (markForCheck) markForCheck();
           }
-          return null;
-        })
-      );
-    }
+        } else {
+          if (form.enabled) {
+            pmfms
+              .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+              .map((pmfm) => {
+                const control = measFormGroup.controls[pmfm.id];
+                AppFormUtils.disableControl(control, { onlySelf: true });
+              });
+            if (markForCheck) markForCheck();
+          }
+        }
+        return null;
+      })
+    );
   }
 
   static listenIsDeadIndividual(event: IPmfmForm): Observable<any> | null {
@@ -922,8 +923,11 @@ export class OperationValidators {
 
     // Create listener on column 'IS_DEAD' value changes
     const isDeadPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_DEAD);
-    const decompositionStatePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.DECOMPOSITION_STATE);
     const isDeadControl = isDeadPmfm && measFormGroup.controls[isDeadPmfm.id];
+    if (!isDeadControl) return null; // Skip if missing pmfm
+
+    const decompositionStatePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.DECOMPOSITION_STATE);
+    if (!decompositionStatePmfm) return null; // Skip if no decomposition pmfm
 
     if (isDeadControl) {
       return isDeadControl.valueChanges.pipe(

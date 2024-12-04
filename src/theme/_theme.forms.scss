@@ -39,8 +39,8 @@ form.form-container {
       align-items: center;
 
       .mat-form-field-button {
-        --button-padding-end: 2px;
-        --flex-basis: calc(100% / var(--buttons-col-count, 4) - var(--button-padding-end));
+        --button-padding-end: 4px;
+        --flex-basis: calc(100% / var(--buttons-col-count, 4) - var(--button-padding-end, 0px));
         flex: 0 1 var(--flex-basis);
         max-width: calc(min(var(--flex-basis), 150px));
         text-transform: capitalize; // Avoid uppercase text
@@ -48,7 +48,7 @@ form.form-container {
         margin: 0 !important;
         padding-inline-end: var(--button-padding-end) !important;
         padding-bottom: var(--button-padding-end) !important;
-        height: 40px;
+        height: var(--mat-mdc-form-field-height, 40px);
       }
     }
 
@@ -119,6 +119,18 @@ mat-sampling-ratio-field {
     }
     .mat-form-field-label-wrapper {
       left: 19px;
+    }
+  }
+}
+
+
+@media screen and (max-width: #{$screen-xs-max}) {
+
+  .mat-form-field-buttons {
+    --buttons-col-count: 3 !important;
+    ion-button {
+      font-size: 0.855rem;
+      letter-spacing: -0.005rem;
     }
   }
 }

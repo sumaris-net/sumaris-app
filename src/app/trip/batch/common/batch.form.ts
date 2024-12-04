@@ -382,6 +382,7 @@ export class BatchForm<
   }
 
   translateFormPath(path: string, opts?: IFormPathTranslatorOptions): string {
+    opts = { i18nPrefix: this.i18nFieldPrefix, i18nSuffix: this.i18nSuffix, ...opts };
     // Translate specific path
     let fieldName: string;
     switch (path) {
@@ -406,12 +407,12 @@ export class BatchForm<
         break;
     }
     if (fieldName) {
-      const i18nKey = (this.i18nFieldPrefix || 'TRIP.BATCH.EDIT.') + fieldName;
-      return this.translate.instant(i18nKey);
+      const i18nKey = (opts.i18nPrefix || 'TRIP.BATCH.EDIT.') + fieldName;
+      return this.translateContext.instant(i18nKey, opts.i18nSuffix);
     }
 
     // Default translation (pmfms)
-    return super.translateFormPath(path, { pmfms: this._initialPmfms /*give the full list*/ });
+    return super.translateFormPath(path, { ...opts, pmfms: this._initialPmfms /*give the full list*/ });
   }
 
   /* -- protected method -- */

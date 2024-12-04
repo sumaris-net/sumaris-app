@@ -46,7 +46,8 @@ yarn.lock
 resources/android/build/local
 resources/android/icon/
 resources/android/splash/
-resources/ios/
+resources/ios/icon/
+resources/ios/splash/
 
 target/
 /webext/

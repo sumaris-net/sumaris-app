@@ -340,12 +340,14 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       this.showPictures = this.showPictures || isNotEmptyArray(this.data.images);
       this.gallery.value = (this.showPictures && this.data.images) || [];
 
+      // Enable form as soon as possible, this.onReady could disable some controls
+      if (!this.disabled) this.enable();
+
       // Call ready callback
       if (this.onReady) await this.onReady(this);
 
       await this.computeTitle();
     } finally {
-      if (!this.disabled) this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
       this.markForCheck();
