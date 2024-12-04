@@ -756,15 +756,13 @@ export class OperationValidators {
       pmfms.filter((p) => p.isComputed).map((p) => `measurementValues.${p.id}`),
       { onlySelf: true, emitEvent: false }
     );
-    const observables = [OperationValidators.listenIndividualOnDeck(pmfmForm), OperationValidators.listenIsTangledIndividual(pmfmForm)];
 
-    if (pmfms.find((pmfm) => pmfm.id === PmfmIds.PINGER_ACCESSIBLE)) {
-      observables.push(OperationValidators.listenIsPingerAccessible(pmfmForm));
-    }
-    if (pmfms.find((pmfm) => pmfm.id === PmfmIds.DECOMPOSITION_STATE)) {
-      observables.push(OperationValidators.listenIsDeadIndividual(pmfmForm));
-    }
-    observables.filter(isNotNil);
+    const observables = [
+      OperationValidators.listenIndividualOnDeck(pmfmForm),
+      OperationValidators.listenIsDeadIndividual(pmfmForm),
+      OperationValidators.listenIsTangledIndividual(pmfmForm),
+      OperationValidators.listenIsPingerAccessible(pmfmForm),
+    ].filter(isNotNil);
 
     if (!observables.length) return null;
     if (observables.length > 0) {
@@ -881,39 +879,39 @@ export class OperationValidators {
     const isPingerAccessiblePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.PINGER_ACCESSIBLE);
     const isPingerAccessibleControl = isPingerAccessiblePmfm && measFormGroup.controls[isPingerAccessiblePmfm.id];
 
-    if (isPingerAccessibleControl) {
-      return isPingerAccessibleControl.valueChanges.pipe(
-        startWith(isPingerAccessibleControl.value),
-        map((isPingerAccessible) => {
-          if (isPingerAccessible) {
-            if (form.enabled) {
-              pmfms
-                .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
-                .map((pmfm) => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  let required = false;
-                  if (pmfm.required) {
-                    required = true;
-                  }
-                  AppFormUtils.enableControl(control, { onlySelf: true, required: required });
-                });
-              if (markForCheck) markForCheck();
-            }
-          } else {
-            if (form.enabled) {
-              pmfms
-                .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
-                .map((pmfm) => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  AppFormUtils.disableControl(control, { onlySelf: true });
-                });
-              if (markForCheck) markForCheck();
-            }
+    if (!isPingerAccessibleControl) return null; // Skip if missing pmfm
+
+    return isPingerAccessibleControl.valueChanges.pipe(
+      startWith(isPingerAccessibleControl.value),
+      map((isPingerAccessible) => {
+        if (isPingerAccessible) {
+          if (form.enabled) {
+            pmfms
+              .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+              .map((pmfm) => {
+                const control = measFormGroup.controls[pmfm.id];
+                let required = false;
+                if (pmfm.required) {
+                  required = true;
+                }
+                AppFormUtils.enableControl(control, { onlySelf: true, required: required });
+              });
+            if (markForCheck) markForCheck();
           }
-          return null;
-        })
-      );
-    }
+        } else {
+          if (form.enabled) {
+            pmfms
+              .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+              .map((pmfm) => {
+                const control = measFormGroup.controls[pmfm.id];
+                AppFormUtils.disableControl(control, { onlySelf: true });
+              });
+            if (markForCheck) markForCheck();
+          }
+        }
+        return null;
+      })
+    );
   }
 
   static listenIsDeadIndividual(event: IPmfmForm): Observable<any> | null {
@@ -922,8 +920,11 @@ export class OperationValidators {
 
     // Create listener on column 'IS_DEAD' value changes
     const isDeadPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_DEAD);
-    const decompositionStatePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.DECOMPOSITION_STATE);
     const isDeadControl = isDeadPmfm && measFormGroup.controls[isDeadPmfm.id];
+    if (!isDeadControl) return null; // Skip if missing pmfm
+
+    const decompositionStatePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.DECOMPOSITION_STATE);
+    if (!decompositionStatePmfm) return null; // Skip if no decomposition pmfm
 
     if (isDeadControl) {
       return isDeadControl.valueChanges.pipe(
