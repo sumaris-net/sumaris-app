@@ -226,7 +226,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
             'startDateTime',
             'fishingStartDateTime',
             opts?.maxShootingDurationInHours || OperationValidatorService.DEFAULT_MAX_SHOOTING_DURATION_HOURS,
-            'hour'
+            'hour',
+            { skipIfNoTime: true }
           ),
         ]),
       };
@@ -243,14 +244,16 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
             'fishingEndDateTime',
             'endDateTime',
             opts?.maxShootingDurationInHours || OperationValidatorService.DEFAULT_MAX_SHOOTING_DURATION_HOURS,
-            'hour'
+            'hour',
+            { skipIfNoTime: true }
           ),
           // Check total max duration
           SharedFormGroupValidators.dateMaxDuration(
             'startDateTime',
             'endDateTime',
             opts?.maxTotalDurationInHours || OperationValidatorService.DEFAULT_MAX_TOTAL_DURATION_HOURS,
-            'hour'
+            'hour',
+            { skipIfNoTime: true }
           ),
         ]),
       };
