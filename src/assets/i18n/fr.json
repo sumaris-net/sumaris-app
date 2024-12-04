@@ -2568,7 +2568,7 @@
       "TRIP_OPERATION_DISTANCE_MAX_ERROR": "Marée > Opération : Distance max parcourue avant erreur (miles) :",
       "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Marée > Opération : Durée maximale de pose ou relève (heures)",
       "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Marée > Opération : Durée maximale totale (heures)",
-      "TRIP_OPERATION_AUTO_FILL_NEXT_DATE": "Marée > Opération: Recopier le jour de la date suivante",
+      "TRIP_OPERATION_AUTO_FILL_NEXT_DATE": "Marée > Opération: Propagation du jour à la date suivante",
       "TRIP_OPERATION_COPY_TRIP_DATE": "Marée > Opération : Initialiser les dates avec celles de la marée ?",
       "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée > Opération : Zone de pêche: Niveau(x) de lieu",
       "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Marée > Opération : Espèce cible: Niveau(x)",
