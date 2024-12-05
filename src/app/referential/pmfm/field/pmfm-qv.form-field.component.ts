@@ -42,6 +42,7 @@ import {
   SharedValidators,
   sort,
   StatusIds,
+  SuggestFn,
   suggestFromArray,
   toBoolean,
   toNumber,
@@ -49,7 +50,6 @@ import {
 import { PmfmIds } from '../../services/model/model.enum';
 import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
 import { IonButton } from '@ionic/angular';
-import { SuggestFn } from '../../../../../ngx-sumaris-components/src/app/shared/services/entity-service.class';
 
 export declare type PmfmQvFormFieldStyle = 'autocomplete' | 'select' | 'button';
 

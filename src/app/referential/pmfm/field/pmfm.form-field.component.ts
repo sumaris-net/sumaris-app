@@ -41,6 +41,7 @@ import {
   LocalSettingsService,
   MatDateTime,
   setTabIndex,
+  SuggestFn,
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -54,7 +55,6 @@ import { RxState } from '@rx-angular/state';
 import { filter, map } from 'rxjs/operators';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { MatIconButton } from '@angular/material/button';
-import { SuggestFn } from '../../../../../ngx-sumaris-components/src/app/shared/services/entity-service.class';
 
 const noop = () => {};
 
