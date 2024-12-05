@@ -1,7 +1,7 @@
 /* -- Extraction -- */
 
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
-import { DirectSurveyInvestigationEnum } from '@app/activity-calendar/model/activity-calendar.model';
+import { DirectSurveyInvestigationIndexedExtrationCode } from '@app/activity-calendar/model/activity-calendar.model';
 import { arraySize, isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 import {
   CRITERION_OPERATOR_LIST,
@@ -302,7 +302,7 @@ export class ExtractionUtils {
         sheetName: 'AC',
         name: 'direct_survey_investigation',
         operator: '=',
-        value: Object.entries(DirectSurveyInvestigationEnum).find((entry) => entry[1] === source.directSurveyInvestigation)[0],
+        value: DirectSurveyInvestigationIndexedExtrationCode[source.directSurveyInvestigation],
       });
     }
 

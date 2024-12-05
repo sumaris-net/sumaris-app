@@ -27,6 +27,8 @@ export const DirectSurveyInvestigationEnum = {
   OPPORTUNISTIC: 2,
 };
 
+export const DirectSurveyInvestigationIndexedExtrationCode = ['N', 'Y', 'O'];
+
 export const DirectSurveyInvestigationList: Readonly<IStatus[]> = Object.freeze([
   {
     id: DirectSurveyInvestigationEnum.YES,
