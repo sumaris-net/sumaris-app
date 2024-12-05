@@ -1173,7 +1173,8 @@
         },
         "INDIVIDUAL_COUNT": {
           "TITLE": "Dénombrement",
-          "SORT_CRITERIA": "Critère de classement",
+          "SORT_CRITERIA_NUMERIC": "Critère de classement numérique",
+          "SORT_CRITERIA_QUALITATIVE": "Critère de classement qualitatif",
           "MIN_DESCRIPTION": "Valeur minimum",
           "MAX_DESCRIPTION": "Valeur maximum",
           "MIN": "Minimum",
