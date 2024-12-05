@@ -146,19 +146,21 @@
           </mat-option>
 
           <!-- options -->
-          <mat-option *ngFor="let item of sortedQualitativeValues" [value]="item" class="ion-no-padding">
-            <ion-row class="ion-no-padding">
-              <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
-                <ng-container *ngSwitchCase="'label'">
-                  <ion-col *ngIf="compact" size="3">{{ item.label }}</ion-col>
-                  <ion-col *ngIf="!compact" size="3" size-lg="2">{{ item.label }}</ion-col>
+          @for (item of sortedQualitativeValues; track item.id) {
+            <mat-option [value]="item" class="ion-no-padding">
+              <ion-row class="ion-no-padding">
+                <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
+                  <ng-container *ngSwitchCase="'label'">
+                    <ion-col *ngIf="compact" size="3">{{ item.label }}</ion-col>
+                    <ion-col *ngIf="!compact" size="3" size-lg="2">{{ item.label }}</ion-col>
+                  </ng-container>
+                  <ion-col *ngSwitchCase="'name'">
+                    <ion-label>{{ item.name }}</ion-label>
+                  </ion-col>
                 </ng-container>
-                <ion-col *ngSwitchCase="'name'">
-                  <ion-label>{{ item.name }}</ion-label>
-                </ion-col>
-              </ng-container>
-            </ion-row>
-          </mat-option>
+              </ion-row>
+            </mat-option>
+          }
         </mat-select>
 
         <div matSuffix>
