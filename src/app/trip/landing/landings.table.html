@@ -357,7 +357,7 @@
             [formControl]="row.validator | formGetControl: ['measurementValues', pmfm.id]"
             [compact]="pmfm?.type === 'boolean'"
             [autofocus]="focusColumn == pmfm.id"
-            [excludedQualitativeValuesIds]="excludedTaxonGroups"
+            [suggestFn]="pmfm.id === pmfmIdsMap.TAXON_GROUP_ID ? suggestTaxonGroupsFn : null"
             panelClass="mat-select-panel-fit-content"
           ></app-pmfm-field>
         } @else if (mobile) {

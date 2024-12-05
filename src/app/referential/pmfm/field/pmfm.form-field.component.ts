@@ -39,6 +39,7 @@ import {
   LocalSettingsService,
   MatDateTime,
   setTabIndex,
+  SuggestFn,
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -155,7 +156,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input({ transform: booleanAttribute }) disableRipple = false;
   @Input() panelClass: string;
   @Input() panelWidth: string;
-  @Input() excludedQualitativeValuesIds: number[];
+  @Input() suggestFn: SuggestFn<any, any>;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input({ transform: booleanAttribute }) listenStatusChanges = false;

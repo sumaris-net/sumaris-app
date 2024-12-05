@@ -31,6 +31,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  LoadResult,
   LocalSettingsService,
   ReferentialRef,
   referentialToString,
@@ -112,7 +113,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input({ transform: booleanAttribute }) disableRipple = false;
   @Input() panelClass: string;
   @Input() panelWidth: string;
-  @Input() excludedQualitativeValuesIds: number[];
+  @Input() suggestFn: (value: any, filter?: any) => LoadResult<IReferentialRef>;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -178,9 +179,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
     this._qualitativeValues = qualitativeValues
       // Exclude disabled values
-      .filter((qv) => qv.statusId !== StatusIds.DISABLE)
-      // Exclude additional values
-      .filter((qv) => !this.excludedQualitativeValuesIds?.includes(qv.id));
+      .filter((qv) => qv.statusId !== StatusIds.DISABLE);
 
     this.required = toBoolean(this.required, this.pmfm.required || false);
 
@@ -216,16 +215,12 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         this._items$ = merge(
           this.onShowDropdown.pipe(
             filter((event) => !event.defaultPrevented),
-            map((_) => this._sortedQualitativeValues.filter((qv) => !this.excludedQualitativeValuesIds?.includes(qv.id)))
+            map((_) => this.suggest('*')),
+            map((res) => res && res.data)
           ),
           this.formControl.valueChanges.pipe(
             filter(ReferentialUtils.isEmpty),
-            map((value) =>
-              suggestFromArray(this._sortedQualitativeValues, value, {
-                searchAttributes: this.searchAttributes,
-                excludedIds: this.excludedQualitativeValuesIds,
-              })
-            ),
+            map((value) => this.suggest(value, { searchAttributes: this.searchAttributes })),
             map((res) => res && res.data),
             tap((items) => this.updateImplicitValue(items))
           )
@@ -428,6 +423,13 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       this.markForCheck();
       this._onTouchedCallback();
     }
+  }
+
+  private suggest(value: any, filter?: any) {
+    if (typeof this.suggestFn === 'function') {
+      return this.suggestFn(value, filter);
+    }
+    return suggestFromArray(this._sortedQualitativeValues, value, filter);
   }
 
   protected markForCheck() {
