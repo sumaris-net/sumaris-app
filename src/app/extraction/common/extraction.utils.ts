@@ -1,5 +1,7 @@
 /* -- Extraction -- */
 
+import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
+import { DirectSurveyInvestigationMap } from '@app/activity-calendar/model/activity-calendar.model';
 import { arraySize, isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 import {
   CRITERION_OPERATOR_LIST,
@@ -8,7 +10,6 @@ import {
   ExtractionFilterCriterion,
   ExtractionType,
 } from '../type/extraction-type.model';
-import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 
 export const SPATIAL_COLUMNS: string[] = [
   //'area', FIXME no area geometries in Pod
@@ -301,7 +302,7 @@ export class ExtractionUtils {
         sheetName: 'AC',
         name: 'direct_survey_investigation',
         operator: '=',
-        value: source.directSurveyInvestigation ? 'Y' : 'N',
+        value: DirectSurveyInvestigationMap[source.directSurveyInvestigation].extractionLabel,
       });
     }
 
