@@ -138,24 +138,27 @@
 
           <div class="toolbar-spacer"></div>
 
-          <!-- Reset filter -->
-          <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
-            <mat-icon color="accent">filter_list_alt</mat-icon>
-            <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
-          </button>
+          <!-- Hide filter for demo  -->
+          @if (showFilterForm) {
+            <!-- Reset filter -->
+            <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
+              <mat-icon color="accent">filter_list_alt</mat-icon>
+              <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold">close</mat-icon>
+            </button>
 
-          <!-- Show filter -->
-          <button mat-icon-button (click)="filterExpansionPanel.toggle()">
-            <mat-icon
-              [matBadge]="filterCriteriaCount"
-              [matBadgeHidden]="filterIsEmpty"
-              matBadgeColor="accent"
-              matBadgeSize="small"
-              matBadgePosition="above after"
-            >
-              filter_list_alt
-            </mat-icon>
-          </button>
+            <!-- Show filter -->
+            <button mat-icon-button (click)="filterExpansionPanel.toggle()">
+              <mat-icon
+                [matBadge]="filterCriteriaCount"
+                [matBadgeHidden]="filterIsEmpty"
+                matBadgeColor="accent"
+                matBadgeSize="small"
+                matBadgePosition="above after"
+              >
+                filter_list_alt
+              </mat-icon>
+            </button>
+          }
         </mat-toolbar>
 
         <mat-expansion-panel
