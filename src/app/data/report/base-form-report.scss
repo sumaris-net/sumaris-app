@@ -85,14 +85,7 @@ html.print-pdf .reveal .slides section {
       flex: 0 0 auto;
 
       &.report-section {
-        margin: 0 var(--page-left-right-margin);
-      }
-
-      &.report-footer {
-        margin-top: auto;
-        margin-bottom: var(--margin-bottom);
-        margin-left: var(--page-left-right-margin);
-        margin-right: var(--page-left-right-margin);
+        margin: 0 var(--page-horizontal-margin);
       }
 
       ion-row {
@@ -217,8 +210,8 @@ html.print-pdf .reveal .slides section {
 
       &.report-header {
         margin-top: var(--margin-top);
-        margin-left: var(--page-left-right-margin);
-        margin-right: var(--page-left-right-margin);
+        margin-left: var(--page-horizontal-margin);
+        margin-right: var(--page-horizontal-margin);
         height: var(--header-height);
         padding-bottom: 0;
         display: flex;

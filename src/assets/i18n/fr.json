@@ -1514,7 +1514,7 @@
         },
         "TRIP": {
           "TITLE": "Fiche sortie en mer",
-          "HELP": "Rappel : Les informations et données relatives au programme ObsMer sont confidentielles et ne sauraient de quelque manière que ce soit être communiquées à des tiers.",
+          "HELP": "<strong>Rappel :</strong> Les informations et données relatives au programme {{ program }} sont confidentielles et ne sauraient de quelque manière que ce soit être communiquées à des tiers.",
           "LINK_WITH_THE_SAMPLING_PLAN": "Liaison avec le plan d’échantillonnage (voir le site web WAO)",
           "OBSERVERS": "Observateur(s)",
           "TRIP_DEPARTURE": "Départ de la marée",

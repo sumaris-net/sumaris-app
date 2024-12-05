@@ -6,6 +6,6 @@ import { Component, Input } from '@angular/core';
   styleUrls: ['./page-footer-form.report-chunk.scss', '../../base-form-report.scss'],
 })
 export class PageFooterReportChunk {
-  @Input() help: string;
+  @Input() helpText: string;
   @Input() footerText: string;
 }

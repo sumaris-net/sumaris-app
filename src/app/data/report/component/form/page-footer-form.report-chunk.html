@@ -1,9 +1,7 @@
 <ion-grid class="report-footer ion-no-padding">
-  @if (help | isNotNilOrBlank) {
+  @if (helpText | isNotNilOrBlank) {
     <ion-row class="footer-help">
-      <ion-col>
-        {{ help | translate }}
-      </ion-col>
+      <ion-col [innerHTML]="helpText"></ion-col>
     </ion-row>
   }
   <ion-row class="footer-text">

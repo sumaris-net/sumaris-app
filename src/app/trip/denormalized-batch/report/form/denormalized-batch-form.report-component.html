@@ -28,7 +28,7 @@
                   </ion-row>
                 </ion-grid>
                 <ng-component *ngTemplateOutlet="batchesTable; context: { batches: batchesChunk, opId: opId }"></ng-component>
-                <page-footer-from-report-chunk [footerText]="footerText" [help]="footerHelp"></page-footer-from-report-chunk>
+                <page-footer-from-report-chunk [footerText]="footerText" [helpText]="footerHelp"></page-footer-from-report-chunk>
               </section>
             }
           }
@@ -81,7 +81,7 @@
                 <ng-component
                   *ngTemplateOutlet="batchesTable; context: { batches: batchesChunk, opId: opId, isLastBatchesChunk: isLastBatchesChunk }"
                 ></ng-component>
-                <page-footer-from-report-chunk [footerText]="footerText" [help]="footerHelp"></page-footer-from-report-chunk>
+                <page-footer-from-report-chunk [footerText]="footerText" [helpText]="footerHelp"></page-footer-from-report-chunk>
               </section>
             }
           }

@@ -339,7 +339,10 @@
           </ion-row>
         </ion-grid>
 
-        <page-footer-from-report-chunk [footerText]="stats.footerText" [help]="'TRIP.REPORT.FORM.TRIP.HELP'"></page-footer-from-report-chunk>
+        <page-footer-from-report-chunk
+          [footerText]="stats.footerText"
+          [helpText]="'TRIP.REPORT.FORM.TRIP.HELP' | translate: { program: stats.program.label | lowercase | capitalize }"
+        ></page-footer-from-report-chunk>
       </section>
 
       <!-- Operations table -->

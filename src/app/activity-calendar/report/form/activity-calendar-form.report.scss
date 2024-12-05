@@ -1,5 +1,5 @@
 .slides {
-  --page-left-right-margin: 25px !important;
+  --page-horizontal-margin: 25px !important;
   section {
     ion-grid {
       ion-row {
@@ -18,8 +18,8 @@
       &.month-table {
         --row-title-height: var(--month-table-title-row-height);
         --row-height: var(--month-table-row-height);
-        min-width: calc(100% - (var(--page-left-right-margin) * 2));
-        max-width: calc(100% - (var(--page-left-right-margin) * 2));
+        min-width: calc(100% - (var(--page-horizontal-margin) * 2));
+        max-width: calc(100% - (var(--page-horizontal-margin) * 2));
         --col-width-label: 100px;
         --col-width: calc((1136px - 100px) / 12);
         tbody,

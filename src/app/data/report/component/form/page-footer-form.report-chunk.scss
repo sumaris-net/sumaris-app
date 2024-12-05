@@ -4,13 +4,14 @@
 
 ion-grid {
   &.report-footer {
-    margin: 20px var(--page-left-right-margin);
+    margin: 20px var(--page-horizontal-margin);
     margin-top: 0;
     flex: 1 1 auto;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     flex-direction: column;
+    text-align: center;
     ion-row {
       &.footer-text {
         width: 100%;
