@@ -182,6 +182,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() defaultIsIndividualCountOnly: boolean;
   @Input() animationDuration = 1500; // 1.5s
   @Input() floatLabel: AppFloatLabelType = 'auto';
+  @Input() showFilterForm: boolean = false;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -239,6 +240,16 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     if (this.disabled) {
       this.showForm = false;
       this.disable();
+    }
+
+    if (!this.showFilterForm) {
+      this.registerSubscription(
+        this.modalForm.get('showSubBatchForm').valueChanges.subscribe((value) => {
+          if (value) {
+            this.resetFilter();
+          }
+        })
+      );
     }
 
     super.ngOnInit();
@@ -749,64 +760,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       this.markAsLoaded();
     }
   }
-
-  // async openSortingCriteriaModal() {
-  //   let sortcriteriaPmfms = await this.loadFilteredPmfms();
-  //   if (isEmptyArray(this.pmfms)) sortcriteriaPmfms = [];
-
-  //   const modal = await this.modalCtrl.create({
-  //     component: SubSortingCriteriaForm,
-  //     backdropDismiss: false,
-  //     cssClass: 'modal-small',
-  //     componentProps: {
-  //       parentGroup: this.parentGroup,
-  //       programLabel: this.programLabel,
-  //       sortcriteriaPmfms: sortcriteriaPmfms,
-  //       denormalizedPmfmStrategy: this.pmfms,
-  //     },
-  //   });
-
-  //   // add backdrop opacity to modal
-  //   modal.style.setProperty('--backdrop-opacity', '0.4');
-  //   // Open the modal
-  //   await modal.present();
-
-  //   const { data } = await modal.onDidDismiss();
-  //   if (data) {
-  //     // Create subbatches
-  //     const subBatchesToAdd = [];
-  //     let rankOrder = await this.getMaxRankOrder();
-
-  //     for (let size = data.min; size <= data.max; size += data.precision) {
-  //       const subBatch = new SubBatch();
-  //       subBatch.individualCount = 0;
-  //       subBatch.taxonName = data.taxonName;
-  //       subBatch.measurementValues[data.criteriaPmfm.id] = size;
-  //       subBatch.rankOrder = ++rankOrder;
-  //       subBatchesToAdd.push(subBatch);
-  //     }
-
-  //     await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
-
-  //     if (isNotNil(data.qvPmfm)) {
-  //       this.generateDynamicColumns(data.qvPmfm);
-  //     }
-
-  //     // Only show added entities
-  //     const filter = new SubBatchFilter();
-  //     filter.numericalMinValue = data.min;
-  //     filter.numericalMaxValue = data.max;
-  //     filter.numericalPmfm = data.criteriaPmfm;
-  //     filter.taxonNameId = data.taxonName.id;
-
-  //     const formValue = { minValue: data.min, maxValue: data.max, taxonNameFilter: data.taxonName };
-  //     this.filterForm.patchValue(formValue);
-
-  //     this.setFilter(filter);
-  //   }
-
-  //   return data;
-  // }
 
   protected toggleIndividualCount() {
     this.showIndividualCount = !this.showIndividualCount;
