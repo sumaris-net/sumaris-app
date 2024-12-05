@@ -132,6 +132,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected virtualPmfms: DenormalizedPmfmStrategy[];
   protected pmfmsFiltered: IPmfm[];
   protected footerValues: { [key: string]: number } = {};
+  isAlreadyIndividualCount: boolean = true;
   canShowEnumeration: boolean = true;
 
   get selectedRow(): TableElement<SubBatch> {
@@ -943,13 +944,16 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     // Add/remove rows depending on virtual columns presence
     const formIsEmpty = AppSharedFormUtils.isEmptyForm(this.filterForm);
-    if (show && !formIsEmpty) {
-      const data = this.dataSource.getRows();
-      const groupedData = this.groupByProperty(data, PmfmIds.LENGTH_TOTAL_CM.toString());
-      await this.concatRows(groupedData);
-    } else if (!show) {
-      await this.splitRows();
+    if (this.isAlreadyIndividualCount !== show) {
+      if (show && !formIsEmpty) {
+        const data = this.dataSource.getRows();
+        const groupedData = this.groupByProperty(data, PmfmIds.LENGTH_TOTAL_CM.toString());
+        await this.concatRows(groupedData);
+      } else if (!show) {
+        await this.splitRows();
+      }
     }
+    this.isAlreadyIndividualCount = show;
   }
 
   private groupByProperty(objects: TableElement<SubBatch>[], property: string): TableElement<SubBatch>[][] {

@@ -15,7 +15,7 @@
       <ion-col>
         <app-form-field
           formControlName="criteriaPmfm"
-          [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA' | translate"
+          [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA_NUMERIC' | translate"
           [definition]="fieldDefinitions.criteriaPmfm"
           [clearable]="true"
           [required]="true"
@@ -78,15 +78,11 @@
     <mat-divider class="ion-padding-bottom"></mat-divider>
     <ion-row>
       <ion-col>
-        <mat-checkbox formControlName="useOptionalCriteria">Ajouter un critère ?</mat-checkbox>
-      </ion-col>
-      <ion-col>
         <app-form-field
           formControlName="qvPmfm"
-          [placeholder]="'Pmfm qualitatif (optionnel)'"
+          [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA_QUALITATIVE' | translate"
           [definition]="fieldDefinitions.qvPmfm"
           [clearable]="true"
-          [readonly]="!(form | formGetValue: 'useOptionalCriteria')"
         ></app-form-field>
       </ion-col>
     </ion-row>
