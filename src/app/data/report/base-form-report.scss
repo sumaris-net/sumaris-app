@@ -99,14 +99,17 @@ html.print-pdf .reveal .slides section {
             text-align: center;
             margin: 0;
           }
+          h1 {
+            font-size: 28px;
+          }
+          h2 {
+            font-size: 16px;
+          }
 
-          & > ion-col {
+          & > ion-col.logo {
             display: flex;
             justify-content: center;
             align-items: center;
-            &.title-and-subtitle {
-              flex-direction: column;
-            }
           }
         }
 

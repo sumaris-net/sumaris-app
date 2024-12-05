@@ -1,12 +1,10 @@
 ion-grid {
   &.report-header {
-    padding: var(--ion-padding);
     height: var(--header-height);
-    padding-bottom: 0;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
-    width: 100%;
+    width: calc(100% - (var(--page-horizontal-margin) * 2));
     ion-row {
       align-items: center;
       justify-content: space-between;
