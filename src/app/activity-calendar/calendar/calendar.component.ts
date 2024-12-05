@@ -2010,15 +2010,7 @@ export class CalendarComponent
 
     const isActive = form.get('isActive').value;
 
-    opts = {
-      required: false,
-      withMetier: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
-      withFishingAreas: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
-      metierCount: this.metierCount,
-      fishingAreaCount: this.maxFishingAreaCount,
-      isOnFieldMode: this.isOnFieldMode,
-      ...opts,
-    };
+    opts = this.fillValidatorOptions(isActive, opts);
 
     if (this.debug) console.debug(this.logPrefix + 'Updating row form...', opts);
     if (this.error) this.resetError();
@@ -2027,6 +2019,20 @@ export class CalendarComponent
     if (opts?.listenChanges !== false) {
       this.startListenRow(form);
     }
+  }
+
+  protected fillValidatorOptions(isActive: number, opts?: ActivityMonthValidatorOptions): ActivityMonthValidatorOptions {
+    return {
+      required: false,
+      pmfms: this.pmfms,
+      withMeasurements: isActive === VesselUseFeaturesIsActiveEnum.ACTIVE,
+      withMetier: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
+      withFishingAreas: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
+      metierCount: this.metierCount,
+      fishingAreaCount: this.maxFishingAreaCount,
+      isOnFieldMode: this.isOnFieldMode,
+      ...opts,
+    };
   }
 
   protected startListenRow(form: UntypedFormGroup) {
@@ -2063,10 +2069,10 @@ export class CalendarComponent
             this.markAsDirty();
           }
 
-          // TODO BLA: Morgan, pourquoi cet update ici ? Peux tu commenter ce que tu cherches à corriger ?
-          // Car normalement, c'est ActivityMonthValidators.startListenChanges() qui lance déjà le updateFormGroup()
+          // Force to update the form group, when enabling row and isActive
           if (isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE && form.status !== 'DISABLED') {
-            this.validatorService.updateFormGroup(form);
+            const opts = this.fillValidatorOptions(isActiveControl.value);
+            this.validatorService.updateFormGroup(form, opts);
           }
         })
     );

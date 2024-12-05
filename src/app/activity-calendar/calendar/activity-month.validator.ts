@@ -158,20 +158,36 @@ export class ActivityMonthValidatorService<
     form[FORM_VALIDATOR_OPTIONS_PROPERTY] = opts;
 
     const enabled = form.enabled;
-    const isActive = form.get('isActive').value;
+    const isActiveControl = form.get('isActive');
+    const isActive = isActiveControl.value;
 
-    //Clear qualification comments
+    // Clear qualification comments
     const qualificationComments = form.get('qualificationComments') as UntypedFormControl;
     if (qualificationComments.value) {
       qualificationComments.setValue(null, { emitEvent: false });
     }
 
     // Is active
-    const isActiveControl = form.get('isActive');
     if (opts.required && !isActiveControl.hasValidator(Validators.required)) {
       isActiveControl.addValidators(Validators.required);
     } else if (!opts.required && isActiveControl.hasValidator(Validators.required)) {
       isActiveControl.removeValidators(Validators.required);
+    }
+
+    // Measurement values
+    let measurementValuesForm = form.get('measurementValues');
+    if (opts.withMeasurements && isNotEmptyArray(opts.pmfms)) {
+      if (!measurementValuesForm) {
+        measurementValuesForm = this.getMeasurementValuesForm(null, {
+          pmfms: opts.pmfms,
+          forceOptional: opts.isOnFieldMode,
+          withTypename: opts.withMeasurementTypename,
+        });
+        form.addControl('measurementValues', measurementValuesForm);
+      }
+      const measurementValuesEnabled = enabled && isActive === VesselUseFeaturesIsActiveEnum.ACTIVE;
+      if (measurementValuesEnabled && !measurementValuesForm.enabled) measurementValuesForm.enable({ onlySelf: true });
+      else if (!measurementValuesEnabled && measurementValuesForm.enabled) measurementValuesForm.disable({ onlySelf: true });
     }
 
     let gufArray = form.get('gearUseFeatures') as AppFormArray<GearUseFeatures, UntypedFormGroup>;
