@@ -54,7 +54,6 @@ import { SaleContextService } from './sale-context.service';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
 import { ContextService } from '@app/shared/context.service';
-import { TripContextService } from '@app/trip/trip-context.service';
 
 export class SaleEditorOptions extends RootDataEditorOptions {}
 
@@ -589,9 +588,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       // Load default taxon group (if exists in parent landing)
       const landingTaxonGroupId = landing && toNumber(landing.measurementValues?.[PmfmIds.TAXON_GROUP_ID]);
       if (isNotNil(landingTaxonGroupId)) {
-        const landingTaxonGroup = await this.taxonGroupRefService.load(landingTaxonGroupId, { fetchPolicy: 'cache-first' });
-        console.log('TODO landingTaxonGroup=', landingTaxonGroup);
-        this.defaultTaxonGroup = landingTaxonGroup;
+        this.defaultTaxonGroup = await this.taxonGroupRefService.load(landingTaxonGroupId, { fetchPolicy: 'cache-first' });
       }
     }
 

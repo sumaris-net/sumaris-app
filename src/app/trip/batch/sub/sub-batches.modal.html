@@ -8,29 +8,48 @@
 >
   <ion-buttons slot="end">
     <!-- bluetooth ichthyometer icon -->
-    <app-ichthyometer-icon *ngIf="showBluetoothIcon"></app-ichthyometer-icon>
+    @if (showBluetoothIcon) {
+      <app-ichthyometer-icon></app-ichthyometer-icon>
+    }
 
     <!-- options menu -->
-    <ion-button *ngIf="canDebug" [disabled]="disabled || loading" [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.BTN_OPTIONS' | translate">
-      <mat-icon slot="icon-only">more_vert</mat-icon>
-    </ion-button>
+    @if (mobile && canDebug) {
+      <ion-button [disabled]="disabled || loading" [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">
+        <mat-icon slot="icon-only">more_vert</mat-icon>
+      </ion-button>
+    }
   </ion-buttons>
 </app-modal-toolbar>
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
   <ng-template matMenuContent>
-    <button mat-menu-item (click)="toggleIndividualCount()">
-      <mat-icon *ngIf="showIndividualCount">check_box</mat-icon>
-      <mat-icon *ngIf="!showIndividualCount">check_box_outline_blank</mat-icon>
-      <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
-    </button>
+    @if (mobile) {
+      <button mat-menu-item (click)="toggleIndividualCount()">
+        <mat-icon>{{ showIndividualCount ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+        <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
+      </button>
+    }
+
+    <!-- Compact mode -->
+    @if (!mobile) {
+      <button mat-menu-item (click)="toggleCompactMode()">
+        <mat-icon *ngIf="compact; else disabledIcon">check_box</mat-icon>
+        <ng-template #disabledIcon>
+          <mat-icon>check_box_outline_blank</mat-icon>
+        </ng-template>
+        <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
+      </button>
+    }
+
     <!-- DEV only -->
-    <button mat-menu-item (click)="devToggleDebug()">
-      <mat-icon *ngIf="debug">check_box</mat-icon>
-      <mat-icon *ngIf="!debug">check_box_outline_blank</mat-icon>
-      <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
-    </button>
+    @if (canDebug) {
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="devToggleDebug()">
+        <mat-icon>{{ debug ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+        <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
+      </button>
+    }
   </ng-template>
 </mat-menu>
 
@@ -57,29 +76,26 @@
     <ion-row>
       <ion-col size="12" push="" [sizeMd]="4" [pushMd]="8" [sizeLg]="3" [pushLg]="9" class="ion-col-form" [class.mobile]="mobile" class="ion-padding">
         <!-- error -->
-        <ion-item *ngIf="form.error; let error" lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-        </ion-item>
-        @if (canShowEnumeration && !mobile) {
+        <app-error-item [message]="form.errorSubject | async"></app-error-item>
+
+        @if (canShowEnumeration) {
           <form class="form-container" [formGroup]="modalForm">
             <mat-boolean-field
               [formControl]="showSubBatchFormControl"
+              floatLabel="always"
               [style]="mobile ? 'button' : 'radio'"
               [yesLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_MEASURE' | translate"
               [noLabel]="'TRIP.BATCH.EDIT.IS_INDIVIDUAL_COUNT' | translate"
-              [floatLabel]="'always'"
               [showButtonIcons]="false"
             ></mat-boolean-field>
           </form>
         }
-        @if (pmfmsFiltered?.length > 0 && pmfms?.length > 0) {
+        @if (pmfmsFiltered | isNotEmptyArray) {
           <app-sub-sorting-criteria-form
-            [class.cdk-visually-hidden]="!showIndividualCountOnly"
             [parentGroup]="parentGroup"
-            [pmfmDenormalized]="pmfms || []"
+            [class.cdk-visually-hidden]="!showIndividualCountOnly"
+            [pmfmsFiltered]="pmfmsFiltered"
             [programLabel]="programLabel"
-            [pmfmsFiltered]="pmfmsFiltered || []"
             (onSubmit)="generateSubBatchesFromRange($event)"
           ></app-sub-sorting-criteria-form>
         }
@@ -103,6 +119,7 @@
           [isNew]="!selectedRow"
           [tabindex]="1"
           [maxVisibleButtons]="maxVisibleButtons"
+          [buttonsColCount]="buttonsColCount"
           [maxItemCountForButtons]="maxItemCountForButtons"
           [i18nSuffix]="i18nColumnSuffix"
           [mobile]="mobile"
@@ -139,7 +156,7 @@
           <div class="toolbar-spacer"></div>
 
           <!-- Hide filter for demo  -->
-          @if (showFilterForm) {
+          @if (showFilterForm && !showIndividualCountOnly) {
             <!-- Reset filter -->
             <button mat-icon-button (click)="resetFilter()" *ngIf="filterCriteriaCount">
               <mat-icon color="accent">filter_list_alt</mat-icon>
@@ -161,59 +178,60 @@
           }
         </mat-toolbar>
 
-        <mat-expansion-panel
-          #filterExpansionPanel
-          class="filter-panel"
-          [class.ion-no-padding]="mobile"
-          [class.filter-panel-floating]="filterPanelFloating"
-        >
-          <form class="form-container" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
+        <mat-expansion-panel #filterExpansionPanel class="filter-panel" [class.filter-panel-floating]="filterPanelFloating">
+          <form class="form-container ion-padding" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
             <ion-grid>
-              <!-- pmfm -->
+              <!-- taxon name -->
               <ion-row>
                 <mat-autocomplete-field
-                  panelClass="min-width-large"
-                  [formControl]="filterForm | formGetControl: 'taxonNameFilter'"
+                  [formControl]="filterForm | formGetControl: 'taxonName'"
                   [autofocus]="focusColumn === 'taxonName'"
                   [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME' | translate"
                   [config]="autocompleteFields.taxonName"
+                  panelClass="min-width-large"
                 ></mat-autocomplete-field>
               </ion-row>
 
-              <!-- Critère de classement-->
               <ion-row>
-                <ion-col>
+                @let pmfm = filterForm | formGetValue: 'pmfm';
+                @let isNumericalPmfm = pmfm | isNumericalPmfm;
+                @let unitLabel = pmfm?.unitLabel;
+
+                <!-- Pmfm criteria -->
+                <ion-col size="12" sizeLg="6">
                   <app-form-field
-                    [formControl]="filterForm | formGetControl: 'criteriaPmfm'"
-                    [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA' | translate"
-                    [definition]="criteriaPmfmDefinition"
+                    [formControl]="filterForm | formGetControl: 'pmfm'"
+                    [definition]="pmfmFilterDefinition"
                     [clearable]="true"
                   ></app-form-field>
                 </ion-col>
-              </ion-row>
 
-              <!-- Min / Max -->
-              <ion-row>
-                <ion-col>
-                  <mat-form-field>
-                    <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN' | translate }}</mat-label>
+                <!-- Min -->
+                <ion-col size="6" sizeLg="3">
+                  <mat-form-field [class.mat-form-field-disabled]="!isNumericalPmfm">
+                    @if (unitLabel) {
+                      <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN' | translate: { unit: unitLabel } }}</mat-label>
+                    }
                     <input
                       matInput
                       type="number"
                       [formControl]="filterForm | formGetControl: 'minValue'"
-                      [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN_DESCRIPTION' | translate"
+                      [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN_PLACEHOLDER' | translate"
                     />
                   </mat-form-field>
                 </ion-col>
 
-                <ion-col>
-                  <mat-form-field>
-                    <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX' | translate }}</mat-label>
+                <!-- Max -->
+                <ion-col size="6" sizeLg="3">
+                  <mat-form-field [class.mat-form-field-disabled]="!isNumericalPmfm">
+                    @if (unitLabel) {
+                      <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX' | translate: { unit: unitLabel } }}</mat-label>
+                    }
                     <input
                       matInput
                       type="number"
                       [formControl]="filterForm | formGetControl: 'maxValue'"
-                      [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX_DESCRIPTION' | translate"
+                      [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX_PLACEHOLDER' | translate"
                     />
                   </mat-form-field>
                 </ion-col>
@@ -267,7 +285,8 @@
           matSort
           [matSortActive]="defaultSortBy"
           [matSortDirection]="defaultSortDirection"
-          matSortDisableClear
+          matSortDisableClear="true"
+          [class.compact]="compact"
         >
           <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
             <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
@@ -285,14 +304,14 @@
           </ng-container>
 
           <!-- rankOrder Column = id -->
-          <ng-container matColumnDef="id" [sticky]="sticky">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ng-container matColumnDef="id" [sticky]="sticky && !showIdColumn">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!showIdColumn">
               <ion-label>#</ion-label>
             </th>
-            <td mat-cell *matCellDef="let row">
+            <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showIdColumn">
               <ion-label>{{ row.currentData.rankOrder }}</ion-label>
             </td>
-            <td mat-footer-cell *matFooterCellDef></td>
+            <td mat-footer-cell *matFooterCellDef [class.cdk-visually-hidden]="!showIdColumn"></td>
           </ng-container>
 
           <!-- parent -->
@@ -334,7 +353,7 @@
             </td>
             <td mat-footer-cell *matFooterCellDef class="ion-text-end">
               <ion-text color="primary">
-                <b translate>TRIP.BATCH.TABLE.TOTAL_DOTS</b>
+                <b translate>TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT_DOTS</b>
                 &nbsp;
               </ion-text>
             </td>

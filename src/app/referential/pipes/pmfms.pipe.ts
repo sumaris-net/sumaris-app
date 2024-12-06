@@ -155,6 +155,16 @@ export class IsDatePmfmPipe implements PipeTransform {
 }
 
 @Pipe({
+  name: 'isNumericalPmfm',
+})
+@Injectable({ providedIn: 'root' })
+export class IsNumericalPmfmPipe implements PipeTransform {
+  transform(pmfm: IPmfm | any): boolean {
+    return (pmfm && PmfmUtils.isNumeric(pmfm)) || false;
+  }
+}
+
+@Pipe({
   name: 'isComputedPmfm',
 })
 @Injectable({ providedIn: 'root' })

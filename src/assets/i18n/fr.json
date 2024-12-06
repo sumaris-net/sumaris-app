@@ -1173,12 +1173,13 @@
         },
         "INDIVIDUAL_COUNT": {
           "TITLE": "Dénombrement",
-          "SORT_CRITERIA_NUMERIC": "Critère de classement numérique",
-          "SORT_CRITERIA_QUALITATIVE": "Critère de classement qualitatif",
-          "MIN_DESCRIPTION": "Valeur minimum",
-          "MAX_DESCRIPTION": "Valeur maximum",
-          "MIN": "Minimum",
-          "MAX": "Maximum"
+          "SORT_CRITERIA_NUMERIC": "Critère numérique",
+          "SORT_CRITERIA_QUALITATIVE": "Critère secondaire (qualitatif)",
+          "MIN": "Min ({{unit}})",
+          "MIN_PLACEHOLDER": "Min",
+          "MAX": "Max ({{unit}})",
+          "MAX_PLACEHOLDER": "Max",
+          "PRECISION": "Précision ({{unit}})"
         }
       },
       "TABLE": {
@@ -1191,6 +1192,7 @@
         "TAXON_NAME": "Espèce scientifique",
         "TAXON_NAME_PLACEHOLDER": "Code espèce",
         "TOTAL_INDIVIDUAL_COUNT": "Nb indiv. total",
+        "TOTAL_INDIVIDUAL_COUNT_DOTS": "Nombre d'individus total :",
         "TOTAL_WEIGHT": "Poids total",
         "SAMPLING_RATIO": "Taux échant.",
         "SAMPLING_COEFFICIENT": "Coef. échant.",
@@ -1203,7 +1205,9 @@
         "COMMENTS": "Commentaires",
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?",
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?",
-        "TOTAL_DOTS": "Nombre d'individus totaux :"
+        "FILTER": {
+          "PMFM_CRITERIA": "Critère de classement"
+        }
       },
       "TREE": {
         "SELECT_PARENT_HELP": "Sélectionner un lot, dans l'arbre ci-contre",
