@@ -945,7 +945,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     // Add/remove rows depending on virtual columns presence
     const formIsEmpty = AppSharedFormUtils.isEmptyForm(this.filterForm);
     if (this.isAlreadyIndividualCount !== show) {
-      if (show && !formIsEmpty) {
+      if (show) {
         const data = this.dataSource.getRows();
         const groupedData = this.groupByProperty(data, PmfmIds.LENGTH_TOTAL_CM.toString());
         await this.concatRows(groupedData);
@@ -979,7 +979,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     for (const group of groupRows) {
       group.forEach((row) => {
         const virtualPmfm = this.virtualPmfms.find((pmfm) => {
-          return pmfm.name === row.currentData.measurementValues[PmfmIds.SEX.toString()].name;
+          return pmfm.name === row.currentData.measurementValues[PmfmIds.SEX.toString()]?.name;
         });
         virtualPmfmValue.push({ virtualPmfm: virtualPmfm, individualCount: row.currentData.individualCount });
         rowsToDelete.push(row);
@@ -991,7 +991,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       newRow.taxonName = group[0].currentData.taxonName;
       newRow.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()] = group[0].currentData.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()];
       virtualPmfmValue.forEach((pmfm) => {
-        newRow.measurementValues[pmfm.virtualPmfm.id.toString()] = pmfm.individualCount;
+        if (pmfm.virtualPmfm) newRow.measurementValues[pmfm.virtualPmfm.id.toString()] = pmfm.individualCount;
       });
 
       newRow.rankOrder = rankOrder++;
