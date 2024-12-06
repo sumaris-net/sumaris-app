@@ -1,0 +1,80 @@
+<ion-card>
+  <!-- vessel -->
+  <ion-item color="light">
+    <!-- avatar -->
+    <ion-icon slot="start" name="boat" />
+
+    <!-- recorder name -->
+    <ion-label>
+      <ion-card-title>
+        <span
+          [innerHTML]="
+            'TRIP.EDIT.TITLE'
+              | translate
+                : {
+                    vessel: value.vesselSnapshot | referentialToString: config.vesselSnapshot?.attributes,
+                    departureDateTime: value.departureDateTime | dateFormat: { pattern: 'ddd D MMM' },
+                  }
+          "
+        ></span>
+        @if (showRecorder) {
+          <ion-card-subtitle>
+            <ion-icon name="person"></ion-icon>
+            {{ value.recorderPerson | personToString: null : { withDepartment: showRecorderDepartment } }}
+          </ion-card-subtitle>
+        }
+      </ion-card-title>
+    </ion-label>
+  </ion-item>
+
+  <!-- program -->
+  <ion-card-header>
+    <ion-card-subtitle>
+      @if (showProgram && value.program | isNotEmptyReferential) {
+        <ion-icon name="contract"></ion-icon>
+        {{ value.program.label || value.program.name }}
+      }
+      <div class="ion-float-end">
+        <app-entity-quality-badge [value]="value"></app-entity-quality-badge>
+      </div>
+    </ion-card-subtitle>
+  </ion-card-header>
+
+  <ion-card-content>
+    <p>
+      <strong>{{ 'TRIP.DEPARTURE_LOCATION' | translate }}:</strong>
+      {{ value.departureLocation | referentialToString: config.location?.attributes }}
+    </p>
+    <p>
+      <strong>{{ 'TRIP.RETURN_LOCATION' | translate }}:</strong>
+      {{ value.returnLocation | referentialToString: config.location?.attributes }}
+    </p>
+
+    @if (value.comments) {
+      <p>
+        <ion-icon name="chatbox"></ion-icon>
+        {{ value.comments }}
+      </p>
+    }
+  </ion-card-content>
+
+  <ion-footer>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        @if (delete.observed) {
+          <ion-button>
+            <ion-icon slot="icon-only" name="trash" (click)="delete.emit($event)"></ion-icon>
+          </ion-button>
+        }
+      </ion-buttons>
+      <ion-buttons slot="end">
+        @if (synchronize.observed) {
+          <ion-button (click)="synchronize.emit($event)">
+            <ion-icon slot="start" name="cloud-upload"></ion-icon>
+            {{ 'QUALITY.BTN_SYNCHRONIZE' | translate }}
+          </ion-button>
+        }
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-footer>
+</ion-card>

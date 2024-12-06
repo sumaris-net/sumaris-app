@@ -763,6 +763,7 @@
       "NAME": "Trips > Title (menu, etc.)"
     },
     "TABLE": {
+      "ID": "Identifier",
       "TITLE": "Fishing trips",
       "VESSEL": "Vessel",
       "PROGRAM": "Program",

@@ -70,6 +70,7 @@ export abstract class AppBaseTable<
   implements OnInit, AfterViewInit
 {
   private _canEdit: boolean;
+  private _showIdColumn: boolean;
 
   protected readonly translateContext = inject(TranslateContextService);
   protected readonly popoverController = inject(PopoverController);
@@ -88,6 +89,12 @@ export abstract class AppBaseTable<
   @Input({ transform: booleanAttribute }) showPaginator = true;
   @Input({ transform: booleanAttribute }) showFooter = true;
   @Input({ transform: booleanAttribute }) showError = true;
+  @Input({ transform: booleanAttribute }) set showIdColumn(value: boolean) {
+    this._showIdColumn = value;
+  }
+  get showIdColumn() {
+    return this._showIdColumn;
+  }
   @Input() toolbarColor: PredefinedColors = 'primary';
   @Input({ transform: booleanAttribute }) sticky = false;
   @Input({ transform: booleanAttribute }) stickyEnd = false;
