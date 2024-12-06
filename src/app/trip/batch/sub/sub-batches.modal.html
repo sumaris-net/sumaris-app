@@ -61,7 +61,7 @@
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
         </ion-item>
-        @if (canShowEnumeration) {
+        @if (canShowEnumeration && !mobile) {
           <form class="form-container" [formGroup]="modalForm">
             <mat-boolean-field
               [formControl]="showSubBatchFormControl"
