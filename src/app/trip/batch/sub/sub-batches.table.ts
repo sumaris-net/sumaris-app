@@ -23,7 +23,7 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { Batch } from '../common/batch.model';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import { SubBatchForm } from './sub-batch.form';
@@ -113,6 +113,8 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch> {
   }
 }
 
+export interface SubBatchesTableState extends BaseMeasurementsTableState {}
+
 @Component({
   selector: 'app-sub-batches-table',
   templateUrl: 'sub-batches.table.html',
@@ -133,8 +135,8 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch> {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SubBatchesTable
-  extends BaseMeasurementsTable<SubBatch, SubBatchFilter, InMemoryEntitiesService<SubBatch, SubBatchFilter>, SubBatchValidatorService>
+export class SubBatchesTable<S extends SubBatchesTableState = SubBatchesTableState>
+  extends BaseMeasurementsTable<SubBatch, SubBatchFilter, InMemoryEntitiesService<SubBatch, SubBatchFilter>, SubBatchValidatorService, S>
   implements OnInit, OnDestroy
 {
   private _qvPmfm: IPmfm;
@@ -228,6 +230,15 @@ export class SubBatchesTable
 
   get showIndividualCount(): boolean {
     return this.getShowColumn('individualCount'); // && this.displayedColumns.some((c) => c === 'individualCount');
+  }
+
+  @Input()
+  set showIdColumn(value: boolean) {
+    this.setShowColumn('id', value);
+  }
+
+  get showIdColumn(): boolean {
+    return this.getShowColumn('id');
   }
 
   @Input()
