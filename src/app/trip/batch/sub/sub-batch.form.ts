@@ -85,6 +85,7 @@ export interface SubBatchFormState extends MeasurementsFormState {
 @Component({
   selector: 'app-sub-batch-form',
   templateUrl: 'sub-batch.form.html',
+  styleUrls: ['sub-batch.form.scss'],
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -121,6 +122,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
+  @Input() buttonsColCount: number;
   @Input() maxItemCountForButtons: number;
   @Input() mobile: boolean;
   @Input() weightDisplayedUnit: WeightUnitSymbol;

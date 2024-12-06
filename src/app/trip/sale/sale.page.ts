@@ -354,7 +354,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       }
 
       // Sale type
-      let saleType = this.getSingleControlFavorite('saleType', {
+      const saleType = this.getSingleControlFavorite('saleType', {
         pageFavorites,
         sortBy: this.saleForm.autocompleteFields.saleType.attributes?.[0],
       });
@@ -363,7 +363,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       }
 
       // Sale location{
-      let saleLocation =
+      const saleLocation =
         this.saleForm.showLocation &&
         this.getSingleControlFavorite('saleLocation', {
           pageFavorites,

@@ -13,6 +13,38 @@ ion-modal {
   min-width: unset !important;
   overflow-x: hidden;
   overflow-y: auto;
+
+  padding: 1px; // Workaround to avoid bug when editing a row
+  &.mobile {
+    padding: 0;
+  }
+
+  .mat-mdc-table {
+    /*Hide selected row (if scale by an animation) */
+    overflow-x: hidden;
+
+    .mat-mdc-row.mat-mdc-row-small {
+      --mat-row-max-height: 33px !important;
+    }
+
+    .mat-mdc-header-row,
+    .mat-mdc-row {
+      .mat-column-parentGroup,
+      .mat-column-taxonName,
+      .mat-column-taxonGroup {
+        min-width: 50px;
+      }
+
+      .mat-column-id {
+        mat-label,
+        ion-label {
+          padding: 0 8px;
+          width: 100%;
+          text-align: right;
+        }
+      }
+    }
+  }
 }
 ion-grid.disabled {
   ion-col.ion-col-form {
