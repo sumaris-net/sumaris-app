@@ -16,20 +16,28 @@ import {
   isNumber,
   LoadResult,
   LocalSettingsService,
+  NetworkService,
   PlatformService,
   SharedValidators,
+  suggestFromArray,
   toBoolean,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable, SubBatchFilter } from './sub-batches.table';
+import {
+  SUB_BATCH_RESERVED_END_COLUMNS,
+  SUB_BATCHES_TABLE_OPTIONS,
+  SubBatchesTable,
+  SubBatchesTableState,
+  SubBatchFilter,
+} from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Animation, IonContent, ModalController } from '@ionic/angular';
-import { debounceTime, filter, isObservable, Observable, Subject, Subscription, tap } from 'rxjs';
+import { debounceTime, isObservable, Observable, Subject, Subscription } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
-import { IPmfm, Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { environment } from '@environments/environment';
 import { PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
@@ -38,8 +46,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { BatchContext, SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
 import { RxState } from '@rx-angular/state';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { AbstractControl, FormBuilder, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { PmfmService } from '@app/referential/services/pmfm.service';
+import { FormBuilder, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
@@ -57,12 +64,14 @@ export interface ISubBatchesModalOptions {
   floatLabel: AppFloatLabelType;
   maxVisibleButtons: number;
   maxItemCountForButtons: number;
+  buttonsColCount: number;
   i18nSuffix: string;
   mobile: boolean;
   usageMode: UsageMode;
   showBluetoothIcon: boolean;
   playSound: boolean;
   defaultIsIndividualCountOnly: boolean;
+  settingsId: string;
 
   programLabel: string;
   requiredStrategy: boolean;
@@ -84,6 +93,8 @@ export interface ISubBatchesModalOptions {
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED_END_COLUMNS; //.filter((col) => col !== 'individualCount');
+
+export interface SubBatchesModalState extends SubBatchesTableState {}
 
 @Component({
   selector: 'app-sub-batches-modal',
@@ -109,6 +120,7 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
           suppressErrors: true,
           reservedStartColumns: SUB_BATCH_MODAL_RESERVED_START_COLUMNS,
           reservedEndColumns: SUB_BATCH_MODAL_RESERVED_END_COLUMNS,
+          restoreCompactMode: false, // Avoid to restore to earlier, BEFORE the settingsId has been computed
         },
       deps: [LocalSettingsService],
     },
@@ -116,7 +128,7 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatchesModalOptions {
+export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> implements OnInit, ISubBatchesModalOptions {
   private _initialMaxRankOrder: number;
   private _previousMaxRankOrder: number;
   private _hiddenData: SubBatch[];
@@ -126,9 +138,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   protected animationSelection = new SelectionModel<TableElement<SubBatch>>(false, []);
   protected modalForm: UntypedFormGroup;
-  protected showSubBatchFormControl: AbstractControl;
-  protected individualCountControl: AbstractControl;
-  protected criteriaPmfmDefinition: FormFieldDefinition;
+  protected showSubBatchFormControl: UntypedFormControl;
+  protected individualCountControl: UntypedFormControl;
+  protected pmfmFilterDefinition: FormFieldDefinition;
   protected virtualPmfms: DenormalizedPmfmStrategy[];
   protected pmfmsFiltered: IPmfm[];
   protected footerValues: { [key: string]: number } = {};
@@ -175,6 +187,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() showParentGroup: boolean;
   @Input() parentGroup: BatchGroup;
   @Input() maxVisibleButtons: number;
+  @Input() buttonsColCount: number;
   @Input() maxItemCountForButtons: number;
   @Input() playSound: boolean;
   @Input() showBluetoothIcon = false;
@@ -200,11 +213,11 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     settings: LocalSettingsService,
     validatorService: SubBatchValidatorService,
     protected viewCtrl: ModalController,
-    protected pmfmService: PmfmService,
     protected audio: AudioProvider,
     protected platform: PlatformService,
     protected formBuilder: UntypedFormBuilder,
     private fb: FormBuilder,
+    private networkService: NetworkService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<SubBatch>
   ) {
     super(injector, settings.mobile ? null : validatorService /*no validator = not editable*/, options);
@@ -218,22 +231,24 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       showSubBatchForm: [true, Validators.required],
       individualCount: [null, [SharedValidators.integer, Validators.required, Validators.min(0)]],
     });
-    this.showSubBatchFormControl = this.modalForm.get('showSubBatchForm');
-    this.individualCountControl = this.modalForm.get('individualCount');
+    this.showSubBatchFormControl = this.modalForm.get('showSubBatchForm') as UntypedFormControl;
+    this.individualCountControl = this.modalForm.get('individualCount') as UntypedFormControl;
+    this.filterPanelFloating = false;
 
     // default values
     this.showCommentsColumn = false;
     this.showParentGroupColumn = false;
     this.settingsId = 'sub-batches-modal';
     this.filterForm = this.formBuilder.group({
+      taxonName: [null],
+      pmfm: [null],
       minValue: [null],
       maxValue: [null],
-      taxonNameFilter: [null],
-      criteriaPmfm: [null],
     });
   }
 
   ngOnInit() {
+    this.buttonsColCount = this.buttonsColCount ?? 3;
     this.canDebug = toBoolean(this.canDebug, !environment.production);
     this.canEdit = this._enabled;
     this.debug = this.canDebug && toBoolean(this.settings.getPageSettings(this.settingsId, 'debug'), false);
@@ -265,28 +280,24 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.playSound = toBoolean(this.playSound, this.mobile);
     this.showBluetoothIcon = this.showBluetoothIcon && this._enabled && this.platform.isApp();
     this.allowIndividualCountOnly = toBoolean(this.allowIndividualCountOnly, false) && !this.showParentGroup && !this.qvPmfm;
+    this.showFilterForm = !this.mobile && !this.showIndividualCountOnly;
 
-    const basePmfmAttributes = this.settings.getFieldDisplayAttributes('pmfm', ['name']);
-
-    this.criteriaPmfmDefinition = {
-      key: 'criteriaPmfm',
+    this.pmfmFilterDefinition = {
+      key: 'pmfm',
       type: 'entity',
-      label: 'REFERENTIAL.PMFM',
+      label: 'TRIP.BATCH.TABLE.FILTER.PMFM_CRITERIA',
       required: false,
-      autocomplete: this.registerAutocompleteField('criteriaPmfm', {
-        suggestFn: (value, opts) => this.suggestPmfms(value),
-        attributes: basePmfmAttributes,
-        columnNames: basePmfmAttributes,
-        showAllOnFocus: false,
-        panelClass: 'width-medium',
+      autocomplete: this.registerAutocompleteField('pmfm', {
+        suggestFn: (value, opts) => this.suggestPmfms(value, opts),
+        attributes: ['completeName'],
+        columnNames: ['TRIP.BATCH.TABLE.FILTER.PMFM_CRITERIA'],
+        showAllOnFocus: true,
       }),
     };
 
     this.markAsReady();
 
     this.load();
-    //todo mf for demo
-    this.filterPanelFloating = false;
 
     // Add footer listener
     this.registerSubscription(this.pmfms$.subscribe((pmfms) => this.addFooterListener(pmfms)));
@@ -303,8 +314,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       const data = isObservable(this.data) ? await this.data.toPromise() : this.data;
 
       // Update individual count column display depending on sub batches individual counts
-      this.showIndividualCount = true; ///data.some((subBatch) => subBatch.individualCount !== 1);
+      this.showIndividualCount = !this.mobile || data.some((subBatch) => subBatch.individualCount > 1);
       this.updateColumns();
+
+      await this.restoreCompactMode();
 
       // Apply data to table
       await this.setValue(data);
@@ -312,11 +325,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       // Compute the title
       await this.computeTitle();
 
-      this.pmfmsFiltered = await this.loadFilteredPmfms();
-
-      this.canShowEnumeration = this.pmfms.filter((pmfm) => PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isComputed(pmfm)).length === 1;
-      // hide # column
-      this.setShowColumn('id', false);
+      await this.loadFilteredPmfms();
     } catch (err) {
       console.error(this.logPrefix + 'Error while loading modal');
     }
@@ -766,12 +775,18 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.showIndividualCount = !this.showIndividualCount;
   }
 
-  protected async loadFilteredPmfms(): Promise<Pmfm[]> {
-    return (
-      await this.pmfmService.loadAll(0, 100, null, null, { includedIds: this.pmfms.map((pmfm) => pmfm.id) }, { withDetails: true })
-    ).data.filter(
-      (pmfm) => (PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isComputed(pmfm)) || (PmfmUtils.isQualitative(pmfm) && !PmfmUtils.isComputed(pmfm))
+  protected async loadFilteredPmfms() {
+    // Avoid to load if offline or mobile
+    if (this.mobile || this.networkService.offline) {
+      this.pmfmsFiltered = [];
+      this.canShowEnumeration = false;
+      return;
+    }
+
+    this.pmfmsFiltered = (this.pmfms || []).filter(
+      (pmfm) => !PmfmUtils.isComputed(pmfm) && (PmfmUtils.isNumeric(pmfm) || PmfmUtils.isQualitative(pmfm))
     );
+    this.canShowEnumeration = this.pmfmsFiltered.filter(PmfmUtils.isNumeric).length === 1;
   }
 
   protected async generateDynamicColumns(pmfm: IPmfm) {
@@ -803,26 +818,26 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async applyFilterAndClosePanel() {
-    //Application du filtre
-    const data = this.filterForm.value;
-    const formIsEmpty = AppSharedFormUtils.isEmptyForm(this.filterForm);
-    const filter = new SubBatchFilter();
+    const emptyFilter = AppSharedFormUtils.isEmptyForm(this.filterForm);
 
-    if (isNotNil(data.maxValue)) {
-      filter.numericalMaxValue = data.maxValue;
-    }
-    if (isNotNil(data.minValue)) {
-      filter.numericalMinValue = data.minValue;
-    }
-    if (isNotNil(data.taxonNameFilter)) {
-      filter.taxonNameId = data.taxonNameFilter?.id;
-    }
-    // Penser à trouver une solution dans le cas ou il ya plusieurs QV PMFM
-    if (isNotNil(data.criteriaPmfm)) {
-      filter.numericalPmfm = data.criteriaPmfm;
-    }
+    if (emptyFilter) {
+      this.resetFilter();
+    } else {
+      const filter = new SubBatchFilter();
+      const data = this.filterForm.value;
+      if (isNotNil(data.taxonName)) {
+        filter.taxonNameId = data.taxonName?.id;
+      }
+      if (isNotNil(data.pmfm)) {
+        filter.numericalPmfm = data.pmfm;
+        if (isNotNil(data.maxValue)) {
+          filter.numericalMaxValue = data.maxValue;
+        }
+        if (isNotNil(data.minValue)) {
+          filter.numericalMinValue = data.minValue;
+        }
+      }
 
-    if (!formIsEmpty) {
       await this.toggleDisplayVirtualColumns();
       this.setFilter(filter);
     }
@@ -833,12 +848,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     super.resetFilter();
   }
 
-  protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<Pmfm>> {
-    const pmfms = this.pmfms.filter((pmfm) => PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isComputed(pmfm));
+  protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<IPmfm>> {
+    const pmfms = (this.pmfms || []).filter((pmfm) => !PmfmUtils.isComputed(pmfm));
     if (isEmptyArray(pmfms)) return { data: [] };
-    return this.pmfmService.suggest(value, {
-      searchJoin: 'parameter',
-      includedIds: pmfms.map((pmfm) => pmfm.id),
+    return suggestFromArray(pmfms, value, {
+      ...opts,
+      anySearch: true,
     });
   }
 
@@ -938,22 +953,28 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       this.setShowColumn(col.id.toString(), show);
     });
 
-    this.showIndividualCount = !show;
-    this.setShowColumn(PmfmIds.SEX.toString(), !show);
-    this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), !show);
+    this.setShowColumn('id', !show, { emitEvent: false });
+    this.setShowColumn('individualCount', !show, { emitEvent: false });
+
+    // Hide all pmfms columns
+    // FIXME use this.pmfms
+    this.setShowColumn(PmfmIds.SEX.toString(), !show, { emitEvent: false });
+    this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), !show, { emitEvent: false });
+    this.updateColumns();
 
     // Add/remove rows depending on virtual columns presence
-    const formIsEmpty = AppSharedFormUtils.isEmptyForm(this.filterForm);
     if (this.isAlreadyIndividualCount !== show) {
       if (show) {
         const data = this.dataSource.getRows();
+        // FIXME: replace by pmfm from the form
         const groupedData = this.groupByProperty(data, PmfmIds.LENGTH_TOTAL_CM.toString());
         await this.concatRows(groupedData);
       } else if (!show) {
         await this.splitRows();
       }
+      this.isAlreadyIndividualCount = show;
     }
-    this.isAlreadyIndividualCount = show;
+    this.markForCheck();
   }
 
   private groupByProperty(objects: TableElement<SubBatch>[], property: string): TableElement<SubBatch>[][] {
@@ -971,13 +992,14 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   private async concatRows(groupRows: TableElement<SubBatch>[][]) {
-    let rankOrder = await this.getMaxRankOrder();
-    let virtualPmfmValue = [];
+    let rankOrder = (await this.getMaxRankOrder()) + 1;
+
     const newRows = [];
     const rowsToDelete = [];
 
-    for (const group of groupRows) {
-      group.forEach((row) => {
+    for (const rows of groupRows) {
+      const virtualPmfmValue = [];
+      rows.forEach((row) => {
         const virtualPmfm = this.virtualPmfms.find((pmfm) => {
           return pmfm.name === row.currentData.measurementValues[PmfmIds.SEX.toString()]?.name;
         });
@@ -986,10 +1008,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       });
 
       const newRow = new SubBatch();
-      newRow.individualCount = group[0].currentData.individualCount;
-      newRow.measurementValues[PmfmIds.SEX.toString()] = group[0].currentData.measurementValues[PmfmIds.SEX.toString()];
-      newRow.taxonName = group[0].currentData.taxonName;
-      newRow.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()] = group[0].currentData.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()];
+      newRow.individualCount = rows[0].currentData.individualCount;
+      newRow.measurementValues[PmfmIds.SEX.toString()] = rows[0].currentData.measurementValues[PmfmIds.SEX.toString()];
+      newRow.taxonName = rows[0].currentData.taxonName;
+      newRow.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()] = rows[0].currentData.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()];
       virtualPmfmValue.forEach((pmfm) => {
         if (pmfm.virtualPmfm) newRow.measurementValues[pmfm.virtualPmfm.id.toString()] = pmfm.individualCount;
       });
@@ -997,7 +1019,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       newRow.rankOrder = rankOrder++;
 
       newRows.push(newRow);
-      virtualPmfmValue = [];
     }
     await this.deleteRows(null, rowsToDelete, { interactive: false });
     if (isNotEmptyArray(newRows)) {

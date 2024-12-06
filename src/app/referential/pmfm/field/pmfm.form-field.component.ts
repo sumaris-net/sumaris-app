@@ -146,6 +146,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input() style: PmfmFormFieldStyle;
   @Input({ transform: booleanAttribute }) showButtonIcons: boolean;
   @Input({ transform: numberAttribute }) maxVisibleButtons: number;
+  @Input({ transform: numberAttribute }) buttonsColCount: number;
   @Input({ transform: numberAttribute }) acquisitionNumber: number;
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';

@@ -1185,8 +1185,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         },
         i18nSuffix: this.i18nColumnSuffix,
         mobile: this.mobile,
+        settingsId: `${this.settingsId}-modal-sub-batches`,
         // Override using input options
         maxVisibleButtons: this.modalOptions?.maxVisibleButtons,
+        buttonsColCount: 3,
         maxItemCountForButtons: this.modalOptions?.maxItemCountForButtons,
         ...this.subBatchesModalOptions,
       },

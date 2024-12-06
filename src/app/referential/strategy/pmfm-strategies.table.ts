@@ -279,6 +279,22 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     const pmfmColumnNames = basePmfmAttributes
       .map((attr) => 'REFERENTIAL.' + attr.toUpperCase())
       .concat(['REFERENTIAL.PMFM.UNIT', 'REFERENTIAL.PMFM.MATRIX', 'REFERENTIAL.PMFM.FRACTION', 'REFERENTIAL.PMFM.METHOD']);
+    const pmfmColumnSizes = pmfmAttributes.map((attr) => {
+      switch (attr) {
+        case 'label':
+        case 'parameter.label':
+          return 2;
+        case 'name':
+        case 'parameter.name':
+          return 3;
+        case 'unit.label':
+          return 1;
+        case 'method.name':
+          return 4;
+        default:
+          return undefined;
+      }
+    });
     this.registerColumnDefinition({
       key: 'pmfm',
       type: 'entity',
@@ -286,20 +302,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       autocomplete: this.registerAutocompleteField('pmfm', {
         suggestFn: (value, opts) => this.suggestPmfms(value, opts),
         attributes: pmfmAttributes,
-        columnSizes: pmfmAttributes.map((attr) => {
-          switch (attr) {
-            case 'label':
-              return 2;
-            case 'name':
-              return 3;
-            case 'unit.label':
-              return 1;
-            case 'method.name':
-              return 4;
-            default:
-              return undefined;
-          }
-        }),
+        columnSizes: pmfmColumnSizes,
         columnNames: pmfmColumnNames,
         displayWith: (pmfm) => this.displayPmfm(pmfm, { withUnit: true, withDetails: true }),
         showAllOnFocus: false,

@@ -54,13 +54,14 @@
     *ngIf="!loading && qvPmfm as pmfm"
     [pmfm]="pmfm"
     [control]="form | formGetControl: ['measurementValues', pmfm.id]"
-    [style]="mobile && 'button'"
+    [style]="mobile ? 'button' : undefined"
     [required]="true"
     [floatLabel]="floatLabel"
     [compact]="compact"
     [tabindex]="tabindex + 1"
     (keyup.enter)="focusNextInput($event)"
     [maxVisibleButtons]="pmfm.qualitativeValues?.length || maxVisibleButtons"
+    [buttonsColCount]="buttonsColCount"
   >
     <!-- checkbox to freeze -->
     <!-- TODO MF FOR DEMO class="ion-padding-end" -->
@@ -182,6 +183,7 @@
       [floatLabel]="floatLabel"
       [style]="pmfm | pmfmFieldStyle: maxItemCountForButtons"
       [maxVisibleButtons]="maxVisibleButtons"
+      [buttonsColCount]="buttonsColCount"
       [tabindex]="tabindex + 20 + i * 2"
       (keydown.tab)="focusNextInputOrSubmit($event, last)"
       (keyup.enter)="focusNextInputOrSubmit($event, last)"

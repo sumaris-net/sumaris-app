@@ -590,9 +590,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       // Load default taxon group (if exists in parent landing)
       const landingTaxonGroupId = landing && toNumber(landing.measurementValues?.[PmfmIds.TAXON_GROUP_ID]);
       if (isNotNil(landingTaxonGroupId)) {
-        const landingTaxonGroup = await this.taxonGroupRefService.load(landingTaxonGroupId, { fetchPolicy: 'cache-first' });
-        console.log('TODO landingTaxonGroup=', landingTaxonGroup);
-        this.defaultTaxonGroup = landingTaxonGroup;
+        this.defaultTaxonGroup = await this.taxonGroupRefService.load(landingTaxonGroupId, { fetchPolicy: 'cache-first' });
       }
     }
 

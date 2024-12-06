@@ -1158,7 +1158,14 @@
           "BTN_MANUAL_ENTRY": "Manual entry"
         },
         "INDIVIDUAL_COUNT": {
-          "TITLE": "Specimen count"
+          "TITLE": "Specimen count",
+          "SORT_CRITERIA_NUMERIC": "Numerical criteria",
+          "SORT_CRITERIA_QUALITATIVE": "Secondary criteria",
+          "MIN": "Min ({{unit}})",
+          "MIN_PLACEHOLDER": "Min",
+          "MAX": "Max ({{unit}})",
+          "MAX_PLACEHOLDER": "Max",
+          "PRECISION": "Precision ({{unit}})"
         }
       },
       "TABLE": {

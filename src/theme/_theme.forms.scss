@@ -124,13 +124,12 @@ mat-sampling-ratio-field {
 }
 
 
-@media screen and (max-width: #{$screen-xs-max}) {
-
-  .mat-form-field-buttons {
-    --buttons-col-count: 3 !important;
-    ion-button {
-      font-size: 0.855rem;
-      letter-spacing: -0.005rem;
-    }
+// Reduce size of button
+.mat-form-field-buttons {
+  ion-button {
+    font-size: 0.855rem;
+    letter-spacing: -0.005rem;
+    word-wrap: break-word;
+    white-space: normal;
   }
 }
