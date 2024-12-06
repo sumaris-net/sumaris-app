@@ -15,7 +15,6 @@
       <ion-col>
         <app-form-field
           formControlName="criteriaPmfm"
-          [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA_NUMERIC' | translate"
           [definition]="fieldDefinitions.criteriaPmfm"
           [clearable]="true"
           [required]="true"
@@ -31,74 +30,65 @@
       </ion-col>
     </ion-row>
     <ion-row>
-      <ion-col>
+      @let pmfm = form | formGetValue: 'criteriaPmfm';
+      @let unitLabel = pmfm?.unitLabel || '';
+
+      <!-- min -->
+      <ion-col size="4">
         <mat-form-field>
-          <mat-label>{{ 'REFERENTIAL.PMFM.UNIT' | translate }}</mat-label>
-          <input matInput readonly disabled [value]="(form | formGetValue: 'criteriaPmfm')?.unit?.label || ''" />
-        </mat-form-field>
-      </ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col>
-        <mat-form-field>
-          <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN' | translate }}</mat-label>
+          <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN' | translate: { unit: unitLabel } }}</mat-label>
           <input
             matInput
             type="number"
             formControlName="min"
             [min]="0"
-            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN_DESCRIPTION' | translate"
+            [step]="pmfm | toString: computeNumberInputStep"
+            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MIN_PLACEHOLDER' | translate"
+            required
           />
         </mat-form-field>
       </ion-col>
 
-      <ion-col>
+      <!-- max -->
+      <ion-col size="4">
         <mat-form-field>
-          <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX' | translate }}</mat-label>
+          <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX' | translate: { unit: unitLabel } }}</mat-label>
           <input
             matInput
             type="number"
             formControlName="max"
-            [max]="100"
-            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX_DESCRIPTION' | translate"
+            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.MAX_PLACEHOLDER' | translate"
+            [step]="pmfm | toString: computeNumberInputStep"
+            required
           />
         </mat-form-field>
       </ion-col>
-    </ion-row>
-    <ion-row>
-      <ion-col>
+
+      <!-- precision -->
+      <ion-col size="4">
         <mat-form-field>
-          <mat-label>{{ 'REFERENTIAL.PMFM.PRECISION' | translate }}</mat-label>
-          <input matInput type="number" [readonly]="disabledPrecision" formControlName="precision" />
+          <mat-label>{{ 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.PRECISION' | translate: { unit: unitLabel } }}</mat-label>
+          <input matInput type="number" [disabled]="disabledPrecision" [readonly]="disabledPrecision" formControlName="precision" />
         </mat-form-field>
       </ion-col>
     </ion-row>
+    @if (showQvPmfm && !hasRequiredQvPmfm) {
+      @if (!hasRequiredQvPmfm) {
+        <mat-divider class="ion-padding-bottom"></mat-divider>
+      }
+      <ion-row>
+        <ion-col>
+          <app-form-field
+            formControlName="qvPmfm"
+            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA_QUALITATIVE' | translate"
+            [definition]="fieldDefinitions.qvPmfm"
+            [clearable]="true"
+            [required]="hasRequiredQvPmfm"
+          ></app-form-field>
+        </ion-col>
+      </ion-row>
+    }
   </ion-grid>
-  @if (showQvPmfm && !isMandatoryQvPmfm) {
-    <mat-divider class="ion-padding-bottom"></mat-divider>
-    <ion-row>
-      <ion-col>
-        <app-form-field
-          formControlName="qvPmfm"
-          [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA_QUALITATIVE' | translate"
-          [definition]="fieldDefinitions.qvPmfm"
-          [clearable]="true"
-        ></app-form-field>
-      </ion-col>
-    </ion-row>
-  } @else if (showQvPmfm && isMandatoryQvPmfm) {
-    <ion-row>
-      <ion-col>
-        <app-form-field
-          formControlName="qvPmfm"
-          [placeholder]="'Pmfm qualitatif '"
-          [definition]="fieldDefinitions.qvPmfm"
-          [clearable]="true"
-          [required]="true"
-        ></app-form-field>
-      </ion-col>
-    </ion-row>
-  }
 
   <!-- submit button -->
   <div class="ion-no-padding ion-align-items-end">
