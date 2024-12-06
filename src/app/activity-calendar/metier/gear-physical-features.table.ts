@@ -51,7 +51,6 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
   @Input() year: number;
 
   @Input() showSelectColumn = true;
-  @Input() showIdColumn = true;
   @Input() noResultLabel = 'COMMON.NO_RESULT';
   @Input() noResultColor: AppColors;
 

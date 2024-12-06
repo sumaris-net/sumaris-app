@@ -10,7 +10,6 @@ import {
 } from '@sumaris-net/ngx-components';
 import { PredefinedColors } from '@ionic/core';
 import { QualityFlagIds, QualityFlags } from '@app/referential/services/model/model.enum';
-import { SynchronizationIonIcon } from '@app/data/quality/entity-quality-icon.component';
 
 /* -- Enumerations -- */
 
@@ -154,6 +153,8 @@ export function qualityFlagInvalid(qualityFlagId: number): boolean {
       return false;
   }
 }
+
+export declare type SynchronizationIonIcon = 'time-outline' | 'hourglass-outline' | 'pencil';
 
 export declare type QualityIonIcon =
   | SynchronizationIonIcon

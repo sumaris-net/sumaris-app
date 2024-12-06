@@ -18,6 +18,7 @@ import { AppSaleModule } from '@app/trip/sale/sale.module';
 import { AppSocialModule } from '@app/social/social.module';
 import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
 import { MatTabsModule } from '@angular/material/tabs';
+import { AppTripCardModule } from '@app/trip/trip/card/trip-card.module';
 
 @NgModule({
   imports: [
@@ -33,6 +34,7 @@ import { MatTabsModule } from '@angular/material/tabs';
     AppDataModule,
     AppVesselModule,
     AppExtractionButtonModule,
+    AppTripCardModule,
 
     // Functional modules
     AppMeasurementModule,

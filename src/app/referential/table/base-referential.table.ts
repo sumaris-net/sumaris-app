@@ -83,7 +83,6 @@ export abstract class BaseReferentialTable<
   }
 
   @Input() title: string;
-  @Input() showIdColumn = false;
   @Input() canDownload = false;
   @Input() canUpload = false;
 

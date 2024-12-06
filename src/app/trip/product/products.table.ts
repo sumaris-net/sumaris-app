@@ -58,7 +58,6 @@ export class ProductsTable
 
   @Input() @RxStateProperty() parents: IWithProductsEntity<any>[];
   @Input() parentAttributes: string[];
-  @Input() showIdColumn = true;
   @Input() showActionButtons = true;
 
   @Input()

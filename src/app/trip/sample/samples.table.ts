@@ -135,7 +135,6 @@ export class SamplesTable
   @Input() useFooterSticky = false;
   @Input() canAddPmfm = false;
   @Input() usageMode: UsageMode;
-  @Input() showIdColumn = true;
   @Input() showLabelColumn = false;
   @Input() requiredLabel = true;
   @Input() showPmfmDetails = false;

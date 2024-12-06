@@ -42,8 +42,8 @@
     class="mat-mdc-tab-disabled-hidden"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
-    [animationDuration]="tabGroupAnimationDuration"
-    dynamicHeight
+    [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+    [dynamicHeight]="false"
   >
     <!-- TAB: general -->
     <mat-tab

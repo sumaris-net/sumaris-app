@@ -42,6 +42,14 @@
     min-width: 180px;
   }
 
+  .mat-column-card {
+    overflow: visible;
+    max-width: calc(100vw - 40px - 16px);
+    app-trip-card {
+      min-width: calc(100vw - 16px);
+    }
+  }
+
   .mat-column-actions {
     min-width: 40px;
     width: 40px;

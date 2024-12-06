@@ -140,8 +140,13 @@
     "PLEASE_WAIT": "Veuillez patienter...",
     "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
+    "DISPLAY_MODE_DOTS": "Mode d'affichage...",
     "DISPLAYED_COLUMNS": "Paramétrage des colonnes",
     "DISPLAYED_COLUMNS_DOTS": "Paramétrage des colonnes...",
+    "DISPLAY_MODE": {
+      "CARD": "Affichage en carte",
+      "LIST": "Affichage en liste"
+    },
     "FORM": {
       "HAS_ERROR": "Veuillez corriger des erreurs dans le formulaire"
     },
@@ -763,6 +768,7 @@
       "NAME": "Marées > Titre (menu, etc.)"
     },
     "TABLE": {
+      "ID": "Identifiant",
       "TITLE": "Marées",
       "VESSEL": "Navire",
       "PROGRAM": "Programme",
