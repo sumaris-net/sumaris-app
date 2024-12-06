@@ -654,11 +654,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async onOpenOperation(row: TableElement<Operation>) {
-    const saved = this.isOnFieldMode && this.dirty ? await this.save(undefined) : await this.saveIfDirtyAndConfirm();
-    if (!saved) return; // Cannot saved
-
-    this.markAsLoading();
-
     // Propagate the usage mode (e.g. when try to 'terminate' the trip)
     this.tripContext.setValue('usageMode', this.usageMode);
 
@@ -683,17 +678,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async onNewOperation(event?: any, operationQueryParams?: any) {
-    const saved =
-      this.isOnFieldMode && this.dirty
-        ? // If on field mode: try to save silently
-          await this.save(event)
-        : // If desktop mode: ask before save
-          await this.saveIfDirtyAndConfirm();
-
-    if (!saved) return; // Cannot save
-
-    this.markAsLoading();
-
     // Store the trip in context
     this.tripContext.setValue('trip', this.data.clone());
 
