@@ -125,7 +125,7 @@
       [placeholder]="floatLabel === 'never' && placeholder"
       (keyup.enter)="onKeyupEnter.emit($event)"
       (keypress)="filterNumberInput($event, false)"
-      (focus)="focused.emit($event)"
+      (focus)="onFocusInput($event)"
       (blur)="blurred.emit($event)"
       (click)="clicked.emit($event)"
       [required]="required"
@@ -168,6 +168,7 @@
       matInput
       #matInput
       type="number"
+      inputmode="decimal"
       decimal="true"
       autocomplete="off"
       [formControl]="vars.control"
@@ -180,7 +181,7 @@
       (keyup.enter)="onKeyupEnter.emit($event)"
       (keypress)="filterNumberInput($event, true)"
       (blur)="blurred.emit($event)"
-      (focus)="focused.emit($event)"
+      (focus)="onFocusInput($event)"
       (click)="clicked.emit($event)"
       [required]="required"
       [tabIndex]="tabindex"
@@ -317,6 +318,8 @@
     [panelClass]="panelClass"
     [panelWidth]="panelWidth"
     [disableRipple]="disableRipple"
+    [suggestFn]="suggestFn"
+    [selectInputContentOnFocus]="selectInputContentOnFocus"
     (keyup.enter)="onKeyupEnter.emit($event)"
     (click)="clicked.emit($event)"
   >
@@ -342,7 +345,7 @@
       (click)="clicked.emit($event)"
       (keyup.enter)="onKeyupEnter.emit($event)"
       (keypress)="filterAlphanumericalInput($event)"
-      (focus)="focused.emit($event)"
+      (focus)="onFocusInput($event)"
       (blur)="blurred.emit($event)"
     />
 

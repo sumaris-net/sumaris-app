@@ -16,7 +16,7 @@ import {
   ViewChild,
   ViewChildren,
 } from '@angular/core';
-import { merge, Observable, of } from 'rxjs';
+import { merge, mergeMap, Observable, of } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 
 import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormControl, Validators } from '@angular/forms';
@@ -24,7 +24,6 @@ import { MatFormFieldAppearance, SubscriptSizing } from '@angular/material/form-
 
 import {
   AppFloatLabelType,
-  AppFormUtils,
   focusInput,
   InputElement,
   IReferentialRef,
@@ -35,10 +34,12 @@ import {
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
+  selectInputContentFromEvent,
   selectInputRange,
   SharedValidators,
   sort,
   StatusIds,
+  SuggestFn,
   suggestFromArray,
   toBoolean,
   toNumber,
@@ -46,6 +47,8 @@ import {
 import { PmfmIds } from '../../services/model/model.enum';
 import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
 import { IonButton } from '@ionic/angular';
+import { MatAutocomplete, MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatSelect } from '@angular/material/select';
 
 export declare type PmfmQvFormFieldStyle = 'autocomplete' | 'select' | 'button';
 
@@ -74,16 +77,15 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   protected _items$: Observable<IReferentialRef[]>;
   protected _tabindex: number;
 
-  onShowDropdown = new EventEmitter<Event>(true);
   selectedIndex = -1;
   showAllButtons = false;
 
-  get nativeElement(): any {
-    return this.matInput && this.matInput.nativeElement;
-  }
-
   get sortedQualitativeValues(): any {
     return this._sortedQualitativeValues;
+  }
+
+  get isOpen(): boolean {
+    return this.autocomplete?.isOpen || this.matSelect?.panelOpen || false;
   }
 
   @Input()
@@ -112,6 +114,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input({ transform: booleanAttribute }) disableRipple = false;
   @Input() panelClass: string;
   @Input() panelWidth: string;
+  @Input() suggestFn: SuggestFn<IReferentialRef, any>;
+  @Input({ transform: booleanAttribute }) selectInputContentOnFocus = false;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -143,9 +147,13 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Output('blur') blurred = new EventEmitter<FocusEvent>();
   // eslint-disable-next-line @angular-eslint/no-output-native
   @Output('click') clicked = new EventEmitter<Event>();
+  @Output() dropButtonClick = new EventEmitter<Event>(true);
 
-  @ViewChild('matInput') matInput: ElementRef;
+  @ViewChild('matSelect') matSelect: MatSelect;
+  @ViewChild('matInputText') matInputText: ElementRef;
   @ViewChildren('button') buttons: QueryList<IonButton>;
+  @ViewChild(MatAutocomplete) autocomplete: MatAutocomplete;
+  @ViewChild(MatAutocompleteTrigger) autocompleteTrigger: MatAutocompleteTrigger;
 
   constructor(
     private settings: LocalSettingsService,
@@ -175,8 +183,10 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         );
       }
     }
-    // Exclude disabled values
-    this._qualitativeValues = qualitativeValues.filter((qv) => qv.statusId !== StatusIds.DISABLE);
+    this._qualitativeValues = qualitativeValues
+      // Exclude disabled values
+      .filter((qv) => qv.statusId !== StatusIds.DISABLE);
+    this.suggestFn = this.suggestFn ?? this.pmfm.suggestQualitativeValueFn;
 
     this.required = toBoolean(this.required, this.pmfm.required || false);
 
@@ -210,18 +220,21 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         this._items$ = of([]);
       } else {
         this._items$ = merge(
-          this.onShowDropdown.pipe(
+          this.dropButtonClick.pipe(
             filter((event) => !event.defaultPrevented),
-            map((_) => this._sortedQualitativeValues)
+            mergeMap((_) => this.suggest('*')),
+            map((res) => {
+              if (Array.isArray(res)) return res;
+              return res?.data;
+            })
           ),
           this.formControl.valueChanges.pipe(
             filter(ReferentialUtils.isEmpty),
-            map((value) =>
-              suggestFromArray(this._sortedQualitativeValues, value, {
-                searchAttributes: this.searchAttributes,
-              })
-            ),
-            map((res) => res && res.data),
+            mergeMap((value) => this.suggest(value, { searchAttributes: this.searchAttributes })),
+            map((res) => {
+              if (Array.isArray(res)) return res;
+              return res?.data;
+            }),
             tap((items) => this.updateImplicitValue(items))
           )
         ).pipe(takeUntil(this.destroySubject));
@@ -274,12 +287,37 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   setDisabledState(isDisabled: boolean): void {}
 
-  _onClick(event: MouseEvent) {
-    this.clicked.emit(event);
-    this.onShowDropdown.emit(event);
+  clear() {
+    this.formControl.setValue(null);
+    this.markForCheck();
   }
 
-  filterInputTextFocusEvent(event: FocusEvent) {
+  focus() {
+    if (this.matSelect) {
+      this.matSelect.focus();
+    } else {
+      focusInput(this.matInputText);
+    }
+  }
+
+  compareWith = ReferentialUtils.equals;
+
+  closePanel() {
+    if (this.autocomplete?.isOpen) {
+      this.autocompleteTrigger?.closePanel();
+    } else if (this.matSelect?.panelOpen) {
+      this.matSelect?.close();
+    }
+  }
+
+  /* -- protected methods -- */
+
+  protected onInputTextClick(event: MouseEvent) {
+    this.clicked.emit(event);
+    this.dropButtonClick.emit(event);
+  }
+
+  protected onInputTextFocus(event: FocusEvent) {
     if (!event || event.defaultPrevented) return;
 
     // Ignore event from mat-option
@@ -304,13 +342,18 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       //if (this.debug) console.debug(this.logPrefix + ' Emit focus event');
 
       this.focused.emit();
-      this.onShowDropdown.emit(event);
+      this.dropButtonClick.emit(event);
       return true;
     }
+
+    if (this.selectInputContentOnFocus) {
+      selectInputContentFromEvent(event);
+    }
+
     return false;
   }
 
-  filterInputTextBlurEvent(event: FocusEvent) {
+  protected onInputTextBlur(event: FocusEvent) {
     if (!event || event.defaultPrevented) return;
 
     // Ignore event from mat-option
@@ -339,14 +382,19 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     return true;
   }
 
-  filterMatSelectFocusEvent(event: FocusEvent) {
+  protected onMatSelectFocus(event: FocusEvent) {
     if (!event || event.defaultPrevented) return;
     // DEBUG
     // console.debug(this.logPrefix + " Received <mat-select> focus event", event);
+
+    if (this.selectInputContentOnFocus) {
+      selectInputContentFromEvent(event);
+    }
+
     this.focused.emit(event);
   }
 
-  filterMatSelectBlurEvent(event: FocusEvent) {
+  protected onMatSelectBlur(event: FocusEvent) {
     if (!event || event.defaultPrevented) return;
 
     // DEBUG
@@ -377,24 +425,15 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     return true;
   }
 
-  clear() {
-    this.formControl.setValue(null);
-    this.markForCheck();
+  protected toggleShowPanel(event: Event) {
+    if (this.isOpen) {
+      event?.preventDefault();
+      event?.stopPropagation();
+      this.closePanel();
+    } else {
+      this.dropButtonClick.emit(event);
+    }
   }
-
-  focus() {
-    focusInput(this.matInput);
-  }
-
-  getQvId(item: ReferentialRef) {
-    return item.id;
-  }
-
-  compareWith = ReferentialUtils.equals;
-
-  selectInputContent = AppFormUtils.selectInputContent;
-
-  /* -- protected methods -- */
 
   protected updateImplicitValue(res: any[]) {
     // Store implicit value (will use it onBlur if not other value selected)
@@ -423,6 +462,13 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       this.markForCheck();
       this._onTouchedCallback();
     }
+  }
+
+  private async suggest(value: any, filter?: any) {
+    if (typeof this.suggestFn === 'function') {
+      return this.suggestFn(value, filter);
+    }
+    return suggestFromArray(this._sortedQualitativeValues, value, filter);
   }
 
   protected markForCheck() {

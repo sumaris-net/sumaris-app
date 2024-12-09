@@ -30,18 +30,19 @@
           #matInput
           type="text"
           [formControl]="formControl"
-          [matAutocomplete]="autoCombo"
+          [matAutocomplete]="autocomplete"
           [appAutofocus]="autofocus"
           [placeholder]="floatLabel === 'never' && placeholder"
-          (click)="_onClick($event)"
-          (focus)="filterInputTextFocusEvent($event)"
-          (blur)="filterInputTextBlurEvent($event)"
+          (click)="onInputTextClick($event)"
+          (focus)="onInputTextFocus($event)"
+          (blur)="onInputTextBlur($event)"
           [required]="required"
           [tabindex]="_tabindex"
           (keyup.enter)="this.onKeyupEnter.emit($event)"
+          (keyup.arrowDown)="!autocomplete.showPanel && dropButtonClick.emit($event)"
         />
 
-        <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="onShowDropdown.emit($event)" [hidden]="disabled">
+        <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="toggleShowPanel($event)" [hidden]="disabled">
           <mat-icon>{{ mobile ? 'arrow_drop_down' : 'keyboard_arrow_down' }}</mat-icon>
         </button>
         <button matSuffix mat-icon-button tabindex="-1" type="button" *ngIf="clearable" (click)="clear()" [hidden]="disabled || !formControl.value">
@@ -74,7 +75,7 @@
 
       <!-- combo -->
       <mat-autocomplete
-        #autoCombo="matAutocomplete"
+        #autocomplete="matAutocomplete"
         [autoActiveFirstOption]="true"
         [hideSingleSelectionIndicator]="true"
         [displayWith]="displayWith"
@@ -105,14 +106,15 @@
           <mat-label>{{ placeholder }}</mat-label>
         }
         <mat-select
-          #matInput
+          matInput
+          #matSelect
           [hideSingleSelectionIndicator]="true"
           [disableOptionCentering]="true"
           [required]="required"
           [placeholder]="floatLabel === 'never' && placeholder"
           [formControl]="formControl"
-          (focus)="filterMatSelectFocusEvent($event)"
-          (blur)="filterMatSelectBlurEvent($event)"
+          (focus)="onMatSelectFocus($event)"
+          (blur)="onMatSelectBlur($event)"
           [tabindex]="_tabindex"
           [compareWith]="compareWith"
           [panelClass]="panelClass"
