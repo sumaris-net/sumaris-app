@@ -894,7 +894,10 @@ export class LandingsTable
       const landings = res.data.filter((landing: Landing) =>
         PmfmValueUtils.equals(landing.measurementValues?.[this.dividerPmfmId] || QualitativeValueIds.SPECIES_LIST_ORIGIN.UNK, dividerValue)
       );
+      // Hide unknown divider value
       if (dividerValue === QualitativeValueIds.SPECIES_LIST_ORIGIN.UNK) return acc.concat(landings);
+      // Hide disabled divider value, if has no landing
+      if (dividerValue?.statusId === StatusIds.DISABLE && !landings.length) return acc;
       return acc.concat([divider, ...landings]);
     }, []);
 
