@@ -90,11 +90,11 @@
             ></mat-boolean-field>
           </form>
         }
-        @if (pmfmsFiltered | isNotEmptyArray) {
+        @if (canShowEnumeration && pmfms | isNotEmptyArray) {
           <app-sub-sorting-criteria-form
             [parentGroup]="parentGroup"
             [class.cdk-visually-hidden]="!showIndividualCountOnly"
-            [pmfmsFiltered]="pmfmsFiltered"
+            [pmfms]="pmfms"
             [programLabel]="programLabel"
             (onSubmit)="generateSubBatchesFromRange($event)"
           ></app-sub-sorting-criteria-form>

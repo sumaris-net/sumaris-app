@@ -32,10 +32,11 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
   protected hasRequiredQvPmfm: boolean = false;
   protected disabledPrecision: boolean = false;
   protected showQvPmfm: boolean = false;
+  protected pmfmsFiltered: IPmfm[];
 
   @Input() parentGroup: BatchGroup;
   @Input() programLabel: string;
-  @Input() pmfmsFiltered: IPmfm[];
+  @Input() pmfms: IPmfm[];
 
   constructor(
     injector: Injector,
@@ -60,6 +61,8 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
 
   ngOnInit() {
     super.ngOnInit();
+    this.loadpmfmsFiltered();
+
     // Pmfms filtered by type
     this.qvPmfms = this.pmfmsFiltered.filter(PmfmUtils.isQualitative);
     this.criteriaPmfms = this.pmfmsFiltered.filter((pmfm) => !PmfmUtils.isQualitative(pmfm));
@@ -155,6 +158,12 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
 
   protected computeNumberInputStep(pmfm: IPmfm): string {
     return PmfmUtils.getOrComputePrecision(pmfm, null)?.toString() || '';
+  }
+
+  loadpmfmsFiltered() {
+    this.pmfmsFiltered = (this.pmfms || []).filter(
+      (pmfm) => !PmfmUtils.isComputed(pmfm) && (PmfmUtils.isNumeric(pmfm) || PmfmUtils.isQualitative(pmfm))
+    );
   }
 
   doSubmit() {
