@@ -5,8 +5,6 @@ import {
   AccountService,
   AppValidatorService,
   DateUtils,
-  EntityUtils,
-  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -87,7 +85,6 @@ export class LandingsTable
   extends BaseMeasurementsTable<Landing, LandingFilter, LandingService, LandingValidatorService, LandingsTableState>
   implements OnInit, OnDestroy
 {
-  readonly pmfmIdsMap = PmfmIds;
   /** Offset to apply to SPECIES_LIST_ORIGIN.RANDOM landings (sale editor). */
   static readonly RANDOM_LANDINGS_RANK_ORDER_OFFSET = 100;
   readonly randomLandingsRankOrderOffset = LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET;
@@ -113,13 +110,12 @@ export class LandingsTable
   protected dividerPmfm: IPmfm;
   protected statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
   protected statusById = DataQualityStatusEnum;
-  protected suggestTaxonGroupsFn: (value: any, filter?: any) => LoadResult<TaxonGroupRef> = null;
   @RxStateProperty() protected observedCount: number;
   @RxStateProperty() protected availableTaxonGroups: TaxonGroupRef[];
 
   // TODO BLA refactor this !!
   protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
-    return this.isSaleDetailEditor && this.isLandingRandom(item);
+    return this.isSaleDetailEditor && this.isRandomLandingRow(item);
   };
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
@@ -390,7 +386,14 @@ export class LandingsTable
 
     // Load taxon groups (if need)
     const hasTaxonGroupId = pmfms.some((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
-    const availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
+    const availableTaxonGroups = (hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : []).map((source) => {
+      const target = ReferentialRef.fromObject(source);
+      // Mark RANDOM species (with the disabled status), to avoid to selection in combo
+      if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && StrategyUtils.isRandomSelectedTaxon(source)) {
+        target.statusId = StatusIds.DISABLE;
+      }
+      return target;
+    });
 
     // Reset divider (will be set below)
     this.dividerPmfm = null;
@@ -400,26 +403,39 @@ export class LandingsTable
         // Keep required pmfms, and included (forced) pmfms
         .filter((p) => p.required || includedPmfmIds?.includes(p.id))
         .map((pmfm) => {
-          // Hide the pmfm use for divider
+          // Divider
           if (pmfm.id === this.dividerPmfmId) {
+            // Hide the pmfm (no table column)
             pmfm = pmfm.clone();
             pmfm.hidden = true;
 
             // Remember the divider pmfm (will be used later)
             this.dividerPmfm = pmfm;
           }
+
           // Taxon group id
           else if (pmfm.id === PmfmIds.TAXON_GROUP_ID) {
             pmfm = pmfm.clone();
             pmfm.type = 'qualitative_value';
-            pmfm.qualitativeValues = availableTaxonGroups.map((tg) => {
-              // Disable random selected taxon (e.g. PETS in SIH-OBSVENTE)
-              if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && StrategyUtils.isRandomSelectedTaxon(tg)) {
-                tg = tg.clone();
-                tg.statusId = StatusIds.DISABLE;
-              }
-              return ReferentialRef.fromObject(tg);
-            });
+            pmfm.qualitativeValues = availableTaxonGroups;
+
+            if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN) {
+              // Keep only enabled taxon groups (not random)
+              const enabledAvailableTaxonGroups = availableTaxonGroups.filter(ReferentialUtils.isNotDisabled);
+              // Suggest taxon group, to avoid duplicated taxon
+              pmfm.suggestQualitativeValueFn = async (value: any, filter?: any) => {
+                // Get existing values
+                const excludedIds = this.dataSource
+                  .getRows()
+                  .filter((row) => row !== this.editedRow)
+                  .map((row) => row.currentData)
+                  .map((data) => data?.measurementValues?.[PmfmIds.TAXON_GROUP_ID])
+                  .filter(ReferentialUtils.isNotEmpty)
+                  .map((taxonGroup) => taxonGroup.id);
+
+                return suggestFromArray(enabledAvailableTaxonGroups, value, { ...filter, excludedIds });
+              };
+            }
           }
           return pmfm;
         })
@@ -429,20 +445,20 @@ export class LandingsTable
   onPrepareRowForm(form: UntypedFormGroup) {
     // Update measurement form
     if (this.isSaleDetailEditor) {
-      // Collect existing PETS taxon groups ids
-      const existingPetsTaxonGroupIds = this.dataSource
+      /*// Collect existing PETS taxon groups ids
+      const existingTaxonGroupIds = this.dataSource
         .getRows()
-        .filter((row) => this.isLandingPets(row))
+        .filter((row) => !this.isRandomLandingRow(row))
         .map((row) => row.currentData.measurementValues[PmfmIds.TAXON_GROUP_ID])
         .filter(EntityUtils.isEntity)
         .map((taxonGroup) => taxonGroup.id);
 
       this.suggestTaxonGroupsFn = (value: any, filter: any) => {
         const filteredQualitativeValues = this.availableTaxonGroups
-          .filter((qv) => !existingPetsTaxonGroupIds.includes(qv.id))
+          .filter((qv) => !existingTaxonGroupIds.includes(qv.id))
           .filter((qv) => !(this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN && StrategyUtils.isRandomSelectedTaxon(qv)));
         return suggestFromArray(filteredQualitativeValues, value, filter);
-      };
+      };*/
 
       this.validatorService.updateFormGroup(form, { pmfms: this.pmfms });
     }
@@ -563,7 +579,7 @@ export class LandingsTable
   toggleSelectRow(event, row) {
     if (this.isSaleDetailEditor) {
       event.stopPropagation();
-      if (!this.isLandingRandom(row)) {
+      if (!this.isRandomLandingRow(row)) {
         this.selection.toggle(row);
       }
     } else {
@@ -577,7 +593,7 @@ export class LandingsTable
       if (this.isAllSelected()) {
         this.selection.clear();
       } else {
-        const rows = this._dataSource.getRows().filter((row) => !this.isLandingRandom(row)); // Filter PETS
+        const rows = this._dataSource.getRows().filter((row) => !this.isRandomLandingRow(row)); // Filter PETS
         this.selection.setSelection(...rows);
       }
     } else {
@@ -588,7 +604,7 @@ export class LandingsTable
   isAllSelected() {
     if (this.isSaleDetailEditor) {
       return (
-        this.selection.selected.length === this.dataSource.getRows().filter((row) => !this.isLandingRandom(row)).length // Filter PETS
+        this.selection.selected.length === this.dataSource.getRows().filter((row) => !this.isRandomLandingRow(row)).length // Filter PETS
       );
     }
     return super.isAllSelected();
@@ -606,7 +622,7 @@ export class LandingsTable
 
     if (this.isSaleDetailEditor) {
       // Max on PETS species only
-      const rows = this.dataSource.getRows().filter((row) => !this.isLandingRandom(row)) || [];
+      const rows = this.dataSource.getRows().filter((row) => !this.isRandomLandingRow(row)) || [];
       return Math.max(0, ...rows.map((row) => row.currentData.rankOrder || 0));
     }
 
@@ -635,7 +651,7 @@ export class LandingsTable
     } else if (this.isSaleDetailEditor) {
       // Insert row after the last PETS landing
       const rows = this.dataSource.getRows();
-      const lastNonRandomLanding = [...rows].reverse().find((row) => !this.isLandingRandom(row));
+      const lastNonRandomLanding = [...rows].reverse().find((row) => !this.isRandomLandingRow(row));
       const insertAt = lastNonRandomLanding ? rows.lastIndexOf(lastNonRandomLanding) + 1 : null;
       return super.addRow(event, insertAt);
     }
@@ -885,9 +901,14 @@ export class LandingsTable
     return item.currentData.__typename !== 'divider';
   }
 
-  private isLandingRandom(row: TableElement<Landing>): boolean {
+  private isRandomLandingRow(row: TableElement<Landing>): boolean {
     if (this.dividerPmfmId !== PmfmIds.SPECIES_LIST_ORIGIN) return false;
-    return MeasurementValuesUtils.hasPmfmValue(row.currentData.measurementValues, this.dividerPmfmId, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM);
+    return this.isRandomLanding(row.currentData);
+  }
+
+  private isRandomLanding(data: Landing): boolean {
+    if (!data || this.dividerPmfmId !== PmfmIds.SPECIES_LIST_ORIGIN) return false;
+    return MeasurementValuesUtils.hasPmfmValue(data.measurementValues, this.dividerPmfmId, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM);
   }
 
   trackByFn(index: number, row: TableElement<Landing>): number {
