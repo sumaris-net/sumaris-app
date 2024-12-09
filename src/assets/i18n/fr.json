@@ -1346,6 +1346,7 @@
         "ACCIDENTAL_CATCH": {
           "TITLE": "Captures accidentelles",
           "TAB_SAMPLES": "Mesures individuelles",
+          "TAXON_GROUP": "Espèce (FAO)",
           "TAXON_NAME": "Espèce scientifique",
           "TAG_COUNT": "<b>{{tagCount}}</b> individu(s) marqué(s)"
         },
