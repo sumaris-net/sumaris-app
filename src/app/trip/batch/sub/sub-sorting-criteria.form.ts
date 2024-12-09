@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { AppForm, FormFieldDefinitionMap, isEmptyArray, isNil, isNotEmptyArray, LoadResult, suggestFromArray } from '@sumaris-net/ngx-components';
 import { BatchGroup } from '../group/batch-group.model';
@@ -23,6 +23,7 @@ export interface SubSortingCriteria {
   styleUrls: ['sub-sorting-criteria.form.scss'],
   templateUrl: 'sub-sorting-criteria.form.html',
   providers: [RxState],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implements OnInit, OnDestroy {
   protected fieldDefinitions: FormFieldDefinitionMap = {};
@@ -46,12 +47,12 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
     super(
       injector,
       fb.group({
-        taxonName: ['', Validators.required],
-        criteriaPmfm: ['', Validators.required],
-        min: ['', [Validators.required, Validators.min(0)]],
-        max: ['', Validators.required],
-        precision: ['', [Validators.required]],
-        qvPmfm: [''],
+        taxonName: [null, Validators.required],
+        criteriaPmfm: [null, Validators.required],
+        min: [null, [Validators.required, Validators.min(0)]],
+        max: [null, Validators.required],
+        precision: [null, [Validators.required]],
+        qvPmfm: [null],
         useOptionalCriteria: [false],
       })
     );
