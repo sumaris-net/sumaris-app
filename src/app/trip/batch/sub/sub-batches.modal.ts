@@ -142,7 +142,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   protected individualCountControl: UntypedFormControl;
   protected pmfmFilterDefinition: FormFieldDefinition;
   protected virtualPmfms: DenormalizedPmfmStrategy[];
-  protected pmfmsFiltered: IPmfm[];
   protected footerValues: { [key: string]: number } = {};
   isAlreadyIndividualCount: boolean = true;
   canShowEnumeration: boolean = true;
@@ -325,7 +324,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       // Compute the title
       await this.computeTitle();
 
-      await this.loadFilteredPmfms();
+      await this.setShowEnumeraion();
     } catch (err) {
       console.error(this.logPrefix + 'Error while loading modal');
     }
@@ -775,18 +774,18 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.showIndividualCount = !this.showIndividualCount;
   }
 
-  protected async loadFilteredPmfms() {
+  protected async setShowEnumeraion() {
     // Avoid to load if offline or mobile
     if (this.mobile || this.networkService.offline) {
-      this.pmfmsFiltered = [];
       this.canShowEnumeration = false;
       return;
     }
 
-    this.pmfmsFiltered = (this.pmfms || []).filter(
+    const pmfmsFiltered = (this.pmfms || []).filter(
       (pmfm) => !PmfmUtils.isComputed(pmfm) && (PmfmUtils.isNumeric(pmfm) || PmfmUtils.isQualitative(pmfm))
     );
-    this.canShowEnumeration = this.pmfmsFiltered.filter(PmfmUtils.isNumeric).length === 1;
+
+    this.canShowEnumeration = pmfmsFiltered.filter(PmfmUtils.isNumeric).length === 1;
   }
 
   protected async generateDynamicColumns(pmfm: IPmfm) {
