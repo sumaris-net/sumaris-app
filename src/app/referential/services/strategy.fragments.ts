@@ -164,13 +164,7 @@ export const StrategyFragments = {
       strategyId
       priorityLevel
       taxonGroup {
-        id
-        label
-        name
-        entityName
-        taxonNames {
-          ...TaxonNameFragment
-        }
+        ...TaxonGroupFragment
       }
       __typename
     }

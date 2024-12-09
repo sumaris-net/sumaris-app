@@ -183,6 +183,7 @@ export const ReferentialFragments = {
       label
       name
       entityName
+      statusId
       taxonNames {
         ...TaxonNameFragment
       }
