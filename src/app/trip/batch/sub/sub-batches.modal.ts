@@ -955,18 +955,19 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.setShowColumn('id', !show, { emitEvent: false });
     this.setShowColumn('individualCount', !show, { emitEvent: false });
 
-    // Hide all pmfms columns
-    // FIXME use this.pmfms
-    this.setShowColumn(PmfmIds.SEX.toString(), !show, { emitEvent: false });
-    this.setShowColumn(PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH.toString(), !show, { emitEvent: false });
+    // Show/hide computed and qualitative pmfms columns
+    this.pmfms
+      .filter((pmfm) => PmfmUtils.isComputed(pmfm) || PmfmUtils.isQualitative(pmfm))
+      .forEach((pmfm) => {
+        this.setShowColumn(pmfm.id.toString(), !show, { emitEvent: false });
+      });
     this.updateColumns();
 
     // Add/remove rows depending on virtual columns presence
     if (this.isAlreadyIndividualCount !== show) {
       if (show) {
-        const data = this.dataSource.getRows();
-        // FIXME: replace by pmfm from the form
-        const groupedData = this.groupByProperty(data, PmfmIds.LENGTH_TOTAL_CM.toString());
+        const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm));
+        const groupedData = this.groupByProperty(numericalPmfm.id.toString());
         await this.concatRows(groupedData);
       } else if (!show) {
         await this.splitRows();
@@ -976,10 +977,10 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.markForCheck();
   }
 
-  private groupByProperty(objects: TableElement<SubBatch>[], property: string): TableElement<SubBatch>[][] {
+  private groupByProperty(property: string): TableElement<SubBatch>[][] {
     const groups: { [key: string]: TableElement<SubBatch>[] } = {};
 
-    objects.forEach((obj) => {
+    this.dataSource.getRows().forEach((obj) => {
       const key = obj?.currentData?.measurementValues[property];
       if (!groups[key]) {
         groups[key] = [];
