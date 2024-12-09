@@ -41,6 +41,7 @@ import {
   ReferentialUtils,
   removeDuplicatesFromArray,
   selectInputContent,
+  selectInputContentFromEvent,
   ShowToastOptions,
   StatusIds,
   suggestFromArray,
@@ -1064,10 +1065,12 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     await this.ready();
 
     const gear = physicalGear.gear;
-    console.debug(`[operation-form] Loading metiers for gear ${gear?.label || 'null'}`);
-
     let res: LoadResult<Metier | ReferentialRef>;
+
+    // Load already practiced metiers, from historical data
     if (this.autocompleteFilters.metier) {
+      console.debug(`[operation-form] Loading practiced metiers for gear ${gear?.label || 'null'}`);
+
       res = await this.operationService.loadPracticedMetier(0, 30, null, null, {
         ...METIER_DEFAULT_FILTER,
         searchJoin: 'TaxonGroup',
@@ -1079,6 +1082,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         levelId: gear?.id || undefined,
       });
     } else {
+      console.debug(`[operation-form] Loading all metiers for gear ${gear?.label || 'null'}`);
       res = await this.referentialRefService.loadAll(
         0,
         100,
@@ -1443,4 +1447,5 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   }
 
   protected selectInputContent = selectInputContent;
+  protected readonly selectInputContentFromEvent = selectInputContentFromEvent;
 }
