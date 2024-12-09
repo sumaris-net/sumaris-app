@@ -5,7 +5,6 @@ import {
   AccountService,
   AppValidatorService,
   DateUtils,
-  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -44,12 +43,11 @@ import { ObservedLocationContextService } from '@app/trip/observedlocation/obser
 import { RxState } from '@rx-angular/state';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
-import { debounceTime, filter } from 'rxjs/operators';
+import { debounceTime, filter, first } from 'rxjs/operators';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { first } from 'rxjs/operators';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
@@ -115,7 +113,7 @@ export class LandingsTable
 
   // TODO BLA refactor this !!
   protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
-    return this.isSaleDetailEditor && !this.isLandingPets(item);
+    return this.isSaleDetailEditor && this.isLandingRandom(item);
   };
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
@@ -530,7 +528,7 @@ export class LandingsTable
   toggleSelectRow(event, row) {
     if (this.isSaleDetailEditor) {
       event.stopPropagation();
-      if (this.isLandingPets(row)) {
+      if (!this.isLandingRandom(row)) {
         this.selection.toggle(row);
       }
     } else {
@@ -544,7 +542,7 @@ export class LandingsTable
       if (this.isAllSelected()) {
         this.selection.clear();
       } else {
-        const rows = this._dataSource.getRows().filter((row) => this.isLandingPets(row)); // Filter PETS
+        const rows = this._dataSource.getRows().filter((row) => !this.isLandingRandom(row)); // Filter PETS
         this.selection.setSelection(...rows);
       }
     } else {
@@ -555,7 +553,7 @@ export class LandingsTable
   isAllSelected() {
     if (this.isSaleDetailEditor) {
       return (
-        this.selection.selected.length === this.dataSource.getRows().filter((row) => this.isLandingPets(row)).length // Filter PETS
+        this.selection.selected.length === this.dataSource.getRows().filter((row) => !this.isLandingRandom(row)).length // Filter PETS
       );
     }
     return super.isAllSelected();
@@ -573,7 +571,7 @@ export class LandingsTable
 
     if (this.isSaleDetailEditor) {
       // Max on PETS species only
-      const rows = this.dataSource.getRows().filter((row) => this.isLandingPets(row)) || [];
+      const rows = this.dataSource.getRows().filter((row) => !this.isLandingRandom(row)) || [];
       return Math.max(0, ...rows.map((row) => row.currentData.rankOrder || 0));
     }
 
@@ -602,8 +600,8 @@ export class LandingsTable
     } else if (this.isSaleDetailEditor) {
       // Insert row after the last PETS landing
       const rows = this.dataSource.getRows();
-      const lastPETSLanding = [...rows].reverse().find((row) => this.isLandingPets(row));
-      const insertAt = lastPETSLanding ? rows.lastIndexOf(lastPETSLanding) + 1 : null;
+      const lastNonRandomLanding = [...rows].reverse().find((row) => !this.isLandingRandom(row));
+      const insertAt = lastNonRandomLanding ? rows.lastIndexOf(lastNonRandomLanding) + 1 : null;
       return super.addRow(event, insertAt);
     }
 
@@ -852,8 +850,9 @@ export class LandingsTable
     return item.currentData.__typename !== 'divider';
   }
 
-  private isLandingPets(row: TableElement<Landing>): boolean {
-    return MeasurementValuesUtils.hasPmfmValue(row.currentData.measurementValues, this.dividerPmfmId, QualitativeValueIds.SPECIES_LIST_ORIGIN.PETS);
+  private isLandingRandom(row: TableElement<Landing>): boolean {
+    if (this.dividerPmfmId !== PmfmIds.SPECIES_LIST_ORIGIN) return false;
+    return MeasurementValuesUtils.hasPmfmValue(row.currentData.measurementValues, this.dividerPmfmId, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM);
   }
 
   trackByFn(index: number, row: TableElement<Landing>): number {
@@ -861,15 +860,24 @@ export class LandingsTable
   }
 
   protected mapLandings(res: LoadResult<Landing>): LoadResult<Landing> {
-    if (isNil(this.dividerPmfmId) || !res?.total) return res;
+    if (isNil(this.dividerPmfmId) || !res?.total) return res; // No divider: skip
 
     // Get distinct pmfm values
     const dividerValues =
       this.dividerPmfm?.qualitativeValues ||
-      removeDuplicatesFromArray(res.data.map((landing) => landing.measurementValues?.[this.dividerPmfmId]).filter(isNotNil));
+      removeDuplicatesFromArray(
+        res.data.map((landing) => landing.measurementValues?.[this.dividerPmfmId] || QualitativeValueIds.SPECIES_LIST_ORIGIN.UNK).filter(isNotNil)
+      );
 
-    // Make sure to put random value at the end (if present)
     if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN) {
+      // Put UNK value at the beginning (if present)
+      const unkValueIndex = dividerValues.findIndex((qv) => PmfmValueUtils.equals(qv, QualitativeValueIds.SPECIES_LIST_ORIGIN.UNK));
+      if (unkValueIndex !== -1) {
+        const unkValue = dividerValues.splice(unkValueIndex, 1)[0];
+        dividerValues.unshift(unkValue);
+      }
+
+      // Put random value at the end (if present)
       const randomValueIndex = dividerValues.findIndex((qv) => PmfmValueUtils.equals(qv, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM));
       if (randomValueIndex !== -1) {
         const randomValue = dividerValues.splice(randomValueIndex, 1)[0];
@@ -883,10 +891,10 @@ export class LandingsTable
         measurementValues: { [this.dividerPmfmId]: dividerValue },
       });
       DataEntityUtils.markAsDivider(divider);
-      const landings = res.data.filter((landing: Landing) => PmfmValueUtils.equals(landing.measurementValues[this.dividerPmfmId], dividerValue));
-      if (isEmptyArray(landings)) {
-        acc.concat(divider);
-      }
+      const landings = res.data.filter((landing: Landing) =>
+        PmfmValueUtils.equals(landing.measurementValues?.[this.dividerPmfmId] || QualitativeValueIds.SPECIES_LIST_ORIGIN.UNK, dividerValue)
+      );
+      if (dividerValue === QualitativeValueIds.SPECIES_LIST_ORIGIN.UNK) return acc.concat(landings);
       return acc.concat([divider, ...landings]);
     }, []);
 
