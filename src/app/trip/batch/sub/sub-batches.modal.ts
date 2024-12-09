@@ -336,7 +336,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     // Configure form's properties
     this.form.qvPmfm = this.qvPmfm;
-    this.form.pmfms = this.pmfms;
     this.form.showFreezeQvPmfms = true; // TODO: Program option?
 
     // Mark form as ready
