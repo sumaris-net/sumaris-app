@@ -106,6 +106,7 @@ export const ProgramRefQueries = {
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
     ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
 
@@ -153,6 +154,7 @@ export const ProgramRefQueries = {
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
     ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
 
@@ -180,6 +182,7 @@ export const ProgramRefQueries = {
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
     ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
 };
@@ -853,7 +856,8 @@ export class ProgramRefService
           .map((v) => <any>{ ...v.taxonGroup, priority: v.priorityLevel })
       ),
       map((data) => {
-        if (this._debug) console.debug(`[program-ref-service] Found ${data.length} taxon groups on program {${programLabel}}`);
+        //if (this._debug)
+        console.debug(`[program-ref-service] Found ${data.length} taxon groups on program {${programLabel}}`);
 
         // Convert into entities
         return !opts || opts.toEntity !== false ? data.map(TaxonGroupRef.fromObject) : (data as TaxonGroupRef[]);
