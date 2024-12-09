@@ -32,13 +32,16 @@ import {
   filterNumberInput,
   focusInput,
   InputElement,
+  IReferentialRef,
   isNil,
   isNilOrBlank,
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
   MatDateTime,
+  selectInputContentFromEvent,
   setTabIndex,
+  SuggestFn,
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -155,9 +158,11 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input({ transform: booleanAttribute }) disableRipple = false;
   @Input() panelClass: string;
   @Input() panelWidth: string;
+  @Input() suggestFn: SuggestFn<IReferentialRef, any>;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input({ transform: booleanAttribute }) listenStatusChanges = false;
+  @Input({ transform: booleanAttribute }) selectInputContentOnFocus = false;
 
   set type(value: string) {
     this.set('type', (_) => value);
@@ -380,10 +385,23 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
 
   /* -- protected method -- */
 
+  protected onFocusInput(event: FocusEvent) {
+    if (this.selectInputContentOnFocus) {
+      selectInputContentFromEvent(event);
+    }
+    this.focused.emit(event);
+  }
+
   protected computeNumberInputStep(pmfm: IPmfm): string {
-    // FIXME: choisir la valeur min, ou vide ? - cf issue #554
-    // return PmfmUtils.getOrComputePrecision(pmfm, 1)
-    return PmfmUtils.getOrComputePrecision(pmfm, null)?.toString() || '';
+    if (this.mobile && pmfm.type === 'double') {
+      // Workaround for mobile (e.g. to force iOS to open the numeric keyboard)
+      // Cf issue #856
+      this.numberInputStep = 'any';
+    } else {
+      // FIXME: choisir la valeur min, ou vide ? - cf issue #554
+      // return PmfmUtils.getOrComputePrecision(pmfm, 1)
+      return PmfmUtils.getOrComputePrecision(pmfm, null)?.toString() || '';
+    }
   }
 
   protected updateTabIndex() {
