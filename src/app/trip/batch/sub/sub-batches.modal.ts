@@ -33,7 +33,7 @@ import {
 } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Animation, IonContent, ModalController } from '@ionic/angular';
-import { debounceTime, isObservable, Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, isObservable, Observable, Subject, Subscription } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
@@ -259,11 +259,14 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     if (!this.showFilterForm) {
       this.registerSubscription(
-        this.modalForm.get('showSubBatchForm').valueChanges.subscribe((value) => {
-          if (value) {
-            this.resetFilter();
-          }
-        })
+        this.modalForm
+          .get('showSubBatchForm')
+          .valueChanges.pipe(distinctUntilChanged())
+          .subscribe((value) => {
+            if (value) {
+              this.resetFilter();
+            }
+          })
       );
     }
 
@@ -936,7 +939,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     filter.numericalPmfm = data.criteriaPmfm;
     filter.taxonNameId = data.taxonName.id;
 
-    const formValue = { minValue: data.min, maxValue: data.max, taxonNameFilter: data.taxonName, criteriaPmfm: data.criteriaPmfm };
+    const formValue = { minValue: data.min, maxValue: data.max, taxonName: data.taxonName, pmfm: data.criteriaPmfm };
     this.filterForm.patchValue(formValue);
     this.setFilter(filter);
   }
@@ -974,7 +977,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       }
       this.isAlreadyIndividualCount = show;
     }
-    this.markForCheck();
   }
 
   private groupByProperty(property: string): TableElement<SubBatch>[][] {
@@ -992,6 +994,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   }
 
   private async concatRows(groupRows: TableElement<SubBatch>[][]) {
+    if (isEmptyArray(this.virtualPmfms)) return;
     let rankOrder = (await this.getMaxRankOrder()) + 1;
 
     const newRows = [];
@@ -1027,43 +1030,49 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   }
 
   private async splitRows() {
+    if (isEmptyArray(this.virtualPmfms)) return;
+    this.save();
     let rankOrder = await this.getMaxRankOrder();
-    const existingRows = this.dataSource.getRows();
+    const existingSubBatches = this.getValue();
 
-    const newRows = [];
+    const newSubBatches = [];
 
-    // Rows with all virtual pmfms empty need to be deleted
-    const rowsToDelete = existingRows.filter((row) =>
-      this.virtualPmfms?.every((pmfm) => isNil(row.currentData.measurementValues[pmfm.id]) && row.currentData.individualCount === 0)
-    );
+    const subBatchesToDelete = [];
+
+    const filter = new SubBatchFilter();
+    filter.numericalMinValue = this.filterForm.value.min;
+    filter.numericalMaxValue = this.filterForm.value.max;
+    filter.numericalPmfm = this.filterForm.value.criteriaPmfm;
+    filter.taxonNameId = this.filterForm.value.taxonName?.id;
+
+    const subBacthesToSave = existingSubBatches.filter((subBatch) => !filter.asFilterFn()(subBatch));
+
+    if (isEmptyArray(subBacthesToSave)) subBacthesToSave.forEach((subBatch) => newSubBatches.push(subBatch));
 
     // Convert rows
-    for (const row of existingRows) {
+    for (const subBacth of existingSubBatches) {
       this.virtualPmfms?.forEach((pmfm) => {
-        const individualCount = row.currentData.measurementValues[pmfm.id];
-        const lengthTotalCm = row.currentData.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()];
+        const individualCount = subBacth.measurementValues[pmfm.id];
+        const lengthTotalCm = subBacth.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()];
 
         if (isNotNil(individualCount) && individualCount > 0) {
           const qualitativeValue = this.pmfms.find((pm) => pm.id === PmfmIds.SEX).qualitativeValues.filter((pm) => pm.name === pmfm.name)[0];
 
-          const newRow = new SubBatch();
-          newRow.individualCount = individualCount;
-          newRow.taxonName = row.currentData.taxonName;
-          newRow.measurementValues[PmfmIds.SEX.toString()] = qualitativeValue;
-          newRow.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()] = lengthTotalCm;
-          newRow.rankOrder = ++rankOrder;
+          const newSubBatch = new SubBatch();
+          newSubBatch.individualCount = individualCount;
+          newSubBatch.taxonName = subBacth.taxonName;
+          newSubBatch.measurementValues[PmfmIds.SEX.toString()] = qualitativeValue;
+          newSubBatch.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()] = lengthTotalCm;
+          newSubBatch.rankOrder = ++rankOrder;
+          newSubBatch.parentGroup = this.parentGroup;
 
-          newRows.push(newRow);
+          newSubBatches.push(newSubBatch);
         }
       });
-      rowsToDelete.push(row);
-    }
 
-    // Apply changes
-    await this.deleteRows(null, rowsToDelete, { interactive: false });
-    if (isNotEmptyArray(newRows)) {
-      await this.addEntitiesToTable(newRows, { editing: false });
+      subBatchesToDelete.push(subBacth);
     }
+    await this.setValue(newSubBatches);
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
