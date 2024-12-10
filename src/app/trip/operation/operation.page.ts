@@ -1061,6 +1061,9 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
+    const isInvalid = this.sampleTree?.samplesTable?.invalid ?? false;
+    if (isInvalid && MeasurementUtils.asBooleanValue(this.measurementsForm.value, PmfmIds.HAS_ACCIDENTAL_CATCHES) === true) return true;
+
     const changed = super.onTabChange(event, queryParamName);
     if (changed) {
       switch (this.selectedTabIndex) {
