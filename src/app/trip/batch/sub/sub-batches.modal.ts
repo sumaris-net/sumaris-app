@@ -978,6 +978,11 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       }
       this.isAlreadyIndividualCount = show;
     }
+    if (!show) {
+      setTimeout(async () => {
+        await this.deleteEmptyRows();
+      }, 100);
+    }
   }
 
   private groupByProperty(property: string): TableElement<SubBatch>[][] {
@@ -1025,10 +1030,9 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
       newRows.push(newRow);
     }
-    await this.deleteRows(null, rowsToDelete, { interactive: false });
-    if (isNotEmptyArray(newRows)) {
-      await this.addEntitiesToTable(newRows, { editing: false });
-    }
+
+    if (isNotEmptyArray(rowsToDelete)) await this.deleteRows(null, rowsToDelete, { interactive: false });
+    if (isNotEmptyArray(newRows)) await this.addEntitiesToTable(newRows, { editing: false });
   }
 
   private async splitRows(numericalPmfm: IPmfm) {
@@ -1038,18 +1042,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     const existingSubBatches = this.getValue();
 
     const newSubBatches = [];
-
     const subBatchesToDelete = [];
-
-    const filter = new SubBatchFilter();
-    filter.numericalMinValue = this.filterForm.value.min;
-    filter.numericalMaxValue = this.filterForm.value.max;
-    filter.numericalPmfm = this.filterForm.value.criteriaPmfm;
-    filter.taxonNameId = this.filterForm.value.taxonName?.id;
-
-    const subBacthesToSave = existingSubBatches.filter((subBatch) => !filter.asFilterFn()(subBatch));
-
-    if (isEmptyArray(subBacthesToSave)) subBacthesToSave.forEach((subBatch) => newSubBatches.push(subBatch));
 
     // Convert rows
     for (const subBacth of existingSubBatches) {
@@ -1075,6 +1068,14 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       subBatchesToDelete.push(subBacth);
     }
     await this.setValue(newSubBatches);
+  }
+
+  async deleteEmptyRows() {
+    let rows = this.getValue();
+    rows = rows.filter((subBacth) => {
+      return subBacth.individualCount > 0;
+    });
+    await this.setValue(rows);
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
