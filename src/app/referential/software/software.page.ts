@@ -25,6 +25,10 @@ export class SoftwarePage extends AbstractSoftwarePage<Software, SoftwareService
     this.debug = !this.environment.production;
   }
 
+  protected computePageUrl(id: 'new' | number): string | any[] {
+    return `/referential/software/${id}`;
+  }
+
   protected onNewEntity(data: Software, options?: EntityServiceLoadOptions): Promise<void> {
     this.markAsReady();
     return super.onNewEntity(data, options);

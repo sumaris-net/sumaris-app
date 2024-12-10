@@ -114,6 +114,10 @@ export class TaxonNamePage extends AppReferentialEditor<TaxonName, TaxonNameServ
 
   /* -- protected methods -- */
 
+  protected computePageUrl(id: 'new' | number): string | any[] {
+    return `/referential/taxon-name/${id}`;
+  }
+
   protected registerForms() {
     this.addForms([this.referentialForm, this.wlcTable]);
   }
