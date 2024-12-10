@@ -800,7 +800,7 @@ export class OperationValidators {
               pmfms
                 .filter(
                   (pmfm) =>
-                    (pmfm.rankOrder > individualOnDeckPmfm.rankOrder && !isTangledPmfm && pmfm.rankOrder <= isTangledPmfm.rankOrder) ||
+                    (pmfm.rankOrder > individualOnDeckPmfm.rankOrder && (!isTangledPmfm || pmfm.rankOrder <= isTangledPmfm.rankOrder)) ||
                     pmfm.id === PmfmIds.TAG_ID
                 )
                 .map((pmfm) => {
@@ -837,42 +837,43 @@ export class OperationValidators {
     // Create listener on column 'IS_TANGLED' value changes
     const isTangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_TANGLED);
     const isTangledControl = isTangledPmfm && measFormGroup.controls[isTangledPmfm.id];
+    const isPingerAccessiblePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.PINGER_ACCESSIBLE);
 
-    if (isTangledControl) {
-      return isTangledControl.valueChanges.pipe(
-        startWith(isTangledControl.value),
-        map((isTangled) => {
-          if (isTangled) {
-            if (form.enabled) {
-              pmfms
-                .filter(
-                  (pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.rankOrder <= PmfmIds.PINGER_ACCESSIBLE && pmfm.id !== PmfmIds.TAG_ID
-                )
-                .map((pmfm) => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  let required = false;
-                  if (pmfm.required) {
-                    required = true;
-                  }
-                  AppFormUtils.enableControl(control, { onlySelf: true, required: required });
-                });
-              if (markForCheck) markForCheck();
-            }
-          } else {
-            if (form.enabled) {
-              pmfms
-                .filter((pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
-                .map((pmfm) => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  AppFormUtils.disableControl(control, { onlySelf: true });
-                });
-              if (markForCheck) markForCheck();
-            }
+    if (!isTangledControl || !isPingerAccessiblePmfm) return null;
+
+    return isTangledControl.valueChanges.pipe(
+      startWith(isTangledControl.value),
+      map((isTangled) => {
+        if (isTangled) {
+          if (form.enabled) {
+            pmfms
+              .filter(
+                (pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.rankOrder <= isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
+              )
+              .map((pmfm) => {
+                const control = measFormGroup.controls[pmfm.id];
+                let required = false;
+                if (pmfm.required) {
+                  required = true;
+                }
+                AppFormUtils.enableControl(control, { onlySelf: true, required: required });
+              });
+            if (markForCheck) markForCheck();
           }
-          return null;
-        })
-      );
-    }
+        } else {
+          if (form.enabled) {
+            pmfms
+              .filter((pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+              .map((pmfm) => {
+                const control = measFormGroup.controls[pmfm.id];
+                AppFormUtils.disableControl(control, { onlySelf: true });
+              });
+            if (markForCheck) markForCheck();
+          }
+        }
+        return null;
+      })
+    );
   }
 
   static listenIsPingerAccessible(event: IPmfmForm): Observable<any> | null {
