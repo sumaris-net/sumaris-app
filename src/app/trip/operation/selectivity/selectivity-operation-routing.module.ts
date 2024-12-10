@@ -8,20 +8,12 @@ const routes: Routes = [
   {
     path: ':selectivityOperationId',
     runGuardsAndResolvers: 'pathParamsChange',
+    pathMatch: 'full',
+    component: SelectivityOperationPage,
+    canDeactivate: [ComponentDirtyGuard],
     data: {
       pathIdParam: 'selectivityOperationId',
     },
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        component: SelectivityOperationPage,
-        canDeactivate: [ComponentDirtyGuard],
-        data: {
-          pathIdParam: 'selectivityOperationId',
-        },
-      },
-    ],
   },
 ];
 
