@@ -981,7 +981,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     if (!show) {
       setTimeout(async () => {
         await this.deleteEmptyRows();
-      }, 100);
+      });
     }
   }
 
