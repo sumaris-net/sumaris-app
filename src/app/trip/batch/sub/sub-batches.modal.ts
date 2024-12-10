@@ -327,7 +327,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       // Compute the title
       await this.computeTitle();
 
-      await this.setShowEnumeraion();
+      await this.setShowEnumeration();
     } catch (err) {
       console.error(this.logPrefix + 'Error while loading modal');
     }
@@ -777,7 +777,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.showIndividualCount = !this.showIndividualCount;
   }
 
-  protected async setShowEnumeraion() {
+  protected async setShowEnumeration() {
     // Avoid to load if offline or mobile
     if (this.mobile || this.networkService.offline) {
       this.canShowEnumeration = false;
@@ -968,12 +968,13 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     // Add/remove rows depending on virtual columns presence
     if (this.isAlreadyIndividualCount !== show) {
-      if (show) {
-        const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm));
-        const groupedData = this.groupByProperty(numericalPmfm.id.toString());
-        await this.concatRows(groupedData);
-      } else if (!show) {
-        await this.splitRows();
+      const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm));
+      if (isNotEmptyArray(this.virtualPmfms)) {
+        if (show) {
+          await this.concatRows(numericalPmfm);
+        } else {
+          await this.splitRows(numericalPmfm);
+        }
       }
       this.isAlreadyIndividualCount = show;
     }
@@ -993,8 +994,9 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     return Object.values(groups);
   }
 
-  private async concatRows(groupRows: TableElement<SubBatch>[][]) {
-    if (isEmptyArray(this.virtualPmfms)) return;
+  private async concatRows(numericalPmfm: IPmfm) {
+    const numericalPmfmId = numericalPmfm.id.toString();
+    const groupRows = this.groupByProperty(numericalPmfmId);
     let rankOrder = (await this.getMaxRankOrder()) + 1;
 
     const newRows = [];
@@ -1014,7 +1016,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       newRow.individualCount = rows[0].currentData.individualCount;
       newRow.measurementValues[PmfmIds.SEX.toString()] = rows[0].currentData.measurementValues[PmfmIds.SEX.toString()];
       newRow.taxonName = rows[0].currentData.taxonName;
-      newRow.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()] = rows[0].currentData.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()];
+      newRow.measurementValues[numericalPmfmId] = rows[0].currentData.measurementValues[numericalPmfmId];
       virtualPmfmValue.forEach((pmfm) => {
         if (pmfm.virtualPmfm) newRow.measurementValues[pmfm.virtualPmfm.id.toString()] = pmfm.individualCount;
       });
@@ -1029,8 +1031,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     }
   }
 
-  private async splitRows() {
-    if (isEmptyArray(this.virtualPmfms)) return;
+  private async splitRows(numericalPmfm: IPmfm) {
+    const numericalPmfmId = numericalPmfm.id.toString();
     this.save();
     let rankOrder = await this.getMaxRankOrder();
     const existingSubBatches = this.getValue();
@@ -1053,7 +1055,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     for (const subBacth of existingSubBatches) {
       this.virtualPmfms?.forEach((pmfm) => {
         const individualCount = subBacth.measurementValues[pmfm.id];
-        const lengthTotalCm = subBacth.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()];
+        const lengthTotalCm = subBacth.measurementValues[numericalPmfmId];
 
         if (isNotNil(individualCount) && individualCount > 0) {
           const qualitativeValue = this.pmfms.find((pm) => pm.id === PmfmIds.SEX).qualitativeValues.filter((pm) => pm.name === pmfm.name)[0];
@@ -1062,7 +1064,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
           newSubBatch.individualCount = individualCount;
           newSubBatch.taxonName = subBacth.taxonName;
           newSubBatch.measurementValues[PmfmIds.SEX.toString()] = qualitativeValue;
-          newSubBatch.measurementValues[PmfmIds.LENGTH_TOTAL_CM.toString()] = lengthTotalCm;
+          newSubBatch.measurementValues[numericalPmfmId] = lengthTotalCm;
           newSubBatch.rankOrder = ++rankOrder;
           newSubBatch.parentGroup = this.parentGroup;
 
