@@ -265,6 +265,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
           .subscribe((value) => {
             if (value) {
               this.resetFilter();
+            } else {
+              this.closeFilterPanel();
             }
           })
       );
@@ -851,7 +853,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   }
 
   protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<IPmfm>> {
-    const pmfms = (this.pmfms || []).filter((pmfm) => !PmfmUtils.isComputed(pmfm));
+    const pmfms = (this.pmfms || []).filter((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm));
     if (isEmptyArray(pmfms)) return { data: [] };
     return suggestFromArray(pmfms, value, {
       ...opts,
