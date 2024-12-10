@@ -494,9 +494,6 @@
             <br />
             parentOperation.fishingStartDateTime:
             {{ form.get('parentOperation.fishingStartDateTime')?.valueChanges | async | dateFormat: { time: true } }}
-            <br />
-
-            batchTree.enabled: {{ batchTree.enabled }} batchTree.loading: {{ batchTree.loading }}
           </span>
           <span *ngIf="opeForm.isParentOperation">
             childOperation.fishingEndDateTime:
@@ -528,8 +525,10 @@
           batchTree.catchBatchForm.loading: {{ batchTree.catchBatchForm.loading }}
           <br />
           batchTree.batchGroupsTable.loading: {{ batchTree.batchGroupsTable.loading }}
-          <br />
-          batchTree.subBatchesTable.loading: {{ batchTree.subBatchesTable?.loadingSubject | async }}
+          @if (batchTree.subBatchesTable) {
+            <br />
+            batchTree.subBatchesTable.loading: {{ batchTree.subBatchesTable.loadingSubject | async }}
+          }
         </ion-col>
 
         <!-- Sample debug -->
