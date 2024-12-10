@@ -516,9 +516,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
       // Listen first opening the operations tab, then save
       this.registerSubscription(
-        this.tabGroup.selectedTabChange
+        this.selectedTabIndexChange
           .pipe(
-            filter((event) => this.showOperationTable && event.index === TripPage.TABS.OPERATIONS),
+            filter((index) => this.showOperationTable && index === TripPage.TABS.OPERATIONS),
             // Save trip when opening the operation tab
             mergeMap(() => this.save()),
             filter((saved) => saved === true && isNotNil(this.data.id)),
@@ -654,7 +654,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async onOpenOperation(row: TableElement<Operation>) {
-    const saved = this.isOnFieldMode && this.dirty ? await this.save(undefined) : await this.saveIfDirtyAndConfirm();
+    const saved =
+      this.isOnFieldMode && this.dirty ? await this.save(undefined) : await this.saveIfDirtyAndConfirm(null, { confirmed: !this.isOnFieldMode });
     if (!saved) return; // Cannot saved
 
     this.markAsLoading();

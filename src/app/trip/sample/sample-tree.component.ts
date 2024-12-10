@@ -405,13 +405,6 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> implements OnIni
     return true;
   }
 
-  realignInkBar() {
-    if (this.tabGroup) {
-      //this.tabGroup.selectedIndex = this.selectedTabIndex;
-      this.tabGroup.realignInkBar();
-    }
-  }
-
   addRow(event: Event) {
     switch (this.selectedTabIndex) {
       case 0:
