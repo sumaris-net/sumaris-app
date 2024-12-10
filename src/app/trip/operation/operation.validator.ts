@@ -800,7 +800,8 @@ export class OperationValidators {
               pmfms
                 .filter(
                   (pmfm) =>
-                    (pmfm.rankOrder > individualOnDeckPmfm.rankOrder && pmfm.rankOrder <= isTangledPmfm.rankOrder) || pmfm.id === PmfmIds.TAG_ID
+                    (pmfm.rankOrder > individualOnDeckPmfm.rankOrder && !isTangledPmfm && pmfm.rankOrder <= isTangledPmfm.rankOrder) ||
+                    pmfm.id === PmfmIds.TAG_ID
                 )
                 .map((pmfm) => {
                   const control = measFormGroup.controls[pmfm.id];

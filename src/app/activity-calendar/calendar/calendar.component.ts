@@ -1215,7 +1215,7 @@ export class CalendarComponent
     }
   }
 
-  async showUnautorizedToast(error?: string) {
+  async showUnauthorizedToast(error?: string) {
     this.unauthorizedToast$.next(error);
   }
 
@@ -2010,15 +2010,7 @@ export class CalendarComponent
 
     const isActive = form.get('isActive').value;
 
-    opts = {
-      required: false,
-      withMetier: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
-      withFishingAreas: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
-      metierCount: this.metierCount,
-      fishingAreaCount: this.maxFishingAreaCount,
-      isOnFieldMode: this.isOnFieldMode,
-      ...opts,
-    };
+    opts = this.fillValidatorOptions(isActive, opts);
 
     if (this.debug) console.debug(this.logPrefix + 'Updating row form...', opts);
     if (this.error) this.resetError();
@@ -2027,6 +2019,20 @@ export class CalendarComponent
     if (opts?.listenChanges !== false) {
       this.startListenRow(form);
     }
+  }
+
+  protected fillValidatorOptions(isActive: number, opts?: ActivityMonthValidatorOptions): ActivityMonthValidatorOptions {
+    return {
+      required: false,
+      pmfms: this.pmfms,
+      withMeasurements: isActive === VesselUseFeaturesIsActiveEnum.ACTIVE,
+      withMetier: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
+      withFishingAreas: isActive !== VesselUseFeaturesIsActiveEnum.INACTIVE && isActive !== VesselUseFeaturesIsActiveEnum.NOT_EXISTS,
+      metierCount: this.metierCount,
+      fishingAreaCount: this.maxFishingAreaCount,
+      isOnFieldMode: this.isOnFieldMode,
+      ...opts,
+    };
   }
 
   protected startListenRow(form: UntypedFormGroup) {
@@ -2063,10 +2069,10 @@ export class CalendarComponent
             this.markAsDirty();
           }
 
-          // TODO BLA: Morgan, pourquoi cet update ici ? Peux tu commenter ce que tu cherches à corriger ?
-          // Car normalement, c'est ActivityMonthValidators.startListenChanges() qui lance déjà le updateFormGroup()
+          // Force to update the form group, when enabling row and isActive
           if (isActiveControl.value === VesselUseFeaturesIsActiveEnum.ACTIVE && form.status !== 'DISABLED') {
-            this.validatorService.updateFormGroup(form);
+            const opts = this.fillValidatorOptions(isActiveControl.value);
+            this.validatorService.updateFormGroup(form, opts);
           }
         })
     );
@@ -2098,7 +2104,7 @@ export class CalendarComponent
 
       // Warn user that he cannot edit
       if (month.readonly === true) {
-        this.showUnautorizedToast();
+        this.showUnauthorizedToast();
       }
       return false;
     }
@@ -2542,7 +2548,7 @@ export class CalendarComponent
     let dirty = false;
     targetRows.forEach((row, index) => {
       if (row.currentData.readonly) {
-        this.showUnautorizedToast();
+        this.showUnauthorizedToast();
         return;
       }
       const form = row.validator;
@@ -2689,7 +2695,7 @@ export class CalendarComponent
     for (const row of rows) {
       paths.forEach((path) => {
         if (row.currentData.readonly) {
-          this.showUnautorizedToast();
+          this.showUnauthorizedToast();
           return;
         }
         setPropertyByPath(row, path, null);
@@ -2915,13 +2921,14 @@ export class CalendarComponent
 
     for (let i = 0; i < targetRows.length; i++) {
       const targetRow = targetRows[i];
+      const targetPreviousValue = targetRow.currentData;
       const sourceMonth = sourceMonths[i % sourceMonths.length];
 
       // Creating a form
-      const targetForm = this.validatorService.getFormGroup(targetRow.currentData, { withMeasurements: true, pmfms: this.pmfms });
+      const targetForm = this.validatorService.getFormGroup(targetPreviousValue, { withMeasurements: true, pmfms: this.pmfms });
 
-      if (targetForm.value.readonly) {
-        this.showUnautorizedToast();
+      if (targetForm.value?.readonly) {
+        this.showUnauthorizedToast();
         return;
       }
 
@@ -2939,15 +2946,17 @@ export class CalendarComponent
       } else {
         // Read isActive (from the source data, or from the original data) and convert into a boolean
         let isActive: boolean = toNumber(sourceMonth.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
+        let sourceHasSomeValue = false;
 
-        // For each paths to paste
+        // For each path to paste
         sourcePaths.forEach((sourcePath, index) => {
           let sourceValue = getPropertyByPath(sourceMonth, sourcePath);
+          sourceHasSomeValue = sourceHasSomeValue || isNotNil(sourceValue);
 
           // Don't copy value if flagged as outside the expertise are
           if (sourceValue?.properties?.outsideExpertiseArea) {
             sourceValue = undefined;
-            this.showUnautorizedToast('ACTIVITY_CALENDAR.WARNING.OUTSIDE_EXPERTISE_AREA_PASTE');
+            this.showUnauthorizedToast('ACTIVITY_CALENDAR.WARNING.OUTSIDE_EXPERTISE_AREA_PASTE');
           }
 
           // Force isActive if paste some not null value, that is relative to an fishing activity (e.g metier, fishing area, etc.)
@@ -2964,10 +2973,10 @@ export class CalendarComponent
 
           // Update control from the path
           const targetPath = targetPaths[index];
-          const control = targetPath && this.findOrCreateControl(targetForm, targetPath);
-          if (control) {
-            control.enable({ emitEvent: false });
-            control.setValue(sourceValue);
+          const targetControl = targetPath && this.findOrCreateControl(targetForm, targetPath);
+          if (targetControl) {
+            targetControl.enable({ emitEvent: false });
+            targetControl.setValue(sourceValue);
           }
         });
 
@@ -2982,8 +2991,13 @@ export class CalendarComponent
           }
         }
 
+        // Check if changes (e.g. if some of source or target cell has content) - see issue #840
+        const hasChanges = sourceHasSomeValue || targetPaths.some((path) => isNotNil(getPropertyByPath(targetPreviousValue, path)));
+
         // Update the row, using the computed entity
-        await this.updateEntityToTable(targetEntity, targetRow, { confirmEdit: true });
+        if (hasChanges) {
+          await this.updateEntityToTable(targetEntity, targetRow, { confirmEdit: true });
+        }
       }
     }
 

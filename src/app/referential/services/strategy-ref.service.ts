@@ -61,6 +61,7 @@ const Queries: StrategyRefQueries = {
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
     ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
 
@@ -94,6 +95,7 @@ const Queries: StrategyRefQueries = {
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
     ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
 
@@ -109,6 +111,7 @@ const Queries: StrategyRefQueries = {
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
     ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
 };

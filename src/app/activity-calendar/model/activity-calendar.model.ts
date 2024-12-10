@@ -8,6 +8,7 @@ import {
   Person,
   ReferentialAsObjectOptions,
   ReferentialUtils,
+  splitById,
   toDateISOString,
 } from '@sumaris-net/ngx-components';
 import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
@@ -27,20 +28,24 @@ export const DirectSurveyInvestigationEnum = {
   OPPORTUNISTIC: 2,
 };
 
-export const DirectSurveyInvestigationList: Readonly<IStatus[]> = Object.freeze([
+export const DirectSurveyInvestigationList: Readonly<(IStatus & { extractionLabel: string })[]> = Object.freeze([
   {
     id: DirectSurveyInvestigationEnum.YES,
+    extractionLabel: 'Y',
     label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.YES',
   },
   {
     id: DirectSurveyInvestigationEnum.NO,
+    extractionLabel: 'N',
     label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.NO',
   },
   {
     id: DirectSurveyInvestigationEnum.OPPORTUNISTIC,
+    extractionLabel: 'O',
     label: 'ACTIVITY_CALENDAR.EDIT.DIRECT_SURVEY_INVESTIGATION_ENUM.OPPORTUNISTIC',
   },
 ]);
+export const DirectSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
 
 @EntityClass({ typename: 'ActivityCalendarVO' })
 export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> implements IWithObserversEntity<ActivityCalendar> {

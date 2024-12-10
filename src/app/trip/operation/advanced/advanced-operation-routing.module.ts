@@ -8,20 +8,12 @@ const routes: Routes = [
   {
     path: ':advancedOperationId',
     runGuardsAndResolvers: 'pathParamsChange',
+    pathMatch: 'full',
+    component: AdvancedOperationPage,
+    canDeactivate: [ComponentDirtyGuard],
     data: {
       pathIdParam: 'advancedOperationId',
     },
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        component: AdvancedOperationPage,
-        canDeactivate: [ComponentDirtyGuard],
-        data: {
-          pathIdParam: 'advancedOperationId',
-        },
-      },
-    ],
   },
 ];
 

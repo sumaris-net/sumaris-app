@@ -269,6 +269,10 @@ export class PmfmPage extends AppEntityEditor<Pmfm> implements OnInit, OnDestroy
 
   /* -- protected methods -- */
 
+  protected computePageUrl(id: 'new' | number): string | any[] {
+    return `/referential/pmfm/${id}`;
+  }
+
   protected registerForms() {
     this.addForms([this.referentialForm, this.qualitativeValuesTable]);
   }

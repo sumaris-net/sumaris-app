@@ -1,10 +1,16 @@
 import { Component, inject, Injector, ViewEncapsulation } from '@angular/core';
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
+import { DirectSurveyInvestigationList } from '@app/activity-calendar/model/activity-calendar.model';
+import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { AppExtractionReport } from '@app/data/report/extraction-report.class';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ProgramLabels } from '@app/referential/services/model/model.enum';
+import { Program } from '@app/referential/services/model/program.model';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import {
   DateUtils,
@@ -14,9 +20,11 @@ import {
   isNotEmptyArray,
   isNotNilOrBlank,
   LocalSettingsService,
+  splitById,
   toDateISOString,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
 import {
   ActivityMonitoring,
   ActivityMonitoringExtractionData,
@@ -24,12 +32,6 @@ import {
   ActivityMonitoringStatusErrorIds,
 } from './activity-calendar-progress-report.model';
 import { ActivityCalendarProgressReportService } from './activity-calendar-progress-report.service';
-import { Program } from '@app/referential/services/model/program.model';
-import { Moment } from 'moment';
-import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
-import { ProgramLabels } from '@app/referential/services/model/model.enum';
 
 export class ActivityCalendarProgressReportStats extends BaseReportStats {
   subtitle: string;
@@ -145,6 +147,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   protected readonly translateContextService = inject(TranslateContextService);
   protected readonly strategyRefService = inject(StrategyRefService);
   protected readonly settings = inject(LocalSettingsService);
+  protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
 
   constructor(injector: Injector) {
     super(injector, null, ActivityCalendarProgressReportStats);
@@ -177,6 +180,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     if (includedIds) {
       tableFilter.includedIds = includedIds;
     }
+
     const extractionFilter = ExtractionUtils.createActivityCalendarFilter(tableFilter.program.label, tableFilter);
 
     return this.load(extractionFilter);
@@ -218,7 +222,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     // Compute AGG
     const agg = {
       vesselCount: data.AM.length,
-      totalDirectSurveyCount: data.AM.filter((item) => item.directSurveyInvestigation == 'Y').length,
+      totalDirectSurveyCount: data.AM.filter((item) => item.directSurveyInvestigation == 'YES').length,
       emptyVesselCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.EMPTY).length,
       uncompletedVesselCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.INCOMPLETE).length,
       completedCalendarCount: data.AM.filter((item) => item.status == ActivityMonitoringStatusEnum.COMPLETE).length,

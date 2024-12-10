@@ -1041,7 +1041,7 @@ export class ActivityCalendarPage
       if (!source) return target; // Keep original, if missing a month
 
       if (existingMonth.readonly) {
-        this.calendar.showUnautorizedToast('ACTIVITY_CALENDAR.WARNING.UNAUTHORIZED_PREDOC_PASTE');
+        this.calendar.showUnauthorizedToast('ACTIVITY_CALENDAR.WARNING.UNAUTHORIZED_PREDOC_PASTE');
         return existingMonth;
       }
 

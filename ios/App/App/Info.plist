@@ -45,5 +45,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+  <string>To take picture of specimen</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+  <string>To choose and add picture of a specimen</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+  <string>To choose and add picture of a specimen</string>
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>Auto-fill GPS position, in the operation screen</string>
 </dict>
 </plist>

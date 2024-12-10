@@ -1,7 +1,7 @@
 {
   "name": "sumaris-app",
   "description": "SUMARiS app",
-  "version": "2.9.25.5",
+  "version": "2.9.25.6",
   "author": "contact@e-is.pro",
   "license": "AGPL-3.0",
   "readmeFilename": "README.md",
@@ -124,7 +124,7 @@
     "@rx-angular/state": "~18.1.0",
     "@rx-angular/template": "~18.0.3",
     "@sgratzl/chartjs-chart-boxplot": "~3.9.1",
-    "@sumaris-net/ngx-components": "18.2.29",
+    "@sumaris-net/ngx-components": "18.3.0",
     "angular-split": "~18.0.0",
     "apollo-angular": "~7.2.1",
     "apollo-link-logger": "~2.0.1",

@@ -54,7 +54,6 @@ import { SaleContextService } from './sale-context.service';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
 import { ContextService } from '@app/shared/context.service';
-import { TripContextService } from '@app/trip/trip-context.service';
 
 export class SaleEditorOptions extends RootDataEditorOptions {}
 
@@ -215,7 +214,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
                 };
               } else if (parent instanceof Landing) {
                 return <Partial<StrategyFilter>>{
-                  acquisitionLevel,
+                  // Check also the level SORTING_BATCH, in case there is no PMFM on level SALE
+                  acquisitionLevels: [acquisitionLevel, AcquisitionLevelCodes.SORTING_BATCH],
                   programId: program.id,
                   startDate: parent.dateTime,
                   location: parent.location,
@@ -488,7 +488,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
       // Back to parent landing
       else if (this.parent instanceof Landing) {
-        return `/observations/${this.parent.id}?tab=1`;
+        const observedLocationId = this.parent.observedLocationId;
+        return `/observations/${observedLocationId}?tab=1`;
       }
     }
     if (this.parentAcquisitionLevel) {

@@ -501,7 +501,7 @@
     "WELCOME_APP": "Welcome to the {{appName}} App!",
     "DESCRIPTION": "European shared database for management of skate stocks.",
     "BTN_DATA_ENTRY": "{{name}} data entry",
-    "REGISTER_HELP": "Registration is free. Join us today!",
+    "REGISTER_HELP": "Registration is easy. Join us today!",
     "NOT_THIS_ACCOUNT_QUESTION": "You are not <b>{{displayName}}</b>?",
     "BTN_DISCONNECT": "Disconnect this account",
     "BTN_MY_ACCOUNT": "My account",
@@ -1321,6 +1321,7 @@
         "ACCIDENTAL_CATCH": {
           "TITLE": "Accidental catch",
           "TAB_SAMPLES": "Individual measures",
+          "TAXON_GROUP": "Species (FAO)",
           "TAXON_NAME": "Scientific species",
           "TAG_COUNT": "<b>{{tagCount}}</b> tagged individual"
         },

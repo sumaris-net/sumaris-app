@@ -256,6 +256,10 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   /* -- protected methods -- */
 
+  protected computePageUrl(id: 'new' | number): string | any[] {
+    return `/referential/program/${id}`;
+  }
+
   protected registerForms() {
     this.addForms([this.referentialForm, this.propertiesForm, this.locationClassificationList, this.locationList, this.personsTable]);
   }

@@ -225,13 +225,12 @@
   <mat-tab-group
     #tabGroup
     class="mat-mdc-tab-disabled-hidden mat-mdc-tab-fixed-content mat-tab-group-root"
-    [class.mat-mdc-tab-group-header-hidden]="mobile && tabCount === 1"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
     [disablePagination]="true"
     [dynamicHeight]="false"
-    [mat-stretch-tabs]="mobile"
+    [mat-stretch-tabs]="mobile && tabCount > 1"
   >
     <!-- TAB: general -->
     <mat-tab
@@ -494,9 +493,6 @@
             <br />
             parentOperation.fishingStartDateTime:
             {{ form.get('parentOperation.fishingStartDateTime')?.valueChanges | async | dateFormat: { time: true } }}
-            <br />
-
-            batchTree.enabled: {{ batchTree.enabled }} batchTree.loading: {{ batchTree.loading }}
           </span>
           <span *ngIf="opeForm.isParentOperation">
             childOperation.fishingEndDateTime:
@@ -528,8 +524,10 @@
           batchTree.catchBatchForm.loading: {{ batchTree.catchBatchForm.loading }}
           <br />
           batchTree.batchGroupsTable.loading: {{ batchTree.batchGroupsTable.loading }}
-          <br />
-          batchTree.subBatchesTable.loading: {{ batchTree.subBatchesTable?.loadingSubject | async }}
+          @if (batchTree.subBatchesTable) {
+            <br />
+            batchTree.subBatchesTable.loading: {{ batchTree.subBatchesTable.loadingSubject | async }}
+          }
         </ion-col>
 
         <!-- Sample debug -->

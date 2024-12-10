@@ -12,6 +12,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   defaultLocale: 'fr',
   defaultLatLongFormat: 'DDMM',
   apolloFetchPolicy: 'cache-first',
+  allowDarkMode: true,
 
   // Environment
   externalEnvironmentUrl: 'assets/environments/environment.json',

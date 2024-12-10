@@ -246,6 +246,7 @@ export const QualitativeValueIds = {
   SPECIES_LIST_ORIGIN: {
     RANDOM: 660,
     PETS: 661, // TODO remove - should not be used
+    UNK: -1, // Workaround for ObsVentes Outre Mer
   },
   SURVEY_QUALIFICATION: {
     DIRECT: 586,

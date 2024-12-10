@@ -136,7 +136,7 @@ export abstract class BaseLandingReport<S extends LandingStats = LandingStats> e
       stats.program.getProperty(ProgramProperties.LANDING_SAMPLE_WEIGHT_UNIT)
     );
 
-    const pmfms =
+    const pmfms: IPmfm[] =
       stats.pmfms ||
       (await this.programRefService.loadProgramPmfms(stats.program.label, {
         acquisitionLevel: AcquisitionLevelCodes.SAMPLE,

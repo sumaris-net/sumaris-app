@@ -335,6 +335,7 @@ release:
 
 release:feature:
   extends: .release
+  stage: build
   image: ${CI_BUILD_IMAGE}
   needs: [build:feature]
   only:
@@ -440,7 +441,6 @@ deploy:web:feature:
   only:
     - /^feature\/.*/
     - /^features\/.*/
-  when: manual
 
 deploy:web:tags:
   extends: .deploy:web
@@ -488,7 +488,6 @@ deploy:android:feature:
   only:
     - /^feature\/.*/
     - /^features\/.*/
-  when: manual
 
 deploy:android:tags:
   extends: .deploy:android
@@ -544,7 +543,6 @@ deploy:electron:feature:
   only:
     - /^feature\/.*/
     - /^features\/.*/
-  when: manual
 
 deploy:electron:tags:
   extends: .deploy:electron

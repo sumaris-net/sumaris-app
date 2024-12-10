@@ -57,6 +57,10 @@ export class MetierPage extends AppReferentialEditor<Metier, MetierService> {
 
   /* -- protected Metiers -- */
 
+  protected computePageUrl(id: 'new' | number): string | any[] {
+    return `/referential/metier/${id}`;
+  }
+
   protected registerForms() {
     this.addForms([this.referentialForm]);
   }

@@ -160,7 +160,7 @@
               @if (stats.filter.directSurveyInvestigation | isNotNil) {
                 <ion-col class="form-label" size="2">{{ 'ACTIVITY_CALENDAR.TABLE.DIRECT_SURVEY_INVESTIGATION' | translate }}</ion-col>
                 <ion-col class="form-value" size="4">
-                  {{ (stats.filter.directSurveyInvestigation ? 'COMMON.YES' : 'COMMON.NO') | translate }}
+                  {{ directSurveyInvestigationMap | mapGet: stats.filter.directSurveyInvestigation | mapGet: 'label' | translate }}
                 </ion-col>
               }
 
@@ -322,13 +322,13 @@
         <!-- footer -->
         <ion-grid class="report-footer ion-no-padding">
           <ion-row class="footer-text">
-            <ion-col class="ion-text-start">
+            <ion-col class="ion-text-center" size="12">
               @if (stats.footerText) {
                 {{ stats.footerText | translate: { year: stats.reportDate | dateFormat: { pattern: 'YYYY' } } }}
               }
             </ion-col>
-            <ion-col class="ion-text-center">{{ stats.reportDate | dateFormat }}</ion-col>
-            <ion-col class="ion-text-end">
+            <ion-col class="ion-text-start" size="6">{{ stats.reportDate | dateFormat }}</ion-col>
+            <ion-col class="ion-text-end" size="6">
               {{ ('COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber: chunkIndex + 1 }) + '/' + stats.tableRowChunk.length }}
             </ion-col>
           </ion-row>

@@ -93,6 +93,10 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
 
   /* -- protected methods -- */
 
+  protected computePageUrl(id: 'new' | number): string | any[] {
+    return `/referential/parameter/${id}`;
+  }
+
   async updateView(data: Parameter | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
     await super.updateView(data, opts);
 
