@@ -2459,6 +2459,7 @@
       "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Trip > Operation: Fishing end date?",
       "TRIP_OPERATION_END_DATE_ENABLE": "Trip > Operation: End date?",
       "TRIP_OPERATION_PASTE_FLAGS": "Trip > Operation: Duplication",
+      "TRIP_EXPENSES_ENABLE": "Trip > Operation : Enable expenses",
       "TRIP_OPERATION_PASTE_FLAGS_ENUM": {
         "NONE": "Disable",
         "DATE_POSITION_FISHING_AREA_GEAR_METIER": "Date, Gear, Metier, Position/Fishing area",

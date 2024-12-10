@@ -1981,6 +1981,11 @@
     "BAIT": {
       "AMOUNT": "Quantité d'appât",
       "PACKAGING": "Unité"
+    },
+    "TAB_GEAR": "Engin",
+    "GEAR": {
+      "AMOUNT": "Nombre d'engins",
+      "PACKAGING": "Unité"
     }
   },
   "FISHING_AREA": {
@@ -2576,6 +2581,7 @@
       "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Marée > Opération : Date de fin de pêche ?",
       "TRIP_OPERATION_END_DATE_ENABLE": "Marée > Opération : Date de fin ?",
       "TRIP_OPERATION_PASTE_FLAGS": "Marée > Opération : Duplication",
+      "TRIP_EXPENSES_ENABLE": "Marée > Opération : Activer les dépenses",
       "TRIP_OPERATION_PASTE_FLAGS_ENUM": {
         "NONE": "Désactivée",
         "DATE_POSITION_FISHING_AREA_GEAR_METIER": "Date, Engin, Métier, Position/Zone de pêche",

@@ -763,6 +763,13 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
   },
 
+  TRIP_EXPENSES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.expenses.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_EXPENSES_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false',
+  },
+
   // Observed location
   OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.samplingStrata.enable',

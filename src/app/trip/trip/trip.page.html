@@ -324,6 +324,34 @@
         [helpMessage]="showOperationHelpMessage && operationHelpMessage"
       ></app-operations-table>
     </mat-tab>
+    <mat-tab [label]="'TRIP.TAB_EXPENSES' | translate" [disabled]="!showExpensesTable" appSubMenuTab>
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="card"></ion-icon>
+        </mat-icon>
+        <ion-label matBadgeColor="primary" matBadgeOverlap="false" matBadgeSize="small" translate>TRIP.TAB_EXPENSES</ion-label>
+        <mat-icon>
+          <ion-icon
+            slot="end"
+            name="alert-circle"
+            color="danger"
+            *ngIf="operationsTable.error || (operationsTable.invalid && operationsTable.dirty)"
+          ></ion-icon>
+        </mat-icon>
+      </ng-template>
+      <app-expense-form
+        #expenseForm
+        entityName="VesselUseMeasurement"
+        acquisitionLevel="EXPENSE"
+        [programLabel]="programLabel$ | async"
+        [requiredStrategy]="requiredStrategy$ | async"
+        [strategyId]="strategy$ | async | mapGet: 'id'"
+        [forceOptional]="usageMode | isOnField"
+        [showError]="true"
+        [debug]="debug"
+        (selectedTabChange)="onSubTabChange($event)"
+      ></app-expense-form>
+    </mat-tab>
   </mat-tab-group>
 </ion-content>
 
@@ -428,6 +456,18 @@
           form.dirty: {{ tripForm.dirty }}
           <br />
           form.valid: {{ tripForm.valid }}
+          <br />
+        </ion-col>
+        <ion-col>
+          expenseForm.ready: {{ expenseForm.readySubject | async }}
+          <br />
+          expenseForm.loading: {{ expenseForm.loading }}
+          <br />
+          expenseForm.enabled: {{ expenseForm.enabled }}
+          <br />
+          expenseForm.dirty: {{ expenseForm.dirty }}
+          <br />
+          expenseForm.valid: {{ expenseForm.valid }}
           <br />
         </ion-col>
         <ion-col>

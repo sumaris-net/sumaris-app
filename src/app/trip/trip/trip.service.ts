@@ -314,6 +314,7 @@ export interface TripLoadOptions extends EntityServiceLoadOptions {
   isLandedTrip?: boolean;
   withOperation?: boolean;
   withOperationGroup?: boolean;
+  withExpenses?: boolean;
   toEntity?: boolean;
   fullLoad?: boolean;
 }
@@ -322,6 +323,7 @@ export interface TripSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean; // False by default
   withOperation?: boolean; // False by default
   withOperationGroup?: boolean; // False by default
+  withExpenses?: boolean; // False by default
   enableOptimisticResponse?: boolean; // True by default
 }
 

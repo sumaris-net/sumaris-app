@@ -43,7 +43,10 @@
     [dynamicHeight]="false"
   >
     <!-- SUB-TAB: fluid -->
-    <mat-tab label="{{ 'EXPENSE.TAB_FLUID' | translate }}">
+    <mat-tab
+      label="{{ 'EXPENSE.TAB_FLUID' | translate }}"
+      *ngIf="($fuelPmfms | async | isNotEmptyArray) && ($engineOilPmfms | async | isEmptyArray) && ($hydraulicOilPmfms | async | isEmptyArray)"
+    >
       <div class="ion-padding">
         <ion-grid class="form-container">
           <!-- fuel -->
@@ -74,7 +77,7 @@
           </ion-row>
 
           <!-- engine oil -->
-          <ion-row *ngIf="$engineOilPmfms | async; let engineOilPmfms">
+          <ion-row *ngIf="($engineOilPmfms | async)?.length > 0 && $engineOilPmfms | async; let engineOilPmfms">
             <ion-col size="12" size-md="3" size-lg="3">
               <ion-label class="ion-float-end" translate>EXPENSE.FLUID.ENGINE_OIL</ion-label>
             </ion-col>
@@ -92,7 +95,7 @@
           </ion-row>
 
           <!-- hydraulic oil -->
-          <ion-row *ngIf="$hydraulicOilPmfms | async; let hydraulicOilPmfms">
+          <ion-row *ngIf="($hydraulicOilPmfms | async)?.length > 0 && $hydraulicOilPmfms | async; let hydraulicOilPmfms">
             <ion-col size="12" size-md="3" size-lg="3">
               <ion-label class="ion-float-end" translate>EXPENSE.FLUID.HYDRAULIC_OIL</ion-label>
             </ion-col>
@@ -130,27 +133,84 @@
     </mat-tab>
 
     <!-- SUB-TAB: bait -->
-    <mat-tab label="{{ 'EXPENSE.TAB_BAIT' | translate }}" [disabled]="!baitsFormArray?.length">
-      <ion-grid class="form-container ion-no-padding" (focusout)="baitEditedIndex = -1">
+    <!--    <mat-tab label="{{ 'EXPENSE.TAB_BAIT' | translate }}" [disabled]="!baitsFormArray?.length">-->
+    <!--      <ion-grid class="form-container ion-no-padding" (focusout)="baitEditedIndex = -1">-->
+    <!--        <ion-row-->
+    <!--          *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first; last as last; odd as odd"-->
+    <!--          class="typed-expense-row ion-padding-bottom"-->
+    <!--          [class.mat-mdc-row-selected]="baitEditedIndex === i"-->
+    <!--          [class.odd]="odd"-->
+    <!--          (focusin)="baitEditedIndex = i"-->
+    <!--        >-->
+    <!--          <ion-col>-->
+    <!--            <div class="ion-padding">-->
+    <!--              <app-typed-expense-form-->
+    <!--                #baitExpenseForm-->
+    <!--                expenseType="BAIT"-->
+    <!--                [rankOrder]="i + 1"-->
+    <!--                entityName="VesselUseMeasurement"-->
+    <!--                [programLabel]="programLabel"-->
+    <!--                acquisitionLevel="BAIT_EXPENSE"-->
+    <!--                [forceOptional]="forceOptional"-->
+    <!--                [compact]="compact"-->
+    <!--                [tabindex]="tabindex + 50 + i * 3"-->
+    <!--              ></app-typed-expense-form>-->
+    <!--            </div>-->
+    <!--          </ion-col>-->
+    <!--          &lt;!&ndash; buttons &ndash;&gt;-->
+    <!--          <ion-col size="1" class="ion-align-self-center ion-text-end">-->
+    <!--            <ion-buttons>-->
+    <!--              <button-->
+    <!--                type="button"-->
+    <!--                mat-icon-button-->
+    <!--                [style.visibility]="last ? 'visible' : 'hidden'"-->
+    <!--                [tabindex]="tabindex + 4 + i * 3 + 1"-->
+    <!--                [disabled]="disabled"-->
+    <!--                [title]="'COMMON.BTN_ADD' | translate"-->
+    <!--                (click)="addBait()"-->
+    <!--              >-->
+    <!--                <mat-icon>add</mat-icon>-->
+    <!--              </button>-->
+    <!--              <button-->
+    <!--                type="button"-->
+    <!--                mat-icon-button-->
+    <!--                [tabindex]="tabindex + 4 + i * 3 + 2"-->
+    <!--                [class.visible-hover-row]="!mobile"-->
+    <!--                [disabled]="disabled"-->
+    <!--                [title]="'COMMON.BTN_DELETE' | translate"-->
+    <!--                (click)="removeBait(i)"-->
+    <!--              >-->
+    <!--                <mat-icon>delete_outline</mat-icon>-->
+    <!--              </button>-->
+    <!--            </ion-buttons>-->
+    <!--          </ion-col>-->
+    <!--        </ion-row>-->
+    <!--      </ion-grid>-->
+    <!--    </mat-tab>-->
+
+    <!-- SUB-TAB: gear -->
+    <mat-tab label="{{ 'EXPENSE.TAB_GEAR' | translate }}" [disabled]="!gearsFormArray?.length">
+      <ion-grid class="form-container ion-no-padding" (focusout)="gearEditedIndex = -1">
         <ion-row
-          *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first; last as last; odd as odd"
+          *ngFor="let gearForm of gearsFormArray?.controls; index as i; first as first; last as last; odd as odd"
           class="typed-expense-row ion-padding-bottom"
-          [class.mat-mdc-row-selected]="baitEditedIndex === i"
+          [class.mat-mdc-row-selected]="gearEditedIndex === i"
           [class.odd]="odd"
-          (focusin)="baitEditedIndex = i"
+          (focusin)="gearEditedIndex = i"
         >
           <ion-col>
             <div class="ion-padding">
               <app-typed-expense-form
-                #baitExpenseForm
-                expenseType="BAIT"
+                #gearExpenseForm
+                expenseType="GEAR"
                 [rankOrder]="i + 1"
                 entityName="VesselUseMeasurement"
                 [programLabel]="programLabel"
-                acquisitionLevel="BAIT_EXPENSE"
+                acquisitionLevel="GEAR_EXPENSE"
                 [forceOptional]="forceOptional"
                 [compact]="compact"
-                [tabindex]="tabindex + 50 + i * 3"
+                [debug]="debug && false"
+                [tabindex]="tabindex + 60 + i * 3"
               ></app-typed-expense-form>
             </div>
           </ion-col>
@@ -164,7 +224,7 @@
                 [tabindex]="tabindex + 4 + i * 3 + 1"
                 [disabled]="disabled"
                 [title]="'COMMON.BTN_ADD' | translate"
-                (click)="addBait()"
+                (click)="addGear()"
               >
                 <mat-icon>add</mat-icon>
               </button>
@@ -175,7 +235,7 @@
                 [class.visible-hover-row]="!mobile"
                 [disabled]="disabled"
                 [title]="'COMMON.BTN_DELETE' | translate"
-                (click)="removeBait(i)"
+                (click)="removeGear(i)"
               >
                 <mat-icon>delete_outline</mat-icon>
               </button>
