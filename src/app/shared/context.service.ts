@@ -106,7 +106,7 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
   }
 
   getMerged() {
-    const state = this.get();
+    const state = { ...this.get() };
     const children = state?.children;
     if (!children) return state;
 
