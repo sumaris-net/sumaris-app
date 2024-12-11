@@ -634,6 +634,54 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL',
     type: 'string',
   },
+  TRIP_REPORT_FORM_SAMPLE_TABLE_MULTI_OP: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.accidentalCatchMultiOp',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_ACCIDENTAL_CATCH_MULTI_OP',
+    type: 'boolean',
+    defaultValue: true,
+  },
+  TRIP_REPORT_FORM_OPERATION_TABLE_COLUMN_COMMENT_TITLE_TEXT: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.operationTableColumnCommentTitleText',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_OPERATION_TABLE_COLUMN_COMMENT_TITLE_TEXT',
+    type: 'string',
+    defaultValue: '',
+  },
+  TRIP_REPORT_FORM_BLANK_FILL_RANK_ORDER: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.fillRankOrder',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_FILL_RANK_ORDER',
+    type: 'boolean',
+    defaultValue: false,
+  },
+  TRIP_REPORT_FORM_BLANK_SHOW_SAMPLE_RANK_ORDER: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.hideRankOrder',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_HIDE_RANK_ORDER',
+    type: 'boolean',
+    defaultValue: false,
+  },
+  TRIP_REPORT_FORM_BLANK_TIPS_LIMIT_TO_SHOW_ON_ANNEX: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.tipsLimitToShowOn_annex',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_TIPS_LIMIT_TO_SHOW_ON_ANNEX',
+    type: 'integer',
+    defaultValue: 12,
+  },
+  TRIP_REPORT_FORM_BLANK_SHOW_QUALITATIVE_VALUES_CHECK_BOX: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.showQualitativeValuesCheckBox',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_SHOW_QUALITATIVE_VALUES_CHECK_BOX',
+    type: 'boolean',
+    defaultValue: true,
+  },
+  TRIP_REPORT_FORM_BLANK_NB_OF_INDIVIDUAL_SAMPLE_PEER_OP: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.nbOfIndividualSamplePeerOp',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_NB_OF_INDIVIDUAL_SAMPLE_PEER_OP',
+    type: 'integer',
+    defaultValue: 1,
+  },
+  TRIP_REPORT_FORM_BLANK_NB_OF_RELEASED_SAMPLE_PEER_OP: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.nbOfReleasedSamplePeerOp',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_NB_OF_RELEASED_SAMPLE_PEER_OP',
+    type: 'integer',
+    defaultValue: 1,
+  },
 
   // Operation
   TRIP_OPERATION_EDITOR: <FormFieldDefinition>{

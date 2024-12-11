@@ -141,10 +141,8 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
 
   protected logPrefix = 'trip-form-report';
   protected isBlankForm: boolean;
-  protected reportPath: string;
-  protected readonly nbOfOpOnBlankPage = 8;
-  protected readonly nbOfSamplePeerOpOnBlankPage = 16;
-  protected operationNbTableSplitArrayChunk = 8;
+  protected readonly nbOfOpOnBlankPage = 20;
+  protected operationNbTableSplitArrayChunk = 9;
 
   protected readonly tripService: TripService = inject(TripService);
   protected readonly referentialRefService: ReferentialRefService = inject(ReferentialRefService);
@@ -159,16 +157,16 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   constructor() {
     super(Trip, FormTripReportStats);
 
-    this.reportPath = this.route.snapshot.routeConfig.path;
     this.isBlankForm = this.route.snapshot.data?.isBlankForm;
-
     this.debug = !environment.production;
     this.pageDimensions = this.computePageDimensions();
   }
 
   computePrintHref(data: Trip, stats: FormTripReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
-    return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form/' + this.reportPath);
+    return new URL(
+      window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + `/report/${this.isBlankForm ? 'blank-' : ''}form/`
+    );
   }
   async waitIdle(opts: WaitForOptions) {
     await super.waitIdle(opts);
@@ -206,16 +204,26 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
       // Keep id : needed by method like `computeDefaultBackHref`
       // TODO custom request with only necessary data (like ActivityCalendarFormReport)
       const realData = await this.tripService.load(id, { ...opts, withOperation: false });
+      const program = await this.programRefService.loadByLabel(realData.program.label);
+      const nbOfIndividualSamplePeerOpOnBlankPage = program.getPropertyAsInt(
+        ProgramProperties.TRIP_REPORT_FORM_BLANK_NB_OF_INDIVIDUAL_SAMPLE_PEER_OP
+      );
+      const nbOfReleasedSamplePeerOpOnBlankPage = program.getPropertyAsInt(ProgramProperties.TRIP_REPORT_FORM_BLANK_NB_OF_RELEASED_SAMPLE_PEER_OP);
       data = Trip.fromObject({
         id: id,
         program: Program.fromObject({ label: realData.program.label }),
         gears: realData.gears,
         vesselSnapshot: realData.vesselSnapshot,
-        operations: new Array(this.nbOfOpOnBlankPage).fill(null).map((_, index) => {
-          const result = Operation.fromObject({ rankOrder: index + 1 });
-          result.samples = Array(this.nbOfSamplePeerOpOnBlankPage)
+        operations: new Array(this.nbOfOpOnBlankPage).fill(null).map((_, opIdx) => {
+          const result = Operation.fromObject({ id: opIdx + 1, rankOrder: opIdx + 1 });
+          result.samples = Array(nbOfIndividualSamplePeerOpOnBlankPage)
             .fill(null)
-            .map((_, index) => Sample.fromObject({ rankOrder: index + 1 }));
+            .map((_, indivIdx) => Sample.fromObject({ operationId: opIdx, rankOrder: indivIdx + 1 }))
+            .concat(
+              Array(nbOfReleasedSamplePeerOpOnBlankPage)
+                .fill(null)
+                .map((_, releaseIdx) => Sample.fromObject({ operationId: opIdx, rankOrder: releaseIdx + 1, parentId: releaseIdx + 1 }))
+            );
           return result;
         }),
       });

@@ -2,7 +2,7 @@
   <app-reveal #reveal [options]="revealOptions">
     @if (data | isNotEmptyArray) {
       <section *sectionDef="true" [style.--page-horizontal-margin]="this.parentPageDimension.pageHorizontalMargin + 'px'">
-        @for (ops of data | splitArrayInChunks: nbOperationByPage; track $index) {
+        @for (ops of data | splitArrayInChunks: stats.nbOperationByPage; track $index) {
           <section class="landscape">
             <page-header-from-report-chunk
               [i18nContext]="i18nContext"
@@ -49,7 +49,7 @@
                         <table-head-pmfm-name-report-chunk
                           [pmfm]="pmfm"
                           [i18nContext]="i18nContext"
-                          [pmfmTipsByPmfmIds]="stats.pmfmsTips[0]"
+                          [pmfmTipsByPmfmIds]="stats.pmfmsTipsByPmfmIdByTableParts[0]"
                         ></table-head-pmfm-name-report-chunk>
                       </th>
                     }
@@ -109,7 +109,7 @@
                         <table-head-pmfm-name-report-chunk
                           [pmfm]="pmfm"
                           [i18nContext]="i18nContext"
-                          [pmfmTipsByPmfmIds]="stats.pmfmsTips[0]"
+                          [pmfmTipsByPmfmIds]="stats.pmfmsTipsByPmfmIdByTableParts[0]"
                         ></table-head-pmfm-name-report-chunk>
                       </th>
                     }
@@ -122,7 +122,7 @@
                         <table-head-pmfm-name-report-chunk
                           [pmfm]="pmfm"
                           [i18nContext]="i18nContext"
-                          [pmfmTipsByPmfmIds]="stats.pmfmsTablePart[0]"
+                          [pmfmTipsByPmfmIds]="stats.pmfmsTipsByPmfmIdByTableParts[0]"
                         ></table-head-pmfm-name-report-chunk>
                       </th>
                     }
@@ -275,10 +275,7 @@
                 }
               </tbody>
             </table>
-            <table-tips-report-chunk [tips]="stats.pmfmsTips[0] | mapValues | arraySort: sortByTipsIndex">
-              <li>* : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.ONE_STAR' | translate }}</li>
-              <li>** : {{ 'TRIP.REPORT.FORM.OPERATION.HELP.TWO_STAR' | translate }}</li>
-            </table-tips-report-chunk>
+            <tips-report-chunk [tips]="stats.tipsByTablePart[0] | mapValues | arraySort: sortByTipsIndex"></tips-report-chunk>
             <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
           </section>
 
@@ -313,13 +310,19 @@
                         <table-head-pmfm-name-report-chunk
                           [pmfm]="pmfm"
                           [i18nContext]="i18nContext"
-                          [pmfmTipsByPmfmIds]="stats.pmfmsTablePart[1]"
+                          [pmfmTipsByPmfmIds]="stats.pmfmsTipsByPmfmIdByTableParts[1]"
                         ></table-head-pmfm-name-report-chunk>
                       </th>
                     }
                   }
                   <th class="col-maximum font-medium" [attr.rowspan]="stats.pmfmsTablePart.length > 1 ? 2 : 1">
-                    <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.COMMENTS' | translate }}</div>
+                    <div>
+                      {{
+                        (stats.options.columnCommentTitleText | isNilOrBlank)
+                          ? ('TRIP.REPORT.FORM.COMMENTS' | translate)
+                          : stats.options.columnCommentTitleText
+                      }}
+                    </div>
                   </th>
                 </tr>
                 @if (stats.options.allowParentOperation && stats.pmfmsTablePart.length > 1) {
@@ -337,7 +340,7 @@
                           <table-head-pmfm-name-report-chunk
                             [pmfm]="pmfm"
                             [i18nContext]="i18nContext"
-                            [pmfmTipsByPmfmIds]="stats.pmfmsTips[1]"
+                            [pmfmTipsByPmfmIds]="stats.pmfmsTipsByPmfmIdByTableParts[1]"
                           ></table-head-pmfm-name-report-chunk>
                         </th>
                       }
@@ -392,7 +395,7 @@
                 }
               </tbody>
             </table>
-            <table-tips-report-chunk [tips]="stats.pmfmsTips[1] | mapValues | arraySort: sortByTipsIndex"></table-tips-report-chunk>
+            <tips-report-chunk [tips]="stats.tipsByTablePart[1] | mapValues | arraySort: sortByTipsIndex"></tips-report-chunk>
             <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
           </section>
         }
