@@ -40,7 +40,7 @@ import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { environment } from '@environments/environment';
-import { PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
 import { BatchContext, SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
@@ -445,11 +445,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   }
 
   async close(event?: Event) {
-    if (this.showIndividualCountOnly) {
-      await this.closeWithIndividualCount();
-      return;
-    }
-
     if (this.loading) return; // avoid many call
 
     // Form is dirty
@@ -478,6 +473,9 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     this.markAsLoading();
     this.resetError();
+
+    // switch to individualCount mode before saving
+    await this.setShowVirtualColumns(false);
 
     try {
       // Save changes
@@ -1062,6 +1060,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
           newSubBatch.measurementValues[numericalPmfmId] = lengthTotalCm;
           newSubBatch.rankOrder = ++rankOrder;
           newSubBatch.parentGroup = this.parentGroup;
+          newSubBatch.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${newSubBatch.rankOrder}`;
 
           newSubBatches.push(newSubBatch);
         }

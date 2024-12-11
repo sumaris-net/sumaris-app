@@ -1209,9 +1209,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     if (isNil(data) || role === 'cancel') {
       if (this.debug) console.debug('[batches-table] Sub-batches modal: user cancelled');
       return { data: null, role: 'cancel' };
-    } else if (role === 'batchGroup') {
-      this.onSubBatchesChanges.emit([]);
-      return { data: BatchGroup.fromObject(data), role: 'batchGroup' };
     } else {
       this.onSubBatchesChanges.emit(data);
       return { data, role: 'subBatches' };
