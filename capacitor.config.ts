@@ -1,5 +1,6 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
+const production = true;
 // Capacitor plugins (common)
 const commonIncludePlugins = [
   '@capacitor-community/native-audio',
@@ -20,7 +21,7 @@ const config: CapacitorConfig = {
   appName: 'SUMARiS',
   webDir: 'www',
   bundledWebRuntime: false,
-  loggingBehavior: 'none',
+  loggingBehavior: production ? 'none' : 'debug',
   plugins: {
     SplashScreen: {
       showSpinner: true,
@@ -33,9 +34,11 @@ const config: CapacitorConfig = {
       releaseType: 'APK',
     },
     includePlugins: [...commonIncludePlugins, '@e-is/capacitor-bluetooth-serial'],
+    webContentsDebuggingEnabled: !production,
   },
   ios: {
     includePlugins: [...commonIncludePlugins],
+    webContentsDebuggingEnabled: !production,
   },
   server: {
     cleartext: true,
