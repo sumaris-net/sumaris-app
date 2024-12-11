@@ -3877,7 +3877,7 @@
     "DATA_MIGRATION_STARTED": "Restauration de données en cours.<br/><b>Veuillez patienter...</b>",
     "DATA_MIGRATION_SUCCEED": "Restauration de données <b>terminée avec succès</b> !",
     "DOWNLOAD_APP_TITLE": "{{name}} pour {{platform}}",
-    "DOWNLOAD_APP_HELP": "Téléchargement gratuit.",
+    "DOWNLOAD_APP_HELP": "Télécharger l'application dès maintenant.",
     "UPDATE_APP": "<b>Veuillez mettre à jour {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Veuillez mettre à jour {{name}}</b> (en v{{version}} ou +)",
     "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>.",

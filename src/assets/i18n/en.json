@@ -3694,7 +3694,7 @@
     "DATA_MIGRATION_STARTED": "Data recovery in progress. <br/><b>Please wait ...</b>",
     "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!",
     "DOWNLOAD_APP_TITLE": "{{name}} for {{platform}}",
-    "DOWNLOAD_APP_HELP": "Free download.",
+    "DOWNLOAD_APP_HELP": "Download the app now.",
     "UPDATE_APP": "<b>Please upgrade {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Please upgrade {{name}}</b> in version {{version}} (or more)",
     "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.",
