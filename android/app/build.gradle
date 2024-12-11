@@ -7,7 +7,7 @@ android {
         applicationId "net.sumaris.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2092507
+        versionCode 2092508
         versionName "2.9.25.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
