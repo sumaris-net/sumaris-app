@@ -213,6 +213,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
       const logMessage = `Error while scanning: ${err?.message || err}`;
       console.debug(`[bluetooth] ${logMessage}`);
       this._logger?.error('scan', logMessage);
+      throw { code: BluetoothErrorCodes.BLUETOOTH_SCAN_FAILED, message: 'SHARED.BLUETOOTH.ERROR.SCAN_FAILED' };
     }
   }
 

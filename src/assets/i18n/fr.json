@@ -3480,7 +3480,8 @@
       "BTN_SCAN": "Analyser",
       "BTN_DISCONNECT": "Déconnecter",
       "ERROR": {
-        "DISABLED": "Le bluetooth est désactivé"
+        "DISABLED": "Le bluetooth est désactivé",
+        "SCAN_FAILED": "Échec du scan"
       }
     },
     "ICHTHYOMETER": {
