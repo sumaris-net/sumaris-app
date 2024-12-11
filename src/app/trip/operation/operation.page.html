@@ -362,7 +362,7 @@
         [physicalGear]="physicalGear$ | async"
         [useSticky]="mobile"
         [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
-        [disabled]="!showCatchTab"
+        [disabled]="disabled || !showCatchTab"
         [mobile]="mobile"
         [debug]="debug"
       ></app-batch-tree>
