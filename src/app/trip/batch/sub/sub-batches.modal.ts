@@ -907,6 +907,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   async generateSubBatchesFromRange(data: any) {
     // Create subbatches
     const subBatchesToAdd = [];
+    await this.save();
     let rankOrder = await this.getMaxRankOrder();
 
     for (let size = data.min; size <= data.max; size += data.precision) {
@@ -968,8 +969,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     // Add/remove rows depending on virtual columns presence
     if (this.isAlreadyIndividualCount !== show) {
-      const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm));
       if (isNotEmptyArray(this.virtualPmfms)) {
+        const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm));
         if (show) {
           await this.concatRows(numericalPmfm);
         } else {
@@ -1037,7 +1038,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   private async splitRows(numericalPmfm: IPmfm) {
     const numericalPmfmId = numericalPmfm.id.toString();
-    this.save();
+    await this.save();
     let rankOrder = await this.getMaxRankOrder();
     const existingSubBatches = this.getValue();
 
