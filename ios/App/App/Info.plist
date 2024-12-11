@@ -46,7 +46,7 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-  <string>To take picture of specimen</string>
+  <string>To take picture of a specimen</string>
 	<key>NSPhotoLibraryUsageDescription</key>
   <string>To choose and add picture of a specimen</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
