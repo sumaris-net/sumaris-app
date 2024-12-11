@@ -124,7 +124,7 @@
     "@rx-angular/state": "~18.1.0",
     "@rx-angular/template": "~18.0.3",
     "@sgratzl/chartjs-chart-boxplot": "~3.9.1",
-    "@sumaris-net/ngx-components": "18.3.0",
+    "@sumaris-net/ngx-components": "18.3.6",
     "angular-split": "~18.0.0",
     "apollo-angular": "~7.2.1",
     "apollo-link-logger": "~2.0.1",
@@ -191,6 +191,7 @@
     "@gitbeaker/rest": "^39.34.3",
     "@ionic/angular-toolkit": "~12.1.1",
     "@ionic/cli": "~7.2.0",
+    "@rollup/rollup-darwin-arm64": "~4.25.0",
     "@rx-angular/eslint-plugin": "^2.1.0",
     "@types/decimal.js": "^7.4.3",
     "@types/hammerjs": "~2.0.46",
@@ -227,8 +228,7 @@
     "tar": "^6.2.1",
     "ts-node": "~10.9.2",
     "typescript": "~5.4.5",
-    "webpack": "~5.96.1",
-    "@rollup/rollup-darwin-arm64": "~4.25.0"
+    "webpack": "~5.96.1"
   },
   "optionalDependencies": {
     "@e-is/capacitor-bluetooth-serial": "0.6.3"
