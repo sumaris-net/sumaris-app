@@ -1,0 +1,10 @@
+ion-badge {
+  display: flex;
+  line-height: normal;
+  vertical-align: middle;
+  height: auto;
+
+  ion-icon {
+    pointer-events: none;
+  }
+}

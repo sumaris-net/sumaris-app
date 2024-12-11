@@ -1,5 +1,5 @@
 import { booleanAttribute, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { MatAutocompleteFieldConfig } from '@sumaris-net/ngx-components';
+import { AppColors, MatAutocompleteFieldConfig } from '@sumaris-net/ngx-components';
 import { Trip } from '@app/trip/trip/trip.model';
 
 @Component({
@@ -9,12 +9,14 @@ import { Trip } from '@app/trip/trip/trip.model';
 })
 export class TripCardComponent implements OnInit {
   @Input() value: Trip;
+  @Input() color: AppColors = 'light';
   @Input() config: {
     [key: string]: MatAutocompleteFieldConfig;
   } = {};
   @Input({ transform: booleanAttribute }) showRecorder = true;
   @Input({ transform: booleanAttribute }) showRecorderDepartment = true;
   @Input({ transform: booleanAttribute }) showProgram = true;
+  @Input({ transform: booleanAttribute }) showComments = false;
 
   @Output() delete = new EventEmitter<Event>();
   @Output() synchronize = new EventEmitter<Event>();

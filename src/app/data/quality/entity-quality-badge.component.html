@@ -1,0 +1,11 @@
+<ion-badge [color]="color">
+  @if (size === 'small') {
+    <small>
+      <ion-icon [name]="icon"></ion-icon>
+      {{ title | translate }}
+    </small>
+  } @else {
+    <ion-icon [name]="icon"></ion-icon>
+    {{ title | translate }}
+  }
+</ion-badge>

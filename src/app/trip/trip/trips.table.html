@@ -455,7 +455,7 @@
   }
 
   <!-- table -->
-  <div #tableContainer class="table-container">
+  <div #tableContainer class="table-container" [class.card-view]="cardView">
     <table
       mat-table
       [dataSource]="dataSource"

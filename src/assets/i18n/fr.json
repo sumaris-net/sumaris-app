@@ -763,6 +763,10 @@
       "BTN_DELETE": "Supprimer toute la marée",
       "BTN_REPORT": "Éditer le rapport..."
     },
+    "CARD": {
+      "DEPARTURE_DOTS": "Départ :",
+      "RETURN_DOTS": "Retour :"
+    },
     "OPTIONS": {
       "ENABLE": "Marées > Activer ?",
       "NAME": "Marées > Titre (menu, etc.)"
