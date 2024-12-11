@@ -154,6 +154,9 @@ export const PmfmIds = {
   LINE_LAYOUT_LINEAR: 1039,
   LINE_LAYOUT_ZIGZAG: 1040,
   LINE_LAYOUT_UNKNOWN: 1041,
+  GEAR_TYPE: 515,
+  GEAR_COUNT: 516,
+  GEAR_COST: 517,
 
   /* APASE */
   CHILD_GEAR: 400,
@@ -517,6 +520,7 @@ export declare type AcquisitionLevelType =
   | 'EXPENSE'
   | 'BAIT_EXPENSE'
   | 'ICE_EXPENSE'
+  | 'GEAR_EXPENSE'
   | 'CHILD_OPERATION'
   | 'ACTIVITY_CALENDAR'
   | 'MONTHLY_ACTIVITY'
@@ -545,6 +549,7 @@ export const AcquisitionLevelCodes = {
   EXPENSE: <AcquisitionLevelType>'EXPENSE',
   BAIT_EXPENSE: <AcquisitionLevelType>'BAIT_EXPENSE',
   ICE_EXPENSE: <AcquisitionLevelType>'ICE_EXPENSE',
+  GEAR_EXPENSE: <AcquisitionLevelType>'GEAR_EXPENSE',
   CHILD_OPERATION: <AcquisitionLevelType>'CHILD_OPERATION',
   ACTIVITY_CALENDAR: <AcquisitionLevelType>'ACTIVITY_CALENDAR',
   MONTHLY_ACTIVITY: <AcquisitionLevelType>'MONTHLY_ACTIVITY',

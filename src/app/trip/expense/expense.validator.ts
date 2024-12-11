@@ -15,6 +15,7 @@ export class ExpenseValidatorService extends MeasurementsValidatorService {
     return Object.assign(super.getFormGroupConfig(data, opts), {
       calculatedTotal: [null],
       baits: this.getBaitsFormArray(),
+      gears: this.getGearsFormArray(),
     });
   }
 
@@ -23,6 +24,7 @@ export class ExpenseValidatorService extends MeasurementsValidatorService {
 
     // add expense fields as protected attributes
     opts.protectedAttributes.push('calculatedTotal', 'baits');
+    opts.protectedAttributes.push('calculatedTotal', 'gears');
 
     return opts;
   }
@@ -32,6 +34,16 @@ export class ExpenseValidatorService extends MeasurementsValidatorService {
   }
 
   getBaitControl(data?: number): UntypedFormGroup {
+    return this.formBuilder.group({
+      rankOrder: [data || 1],
+    });
+  }
+
+  getGearsFormArray() {
+    return this.formBuilder.array([this.getGearControl()]);
+  }
+
+  getGearControl(data?: number): UntypedFormGroup {
     return this.formBuilder.group({
       rankOrder: [data || 1],
     });

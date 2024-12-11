@@ -18,6 +18,7 @@ import { AppSaleModule } from '@app/trip/sale/sale.module';
 import { AppSocialModule } from '@app/social/social.module';
 import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
 import { MatTabsModule } from '@angular/material/tabs';
+import { AppExpenseModule } from '@app/trip/expense/expense.module';
 
 @NgModule({
   imports: [
@@ -40,6 +41,7 @@ import { MatTabsModule } from '@angular/material/tabs';
     AppOperationModule,
     AppSaleModule,
     MatTabsModule,
+    AppExpenseModule,
   ],
   declarations: [TripTable, TripForm, TripPage, TripTrashModal, TripOfflineModal],
   exports: [
