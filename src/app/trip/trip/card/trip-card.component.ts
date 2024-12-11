@@ -17,6 +17,7 @@ export class TripCardComponent implements OnInit {
   @Input({ transform: booleanAttribute }) showRecorderDepartment = true;
   @Input({ transform: booleanAttribute }) showProgram = true;
   @Input({ transform: booleanAttribute }) showComments = false;
+  @Input({ transform: booleanAttribute }) showUpdateDate = false;
 
   @Output() delete = new EventEmitter<Event>();
   @Output() synchronize = new EventEmitter<Event>();
