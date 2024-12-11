@@ -40,6 +40,7 @@ import {
   ProgressBarService,
   QueryVariables,
   ShowToastOptions,
+  sleep,
   Toasts,
   toBoolean,
   toNumber,
@@ -1264,8 +1265,12 @@ export class OperationService
     if (options?.showToast) {
       return new Promise(async (resolve, reject) => {
         const toastId = `geolocation-${Date.now()}`;
+        let stop = false;
         const closeToastAndReject = () => {
-          reject('CANCELLED');
+          if (!stop) {
+            reject('CANCELLED');
+            stop = true;
+          }
           this.closeToast(toastId);
         };
         // @ts-ignore
@@ -1281,10 +1286,19 @@ export class OperationService
           ];
         }
 
-        try {
-          // Open the toast (without waiting end)
-          this.showToast({ id: toastId, message: 'INFO.GEOLOCATION_STARTED', buttons: toastButtons, duration: -1, ...options.toastOptions });
+        // Open the toast after a delay (but without waiting end)
+        const toastPromise = sleep(500).then(() => {
+          if (stop) return; // skip if process already stopped
+          this.showToast({
+            id: toastId,
+            message: 'INFO.GEOLOCATION_STARTED',
+            buttons: toastButtons,
+            duration: -1,
+            ...options.toastOptions,
+          });
+        });
 
+        try {
           // Loop to get position
           const result = await this.getCurrentPosition({ ...options, showToast: false });
           resolve(result);
@@ -1292,8 +1306,9 @@ export class OperationService
           reject(err);
         } finally {
           subscription?.unsubscribe();
+          stop = true; // Mark as stop (to avoid toast to appear, if not exists yet)
           // Close toast
-          this.closeToast(toastId);
+          toastPromise?.then(() => this.closeToast(toastId));
         }
       });
     }
