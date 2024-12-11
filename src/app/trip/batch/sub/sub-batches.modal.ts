@@ -925,13 +925,13 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       }
     }
 
-    await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
-
     if (isNotNilOrBlank(data.qvPmfm)) {
       // find the qv pmfm
       const qv = this.pmfms.find((pmfm) => pmfm.id === data.qvPmfm.id);
       await this.generateDynamicColumns(qv);
     }
+
+    await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
 
     // Only show added entities
     const filter = new SubBatchFilter();
@@ -940,8 +940,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     filter.numericalPmfm = data.criteriaPmfm;
     filter.taxonNameId = data.taxonName.id;
 
-    const formValue = { minValue: data.min, maxValue: data.max, taxonName: data.taxonName, pmfm: data.criteriaPmfm };
-    this.filterForm.patchValue(formValue);
     this.setFilter(filter);
   }
 
@@ -1038,7 +1036,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   private async splitRows(numericalPmfm: IPmfm) {
     const numericalPmfmId = numericalPmfm.id.toString();
-    await this.save();
+    this.save(); // TODO: à passer en await, mais cela provoque le non fonctionnement de la méthode
     let rankOrder = await this.getMaxRankOrder();
     const existingSubBatches = this.getValue();
 
