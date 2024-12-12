@@ -970,7 +970,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       if (isNotEmptyArray(this.virtualPmfms)) {
         const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm));
         if (show) {
-          await this.concatRows(numericalPmfm);
+          await this.mergeRows(numericalPmfm);
         } else {
           await this.splitRows(numericalPmfm);
         }
@@ -998,8 +998,9 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     return Object.values(groups);
   }
 
-  private async concatRows(numericalPmfm: IPmfm) {
+  private async mergeRows(numericalPmfm: IPmfm) {
     const numericalPmfmId = numericalPmfm.id.toString();
+    const criteriaPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isQualitative(pmfm));
     const groupRows = this.groupByProperty(numericalPmfmId);
     let rankOrder = (await this.getMaxRankOrder()) + 1;
 
@@ -1010,7 +1011,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       const virtualPmfmValue = [];
       rows.forEach((row) => {
         const virtualPmfm = this.virtualPmfms.find((pmfm) => {
-          return pmfm.name === row.currentData.measurementValues[PmfmIds.SEX.toString()]?.name;
+          return pmfm.name === row.currentData?.measurementValues[criteriaPmfm.id.toString()]?.name;
         });
         virtualPmfmValue.push({ virtualPmfm: virtualPmfm, individualCount: row.currentData.individualCount });
         rowsToDelete.push(row);
@@ -1018,7 +1019,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
       const newRow = new SubBatch();
       newRow.individualCount = rows[0].currentData.individualCount;
-      newRow.measurementValues[PmfmIds.SEX.toString()] = rows[0].currentData.measurementValues[PmfmIds.SEX.toString()];
+      if (isNotNil(criteriaPmfm))
+        newRow.measurementValues[criteriaPmfm.id.toString()] = rows[0].currentData.measurementValues[criteriaPmfm.id.toString()];
       newRow.taxonName = rows[0].currentData.taxonName;
       newRow.measurementValues[numericalPmfmId] = rows[0].currentData.measurementValues[numericalPmfmId];
       virtualPmfmValue.forEach((pmfm) => {
@@ -1039,6 +1041,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.save(); // TODO: à passer en await, mais cela provoque le non fonctionnement de la méthode
     let rankOrder = await this.getMaxRankOrder();
     const existingSubBatches = this.getValue();
+    const criteriaPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isQualitative(pmfm));
 
     const newSubBatches = [];
     const subBatchesToDelete = [];
@@ -1050,12 +1053,12 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
         const lengthTotalCm = subBacth.measurementValues[numericalPmfmId];
 
         if (isNotNil(individualCount) && individualCount > 0) {
-          const qualitativeValue = this.pmfms.find((pm) => pm.id === PmfmIds.SEX).qualitativeValues.filter((pm) => pm.name === pmfm.name)[0];
+          const qualitativeValue = this.pmfms.find((pm) => pm.id === criteriaPmfm?.id).qualitativeValues.filter((pm) => pm.name === pmfm.name)[0];
 
           const newSubBatch = new SubBatch();
           newSubBatch.individualCount = individualCount;
           newSubBatch.taxonName = subBacth.taxonName;
-          newSubBatch.measurementValues[PmfmIds.SEX.toString()] = qualitativeValue;
+          if (isNotNil(criteriaPmfm)) newSubBatch.measurementValues[criteriaPmfm.id.toString()] = qualitativeValue;
           newSubBatch.measurementValues[numericalPmfmId] = lengthTotalCm;
           newSubBatch.rankOrder = ++rankOrder;
           newSubBatch.parentGroup = this.parentGroup;
