@@ -199,7 +199,7 @@ export class WeightLengthConversionRefService
     }
 
     if (isNotNil(filter.sexId) && filter.sexId !== QualitativeValueIds.SEX.UNSEXED) {
-      // Retry ALL with unsexed
+      // Sex isn't here -> return the first non sexed weightLengthConversion (mantis #8014)
       console.debug(this._logPrefix + 'No conversion found, for year/month. Retrying all with unsexed.');
       const wlcUnsexed = await this.loadByFilter({ ...filter, sexId: QualitativeValueIds.SEX.UNSEXED });
       if (isNotNil(wlcUnsexed)) return wlcUnsexed;
