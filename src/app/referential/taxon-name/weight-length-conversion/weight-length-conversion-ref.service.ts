@@ -20,7 +20,13 @@ import { gql } from '@apollo/client/core';
 import { WeightLengthConversionFragments } from './weight-length-conversion.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { CacheService } from 'ionic-cache';
-import { LengthMeterConversion, LengthUnitSymbol, WeightKgConversion, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import {
+  LengthMeterConversion,
+  LengthUnitSymbol,
+  QualitativeValueIds,
+  WeightKgConversion,
+  WeightUnitSymbol,
+} from '@app/referential/services/model/model.enum';
 import { WeightLengthConversionRefFilter } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.filter';
 
 const QUERIES: BaseEntityGraphqlQueries = {
@@ -187,9 +193,16 @@ export class WeightLengthConversionRefService
       if (isNotEmptyArray(res?.data)) return res.data[0];
 
       // Retry on month only (without year)
-      console.debug(this._logPrefix + 'No conversion found, for [year]. Retrying without month only.');
+      console.debug(this._logPrefix + 'No conversion found, for [year]. Retrying with month only.');
       res = await this.loadAll(0, size, 'year', 'desc', { ...filter, year: undefined }, loadOptions);
       if (isNotEmptyArray(res?.data)) return res.data[0];
+    }
+
+    if (isNotNil(filter.sexId) && filter.sexId !== QualitativeValueIds.SEX.UNSEXED) {
+      // Retry ALL with unsexed
+      console.debug(this._logPrefix + 'No conversion found, for year/month. Retrying all with unsexed.');
+      const wlcUnsexed = await this.loadByFilter({ ...filter, sexId: QualitativeValueIds.SEX.UNSEXED });
+      if (isNotNil(wlcUnsexed)) return wlcUnsexed;
     }
 
     // Not found
