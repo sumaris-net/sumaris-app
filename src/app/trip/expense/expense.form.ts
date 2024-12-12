@@ -15,6 +15,7 @@ import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 import {
   firstNotNilPromise,
   FormArrayHelper,
+  FormGetArrayPipe,
   isNil,
   isNotEmptyArray,
   isNotNilOrNaN,
@@ -48,7 +49,7 @@ class TupleValue {
   templateUrl: './expense.form.html',
   styleUrls: ['./expense.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [RxState],
+  providers: [RxState, FormGetArrayPipe],
 })
 export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewInit {
   mobile: boolean;
@@ -74,7 +75,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   removingBait = false;
   addingNewGear = false;
   removingGear = false;
-  baitsHelper: FormArrayHelper<number>;
+  // baitsHelper: FormArrayHelper<number>;
   gearsHelper: FormArrayHelper<number>;
   baitsFocusIndex = -1;
   gearsFocusIndex = -1;
@@ -162,7 +163,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     injector: Injector,
     protected validatorService: ExpenseValidatorService,
     protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService
+    protected programRefService: ProgramRefService,
   ) {
     super(injector, validatorService, formBuilder, programRefService);
     this.mobile = this.settings.mobile;
@@ -173,8 +174,8 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   ngOnInit() {
     super.ngOnInit();
 
-    this.initBaitHelper();
-    this.initGearHelper();
+    // this.initBaitHelper();
+    // this.initGearHelper();
 
     this.registerSubscription(
       this.pmfms$
@@ -221,39 +222,39 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     if (this.tabGroup) this.tabGroup.realignInkBar();
   }
 
-  initBaitHelper() {
-    this.baitsHelper = new FormArrayHelper<number>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'baits'),
-      (data) => this.validatorService.getBaitControl(data),
-      (v1, v2) => v1 === v2,
-      (value) => isNil(value),
-      {
-        allowEmptyArray: false,
-      }
-    );
-    if (this.baitsHelper.size() === 0) {
-      // add at least one bait
-      this.baitsHelper.resize(1);
-    }
-    this.markForCheck();
-  }
+  // initBaitHelper() {
+  //   this.baitsHelper = new FormArrayHelper<number>(
+  //     FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'baits'),
+  //     (data) => this.validatorService.getBaitControl(data),
+  //     (v1, v2) => v1 === v2,
+  //     (value) => isNil(value),
+  //     {
+  //       allowEmptyArray: false,
+  //     }
+  //   );
+  //   if (this.baitsHelper.size() === 0) {
+  //     // add at least one bait
+  //     this.baitsHelper.resize(1);
+  //   }
+  //   this.markForCheck();
+  // }
 
-  initGearHelper() {
-    this.gearsHelper = new FormArrayHelper<number>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'gears'),
-      (data) => this.validatorService.getGearControl(data),
-      (v1, v2) => v1 === v2,
-      (value) => isNil(value),
-      {
-        allowEmptyArray: false,
-      }
-    );
-    if (this.gearsHelper.size() === 0) {
-      // add at least one bait
-      this.gearsHelper.resize(1);
-    }
-    this.markForCheck();
-  }
+  // initGearHelper() {
+  //   this.gearsHelper = new FormArrayHelper<number>(
+  //     FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'gears'),
+  //     (data) => this.validatorService.getGearControl(data),
+  //     (v1, v2) => v1 === v2,
+  //     (value) => isNil(value),
+  //     {
+  //       allowEmptyArray: false,
+  //     }
+  //   );
+  //   if (this.gearsHelper.size() === 0) {
+  //     // add at least one bait
+  //     this.gearsHelper.resize(1);
+  //   }
+  //   this.markForCheck();
+  // }
 
   getValue(): Measurement[] {
     const values = super.getValue();
@@ -291,6 +292,9 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     console.debug('[expense] this.allData: ', this.allData);
 
     try {
+      console.debug('DEBUG', this.form);
+      this.cd.detectChanges();
+
       // set ice value
       await this.setIceValue(this.allData);
 
@@ -342,7 +346,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
       this.applyingBaitMeasurements = true;
       // resize 'baits' FormArray and patch main form to adjust number of bait children forms
-      this.baitsHelper.resize(Math.max(1, nbBait));
+      // this.baitsHelper.resize(Math.max(1, nbBait));
       this.form.patchValue({ baits });
       this.refreshBaitForms();
     } catch (err) {
@@ -355,7 +359,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   async setGearValue(data: Measurement[]) {
     try {
       console.debug('[expense] this.gearForms.first:', this.gearForms.first);
-      const gearPmfms = await firstNotNilPromise(this.gearForms.first.pmfms$, { stop: this.destroySubject, timeout: 100 });
+      const gearPmfms = await firstNotNilPromise(this.gearForms.first.pmfms$, { stop: this.destroySubject, timeout: 10000 });
       console.debug('[expense] gearPmfms:', gearPmfms);
 
       // filter data before set to each gear form
@@ -369,7 +373,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
       this.applyingGearMeasurements = true;
       // resize 'gears' FormArray and patch main form to adjust number of gear children forms
-      this.gearsHelper.resize(Math.max(1, nbGear));
+      // this.gearsHelper.resize(Math.max(1, nbGear));
       this.form.patchValue({ gears });
       this.refreshGearForms();
     } catch (err) {
@@ -417,7 +421,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   }
 
   refreshGearForms() {
-    this.cd.detectChanges();
+    //this.cd.detectChanges();
     // on applying gear measurements, set them after forms are ready
     if (this.applyingGearMeasurements) {
       this.applyingGearMeasurements = false;
@@ -461,19 +465,19 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   addBait() {
     // just add a new fake rankOrder value in 'baits' array, the real rankOrder is driven by template index
-    this.addingNewBait = true;
-    this.baitsHelper.add(getMaxRankOrder(this.baitsFormArray.value) + 1);
-    if (!this.mobile) {
-      this.baitsFocusIndex = this.baitsHelper.size() - 1;
-    }
+    // this.addingNewBait = true;
+    // this.baitsHelper.add(getMaxRankOrder(this.baitsFormArray.value) + 1);
+    // if (!this.mobile) {
+    //   this.baitsFocusIndex = this.baitsHelper.size() - 1;
+    // }
   }
 
   removeBait(index: number) {
-    this.removingBait = true;
-    if (!this.baitsHelper.allowEmptyArray && this.baitsHelper.size() === 1) {
-      this.baitForms.first.value = [];
-    }
-    this.baitsHelper.removeAt(index);
+    // this.removingBait = true;
+    // if (!this.baitsHelper.allowEmptyArray && this.baitsHelper.size() === 1) {
+    //   this.baitForms.first.value = [];
+    // }
+    // this.baitsHelper.removeAt(index);
   }
 
   applyGearMeasurements() {
@@ -485,19 +489,19 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   addGear() {
     // just add a new fake rankOrder value in 'gear' array, the real rankOrder is driven by template index
-    this.addingNewGear = true;
-    this.gearsHelper.add(getMaxRankOrder(this.gearsFormArray.value) + 1);
-    if (!this.mobile) {
-      this.gearsFocusIndex = this.gearsHelper.size() - 1;
-    }
+    // this.addingNewGear = true;
+    // this.gearsHelper.add(getMaxRankOrder(this.gearsFormArray.value) + 1);
+    // if (!this.mobile) {
+    //   this.gearsFocusIndex = this.gearsHelper.size() - 1;
+    // }
   }
 
   removeGearAt(index: number) {
-    this.removingGear = true;
-    if (!this.gearsHelper.allowEmptyArray && this.gearsHelper.size() === 1) {
-      this.gearForms.first.value = [];
-    }
-    this.gearsHelper.removeAt(index);
+    // this.removingGear = true;
+    // if (!this.gearsHelper.allowEmptyArray && this.gearsHelper.size() === 1) {
+    //   this.gearForms.first.value = [];
+    // }
+    // this.gearsHelper.removeAt(index);
   }
 
   registerTupleSubscription(tuple: ObjectMap<TupleValue>) {

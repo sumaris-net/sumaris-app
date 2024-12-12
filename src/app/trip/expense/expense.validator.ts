@@ -1,8 +1,8 @@
 import { MeasurementsValidatorOptions, MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Measurement } from '@app/data/measurement/measurement.model';
-import { LocalSettingsService } from '@sumaris-net/ngx-components';
+import { Measurement, MeasurementUtils } from '@app/data/measurement/measurement.model';
+import { AppFormArray, isEmptyArray, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({ providedIn: 'root' })
@@ -14,8 +14,8 @@ export class ExpenseValidatorService extends MeasurementsValidatorService {
   getFormGroupConfig(data: Measurement[], opts?: MeasurementsValidatorOptions): { [p: string]: any } {
     return Object.assign(super.getFormGroupConfig(data, opts), {
       calculatedTotal: [null],
-      baits: this.getBaitsFormArray(),
-      gears: this.getGearsFormArray(),
+      baits: this.getBaitsFormArray(data),
+      gears: this.getGearsFormArray(data),
     });
   }
 
@@ -29,18 +29,43 @@ export class ExpenseValidatorService extends MeasurementsValidatorService {
     return opts;
   }
 
-  getBaitsFormArray() {
-    return this.formBuilder.array([this.getBaitControl()]);
+  getBaitsFormArray(data?: Measurement[]) {
+    const array = new AppFormArray<Measurement, UntypedFormGroup>(
+      (value) => this.getBaitControl(),
+      (v1, v2) => MeasurementUtils.equals([v1], [v2]),
+      MeasurementUtils.isEmpty,
+      {
+        allowEmptyArray: false,
+      },
+    );
+
+    if (isEmptyArray(data)) {
+      array.setValue([{ rankOrder: 1 }]);
+    }
+
+    return array;
   }
 
-  getBaitControl(data?: number): UntypedFormGroup {
+  getBaitControl(data?: Measurement): UntypedFormGroup {
     return this.formBuilder.group({
-      rankOrder: [data || 1],
+      rankOrder: [data?.rankOrder || 1],
     });
   }
 
-  getGearsFormArray() {
-    return this.formBuilder.array([this.getGearControl()]);
+  getGearsFormArray(data?: Measurement[]) {
+    const array = new AppFormArray<Measurement, UntypedFormGroup>(
+      (value) => this.getGearControl(),
+      (v1, v2) => MeasurementUtils.equals([v1], [v2]),
+      MeasurementUtils.isEmpty,
+      {
+        allowEmptyArray: false,
+      }
+    );
+    if (isEmptyArray(data)) {
+      array.setValue([{ rankOrder: 1 }]);
+    }
+
+    return array;
   }
 
   getGearControl(data?: number): UntypedFormGroup {

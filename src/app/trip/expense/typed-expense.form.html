@@ -1,30 +1,9 @@
 <form class="form-container" [formGroup]="form">
-  <!-- debug -->
-  <app-debug *ngIf="debug" title="Measurements Form">
-    <ion-grid class="ion-no-padding">
-      <ion-row>
-        <ion-col>
-          ready: {{ readySubject | push }}
-          <br />
-          loading: {{ loadingSubject | push }}
-          <br />
-          enabled: {{ enabled }}
-          <br />
-          dirty: {{ dirty }}
-          <br />
-        </ion-col>
-        <ion-col>
-          programLabel: {{ programLabel }}
-          <br />
-          strategyLabel: {{ strategyLabel }}
-          <br />
-          pmfms count: {{ (pmfms$ | push)?.length }}
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-  </app-debug>
-
   <ion-grid class="ion-no-padding ion-padding-top form-container">
+    <!--    @if (debug) {-->
+    <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+    <!--    }-->
+
     <ion-row *ngIf="$packagingPmfms | async">
       <!-- type -->
       <ion-col size="12" size-md="4" size-lg="3" *ngIf="$typePmfm | async; let typePmfm">
@@ -66,3 +45,34 @@
     </ion-row>
   </ion-grid>
 </form>
+
+<!-- debug -->
+<ng-template #debugPanel>
+  <app-debug title="Measurements Form">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          ready: {{ readySubject | push }}
+          <br />
+          loading: {{ loadingSubject | push }}
+          <br />
+          enabled: {{ enabled }}
+          <br />
+          dirty: {{ dirty }}
+          <br />
+          valid: {{ valid }}
+          <br />
+        </ion-col>
+        <ion-col>
+          programLabel: {{ programLabel }}
+          <br />
+          strategyLabel: {{ strategyLabel }}
+          <br />
+          pmfms count: {{ (pmfms$ | push)?.length }}
+          <br />
+          rankOrder: {{ rankOrder }}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

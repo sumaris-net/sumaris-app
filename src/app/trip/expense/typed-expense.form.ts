@@ -1,4 +1,4 @@
-import { MapPmfmEvent, MeasurementsForm } from '@app/data/measurement/measurements.form.component';
+import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import {
@@ -65,12 +65,15 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
       minValue: 0,
       maximumNumberDecimals: 2,
     };
-
+    console.debug('[expense] amountDefinition.label: ', this.amountDefinition.label);
     this.registerSubscription(
       this.pmfms$
         // Wait form controls ready
         .pipe(mergeMap((pmfms) => this.ready().then((_) => pmfms)))
-        .subscribe((pmfms) => this.parsePmfms(pmfms))
+        .subscribe((pmfms) => {
+          console.debug(`[expense]${this.amountDefinition.label} pmfms: `, pmfms);
+          this.parsePmfms(pmfms);
+        })
     );
 
     this.registerSubscription(
