@@ -124,7 +124,7 @@
     "@rx-angular/state": "~18.1.0",
     "@rx-angular/template": "~18.0.3",
     "@sgratzl/chartjs-chart-boxplot": "~3.9.1",
-    "@sumaris-net/ngx-components": "18.3.7",
+    "@sumaris-net/ngx-components": "18.3.9",
     "angular-split": "~18.0.0",
     "apollo-angular": "~7.2.1",
     "apollo-link-logger": "~2.0.1",

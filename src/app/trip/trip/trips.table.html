@@ -56,38 +56,40 @@
       <!-- if row selection -->
     } @else {
       <!-- synchronize -->
-      <ion-button *ngIf="hasReadyToSyncSelection" expand="block" [color]="offline ? 'danger100' : 'danger'" (click)="synchronizeSelection()">
-        <ion-icon slot="start" name="cloud-upload"></ion-icon>
-        <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
-      </ion-button>
+      @if (!mobile && hasReadyToSyncSelection) {
+        <ion-button expand="block" [color]="offline ? 'danger100' : 'danger'" (click)="synchronizeSelection()">
+          <ion-icon slot="start" name="cloud-upload"></ion-icon>
+          <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
+        </ion-button>
+      }
 
       <!-- Download button -->
-      <app-extraction-button
-        *ngIf="canDownload"
-        [disabled]="offline"
-        [programLabels]="selectionProgramLabels$ | async"
-        [title]="'COMMON.BTN_DOWNLOAD' | translate"
-        (downloadAsJson)="downloadSelectionAsJson($event)"
-        (downloadAsType)="openDownloadPage($event)"
-      ></app-extraction-button>
+      @if (canDownload) {
+        <app-extraction-button
+          [disabled]="offline"
+          [programLabels]="selectionProgramLabels$ | async"
+          [title]="'COMMON.BTN_DOWNLOAD' | translate"
+          [disabledDownloadAsType]="synchronizationStatus !== 'SYNC'"
+          (downloadAsJson)="downloadSelectionAsJson($event)"
+          (downloadAsType)="openDownloadPage($event)"
+        ></app-extraction-button>
+      }
 
       <!-- map -->
-      <button mat-icon-button *ngIf="canOpenMap" [title]="'EXTRACTION.BTN_OPEN_MAP' | translate" (click)="openSelectionMap($event)">
-        <mat-icon>
-          <ion-icon name="earth"></ion-icon>
-        </mat-icon>
-      </button>
+      @if (canOpenMap) {
+        <button mat-icon-button [title]="'EXTRACTION.BTN_OPEN_MAP' | translate" (click)="openSelectionMap($event)">
+          <mat-icon>
+            <ion-icon name="earth"></ion-icon>
+          </mat-icon>
+        </button>
+      }
 
       <!-- delete -->
-      <button
-        mat-icon-button
-        class="hidden-xs hidden-sm"
-        *ngIf="canDelete"
-        [title]="'COMMON.BTN_DELETE' | translate"
-        (click)="deleteSelection($event)"
-      >
-        <mat-icon>delete</mat-icon>
-      </button>
+      @if (canDelete) {
+        <button mat-icon-button class="hidden-xs hidden-sm" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      }
     }
   </ion-buttons>
 </app-toolbar>
@@ -591,10 +593,14 @@
         <th mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></th>
         <td mat-cell *matCellDef="let row">
           <app-trip-card
+            [color]="highlightedRowId === row.id || (mobile && selection.isSelected(row)) ? 'secondary100' : 'light'"
             [value]="row.currentData"
             [config]="autocompleteFields"
             (delete)="deleteRow($event, row)"
             (synchronize)="synchronizeRows([row])"
+            [showRecorder]="false"
+            [canSynchronize]="row.currentData.synchronizationStatus === 'READY_TO_SYNC' && row.currentData.id < 0"
+            [canDelete]="mobile && selection.isSelected(row)"
           ></app-trip-card>
         </td>
       </ng-container>
@@ -623,7 +629,7 @@
         *matRowDef="let row; columns: displayedColumns"
         class="mat-mdc-row-disabled"
         [class.cdk-visually-hidden]="loadingSubject | async"
-        [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        [class.mat-mdc-row-selected]="!cardView && (highlightedRowId === row.id || (mobile && selection.isSelected(row)))"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></tr>

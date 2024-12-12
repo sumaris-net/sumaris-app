@@ -1,22 +1,28 @@
-<ion-card [color]="color" tappable>
+<ion-card [color]="color" class="ion-activatable">
+  <ion-ripple-effect></ion-ripple-effect>
   <ion-card-header>
     <!-- program -->
     <ion-card-subtitle>
-      @if (showProgram && value.program | isNotEmptyReferential) {
-        {{ value.program.label || value.program.name }}
-      }
+      <ion-text color="secondary">
+        @if (showProgram && value.program | isNotEmptyReferential) {
+          {{ value.program.label || value.program.name }}
+        }
+      </ion-text>
       <app-entity-quality-badge class="ion-float-end" [value]="value" size="small"></app-entity-quality-badge>
     </ion-card-subtitle>
 
-    <!-- vessel -->
+    <!-- vessel + departure date -->
     <ion-card-title>
+      @let ageInMonths = now.diff(value.departureDateTime, 'months', false);
+      @let datePattern = ageInMonths > 6 ? 'ddd D MMM YYYY' : 'ddd D MMM';
       <span
+        class="title"
         [innerHTML]="
           'TRIP.EDIT.TITLE'
             | translate
               : {
                   vessel: value.vesselSnapshot | referentialToString: config.vesselSnapshot?.attributes,
-                  departureDateTime: value.departureDateTime | dateFormat: { pattern: 'ddd D MMM' },
+                  departureDateTime: value.departureDateTime | dateFormat: { pattern: datePattern },
                 }
         "
       ></span>
@@ -24,19 +30,54 @@
   </ion-card-header>
 
   <ion-card-content>
-    <p>
-      <ion-icon name="location"></ion-icon>
-      <strong>{{ 'TRIP.CARD.DEPARTURE_DOTS' | translate }}</strong>
-      {{ value.departureLocation?.name }},
-      <strong>{{ value.departureDateTime | dateFromNow }}</strong>
+    <ion-grid class="ion-no-padding">
+      <!-- departure -->
+      <ion-row>
+        <ion-col size="auto">
+          <ion-icon name="location"></ion-icon>
+        </ion-col>
+        <ion-col>
+          <strong>{{ 'TRIP.CARD.DEPARTURE_DOTS' | translate }}</strong>
+          {{ value.departureLocation?.name }},
+          {{ 'COMMON.AT' | translate }}
+          <strong>
+            {{ value.departureDateTime | dateFormat: { pattern: 'LT' } }}
+          </strong>
+          ({{ value.departureDateTime | dateFromNow }})
+        </ion-col>
+      </ion-row>
 
-      <!-- return location -->
-      @if (value.returnLocation && value.departureLocation.id !== value.returnLocation?.id) {
-        <ion-icon name="arrow-forward"></ion-icon>
-        <strong>{{ 'TRIP.CARD.RETURN_DOTS' | translate }}</strong>
-        {{ value.returnLocation?.name }}
+      <!-- return -->
+      @if (value.returnDateTime) {
+        @let durationInHours = value.returnDateTime.diff(value.departureDateTime, 'hours', false);
+        @let datePattern = duration > 6 ? 'ddd D MMM YYYY' : 'ddd D MMM';
+        @if (value.returnLocation && value.departureLocation.id !== value.returnLocation?.id) {
+          <ion-row>
+            <ion-col size="auto">
+              <ion-icon name="location"></ion-icon>
+            </ion-col>
+            <ion-col>
+              <strong>{{ 'TRIP.CARD.RETURN_DOTS' | translate }}</strong>
+              @if (durationInHours < 24) {
+                {{ value.returnLocation?.name }},
+                <strong>
+                  @if (value.returnDateTime.day() !== value.departureDateTime.day()) {
+                    {{ value.returnDateTime | dateFormat: { pattern: 'ddd' } }}
+                  }
+                  {{ 'COMMON.AT' | translate }}
+                  {{ value.returnDateTime | dateFormat: { pattern: 'LT' } }}
+                </strong>
+              } @else {
+                {{ value.returnLocation?.name }},
+                <strong>
+                  {{ value.returnDateTime | dateFormat: { pattern: 'ddd D MMM LT' } }}
+                </strong>
+              }
+            </ion-col>
+          </ion-row>
+        }
       }
-    </p>
+    </ion-grid>
 
     <!-- recorder name -->
     @if (showRecorder) {
@@ -45,6 +86,8 @@
         {{ value.recorderPerson | personToString: null : { withDepartment: showRecorderDepartment } }}
       </p>
     }
+
+    <!-- update date -->
     @if (showUpdateDate) {
       <p>
         <ion-icon name="time"></ion-icon>
@@ -60,23 +103,25 @@
     }
   </ion-card-content>
 
-  <!--@if (delete.observed) {
-    <ion-button fill="clear">
-      <mat-icon slot="icon-only" (click)="delete.emit($event)">delete</mat-icon>
-    </ion-button>
-  }-->
-  @if (synchronize.observed && value.synchronizationStatus === 'READY_TO_SYNC' && value.id < 0) {
-    <ion-button fill="clear" (click)="synchronize.emit($event)">
-      {{ 'QUALITY.BTN_SYNCHRONIZE' | translate }}
-    </ion-button>
+  @if (canDelete || canSynchronize) {
+    <ion-footer>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          @if (canDelete && delete.observed) {
+            <ion-button>
+              <mat-icon slot="icon-only" (click)="delete.emit($event)">delete</mat-icon>
+            </ion-button>
+          }
+        </ion-buttons>
+        <ion-buttons slot="end">
+          @if (canSynchronize && synchronize.observed) {
+            <ion-button fill="solid" color="tertiary" (click)="synchronize.emit($event)">
+              <ion-icon slot="start" name="cloud-upload"></ion-icon>
+              {{ 'QUALITY.BTN_SYNCHRONIZE' | translate }}
+            </ion-button>
+          }
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-footer>
   }
-
-  <!--<ion-footer>
-    <ion-toolbar>
-      <ion-buttons slot="start">
-
-      </ion-buttons>
-
-    </ion-toolbar>
-  </ion-footer>-->
 </ion-card>

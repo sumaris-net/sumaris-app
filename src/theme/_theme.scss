@@ -254,3 +254,36 @@ app-toolbar ion-segment-button {
     --min-width: var(--max-width) !important;
   }
 }
+
+/* -- Ion card -- */
+
+ion-card ion-card-title .title {
+
+  small {
+    font-weight: normal;
+    br {
+      display: none;
+      visibility: hidden;
+    }
+  }
+  // Add a separator, after the <small> part
+  small:first-of-type:after {
+    content: " -  ";
+  }
+}
+
+@media screen and (max-width: $screen-sm-max) {
+  ion-card ion-card-title .title {
+    small {
+      @include font-size(10pt);
+    }
+    small br {
+      display: unset;
+      visibility: unset;
+    }
+    // Add a separator, after the <small> part
+    small:first-of-type:after {
+      content: "";
+    }
+  }
+}

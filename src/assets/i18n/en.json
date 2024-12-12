@@ -80,6 +80,7 @@
     "BTN_DECIMAL_SEPARATOR": ".",
     "EMPTY_OPTION": "(Empty)",
     "All_OPTION": "(All)",
+    "AT": "at",
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
