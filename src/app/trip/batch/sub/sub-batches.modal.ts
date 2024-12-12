@@ -786,7 +786,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     }
 
     const pmfmsFiltered = (this.pmfms || []).filter(
-      (pmfm) => !PmfmUtils.isComputed(pmfm) && (PmfmUtils.isNumeric(pmfm) || PmfmUtils.isQualitative(pmfm))
+      (pmfm) => !PmfmUtils.isComputed(pmfm) && ((PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm)) || PmfmUtils.isQualitative(pmfm))
     );
 
     this.canShowEnumeration = pmfmsFiltered.filter(PmfmUtils.isNumeric).length === 1;
@@ -849,7 +849,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   }
 
   protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<IPmfm>> {
-    const pmfms = (this.pmfms || []).filter((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm));
+    const pmfms = (this.pmfms || []).filter((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm));
     if (isEmptyArray(pmfms)) return { data: [] };
     return suggestFromArray(pmfms, value, {
       ...opts,
@@ -1047,6 +1047,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
       subBatchesToDelete.push(subBacth);
     }
+    this.rowsAreMerged = false;
     await this.setValue(newSubBatches);
   }
 
@@ -1061,7 +1062,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   async setModalMode(mode: ModalMode, showVirtualColumns?: boolean) {
     const showVirtualColums = isNotNil(showVirtualColumns) ? showVirtualColumns : mode === ModalModeEnum.LengthClass ? true : false;
-    const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm));
+    const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm));
     this.setShowVirtualColumns(showVirtualColums);
 
     if (mode === ModalModeEnum.LengthClass && !this.rowsAreMerged) {

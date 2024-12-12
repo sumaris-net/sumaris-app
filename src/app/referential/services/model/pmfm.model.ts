@@ -355,6 +355,10 @@ export abstract class PmfmUtils {
     return pmfm.type === 'qualitative_value';
   }
 
+  static isVirtual(pmfm: IPmfm): boolean {
+    return pmfm.id.toString().startsWith('-');
+  }
+
   /**
    * Check if individual weight (e.g. for batches, products)
    *
