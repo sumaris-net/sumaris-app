@@ -596,6 +596,13 @@ export const ObjectTypeLabels = {
   PMFM: 'PMFM',
 };
 
+export type ModalMode = 'INDIVIDUAL_COUNT' | 'LENGTH_CLASS';
+
+export const ModalModeEnum: Record<string, ModalMode> = Object.freeze({
+  IndividualCount: 'INDIVIDUAL_COUNT',
+  LengthClass: 'LENGTH_CLASS',
+});
+
 export class ModelEnumUtils {
   static refreshDefaultValues() {
     MethodIdGroups.CALCULATED = Methods.getCalculatedIds();

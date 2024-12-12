@@ -40,7 +40,7 @@ import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { environment } from '@environments/environment';
-import { AcquisitionLevelCodes, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, ModalMode, ModalModeEnum, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
 import { BatchContext, SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
@@ -143,7 +143,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   protected pmfmFilterDefinition: FormFieldDefinition;
   protected virtualPmfms: DenormalizedPmfmStrategy[];
   protected footerValues: { [key: string]: number } = {};
-  isAlreadyIndividualCount: boolean = true;
+  modalMode: ModalMode = ModalModeEnum.IndividualCount;
+  rowsAreMerged: boolean = false;
   canShowEnumeration: boolean = true;
 
   get selectedRow(): TableElement<SubBatch> {
@@ -475,7 +476,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.resetError();
 
     // switch to individualCount mode before saving
-    await this.setShowVirtualColumns(false);
+    await this.setModalMode(ModalModeEnum.IndividualCount);
 
     try {
       // Save changes
@@ -814,9 +815,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     const missingVirtualPmfms = virtualPmfms.filter((pmfm) => !this.pmfms.some((col) => col.id === pmfm.id));
     this.pmfms = this.pmfms.concat(missingVirtualPmfms);
     this.updateColumns();
-
-    // Ensure virtal columns are displayed if available
-    await this.setShowVirtualColumns(isNotEmptyArray(this.virtualPmfms));
   }
 
   async applyFilterAndClosePanel() {
@@ -840,13 +838,13 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
         }
       }
 
-      await this.toggleDisplayVirtualColumns();
+      await this.setModalMode(ModalModeEnum.LengthClass);
       this.setFilter(filter);
     }
   }
 
   async resetFilter() {
-    await this.setShowVirtualColumns(false);
+    if (this.filter) await this.setModalMode(ModalModeEnum.IndividualCount);
     super.resetFilter();
   }
 
@@ -905,11 +903,21 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   }
 
   async generateSubBatchesFromRange(data: any) {
+    await this.save();
+
+    if (isNotNilOrBlank(data.qvPmfm)) {
+      // find the qv pmfm
+      const qv = this.pmfms.find((pmfm) => pmfm.id === data.qvPmfm.id);
+      await this.generateDynamicColumns(qv);
+      await this.setModalMode(ModalModeEnum.LengthClass);
+    } else {
+      // spécifique state for the modal
+      await this.setModalMode(null, false);
+    }
+
     // Create subbatches
     const subBatchesToAdd = [];
-    await this.save();
     let rankOrder = await this.getMaxRankOrder();
-
     for (let size = data.min; size <= data.max; size += data.precision) {
       // Do not add already existing row for this taxonname and size
       const existing = this.getValue().some(
@@ -925,12 +933,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       }
     }
 
-    if (isNotNilOrBlank(data.qvPmfm)) {
-      // find the qv pmfm
-      const qv = this.pmfms.find((pmfm) => pmfm.id === data.qvPmfm.id);
-      await this.generateDynamicColumns(qv);
-    }
-
     await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
 
     // Only show added entities
@@ -941,12 +943,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     filter.taxonNameId = data.taxonName.id;
 
     this.setFilter(filter);
-  }
-
-  async toggleDisplayVirtualColumns() {
-    const formIsEmpty = AppSharedFormUtils.isEmptyForm(this.filterForm);
-    const isToggle = (isNotEmptyArray(this.virtualPmfms) || isNotNil(this.virtualPmfms)) && !formIsEmpty;
-    await this.setShowVirtualColumns(isToggle);
   }
 
   private async setShowVirtualColumns(show: boolean) {
@@ -964,29 +960,10 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
         this.setShowColumn(pmfm.id.toString(), !show, { emitEvent: false });
       });
     this.updateColumns();
-
-    // Add/remove rows depending on virtual columns presence
-    if (this.isAlreadyIndividualCount !== show) {
-      if (isNotEmptyArray(this.virtualPmfms)) {
-        const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm));
-        if (show) {
-          await this.mergeRows(numericalPmfm);
-        } else {
-          await this.splitRows(numericalPmfm);
-        }
-      }
-      this.isAlreadyIndividualCount = show;
-    }
-    if (!show) {
-      setTimeout(async () => {
-        await this.deleteEmptyRows();
-      });
-    }
   }
 
   private groupByProperty(property: string): TableElement<SubBatch>[][] {
     const groups: { [key: string]: TableElement<SubBatch>[] } = {};
-
     this.dataSource.getRows().forEach((obj) => {
       const key = obj?.currentData?.measurementValues[property];
       if (!groups[key]) {
@@ -1010,7 +987,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     for (const rows of groupRows) {
       const virtualPmfmValue = [];
       rows.forEach((row) => {
-        const virtualPmfm = this.virtualPmfms.find((pmfm) => {
+        const virtualPmfm = this.virtualPmfms?.find((pmfm) => {
           return pmfm.name === row.currentData?.measurementValues[criteriaPmfm.id.toString()]?.name;
         });
         virtualPmfmValue.push({ virtualPmfm: virtualPmfm, individualCount: row.currentData.individualCount });
@@ -1074,11 +1051,32 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   }
 
   async deleteEmptyRows() {
+    this.save();
     let rows = this.getValue();
     rows = rows.filter((subBacth) => {
       return subBacth.individualCount > 0;
     });
     await this.setValue(rows);
+  }
+
+  async setModalMode(mode: ModalMode, showVirtualColumns?: boolean) {
+    const showVirtualColums = isNotNil(showVirtualColumns) ? showVirtualColumns : mode === ModalModeEnum.LengthClass ? true : false;
+    const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm));
+    this.setShowVirtualColumns(showVirtualColums);
+
+    if (mode === ModalModeEnum.LengthClass && !this.rowsAreMerged) {
+      // merge only on the first time
+      await this.mergeRows(numericalPmfm);
+      this.rowsAreMerged = true;
+    } else if (mode === ModalModeEnum.IndividualCount && isNotNil(this.modalMode)) {
+      await this.splitRows(numericalPmfm);
+      this.rowsAreMerged = false;
+    } else if (mode === ModalModeEnum.IndividualCount && isNil(this.modalMode)) {
+      await this.deleteEmptyRows();
+    }
+
+    //update modal mode
+    this.modalMode = mode;
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
