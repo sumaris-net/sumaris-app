@@ -2391,7 +2391,6 @@
       "TRIP_METIERS_HISTORY_NB_DAYS": "Trip: Filtered metiers > Nb. days",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip: Are other features optional, when on field?",
       "TRIP_HELP_URL": "Trip: Online help (URL)",
-      "TRIP_HELP_MESSAGE": "Trip > Operation: Help message",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Trip > Gears: Optional pmfms to show (ids)",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY": "Trip > Gears: Hide empty pmfm columns?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
@@ -3303,7 +3302,9 @@
       "BTN_SCAN": "Scan",
       "BTN_DISCONNECT": "Disconnect",
       "ERROR": {
-        "DISABLED": "Bluetooth is disabled"
+        "DISABLED": "Bluetooth is disabled",
+        "SCAN_FAILED": "Bluetooth scan failed",
+        "ENABLE_FAILED": "Bluetooth enabling failed"
       }
     },
     "ICHTHYOMETER": {
@@ -3319,7 +3320,9 @@
         }
       },
       "ERROR": {
-        "CONNECTION_ERROR": "Failed to connect to ichthyometer '{{name}}'"
+        "CONNECTION_ERROR": "Failed to connect to ichthyometer '{{name}}'",
+        "CREATE_FAILED": "Error while creating ichthyometer of type '{{type}}'",
+        "UNKNOWN_TYPE": "Unknown ichthyometer type: '{{type}}'"
       }
     }
   },

@@ -3302,7 +3302,9 @@
       "BTN_SCAN": "Scan",
       "BTN_DISCONNECT": "Disconnect",
       "ERROR": {
-        "DISABLED": "Bluetooth is disabled"
+        "DISABLED": "Bluetooth is disabled",
+        "SCAN_FAILED": "Bluetooth scan failed",
+        "ENABLE_FAILED": "Bluetooth enabling failed"
       }
     },
     "ICHTHYOMETER": {
@@ -3318,7 +3320,9 @@
         }
       },
       "ERROR": {
-        "CONNECTION_ERROR": "Failed to connect to ichthyometer '{{name}}'"
+        "CONNECTION_ERROR": "Failed to connect to ichthyometer '{{name}}'",
+        "CREATE_FAILED": "Error while creating ichthyometer of type '{{type}}'",
+        "UNKNOWN_TYPE": "Unknown ichthyometer type: '{{type}}'"
       }
     }
   },
