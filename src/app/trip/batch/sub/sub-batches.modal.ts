@@ -19,9 +19,9 @@ import {
   NetworkService,
   PlatformService,
   SharedValidators,
+  sleep,
   suggestFromArray,
   toBoolean,
-  toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import {
@@ -482,7 +482,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       // Save changes
       const saved = await this.save();
       if (!saved) return; // Error
-
       await this.viewCtrl.dismiss(this.getValue());
     } catch (err) {
       console.error(err);
@@ -1053,11 +1052,12 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       subBatchesToDelete.push(subBacth);
     }
     this.rowsAreMerged = false;
+
     await this.setValue(newSubBatches);
   }
 
   async deleteEmptyRows() {
-    this.save();
+    this.save(); // TODO: à passer en await, mais cela provoque le non fonctionnement de la méthode
     let rows = this.getValue();
     rows = rows.filter((subBacth) => {
       return subBacth.individualCount > 0;
@@ -1094,6 +1094,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     //update modal mode
     this.modalMode = mode;
+    await sleep(0); // Nécessaire, pour que le tableau s'actualise à la fermeture de la modale
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
