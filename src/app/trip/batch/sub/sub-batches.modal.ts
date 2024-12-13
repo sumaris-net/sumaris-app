@@ -33,7 +33,7 @@ import {
 } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Animation, IonContent, ModalController } from '@ionic/angular';
-import { debounceTime, distinctUntilChanged, isObservable, Observable, Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, isObservable, Observable, skip, Subject, Subscription } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
@@ -386,14 +386,14 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     // Compute the first rankOrder to save
     this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
 
-    // Show individual count only field
-    this.showIndividualCountOnly = this.allowIndividualCountOnly && (await BatchGroupUtils.hasSamplingIndividualCountOnly(this.parentGroup, data));
+    // // Show individual count only field
+    // this.showIndividualCountOnly = this.allowIndividualCountOnly && (await BatchGroupUtils.hasSamplingIndividualCountOnly(this.parentGroup, data));
 
-    if (this.showIndividualCountOnly) {
-      const samplingBatch = BatchUtils.getOrCreateSamplingChild(this.parentGroup);
-      const individualCount = toNumber(samplingBatch?.individualCount, this.parentGroup.observedIndividualCount);
-      this.individualCountControl.setValue(toNumber(individualCount, null));
-    }
+    // if (this.showIndividualCountOnly) {
+    //   const samplingBatch = BatchUtils.getOrCreateSamplingChild(this.parentGroup);
+    //   const individualCount = toNumber(samplingBatch?.individualCount, this.parentGroup.observedIndividualCount);
+    //   this.individualCountControl.setValue(toNumber(individualCount, null));
+    // }
 
     // DEBUG
     if (this.debug) console.debug('[sub-batches-modal] Applying value to table...', data);
@@ -964,12 +964,17 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   private groupByProperty(property: string): TableElement<SubBatch>[][] {
     const groups: { [key: string]: TableElement<SubBatch>[] } = {};
+
     this.dataSource.getRows().forEach((obj) => {
-      const key = obj?.currentData?.measurementValues[property];
-      if (!groups[key]) {
-        groups[key] = [];
+      // Create composite key from measurementValues and taxonName
+      const measurementValue = obj?.currentData?.measurementValues[property];
+      const taxonName = obj?.currentData?.taxonName?.name;
+      const compositeKey = `${measurementValue}-${taxonName}`;
+
+      if (!groups[compositeKey]) {
+        groups[compositeKey] = [];
       }
-      groups[key].push(obj);
+      groups[compositeKey].push(obj);
     });
 
     return Object.values(groups);
@@ -1065,11 +1070,22 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm));
     this.setShowVirtualColumns(showVirtualColums);
 
+    console.log(
+      'mode: ',
+      mode,
+      'showVirtualColums: ',
+      showVirtualColums,
+      'this.modalMode : ',
+      this.modalMode,
+      'this.mergeRows: ',
+      this.rowsAreMerged
+    );
+
     if (mode === ModalModeEnum.LengthClass && !this.rowsAreMerged) {
       // merge only on the first time
       await this.mergeRows(numericalPmfm);
       this.rowsAreMerged = true;
-    } else if (mode === ModalModeEnum.IndividualCount && isNotNil(this.modalMode)) {
+    } else if (mode === ModalModeEnum.IndividualCount && isNotNil(this.modalMode) && this.rowsAreMerged) {
       await this.splitRows(numericalPmfm);
       this.rowsAreMerged = false;
     } else if (mode === ModalModeEnum.IndividualCount && isNil(this.modalMode)) {
