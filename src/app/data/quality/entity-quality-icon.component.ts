@@ -5,11 +5,12 @@ import { PredefinedColors } from '@ionic/core';
 import { qualityFlagToColor, QualityIonIcon } from '@app/data/services/model/model.utils';
 import { IDataEntity } from '@app/data/services/model/data-entity.model';
 
-export declare type SynchronizationIonIcon = 'time-outline' | 'hourglass-outline' | 'pencil';
-
 @Component({
   selector: 'app-entity-quality-icon',
-  template: '<div [title]="title|translate"><ion-icon [color]="color" [name]="icon" slot="icon-only" style="pointer-events: none;"></ion-icon></div>',
+  template:
+    '<div [title]="title|translate">' +
+    '<ion-icon [color]="color" [name]="icon" slot="icon-only" style="pointer-events: none;"></ion-icon>' +
+    '</div>',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EntityQualityIconComponent {

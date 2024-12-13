@@ -42,10 +42,34 @@
     min-width: 180px;
   }
 
+
+
   .mat-column-actions {
     min-width: 40px;
     width: 40px;
     padding-inline-start: 0;
     padding-inline-end: 0;
   }
+
+}
+
+.card-view {
+
+  .mat-mdc-table {
+    --mat-cell-horizontal-padding: 0px;
+    --mat-table-row-item-outline-color: transparent;
+    --mat-table-row-item-outline-width: 0px;
+
+    .mat-column-card {
+      overflow: visible;
+      max-width: calc(100vw - 40px - 16px);
+      app-trip-card {
+        min-width: calc(100vw - 16px);
+        --margin-top: 12px;
+        --margin-bottom: 12px;
+
+      }
+    }
+  }
+
 }

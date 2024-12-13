@@ -9,6 +9,7 @@ import { QualityFlagInvalidPipe } from '@app/data/quality/quality-flag-invalid.p
 import { QualityFlagValidPipePipe } from '@app/data/quality/quality-flag-not-invalid.pipe';
 import { QualityFlagToI18nPipe } from '@app/data/quality/quality-flag-to-i18n.pipe';
 import { QualityFlagBadPipe } from '@app/data/quality/quality-flag-bad.pipe';
+import { EntityQualityBadgeComponent } from '@app/data/quality/entity-quality-badge.component';
 
 @NgModule({
   imports: [AppSharedModule, AppSharedProgressionModule],
@@ -24,6 +25,7 @@ import { QualityFlagBadPipe } from '@app/data/quality/quality-flag-bad.pipe';
     // Components
     EntityQualityFormComponent,
     EntityQualityIconComponent,
+    EntityQualityBadgeComponent,
   ],
   exports: [
     // Pipes
@@ -37,6 +39,7 @@ import { QualityFlagBadPipe } from '@app/data/quality/quality-flag-bad.pipe';
     // Components
     EntityQualityFormComponent,
     EntityQualityIconComponent,
+    EntityQualityBadgeComponent,
   ],
 })
 export class AppEntityQualityModule {}

@@ -1,0 +1,119 @@
+<ion-card [color]="color" class="ion-activatable">
+  <ion-ripple-effect></ion-ripple-effect>
+  <ion-card-header>
+    <!-- program -->
+    <ion-card-subtitle>
+      <ion-text color="secondary">
+        @if (showProgram && value.program | isNotEmptyReferential) {
+          {{ value.program.label || value.program.name }}
+        }
+      </ion-text>
+      <app-entity-quality-badge class="ion-float-end" [value]="value" size="small"></app-entity-quality-badge>
+    </ion-card-subtitle>
+
+    <!-- vessel + departure date -->
+    <ion-card-title>
+      @let ageInMonths = now.diff(value.departureDateTime, 'months', false);
+      @let datePattern = ageInMonths > 6 ? 'ddd D MMM YYYY' : 'ddd D MMM';
+      <span
+        class="title"
+        [innerHTML]="
+          'TRIP.EDIT.TITLE'
+            | translate
+              : {
+                  vessel: value.vesselSnapshot | referentialToString: config.vesselSnapshot?.attributes,
+                  departureDateTime: value.departureDateTime | dateFormat: { pattern: datePattern },
+                }
+        "
+      ></span>
+    </ion-card-title>
+  </ion-card-header>
+
+  <ion-card-content>
+    <ion-grid class="ion-no-padding">
+      <!-- departure -->
+      <ion-row>
+        <ion-col size="auto">
+          <ion-icon name="location"></ion-icon>
+        </ion-col>
+        <ion-col>
+          <strong>{{ 'TRIP.CARD.DEPARTURE_DOTS' | translate }}</strong>
+          {{ value.departureLocation?.name }},
+          {{ 'COMMON.AT' | translate }}
+          <strong>
+            {{ value.departureDateTime | dateFormat: { pattern: 'LT' } }}
+          </strong>
+          ({{ value.departureDateTime | dateFromNow }})
+        </ion-col>
+      </ion-row>
+
+      <!-- return -->
+      @if (value.returnDateTime) {
+        @let durationInHours = value.returnDateTime.diff(value.departureDateTime, 'hours', false);
+        @let datePattern = duration > 6 ? 'ddd D MMM YYYY' : 'ddd D MMM';
+        @if (value.returnLocation && value.departureLocation.id !== value.returnLocation?.id) {
+          <ion-row>
+            <ion-col size="auto">
+              <ion-icon name="location"></ion-icon>
+            </ion-col>
+            <ion-col>
+              <strong>{{ 'TRIP.CARD.RETURN_DOTS' | translate }}</strong>
+              @if (durationInHours < 24) {
+                {{ value.returnLocation?.name }},
+                <strong>
+                  @if (value.returnDateTime.day() !== value.departureDateTime.day()) {
+                    {{ value.returnDateTime | dateFormat: { pattern: 'ddd' } }}
+                  }
+                  {{ 'COMMON.AT' | translate }}
+                  {{ value.returnDateTime | dateFormat: { pattern: 'LT' } }}
+                </strong>
+              } @else {
+                {{ value.returnLocation?.name }},
+                <strong>
+                  {{ value.returnDateTime | dateFormat: { pattern: 'ddd D MMM LT' } }}
+                </strong>
+              }
+            </ion-col>
+          </ion-row>
+        }
+      }
+    </ion-grid>
+
+    <!-- recorder name -->
+    @if (showRecorder) {
+      <p>
+        <ion-icon name="person"></ion-icon>
+        {{ value.recorderPerson | personToString: null : { withDepartment: showRecorderDepartment } }}
+      </p>
+    }
+
+    <!-- update date -->
+    @if (showUpdateDate) {
+      <p>
+        <ion-icon name="time"></ion-icon>
+        {{ 'COMMON.UPDATED_ON' | translate }} {{ value.updateDate | dateFormat: { time: true } }}
+      </p>
+    }
+
+    @if (showComments && value.comments) {
+      <p>
+        <ion-icon name="chatbox"></ion-icon>
+        {{ value.comments }}
+      </p>
+    }
+  </ion-card-content>
+
+  @if (canDelete || canSynchronize) {
+    @if (canDelete && delete.observed) {
+      <ion-button>
+        <mat-icon slot="icon-only" (click)="delete.emit($event)">delete</mat-icon>
+      </ion-button>
+    }
+    @if (canSynchronize && synchronize.observed) {
+      <ion-button fill="solid" color="tertiary" class="ion-float-end" (click)="synchronize.emit($event)">
+        <ion-icon slot="start" name="cloud-upload"></ion-icon>
+        {{ 'QUALITY.BTN_SYNCHRONIZE' | translate }}
+      </ion-button>
+    }
+  }
+</ion-card>

@@ -31,7 +31,7 @@ import { Operation, Trip } from './trip.model';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
 import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
-import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { AppRootDataTable, AppRootDataTableState, AppRootTableFilterRestoreSource, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter } from 'rxjs/operators';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
@@ -73,6 +73,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
   @Input() canDownload = false;
   @Input() canUpload = false;
   @Input() canOpenMap = false;
+  @Input() cardViewSortableColumns: string[] = ['departureDateTime', 'returnDateTime'];
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
@@ -211,6 +212,21 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     this.resetContext();
   }
 
+  protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }): Promise<void> {
+    this.cardView = this.getPageSettings('cardView') ?? (this.mobile && !this.platformService.is('tablet'));
+
+    await super.restoreFilterOrLoad(opts);
+  }
+
+  protected updateColumns() {
+    if (this.cardView) {
+      this.displayedColumns = ['card'];
+      if (!this.loading) this.markForCheck();
+    } else {
+      super.updateColumns();
+    }
+  }
+
   /**
    * Action triggered when user swipes
    */
@@ -225,6 +241,31 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
     this.toggleSynchronizationStatus();
     return true;
+  }
+
+  toggleCardView(opts?: { emitEvent?: boolean }): void {
+    this.setCardView(!this.cardView, opts);
+  }
+
+  setCardView(value: boolean, opts?: { emitEvent?: boolean; skipSaveSettings?: boolean }) {
+    this.cardView = value;
+    if (value) {
+      this.displayedColumns = ['card'];
+    } else {
+      this.displayedColumns = this.getDisplayColumns();
+    }
+
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
+    }
+
+    if (opts?.skipSaveSettings !== true) {
+      this.savePageSettings(value, 'cardView');
+    }
+
+    if (this.loaded) {
+      this.table?.renderRows();
+    }
   }
 
   async openTrashModal(event?: Event) {
