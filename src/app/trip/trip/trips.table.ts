@@ -246,9 +246,12 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
       this.table?.renderRows();
     }
 
+    console.debug(this.logPrefix + 'setCardView', enable);
+
     // By default, sort on defaults
-    if (enable) {
-      this.sort.sort({ id: this.defaultSortBy, start: AppTableUtils.inverseDirection(this.defaultSortDirection || 'desc'), disableClear: false });
+    if (enable && (this.sortActive !== this.defaultSortBy || this.sortDirection !== this.defaultSortBy)) {
+      const direction = this.sortActive === this.defaultSortBy ? AppTableUtils.inverseDirection(this.sortDirection) : this.defaultSortDirection;
+      this.sort.sort({ id: this.defaultSortBy, start: direction, disableClear: false });
     }
 
     // Save to local settings
