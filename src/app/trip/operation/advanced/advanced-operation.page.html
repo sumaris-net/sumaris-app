@@ -29,7 +29,7 @@
         color="tertiary"
         hidden-xxs
         class="ion-margin-end"
-        [disabled]="disabled || vars.loading || vars.saving"
+        [disabled]="disabled || loading || saving"
         (click)="saveAndNew($event)"
       >
         <ion-icon slot="start" name="add-circle-outline"></ion-icon>
@@ -377,8 +377,8 @@
     <mat-tab #sampleTab [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES' | translateContext: i18nContext.suffix" [disabled]="!showSamplesTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon svgIcon="fish-oblique"></mat-icon>
+        @let count = sampleTree.samplesTable.totalRowCount;
         <ion-label
-          *ngVar="sampleTree.samplesTable.totalRowCount as count"
           [matBadge]="count | badgeNumber"
           [matBadgeHidden]="sampleTree.invalid || !count"
           matBadgeOverlap="false"
