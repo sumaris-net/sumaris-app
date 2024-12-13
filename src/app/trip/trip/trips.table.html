@@ -188,7 +188,7 @@
   <ng-template matMenuContent>
     @for (col of getSortableColumns(); track col.id) {
       @let selected = sortActive === col.id;
-      <button mat-menu-item (click)="sort.sort(col)">
+      <button mat-menu-item (click)="selected ? sort.sort(col) : sort.sort({ id: col.id, start: defaultSortDirection, disableClear: false })">
         @if (selected) {
           <mat-icon style="color: var(--ion-color-primary)">{{ sortDirection === 'asc' ? 'arrow_drop_up' : 'arrow_drop_down' }}</mat-icon>
         } @else {
@@ -611,7 +611,7 @@
             (synchronize)="synchronizeRows([row])"
             [showRecorder]="false"
             [canSynchronize]="row.currentData.synchronizationStatus === 'READY_TO_SYNC' && row.currentData.id < 0"
-            [canDelete]="selection.isSelected(row)"
+            [canDelete]="!mobile && selection.isSelected(row)"
           ></app-trip-card>
         </td>
       </ng-container>

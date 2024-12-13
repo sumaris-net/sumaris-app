@@ -3,6 +3,7 @@ import { TripComparators, TripService } from './trip.service';
 import { TripFilter, TripSynchroImportFilter } from './trip.filter';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 import {
+  AppTableUtils,
   arrayDistinct,
   chainPromises,
   ConfigService,
@@ -31,7 +32,7 @@ import { Operation, Trip } from './trip.model';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
 import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
-import { AppRootDataTable, AppRootDataTableState, AppRootTableFilterRestoreSource, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { filter } from 'rxjs/operators';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
@@ -47,6 +48,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
 import { intersectArrays } from '@app/shared/functions';
+import { BASE_TABLE_SETTINGS_ENUM } from '@app/shared/table/base.table';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
@@ -146,6 +148,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
   }
 
   ngOnInit() {
+    // Init defaults
+    this.defaultCardView = this.mobile && !this.platformService.is('tablet');
+
     super.ngOnInit();
 
     // Programs combo (filter)
@@ -210,21 +215,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
     // Clear the existing trip context
     this.resetContext();
-  }
 
-  protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }): Promise<void> {
-    this.cardView = this.getPageSettings('cardView') ?? (this.mobile && !this.platformService.is('tablet'));
-
-    await super.restoreFilterOrLoad(opts);
-  }
-
-  protected updateColumns() {
-    if (this.cardView) {
-      this.displayedColumns = ['card'];
-      if (!this.loading) this.markForCheck();
-    } else {
-      super.updateColumns();
-    }
+    // Restore card view
+    this.restoreCardView();
   }
 
   /**
@@ -243,28 +236,24 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     return true;
   }
 
-  toggleCardView(opts?: { emitEvent?: boolean }): void {
-    this.setCardView(!this.cardView, opts);
-  }
+  setCardView(enable: boolean, opts?: { skipSaveSettings?: boolean }) {
+    if (this.cardView === enable) return; // Skip if unchanged
+    this.cardView = enable;
+    this.updateColumns();
 
-  setCardView(value: boolean, opts?: { emitEvent?: boolean; skipSaveSettings?: boolean }) {
-    this.cardView = value;
-    if (value) {
-      this.displayedColumns = ['card'];
-    } else {
-      this.displayedColumns = this.getDisplayColumns();
-    }
-
-    if (opts?.emitEvent !== false) {
-      this.markForCheck();
-    }
-
-    if (opts?.skipSaveSettings !== true) {
-      this.savePageSettings(value, 'cardView');
-    }
-
+    // Refresh table
     if (this.loaded) {
       this.table?.renderRows();
+    }
+
+    // By default, sort on defaults
+    if (enable) {
+      this.sort.sort({ id: this.defaultSortBy, start: AppTableUtils.inverseDirection(this.defaultSortDirection || 'desc'), disableClear: false });
+    }
+
+    // Save to local settings
+    if (opts?.skipSaveSettings !== true) {
+      this.savePageSettings(enable, BASE_TABLE_SETTINGS_ENUM.CARD_VIEWS_KEY);
     }
   }
 

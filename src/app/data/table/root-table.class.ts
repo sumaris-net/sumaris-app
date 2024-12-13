@@ -691,9 +691,11 @@ export abstract class AppRootDataTable<
   }
 
   protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }) {
+    console.debug(`${this.logPrefix}restoreFilterOrLoad()`, opts);
+
     this.markAsLoading();
 
-    console.debug(`${this.logPrefix}restoreFilterOrLoad()`, opts);
+    // Load last filter
     const json = this.loadFilter(opts?.sources);
 
     if (json) {

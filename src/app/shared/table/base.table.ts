@@ -1,6 +1,7 @@
 import { AfterViewInit, booleanAttribute, Directive, ElementRef, inject, Injector, Input, numberAttribute, OnInit, ViewChild } from '@angular/core';
 import {
   AppTable,
+  AppTableUtils,
   changeCaseToUnderscore,
   EntitiesServiceWatchOptions,
   EntitiesTableDataSource,
@@ -39,6 +40,7 @@ import { MatSortable } from '@angular/material/sort';
 export const BASE_TABLE_SETTINGS_ENUM = {
   FILTER_KEY: 'filter',
   COMPACT_ROWS_KEY: 'compactRows',
+  CARD_VIEWS_KEY: 'cardView',
 };
 
 export interface BaseTableState {}
@@ -80,6 +82,7 @@ export abstract class AppBaseTable<
   protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
   protected defaultCompact: boolean = false;
+  protected defaultCardView: boolean = false;
 
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState, { optional: true, self: true });
 
@@ -412,7 +415,12 @@ export abstract class AppBaseTable<
   }
 
   protected getSortableColumns(): IterableIterator<MatSortable> | MatSortable[] {
-    if (this.cardView) return this.cardViewSortableColumns?.map((id) => <MatSortable>{ id, start: 'asc', disableClear: false }) || [];
+    if (this.cardView)
+      return (
+        this.cardViewSortableColumns?.map(
+          (id) => <MatSortable>{ id, start: AppTableUtils.inverseDirection(this.defaultSortDirection || 'desc'), disableClear: false }
+        ) || []
+      );
     return this.sort?.sortables.values() || [];
   }
 
@@ -588,14 +596,33 @@ export abstract class AppBaseTable<
   /* -- protected function -- */
 
   protected async restoreFilterOrLoad(opts?: { emitEvent: boolean; sources?: AppBaseTableFilterRestoreSource[] }) {
+    console.debug(`${this.logPrefix}restoreFilterOrLoad()`, opts);
+
     this.markAsLoading();
 
+    // Load last filter
     const json = this.loadFilter(opts?.sources);
 
     if (json) {
       this.setFilter(json, { emitEvent: true });
     } else if (!opts || opts.emitEvent !== false) {
       this.onRefresh.emit();
+    }
+  }
+
+  protected restoreCardView(opts?: { emitEvent?: boolean }) {
+    console.debug(`${this.logPrefix}restoreCardView()`, opts);
+    if (!this.usePageSettings || isNilOrBlank(this.settingsId)) return;
+
+    this.cardView = this.getPageSettings(BASE_TABLE_SETTINGS_ENUM.CARD_VIEWS_KEY) ?? this.defaultCardView ?? false;
+
+    console.debug(`${this.logPrefix}cardView=${this.cardView}`);
+
+    // Update columns
+    if (this.loaded) {
+      if (!opts || opts?.emitEvent !== false) {
+        this.updateColumns();
+      }
     }
   }
 
@@ -684,6 +711,15 @@ export abstract class AppBaseTable<
   }
 
   /* -- protected functions -- */
+
+  protected updateColumns() {
+    if (this.cardView) {
+      this.displayedColumns = ['card'];
+      if (this.loaded) this.markForCheck();
+    } else {
+      super.updateColumns();
+    }
+  }
 
   protected async onDefaultRowCreated(row: TableElement<T>) {
     if (row.validator) {
