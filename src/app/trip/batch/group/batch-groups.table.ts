@@ -1210,6 +1210,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       if (this.debug) console.debug('[batches-table] Sub-batches modal: user cancelled');
       return { data: null, role: 'cancel' };
     } else {
+      this.deleteVirtualPmfms(data);
       this.onSubBatchesChanges.emit(data);
       return { data, role: 'subBatches' };
     }
@@ -1655,6 +1656,16 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       this._rowValidatorSubscription?.unsubscribe();
     }
     return confirmed;
+  }
+
+  // Ensure to delete virutal pmfms
+  deleteVirtualPmfms(subBacth: SubBatch[]) {
+    subBacth.map((subBacth) => {
+      const keys = Object.keys(subBacth.measurementValues);
+      keys.forEach((key) => {
+        if (key.startsWith('-') && subBacth.measurementValues[key]) delete subBacth.measurementValues[key];
+      });
+    });
   }
 
   getDebugData(type: 'rowValidator'): any {

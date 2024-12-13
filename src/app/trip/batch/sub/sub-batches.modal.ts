@@ -913,14 +913,16 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       // spécifique state for the modal
       await this.setModalMode(null, false);
     }
-
     // Create subbatches
     const subBatchesToAdd = [];
     let rankOrder = await this.getMaxRankOrder();
     for (let size = data.min; size <= data.max; size += data.precision) {
       // Do not add already existing row for this taxonname and size
       const existing = this.getValue().some(
-        (subbatch) => subbatch.measurementValues[data.criteriaPmfm.id] === size && subbatch.taxonName?.id === data.taxonName.id
+        (subbatch) =>
+          subbatch.measurementValues[data.criteriaPmfm.id] === size &&
+          subbatch.taxonName?.id === data.taxonName.id &&
+          subbatch.parentGroup?.id === this.parentGroup.id
       );
       if (!existing) {
         const subBatch = new SubBatch();
@@ -961,14 +963,15 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.updateColumns();
   }
 
-  private groupByProperty(property: string): TableElement<SubBatch>[][] {
-    const groups: { [key: string]: TableElement<SubBatch>[] } = {};
+  private groupByProperty(property: string): SubBatch[][] {
+    const groups: { [key: string]: SubBatch[] } = {};
 
-    this.dataSource.getRows().forEach((obj) => {
+    this.getValue().forEach((obj) => {
       // Create composite key from measurementValues and taxonName
-      const measurementValue = obj?.currentData?.measurementValues[property];
-      const taxonName = obj?.currentData?.taxonName?.name;
-      const compositeKey = `${measurementValue}-${taxonName}`;
+      const measurementValue = obj?.measurementValues[property];
+      const taxonName = obj?.taxonName?.name;
+      const parentGroup = obj?.parentGroup?.id;
+      const compositeKey = `${measurementValue}-${taxonName}-${parentGroup}`;
 
       if (!groups[compositeKey]) {
         groups[compositeKey] = [];
@@ -992,29 +995,28 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       const virtualPmfmValue = [];
       rows.forEach((row) => {
         const virtualPmfm = this.virtualPmfms?.find((pmfm) => {
-          return pmfm.name === row.currentData?.measurementValues[criteriaPmfm.id.toString()]?.name;
+          return pmfm.name === row.measurementValues[criteriaPmfm.id.toString()]?.name;
         });
-        virtualPmfmValue.push({ virtualPmfm: virtualPmfm, individualCount: row.currentData.individualCount });
+        virtualPmfmValue.push({ virtualPmfm: virtualPmfm, individualCount: row.individualCount });
         rowsToDelete.push(row);
       });
 
       const newRow = new SubBatch();
-      newRow.individualCount = rows[0].currentData.individualCount;
-      if (isNotNil(criteriaPmfm))
-        newRow.measurementValues[criteriaPmfm.id.toString()] = rows[0].currentData.measurementValues[criteriaPmfm.id.toString()];
-      newRow.taxonName = rows[0].currentData.taxonName;
-      newRow.measurementValues[numericalPmfmId] = rows[0].currentData.measurementValues[numericalPmfmId];
+      newRow.individualCount = rows[0].individualCount;
+      if (isNotNil(criteriaPmfm)) newRow.measurementValues[criteriaPmfm.id.toString()] = rows[0].measurementValues[criteriaPmfm.id.toString()];
+      newRow.taxonName = rows[0].taxonName;
+      newRow.parentGroup = rows[0].parentGroup;
+
+      newRow.measurementValues[numericalPmfmId] = rows[0].measurementValues[numericalPmfmId];
       virtualPmfmValue.forEach((pmfm) => {
         if (pmfm.virtualPmfm) newRow.measurementValues[pmfm.virtualPmfm.id.toString()] = pmfm.individualCount;
       });
 
       newRow.rankOrder = rankOrder++;
-
+      newRow.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${newRow.rankOrder}`;
       newRows.push(newRow);
     }
-
-    if (isNotEmptyArray(rowsToDelete)) await this.deleteRows(null, rowsToDelete, { interactive: false });
-    if (isNotEmptyArray(newRows)) await this.addEntitiesToTable(newRows, { editing: false });
+    await this.setValue(newRows);
   }
 
   private async splitRows(numericalPmfm: IPmfm) {
@@ -1042,14 +1044,19 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
           if (isNotNil(criteriaPmfm)) newSubBatch.measurementValues[criteriaPmfm.id.toString()] = qualitativeValue;
           newSubBatch.measurementValues[numericalPmfmId] = lengthTotalCm;
           newSubBatch.rankOrder = ++rankOrder;
-          newSubBatch.parentGroup = this.parentGroup;
+          newSubBatch.parentGroup = subBacth.parentGroup;
           newSubBatch.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${newSubBatch.rankOrder}`;
 
           newSubBatches.push(newSubBatch);
         }
       });
 
-      subBatchesToDelete.push(subBacth);
+      // test conserve subbatch des  autres parentGroup
+      if (subBacth.parentGroup.id === this.parentGroup.id) {
+        subBatchesToDelete.push(subBacth);
+      } else {
+        newSubBatches.push(subBacth);
+      }
     }
     this.rowsAreMerged = false;
 
@@ -1069,17 +1076,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     const showVirtualColums = isNotNil(showVirtualColumns) ? showVirtualColumns : mode === ModalModeEnum.LengthClass ? true : false;
     const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm));
     this.setShowVirtualColumns(showVirtualColums);
-
-    console.log(
-      'mode: ',
-      mode,
-      'showVirtualColums: ',
-      showVirtualColums,
-      'this.modalMode : ',
-      this.modalMode,
-      'this.mergeRows: ',
-      this.rowsAreMerged
-    );
 
     if (mode === ModalModeEnum.LengthClass && !this.rowsAreMerged) {
       // merge only on the first time
