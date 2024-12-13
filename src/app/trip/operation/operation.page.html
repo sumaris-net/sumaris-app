@@ -1,11 +1,18 @@
-<ion-backdrop *ngIf="opeForm.busySubject | push"></ion-backdrop>
+@let saving = savingSubject | push;
+@let loading = loadingSubject | push;
+@let busy = opeForm.busySubject | push;
+@let hasValidate = !loading && (dirty || saving);
 
-<!-- Top toolbar -->
+<!-- backdrop (e.g. during localization) -->
+@if (busy) {
+  <ion-backdrop></ion-backdrop>
+}
+
+<!-- Toolbar -->
 <app-toolbar
-  *ngVar="{ saving: (savingSubject | push), loading: (loadingSubject | push) } as vars"
   [color]="toolbarColor"
-  [hasValidate]="!vars.loading && (dirty || vars.saving)"
-  [hasClose]="!vars.loading && !(dirty || vars.saving)"
+  [hasValidate]="hasValidate"
+  [hasClose]="!hasValidate"
   (onValidate)="save($event)"
   (onValidateAndClose)="saveAndClose($event)"
   (onClose)="close($event)"
@@ -22,7 +29,7 @@
         color="tertiary"
         hidden-xxs
         class="ion-margin-end"
-        [disabled]="disabled || vars.loading || vars.saving"
+        [disabled]="disabled || loading || saving"
         (click)="saveAndNew($event)"
       >
         <ion-icon slot="start" name="add-circle-outline"></ion-icon>
@@ -36,7 +43,7 @@
         color="light"
         [fill]="xsMobile ? 'clear' : 'outline'"
         hidden-xxs
-        [disabled]="vars.loading || vars.saving"
+        [disabled]="loading || saving"
         [title]="'TRIP.OPERATION.LAST_OPERATIONS' | translate"
         [matMenuTriggerFor]="lastOperationsMenu"
       >
@@ -52,20 +59,21 @@
     <!-- spacer -->
     <div hidden-xxs hidden-xs class="ion-padding-start toolbar-spacer"></div>
 
-    <!-- duplicate (if desktop) -->
-    <ion-button
-      *ngIf="!mobile && canDuplicate"
-      [disabled]="disabled || invalid || vars.loading || vars.saving"
-      [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE' | translate"
-      (click)="duplicate($event)"
-    >
-      <mat-icon slot="icon-only">content_copy</mat-icon>
-    </ion-button>
+    <!-- duplicate (desktop only) -->
+    @if (!mobile && canDuplicate) {
+      <ion-button
+        [disabled]="disabled || invalid || loading || saving"
+        [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE' | translate"
+        (click)="duplicate($event)"
+      >
+        <mat-icon slot="icon-only">content_copy</mat-icon>
+      </ion-button>
+    }
 
     <!-- option menu -->
     <ion-button
       *ngIf="!isNewData || canDebug"
-      [disabled]="vars.loading || vars.saving"
+      [disabled]="loading || saving"
       [matMenuTriggerFor]="optionsMenu"
       [title]="'COMMON.BTN_OPTIONS' | translate"
     >
@@ -192,27 +200,27 @@
       (downloadAsType)="openDownloadPage($event)"
     ></app-extraction-button>
 
-    <!-- online help -->
-    <button mat-menu-item *ngIf="!mobile" [disabled]="!helpUrl" (click)="openHelpModal($event)">
-      <ion-label>
-        <mat-icon><ion-icon name="help-circle-outline"></ion-icon></mat-icon>
-        <span translate>COMMON.BTN_SHOW_HELP</span>
-      </ion-label>
-    </button>
+    @if (mobile) {
+      <mat-divider></mat-divider>
 
-    <mat-divider *ngIf="mobile"></mat-divider>
-
-    <!-- reset -->
-    <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
-      <ion-label>
+      <!-- reset -->
+      <button mat-menu-item [disabled]="disabled || !dirty" (click)="cancel($event)">
         <mat-icon><ion-icon name="refresh"></ion-icon></mat-icon>
-        <span translate>COMMON.BTN_RESET</span>
-      </ion-label>
-    </button>
+        <ion-label translate>COMMON.BTN_RESET</ion-label>
+      </button>
+    } @else {
+      <!-- online help -->
+      <button mat-menu-item [disabled]="!helpUrl" (click)="openHelpModal($event)">
+        <mat-icon><ion-icon name="help-circle-outline"></ion-icon></mat-icon>
+        <ion-label translate>COMMON.BTN_SHOW_HELP</ion-label>
+      </button>
+
+      <mat-divider></mat-divider>
+    }
 
     <!-- delete -->
     <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
-      <mat-icon>delete</mat-icon>
+      <mat-icon>delete_outline</mat-icon>
       <ion-label translate>TRIP.OPERATION.EDIT.BTN_DELETE</ion-label>
     </button>
 
@@ -228,9 +236,9 @@
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
-    [disablePagination]="true"
+    [disablePagination]="!showCatchTab || !showSamplesTab"
+    [mat-stretch-tabs]="mobile && !loading && tabCount > 1"
     [dynamicHeight]="false"
-    [mat-stretch-tabs]="mobile && tabCount > 1"
   >
     <!-- TAB: general -->
     <mat-tab

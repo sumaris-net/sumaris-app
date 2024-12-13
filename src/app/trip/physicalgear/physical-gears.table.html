@@ -79,17 +79,21 @@
       <button mat-icon-button *ngIf="debug && !mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
         <mat-icon>refresh</mat-icon>
       </button>
+
+      <!-- has selection -->
     } @else {
       <!-- Delete -->
-      <button mat-icon-button color="light" *ngIf="enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
-        <mat-icon>delete</mat-icon>
-      </button>
+      @if (enabled) {
+        <button mat-icon-button color="light" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      }
     }
 
-    <ion-item *ngIf="showError && !mobile && (errorSubject | push); let error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-    </ion-item>
+    <!-- error -->
+    @if (showError && !mobile) {
+      <app-error-item [message]="errorSubject | async"></app-error-item>
+    }
 
     <!-- separator -->
     <ion-text class="toolbar-spacer ion-text-center">
@@ -99,20 +103,10 @@
   </mat-toolbar>
 }
 
-<!-- Table options menu -->
-<mat-menu #optionsMenu="matMenu" xPosition="after">
-  <!-- display columns option -->
-  <button mat-menu-item (click)="openSelectColumnsModal($event)">
-    <mat-icon>view_column</mat-icon>
-    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
-  </button>
-</mat-menu>
-
 <!-- error -->
-<ion-item *ngIf="showError && mobile && (errorSubject | push); let error" lines="none">
-  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-</ion-item>
+@if (showError && (mobile || !showToolbar)) {
+  <app-error-item [message]="errorSubject | async"></app-error-item>
+}
 
 <form *ngIf="showFilter" class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="onRefresh.emit()">
   <ion-grid>
@@ -138,7 +132,7 @@
 </form>
 
 <div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
-  <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)">
+  <ion-refresher *ngIf="mobile" slot="fixed" (ionRefresh)="doRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 

@@ -150,7 +150,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     return (
       this.dirtySubject.value ||
       // Ignore operation table, when computing dirty state
-      this.children?.filter((form) => form !== this.operationsTable).some((c) => c.dirty)
+      this.children?.filter((child) => child !== this.operationsTable).some((c) => c.dirty)
     );
   }
 

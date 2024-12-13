@@ -1,10 +1,11 @@
+@let saving = savingSubject | push;
+@let loading = loadingSubject | push;
+@let hasValidate = !loading && (dirty || saving);
 <!-- Top toolbar -->
 <app-toolbar
-  #toolbar
-  *ngVar="{ saving: (savingSubject | push), loading: (loadingSubject | push) } as vars"
   [color]="toolbarColor"
-  [hasValidate]="!vars.loading && (dirty || vars.saving)"
-  [hasClose]="!vars.loading && !(dirty || vars.saving)"
+  [hasValidate]="hasValidate"
+  [hasClose]="!hasValidate"
   (onValidate)="save($event)"
   (onValidateAndClose)="saveAndClose($event)"
   (onClose)="close($event)"
@@ -38,7 +39,7 @@
     <!-- option menu -->
     <ion-button
       *ngIf="!isNewData || canCopyLocally || canDebug"
-      [disabled]="vars.loading || vars.saving"
+      [disabled]="loading || saving"
       [matMenuTriggerFor]="optionsMenu"
       [title]="'COMMON.BTN_OPTIONS' | translate"
     >
@@ -65,14 +66,6 @@
       }
     }
 
-    <!-- reset -->
-    @if (mobile) {
-      <button mat-menu-item [disabled]="disabled || !dirty" (click)="cancel($event)">
-        <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
-        <ion-label translate>COMMON.BTN_RESET</ion-label>
-      </button>
-    }
-
     <!-- download button -->
     @if (canDownload) {
       <app-extraction-button
@@ -84,30 +77,43 @@
       ></app-extraction-button>
     }
 
-    @if (canCopyLocally) {
-      <button mat-menu-item (click)="copyLocally()">
-        <mat-icon>file_copy</mat-icon>
-        <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
-      </button>
-    }
+    @if (mobile) {
+      @if (enableReport || canDownload) {
+        <mat-divider></mat-divider>
+      }
 
-    <!-- online help -->
-    @if (!mobile) {
+      <!-- reset -->
+      <button mat-menu-item [disabled]="disabled || !dirty" (click)="cancel($event)">
+        <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
+        <ion-label translate>COMMON.BTN_RESET</ion-label>
+      </button>
+    } @else {
+      <!-- online help (desktop only) -->
       <button mat-menu-item (click)="openHelpModal($event)">
         <mat-icon><ion-icon name="help-circle-outline"></ion-icon></mat-icon>
         <ion-label>
           <span translate>COMMON.BTN_SHOW_HELP</span>
         </ion-label>
       </button>
-    }
 
-    <mat-divider></mat-divider>
+      <mat-divider></mat-divider>
+    }
 
     <!-- delete -->
     <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
-      <mat-icon>delete</mat-icon>
+      <mat-icon>delete_outline</mat-icon>
       <ion-label translate>TRIP.EDIT.BTN_DELETE</ion-label>
     </button>
+
+    <!-- copy locally (admin only) -->
+    @if (canCopyLocally && !canDebug) {
+      <mat-divider></mat-divider>
+
+      <button mat-menu-item (click)="copyLocally()">
+        <mat-icon>file_copy</mat-icon>
+        <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
+      </button>
+    }
 
     <!-- debug -->
     <app-data-editor-debug-button></app-data-editor-debug-button>
