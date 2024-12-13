@@ -80,6 +80,7 @@
     "BTN_DECIMAL_SEPARATOR": ",",
     "EMPTY_OPTION": "(Vide)",
     "All_OPTION": "(Tous)",
+    "AT": "à",
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
@@ -140,8 +141,13 @@
     "PLEASE_WAIT": "Veuillez patienter...",
     "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
+    "DISPLAY_MODE_DOTS": "Mode d'affichage...",
     "DISPLAYED_COLUMNS": "Paramétrage des colonnes",
     "DISPLAYED_COLUMNS_DOTS": "Paramétrage des colonnes...",
+    "DISPLAY_MODE": {
+      "CARD": "Affichage en carte",
+      "LIST": "Affichage en liste"
+    },
     "FORM": {
       "HAS_ERROR": "Veuillez corriger des erreurs dans le formulaire"
     },
@@ -758,11 +764,16 @@
       "BTN_DELETE": "Supprimer toute la marée",
       "BTN_REPORT": "Éditer le rapport..."
     },
+    "CARD": {
+      "DEPARTURE_DOTS": "Départ :",
+      "RETURN_DOTS": "Retour :"
+    },
     "OPTIONS": {
       "ENABLE": "Marées > Activer ?",
       "NAME": "Marées > Titre (menu, etc.)"
     },
     "TABLE": {
+      "ID": "Identifiant",
       "TITLE": "Marées",
       "VESSEL": "Navire",
       "PROGRAM": "Programme",
@@ -1210,6 +1221,7 @@
       },
       "PMFM": {
         "DISCARD_OR_LANDING": "Partie retenue ou rejetée ?",
+        "BATCH_MEASURED_WEIGHT": "Poids total (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
         "CHILD_GEAR": "Sous-engin",
@@ -1611,6 +1623,7 @@
     },
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
+      "BTN_REPORT": "Éditer le rapport...",
       "PROGRAM": "Programme",
       "TAB_GENERAL": "Détails",
       "TAB_BATCHES": "Lots",
@@ -1997,12 +2010,12 @@
     "BTN_TERMINATE": "Terminer la saisie",
     "BTN_VALIDATE": "Valider",
     "BTN_UNVALIDATE": "Dévalider",
-    "BTN_TERMINATE_AND_SYNCHRONIZE": "Terminer et synchroniser",
-    "BTN_SYNCHRONIZE": "Synchroniser",
+    "BTN_TERMINATE_AND_SYNCHRONIZE": "Terminer et envoyer",
+    "BTN_SYNCHRONIZE": "Envoyer",
     "BTN_QUALIFY": "Qualifier",
-    "NOT_SYNCHRONIZED": "Donnée non synchronisée",
+    "NOT_SYNCHRONIZED": "Donnée non envoyée",
     "MODIFIED": "En cours de saisie",
-    "MODIFIED_OFFLINE": "En cours de saisie (hors-ligne)",
+    "MODIFIED_OFFLINE": "En cours de saisie, non envoyée",
     "CONTROLLED": "Terminé",
     "CONTROLLED_ON": "Terminé le ",
     "VALIDATED": "Validé",
@@ -2012,7 +2025,7 @@
     "QUALIFICATION_COMMENT": "Commentaire de qualification",
     "QUALITY_FLAG": "Niveau de qualité",
     "QUALITY_FLAG_SHORT": "Qualité :",
-    "READY_TO_SYNC": "Terminé, en attente de synchronisation",
+    "READY_TO_SYNC": "Terminée, non envoyée",
     "QUALITY_FLAGS": {
       "NOT_QUALIFIED": "Non qualifiée",
       "GOOD": "Bonne",

@@ -34,6 +34,7 @@ import { Popovers } from '@app/shared/popover/popover.utils';
 import { timer } from 'rxjs';
 import { RxStateRegister } from '@app/shared/state/state.decorator';
 import { RxState } from '@rx-angular/state';
+import { MatSortable } from '@angular/material/sort';
 
 export const BASE_TABLE_SETTINGS_ENUM = {
   FILTER_KEY: 'filter',
@@ -70,6 +71,7 @@ export abstract class AppBaseTable<
   implements OnInit, AfterViewInit
 {
   private _canEdit: boolean;
+  private _showIdColumn: boolean;
 
   protected readonly translateContext = inject(TranslateContextService);
   protected readonly popoverController = inject(PopoverController);
@@ -88,12 +90,20 @@ export abstract class AppBaseTable<
   @Input({ transform: booleanAttribute }) showPaginator = true;
   @Input({ transform: booleanAttribute }) showFooter = true;
   @Input({ transform: booleanAttribute }) showError = true;
+  @Input({ transform: booleanAttribute }) set showIdColumn(value: boolean) {
+    this._showIdColumn = value;
+  }
+  get showIdColumn() {
+    return this._showIdColumn;
+  }
   @Input() toolbarColor: PredefinedColors = 'primary';
   @Input({ transform: booleanAttribute }) sticky = false;
   @Input({ transform: booleanAttribute }) stickyEnd = false;
   @Input({ transform: booleanAttribute }) compact: boolean = null;
   @Input({ transform: booleanAttribute }) required: boolean = false;
   @Input({ transform: booleanAttribute }) mobile = false;
+  @Input({ transform: booleanAttribute }) cardView: boolean;
+  @Input() cardViewSortableColumns: string[];
   @Input({ transform: numberAttribute }) pressHighlightDuration = 10000; // 10s
   @Input({ transform: numberAttribute }) highlightedRowId: number;
   @Input({ transform: booleanAttribute }) filterPanelFloating = true;
@@ -399,6 +409,11 @@ export abstract class AppBaseTable<
   escapeEditingRow(event?: Event, row?: TableElement<T>) {
     super.escapeEditingRow(event, row);
     if (!this.editedRow) this.focusColumn = null;
+  }
+
+  protected getSortableColumns(): IterableIterator<MatSortable> | MatSortable[] {
+    if (this.cardView) return this.cardViewSortableColumns?.map((id) => <MatSortable>{ id, start: 'asc', disableClear: false }) || [];
+    return this.sort?.sortables.values() || [];
   }
 
   /**

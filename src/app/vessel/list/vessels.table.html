@@ -1,28 +1,30 @@
-<mat-toolbar *ngIf="showToolbar" [class.has-searchbar]="showSearchbar" [class.expanded]="showSearchbar && filterExpansionPanel.expanded">
-  <!-- search bar -->
-  <ion-searchbar
-    *ngIf="showSearchbar"
-    inputmode="search"
-    autocomplete="off"
-    showClearButton="true"
-    [formControl]="filterForm | formGetControl: 'searchText'"
-    [placeholder]="'VESSEL.LIST.FILTER.SEARCH_TEXT' | translate"
-    (ionInput)="ionSearchBarChanged($event)"
-    (keyup.enter)="applyFilterAndClosePanel($event)"
-  ></ion-searchbar>
+@if (showToolbar) {
+  <mat-toolbar [class.has-searchbar]="showSearchbar" [class.expanded]="showSearchbar && filterExpansionPanel.expanded">
+    <!-- search bar -->
+    <ion-searchbar
+      *ngIf="showSearchbar"
+      inputmode="search"
+      autocomplete="off"
+      showClearButton="true"
+      [formControl]="filterForm | formGetControl: 'searchText'"
+      [placeholder]="'VESSEL.LIST.FILTER.SEARCH_TEXT' | translate"
+      (ionInput)="ionSearchBarChanged($event)"
+      (keyup.enter)="applyFilterAndClosePanel($event)"
+    ></ion-searchbar>
 
-  <div class="toolbar-spacer"></div>
+    <div class="toolbar-spacer"></div>
 
-  <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-    <button mat-icon-button hidden-xs hidden-sm hidden-mobile *ngIf="canEdit" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
-      <mat-icon>add</mat-icon>
-    </button>
+    @if (selection | isEmptySelection) {
+      <button mat-icon-button hidden-xs hidden-sm hidden-mobile *ngIf="canEdit" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
+        <mat-icon>add</mat-icon>
+      </button>
 
-    <button mat-icon-button *ngIf="debug" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
-      <mat-icon>refresh</mat-icon>
-    </button>
+      <button mat-icon-button *ngIf="debug" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
 
-    <ng-container *ngVar="showSearchbar && showToolbar && searchText ? filterCriteriaCount - 1 > 0 : filterCriteriaCount; let criteriaCount">
+      @let criteriaCount = showSearchbar && showToolbar && searchText ? filterCriteriaCount - 1 > 0 : filterCriteriaCount;
+
       <!-- reset filter -->
       <button mat-icon-button (click)="resetFilter()" *ngIf="criteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
@@ -44,19 +46,22 @@
           <mat-icon>filter_list_alt</mat-icon>
         </ng-template>
       </button>
-    </ng-container>
-  </ng-container>
-  <ng-template #hasSelection>
-    <button mat-icon-button *ngIf="canDelete" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)" class="hidden-xs hidden-sm">
-      <mat-icon>delete</mat-icon>
-    </button>
-  </ng-template>
 
-  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
-</mat-toolbar>
+      <!-- has selection-->
+    } @else {
+      <!-- delete button -->
+      @if (canDelete) {
+        <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)" class="hidden-xs hidden-sm">
+          <mat-icon>delete</mat-icon>
+        </button>
+      }
+    }
+
+    @if (!mobile) {
+      <app-error-item [message]="errorSubject | async"></app-error-item>
+    }
+  </mat-toolbar>
+}
 
 <!-- search -->
 <mat-expansion-panel
@@ -205,6 +210,11 @@
   </mat-action-row>
 </mat-expansion-panel>
 
+<!-- error -->
+@if (mobile || !showToolbar) {
+  <app-error-item [message]="errorSubject | async"></app-error-item>
+}
+
 <!-- Tab nav - synchro status-->
 <nav mat-tab-nav-bar *ngIf="(showOfflineMode && hasOfflineMode && synchronizationStatus) || true; let syncStatus" [tabPanel]="tableContainer">
   <a mat-tab-link [active]="syncStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
@@ -218,12 +228,6 @@
     <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
   </a>
 </nav>
-
-<!-- error -->
-<ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-</ion-item>
 
 <div
   #tableContainer

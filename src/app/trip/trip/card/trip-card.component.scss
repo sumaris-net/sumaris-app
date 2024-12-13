@@ -1,0 +1,9 @@
+:host {
+  --margin-top: 24px;
+  --margin-bottom: 24px;
+}
+
+ion-card {
+  margin-top: var(--margin-top, 24px);
+  margin-bottom: var(--margin-bottom, 24px);
+}

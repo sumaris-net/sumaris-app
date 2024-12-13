@@ -80,6 +80,7 @@
     "BTN_DECIMAL_SEPARATOR": ".",
     "EMPTY_OPTION": "(Empty)",
     "All_OPTION": "(All)",
+    "AT": "at",
 
     "DATE_PATTERN": "MM/DD/YYYY",
     "DATE_TIME_PATTERN": "MM/DD/YYYY HH:mm",
@@ -763,6 +764,7 @@
       "NAME": "Trips > Title (menu, etc.)"
     },
     "TABLE": {
+      "ID": "Identifier",
       "TITLE": "Fishing trips",
       "VESSEL": "Vessel",
       "PROGRAM": "Program",
@@ -1502,6 +1504,7 @@
     },
     "EDIT": {
       "TITLE": "{{location}} - Sale of {{dateTime}}",
+      "BTN_REPORT": "Edit report...",
       "PROGRAM": "Program",
       "TAB_GENERAL": "Details",
       "TAB_BATCHES": "Batches",
