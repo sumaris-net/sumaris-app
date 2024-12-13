@@ -80,6 +80,7 @@
     "BTN_DECIMAL_SEPARATOR": ".",
     "EMPTY_OPTION": "(Empty)",
     "All_OPTION": "(All)",
+    "AT": "at",
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
@@ -763,6 +764,7 @@
       "NAME": "Trips > Title (menu, etc.)"
     },
     "TABLE": {
+      "ID": "Identifier",
       "TITLE": "Fishing trips",
       "VESSEL": "Vessel",
       "PROGRAM": "Program",
@@ -1502,6 +1504,7 @@
     },
     "EDIT": {
       "TITLE": "{{location}} - Sale of {{dateTime}}",
+      "BTN_REPORT": "Edit report...",
       "PROGRAM": "Program",
       "TAB_GENERAL": "Details",
       "TAB_BATCHES": "Batches",
@@ -3302,7 +3305,9 @@
       "BTN_SCAN": "Scan",
       "BTN_DISCONNECT": "Disconnect",
       "ERROR": {
-        "DISABLED": "Bluetooth is disabled"
+        "DISABLED": "Bluetooth is disabled",
+        "SCAN_FAILED": "Bluetooth scan failed",
+        "ENABLE_FAILED": "Bluetooth enabling failed"
       }
     },
     "ICHTHYOMETER": {
@@ -3318,7 +3323,9 @@
         }
       },
       "ERROR": {
-        "CONNECTION_ERROR": "Failed to connect to ichthyometer '{{name}}'"
+        "CONNECTION_ERROR": "Failed to connect to ichthyometer '{{name}}'",
+        "CREATE_FAILED": "Error while creating ichthyometer of type '{{type}}'",
+        "UNKNOWN_TYPE": "Unknown ichthyometer type: '{{type}}'"
       }
     }
   },
@@ -3694,7 +3701,7 @@
     "DATA_MIGRATION_STARTED": "Data recovery in progress. <br/><b>Please wait ...</b>",
     "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!",
     "DOWNLOAD_APP_TITLE": "{{name}} for {{platform}}",
-    "DOWNLOAD_APP_HELP": "Free download.",
+    "DOWNLOAD_APP_HELP": "Download the app now.",
     "UPDATE_APP": "<b>Please upgrade {{name}}</b>",
     "UPDATE_APP_TO_VERSION": "<b>Please upgrade {{name}}</b> in version {{version}} (or more)",
     "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.",

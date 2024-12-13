@@ -56,38 +56,40 @@
       <!-- if row selection -->
     } @else {
       <!-- synchronize -->
-      <ion-button *ngIf="hasReadyToSyncSelection" expand="block" [color]="offline ? 'danger100' : 'danger'" (click)="synchronizeSelection()">
-        <ion-icon slot="start" name="cloud-upload"></ion-icon>
-        <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
-      </ion-button>
+      @if (!mobile && hasReadyToSyncSelection) {
+        <ion-button expand="block" [color]="offline ? 'danger100' : 'danger'" (click)="synchronizeSelection()">
+          <ion-icon slot="start" name="cloud-upload"></ion-icon>
+          <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
+        </ion-button>
+      }
 
       <!-- Download button -->
-      <app-extraction-button
-        *ngIf="canDownload"
-        [disabled]="offline"
-        [programLabels]="selectionProgramLabels$ | async"
-        [title]="'COMMON.BTN_DOWNLOAD' | translate"
-        (downloadAsJson)="downloadSelectionAsJson($event)"
-        (downloadAsType)="openDownloadPage($event)"
-      ></app-extraction-button>
+      @if (canDownload) {
+        <app-extraction-button
+          [disabled]="offline"
+          [programLabels]="selectionProgramLabels$ | async"
+          [title]="'COMMON.BTN_DOWNLOAD' | translate"
+          [disabledDownloadAsType]="synchronizationStatus !== 'SYNC'"
+          (downloadAsJson)="downloadSelectionAsJson($event)"
+          (downloadAsType)="openDownloadPage($event)"
+        ></app-extraction-button>
+      }
 
       <!-- map -->
-      <button mat-icon-button *ngIf="canOpenMap" [title]="'EXTRACTION.BTN_OPEN_MAP' | translate" (click)="openSelectionMap($event)">
-        <mat-icon>
-          <ion-icon name="earth"></ion-icon>
-        </mat-icon>
-      </button>
+      @if (canOpenMap) {
+        <button mat-icon-button [title]="'EXTRACTION.BTN_OPEN_MAP' | translate" (click)="openSelectionMap($event)">
+          <mat-icon>
+            <ion-icon name="earth"></ion-icon>
+          </mat-icon>
+        </button>
+      }
 
       <!-- delete -->
-      <button
-        mat-icon-button
-        class="hidden-xs hidden-sm"
-        *ngIf="canDelete"
-        [title]="'COMMON.BTN_DELETE' | translate"
-        (click)="deleteSelection($event)"
-      >
-        <mat-icon>delete</mat-icon>
-      </button>
+      @if (canDelete) {
+        <button mat-icon-button class="hidden-xs hidden-sm" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+          <mat-icon>delete_outline</mat-icon>
+        </button>
+      }
     }
   </ion-buttons>
 </app-toolbar>
@@ -108,6 +110,22 @@
 
   <mat-divider></mat-divider>
 
+  @if (mobile || cardView) {
+    <!-- display mode options -->
+    <button mat-menu-item [matMenuTriggerFor]="displayModeMenu">
+      <mat-icon>view_module</mat-icon>
+      <ion-label translate>COMMON.DISPLAY_MODE_DOTS</ion-label>
+    </button>
+
+    <!-- sort by -->
+    <button mat-menu-item [matMenuTriggerFor]="sortByMenu">
+      <mat-icon>sort</mat-icon>
+      <ion-label translate>COMMON.BTN_SORT_BY_DOTS</ion-label>
+    </button>
+
+    <mat-divider></mat-divider>
+  }
+
   <!-- upload button -->
   <button mat-menu-item *ngIf="synchronizationStatus !== 'SYNC'" (click)="importJsonFile($event)">
     <mat-icon>upload</mat-icon>
@@ -125,6 +143,61 @@
     <mat-icon>signal_wifi_off</mat-icon>
     <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
   </button>
+</mat-menu>
+
+<!-- Table options menu -->
+<mat-menu #tableOptionsMenu="matMenu" xPosition="after">
+  <!-- display columns -->
+  <button mat-menu-item (click)="openSelectColumnsModal($event)" [disabled]="cardView">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
+
+  @if (!mobile) {
+    <!-- display mode (desktop only - for mobile see optionsMenu )   -->
+    <button mat-menu-item [matMenuTriggerFor]="displayModeMenu">
+      <mat-icon>view_module</mat-icon>
+      <ion-label translate>COMMON.DISPLAY_MODE_DOTS</ion-label>
+    </button>
+  }
+
+  <!-- sort by -->
+  <button mat-menu-item [matMenuTriggerFor]="sortByMenu">
+    <mat-icon>sort</mat-icon>
+    <ion-label translate>COMMON.BTN_SORT_BY_DOTS</ion-label>
+  </button>
+</mat-menu>
+
+<!-- display mode menu-->
+<mat-menu #displayModeMenu="matMenu">
+  <!-- Card view -->
+  <button mat-menu-item (click)="setCardView(true)">
+    <mat-icon><ion-icon name="grid"></ion-icon></mat-icon>
+    <ion-label translate>COMMON.DISPLAY_MODE.CARD</ion-label>
+  </button>
+  <!-- List view -->
+  <button mat-menu-item (click)="setCardView(false)">
+    <mat-icon><ion-icon name="list"></ion-icon></mat-icon>
+    <ion-label translate>COMMON.DISPLAY_MODE.LIST</ion-label>
+  </button>
+</mat-menu>
+
+<!-- sort by menu -->
+<mat-menu #sortByMenu="matMenu">
+  <!-- lazy rendering -->
+  <ng-template matMenuContent>
+    @for (col of getSortableColumns(); track col.id) {
+      @let selected = sortActive === col.id;
+      <button mat-menu-item (click)="selected ? sort.sort(col) : sort.sort({ id: col.id, start: defaultSortDirection, disableClear: false })">
+        @if (selected) {
+          <mat-icon style="color: var(--ion-color-primary)">{{ sortDirection === 'asc' ? 'arrow_drop_up' : 'arrow_drop_down' }}</mat-icon>
+        } @else {
+          <mat-icon></mat-icon>
+        }
+        <ion-label [color]="selected ? 'primary' : 'dark'">{{ getI18nColumnName(col.id) | translate }}</ion-label>
+      </button>
+    }
+  </ng-template>
 </mat-menu>
 
 <ion-content class="ion-no-padding ion-flex-direction-column" scroll-y="false" scroll-x="false">
@@ -395,7 +468,7 @@
   }
 
   <!-- table -->
-  <div #tableContainer class="table-container">
+  <div #tableContainer class="table-container" [class.card-view]="cardView">
     <table
       mat-table
       [dataSource]="dataSource"
@@ -416,10 +489,16 @@
 
       <!-- Id Column -->
       <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin" [class.ion-padding-start]="mobile || !canEdit">
+        <th
+          mat-header-cell
+          *matHeaderCellDef
+          mat-sort-header
+          [class.cdk-visually-hidden]="!showIdColumn"
+          [class.ion-padding-start]="mobile || !canEdit"
+        >
           <ion-label>#</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin" [class.ion-padding-start]="mobile || !canEdit">
+        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showIdColumn" [class.ion-padding-start]="mobile || !canEdit">
           {{ row.currentData.id | mathAbs }}
         </td>
       </ng-container>
@@ -520,11 +599,28 @@
         </td>
       </ng-container>
 
+      <!-- Card column -->
+      <ng-container matColumnDef="card">
+        <th mat-header-cell *matHeaderCellDef class="cdk-visually-hidden"></th>
+        <td mat-cell *matCellDef="let row">
+          <app-trip-card
+            [color]="highlightedRowId === row.id || (mobile && selection.isSelected(row)) ? 'secondary100' : 'light'"
+            [value]="row.currentData"
+            [config]="autocompleteFields"
+            (delete)="deleteRow($event, row)"
+            (synchronize)="synchronizeRows([row])"
+            [showRecorder]="false"
+            [canSynchronize]="row.currentData.synchronizationStatus === 'READY_TO_SYNC' && row.currentData.id < 0"
+            [canDelete]="!mobile && selection.isSelected(row)"
+          ></app-trip-card>
+        </td>
+      </ng-container>
+
       <!-- Actions buttons column -->
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>
-          <!-- display columns -->
-          <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS_DOTS' | translate" (click)="openSelectColumnsModal($event)">
+          <!-- table options menu -->
+          <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="tableOptionsMenu">
             <mat-icon>more_vert</mat-icon>
           </button>
         </th>
@@ -538,13 +634,13 @@
         </td>
       </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: !cardView" [class.cdk-visually-hidden]="cardView"></tr>
       <tr
         mat-row
         *matRowDef="let row; columns: displayedColumns"
         class="mat-mdc-row-disabled"
         [class.cdk-visually-hidden]="loadingSubject | async"
-        [class.mat-mdc-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        [class.mat-mdc-row-selected]="!cardView && (highlightedRowId === row.id || (mobile && selection.isSelected(row)))"
         (click)="clickRow($event, row)"
         (press)="pressRow($event, row)"
       ></tr>

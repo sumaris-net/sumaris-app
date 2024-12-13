@@ -703,53 +703,56 @@ export class OperationPage<S extends OperationState = OperationState>
       );
     }
 
-    // If PMFM "Line layout" exists, then use to use to enable/disable specifics details
+    // If PMFM "Line layout" exists, then use to enable/disable other pmfms
     const lineLayoutControl = formGroup?.controls[PmfmIds.LINE_LAYOUT];
-
     if (isNotNil(lineLayoutControl)) {
-      const enableOptions = { onlySelf: true };
+      const onlySelfOptions = { onlySelf: true };
       let lineLayoutLinearControl = formGroup.controls[PmfmIds.LINE_LAYOUT_LINEAR];
       let lineLayoutZigZagControl = formGroup.controls[PmfmIds.LINE_LAYOUT_ZIGZAG];
       let lineLayoutUnknownControl = formGroup.controls[PmfmIds.LINE_LAYOUT_UNKNOWN];
       if (lineLayoutLinearControl && lineLayoutZigZagControl && lineLayoutUnknownControl) {
         this._measurementSubscription.add(
-          lineLayoutControl.valueChanges
-            .pipe(
-              debounceTime(400),
-              startWith<any>(lineLayoutControl.value),
-              map((qv) => qv?.label),
-              distinctUntilChanged(),
-              filter(() => this.enabled)
+          merge(
+            lineLayoutControl.valueChanges, //.pipe(debounceTime(400)),
+            // Force refresh after form re-enabling (e.g. after a save)
+            formGroup.statusChanges.pipe(
+              filter((status) => status !== 'DISABLED'),
+              map(() => lineLayoutControl.value)
             )
-            .subscribe((qvLabel) => {
+          )
+            .pipe(
+              debounceTime(50),
+              startWith<any>(lineLayoutControl.value),
+              map((qv) => ({ qvLabel: qv?.label ?? null, enabled: this.enabled })),
+              distinctUntilChanged(),
+              filter(({ enabled }) => enabled)
+            )
+            .subscribe(({ qvLabel }) => {
               switch (qvLabel as string) {
                 case QualitativeLabels.LINE_LAYOUT_TYPE.LINEAR:
                   if (this.debug) console.debug('[operation] Enable linear details');
-                  AppFormUtils.enableControl(lineLayoutLinearControl, { ...enableOptions, required: true });
-                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
-                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
-
+                  AppFormUtils.enableControl(lineLayoutLinearControl, { ...onlySelfOptions, required: true });
+                  AppFormUtils.disableControl(lineLayoutZigZagControl, onlySelfOptions);
+                  AppFormUtils.disableControl(lineLayoutUnknownControl, onlySelfOptions);
                   break;
                 case QualitativeLabels.LINE_LAYOUT_TYPE.ZIG_ZAG:
                   if (this.debug) console.debug('[operation] Enable zig-zag details');
-                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
-                  AppFormUtils.enableControl(lineLayoutZigZagControl, { ...enableOptions, required: true });
-                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
-
+                  AppFormUtils.disableControl(lineLayoutLinearControl, onlySelfOptions);
+                  AppFormUtils.enableControl(lineLayoutZigZagControl, { ...onlySelfOptions, required: true });
+                  AppFormUtils.disableControl(lineLayoutUnknownControl, onlySelfOptions);
                   break;
                 case QualitativeLabels.LINE_LAYOUT_TYPE.UNKNOWN:
                   if (this.debug) console.debug('[operation] Enable other details');
-                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
-                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
-                  AppFormUtils.enableControl(lineLayoutUnknownControl, { ...enableOptions, required: false });
+                  AppFormUtils.disableControl(lineLayoutLinearControl, onlySelfOptions);
+                  AppFormUtils.disableControl(lineLayoutZigZagControl, onlySelfOptions);
+                  AppFormUtils.enableControl(lineLayoutUnknownControl, { ...onlySelfOptions, required: false });
                   break;
                 default:
-                  AppFormUtils.disableControl(lineLayoutLinearControl, enableOptions);
-                  AppFormUtils.disableControl(lineLayoutZigZagControl, enableOptions);
-                  AppFormUtils.disableControl(lineLayoutUnknownControl, enableOptions);
+                  AppFormUtils.disableControl(lineLayoutLinearControl, onlySelfOptions);
+                  AppFormUtils.disableControl(lineLayoutZigZagControl, onlySelfOptions);
+                  AppFormUtils.disableControl(lineLayoutUnknownControl, onlySelfOptions);
                   break;
               }
-              //this.markForCheck();
             })
         );
       }

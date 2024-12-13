@@ -18,7 +18,7 @@
     [class.mobile]="mobile"
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
-    dynamicHeight
+    [dynamicHeight]="false"
   >
     <!-- TAB: general -->
     <mat-tab label="{{ 'REFERENTIAL.PMFM.TAB_GENERAL' | translate }}">

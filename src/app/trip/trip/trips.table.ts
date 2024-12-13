@@ -3,6 +3,7 @@ import { TripComparators, TripService } from './trip.service';
 import { TripFilter, TripSynchroImportFilter } from './trip.filter';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 import {
+  AppTableUtils,
   arrayDistinct,
   chainPromises,
   ConfigService,
@@ -47,6 +48,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
 import { intersectArrays } from '@app/shared/functions';
+import { BASE_TABLE_SETTINGS_ENUM } from '@app/shared/table/base.table';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
@@ -73,6 +75,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
   @Input() canDownload = false;
   @Input() canUpload = false;
   @Input() canOpenMap = false;
+  @Input() cardViewSortableColumns: string[] = ['departureDateTime', 'returnDateTime'];
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
@@ -145,6 +148,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
   }
 
   ngOnInit() {
+    // Init defaults
+    this.defaultCardView = this.mobile && !this.platformService.is('tablet');
+
     super.ngOnInit();
 
     // Programs combo (filter)
@@ -209,6 +215,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
     // Clear the existing trip context
     this.resetContext();
+
+    // Restore card view
+    this.restoreCardView();
   }
 
   /**
@@ -225,6 +234,30 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
     this.toggleSynchronizationStatus();
     return true;
+  }
+
+  setCardView(enable: boolean, opts?: { skipSaveSettings?: boolean }) {
+    if (this.cardView === enable) return; // Skip if unchanged
+    this.cardView = enable;
+    this.updateColumns();
+
+    // Refresh table
+    if (this.loaded) {
+      this.table?.renderRows();
+    }
+
+    console.debug(this.logPrefix + 'setCardView', enable);
+
+    // By default, sort on defaults
+    if (enable && (this.sortActive !== this.defaultSortBy || this.sortDirection !== this.defaultSortBy)) {
+      const direction = this.sortActive === this.defaultSortBy ? AppTableUtils.inverseDirection(this.sortDirection) : this.defaultSortDirection;
+      this.sort.sort({ id: this.defaultSortBy, start: direction, disableClear: false });
+    }
+
+    // Save to local settings
+    if (opts?.skipSaveSettings !== true) {
+      this.savePageSettings(enable, BASE_TABLE_SETTINGS_ENUM.CARD_VIEWS_KEY);
+    }
   }
 
   async openTrashModal(event?: Event) {

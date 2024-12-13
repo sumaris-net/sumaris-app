@@ -128,6 +128,7 @@ const StrategyQueries: BaseEntityGraphqlQueries & { loadAllFull: any } = {
     ${ReferentialFragments.pmfm}
     ${ReferentialFragments.parameter}
     ${ReferentialFragments.referential}
+    ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
 
@@ -173,6 +174,7 @@ const StrategyQueries: BaseEntityGraphqlQueries & { loadAllFull: any } = {
     ${ReferentialFragments.pmfm}
     ${ReferentialFragments.parameter}
     ${ReferentialFragments.referential}
+    ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
 
@@ -201,6 +203,7 @@ const StrategyMutations: BaseEntityGraphqlMutations = {
     ${ReferentialFragments.pmfm}
     ${ReferentialFragments.parameter}
     ${ReferentialFragments.referential}
+    ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
 

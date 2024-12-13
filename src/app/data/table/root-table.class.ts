@@ -18,6 +18,7 @@ import {
   NamedFilter,
   NamedFilterSelector,
   NetworkService,
+  PlatformService,
   Property,
   ReferentialRef,
   referentialToString,
@@ -95,6 +96,7 @@ export abstract class AppRootDataTable<
   protected readonly userEventService = inject(UserEventService);
   protected readonly programRefService = inject(ProgramRefService);
   protected readonly referentialRefService = inject(ReferentialRefService);
+  protected readonly platformService = inject(PlatformService);
 
   @RxStateSelect() protected title$: Observable<string>;
   @RxStateSelect() protected program$: Observable<Program>;
@@ -225,6 +227,7 @@ export abstract class AppRootDataTable<
   ngOnInit() {
     // Default value
     this.isAdmin = this.accountService.isAdmin();
+    this.showIdColumn = this.showIdColumn ?? this.isAdmin;
     this.canEdit = toBoolean(this.canEdit, this.isAdmin || this.accountService.isUser());
     this.canDelete = toBoolean(this.canDelete, this.isAdmin);
     if (this.debug) console.debug(`${this.logPrefix}Can edit: ${this.canEdit} - Can delete: ${this.canDelete}`);
@@ -597,10 +600,11 @@ export abstract class AppRootDataTable<
   }
 
   async synchronizeSelection(opts?: { showSuccessToast?: boolean; emitEvent?: boolean; rows?: TableElement<T>[] }) {
-    if (!this._enabled) return; // Skip
+    return this.synchronizeRows(opts?.rows || (!this.loading && this.selection.selected.slice()), opts);
+  }
 
-    const rows = (opts && opts.rows) || (!this.loading && this.selection.selected.slice());
-    if (isEmptyArray(rows)) return; // Skip
+  async synchronizeRows(rows: TableElement<T>[], opts?: { showSuccessToast?: boolean; emitEvent?: boolean; rows?: TableElement<T>[] }) {
+    if (!this._enabled && isEmptyArray(rows)) return; // Skip
 
     if (this.offline) {
       // eslint-disable-next-line no-async-promise-executor
@@ -687,9 +691,11 @@ export abstract class AppRootDataTable<
   }
 
   protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }) {
+    console.debug(`${this.logPrefix}restoreFilterOrLoad()`, opts);
+
     this.markAsLoading();
 
-    console.debug(`${this.logPrefix}restoreFilterOrLoad()`, opts);
+    // Load last filter
     const json = this.loadFilter(opts?.sources);
 
     if (json) {

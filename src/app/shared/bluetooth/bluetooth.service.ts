@@ -1,7 +1,6 @@
 import { Inject, Injectable, OnDestroy, Optional } from '@angular/core';
 import { Platform } from '@ionic/angular';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import {
   APP_LOGGING_SERVICE,
   chainPromises,
@@ -15,7 +14,7 @@ import {
 import { BluetoothDevice, BluetoothReadResult, BluetoothSerial, BluetoothState } from '@e-is/capacitor-bluetooth-serial';
 import { EMPTY, from, fromEventPattern, Observable } from 'rxjs';
 import { catchError, filter, finalize, map, mergeMap, switchMap, takeUntil } from 'rxjs/operators';
-import { BluetoothErrorCodes } from '@app/shared/bluetooth/bluetooth-serial.errors';
+import { BluetoothErrorCodes } from '@app/shared/bluetooth/bluetooth.errors';
 import { PluginListenerHandle } from '@capacitor/core';
 import { RxState } from '@rx-angular/state';
 
@@ -68,11 +67,9 @@ export class BluetoothService extends StartableService implements OnDestroy {
   ) {
     super(platform);
     this._state.set({ enabled: null });
-    this._logger = loggingService?.getLogger('bluetooth');
-  }
-
-  protected isApp() {
-    return this.platform.is('cordova');
+    if (this.isApp()) {
+      this._logger = loggingService?.getLogger('bluetooth');
+    }
   }
 
   protected async ngOnStart(opts?: any): Promise<any> {
@@ -104,16 +101,16 @@ export class BluetoothService extends StartableService implements OnDestroy {
         console.error(`[bluetooth] Error while trying to listen enable notifications: ${err?.message || err}`, err);
         // Continue, because Android API <= 28 can fail
       }
-    }
 
-    // Because a pause will disconnect all devices, we should reconnect on resume
-    this.registerSubscription(
-      this.platform.resume.subscribe(async () => {
-        if (await this.isEnabled()) {
-          await this.reconnectAll();
-        }
-      })
-    );
+      // Because a pause will disconnect all devices, we should reconnect on resume
+      this.registerSubscription(
+        this.platform.resume.subscribe(async () => {
+          if (await this.isEnabled()) {
+            await this.reconnectAll();
+          }
+        })
+      );
+    }
 
     return Promise.resolve(undefined);
   }
@@ -164,9 +161,15 @@ export class BluetoothService extends StartableService implements OnDestroy {
     let enabled = await this.isEnabled();
     if (!enabled) {
       console.debug(`[bluetooth] Enabling ...`);
-      enabled = (await BluetoothSerial.enable()).enabled;
-      console.debug(`[bluetooth] ${enabled ? 'Enabled' : 'Disabled'}`);
-      if (enabled) this._state.set('enabled', () => enabled);
+      try {
+        enabled = (await BluetoothSerial.enable()).enabled;
+        console.debug(`[bluetooth] ${enabled ? 'Enabled' : 'Disabled'}`);
+        if (enabled) this._state.set('enabled', () => enabled);
+      } catch (err) {
+        const logMessage = `Error while enabling bluetooth: ${err?.message || err}`;
+        this._logger?.debug('enable', logMessage);
+        throw { code: BluetoothErrorCodes.BLUETOOTH_ENABLE_FAILED, message: 'SHARED.BLUETOOTH.ERROR.ENABLE_FAILED' };
+      }
     } else {
       // Update the state to enabled, in case bluetooth has been enabled but not using this service
       this._state.set('enabled', () => enabled);
@@ -213,6 +216,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
       const logMessage = `Error while scanning: ${err?.message || err}`;
       console.debug(`[bluetooth] ${logMessage}`);
       this._logger?.error('scan', logMessage);
+      throw { code: BluetoothErrorCodes.BLUETOOTH_SCAN_FAILED, message: 'SHARED.BLUETOOTH.ERROR.SCAN_FAILED' };
     }
   }
 
@@ -403,21 +407,11 @@ export class BluetoothService extends StartableService implements OnDestroy {
     }
   }
 
-  async disconnectIfNeed(device: BluetoothDevice, opts?: { emitEvent?: boolean }) {
-    try {
-      const connected = await this.isConnected(device);
-      if (connected) {
-        console.debug(`[bluetooth] Disconnecting to {${device.address}}...`, device);
-        await BluetoothSerial.disconnect({ address: device.address });
-      }
-    } finally {
-      if (!opts || opts.emitEvent !== false) {
-        this.unregisterDevice(device);
-      }
-    }
-  }
-
   /* -- internal functions -- */
+
+  private isApp() {
+    return this.platform.is('cordova');
+  }
 
   private registerDevice(device: BluetoothDevice) {
     if (!device.address) throw new Error('Missing device with address');

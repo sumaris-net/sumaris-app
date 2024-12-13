@@ -75,14 +75,13 @@ The application should be accessible at [localhost:4200](http://localhost:4200)
 
 1. Install the android build environment:
     ```bash
-    cd sumaris-app/scripts
-    ./env-android.sh
+    npm run android:install
     ```
 
 2. Create a debug APK file:
     ```bash
-    cd sumaris-app/scripts
-    ./build-android.sh
+    npm run android:build
+    npm run android:package
     ```
 
 ### Build a release APK, for production
@@ -93,17 +92,24 @@ The application should be accessible at [localhost:4200](http://localhost:4200)
 
 2. Create a release APK file:
     ```bash
-    cd sumaris-app/scripts
-    ./release-android.sh
+    npm run android:build:prod
+    npm run android:package:prod
     ```
 
 ## iOS build
 
+- Install dependencies:
 > brew install cocoapods
+
+- Build the app:
 > cd sumaris-app
-> ionic build
-> ionic cap add ios
-> ionic cap open ios
+> npm run ios:build
+
+- Open Xcode :
+  > npm run ios:open
+  
+  or 
+  > ionic cap open ios
 
 ## Useful links
 

@@ -61,7 +61,7 @@
       <ion-label color="danger" translate>ACTIVITY_CALENDAR.EDIT.BTN_CLEAR_CALENDAR</ion-label>
     </button>
 
-    <!-- delete -->
+    <!-- delete (admin only) -->
     @if (isAdmin) {
       <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
         <mat-icon color="warn">delete</mat-icon>

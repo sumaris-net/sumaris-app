@@ -1,4 +1,4 @@
-import { Directive, Inject, InjectionToken, Injector, OnDestroy } from '@angular/core';
+import { Directive, Inject, InjectionToken, OnDestroy, Optional } from '@angular/core';
 import { RxState } from '@rx-angular/state';
 import { BluetoothDeviceMeta, BluetoothDeviceWithMeta, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { Ichthyometer, IchthyometerDevice, IchthyometerType } from '@app/shared/ichthyometer/ichthyometer.service';
@@ -12,13 +12,14 @@ import {
   isNilOrBlank,
   isNotNilOrBlank,
   LocalSettingsService,
+  LoggingService,
   StartableService,
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { combineLatest, EMPTY, from, merge, Observable, race, Subject, timer } from 'rxjs';
 import { LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
-import { BluetoothErrorCodes } from '@app/shared/bluetooth/bluetooth-serial.errors';
+import { BluetoothErrorCodes } from '@app/shared/bluetooth/bluetooth.errors';
 
 interface GwaleenIchthyometerState {
   startTime: number;
@@ -26,7 +27,7 @@ interface GwaleenIchthyometerState {
   enabled: boolean;
   usageCount: number;
 }
-export const APP_ICHTYOMETER_DEVICE = new InjectionToken<IchthyometerDevice>('IchthyometerDevice');
+export const APP_ICHTHYOMETER_DEVICE = new InjectionToken<IchthyometerDevice>('IchthyometerDevice');
 
 @Directive()
 export class GwaleenIchthyometer extends StartableService implements Ichthyometer, OnDestroy {
@@ -46,8 +47,6 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
   protected readonly _logger: ILogger;
   protected readonly _state = new RxState<GwaleenIchthyometerState>();
   protected readonly _readSubject = new Subject<string>();
-  protected readonly bluetoothService: BluetoothService;
-  protected readonly settings: LocalSettingsService;
 
   readonly enabled$ = this._state.select('enabled');
   readonly connected$ = this._state.select('connected');
@@ -85,13 +84,14 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
   }
 
   constructor(
-    private injector: Injector,
-    @Inject(APP_ICHTYOMETER_DEVICE) device: IchthyometerDevice
+    private bluetoothService: BluetoothService,
+    private settings: LocalSettingsService,
+    @Inject(APP_ICHTHYOMETER_DEVICE) device: IchthyometerDevice,
+    @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: LoggingService
   ) {
-    super(injector.get(BluetoothService));
-    this.bluetoothService = injector.get(BluetoothService);
-    this.settings = injector.get(LocalSettingsService);
-    if (!this.bluetoothService) throw new Error('Missing BluetoothService provider');
+    super({ ready: () => bluetoothService.ready() });
+    if (!bluetoothService) throw new Error('Missing BluetoothService provider');
+    if (!settings) throw new Error('Missing LocalSettingsService provider');
     if (isNilOrBlank(device?.address)) throw new Error('Missing device address');
 
     this.device = {
@@ -144,7 +144,7 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
     );
 
     // Logger
-    this._logger = injector.get(APP_LOGGING_SERVICE)?.getLogger('gwaleen');
+    this._logger = loggingService?.getLogger('gwaleen');
   }
 
   protected async ngOnStart(opts?: any): Promise<any> {
@@ -182,9 +182,8 @@ export class GwaleenIchthyometer extends StartableService implements Ichthyomete
     return this._state.get('enabled');
   }
 
-  async connect(): Promise<boolean> {
-    const connected = this.connectIfNeed({ emitEvent: false });
-    return connected;
+  connect(): Promise<boolean> {
+    return this.connectIfNeed({ emitEvent: false });
   }
 
   disconnect(): Promise<void> {

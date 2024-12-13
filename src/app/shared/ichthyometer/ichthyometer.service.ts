@@ -1,4 +1,4 @@
-import { Inject, Injectable, Injector, OnDestroy, Optional } from '@angular/core';
+import { Inject, Injectable, OnDestroy, Optional } from '@angular/core';
 import { RxState } from '@rx-angular/state';
 import { BluetoothDevice, BluetoothDeviceWithMeta, BluetoothService } from '@app/shared/bluetooth/bluetooth.service';
 import { GwaleenIchthyometer } from '@app/shared/ichthyometer/gwaleen/ichthyometer.gwaleen';
@@ -25,7 +25,9 @@ import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ic
 import { LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import { Platform } from '@ionic/angular';
-import { BluetoothErrorCodes } from '@app/shared/bluetooth/bluetooth-serial.errors';
+import { BluetoothErrorCodes } from '@app/shared/bluetooth/bluetooth.errors';
+import { IchthyometerErrorCodes } from '@app/shared/ichthyometer/ichthyometer.errors';
+import { TranslateService } from '@ngx-translate/core';
 
 export declare type IchthyometerType = 'gwaleen';
 
@@ -77,11 +79,11 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
   }
 
   constructor(
-    private injector: Injector,
     private platform: Platform,
     private settings: LocalSettingsService,
     private bluetoothService: BluetoothService,
     private audioProvider: AudioProvider,
+    private translate: TranslateService,
     @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
   ) {
     super(bluetoothService);
@@ -166,7 +168,10 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
   watchLength(): Observable<{ value: number; unit: LengthUnitSymbol }> {
     // Wait service to be started (e.g. if all ichthyometer has been disconnected, then we should restart the service)
     if (!this.started) {
-      return from(this.ready()).pipe(switchMap(() => this.watchLength())); // Loop
+      return from(this.ready()).pipe(
+        filter(() => this.started), // Skip if cannot start (e.g. when running on web)
+        switchMap(() => this.watchLength()) // Loop
+      );
     }
 
     const stopSubject = new Subject<void>();
@@ -259,7 +264,13 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
     console.debug(`[ichthyometer] Getting ${type} ichthyometer from device {${device.address}} ...`);
 
     // Not found in cache: create new instance
-    return this.create(device, type);
+    try {
+      return this.create(device, type);
+    } catch (err) {
+      const logMessage = `Error while creating ichthyometer of type '${type}': ${err?.message || err}`;
+      this._logger?.debug('create', logMessage);
+      throw { code: IchthyometerErrorCodes.CREATE_FAILED, message: 'SHARED.ICHTHYOMETER.ERROR.CREATE_FAILED' };
+    }
   }
 
   async checkAfterConnect(device: IchthyometerDevice) {
@@ -316,13 +327,15 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
    * @param type
    * @private
    */
-  private create(device: IchthyometerDevice, type: IchthyometerType): Ichthyometer {
+  private create(device: IchthyometerDevice, type: IchthyometerType | string): Ichthyometer {
     switch (type) {
       case GwaleenIchthyometer.TYPE: {
-        return new GwaleenIchthyometer(this.injector, device);
+        return new GwaleenIchthyometer(this.bluetoothService, this.settings, device);
       }
     }
-    throw new Error('Unknown ichthyometer type: ' + type);
+
+    // Type not found
+    throw { code: IchthyometerErrorCodes.UNKNOWN_TYPE, message: this.translate.instant('SHARED.ICHTHYOMETER.ERROR.UNKNOWN_TYPE', { type }) };
   }
 
   protected async restoreFromSettings() {

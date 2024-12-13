@@ -150,7 +150,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     return (
       this.dirtySubject.value ||
       // Ignore operation table, when computing dirty state
-      this.children?.filter((form) => form !== this.operationsTable).some((c) => c.dirty)
+      this.children?.filter((child) => child !== this.operationsTable).some((c) => c.dirty)
     );
   }
 
@@ -292,7 +292,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
-    console.log('TODO setError', error, opts);
     // If errors in operations
     if (typeof error !== 'string' && error?.details?.errors?.operations) {
       // Show error in operation table

@@ -288,6 +288,7 @@
       <app-actions-column
         [stickyEnd]="stickyEnd"
         [canCancel]="false"
+        [dirtyIcon]="false"
         [cellTemplate]="actionCellTemplate"
         (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
         (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
@@ -545,7 +546,7 @@
 <ng-template #actionCellTemplate let-row>
   <!-- Delete row button -->
   @if (mobile && enabled && singleSelectedRow === row) {
-    <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="cancelOrDelete($event, row)">
+    <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="cancelOrDelete($event, row)" [tabIndex]="-1">
       <mat-icon>delete</mat-icon>
     </button>
   } @else if (allowSubBatches && (!qvPmfm || mobile)) {

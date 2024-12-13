@@ -3,8 +3,7 @@
   <mat-icon
     [appBadge]="icon.badge"
     [appBadgeIcon]="icon.badgeIcon"
-    [appBadgeMatIcon]="icon.badgeMatIcon"
-    [appBadgeHidden]="badgeHidden"
+    [appBadgeHidden]="badgeHidden$ | async"
     [appBadgeColor]="icon.badgeColor"
     [appBadgeSize]="badgeSize"
     [appBadgePosition]="badgePosition"

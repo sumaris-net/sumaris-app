@@ -1,6 +1,6 @@
 <app-toolbar [title]="'VESSEL.LIST.TITLE' | translate" color="primary" [canGoBack]="false">
   <ion-buttons slot="end">
-    <ng-container *ngIf="!table.selection.hasValue(); else hasSelection">
+    @if (table.selection | isEmptySelection) {
       <button mat-icon-button *ngIf="!mobile && canEdit" [title]="'COMMON.BTN_ADD' | translate" (click)="table.addRow()">
         <mat-icon>add</mat-icon>
       </button>
@@ -30,18 +30,13 @@
           <mat-icon>filter_list_alt</mat-icon>
         </ng-template>
       </button>
-    </ng-container>
-    <ng-template #hasSelection>
-      <button
-        mat-icon-button
-        *ngIf="canDelete"
-        [title]="'COMMON.BTN_DELETE' | translate"
-        (click)="table.deleteSelection($event)"
-        class="hidden-xs hidden-sm"
-      >
-        <mat-icon>delete</mat-icon>
-      </button>
-    </ng-template>
+    } @else {
+      @if (canDelete) {
+        <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="table.deleteSelection($event)" class="hidden-xs hidden-sm">
+          <mat-icon>delete</mat-icon>
+        </button>
+      }
+    }
 
     <ion-button *ngIf="enableReplacement || enableFileImport" [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.BTN_OPTIONS' | translate">
       <mat-icon slot="icon-only">more_vert</mat-icon>
