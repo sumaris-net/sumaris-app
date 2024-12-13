@@ -87,7 +87,7 @@
       <!-- delete -->
       @if (canDelete) {
         <button mat-icon-button class="hidden-xs hidden-sm" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
-          <mat-icon>delete</mat-icon>
+          <mat-icon>delete_outline</mat-icon>
         </button>
       }
     }
@@ -110,11 +110,17 @@
 
   <mat-divider></mat-divider>
 
-  @if (mobile) {
+  @if (mobile || cardView) {
     <!-- display mode options -->
     <button mat-menu-item [matMenuTriggerFor]="displayModeMenu">
       <mat-icon>view_module</mat-icon>
       <ion-label translate>COMMON.DISPLAY_MODE_DOTS</ion-label>
+    </button>
+
+    <!-- sort by -->
+    <button mat-menu-item [matMenuTriggerFor]="sortByMenu">
+      <mat-icon>sort</mat-icon>
+      <ion-label translate>COMMON.BTN_SORT_BY_DOTS</ion-label>
     </button>
 
     <mat-divider></mat-divider>
@@ -139,8 +145,8 @@
   </button>
 </mat-menu>
 
-<!-- actions options menu -->
-<mat-menu #actionsOptionsMenu="matMenu" xPosition="after">
+<!-- Table options menu -->
+<mat-menu #tableOptionsMenu="matMenu" xPosition="after">
   <!-- display columns -->
   <button mat-menu-item (click)="openSelectColumnsModal($event)" [disabled]="cardView">
     <mat-icon>view_column</mat-icon>
@@ -148,7 +154,7 @@
   </button>
 
   @if (!mobile) {
-    <!-- display mode -->
+    <!-- display mode (desktop only - for mobile see optionsMenu )   -->
     <button mat-menu-item [matMenuTriggerFor]="displayModeMenu">
       <mat-icon>view_module</mat-icon>
       <ion-label translate>COMMON.DISPLAY_MODE_DOTS</ion-label>
@@ -178,14 +184,19 @@
 
 <!-- sort by menu -->
 <mat-menu #sortByMenu="matMenu">
+  <!-- lazy rendering -->
   <ng-template matMenuContent>
-    <!-- lazy rendering -->
-    <button mat-menu-item *ngFor="let col of sort.sortables.values()" (click)="sort.sort(col)">
-      {{ getI18nColumnName(col.id) | translate }}
-      <ng-container *ngIf="sortActive === col.id">
-        <mat-icon>{{ sortDirection === 'asc' ? 'arrow_drop_up' : 'arrow_drop_down' }}</mat-icon>
-      </ng-container>
-    </button>
+    @for (col of getSortableColumns(); track col.id) {
+      @let selected = sortActive === col.id;
+      <button mat-menu-item (click)="sort.sort(col)">
+        @if (selected) {
+          <mat-icon style="color: var(--ion-color-primary)">{{ sortDirection === 'asc' ? 'arrow_drop_up' : 'arrow_drop_down' }}</mat-icon>
+        } @else {
+          <mat-icon></mat-icon>
+        }
+        <ion-label [color]="selected ? 'primary' : 'dark'">{{ getI18nColumnName(col.id) | translate }}</ion-label>
+      </button>
+    }
   </ng-template>
 </mat-menu>
 
@@ -600,7 +611,7 @@
             (synchronize)="synchronizeRows([row])"
             [showRecorder]="false"
             [canSynchronize]="row.currentData.synchronizationStatus === 'READY_TO_SYNC' && row.currentData.id < 0"
-            [canDelete]="mobile && selection.isSelected(row)"
+            [canDelete]="selection.isSelected(row)"
           ></app-trip-card>
         </td>
       </ng-container>
@@ -608,8 +619,8 @@
       <!-- Actions buttons column -->
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>
-          <!-- options menu -->
-          <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="actionsOptionsMenu">
+          <!-- table options menu -->
+          <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="tableOptionsMenu">
             <mat-icon>more_vert</mat-icon>
           </button>
         </th>

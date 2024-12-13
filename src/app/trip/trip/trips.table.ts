@@ -67,14 +67,13 @@ export interface TripTableState extends AppRootDataTableState {}
 export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, any, number, TripTableState> implements OnInit, OnDestroy {
   protected programVesselTypeIds: number[];
 
-  @Input() cardView: boolean;
   @Input() showFilterProgram = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
   @Input() canDownload = false;
   @Input() canUpload = false;
   @Input() canOpenMap = false;
-  @Input() viewMode: 'card' | 'list';
+  @Input() cardViewSortableColumns: string[] = ['departureDateTime', 'returnDateTime'];
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;

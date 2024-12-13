@@ -1221,6 +1221,7 @@
       },
       "PMFM": {
         "DISCARD_OR_LANDING": "Partie retenue ou rejetée ?",
+        "BATCH_MEASURED_WEIGHT": "Poids total (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
         "CHILD_GEAR": "Sous-engin",
@@ -1622,6 +1623,7 @@
     },
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
+      "BTN_REPORT": "Éditer le rapport...",
       "PROGRAM": "Programme",
       "TAB_GENERAL": "Détails",
       "TAB_BATCHES": "Lots",
@@ -2013,7 +2015,7 @@
     "BTN_QUALIFY": "Qualifier",
     "NOT_SYNCHRONIZED": "Donnée non envoyée",
     "MODIFIED": "En cours de saisie",
-    "MODIFIED_OFFLINE": "En cours de saisie (hors-ligne)",
+    "MODIFIED_OFFLINE": "En cours de saisie, non envoyée",
     "CONTROLLED": "Terminé",
     "CONTROLLED_ON": "Terminé le ",
     "VALIDATED": "Validé",
@@ -2023,7 +2025,7 @@
     "QUALIFICATION_COMMENT": "Commentaire de qualification",
     "QUALITY_FLAG": "Niveau de qualité",
     "QUALITY_FLAG_SHORT": "Qualité :",
-    "READY_TO_SYNC": "Terminé, non envoyée",
+    "READY_TO_SYNC": "Terminée, non envoyée",
     "QUALITY_FLAGS": {
       "NOT_QUALIFIED": "Non qualifiée",
       "GOOD": "Bonne",

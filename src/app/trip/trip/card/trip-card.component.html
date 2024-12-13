@@ -104,24 +104,16 @@
   </ion-card-content>
 
   @if (canDelete || canSynchronize) {
-    <ion-footer>
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          @if (canDelete && delete.observed) {
-            <ion-button>
-              <mat-icon slot="icon-only" (click)="delete.emit($event)">delete</mat-icon>
-            </ion-button>
-          }
-        </ion-buttons>
-        <ion-buttons slot="end">
-          @if (canSynchronize && synchronize.observed) {
-            <ion-button fill="solid" color="tertiary" (click)="synchronize.emit($event)">
-              <ion-icon slot="start" name="cloud-upload"></ion-icon>
-              {{ 'QUALITY.BTN_SYNCHRONIZE' | translate }}
-            </ion-button>
-          }
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-footer>
+    @if (canDelete && delete.observed) {
+      <ion-button>
+        <mat-icon slot="icon-only" (click)="delete.emit($event)">delete</mat-icon>
+      </ion-button>
+    }
+    @if (canSynchronize && synchronize.observed) {
+      <ion-button fill="solid" color="tertiary" class="ion-float-end" (click)="synchronize.emit($event)">
+        <ion-icon slot="start" name="cloud-upload"></ion-icon>
+        {{ 'QUALITY.BTN_SYNCHRONIZE' | translate }}
+      </ion-button>
+    }
   }
 </ion-card>

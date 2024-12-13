@@ -1504,6 +1504,7 @@
     },
     "EDIT": {
       "TITLE": "{{location}} - Sale of {{dateTime}}",
+      "BTN_REPORT": "Edit report...",
       "PROGRAM": "Program",
       "TAB_GENERAL": "Details",
       "TAB_BATCHES": "Batches",
