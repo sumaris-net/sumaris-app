@@ -258,21 +258,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       this.disable();
     }
 
-    if (!this.showFilterForm) {
-      this.registerSubscription(
-        this.modalForm
-          .get('showSubBatchForm')
-          .valueChanges.pipe(distinctUntilChanged())
-          .subscribe((value) => {
-            if (value) {
-              this.resetFilter();
-            } else {
-              this.closeFilterPanel();
-            }
-          })
-      );
-    }
-
     super.ngOnInit();
 
     // default values
@@ -331,6 +316,21 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       await this.computeTitle();
 
       await this.setShowEnumeration();
+
+      if (this.canShowEnumeration) {
+        this.registerSubscription(
+          this.modalForm
+            .get('showSubBatchForm')
+            .valueChanges.pipe(distinctUntilChanged())
+            .subscribe((value) => {
+              if (value) {
+                this.resetFilter();
+              } else {
+                this.closeFilterPanel();
+              }
+            })
+        );
+      }
     } catch (err) {
       console.error(this.logPrefix + 'Error while loading modal');
     }
@@ -844,7 +844,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   }
 
   async resetFilter() {
-    if (this.filter) await this.setModalMode(ModalModeEnum.IndividualCount);
+    await this.setModalMode(ModalModeEnum.IndividualCount);
     super.resetFilter();
   }
 
