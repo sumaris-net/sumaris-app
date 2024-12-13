@@ -23,22 +23,28 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
-  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || disabled" (click)="openReport($event)">
-    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
-    <ion-label translate>SALE.EDIT.BTN_REPORT</ion-label>
-  </button>
+  @if (enableReport) {
+    <button mat-menu-item [disabled]="isNewData || disabled" (click)="openReport($event)">
+      <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+      <ion-label translate>SALE.EDIT.BTN_REPORT</ion-label>
+    </button>
+  }
 
-  <!-- reset -->
-  <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
-    <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
-    <ion-label translate>COMMON.BTN_RESET</ion-label>
-  </button>
+  @if (mobile) {
+    @if (enableReport) {
+      <mat-divider></mat-divider>
+    }
 
-  <mat-divider></mat-divider>
+    <!-- reset -->
+    <button mat-menu-item [disabled]="!dirty" (click)="cancel($event)">
+      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
+      <ion-label translate>COMMON.BTN_RESET</ion-label>
+    </button>
+  }
 
   <!-- delete -->
   <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
-    <mat-icon>delete</mat-icon>
+    <mat-icon>delete_outline</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
 

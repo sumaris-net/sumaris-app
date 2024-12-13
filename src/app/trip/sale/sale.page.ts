@@ -532,7 +532,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
     this.i18nContext.suffix = i18nSuffix;
     this.saleForm.i18nSuffix = i18nSuffix;
 
-    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
+    // TODO Implement a sale report ?
+    this.enableReport = false; // program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.SALE_BATCH_ENABLE);
 
     if (this.strategyCard) {
