@@ -345,7 +345,7 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     ];
 
     // Remove fake dates (e.g. if endDateTime = startDateTime)
-    // Warn: keept this order: must start with endDateTime, then fishingEndDateTime, then fishingStartDateTime
+    // Warn: must kept this order in the following if conditions: start with endDateTime, then fishingEndDateTime, then fishingStartDateTime
     if (this.endDateTime && this.endDateTime.isSameOrBefore(this.fishingEndDateTime || this.fishingStartDateTime || this.startDateTime)) {
       this.endDateTime = undefined;
     }

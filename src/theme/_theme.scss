@@ -21,10 +21,6 @@
 // --------------------------------------------------
 // Override material style
 // --------------------------------------------------
-.mat-form-field-appearance-fill .mat-mdc-select-arrow-wrapper {
-  transform: translateY(0px) !important;
-}
-
 ion-content.ion-flex-direction-column::part(scroll),
 .ion-flex-direction-column {
   display: flex;
