@@ -181,7 +181,7 @@
       </ng-container>
 
       <!-- Dynamic columns -->
-      @for (col of dynamicColumns; track col.rankOrder; let index = $index) {
+      @for (col of dynamicColumns; track col.key; let index = $index) {
         <ng-container [matColumnDef]="col.key">
           <th
             mat-header-cell
@@ -358,20 +358,20 @@
       </ng-container>
 
       <!-- Group header: pmfm group columns -->
-      @for (item of groupColumns; track item.key; let even = $even) {
-        <ng-container [matColumnDef]="item.key">
+      @for (col of groupColumns; track col.key; let even = $even) {
+        <ng-container [matColumnDef]="col.key">
           <th
             mat-header-cell
             *matHeaderCellDef
             class="mat-column-qv-group mat-mdc-cell-content-start-padding"
             [class.even]="even"
-            [attr.colspan]="item.colSpan"
+            [attr.colspan]="col.colSpan"
           >
             <ion-label class="ion-text-wrap mat-mdc-cell-content-start-padding ion-text-center">
-              <span>{{ item.name }}</span>
+              <span>{{ col.name }}</span>
               @if (weightMethodForm) {
                 <br />
-                <mat-checkbox [formControl]="weightMethodForm | formGetControl: (item.qvIndex | toString)" labelPosition="before">
+                <mat-checkbox [formControl]="weightMethodForm | formGetControl: (col.qvIndex | toString)" labelPosition="before">
                   <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
                   <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
                 </mat-checkbox>
@@ -435,7 +435,7 @@
       </ng-container>
 
       <!-- Dynamic columns -->
-      @for (col of dynamicColumns; track col.rankOrder; let index = $index) {
+      @for (col of dynamicColumns; track col.key; let index = $index) {
         <ng-container [matColumnDef]="col.key">
           <th
             mat-header-cell

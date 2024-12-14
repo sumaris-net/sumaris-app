@@ -893,15 +893,15 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     const formGroup = this.measurementsForm.form as UntypedFormGroup;
 
     // If PMFM "Use of a Camera?" exist, then enable/disable isGPSUsed PMFM
-    const isCameraUsed = formGroup?.controls[PmfmIds.CAMERA_USED];
-    if (isNotNil(isCameraUsed)) {
+    const isCameraUsedControl = formGroup?.controls[PmfmIds.CAMERA_USED];
+    if (isNotNil(isCameraUsedControl)) {
       this._measurementSubscription.add(
-        isCameraUsed.valueChanges.pipe(startWith<boolean>(isCameraUsed.value), filter(isNotNil)).subscribe((value) => {
+        isCameraUsedControl.valueChanges.pipe(startWith<boolean>(isCameraUsedControl.value), filter(isNotNil)).subscribe((value) => {
           if (this.debug) console.debug('[trip] Enable/Disable GPS');
           const control = formGroup.controls[PmfmIds.GPS_USED];
 
           if (value == true) {
-            AppFormUtils.disableControl(control, { onlySelf: true });
+            AppFormUtils.disableAndClearControl(control, { onlySelf: true });
           } else {
             AppFormUtils.enableControl(control, { onlySelf: true, required: true });
           }

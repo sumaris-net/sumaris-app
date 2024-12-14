@@ -61,55 +61,59 @@
   <ng-content select="[beforeChildren]"></ng-content>
 
   <!-- QV children -->
-  <ion-row *ngIf="qvPmfm; let qvPmfm">
-    <ion-col *ngFor="let qv of qvPmfm.qualitativeValues; index as i" class="ion-padding-top" size="12" size-md="6">
-      <ion-card class="qv ion-no-margin ion-no-padding" [class.even]="i % 2 === 0" [class.odd]="i % 2 !== 0">
-        <ion-card-header>
-          <ion-card-title>
-            <ion-label>
-              <h1>
-                <app-icon *ngIf="qv | batchSortingValueIcon: qvPmfm; let iconRef" [ref]="iconRef"></app-icon>
-                &nbsp;
-                <span
-                  matBadge="!"
-                  [matBadgeHidden]="!childForm.invalid"
-                  matBadgeOverlap="false"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after"
-                >
-                  {{ qv.name }}
-                </span>
-              </h1>
-              <p *ngIf="showError && loaded" [class.cdk-visually-hidden]="!childForm.invalid">
-                <ion-text color="danger" [innerHTML]="childForm.form | formError: childForm.errorTranslateOptions"></ion-text>
-              </p>
-            </ion-label>
-          </ion-card-title>
-        </ion-card-header>
+  @if (qvPmfm; as qvPmfm) {
+    <ion-row>
+      @for (qv of qvPmfm.qualitativeValues; track qv.id; let i = $index) {
+        <ion-col class="ion-padding-top" size="12" size-md="6">
+          <ion-card class="qv ion-no-margin ion-no-padding" [class.even]="i % 2 === 0" [class.odd]="i % 2 !== 0">
+            <ion-card-header>
+              <ion-card-title>
+                <ion-label>
+                  <h1>
+                    <app-icon *ngIf="qv | batchSortingValueIcon: qvPmfm; let iconRef" [ref]="iconRef"></app-icon>
+                    &nbsp;
+                    <span
+                      matBadge="!"
+                      [matBadgeHidden]="!childForm.invalid"
+                      matBadgeOverlap="false"
+                      matBadgeColor="accent"
+                      matBadgeSize="small"
+                      matBadgePosition="above after"
+                    >
+                      {{ qv.name }}
+                    </span>
+                  </h1>
+                  <p *ngIf="showError && loaded" [class.cdk-visually-hidden]="!childForm.invalid">
+                    <ion-text color="danger" [innerHTML]="childForm.form | formError: childForm.errorTranslateOptions"></ion-text>
+                  </p>
+                </ion-label>
+              </ion-card-title>
+            </ion-card-header>
 
-        <ion-card-content>
-          <app-batch-form
-            #childForm
-            [tabindex]="tabindex + 10 + 10 * i"
-            [acquisitionLevel]="acquisitionLevel"
-            [pmfms]="childrenPmfmsByQvId$ | async | mapGet: qv.id"
-            [showError]="false"
-            [showTaxonName]="false"
-            [showTaxonGroup]="false"
-            [availableTaxonGroups]="[]"
-            [samplingRatioFormat]="samplingRatioFormat"
-            [maxVisibleButtons]="maxVisibleButtons"
-            [maxItemCountForButtons]="maxItemCountForButtons"
-            [i18nSuffix]="i18nSuffix"
-            [usageMode]="usageMode"
-            [mobile]="mobile"
-            [debug]="debug"
-          ></app-batch-form>
-        </ion-card-content>
-      </ion-card>
-    </ion-col>
-  </ion-row>
+            <ion-card-content>
+              <app-batch-form
+                #childForm
+                [tabindex]="tabindex + 10 + 10 * i"
+                [acquisitionLevel]="acquisitionLevel"
+                [pmfms]="childrenPmfmsByQvId$ | async | mapGet: qv.id"
+                [showError]="false"
+                [showTaxonName]="false"
+                [showTaxonGroup]="false"
+                [availableTaxonGroups]="[]"
+                [samplingRatioFormat]="samplingRatioFormat"
+                [maxVisibleButtons]="maxVisibleButtons"
+                [maxItemCountForButtons]="maxItemCountForButtons"
+                [i18nSuffix]="i18nSuffix"
+                [usageMode]="usageMode"
+                [mobile]="mobile"
+                [debug]="debug"
+              ></app-batch-form>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      }
+    </ion-row>
+  }
 
   <ng-content select="[beforeComment]"></ng-content>
 

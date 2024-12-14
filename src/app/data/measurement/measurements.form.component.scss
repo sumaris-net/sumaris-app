@@ -1,14 +1,3 @@
 form ion-row ion-col {
   min-width: 250px;
 }
-
-:host ::ng-deep .form-container {
-
-  // Hide disabled pmfm
-  &.pmfm-disabled-hidden {
-    .mat-form-field-disabled {
-      display: none !important;
-      visibility: hidden !important;
-    }
-  }
-}

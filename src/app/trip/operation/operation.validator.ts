@@ -781,11 +781,11 @@ export class OperationValidators {
    */
   static listenIndividualOnDeck(event: IPmfmForm): Observable<any> | null {
     const { form, pmfms, markForCheck } = event;
-    const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
+    const measForm = form.get('measurementValues') as UntypedFormGroup;
 
     // Create listener on column 'INDIVIDUAL_ON_DECK' value changes
     const individualOnDeckPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
-    const individualOnDeckControl = individualOnDeckPmfm && measFormGroup.controls[individualOnDeckPmfm.id];
+    const individualOnDeckControl = individualOnDeckPmfm && measForm.controls[individualOnDeckPmfm.id];
 
     const isTangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_TANGLED);
 
@@ -804,12 +804,8 @@ export class OperationValidators {
                     pmfm.id === PmfmIds.TAG_ID
                 )
                 .map((pmfm) => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  let required = false;
-                  if (pmfm.required) {
-                    required = true;
-                  }
-                  AppFormUtils.enableControl(control, { onlySelf: true, required: required });
+                  const control = measForm.controls[pmfm.id];
+                  AppFormUtils.enableControl(control, { onlySelf: true, required: pmfm.required });
                 });
               if (markForCheck) markForCheck();
             }
@@ -818,8 +814,8 @@ export class OperationValidators {
               pmfms
                 .filter((pmfm) => pmfm.rankOrder > individualOnDeckPmfm.rankOrder)
                 .map((pmfm) => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  AppFormUtils.disableControl(control, { onlySelf: true });
+                  const control = measForm.controls[pmfm.id];
+                  AppFormUtils.disableAndClearControl(control, { onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }
@@ -832,11 +828,11 @@ export class OperationValidators {
 
   static listenIsTangledIndividual(event: IPmfmForm): Observable<any> | null {
     const { form, pmfms, markForCheck } = event;
-    const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
+    const measForm = form.get('measurementValues') as UntypedFormGroup;
 
     // Create listener on column 'IS_TANGLED' value changes
     const isTangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_TANGLED);
-    const isTangledControl = isTangledPmfm && measFormGroup.controls[isTangledPmfm.id];
+    const isTangledControl = isTangledPmfm && measForm.controls[isTangledPmfm.id];
     const isPingerAccessiblePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.PINGER_ACCESSIBLE);
 
     if (!isTangledControl || !isPingerAccessiblePmfm) return null;
@@ -851,12 +847,8 @@ export class OperationValidators {
                 (pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.rankOrder <= isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
               )
               .map((pmfm) => {
-                const control = measFormGroup.controls[pmfm.id];
-                let required = false;
-                if (pmfm.required) {
-                  required = true;
-                }
-                AppFormUtils.enableControl(control, { onlySelf: true, required: required });
+                const control = measForm.controls[pmfm.id];
+                AppFormUtils.enableControl(control, { onlySelf: true, required: pmfm.required });
               });
             if (markForCheck) markForCheck();
           }
@@ -865,8 +857,8 @@ export class OperationValidators {
             pmfms
               .filter((pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
               .map((pmfm) => {
-                const control = measFormGroup.controls[pmfm.id];
-                AppFormUtils.disableControl(control, { onlySelf: true });
+                const control = measForm.controls[pmfm.id];
+                AppFormUtils.disableAndClearControl(control, { onlySelf: true });
               });
             if (markForCheck) markForCheck();
           }
@@ -878,11 +870,11 @@ export class OperationValidators {
 
   static listenIsPingerAccessible(event: IPmfmForm): Observable<any> | null {
     const { form, pmfms, markForCheck } = event;
-    const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
+    const measForm = form.get('measurementValues') as UntypedFormGroup;
 
     // Create listener on column 'IS_PINGER_ACCESSIBLE' value changes
     const isPingerAccessiblePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.PINGER_ACCESSIBLE);
-    const isPingerAccessibleControl = isPingerAccessiblePmfm && measFormGroup.controls[isPingerAccessiblePmfm.id];
+    const isPingerAccessibleControl = isPingerAccessiblePmfm && measForm.controls[isPingerAccessiblePmfm.id];
 
     if (!isPingerAccessibleControl) return null; // Skip if missing pmfm
 
@@ -894,12 +886,8 @@ export class OperationValidators {
             pmfms
               .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
               .map((pmfm) => {
-                const control = measFormGroup.controls[pmfm.id];
-                let required = false;
-                if (pmfm.required) {
-                  required = true;
-                }
-                AppFormUtils.enableControl(control, { onlySelf: true, required: required });
+                const control = measForm.controls[pmfm.id];
+                AppFormUtils.enableControl(control, { onlySelf: true, required: pmfm.required });
               });
             if (markForCheck) markForCheck();
           }
@@ -908,8 +896,8 @@ export class OperationValidators {
             pmfms
               .filter((pmfm) => pmfm.rankOrder > isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
               .map((pmfm) => {
-                const control = measFormGroup.controls[pmfm.id];
-                AppFormUtils.disableControl(control, { onlySelf: true });
+                const control = measForm.controls[pmfm.id];
+                AppFormUtils.disableAndClearControl(control, { onlySelf: true });
               });
             if (markForCheck) markForCheck();
           }
@@ -921,11 +909,11 @@ export class OperationValidators {
 
   static listenIsDeadIndividual(event: IPmfmForm): Observable<any> | null {
     const { form, pmfms, markForCheck } = event;
-    const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
+    const measForm = form.get('measurementValues') as UntypedFormGroup;
 
     // Create listener on column 'IS_DEAD' value changes
     const isDeadPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_DEAD);
-    const isDeadControl = isDeadPmfm && measFormGroup.controls[isDeadPmfm.id];
+    const isDeadControl = isDeadPmfm && measForm.controls[isDeadPmfm.id];
     if (!isDeadControl) return null; // Skip if missing pmfm
 
     const decompositionStatePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.DECOMPOSITION_STATE);
@@ -942,12 +930,8 @@ export class OperationValidators {
                   (pmfm) => pmfm.rankOrder > isDeadPmfm.rankOrder && pmfm.rankOrder <= decompositionStatePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
                 )
                 .map((pmfm) => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  let required = false;
-                  if (pmfm.required) {
-                    required = true;
-                  }
-                  AppFormUtils.enableControl(control, { onlySelf: true, required: required });
+                  const control = measForm.controls[pmfm.id];
+                  AppFormUtils.enableControl(control, { onlySelf: true, required: pmfm.required });
                 });
               if (markForCheck) markForCheck();
             }
@@ -958,8 +942,8 @@ export class OperationValidators {
                   (pmfm) => pmfm.rankOrder > isDeadPmfm.rankOrder && pmfm.rankOrder <= decompositionStatePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
                 )
                 .map((pmfm) => {
-                  const control = measFormGroup.controls[pmfm.id];
-                  AppFormUtils.disableControl(control, { onlySelf: true });
+                  const control = measForm.controls[pmfm.id];
+                  AppFormUtils.disableAndClearControl(control, { onlySelf: true });
                 });
               if (markForCheck) markForCheck();
             }
