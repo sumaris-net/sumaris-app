@@ -342,7 +342,7 @@ export class SamplingStrategiesTable
 
     // Wait end of debounce
     if (waitDebounceTime) await sleep(260);
-    this.onRefresh.emit(event);
+    this.emitRefresh(event);
   }
 
   resetFilter(json?: any) {

@@ -307,7 +307,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
         this.markAsReady();
         this.markAsStarted();
 
-        this.onRefresh.emit();
+        this.emitRefresh();
       }
     }
 
@@ -343,7 +343,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       this.markAsReady();
       this.markAsStarted();
 
-      this.onRefresh.emit();
+      this.emitRefresh();
     }
   }
 
@@ -444,7 +444,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     }
 
     if (!event.ctrlKey) {
-      this.onRefresh.emit();
+      this.emitRefresh();
 
       if (openExpansionPanel) {
         setTimeout(() => this.filterExpansionPanel.close(), 500);
@@ -626,7 +626,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   }
 
   applyFilterAndClosePanel(event?: Event) {
-    this.onRefresh.emit(event);
+    this.emitRefresh(event);
     this.filterExpansionPanel.close();
   }
 
@@ -645,7 +645,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
   doRefresh(event?: CompletableEvent) {
     this.cacheDuration = 'none';
-    this.onRefresh.emit(event);
+    this.emitRefresh(event);
 
     // Wait end
     setTimeout(async () => {

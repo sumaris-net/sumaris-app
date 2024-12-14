@@ -311,7 +311,7 @@ export abstract class AppRootDataTable<
       this.filterForm.patchValue({ synchronizationStatus: 'DIRTY' }, { emitEvent: false /*avoid refresh*/ });
     }
     // Refresh table
-    this.onRefresh.emit();
+    this.emitRefresh();
   }
 
   async prepareOfflineMode(
@@ -406,7 +406,10 @@ export abstract class AppRootDataTable<
     }
 
     console.debug('[trips] Applying filter to synchronization status: ' + value);
+
+    // Clear error
     this.resetError();
+
     this.filterForm.patchValue({ synchronizationStatus: value }, { emitEvent: false });
     const json = { ...this.filter, synchronizationStatus: value };
     this.setFilter(json, { emitEvent: true });
@@ -531,7 +534,7 @@ export abstract class AppRootDataTable<
     } catch (err) {
       console.error(err);
     } finally {
-      this.onRefresh.emit();
+      this.emitRefresh();
     }
   }
 
@@ -594,7 +597,7 @@ export abstract class AppRootDataTable<
         this.selection.clear();
 
         // Refresh table
-        this.onRefresh.emit();
+        this.emitRefresh();
       }
     }
   }
@@ -651,7 +654,7 @@ export abstract class AppRootDataTable<
         this.selection.clear();
 
         // Refresh table
-        this.onRefresh.emit();
+        this.emitRefresh();
       }
     }
   }
@@ -711,7 +714,7 @@ export abstract class AppRootDataTable<
       this.hasOfflineMode = await this._dataService.hasOfflineData();
 
       if (!opts || opts.emitEvent !== false) {
-        this.onRefresh.emit();
+        this.emitRefresh();
       }
     }
   }

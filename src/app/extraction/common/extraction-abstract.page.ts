@@ -315,7 +315,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
     // Refresh data
     if (!opts || opts.emitEvent !== false) {
-      this.onRefresh.emit();
+      this.emitRefresh();
     }
 
     return changed;
@@ -332,7 +332,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     }
 
     if (!opts || opts.emitEvent !== false) {
-      this.onRefresh.emit();
+      this.emitRefresh();
     }
   }
 
@@ -489,7 +489,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
     // Emit changes
     if (!opts || opts?.emitEvent !== false) {
-      this.onRefresh.emit();
+      this.emitRefresh();
     }
   }
 
@@ -679,7 +679,14 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     );
     if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
-      this.onRefresh.emit();
+      this.emitRefresh();
+    }
+  }
+
+  protected emitRefresh(value?: any) {
+    // Emit onRefresh if not closed (can happen if component is destroyed to early)
+    if (!!this.onRefresh && !this.onRefresh.closed) {
+      this.onRefresh.emit(value);
     }
   }
 }

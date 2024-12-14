@@ -821,7 +821,7 @@ export class CalendarComponent
   //   data.canEdit = localRow.canEdit;
   //   await this.updateEntityToTable(data, row), { confirmEdit: false };
 
-  //   this.onRefresh.emit();
+  //   this.emitRefresh();
   // }
 
   async loadVesselOwner(months: ActivityMonth[]) {

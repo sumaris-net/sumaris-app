@@ -215,7 +215,7 @@ export abstract class BaseReferentialTable<
 
     await sleep(1000);
 
-    this.onRefresh.emit();
+    this.emitRefresh();
   }
 
   /* -- protected functions -- */
