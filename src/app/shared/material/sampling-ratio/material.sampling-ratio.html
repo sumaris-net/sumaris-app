@@ -41,7 +41,7 @@
         [formControl]="_inputFormControl"
         [required]="required"
         [pattern]="_pattern"
-        [placeholder]="floatLabel === 'never' && (placeholder | translate)"
+        [placeholder]="floatLabel === 'never' ? (placeholder | translate) : null"
         (click)="selectInputContent($event)"
         [appAutofocus]="autofocus"
         [tabindex]="tabindex"
