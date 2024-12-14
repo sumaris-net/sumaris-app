@@ -3,7 +3,7 @@
   <ion-card-header>
     <!-- program -->
     <ion-card-subtitle>
-      <ion-text color="secondary">
+      <ion-text [color]="color === 'light' ? 'secondary' : 'primary'">
         @if (showProgram && value.program | isNotEmptyReferential) {
           {{ value.program.label || value.program.name }}
         }
@@ -111,21 +111,15 @@
     }
   </ion-card-content>
 
-  @if (canDelete || canSynchronize) {
-    <ion-footer>
-      <ion-toolbar>
-        @if (canDelete && delete.observed) {
-          <ion-button fill="clear">
-            <mat-icon slot="icon-only" (click)="delete.emit($event)">delete</mat-icon>
-          </ion-button>
-        }
-        @if (canSynchronize && synchronize.observed) {
-          <ion-button fill="outline" class="ion-float-end" (click)="synchronize.emit($event)">
-            <ion-icon slot="start" name="cloud-upload"></ion-icon>
-            {{ 'QUALITY.BTN_SYNCHRONIZE' | translate }}
-          </ion-button>
-        }
-      </ion-toolbar>
-    </ion-footer>
+  @if (canDelete && delete.observed) {
+    <ion-button fill="clear">
+      <mat-icon slot="icon-only" (click)="delete.emit($event)">delete</mat-icon>
+    </ion-button>
+  }
+  @if (!canSynchronize && synchronize.observed) {
+    <ion-button color="danger" class="ion-float-end" (click)="synchronize.emit($event)">
+      <ion-icon slot="start" name="cloud-upload"></ion-icon>
+      {{ 'QUALITY.BTN_SYNCHRONIZE' | translate }}
+    </ion-button>
   }
 </ion-card>
