@@ -1215,8 +1215,11 @@ export class CalendarComponent
     }
   }
 
-  async showUnauthorizedToast(error?: string) {
+  showUnauthorizedToast(error?: string, opts?: { markRowAsDirty?: boolean }) {
     this.unauthorizedToast$.next(error);
+    if (opts?.markRowAsDirty) {
+      this.markRowAsDirty();
+    }
   }
 
   async shiftClick(event?: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
