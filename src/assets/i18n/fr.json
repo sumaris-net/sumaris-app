@@ -3726,7 +3726,7 @@
             "REQUIRED_PORT": "Port d'exploitation manquant",
             "REQUIRED_METIER": "Metier manquant",
             "REQUIRED_FISHING_AREA": "Zone de pêche manquante",
-            "REQUIRED_DISTANCE_TO_COAST_GRADIENT": "Gradiant côte manquant",
+            "REQUIRED_DISTANCE_TO_COAST_GRADIENT": "Gradient côte manquant",
             "TOO_MANY_METIER": "Autres"
           }
         },

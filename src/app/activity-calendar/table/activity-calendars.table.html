@@ -163,8 +163,7 @@
   </ion-row>
 
   @for (item of reportTypes; track item.key) {
-    <!-- TODO enable all report type ?-->
-    <button mat-menu-item (click)="openReport(item.key)">
+    <button mat-menu-item (click)="openReport(item.key)" [disabled]="item.key === 'progress' && !filterYearControl?.value">
       <ion-label>{{ item.value | translate }}</ion-label>
     </button>
   }

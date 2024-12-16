@@ -55,7 +55,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { intersectArrays } from '@app/shared/functions';
@@ -599,7 +599,7 @@ export class ActivityCalendarsTable
     await this.router.navigate(['extraction', 'data'], { queryParams });
   }
 
-  async openReport(reportPath: string) {
+  async openReport(reportPath: string | ActivityCalendarReportType) {
     if (isNil(this.program)) console.warn(`${this.logPrefix} No defined program, use "${this.defaultProgramLabel}" as default`);
     const program = isNil(this.program) ? await this.programRefService.loadByLabel(this.defaultProgramLabel) : this.program;
 
