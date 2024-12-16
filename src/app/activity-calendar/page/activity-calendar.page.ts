@@ -308,6 +308,16 @@ export class ActivityCalendarPage
       })
     );
 
+    // Listen opening  table switch
+    this.registerSubscription(
+      this.tabGroup.selectedTabChange.subscribe(() => {
+        if (this.calendar.hasCellSelection()) {
+          this.calendar.removeCellSelection();
+          console.debug(this.logPrefix + 'Cell selection removed...');
+        }
+      })
+    );
+
     // Listen opening the map tab
     this.registerSubscription(
       this.tabGroup.selectedTabChange

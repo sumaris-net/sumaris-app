@@ -2417,6 +2417,10 @@ export class CalendarComponent
     }
   }
 
+  hasCellSelection(): boolean {
+    return !!this.cellSelection;
+  }
+
   /* -- protected functions -- */
 
   protected setMetierBlockExpanded(blockIndex: number, expanded: boolean, opts?: { emitEvent?: boolean; expandChildren?: boolean }) {
