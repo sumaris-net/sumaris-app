@@ -116,7 +116,7 @@
       <mat-icon slot="icon-only" (click)="delete.emit($event)">delete</mat-icon>
     </ion-button>
   }
-  @if (!canSynchronize && synchronize.observed) {
+  @if (canSynchronize && synchronize.observed) {
     <ion-button color="danger" class="ion-float-end" (click)="synchronize.emit($event)">
       <ion-icon slot="start" name="cloud-upload"></ion-icon>
       {{ 'QUALITY.BTN_SYNCHRONIZE' | translate }}
