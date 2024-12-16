@@ -150,7 +150,17 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     return (
       this.dirtySubject.value ||
       // Ignore operation table, when computing dirty state
-      this.children?.filter((child) => child !== this.operationsTable).some((c) => c.dirty)
+      this.children?.filter((c) => c !== this.operationsTable).some((c) => c.dirty) ||
+      false
+    );
+  }
+
+  get loading(): boolean {
+    return (
+      this.loadingSubject.value ||
+      // Ignore operation table, when computing loading state (to be able to save)
+      this.children?.filter((c) => c !== this.operationsTable).some((c) => c.enabled && c.loading) ||
+      false
     );
   }
 
@@ -653,8 +663,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async onOpenOperation(row: TableElement<Operation>) {
-    const saved =
-      this.isOnFieldMode && this.dirty ? await this.save(undefined) : await this.saveIfDirtyAndConfirm(null, { confirmed: !this.isOnFieldMode });
+    const saved = this.isOnFieldMode && this.dirty ? await this.save() : await this.saveIfDirtyAndConfirm();
     if (!saved) return; // Cannot saved
 
     this.markAsLoading();
