@@ -821,7 +821,7 @@ export class CalendarComponent
   //   data.canEdit = localRow.canEdit;
   //   await this.updateEntityToTable(data, row), { confirmEdit: false };
 
-  //   this.onRefresh.emit();
+  //   this.emitRefresh();
   // }
 
   async loadVesselOwner(months: ActivityMonth[]) {
@@ -1215,8 +1215,11 @@ export class CalendarComponent
     }
   }
 
-  async showUnauthorizedToast(error?: string) {
+  showUnauthorizedToast(error?: string, opts?: { markRowAsDirty?: boolean }) {
     this.unauthorizedToast$.next(error);
+    if (opts?.markRowAsDirty) {
+      this.markRowAsDirty();
+    }
   }
 
   async shiftClick(event?: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string): Promise<boolean> {
@@ -2417,6 +2420,10 @@ export class CalendarComponent
     }
   }
 
+  hasCellSelection(): boolean {
+    return !!this.cellSelection;
+  }
+
   /* -- protected functions -- */
 
   protected setMetierBlockExpanded(blockIndex: number, expanded: boolean, opts?: { emitEvent?: boolean; expandChildren?: boolean }) {
@@ -2867,8 +2874,11 @@ export class CalendarComponent
         resizing: false,
       };
 
-    // Maximize the targeted cells
-    targetCellSelection.colspan = Math.max(targetCellSelection.colspan, sourceMonths.length);
+    // Maximize the targeted cells (but keep the colspan sign - see issue #867)
+    targetCellSelection.colspan =
+      targetCellSelection.colspan >= 0
+        ? Math.max(targetCellSelection.colspan, sourceMonths.length)
+        : Math.min(targetCellSelection.colspan, sourceMonths.length * -1);
     targetCellSelection.rowspan = sourcePaths.length;
 
     const { rows: targetRows, paths: targetPaths } = this.getRowsFromSelection(targetCellSelection);

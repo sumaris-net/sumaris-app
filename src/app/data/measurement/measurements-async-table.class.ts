@@ -129,7 +129,7 @@ export abstract class BaseMeasurementsAsyncTable<
     if (this._dataService.delegate !== value) {
       this._dataService.delegate = value;
       if (!this.loading) {
-        this.onRefresh.emit('new dataService');
+        this.emitRefresh('new dataService');
       }
     }
   }
@@ -255,12 +255,12 @@ export abstract class BaseMeasurementsAsyncTable<
 
         // Load (if autoLoad was enabled)
         if (this._autoLoadAfterPmfm) {
-          this.onRefresh.emit();
+          this.emitRefresh();
           this._autoLoadAfterPmfm = false; // Avoid new execution
         }
         // Or reload, only if pristine (to avoid to lost not saved data)
         else if (this.dataSource.loaded && !this.dirty) {
-          this.onRefresh.emit();
+          this.emitRefresh();
         }
       })
     );

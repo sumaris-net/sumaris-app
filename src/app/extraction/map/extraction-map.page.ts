@@ -710,7 +710,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     );
 
     if (!opts || opts.emitEVent !== false) {
-      this.onRefresh.emit();
+      this.emitRefresh();
     }
   }
 
@@ -1264,7 +1264,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
       // Refresh
       if (!opts || opts.emitEvent !== false) {
-        this.onRefresh.emit();
+        this.emitRefresh();
       }
 
       if (!opts || opts.skipLocationChange !== true) {
@@ -1277,7 +1277,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
   onRefreshClick(event?: Event) {
     this.stopAnimation();
-    this.onRefresh.emit(event);
+    this.emitRefresh(event);
   }
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
@@ -1377,7 +1377,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   applyLegendForm(event: Event) {
     this.showLegendForm = false;
     this.customLegendOptions = this.legendForm.value;
-    this.onRefresh.emit();
+    this.emitRefresh();
   }
 
   async openSelectTypeModal(event?: Event) {
@@ -1499,7 +1499,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     }
 
     if (!event.ctrlKey) {
-      this.onRefresh.emit();
+      this.emitRefresh();
     }
   }
 

@@ -226,7 +226,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     const { data } = await modal.onDidDismiss();
 
     // if new vessel added, refresh the table
-    if (isNotNil(data)) this.onRefresh.emit();
+    if (isNotNil(data)) this.emitRefresh();
 
     return true;
   }

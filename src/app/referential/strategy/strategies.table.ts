@@ -177,7 +177,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
     await sleep(1000);
 
-    this.onRefresh.emit();
+    this.emitRefresh();
   }
 
   protected readJsonFile(file: File): Observable<FileEvent<Strategy[]>> {

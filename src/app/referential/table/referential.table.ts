@@ -585,7 +585,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
   }
 
   applyFilterAndClosePanel(event?: Event) {
-    this.onRefresh.emit(event);
+    this.emitRefresh(event);
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
@@ -625,7 +625,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     try {
       await this.fileService.importFromCsv(event);
       await sleep(1000);
-      this.onRefresh.emit();
+      this.emitRefresh();
     } catch (err) {
       console.error(err);
       this.setError(err);
@@ -637,7 +637,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     try {
       await this.fileService.importFromJson(event);
       await sleep(1000);
-      this.onRefresh.emit();
+      this.emitRefresh();
     } catch (err) {
       console.error(err);
       this.setError(err);

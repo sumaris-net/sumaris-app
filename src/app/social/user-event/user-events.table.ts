@@ -134,7 +134,7 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventFilter> implem
           filter((count) => !this.loading && count !== this.totalRowCount)
         )
         .subscribe((count) => {
-          this.onRefresh.emit();
+          this.emitRefresh();
         })
     );
 
@@ -155,7 +155,7 @@ export class UserEventsTable extends AppTable<UserEvent, UserEventFilter> implem
     await this.accountService.ready();
 
     // Load data
-    this.onRefresh.emit();
+    this.emitRefresh();
   }
 
   getIcon(source: UserEvent): IconRef {

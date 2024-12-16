@@ -150,7 +150,17 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     return (
       this.dirtySubject.value ||
       // Ignore operation table, when computing dirty state
-      this.children?.filter((child) => child !== this.operationsTable).some((c) => c.dirty)
+      this.children?.filter((c) => c !== this.operationsTable).some((c) => c.dirty) ||
+      false
+    );
+  }
+
+  get loading(): boolean {
+    return (
+      this.loadingSubject.value ||
+      // Ignore operation table, when computing loading state (to be able to save)
+      this.children?.filter((c) => c !== this.operationsTable).some((c) => c.enabled && c.loading) ||
+      false
     );
   }
 
@@ -653,8 +663,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async onOpenOperation(row: TableElement<Operation>) {
-    const saved =
-      this.isOnFieldMode && this.dirty ? await this.save(undefined) : await this.saveIfDirtyAndConfirm(null, { confirmed: !this.isOnFieldMode });
+    const saved = this.isOnFieldMode && this.dirty ? await this.save() : await this.saveIfDirtyAndConfirm();
     if (!saved) return; // Cannot saved
 
     this.markAsLoading();
@@ -893,15 +902,15 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     const formGroup = this.measurementsForm.form as UntypedFormGroup;
 
     // If PMFM "Use of a Camera?" exist, then enable/disable isGPSUsed PMFM
-    const isCameraUsed = formGroup?.controls[PmfmIds.CAMERA_USED];
-    if (isNotNil(isCameraUsed)) {
+    const isCameraUsedControl = formGroup?.controls[PmfmIds.CAMERA_USED];
+    if (isNotNil(isCameraUsedControl)) {
       this._measurementSubscription.add(
-        isCameraUsed.valueChanges.pipe(startWith<boolean>(isCameraUsed.value), filter(isNotNil)).subscribe((value) => {
+        isCameraUsedControl.valueChanges.pipe(startWith<boolean>(isCameraUsedControl.value), filter(isNotNil)).subscribe((value) => {
           if (this.debug) console.debug('[trip] Enable/Disable GPS');
           const control = formGroup.controls[PmfmIds.GPS_USED];
 
           if (value == true) {
-            AppFormUtils.disableControl(control, { onlySelf: true });
+            AppFormUtils.disableAndClearControl(control, { onlySelf: true });
           } else {
             AppFormUtils.enableControl(control, { onlySelf: true, required: true });
           }

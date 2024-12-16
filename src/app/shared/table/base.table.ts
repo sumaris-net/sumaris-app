@@ -331,7 +331,7 @@ export abstract class AppBaseTable<
   applyFilterAndClosePanel(event?: Event) {
     const filter = this.filterForm.value;
     this.setFilter(filter, { emitEvent: false });
-    this.onRefresh.emit(event);
+    this.emitRefresh(event);
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
@@ -606,7 +606,7 @@ export abstract class AppBaseTable<
     if (json) {
       this.setFilter(json, { emitEvent: true });
     } else if (!opts || opts.emitEvent !== false) {
-      this.onRefresh.emit();
+      this.emitRefresh();
     }
   }
 
@@ -838,6 +838,13 @@ export abstract class AppBaseTable<
         });
       }
     }
+  }
+
+  protected emitRefresh(value?: any) {
+    // Clear highlight row (because row id can be reused on another entity)
+    this.highlightedRowId = null;
+
+    super.emitRefresh(value);
   }
 
   protected async devToggleDebug() {

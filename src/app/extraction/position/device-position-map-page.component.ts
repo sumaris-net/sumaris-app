@@ -206,7 +206,7 @@ export class DevicePositionMapPage extends BaseMap<DevicePositionMapState> imple
   }
 
   protected load() {
-    this.onRefresh.emit();
+    this.emitRefresh();
   }
 
   protected onFeatureClick(feature: Feature) {
@@ -253,7 +253,7 @@ export class DevicePositionMapPage extends BaseMap<DevicePositionMapState> imple
   }
 
   applyFilterAndClosePanel(event?: Event) {
-    this.onRefresh.emit(event);
+    this.emitRefresh(event);
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
@@ -386,7 +386,7 @@ export class DevicePositionMapPage extends BaseMap<DevicePositionMapState> imple
     if (this._debug) console.debug(`${this._logPrefix} Applying filter`, filter);
     this.filter = filter;
     if (opts && opts.emitEvent) {
-      this.onRefresh.emit();
+      this.emitRefresh();
     }
   }
 
@@ -559,5 +559,12 @@ export class DevicePositionMapPage extends BaseMap<DevicePositionMapState> imple
     await popover.dismiss();
     this._state.set('downloadProgression', () => null);
     subscription.unsubscribe();
+  }
+
+  protected emitRefresh(value?: any) {
+    // Emit onRefresh if not closed (can happen if component is destroyed to early)
+    if (!!this.onRefresh && !this.onRefresh.closed) {
+      this.onRefresh.emit(value);
+    }
   }
 }

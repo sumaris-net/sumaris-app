@@ -732,25 +732,25 @@ export class OperationPage<S extends OperationState = OperationState>
                 case QualitativeLabels.LINE_LAYOUT_TYPE.LINEAR:
                   if (this.debug) console.debug('[operation] Enable linear details');
                   AppFormUtils.enableControl(lineLayoutLinearControl, { ...onlySelfOptions, required: true });
-                  AppFormUtils.disableControl(lineLayoutZigZagControl, onlySelfOptions);
-                  AppFormUtils.disableControl(lineLayoutUnknownControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(lineLayoutZigZagControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(lineLayoutUnknownControl, onlySelfOptions);
                   break;
                 case QualitativeLabels.LINE_LAYOUT_TYPE.ZIG_ZAG:
                   if (this.debug) console.debug('[operation] Enable zig-zag details');
-                  AppFormUtils.disableControl(lineLayoutLinearControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(lineLayoutLinearControl, onlySelfOptions);
                   AppFormUtils.enableControl(lineLayoutZigZagControl, { ...onlySelfOptions, required: true });
-                  AppFormUtils.disableControl(lineLayoutUnknownControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(lineLayoutUnknownControl, onlySelfOptions);
                   break;
                 case QualitativeLabels.LINE_LAYOUT_TYPE.UNKNOWN:
                   if (this.debug) console.debug('[operation] Enable other details');
-                  AppFormUtils.disableControl(lineLayoutLinearControl, onlySelfOptions);
-                  AppFormUtils.disableControl(lineLayoutZigZagControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(lineLayoutLinearControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(lineLayoutZigZagControl, onlySelfOptions);
                   AppFormUtils.enableControl(lineLayoutUnknownControl, { ...onlySelfOptions, required: false });
                   break;
                 default:
-                  AppFormUtils.disableControl(lineLayoutLinearControl, onlySelfOptions);
-                  AppFormUtils.disableControl(lineLayoutZigZagControl, onlySelfOptions);
-                  AppFormUtils.disableControl(lineLayoutUnknownControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(lineLayoutLinearControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(lineLayoutZigZagControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(lineLayoutUnknownControl, onlySelfOptions);
                   break;
               }
             })

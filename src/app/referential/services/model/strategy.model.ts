@@ -35,7 +35,7 @@ export class Strategy<T extends Strategy<any> = Strategy<any>, O extends Strateg
   denormalizedPmfms: DenormalizedPmfmStrategy[] = null;
   departments: StrategyDepartment[] = null;
 
-  gears: any[] = null;
+  gears: (any | ReferentialRef)[] = null; // FIXME use ReferentialRef only ?
   taxonGroups: TaxonGroupStrategy[] = null;
   taxonNames: TaxonNameStrategy[] = null;
   programId: number = null;

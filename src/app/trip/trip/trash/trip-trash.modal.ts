@@ -243,7 +243,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
       // Unselect rows, then refresh
       this.selection.deselect(...rows);
 
-      this.onRefresh.emit();
+      this.emitRefresh();
     } catch (err) {
       console.error((err && err.message) || err, err);
       this.error = (err && err.message) || err;

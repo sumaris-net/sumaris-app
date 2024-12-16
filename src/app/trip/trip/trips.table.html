@@ -87,7 +87,7 @@
       <!-- delete -->
       @if (canDelete) {
         <button mat-icon-button class="hidden-xs hidden-sm" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
-          <mat-icon>delete_outline</mat-icon>
+          <mat-icon>delete</mat-icon>
         </button>
       }
     }
@@ -170,16 +170,18 @@
 
 <!-- display mode menu-->
 <mat-menu #displayModeMenu="matMenu">
-  <!-- Card view -->
-  <button mat-menu-item (click)="setCardView(true)">
-    <mat-icon><ion-icon name="grid"></ion-icon></mat-icon>
-    <ion-label translate>COMMON.DISPLAY_MODE.CARD</ion-label>
-  </button>
-  <!-- List view -->
-  <button mat-menu-item (click)="setCardView(false)">
-    <mat-icon><ion-icon name="list"></ion-icon></mat-icon>
-    <ion-label translate>COMMON.DISPLAY_MODE.LIST</ion-label>
-  </button>
+  <ng-template matMenuContent>
+    <!-- Card view -->
+    <button mat-menu-item (click)="setCardView(true)">
+      <mat-icon [style.color]="cardView ? 'var(--ion-color-primary)' : 'var(--ion-color-dark)'"><ion-icon name="grid"></ion-icon></mat-icon>
+      <ion-label [color]="cardView ? 'primary' : 'dark'" translate>COMMON.DISPLAY_MODE.CARD</ion-label>
+    </button>
+    <!-- List view -->
+    <button mat-menu-item (click)="setCardView(false)">
+      <mat-icon [style.color]="!cardView ? 'var(--ion-color-primary)' : 'var(--ion-color-dark)'"><ion-icon name="list"></ion-icon></mat-icon>
+      <ion-label [color]="!cardView ? 'primary' : 'dark'" translate>COMMON.DISPLAY_MODE.LIST</ion-label>
+    </button>
+  </ng-template>
 </mat-menu>
 
 <!-- sort by menu -->

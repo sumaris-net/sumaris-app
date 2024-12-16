@@ -2,7 +2,7 @@
   {{pmfm.name}}
 </ion-col>-->
 
-<form [formGroup]="form" (ngSubmit)="doSubmit($event)" class="form-container" [class.pmfm-disabled-hidden]="!showDisabledPmfm && !readonly">
+<form [formGroup]="form" (ngSubmit)="doSubmit($event)" class="form-container">
   <!-- debug -->
   @if (debug) {
     <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
@@ -16,15 +16,18 @@
   <!-- pmfms -->
   <ng-container *rxLet="pmfms$; let pmfms; suspense: measurementsSkeleton; strategy: 'immediate'; parent: false">
     @for (pmfm of pmfms; track pmfm.id) {
+      @let computed = pmfm | isComputedPmfm;
       <app-pmfm-field
+        #matInput
         [pmfm]="pmfm"
         [compact]="compact"
         [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
         [style]="pmfm | pmfmFieldStyle: maxItemCountForButtons"
         [maxVisibleButtons]="maxVisibleButtons"
         [showButtonIcons]="showButtonIcons"
+        [class.cdk-visually-hidden]="enabled && matInput.disabled && !computed"
         [floatLabel]="floatLabel"
-        [readonly]="readonly"
+        [readonly]="computed"
       ></app-pmfm-field>
     }
   </ng-container>

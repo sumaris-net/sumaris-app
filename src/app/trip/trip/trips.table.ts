@@ -3,7 +3,6 @@ import { TripComparators, TripService } from './trip.service';
 import { TripFilter, TripSynchroImportFilter } from './trip.filter';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 import {
-  AppTableUtils,
   arrayDistinct,
   chainPromises,
   ConfigService,
@@ -246,12 +245,13 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
       this.table?.renderRows();
     }
 
-    console.debug(this.logPrefix + 'setCardView', enable);
+    // DEBUG
+    //console.debug(this.logPrefix + 'setCardView', enable);
 
-    // By default, sort on defaults
-    if (enable && (this.sortActive !== this.defaultSortBy || this.sortDirection !== this.defaultSortBy)) {
-      const direction = this.sortActive === this.defaultSortBy ? AppTableUtils.inverseDirection(this.sortDirection) : this.defaultSortDirection;
-      this.sort.sort({ id: this.defaultSortBy, start: direction, disableClear: false });
+    // By default, card view should sort on departureDateTime:desc
+    if (enable && (this.sortActive !== 'departureDateTime' || this.sortDirection !== 'desc')) {
+      this.sort.sort(this.sort.sortables.get('departureDateTime'));
+      this.sortDirection = 'desc';
     }
 
     // Save to local settings

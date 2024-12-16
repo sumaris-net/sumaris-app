@@ -500,7 +500,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     }
 
     // Call refresh on datasource, to force a data reload (will apply filter calling onLoadData())
-    this.onRefresh.emit();
+    this.emitRefresh();
 
     // TODO BLA: refresh PMFM, with the new parent species ?
   }

@@ -164,7 +164,7 @@ export class JobListComponent implements OnInit, OnDestroy {
                 this.jobService
                   .listenChanges(<JobFilter>{ ...filter, excludedIds })
                   .pipe(takeUntil(this.onRefresh), first())
-                  .subscribe((_) => this.onRefresh.emit())
+                  .subscribe((_) => this.emitRefresh())
               );
             })
           );
@@ -355,7 +355,7 @@ export class JobListComponent implements OnInit, OnDestroy {
 
     await this.jobService.cancelJob(job);
 
-    this.onRefresh.emit();
+    this.emitRefresh();
   }
 
   async openDetail(job: Job) {
@@ -364,6 +364,30 @@ export class JobListComponent implements OnInit, OnDestroy {
 
       await this.jobService.openJobReport(job);
     }
+  }
+
+  setFilter(filter: Partial<JobFilter>) {}
+
+  resetFilter() {
+    this.filterForm.reset({ issuer: null, status: null, types: null }, { emitEvent: true });
+    this.filterCriteriaCount = 0;
+    if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
+    this.emitRefresh();
+  }
+
+  closeFilterPanel() {
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+    this.filterPanelFloating = true;
+  }
+
+  applyFilterAndClosePanel(event?: Event) {
+    this.emitRefresh(event);
+    if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
+  }
+
+  toggleFilterPanelFloating() {
+    this.filterPanelFloating = !this.filterPanelFloating;
+    this.markForCheck();
   }
 
   protected decorate(job: Job) {
@@ -379,35 +403,18 @@ export class JobListComponent implements OnInit, OnDestroy {
     job.icon = { matIcon, color };
   }
 
-  setFilter(filter: Partial<JobFilter>) {}
-
-  resetFilter() {
-    this.filterForm.reset({ issuer: null, status: null, types: null }, { emitEvent: true });
-    this.filterCriteriaCount = 0;
-    if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
-    this.onRefresh.emit();
-  }
-
-  closeFilterPanel() {
-    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
-    this.filterPanelFloating = true;
-  }
-
-  applyFilterAndClosePanel(event?: Event) {
-    this.onRefresh.emit(event);
-    if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
-  }
-
-  toggleFilterPanelFloating() {
-    this.filterPanelFloating = !this.filterPanelFloating;
-    this.markForCheck();
+  protected emitRefresh(value?: any) {
+    // Emit onRefresh if not closed (can happen if component is destroyed to early)
+    if (!!this.onRefresh && !this.onRefresh.closed) {
+      this.onRefresh.emit(value);
+    }
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
-  trackByFn(index: number, job: Job) {
+  protected trackByFn(index: number, job: Job) {
     return job.id;
   }
 }
