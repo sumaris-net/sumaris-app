@@ -2867,8 +2867,11 @@ export class CalendarComponent
         resizing: false,
       };
 
-    // Maximize the targeted cells
-    targetCellSelection.colspan = Math.max(targetCellSelection.colspan, sourceMonths.length);
+    // Maximize the targeted cells (but keep the colspan sign - see issue #867)
+    targetCellSelection.colspan =
+      targetCellSelection.colspan >= 0
+        ? Math.max(targetCellSelection.colspan, sourceMonths.length)
+        : Math.min(targetCellSelection.colspan, sourceMonths.length * -1);
     targetCellSelection.rowspan = sourcePaths.length;
 
     const { rows: targetRows, paths: targetPaths } = this.getRowsFromSelection(targetCellSelection);
