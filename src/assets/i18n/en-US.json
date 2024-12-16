@@ -3674,6 +3674,8 @@
     "FIREFOX_NO_STORAGE": "The application cannot run with Firefox in 'private' mode or without keeping navigation history",
     "FEATURE_NOT_IMPLEMENTED": "Feature not implemented! <small><br/>Please contact your administrator.</small>",
     "GEOLOCATION_ERROR": "Geolocation <b>impossible</b>.<small><br/>{{message}}</small>",
+    "PERMISSION_DENIED": "Permission denied",
+    "TIMEOUT": "Timeout expired",
     "SHARE_AS_PUBLIC_FAIL": "Failed to share publicly",
     "INCOMPATIBLE_WEB_BROWSER": "Feature not compatible with your web browser. <small><br/>Please contact your administrator, or try another web browser.</small>"
   },

@@ -78,7 +78,7 @@ import { OverlayEventDetail } from '@ionic/core';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
-type PositionField = 'startPosition' | 'fishingStartPosition' | 'fishingEndPosition' | 'endPosition';
+type PositionFieldName = 'startPosition' | 'fishingStartPosition' | 'fishingEndPosition' | 'endPosition';
 
 export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   {
@@ -639,14 +639,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
    * @param event
    * @param fieldName
    */
-  async onFillPositionClick(event: Event, fieldName: string) {
+  async onFillPositionClick(event: Event, fieldName: PositionFieldName) {
     if (this.busySubject.value) return; // Skip if busy (e.g. already running a GPS resolution)
 
     if (event) {
       event.preventDefault();
       event.stopPropagation(); // Avoid focus into the longitude field
     }
-    const positionGroup = this.form.controls[fieldName];
+    const positionGroup = this.form.get(fieldName);
     if (positionGroup instanceof UntypedFormGroup) {
       const now = Date.now();
 
@@ -671,8 +671,20 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
         // Next time: force to show spinner again
         this._emitGeolocationBusy = true;
+
+        // Analyze error message
         let message = err?.message || err;
-        if (typeof message === 'object') message = JSON.stringify(message);
+        let code = err?.code || -1;
+        switch (code) {
+          case GeolocationPositionError.PERMISSION_DENIED:
+            message = 'ERROR.PERMISSION_DENIED';
+            break;
+          case GeolocationPositionError.TIMEOUT:
+            message = 'ERROR.TIMEOUT';
+            break;
+          default:
+            if (typeof message === 'object') message = JSON.stringify(message);
+        }
 
         // Display error to user (if component not destroyed)
         if (!this.destroySubject.closed) {
@@ -691,10 +703,17 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         this.markAsNotBusy();
       }
     }
-    // Set also the end date time
-    if (fieldName === 'endPosition') {
-      const endDateTimeControlName = this.isChildOperation ? 'endDateTime' : 'fishingStartDateTime';
-      this.form.get(endDateTimeControlName).setValue(moment(), { emitEvent: false, onlySelf: true });
+
+    // Fill date time, if enabled and empty (or without time)
+    // See issue #874
+    const fieldNamePrefix = fieldName.substring(0, fieldName.length - 'Position'.length);
+    const dateTimeControl = this.form.get(fieldNamePrefix + 'DateTime');
+    if (dateTimeControl?.enabled) {
+      const dateTime = fromDateISOString(dateTimeControl.value);
+      const emptyDateTime = isNil(dateTime) || DateUtils.isNoTime(dateTime);
+      if (emptyDateTime) {
+        dateTimeControl.setValue(DateUtils.moment().startOf('minutes'), { emitEvent: false, onlySelf: true });
+      }
     }
 
     this.form.markAsDirty({ onlySelf: true });
@@ -705,7 +724,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this.markForCheck();
   }
 
-  copyPosition(event: Event, source: PositionField, target?: PositionField) {
+  copyPosition(event: Event, source: PositionFieldName, target?: PositionFieldName) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
