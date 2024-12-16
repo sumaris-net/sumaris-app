@@ -1028,6 +1028,7 @@ export class ActivityCalendarPage
     if (isEmptyArray(sources)) return; // Skip if empty
 
     const existingMonths = this.calendar.getValue();
+    let containsExternalExpertiseData = false;
 
     // Ask user confirmation if calendar is not empty
     const hasSomeData = existingMonths.some((month) => isNotNil(month.isActive));
@@ -1050,7 +1051,7 @@ export class ActivityCalendarPage
         source.isActive = null;
       }
 
-      return ActivityMonth.fromObject(<Partial<ActivityMonth>>{
+      const month = ActivityMonth.fromObject(<Partial<ActivityMonth>>{
         ...source,
         // Preserved some properties
         id: existingMonth.id,
@@ -1080,10 +1081,30 @@ export class ActivityCalendarPage
           })
         ),
       });
+
+      containsExternalExpertiseData =
+        ExpertiseAreaUtils.isOutsideExpertiseArea(source.basePortLocation) ||
+        source?.gearUseFeatures.some(
+          (guf) =>
+            ExpertiseAreaUtils.isOutsideExpertiseArea(guf.metier) ||
+            guf.fishingAreas.some(
+              (fa) =>
+                ExpertiseAreaUtils.isOutsideExpertiseArea(fa.location) ||
+                ExpertiseAreaUtils.isOutsideExpertiseArea(fa.distanceToCoastGradient) ||
+                ExpertiseAreaUtils.isOutsideExpertiseArea(fa.depthGradient) ||
+                ExpertiseAreaUtils.isOutsideExpertiseArea(fa.nearbySpecificArea)
+            )
+        );
+
+      return month;
     });
 
     // Apply result
     await this.calendar.setValue(target);
+
+    if (containsExternalExpertiseData) {
+      this.calendar.showUnauthorizedToast('ACTIVITY_CALENDAR.WARNING.OUTSIDE_EXPERTISE_AREA_PASTE', { markRowAsDirty: true });
+    }
 
     // Mark as dirty
     this.markAsDirty();
