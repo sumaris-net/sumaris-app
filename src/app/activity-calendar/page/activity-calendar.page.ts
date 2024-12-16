@@ -989,7 +989,12 @@ export class ActivityCalendarPage
   }
 
   protected vesselToString(vessel: VesselSnapshot) {
-    return `${vessel.registrationLocation.label} ${vessel.registrationLocation.name} - ${vessel.registrationCode} - ${vessel.name}`;
+    if (!vessel) return '';
+    return (
+      (vessel.registrationLocation?.label ? `${vessel.registrationLocation.label || ''} ${vessel.registrationLocation.name || ''} - ` : '') +
+      (vessel.registrationCode ? `${vessel.registrationCode} - ` : '') +
+      (vessel.name || '?')
+    );
   }
 
   protected clearCalendar(event?: Event) {
