@@ -146,7 +146,7 @@ export class CalendarTestPage implements OnInit {
     this.calendar.timezone = 'UTC';
     this.calendar.markAsReady();
 
-    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data);
+    this.calendar.value = ActivityMonthUtils.fromActivityCalendar(data, { timezone: this.calendar.timezone });
     this.calendar.enable();
   }
 
