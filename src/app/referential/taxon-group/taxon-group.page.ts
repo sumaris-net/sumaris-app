@@ -76,7 +76,7 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
   /* -- protected methods -- */
 
   protected computePageUrl(id: 'new' | number): string | any[] {
-    return `/referential/taxon-group/${id}`;
+    return `/referential/taxonGroup/${id}`;
   }
 
   protected registerForms() {

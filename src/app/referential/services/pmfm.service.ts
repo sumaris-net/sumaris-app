@@ -17,6 +17,7 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   ObjectMap,
+  ReferentialRef,
   ReferentialUtils,
   StatusIds,
   SuggestService,
@@ -30,7 +31,7 @@ import { map } from 'rxjs/operators';
 import { SortDirection } from '@angular/material/sort';
 import { ReferentialRefService } from './referential-ref.service';
 import { CacheService } from 'ionic-cache';
-import { ParameterLabelGroups } from '@app/referential/services/model/model.enum';
+import { ParameterLabelGroups, UnitIds } from '@app/referential/services/model/model.enum';
 import { arrayPluck } from '@app/shared/functions';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
@@ -479,6 +480,10 @@ export class PmfmService
 
   protected fillDefaultProperties(entity: Pmfm) {
     entity.statusId = isNotNil(entity.statusId) ? entity.statusId : StatusIds.ENABLE;
+
+    if (!entity.unit && !entity.unitLabel) {
+      entity.unit = ReferentialRef.fromObject({ id: UnitIds.NONE, entityName: 'Unit' });
+    }
   }
 
   protected copyIdAndUpdateDate(source: Pmfm, target: Pmfm) {

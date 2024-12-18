@@ -168,9 +168,10 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     console.info(this.logPrefix + `Importing ${entities.length} entities...`, entities);
 
     // Applying defaults
-    entities.forEach((entity) => {
+    for (let entity of entities) {
+      EntityUtils.cleanIdAndUpdateDate(entity);
       entity.programId = this._program?.id;
-    });
+    }
 
     // Add entities, one by one
     await this.strategyService.saveAll(entities);
@@ -211,7 +212,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
     const entities = sources.map(Strategy.fromObject).filter(isNotNil);
 
-    // TODO ask user a transcibing system ?
+    // TODO ask user a transcribing system ?
     const transcribingSystemId = null;
 
     this.transcribeAllItems(entities, transcribingSystemId)

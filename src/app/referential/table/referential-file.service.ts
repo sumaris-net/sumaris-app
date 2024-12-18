@@ -58,7 +58,7 @@ export class ReferentialFileService<
   @Input() entityName: string;
   @Input() columnDefinitions: FormFieldDefinition[];
   @Input() defaultNewRowValue: () => any;
-  @Input() isKnownEntityName: (entityName: string) => boolean;
+  @Input() isKnownRootEntityName: (entityName: string) => boolean;
   @Input() loadByLabel: (label: string, filter: Partial<ReferentialFilter> & { entityName: string }) => Promise<IReferentialRef<any>>;
   @Input() loadLevelById: (id: number) => IReferentialRef<any>;
   @Input() loadStatusById: (id: number) => IStatus;
@@ -393,10 +393,11 @@ export class ReferentialFileService<
     const importPolicy = opts?.importPolicy || this.importPolicy || 'insert-update';
 
     // Remove entities with id, if policy = 'insert only'
-    if (importPolicy === 'insert-only') {
-      sources = sources.filter((source) => isNil(source.id));
-      if (isEmptyArray(sources)) return; // No new entities
-    }
+    // FIXME: not working when importing file from another database
+    // if (importPolicy === 'insert-only') {
+    //   sources = sources.filter((source) => isNil(source.id));
+    //   if (isEmptyArray(sources)) return; // No new entities
+    // }
 
     // Sort by ID, to be able to import in the same order
     sources = EntityUtils.sort(sources, 'id', 'asc');
@@ -435,7 +436,7 @@ export class ReferentialFileService<
               for (const internalSource of internalSources) {
                 const subEntityName = AppReferentialUtils.getEntityName(internalSource);
                 const label = internalSource['label'];
-                if (subEntityName && isNotNilOrBlank(label) && this.isKnownEntityName(subEntityName)) {
+                if (subEntityName && isNotNilOrBlank(label) && this.isKnownRootEntityName(subEntityName)) {
                   const existingTarget = await this.loadByLabel(label, { entityName: subEntityName });
                   if (existingTarget) {
                     console.debug(`[referential-table] Found match ${subEntityName}#${existingTarget.id} for {label: '${label}'}`);

@@ -51,14 +51,23 @@ export const ReferentialQueries: BaseEntityGraphqlQueries & { loadAllFull?: any;
   // Load all full
   loadAllFull: gql`
     query FullReferentials(
-      $entityName: String
+      $entityName: String!
       $offset: Int
       $size: Int
       $sortBy: String
       $sortDirection: String
       $filter: ReferentialFilterVOInput
+      $cache: Boolean
     ) {
-      data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+      data: referentials(
+        entityName: $entityName
+        offset: $offset
+        size: $size
+        sortBy: $sortBy
+        sortDirection: $sortDirection
+        filter: $filter
+        cache: $cache
+      ) {
         ...FullReferentialFragment
       }
     }
@@ -67,8 +76,24 @@ export const ReferentialQueries: BaseEntityGraphqlQueries & { loadAllFull?: any;
 
   // Load all
   loadAll: gql`
-    query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput) {
-      data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+    query Referentials(
+      $entityName: String!
+      $offset: Int
+      $size: Int
+      $sortBy: String
+      $sortDirection: String
+      $filter: ReferentialFilterVOInput
+      $cache: Boolean
+    ) {
+      data: referentials(
+        entityName: $entityName
+        offset: $offset
+        size: $size
+        sortBy: $sortBy
+        sortDirection: $sortDirection
+        filter: $filter
+        cache: $cache
+      ) {
         ...ReferentialFragment
       }
     }
@@ -78,24 +103,33 @@ export const ReferentialQueries: BaseEntityGraphqlQueries & { loadAllFull?: any;
   // Load all with total
   loadAllWithTotal: gql`
     query ReferentialsWithTotal(
-      $entityName: String
+      $entityName: String!
       $offset: Int
       $size: Int
       $sortBy: String
       $sortDirection: String
       $filter: ReferentialFilterVOInput
+      $cache: Boolean
     ) {
-      data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+      data: referentials(
+        entityName: $entityName
+        offset: $offset
+        size: $size
+        sortBy: $sortBy
+        sortDirection: $sortDirection
+        filter: $filter
+        cache: $cache
+      ) {
         ...ReferentialFragment
       }
-      total: referentialsCount(entityName: $entityName, filter: $filter)
+      total: referentialsCount(entityName: $entityName, filter: $filter, cache: $cache)
     }
     ${ReferentialFragments.referential}
   `,
 
   countAll: gql`
-    query ReferentialsCount($entityName: String, $filter: ReferentialFilterVOInput) {
-      total: referentialsCount(entityName: $entityName, filter: $filter)
+    query ReferentialsCount($entityName: String, $filter: ReferentialFilterVOInput, $cache: Boolean) {
+      total: referentialsCount(entityName: $entityName, filter: $filter, cache: $cache)
     }
   `,
 
@@ -197,6 +231,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
       sortBy: sortBy || 'label',
       sortDirection: sortDirection || 'asc',
       filter: filter && filter.asPodObject(),
+      cache: false, // Skip cache
     };
 
     let now = this._debug && Date.now();
@@ -256,6 +291,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
       sortBy: sortBy || filter.searchAttribute || 'label',
       sortDirection: sortDirection || 'asc',
       filter: filter && filter.asPodObject(),
+      cache: false, // Skip cache
     };
 
     const now = Date.now();
@@ -441,6 +477,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
       variables: {
         entityName: filter.entityName,
         filter: filter.asPodObject(),
+        cache: false, // Skip cache
       },
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
       fetchPolicy: (opts && opts.fetchPolicy) || 'network-only',

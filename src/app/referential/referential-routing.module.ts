@@ -125,7 +125,7 @@ const routes: Routes = [
     loadChildren: () => import('./metier/metier-routing.module').then((m) => m.AppMetierRoutingModule),
   },
   {
-    path: 'expertise-area',
+    path: 'expertiseArea',
     loadChildren: () => import('./expertise-area/expertise-area-routing.module').then((m) => m.AppExpertiseAreaRoutingModule),
   },
 ];

@@ -15,7 +15,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   allowDarkMode: true,
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '2.9.19',
+  peerMinVersion: '2.9.27',
 
   // Check Web new app version
   checkAppVersionIntervalInSeconds: 5 * 60, // every 5min
