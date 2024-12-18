@@ -8,8 +8,8 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 import { MatIcon } from '@angular/material/icon';
 import { MatIconButton } from '@angular/material/button';
 import { MatSuffix } from '@angular/material/form-field';
-import { SharedPipesModule } from '../../../../../ngx-sumaris-components/src/app/shared/pipes/pipes.module';
 import { IonicModule } from '@ionic/angular';
+import { SharedPipesModule } from '@sumaris-net/ngx-components';
 
 @NgModule({
   imports: [
