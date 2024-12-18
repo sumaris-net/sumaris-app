@@ -47,7 +47,14 @@
         </button>
 
         @if (clearable) {
-          <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="clearValue($event)" [hidden]="disabled || !formControl.value">
+          <button
+            matSuffix
+            mat-icon-button
+            tabindex="-1"
+            type="button"
+            (click)="clearValue($event)"
+            [hidden]="disabled || (formControl | formGetValue | isNil)"
+          >
             <mat-icon>close</mat-icon>
           </button>
         }
@@ -165,7 +172,14 @@
         </mat-select>
 
         @if (clearable) {
-          <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="clearValue($event)" [hidden]="disabled || !formControl.value">
+          <button
+            matSuffix
+            mat-icon-button
+            tabindex="-1"
+            type="button"
+            (click)="clearValue($event)"
+            [hidden]="disabled || (formControl | formGetValue | isNil)"
+          >
             <mat-icon>close</mat-icon>
           </button>
         }
@@ -220,7 +234,7 @@
                   (click)="writeValue(item)"
                   (keyup.enter)="writeValue(item, $event)"
                 >
-                  {{ item.name || item.label }}
+                  <span>{{ item.name || item.label }}</span>
                 </ion-button>
               }
             }
@@ -237,7 +251,7 @@
             color="medium"
             tabindex="-1"
             (click)="clearValue($event)"
-            [hidden]="disabled || !formControl.value"
+            [hidden]="disabled || (formControl | formGetValue | isNil)"
           >
             <ion-icon slot="icon-only" name="close"></ion-icon>
           </ion-button>
