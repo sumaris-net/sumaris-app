@@ -5,6 +5,11 @@ import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
+import { MatIcon } from '@angular/material/icon';
+import { MatIconButton } from '@angular/material/button';
+import { MatSuffix } from '@angular/material/form-field';
+import { SharedPipesModule } from '../../../../../ngx-sumaris-components/src/app/shared/pipes/pipes.module';
+import { IonicModule } from '@ionic/angular';
 
 @NgModule({
   imports: [
@@ -14,6 +19,15 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
     // App modules
     AppCoreModule,
     AppReferentialPipesModule,
+    MatIcon,
+    MatIconButton,
+    MatSuffix,
+    SharedPipesModule,
+    MatIcon,
+    MatIconButton,
+    MatSuffix,
+    IonicModule,
+    MatSuffix,
   ],
   declarations: [
     // Components
