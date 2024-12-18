@@ -22,7 +22,7 @@ const TaxonGroupQueries: BaseEntityGraphqlQueries = {
       data: taxonGroups(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
         ...TaxonGroupFragment
       }
-      total: taxonGroupsCount(filter: $filter)
+      total: referentialsCount(entityName: "TaxonGroup", filter: $filter)
     }
     ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
