@@ -86,7 +86,7 @@ export class ExpertiseAreaPage extends AppReferentialEditor<ExpertiseArea, Exper
   /* -- protected methods -- */
 
   protected computePageUrl(id: 'new' | number): string | any[] {
-    return `/referential/expertise-area/${id}`;
+    return `/referential/expertiseArea/${id}`;
   }
 
   protected async onEntityLoaded(data: ExpertiseArea, options?: EntityServiceLoadOptions): Promise<void> {
