@@ -15,7 +15,7 @@
   <ion-title [innerHTML]="titleSubject | async"></ion-title>
 
   <ion-buttons slot="end">
-    <ng-container *ngIf="mobile && selectedTabIndex === 2">
+    @if (mobile && selectedTabIndex === 2) {
       <!-- Reset filter -->
       <button mat-icon-button (click)="operationsTable.resetFilter()" *ngIf="operationsTable.filterCriteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
@@ -34,7 +34,7 @@
           filter_list_alt
         </mat-icon>
       </button>
-    </ng-container>
+    }
 
     <!-- option menu -->
     <ion-button

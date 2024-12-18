@@ -115,30 +115,33 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       form.addControl(
         'measurements',
         this.measurementsValidatorService.getFormGroup(data && data.measurements, {
-          forceOptional: opts.isOnFieldMode,
+          forceOptional: opts.isOnFieldMode, // FIXME Seems to be not used, in MeasurementsValidatorService
           pmfms: opts.pmfms,
         })
       );
     }
 
-    // Add position
+    // Add positions
     if (opts.withPosition) {
+      // Start position (always required)
       form.addControl(
         'startPosition',
         this.positionValidator.getFormGroup(data?.startPosition || null, {
           __typename: VesselPosition.TYPENAME,
           required: true,
-          boundingBox: opts?.boundingBox,
+          boundingBox: opts.boundingBox,
         })
       );
 
+      // Fishing start position
       if (opts.withFishingStart) {
         form.addControl(
           'fishingStartPosition',
           this.positionValidator.getFormGroup(data?.fishingStartPosition || null, {
             __typename: VesselPosition.TYPENAME,
-            required: opts && !opts.isOnFieldMode,
-            boundingBox: opts?.boundingBox,
+            // Always required on desktop OR in parent operation (because this position will be used by the child operation)
+            required: !opts.isOnFieldMode || opts.isParent,
+            boundingBox: opts.boundingBox,
           })
         );
       }
@@ -147,8 +150,8 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
           'fishingEndPosition',
           this.positionValidator.getFormGroup(data?.fishingEndPosition || null, {
             __typename: VesselPosition.TYPENAME,
-            required: opts && !opts.isOnFieldMode,
-            boundingBox: opts?.boundingBox,
+            required: !opts.isOnFieldMode,
+            boundingBox: opts.boundingBox,
           })
         );
       }
@@ -157,15 +160,16 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
           'endPosition',
           this.positionValidator.getFormGroup(data?.endPosition || null, {
             __typename: VesselPosition.TYPENAME,
-            required: opts && !opts.isOnFieldMode,
-            boundingBox: opts?.boundingBox,
+            // Always required on desktop OR in parent operation (because this position will be used by the child operation)
+            required: !opts.isOnFieldMode || opts.isParent,
+            boundingBox: opts.boundingBox,
           })
         );
       }
     }
 
     // Add fishing Ares
-    if (opts.withFishingAreas) {
+    else if (opts.withFishingAreas) {
       form.addControl(
         'fishingAreas',
         this.getFishingAreasArray(data?.fishingAreas, {

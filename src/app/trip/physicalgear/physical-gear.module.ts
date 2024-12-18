@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
+import { PhysicalGearToStringPipe } from '@app/trip/physicalgear/physical-gear.pipe';
 
 @NgModule({
   imports: [
@@ -25,12 +26,20 @@ import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
     AppVesselModule,
     AppMeasurementModule,
   ],
-  declarations: [PhysicalGearTable, PhysicalGearForm, PhysicalGearModal, SelectPhysicalGearModal],
+  declarations: [
+    PhysicalGearTable,
+    PhysicalGearForm,
+    PhysicalGearModal,
+    SelectPhysicalGearModal,
+    // Pipes
+    PhysicalGearToStringPipe,
+  ],
   exports: [
     // Modules
     TranslateModule,
 
     // Pipes
+    PhysicalGearToStringPipe,
 
     // Components
     PhysicalGearTable,
