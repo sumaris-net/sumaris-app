@@ -370,6 +370,7 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           profile: 'USER',
           ifProperty: 'sumaris.activityCalendar.enable',
           titleProperty: 'sumaris.activityCalendar.name',
+          cssClass: 'hidden-mobile',
         },
         // Data extraction
         {
