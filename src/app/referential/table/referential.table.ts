@@ -299,8 +299,10 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
         .subscribe((types) => {
           this.$allEntities.next(types);
 
-          const menuEntities = types.filter((type) => !this.hiddenEntityNames.includes(type.id));
-          const menuDividers = collectByProperty(menuEntities, 'divider');
+          // Get only root entities (exclude children entities)
+          const rootEntities = types.filter((type) => !type.disabled);
+
+          const menuDividers = collectByProperty(rootEntities, 'divider');
           const menuItems = Object.keys(menuDividers)
             .map((divider) => {
               const dividerLabel = divider === 'ZZZ' ? this.translate.instant('REFERENTIAL.ENTITY_DIVIDER.OTHER') : divider;
@@ -438,7 +440,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
         this.fileService = new ReferentialFileService<IReferentialRef<any>>(this.injector, this.dataSource, columnDefinitions, dataService, dataType);
         this.fileService.i18nColumnPrefix = this.i18nColumnPrefix;
         this.fileService.defaultNewRowValue = () => this.defaultNewRowValue();
-        this.fileService.isKnownEntityName = (name) => this.isKnownEntityName(name);
+        this.fileService.isKnownRootEntityName = (name) => this.isKnownRootEntityName(name);
         this.fileService.loadByLabel = (label, filter) => this.loadByLabel(label, filter);
         this.fileService.entityName = entityName;
         this.fileService.loadLevelById = (levelId) => (this.$levels.value || []).find((l) => l.id === levelId);
@@ -657,11 +659,18 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     if (!dataType) throw new Error('No dataType defined for the entity name: ' + entityName);
 
     try {
-      const { data, total } = await this.referentialService.loadAll(0, 1, 'label', 'asc', {
-        ...filter,
-        entityName,
-        label,
-      });
+      const { data, total } = await this.referentialService.loadAll(
+        0,
+        1,
+        'label',
+        'asc',
+        {
+          ...filter,
+          entityName,
+          label,
+        },
+        { withTotal: true }
+      );
       if (total === 0) return undefined;
       if (total > 1) throw { code: ErrorCodes.TOO_MANY_REFERENCE_FOUND, message: `To many match of ${entityName} with label ${label}` };
       const json = data[0];
@@ -773,7 +782,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     if (dataType) return dataType;
 
     // Check if can be managed by generic class
-    if (!this.isKnownEntityName(entityName)) return undefined;
+    if (!this.isKnownRootEntityName(entityName)) return undefined;
 
     return Referential;
   }
@@ -786,14 +795,20 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     if (validator) return validator;
 
     // Check if can be managed by generic class
-    if (!this.isKnownEntityName(entityName)) return undefined;
+    if (!this.isKnownRootEntityName(entityName)) return undefined;
 
     return this.validatorService;
   }
 
-  protected isKnownEntityName(entityName: string): boolean {
+  protected isKnownRootEntityName(entityName: string): boolean {
+    return this.isKnownEntityName(entityName, { disabled: false });
+  }
+
+  protected isKnownEntityName(entityName: string, filter?: { disabled?: boolean }): boolean {
     if (!entityName) return false;
-    return (this.$allEntities.value || []).some((item) => item.id === entityName) || this.hiddenEntityNames.includes(entityName);
+    return (this.$allEntities.value || [])
+      .filter((item) => isNil(filter?.disabled) || filter.disabled === item.disabled)
+      .some((item) => item.id === entityName);
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
