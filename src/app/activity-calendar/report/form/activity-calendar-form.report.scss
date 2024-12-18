@@ -44,9 +44,8 @@
                 right: 0;
                 top: 0;
                 bottom: 0;
+                padding: 3px;
                 & > div {
-                  margin-top: 0.1em;
-                  padding: 0 5px;
                   text-overflow: ellipsis;
                   overflow: hidden;
                 }
