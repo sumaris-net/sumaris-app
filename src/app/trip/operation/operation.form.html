@@ -504,18 +504,13 @@
                   <mat-error *ngIf="position.hasError('maxDistance')">
                     {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: position.errors.maxDistance }}
                   </mat-error>
-                  @if (position.valid && distance >= 0) {
-                    @if (distanceWarning) {
-                      <mat-hint align="end">
-                        <mat-icon color="warn">warning</mat-icon>
-                        {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: { distance: distance } }}
-                      </mat-hint>
-                    } @else {
-                      <mat-hint align="end">
-                        {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate: { distance: distance } }}
-                      </mat-hint>
-                    }
-                  }
+                  <mat-hint align="end" *ngIf="position.valid && distanceWarning && distance">
+                    <mat-icon color="warn">warning</mat-icon>
+                    {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: { distance: distance } }}
+                  </mat-hint>
+                  <mat-hint align="end" *ngIf="position.valid && !distanceWarning && distance >= 0">
+                    {{ 'TRIP.OPERATION.EDIT.DISTANCE_DOTS' | translate: { distance: distance } }}
+                  </mat-hint>
                 </mat-latlong-field>
               </ion-col>
             } @else if (showInlineFishingArea) {

@@ -1327,7 +1327,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       }
     }
 
-    if (!opts || !opts.emitEvent !== false) {
+    if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
     }
   }
