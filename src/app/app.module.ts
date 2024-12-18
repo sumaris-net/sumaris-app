@@ -372,21 +372,35 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           titleProperty: 'sumaris.activityCalendar.name',
         },
         // Data extraction
-        { title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST' },
+        {
+          title: 'MENU.DATA_ACCESS_DIVIDER',
+          ifProperty: 'sumaris.extraction.enabled',
+          profile: 'GUEST',
+          cssClass: 'hidden-xs',
+        },
         {
           title: 'MENU.DOWNLOADS',
           path: '/extraction/data',
           icon: 'cloud-download',
           ifProperty: 'sumaris.extraction.product.enable',
           profile: 'GUEST',
+          cssClass: 'hidden-xs',
         },
-        { title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST' },
+        {
+          title: 'MENU.MAP',
+          path: '/extraction/map',
+          icon: 'earth',
+          ifProperty: 'sumaris.extraction.map.enable',
+          profile: 'GUEST',
+          cssClass: 'hidden-xs',
+        },
         {
           title: 'MENU.DEVICE_POSITION',
           path: '/extraction/device-position',
           icon: 'location-outline',
           ifProperty: 'sumaris.device.position.tracking.enable',
           profile: 'ADMIN',
+          cssClass: 'hidden-xs',
         },
         // Referential
         { title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER' },
