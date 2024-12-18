@@ -29,7 +29,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   // FIXME: enable cache
   persistCache: false,
 
-  peerMinVersion: '2.9.20',
+  peerMinVersion: '2.9.27',
 
   // Enable selection by programs
   enableSelectPeerByFeature: true,

@@ -17,7 +17,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   // Environment
   externalEnvironmentUrl: 'assets/environments/environment.json',
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '2.9.25',
+  peerMinVersion: '2.9.27',
 
   // Enable selection by programs
   enableSelectPeerByFeature: true,
