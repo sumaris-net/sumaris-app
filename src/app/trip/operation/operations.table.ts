@@ -403,7 +403,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter, Op
 
     const gearAttributes = this.settings.getFieldDisplayAttributes('gear');
     this.displayAttributes = {
-      gear: this.settings.getFieldDisplayAttributes('gear'),
+      gear: gearAttributes,
       physicalGear: this.settings.getFieldDisplayAttributes('physicalGear', ['rankOrder', ...gearAttributes.map((attr) => `gear.${attr}`)]),
       taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
       fishingArea: this.settings.getFieldDisplayAttributes('fishingArea', ['label']),
