@@ -299,7 +299,7 @@ package:webext:feature:
     - echo "--- Fishing release"
     - git add .
     - git status
-    - git commit -m "Prepare release ${RELEASE_VERSION}" --no-verify
+    - git commit -m "Prepare release ${RELEASE_VERSION}" --no-verify || true
     - if [[ "$CI_COMMIT_REF_NAME" == "develop" ]]; then git checkout master; fi
     - if [[ "$CI_COMMIT_REF_NAME" == "develop" ]]; then git reset --hard origin/master ; fi
     - if [[ "$CI_COMMIT_REF_NAME" == "develop" ]]; then git merge --no-ff --no-edit -m "Release ${RELEASE_VERSION}" "release/${RELEASE_VERSION}" ; fi
