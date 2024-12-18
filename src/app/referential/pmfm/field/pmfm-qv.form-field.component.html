@@ -38,16 +38,19 @@
           (blur)="onInputTextBlur($event)"
           [required]="required"
           [tabindex]="_tabindex"
-          (keyup.enter)="this.onKeyupEnter.emit($event)"
+          (keyup.enter)="onKeyupEnter.emit($event)"
           (keyup.arrowDown)="!autocomplete.showPanel && dropButtonClick.emit($event)"
         />
 
         <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="toggleShowPanel($event)" [hidden]="disabled">
           <mat-icon>{{ mobile ? 'arrow_drop_down' : 'keyboard_arrow_down' }}</mat-icon>
         </button>
-        <button matSuffix mat-icon-button tabindex="-1" type="button" *ngIf="clearable" (click)="clear()" [hidden]="disabled || !formControl.value">
-          <mat-icon>close</mat-icon>
-        </button>
+
+        @if (clearable) {
+          <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="clearValue($event)" [hidden]="disabled || !formControl.value">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
 
         <div matSuffix class="mat-form-field-suffix-container">
           <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
@@ -135,7 +138,7 @@
           </ion-row>
 
           <!-- None option -->
-          <mat-option *ngIf="!required" class="ion-no-padding">
+          <mat-option *ngIf="!required && !clearable" class="ion-no-padding">
             <ion-row class="ion-no-padding">
               <ion-col *ngIf="compact" size="3"></ion-col>
               <ion-col *ngIf="!compact" size="3" size-lg="2"></ion-col>
@@ -160,6 +163,12 @@
             </ion-row>
           </mat-option>
         </mat-select>
+
+        @if (clearable) {
+          <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="clearValue($event)" [hidden]="disabled || !formControl.value">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
 
         <div matSuffix>
           <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
@@ -218,6 +227,20 @@
           </div>
         } @else {
           <ion-label translate>COMMON.EMPTY_OPTION</ion-label>
+        }
+
+        @if (clearable) {
+          <ion-button
+            matSuffix
+            fill="clear"
+            size="small"
+            color="medium"
+            tabindex="-1"
+            (click)="clearValue($event)"
+            [hidden]="disabled || !formControl.value"
+          >
+            <ion-icon slot="icon-only" name="close"></ion-icon>
+          </ion-button>
         }
 
         <div matSuffix>

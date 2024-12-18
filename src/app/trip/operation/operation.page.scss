@@ -26,9 +26,12 @@
 
   }
 }
-ion-col > ion-label {
-  word-wrap: break-word;
-  white-space: normal;
+
+.form-container {
+  ion-col > ion-label {
+    word-wrap: break-word;
+    white-space: normal;
+  }
 }
 
 .mat-tab-body.mat-tab-body-active {

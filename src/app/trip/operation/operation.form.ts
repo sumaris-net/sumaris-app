@@ -641,79 +641,83 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
    */
   async onFillPositionClick(event: Event, fieldName: PositionFieldName) {
     if (this.busySubject.value) return; // Skip if busy (e.g. already running a GPS resolution)
+    if (event?.defaultPrevented) return; // Skip if prevented
 
     if (event) {
       event.preventDefault();
       event.stopPropagation(); // Avoid focus into the longitude field
     }
+
     const positionGroup = this.form.get(fieldName);
-    if (positionGroup instanceof UntypedFormGroup) {
-      const now = Date.now();
-
-      try {
-        // Emit busy event (e.g. to show a backdrop - see operation page)
-        if (this._emitGeolocationBusy) {
-          this.markAsBusy();
-        }
-
-        // Get position
-        const coords = await this.operationService.getCurrentPosition({
-          stop: this.destroySubject,
-          showToast: true,
-          toastOptions: { position: 'middle' },
-        });
-        positionGroup.patchValue(coords, { emitEvent: false, onlySelf: true });
-
-        // Not need to emit next time, if quick execution time
-        this._emitGeolocationBusy = Date.now() - now > 1000;
-      } catch (err) {
-        if (err === 'CANCELLED') return; // User cancelled: stop here
-
-        // Next time: force to show spinner again
-        this._emitGeolocationBusy = true;
-
-        // Analyze error message
-        let message = err?.message || err;
-        let code = err?.code || -1;
-        switch (code) {
-          case GeolocationPositionError.PERMISSION_DENIED:
-            message = 'ERROR.PERMISSION_DENIED';
-            break;
-          case GeolocationPositionError.TIMEOUT:
-            message = 'ERROR.TIMEOUT';
-            break;
-          default:
-            if (typeof message === 'object') message = JSON.stringify(message);
-        }
-
-        // Display error to user (if component not destroyed)
-        if (!this.destroySubject.closed) {
-          this.showToast({
-            type: 'error',
-            message: 'ERROR.GEOLOCATION_ERROR',
-            messageParams: { message: this.translate.instant(message) },
-            showCloseButton: true,
-            duration: 5000,
-          });
-        }
-
-        return; // Stop here
-      } finally {
-        // Hide loading spinner
-        this.markAsNotBusy();
-      }
+    if (!(positionGroup instanceof UntypedFormGroup) || positionGroup.disabled) {
+      console.warn(`[operation-form] Cannot update the disabled control '${fieldName}'`);
+      return; // Skip
     }
+    const now = Date.now();
 
-    // Fill date time, if enabled and empty (or without time)
-    // See issue #874
-    const fieldNamePrefix = fieldName.substring(0, fieldName.length - 'Position'.length);
-    const dateTimeControl = this.form.get(fieldNamePrefix + 'DateTime');
-    if (dateTimeControl?.enabled) {
-      const dateTime = fromDateISOString(dateTimeControl.value);
-      const emptyDateTime = isNil(dateTime) || DateUtils.isNoTime(dateTime);
-      if (emptyDateTime) {
-        dateTimeControl.setValue(DateUtils.moment().startOf('minutes'), { emitEvent: false, onlySelf: true });
+    try {
+      // Emit busy event (e.g. to show a backdrop - see operation page)
+      if (this._emitGeolocationBusy) {
+        this.markAsBusy();
       }
+
+      // Get position
+      const coords = await this.operationService.getCurrentPosition({
+        stop: this.destroySubject,
+        showToast: true,
+        toastOptions: { position: 'middle' },
+      });
+      positionGroup.patchValue(coords, { emitEvent: false, onlySelf: true });
+
+      // Not need to emit next time, if quick execution time
+      this._emitGeolocationBusy = Date.now() - now > 1000;
+
+      // Fill date time, if enabled and empty (or without time)
+      // See issue #874
+      const fieldNamePrefix = fieldName.substring(0, fieldName.length - 'Position'.length);
+      const dateTimeControl = this.form.get(fieldNamePrefix + 'DateTime');
+      if (dateTimeControl?.enabled) {
+        const dateTime = fromDateISOString(dateTimeControl.value);
+        const emptyDateTime = isNil(dateTime) || DateUtils.isNoTime(dateTime);
+        if (emptyDateTime) {
+          dateTimeControl.patchValue(DateUtils.moment().startOf('minutes'), { emitEvent: false, onlySelf: true });
+        }
+      }
+    } catch (err) {
+      if (err === 'CANCELLED') return; // User cancelled: stop here
+
+      // Next time: force to show spinner again
+      this._emitGeolocationBusy = true;
+
+      // Analyze error message
+      let message = err?.message || err;
+      let code = err?.code || -1;
+      switch (code) {
+        case GeolocationPositionError.PERMISSION_DENIED:
+          message = 'ERROR.PERMISSION_DENIED';
+          break;
+        case GeolocationPositionError.TIMEOUT:
+          message = 'ERROR.TIMEOUT';
+          break;
+        default:
+          if (typeof message === 'object') message = JSON.stringify(message);
+      }
+
+      // Display error to user (if component not destroyed)
+      if (!this.destroySubject.closed) {
+        this.showToast({
+          type: 'error',
+          message: 'ERROR.GEOLOCATION_ERROR',
+          messageParams: { message: this.translate.instant(message) },
+          showCloseButton: true,
+          duration: 5000,
+        });
+      }
+
+      return; // Stop here
+    } finally {
+      // Hide loading spinner
+      this.markAsNotBusy();
     }
 
     this.form.markAsDirty({ onlySelf: true });
@@ -749,6 +753,34 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       },
       { emitEvent: true }
     );
+    this.markAsDirty();
+  }
+
+  copyInlineFishingArea(event: Event, sourceIndex: number, targetIndex?: number) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    const sourceControl = this.fishingAreasForm.at(sourceIndex);
+    const fishingAreaLocation = sourceControl.get('location')?.value;
+    if (ReferentialUtils.isEmpty(fishingAreaLocation)) return; // No location
+
+    if (isNil(targetIndex)) {
+      if (sourceIndex === 0) {
+        targetIndex = (this.fishingStartDateTimeEnable && 1) || (this.fishingEndDateTimeEnable && 2) || (this.endDateTimeEnable && 3) || undefined;
+      } else if (sourceIndex === 2) {
+        targetIndex = this.endDateTimeEnable ? 3 : undefined;
+      }
+      if (isNil(targetIndex)) return; // Skip if no target
+    }
+
+    console.debug(`[operation-form] Copying fishing area, from index ${sourceIndex} to index ${targetIndex}`);
+
+    const targetControl = this.fishingAreasForm.at(targetIndex);
+    if (!targetControl || targetControl.disabled) return; // Skip if not found or disabled
+
+    targetControl.patchValue({ location: fishingAreaLocation }, { emitEvent: true });
     this.markAsDirty();
   }
 
@@ -1295,7 +1327,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       }
     }
 
-    if (!opts || !opts.emitEvent !== false) {
+    if (!opts || opts.emitEvent !== false) {
       this.markForCheck();
     }
   }
@@ -1394,7 +1426,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
           merge(startDateTimeControl.valueChanges.pipe(distinctUntilChanged()), startDateTimeControl.statusChanges)
             .pipe(
               debounceTime(100),
-              filter(() => fishingStartDateTimeControl.enabled)
+              filter(() => fishingStartDateTimeControl.enabled && !this.isChildOperation)
             )
             .subscribe(() => this.copyDateNoTime(startDateTimeControl, fishingStartDateTimeControl))
         );
@@ -1410,7 +1442,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
           merge(fishingEndDateTimeControl.valueChanges.pipe(distinctUntilChanged()), fishingEndDateTimeControl.statusChanges)
             .pipe(
               debounceTime(100),
-              filter(() => endDateTimeControl.enabled)
+              filter(() => endDateTimeControl.enabled && !this.isParentOperation)
             )
             .subscribe(() => this.copyDateNoTime(fishingEndDateTimeControl, endDateTimeControl))
         );
@@ -1435,18 +1467,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
    */
   protected copyDateNoTime(source: AbstractControl<Moment>, target: AbstractControl<Moment>): void {
     const sourceValue = fromDateISOString(source.value);
-    if (isNil(sourceValue)) return;
+    if (isNil(sourceValue)) return; // Skip if nothing to copy
+
+    const targetValue = fromDateISOString(target.value);
+    if (isNotNil(targetValue) && !DateUtils.isNoTime(targetValue)) return; // Skip if target value already set (with a time)
 
     // DEBUG
     console.debug(`[operation] Copying date (without the time) from ${toDateISOString(source.value)} to ${toDateISOString(target.value)}`);
 
-    const targetValue = fromDateISOString(target.value);
-
-    // Skip if target value already set (with a time)
-    if (isNotNil(targetValue) && !DateUtils.isNoTime(targetValue)) return;
-
     const targetDateNoTime = DateUtils.markNoTime(sourceValue.clone().startOf('day'));
-    target.patchValue(targetDateNoTime, { emitEvent: true });
+    target.patchValue(targetDateNoTime, { emitEvent: false });
   }
 
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {

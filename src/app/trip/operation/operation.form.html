@@ -221,30 +221,26 @@
                   [required]="true"
                   [defaultSign]="defaultLongitudeSign"
                 >
-                  <button
-                    type="button"
-                    mat-icon-button
-                    matSuffix
-                    (click)="onFillPositionClick($event, 'startPosition')"
-                    tabindex="-1"
-                    *ngIf="enableGeolocation"
-                  >
-                    <mat-icon>gps_fixed</mat-icon>
-                  </button>
-                  <button
-                    type="button"
-                    mat-icon-button
-                    matSuffix
-                    *ngIf="enableCopyPosition"
-                    [class.cdk-visually-hidden]="position.invalid || (!fishingStartDateTimeEnable && isParentOperation)"
-                    (click)="copyPosition($event, 'startPosition')"
-                    [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
-                  >
-                    <mat-icon>arrow_downward</mat-icon>
-                  </button>
+                  @if (enableGeolocation) {
+                    <button type="button" mat-icon-button matSuffix (click)="onFillPositionClick($event, 'startPosition')" tabindex="-1">
+                      <mat-icon>gps_fixed</mat-icon>
+                    </button>
+                  }
+                  @if (enableCopyPosition) {
+                    <button
+                      type="button"
+                      mat-icon-button
+                      matSuffix
+                      [class.cdk-visually-hidden]="position.invalid || (!fishingStartDateTimeEnable && isParentOperation)"
+                      (click)="copyPosition($event, 'startPosition')"
+                      [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
+                    >
+                      <mat-icon>arrow_downward</mat-icon>
+                    </button>
+                  }
                 </mat-latlong-field>
               </ion-col>
-            } @else if (showInlineFishingArea) {
+            } @else if (showFishingArea && showInlineFishingArea) {
               <ion-col size="10" size-lg="5">
                 <ng-container
                   *ngTemplateOutlet="
@@ -253,6 +249,7 @@
                       fishingAreasForm: fishingAreasForm,
                       index: _dateIndexMap.start,
                       required: true,
+                      enableCopyFishingArea: fishingStartDateTimeEnable || !isParentOperation,
                     }
                   "
                 />
@@ -276,7 +273,7 @@
                 <mat-date-time-field
                   [placeholder]="'COMMON.DATE' | translate"
                   [formControl]="control"
-                  [required]="_usageMode | isOnDesk"
+                  [required]="(_usageMode | isOnDesk) || isParentOperation"
                   [clearable]="_usageMode | isOnField"
                   [tabindex]="tabindex + 9"
                   [startDate]="form.controls.startDateTime.valueChanges | async"
@@ -304,7 +301,7 @@
                   [placeholder]="'TRIP.OPERATION.EDIT.LATITUDE' | translate"
                   [latLongPattern]="latLongFormat"
                   [tabindex]="tabindex + 11"
-                  [required]="_usageMode | isOnDesk"
+                  [required]="(_usageMode | isOnDesk) || isParentOperation"
                   [defaultSign]="defaultLatitudeSign"
                 >
                   <mat-icon matPrefix *ngIf="mobile">room</mat-icon>
@@ -317,19 +314,14 @@
                   [placeholder]="'TRIP.OPERATION.EDIT.LONGITUDE' | translate"
                   [latLongPattern]="latLongFormat"
                   [tabindex]="tabindex + 13"
-                  [required]="_usageMode | isOnDesk"
+                  [required]="(_usageMode | isOnDesk) || isParentOperation"
                   [defaultSign]="defaultLongitudeSign"
                 >
-                  <button
-                    type="button"
-                    mat-icon-button
-                    matSuffix
-                    (click)="onFillPositionClick($event, 'fishingStartPosition')"
-                    tabindex="-1"
-                    [hidden]="!enableGeolocation"
-                  >
-                    <mat-icon>gps_fixed</mat-icon>
-                  </button>
+                  @if (enableGeolocation) {
+                    <button type="button" mat-icon-button matSuffix (click)="onFillPositionClick($event, 'fishingStartPosition')" tabindex="-1">
+                      <mat-icon>gps_fixed</mat-icon>
+                    </button>
+                  }
                   <mat-error *ngIf="position.hasError('maxDistance')">
                     {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: position.errors.maxDistance }}
                   </mat-error>
@@ -350,7 +342,7 @@
                     context: {
                       fishingAreasForm: fishingAreasForm,
                       index: _dateIndexMap.startFishing,
-                      required: _usageMode | isOnDesk,
+                      required: (_usageMode | isOnDesk) || isParentOperation,
                     }
                   "
                 />
@@ -406,26 +398,23 @@
                   [required]="isChildOperation"
                   [defaultSign]="defaultLongitudeSign"
                 >
-                  <button
-                    type="button"
-                    mat-icon-button
-                    matSuffix
-                    (click)="onFillPositionClick($event, 'fishingEndPosition')"
-                    tabindex="-1"
-                    [hidden]="!enableGeolocation"
-                  >
-                    <mat-icon>gps_fixed</mat-icon>
-                  </button>
-                  <button
-                    type="button"
-                    mat-icon-button
-                    matSuffix
-                    [hidden]="enableGeolocation || position.invalid || !endDateTimeEnable"
-                    (click)="copyPosition($event, 'fishingEndPosition', 'endPosition')"
-                    [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
-                  >
-                    <mat-icon>arrow_downward</mat-icon>
-                  </button>
+                  @if (enableGeolocation) {
+                    <button type="button" mat-icon-button matSuffix (click)="onFillPositionClick($event, 'fishingEndPosition')" tabindex="-1">
+                      <mat-icon>gps_fixed</mat-icon>
+                    </button>
+                  }
+                  @if (enableCopyPosition) {
+                    <button
+                      type="button"
+                      mat-icon-button
+                      matSuffix
+                      [class.cdk-visually-hidden]="position.invalid || !endDateTimeEnable"
+                      (click)="copyPosition($event, 'fishingEndPosition', 'endPosition')"
+                      [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
+                    >
+                      <mat-icon>arrow_downward</mat-icon>
+                    </button>
+                  }
                 </mat-latlong-field>
               </ion-col>
             } @else if (showInlineFishingArea) {
@@ -437,6 +426,7 @@
                       fishingAreasForm: fishingAreasForm,
                       index: _dateIndexMap.endFishing,
                       required: isChildOperation,
+                      enableCopyFishingArea: endDateTimeEnable,
                     }
                   "
                 />
@@ -506,16 +496,11 @@
                   [required]="_usageMode | isOnDesk"
                   [defaultSign]="defaultLongitudeSign"
                 >
-                  <button
-                    type="button"
-                    mat-icon-button
-                    matSuffix
-                    (click)="onFillPositionClick($event, 'endPosition')"
-                    tabindex="-1"
-                    [hidden]="!enableGeolocation"
-                  >
-                    <mat-icon>gps_fixed</mat-icon>
-                  </button>
+                  @if (enableGeolocation) {
+                    <button type="button" mat-icon-button matSuffix (click)="onFillPositionClick($event, 'endPosition')" tabindex="-1">
+                      <mat-icon>gps_fixed</mat-icon>
+                    </button>
+                  }
                   <mat-error *ngIf="position.hasError('maxDistance')">
                     {{ 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE' | translate: position.errors.maxDistance }}
                   </mat-error>
@@ -613,27 +598,32 @@
     }
 
     <!-- Fishing areas inline mode with date -->
-    <ng-template let-fishingAreasForm="fishingAreasForm" let-index="index" let-required="required" #fishingArea>
-      <ng-container *ngIf="showFishingArea && fishingAreasForm?.at(index); let fishingAreaForm">
-        <form [formGroup]="fishingAreaForm | formGetGroup">
-          <mat-autocomplete-field
-            #fishingAreaField
-            formControlName="location"
-            [placeholder]="'TRIP.OPERATION.EDIT.FISHING_AREA' | translate"
-            [autofocus]="fishingAreaFocusIndex === index"
-            [config]="autocompleteFields.fishingAreaLocation"
-            [tabindex]="tabindex + 30 + index * 3"
-            [panelWidth]="mobile ? '80vw' : '500px'"
-            [required]="required"
-          >
-            <mat-icon matPrefix>room</mat-icon>
+    <ng-template
+      #fishingArea
+      let-fishingAreasForm="fishingAreasForm"
+      let-index="index"
+      let-required="required"
+      let-enableCopyFishingArea="enableCopyFishingArea"
+    >
+      @if (showFishingArea && fishingAreasForm?.at(index); as fishingAreaForm) {
+        <mat-autocomplete-field
+          #fishingAreaField
+          [formControl]="fishingAreaForm | formGetControl: 'location'"
+          [placeholder]="'TRIP.OPERATION.EDIT.FISHING_AREA' | translate"
+          [autofocus]="fishingAreaFocusIndex === index"
+          [config]="autocompleteFields.fishingAreaLocation"
+          [tabindex]="tabindex + 30 + index * 3"
+          [panelWidth]="mobile ? '80vw' : '500px'"
+          [required]="required"
+        >
+          <mat-icon matPrefix>room</mat-icon>
 
-            <!-- filter button -->
+          <!-- filter button -->
+          @if (filteredFishingAreaLocations | isNotEmptyArray) {
             <button
               matAfter
               type="button"
               mat-icon-button
-              *ngIf="filteredFishingAreaLocations | isNotEmptyArray"
               tabindex="-1"
               [disabled]="disabled"
               [title]="'COMMON.BTN_FILTER' | translate"
@@ -642,9 +632,23 @@
             >
               <mat-icon>filter_list_alt</mat-icon>
             </button>
-          </mat-autocomplete-field>
-        </form>
-      </ng-container>
+          }
+
+          <!-- Copy fishing area -->
+          @if (enableCopyFishingArea) {
+            <button
+              type="button"
+              mat-icon-button
+              matSuffix
+              [class.cdk-visually-hidden]="fishingAreaForm.invalid"
+              (click)="copyInlineFishingArea($event, index)"
+              [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_FISHING_AREA' | translate"
+            >
+              <mat-icon>arrow_downward</mat-icon>
+            </button>
+          }
+        </mat-autocomplete-field>
+      }
     </ng-template>
 
     <ng-content></ng-content>
@@ -657,7 +661,7 @@
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">
-      <ion-col size="12">
+      <ion-col size="12" class="ion-padding-top">
         <app-text-form
           formControlName="comments"
           [multiline]="true"

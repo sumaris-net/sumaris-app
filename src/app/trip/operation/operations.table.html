@@ -256,7 +256,8 @@
       </th>
       <td mat-cell *matCellDef="let row">
         @if (row.currentData.physicalGear?.gear) {
-          <ion-label>{{ row.currentData.physicalGear | referentialToString: displayAttributes.physicalGear }}</ion-label>
+          <!-- physical gear -->
+          <ion-label>{{ row.currentData.physicalGear | physicalGearToString: displayAttributes.physicalGear }}</ion-label>
         } @else {
           <!-- metier-->
           <ion-label>{{ row.currentData.metier?.gear | referentialToString: displayAttributes.gear }}</ion-label>

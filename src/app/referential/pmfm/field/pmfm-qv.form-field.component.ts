@@ -457,6 +457,12 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
   }
 
+  protected clearValue(event?: Event) {
+    this.writeValue(null);
+    event?.stopPropagation();
+    this.closePanel();
+  }
+
   protected checkIfTouched() {
     if (this.formControl.touched) {
       this.markForCheck();

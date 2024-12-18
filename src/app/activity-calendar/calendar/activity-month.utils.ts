@@ -18,12 +18,12 @@ export class ActivityMonthUtils {
 
   static fromActivityCalendars(
     sources: ActivityCalendar[],
-    opts?: {
+    opts: {
       fillEmptyMonth?: boolean;
       fillEmptyGuf?: boolean;
       fillEmptyFishingArea?: boolean;
       fishingAreaCount?: number;
-      timezone?: string;
+      timezone: string;
       sortedMetierIds?: number[];
     }
   ): ActivityMonth[] {
@@ -70,6 +70,8 @@ export class ActivityMonthUtils {
           (opts?.fillEmptyMonth !== false ? { startDate } : undefined);
         if (!source) return null; // Skip
 
+        // fix vesselUseFeature start date to be conform with the timezone
+        source.startDate.tz(opts.timezone);
         const target = ActivityMonth.fromObject(source);
         target.gearUseFeatures = sortedGearUseFeatures?.filter(
           (guf) => DateUtils.isSame(startDate, guf.startDate, 'day') && DateUtils.isSame(endDate, guf.endDate, 'day')

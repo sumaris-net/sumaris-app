@@ -110,7 +110,7 @@ export class ActivityCalendarValidatorService<
 
     // Add vessel use features (=activity month)
     if (opts.withVesselUseFeatures) {
-      const activityMonths = ActivityMonthUtils.fromActivityCalendar(data);
+      const activityMonths = ActivityMonthUtils.fromActivityCalendar(data, { timezone: opts?.timezone });
       config.months = this.getActivityMonthArray(activityMonths, { required: !opts?.isOnFieldMode });
     }
 

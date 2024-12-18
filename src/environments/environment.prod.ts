@@ -17,7 +17,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   // Environment
   externalEnvironmentUrl: 'assets/environments/environment.json',
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '2.9.24',
+  peerMinVersion: '2.9.25',
 
   // Enable selection by programs
   enableSelectPeerByFeature: true,
@@ -31,8 +31,8 @@ export const environment = Object.freeze(<AppEnvironment>{
   // Leave null,
   defaultPeer: null,
 
-  // Production and public peers
   defaultPeers: [
+    // -- Production and public peers --
     {
       host: 'www.sumaris.net',
       port: 443,
@@ -58,9 +58,15 @@ export const environment = Object.freeze(<AppEnvironment>{
       port: 443,
       useSsl: true,
     },
+    {
+      host: 'opus-pod.ifremer.fr',
+      port: 443,
+      useSsl: true,
+    },
 
     // -- Tests instances --
-    {
+    // FIXME - disabled for now § until we a have a flag on test DB API
+    /*{
       host: 'adap-test.pecheursdebretagne.eu',
       port: 443,
       useSsl: true,
@@ -79,7 +85,7 @@ export const environment = Object.freeze(<AppEnvironment>{
       host: 'obsmer.sumaris.net',
       port: 443,
       useSsl: true,
-    },
+    },*/
   ],
 
   defaultAppName: 'SUMARiS',

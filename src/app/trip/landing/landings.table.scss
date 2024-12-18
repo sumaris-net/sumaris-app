@@ -32,6 +32,12 @@ mat-toolbar {
       width: 50px;
     }
 
+    .mat-column-quality {
+      min-width: calc(1.2em + 8px);
+      padding-inline-start: 4px;
+      padding-inline-end: 4px;
+    }
+
     .mat-column-id {
       min-width: 30px;
       max-width: 30px;

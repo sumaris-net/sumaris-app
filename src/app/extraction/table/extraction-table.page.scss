@@ -115,3 +115,8 @@ ion-content {
     max-width: 250px;
   }
 }
+
+::ng-deep .mat-mdc-menu-panel.mat-menu-size-400 {
+  // Fix for small screen
+  min-width: 300px !important;
+}

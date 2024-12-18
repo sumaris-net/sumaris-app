@@ -323,20 +323,23 @@
                         <td
                           [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
                           [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
+                          class="fit-one-line"
                         >
-                          {{
-                            month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]
-                              | mapGet: 'location'
-                              | referentialToString: ['label']
-                          }}
-                          @if (month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]['distanceToCoastGradient'] | isNotNil) {
-                            &nbsp;-&nbsp;
+                          <div>
                             {{
                               month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]
-                                | mapGet: 'distanceToCoastGradient'
+                                | mapGet: 'location'
                                 | referentialToString: ['label']
                             }}
-                          }
+                            @if (month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]['distanceToCoastGradient'] | isNotNil) {
+                              &nbsp;-&nbsp;
+                              {{
+                                month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]
+                                  | mapGet: 'distanceToCoastGradient'
+                                  | referentialToString: ['label']
+                              }}
+                            }
+                          </div>
                         </td>
                       }
                     </tr>

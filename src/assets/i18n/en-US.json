@@ -95,27 +95,19 @@
     "DATE_TIME_PLACEHOLDER": "mm/dd/yyyy hh:mm",
 
     "LAT_LONG": {
-      "DDMMSS_PLACEHOLDER": "DD° MM' SS\"",
-      "DDMM_PLACEHOLDER": "DD° MM.MMM'",
-      "DD_PLACEHOLDER": "+DD.DDD°",
-      "DDDMMSS_PLACEHOLDER": "DDD° MM' SS\"",
-      "DDDMM_PLACEHOLDER": "DDD° MM.MMM'",
-      "DDD_PLACEHOLDER": "+DDD.DDD°",
+      "DD_PLACEHOLDER": "DD",
+      "DD_DDDDDDD_PLACEHOLDER": "± DD.DDDDDDD",
+      "DDD_PLACEHOLDER": "DDD",
+      "DDD_DDDDDDD_PLACEHOLDER": "±DDD.DDDDDDD",
+      "MM_PLACEHOLDER": "MM",
+      "MM_MMM_PLACEHOLDER": "MM.MMM",
+      "SS_SS_PLACEHOLDER": "SS.SS",
       "LAT_SIGN_PLACEHOLDER": "N|S",
       "LAT_SIGN_N": "N",
       "LAT_SIGN_S": "S",
       "LONG_SIGN_PLACEHOLDER": "E|W",
       "LONG_SIGN_E": "E",
-      "LONG_SIGN_W": "W",
-      "SINGLE_FIELD_PATTERN": {
-        "DD": "DD",
-        "DD_PLACEHOLDER": "± DD.DDDDDDD",
-        "DDD": "DDD",
-        "DDD_PLACEHOLDER": "±DDD.DDDDDDD",
-        "MM": "MM",
-        "MM_MMM": "MM.MMM",
-        "SS_SS": "SS.SS"
-      }
+      "LONG_SIGN_W": "W"
     },
 
     "METADATA": "Metadata:",
@@ -912,7 +904,8 @@
         "TITLE_NO_RANK": "OP {{startDateTime}}",
         "BTN_DELETE": "Delete this operation",
         "BTN_DUPLICATE": "Duplicate this operation",
-        "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
+        "BTN_DUPLICATE_POSITION": "Duplicate position",
+        "BTN_DUPLICATE_FISHING_AREA": "Duplicate fishing area",
         "BTN_OPEN_PARENT": "Open setting",
         "BTN_SELECT_PARENT": "Select setting",
         "BTN_SAVE_AND_NEW": "Save and new",

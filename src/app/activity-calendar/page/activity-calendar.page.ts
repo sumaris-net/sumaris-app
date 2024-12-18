@@ -591,8 +591,8 @@ export class ActivityCalendarPage
     console.debug(this.logPrefix + 'Detecting conflicts, from remote calendar:', remoteCalendar);
     const localCalendar = await this.getValue();
     const sortedMetierIds = ActivityMonthUtils.getSortedMetierIds((localCalendar.gearUseFeatures || []).concat(remoteCalendar.gearUseFeatures || []));
-    const months = ActivityMonthUtils.fromActivityCalendar(localCalendar, { sortedMetierIds, fillEmptyGuf: true }).concat(
-      ActivityMonthUtils.fromActivityCalendar(remoteCalendar, { sortedMetierIds, fillEmptyGuf: true, fillEmptyMonth: false })
+    const months = ActivityMonthUtils.fromActivityCalendar(localCalendar, { sortedMetierIds, fillEmptyGuf: true, timezone: this.timezone }).concat(
+      ActivityMonthUtils.fromActivityCalendar(remoteCalendar, { sortedMetierIds, fillEmptyGuf: true, fillEmptyMonth: false, timezone: this.timezone })
     );
     EntityUtils.sort(months, 'month', 'asc');
 
