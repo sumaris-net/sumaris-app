@@ -170,10 +170,17 @@ export class MetierService extends BaseGraphqlService implements SuggestService<
     return res;
   }
 
-  async suggest(value: any, filter?: Partial<MetierFilter>): Promise<LoadResult<Metier>> {
+  async suggest(value: any, filter?: Partial<MetierFilter>, sortBy?: string, sortDirection?: SortDirection, opts?: any): Promise<LoadResult<Metier>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value as Metier] };
     value = (typeof value === 'string' && value !== '*' && value) || undefined;
-    return this.loadAll(0, !value ? 30 : 10, undefined, undefined, { ...filter, searchText: value }, { withTotal: true /* used by autocomplete */ });
+    return this.loadAll(
+      0,
+      !value ? 30 : 10,
+      sortBy,
+      sortDirection,
+      { ...filter, searchText: value },
+      { ...opts, withTotal: true /* used by autocomplete */ }
+    );
   }
 
   asFilter(source: Partial<MetierFilter>): MetierFilter {

@@ -9,12 +9,17 @@
 >
   <ion-buttons slot="end">
     <!-- search button -->
-    <ion-button *ngIf="showSearchButton && selectedTabIndex === 0" (click)="openSearchModal($event)">
-      <ion-icon slot="start" name="search"></ion-icon>
-      <ion-label>
-        <span translate>COMMON.BTN_SEARCH</span>
-      </ion-label>
-    </ion-button>
+    @if (showSearchButton && selectedTabIndex === 0) {
+      <ion-button (click)="openSearchModal($event)" class="hidden-xs hidden-sm">
+        <ion-icon slot="start" name="search"></ion-icon>
+        <ion-label>
+          <span translate>COMMON.BTN_SEARCH</span>
+        </ion-label>
+      </ion-button>
+      <ion-button (click)="openSearchModal($event)" class="visible-xs visible-sm" [title]="'COMMON.BTN_SEARCH' | translate">
+        <ion-icon slot="icon-only" name="search"></ion-icon>
+      </ion-button>
+    }
 
     <!-- Options menu -->
     <button mat-icon-button *ngIf="!isNew && mobile" [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu">

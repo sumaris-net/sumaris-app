@@ -26,6 +26,7 @@ import {
   firstNotNilPromise,
   fromDateISOString,
   getPropertyByPath,
+  IPosition,
   IReferentialRef,
   isEmptyArray,
   isNil,
@@ -733,7 +734,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       event.preventDefault();
       event.stopPropagation();
     }
-    const value = this.form.get(source).value;
+    const value: IPosition = this.form.get(source).value;
 
     if (!target && source === 'startPosition') {
       target =
@@ -742,11 +743,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         (this.endDateTimeEnable && 'endPosition') ||
         undefined;
     }
-    if (!target) return; // Skip
+    if (!target || isNil(value.latitude) || isNil(value.longitude)) return; // Skip
 
+    // Get target control
+    const targetControl = this.form.get(target);
+    if (!targetControl) return; // Skip
+
+    // Update distance
     this.distanceWarning = false;
     this.distance = 0;
-    this.form.get(target).patchValue(
+
+    // Patch target control value (only lat/long, but keep other properties)
+    targetControl.patchValue(
       {
         latitude: value.latitude,
         longitude: value.longitude,

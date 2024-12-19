@@ -86,7 +86,7 @@
 
       <!-- delete -->
       @if (canDelete) {
-        <button mat-icon-button class="hidden-xs hidden-sm" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+        <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
           <mat-icon>delete</mat-icon>
         </button>
       }
