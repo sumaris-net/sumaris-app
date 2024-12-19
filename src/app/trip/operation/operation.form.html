@@ -222,7 +222,14 @@
                   [defaultSign]="defaultLongitudeSign"
                 >
                   @if (enableGeolocation) {
-                    <button type="button" mat-icon-button matSuffix (click)="onFillPositionClick($event, 'startPosition')" tabindex="-1">
+                    <button
+                      type="button"
+                      mat-icon-button
+                      matSuffix
+                      (click)="onFillPositionClick($event, 'startPosition')"
+                      tabindex="-1"
+                      [disabled]="disabled"
+                    >
                       <mat-icon>gps_fixed</mat-icon>
                     </button>
                   }
@@ -234,6 +241,7 @@
                       [class.cdk-visually-hidden]="position.invalid || (!fishingStartDateTimeEnable && isParentOperation)"
                       (click)="copyPosition($event, 'startPosition')"
                       [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
+                      [disabled]="disabled"
                     >
                       <mat-icon>arrow_downward</mat-icon>
                     </button>
@@ -318,7 +326,14 @@
                   [defaultSign]="defaultLongitudeSign"
                 >
                   @if (enableGeolocation) {
-                    <button type="button" mat-icon-button matSuffix (click)="onFillPositionClick($event, 'fishingStartPosition')" tabindex="-1">
+                    <button
+                      type="button"
+                      mat-icon-button
+                      matSuffix
+                      (click)="onFillPositionClick($event, 'fishingStartPosition')"
+                      tabindex="-1"
+                      [disabled]="disabled"
+                    >
                       <mat-icon>gps_fixed</mat-icon>
                     </button>
                   }
@@ -399,7 +414,14 @@
                   [defaultSign]="defaultLongitudeSign"
                 >
                   @if (enableGeolocation) {
-                    <button type="button" mat-icon-button matSuffix (click)="onFillPositionClick($event, 'fishingEndPosition')" tabindex="-1">
+                    <button
+                      type="button"
+                      mat-icon-button
+                      matSuffix
+                      (click)="onFillPositionClick($event, 'fishingEndPosition')"
+                      tabindex="-1"
+                      [disabled]="disabled"
+                    >
                       <mat-icon>gps_fixed</mat-icon>
                     </button>
                   }
@@ -411,6 +433,7 @@
                       [class.cdk-visually-hidden]="position.invalid || !endDateTimeEnable"
                       (click)="copyPosition($event, 'fishingEndPosition', 'endPosition')"
                       [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION' | translate"
+                      [disabled]="disabled"
                     >
                       <mat-icon>arrow_downward</mat-icon>
                     </button>
@@ -497,7 +520,14 @@
                   [defaultSign]="defaultLongitudeSign"
                 >
                   @if (enableGeolocation) {
-                    <button type="button" mat-icon-button matSuffix (click)="onFillPositionClick($event, 'endPosition')" tabindex="-1">
+                    <button
+                      type="button"
+                      mat-icon-button
+                      matSuffix
+                      (click)="onFillPositionClick($event, 'endPosition')"
+                      tabindex="-1"
+                      [disabled]="disabled"
+                    >
                       <mat-icon>gps_fixed</mat-icon>
                     </button>
                   }
@@ -643,6 +673,7 @@
               [class.cdk-visually-hidden]="fishingAreaForm.invalid"
               (click)="copyInlineFishingArea($event, index)"
               [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_FISHING_AREA' | translate"
+              [disabled]="disabled"
             >
               <mat-icon>arrow_downward</mat-icon>
             </button>

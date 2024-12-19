@@ -1,16 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  EventEmitter,
-  Injector,
-  Input,
-  OnInit,
-  Output,
-  QueryList,
-  ViewChild,
-  ViewChildren,
-} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { TripValidatorOptions, TripValidatorService } from './trip.validator';
 import { ModalController } from '@ionic/angular';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -58,6 +46,7 @@ import { Metier } from '@app/referential/metier/metier.model';
 import { combineLatest } from 'rxjs';
 import { Moment } from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { SortDirection } from '@angular/material/sort';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -84,6 +73,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
   @Input() showComment = true;
   @Input() allowAddNewVessel = true;
+  @Input() enableCopyLocation = true;
   @Input() showError = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() metierHistoryNbDays = 60;
@@ -133,7 +123,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       // Update fields
       if (this.autocompleteFields.location) {
         this.autocompleteFields.location.suggestLengthThreshold = value;
-        this.locationFields.forEach((field) => {
+        [this.departureLocationField, this.returnLocationField].forEach((field) => {
           field.suggestLengthThreshold = value;
           field.reloadItems();
         });
@@ -202,8 +192,9 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   @Output() maxDateChanges = new EventEmitter<Moment>();
   @Output() metiersChanges = new EventEmitter<ReferentialRef[]>();
 
+  @ViewChild('departureLocation') departureLocationField: MatAutocompleteField;
+  @ViewChild('returnLocation') returnLocationField: MatAutocompleteField;
   @ViewChild('metierField') metierField: MatAutocompleteField;
-  @ViewChildren('locationField') locationFields: QueryList<MatAutocompleteField>;
 
   constructor(
     injector: Injector,
@@ -264,16 +255,23 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
     // Combo location
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
-      suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, {
-          ...filter,
-          levelIds: this.locationLevelIds,
-        }),
+      suggestFn: (value, filter, sortBy, sortDirection, opts) =>
+        this.referentialRefService.suggest(
+          value,
+          {
+            ...filter,
+            levelIds: this.locationLevelIds,
+          },
+          sortBy as any,
+          sortDirection,
+          opts
+        ),
       filter: {
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       suggestLengthThreshold: this._locationSuggestLengthThreshold || 0,
+      showAllOnFocus: this.mobile,
       mobile: this.mobile,
     });
 
@@ -281,7 +279,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this.registerAutocompleteField('person', {
       // Important, to get the current (focused) control value, in suggestObservers() function (otherwise it will received '*').
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.suggestObservers(value, filter),
+      suggestFn: (value, filter, sortBy, sortDirection, opts) => this.suggestObservers(value, filter, sortBy as string, sortDirection, opts),
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
@@ -297,7 +295,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this.registerAutocompleteField<Metier>('metier', {
       // Important, to get the current (focused) control value, in suggestMetiers() function (otherwise it will received '*').
       //showAllOnFocus: false,
-      suggestFn: (value, options) => this.suggestMetiers(value, options),
+      suggestFn: (value, filter, sortBy, sortDirection, opts) => this.suggestMetiers(value, filter, sortBy, sortDirection, opts),
       // Default filter. An excludedIds will be add dynamically
       filter: {
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
@@ -446,6 +444,30 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
   /* -- protected methods-- */
 
+  protected copyLocation(event: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    let value = this.form.get('departureLocation').value;
+    if (ReferentialUtils.isEmpty(value)) return; // Skip
+
+    console.debug('[trip-form] Copying location...', value);
+    if (value instanceof ReferentialRef) value = value.asObject();
+
+    const targetControl = this.form.get('returnLocation');
+    if (!targetControl?.enabled) return; // Skip if disable or not exists
+
+    // Workaround to force refresh of the mat-select, in mobile mode
+    this.returnLocationField.reloadItems(value);
+    setTimeout(() => {
+      targetControl.setValue(value, { emitEvent: true });
+      this.returnLocationField.reloadItems(value);
+    }, 100);
+
+    this.markAsDirty();
+  }
+
   protected updateMetierFilter(value?: Trip) {
     console.debug('[trip-form] Updating metier filter...');
     value = value || (this.form.value as Trip);
@@ -483,7 +505,13 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     }
   }
 
-  protected suggestObservers(value: any, filter?: any): Promise<LoadResult<Person>> {
+  protected suggestObservers(
+    value: any,
+    filter?: any,
+    sortBy?: keyof Person | string,
+    sortDirection?: SortDirection,
+    opts?: any
+  ): Promise<LoadResult<Person>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
     const newValue = currentControlValue ? '*' : value;
 
@@ -493,13 +521,25 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       .filter((person) => !currentControlValue || currentControlValue !== person)
       .map((person) => parseInt(person.id));
 
-    return this.personService.suggest(newValue, {
-      ...filter,
-      excludedIds,
-    });
+    return this.personService.suggest(
+      newValue,
+      {
+        ...filter,
+        excludedIds,
+      },
+      sortBy,
+      sortDirection,
+      opts
+    );
   }
 
-  protected suggestMetiers(value: any, filter?: Partial<MetierFilter>): Promise<LoadResult<Metier>> {
+  protected suggestMetiers(
+    value: any,
+    filter?: Partial<MetierFilter>,
+    sortBy?: string,
+    sortDirection?: SortDirection,
+    opts?: any
+  ): Promise<LoadResult<Metier>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
     const newValue = currentControlValue ? '*' : value;
 
@@ -509,11 +549,17 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       .filter((item) => !currentControlValue || currentControlValue !== item)
       .map((item) => parseInt(item.id));
 
-    return this.metierService.suggest(newValue, {
-      ...filter,
-      ...this.metierFilter,
-      excludedIds,
-    });
+    return this.metierService.suggest(
+      newValue,
+      {
+        ...filter,
+        ...this.metierFilter,
+        excludedIds,
+      },
+      sortBy,
+      sortDirection,
+      opts
+    );
   }
 
   updateFormGroup() {

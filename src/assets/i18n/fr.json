@@ -749,6 +749,7 @@
     "METIERS": "Métiers :",
     "METIER": "Métier :",
     "BTN_FILTER_METIER": "Restreindre aux métiers déjà pratiqués",
+    "BTN_DUPLICATE_LOCATION": "Dupliquer sur le lieu de retour",
     "COMMENTS": "Commentaires",
     "QUALITY": "État de saisie",
     "TAB_GENERAL": "Détails",

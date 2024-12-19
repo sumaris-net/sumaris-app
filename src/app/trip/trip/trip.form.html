@@ -84,7 +84,7 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          #locationField
+          #departureLocation
           formControlName="departureLocation"
           [placeholder]="'TRIP.DEPARTURE_LOCATION' | translate"
           [config]="autocompleteFields.location"
@@ -93,6 +93,20 @@
           [panelWidth]="mobile ? '80vw' : '500px'"
         >
           <mat-icon matPrefix>room</mat-icon>
+
+          @if (enableCopyLocation) {
+            <button
+              type="button"
+              mat-icon-button
+              matSuffix
+              [hidden]="form.controls.departureLocation?.invalid"
+              (click)="copyLocation($event)"
+              [title]="'TRIP.EDIT.BTN_DUPLICATE_LOCATION' | translate"
+              [disabled]="disabled"
+            >
+              <mat-icon>arrow_downward</mat-icon>
+            </button>
+          }
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="12" size-sm="5" size-md="4">
@@ -110,7 +124,7 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          #locationField
+          #returnLocation
           formControlName="returnLocation"
           [placeholder]="'TRIP.RETURN_LOCATION' | translate"
           [config]="autocompleteFields.location"

@@ -744,6 +744,7 @@
     "METIERS": "Metiers:",
     "METIER": "Metier:",
     "BTN_FILTER_METIER": "Restrict to already practiced metiers",
+    "BTN_DUPLICATE_LOCATION": "Duplicate to return location",
     "COMMENTS": "Comments",
     "QUALITY": "Form status",
     "TAB_GENERAL": "Details",
