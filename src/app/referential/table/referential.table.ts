@@ -267,7 +267,7 @@ export class ReferentialTable<T extends BaseReferential<T> = Referential, F exte
     });
     this.registerAutocompleteField('parent', {
       suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, {
+        this.referentialRefService.suggestNoCache(value, {
           ...filter,
           entityName: this.entityName,
         }),

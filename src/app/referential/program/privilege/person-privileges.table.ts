@@ -102,7 +102,7 @@ export class PersonPrivilegesTable extends AppBaseTable<ProgramPerson, ProgramPe
     this.registerAutocompleteField<ReferentialRef, ReferentialFilter>('location', {
       showAllOnFocus: false,
       suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, {
+        this.referentialRefService.suggestNoCache(value, {
           ...filter,
           levelIds: this.locationLevelIds,
         }),

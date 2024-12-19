@@ -70,7 +70,7 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('dressing', {
       showAllOnFocus: false,
       suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, {
+        this.referentialRefService.suggestNoCache(value, {
           ...filter,
           levelLabels: ParameterLabelGroups.DRESSING,
         }),
@@ -85,7 +85,7 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('preserving', {
       showAllOnFocus: false,
       suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, {
+        this.referentialRefService.suggestNoCache(value, {
           ...filter,
           levelLabels: ParameterLabelGroups.PRESERVATION,
         }),

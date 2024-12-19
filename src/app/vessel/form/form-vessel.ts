@@ -173,13 +173,16 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
       ...locationConfig,
       suggestLengthThreshold: this._basePortLocationSuggestLengthThreshold,
       suggestFn: (value, filter) => {
-        return this.referentialRefService.suggest(value, { ...filter, levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT] });
+        return this.referentialRefService.suggestNoCache(value, { ...filter, levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT] });
       },
     });
     this.registerAutocompleteField('registrationLocation', {
       ...locationConfig,
       suggestFn: (value, filter) => {
-        return this.referentialRefService.suggest(value, { ...filter, levelIds: this.registrationLocationLevelIds || [LocationLevelIds.COUNTRY] });
+        return this.referentialRefService.suggestNoCache(value, {
+          ...filter,
+          levelIds: this.registrationLocationLevelIds || [LocationLevelIds.COUNTRY],
+        });
       },
     });
     this.registerAutocompleteField('vesselType', {

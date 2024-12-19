@@ -154,7 +154,7 @@ export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem
 
     const objectId = toNumber(value, ReferentialUtils.isNotEmpty(value) ? value.id : undefined);
 
-    return this.referentialRefService.suggest(value, {
+    return this.referentialRefService.suggestNoCache(value, {
       ...filter,
       ...this.objectFilter,
       includedIds: isNotNilOrNaN(objectId) ? [objectId] : undefined,

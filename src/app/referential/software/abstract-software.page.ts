@@ -50,7 +50,7 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEnt
     // Default autocomplete config
     const defaultAutocomplete = <Partial<MatAutocompleteFieldConfig<ReferentialRef, ReferentialRefFilter>>>{
       suggestFn: (value, filter, sortBy, sortDirection, opts) =>
-        this.referentialRefService.suggest(value, filter, sortBy as keyof ReferentialRef, sortDirection, { withProperties: true, ...opts }),
+        this.referentialRefService.suggestNoCache(value, filter, sortBy as keyof ReferentialRef, sortDirection, { withProperties: true, ...opts }),
       attributes: ['label', 'name'],
     };
     // Convert map to list of options

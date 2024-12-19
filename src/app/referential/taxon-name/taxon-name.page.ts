@@ -37,7 +37,7 @@ export class TaxonNamePage extends AppReferentialEditor<TaxonName, TaxonNameServ
     super.ngOnInit();
 
     const autocompleteConfig: MatAutocompleteFieldConfig = {
-      suggestFn: (value, opts) => this.referentialRefService.suggest(value, opts),
+      suggestFn: (value, opts) => this.referentialRefService.suggestNoCache(value, opts),
       displayWith: (value) => value && joinPropertiesPath(value, ['label', 'name']),
       attributes: ['label', 'name'],
       columnSizes: [6, 6],

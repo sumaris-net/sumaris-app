@@ -33,7 +33,7 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
     this.referentialForm.entityName = TaxonGroupRef.ENTITY_NAME;
 
     const autocompleteConfig: MatAutocompleteFieldConfig = {
-      suggestFn: (value, opts) => this.referentialRefService.suggest(value, opts),
+      suggestFn: (value, opts) => this.referentialRefService.suggestNoCache(value, opts),
       displayWith: (value) => value && joinPropertiesPath(value, ['label', 'name']),
       attributes: ['label', 'name'],
       columnSizes: [6, 6],

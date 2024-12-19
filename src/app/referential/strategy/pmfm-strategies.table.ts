@@ -561,7 +561,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       const pmfmParameters = data.map((p) => p.parameter).filter(isNotNil);
       return removeDuplicatesFromArray(pmfmParameters, 'label');
     } else {
-      return await this.referentialRefService.suggest(value, {
+      return await this.referentialRefService.suggestNoCache(value, {
         ...opts,
         entityName: 'Parameter',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
