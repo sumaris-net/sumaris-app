@@ -76,7 +76,7 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       showAllOnFocus: false,
       suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, {
+        this.referentialRefService.suggestNoCache(value, {
           ...filter,
           levelIds: this._locationLevelIds,
         }),
@@ -91,7 +91,7 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('sex', {
       showAllOnFocus: false,
       suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, {
+        this.referentialRefService.suggestNoCache(value, {
           ...filter,
           searchAttributes: ['name'],
           levelLabels: ParameterLabelGroups.SEX,

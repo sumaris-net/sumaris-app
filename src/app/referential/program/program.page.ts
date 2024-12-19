@@ -147,7 +147,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     // Default autocomplete config
     const defaultAutocomplete = <Partial<MatAutocompleteFieldConfig<ReferentialRef, ReferentialRefFilter>>>{
       suggestFn: (value, filter, sortBy, sortDirection, opts) =>
-        this.referentialRefService.suggest(value, filter, sortBy as keyof ReferentialRef, sortDirection, opts),
+        this.referentialRefService.suggestNoCache(value, filter, sortBy as keyof ReferentialRef, sortDirection, opts),
       attributes: ['label', 'name'],
     };
     // Convert map to list of options
@@ -200,7 +200,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.registerFormField('gearClassification', {
       type: 'entity',
       autocomplete: {
-        suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+        suggestFn: (value, filter) => this.referentialRefService.suggestNoCache(value, filter),
         filter: {
           entityName: 'GearClassification',
         },
@@ -211,7 +211,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
       key: 'taxonGroupType',
       type: 'entity',
       autocomplete: {
-        suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+        suggestFn: (value, filter) => this.referentialRefService.suggestNoCache(value, filter),
         filter: {
           entityName: 'TaxonGroupType',
         },

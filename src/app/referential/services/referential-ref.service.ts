@@ -92,8 +92,17 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
       $filter: ReferentialFilterVOInput
       $withLevelId: Boolean!
       $withProperties: Boolean!
+      $cache: Boolean
     ) {
-      data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+      data: referentials(
+        entityName: $entityName
+        offset: $offset
+        size: $size
+        sortBy: $sortBy
+        sortDirection: $sortDirection
+        filter: $filter
+        cache: $cache
+      ) {
         ...LightReferentialFragment
         levelId @include(if: $withLevelId)
         properties @include(if: $withProperties)
@@ -112,13 +121,22 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
       $filter: ReferentialFilterVOInput
       $withLevelId: Boolean!
       $withProperties: Boolean!
+      $cache: Boolean
     ) {
-      data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter) {
+      data: referentials(
+        entityName: $entityName
+        offset: $offset
+        size: $size
+        sortBy: $sortBy
+        sortDirection: $sortDirection
+        filter: $filter
+        cache: $cache
+      ) {
         ...LightReferentialFragment
         levelId @include(if: $withLevelId)
         properties @include(if: $withProperties)
       }
-      total: referentialsCount(entityName: $entityName, filter: $filter)
+      total: referentialsCount(entityName: $entityName, filter: $filter, cache: $cache)
     }
     ${ReferentialFragments.lightReferential}
   `,
@@ -133,8 +151,8 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
   `,
 
   countAll: gql`
-    query ReferentialRefCount($entityName: String, $filter: ReferentialFilterVOInput) {
-      total: referentialsCount(entityName: $entityName, filter: $filter)
+    query ReferentialRefCount($entityName: String, $filter: ReferentialFilterVOInput, $cache: Boolean) {
+      total: referentialsCount(entityName: $entityName, filter: $filter, cache: $cache)
     }
   `,
 };
@@ -240,6 +258,7 @@ export class ReferentialRefService
         filter: filter && filter.asFilterFn(),
       });
     } else {
+      const cache = opts?.fetchPolicy !== 'no-cache' && opts?.fetchPolicy !== 'network-only';
       const withTotal = !opts || opts.withTotal !== false;
       const query = withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
       res = this.graphql.watchQuery<LoadResult<any>>({
@@ -247,6 +266,7 @@ export class ReferentialRefService
         variables: {
           ...variables,
           filter: filter && filter.asPodObject(),
+          cache,
         },
         error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
         fetchPolicy: (opts && opts.fetchPolicy) || 'cache-first',
@@ -300,6 +320,7 @@ export class ReferentialRefService
 
     const debug = this._debug && (!opts || opts.debug !== false);
 
+    const cache = opts?.fetchPolicy !== 'no-cache' && opts?.fetchPolicy !== 'network-only';
     const variables = {
       entityName,
       offset: offset || 0,
@@ -314,6 +335,7 @@ export class ReferentialRefService
       filter: filter.asPodObject(),
       withLevelId: opts?.withLevelId || false,
       withProperties: opts?.withProperties || false,
+      cache,
     };
     const now = debug && Date.now();
     if (debug) console.debug(`[referential-ref-service] Loading ${uniqueEntityName} items (ref)...`, variables);
@@ -325,7 +347,7 @@ export class ReferentialRefService
       query,
       variables,
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
-      fetchPolicy: (opts && opts.fetchPolicy) || 'cache-first',
+      fetchPolicy: opts?.fetchPolicy || 'cache-first',
     });
 
     const entities = this.fromObjects(data, opts);
@@ -420,14 +442,17 @@ export class ReferentialRefService
 
     filter = this.asFilter(filter);
 
+    const fetchPolicy = opts?.fetchPolicy || 'network-only';
+    const cache = fetchPolicy !== 'no-cache' && fetchPolicy !== 'network-only';
     const { total } = await this.graphql.query<{ total: number }>({
       query: this.queries.countAll,
       variables: {
         entityName: filter.entityName,
         filter: filter.asPodObject(),
+        cache,
       },
       error: { code: ErrorCodes.LOAD_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LOAD_REFERENTIAL_ERROR' },
-      fetchPolicy: (opts && opts.fetchPolicy) || 'network-only',
+      fetchPolicy,
     });
 
     return total;
@@ -599,6 +624,20 @@ export class ReferentialRefService
     );
   }
 
+  async suggestNoCache<E extends ReferentialRef = ReferentialRef, F extends ReferentialRefFilter = ReferentialRefFilter>(
+    value: any,
+    filter?: Partial<F>,
+    sortBy?: keyof E | 'rankOrder',
+    sortDirection?: SortDirection,
+    opts?: {
+      fetchPolicy?: FetchPolicy;
+      withLevelId?: boolean;
+      withProperties?: boolean;
+      toEntity?: boolean | ((source: any) => E);
+    }
+  ): Promise<LoadResult<E>> {
+    return this.suggest(value, filter, sortBy, sortDirection, { ...opts, fetchPolicy: 'network-only' });
+  }
   /**
    * Load entity levels
    */
