@@ -755,7 +755,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: PmfmIds.DURATION_AT_SEA_DAYS,
   },
   PMFM_CAMERA_USED_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.Pmfm.PMFM_CAMERA_USED_ID.id',
+    key: 'sumaris.enumeration.Pmfm.CAMERA_USED.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_CAMERA_USED_ID',
     type: 'entity',
     autocomplete: PmfmAutocompleteConfig,
