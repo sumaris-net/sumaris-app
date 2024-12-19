@@ -767,7 +767,7 @@ export class OperationValidators {
     const observables = [
       OperationValidators.listenIndividualOnDeck(pmfmForm),
       OperationValidators.listenIsDeadIndividual(pmfmForm),
-      OperationValidators.listenIsTangledIndividual(pmfmForm),
+      OperationValidators.listenIsEntangled(pmfmForm),
       OperationValidators.listenIsPingerAccessible(pmfmForm),
     ].filter(isNotNil);
 
@@ -791,7 +791,7 @@ export class OperationValidators {
     const individualOnDeckPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
     const individualOnDeckControl = individualOnDeckPmfm && measForm.controls[individualOnDeckPmfm.id];
 
-    const isTangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_TANGLED);
+    const isEntangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_ENTANGLED);
 
     if (individualOnDeckControl) {
       console.debug('[operation-validator] Listening if individual is on deck...');
@@ -804,7 +804,7 @@ export class OperationValidators {
               pmfms
                 .filter(
                   (pmfm) =>
-                    (pmfm.rankOrder > individualOnDeckPmfm.rankOrder && (!isTangledPmfm || pmfm.rankOrder <= isTangledPmfm.rankOrder)) ||
+                    (pmfm.rankOrder > individualOnDeckPmfm.rankOrder && (!isEntangledPmfm || pmfm.rankOrder <= isEntangledPmfm.rankOrder)) ||
                     pmfm.id === PmfmIds.TAG_ID
                 )
                 .map((pmfm) => {
@@ -830,25 +830,25 @@ export class OperationValidators {
     }
   }
 
-  static listenIsTangledIndividual(event: IPmfmForm): Observable<any> | null {
+  static listenIsEntangled(event: IPmfmForm): Observable<any> | null {
     const { form, pmfms, markForCheck } = event;
     const measForm = form.get('measurementValues') as UntypedFormGroup;
 
-    // Create listener on column 'IS_TANGLED' value changes
-    const isTangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_TANGLED);
-    const isTangledControl = isTangledPmfm && measForm.controls[isTangledPmfm.id];
+    // Create listener on column 'IS_ENTANGLED' value changes
+    const isEntangledPmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.IS_ENTANGLED);
+    const isEntangledControl = isEntangledPmfm && measForm.controls[isEntangledPmfm.id];
     const isPingerAccessiblePmfm = pmfms.find((pmfm) => pmfm.id === PmfmIds.PINGER_ACCESSIBLE);
 
-    if (!isTangledControl || !isPingerAccessiblePmfm) return null;
+    if (!isEntangledControl || !isPingerAccessiblePmfm) return null;
 
-    return isTangledControl.valueChanges.pipe(
-      startWith(isTangledControl.value),
+    return isEntangledControl.valueChanges.pipe(
+      startWith(isEntangledControl.value),
       map((isTangled) => {
         if (isTangled) {
           if (form.enabled) {
             pmfms
               .filter(
-                (pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.rankOrder <= isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
+                (pmfm) => pmfm.rankOrder > isEntangledPmfm.rankOrder && pmfm.rankOrder <= isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
               )
               .map((pmfm) => {
                 const control = measForm.controls[pmfm.id];
@@ -859,7 +859,7 @@ export class OperationValidators {
         } else {
           if (form.enabled) {
             pmfms
-              .filter((pmfm) => pmfm.rankOrder > isTangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
+              .filter((pmfm) => pmfm.rankOrder > isEntangledPmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID)
               .map((pmfm) => {
                 const control = measForm.controls[pmfm.id];
                 AppFormUtils.disableAndClearControl(control, { onlySelf: true });

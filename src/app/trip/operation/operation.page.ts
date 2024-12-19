@@ -704,13 +704,13 @@ export class OperationPage<S extends OperationState = OperationState>
     }
 
     // If PMFM "Line layout" exists, then use to enable/disable other pmfms
-    const lineLayoutControl = formGroup?.controls[PmfmIds.LINE_LAYOUT];
+    const lineLayoutControl = formGroup?.controls[PmfmIds.NET_STRING_LAYOUT];
     if (isNotNil(lineLayoutControl)) {
       const onlySelfOptions = { onlySelf: true };
-      let lineLayoutLinearControl = formGroup.controls[PmfmIds.LINE_LAYOUT_LINEAR];
-      let lineLayoutZigZagControl = formGroup.controls[PmfmIds.LINE_LAYOUT_ZIGZAG];
-      let lineLayoutUnknownControl = formGroup.controls[PmfmIds.LINE_LAYOUT_UNKNOWN];
-      if (lineLayoutLinearControl && lineLayoutZigZagControl && lineLayoutUnknownControl) {
+      const distanceToNearestNetControl = formGroup.controls[PmfmIds.DISTANCE_TO_NEAREST_NET];
+      const distanceBetweenZigzagNetsControl = formGroup.controls[PmfmIds.DISTANCE_BETWEEN_ZIGZAG_NETS];
+      const otherNetStringLayoutControl = formGroup.controls[PmfmIds.OTHER_NET_STRING_LAYOUT];
+      if (distanceToNearestNetControl && distanceBetweenZigzagNetsControl && otherNetStringLayoutControl) {
         this._measurementSubscription.add(
           merge(
             lineLayoutControl.valueChanges, //.pipe(debounceTime(400)),
@@ -729,28 +729,28 @@ export class OperationPage<S extends OperationState = OperationState>
             )
             .subscribe(({ qvLabel }) => {
               switch (qvLabel as string) {
-                case QualitativeLabels.LINE_LAYOUT_TYPE.LINEAR:
+                case QualitativeLabels.NET_STRING_LAYOUT.LINEAR:
                   if (this.debug) console.debug('[operation] Enable linear details');
-                  AppFormUtils.enableControl(lineLayoutLinearControl, { ...onlySelfOptions, required: true });
-                  AppFormUtils.disableAndClearControl(lineLayoutZigZagControl, onlySelfOptions);
-                  AppFormUtils.disableAndClearControl(lineLayoutUnknownControl, onlySelfOptions);
+                  AppFormUtils.enableControl(distanceToNearestNetControl, { ...onlySelfOptions, required: true });
+                  AppFormUtils.disableAndClearControl(distanceBetweenZigzagNetsControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(otherNetStringLayoutControl, onlySelfOptions);
                   break;
-                case QualitativeLabels.LINE_LAYOUT_TYPE.ZIG_ZAG:
+                case QualitativeLabels.NET_STRING_LAYOUT.ZIG_ZAG:
                   if (this.debug) console.debug('[operation] Enable zig-zag details');
-                  AppFormUtils.disableAndClearControl(lineLayoutLinearControl, onlySelfOptions);
-                  AppFormUtils.enableControl(lineLayoutZigZagControl, { ...onlySelfOptions, required: true });
-                  AppFormUtils.disableAndClearControl(lineLayoutUnknownControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(distanceToNearestNetControl, onlySelfOptions);
+                  AppFormUtils.enableControl(distanceBetweenZigzagNetsControl, { ...onlySelfOptions, required: true });
+                  AppFormUtils.disableAndClearControl(otherNetStringLayoutControl, onlySelfOptions);
                   break;
-                case QualitativeLabels.LINE_LAYOUT_TYPE.UNKNOWN:
+                case QualitativeLabels.NET_STRING_LAYOUT.OTHER:
                   if (this.debug) console.debug('[operation] Enable other details');
-                  AppFormUtils.disableAndClearControl(lineLayoutLinearControl, onlySelfOptions);
-                  AppFormUtils.disableAndClearControl(lineLayoutZigZagControl, onlySelfOptions);
-                  AppFormUtils.enableControl(lineLayoutUnknownControl, { ...onlySelfOptions, required: false });
+                  AppFormUtils.disableAndClearControl(distanceToNearestNetControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(distanceBetweenZigzagNetsControl, onlySelfOptions);
+                  AppFormUtils.enableControl(otherNetStringLayoutControl, { ...onlySelfOptions, required: false });
                   break;
                 default:
-                  AppFormUtils.disableAndClearControl(lineLayoutLinearControl, onlySelfOptions);
-                  AppFormUtils.disableAndClearControl(lineLayoutZigZagControl, onlySelfOptions);
-                  AppFormUtils.disableAndClearControl(lineLayoutUnknownControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(distanceToNearestNetControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(distanceBetweenZigzagNetsControl, onlySelfOptions);
+                  AppFormUtils.disableAndClearControl(otherNetStringLayoutControl, onlySelfOptions);
                   break;
               }
             })
