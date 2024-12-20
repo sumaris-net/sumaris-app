@@ -14,6 +14,7 @@ const commonIncludePlugins = [
   '@capacitor/share',
   '@capacitor/splash-screen',
   '@capacitor/status-bar',
+  'cordova-sqlite-storage',
 ];
 
 const config: CapacitorConfig = {
@@ -33,7 +34,12 @@ const config: CapacitorConfig = {
     buildOptions: {
       releaseType: 'APK',
     },
-    includePlugins: [...commonIncludePlugins, '@e-is/capacitor-bluetooth-serial'],
+    includePlugins: [
+      ...commonIncludePlugins,
+      '@e-is/capacitor-bluetooth-serial',
+      'integrator-cordova-plugin-downloader',
+      'clovelced-plugin-audiomanagement',
+    ],
     webContentsDebuggingEnabled: !production,
   },
   ios: {
