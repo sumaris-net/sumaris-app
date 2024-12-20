@@ -10,6 +10,7 @@
     "clean": "rm -rf www .angular/cache out-tsc",
     "start": "ng serve",
     "start:dev": "ng serve --host 0.0.0.0 --disable-host-check",
+    "start:dev:4g": "node --max_old_space_size=4096 node_modules/@angular/cli/bin/ng serve --host 0.0.0.0 --disable-host-check",
     "start:prod": "ng serve --configuration production",
     "build": "ng build",
     "build:dev": "ng build --configuration development",

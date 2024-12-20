@@ -1814,11 +1814,7 @@ export class CalendarComponent
 
   protected async suggestDistanceToCoastGradient(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
-
-    // Get current location
-    const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
-
-    return this.referentialRefService.suggest(value, this.buildDistanceToCoastGradientFilter(filter, fishingAreaLocationId));
+    return this.referentialRefService.suggest(value, this.buildDistanceToCoastGradientFilter(filter, this.getCurrentFishingAreaLocationId()));
   }
 
   protected buildDistanceToCoastGradientFilter(
@@ -1836,24 +1832,27 @@ export class CalendarComponent
   protected async suggestDepthGradient(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
-    return this.referentialRefService.suggest(value, this.buildDepthGradientFilter(filter), 'rankOrder', 'asc');
+    return this.referentialRefService.suggest(
+      value,
+      this.buildDepthGradientFilter(filter, this.getCurrentFishingAreaLocationId()),
+      'rankOrder',
+      'asc'
+    );
   }
 
-  protected buildDepthGradientFilter(filter?: Partial<ReferentialRefFilter>): Partial<ReferentialRefFilter> {
+  protected buildDepthGradientFilter(filter?: Partial<ReferentialRefFilter>, fishingAreaLocationId?: number): Partial<ReferentialRefFilter> {
     return {
       entityName: 'DepthGradient',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
+      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
     };
   }
 
   protected async suggestNearbySpecificArea(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
-    // Get current location
-    const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
-
-    return this.referentialRefService.suggest(value, this.buildNearbySpecificAreaFilter(filter, fishingAreaLocationId));
+    return this.referentialRefService.suggest(value, this.buildNearbySpecificAreaFilter(filter, this.getCurrentFishingAreaLocationId()));
   }
 
   protected buildNearbySpecificAreaFilter(filter?: Partial<ReferentialRefFilter>, fishingAreaLocationId?: number): Partial<ReferentialRefFilter> {
@@ -1899,6 +1898,7 @@ export class CalendarComponent
       const invalidMetierIds: number[] = [];
       const invalidFishingAreaLocationIds: number[] = [];
       const invalidDistanceToCoastGradientIds: number[] = [];
+      const invalidDepthGradientIds: number[] = [];
       const invalidNearbySpecificAreaIds: number[] = [];
       const basePortLocationFilter = this.buildBasePortLocationFilter();
       const metierFilter = this.buildMetierFilter();
@@ -1957,6 +1957,16 @@ export class CalendarComponent
               ExpertiseAreaUtils.markAsOutsideExpertiseArea(fa.distanceToCoastGradient, invalidDistanceToCoastGradientIds.includes(dtcId));
             }
 
+            const dId = fa.depthGradient?.id;
+            if (isNotNil(dId)) {
+              if (needCheck && !invalidDepthGradientIds.includes(dId)) {
+                if (!(await this.referentialRefService.existsById(dId, this.buildDepthGradientFilter(undefined, faLocationId), cacheFirstOptions))) {
+                  invalidDepthGradientIds.push(dId);
+                }
+              }
+              ExpertiseAreaUtils.markAsOutsideExpertiseArea(fa.depthGradient, invalidDepthGradientIds.includes(dId));
+            }
+
             const nsaId = fa.nearbySpecificArea?.id;
             if (isNotNil(nsaId)) {
               if (needCheck && !invalidNearbySpecificAreaIds.includes(nsaId)) {
@@ -1981,6 +1991,7 @@ export class CalendarComponent
         isNotEmptyArray(invalidMetierIds) ||
         isNotEmptyArray(invalidFishingAreaLocationIds) ||
         isNotEmptyArray(invalidDistanceToCoastGradientIds) ||
+        isNotEmptyArray(invalidDepthGradientIds) ||
         isNotEmptyArray(invalidNearbySpecificAreaIds);
 
       if (this.debug) {
