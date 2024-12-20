@@ -90,8 +90,8 @@
     "@angular/router": "~18.2.11",
     "@apollo/client": "~3.11.10",
     "@asymmetrik/ngx-leaflet": "~18.0.1",
-    "@awesome-cordova-plugins/core": "~6.8.0",
-    "@awesome-cordova-plugins/network": "~6.8.0",
+    "@awesome-cordova-plugins/core": "~6.13.0",
+    "@awesome-cordova-plugins/network": "~6.13.0",
     "@bepo65/leaflet.fullscreen": "~2.0.2",
     "@capacitor-community/native-audio": "~4.0.0-0",
     "@capacitor/android": "~4.8.2",
@@ -124,7 +124,7 @@
     "@rx-angular/state": "~18.1.0",
     "@rx-angular/template": "~18.0.3",
     "@sgratzl/chartjs-chart-boxplot": "~3.9.1",
-    "@sumaris-net/ngx-components": "18.4.3",
+    "@sumaris-net/ngx-components": "18.4.4",
     "angular-split": "~18.0.0",
     "apollo-angular": "~7.2.1",
     "apollo-link-logger": "~2.0.1",
@@ -191,7 +191,6 @@
     "@gitbeaker/rest": "^39.34.3",
     "@ionic/angular-toolkit": "~12.1.1",
     "@ionic/cli": "~7.2.0",
-    "@rollup/rollup-darwin-arm64": "~4.25.0",
     "@rx-angular/eslint-plugin": "^2.1.0",
     "@types/decimal.js": "^7.4.3",
     "@types/hammerjs": "~2.0.46",
@@ -231,7 +230,8 @@
     "webpack": "~5.96.1"
   },
   "optionalDependencies": {
-    "@e-is/capacitor-bluetooth-serial": "0.6.3"
+    "@e-is/capacitor-bluetooth-serial": "0.6.3",
+    "@rollup/rollup-darwin-arm64": "~4.25.0"
   },
   "overrides": {
     "autoprefixer": "10.4.5",
