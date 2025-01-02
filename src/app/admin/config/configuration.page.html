@@ -134,9 +134,9 @@
         <mat-toolbar>
           <div class="toolbar-spacer"></div>
 
-          <ion-item lines="none" (click)="toggleShowHintKey()">
+          <ion-item lines="none" (click)="toggleShowOptionKeys()">
             <ion-label color="dark">{{ 'CONFIGURATION.BTN_SHOW_OPTION_KEY' | translate }}</ion-label>
-            <ion-toggle color="primary" [checked]="showHintKey"></ion-toggle>
+            <ion-toggle color="primary" [checked]="showOptionKeys"></ion-toggle>
           </ion-item>
         </mat-toolbar>
 
@@ -144,7 +144,8 @@
           #propertiesForm
           [definitions]="propertyDefinitions"
           [options]="{ allowEmptyArray: true }"
-          [showHintKey]="showHintKey"
+          [showHintKey]="showOptionKeys"
+          [debug]="debug"
         ></app-properties-form>
       </div>
     </mat-tab>

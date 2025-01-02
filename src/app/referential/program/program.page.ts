@@ -91,6 +91,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   protected readOnlyPrivilegesByProgram = toBoolean(ProgramProperties.PROGRAM_PRIVILEGE_READONLY.defaultValue);
 
   protected propertiesFileService: PropertiesFileService;
+  protected showOptionKeys = false;
+  protected isAdmin: boolean;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('propertiesForm', { static: true }) propertiesForm: AppPropertiesForm;
@@ -172,6 +174,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   ngOnInit() {
     super.ngOnInit();
+
+    this.isAdmin = this.accountService.isAdmin();
 
     // Set entity name (required for referential form validator)
     this.referentialForm.entityName = 'Program';
@@ -598,6 +602,16 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  protected devToggleDebug() {
+    this.debug = !this.debug;
+    this.markForCheck();
+  }
+
+  protected toggleShowOptionKeys() {
+    this.showOptionKeys = !this.showOptionKeys;
+    this.markForCheck();
   }
 
   referentialToString = referentialToString;

@@ -41,7 +41,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     map((data) => data?.length || 0)
   );
 
-  @Input() showHintKey = false;
+  @Input() showOptionKeys = false;
 
   get config(): Configuration {
     return (this.data && (this.data as Configuration)) || undefined;
@@ -134,8 +134,8 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     return null; // No page history
   }
 
-  protected toggleShowHintKey() {
-    this.showHintKey = !this.showHintKey;
+  protected toggleShowOptionKeys() {
+    this.showOptionKeys = !this.showOptionKeys;
     this.markForCheck();
   }
 }

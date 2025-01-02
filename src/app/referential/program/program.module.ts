@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { ProgramPage } from './program.page';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateDirective, TranslateModule } from '@ngx-translate/core';
 
 import { CommonModule } from '@angular/common';
 import { ProgramsPage } from './programs.page';
@@ -12,6 +12,11 @@ import { AppStrategyModule } from '@app/referential/strategy/strategy.module';
 import { AppReferentialTableModule } from '@app/referential/table/referential-table.module';
 import { SelectProgramModal } from '@app/referential/program/select-program.modal';
 import { AppSharedModule } from '@app/shared/shared.module';
+import { IonicModule } from '@ionic/angular';
+import { MatDivider } from '@angular/material/divider';
+import { MatIcon } from '@angular/material/icon';
+import { MatLabel } from '@angular/material/form-field';
+import { MatMenu, MatMenuItem } from '@angular/material/menu';
 
 @NgModule({
   imports: [
@@ -26,6 +31,13 @@ import { AppSharedModule } from '@app/shared/shared.module';
     AppReferentialTableModule,
     AppReferentialPipesModule,
     AppStrategyModule,
+    IonicModule,
+    MatDivider,
+    MatIcon,
+    MatLabel,
+    MatMenu,
+    MatMenuItem,
+    TranslateDirective,
   ],
   declarations: [
     // Components
