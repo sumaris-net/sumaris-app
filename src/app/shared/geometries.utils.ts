@@ -1,5 +1,6 @@
 import { BBox, GeoJsonObject, LineString, MultiPolygon, Polygon, Position } from 'geojson';
 import { isNilOrBlank, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
+import * as L from 'leaflet';
 
 export class Geometries {
   /**
@@ -9,8 +10,8 @@ export class Geometries {
    * @param bottomLeftY
    * @param topRightX
    * @param topRightY
-   * @param returnHasMultiPolygon
-   * @return
+   * @param useMultiPolygon
+   * @return a Geometry
    */
   static createRectangleGeometry<T extends Polygon | MultiPolygon>(
     bottomLeftX: number,
@@ -156,5 +157,13 @@ export class Geometries {
       // Altitude
       (lastOffset !== 3 || (position[2] >= bbox[2] && position[2] <= bbox[lastOffset + 2]))
     );
+  }
+
+  static isValidBounds(bounds: L.LatLngBounds) {
+    if (!bounds?.isValid()) return false;
+    if (isNaN(bounds.getEast()) || isNaN(bounds.getNorth()) || isNaN(bounds.getSouth()) || isNaN(bounds.getWest())) {
+      return false;
+    }
+    return true;
   }
 }

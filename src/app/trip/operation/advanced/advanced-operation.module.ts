@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { LeafletModule } from '@asymmetrik/ngx-leaflet';
+import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppDataModule } from '@app/data/data.module';
 import { TranslateModule } from '@ngx-translate/core';

@@ -26,7 +26,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { distinctUntilChanged, filter, switchMap, tap, throttleTime } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
+import { LeafletControlLayersConfig } from '@bluehalo/ngx-leaflet';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { Program } from '@app/referential/services/model/program.model';
 import { Operation, Trip, VesselPositionUtils } from '../../trip/trip.model';
