@@ -42,6 +42,7 @@ interface BluetoothPopoverState {
 })
 export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
   readonly enabled$ = this.service.enabled$;
+  readonly canEnable$ = this.service.canEnable$;
   readonly loading$ = this.state.select('loading');
   readonly devices$ = this.state.select('devices');
   readonly deviceCount$ = this.devices$.pipe(map((v) => v.length));
@@ -217,7 +218,7 @@ export class BluetoothPopover implements OnInit, BluetoothPopoverOptions {
       if (!connected) return false;
 
       if (typeof this.checkAfterConnect !== 'function') {
-        console.debug("[bluetooth-popover] Cannot check if connection is valid: input 'checkAfterConnect' not set");
+        console.warn("[bluetooth-popover] Cannot check if connection is valid: input 'checkAfterConnect' not set");
       } else {
         // Check connection is valid
         console.debug('[bluetooth-popover] Calling checkAfterConnect()...');

@@ -154,7 +154,7 @@ async function main() {
   // Set up environment variables.
   let javaHome = process.env.JAVA_HOME;
   let androidSdkRoot = process.env.ANDROID_SDK_ROOT;
-  let androidCliVersion = process.env.ANDROID_SDK_CLI_VERSION;
+  let androidCliVersion = process.env.ANDROID_SDK_CLI_VERSION || 'latest';
   let androidCliRoot = process.env.ANDROID_SDK_CLI_ROOT || `${androidSdkRoot}/cmdline-tools/${androidCliVersion}`;
   let androidBuildToolsRoot = process.env.ANDROID_BUILD_TOOLS_ROOT;
   let nodesOptions = process.env.NODE_OPTIONS;

@@ -18,9 +18,11 @@ export class AppIchthyometerIcon implements OnInit {
   constructor(private ichthyometerService: IchthyometerService) {}
 
   ngOnInit() {
-    const ichthyometerService = this.ichthyometerService;
-
-    this.checkAfterConnect = this.checkAfterConnect || ((device) => ichthyometerService.checkAfterConnect(device));
+    // Defaults
+    if (!this.checkAfterConnect) {
+      const ichthyometerService = this.ichthyometerService;
+      this.checkAfterConnect = (device) => ichthyometerService.checkAfterConnect(device);
+    }
 
     // Auto start the service
     this.ichthyometerService.ready();

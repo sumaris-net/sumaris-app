@@ -361,7 +361,7 @@ export class ReferentialService<T extends BaseReferential<T> = Referential, F ex
       },
       error: { code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.SAVE_REFERENTIAL_ERROR' },
       update: (cache, { data }, { context, variables }) => {
-        const savedEntities = data?.data;
+        const savedEntities = data?.data as T[];
         if (savedEntities) {
           // Update entities (id and update date)
           entities.forEach((entity) => {

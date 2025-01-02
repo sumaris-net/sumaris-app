@@ -2382,6 +2382,7 @@
       "ACTIVITY_CALENDAR_IMAGES_ENABLE": "Activity Calendar > Enable photos?",
       "ACTIVITY_CALENDAR_OBSERVERS_ENABLE": "Activity Calendar: Enter inspector?",
       "EXTRACTION_FORMATS": "Extraction > Available formats:",
+      "PROGRAM_LOGO": "Programme > Logo (URL)",
       "I18N_SUFFIX": "Thematic dictionary",
       "I18N_SUFFIX_LEGACY": "By default",
       "I18N_SUFFIX_SAMPLING": "Biological parameter",
