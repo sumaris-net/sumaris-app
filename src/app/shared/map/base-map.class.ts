@@ -5,7 +5,7 @@ import { L } from '@app/shared/map/leaflet';
 import { MapOptions } from 'leaflet';
 import { ConfigService, firstNotNilPromise, isEmptyArray, LatLongPattern, LocalSettingsService, sleep } from '@sumaris-net/ngx-components';
 import { Feature } from 'geojson';
-import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
+import { LeafletControlLayersConfig } from '@bluehalo/ngx-leaflet';
 import { environment } from '@environments/environment';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { MapGraticule } from '@app/shared/map/map.graticule';

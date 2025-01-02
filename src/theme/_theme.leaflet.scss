@@ -1,20 +1,24 @@
 // --------------------------------------------------
 // Import globals
 // --------------------------------------------------
-@import "theme.globals";
+@import 'theme.globals';
 
 // --------------------------------------------------
 // Import leaflet
 // --------------------------------------------------
-@import "~leaflet/dist/leaflet.css";
-@import "~leaflet-easybutton/src/easy-button.css";
-@import '~@bepo65/leaflet.fullscreen/Control.FullScreen.css';
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet-easybutton/src/easy-button.css';
+@import '@bepo65/leaflet.fullscreen/Control.FullScreen.css';
 
 /* visual tweaks */
 
 // Leaflet
 .leaflet-container {
-  font: 12px/1.5 Roboto, Helvetica, Arial, sans-serif;
+  font:
+    12px/1.5 Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
 }
 
 button.easy-button-button {
@@ -37,7 +41,6 @@ button.easy-button-button {
     display: none;
   }
 }
-
 
 html.print-pdf {
   .leaflet-control-container {

@@ -39,8 +39,7 @@
               "moment",
               "moment-timezone",
               "localforage",
-              "localforage-cordovasqlitedriver",
-              "tweetnacl"
+              "localforage-cordovasqlitedriver"
             ],
             "assets": [
               {
@@ -71,6 +70,11 @@
               {
                 "glob": "**/*.*",
                 "input": "node_modules/leaflet/dist/images",
+                "output": "/images"
+              },
+              {
+                "glob": "**/*.png",
+                "input": "node_modules/@bepo65/leaflet.fullscreen",
                 "output": "/"
               },
               {
