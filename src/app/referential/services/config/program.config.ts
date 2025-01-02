@@ -53,6 +53,13 @@ const pmfmAutocomplete = Object.freeze(<MatAutocompleteFieldConfig>{
   columnSizes: [2, 4, 6],
 });
 export const ProgramProperties = Object.freeze({
+  // General
+  PROGRAM_LOGO: <FormFieldDefinition>{
+    key: 'sumaris.program.logo',
+    label: 'PROGRAM.OPTIONS.PROGRAM_LOGO',
+    type: 'string',
+  },
+
   // Access right
   DATA_OBSERVERS_CAN_WRITE: <FormFieldDefinition>{
     key: 'sumaris.data.observers.canWrite',

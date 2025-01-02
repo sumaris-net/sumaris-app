@@ -392,7 +392,7 @@ export class ProductService extends BaseGraphqlService implements IEntityService
       variables: { id },
       error: { code: ExtractionErrorCodes.UPDATE_PRODUCT_ERROR, message: 'EXTRACTION.ERROR.UPDATE_PRODUCT_ERROR' },
       update: (cache, { data }) => {
-        savedEntity = data && data.data;
+        savedEntity = data?.data as ExtractionProduct;
         console.debug(`[product-service] Product updated in ${Date.now() - now}ms`, savedEntity);
 
         // Convert into the extraction type

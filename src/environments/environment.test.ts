@@ -65,6 +65,8 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   defaultAppName: 'SUMARiS',
   defaultAndroidInstallUrl: 'https://play.google.com/store/apps/details?id=net.sumaris.app',
+  defaultIOSInstallUrl: 'https://apps.apple.com/us/app/sumaris/id6736747523',
+  defaultDesktopInstallUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/releases',
 
   // About modal
   sourceUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app',

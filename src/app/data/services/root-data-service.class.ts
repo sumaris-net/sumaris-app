@@ -98,7 +98,7 @@ export abstract class BaseRootDataService<
       },
       error: { code: DataErrorCodes.TERMINATE_ENTITY_ERROR, message: 'ERROR.TERMINATE_ENTITY_ERROR' },
       update: (proxy, { data }) => {
-        this.copyIdAndUpdateDate(data && data.data, entity);
+        this.copyIdAndUpdateDate(data?.data as T, entity);
         if (this._debug) console.debug(this._logPrefix + `Entity terminated in ${Date.now() - now}ms`, entity);
       },
     });
@@ -144,7 +144,7 @@ export abstract class BaseRootDataService<
       },
       error: { code: DataErrorCodes.VALIDATE_ENTITY_ERROR, message: 'ERROR.VALIDATE_ENTITY_ERROR' },
       update: (cache, { data }) => {
-        this.copyIdAndUpdateDate(data && data.data, entity);
+        this.copyIdAndUpdateDate(data?.data as T, entity);
         if (this._debug) console.debug(this._logPrefix + `Entity validated in ${Date.now() - now}ms`, entity);
 
         this.refetchMutableWatchQueries({ queries: this.getLoadQueries() });
@@ -184,7 +184,7 @@ export abstract class BaseRootDataService<
       },
       error: { code: DataErrorCodes.UNVALIDATE_ENTITY_ERROR, message: 'ERROR.UNVALIDATE_ENTITY_ERROR' },
       update: (proxy, { data }) => {
-        const savedEntity = data && data.data;
+        const savedEntity = data?.data as T;
         if (savedEntity) {
           if (savedEntity !== entity) {
             this.copyIdAndUpdateDate(savedEntity, entity);
@@ -225,7 +225,7 @@ export abstract class BaseRootDataService<
       },
       error: { code: DataErrorCodes.QUALIFY_ENTITY_ERROR, message: 'ERROR.QUALIFY_ENTITY_ERROR' },
       update: (cache, { data }) => {
-        const savedEntity = data && data.data;
+        const savedEntity = data?.data as T;
         this.copyIdAndUpdateDate(savedEntity, entity);
         RootDataEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
 
