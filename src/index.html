@@ -57,6 +57,7 @@
 
       <!-- Translate the loading text -->
       <script type="text/javascript">
+        console.debug('[loading-page] User agent: ' + navigator.userAgent);
         var userLang = navigator.language || navigator.userLanguage;
         console.debug('[loading-page] Detected lang: ' + userLang);
         var loadingText = userLang && userLang.startsWith('fr') ? 'Chargement...' : 'Loading...';
