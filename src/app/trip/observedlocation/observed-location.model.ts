@@ -59,10 +59,9 @@ export class ObservedLocation
     target.landings = (this.landings && this.landings.map((s) => s.asObject(options))) || undefined;
     target.observers =
       (this.observers &&
-        this.observers.map((o) => o.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions))) ||
+        this.observers.map((o) => o?.asObject(<ReferentialAsObjectOptions>{ ...options, ...NOT_MINIFY_OPTIONS /*keep for list*/ }))) ||
       undefined;
     target.samplingStrata = (this.samplingStrata && this.samplingStrata.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
-
     return target;
   }
 
