@@ -204,7 +204,6 @@
     "@typescript-eslint/parser": "^6.21.0",
     "@typescript-eslint/types": "^8.19.0",
     "@typescript-eslint/utils": "^7.11.0",
-    "autoprefixer": "^10.4.20",
     "browserslist": "^4.24.3",
     "cordova-res": "^0.15.4",
     "core-js-compat": "^3.39.0",
@@ -241,7 +240,7 @@
     "@rollup/rollup-darwin-arm64": "~4.25.0"
   },
   "overrides": {
-    "autoprefixer": "10.4.5",
+    "autoprefixer": "^10.4.20",
     "rxjs": "~7.8.1"
   },
   "repository": {
