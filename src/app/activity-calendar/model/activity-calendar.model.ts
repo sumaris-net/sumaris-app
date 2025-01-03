@@ -83,7 +83,7 @@ export class ActivityCalendar extends DataRootVesselEntity<ActivityCalendar> imp
       delete target.vesselRegistrationPeriods;
     }
     target.observers =
-      (this.observers && this.observers.map((o) => o.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions))) ||
+      (this.observers && this.observers.map((o) => o?.asObject(<ReferentialAsObjectOptions>{ ...opts, ...NOT_MINIFY_OPTIONS /*keep for list*/ }))) ||
       undefined;
     return target;
   }

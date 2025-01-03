@@ -121,7 +121,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     } else {
       target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject(opts)) || undefined;
       target.location = (this.location && this.location.asObject(opts)) || undefined;
-      target.observers = (this.observers && this.observers.map((o) => o && o.asObject(opts)).filter(isNotNil)) || [];
+      target.observers = (this.observers && this.observers.map((o) => o?.asObject(opts)).filter(isNotNil)) || [];
     }
     return target;
   }

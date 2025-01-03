@@ -77,6 +77,7 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
 import { environment } from '@environments/environment';
+import { AggregatedLanding } from '@app/trip/aggregated-landing/aggregated-landing.model';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -893,8 +894,8 @@ export class LandingService
     try {
       entity = await this.save(entity, opts);
 
-      // Check return entity has a valid id
-      if (isNil(entity.id) || entity.id < 0) {
+      // Check return entity has a remote id
+      if (!EntityUtils.isRemoteId(entity?.id)) {
         throw { code: DataErrorCodes.SYNCHRONIZE_ENTITY_ERROR };
       }
     } catch (err) {
@@ -908,6 +909,8 @@ export class LandingService
 
     try {
       if (this._debug) console.debug(`[landing-service] Deleting landing {${entity.id}} from local storage`);
+
+      // Delete local entity
       await this.entities.deleteById(localId, { entityName: Landing.TYPENAME });
     } catch (err) {
       console.error(`[landing-service] Failed to locally delete landing {${entity.id}}`, err);

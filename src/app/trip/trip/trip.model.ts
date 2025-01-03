@@ -662,7 +662,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.sale = (this.sale && this.sale.asObject(opts)) || undefined;
     target.expectedSale = (this.expectedSale && this.expectedSale.asObject(opts)) || undefined;
     target.measurements = (this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map((m) => m.asObject(opts))) || undefined;
-    target.observers = (this.observers && this.observers.map((p) => p && p.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }))) || undefined;
+    target.observers = (this.observers && this.observers.map((o) => o?.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }))) || undefined;
 
     // Metiers
     target.metiers = (this.metiers && this.metiers.filter(isNotNil).map((p) => p && p.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }))) || undefined;
