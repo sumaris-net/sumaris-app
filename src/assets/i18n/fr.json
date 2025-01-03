@@ -621,7 +621,9 @@
     },
     "ERROR": {
       "SUBSCRIBE_ERROR": "Échec de l'abonnement distant au compte utilisateur.",
-      "UPDATE_PUBKEY_ERROR": "Échec du changement du mot de passe.<br/><small>Si le problème persiste, veuillez <b>contactez votre administrateur</b>"
+      "SEND_RESET_PASSWORD_EMAIL_ERROR": "Échec de la demande de réinitialisation,<br/><small>Veuillez <b>vérifiez votre saisie</b>, car cet identifiant semble inconnu.<br/>Si le problème persiste, veuillez <b>contacter votre administrateur</b>.</small>",
+      "UPDATE_PUBKEY_ERROR": "Échec du changement du mot de passe.<br/><small>Si le problème persiste, veuillez <b>contacter votre administrateur</b>",
+      "RESET_PUBKEY_ERROR": "Échec du changement du mot de passe.<br/><small>Vérifiez que vous utilisez <b>le bon lien de réinitialisation</b>. Si le problème persiste, veuillez <b>contacter votre administrateur</b>"
     }
   },
   "SETTINGS": {
@@ -3284,7 +3286,7 @@
       "UPDATE_OFFLINE_MODE_HELP": "Avant la mise à jour, <b>veuillez synchroniser vos éventuelles marées terminées</b>."
     },
     "ERROR": {
-      "NOT_COMPATIBLE_PEER": "L'application fonctionne en <b>mode hors-ligne</b>, car le nœud réseau <b>utilise une version obsolète</b>.<br/><small>Si le problème persiste, veuillez <b>contactez votre administrateur</b> ou utilisez un nœud v{{version}} ou supérieur.</small>"
+      "NOT_COMPATIBLE_PEER": "L'application fonctionne en <b>mode hors-ligne</b>, car le nœud réseau <b>utilise une version obsolète</b>.<br/><small>Si le problème persiste, veuillez <b>contacter votre administrateur</b> ou utilisez un nœud v{{version}} ou supérieur.</small>"
     }
   },
   "MAP": {
