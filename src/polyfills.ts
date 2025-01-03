@@ -45,6 +45,7 @@
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
+
 // Import Hammer JS (need to manage 'tap' events)
 import 'hammerjs';
 

@@ -84,17 +84,8 @@ export class AppComponent implements OnInit {
   }
 
   onActivate(event) {
-    /* eslint-disable @rx-angular/no-zone-critical-browser-apis */
-    // Make sure to scroll on top before changing state
-    // See https://stackoverflow.com/questions/48048299/angular-5-scroll-to-top-on-every-route-click
-    const scrollToTop = window.setInterval(() => {
-      const pos = window.scrollY;
-      if (pos > 0) {
-        window.scrollTo(0, pos - 20); // how far to scroll on each step
-      } else {
-        window.clearInterval(scrollToTop);
-      }
-    }, 16);
+    console.debug('[app] Activate route detected - scrolling to top');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   protected onConfigChanged(config: Configuration) {
