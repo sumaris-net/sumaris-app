@@ -379,11 +379,6 @@ export class LandingService
   ): Observable<LoadResult<Landing>> {
     dataFilter = this.asFilter(dataFilter);
 
-    //if (!dataFilter || dataFilter.isEmpty()) {
-    //console.warn('[landing-service] Trying to load landing without \'filter\'. Skipping.');
-    //return EMPTY;
-    //}
-
     // Load offline
     const offline =
       this.network.offline ||
@@ -750,10 +745,6 @@ export class LandingService
   ): Observable<LoadResult<Landing>> {
     dataFilter = LandingFilter.fromObject(dataFilter);
 
-    if (!dataFilter || dataFilter.isEmpty()) {
-      console.warn("[landing-service] Trying to watch landings without 'filter': skipping.");
-      return EMPTY;
-    }
     if (isNotNil(dataFilter.observedLocationId) && dataFilter.observedLocationId >= 0)
       throw new Error("Invalid 'filter.observedLocationId': must be a local ID (id<0)!");
     if (isNotNil(dataFilter.tripId) && dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local ID (id<0)!");
