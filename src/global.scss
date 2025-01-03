@@ -3,7 +3,7 @@
 // --------------------------------------------------
 @import 'theme';
 @import 'theme.variables';
-@import 'leaflet';
+@import 'theme.leaflet';
 @import 'reveal';
 
 // --------------------------------------------------
@@ -26,7 +26,6 @@
     pointer-events: none !important;
   }
 }
-
 
 html {
   &.plt-mobile {

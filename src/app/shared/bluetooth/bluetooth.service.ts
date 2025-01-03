@@ -34,7 +34,9 @@ export interface BluetoothDeviceWithMeta extends BluetoothDevice {
 
 export declare type BluetoothDeviceCheckFn<D extends BluetoothDevice = BluetoothDevice> = (device: D) => Promise<boolean | D>;
 
-interface BluetoothServiceState extends BluetoothState {
+interface BluetoothServiceState {
+  enabled: boolean;
+  canEnable: boolean;
   connecting: boolean;
   connectedDevices: BluetoothDevice[];
 }
@@ -50,6 +52,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
   private readonly _state = new RxState<BluetoothServiceState>();
 
   readonly enabled$ = this._state.select('enabled');
+  readonly canEnable$ = this._state.select('canEnable');
   readonly connecting$ = this._state.select('connecting');
   readonly connectedDevices$ = this._state.select('connectedDevices');
 
@@ -66,7 +69,7 @@ export class BluetoothService extends StartableService implements OnDestroy {
     @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
   ) {
     super(platform);
-    this._state.set({ enabled: null });
+    this._state.set({ enabled: null, canEnable: false });
     if (this.isApp()) {
       this._logger = loggingService?.getLogger('bluetooth');
     }
@@ -75,9 +78,10 @@ export class BluetoothService extends StartableService implements OnDestroy {
   protected async ngOnStart(opts?: any): Promise<any> {
     console.debug('[bluetooth] Starting service...');
     const enabled = await this.isEnabled();
+    const canEnable = await this.canEnable();
 
     console.info(`[bluetooth] Init state with: {enabled: ${enabled}}`);
-    this._state.set({ enabled, connectedDevices: null, connecting: false });
+    this._state.set({ enabled, canEnable, connectedDevices: null, connecting: false });
 
     // Listen enabled state
     if (this.isApp()) {
@@ -150,6 +154,11 @@ export class BluetoothService extends StartableService implements OnDestroy {
 
   async isEnabled(): Promise<boolean> {
     const { enabled } = await BluetoothSerial.isEnabled();
+    return enabled;
+  }
+
+  async canEnable(): Promise<boolean> {
+    const { enabled } = await BluetoothSerial.canEnable();
     return enabled;
   }
 

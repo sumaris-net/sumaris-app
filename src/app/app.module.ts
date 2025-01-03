@@ -57,7 +57,6 @@ import {
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { Network } from '@awesome-cordova-plugins/network/ngx';
 import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES } from './trip/trip.config';
@@ -175,9 +174,9 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
   ],
   providers: [
     // Cordova plugins
-    Network,
     AudioManagement,
     Downloader,
+    // Angular Material config
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
       useValue: <MatFormFieldDefaultOptions>{

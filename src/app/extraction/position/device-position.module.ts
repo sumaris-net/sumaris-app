@@ -4,7 +4,7 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppSharedModule } from '@app/shared/shared.module';
 import { DevicePositionMapPage } from '@app/extraction/position/device-position-map-page.component';
 import { TranslateModule } from '@ngx-translate/core';
-import { LeafletModule } from '@asymmetrik/ngx-leaflet';
+import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import { AppSharedProgressionModule } from '@app/shared/progression/progression.module';
 
 @NgModule({

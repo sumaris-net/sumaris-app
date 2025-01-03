@@ -70,7 +70,7 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
       delete target.observers;
     } else {
       target.location = (this.location && this.location.asObject(opts)) || undefined;
-      target.observers = (this.observers && this.observers.map((o) => o && o.asObject(opts)).filter(isNotNil)) || undefined;
+      target.observers = (this.observers && this.observers.map((o) => o?.asObject(opts)).filter(isNotNil)) || undefined;
     }
     return target;
   }

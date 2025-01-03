@@ -328,6 +328,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
    * @private
    */
   private create(device: IchthyometerDevice, type: IchthyometerType | string): Ichthyometer {
+    console.debug(`[ichthyometer] Creating ${type} ichthyometer from device {${device.address}} ...`);
     switch (type) {
       case GwaleenIchthyometer.TYPE: {
         return new GwaleenIchthyometer(this.bluetoothService, this.settings, device);

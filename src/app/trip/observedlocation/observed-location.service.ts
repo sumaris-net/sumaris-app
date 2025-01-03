@@ -1043,13 +1043,14 @@ export class ObservedLocationService
     if (isNotEmptyArray(localVessels)) {
       const savedVessels = new Map<number, VesselSnapshot>();
 
+      // Synchronize all local vessels
       for (const vessel of localVessels) {
         const vesselLocalId = vessel.id;
         const savedVessel = await this.vesselService.synchronize(vessel);
         savedVessels.set(vesselLocalId, VesselSnapshot.fromVessel(savedVessel));
       }
 
-      //replace landing local vessel's by saved one
+      // Replace landing local vessel's by saved one
       [...landings, ...aggregatedLandings].forEach((landing) => {
         if (savedVessels.has(landing.vesselSnapshot.id)) {
           landing.vesselSnapshot = savedVessels.get(landing.vesselSnapshot.id);
@@ -1058,10 +1059,11 @@ export class ObservedLocationService
     }
 
     try {
-      entity = await this.save(entity, { ...opts, emitEvent: false /*will emit a onSynchronize, instead of onSave */ });
+      // Save remotely
+      entity = await this.save(entity, { ...opts, emitEvent: false /*Avoid to emit onSave event - we should emit a onSynchronize later */ });
 
-      // Check return entity has a valid id
-      if (isNil(entity.id) || entity.id < 0) {
+      // Check return entity has a remote id
+      if (!EntityUtils.isRemoteId(entity?.id)) {
         throw { code: DataErrorCodes.SYNCHRONIZE_ENTITY_ERROR };
       }
 
@@ -1069,7 +1071,7 @@ export class ObservedLocationService
         this.onSynchronize.next({ localId, remoteEntity: entity });
       }
 
-      // synchronize landings
+      // Synchronize landings
       if (isNotEmptyArray(landings)) {
         entity.landings = await Promise.all(
           landings.map((landing) => {
@@ -1104,7 +1106,7 @@ export class ObservedLocationService
     try {
       if (this._debug) console.debug(`[observed-location-service] Deleting observedLocation {${entity.id}} from local storage`);
 
-      // Delete observedLocation
+      // Delete local entity
       await this.entities.deleteById(localId, { entityName: ObservedLocation.TYPENAME });
     } catch (err) {
       console.error(`[observed-location-service] Failed to locally delete observedLocation {${entity.id}} and its landings`, err);

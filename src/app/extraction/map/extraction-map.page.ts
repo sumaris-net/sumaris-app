@@ -60,7 +60,7 @@ import { ExtractionUtils } from '../common/extraction.utils';
 import { UnitLabel, UnitLabelPatterns } from '@app/referential/services/model/model.enum';
 import { MapGraticule } from '@app/shared/map/map.graticule';
 
-import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
+import { LeafletControlLayersConfig } from '@bluehalo/ngx-leaflet';
 import { FetchPolicy } from '@apollo/client/core';
 import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.config';
 import { ExtractionProduct } from '@app/extraction/product/product.model';
@@ -70,6 +70,7 @@ import { AggregationStrata, IAggregationStrata } from '@app/extraction/strata/st
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { RxState } from '@rx-angular/state';
 import { ChartJsUtils } from '@app/shared/chartsjs.utils';
+import { Geometries } from '@app/shared/geometries.utils';
 
 declare interface CustomLegendOptions {
   min?: number;
@@ -190,8 +191,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     zoomControl: false,
     minZoom: 1,
     maxZoom,
-
-    // FIXME: cards not shown
     fullscreenControl: true,
     fullscreenControlOptions: {
       position: 'topleft',
@@ -1155,8 +1154,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     }
   }
 
-  protected goTo(bounds: L.LatLngBounds) {
-    if (bounds?.isValid()) {
+  protected async goTo(bounds: L.LatLngBounds) {
+    if (Geometries.isValidBounds(bounds)) {
       this.map.flyToBounds(bounds, { maxZoom, duration: 1 });
     } else {
       console.warn('[extraction-map] Cannot go to bound. GeoJSON layer not found.');

@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { OperationForm } from './operation.form';
 import { OperationPage } from './operation.page';
 import { OperationsTable } from './operations.table';
-import { LeafletModule } from '@asymmetrik/ngx-leaflet';
+import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppDataModule } from '@app/data/data.module';
 import { OperationsMap } from './map/operations.map';

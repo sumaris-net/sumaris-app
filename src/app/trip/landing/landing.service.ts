@@ -77,6 +77,7 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
 import { environment } from '@environments/environment';
+import { AggregatedLanding } from '@app/trip/aggregated-landing/aggregated-landing.model';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -378,11 +379,6 @@ export class LandingService
     opts?: LandingServiceWatchOptions
   ): Observable<LoadResult<Landing>> {
     dataFilter = this.asFilter(dataFilter);
-
-    //if (!dataFilter || dataFilter.isEmpty()) {
-    //console.warn('[landing-service] Trying to load landing without \'filter\'. Skipping.');
-    //return EMPTY;
-    //}
 
     // Load offline
     const offline =
@@ -750,10 +746,6 @@ export class LandingService
   ): Observable<LoadResult<Landing>> {
     dataFilter = LandingFilter.fromObject(dataFilter);
 
-    if (!dataFilter || dataFilter.isEmpty()) {
-      console.warn("[landing-service] Trying to watch landings without 'filter': skipping.");
-      return EMPTY;
-    }
     if (isNotNil(dataFilter.observedLocationId) && dataFilter.observedLocationId >= 0)
       throw new Error("Invalid 'filter.observedLocationId': must be a local ID (id<0)!");
     if (isNotNil(dataFilter.tripId) && dataFilter.tripId >= 0) throw new Error("Invalid 'filter.tripId': must be a local ID (id<0)!");
@@ -902,8 +894,8 @@ export class LandingService
     try {
       entity = await this.save(entity, opts);
 
-      // Check return entity has a valid id
-      if (isNil(entity.id) || entity.id < 0) {
+      // Check return entity has a remote id
+      if (!EntityUtils.isRemoteId(entity?.id)) {
         throw { code: DataErrorCodes.SYNCHRONIZE_ENTITY_ERROR };
       }
     } catch (err) {
@@ -917,7 +909,9 @@ export class LandingService
 
     try {
       if (this._debug) console.debug(`[landing-service] Deleting landing {${entity.id}} from local storage`);
-      await this.entities.deleteById(localId, { entityName: ObservedLocation.TYPENAME });
+
+      // Delete local entity
+      await this.entities.deleteById(localId, { entityName: Landing.TYPENAME });
     } catch (err) {
       console.error(`[landing-service] Failed to locally delete landing {${entity.id}}`, err);
       // Continue

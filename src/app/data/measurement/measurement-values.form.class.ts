@@ -13,6 +13,7 @@ import {
 import {
   AppFloatLabelType,
   AppForm,
+  AppFormUtils,
   changeCaseToUnderscore,
   firstTrue,
   isNil,
@@ -29,6 +30,7 @@ import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/sta
 import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
+import { AppSharedFormUtils } from '@app/shared/forms.utils';
 
 export interface IMeasurementsFormOptions<S extends MeasurementsFormState = MeasurementsFormState> {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
@@ -335,7 +337,15 @@ export abstract class MeasurementValuesForm<
       await this.ready({ stop: this.destroySubject });
 
       // Data is still the same (not changed : applying)
-      if (data && data === this.data && !this.dirty) {
+      if (data && data === this.data) {
+        // Form is dirty (e.g. program changed) - update data
+        if (this.dirty) {
+          const dirtyFormValue = AppSharedFormUtils.getFormValue(this.form, (control) => control.dirty);
+          if (this.debug) console.debug(`${this._logPrefix}Merging form values...`, dirtyFormValue);
+          const updatedFormValue = AppSharedFormUtils.merge(data.asObject(), dirtyFormValue);
+          data.fromObject(updatedFormValue);
+        }
+
         // Applying value to form (that should be ready).
         await this.updateView(data, opts);
         this.markAsLoaded();

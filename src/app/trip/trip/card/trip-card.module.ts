@@ -32,7 +32,5 @@ import { IonicModule } from '@ionic/angular';
   ],
 })
 export class AppTripCardModule {
-  constructor() {
-    console.debug('[trip] Creating card module...');
-  }
+  constructor() {}
 }

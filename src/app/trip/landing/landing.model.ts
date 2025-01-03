@@ -62,7 +62,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     target.dateTime = toDateISOString(this.dateTime);
     target.location =
       (this.location && this.location.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*keep for list*/ } as ReferentialAsObjectOptions)) || undefined;
-    target.observers = (this.observers && this.observers.map((p) => p && p.asObject(opts))) || undefined;
+    target.observers = (this.observers && this.observers.map((o) => o?.asObject(opts))) || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 
     target.rankOrder = this.rankOrderOnVessel; // this.rankOrder is not persisted

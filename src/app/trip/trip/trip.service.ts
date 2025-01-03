@@ -1124,8 +1124,8 @@ export class TripService
       // Save trip (and operations or operation groups)
       entity = await this.save(entity, opts);
 
-      // Check return entity has a valid id
-      if (isNil(entity.id) || entity.id < 0) {
+      // Check return entity has a remote id
+      if (!EntityUtils.isRemoteId(entity?.id)) {
         throw { code: DataErrorCodes.SYNCHRONIZE_ENTITY_ERROR };
       }
 

@@ -11,6 +11,7 @@ const commonIncludePlugins = [
   '@capacitor/geolocation',
   '@capacitor/haptics',
   '@capacitor/keyboard',
+  '@capacitor/network',
   '@capacitor/share',
   '@capacitor/splash-screen',
   '@capacitor/status-bar',
@@ -21,7 +22,6 @@ const config: CapacitorConfig = {
   appId: 'net.sumaris.app',
   appName: 'SUMARiS',
   webDir: 'www',
-  bundledWebRuntime: false,
   loggingBehavior: production ? 'none' : 'debug',
   plugins: {
     SplashScreen: {
@@ -37,8 +37,8 @@ const config: CapacitorConfig = {
     includePlugins: [
       ...commonIncludePlugins,
       '@e-is/capacitor-bluetooth-serial',
-      'integrator-cordova-plugin-downloader',
-      'clovelced-plugin-audiomanagement',
+      '@e-is/cordova-plugin-downloader',
+      '@e-is/cordova-plugin-audiomanagement',
     ],
     webContentsDebuggingEnabled: !production,
   },
@@ -48,6 +48,7 @@ const config: CapacitorConfig = {
   },
   server: {
     cleartext: true,
+    androidScheme: 'http',
   },
 };
 

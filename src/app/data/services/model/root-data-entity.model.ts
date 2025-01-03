@@ -1,5 +1,6 @@
 import {
   EntityAsObjectOptions,
+  EntityUtils,
   fromDateISOString,
   isNil,
   Person,
@@ -52,7 +53,7 @@ export class RootDataEntity<
     target.program =
       (this.program && this.program.asObject({ ...options, ...NOT_MINIFY_OPTIONS /*always keep for table*/ } as ReferentialAsObjectOptions)) ||
       undefined;
-    if (options && options.minify) {
+    if (options?.minify) {
       if (target.program) delete target.program.entityName;
       if (options.keepSynchronizationStatus !== true) {
         delete target.synchronizationStatus; // Remove by default, when minify, because not exists on pod's model
@@ -87,7 +88,8 @@ export abstract class RootDataEntityUtils {
   }
 
   static isLocal(entity: RootDataEntity<any, any>): boolean {
-    return entity && (isNil(entity.id) ? entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC' : entity.id < 0);
+    if (!entity) return false;
+    return isNil(entity.id) ? entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC' : EntityUtils.isLocalId(entity.id);
   }
 
   static isRemote(entity: RootDataEntity<any, any>): boolean {

@@ -6,85 +6,92 @@
       </ion-col>
     </ion-row>
 
-    <ng-container *ngVar="enabled$ | async; let enabled">
-      <ion-item [color]="enabled ? 'secondary100' : 'medium'">
-        <ion-icon name="bluetooth" slot="start"></ion-icon>
-        <ion-label>{{ (enabled ? 'SHARED.BLUETOOTH.ENABLED' : 'SHARED.BLUETOOTH.DISABLED') | translate }}</ion-label>
-        <ion-toggle [checked]="enabled" (ionChange)="toggleBluetooth()"></ion-toggle>
-      </ion-item>
+    @let enabled = enabled$ | async;
+    @let canEnable = canEnable$ | async;
+    <ion-item [color]="enabled ? 'secondary100' : 'medium'">
+      <ion-icon name="bluetooth" slot="start"></ion-icon>
+      <ion-label>{{ (enabled ? 'SHARED.BLUETOOTH.ENABLED' : 'SHARED.BLUETOOTH.DISABLED') | translate }}</ion-label>
+      <ion-toggle [checked]="enabled" (ionChange)="toggleBluetooth()" [disabled]="!canEnable"></ion-toggle>
+    </ion-item>
 
-      <!-- Selected devices -->
-      <ng-container *ngIf="enabled">
-        <ion-item *ngFor="let device of connectedDevices$ | async">
+    <!-- Selected devices -->
+    @if (enabled) {
+      @for (device of connectedDevices$ | async; track device.address) {
+        <ion-item>
           <app-icon [ref]="selectedDevicesIcon" slot="start"></app-icon>
           <ion-label>
             <h2>{{ device.name }}</h2>
             <p>{{ device.address }}</p>
-            <p *ngIf="device.meta?.model as model">
-              {{ model }}
-              <span *ngIf="device.meta.version">- {{ device.meta.version | lowercase }}</span>
-            </p>
+            @if (device.meta?.model; as model) {
+              <p>
+                {{ model }}
+                @if (device.meta.version) {
+                  <span>- {{ device.meta.version | lowercase }}</span>
+                }
+              </p>
+            }
           </ion-label>
-          <ion-spinner *ngIf="connecting$ | async; else disconnectButton" slot="end" color="secondary"></ion-spinner>
-          <ng-template #disconnectButton>
+          @if (connecting$ | async) {
+            <ion-spinner slot="end" color="secondary"></ion-spinner>
+          } @else {
             <ion-button slot="end" color="secondary" (click)="disconnect(device)" translate>SHARED.BLUETOOTH.BTN_DISCONNECT</ion-button>
-          </ng-template>
+          }
+        </ion-item>
+      }
+    }
+
+    <ion-item-divider>
+      <ion-label translate>SHARED.BLUETOOTH.AVAILABLE_DEVICES</ion-label>
+
+      <!-- Scan devices button -->
+      <ion-button slot="end" *ngIf="enabled" color="tertiary" [disabled]="loading$ | async" [fill]="'solid'" (click)="scan()" translate>
+        SHARED.BLUETOOTH.BTN_SCAN
+      </ion-button>
+    </ion-item-divider>
+
+    <!-- loading -->
+    <ion-item *ngIf="loading$ | async; else loaded" lines="none" disabled>
+      <ion-skeleton-text [animated]="true" style="width: 100%"></ion-skeleton-text>
+    </ion-item>
+
+    <ng-template #loaded>
+      <ng-container *ngVar="devices$ | async; let devices">
+        <ion-item
+          *ngFor="let device of devices; trackBy: trackByFn; last as last"
+          [lines]="last ? 'none' : undefined"
+          tappable
+          [disabled]="!enabled"
+          (click)="connect($event, device, { dismiss: true })"
+        >
+          <mat-icon slot="start">{{ getDeviceMatIcon(device) }}</mat-icon>
+
+          <ion-label>
+            <h2>{{ device.name }}</h2>
+            <p>{{ device.address }}</p>
+          </ion-label>
+        </ion-item>
+
+        <!-- no result -->
+        <ion-item *ngIf="devices && devices.length === 0" lines="none">
+          <ion-text color="danger" class="text-italic">{{ 'SHARED.BLUETOOTH.NO_DEVICE' | translate }}</ion-text>
         </ion-item>
       </ng-container>
+    </ng-template>
 
-      <ion-item-divider>
-        <ion-label translate>SHARED.BLUETOOTH.AVAILABLE_DEVICES</ion-label>
-
-        <!-- Scan devices button -->
-        <ion-button slot="end" *ngIf="enabled" color="tertiary" [disabled]="loading$ | async" [fill]="'solid'" (click)="scan()" translate>
-          SHARED.BLUETOOTH.BTN_SCAN
-        </ion-button>
-      </ion-item-divider>
-
-      <!-- loading -->
-      <ion-item *ngIf="loading$ | async; else loaded" lines="none" disabled>
-        <ion-skeleton-text [animated]="true" style="width: 100%"></ion-skeleton-text>
-      </ion-item>
-
-      <ng-template #loaded>
-        <ng-container *ngVar="devices$ | async; let devices">
-          <ion-item
-            *ngFor="let device of devices; trackBy: trackByFn; last as last"
-            [lines]="last ? 'none' : undefined"
-            tappable
-            [disabled]="!enabled"
-            (click)="connect($event, device, { dismiss: true })"
-          >
-            <mat-icon slot="start">{{ getDeviceMatIcon(device) }}</mat-icon>
-
-            <ion-label>
-              <h2>{{ device.name }}</h2>
-              <p>{{ device.address }}</p>
-            </ion-label>
-          </ion-item>
-
-          <!-- no result -->
-          <ion-item *ngIf="devices && devices.length === 0" lines="none">
-            <ion-text color="danger" class="text-italic">{{ 'SHARED.BLUETOOTH.NO_DEVICE' | translate }}</ion-text>
-          </ion-item>
-        </ng-container>
-      </ng-template>
-
-      <!-- footer -->
-      <ion-row class="ion-list-footer column">
-        <ion-col>
-          <ion-text class="ion-float-end ion-padding-end">
-            <i>
-              <span *ngIf="loading$ | async; else resultCount" translate>SHARED.BLUETOOTH.SCANNING_DOTS</span>
-              <ng-template #resultCount>
-                <span *ngIf="deviceCount$ | async; let count">
-                  {{ 'COMMON.RESULT_COUNT' | translate: { count: count } }}
-                </span>
-              </ng-template>
-            </i>
-          </ion-text>
-        </ion-col>
-      </ion-row>
-    </ng-container>
+    <!-- footer -->
+    <ion-row class="ion-list-footer column">
+      <ion-col>
+        <ion-text class="ion-float-end ion-padding-end">
+          <i>
+            <span *ngIf="loading$ | async; else resultCount" translate>SHARED.BLUETOOTH.SCANNING_DOTS</span>
+            <ng-template #resultCount>
+              <span *ngIf="deviceCount$ | async; let count">
+                {{ 'COMMON.RESULT_COUNT' | translate: { count: count } }}
+              </span>
+            </ng-template>
+          </i>
+        </ion-text>
+      </ion-col>
+    </ion-row>
   </ion-list>
 </ion-content>

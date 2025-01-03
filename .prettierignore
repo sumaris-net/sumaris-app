@@ -1,4 +1,6 @@
 .local
+.angular
+.github
 dist
 doc
 node_modules
