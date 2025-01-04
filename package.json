@@ -1,13 +1,13 @@
 {
   "name": "sumaris-app",
   "description": "SUMARiS app",
-  "version": "2.9.27.4",
+  "version": "2.9.28",
   "author": "contact@e-is.pro",
   "license": "AGPL-3.0",
   "readmeFilename": "README.md",
   "scripts": {
     "ng": "ng",
-    "clean": "rm -rf www .angular/cache out-tsc",
+    "clean": "rm -rf www .angular/cache out-tsc www",
     "start": "ng serve",
     "start:dev": "ng serve --host 0.0.0.0 --disable-host-check",
     "start:dev:4g": "node --max_old_space_size=4096 node_modules/@angular/cli/bin/ng serve --host 0.0.0.0 --disable-host-check",
