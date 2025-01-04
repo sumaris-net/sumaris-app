@@ -42,8 +42,7 @@ function computeWebExtVersionCode(version) {
 
 function computeAndroidVersionCode(version) {
   const v = parseVersion(version);
-  // 99 rather 0 to avoid to set alpha, beta, rc greater version number greater than stable
-  v.num = !v.num ? '99' : v.num;
+  v.num = v.num || '0';
   return [v.maj, v.min, v.patch, v.num]
     .map(i => (isNaN(i) ? 0 : i))
     .map((i, index) => (index !== 0 && parseInt(i) < 10) ? ('0' + i) : i)
@@ -59,8 +58,7 @@ function computeIOSVersionName(version) {
 
 function computeIOSVersionCode(version) {
   const v = parseVersion(version);
-  // 99 rather 0 to avoid to set alpha, beta, rc greater version number greater than stable
-  v.num = !v.num ? '99' : v.num;
+  v.num = !v.num ? '0' : v.num;
   return [v.maj, v.min, v.patch, v.num]
     .map(i => (isNaN(i) ? 0 : i))
     .map((i, index) => (index !== 0 && parseInt(i) < 10) ? ('0' + i) : i)
