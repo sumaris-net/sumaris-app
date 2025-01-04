@@ -13,10 +13,10 @@ last 2 Edge major versions
 last 2 Safari major version
 
 #last 2 Chrome version
-Chrome >= 61 # Fix issue #891 - Add Support Android 5.1+ (SDK / API level 22)
+Chrome >= 61 # Add Support Android 5.1+ (SDK / API level 22) - see issue #891
 
 #last 2 iOS major versions
-iOS >= 13     # Fix issue #890 - Add Support iOS 13+ (like Capacitor)
+iOS >= 13    # Add Support iOS 13+ (like Capacitor) - see issue #890
 
 Firefox ESR
 not IE 9-11
