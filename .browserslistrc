@@ -8,13 +8,15 @@
 # You can see what browsers were selected by your queries by running:
 #   npx browserslist
 
-last 2 Chrome version
 last 1 Firefox version
 last 2 Edge major versions
 last 2 Safari major version
+
+#last 2 Chrome version
+Chrome >= 61 # Fix issue #891 - Add Support Android 5.1+ (SDK / API level 22)
 
 #last 2 iOS major versions
 iOS >= 13     # Fix issue #890 - Add Support iOS 13+ (like Capacitor)
 
 Firefox ESR
-not IE < 11
+not IE 9-11
