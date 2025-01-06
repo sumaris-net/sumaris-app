@@ -50,7 +50,7 @@ import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
-import { AppBaseTableFilterRestoreSource } from '@app/shared/table/base.table';
+import { AppBaseTableFilterRestoreSource, BaseTableConfig } from '@app/shared/table/base.table';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { isMoment } from 'moment';
@@ -72,6 +72,11 @@ export interface ActivityCalendarsPageState extends AppRootDataTableState {
   canImportCsvFile: boolean;
 }
 
+export interface ActivityCalendarsPageConfig
+  extends BaseTableConfig<ActivityCalendar, number, ActivityCalendarsPageState, ActivityCalendarsPageState> {
+  canUseExpertiseArea?: boolean;
+}
+
 @Component({
   selector: 'app-activity-calendar-table',
   templateUrl: 'activity-calendars.table.html',
@@ -81,7 +86,15 @@ export interface ActivityCalendarsPageState extends AppRootDataTableState {
   providers: [RxState],
 })
 export class ActivityCalendarsTable
-  extends AppRootDataTable<ActivityCalendar, ActivityCalendarFilter, ActivityCalendarService, any, number, ActivityCalendarsPageState>
+  extends AppRootDataTable<
+    ActivityCalendar,
+    ActivityCalendarFilter,
+    ActivityCalendarService,
+    any,
+    number,
+    ActivityCalendarsPageState,
+    ActivityCalendarsPageConfig
+  >
   implements OnInit, OnDestroy
 {
   @RxStateSelect() protected years$: Observable<number[]>;
@@ -94,6 +107,7 @@ export class ActivityCalendarsTable
   protected programVesselTypeIds: number[] = [];
   protected configVesselTypeIds: number[] = [];
   protected excludedProgramIds: number[] = [];
+  protected isSupervisorOrManager = this.accountService.isAdmin();
 
   protected readonly directSurveyInvestigationList = DirectSurveyInvestigationList;
   protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
@@ -195,7 +209,10 @@ export class ActivityCalendarsTable
         'comments',
       ],
       _dataService,
-      null
+      null,
+      {
+        canUseExpertiseArea: true, // Enable expertise area
+      }
     );
     this.i18nColumnPrefix = 'ACTIVITY_CALENDAR.TABLE.';
     this.filterForm = formBuilder.group({
@@ -287,14 +304,22 @@ export class ActivityCalendarsTable
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('registrationLocation', {
       ...locationConfig,
       suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.registrationLocationLevelIds || [LocationLevelIds.COUNTRY] }),
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          locationIds: this.expertiseAreaProperties?.locationIds,
+          levelIds: this.registrationLocationLevelIds || [LocationLevelIds.COUNTRY],
+        }),
     });
 
     // Combo: base port locations
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('basePortLocation', {
       ...locationConfig,
       suggestFn: (value, filter) =>
-        this.referentialRefService.suggest(value, { ...filter, levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT] }),
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          locationIds: this.expertiseAreaProperties?.locationIds,
+          levelIds: this.basePortLocationLevelIds || [LocationLevelIds.PORT],
+        }),
     });
 
     // Combo: recorder department
@@ -421,6 +446,8 @@ export class ActivityCalendarsTable
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
     const reportTypeByKey = splitByProperty((ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES.values || []) as Property[], 'key');
     this.reportTypes = (program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_REPORT_TYPES) || []).map((key) => reportTypeByKey[key]);
+
+    this.isSupervisorOrManager = this.programRefService.hasUserManagerPrivilege(program) || this.accountService.isSupervisor();
 
     if (this.loaded) this.updateColumns();
   }

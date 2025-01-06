@@ -22,7 +22,7 @@ export class PmfmIdStringPipe implements PipeTransform {
   constructor(
     protected translate: TranslateService,
     protected translateContext: TranslateContextService
-  ) {}
+  ) { }
 
   transform(pmfm: IPmfm): string {
     return (pmfm && pmfm.id?.toString()) || null;
@@ -37,7 +37,7 @@ export class PmfmNamePipe implements PipeTransform {
   constructor(
     protected translate: TranslateService,
     protected translateContext: TranslateContextService
-  ) {}
+  ) { }
 
   transform(
     pmfm: IPmfm,
@@ -99,7 +99,7 @@ export class PmfmValuePipe implements PipeTransform {
     private dateFormat: DateFormatService,
     private settings: LocalSettingsService,
     protected translate: TranslateService
-  ) {}
+  ) { }
 
   transform(value: any, opts: PmfmValueOptions & { separator?: string }): any {
     return this.format(value, opts);

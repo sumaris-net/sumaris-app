@@ -9,7 +9,6 @@ import {
   ConfigService,
   Configuration,
   DateUtils,
-  EntityUtils,
   fromDateISOString,
   HistoryPageReference,
   IFormPathTranslator,
@@ -28,7 +27,7 @@ import {
   toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
-import { catchError, debounceTime, distinctUntilChanged, distinctUntilKeyChanged, filter, map, mergeMap, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, distinctUntilKeyChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
@@ -47,9 +46,9 @@ import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/sta
 import { ContextService } from '@app/shared/context.service';
 import { BaseDataService, IDataEntityService, IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
 import { ExpertiseAreaService } from '@app/referential/expertise-area/expertise-area.service';
-import { DATA_LOCAL_SETTINGS_OPTIONS } from '@app/data/data.config';
 import { ExpertiseArea, IExpertiseAreaProperties } from '@app/referential/expertise-area/expertise-area.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { AppDataState } from '../data.class';
 
 export abstract class AppDataEditorOptions extends AppEditorOptions {
   acquisitionLevel?: AcquisitionLevelType;
@@ -58,22 +57,12 @@ export abstract class AppDataEditorOptions extends AppEditorOptions {
   canUseExpertiseArea?: boolean;
 }
 
-export interface AppDataEditorState {
-  programLabel: string;
-  program: Program;
-
+export interface AppDataEditorState extends AppDataState {
   acquisitionLevel: AcquisitionLevelType;
-
   strategyResolution: DataStrategyResolution;
   requiredStrategy: boolean;
   strategy: Strategy;
   strategyFilter: Partial<StrategyFilter>;
-
-  pmfms: IPmfm[];
-
-  availableExpertiseAreas: ExpertiseArea[];
-  selectedExpertiseArea: ExpertiseArea;
-  expertiseAreaProperties: IExpertiseAreaProperties;
 }
 
 @Directive()
@@ -240,57 +229,7 @@ export abstract class AppDataEntityEditor<
 
     // Manage expertise areas, if enable on this editor (see constructor options)
     if (this.canUseExpertiseArea) {
-      // Listen expertise areas
-      this._state.connect('availableExpertiseAreas', this.expertiseAreaService.items$);
-
-      // Listen settings to initialize expertise area
-      this._state.connect(
-        'selectedExpertiseArea',
-        merge(of(this.settings.ready()), this.availableExpertiseAreas$).pipe(
-          filter(() => isNil(this.selectedExpertiseArea)),
-          map(() => this.settings.getPropertyAsInt(DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA)),
-          filter(isNotNil),
-          map((selectedExpertiseAreaId) => this.availableExpertiseAreas?.find((value) => value.id === selectedExpertiseAreaId))
-        )
-      );
-
-      // Save selected expertise area in settings
-      this._state.hold(
-        this._state.select('selectedExpertiseArea').pipe(
-          debounceTime(1000),
-          map((expertiseArea) => expertiseArea?.id?.toString()),
-          filter(isNotNil), // Prevent saving undefined expertise area
-          distinctUntilChanged()
-        ),
-        (expertiseAreaId) => {
-          const properties = { ...this.settings.settings.properties };
-          if (properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] !== expertiseAreaId) {
-            properties[DATA_LOCAL_SETTINGS_OPTIONS.DATA_EXPERTISE_AREA.key] = expertiseAreaId;
-            // Save remotely
-            this.settings.applyProperty('properties', properties);
-          }
-        }
-      );
-
-      // Listen settings on expertise activation and populate expertiseAreaProperties
-      this._state.connect(
-        'expertiseAreaProperties',
-        this._state.select('selectedExpertiseArea').pipe(
-          map((selectedExpertiseArea) => ({
-            selectedExpertiseArea,
-            properties: <IExpertiseAreaProperties>{
-              locationIds: EntityUtils.collectIds(selectedExpertiseArea?.locations),
-              locationLevelIds: EntityUtils.collectIds(selectedExpertiseArea?.locationLevels),
-            },
-          })),
-          tap(({ selectedExpertiseArea, properties }) => {
-            if (this.debug) {
-              console.debug(`${this.logPrefix}selected expertiseArea :`, selectedExpertiseArea?.name, properties);
-            }
-          }),
-          map(({ properties }) => properties)
-        )
-      );
+      this.expertiseAreaService.initializeStateConnections(this._state, this.debug);
     }
   }
 
