@@ -563,7 +563,7 @@ export class ActivityMonthValidators {
       return null;
     }
     let hasSomeMetier = false;
-    let hasInvalidBlock = gufArray.controls.some((control) => {
+    const hasInvalidBlock = gufArray.controls.some((control) => {
       const metier = control.get('metier')?.value;
 
       // Mark if the month has at least one metier
@@ -598,7 +598,7 @@ export class ActivityMonthValidators {
 
     if (isNilOrNaN(fishingDurationDays) && isNilOrNaN(durationAtSeaDays)) return null;
 
-    const maxMonthDay = endDate.diff(startDate, 'days');
+    const maxMonthDay = endDate.diff(startDate, 'days') + 1;
 
     const invalid =
       (isNotNil(fishingDurationDays) && +fishingDurationDays > maxMonthDay) || (isNotNil(durationAtSeaDays) && +durationAtSeaDays > maxMonthDay);
