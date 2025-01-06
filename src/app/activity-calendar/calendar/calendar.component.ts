@@ -1617,7 +1617,7 @@ export class CalendarComponent
         key: `metier${rankOrder}`,
         class: 'mat-column-metier',
         expanded: true,
-        toggle: (event) => this.toggleMetierBlock(event, `metier${rankOrder}`),
+        toggle: (event) => this.toggleMetierBlock(event, index),
       },
       ...new Array<ColumnDefinition>(fishingAreaCount).fill(null).flatMap((_, faIndex) => {
         const faRankOrder = faIndex + 1;
@@ -1633,7 +1633,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}`,
             class: 'mat-column-fishingArea',
             treeIndent: '&nbsp;&nbsp;',
-            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`, true),
+            expand: (event: Event) => this.toggleMetierBlock(event, index, true),
           },
           {
             blockIndex: index,
@@ -1648,7 +1648,7 @@ export class CalendarComponent
             treeIndent: '&nbsp;&nbsp',
             expanded: false,
             toggle: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
-            expand: (event: Event) => this.toggleMetierBlock(event, `metier${rankOrder}`, true),
+            expand: (event: Event) => this.toggleMetierBlock(event, index, true),
           },
           {
             blockIndex: index,
@@ -2276,15 +2276,17 @@ export class CalendarComponent
   }
 
   protected collapseMore(event?: Event) {
-    // Check if some distanceToCoastGradient are not collapsed
     const blockColumnNames = [`distanceToCoastGradient`, `depthGradient`, `nearbySpecificArea`];
     const blockColumns = this.dynamicColumns.filter((col) => blockColumnNames.some((blockColName) => col.key.includes(blockColName)));
 
     const masterBlockColumns = blockColumns.filter((col) => isNotNil(col.expanded));
     const childBlockColumns = blockColumns.filter((col) => !isNotNil(col.expanded));
 
+    // Check if some distanceToCoastGradient blocks are expanded (= not collapsed)
     if (masterBlockColumns.some((col) => col.expanded)) {
-      // Collapse remaining
+      // Clear selection/clipboard if columns are going to be hidden
+      this.clearSelectionAndClipboard(childBlockColumns);
+      // Collapse remaining distanceToCoastGradient blocks
       masterBlockColumns.forEach((col) => (col.expanded = false));
       childBlockColumns.forEach((col) => (col.hidden = true));
     } else {
@@ -2302,11 +2304,6 @@ export class CalendarComponent
     for (let i = 0; i < this.metierCount; i++) {
       this.collapseMetierBlock(null, i, { emitEvent: false });
     }
-
-    setTimeout(() => {
-      this.removeCellSelection(opts);
-      this.clearClipboard(null, { clearContext: false });
-    });
   }
 
   async clearAll(event?: Event, opts?: { interactive?: boolean }) {
@@ -2330,36 +2327,18 @@ export class CalendarComponent
     this.validRowCount = 0;
   }
 
-  toggleMetierBlock(event: Event | undefined, key: string, forceExpanded?: boolean) {
+  toggleMetierBlock(event: Event | undefined, blockIndex: number, forceExpanded?: boolean) {
     if (event?.defaultPrevented) return; // Skip
     event?.preventDefault();
 
-    if (this.debug) console.debug(this.logPrefix + 'Toggling block #' + key);
+    const metierBlockColumn = this.dynamicColumns?.find((col) => col.blockIndex === blockIndex);
 
-    const blockColumns = this.dynamicColumns?.filter((col) => col.key.startsWith(key));
-    if (isEmptyArray(blockColumns)) return; // Skip
+    if (isNil(metierBlockColumn)) return; // Skip
 
-    const masterColumn = blockColumns[0];
-    if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
+    if (this.debug) console.debug(this.logPrefix + 'Toggling block #' + blockIndex);
 
-    const expanded = toBoolean(forceExpanded, !masterColumn.expanded);
-    // If will close: check if allow
-    const subColumns = blockColumns.slice(1);
-    if (!expanded && !this.onWillHideColumns(subColumns)) return;
-
-    // Toggle expanded
-    masterColumn.expanded = expanded;
-
-    subColumns.forEach((col) => {
-      // Show/Hide sub columns
-      col.hidden = !expanded;
-      // Expanded state for all columns to fix divergences states
-      if (isNotNil(col.expanded)) {
-        col.expanded = expanded;
-      }
-    });
-
-    this.markForCheck();
+    const expanded = toBoolean(forceExpanded, !metierBlockColumn.expanded);
+    this.setMetierBlockExpanded(blockIndex, expanded);
 
     // Resize cell selection (after refresh was done)
     setTimeout(() => this.onResize());
@@ -2374,14 +2353,13 @@ export class CalendarComponent
 
     if (isEmptyArray(blockColumns)) return; // Skip
 
-    const masterColumn = blockColumns[0];
+    const [masterColumn, ...subColumns] = blockColumns;
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
     const expanded = toBoolean(forceExpanded, !masterColumn.expanded);
 
-    // If will close: check if allow
-    const subColumns = blockColumns.slice(1);
-    if (!expanded && !this.onWillHideColumns(subColumns)) return;
+    // Clear selection/clipboard if columns are going to be hidden
+    if (!expanded) this.clearSelectionAndClipboard(subColumns);
 
     // Toggle expanded
     masterColumn.expanded = expanded;
@@ -2441,13 +2419,16 @@ export class CalendarComponent
     const blockColumns = this.dynamicColumns.filter((col) => col.blockIndex === blockIndex);
     if (isEmptyArray(blockColumns)) return;
 
-    const masterColumn = blockColumns[0];
+    const [masterColumn, ...subColumns] = blockColumns;
     if (isNil(masterColumn.expanded)) return; // Skip is not an expandable column
 
     masterColumn.expanded = expanded;
 
+    // Clear selection/clipboard if columns are going to be hidden
+    if (!expanded) this.clearSelectionAndClipboard(subColumns);
+
     // Update sub columns
-    blockColumns.slice(1).forEach((col) => {
+    subColumns.forEach((col) => {
       if (opts?.expandChildren === false) {
         col.hidden = col.key.includes('depthGradient') || col.key.includes('nearbySpecificArea');
 
@@ -3053,24 +3034,26 @@ export class CalendarComponent
     this.copyAllClick.emit(targets);
   }
 
-  protected onWillHideColumns(subColumns: ColumnDefinition[]): boolean {
-    if (isEmptyArray(subColumns)) return true;
+  /**
+   * Clear selection/clipboard only if specified columns are in the selection/clipboard (as they are going to be hidden).
+   * @param columnsToBeHidden Columns to be hidden.
+   */
+  private clearSelectionAndClipboard(columnsToBeHidden: ColumnDefinition[]) {
+    if (isEmptyArray(columnsToBeHidden)) return;
 
-    if (this.debug) console.debug(`${this.logPrefix}Hide sub columns:`, subColumns);
+    if (this.debug) console.debug(`${this.logPrefix}Hide sub columns:`, columnsToBeHidden);
 
     if (this.cellSelection) {
       const { paths: cellPaths } = this.getRowsFromSelection(this.cellSelection);
-      const shouldHideCellSelection = subColumns.some((c) => cellPaths.includes(c.path));
+      const shouldHideCellSelection = columnsToBeHidden.some((c) => cellPaths.includes(c.path));
       if (shouldHideCellSelection) this.removeCellSelection();
     }
 
     if (this.cellClipboard) {
       const { paths: clipboardPaths } = this.getRowsFromSelection(this.cellClipboard);
-      const shouldHideClipboard = subColumns.some((c) => clipboardPaths.includes(c.path));
+      const shouldHideClipboard = columnsToBeHidden.some((c) => clipboardPaths.includes(c.path));
       if (shouldHideClipboard) this.clearClipboard(null, { clearContext: false });
     }
-
-    return true;
   }
 
   protected clearClipboard(event?: Event, opts?: { clearContext?: boolean }) {
