@@ -93,7 +93,6 @@
     "DATE_YEAR_PLACEHOLDER": "aaaa",
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
-
     "LAT_LONG": {
       "DD_PLACEHOLDER": "DD",
       "DD_DDDDDDD_PLACEHOLDER": "± DD.DDDDDDD",
@@ -114,9 +113,7 @@
         "DD": "± DD.DDDDDDD"
       }
     },
-
     "METADATA": "Metadata:",
-
     "DAY_UNIT": "j",
     "DATE": "Date",
     "TIME": "Heure",
@@ -125,10 +122,8 @@
     "TIME_PLACEHOLDER": "hh:mm",
     "DURATION_PLACEHOLDER": "hhh:mm",
     "DURATION_DOTS": "Durée :",
-
     "YES": "Oui",
     "NO": "Non",
-
     "UPDATED_ON": "Mis à jour le",
     "RECORDER": "Saisisseur",
     "OBSERVERS": "Observateur(s)",
@@ -1981,7 +1976,8 @@
       "TITLE": "Rapport de contrôle - {{vessel}} - {{date}}",
       "TITLE_SHORT": "Rapport de contrôle",
       "AUCTION": "Criée :",
-      "CONTROLLED_SPECIES": "Espèce contrôlée :"
+      "CONTROLLED_SPECIES": "Espèce contrôlée :",
+      "CONTROL_REALIZED_ON": "Contrôle réalisé le {{date}} à {{ location }}"
     }
   },
   "EXPENSE": {
@@ -2740,7 +2736,6 @@
         "CALCIFIED_TYPE": "Pièces calcifiées :",
         "CALCIFIED_TYPE_PLACEHOLDER": "Type de pièces calcifiées #",
         "YEAR_PLACEHOLDER": "Année",
-
         "SAMPLING": {
           "TITLE": "Ligne de plan {{label}}",
           "LABEL": "Code ligne de plan - incrément",

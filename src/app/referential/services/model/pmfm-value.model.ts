@@ -230,11 +230,13 @@ export abstract class PmfmValueUtils {
       case 'date':
         return value || null;
       case 'boolean':
-        return value === 'true' || value === true || value === 1
-          ? '&#x2714;' /*checkmark*/
-          : value === 'false' || value === false || value === 0
-            ? '&#x2718;'
-            : null; /*empty*/
+        if (value === 'true' || value === true || value === 1) {
+          return opts.html ? '&#x2714' : 'COMMON.YES';
+        } else if (value === 'false' || value === false || value === 0) {
+          return opts.html ? '&#x2718' : 'COMMON.NO';
+        } else {
+          return null;
+        }
       default:
         throw new Error("Unknown pmfm's type: " + opts.pmfm.type);
     }
