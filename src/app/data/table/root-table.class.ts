@@ -48,6 +48,9 @@ import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorato
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { ExpertiseArea, IExpertiseAreaProperties } from '@app/referential/expertise-area/expertise-area.model';
+import { ExpertiseAreaService } from '@app/referential/expertise-area/expertise-area.service';
+import { AppDataState } from '../data.class';
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: 'filter',
@@ -65,14 +68,9 @@ export interface IRootDataEntitiesService<
   featureName: string;
 }
 
-export interface AppRootDataTableState extends BaseTableState {
+export interface AppRootDataTableState extends AppDataState, BaseTableState {
   title: string;
-
-  programLabel: string;
-  program: Program;
   selectionProgramLabels: string[];
-  pmfms: IPmfm[];
-
   enableReport: boolean;
   reportTypes: Property[];
 }
@@ -97,11 +95,16 @@ export abstract class AppRootDataTable<
   protected readonly programRefService = inject(ProgramRefService);
   protected readonly referentialRefService = inject(ReferentialRefService);
   protected readonly platformService = inject(PlatformService);
+  protected readonly expertiseAreaService = inject(ExpertiseAreaService);
+  protected readonly canUseExpertiseArea: boolean;
 
   @RxStateSelect() protected title$: Observable<string>;
   @RxStateSelect() protected program$: Observable<Program>;
   @RxStateSelect() protected selectionProgramLabels$: Observable<string[]>;
   @RxStateSelect() protected pmfms$: Observable<IPmfm[]>;
+  @RxStateSelect() availableExpertiseAreas$: Observable<ExpertiseArea[]>;
+  @RxStateSelect() selectedExpertiseArea$: Observable<ExpertiseArea>;
+  @RxStateSelect() expertiseAreaProperties$: Observable<IExpertiseAreaProperties>;
 
   @RxStateProperty() protected programLabel: string;
   @RxStateProperty() protected program: Program;
@@ -109,6 +112,9 @@ export abstract class AppRootDataTable<
   @RxStateProperty() protected pmfms: IPmfm[];
   @RxStateProperty() protected enableReport: boolean;
   @RxStateProperty() protected reportTypes: Property[];
+  @RxStateProperty() availableExpertiseAreas: ExpertiseArea[];
+  @RxStateProperty() selectedExpertiseArea: ExpertiseArea;
+  @RxStateProperty() expertiseAreaProperties: IExpertiseAreaProperties;
 
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
   protected defaultShowFilterProgram: boolean;
@@ -189,6 +195,7 @@ export abstract class AppRootDataTable<
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
+    this.canUseExpertiseArea = options?.canUseExpertiseArea ?? false;
 
     // Load program, from label
     this._state.connect(
@@ -280,6 +287,11 @@ export abstract class AppRootDataTable<
         )
         .subscribe()
     );
+
+    // Manage expertise areas, if enable on this table (see constructor options)
+    if (this.canUseExpertiseArea) {
+      this.expertiseAreaService.initializeStateConnections(this._state, this.debug);
+    }
   }
 
   ngOnDestroy() {
