@@ -2259,7 +2259,7 @@ export class CalendarComponent
           fishingAreas: new Array(this.maxFishingAreaCount).fill({}),
         })
         .map((guf, index) => {
-          guf = { ...guf, id: gearUseFeatures[index].id };
+          guf = { ...guf, id: gearUseFeatures[index]?.id };
           return guf;
         }),
     });
