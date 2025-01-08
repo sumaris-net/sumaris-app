@@ -55,6 +55,9 @@ export class AppComponent implements OnInit {
   }
 
   async ngOnInit() {
+    // Add additional settings options
+    this.addLocalSettingsOptions();
+
     await this.platform.ready();
 
     // Listen for config changed
@@ -68,9 +71,6 @@ export class AppComponent implements OnInit {
         distinctUntilChanged()
       )
       .subscribe((darkMode) => this.updateTheme({ darkMode }));
-
-    // Add additional settings options
-    this.addLocalSettingsOptions();
 
     // Add additional account options
     this.addAccountFields();
