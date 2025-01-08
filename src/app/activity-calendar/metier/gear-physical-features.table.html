@@ -181,7 +181,12 @@
     </ng-container>
 
     <!-- Actions column -->
-    <app-actions-column [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)" [cellTemplate]="cellTemplate">
+    <app-actions-column
+      [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)"
+      [cellTemplate]="cellTemplate"
+      (backward)="confirmAndBackward($event.event, $event.row)"
+      (forward)="confirmAndForward($event.event, $event.row)"
+    >
       <ng-template #cellTemplate let-row>
         <!-- Delete row button -->
         <button
@@ -204,7 +209,9 @@
       [class.mat-mdc-row-disabled]="!row.editing"
       [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
       (click)="clickRow($event, row)"
+      (keydown.escape)="escapeEditingRow($event)"
       (press)="pressRow($event, row)"
+      [cdkTrapFocus]="!row.validator.valid"
     ></tr>
   </table>
 

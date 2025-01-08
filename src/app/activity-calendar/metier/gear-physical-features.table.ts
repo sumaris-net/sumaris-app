@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import {
+  AppFormUtils,
   AppValidatorService,
   DateUtils,
   InMemoryEntitiesService,
@@ -11,6 +12,7 @@ import {
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
+  RESERVED_START_COLUMNS,
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -30,6 +32,7 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { UntypedFormGroup } from '@angular/forms';
 import { AppColors } from '@app/shared/colors.utils';
+import { TableElement } from '@e-is/ngx-material-table';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear', 'metier'];
 @Component({
@@ -133,6 +136,80 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
     return pmfms.filter(
       (pmfm) => !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.gearIds) || pmfm.gearIds.some((gearId) => this.gearIds.includes(gearId))
     );
+  }
+
+  confirmAndBackward(event?: Event, row?: TableElement<GearPhysicalFeatures>): boolean | Promise<boolean> {
+    const previousRow = this.editedRow;
+
+    event?.stopPropagation();
+
+    if (previousRow) {
+      // If cannot confirm previous row
+      if (!this.confirmEditCreate(event, previousRow)) {
+        // If pending: Wait end of validation, then loop
+        if (previousRow.validator?.pending) {
+          return AppFormUtils.waitWhilePending(previousRow.validator).then(() => this.confirmAndBackward(event, row));
+        }
+
+        // Go back to first column
+        this.focusColumn = this.lastUserColumn;
+        this.markForCheck();
+
+        return false;
+      }
+    }
+
+    // Find next available column to focus
+    const gearId = row.validator.get('gear')?.value?.id;
+    const enabledPmfms = this.pmfms.filter((pmfm: DenormalizedPmfmStrategy) => !(isNotNil(pmfm.gearIds) && !pmfm.gearIds.includes(gearId)));
+    const nextPmfmIndex = this.pmfms.indexOf(enabledPmfms.at(-1));
+    const focusColumnIndex =
+      RESERVED_START_COLUMNS.length +
+      (this.showMetierColumn && !this.canEditMetier ? 1 : 0) +
+      (this.showGearColumn && !this.canEditGear ? 1 : 0) +
+      nextPmfmIndex;
+    this.editRow(event, row, {
+      focusColumn: this.displayedColumns[focusColumnIndex],
+    });
+
+    // Edit previous row
+    return true;
+  }
+
+  confirmAndForward(event?: Event, row?: TableElement<GearPhysicalFeatures>): boolean | Promise<boolean> {
+    if (!this.inlineEdition) return false;
+    row = row || this.editedRow;
+
+    event?.stopPropagation();
+
+    if (!this.confirmEditCreate(event, row)) {
+      // If pending: Wait end of validation, then loop
+      if (row.validator?.pending) {
+        return AppFormUtils.waitWhilePending(row.validator).then(() => this.confirmAndForward(event, row));
+      }
+
+      // Go back to first column
+      this.focusColumn = this.firstUserColumn;
+      this.markForCheck();
+
+      return false;
+    }
+
+    // Find next available column to focus
+    const nextRowId = row.id + 1;
+    const nextRow = this.dataSource.getRow(nextRowId);
+    const nextRowForm = nextRow.validator;
+    const gearId = nextRowForm.get('gear')?.value?.id;
+    const nextPmfmIndex = this.pmfms.findIndex((pmfm: DenormalizedPmfmStrategy) => !(isNotNil(pmfm.gearIds) && !pmfm.gearIds.includes(gearId)));
+    const focusColumnIndex =
+      RESERVED_START_COLUMNS.length +
+      (this.showMetierColumn && !this.canEditMetier ? 1 : 0) +
+      (this.showGearColumn && !this.canEditGear ? 1 : 0) +
+      nextPmfmIndex;
+    this.editRow(event, nextRow, {
+      focusColumn: this.displayedColumns[focusColumnIndex],
+    });
+    return true;
   }
 
   ngOnInit() {
