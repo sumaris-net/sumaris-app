@@ -572,7 +572,7 @@
     "EMAIL_NOT_RECEIVED_QUESTION": "Si vous n'avez pas reçu l'email de validation,<br/>vous pouvez <b>demander un nouvel envoi</b> :",
     "BTN_RESEND": "Renvoyer",
     "USER_DETAILS": {
-      "TITLE": "Profile",
+      "TITLE": "Profil",
       "DESCRIPTION": "Voici les données enregistrées concernant votre compte :",
       "TECHNICAL_DIVIDER": "Information techniques",
       "PROFILE": "Profil utilisateur",
