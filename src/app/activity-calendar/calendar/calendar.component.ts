@@ -1282,9 +1282,9 @@ export class CalendarComponent
       const targetRowIndex = row.id;
       const targetColumnIndex = this.displayedColumns.indexOf(columnName);
 
-      cellSelection.colspan = targetRowIndex > sourceRowIndex ? targetRowIndex - sourceRowIndex + 1 : targetRowIndex - sourceRowIndex - 1;
+      cellSelection.colspan = targetRowIndex >= sourceRowIndex ? targetRowIndex - sourceRowIndex + 1 : targetRowIndex - sourceRowIndex - 1;
       cellSelection.rowspan =
-        targetColumnIndex > sourceColumnNameIndex ? targetColumnIndex - sourceColumnNameIndex + 1 : targetColumnIndex - sourceColumnNameIndex - 1;
+        targetColumnIndex >= sourceColumnNameIndex ? targetColumnIndex - sourceColumnNameIndex + 1 : targetColumnIndex - sourceColumnNameIndex - 1;
     }
 
     this.cellSelection = cellSelection;
@@ -2746,8 +2746,8 @@ export class CalendarComponent
 
     // Find selected paths
     const focusColumnIndex = this.displayedColumns.findIndex((columnName) => columnName === cellSelection.columnName);
-    const startColumnIndex = rowspan > 0 ? focusColumnIndex : focusColumnIndex + rowspan;
-    const endColumnIndex = rowspan > 0 ? startColumnIndex + rowspan : focusColumnIndex + 1;
+    const startColumnIndex = rowspan >= 0 ? focusColumnIndex : focusColumnIndex + rowspan + 1;
+    const endColumnIndex = rowspan >= 0 ? startColumnIndex + rowspan : focusColumnIndex + 1;
     const paths = this.displayedColumns
       .slice(startColumnIndex, endColumnIndex)
       .map((columnName) => this.getColumnPath(columnName))
