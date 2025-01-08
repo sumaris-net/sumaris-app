@@ -240,6 +240,9 @@
       "HELP_URL": "App > User manual (URL)",
       "FORUM_URL": "App > Forum address (URL)",
       "APP_URL": "App > App address (URL)",
+      "REPORT_ISSUE_URL": "App > Address to report an issue (URL)",
+      "PRIVACY_POLICY_URL": "App > Privacy policy address (URL - Preferably Markdown)",
+      "TERMS_OF_USE_URL": "App > Terms of Use address (URL - Preferably Markdown)",
       "ACCOUNT": {
         "ENABLE_LATLONG_FORMAT": "My Account > Settings > Enable lat/lon format?",
         "READONLY": "My Account > Readonly profile? (readonly option)"
@@ -511,7 +514,12 @@
     "BTN_DISCONNECT": "Disconnect this account",
     "BTN_MY_ACCOUNT": "My account",
     "BTN_REGISTER": "Register",
-    "SHOW_AT": "Show at"
+    "SHOW_AT": "Show at",
+    "LEGAL_INFORMATION": "Legal information",
+    "PRIVACY_POLICY": "Privacy policy",
+    "TERMS_OF_USE": "Terms of use",
+    "PARTNERS": "Partners and sponsors",
+    "INSTALL_APP": "Application"
   },
   "AUTH": {
     "TITLE": "Authentication",

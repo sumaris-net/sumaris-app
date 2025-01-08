@@ -18,6 +18,7 @@ export class MarkdownAnchorDirective implements OnDestroy {
     const listener = (event: Event) => this.service.interceptClick(event);
     const links = this.element.nativeElement.querySelectorAll('a');
     links.forEach((link) => {
+      console.debug('[markdown] Adding click listener to', link);
       link.addEventListener('click', listener);
       this._subscription.add(() => link.removeEventListener('click', listener));
     });

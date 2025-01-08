@@ -20,10 +20,10 @@
 
 :root {
   --hightlight-color: yellow;
-  --r-background-color: #fff;
+  --r-background-color: var(--ion-background-color);
   --r-main-font: 'Roboto', Helvetica, Arial, sans-serif;
   --r-main-font-size: 30px;
-  --r-main-color: $dark;
+  --r-main-color: var(--ion-text-color);
   --r-block-margin: 10px;
   --r-heading-margin: 0 0 10px 0;
   --r-heading-font: 'Roboto', Helvetica, Arial, sans-serif;
@@ -78,7 +78,7 @@
 
 .reveal p {
   --r-main-font-size: 0.9em;
-  --r-main-color: var(--ion-color-dark);
+  --r-main-color: var(--ion-text-color);
   color: var(--r-main-color) !important;
   font-size: var(--r-main-font-size) !important;
 }
