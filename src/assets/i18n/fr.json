@@ -124,6 +124,7 @@
     "DURATION_DOTS": "Durée :",
     "YES": "Oui",
     "NO": "Non",
+
     "UPDATED_ON": "Mis à jour le",
     "RECORDER": "Saisisseur",
     "OBSERVERS": "Observateur(s)",
@@ -216,6 +217,7 @@
     "OPTIONS": {
       "ANDROID_INSTALL_URL": "App >  Android > URL d'installation App",
       "IOS_INSTALL_URL": "App > iOS > URL d'installation App",
+      "DESKTOP_INSTALL_URL": "App > Desktop > URL d'installation",
       "DB_TIMEZONE": "Persistance > Timezone de la base de données (option non modifiable)",
       "LOGO": "Menu > Logo (largeur max 110px)",
       "FAVICON": "favicon",
@@ -240,6 +242,9 @@
       "HELP_URL": "App > Adresse du manuel utilisateur (URL)",
       "FORUM_URL": "App > Adresse du forum (URL)",
       "APP_URL": "App > Adresse de l'App (URL)",
+      "REPORT_ISSUE_URL": "App > Adresse pour remonter un problème (URL)",
+      "PRIVACY_POLICY_URL": "App > Adresse de la politique de confidentialité (URL - Markdown de préférence)",
+      "TERMS_OF_USE_URL": "App > Adresse des Conditions Générales d'Utilisation (CGU) (URL - Markdown de préférence)",
       "ACCOUNT": {
         "ENABLE_LATLONG_FORMAT": "Mon Compte > Préférences > Activer le format lat/lon ?",
         "READONLY": "Mon compte > Nom et prénom en lecture seule ?"
@@ -511,7 +516,12 @@
     "BTN_DISCONNECT": "Déconnecter ce compte",
     "BTN_MY_ACCOUNT": "Mon compte",
     "BTN_REGISTER": "S'inscrire",
-    "SHOW_AT": "Consulté le "
+    "SHOW_AT": "Consulté le ",
+    "LEGAL_INFORMATION": "Informations légales",
+    "PRIVACY_POLICY": "Politique de confidentialité",
+    "TERMS_OF_USE": "Conditions générales d'utilisation",
+    "PARTNERS": "Partenaires et sponsors",
+    "INSTALL_APP": "Application"
   },
   "AUTH": {
     "TITLE": "Authentification",
@@ -562,7 +572,7 @@
     "EMAIL_NOT_RECEIVED_QUESTION": "Si vous n'avez pas reçu l'email de validation,<br/>vous pouvez <b>demander un nouvel envoi</b> :",
     "BTN_RESEND": "Renvoyer",
     "USER_DETAILS": {
-      "TITLE": "Profile",
+      "TITLE": "Profil",
       "DESCRIPTION": "Voici les données enregistrées concernant votre compte :",
       "TECHNICAL_DIVIDER": "Information techniques",
       "PROFILE": "Profil utilisateur",
@@ -625,7 +635,7 @@
     "TITLE": "Paramètres",
     "DESCRIPTION": "Voici les paramètres de l'application :",
     "DISPLAY_DIVIDER": "Paramètres d'affichage",
-    "INHERIT_FROM_ACCOUNT": "Utiliser les préférences de l'utilisateur connecté",
+    "INHERIT_FROM_ACCOUNT": "Utiliser les préférences de mon compte utilisateur",
     "INHERIT_FROM_ACCOUNT_HELP": "Cliquez ici pour accéder à votre compte et <b>modifier vos preférences</b> :",
     "LOCALE": "Langue",
     "LAT_LONG_FORMAT": "Format latitude/longitude",
@@ -3795,7 +3805,7 @@
     "FIELD_INCONSISTENT": "Valeur incohérente",
     "FIELD_NOT_VALID_DECIMAL": "Valeur décimale attendue",
     "FIELD_NOT_VALID_INTEGER": "Valeur entière attendue",
-    "FIELD_NOT_VALID_PRECISION": "Precision minimale : {{precision}}",
+    "FIELD_NOT_VALID_PRECISION": "Précision minimale : {{precision}}",
     "FIELD_NOT_VALID_PRECISION_COMPACT": "Precision min {{precision}}",
     "FIELD_NOT_VALID_EMAIL": "Adresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",

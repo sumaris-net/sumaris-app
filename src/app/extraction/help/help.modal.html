@@ -1,4 +1,6 @@
-<app-modal-toolbar color="light" [title]="title" (cancel)="close($event)" [showSpinner]="loading"></app-modal-toolbar>
+@if (title) {
+  <app-modal-toolbar color="light" [title]="title | translate" (cancel)="close($event)" [showSpinner]="loading"></app-modal-toolbar>
+}
 
 <ion-content class="ion-padding">
   <!-- error -->
@@ -7,9 +9,11 @@
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
-  <markdown *ngIf="markdownContent" [data]="markdownContent" (ready)="markAsLoaded()" emoji></markdown>
-
-  <markdown *ngIf="markdownUrl" [src]="markdownUrl" (load)="markAsLoaded()" (error)="onLoadError($event)" emoji></markdown>
+  @if (markdownContent) {
+    <markdown [data]="markdownContent" (ready)="markAsLoaded()" emoji></markdown>
+  } @else if (markdownUrl) {
+    <markdown [src]="markdownUrl" (load)="markAsLoaded()" (error)="onLoadError($event)" emoji></markdown>
+  }
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
