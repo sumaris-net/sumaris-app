@@ -1,4 +1,4 @@
-## Politique de Confidentialité
+## SUMARiS App - Politique de Confidentialité
 
 L'application SUMARiS utilise l'appareil de l'utilisateur pour :
 
@@ -22,7 +22,9 @@ Les politiques de confidentialité concernant les photos sont les suivantes :
   - REMARQUE : Cette fonctionnalité n'est pas encore implémentée. Pour le moment, l'application utilise les avatars du site Gravatar s'ils existent. Les utilisateurs ne peuvent pas définir leur propre avatar.
   - Vous pouvez supprimer complètement votre avatar de profil :
     - Depuis la page de votre compte.
-    - En remplissant le formulaire de demande de suppression de compte : https://forms.gle/tVT3uruhrDMrZFkv5.
+    - En remplissant le formulaire de demande de suppression de compte : [https://forms.gle/tVT3uruhrDMrZFkv5](https://forms.gle/tVT3uruhrDMrZFkv5).
+
+---
 
 ---
 

@@ -1,4 +1,4 @@
-## Privacy Policy
+## SUMARiS App - Privacy Policy
 
 The SUMARiS App uses the user's device for:
 
@@ -20,7 +20,7 @@ Privacy policies are as follows:
   - NOTE: This feature is not yet implemented. For now, the app uses avatars from the Gravatar website if available. Users cannot define their own avatar.
   - You can completely remove your profile avatar:
     - Using the account page.
-    - By filling out the delete account request form: https://forms.gle/tVT3uruhrDMrZFkv5.
+    - By filling out the delete account request form: [https://forms.gle/tVT3uruhrDMrZFkv5](https://forms.gle/tVT3uruhrDMrZFkv5).
 
 ### Videos
 
