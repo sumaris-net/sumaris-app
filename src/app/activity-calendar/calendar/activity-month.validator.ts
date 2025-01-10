@@ -568,16 +568,12 @@ export class ActivityMonthValidators {
 
       // Mark if the month has at least one metier
       hasSomeMetier = hasSomeMetier || !!metier;
-
       const fishingAreas = control.get('fishingAreas').value;
-      (fishingAreas || []).forEach((fa) => {
+
+      return (fishingAreas || []).some((fa) => {
         const location = fa.location;
         const gradients = [fa.distanceToCoastGradient, fa.depthGradient, fa.nearbySpecificArea];
-
-        if (ReferentialUtils.isEmpty(metier) && (ReferentialUtils.isNotEmpty(location) || gradients.some(ReferentialUtils.isNotEmpty))) {
-          //console.debug('[activity-month-validator] inconsistentData', metier, location, distanceToCoast, fishingAreas);
-          return true;
-        }
+        return ReferentialUtils.isEmpty(metier) && (ReferentialUtils.isNotEmpty(location) || gradients.some(ReferentialUtils.isNotEmpty));
       });
     });
 
