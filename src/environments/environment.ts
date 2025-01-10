@@ -134,6 +134,8 @@ export const environment = Object.freeze(<AppEnvironment>{
   reportIssueUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues/new?issue',
   forumUrl: null,
   helpUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-doc/-/blob/master/user-manual/index_fr.md',
+  privacyPolicyUrl: 'https://test.sumaris.net/assets/doc/privacy_policy.md',
+  termsOfUseUrl: 'https://test.sumaris.net/assets/doc/terms_of_use.md',
 
   // Storage
   storage: {
