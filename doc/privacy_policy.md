@@ -47,3 +47,10 @@ Privacy policies are as follows:
 
 - When the app starts, it monitors the network status. A warning is displayed when the network is lost.
 - No data is stored or uploaded, either locally or anywhere else.
+
+
+---
+
+**Contact for additional information:**
+
+Company **Environmental Information Systems** : **contact@e-is.pro** - 19 rue Cassiopée, 53470 Martigné-Sur-Mayenne, FRANCE

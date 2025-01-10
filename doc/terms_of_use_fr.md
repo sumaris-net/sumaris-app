@@ -76,5 +76,5 @@ Les présentes CGU peuvent être modifiées à tout moment par la société héb
 ---
 
 **Contact pour toute information supplémentaire :**  
-Société E-IS : **contact@e-is.pro** 
-19 rue Cassiopée, 53470 Martigné-Sur-Mayenne, FRANCE
+
+Société **Environmental Information Systems** : **contact@e-is.pro** - 19 rue Cassiopée, 53470 Martigné-Sur-Mayenne, FRANCE

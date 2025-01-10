@@ -7,6 +7,8 @@ L'application SUMARiS utilise l'appareil de l'utilisateur pour :
 - Télécharger des localisations, comme les positions des opérations de pêche ;
 - Surveiller l'état du réseau pour avertir l'utilisateur en cas de perte de connexion.
 
+---
+
 ### Photos
 
 Les politiques de confidentialité concernant les photos sont les suivantes :
@@ -22,6 +24,8 @@ Les politiques de confidentialité concernant les photos sont les suivantes :
     - Depuis la page de votre compte.
     - En remplissant le formulaire de demande de suppression de compte : https://forms.gle/tVT3uruhrDMrZFkv5.
 
+---
+
 ### Vidéos
 
 Les politiques de confidentialité concernant les vidéos sont les suivantes :
@@ -29,6 +33,8 @@ Les politiques de confidentialité concernant les vidéos sont les suivantes :
 - Les vidéos sont stockées localement, mais peuvent être téléchargées vers le [SUMARiS Pod](https://github.com/sumaris-net/sumaris-pod/) si l'utilisateur décide de les exporter.
 
 > REMARQUE : Cette fonctionnalité n'est pas encore implémentée. Pour le moment, seules les photos peuvent être utilisées.
+
+---
 
 ### Positions
 
@@ -41,9 +47,17 @@ Les politiques de confidentialité concernant les positions sont les suivantes 
   - Ces positions sont stockées localement (une position toutes les 30 minutes) puis téléchargées vers le [SFA Pod](https://sih.sfa.sc) lorsque l'utilisateur clique sur "Terminer" depuis un formulaire d'occasion (`Menu > Occasions > bouton "Terminer" en bas`).
   - Pour supprimer toutes les positions collectées, veuillez contacter l'[administrateur du SFA Pod](https://sfa.sc/contact/).
 
+---
+
 ### État du Réseau
 
 Les politiques de confidentialité concernant l'état du réseau sont les suivantes :
 
 - Lorsque l'application démarre, elle surveille l'état du réseau. Un avertissement s'affiche lorsque la connexion est perdue.
 - Aucune donnée n'est stockée ou téléchargée, ni localement ni ailleurs.
+
+---
+
+**Contact pour toute information supplémentaire :**
+
+Société **Environmental Information Systems** : **contact@e-is.pro** - 19 rue Cassiopée, 53470 Martigné-Sur-Mayenne, FRANCE

@@ -76,5 +76,5 @@ The present ToU may be modified at any time by the company hosting and operating
 ---
 
 **Contact for additional information:**  
-Company E-IS: **contact@e-is.pro**  
-19 rue Cassiopée, 53470 Martigné-Sur-Mayenne, FRANCE
+
+Company **Environmental Information Systems** : **contact@e-is.pro** - 19 rue Cassiopée, 53470 Martigné-Sur-Mayenne, FRANCE
