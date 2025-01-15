@@ -21,7 +21,8 @@ Privacy policies are as follows:
   > Specimen pictures can be added from the following app screens:
   > - Fishing operation form (`Menu > Trips > select a trip > select an operation > open the second or third tab > open a species batch`);
   > - Landing form (`Menu > Occasion > select an occasion > select a landing or a vessel > open the second tab > open a species batch`).
-      > Pictures can be enabled or disabled, depending on the selected data collection programs.
+  > 
+  > Pictures can be enabled or disabled, depending on the selected data collection programs.
 - Profile avatars are public data, stored by the [SUMARiS Pod](https://github.com/sumaris-net/sumaris-pod/).
   - NOTE: This feature is not yet implemented. For now, the app uses avatars from the Gravatar website if available. Users cannot define their own avatar.
   - You can completely remove your profile avatar:

@@ -21,11 +21,12 @@ Les politiques de confidentialité concernant les photos sont les suivantes :
 
 - Les photos de spécimens sont stockées localement, mais peuvent être téléchargées vers le [SUMARiS Pod](https://github.com/sumaris-net/sumaris-pod/) si l'utilisateur décide de les exporter.
   > Les photos de spécimens peuvent être ajoutées depuis les écrans suivants de l'application :
-  > - Formulaire d'opération de pêche (`Menu > Voyages > sélectionner un voyage > sélectionner une opération > ouvrir l'onglet 2 ou 3 > ouvrir un lot d'espèces`) ;
-  > - Formulaire de débarquement (`Menu > Occasions > sélectionner une occasion > sélectionner un débarquement ou un navire > ouvrir le deuxième onglet > ouvrir un lot d'espèces`).
-      > La prise de photos peut être activée ou désactivée selon les programmes de collecte de données sélectionnés.
+  > - Formulaire d'opération de pêche (`Menu > Voyages > sélectionner un voyage > sélectionner une opération > ouvrir l'onglet 2 ou 3 > ouvrir un lot d'espèces`) ;
+  > - Formulaire de débarquement (`Menu > Occasions > sélectionner une occasion > sélectionner un débarquement ou un navire > ouvrir le deuxième onglet > ouvrir un lot d'espèces`).
+  >
+  > La prise de photos peut être activée ou désactivée selon les programmes de collecte de données sélectionnés.
 - Les avatars de profil sont des données publiques, stockées sur le [SUMARiS Pod](https://github.com/sumaris-net/sumaris-pod/).
-  - REMARQUE : Cette fonctionnalité n'est pas encore implémentée. Pour le moment, l'application utilise les avatars du site Gravatar s'ils existent. Les utilisateurs ne peuvent pas définir leur propre avatar.
+  - REMARQUE : Cette fonctionnalité n'est pas encore implémentée. Pour le moment, l'application utilise les avatars du site Gravatar s'ils existent. Les utilisateurs ne peuvent pas définir leur propre avatar.
   - Vous pouvez supprimer complètement votre avatar de profil :
     - Depuis la page de votre compte.
     - En remplissant le formulaire de demande de suppression de compte : [https://forms.gle/tVT3uruhrDMrZFkv5](https://forms.gle/tVT3uruhrDMrZFkv5).
