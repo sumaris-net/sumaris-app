@@ -1,4 +1,10 @@
-## SUMARiS App - Politique de Confidentialité
+# Politique de Confidentialité
+
+> Dernière mise à jour : **7 janvier 2025**
+>
+> [English version >>](./privacy_policy.md)
+
+## Aperçu de l'utilisation des données et de la confidentialité
 
 L'application SUMARiS utilise l'appareil de l'utilisateur pour :
 
@@ -9,7 +15,7 @@ L'application SUMARiS utilise l'appareil de l'utilisateur pour :
 
 ---
 
-### Photos
+## Photos
 
 Les politiques de confidentialité concernant les photos sont les suivantes :
 
@@ -28,7 +34,7 @@ Les politiques de confidentialité concernant les photos sont les suivantes :
 
 ---
 
-### Vidéos
+## Vidéos
 
 Les politiques de confidentialité concernant les vidéos sont les suivantes :
 
@@ -38,7 +44,7 @@ Les politiques de confidentialité concernant les vidéos sont les suivantes :
 
 ---
 
-### Positions
+## Positions
 
 Les politiques de confidentialité concernant les positions sont les suivantes :
 
@@ -51,7 +57,7 @@ Les politiques de confidentialité concernant les positions sont les suivantes 
 
 ---
 
-### État du Réseau
+## État du Réseau
 
 Les politiques de confidentialité concernant l'état du réseau sont les suivantes :
 

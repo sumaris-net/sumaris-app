@@ -1,5 +1,8 @@
 # General Terms of Use (ToU)
-**Last updated: January 7, 2025**
+
+> Last updated: **January 7, 2025**
+>
+> [Version française >>](./terms_of_use_fr.md)
 
 ## 1. Purpose of the ToU
 This application allows the entry, validation, and management of fisheries-related data within the context of collection programs. Users, organizations, and program managers agree to comply with the usage rules described in this document.
@@ -23,7 +26,7 @@ This application allows the entry, validation, and management of fisheries-relat
 2. **Data entry**:
 - A user may enter data within a program only if they have the required rights.
 - Each entered data is linked to a relevant collection program and the fields defined by that program.
-
+open
 3. **Data modification**:
 - Users may modify their data as long as it hasn’t been validated.
 - Once validated, data can no longer be deleted or modified.

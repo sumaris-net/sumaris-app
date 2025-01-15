@@ -1,4 +1,10 @@
-## SUMARiS App - Privacy Policy
+# Privacy Policy
+
+> Last updated: **January 7, 2025**
+>
+> [Version française >>](./privacy_policy_fr.md)
+
+## Data Usage and Privacy Overview
 
 The SUMARiS App uses the user's device for:
 
