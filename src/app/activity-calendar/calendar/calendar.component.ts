@@ -2871,7 +2871,10 @@ export class CalendarComponent
       targetCellSelection.colspan >= 0
         ? Math.max(targetCellSelection.colspan, sourceMonths.length)
         : Math.min(targetCellSelection.colspan, sourceMonths.length * -1);
-    targetCellSelection.rowspan = sourcePaths.length;
+    targetCellSelection.rowspan =
+      targetCellSelection.rowspan >= 0
+        ? Math.max(targetCellSelection.rowspan, sourcePaths.length)
+        : Math.min(targetCellSelection.rowspan, sourcePaths.length * -1);
 
     const { rows: targetRows, paths: targetPaths } = this.getRowsFromSelection(targetCellSelection);
 
@@ -2950,6 +2953,10 @@ export class CalendarComponent
         let isActive: boolean = toNumber(sourceMonth.isActive, isActiveControl.value) === VesselUseFeaturesIsActiveEnum.ACTIVE;
         let sourceHasSomeValue = false;
 
+        if (sourcePaths.length < targetPaths.length) {
+          sourcePaths = sourcePaths.concat(targetPaths.slice(sourcePaths.length));
+        }
+
         // For each path to paste
         sourcePaths.forEach((sourcePath, index) => {
           let sourceValue = getPropertyByPath(sourceMonth, sourcePath);
@@ -2982,7 +2989,7 @@ export class CalendarComponent
           }
         });
 
-        const targetEntity = targetForm.value;
+        const targetEntity = targetForm.getRawValue();
 
         // Mark entity as invalid, if form validation failed
         if (!targetForm.valid) {
