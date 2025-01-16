@@ -502,6 +502,7 @@ export class CalendarComponent
       suggestFn: (value, filter) => this.suggestDistanceToCoastGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
+      showAllOnFocus: true,
     });
     this.registerAutocompleteField('depthGradient', {
       ...autocompleteBaseConfig,
