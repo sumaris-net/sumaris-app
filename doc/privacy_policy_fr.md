@@ -1,4 +1,10 @@
-## Politique de Confidentialité
+# Politique de Confidentialité
+
+> Dernière mise à jour : **7 janvier 2025**
+>
+> [English version >>](./privacy_policy.md)
+
+## Aperçu de l'utilisation des données et de la confidentialité
 
 L'application SUMARiS utilise l'appareil de l'utilisateur pour :
 
@@ -7,22 +13,29 @@ L'application SUMARiS utilise l'appareil de l'utilisateur pour :
 - Télécharger des localisations, comme les positions des opérations de pêche ;
 - Surveiller l'état du réseau pour avertir l'utilisateur en cas de perte de connexion.
 
-### Photos
+---
+
+## Photos
 
 Les politiques de confidentialité concernant les photos sont les suivantes :
 
 - Les photos de spécimens sont stockées localement, mais peuvent être téléchargées vers le [SUMARiS Pod](https://github.com/sumaris-net/sumaris-pod/) si l'utilisateur décide de les exporter.
   > Les photos de spécimens peuvent être ajoutées depuis les écrans suivants de l'application :
-  > - Formulaire d'opération de pêche (`Menu > Voyages > sélectionner un voyage > sélectionner une opération > ouvrir l'onglet 2 ou 3 > ouvrir un lot d'espèces`) ;
-  > - Formulaire de débarquement (`Menu > Occasions > sélectionner une occasion > sélectionner un débarquement ou un navire > ouvrir le deuxième onglet > ouvrir un lot d'espèces`).
-      > La prise de photos peut être activée ou désactivée selon les programmes de collecte de données sélectionnés.
+  > - Formulaire d'opération de pêche (`Menu > Voyages > sélectionner un voyage > sélectionner une opération > ouvrir l'onglet 2 ou 3 > ouvrir un lot d'espèces`) ;
+  > - Formulaire de débarquement (`Menu > Occasions > sélectionner une occasion > sélectionner un débarquement ou un navire > ouvrir le deuxième onglet > ouvrir un lot d'espèces`).
+  >
+  > La prise de photos peut être activée ou désactivée selon les programmes de collecte de données sélectionnés.
 - Les avatars de profil sont des données publiques, stockées sur le [SUMARiS Pod](https://github.com/sumaris-net/sumaris-pod/).
-  - REMARQUE : Cette fonctionnalité n'est pas encore implémentée. Pour le moment, l'application utilise les avatars du site Gravatar s'ils existent. Les utilisateurs ne peuvent pas définir leur propre avatar.
+  - REMARQUE : Cette fonctionnalité n'est pas encore implémentée. Pour le moment, l'application utilise les avatars du site Gravatar s'ils existent. Les utilisateurs ne peuvent pas définir leur propre avatar.
   - Vous pouvez supprimer complètement votre avatar de profil :
     - Depuis la page de votre compte.
-    - En remplissant le formulaire de demande de suppression de compte : https://forms.gle/tVT3uruhrDMrZFkv5.
+    - En remplissant le formulaire de demande de suppression de compte : [https://forms.gle/tVT3uruhrDMrZFkv5](https://forms.gle/tVT3uruhrDMrZFkv5).
 
-### Vidéos
+---
+
+---
+
+## Vidéos
 
 Les politiques de confidentialité concernant les vidéos sont les suivantes :
 
@@ -30,7 +43,9 @@ Les politiques de confidentialité concernant les vidéos sont les suivantes :
 
 > REMARQUE : Cette fonctionnalité n'est pas encore implémentée. Pour le moment, seules les photos peuvent être utilisées.
 
-### Positions
+---
+
+## Positions
 
 Les politiques de confidentialité concernant les positions sont les suivantes :
 
@@ -41,9 +56,17 @@ Les politiques de confidentialité concernant les positions sont les suivantes 
   - Ces positions sont stockées localement (une position toutes les 30 minutes) puis téléchargées vers le [SFA Pod](https://sih.sfa.sc) lorsque l'utilisateur clique sur "Terminer" depuis un formulaire d'occasion (`Menu > Occasions > bouton "Terminer" en bas`).
   - Pour supprimer toutes les positions collectées, veuillez contacter l'[administrateur du SFA Pod](https://sfa.sc/contact/).
 
-### État du Réseau
+---
+
+## État du Réseau
 
 Les politiques de confidentialité concernant l'état du réseau sont les suivantes :
 
 - Lorsque l'application démarre, elle surveille l'état du réseau. Un avertissement s'affiche lorsque la connexion est perdue.
 - Aucune donnée n'est stockée ou téléchargée, ni localement ni ailleurs.
+
+---
+
+**Contact pour toute information supplémentaire :**
+
+Société **Environmental Information Systems** : **contact@e-is.pro** - 19 rue Cassiopée, 53470 Martigné-Sur-Mayenne, FRANCE

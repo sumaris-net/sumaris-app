@@ -1,5 +1,9 @@
 # Conditions Générales d'Utilisation (CGU)
-**Dernière mise à jour : 7 janvier 2025**
+
+> Dernière mise à jour : **7 janvier 2025**
+>
+> [English version >>](./terms_of_use.md)
+ 
 
 ## 1. Objet des CGU
 La présente application permet la saisie, la validation et la gestion de données halieutiques, dans le cadre de programmes de collecte. Les utilisateurs, organismes et responsables de programme s’engagent à respecter les règles d’utilisation décrites dans ce document.
@@ -76,5 +80,5 @@ Les présentes CGU peuvent être modifiées à tout moment par la société héb
 ---
 
 **Contact pour toute information supplémentaire :**  
-Société E-IS : **contact@e-is.pro** 
-19 rue Cassiopée, 53470 Martigné-Sur-Mayenne, FRANCE
+
+Société **Environmental Information Systems** : **contact@e-is.pro** - 19 rue Cassiopée, 53470 Martigné-Sur-Mayenne, FRANCE

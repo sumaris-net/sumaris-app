@@ -431,6 +431,7 @@ export class ActivityCalendarsTable
 
     const isAdminOrManager = this.isAdmin || this.programRefService.hasUserManagerPrivilege(program);
     this.canImportCsvFile = isAdminOrManager;
+    this.canDelete = isAdminOrManager;
 
     // Allow to filter on program, if admin or manager
     this.showFilterProgram = this.defaultShowFilterProgram && isAdminOrManager;
@@ -456,6 +457,7 @@ export class ActivityCalendarsTable
     await super.resetProgram();
 
     this.canImportCsvFile = this.isAdmin;
+    this.canDelete = this.accountService.isAdmin();
     this.showFilterProgram = this.defaultShowFilterProgram;
     this.showProgramColumn = this.defaultShowFilterProgram;
     this.programVesselTypeIds = null;
