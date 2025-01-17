@@ -50,7 +50,18 @@
       <ion-label translate>COMMON.BTN_RESET</ion-label>
     </button>
     <mat-divider></mat-divider>
+  } @else {
+    <!-- online help (desktop only) -->
+    <button mat-menu-item (click)="openHelpModal($event)" [disabled]="!helpUrl">
+      <mat-icon><ion-icon name="help-circle-outline"></ion-icon></mat-icon>
+      <ion-label>
+        <span translate>COMMON.BTN_SHOW_HELP</span>
+      </ion-label>
+    </button>
+
+    <mat-divider></mat-divider>
   }
+
   @if (enabled) {
     <!-- clean calendar -->
     <button mat-menu-item [disabled]="isNewData || disabled" (click)="clearCalendar($event)">

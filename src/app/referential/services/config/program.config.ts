@@ -1276,6 +1276,11 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean',
   },
+  ACTIVITY_CALENDAR_HELP_URL: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.help.url',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_HELP_URL',
+    type: 'string',
+  },
 
   /* -- Extraction options -- */
 

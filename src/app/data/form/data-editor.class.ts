@@ -6,6 +6,7 @@ import {
   AppEditorOptions,
   AppEntityEditor,
   AppErrorWithDetails,
+  AppMarkdownModal,
   ConfigService,
   Configuration,
   DateUtils,
@@ -19,10 +20,12 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
+  MarkdownUtils,
   Message,
   MessageService,
   Person,
   PersonService,
+  PlatformService,
   ReferentialUtils,
   toBoolean,
   TranslateContextService,
@@ -49,6 +52,7 @@ import { ExpertiseAreaService } from '@app/referential/expertise-area/expertise-
 import { ExpertiseArea, IExpertiseAreaProperties } from '@app/referential/expertise-area/expertise-area.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AppDataState } from '../data.class';
+import { ModalController } from '@ionic/angular';
 
 export abstract class AppDataEditorOptions extends AppEditorOptions {
   acquisitionLevel?: AcquisitionLevelType;
@@ -89,6 +93,8 @@ export abstract class AppDataEntityEditor<
   protected readonly context = inject(ContextService);
   protected readonly referentialRefService = inject(ReferentialRefService);
   protected readonly expertiseAreaService = inject(ExpertiseAreaService);
+  protected readonly platform = inject(PlatformService);
+  protected readonly modalCtrl = inject(ModalController);
   protected readonly mobile: boolean;
   protected readonly settingsId: string;
   protected readonly canUseExpertiseArea: boolean;
@@ -97,6 +103,7 @@ export abstract class AppDataEntityEditor<
   protected remoteProgramSubscription: Subscription;
   protected remoteStrategySubscription: Subscription;
   protected canSendMessage = false;
+  protected helpUrl: string = null;
 
   readonly canDebug: boolean;
   readonly canCopyLocally: boolean;
@@ -518,6 +525,26 @@ export abstract class AppDataEntityEditor<
         body,
       },
     });
+  }
+
+  async openHelpModal(event: Event, url?: string) {
+    if (event) event.preventDefault();
+    url = url || this.helpUrl;
+    if (isNilOrBlank(url)) return;
+
+    console.debug(`${this.logPrefix}Open help page {${url}}...`);
+
+    // Open as markdown
+    if (MarkdownUtils.isMarkdownFile(url)) {
+      console.debug(`${this.logPrefix}Open help page {${url}}...`);
+      await AppMarkdownModal.show(this.modalCtrl, {
+        title: this.translate.instant('COMMON.HELP.TITLE'),
+        src: url,
+      });
+    } else {
+      // Open as external link
+      await this.platform.open(url);
+    }
   }
 
   devToggleDebug() {

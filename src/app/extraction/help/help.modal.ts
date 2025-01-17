@@ -1,11 +1,16 @@
 import { ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { NetworkService, PlatformService } from '@sumaris-net/ngx-components';
-import { LocalSettingsService } from '@sumaris-net/ngx-components';
+import {
+  AppMarkdownModal,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  NetworkService,
+  PlatformService,
+  UriUtils,
+  UrlUtils,
+} from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { ExtractionType } from '../type/extraction-type.model';
-import { isNotNilOrBlank } from '@sumaris-net/ngx-components';
-import { AppHelpModal } from '@sumaris-net/ngx-components';
 
 export interface ExtractionHelpModalOptions {
   type: ExtractionType;
@@ -15,7 +20,7 @@ export interface ExtractionHelpModalOptions {
   selector: 'app-extraction-help-modal',
   templateUrl: 'help.modal.html',
 })
-export class ExtractionHelpModal extends AppHelpModal implements OnInit, ExtractionHelpModalOptions {
+export class ExtractionHelpModal extends AppMarkdownModal implements OnInit, ExtractionHelpModalOptions {
   @Input() type: ExtractionType;
 
   constructor(
@@ -37,17 +42,23 @@ export class ExtractionHelpModal extends AppHelpModal implements OnInit, Extract
     console.debug('[extraction-help-modal] Show help modal for type:', this.type);
     if (isNotNilOrBlank(this.type.description)) {
       const subtitle = this.translate.instant('EXTRACTION.HELP.MODAL.DESCRIPTION');
-      this.markdownContent = `# ${subtitle}\n\n${this.type.description}\n\n`;
+      this.data = `# ${subtitle}\n\n${this.type.description}\n\n`;
     }
     if (this.type.docUrl) {
-      this.loading = true;
+      this.markAsLoading();
+
       let url = this.type.docUrl;
-      if (url && !url.endsWith('.md')) {
-        url += '.md';
+
+      // Make sure URL is on a markdown file (add extension .md if need)
+      const filename = UriUtils.getFilename(url);
+      if (filename && !filename.endsWith('.md')) {
+        const fragment = UrlUtils.getFragment(url);
+        url = UrlUtils.stripFragmentAndQuery(url) + '.md' + (fragment ? '#' + fragment : '');
       }
-      this.markdownUrl = url;
+      this.src = url;
     } else {
-      this.markAsLoaded(); // Nothing to load
+      // Nothing to load
+      this.markAsLoaded();
     }
   }
 }

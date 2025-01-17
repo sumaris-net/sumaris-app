@@ -9,23 +9,27 @@ import { ExtractionCriteriaForm } from './criteria/extraction-criteria.form';
 import { ProductForm } from './product/product.form';
 import { AppReferentialModule } from '../referential/referential.module';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
-import { MarkdownModule } from 'ngx-markdown';
 import { ExtractionHelpModal } from './help/help.modal';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgChartsModule } from 'ng2-charts';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppSharedModule } from '@app/shared/shared.module';
 import { ColorPickerModule } from 'ngx-color-picker';
+import { IonicModule } from '@ionic/angular';
+import { SharedMarkdownModule, SharedToolbarModule } from '@sumaris-net/ngx-components';
 
 @NgModule({
   imports: [
     CommonModule,
+    IonicModule,
     LeafletModule,
     TranslateModule.forChild(),
-    MarkdownModule.forChild(),
+    SharedToolbarModule,
+    SharedMarkdownModule,
     ColorPickerModule,
     NgChartsModule,
 
+    // App modules
     AppCoreModule,
     AppSharedModule,
     AppReferentialModule,
