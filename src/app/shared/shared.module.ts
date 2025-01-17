@@ -1,7 +1,7 @@
 import { ModuleWithProviders, NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { RxStateModule, SharedDebugModule, SharedModule, SharedModuleConfig } from '@sumaris-net/ngx-components';
+import { RxStateModule, SharedDebugModule, SharedMarkdownModule, SharedModule, SharedModuleConfig } from '@sumaris-net/ngx-components';
 import { APP_MAIN_CONTEXT_SERVICE, Context, ContextService } from './context.service';
 import { DelayPipe } from '@app/shared/pipes/delay.pipe';
 import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
@@ -67,6 +67,8 @@ export class AppSharedModule {
       ngModule: AppSharedModule,
       providers: [
         ...SharedModule.forRoot(config).providers,
+
+        ...SharedMarkdownModule.forRoot().providers,
 
         // A context service
         {

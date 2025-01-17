@@ -24,7 +24,6 @@ import {
   StatusIds,
   toBoolean,
 } from '@sumaris-net/ngx-components';
-import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
 import { ObservedLocation } from './observed-location.model';
 import { Landing } from '../landing/landing.model';
@@ -125,7 +124,6 @@ export class ObservedLocationPage
 
   constructor(
     injector: Injector,
-    protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected vesselService: VesselService,
     protected observedLocationContext: ObservedLocationContextService

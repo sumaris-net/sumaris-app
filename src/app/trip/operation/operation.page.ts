@@ -18,8 +18,6 @@ import { MapPmfmEvent, MeasurementsForm } from '@app/data/measurement/measuremen
 import {
   AppErrorWithDetails,
   AppFormUtils,
-  AppHelpModal,
-  AppHelpModalOptions,
   DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
@@ -36,7 +34,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
-  PlatformService,
   ReferentialRef,
   ReferentialUtils,
   sleep,
@@ -57,7 +54,6 @@ import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels
 import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
 import { from, merge, Observable, of, Subscription, timer } from 'rxjs';
 import { MeasurementUtils } from '@app/data/measurement/measurement.model';
-import { ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { IPmfmForm, OperationValidators } from '@app/trip/operation/operation.validator';
 import { TripContextService } from '@app/trip/trip-context.service';
@@ -80,7 +76,6 @@ import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorato
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
 import { Batch } from '@app/trip/batch/common/batch.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
@@ -130,10 +125,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
   protected readonly tripService = inject(TripService);
   protected readonly tripContext = inject(TripContextService);
-  protected readonly referentialRefService = inject(ReferentialRefService);
-  protected readonly modalCtrl = inject(ModalController);
   protected readonly hotkeys = inject(Hotkeys);
-  protected readonly platformService = inject(PlatformService);
 
   protected readonly dateTimePattern: string;
   protected readonly showLastOperations: boolean;
@@ -162,7 +154,6 @@ export class OperationPage<S extends OperationState = OperationState>
   showSampleTablesByProgram = false;
   isDuplicatedData = false;
   operationPasteFlags: number;
-  helpUrl: string;
   _defaultIsParentOperation = true;
 
   readonly forceOptionalExcludedPmfmIds: number[];
@@ -224,7 +215,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
     this.displayAttributes.gear = this.settings.getFieldDisplayAttributes('gear');
-    this.xsMobile = this.mobile && !this.platformService.is('tablet');
+    this.xsMobile = this.mobile && !this.platform.is('tablet');
 
     // Init defaults
     this.showLastOperations = this.settings.isUsageMode('FIELD');
@@ -469,22 +460,6 @@ export class OperationPage<S extends OperationState = OperationState>
 
   qualify(data: Operation, qualityFlagId: number): Promise<Operation> {
     return this.dataService.qualify(data, qualityFlagId);
-  }
-
-  async openHelpModal(event: Event) {
-    if (event) event.preventDefault();
-    if (!this.helpUrl) return;
-
-    console.debug(`[operation-page] Open help page {${this.helpUrl}}...`);
-    const modal = await this.modalCtrl.create({
-      component: AppHelpModal,
-      componentProps: <AppHelpModalOptions>{
-        title: this.translate.instant('COMMON.HELP.TITLE'),
-        markdownUrl: this.helpUrl,
-      },
-      backdropDismiss: true,
-    });
-    return modal.present();
   }
 
   protected async mapPmfms(event: MapPmfmEvent) {
