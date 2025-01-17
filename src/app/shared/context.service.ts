@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs';
-import { Inject, Injectable, InjectionToken, Optional, inject } from '@angular/core';
+import { Inject, inject, Injectable, InjectionToken, Optional } from '@angular/core';
 import { Moment } from 'moment';
-import { DateUtils, StorageService, equals, fromDateISOString, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
+import { DateUtils, equals, fromDateISOString, removeDuplicatesFromArray, StorageService } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -106,14 +106,16 @@ export class ContextService<S extends Context<TClipboardData> = Context<any>, TC
   }
 
   getMerged() {
-    const state = this.get();
-    const children = state?.children;
-    if (!children) return state;
+    // IMPORTANT: Create a copy BEFORE using it, to avoid delete children to change the state !!
+    const result = { ...this.get() };
+    const children = result?.children;
+    if (!children) return result;
 
-    delete state.children;
+    console.debug(`[context#${this.id}] Merging children states`);
+    delete result.children;
 
     // Merge all children's states
-    return [state, ...children.filter((c) => !c.empty).map((child) => child.getMerged())].reduce((res, state) => ({ ...res, ...state }), {});
+    return [result, ...children.filter((c) => !c.empty).map((child) => child.getMerged())].reduce((res, state) => ({ ...res, ...state }), {});
   }
 
   async saveClipboard(): Promise<any> {
