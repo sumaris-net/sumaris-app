@@ -1,19 +1,27 @@
-@if (title) {
-  <app-modal-toolbar color="light" [title]="title | translate" (cancel)="close($event)" [showSpinner]="loading"></app-modal-toolbar>
+@if (title || canPrint) {
+  <app-modal-toolbar color="light" [title]="title | translate" (cancel)="close($event)">
+    @if (content.canGoBack) {
+      <ion-button slot="start" class="back-button" (click)="goBack($event, content)" routerDirection="back">
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    }
+    @if (canPrint) {
+      <ion-button slot="end" class="back-button" (click)="content.print($event)" routerDirection="back">
+        <ion-icon slot="icon-only" name="print"></ion-icon>
+      </ion-button>
+    }
+  </app-modal-toolbar>
 }
 
 <ion-content class="ion-padding">
-  <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
-
-  @if (markdownContent) {
-    <markdown [data]="markdownContent" (ready)="markAsLoaded()" emoji></markdown>
-  } @else if (markdownUrl) {
-    <markdown [src]="markdownUrl" (load)="markAsLoaded()" (error)="onLoadError($event)" emoji></markdown>
-  }
+  <app-markdown-content
+    #content
+    [src]="src"
+    [data]="data"
+    [showError]="showError"
+    [debug]="debug"
+    [updateRouteLocation]="false"
+  ></app-markdown-content>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

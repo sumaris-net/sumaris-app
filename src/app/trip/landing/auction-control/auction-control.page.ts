@@ -5,10 +5,9 @@ import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, s
 import { BehaviorSubject, firstValueFrom, Observable, Subscription } from 'rxjs';
 import { Landing } from '../landing.model';
 import { AuctionControlValidators } from './auction-control.validators';
-import { ModalController } from '@ionic/angular';
 import {
-  AppHelpModal,
-  AppHelpModalOptions,
+  AppMarkdownModal,
+  AppMarkdownModalOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
@@ -22,7 +21,6 @@ import {
   isNotNil,
   isNumber,
   LoadResult,
-  LocalSettingsService,
   ReferentialUtils,
   SharedValidators,
   toBoolean,
@@ -62,9 +60,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
 
   constructor(
     injector: Injector,
-    protected settings: LocalSettingsService,
-    protected formBuilder: UntypedFormBuilder,
-    protected modalCtrl: ModalController
+    protected formBuilder: UntypedFormBuilder
   ) {
     super(injector, {
       pathIdAttribute: 'controlId',
@@ -291,8 +287,8 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
     event?.stopPropagation();
 
     const modal = await this.modalCtrl.create({
-      component: AppHelpModal,
-      componentProps: <AppHelpModalOptions>{
+      component: AppMarkdownModal,
+      componentProps: <AppMarkdownModalOptions>{
         title: this.translate.instant('COMMON.HELP.TITLE'),
         markdownContent: this.helpContent,
       },

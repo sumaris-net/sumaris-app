@@ -29,7 +29,6 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
-  PlatformService,
   Property,
   ReferentialRef,
   removeDuplicatesFromArray,
@@ -38,7 +37,6 @@ import {
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from '@app/trip/observedlocation/vessels/select-vessel-for-data.modal';
 import { ActivityCalendar } from '../model/activity-calendar.model';
 import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
@@ -119,14 +117,6 @@ export interface ActivityCalendarPageState extends RootDataEntityEditorState {
         pathIdAttribute: 'calendarId',
       },
     },
-    /*{
-      provide: InMemoryEntitiesService,
-      useFactory: () =>
-        new InMemoryEntitiesService(ActivityMonth, ActivityMonthFilter, {
-          equals: EntityUtils.equals,
-          sortByReplacement: { id: 'month' },
-        }),
-    },*/
     RxState,
   ],
 })
@@ -202,13 +192,11 @@ export class ActivityCalendarPage
 
   constructor(
     injector: Injector,
-    protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected vesselService: VesselService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected context: ActivityCalendarContextService,
-    protected hotkeys: Hotkeys,
-    protected platform: PlatformService
+    protected hotkeys: Hotkeys
   ) {
     super(injector, ActivityCalendar, injector.get(ActivityCalendarService), {
       pathIdAttribute: 'calendarId',
@@ -507,6 +495,7 @@ export class ActivityCalendarPage
       this.enableReport = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_REPORT_ENABLE);
       this.predocProgramLabels = program.getPropertyAsStrings(ProgramProperties.ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS);
       this.showPictures = program.getPropertyAsBoolean(ProgramProperties.ACTIVITY_CALENDAR_IMAGES_ENABLE);
+      this.helpUrl = program.getProperty(ProgramProperties.ACTIVITY_CALENDAR_HELP_URL);
 
       let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';

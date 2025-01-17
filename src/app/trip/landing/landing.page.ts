@@ -33,7 +33,6 @@ import { UntypedFormGroup } from '@angular/forms';
 import { ObservedLocationService } from '../observedlocation/observed-location.service';
 import { TripService } from '../trip/trip.service';
 import { debounceTime, filter, map, tap, throttleTime } from 'rxjs/operators';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Landing } from './landing.model';
 import { Trip } from '../trip/trip.model';
@@ -98,7 +97,6 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   protected observedLocationService = inject(ObservedLocationService);
   protected tripService = inject(TripService);
   protected pmfmService = inject(PmfmService);
-  protected referentialRefService = inject(ReferentialRefService);
   protected vesselSnapshotService = inject(VesselSnapshotService);
   private _rowValidatorSubscription: Subscription;
   protected selectedSubTabIndex = 0;

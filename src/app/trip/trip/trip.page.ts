@@ -26,8 +26,6 @@ import {
   Alerts,
   AppErrorWithDetails,
   AppFormUtils,
-  AppHelpModal,
-  AppHelpModalOptions,
   DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
@@ -53,7 +51,7 @@ import {
 import { TripsPageSettingsEnum } from './trips.table';
 import { Operation, Trip } from './trip.model';
 import { ISelectPhysicalGearModalOptions, SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
-import { IonContent, ModalController } from '@ionic/angular';
+import { IonContent } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
 import { OperationEditor, ProgramProperties, TripReportType } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
@@ -132,7 +130,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   protected operationEditor: OperationEditor;
   protected operationPasteFlags: number;
   protected canDownload = false;
-  protected helpUrl: string;
   protected operationHelpMessage: string;
   @RxStateProperty() protected showOperationHelpMessage: boolean;
   @RxStateProperty() protected reportTypes: Property[];
@@ -171,7 +168,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   constructor(
     injector: Injector,
     protected entities: EntitiesStorage,
-    protected modalCtrl: ModalController,
     protected operationService: OperationService,
     protected tripContext: TripContextService,
     protected accountService: AccountService,
@@ -996,10 +992,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async openHelpModal(event) {
-    if (event) event.preventDefault();
-
     if (!this.helpUrl) {
-      await Alerts.showError(
+      return await Alerts.showError(
         'TRIP.WARNING.NO_HELP_URL',
         this.alertCtrl,
         this.translate,
@@ -1010,19 +1004,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
           programLabel: this.programLabel,
         }
       );
-      return;
     }
 
-    console.debug(`[trip-page] Open help page {${this.helpUrl}}...`);
-    const modal = await this.modalCtrl.create({
-      component: AppHelpModal,
-      componentProps: <AppHelpModalOptions>{
-        title: this.translate.instant('COMMON.HELP.TITLE'),
-        markdownUrl: this.helpUrl,
-      },
-      backdropDismiss: true,
-    });
-    return modal.present();
+    return super.openHelpModal(event, this.helpUrl);
   }
 
   // For DEV only

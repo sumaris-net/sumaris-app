@@ -26,7 +26,6 @@ import { RootDataEditorOptions, RootDataEntityEditorState } from '@app/data/form
 import { UntypedFormGroup } from '@angular/forms';
 import { TripService } from '../trip/trip.service';
 import { debounceTime, filter, map, tap, throttleTime } from 'rxjs/operators';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Sale } from './sale.model';
 import { Trip } from '../trip/trip.model';
@@ -96,7 +95,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected tripService = inject(TripService);
   protected landingService = inject(LandingService);
   protected pmfmService = inject(PmfmService);
-  protected referentialRefService = inject(ReferentialRefService);
   protected vesselSnapshotService = inject(VesselSnapshotService);
   protected taxonGroupRefService = inject(TaxonGroupRefService);
   protected selectedSubTabIndex = 0;

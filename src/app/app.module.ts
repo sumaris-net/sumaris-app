@@ -47,6 +47,7 @@ import {
   LocalSettings,
   LocalSettingsOptions,
   LoggingService,
+  MarkdownService,
   MenuOptions,
   ProgressBarService,
   ProgressInterceptor,
@@ -102,7 +103,6 @@ import { MAT_FORM_FIELD_DEFAULT_OPTIONS, MatFormFieldDefaultOptions } from '@ang
 import { MAT_TABS_CONFIG, MatTabsConfig } from '@angular/material/tabs';
 import { SCIENTIFIC_CRUISE_CONFIG_OPTIONS } from '@app/trip/scientific-cruise/scientific-cruise.config';
 import { AppEnvironment } from '@environments/environment.class';
-import { AppMarkdownModule } from '@app/shared/markdown/markdown.module';
 import {
   ACTIVITY_CALENDAR_CONFIG_OPTIONS,
   ACTIVITY_CALENDAR_GRAPHQL_TYPE_POLICIES,
@@ -153,12 +153,12 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         deps: [HttpClient],
       },
     }),
-    AppMarkdownModule.forRoot(),
     NgChartsModule.forRoot({
       plugins: [],
     }),
     // Need for tap event, in app-toolbar
     HammerModule,
+
     // functional modules
     AppSharedModule.forRoot({
       loader: {
@@ -176,6 +176,7 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
     // Cordova plugins
     AudioManagement,
     Downloader,
+    MarkdownService,
     // Angular Material config
     {
       provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
