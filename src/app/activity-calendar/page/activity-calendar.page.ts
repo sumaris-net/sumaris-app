@@ -1086,7 +1086,7 @@ export class ActivityCalendarPage
         ),
       });
 
-      containsExternalExpertiseData =
+      containsExternalExpertiseData ||=
         ExpertiseAreaUtils.isOutsideExpertiseArea(source.basePortLocation) ||
         source?.gearUseFeatures.some(
           (guf) =>
