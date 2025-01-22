@@ -222,17 +222,17 @@
               </ion-text>
             </ion-label>
             <ion-buttons slot="end">
-              <div *ngTemplateOutlet="animationButtons"></div>
+              <ng-container *ngTemplateOutlet="animationButtons"></ng-container>
             </ion-buttons>
           </ion-toolbar>
         </mat-expansion-panel-header>
 
         <div class="year-container">
-          <ng-container *ngFor="let item of $years | async; index as index">
+          @for (item of $years | async; track item; let index = $index) {
             <button mat-stroked-button [class.selected]="item === year" (click)="setYear(item)">
               <ion-text>{{ item }}</ion-text>
             </button>
-          </ng-container>
+          }
         </div>
       </mat-expansion-panel>
 
@@ -531,22 +531,17 @@
 </ion-content>
 
 <ng-template #animationButtons>
-  <ng-container *ngIf="$years | async | isArrayLength: { greaterThan: 1 } as years">
-    <!-- play button -->
-    <button
-      mat-icon-button
-      *ngIf="!animation; else pauseButton"
-      (click)="toggleAnimation($event)"
-      [title]="'EXTRACTION.MAP.BTN_ANIMATION_PLAY' | translate"
-    >
-      <mat-icon>play_arrow</mat-icon>
-    </button>
-
-    <ng-template #pauseButton>
+  @if ($years | async | isArrayLength: { greaterThan: 1 }; as years) {
+    @if (!animation) {
+      <!-- play button -->
+      <button mat-icon-button (click)="toggleAnimation($event)" [title]="'EXTRACTION.MAP.BTN_ANIMATION_PLAY' | translate">
+        <mat-icon>play_arrow</mat-icon>
+      </button>
+    } @else {
       <!-- pause button -->
       <button mat-icon-button (click)="toggleAnimation($event)" [title]="'EXTRACTION.MAP.BTN_ANIMATION_PAUSE' | translate">
         <mat-icon>pause</mat-icon>
       </button>
-    </ng-template>
-  </ng-container>
+    }
+  }
 </ng-template>

@@ -10,10 +10,7 @@ import {
   ViewChild,
   ViewEncapsulation,
 } from '@angular/core';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
-import moment from 'moment';
-import * as L from 'leaflet';
+import { L } from '@app/shared/map/leaflet';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import {
   AppFormUtils,
@@ -22,6 +19,7 @@ import {
   ColorScale,
   ColorScaleLegendItem,
   ConfigService,
+  DateUtils,
   DurationPipe,
   EntityServiceLoadOptions,
   fadeInAnimation,
@@ -78,7 +76,7 @@ declare interface CustomLegendOptions {
   startColor?: string;
   endColor?: string;
 }
-// TODO : Incumpatible type with ChartConfiguration<keyof ChartTypeRegistry, (number | number[] | ScatterDataPoint | BubbleDataPoint | (Partial<IBoxPlot> & IBaseStats) | (Partial<...> & IBaseStats))[], unknown>'
+// TODO : Incompatible type with ChartConfiguration<keyof ChartTypeRegistry, (number | number[] | ScatterDataPoint | BubbleDataPoint | (Partial<IBoxPlot> & IBaseStats) | (Partial<...> & IBaseStats))[], unknown>'
 // declare type TechChartType = 'pie' | 'bar' | 'doughnut';
 // declare type TechChartType = Extract<keyof ChartTypeRegistry, 'pie' | 'bar' | 'doughnut'>;
 // TODO : quick and dirty fix for the problem above
@@ -537,35 +535,40 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       })
       .addTo(map);
 
-    // Create graticule
-    this.graticule = new MapGraticule({ latLngPattern: settings.latLongFormat });
+    try {
+      // Create graticule
+      this.graticule = new MapGraticule({ latLngPattern: settings.latLongFormat });
 
-    // Add custom button to show/hide graticule
-    const graticuleControl: L.Control.EasyButton = L.easyButton({
-      states: [
-        {
-          stateName: 'show',
-          icon: '<i class="material-icons leaflet-control-icon">grid_on</i>',
-          title: this.translate.instant('MAP.SHOW_GRATICULE'),
-          onClick: (btn, map) => {
-            this.showGraticule = true;
-            this.graticule.addTo(map);
-            btn.state('hide');
+      // Add custom button to show/hide graticule
+      const graticuleControl: L.Control.EasyButton = L.easyButton({
+        states: [
+          {
+            stateName: 'show',
+            icon: '<i class="material-icons leaflet-control-icon">grid_on</i>',
+            title: this.translate.instant('MAP.SHOW_GRATICULE'),
+            onClick: (btn, map) => {
+              this.showGraticule = true;
+              this.graticule.addTo(map);
+              btn.state('hide');
+            },
           },
-        },
-        {
-          stateName: 'hide',
-          icon: '<i class="material-icons leaflet-control-icon">grid_off</i>',
-          title: this.translate.instant('MAP.HIDE_GRATICULE'),
-          onClick: (btn, map) => {
-            this.showGraticule = false;
-            this.graticule.removeFrom(map);
-            btn.state('show');
+          {
+            stateName: 'hide',
+            icon: '<i class="material-icons leaflet-control-icon">grid_off</i>',
+            title: this.translate.instant('MAP.HIDE_GRATICULE'),
+            onClick: (btn, map) => {
+              this.showGraticule = false;
+              this.graticule.removeFrom(map);
+              btn.state('show');
+            },
           },
-        },
-      ],
-    });
-    graticuleControl.addTo(map);
+        ],
+      });
+      graticuleControl.addTo(map);
+    } catch (err) {
+      console.error(this._logPrefix + 'Failed to add graticule button:', err);
+      // Continue
+    }
 
     // DEBUG zoom
     //map.on('zoom', () => console.debug(`[extraction-map] zoom=${map.getZoom()}`));
@@ -882,7 +885,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       if (isEmptyArray(type.sheetNames)) return; // No data
 
       const filterYear = this.form.get('year').value;
-      const startYear = filterYear || moment().year();
+      const startYear = filterYear || DateUtils.moment().year();
       const endYear = filterYear || startYear - 20;
 
       const sheetName = this.sheetName || (type && type.sheetNames && type.sheetNames[0]) || null;

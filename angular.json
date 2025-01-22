@@ -73,6 +73,11 @@
                 "output": "/images"
               },
               {
+                "glob": "**/*.*",
+                "input": "node_modules/leaflet/dist/images",
+                "output": "/"
+              },
+              {
                 "glob": "**/*.png",
                 "input": "node_modules/@bepo65/leaflet.fullscreen",
                 "output": "/"
