@@ -847,7 +847,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   private _extractionTypesByPrograms$: Observable<ExtractionType[]>;
 
   protected watchExtractionTypesByProgram(programLabel: string) {
-    if (this._extractionTypesProgramLabel !== programLabel) {
+    if (this._extractionTypesProgramLabel !== programLabel || !this._extractionTypesByPrograms$) {
       this._extractionTypesProgramLabel = programLabel;
       this._extractionTypesByPrograms$ = this.extractionTypeService.watchAllByProgramLabels([programLabel]);
     }
