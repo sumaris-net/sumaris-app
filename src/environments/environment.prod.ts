@@ -59,7 +59,7 @@ export const environment = Object.freeze(<AppEnvironment>{
       useSsl: true,
     },
     {
-      host: 'opus-pod.ifremer.fr',
+      host: 'opus-activite-pod.ifremer.fr',
       port: 443,
       useSsl: true,
     },
