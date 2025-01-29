@@ -3066,8 +3066,8 @@
       "OFFICIAL_LANDING_WEIGHT": "Poids débarqué officiel",
       "COMMERCIAL_SIZE_CATEGORY": "Catégorie commerciale",
       "COMMERCIAL_SIZE_CATEGORY_SCALE": "Type de catégorie commerciale",
-      "VESSEL_LENGTH_CATEGORY": "Longueur navire",
-      "VESSEL_LENGTH_CLASS": "Longueur navire",
+      "VESSEL_LENGTH_CATEGORY": "Classe de longueur navire",
+      "VESSEL_LENGTH_CLASS": "Classe de longueur navire",
       "GEAR_TYPE": "Engin",
       "LENGTH_CLASS": "Classe de taille",
       "CATCH_CATEGORY": "Débarquement/Rejet",
@@ -3124,7 +3124,19 @@
       "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids RTP",
       "CATCH_WEIGHT": "Poids total capture",
       "DISCARD_WEIGHT": "Poids total rejet",
-      "LENGTH_CODE": "Précision taille"
+      "LENGTH_CODE": "Précision taille",
+      "OBSERVER_NAME": "Observateur",
+      "OBSERVER_ID": "Identifiant de l'observateur",
+      "VESSEL_NAME": "Nom du navire",
+      "VESSEL_LENGTH": "Longueur H.T du navire (m)",
+      "VESSEL_REGISTRATION_CODE": "Immatriculation du navire",
+      "VESSEL_INT_REGISTRATION_CODE": "Immatriculation internationale du navire",
+      "REGISTRATION_LOCATION_LABEL": "Lieu d'immatriculation",
+      "REGISTRATION_LOCATION_ID": "Identifiant du lieu d'immatriculation",
+      "SURVEY_QUALIFICATION": "Qualification de l'enquête",
+      "RECORDER_PERSON_NAME": "Saisisseur",
+      "RECORDER_PERSON_ID": "Identifiant du saisisseur",
+      "RECORDER_DEPARTMENT": "Organisme du saisisseur"
     },
     "SHEET": {
       "TR": "Marées",
@@ -3201,7 +3213,10 @@
       },
       "SURVIVAL_TEST": {
         "TITLE": "Marées brutes (SUMARiS v{{version}})",
-        "NAME": "Tests de survie"
+        "NAME": "Tests de survie",
+        "SHEET": {
+          "ST": "Suivis individuels"
+        }
       },
       "RJB_TRIP": {
         "TITLE": "Marées Pocheteaux (RJB v{{version}})",
@@ -3217,6 +3232,12 @@
       "ACTIMONIT": {
         "TITLE": "Avancement des calendriers d'activité",
         "NAME": "Avancement des calendriers d'activité",
+        "BASE_PORT_LOCATION_LABEL": "Port d'exploitation",
+        "BASE_PORT_LOCATION_ID": "Identifiant du port d'exploitation",
+        "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
+        "ECONOMIC_SURVEY": "Objectif d'enquête éco ?",
+        "QUALITY_STATUS": "État de validation",
+        "STATUS": "État d'avancement",
         "SHEET": {
           "AC": "Calendriers bruts (AC)",
           "AM": "Suivi de la saisie (AM)"
@@ -3233,7 +3254,6 @@
       "VESSEL": {
         "TITLE": "Navires observés",
         "NAME": "Navires observés",
-        "VESSEL_NAME": "Nom du navire",
         "SHEET": {
           "VE": "Navires"
         }
