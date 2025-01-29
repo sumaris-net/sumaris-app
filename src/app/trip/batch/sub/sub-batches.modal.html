@@ -78,7 +78,7 @@
         <!-- error -->
         <app-error-item [message]="form.errorSubject | async"></app-error-item>
 
-        @if (canShowEnumeration) {
+        @if (enableLengthClass) {
           <form class="form-container" [formGroup]="modalForm">
             <mat-boolean-field
               [formControl]="showSubBatchFormControl"
@@ -90,11 +90,11 @@
             ></mat-boolean-field>
           </form>
         }
-        @if (pmfmsFiltered | isNotEmptyArray) {
+        @if (enableLengthClass && pmfms | isNotEmptyArray) {
           <app-sub-sorting-criteria-form
             [parentGroup]="parentGroup"
             [class.cdk-visually-hidden]="!showIndividualCountOnly"
-            [pmfmsFiltered]="pmfmsFiltered"
+            [pmfms]="pmfms"
             [programLabel]="programLabel"
             (onSubmit)="generateSubBatchesFromRange($event)"
           ></app-sub-sorting-criteria-form>

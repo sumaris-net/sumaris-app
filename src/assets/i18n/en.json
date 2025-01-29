@@ -85,6 +85,7 @@
     "EMPTY_OPTION": "(Empty)",
     "All_OPTION": "(All)",
     "AT": "at",
+    "SELECT_ALL": "Select all",
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
     "DATE_TIME_SECONDS_PATTERN": "DD/MM/YYYY HH:mm:ss",
@@ -1250,6 +1251,7 @@
         "TAXON_NAME": "Scientific species (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Species code",
         "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
+        "TOTAL_INDIVIDUAL_COUNT_DOTS": "Total nb individuals:",
         "TOTAL_WEIGHT": "Total weight",
         "SAMPLING_RATIO": "Sampling fraction",
         "SAMPLING_COEFFICIENT": "Sampling. coef.",
@@ -1262,7 +1264,9 @@
         "COMMENTS": "Comments",
         "ESTIMATED_WEIGHT_QUESTION": "Estimated weight?",
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Estim. wht?",
-        "TOTAL_DOTS": "Individual counts totals:"
+        "FILTER": {
+          "PMFM_CRITERIA": "Sorting criteria"
+        }
       },
       "TREE": {
         "SELECT_PARENT_HELP": "Select a batch, in the tree",
