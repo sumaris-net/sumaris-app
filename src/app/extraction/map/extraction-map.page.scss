@@ -18,12 +18,13 @@ div[leaflet] {
   max-width: 400px;
 
   mat-accordion {
-    --ion-background-color: var(--ion-color-base);
+    --ion-background-color: var(--ion-toolbar-background);
     --ion-item-background: var(--ion-color-transparent);
     --ion-item-background-selected: var(--ion-color-secondary100);
     --ion-item-text-color-selected: var(--ion-color-secondary100-contrast);
     --ion-item-icon-color-selected: var(--ion-color-secondary100-contrast);
 
+    --mat-expansion-container-background-color: var(--ion-background-color);
     --expansion-panel-padding: 0 !important;
 
     ion-item.selected {
@@ -52,6 +53,11 @@ div[leaflet] {
     mat-expansion-panel {
       mat-expansion-panel-header {
         padding-left: var(--ion-padding, 8px);
+
+        ion-toolbar {
+          --ion-color-base: var(--ion-toolbar-background);
+          --opacity: 0;
+        }
       }
     }
 
@@ -61,7 +67,7 @@ div[leaflet] {
       flex-wrap: wrap;
       flex-shrink: 1;
 
-      .mat-stroked-button.selected {
+      button[mat-stroked-button].selected {
         background-color: var(--ion-item-background-selected);
         color: var(--ion-item-text-color-selected);
       }

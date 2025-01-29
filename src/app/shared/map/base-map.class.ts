@@ -70,7 +70,6 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   protected graticule: MapGraticule;
   protected $onOverFeature = new Subject<Feature>();
   protected $onOutFeature = new Subject<Feature>();
-  protected $selectedFeature = new BehaviorSubject<Feature>(null);
   protected $fitToBounds = new Subject<void>();
 
   protected map: L.Map;

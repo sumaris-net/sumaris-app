@@ -207,7 +207,7 @@
 <ion-popover #downloadPopover>
   <ng-template>
     <ion-content class="ion-padding-horizontal">
-      <app-progress-bar [progression]="downloadProgression$ | async"></app-progress-bar>
+      <app-progress-bar [progression]="downloadProgression$ | async" [hideIndeterminate]="false"></app-progress-bar>
     </ion-content>
   </ng-template>
 </ion-popover>

@@ -21,6 +21,24 @@
     sans-serif;
 }
 
+// Fix white line between tiles
+// see issue https://github.com/Leaflet/Leaflet/issues/3575#issuecomment-1881642439
+.leaflet-container img.leaflet-tile {
+  mix-blend-mode: normal !important;
+  --tile-size: 256px;
+
+  @media (-webkit-min-device-pixel-ratio: 1) {
+    // NON RETINA
+    width: calc(var(--tile-size) + 1px) !important;
+    height: calc(var(--tile-size) + 1px) !important;
+  }
+  @media (-webkit-min-device-pixel-ratio: 2) {
+    // RETINA
+    width: var(--tile-size) !important;
+    height: var(--tile-size) !important;
+  }
+}
+
 button.easy-button-button {
   background-color: white;
 

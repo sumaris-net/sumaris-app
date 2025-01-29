@@ -540,6 +540,8 @@ export abstract class AppDataEntityEditor<
       await AppMarkdownModal.show(this.modalCtrl, {
         title: this.translate.instant('COMMON.HELP.TITLE'),
         src: url,
+        enableNavigationHistory: true,
+        canPrint: true,
       });
     } else {
       // Open as external link

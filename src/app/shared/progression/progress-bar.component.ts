@@ -1,6 +1,5 @@
 import { ProgressionModel } from '@app/shared/progression/progression.model';
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { toBoolean } from '@sumaris-net/ngx-components';
+import { booleanAttribute, ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
 @Component({
   selector: 'app-progress-bar',
@@ -10,14 +9,16 @@ import { toBoolean } from '@sumaris-net/ngx-components';
 })
 export class AppProgressBarComponent implements OnInit {
   @Input() progression: ProgressionModel;
-  @Input() cancellable: boolean;
+  @Input({ transform: booleanAttribute }) cancellable: boolean;
+  @Input({ transform: booleanAttribute }) hideIndeterminate: boolean = true;
+
   @Output() cancel = new EventEmitter<Event>();
 
   constructor() {}
 
   ngOnInit() {
     this.progression = this.progression || new ProgressionModel();
-    this.cancellable = toBoolean(this.cancellable, this.cancel.observed);
+    this.cancellable = this.cancellable ?? this.cancel.observed;
   }
 
   protected cancelClick(event: Event) {

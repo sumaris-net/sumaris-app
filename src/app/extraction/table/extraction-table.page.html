@@ -188,6 +188,7 @@
   </ng-template>
 </mat-menu>
 
+<!-- Extraction type of ONE program -->
 <mat-menu #programTypesMenu="matMenu" xPosition="before" class="mat-menu-size-400 ion-no-padding">
   <ng-template matMenuContent let-programLabel="programLabel" let-title="title">
     <!-- header-->
@@ -197,11 +198,16 @@
       </ion-col>
     </ion-row>
 
-    <button mat-menu-item *rxFor="let type of watchExtractionTypesByProgram(programLabel)" (click)="setTypeAndProgram(type, programLabel)">
-      <ion-label class="ion-text-wrap">
-        <span>{{ type.name }}</span>
-      </ion-label>
-    </button>
+    @let types$ = watchExtractionTypesByProgram(programLabel);
+    <ng-container *rxIf="types$; let items; suspense: loadingMenuItem">
+      @for (type of items; track type.id) {
+        <button mat-menu-item (click)="setTypeAndProgram(type, programLabel)">
+          <ion-label class="ion-text-wrap">
+            <span>{{ type.name }}</span>
+          </ion-label>
+        </button>
+      }
+    </ng-container>
   </ng-template>
 </mat-menu>
 
@@ -214,6 +220,12 @@
     <ion-label translate>EXTRACTION.NEW_PRODUCT</ion-label>
   </button>
 </mat-menu>
+
+<ng-template #loadingMenuItem>
+  <button mat-menu-item [disabled]="true">
+    <mat-label><ion-skeleton-text animated style="width: 80%; min-width: 150px"></ion-skeleton-text></mat-label>
+  </button>
+</ng-template>
 
 <!-- options menu -->
 <mat-menu #optionsMenu="matMenu">

@@ -3,6 +3,7 @@ import { gql } from '@apollo/client/core';
 import { filter, map } from 'rxjs/operators';
 
 import {
+  APP_LOGGING_SERVICE,
   APP_USER_EVENT_SERVICE,
   AppErrorWithDetails,
   AppFormUtils,
@@ -19,6 +20,8 @@ import {
   GraphqlService,
   IEntitiesService,
   IEntityService,
+  ILogger,
+  ILoggingService,
   isEmptyArray,
   isNil,
   isNilOrBlank,
@@ -479,6 +482,8 @@ export class TripService
     IRootDataEntityQualityService<Trip>,
     IDataSynchroService<Trip, TripFilter, number, TripLoadOptions>
 {
+  protected _logger: ILogger;
+
   constructor(
     injector: Injector,
     protected graphql: GraphqlService,
@@ -495,7 +500,8 @@ export class TripService
     protected formErrorTranslator: FormErrorTranslator,
     @Inject(APP_USER_EVENT_SERVICE) @Optional() protected userEventService: IUserEventService<any, any>,
     @Optional() protected translate: TranslateService,
-    @Optional() protected toastController: ToastController
+    @Optional() protected toastController: ToastController,
+    @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
   ) {
     super(injector, Trip, TripFilter, {
       queries: TripQueries,
@@ -506,6 +512,9 @@ export class TripService
     });
 
     this._featureName = TRIP_FEATURE_NAME;
+
+    // DEBUG
+    this._logger = loggingService?.getLogger('trip-service');
 
     // Register user event actions
     if (userEventService) {
@@ -831,7 +840,7 @@ export class TripService
   async saveAll(entities: Trip[], opts?: TripSaveOptions): Promise<Trip[]> {
     if (isEmptyArray(entities)) return entities;
 
-    if (this._debug) console.debug(`[trip-service] Saving ${entities.length} trips...`);
+    if (this._debug) console.debug(this._logPrefix + `Saving ${entities.length} trips...`);
     const jobsFactories = (entities || []).map((entity) => () => this.save(entity, { ...opts }));
     const result = await chainPromises<Trip>(jobsFactories);
     this.onSave.next(result);
@@ -1055,6 +1064,12 @@ export class TripService
       throw new Error('Cannot synchronize: app is offline');
     }
 
+    // LOG
+    const now = Date.now();
+    const startMessage = `Synchronizing trip #${localId}... - departure: ${entity.departureDateTime?.toISOString()} - return: ${entity.returnDateTime?.toISOString()}`;
+    console.info(this._logPrefix + startMessage);
+    this._logger?.info(startMessage);
+
     // Clone (to keep original entity unchanged)
     entity = entity instanceof Entity ? entity.clone() : entity;
     entity.synchronizationStatus = 'SYNC';
@@ -1215,9 +1230,15 @@ export class TripService
       }
     }
 
+    // LOG
+    const endMessage = `Synchronizing trip #${localId} [OK] in ${Date.now() - now}ms`;
+    console.info(this._logPrefix + endMessage);
+    this._logger?.info(endMessage);
+
     // Clean local trip
     try {
-      if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
+      console.debug(this._logPrefix + `Deleting trip {${entity.id}} from local storage`);
+      this._logger?.debug(`Deleting trip {${entity.id}} from local storage`);
 
       // Delete trip's operations
       if (opts.withOperation) {
@@ -1227,8 +1248,9 @@ export class TripService
       // Delete trip
       await this.entities.deleteById(localId, { entityName: Trip.TYPENAME });
     } catch (err) {
-      console.error(`[trip-service] Failed to locally delete trip {${entity.id}} and its operations`, err);
-      // Continue
+      // Log error, but continue
+      console.error(this._logPrefix + `Failed to locally delete trip {${entity.id}} and its operations`, err);
+      this._logger?.error(`Failed to locally delete trip {${entity.id}} and its operations`, err);
     }
 
     // Importing historical data (need to get parent operation in the local storage)
@@ -1258,8 +1280,7 @@ export class TripService
       // Run importation
       await this.importHistoricalData(filter, {});
     } catch (err) {
-      console.error(`[trip-service] Failed to import historical data`, err);
-      // Continue, after warn
+      // Continue, but warn the user
       this.showToast({ message: 'WARNING.SYNCHRONIZE_NO_HISTORICAL_DATA', type: 'warning' });
     }
 
@@ -1268,6 +1289,7 @@ export class TripService
       // FIXME: find a way o clean only synchronized data ?
       await this.settings.clearPageHistory();
     } catch (err) {
+      console.error(this._logPrefix + 'Failed to clear page history', err);
       /* Continue */
     }
 
@@ -1970,21 +1992,32 @@ export class TripService
     const programLabel = filter?.program?.label;
 
     if (isNotNilOrBlank(programLabel)) {
-      console.info('[trip-service] Importing historical data, from filter: ', filter);
+      console.info(this._logPrefix + `Importing historical data... filter:`, filter);
+      this._logger?.info(`Importing historical data... filter:`, filter);
 
-      // Import pending operations
-      const operationFilter = TripFilter.toOperationFilter(filter);
-      await this.operationService.executeImport(operationFilter, {
-        ...opts,
-        maxProgression: maxProgression / 2,
-      });
+      try {
+        // Import pending operations
+        const operationFilter = TripFilter.toOperationFilter(filter);
+        await this.operationService.executeImport(operationFilter, {
+          ...opts,
+          maxProgression: maxProgression / 2,
+        });
 
-      // Import physical gears
-      const gearFilter = TripFilter.toPhysicalGearFilter(filter);
-      await this.physicalGearService.executeImport(gearFilter, {
-        ...opts,
-        maxProgression: maxProgression / 2,
-      });
+        // Import physical gears
+        const gearFilter = TripFilter.toPhysicalGearFilter(filter);
+        await this.physicalGearService.executeImport(gearFilter, {
+          ...opts,
+          maxProgression: maxProgression / 2,
+        });
+
+        console.info(this._logPrefix + `Importing historical data [OK]`);
+        this._logger?.info(`Importing historical data [OK]`);
+      } catch (err) {
+        console.error(this._logPrefix + `Failed to import historical data`, err);
+        this._logger?.error(`Failed to import historical data`, err);
+
+        throw err;
+      }
     }
 
     if (opts?.progression) opts?.progression.next(maxProgression);

@@ -66,17 +66,20 @@
     </ion-col>
   </ion-row>
 
-  <ng-container *rxIf="types$; let items; suspense: loadingItem">
+  <ng-container *rxIf="types$; let items; suspense: loadingMenuItem">
     <button mat-menu-item *ngIf="items | isEmptyArray" [disabled]="true">
       <mat-label translate>COMMON.NO_RESULT</mat-label>
     </button>
-    <button mat-menu-item *ngFor="let type of items" (click)="downloadAsType.emit(type)">
-      <ion-label>{{ type.name }}</ion-label>
-    </button>
+    @for (type of items; track type.id) {
+      <button mat-menu-item (click)="downloadAsType.emit(type)">
+        <ion-label>{{ type.name }}</ion-label>
+      </button>
+    }
   </ng-container>
-  <ng-template #loadingItem>
-    <button mat-menu-item [disabled]="true">
-      <mat-label><ion-skeleton-text animated style="width: 80%; min-width: 150px"></ion-skeleton-text></mat-label>
-    </button>
-  </ng-template>
+</ng-template>
+
+<ng-template #loadingMenuItem>
+  <button mat-menu-item [disabled]="true">
+    <mat-label><ion-skeleton-text animated style="width: 80%; min-width: 150px"></ion-skeleton-text></mat-label>
+  </button>
 </ng-template>

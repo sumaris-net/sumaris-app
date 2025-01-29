@@ -30,9 +30,9 @@ import { ToastController } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import {
+  getUserAgent,
   isNotNil,
   isSafari,
-  getUserAgent,
   ShowToastOptions,
   sleep,
   StorageService,
@@ -307,7 +307,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
         this._printIframe.contentWindow.window.print();
       } catch (err) {
         this.disablePrintJob();
-        console.error('[reveal] Failed to create hidden iframe. Will opening a new window');
+        console.error('[reveal] Failed to create hidden iframe', err);
       } finally {
         this._printIframe?.remove();
         this._printIframe = null;

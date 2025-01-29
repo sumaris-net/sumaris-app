@@ -1,9 +1,10 @@
-import { Injectable, Optional } from '@angular/core';
+import { Inject, Injectable, Optional } from '@angular/core';
 import { FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { BehaviorSubject, combineLatest, EMPTY, from, Observable } from 'rxjs';
 import { filter, first, map, mergeMap } from 'rxjs/operators';
 import {
   AccountService,
+  APP_LOGGING_SERVICE,
   AppFormUtils,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
@@ -24,6 +25,8 @@ import {
   GraphqlService,
   IEntitiesService,
   IEntityService,
+  ILogger,
+  ILoggingService,
   IPosition,
   isEmptyArray,
   isNil,
@@ -388,8 +391,8 @@ export class OperationService
     IEntityService<Operation>
 {
   protected loading = false;
+  protected _logger: ILogger;
   protected _watchQueriesUpdatePolicy: MutableWatchQueriesUpdatePolicy;
-
   protected _tripService: IEntityService<Trip, number, TripLoadOptions>;
 
   set tripService(value: IEntityService<Trip, number, TripLoadOptions>) {
@@ -415,15 +418,17 @@ export class OperationService
     protected translate: TranslateService,
     protected toastController: ToastController,
     protected formErrorTranslator: FormErrorTranslator,
-    @Optional() protected geolocation: Geolocation
+    @Optional() protected geolocation: Geolocation,
+    @Optional() @Inject(APP_LOGGING_SERVICE) loggingService?: ILoggingService
   ) {
     super(graphql, environment);
 
     this._mutableWatchQueriesMaxCount = 3;
     this._watchQueriesUpdatePolicy = 'update-cache';
-    this._logPrefix = '[operation-service] ';
 
     // -- For DEV only
+    this._logPrefix = '[operation-service] ';
+    this._logger = loggingService?.getLogger('operation-service');
     this._debug = !environment.production;
   }
 
@@ -1338,7 +1343,7 @@ export class OperationService
     // No parent/child operation: skip (offline mode not need any historical data)
     if (!program || !allowParentOperation) {
       if (opts?.progression) opts.progression.next(maxProgression);
-      console.debug(`${this._logPrefix}Importing operation: disabled by program. Skipping`);
+      console.debug(this._logPrefix + `Importing operation: disabled by program. Skipping`);
       return;
     }
 
@@ -1354,7 +1359,10 @@ export class OperationService
     };
 
     const programLabel = program?.label;
-    console.info(`[operation-service] Importing parent operations, from program '${programLabel}'...`);
+
+    // LOG
+    console.info(this._logPrefix + `Importing parent operations, from program '${programLabel}'...`);
+    this._logger?.info(`Importing parent operations, from program '${programLabel}'...`);
 
     const res = await JobUtils.fetchAllPages(
       (offset, size) =>
@@ -1418,7 +1426,9 @@ export class OperationService
       // Save result locally
       await this.entities.saveAll(res.data, { entityName: Operation.TYPENAME, reset: false /* /!\ keep local operations */ });
 
-      console.info(`[operation-service] Successfully import ${res.data.length} parent operations, from program '${programLabel}'`);
+      // LOG
+      console.info(this._logPrefix + `Successfully import ${res.data.length} parent operations, from program '${programLabel}'`);
+      this._logger?.info(`Successfully import ${res.data.length} parent operations, from program '${programLabel}'`);
     }
   }
 
@@ -1517,6 +1527,11 @@ export class OperationService
           }
         }
 
+        // Make sure child is local, if parent is local
+        if (EntityUtils.isLocal(entity) && EntityUtils.isRemote(child)) {
+          throw { code: TripErrorCodes.CHILD_OPERATION_NOT_FOUND, message: 'Cannot use a remote operation, as child of a local operation' };
+        }
+
         // Update the child
         child.parentOperationId = entity.id;
         child.startDateTime = entity.startDateTime;
@@ -1534,6 +1549,7 @@ export class OperationService
           child.fishingStartPosition = undefined;
         }
         child.updateDate = entity.updateDate;
+
         const savedChild = await this.save(child, { ...opts, updateLinkedOperation: false });
 
         // Update the cached entity
