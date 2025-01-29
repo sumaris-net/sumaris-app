@@ -85,6 +85,7 @@
     "EMPTY_OPTION": "(Vide)",
     "All_OPTION": "(Tous)",
     "AT": "à",
+    "SELECT_ALL": "Tout sélectionner",
 
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
