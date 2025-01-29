@@ -1,6 +1,15 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { AppForm, FormFieldDefinitionMap, isEmptyArray, isNil, isNotEmptyArray, LoadResult, suggestFromArray } from '@sumaris-net/ngx-components';
+import {
+  AppForm,
+  FormFieldDefinitionMap,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  LoadResult,
+  ReferentialRef,
+  suggestFromArray,
+} from '@sumaris-net/ngx-components';
 import { BatchGroup } from '../group/batch-group.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -8,6 +17,7 @@ import { RxState } from '@rx-angular/state';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 export interface SubSortingCriteria {
   taxonName: TaxonNameRef;
@@ -15,8 +25,10 @@ export interface SubSortingCriteria {
   min: number;
   max: number;
   precision: number;
-  qvPmfm: IPmfm;
+  secondaryQvPmfm: ReferentialRef[];
   useOptionalCriteria: boolean;
+  qvPmfm: IPmfm;
+  selectAll: boolean;
 }
 @Component({
   selector: 'app-sub-sorting-criteria-form',
@@ -32,10 +44,11 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
   protected hasRequiredQvPmfm: boolean = false;
   protected disabledPrecision: boolean = false;
   protected showQvPmfm: boolean = false;
+  protected pmfmsFiltered: IPmfm[];
 
   @Input() parentGroup: BatchGroup;
   @Input() programLabel: string;
-  @Input() pmfmsFiltered: IPmfm[];
+  @Input() pmfms: IPmfm[];
 
   constructor(
     injector: Injector,
@@ -52,14 +65,17 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
         min: [null, [Validators.required, Validators.min(0)]],
         max: [null, Validators.required],
         precision: [null, [Validators.required]],
+        secondaryQvPmfm: [null],
         qvPmfm: [null],
-        useOptionalCriteria: [false],
+        selectAll: [false],
       })
     );
   }
 
   ngOnInit() {
     super.ngOnInit();
+    this.loadPmfmsFiltered();
+
     // Pmfms filtered by type
     this.qvPmfms = this.pmfmsFiltered.filter(PmfmUtils.isQualitative);
     this.criteriaPmfms = this.pmfmsFiltered.filter((pmfm) => !PmfmUtils.isQualitative(pmfm));
@@ -90,6 +106,8 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
       selectInputContentOnFocus: true,
     });
 
+    const qvPmfms = isNotEmptyArray(this.qvPmfms) ? this.qvPmfms.map(DenormalizedPmfmStrategy.fromObject)[0] : null;
+
     this.fieldDefinitions = {
       criteriaPmfm: {
         key: 'criteriaPmfm',
@@ -104,16 +122,17 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
           panelWidth: '500px',
         }),
       },
-      qvPmfm: {
-        key: 'qvPmfm',
+      secondaryQvPmfm: {
+        key: 'secondaryQvPmfm ',
         type: 'entity',
-        label: 'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA_QUALITATIVE',
+        label: qvPmfms?.name,
         required: false,
-        autocomplete: this.registerAutocompleteField('qvPmfm', {
-          suggestFn: (value, opts) => this.suggestPmfms(value, { ...opts, isQvPmfm: true }),
-          attributes: ['completeName'],
-          columnNames: ['TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA_QUALITATIVE'],
+        autocomplete: this.registerAutocompleteField('secondaryQvPmfm ', {
+          attributes: ['name'],
+          columnNames: [qvPmfms?.name],
           showAllOnFocus: true,
+          items: isNotEmptyArray(this.qvPmfms[0]?.qualitativeValues) ? qvPmfms.qualitativeValues : [],
+          multiple: true,
           panelWidth: '500px',
         }),
       },
@@ -121,12 +140,13 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
 
     // Fill form default values
     // Check if there is only one pmfm in the mandatory pmfms
+    this.form.get('qvPmfm').setValue(this.qvPmfms[0]);
     if (this.criteriaPmfms.length === 1) {
       this.form.get('criteriaPmfm').setValue(this.criteriaPmfms[0]);
     }
     if (isNotEmptyArray(this.qvPmfms) && this.qvPmfms.length === 1 && this.hasRequiredQvPmfm) {
       this.showQvPmfm = true;
-      this.form.get('qvPmfm').setValue(this.qvPmfms[0]);
+      this.form.get('secondaryQvPmfm ').setValue(this.qvPmfms[0]);
     } else if (isNotEmptyArray(this.qvPmfms)) {
       this.showQvPmfm = true;
     }
@@ -155,6 +175,12 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
 
   protected computeNumberInputStep(pmfm: IPmfm): string {
     return PmfmUtils.getOrComputePrecision(pmfm, null)?.toString() || '';
+  }
+
+  loadPmfmsFiltered() {
+    this.pmfmsFiltered = (this.pmfms || []).filter(
+      (pmfm) => !PmfmUtils.isComputed(pmfm) && (PmfmUtils.isNumeric(pmfm) || PmfmUtils.isQualitative(pmfm))
+    );
   }
 
   doSubmit() {

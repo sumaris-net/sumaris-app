@@ -3,6 +3,7 @@ import { UntypedFormGroup } from '@angular/forms';
 import {
   AppFormUtils,
   arraySize,
+  EntityUtils,
   fromDateISOString,
   IEntity,
   isEmptyArray,
@@ -261,6 +262,23 @@ export class MeasurementValuesUtils {
       .filter((key) => key !== '__typename')
       .map((key) => parseInt(key))
       .filter((pmfmId) => !isNaN(pmfmId));
+  }
+
+  /**
+   * Extract virtual pmfm ids only, used in a measurementValues object.
+   * Will exclude technical properties (e.g. __typename)
+   * @param source
+   */
+  static getVirtualPmfmIds(source: MeasurementFormValues | MeasurementModelValues): number[] {
+    return this.getPmfmIds(source).filter((pmfmId) => EntityUtils.isLocalId(pmfmId));
+  }
+
+  /**
+   * Clear virtual pmfms from a measurementValues object.
+   * @param source
+   */
+  static clearVirtualPmfms(source: MeasurementFormValues | MeasurementModelValues) {
+    this.getVirtualPmfmIds(source).forEach((pmfmId) => delete source[pmfmId]);
   }
 
   static equals(m1: MeasurementFormValues | MeasurementModelValues, m2: MeasurementFormValues | MeasurementModelValues): boolean {

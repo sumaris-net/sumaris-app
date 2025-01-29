@@ -8,7 +8,7 @@ import {
   WeightKgConversion,
   WeightUnitSymbol,
 } from '@app/referential/services/model/model.enum';
-import { isNil, isNotNil, isNotNilOrBlank, toNumber } from '@sumaris-net/ngx-components';
+import { EntityUtils, isNil, isNotNil, isNotNilOrBlank, toNumber } from '@sumaris-net/ngx-components';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import {
   ExtendedPmfmType,
@@ -106,6 +106,10 @@ export abstract class PmfmUtils {
 
   static isQualitative(pmfm: IPmfm): boolean {
     return pmfm.type === 'qualitative_value';
+  }
+
+  static isVirtual(pmfm: IPmfm): boolean {
+    return EntityUtils.isLocalId(pmfm.id);
   }
 
   /**

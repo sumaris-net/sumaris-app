@@ -76,15 +76,30 @@
       @if (!hasRequiredQvPmfm) {
         <mat-divider class="ion-padding-bottom"></mat-divider>
       }
+
       <ion-row>
-        <ion-col>
+        <ion-col size="9">
           <app-form-field
-            formControlName="qvPmfm"
-            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.SORT_CRITERIA_QUALITATIVE' | translate"
-            [definition]="fieldDefinitions.qvPmfm"
+            formControlName="secondaryQvPmfm"
+            [placeholder]="fieldDefinitions.secondaryQvPmfm.label"
+            [definition]="fieldDefinitions.secondaryQvPmfm"
             [clearable]="true"
+            [tabindex]="tabindex + 2"
             [required]="hasRequiredQvPmfm"
+            [readonly]="form | formGetValue: 'selectAll'"
           ></app-form-field>
+        </ion-col>
+        <ion-col size="3">
+          <mat-checkbox
+            matSuffix
+            formControlName="selectAll"
+            [title]="'COMMON.BTN_FREEZE_VALUE_HELP' | translate"
+            (click)="$event.stopPropagation()"
+            [tabIndex]="-1"
+            class="ion-padding-end"
+          >
+            <ion-text><small translate>COMMON.SELECT_ALL</small></ion-text>
+          </mat-checkbox>
         </ion-col>
       </ion-row>
     }
