@@ -395,7 +395,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     // DEBUG
     if (this.debug) console.debug('[sub-batches-modal] Applying value to table...', data);
 
-    return await super.setValue(data, opts);
+    return super.setValue(data, opts); // TODO: await ? Mais provoque un souci lors du passage à Mensurations
   }
 
   async doSubmitForm(event?: Event): Promise<boolean> {
