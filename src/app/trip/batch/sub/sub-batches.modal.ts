@@ -395,7 +395,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     // DEBUG
     if (this.debug) console.debug('[sub-batches-modal] Applying value to table...', data);
 
-    return super.setValue(data, opts); // TODO: await ? Mais provoque un souci lors du passage à Mensurations
+    await super.setValue(data, opts);
   }
 
   async doSubmitForm(event?: Event): Promise<boolean> {
@@ -802,7 +802,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   protected async generateDynamicColumns(pmfm: IPmfm) {
     const virtualPmfms: DenormalizedPmfmStrategy[] = [];
 
-    pmfm.qualitativeValues.forEach((pmfmQv, index) => {
+    pmfm.qualitativeValues.forEach((pmfmQv) => {
       const virtualPmfm = new DenormalizedPmfmStrategy();
       virtualPmfm.id = -pmfmQv.id;
       virtualPmfm.name = pmfmQv.name;
@@ -851,8 +851,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   }
 
   async resetFilter() {
-    await this.setModalMode('INDIVIDUAL_COUNT');
     super.resetFilter();
+    await this.setModalMode('INDIVIDUAL_COUNT');
   }
 
   protected async suggestPmfms(value: any, opts?: any): Promise<LoadResult<IPmfm>> {
@@ -1090,7 +1090,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   }
 
   private async setModalMode(mode: ModalMode, showVirtualColumns?: boolean) {
-    const showVirtualColums = isNotNil(showVirtualColumns) ? showVirtualColumns : mode === 'LENGTH_CLASS' ? true : false;
+    const showVirtualColums = isNotNil(showVirtualColumns) ? showVirtualColumns : mode === 'LENGTH_CLASS';
     const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm));
     this.setShowVirtualColumns(showVirtualColums);
 
@@ -1111,7 +1111,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     //update modal mode
     this._modalMode = mode;
-    await sleep(0); // TODO ASYNC : Nécessaire, pour que le tableau s'actualise à la fermeture de la modale
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
