@@ -415,7 +415,16 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
 
     // Serialize properties
     properties
-      .filter((property) => this.propertyDefinitions.find((def) => def.key === property.key && (def.type === 'entity' || def.type === 'entities')))
+      .filter((property) =>
+        this.propertyDefinitions.find((def) => {
+          //  NOTE: `(property.key as any)?.key` is the value provided by MatAutocompleteField when select new key
+          //        ( if form of { key: 'the.key', value: 'The value'}).
+          //        In other case, when the values are set by `AppPropertiesForm.setValue` after loading data,
+          //        the property key is only a string.
+          // FIXME: May be better to fix this in AppPropertyForm to get and object key/value is all case ?
+          return def.key === ((property.key as any)?.key || property.key) && (def.type === 'entity' || def.type === 'entities');
+        })
+      )
       .forEach((property) => {
         if (Array.isArray(property.value)) {
           property.value = property.value
