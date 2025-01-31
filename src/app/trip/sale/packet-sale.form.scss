@@ -1,16 +1,16 @@
-
 .mat-mdc-table {
   --mat-column-saleType: 210px;
   --mat-column-small-count: 4;
   --mat-column-actions-width: 98px;
-  --mat-column-small-size: calc(min((100vw - var(--mat-column-saleType) - var(--mat-column-actions-width)) / var(--mat-column-small-count), var(--mat-column-saleType)));
+  --mat-column-small-size: calc(
+    min((100vw - var(--mat-column-saleType) - var(--mat-column-actions-width)) / var(--mat-column-small-count), var(--mat-column-saleType))
+  );
 
   --mat-cell-horizontal-padding: 4px;
   --mat-header-background-color: var(--mat-toolbar-background-color, whitesmoke);
   --mat-header-background-color-even: var(--ion-color-light-shade, grey);
   --mat-footer-background-color: var(--mat-toolbar-background-color, whitesmoke);
   --mat-footer-background-color-even: var(--ion-color-light-shade, grey);
-
 
   &.mobile {
     --mat-column-actions-width: 44px;
@@ -43,17 +43,15 @@
     }
 
     .mat-mdc-cell.even {
-      background-color: rgba(0,0,0, 0.1) !important;
+      background-color: rgba(0, 0, 0, 0.1) !important;
     }
   }
 
   .mat-mdc-header-row,
-  .mat-mdc-footer-row,
   .mat-mdc-row {
     height: var(--mat-row-max-height, 48px);
 
     .mat-mdc-header-cell,
-    .mat-mdc-footer-cell,
     .mat-mdc-cell {
       padding-inline-start: var(--mat-cell-horizontal-padding, 0) !important;
       padding-inline-end: var(--mat-cell-horizontal-padding, 0) !important;
@@ -67,8 +65,7 @@
     .mat-column-subgroupCount,
     .mat-column-weight,
     .mat-column-averagePackagingPrice,
-    .mat-column-totalPrice,
-    {
+    .mat-column-totalPrice {
       max-width: var(--mat-column-small-size, 150px);
     }
 
