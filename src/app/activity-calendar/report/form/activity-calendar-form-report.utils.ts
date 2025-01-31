@@ -196,7 +196,7 @@ export function fillActivityCalendarBlankData(data: ActivityCalendar, program: P
         metier: Metier.fromObject({ id: value * index - 1 }),
       })
     );
-  data.year = moment().year();
+  data.year = moment().year() - 1;
   return data;
 }
 
