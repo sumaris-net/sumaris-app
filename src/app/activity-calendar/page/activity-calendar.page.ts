@@ -416,7 +416,7 @@ export class ActivityCalendarPage
     const showOfflineVessels = EntityUtils.isLocal(this.data) && (await this.vesselService.countAll({ synchronizationStatus: 'DIRTY' })) > 0;
     const defaultVesselSynchronizationStatus = this.network.offline || showOfflineVessels ? 'DIRTY' : 'SYNC';
 
-    // Prepare landing's filter
+    // Prepare data's filter
     const startDate = DateUtils.moment().set('year', this.data.year).utc(false).startOf('year');
     const endDate = startDate.clone().endOf('year');
 

@@ -12,6 +12,7 @@ import {
   AppEntityEditor,
   AppListForm,
   AppPropertiesForm,
+  AppPropertiesUtils,
   AppTable,
   changeCaseToUnderscore,
   ConfigService,
@@ -30,10 +31,10 @@ import {
   MatAutocompleteFieldConfig,
   OnReady,
   Property,
+  PropertyMap,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
-  removeDuplicatesFromArray,
   SharedValidators,
   StatusIds,
   SuggestFn,
@@ -399,7 +400,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     data.label = this.form.get('label').value;
 
     // Get properties
-    data.properties = this.getPropertiesValue();
+    data.properties = this.propertiesForm.getValueAsJson();
 
     // Users
     if (this.personsTable.dirty) {
@@ -408,37 +409,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     data.persons = this.personsTable.value;
 
     return data;
-  }
-
-  protected getPropertiesValue() {
-    const properties = this.propertiesForm.value;
-
-    // Serialize properties
-    properties
-      .filter((property) => this.propertyDefinitions.find((def) => def.key === property.key && (def.type === 'entity' || def.type === 'entities')))
-      .forEach((property) => {
-        if (Array.isArray(property.value)) {
-          property.value = property.value
-            .map((v) => v?.id)
-            .filter(isNotNil)
-            .join(',');
-        } else {
-          property.value = (property.value as any)?.id;
-        }
-      });
-    properties
-      .filter((property) => this.propertyDefinitions.find((def) => def.key === property.key && def.type === 'enums'))
-      .forEach((property) => {
-        if (Array.isArray(property.value)) {
-          property.value = property.value
-            .map((v) => v?.key)
-            .filter(isNotNil)
-            .join(',');
-        } else {
-          property.value = (property.value as any)?.key;
-        }
-      });
-    return properties;
   }
 
   protected computeTitle(data: Program): Promise<string> {
@@ -561,9 +531,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     return data;
   }
 
-  protected exportPropertiesToCsv() {
+  protected async exportPropertiesToCsv() {
     if (this.isNewData) return; // Skip if new
-    const properties = this.getPropertiesValue();
+    const properties = await AppPropertiesUtils.arrayFromObject<any>(this.propertiesForm.getValueAsJson());
     this.propertiesFileService.exportToCsv(properties, { context: { label: this.data.label } });
   }
 
@@ -573,24 +543,35 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
     this.markAsLoading();
 
     try {
-      const properties = await this.propertiesFileService.uploadPropertiesFromCsv(event);
+      const existingProperties = this.propertiesForm.getValueAsJson();
+      const importedProperties = AppPropertiesUtils.arrayAsObject(await this.propertiesFileService.uploadPropertiesFromCsv(event));
+      let mergedProperties: PropertyMap = {};
 
       switch (this.propertiesImportPolicy) {
         case 'insert-update':
           // Use imported properties first, and remove old
-          this.propertiesForm.value = removeDuplicatesFromArray([...properties, ...this.propertiesForm.value], 'key');
+          mergedProperties = { ...existingProperties, ...importedProperties };
           break;
         case 'insert-only':
           // Prefer existing properties, then insert new
-          this.propertiesForm.value = removeDuplicatesFromArray([...this.propertiesForm.value, ...properties], 'key');
+          mergedProperties = { ...importedProperties, ...existingProperties };
           break;
-        case 'update-only':
-          this.propertiesForm.value = (this.propertiesForm.value || []).map((target) => {
-            return properties.find((p) => p.key === target.key) || target;
-          });
+        case 'update-only': {
+          const importKeys = Object.keys(importedProperties);
+          mergedProperties = Object.keys(existingProperties).reduce(
+            (res, key) => {
+              if (importKeys.includes(key)) {
+                res[key] = importedProperties[key];
+              }
+              return res;
+            },
+            <PropertyMap>{ ...existingProperties }
+          );
           break;
+        }
       }
 
+      this.propertiesForm.value = EntityUtils.getMapAsArray(mergedProperties);
       this.markAsDirty();
     } catch (err) {
       this.setError(err);
