@@ -1,7 +1,7 @@
 <!-- Progress item -->
 @let current = progression?.current$ | push;
 @let total = progression.total$ | push;
-@if (!hideIndeterminate || current || total) {
+@if (!hideIndeterminate || current) {
   <ion-item lines="none" color="transparent" class="ion-no-padding">
     <ion-label class="ion-text-wrap">
       <h4 class="computed" *rxIf="progression.message$; let message">
