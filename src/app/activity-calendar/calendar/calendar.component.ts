@@ -244,11 +244,15 @@ export class CalendarComponent
   >
   implements OnInit, AfterViewInit, OnDestroy
 {
+  static CONTEXT_MENU_COUNTER = 0;
+
   protected referentialRefService = inject(ReferentialRefService);
+
   protected debouncedExpandCellSelection$ = new Subject<TableCellSelection<ActivityMonth>>();
   protected debouncedCheckExpertiseArea$ = new Subject<ActivityMonth[] | undefined>();
   protected unauthorizedToast$ = new Subject<void | string>();
   protected confirmingRowMutex = new Mutex();
+  protected contextMenuId: number;
 
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
@@ -437,8 +441,10 @@ export class CalendarComponent
     this.errorTranslateOptions = { separator: '\n', pathTranslator: this };
     this.excludesColumns = ['program', ...DYNAMIC_COLUMNS];
     this.toolbarColor = 'medium';
-    this.logPrefix = '[activity-calendar] ';
     this.loadingSubject.next(true);
+    this.contextMenuId = CalendarComponent.CONTEXT_MENU_COUNTER++;
+
+    this.logPrefix = '[activity-calendar] ';
   }
 
   async ngOnInit() {
@@ -502,7 +508,8 @@ export class CalendarComponent
       suggestFn: (value, filter) => this.suggestDistanceToCoastGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
-      showAllOnFocus: true,
+      reloadItemsOnFocus: true,
+      clearInvalidSearchTextOnBlur: true,
     });
     this.registerAutocompleteField('depthGradient', {
       ...autocompleteBaseConfig,
@@ -1297,7 +1304,13 @@ export class CalendarComponent
   protected async clickMonthHeader(event: MouseEvent, row: AsyncTableElement<ActivityMonth>) {
     if (!row || event?.defaultPrevented) return; // Skip
 
-    event?.preventDefault(); // Avoid clickRow
+    if (event) {
+      // Avoid clickRow
+      event.preventDefault();
+
+      // Close contextual menu
+      this.closeContextMenu();
+    }
 
     const isActiveIndex = this.displayedColumns.findIndex((col) => col === 'isActive');
     // eslint-disable-next-line prefer-const
@@ -1331,7 +1344,7 @@ export class CalendarComponent
     this.startCellSelection.next();
   }
 
-  protected async selectMonth(event: MouseEvent, columnName: string | number) {
+  protected async selectColumn(event: MouseEvent, columnName: string | number) {
     if (event?.defaultPrevented || isNil(columnName)) return; // Skip
 
     // Convert column to string
@@ -1344,7 +1357,14 @@ export class CalendarComponent
       return;
     }
 
-    event?.preventDefault(); // Avoid default click
+    if (event) {
+      // Avoid default click
+      event.preventDefault();
+
+      // Close contextual menu
+      this.closeContextMenu();
+    }
+
     const columnIndex = this.displayedColumns.findIndex((c) => c === columnName);
 
     let row = this.dataSource.getRow(0); // January
@@ -2406,6 +2426,9 @@ export class CalendarComponent
     divElement.style.height = cellRect.height + 'px';
 
     if (opts?.emitEvent !== false) {
+      // Close contextual menu
+      this.closeContextMenu();
+
       this.markForCheck();
     }
   }
@@ -3101,11 +3124,35 @@ export class CalendarComponent
       this.cellSelection.resizing = false;
     }
 
-    this.menuTrigger.openMenu();
-    const contextMenu = document.querySelector('.context-menu') as HTMLElement;
-    contextMenu.style.position = 'fixed';
-    contextMenu.style.left = `${event.clientX}px`;
-    contextMenu.style.top = `${event.clientY}px`;
+    this.openContextMenu(event);
+  }
+
+  protected async onMonthContextMenu(event: MouseEvent, row: AsyncTableElement<ActivityMonth>) {
+    if (!row) return; // Skip
+
+    event.preventDefault();
+
+    await this.clickMonthHeader(null, row);
+
+    if (!this.cellSelection) return; // Stop if nothing selected
+
+    setTimeout(() => {
+      this.openContextMenu(event);
+    }, 150);
+  }
+
+  protected async onColumnContextMenu(event: MouseEvent, columnName: string) {
+    if (event?.defaultPrevented || !columnName) return; // Skip
+
+    event.preventDefault();
+
+    await this.selectColumn(null, columnName);
+
+    if (!this.cellSelection) return; // Stop if nothing selected
+
+    setTimeout(() => {
+      this.openContextMenu(event);
+    }, 150);
   }
 
   selectCell(event?: Event, row?: AsyncTableElement<ActivityMonth>, columnName?: string) {
@@ -3133,6 +3180,17 @@ export class CalendarComponent
 
     // Emit start cell selection event
     this.startCellSelection.next();
+  }
+
+  protected openContextMenu(event: MouseEvent) {
+    // Open if not yet opened
+    this.menuTrigger.openMenu();
+
+    //const contextMenu = document.querySelector('.context-menu') as HTMLElement;
+    const contextMenu = document.querySelector(`.context-menu-${this.contextMenuId}`) as HTMLElement;
+    contextMenu.style.position = 'fixed';
+    contextMenu.style.left = `${event.clientX}px`;
+    contextMenu.style.top = `${event.clientY}px`;
   }
 
   protected closeContextMenu() {

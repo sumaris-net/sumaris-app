@@ -54,8 +54,6 @@ mat-toolbar {
   .toolbar-background-color {
     background-color: var(--ion-toolbar-background) !important;
   }
-
-
 }
 
 .mat-mdc-table {
@@ -73,6 +71,12 @@ mat-toolbar {
   &.large {
     --mat-row-height: 48px !important;
     --mat-row-max-height: 48px !important;
+  }
+
+  .mat-column-vesselOwner,
+  .mat-column-registrationLocation,
+  .mat-column-program {
+    cursor: none;
   }
 
   .mat-mdc-header-row {
@@ -108,9 +112,6 @@ mat-toolbar {
           visibility: hidden;
         }
       }
-    }
-
-    .mat-column-pmfm {
     }
 
     /* Disable other columns */
@@ -152,7 +153,6 @@ mat-toolbar {
       &.mat-column-reset-background-color {
         --mat-table-background-color: var(--ion-color-step-100) !important;
       }
-
     }
 
     &.conflictual {

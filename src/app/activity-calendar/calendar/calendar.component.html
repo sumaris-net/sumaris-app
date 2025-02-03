@@ -29,7 +29,7 @@
 <button mat-button [matMenuTriggerFor]="contextMenu" #menuTrigger="matMenuTrigger" style="display: none"></button>
 
 <!-- Cell contextual menu  -->
-<mat-menu #contextMenu="matMenu" class="context-menu ion-no-padding" [hasBackdrop]="disabled">
+<mat-menu #contextMenu="matMenu" class="context-menu context-menu-{{ contextMenuId }} ion-no-padding" [hasBackdrop]="false">
   <ng-template matMenuContent>
     @if (enabled) {
       <button mat-menu-item (click)="cut()" [disabled]="!cellSelection">
@@ -248,6 +248,7 @@
           [title]="errorSpan?.innerText || ''"
           class="mat-column-reset-background-color"
           (click)="clickMonthHeader($event, row)"
+          (contextmenu)="onMonthContextMenu($event, row)"
           [style.top.px]="sticky ? tableContainer.scrollTop : 0"
         >
           <ion-label class="ion-text-center">
@@ -278,11 +279,11 @@
       </ng-container>
 
       <ng-container matColumnDef="vesselOwner">
-        <mat-header-cell *matHeaderCellDef>
+        <mat-header-cell *matHeaderCellDef (contextmenu)="$event.preventDefault()">
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.VESSEL_OWNER</ion-label>
         </mat-header-cell>
         <ng-container *matCellDef="let row">
-          <mat-cell #cell class="mat-column-reset-background-color">
+          <mat-cell #cell class="mat-column-reset-background-color" (contextmenu)="$event.preventDefault()">
             @if (vesselOwners$ | push | mapGet: row.id; as owners) {
               @if (owners | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: '\n', propertySeparator: ' ' }; as title) {
                 <ion-label class="ion-text-nowrap computed" (ngInit)="cell.title = title">
@@ -301,11 +302,11 @@
       </ng-container>
 
       <ng-container matColumnDef="registrationLocation">
-        <mat-header-cell *matHeaderCellDef class="odd">
+        <mat-header-cell *matHeaderCellDef class="odd" (contextmenu)="$event.preventDefault()">
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.REGISTRATION_LOCATION</ion-label>
         </mat-header-cell>
         <ng-container *matCellDef="let row">
-          <mat-cell #cell class="odd mat-column-reset-background-color">
+          <mat-cell #cell class="odd mat-column-reset-background-color" (contextmenu)="$event.preventDefault()">
             @if (
               inlineEdition ? (row.validator | formGetValue: 'registrationLocations') : row.currentData.registrationLocations;
               as registrationLocations
@@ -324,10 +325,10 @@
       </ng-container>
 
       <ng-container matColumnDef="program">
-        <mat-header-cell *matHeaderCellDef class="odd">
+        <mat-header-cell *matHeaderCellDef class="odd" (contextmenu)="$event.preventDefault()">
           <ion-label>{{ programHeaderLabel | translate }}</ion-label>
         </mat-header-cell>
-        <mat-cell *matCellDef="let row" class="odd mat-column-reset-background-color">
+        <mat-cell *matCellDef="let row" class="odd mat-column-reset-background-color" (contextmenu)="$event.preventDefault()">
           <ion-label class="ion-text-nowrap computed" [title]="content.innerText">
             <span #content>{{ 'ACTIVITY_CALENDAR.EDIT.SOURCE_PREDOC' | translateContext: row.currentData.program?.label }}</span>
           </ion-label>
@@ -335,7 +336,12 @@
       </ng-container>
 
       <ng-container matColumnDef="isActive">
-        <mat-header-cell *matHeaderCellDef (click)="selectMonth($event, 'isActive')">
+        <mat-header-cell
+          *matHeaderCellDef
+          class="tappable"
+          (click)="selectColumn($event, 'isActive')"
+          (contextmenu)="onColumnContextMenu($event, 'isActive')"
+        >
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.IS_ACTIVE</ion-label>
         </mat-header-cell>
         <mat-cell
@@ -344,7 +350,6 @@
           #cell
           (click)="clickCell($event, row, 'isActive')"
           (dblclick)="dblClickCell($event, row, 'isActive')"
-          (contextmenu)="onContextMenu($event, cell, row, 'isActive')"
         >
           @if (row.editing && row.validator | formGetControl: 'isActive'; as control) {
             <mat-form-field>
@@ -382,7 +387,12 @@
 
       <!-- Base port location -->
       <ng-container matColumnDef="basePortLocation">
-        <mat-header-cell *matHeaderCellDef class="odd" (click)="selectMonth($event, 'basePortLocation')">
+        <mat-header-cell
+          *matHeaderCellDef
+          class="odd tappable"
+          (click)="selectColumn($event, 'basePortLocation')"
+          (contextmenu)="onColumnContextMenu($event, 'basePortLocation')"
+        >
           <ion-label translate>ACTIVITY_CALENDAR.EDIT.BASE_PORT_LOCATION</ion-label>
         </mat-header-cell>
         <mat-cell
@@ -427,9 +437,10 @@
         <ng-container [matColumnDef]="pmfm.id | toString">
           <mat-header-cell
             *matHeaderCellDef
-            class="mat-column-pmfm mat-column-{{ pmfm.label }}"
+            class="mat-column-pmfm mat-column-{{ pmfm.label }} tappable"
             [class.odd]="odd"
-            (click)="selectMonth($event, pmfm.id)"
+            (click)="selectColumn($event, pmfm.id.toString())"
+            (contextmenu)="onColumnContextMenu($event, pmfm.id.toString())"
           >
             <ion-label
               [innerHTML]="
@@ -493,10 +504,11 @@
         <ng-container [matColumnDef]="col.key">
           <mat-header-cell
             *matHeaderCellDef
+            class="tappable"
             [class]="col.class"
             [class.collapsed]="col.hidden"
-            [class.tappable]="col.expanded !== undefined"
-            (click)="selectMonth($event, col.key)"
+            (click)="selectColumn($event, col.key)"
+            (contextmenu)="onColumnContextMenu($event, col.key)"
           >
             <ion-label>
               @if (col.treeIndent) {
