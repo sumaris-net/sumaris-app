@@ -476,7 +476,7 @@ export class CalendarComponent
     );
 
     const autocompleteBaseConfig = <Partial<MatAutocompleteFieldConfig>>{
-      selectInputContentOnFocus: true,
+      selectInputContentOnFocus: !this.mobile,
       reloadItemsOnFocus: !this.mobile,
       clearInvalidValueOnBlur: !this.mobile,
       // TODO: to test well
@@ -508,8 +508,6 @@ export class CalendarComponent
       suggestFn: (value, filter) => this.suggestDistanceToCoastGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
-      reloadItemsOnFocus: true,
-      clearInvalidSearchTextOnBlur: true,
     });
     this.registerAutocompleteField('depthGradient', {
       ...autocompleteBaseConfig,

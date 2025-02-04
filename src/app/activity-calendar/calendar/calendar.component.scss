@@ -73,12 +73,6 @@ mat-toolbar {
     --mat-row-max-height: 48px !important;
   }
 
-  .mat-column-vesselOwner,
-  .mat-column-registrationLocation,
-  .mat-column-program {
-    cursor: none;
-  }
-
   .mat-mdc-header-row {
     flex-direction: column !important;
     height: unset;
