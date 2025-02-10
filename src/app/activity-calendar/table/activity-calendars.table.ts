@@ -750,6 +750,8 @@ export class ActivityCalendarsTable
     if (isNotEmptyArray(uploadedFileNames)) {
       const jobs = await Promise.all(uploadedFileNames.map((uploadedFileName) => this._dataService.importCsvFile(uploadedFileName, format)));
       console.info(this.logPrefix + `Activity calendars successfully imported, in ${Date.now() - now}ms`, jobs);
+      // Refresh the table
+      this.onRefresh.emit();
     }
   }
 
