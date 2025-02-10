@@ -11,6 +11,9 @@ import {
   capitalizeFirstLetter,
   chainPromises,
   changeCaseToUnderscore,
+  ConfigService,
+  Configuration,
+  CORE_CONFIG_OPTIONS,
   DateUtils,
   EntitiesServiceLoadOptions,
   EntitiesServiceWatchOptions,
@@ -412,6 +415,8 @@ export class ActivityCalendarService
     IRootDataEntityQualityService<ActivityCalendar>,
     IDataSynchroService<ActivityCalendar, ActivityCalendarFilter, number, ActivityCalendarLoadOptions>
 {
+  $dbTimeZone = new BehaviorSubject<string>(null);
+
   constructor(
     injector: Injector,
     protected graphql: GraphqlService,
@@ -424,6 +429,7 @@ export class ActivityCalendarService
     protected validatorService: ActivityCalendarValidatorService,
     protected trashRemoteService: TrashRemoteService,
     protected formErrorTranslator: FormErrorTranslator,
+    protected configService: ConfigService,
     @Inject(APP_USER_EVENT_SERVICE) @Optional() protected userEventService: IUserEventService<any, any>,
     @Optional() protected translate: TranslateService,
     @Optional() protected toastController: ToastController,
@@ -438,6 +444,8 @@ export class ActivityCalendarService
     });
 
     this._featureName = ACTIVITY_CALENDAR_FEATURE_NAME;
+
+    this.configService.config.subscribe((config) => this.onConfigChanged(config));
 
     // Register user event actions
     if (userEventService) {
@@ -1017,6 +1025,7 @@ export class ActivityCalendarService
       isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true, // Need by full validation
       pmfms,
+      timezone: this.$dbTimeZone.value,
     });
 
     if (!form.valid) {
@@ -1365,6 +1374,11 @@ export class ActivityCalendarService
   }
 
   /* -- protected methods -- */
+
+  protected onConfigChanged(config: Configuration) {
+    const dbTimeZone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
+    this.$dbTimeZone.next(dbTimeZone);
+  }
 
   protected asObject(entity: ActivityCalendar, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
