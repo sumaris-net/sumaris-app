@@ -1,9 +1,10 @@
-import { DateUtils, EntityUtils, ReferentialUtils, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
+import { DateUtils, EntityUtils, ReferentialUtils, isNotEmptyArray, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import { GearPhysicalFeatures } from './gear-physical-features.model';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { GearUseFeatures, GearUseFeaturesComparators } from '@app/activity-calendar/model/gear-use-features.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
+import { IUseFeaturesUtils } from './use-features.model';
 
 export class GearPhysicalFeaturesUtils {
   static logPrefix = '[ActivityCalendarUtils.getPhysicalFeatures]';
@@ -79,6 +80,20 @@ export class GearPhysicalFeaturesUtils {
       const gpf = target.find((gpf) => gpf.metier.id == metier.id);
       gpf.rankOrder = index;
     });
+
+    // Merging yearly GearUseFeatures into GearPhysicalFeatures, for old data compatibility - See issue sumaris-app#921
+    const gufs = IUseFeaturesUtils.filterByPeriod(data.gearUseFeatures, { startDate: firstDayOfYear, endDate: lastDayOfYear });
+    if (isNotEmptyArray(gufs)) {
+      target.forEach((gpf) => {
+        const guf = gufs.find(
+          (guf) => guf.metier.id === gpf.metier.id && DateUtils.isSame(guf.startDate, gpf.startDate) && DateUtils.isSame(guf.endDate, gpf.endDate)
+        );
+        if (guf) {
+          gpf.measurementValues = { ...guf.measurementValues, ...gpf.measurementValues };
+        }
+      });
+    }
+
     console.debug(GearPhysicalFeaturesUtils.logPrefix + 'Loaded :  gearPhysicalFeatures', target);
     return target;
   }
