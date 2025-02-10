@@ -1833,53 +1833,47 @@ export class CalendarComponent
 
   protected async suggestDistanceToCoastGradient(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
-    return this.referentialRefService.suggest(value, this.buildDistanceToCoastGradientFilter(filter, this.getCurrentFishingAreaLocationId()));
+    const locationIds = filter?.locationIds ?? this.getCurrentFishingAreaLocationIds();
+    return this.referentialRefService.suggest(value, this.buildDistanceToCoastGradientFilter({ ...filter, locationIds }));
   }
 
-  protected buildDistanceToCoastGradientFilter(
-    filter?: Partial<ReferentialRefFilter>,
-    fishingAreaLocationId?: number
-  ): Partial<ReferentialRefFilter> {
+  protected buildDistanceToCoastGradientFilter(filter?: Partial<ReferentialRefFilter>): Partial<ReferentialRefFilter> {
     return {
       entityName: 'DistanceToCoastGradient',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
+      locationIds: filter?.locationIds ?? this.expertiseAreaProperties?.locationIds,
     };
   }
 
   protected async suggestDepthGradient(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
-    return this.referentialRefService.suggest(
-      value,
-      this.buildDepthGradientFilter(filter, this.getCurrentFishingAreaLocationId()),
-      'rankOrder',
-      'asc'
-    );
+    const locationIds = filter?.locationIds || this.getCurrentFishingAreaLocationIds();
+    return this.referentialRefService.suggest(value, this.buildDepthGradientFilter({ ...filter, locationIds }), 'rankOrder', 'asc');
   }
 
-  protected buildDepthGradientFilter(filter?: Partial<ReferentialRefFilter>, fishingAreaLocationId?: number): Partial<ReferentialRefFilter> {
+  protected buildDepthGradientFilter(filter?: Partial<ReferentialRefFilter>): Partial<ReferentialRefFilter> {
     return {
       entityName: 'DepthGradient',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
+      locationIds: filter?.locationIds ?? this.expertiseAreaProperties?.locationIds,
     };
   }
 
   protected async suggestNearbySpecificArea(value: any, filter?: Partial<ReferentialRefFilter>): Promise<LoadResult<ReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
-
-    return this.referentialRefService.suggest(value, this.buildNearbySpecificAreaFilter(filter, this.getCurrentFishingAreaLocationId()));
+    const locationIds = filter?.locationIds ?? this.getCurrentFishingAreaLocationIds();
+    return this.referentialRefService.suggest(value, this.buildNearbySpecificAreaFilter({ ...filter, locationIds }));
   }
 
-  protected buildNearbySpecificAreaFilter(filter?: Partial<ReferentialRefFilter>, fishingAreaLocationId?: number): Partial<ReferentialRefFilter> {
+  protected buildNearbySpecificAreaFilter(filter?: Partial<ReferentialRefFilter>): Partial<ReferentialRefFilter> {
     return {
       entityName: 'NearbySpecificArea',
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       ...filter,
-      locationIds: fishingAreaLocationId ? [fishingAreaLocationId] : this.expertiseAreaProperties?.locationIds,
+      locationIds: filter?.locationIds ?? this.expertiseAreaProperties?.locationIds,
     };
   }
 
@@ -1960,13 +1954,14 @@ export class CalendarComponent
               ExpertiseAreaUtils.markAsOutsideExpertiseArea(fa.location, invalidFishingAreaLocationIds.includes(faLocationId));
             }
 
+            const faLocationIds = isNotNil(faLocationId) ? [faLocationId] : undefined;
             const dtcId = fa.distanceToCoastGradient?.id;
             if (isNotNil(dtcId)) {
               if (needCheck && !invalidDistanceToCoastGradientIds.includes(dtcId)) {
                 if (
                   !(await this.referentialRefService.existsById(
                     dtcId,
-                    this.buildDistanceToCoastGradientFilter(undefined, faLocationId),
+                    this.buildDistanceToCoastGradientFilter({ locationIds: faLocationIds }),
                     cacheFirstOptions
                   ))
                 ) {
@@ -1979,7 +1974,13 @@ export class CalendarComponent
             const dId = fa.depthGradient?.id;
             if (isNotNil(dId)) {
               if (needCheck && !invalidDepthGradientIds.includes(dId)) {
-                if (!(await this.referentialRefService.existsById(dId, this.buildDepthGradientFilter(undefined, faLocationId), cacheFirstOptions))) {
+                if (
+                  !(await this.referentialRefService.existsById(
+                    dId,
+                    this.buildDepthGradientFilter({ locationIds: faLocationIds }),
+                    cacheFirstOptions
+                  ))
+                ) {
                   invalidDepthGradientIds.push(dId);
                 }
               }
@@ -1992,7 +1993,7 @@ export class CalendarComponent
                 if (
                   !(await this.referentialRefService.existsById(
                     nsaId,
-                    this.buildNearbySpecificAreaFilter(undefined, faLocationId),
+                    this.buildNearbySpecificAreaFilter({ locationIds: faLocationIds }),
                     cacheFirstOptions
                   ))
                 ) {
@@ -2031,6 +2032,12 @@ export class CalendarComponent
       console.debug(`${this.logPrefix}Selected location`, fishingAreaLocation);
     }
     return fishingAreaLocation?.id;
+  }
+
+  protected getCurrentFishingAreaLocationIds(): number[] {
+    const fishingAreaLocationId = this.getCurrentFishingAreaLocationId();
+    if (isNotNil(fishingAreaLocationId)) return [fishingAreaLocationId];
+    return null;
   }
 
   protected onPrepareRowForm(
@@ -2980,7 +2987,8 @@ export class CalendarComponent
         }
 
         // For each path to paste
-        sourcePaths.forEach((sourcePath, index) => {
+        for (let index = 0; index < sourcePaths.length; index++) {
+          const sourcePath = sourcePaths[index];
           let sourceValue = getPropertyByPath(sourceMonth, sourcePath);
           sourceHasSomeValue = sourceHasSomeValue || isNotNil(sourceValue);
 
@@ -3005,11 +3013,29 @@ export class CalendarComponent
           // Update control from the path
           const targetPath = targetPaths[index];
           const targetControl = targetPath && this.findOrCreateControl(targetForm, targetPath);
+          let isValid = true;
+
+          if (sourceValue?.entityName === 'NearbySpecificArea' || sourceValue?.entityName === 'DistanceToCoastGradient') {
+            const path = sourceValue?.entityName === 'NearbySpecificArea' ? '.nearbySpecificArea' : '.distanceToCoastGradient';
+            const locationPath = targetPath.replace(path, '.location');
+            const fishingAreaLocationId = this.findOrCreateControl(targetForm, locationPath).value;
+            if (isNotNil(fishingAreaLocationId)) {
+              isValid =
+                sourceValue?.entityName === 'NearbySpecificArea'
+                  ? await this.isValidNearbySpecificArea(sourceValue?.name, fishingAreaLocationId?.id)
+                  : await this.isValidDistanceToCoastGradient(sourceValue?.name, fishingAreaLocationId?.id);
+            }
+            if (isNil(fishingAreaLocationId) || !isValid) {
+              sourceValue = undefined;
+              this.showUnauthorizedToast('ACTIVITY_CALENDAR.WARNING.OUTSIDE_EXPERTISE_AREA_PASTE');
+            }
+          }
+
           if (targetControl) {
             targetControl.enable({ emitEvent: false });
             targetControl.setValue(sourceValue);
           }
-        });
+        }
 
         const targetEntity = targetForm.getRawValue();
 
@@ -3452,5 +3478,17 @@ export class CalendarComponent
     if (this.collapseAfterSave !== collapseAfterSave) {
       this.collapseAfterSave = collapseAfterSave;
     }
+  }
+
+  protected async isValidDistanceToCoastGradient(gradientName: ReferentialRef, fishingAreaLocationId: number) {
+    if (isNil(gradientName) || isNil(fishingAreaLocationId)) return false;
+    const value = await this.suggestDistanceToCoastGradient(gradientName, { searchAttribute: 'name', locationIds: [fishingAreaLocationId] });
+    return isNotEmptyArray(value?.data);
+  }
+
+  protected async isValidNearbySpecificArea(gradientName: ReferentialRef, fishingAreaLocationId: number) {
+    if (isNil(gradientName) || isNil(fishingAreaLocationId)) return false;
+    const value = await this.suggestNearbySpecificArea(gradientName, { searchAttribute: 'name', locationIds: [fishingAreaLocationId] });
+    return isNotEmptyArray(value?.data);
   }
 }
