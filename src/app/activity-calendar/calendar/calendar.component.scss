@@ -144,9 +144,15 @@ mat-toolbar {
       --mat-table-background-color: rgba(var(--ion-color-secondary-rgb), 0.1) !important;
       background-color: var(--mat-table-background-color);
 
-      &.mat-column-reset-background-color {
-        --mat-table-background-color: var(--ion-color-step-100) !important;
+      .mat-column-reset-background-color {
+        --mat-table-background-color: var(--ion-color-step-100);
+
+        &.mat-column-month {
+          --mat-table-background-color: var(--ion-color-secondary50) !important;
+          background-color: var(--mat-table-background-color);
+        }
       }
+
     }
 
     &.conflictual {
