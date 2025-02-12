@@ -1,13 +1,11 @@
 import { Injectable, Injector, Optional } from '@angular/core';
 import {
-  AccountService,
   AppErrorWithDetails,
   AppFormUtils,
   arrayDistinct,
   BaseEntityGraphqlQueries,
   chainPromises,
   EntitiesServiceWatchOptions,
-  EntitiesStorage,
   Entity,
   EntityServiceListenChangesOptions,
   EntityServiceLoadOptions,
@@ -15,7 +13,6 @@ import {
   FormErrors,
   FormErrorTranslateOptions,
   FormErrorTranslator,
-  GraphqlService,
   IEntitiesService,
   IEntityService,
   isEmptyArray,
@@ -26,7 +23,6 @@ import {
   isNotNilOrBlank,
   JobUtils,
   LoadResult,
-  NetworkService,
   ProgressBarService,
   removeDuplicatesFromArray,
   ShowToastOptions,
@@ -60,7 +56,6 @@ import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapsh
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME } from '../trip.config';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
-import { LandingFilter } from '../landing/landing.filter';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from './observed-location.filter';
 import { SampleFilter } from '@app/trip/sample/sample.filter';
 import { TripFragments } from '@app/trip/trip/trip.service';
@@ -337,14 +332,8 @@ export class ObservedLocationService
     IDataEntityQualityService<ObservedLocation, number>,
     IDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationServiceLoadOptions>
 {
-  protected loading = false;
-
   constructor(
     injector: Injector,
-    protected graphql: GraphqlService,
-    protected accountService: AccountService,
-    protected network: NetworkService,
-    protected entities: EntitiesStorage,
     protected validatorService: ObservedLocationValidatorService,
     protected vesselService: VesselService,
     protected landingService: LandingService,
@@ -455,25 +444,17 @@ export class ObservedLocationService
 
     const now = Date.now();
     if (this._debug) console.debug(`[observed-location-service] Loading observed location {${id}}...`);
-    this.loading = true;
+
+    const isLocalSource = id < 0;
+    this.markAsLoading();
 
     try {
-      let data: any;
+      let source: any;
 
       // If local entity
-      if (id < 0) {
-        data = await this.entities.load<ObservedLocation>(id, ObservedLocation.TYPENAME);
-        if (!data) throw { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' };
-
-        if (opts && opts.withLanding) {
-          const { data: landings } = await this.entities.loadAll<Landing>(Landing.TYPENAME, {
-            filter: LandingFilter.fromObject({ observedLocationId: id }).asFilterFn(),
-          });
-          data = {
-            ...data,
-            landings,
-          };
-        }
+      if (isLocalSource) {
+        source = await this.entities.load<ObservedLocation>(id, ObservedLocation.TYPENAME);
+        if (!source) throw { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' };
       } else {
         const res = await this.graphql.query<{ data: ObservedLocation }>({
           query: this.queries.load,
@@ -481,16 +462,38 @@ export class ObservedLocationService
           error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
           fetchPolicy: (opts && opts.fetchPolicy) || undefined,
         });
-        data = res && res.data;
-      }
-      const entities = !opts || opts.toEntity !== false ? ObservedLocation.fromObject(data) : (data as ObservedLocation);
-      if (id > 0 && entities && opts && opts.withLanding) {
-        entities.landings = (await this.landingService.loadAllByObservedLocation({ observedLocationId: id })).data;
+        source = res && res.data;
       }
 
-      if (entities && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, entities);
+      if (opts?.withLanding) {
+        source = { ...source }; // Copy because remote object is not extensible
 
-      return entities;
+        const { data: landings } = await this.landingService.loadAllByObservedLocation(
+          { observedLocationId: id },
+          {
+            fetchPolicy: (!isLocalSource && 'network-only') || undefined,
+            fullLoad: isLocalSource,
+          }
+        );
+        source.landings = isLocalSource
+          ? landings
+          : // Full load entities remotely
+            await Promise.all(
+              landings.map(async (lightLanding) => {
+                const fullLanding = await this.landingService.load(lightLanding.id, {
+                  fetchPolicy: 'network-only',
+                  toEntity: false, // Will be done bellow
+                });
+                fullLanding.rankOrder = lightLanding.rankOrder; // Restore the computed rankOrder
+                return fullLanding;
+              })
+            );
+      }
+
+      const target = !opts || opts.toEntity !== false ? ObservedLocation.fromObject(source) : (source as ObservedLocation);
+      if (target && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, target);
+
+      return target;
     } finally {
       this.loading = false;
     }
@@ -729,6 +732,7 @@ export class ObservedLocationService
   async copyLocallyById(id: number, opts?: ObservedLocationServiceLoadOptions & { displaySuccessToast?: boolean }): Promise<ObservedLocation> {
     // Load existing data
     const source = await this.load(id, { ...opts, fetchPolicy: 'network-only' });
+
     // Copy remote trip to local storage
     return await this.copyLocally(source, opts);
   }

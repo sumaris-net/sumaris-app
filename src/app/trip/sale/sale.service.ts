@@ -13,7 +13,6 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrors,
-  FormErrorTranslator,
   IEntitiesService,
   IEntityService,
   isNil,
@@ -23,7 +22,6 @@ import {
   LocalSettingsService,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  ProgressBarService,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
@@ -199,15 +197,13 @@ export class SaleService
   control(entity: Sale, opts?: any): Promise<AppErrorWithDetails | FormErrors> {
     throw new Error('Method not implemented.');
   }
-  protected loading = false;
+
   constructor(
     injector: Injector,
     protected network: NetworkService,
     protected entities: EntitiesStorage,
     protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
-    protected progressBarService: ProgressBarService,
-    protected formErrorTranslator: FormErrorTranslator,
     protected settings: LocalSettingsService
   ) {
     super(injector, Sale, SaleFilter, {

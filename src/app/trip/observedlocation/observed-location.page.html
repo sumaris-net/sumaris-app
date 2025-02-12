@@ -14,7 +14,7 @@
   <ion-buttons slot="end">
     <!-- option menu -->
     <ion-button
-      *ngIf="showOptionsMenu && ((enabled && !isNewData) || canDebug)"
+      *ngIf="showOptionsMenu && ((enabled && !isNewData) || canCopyLocally || canDebug)"
       [matMenuTriggerFor]="optionsMenu"
       [title]="'COMMON.BTN_OPTIONS' | translate"
     >
@@ -46,6 +46,16 @@
     <mat-icon>delete_outline</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
+
+  <!-- copy locally (admin only) -->
+  @if (canCopyLocally && !canDebug) {
+    <mat-divider></mat-divider>
+
+    <button mat-menu-item (click)="copyLocally()">
+      <mat-icon>file_copy</mat-icon>
+      <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
+    </button>
+  }
 
   <!-- DEV only -->
   <app-data-editor-debug-button></app-data-editor-debug-button>
