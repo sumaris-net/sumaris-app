@@ -331,8 +331,12 @@ export abstract class AppBaseTable<
   applyFilterAndClosePanel(event?: Event) {
     const filter = this.filterForm.value;
     this.setFilter(filter, { emitEvent: false });
+    // Reset pagination
+    if (this.paginator && this.paginator.pageIndex > 0) {
+      this.paginator.pageIndex = 0;
+    }
     this.emitRefresh(event);
-    if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
+    if (this.filterPanelFloating) this.closeFilterPanel();
   }
 
   closeFilterPanel() {
