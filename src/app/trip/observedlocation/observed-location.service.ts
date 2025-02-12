@@ -484,8 +484,11 @@ export class ObservedLocationService
                   fetchPolicy: 'network-only',
                   toEntity: false, // Will be done bellow
                 });
-                fullLanding.rankOrder = lightLanding.rankOrder; // Restore the computed rankOrder
-                return fullLanding;
+                return {
+                  ...fullLanding,
+                  // Restore the computed rankOrder
+                  rankOrder: lightLanding.rankOrder,
+                };
               })
             );
       }

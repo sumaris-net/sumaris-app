@@ -77,7 +77,6 @@ import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.fi
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
 import { environment } from '@environments/environment';
-import { AggregatedLanding } from '@app/trip/aggregated-landing/aggregated-landing.model';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -518,37 +517,44 @@ export class LandingService
     return { data: entities, total: res.total };
   }
 
-  async load(id: number, options?: EntityServiceLoadOptions): Promise<Landing> {
+  async load(id: number, opts?: EntityServiceLoadOptions): Promise<Landing> {
     if (isNil(id)) throw new Error("Missing argument 'id'");
 
     const now = Date.now();
     if (this._debug) console.debug(`[landing-service] Loading landing {${id}}...`);
-    this.loading = true;
+    this.markAsLoading();
 
     try {
-      let data: any;
+      let source: any;
 
       // If local entity
       if (id < 0) {
-        data = await this.entities.load<Landing>(id, Landing.TYPENAME);
+        source = await this.entities.load<Landing>(id, Landing.TYPENAME);
       } else {
         // Load remotely
         const res = await this.graphql.query<{ data: any }>({
           query: this.queries.load,
           variables: { id },
           error: { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
-          fetchPolicy: (options && options.fetchPolicy) || undefined,
+          fetchPolicy: (opts && opts.fetchPolicy) || undefined,
         });
-        data = res && res.data;
+        source = res && res.data;
       }
 
       // Transform to entity
-      const entity = data && Landing.fromObject(data);
-      if (entity && this._debug) console.debug(`[landing-service] landing #${id} loaded in ${Date.now() - now}ms`, entity);
-      entity.trip = Trip.fromObject(data.trip);
-      return entity;
+      const target = !opts || opts.toEntity !== false ? Landing.fromObject(source) : (source as Landing);
+
+      // Deserialize trip - TODO check if need
+      if (source.trip && !target.trip) {
+        console.warn(this._logPrefix + "Deserializing landing's trip. Please check why Landing.fromObject() did not deserialize it.");
+        target.trip = Trip.fromObject(source.trip);
+      }
+
+      if (target && this._debug) console.debug(`[landing-service] landing #${id} loaded in ${Date.now() - now}ms`, target);
+
+      return target;
     } finally {
-      this.loading = false;
+      this.markAsLoaded();
     }
   }
 
