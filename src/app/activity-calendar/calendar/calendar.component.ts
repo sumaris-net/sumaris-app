@@ -101,7 +101,7 @@ import { ExpertiseAreaUtils } from '@app/referential/expertise-area/expertise-ar
 import { IExpertiseAreaProperties } from '@app/referential/expertise-area/expertise-area.model';
 
 const DEFAULT_METIER_COUNT = 2;
-const MAX_METIER_COUNT = 10;
+const MAX_METIER_COUNT = 30;
 const MAX_FISHING_AREA_COUNT = 2;
 const DYNAMIC_COLUMNS = new Array<string>(MAX_METIER_COUNT)
   .fill(null)
@@ -543,11 +543,15 @@ export class CalendarComponent
           const filter = this.filter || new ActivityMonthFilter();
           if (!equals(filter.programLabels, programLabels)) {
             filter.programLabels = programLabels;
-            this.setFilter(filter);
-            this.collapseEmptyMetierBlock(programLabels);
             // Hide cell selection, because some columns can have disappeared
             this.removeCellSelection();
             this.clearClipboard(null, { clearContext: false });
+
+            // Apply filter
+            this.setFilter(filter);
+
+            // Hide empty metier blocks
+            this.collapseEmptyMetierBlock(programLabels);
           }
         })
     );
@@ -1614,7 +1618,7 @@ export class CalendarComponent
 
   addMetierBlock(event?: Event, opts?: { emitEvent?: boolean; updateRows?: boolean; scrollToBottom?: boolean }) {
     // Skip if reach max
-    if (this.metierCount >= this.maxMetierCount) {
+    if (this.enabled && this.metierCount >= this.maxMetierCount) {
       console.warn(this.logPrefix + 'Unable to add metier: max=' + this.maxMetierCount);
       return;
     }
@@ -1652,7 +1656,7 @@ export class CalendarComponent
             key: `metier${rankOrder}FishingArea${faRankOrder}`,
             class: 'mat-column-fishingArea',
             treeIndent: '&nbsp;&nbsp;',
-            expand: (event: Event) => this.toggleMetierBlock(event, index, true),
+            expand: (event: Event) => this.toggleMetierBlock(event, index, { forceExpanded: true }),
           },
           {
             blockIndex: index,
@@ -1667,7 +1671,7 @@ export class CalendarComponent
             treeIndent: '&nbsp;&nbsp',
             expanded: false,
             toggle: (event: Event) => this.toggleGradientBlock(event, `metier${rankOrder}FishingArea${faRankOrder}`),
-            expand: (event: Event) => this.toggleMetierBlock(event, index, true),
+            expand: (event: Event) => this.toggleMetierBlock(event, index, { forceExpanded: true }),
           },
           {
             blockIndex: index,
@@ -1724,26 +1728,29 @@ export class CalendarComponent
     }
   }
 
-  protected expandMore(event?: Event) {
-    // Get currently collapsed metiers
-    const metierBlocksToExpand = [];
+  protected expandMore(event?: Event, opts?: { emitEvent?: boolean }) {
+    // Get currently collapsed blocks
+    const blockIndexToExpand: number[] = [];
     for (let i = 0; i < this.metierCount; i++) {
       const metierColumn = this.dynamicColumns.find((col) => col.blockIndex === i);
       if (metierColumn && !metierColumn.expanded) {
-        metierBlocksToExpand.push(i);
+        blockIndexToExpand.push(i);
       }
     }
 
-    if (isNotEmptyArray(metierBlocksToExpand)) {
+    if (isNotEmptyArray(blockIndexToExpand)) {
       // Expand remaining collapsed metiers
-      metierBlocksToExpand.forEach((blockIndex) => this.expandMetierBlock(null, blockIndex, { emitEvent: false, expandChildren: false }));
+      blockIndexToExpand.forEach((blockIndex) => this.expandMetierBlock(null, blockIndex, { emitEvent: false, expandChildren: false }));
     } else {
       // Expand all
       this.expandAll(event, { emitEvent: false });
     }
 
-    this.markForCheck();
-    setTimeout(() => this.onResize());
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
+
+      setTimeout(() => this.onResize());
+    }
   }
 
   protected expandAll(event?: Event, opts?: { emitEvent?: boolean }) {
@@ -2330,6 +2337,10 @@ export class CalendarComponent
     for (let i = 0; i < this.metierCount; i++) {
       this.collapseMetierBlock(null, i, { emitEvent: false });
     }
+
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
+    }
   }
 
   async clearAll(event?: Event, opts?: { interactive?: boolean }) {
@@ -2353,7 +2364,14 @@ export class CalendarComponent
     this.validRowCount = 0;
   }
 
-  toggleMetierBlock(event: Event | undefined, blockIndex: number, forceExpanded?: boolean) {
+  toggleMetierBlock(
+    event: Event | undefined,
+    blockIndex: number,
+    opts?: {
+      emitEvent?: boolean;
+      forceExpanded?: boolean;
+    }
+  ) {
     if (event?.defaultPrevented) return; // Skip
     event?.preventDefault();
 
@@ -2363,11 +2381,13 @@ export class CalendarComponent
 
     if (this.debug) console.debug(this.logPrefix + 'Toggling block #' + blockIndex);
 
-    const expanded = toBoolean(forceExpanded, !metierBlockColumn.expanded);
-    this.setMetierBlockExpanded(blockIndex, expanded);
+    const expanded = opts?.forceExpanded ?? !metierBlockColumn.expanded;
+    this.setMetierBlockExpanded(blockIndex, expanded, { emitEvent: opts?.emitEvent });
 
-    // Resize cell selection (after refresh was done)
-    setTimeout(() => this.onResize());
+    if (opts?.emitEvent !== false) {
+      // Resize cell selection (after refresh was done)
+      setTimeout(() => this.onResize());
+    }
   }
 
   toggleGradientBlock(event: Event, keyPrefix: string, forceExpanded?: boolean) {
@@ -3438,27 +3458,24 @@ export class CalendarComponent
 
   collapseEmptyMetierBlock(programLabels: string[]) {
     if (programLabels.length === 1) {
-      const rows = this.dataSource.getData()?.filter((row) => row.program.label === programLabels[0]);
-      if (!rows || isEmptyArray(rows)) return;
+      const rows = (this.dataSource.getData() || []).filter((row) => row.program.label === programLabels[0]);
+      if (isEmptyArray(rows)) return;
 
-      this.collapseAll();
-      const gufNotEmpty = [];
+      this.collapseAll(null, { emitEvent: false });
 
-      rows.forEach((row) => {
-        row.gearUseFeatures.forEach((guf, index) => {
-          if (GearUseFeatures.isNotEmpty(guf)) {
-            gufNotEmpty.push('metier' + (index + 1));
-          }
-        });
-      });
-      const gufToExpand = removeDuplicatesFromArray(gufNotEmpty);
-
-      gufToExpand.forEach((guf) => {
-        this.toggleMetierBlock(event, guf);
-      });
+      removeDuplicatesFromArray(
+        rows.flatMap((row) =>
+          row.gearUseFeatures.reduce((res, guf, index) => {
+            if (res.includes(index) || GearUseFeatures.isEmpty(guf)) return res;
+            return res.concat(index);
+          }, [])
+        )
+      ).forEach((blockIndex) => this.setMetierBlockExpanded(blockIndex, true, { emitEvent: false }));
     } else {
-      this.expandAll();
+      this.collapseAll(null, { emitEvent: false });
+      this.expandMore(null, { emitEvent: false });
     }
+    this.markForCheck();
   }
 
   protected async toggleCollapseAfterSave() {
