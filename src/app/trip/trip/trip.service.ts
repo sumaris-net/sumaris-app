@@ -742,17 +742,17 @@ export class TripService
 
     // use landedTrip option if itself or withOperationGroups is present in service options
     const isLandedTrip = opts && (opts.isLandedTrip || opts.withOperationGroup);
-    const isLocalTrip = id < 0;
+    const isLocalSource = id < 0;
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
-    this.loading = true;
+    this.markAsLoading();
 
     try {
       let source: any;
 
       // If local entity
-      if (isLocalTrip) {
+      if (isLocalSource) {
         source = await this.entities.load<Trip>(id, Trip.TYPENAME, opts);
         if (!source) throw { code: DataErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' };
       } else {
@@ -772,21 +772,28 @@ export class TripService
       if (opts?.withOperation) {
         source = { ...source }; // Copy because remote object is not extensible
 
-        const { data } = await this.operationService.loadAllByTrip(
+        const { data: operations } = await this.operationService.loadAllByTrip(
           { tripId: id },
           {
-            fetchPolicy: (!isLocalTrip && 'network-only') || undefined,
-            fullLoad: isLocalTrip,
+            fetchPolicy: (!isLocalSource && 'network-only') || undefined,
+            fullLoad: isLocalSource,
           }
         );
-        source.operations = isLocalTrip
-          ? data
+        source.operations = isLocalSource
+          ? operations
           : // Full load entities remotely
             await Promise.all(
-              data.map(async (lightOperation) => {
-                const fullOperation = await this.operationService.load(lightOperation.id);
-                fullOperation.rankOrder = lightOperation.rankOrder; // Restore the computed rankOrder
-                return fullOperation;
+              operations.map(async (lightOperation) => {
+                const fullOperation = await this.operationService.load(lightOperation.id, {
+                  fetchPolicy: 'network-only',
+                  toEntity: false, // Will be done bellow
+                });
+                return {
+                  // Copy (readonly object)
+                  ...fullOperation,
+                  // Restore the computed rankOrder
+                  rankOrder: lightOperation.rankOrder,
+                };
               })
             );
       }
@@ -797,7 +804,7 @@ export class TripService
       if (target && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, target);
       return target;
     } finally {
-      this.loading = false;
+      this.markAsLoaded();
     }
   }
 
@@ -1517,31 +1524,11 @@ export class TripService
   }
 
   async copyLocallyById(id: number, opts?: TripLoadOptions & { displaySuccessToast?: boolean }): Promise<Trip> {
-    const isLocalTrip = id < 0;
-
     // Load existing data
-    const source = await this.load(id, { ...opts, fetchPolicy: 'network-only' });
-
-    // Add operations
-    if (!opts || opts.withOperation !== false) {
-      const { data } = await this.operationService.loadAllByTrip(
-        { tripId: id },
-        {
-          fetchPolicy: (!isLocalTrip && 'network-only') || undefined,
-          fullLoad: isLocalTrip,
-        }
-      );
-
-      source.operations = isLocalTrip
-        ? data
-        : // Full load entities remotely
-          await Promise.all(data.map((lightOperation) => this.operationService.load(lightOperation.id)));
-    }
+    const source = await this.load(id, { withOperation: true, ...opts, fetchPolicy: 'network-only' });
 
     // Copy remote trip to local storage
-    const target = await this.copyLocally(source, opts);
-
-    return target;
+    return await this.copyLocally(source, opts);
   }
 
   /**

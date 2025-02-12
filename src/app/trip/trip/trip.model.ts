@@ -85,8 +85,8 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   }
 
   static sortByEndDateOrStartDate(n1: Operation, n2: Operation): number {
-    const d1 = n1.endDateTime || n1.startDateTime;
-    const d2 = n2.endDateTime || n2.startDateTime;
+    const d1 = fromDateISOString(n1.endDateTime || n1.startDateTime);
+    const d2 = fromDateISOString(n2.endDateTime || n2.startDateTime);
     return d1.isSame(d2) ? 0 : d1.isAfter(d2) ? 1 : -1;
   }
 
