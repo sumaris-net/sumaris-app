@@ -1,7 +1,6 @@
 import { DataEntity } from '@app/data/services/model/data-entity.model';
-import { Moment } from 'moment';
-import { EntityUtils, isNotNil } from '@sumaris-net/ngx-components';
-import { unitOfTime } from 'moment';
+import { Moment, unitOfTime } from 'moment';
+import { DateUtils, EntityUtils, isNotNil } from '@sumaris-net/ngx-components';
 
 export interface IUseFeatures<T extends DataEntity<T> = DataEntity<any>> extends DataEntity<T> {
   vesselId: number;
@@ -55,5 +54,27 @@ export class IUseFeaturesUtils {
       EntityUtils.cleanIdAndUpdateDate(o1);
     }
     return (!o1 && !o2) || (o1 && o1.equals(o2, opts));
+  }
+
+  /**
+   * Determines if the given GearUseFeatures object represents monthly usage.
+   *
+   * @param {GearUseFeatures} o - The object containing start and end dates to be checked.
+   * @return {boolean} Returns true if the duration between startDate and endDate is within one month; otherwise, false.
+   */
+  static isMonthly<T extends IUseFeatures<any>>(o: T): boolean {
+    return o.startDate && o.endDate && DateUtils.diffAbs(o.startDate, o.endDate, 'month') <= 1;
+  }
+
+  /**
+   * Determines if the given object represents yearly usage.
+   *
+   * @param {GearUseFeatures} o - The object containing start and end dates to be checked.
+   * @return {boolean} Returns true if the duration between startDate and endDate is within one month; otherwise, false.
+   */
+  static isYearly<T extends IUseFeatures<any>>(o: T): boolean {
+    if (!o.startDate || !o.endDate) return false;
+    const months = DateUtils.diffAbs(o.startDate, o.endDate, 'month');
+    return months > 11 && months <= 12;
   }
 }

@@ -27,7 +27,12 @@ export class ActivityMonthUtils {
       sortedMetierIds?: number[];
     }
   ): ActivityMonth[] {
-    const gearUseFeatures = (sources || []).flatMap((ac) => ac.gearUseFeatures).filter(GearUseFeatures.isNotEmpty);
+    const gearUseFeatures = (sources || [])
+      .flatMap((ac) => ac.gearUseFeatures)
+      // Exclude empty GUF
+      .filter(GearUseFeatures.isNotEmpty)
+      // Exclude yearly values (metier table) - See issue sumaris-app#
+      .filter(IUseFeaturesUtils.isMonthly);
     const sortedMetierIds = ActivityMonthUtils.getSortedMetierIds(gearUseFeatures, GearUseFeaturesComparators.sortByMonthAndRankOrderFn);
 
     // Convert to months, then sort
