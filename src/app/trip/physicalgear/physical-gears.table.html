@@ -149,8 +149,9 @@
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
-          [checked]="selection.hasValue() && isAllSelected()"
-          [indeterminate]="selection.hasValue() && !isAllSelected()"
+          [checked]="selection | isAllSelected: this"
+          [indeterminate]="selection | isNotAllSelected: this"
+          [tabIndex]="-1"
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">

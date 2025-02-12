@@ -86,16 +86,13 @@
         <mat-header-cell *matHeaderCellDef>
           <mat-checkbox
             (change)="$event ? masterToggle() : null"
-            [checked]="selection.hasValue() && isAllSelected()"
-            [indeterminate]="selection.hasValue() && !isAllSelected()"
+            [checked]="selection | isAllSelected: this"
+            [indeterminate]="selection | isNotAllSelected: this"
+            [tabIndex]="-1"
           ></mat-checkbox>
         </mat-header-cell>
         <mat-cell *matCellDef="let row">
-          <mat-checkbox
-            (click)="$event.stopPropagation()"
-            (change)="$event ? selection.toggle(row) : null"
-            [checked]="selection.isSelected(row)"
-          ></mat-checkbox>
+          <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection | isSelected: row" [tabIndex]="-1"></mat-checkbox>
         </mat-cell>
       </ng-container>
 

@@ -326,8 +326,8 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     }
 
     // Fill parent ids
-    data.observedLocationId = options && options.observedLocationId && parseInt(options.observedLocationId);
-    data.tripId = options && options.tripId && parseInt(options.tripId);
+    data.observedLocationId = toNumber(+options?.observedLocationId);
+    data.tripId = toNumber(+options?.tripId);
 
     // Set rankOrder
     if (isNotNil(queryParams['rankOrder'])) {
@@ -712,7 +712,7 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     const titlePrefix =
       (this.parent &&
         this.parent instanceof ObservedLocation &&
-        this.translate.instant('LANDING.TITLE_PREFIX', {
+        this.translateContext.instant('LANDING.TITLE_PREFIX', i18nSuffix, {
           location: this.parent.location && (this.parent.location.name || this.parent.location.label),
           date: (this.parent.startDateTime && (this.dateFormat.transform(this.parent.startDateTime) as string)) || '',
         })) ||
@@ -720,13 +720,13 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
     // new data
     if (!data || isNil(data.id)) {
-      return titlePrefix + this.translate.instant(`LANDING.NEW.${i18nSuffix}TITLE`);
+      return titlePrefix + this.translateContext.instant(`LANDING.NEW.TITLE`, i18nSuffix);
     }
 
     // Existing data
     return (
       titlePrefix +
-      this.translate.instant(`LANDING.EDIT.${i18nSuffix}TITLE`, {
+      this.translateContext.instant(`LANDING.EDIT.TITLE`, i18nSuffix, {
         vessel: data.vesselSnapshot && (data.vesselSnapshot.exteriorMarking || data.vesselSnapshot.name),
       })
     );
