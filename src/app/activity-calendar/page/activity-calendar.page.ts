@@ -78,7 +78,6 @@ import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gall
 import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.table';
 import { GearPhysicalFeaturesUtils } from '../model/gear-physical-features.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-calendar.utils';
 import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-form.component';
@@ -899,14 +898,6 @@ export class ActivityCalendarPage
     });
 
     let data = (await chainPromises<ActivityCalendar>([loadPreviousYearCalendar, ...loadPredocProgramCalendars])).filter(isNotNil);
-
-    // DEBUG: simulate a N-1 calendar
-    if (this.debug && data.length === 1) {
-      const fakeCalendar = data[0].clone();
-      ActivityCalendarUtils.setYear(fakeCalendar, entity.year - 1);
-      ActivityCalendarUtils.setProgram(fakeCalendar, entity.program);
-      data = [fakeCalendar, data[0]];
-    }
 
     this.predocCalendar.pmfms = await firstNotNilPromise(this.calendar.pmfms$);
     this.predocCalendar.availablePrograms = removeDuplicatesFromArray(data.map((ac) => ac.program).filter(isNotNil), 'label');
