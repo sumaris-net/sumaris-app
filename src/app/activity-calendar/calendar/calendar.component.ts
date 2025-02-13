@@ -67,7 +67,7 @@ import {
 } from '@app/activity-calendar/calendar/activity-month.validator';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
-import { distinctUntilChanged, fromEvent, Observable, Subject, Subscription, tap } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, fromEvent, Observable, Subject, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { UntypedFormGroup } from '@angular/forms';
@@ -248,6 +248,7 @@ export class CalendarComponent
 
   protected referentialRefService = inject(ReferentialRefService);
 
+  protected scrolling$ = new BehaviorSubject(false);
   protected debouncedExpandCellSelection$ = new Subject<TableCellSelection<ActivityMonth>>();
   protected debouncedCheckExpertiseArea$ = new Subject<ActivityMonth[] | undefined>();
   protected unauthorizedToast$ = new Subject<void | string>();
@@ -644,12 +645,6 @@ export class CalendarComponent
           .addShortcut({ keys: 'backspace', description: 'COMMON.BTN_CLEAR_SELECTION', preventDefault: false /*keep delete in <input>*/ })
           .subscribe((event) => this.clearCellSelection(event))
       );
-
-      this.registerSubscription(
-        fromEvent(element, 'scroll').subscribe((event: any) => {
-          this.onResize();
-        })
-      );
     }
   }
 
@@ -850,7 +845,7 @@ export class CalendarComponent
 
     const { data } = await this.vesselOwnerPeriodService.loadAll(0, 100, 'startDate', 'asc', filter);
 
-    this.vesselOwners = months.map((month) => IUseFeaturesUtils.filterByPeriod(data, month).map((vop) => vop.vesselOwner));
+    this.vesselOwners = months.map((month) => IUseFeaturesUtils.filterIntersectPeriod(data, month).map((vop) => vop.vesselOwner));
   }
 
   async waitForChildren(opts?: WaitForOptions) {
@@ -1521,10 +1516,6 @@ export class CalendarComponent
     divElement.classList.toggle('top-no-border', topCut);
     divElement.classList.toggle('bottom-no-border', bottomCut);
     divElement.classList.toggle('right-no-border', rightCut);
-
-    if (opts?.emitEvent !== false) {
-      //this.markForCheck();
-    }
 
     // Don't debounce by default
     if (opts?.debouncedExpansion !== true) {
@@ -2308,7 +2299,7 @@ export class CalendarComponent
     this.markForCheck();
   }
 
-  protected collapseMore(event?: Event) {
+  protected collapseMore(event?: Event, opts?: { emitEvent?: boolean }) {
     const blockColumnNames = [`distanceToCoastGradient`, `depthGradient`, `nearbySpecificArea`];
     const blockColumns = this.dynamicColumns.filter((col) => blockColumnNames.some((blockColName) => col.key.includes(blockColName)));
 
@@ -2327,8 +2318,10 @@ export class CalendarComponent
       this.collapseAll(event, { emitEvent: false });
     }
 
-    this.markForCheck();
-    setTimeout(() => this.onResize());
+    if (opts?.emitEvent !== false) {
+      this.markForCheck();
+      setTimeout(() => this.onResize());
+    }
   }
 
   protected collapseAll(event?: Event, opts?: { emitEvent?: boolean }) {
@@ -3470,7 +3463,7 @@ export class CalendarComponent
             return res.concat(index);
           }, [])
         )
-      ).forEach((blockIndex) => this.setMetierBlockExpanded(blockIndex, true, { emitEvent: false }));
+      ).forEach((blockIndex) => this.expandMetierBlock(null, blockIndex, { emitEvent: false, expandChildren: false }));
     } else {
       this.collapseAll(null, { emitEvent: false });
       this.expandMore(null, { emitEvent: false });
@@ -3507,5 +3500,20 @@ export class CalendarComponent
     if (isNil(gradientName) || isNil(fishingAreaLocationId)) return false;
     const value = await this.suggestNearbySpecificArea(gradientName, { searchAttribute: 'name', locationIds: [fishingAreaLocationId] });
     return isNotEmptyArray(value?.data);
+  }
+
+  protected onScroll() {
+    if (this.sticky && !this.scrolling$.value) {
+      this.scrolling$.next(true);
+      this.cd.detectChanges();
+    }
+
+    this.onResize();
+  }
+
+  protected onScrollEnd() {
+    if (this.scrolling$.value) {
+      this.scrolling$.next(false);
+    }
   }
 }

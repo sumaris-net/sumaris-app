@@ -181,6 +181,13 @@ mat-toolbar {
     &.tappable:hover {
       cursor: pointer;
     }
+
+    &.mat-column-month.sticky {
+      transition: opacity 0s, opacity 0.2s ease-out;
+      &.scrolling {
+        opacity: 0.3;
+      }
+    }
   }
 
   .mat-mdc-cell,

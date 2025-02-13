@@ -178,13 +178,16 @@
       }
     </mat-toolbar>
   }
+  @let pmfms = pmfms$ | async;
   <div
     #tableContainer
     class="table-container"
     [class.has-toolbar]="showToolbar"
-    *rxIf="pmfms$; let pmfms; strategy: 'native'"
     (ngInit)="initTableContainer(tableContainer)"
     [class.mobile]="mobile"
+    [class.cdk-visually-hidden]="!pmfms"
+    (scroll)="onScroll()"
+    (scrollend)="onScrollEnd()"
     cdkScrollable
   >
     <div
@@ -246,9 +249,11 @@
         <mat-header-cell
           *matCellDef="let row"
           [title]="errorSpan?.innerText || ''"
-          class="mat-column-reset-background-color"
           (click)="clickMonthHeader($event, row)"
           (contextmenu)="onMonthContextMenu($event, row)"
+          class="mat-column-reset-background-color"
+          [class.sticky]="sticky"
+          [class.scrolling]="scrolling$ | async"
           [style.top.px]="sticky ? tableContainer.scrollTop : 0"
         >
           <ion-label class="ion-text-center">
@@ -448,7 +453,7 @@
       </ng-container>
 
       <!-- Pmfms columns -->
-      @for (pmfm of pmfms; track pmfm.id; let index = $index; let odd = $odd) {
+      @for (pmfm of pmfms; track pmfm.id; let odd = $odd) {
         <ng-container [matColumnDef]="pmfm.id | toString">
           <mat-header-cell
             *matHeaderCellDef
