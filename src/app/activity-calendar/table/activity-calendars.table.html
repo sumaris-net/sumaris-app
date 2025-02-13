@@ -162,18 +162,20 @@
 </mat-menu>
 
 <mat-menu #reportsMenu="matMenu" class="ion-no-padding">
-  <!-- header-->
-  <ion-row class="mat-menu-header ion-no-padding column">
-    <ion-col>
-      <ion-label>{{ 'COMMON.REPORT.TYPE_DIVIDER' | translate }}</ion-label>
-    </ion-col>
-  </ion-row>
+  <ng-template matMenuContent>
+    <!-- header-->
+    <ion-row class="mat-menu-header ion-no-padding column">
+      <ion-col>
+        <ion-label>{{ 'COMMON.REPORT.TYPE_DIVIDER' | translate }}</ion-label>
+      </ion-col>
+    </ion-row>
 
-  @for (item of reportTypes; track item.key) {
-    <button mat-menu-item (click)="openReport(item.key)" [disabled]="item.key === 'progress' && !filterYearControl?.value">
-      <ion-label>{{ item.value | translate }}</ion-label>
-    </button>
-  }
+    @for (item of reportTypes; track $index) {
+      <button mat-menu-item (click)="openReport(item.key)" [disabled]="item.key === 'progress' && !filterYearControl?.value">
+        <ion-label>{{ item.value | translate }}</ion-label>
+      </button>
+    }
+  </ng-template>
 </mat-menu>
 
 <mat-menu #expertiseAreaMenu="matMenu" class="ion-no-padding">

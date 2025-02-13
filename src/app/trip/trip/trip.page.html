@@ -52,8 +52,8 @@
 <mat-menu #optionsMenu="matMenu">
   <ng-template matMenuContent>
     <!-- report -->
-    @if (enableReport) {
-      @if (isNewData || !data.controlDate || reportTypes.length < 2) {
+    @if (enableReport && (reportTypes | isNotEmptyArray)) {
+      @if (isNewData || !data.controlDate || (reportTypes | isArrayLength: { equals: 1 })) {
         <button mat-menu-item [disabled]="isNewData || !data.controlDate" (click)="openReport()">
           <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
           <ion-label translate>TRIP.EDIT.BTN_REPORT</ion-label>
@@ -121,18 +121,20 @@
 </mat-menu>
 
 <mat-menu #reportsMenu="matMenu" class="ion-no-padding">
-  <!-- header-->
-  <ion-row class="mat-menu-header ion-no-padding column">
-    <ion-col>
-      <ion-label>{{ 'COMMON.REPORT.TYPE_DIVIDER' | translate }}</ion-label>
-    </ion-col>
-  </ion-row>
+  <ng-template matMenuContent>
+    <!-- header-->
+    <ion-row class="mat-menu-header ion-no-padding column">
+      <ion-col>
+        <ion-label>{{ 'COMMON.REPORT.TYPE_DIVIDER' | translate }}</ion-label>
+      </ion-col>
+    </ion-row>
 
-  @for (item of reportTypes; track item.key) {
-    <button mat-menu-item (click)="openReport(item.key)">
-      <ion-label>{{ item.value | translate }}</ion-label>
-    </button>
-  }
+    @for (item of reportTypes; track $index) {
+      <button mat-menu-item (click)="openReport(item.key)">
+        <ion-label>{{ item.value | translate }}</ion-label>
+      </button>
+    }
+  </ng-template>
 </mat-menu>
 
 <ion-content scroll-y="false">
