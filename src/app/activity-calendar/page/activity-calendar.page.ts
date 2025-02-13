@@ -33,11 +33,9 @@ import {
   ReferentialRef,
   removeDuplicatesFromArray,
   splitByProperty,
-  StatusIds,
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from '@app/trip/observedlocation/vessels/select-vessel-for-data.modal';
 import { ActivityCalendar } from '../model/activity-calendar.model';
 import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
@@ -46,14 +44,8 @@ import { filter, first, map, tap } from 'rxjs/operators';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarsTableSettingsEnum } from '../table/activity-calendars.table';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
-import {
-  VesselFeaturesFilter,
-  VesselFilter,
-  VesselOwnerPeriodFilter,
-  VesselRegistrationPeriodFilter,
-} from '@app/vessel/services/filter/vessel.filter';
+import { VesselFeaturesFilter, VesselOwnerPeriodFilter, VesselRegistrationPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 import { PredefinedColors } from '@ionic/core';
-import { VesselService } from '@app/vessel/services/vessel-service';
 import { ActivityCalendarContextService } from '../activity-calendar-context.service';
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
@@ -78,7 +70,6 @@ import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gall
 import { GearPhysicalFeaturesTable } from '../metier/gear-physical-features.table';
 import { GearPhysicalFeaturesUtils } from '../model/gear-physical-features.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-calendar.utils';
 import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityCalendarMapComponent } from '@app/activity-calendar/map/activity-calendar-map/activity-calendar-map.component';
 import { EntityQualityFormComponent } from '@app/data/quality/entity-quality-form.component';
@@ -193,7 +184,6 @@ export class ActivityCalendarPage
   constructor(
     injector: Injector,
     protected accountService: AccountService,
-    protected vesselService: VesselService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected context: ActivityCalendarContextService,
     protected hotkeys: Hotkeys
@@ -404,56 +394,6 @@ export class ActivityCalendarPage
       return table.save();
     }
     return true;
-  }
-
-  async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
-    const programLabel = this.baseForm?.programLabel || this.programLabel || this.data.program.label;
-    if (!this.data.year || !programLabel) {
-      throw new Error('Root entity has no program and year. Cannot open select vessels modal');
-    }
-
-    // Prepare vessel filter's value
-    const showOfflineVessels = EntityUtils.isLocal(this.data) && (await this.vesselService.countAll({ synchronizationStatus: 'DIRTY' })) > 0;
-    const defaultVesselSynchronizationStatus = this.network.offline || showOfflineVessels ? 'DIRTY' : 'SYNC';
-
-    // Prepare landing's filter
-    const startDate = DateUtils.moment().set('year', this.data.year).utc(false).startOf('year');
-    const endDate = startDate.clone().endOf('year');
-
-    const modal = await this.modalCtrl.create({
-      component: SelectVesselsForDataModal,
-      componentProps: <SelectVesselsForDataModalOptions>{
-        programLabel: this.programLabel,
-        requiredStrategy: this.requiredStrategy,
-        strategyId: this.strategy?.id,
-        allowMultiple: false,
-        vesselFilter: <VesselFilter>{
-          statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-          onlyWithRegistration: true,
-        },
-        allowAddNewVessel: this.allowAddNewVessel,
-        showVesselTypeColumn: this.showVesselType,
-        showBasePortLocationColumn: this.showVesselBasePortLocation,
-        defaultVesselSynchronizationStatus,
-        showOfflineVessels,
-        maxDateVesselRegistration: endDate,
-      },
-      keyboardClose: true,
-      cssClass: 'modal-large',
-    });
-
-    // Open the modal
-    await modal.present();
-
-    // Wait until closed
-    const { data } = await modal.onDidDismiss();
-
-    if (data && data[0] instanceof VesselSnapshot) {
-      console.debug(this.logPrefix + 'Vessel selection modal result:', data);
-      return data[0] as VesselSnapshot;
-    } else {
-      console.debug(this.logPrefix + 'Vessel selection modal was cancelled');
-    }
   }
 
   addMetier(event: UIEvent) {
@@ -899,14 +839,6 @@ export class ActivityCalendarPage
     });
 
     let data = (await chainPromises<ActivityCalendar>([loadPreviousYearCalendar, ...loadPredocProgramCalendars])).filter(isNotNil);
-
-    // DEBUG: simulate a N-1 calendar
-    if (this.debug && data.length === 1) {
-      const fakeCalendar = data[0].clone();
-      ActivityCalendarUtils.setYear(fakeCalendar, entity.year - 1);
-      ActivityCalendarUtils.setProgram(fakeCalendar, entity.program);
-      data = [fakeCalendar, data[0]];
-    }
 
     this.predocCalendar.pmfms = await firstNotNilPromise(this.calendar.pmfms$);
     this.predocCalendar.availablePrograms = removeDuplicatesFromArray(data.map((ac) => ac.program).filter(isNotNil), 'label');

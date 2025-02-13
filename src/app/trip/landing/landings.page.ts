@@ -136,6 +136,7 @@ export class LandingsPage
     return this.getShowColumn('program');
   }
 
+  // Can be override by setProgram() or resetProgram()
   @Input()
   set showVesselTypeColumn(value: boolean) {
     this.setShowColumn('vesselType', value);

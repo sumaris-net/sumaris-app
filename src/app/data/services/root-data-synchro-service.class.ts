@@ -416,4 +416,12 @@ export abstract class RootDataSynchroService<
       })
     );
   }
+
+  protected markAsLoading() {
+    this.loading = true;
+  }
+
+  protected markAsLoaded() {
+    this.loading = false;
+  }
 }

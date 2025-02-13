@@ -62,14 +62,8 @@
       <ion-col>
         <mat-form-field [class.mat-form-field-disabled]="disabledParent">
           <ion-icon matPrefix name="location"></ion-icon>
-          <input
-            matInput
-            type="text"
-            hidden
-            [formControl]="control"
-            [placeholder]="'LANDING.EDIT.OBSERVED_LOCATION_PLACEHOLDER' | translate"
-            required
-          />
+          <mat-label translate>LANDING.EDIT.OBSERVED_LOCATION_PLACEHOLDER</mat-label>
+          <input matInput type="text" hidden [formControl]="control" required />
           <input
             matInput
             type="text"

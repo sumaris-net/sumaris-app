@@ -1,9 +1,8 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
   <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (showError) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
 
   <ion-grid class="ion-no-padding">
     <ion-row *ngIf="showParent">
@@ -27,11 +26,11 @@
       <!--  NB packets  -->
       <ion-col size="6" size-md="4" class="ion-padding">
         <mat-form-field>
+          <mat-label translate>PACKET.NUMBER</mat-label>
           <input
             matInput
             #packetNumber
             formControlName="number"
-            [placeholder]="'PACKET.NUMBER' | translate"
             autocomplete="off"
             type="number"
             pattern="[0-9]*"
@@ -47,16 +46,8 @@
       <!--  weight (computed)  -->
       <ion-col size="6" size-md="4" class="ion-padding">
         <mat-form-field class="computed mat-form-field-disabled">
-          <input
-            matInput
-            #packetWeight
-            formControlName="weight"
-            [placeholder]="'PACKET.WEIGHT' | translate"
-            autocomplete="off"
-            type="number"
-            tabIndex="-1"
-            readonly
-          />
+          <mat-label translate>PACKET.WEIGHT</mat-label>
+          <input matInput #packetWeight formControlName="weight" autocomplete="off" type="number" tabIndex="-1" readonly />
         </mat-form-field>
       </ion-col>
     </ion-row>
@@ -99,101 +90,109 @@
       </td>
 
       <!-- Packet weight column -->
-      <td class="mat-mdc-cell mat-column-small" *ngFor="let index of $packetIndexes | async; even as colEven" [class.even]="colEven">
-        <mat-form-field>
-          <input
-            matInput
-            autocomplete="off"
-            type="number"
-            decimal="true"
-            step="0.1"
-            [placeholder]="'PACKET.SAMPLED_WEIGHT' | translate: { rankOrder: index + 1 }"
-            [formControlName]="'sampledWeight' + index"
-            [tabIndex]="tabindex + 10 + (index + 1) * 100"
-            (click)="selectInputContent($event)"
-          />
-          <ion-text color="medium" class="text-italic" matSuffix>kg</ion-text>
-        </mat-form-field>
-      </td>
+      @for (index of $packetIndexes | async; track index; let colEven = $even) {
+        <td class="mat-mdc-cell mat-column-small" [class.even]="colEven">
+          <mat-form-field>
+            <mat-label>{{ 'PACKET.SAMPLED_WEIGHT' | translate: { rankOrder: index + 1 } }}</mat-label>
+            <input
+              matInput
+              autocomplete="off"
+              type="number"
+              decimal="true"
+              step="0.1"
+              [formControlName]="'sampledWeight' + index"
+              [tabIndex]="tabindex + 10 + (index + 1) * 100"
+              (click)="selectInputContent($event)"
+            />
+            <ion-text color="medium" class="text-italic" matSuffix>kg</ion-text>
+          </mat-form-field>
+        </td>
+      }
       <td class="mat-mdc-cell mat-column-small"></td>
       <td class="mat-mdc-cell mat-column-actions"></td>
     </tr>
 
     <!--  composition row  -->
-    <tr
-      class="mat-mdc-row"
-      *ngFor="let compositionForm of compositionsFormArray?.controls; index as i; last as last; even as even"
-      [formGroup]="compositionForm"
-      [class.mat-mdc-row-disabled]="compositionEditedIndex !== i"
-      [class.mat-mdc-row-selected]="compositionEditedIndex === i"
-      (focusin)="compositionEditedIndex = i"
-    >
-      <!-- taxon group -->
-      <td class="mat-mdc-cell mat-column-taxonGroup">
-        <mat-autocomplete-field
-          formControlName="taxonGroup"
-          [placeholder]="'PACKET.COMPOSITION.TAXON_GROUP' | translate"
-          [autofocus]="compositionFocusIndex === i && compositionEditedIndex === i"
-          [config]="autocompleteFields.taxonGroup"
-          [tabindex]="tabindex + 10 + i"
-          required
-          panelClass="mat-select-panel-fit-content"
-        ></mat-autocomplete-field>
-      </td>
+    @for (compositionForm of compositionsFormArray?.controls; track i; let i = $index; let last = $last) {
+      <tr
+        class="mat-mdc-row"
+        [formGroup]="compositionForm | formGetGroup"
+        [class.mat-mdc-row-disabled]="compositionEditedIndex !== i"
+        [class.mat-mdc-row-selected]="compositionEditedIndex === i"
+        (focusin)="compositionEditedIndex = i"
+      >
+        <!-- taxon group -->
+        <td class="mat-mdc-cell mat-column-taxonGroup">
+          <mat-autocomplete-field
+            formControlName="taxonGroup"
+            floatLabel="never"
+            [placeholder]="'PACKET.COMPOSITION.TAXON_GROUP' | translate"
+            [autofocus]="compositionFocusIndex === i && compositionEditedIndex === i"
+            [config]="autocompleteFields.taxonGroup"
+            [tabindex]="tabindex + 10 + i"
+            required
+            panelClass="mat-select-panel-fit-content"
+          ></mat-autocomplete-field>
+        </td>
 
-      <!-- ratios -->
-      <td class="mat-mdc-cell mat-column-small" *ngFor="let packetIndex of $packetIndexes | async; even as colEven" [class.even]="colEven">
-        <mat-form-field *ngIf="compositionForm.get('ratio' + packetIndex); let control">
-          <input
-            matInput
-            autocomplete="off"
-            type="number"
-            pattern="[0-9]*"
-            step="1"
-            max="100"
-            [tabIndex]="tabindex + 10 + (packetIndex + 1) * 100 + i"
-            [formControl]="control"
-            (click)="selectInputContent($event)"
-          />
-          <ion-text color="medium" class="text-italic" matSuffix>%</ion-text>
-          <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-      </td>
+        <!-- ratios -->
+        @for (packetIndex of $packetIndexes | async; track packetIndex; let colEven = $even) {
+          <td class="mat-mdc-cell mat-column-small" [class.even]="colEven">
+            @if (compositionForm.get('ratio' + packetIndex) | formGetControl; as control) {
+              <mat-form-field>
+                <input
+                  matInput
+                  autocomplete="off"
+                  type="number"
+                  pattern="[0-9]*"
+                  step="1"
+                  max="100"
+                  [tabIndex]="tabindex + 10 + (packetIndex + 1) * 100 + i"
+                  [formControl]="control"
+                  (click)="selectInputContent($event)"
+                />
+                <ion-text color="medium" class="text-italic" matSuffix>%</ion-text>
+                <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+              </mat-form-field>
+            }
+          </td>
+        }
 
-      <!-- computed weight -->
-      <td class="mat-mdc-cell mat-column-small ion-text-center">
-        <ion-label color="primary" class="text-italic">{{ compositionForm.get('weight').value }} kg</ion-label>
-      </td>
+        <!-- computed weight -->
+        <td class="mat-mdc-cell mat-column-small ion-text-center">
+          <ion-label color="primary" class="text-italic">{{ compositionForm.get('weight').value }} kg</ion-label>
+        </td>
 
-      <!-- buttons -->
-      <td class="mat-mdc-cell mat-column-actions">
-        <ion-buttons>
-          <button
-            type="button"
-            mat-icon-button
-            *ngIf="!mobile"
-            [style.visibility]="last ? 'visible' : 'hidden'"
-            [disabled]="disabled"
-            [title]="'COMMON.BTN_ADD' | translate"
-            (click)="addComposition($event)"
-            [tabindex]="tabindex + 999"
-          >
-            <mat-icon>add</mat-icon>
-          </button>
-          <button
-            type="button"
-            mat-icon-button
-            *ngIf="!mobile || (compositionEditedIndex === i && !disabled)"
-            [class.visible-hover-row]="!mobile"
-            [tabindex]="-1"
-            [title]="'COMMON.BTN_DELETE' | translate"
-            (click)="removeCompositionAt(i)"
-          >
-            <mat-icon>delete_outline</mat-icon>
-          </button>
-        </ion-buttons>
-      </td>
-    </tr>
+        <!-- buttons -->
+        <td class="mat-mdc-cell mat-column-actions">
+          <ion-buttons>
+            <button
+              type="button"
+              mat-icon-button
+              *ngIf="!mobile"
+              [style.visibility]="last ? 'visible' : 'hidden'"
+              [disabled]="disabled"
+              [title]="'COMMON.BTN_ADD' | translate"
+              (click)="addComposition($event)"
+              [tabindex]="tabindex + 999"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+            <button
+              type="button"
+              mat-icon-button
+              *ngIf="!mobile || (compositionEditedIndex === i && !disabled)"
+              [class.visible-hover-row]="!mobile"
+              [tabindex]="-1"
+              [title]="'COMMON.BTN_DELETE' | translate"
+              (click)="removeCompositionAt(i)"
+            >
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </ion-buttons>
+        </td>
+      </tr>
+    }
 
     <!-- sampled ratios -->
     <tr class="mat-mdc-footer-row">
@@ -202,9 +201,11 @@
           <ion-row>
             <ion-col size="auto">
               <!-- add composition (mobile) -->
-              <ion-fab-button *ngIf="mobile" size="small" class="ion-float-start" color="tertiary" (click)="addComposition()">
-                <ion-icon name="add"></ion-icon>
-              </ion-fab-button>
+              @if (mobile) {
+                <ion-fab-button size="small" class="ion-float-start" color="tertiary" (click)="addComposition()">
+                  <ion-icon name="add"></ion-icon>
+                </ion-fab-button>
+              }
             </ion-col>
             <ion-col class="ion-text-end" style="align-self: center">
               <ion-label color="primary" class="text-italic" style="font-weight: bold" translate>PACKET.COMPOSITION.TOTAL_PCT_DOTS</ion-label>

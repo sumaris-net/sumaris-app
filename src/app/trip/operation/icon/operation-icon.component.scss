@@ -5,7 +5,8 @@
         right: -2px !important;
       }
       &.mat-badge-overlap.mat-badge-above .mat-badge-content {
-        top: -2px !important;
+        // Not more need since Angular 18.2
+        //top: -2px !important;
       }
     }
 

@@ -482,7 +482,12 @@
     >
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
-          <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection | isAllSelected" [tabIndex]="-1"></mat-checkbox>
+          <mat-checkbox
+            (change)="$event ? masterToggle() : null"
+            [checked]="selection | isAllSelected: this"
+            [indeterminate]="selection | isNotAllSelected: this"
+            [tabIndex]="-1"
+          ></mat-checkbox>
         </th>
         <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile || !canEdit">
           <mat-checkbox (click)="toggleSelectRow($event, row)" [checked]="selection | isSelected: row" [tabIndex]="-1"></mat-checkbox>

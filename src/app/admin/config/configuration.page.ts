@@ -42,6 +42,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
   );
 
   @Input() showOptionKeys = false;
+  @Input() mobile: boolean;
 
   get config(): Configuration {
     return (this.data && (this.data as Configuration)) || undefined;
@@ -61,6 +62,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     // default values
     this.defaultBackHref = null;
 
+    this.mobile = this.settings.mobile;
     this.debug = !environment.production;
   }
 

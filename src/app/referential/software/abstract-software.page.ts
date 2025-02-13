@@ -22,6 +22,7 @@ import { SoftwareService } from '../services/software.service';
 import { SoftwareValidatorService } from '../services/validator/software.validator';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { firstValueFrom } from 'rxjs';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -137,10 +138,10 @@ export abstract class AbstractSoftwarePage<T extends Software<T>, S extends IEnt
   protected computeTitle(data: T): Promise<string> {
     // new data
     if (!data || isNil(data.id)) {
-      return this.translate.get('CONFIGURATION.NEW.TITLE').toPromise();
+      return firstValueFrom(this.translate.get('CONFIGURATION.NEW.TITLE'));
     }
 
-    return this.translate.get('CONFIGURATION.EDIT.TITLE', data).toPromise();
+    return firstValueFrom(this.translate.get('CONFIGURATION.EDIT.TITLE', data));
   }
 
   protected getFirstInvalidTabIndex(): number {

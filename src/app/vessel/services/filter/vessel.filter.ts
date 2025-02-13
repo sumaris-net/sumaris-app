@@ -79,6 +79,12 @@ export class VesselFilter extends RootDataEntityFilter<VesselFilter, Vessel> {
       delete target.vesselType;
 
       if (target.onlyWithRegistration !== true) delete target.onlyWithRegistration;
+
+      if (target.date && !target.startDate && !target.endDate) {
+        target.startDate = target.date;
+        target.endDate = target.date;
+      }
+      delete target.date;
     } else {
       target.registrationLocation = this.registrationLocation?.asObject(opts);
       target.basePortLocation = this.basePortLocation?.asObject(opts);

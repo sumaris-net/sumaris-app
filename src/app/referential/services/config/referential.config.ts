@@ -94,7 +94,7 @@ const PmfmAutocompleteConfig = <MatAutocompleteFieldConfig>{
     'REFERENTIAL.PMFM.FRACTION',
     'REFERENTIAL.PMFM.METHOD',
   ],
-  columnSizes: [1, 1, 3, 1, 1, 1, 4],
+  columnSizes: [1, 2, 3, 1, 1, 1, 3],
   panelClass: 'full-width',
   filter: <ReferentialRefFilter>{
     entityName: 'Pmfm',

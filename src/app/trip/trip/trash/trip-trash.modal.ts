@@ -254,6 +254,13 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
   /* -- protected method -- */
 
+  protected getI18nColumnName(columnName: string): string {
+    if (columnName === 'updateDate') {
+      return 'TRIP.TRASH.DELETION_DATE';
+    }
+    return super.getI18nColumnName(columnName);
+  }
+
   protected markForCheck() {
     this.cd.markForCheck();
   }
