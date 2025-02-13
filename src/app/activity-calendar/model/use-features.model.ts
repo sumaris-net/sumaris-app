@@ -11,31 +11,31 @@ export interface IUseFeatures<T extends DataEntity<T> = DataEntity<any>> extends
 }
 
 export class IUseFeaturesUtils {
-  static filterByPeriods<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
+  static filterIntersectSomePeriods<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
     sources: T[],
     periods: { startDate: Moment; endDate: Moment }[],
     granularity?: unitOfTime.StartOf
   ): T[] {
-    return (sources || []).filter((source) => IUseFeaturesUtils.isInPeriods(source, periods, granularity));
+    return (sources || []).filter((source) => IUseFeaturesUtils.intersectSomePeriods(source, periods, granularity));
   }
 
-  static isInPeriods<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
-    source: T,
-    periods: { startDate: Moment; endDate?: Moment }[],
-    granularity?: unitOfTime.StartOf
-  ): boolean {
-    return (periods || []).some((period) => this.isInPeriod(source, period, granularity));
-  }
-
-  static filterByPeriod<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
+  static filterIntersectPeriod<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
     sources: T[],
     period: { startDate: Moment; endDate?: Moment },
     granularity?: unitOfTime.StartOf
   ): T[] {
-    return (sources || []).filter((source) => IUseFeaturesUtils.isInPeriod(source, period, granularity));
+    return (sources || []).filter((source) => IUseFeaturesUtils.intersectPeriod(source, period, granularity));
   }
 
-  static isInPeriod<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
+  static intersectSomePeriods<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
+    source: T,
+    periods: { startDate: Moment; endDate?: Moment }[],
+    granularity?: unitOfTime.StartOf
+  ): boolean {
+    return (periods || []).some((period) => this.intersectPeriod(source, period, granularity));
+  }
+
+  static intersectPeriod<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
     source: T,
     period: { startDate: Moment; endDate?: Moment },
     granularity?: unitOfTime.StartOf
@@ -54,6 +54,22 @@ export class IUseFeaturesUtils {
       EntityUtils.cleanIdAndUpdateDate(o1);
     }
     return (!o1 && !o2) || (o1 && o1.equals(o2, opts));
+  }
+
+  static filterSamePeriod<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
+    sources: T[],
+    period: { startDate: Moment; endDate?: Moment },
+    granularity?: unitOfTime.StartOf
+  ): T[] {
+    return (sources || []).filter((source) => IUseFeaturesUtils.isSamePeriod(source, period, granularity));
+  }
+
+  static isSamePeriod<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
+    o1: T,
+    o2: { startDate: Moment; endDate?: Moment },
+    granularity: unitOfTime.StartOf = 'day'
+  ): boolean {
+    return DateUtils.isSame(o1.startDate, o2.startDate, granularity) && DateUtils.isSame(o1.endDate, o2.endDate, granularity);
   }
 
   /**

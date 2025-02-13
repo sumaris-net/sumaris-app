@@ -8,12 +8,22 @@ import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-
 import { IUseFeaturesUtils } from '@app/activity-calendar/model/use-features.model';
 
 export class ActivityMonthUtils {
+  static getDistinctMetierIds(gearUseFeatures: GearUseFeatures[]) {
+    return removeDuplicatesFromArray(gearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil));
+  }
+
   static getSortedMetierIds(
     gearUseFeatures: GearUseFeatures[],
     compareFn: (o1: GearUseFeatures, o2: GearUseFeatures) => number = GearUseFeaturesComparators.sortByDateAndRankOrderFn
   ) {
-    const sortedGearUseFeatures = (gearUseFeatures || []).map(GearUseFeatures.fromObject).sort(compareFn);
-    return removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil));
+    const sortedGearUseFeatures = (gearUseFeatures || [])
+      .map(GearUseFeatures.fromObject)
+      // Exclude empty GUF
+      .filter(GearUseFeatures.isNotEmpty)
+      // Exclude yearly values (e.g. from old Allegro data)
+      .filter(IUseFeaturesUtils.isMonthly)
+      .sort(compareFn);
+    return ActivityMonthUtils.getDistinctMetierIds(sortedGearUseFeatures);
   }
 
   static fromActivityCalendars(
@@ -27,13 +37,8 @@ export class ActivityMonthUtils {
       sortedMetierIds?: number[];
     }
   ): ActivityMonth[] {
-    const gearUseFeatures = (sources || [])
-      .flatMap((ac) => ac.gearUseFeatures)
-      // Exclude empty GUF
-      .filter(GearUseFeatures.isNotEmpty)
-      // Exclude yearly values (metier table) - See issue sumaris-app#
-      .filter(IUseFeaturesUtils.isMonthly);
-    const sortedMetierIds = ActivityMonthUtils.getSortedMetierIds(gearUseFeatures, GearUseFeaturesComparators.sortByMonthAndRankOrderFn);
+    const allGearUseFeatures = (sources || []).flatMap((ac) => ac.gearUseFeatures);
+    const sortedMetierIds = ActivityMonthUtils.getSortedMetierIds(allGearUseFeatures, GearUseFeaturesComparators.sortByMonthAndRankOrderFn);
 
     // Convert to months, then sort
     return sources.flatMap((source) => ActivityMonthUtils.fromActivityCalendar(source, { ...opts, sortedMetierIds }));
@@ -57,9 +62,10 @@ export class ActivityMonthUtils {
     const vesselId = data.vesselSnapshot?.id;
     const sortedGearUseFeatures = (data.gearUseFeatures || [])
       .map(GearUseFeatures.fromObject)
+      // Exclude yearly values (e.g. from old Allegro data)
+      .filter(IUseFeaturesUtils.isMonthly)
       .sort(GearUseFeaturesComparators.sortByDateAndRankOrderFn);
-    const sortedMetierIds =
-      opts?.sortedMetierIds || (opts?.fillEmptyGuf && removeDuplicatesFromArray(sortedGearUseFeatures.map((guf) => guf.metier?.id).filter(isNotNil)));
+    const sortedMetierIds = opts?.sortedMetierIds || (opts?.fillEmptyGuf && ActivityMonthUtils.getDistinctMetierIds(sortedGearUseFeatures));
     const fishingAreaCount = opts?.fishingAreaCount || 2;
     const program = data.program;
 
@@ -75,17 +81,16 @@ export class ActivityMonthUtils {
           (opts?.fillEmptyMonth !== false ? { startDate } : undefined);
         if (!source) return null; // Skip
 
-        // fix vesselUseFeature start date to be conform with the timezone
-        source.startDate.tz(opts.timezone);
+        // fix vesselUseFeature start date to be conformed with the timezone
+        if (opts?.timezone) source.startDate.tz(opts.timezone);
+
         const target = ActivityMonth.fromObject(source);
-        target.gearUseFeatures = sortedGearUseFeatures?.filter(
-          (guf) => DateUtils.isSame(startDate, guf.startDate, 'day') && DateUtils.isSame(endDate, guf.endDate, 'day')
-        );
+        target.gearUseFeatures = sortedGearUseFeatures?.filter((guf) => IUseFeaturesUtils.isSamePeriod(guf, { startDate, endDate }));
         if (opts?.fillEmptyGuf && isNotEmptyArray(sortedMetierIds)) {
           target.gearUseFeatures = sortedMetierIds.flatMap((metierId) => {
-            const existingGuf = target.gearUseFeatures.filter((guf) => guf.metier?.id === metierId);
-            if (isNotEmptyArray(existingGuf)) return existingGuf;
-            return [new GearUseFeatures()]; // Empty GUF
+            const existingGufs = target.gearUseFeatures.filter((guf) => guf.metier?.id === metierId);
+            if (isNotEmptyArray(existingGufs)) return existingGufs;
+            return [new GearUseFeatures()]; // Create an empty GUF
           });
 
           // Fill empty fishing area
@@ -100,7 +105,10 @@ export class ActivityMonthUtils {
         target.endDate = endDate;
         target.program = program;
 
-        const vesselRegistrationPeriods = removeDuplicatesFromArray(IUseFeaturesUtils.filterByPeriod(data.vesselRegistrationPeriods, target), 'id');
+        const vesselRegistrationPeriods = removeDuplicatesFromArray(
+          IUseFeaturesUtils.filterIntersectPeriod(data.vesselRegistrationPeriods, target),
+          'id'
+        );
         // A user can edit a month if the first QIM est editable - see issue #764
         // (=a month is readonly, if the first QIM is readonly)
         target.readonly = vesselRegistrationPeriods?.[0]?.readonly ?? true;

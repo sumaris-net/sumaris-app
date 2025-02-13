@@ -1,4 +1,4 @@
-import { DateUtils, EntityUtils, ReferentialUtils, isNotEmptyArray, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
+import { DateUtils, EntityUtils, isNotEmptyArray, ReferentialUtils, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import { GearPhysicalFeatures } from './gear-physical-features.model';
 import { ActivityCalendar } from '@app/activity-calendar/model/activity-calendar.model';
 import { GearUseFeatures, GearUseFeaturesComparators } from '@app/activity-calendar/model/gear-use-features.model';
@@ -41,9 +41,9 @@ export class GearPhysicalFeaturesUtils {
     const timezone = opts?.timezone;
     const year = data?.year || DateUtils.moment().year() - 1;
 
-    // Excluded metier without gear (e.g. aquaculture)
+    // Excluded metiers without gear (e.g. aquaculture)
     sortedMetiers = sortedMetiers.filter((metier, index) => ReferentialUtils.isNotEmpty(metier.gear));
-    const sortedMetierIds: number[] = EntityUtils.collectById(sortedMetiers);
+    const sortedMetierIds: number[] = EntityUtils.collectIds(sortedMetiers);
 
     // Keep GearPhysicalFeatures with a metier that exists in GUF
     sources = (sources || []).filter((gph) => gph.metier && sortedMetierIds.includes(gph.metier.id)) || [];
@@ -81,20 +81,20 @@ export class GearPhysicalFeaturesUtils {
       gpf.rankOrder = index;
     });
 
-    // Merging yearly GearUseFeatures into GearPhysicalFeatures, for old data compatibility - See issue sumaris-app#921
-    const gufs = IUseFeaturesUtils.filterByPeriod(data.gearUseFeatures, { startDate: firstDayOfYear, endDate: lastDayOfYear });
-    if (isNotEmptyArray(gufs)) {
+    // Merging yearly GearUseFeatures into yearly GearPhysicalFeatures (for old Allegro data compatibility - See issue sumaris-app#921)
+    const yearlyGufs = IUseFeaturesUtils.filterSamePeriod(data.gearUseFeatures, { startDate: firstDayOfYear, endDate: lastDayOfYear });
+    if (isNotEmptyArray(yearlyGufs)) {
       target.forEach((gpf) => {
-        const guf = gufs.find(
-          (guf) => guf.metier.id === gpf.metier.id && DateUtils.isSame(guf.startDate, gpf.startDate) && DateUtils.isSame(guf.endDate, gpf.endDate)
-        );
-        if (guf) {
-          gpf.measurementValues = { ...guf.measurementValues, ...gpf.measurementValues };
+        const yearlyGuf = yearlyGufs.find((guf) => guf.metier.id === gpf.metier.id && IUseFeaturesUtils.isSamePeriod(guf, gpf));
+        if (yearlyGuf) {
+          gpf.measurementValues = { ...yearlyGuf.measurementValues, ...gpf.measurementValues };
         }
       });
     }
 
-    console.debug(GearPhysicalFeaturesUtils.logPrefix + 'Loaded :  gearPhysicalFeatures', target);
+    // DEBUG
+    //console.debug(GearPhysicalFeaturesUtils.logPrefix + 'Loaded:  gearPhysicalFeatures', target);
+
     return target;
   }
 }
