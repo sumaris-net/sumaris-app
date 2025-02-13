@@ -84,7 +84,7 @@ import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragme
 import { OverlayEventDetail } from '@ionic/core';
 import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
-import { ActivityCalendarUtils } from './activity-calendar.utils';
+import { ActivityCalendarUtils } from './model/activity-calendar.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Job } from '@app/social/job/job.model';
 import { JobFragments } from '@app/social/job/job.service';
@@ -763,10 +763,6 @@ export class ActivityCalendarService
       return this.saveLocally(entity, opts);
     }
 
-    opts = {
-      ...opts,
-    };
-
     const now = Date.now();
     if (this._debug) console.debug('[activity-calendar-service] Saving activityCalendar...', entity);
 
@@ -890,9 +886,6 @@ export class ActivityCalendarService
 
   async saveLocally(entity: ActivityCalendar, opts?: ActivityCalendarSaveOptions): Promise<ActivityCalendar> {
     if (entity.id >= 0) throw new Error('Must be a local entity');
-    opts = {
-      ...opts,
-    };
 
     this.fillDefaultProperties(entity);
 

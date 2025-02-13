@@ -1,5 +1,5 @@
 import { DataEntity, DataEntityAsObjectOptions } from '../services/model/data-entity.model';
-import { EntityClass, isNotNil, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
+import { EntityClass, EntityUtils, isEmptyArray, isNotNil, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Geometries } from '@app/shared/geometries.utils';
 import { BBox } from 'geojson';
@@ -13,10 +13,25 @@ export class FishingArea extends DataEntity<FishingArea> {
     return (
       (isNotNil(o1?.id) && o1.id === o2?.id) ||
       (!!o1 &&
-        o2 &&
-        ReferentialUtils.equals(o1?.distanceToCoastGradient, o2.distanceToCoastGradient) &&
-        ReferentialUtils.equals(o1?.depthGradient, o2.depthGradient) &&
-        ReferentialUtils.equals(o1?.nearbySpecificArea, o2.nearbySpecificArea))
+        !!o2 &&
+        ReferentialUtils.equals(o1.location, o2.location) &&
+        ReferentialUtils.equals(o1.distanceToCoastGradient, o2.distanceToCoastGradient) &&
+        ReferentialUtils.equals(o1.depthGradient, o2.depthGradient) &&
+        ReferentialUtils.equals(o1.nearbySpecificArea, o2.nearbySpecificArea))
+    );
+  }
+
+  static isSameRemoteUniqueKey(o1: FishingArea | any, o2: FishingArea | any): boolean {
+    return (
+      !!o1 &&
+      !!o2 &&
+      ReferentialUtils.equals(o1.location, o2.location) &&
+      ReferentialUtils.equals(o1.distanceToCoastGradient, o2.distanceToCoastGradient) &&
+      ReferentialUtils.equals(o1.depthGradient, o2.depthGradient)
+      // Same parent (not need here)
+      // n1.operationId === n2.operationId
+      // n1.gearUseFeaturesId === n2.gearUseFeaturesId
+      // n1.vesselUseFeaturesId === n2.vesselUseFeaturesId
     );
   }
 
@@ -47,6 +62,7 @@ export class FishingArea extends DataEntity<FishingArea> {
   // Parent: not need, because always FishingArea holds by a parent entity
   // operationId: number;
   // gearUseFeaturesId: number;
+  // vesselUseFeaturesId: number;
 
   constructor() {
     super(FishingArea.TYPENAME);
@@ -55,6 +71,8 @@ export class FishingArea extends DataEntity<FishingArea> {
     this.depthGradient = null;
     this.nearbySpecificArea = null;
     // this.operationId = null;
+    // this.gearUseFeaturesId = null;
+    // this.vesselUseFeaturesId = null;
   }
 
   asObject(options?: DataEntityAsObjectOptions): any {
@@ -74,6 +92,8 @@ export class FishingArea extends DataEntity<FishingArea> {
     this.depthGradient = source.depthGradient && ReferentialRef.fromObject(source.depthGradient);
     this.nearbySpecificArea = source.nearbySpecificArea && ReferentialRef.fromObject(source.nearbySpecificArea);
     // this.operationId = source.operationId;
+    // this.gearUseFeaturesId = source.gearUseFeaturesId;
+    // this.vesselUseFeaturesId = source.vesselUseFeaturesId;
     return this;
   }
 
@@ -98,5 +118,22 @@ export class FishingAreaUtils {
 
   static sameArray(a1: FishingArea[], a2: FishingArea[]) {
     return (!a1 && !a2) || (a1?.length === a2?.length && a1.every((fa1) => a2.some((fa2) => FishingArea.equals(fa1, fa2))));
+  }
+
+  /**
+   * Workaround to avoid remote error on FISHING_AREA unique key (see issue #883)
+   * @param localFishingAreas
+   * @param remoteFishingAreas
+   */
+  static fixRemoteUniqueKeyError(localFishingAreas: FishingArea[], remoteFishingAreas: FishingArea[]): void {
+    if (isEmptyArray(localFishingAreas)) return; // OK: nothing to fix
+
+    remoteFishingAreas = remoteFishingAreas?.filter((fa) => isNotNil(fa.id));
+    if (isEmptyArray(remoteFishingAreas)) return; // OK, no remote data
+
+    localFishingAreas
+      .filter((fa) => remoteFishingAreas.some((p) => fa.id !== p.id && FishingArea.isSameRemoteUniqueKey(fa, p)))
+      // Clean id, to force a deletion of the duplication, then a new insert
+      .forEach(EntityUtils.cleanIdAndUpdateDate);
   }
 }
