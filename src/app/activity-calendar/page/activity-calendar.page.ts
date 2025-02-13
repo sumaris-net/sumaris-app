@@ -77,6 +77,7 @@ import { VesselUseFeaturesIsActiveEnum } from '../model/vessel-use-features.mode
 import { GearUseFeatures } from '../model/gear-use-features.model';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ExpertiseAreaUtils } from '@app/referential/expertise-area/expertise-area.utils';
+import { ActivityCalendarUtils } from '@app/activity-calendar/model/activity-calendar.utils';
 
 export const ActivityCalendarPageSettingsEnum = {
   PAGE_ID: 'activityCalendar',
@@ -705,13 +706,14 @@ export class ActivityCalendarPage
 
     const value = await super.getValue();
 
+    // Add calendar (gear use features and vessel use features)
     const activityMonths = this.calendar.value;
     if (activityMonths) ActivityMonthUtils.fillActivityCalendar(value, activityMonths);
 
-    // Metiers
+    // Add metiers
     value.gearPhysicalFeatures = GearPhysicalFeaturesUtils.updateFromCalendar(value, this.tableMetier.value, { timezone: this.timezone });
 
-    // Pictures
+    // Add pictures
     if (this.showPictures) {
       value.images = this.gallery.value || [];
 
@@ -727,11 +729,14 @@ export class ActivityCalendarPage
     // Restore vesselRegistrationPeriods
     value.vesselRegistrationPeriods = this.data.vesselRegistrationPeriods;
 
-    // Add current user as observer
-    const currentPerson = this.accountService.person;
-    if (!this.isAdminOrManager && isNotEmptyArray(value.observers) && !value.observers.map((observer) => observer.id).includes(currentPerson.id)) {
-      value.observers = [...value.observers, currentPerson];
+    // Add user as observer (if not already added, and if not an admin or a program manager)
+    const user = this.accountService.person;
+    if (!this.isAdminOrManager && isNotEmptyArray(value.observers) && !value.observers.some((o) => o.id === user.id)) {
+      value.observers = [...value.observers, user];
     }
+
+    // Workaround to avoid remote error on GUF and FISHING_AREA unique key (see issue #899 and #883)
+    ActivityCalendarUtils.fixRemoteUniqueKeyError(value, this.data);
 
     return value;
   }

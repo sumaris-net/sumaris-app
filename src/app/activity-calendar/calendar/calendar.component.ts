@@ -509,18 +509,21 @@ export class CalendarComponent
       suggestFn: (value, filter) => this.suggestDistanceToCoastGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
+      showAllOnFocus: true,
     });
     this.registerAutocompleteField('depthGradient', {
       ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestDepthGradient(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
+      showAllOnFocus: true,
     });
     this.registerAutocompleteField('nearbySpecificArea', {
       ...autocompleteBaseConfig,
       suggestFn: (value, filter) => this.suggestNearbySpecificArea(value, filter),
       attributes: ['name'],
       panelClass: 'mat-select-panel-fit-content',
+      showAllOnFocus: true,
     });
 
     this._state.connect(
@@ -1237,7 +1240,7 @@ export class CalendarComponent
     event?.stopPropagation();
 
     // DEBUG
-    console.debug(`${this.logPrefix}Shift+click`, event, row, columnName);
+    if (this.debug) console.debug(`${this.logPrefix}Shift+click`, event, row, columnName);
     let cellSelection = this.cellSelection;
 
     // No existing selection, but edited Row
@@ -1409,7 +1412,7 @@ export class CalendarComponent
     this.closeContextMenu();
 
     // DEBUG
-    console.debug(`${this.logPrefix}Select a cell by click`, event, row, columnName);
+    if (this.debug) console.debug(`${this.logPrefix}Select a cell by click`, event, row, columnName);
 
     const confirmed = await this.confirmEditCreate();
     if (!confirmed) return false;
@@ -1480,7 +1483,7 @@ export class CalendarComponent
       containerElement.clientHeight < containerElement.scrollHeight ? containerElement.offsetHeight - containerElement.clientHeight : 0;
 
     // DEBUG
-    console.debug(this.logPrefix + `scrollbarWidth=${scrollbarWidth} scrollbarHeight=${scrollbarHeight}`);
+    if (this.debug) console.debug(this.logPrefix + `scrollbarWidth=${scrollbarWidth} scrollbarHeight=${scrollbarHeight}`);
     //console.debug(`${this.logPrefix}containerRect.bottom=${containerRect.bottom} scrollbarHeight=${scrollbarHeight} maxBottom=${maxBottom} bottom=${top + height}`);
 
     let topCut = false;
@@ -1509,7 +1512,7 @@ export class CalendarComponent
     }
 
     // DEBUG
-    //console.debug(`${this.logPrefix}Resizing ${name} to top=${top} left=${left} width=${width} height=${height}`);
+    //if (this.debug) console.debug(`${this.logPrefix}Resizing ${name} to top=${top} left=${left} width=${width} height=${height}`);
 
     // Resize the shadow element
     divElement.style.position = 'fixed';
@@ -2518,7 +2521,7 @@ export class CalendarComponent
     }
 
     // DEBUG
-    console.debug(`${this.logPrefix}Double+click`, event, row, columnName);
+    if (this.debug) console.debug(`${this.logPrefix}Double+click`, event, row, columnName);
 
     // Forget the cell selection
     this.removeCellSelection();
@@ -2635,7 +2638,7 @@ export class CalendarComponent
   }
 
   protected async copy(event?: Event) {
-    console.debug(`${this.logPrefix}Copy event`, event);
+    if (this.debug) console.debug(`${this.logPrefix}Copy event`, event);
 
     if (event?.defaultPrevented) return;
 
@@ -2661,7 +2664,7 @@ export class CalendarComponent
   }
 
   protected async cut(event?: Event) {
-    console.debug(`${this.logPrefix}Cut event`, event);
+    if (this.debug) console.debug(`${this.logPrefix}Cut event`, event);
 
     if (event?.defaultPrevented) return;
 
@@ -2691,7 +2694,7 @@ export class CalendarComponent
     cellSelection = cellSelection || this.cellSelection;
     if (!cellSelection) return false; // Nothing to copy
 
-    console.debug(`${this.logPrefix}Copy cell selection to clipboard`);
+    if (this.debug) console.debug(`${this.logPrefix}Copy cell selection to clipboard`);
 
     // Find selected months
     const { months: sourceMonths, paths: sourcePaths } = this.getDataFromSelection(cellSelection);
@@ -2707,8 +2710,8 @@ export class CalendarComponent
       });
       return form.value;
     });
-    console.debug(`${this.logPrefix}Target months:`, targetMonths);
-    console.debug(`${this.logPrefix}Target paths:`, sourcePaths);
+    if (this.debug) console.debug(`${this.logPrefix}Target months:`, targetMonths);
+    if (this.debug) console.debug(`${this.logPrefix}Target paths:`, sourcePaths);
 
     // Update the clipboard
     this.context.clipboard = {
@@ -2737,7 +2740,7 @@ export class CalendarComponent
     event?.preventDefault();
     event?.stopPropagation();
 
-    console.debug(`${this.logPrefix}Clearing cell selection...`);
+    if (this.debug) console.debug(`${this.logPrefix}Clearing cell selection...`);
 
     const { rows, paths } = this.getRowsFromSelection(cellSelection);
 
@@ -2755,7 +2758,7 @@ export class CalendarComponent
       });
     }
 
-    console.debug(`${this.logPrefix}Clearing cell selection [OK]`);
+    if (this.debug) console.debug(`${this.logPrefix}Clearing cell selection [OK]`);
 
     this.markAsDirty({ emitEvent: false });
     this.markForCheck();
@@ -2813,7 +2816,7 @@ export class CalendarComponent
   protected async copyCellToClipboard(sourceRow: AsyncTableElement<ActivityMonth>, columnName: string): Promise<boolean> {
     if (!sourceRow || !columnName) return false; // Skip
 
-    console.debug(`${this.logPrefix}Copying cell '${columnName}' to clipboard`);
+    if (this.debug) console.debug(`${this.logPrefix}Copying cell '${columnName}' to clipboard`);
 
     // Get column path
     const path = this.getColumnPath(columnName);
@@ -2826,7 +2829,7 @@ export class CalendarComponent
     const monthForm = this.validatorService.getRowValidator();
     monthForm.patchValue(source);
 
-    console.debug(`${this.logPrefix}Copy data to clipboard`, source);
+    if (this.debug) console.debug(`${this.logPrefix}Copy data to clipboard`, source);
 
     this.context.clipboard = {
       data: {
@@ -2841,7 +2844,7 @@ export class CalendarComponent
   protected async cutCellToClipboard(sourceRow: AsyncTableElement<ActivityMonth>, columnName: string): Promise<boolean> {
     if (!sourceRow || !columnName) return false; // Skip
 
-    console.debug(`${this.logPrefix}Cutting cell '${columnName}' to clipboard`);
+    if (this.debug) console.debug(`${this.logPrefix}Cutting cell '${columnName}' to clipboard`);
 
     // Get column path
     const path = this.getColumnPath(columnName);
@@ -2862,7 +2865,7 @@ export class CalendarComponent
       setPropertyByPath(sourceRow.currentData, path, null);
     }
 
-    console.debug(`${this.logPrefix}Cut data to clipboard`, target);
+    if (this.debug) console.debug(`${this.logPrefix}Cut data to clipboard`, target);
 
     this.context.clipboard = {
       data: {
@@ -3080,7 +3083,7 @@ export class CalendarComponent
     }
 
     // DEBUG
-    console.debug(`${this.logPrefix}Paste clipboard [OK]`);
+    if (this.debug) console.debug(`${this.logPrefix}Paste clipboard [OK]`);
 
     // Select targeted cells, if possible
     if (!this.editedRow && targetCellSelection.cellElement) {

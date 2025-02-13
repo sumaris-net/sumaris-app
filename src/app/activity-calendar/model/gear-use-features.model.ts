@@ -2,7 +2,10 @@ import {
   DateUtils,
   EntityAsObjectOptions,
   EntityClass,
+  EntityUtils,
   fromDateISOString,
+  isEmptyArray,
+  isNotEmptyArray,
   isNotNil,
   ReferentialRef,
   ReferentialUtils,
@@ -16,25 +19,8 @@ import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Metier } from '@app/referential/metier/metier.model';
 import { IWithProgramEntity } from '@app/data/services/model/model.utils';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
-import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { FishingArea, FishingAreaUtils } from '@app/data/fishing-area/fishing-area.model';
 import { IUseFeatures } from '@app/activity-calendar/model/use-features.model';
-
-export class GearUseFeaturesComparators {
-  static sortByDateAndRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
-    return DateUtils.compare(n1.startDate, n2.startDate) || GearUseFeaturesComparators.sortByRankOrderFn(n1, n2);
-  }
-  static sortByMonthAndRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
-    return (
-      DateUtils.compare(n1.startDate, n2.startDate?.clone().year(n1.startDate.year()), 'month') ||
-      GearUseFeaturesComparators.sortByRankOrderFn(n1, n2)
-    );
-  }
-  static sortByRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
-    const d1 = toNumber(n1.rankOrder, 9999);
-    const d2 = toNumber(n2.rankOrder, 9999);
-    return d1 === d2 ? 0 : d1 > d2 ? 1 : -1;
-  }
-}
 
 @EntityClass({ typename: 'GearUseFeaturesVO' })
 export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWithProgramEntity<GearUseFeatures>, IUseFeatures<GearUseFeatures> {
@@ -55,6 +41,27 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
         ReferentialUtils.isEmpty(o.metier) &&
         MeasurementValuesUtils.isEmpty(o.measurementValues) &&
         (!o.fishingAreas || o.fishingAreas.every((fa) => FishingArea.isEmpty(fa))))
+    );
+  }
+
+  static isSameRemoteUniqueKey(o1: GearUseFeatures, o2: GearUseFeatures): boolean {
+    return (
+      o1 &&
+      o2 &&
+      // Same program
+      ReferentialUtils.equals(o1.program, o2.program) &&
+      // Vessel
+      o1.vesselId === o2.vesselId &&
+      // Same metier
+      ReferentialUtils.equals(o1.metier, o2.metier) &&
+      // Same gear
+      ReferentialUtils.equals(o1.gear, o2.gear) &&
+      // Same date
+      DateUtils.equals(o1.startDate, o2.startDate) &&
+      DateUtils.equals(o1.endDate, o2.endDate)
+      // Same parent (not need here)
+      // n1.activityCalendarId === n2.activityCalendarId
+      // n1.dailyActivityCalendarId === n2.dailyActivityCalendarId
     );
   }
 
@@ -134,5 +141,56 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
         // Same measurementsValues
         (opts.withMeasurementValues !== true || MeasurementValuesUtils.equals(this.measurementValues, other.measurementValues)))
     );
+  }
+}
+
+export class GearUseFeaturesComparators {
+  static sortByDateAndRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
+    return DateUtils.compare(n1.startDate, n2.startDate) || GearUseFeaturesComparators.sortByRankOrderFn(n1, n2);
+  }
+  static sortByMonthAndRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
+    return (
+      DateUtils.compare(n1.startDate, n2.startDate?.clone().year(n1.startDate.year()), 'month') ||
+      GearUseFeaturesComparators.sortByRankOrderFn(n1, n2)
+    );
+  }
+  static sortByRankOrderFn(n1: GearUseFeatures, n2: GearUseFeatures): number {
+    const d1 = toNumber(n1.rankOrder, 9999);
+    const d2 = toNumber(n2.rankOrder, 9999);
+    return d1 === d2 ? 0 : d1 > d2 ? 1 : -1;
+  }
+}
+
+export class GearUseFeaturesUtils {
+  /**
+   * Fixes issues related to duplicate unique keys in remote `GearUseFeatures` or `FishingArea` entries.
+   * This is implemented as a workaround to remote errors caused by such duplicates.
+   *
+   * @param {GearUseFeatures[]} remoteGearUseFeatures - The array of `GearUseFeatures` obtained from a remote source.
+   * It will be filtered to retain only those with a valid ID.
+   * @param {GearUseFeatures[]} localGearUseFeatures - The array of `GearUseFeatures` from the local system
+   * which will be processed for any overlapping unique keys with the remote data.
+   * @return {void} - Does not return a value. Operates by processing and mutating local and remote `GearUseFeatures` data as needed.
+   */
+  static fixRemoteUniqueKeyError(localGearUseFeatures: GearUseFeatures[], remoteGearUseFeatures: GearUseFeatures[]): void {
+    if (isEmptyArray(localGearUseFeatures)) return; // Nothing to fix
+
+    // Keep only GUF with an id
+    remoteGearUseFeatures = (remoteGearUseFeatures || []).filter((guf) => isNotNil(guf.id));
+    if (isEmptyArray(remoteGearUseFeatures)) return; // OK, no remote data (e.g. first save)
+
+    // Workaround to avoid remote error on GUF unique key (see issue #899)
+    localGearUseFeatures
+      .filter((guf) => remoteGearUseFeatures.some((p) => guf.id !== p.id && GearUseFeatures.isSameRemoteUniqueKey(guf, p)))
+      // Clean id, to force a deletion of the duplication, then a new insert
+      .forEach(EntityUtils.cleanIdAndUpdateDate);
+
+    // Workaround to avoid remote error on FISHING_AREA unique key (see issue #883)
+    localGearUseFeatures
+      .filter((guf) => isNotEmptyArray(guf.fishingAreas))
+      .forEach((guf) => {
+        const remoteFishingAreas = remoteGearUseFeatures.find((p) => p.id === guf.id)?.fishingAreas;
+        FishingAreaUtils.fixRemoteUniqueKeyError(guf.fishingAreas, remoteFishingAreas);
+      });
   }
 }
