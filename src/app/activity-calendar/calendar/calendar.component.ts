@@ -1003,11 +1003,12 @@ export class CalendarComponent
 
   @HostListener('document:resize')
   onResize() {
-    if (this.debug) console.debug(this.logPrefix + 'Resizing...');
+    // DEBUG
+    //if (this.debug) console.debug(this.logPrefix + 'Resizing...');
+    const cellSelectionResized = this.resizeCellSelection(this.cellSelection, 'cell', { emitEvent: false, expandCellSelection: false });
+    const cellClipboardResized = this.resizeCellSelection(this.cellClipboard, 'clipboard', { emitEvent: false, expandCellSelection: false });
+    if (cellSelectionResized || cellClipboardResized) this.markForCheck();
     this.closeContextMenu();
-    this.resizeCellSelection(this.cellSelection, 'cell', { emitEvent: false });
-    this.resizeCellSelection(this.cellClipboard, 'clipboard', { emitEvent: false });
-    this.markForCheck();
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -1421,17 +1422,21 @@ export class CalendarComponent
     setTimeout(() => this.onResize());
   }
 
-  protected resizeCellSelection(cellSelection: TableCellSelection, name = 'cell', opts?: { emitEvent?: boolean; debouncedExpansion?: boolean }) {
-    if (!cellSelection) return;
+  protected resizeCellSelection(
+    cellSelection: TableCellSelection,
+    name = 'cell',
+    opts?: { emitEvent?: boolean; expandCellSelection?: boolean; debouncedExpansion?: boolean }
+  ) {
+    if (!cellSelection) return false;
 
     const containerElement = this.tableContainerElement;
-    if (!containerElement) return;
+    if (!containerElement) return false;
 
     const { cellElement, divElement } = cellSelection;
-    if (!cellElement || !divElement) return;
+    if (!cellElement || !divElement) return false;
 
     // DEBUG
-    if (this.debug) console.debug(`${this.logPrefix}Resizing ${name} selection...`);
+    //if (this.debug) console.debug(`${this.logPrefix}Resizing ${name} selection...`);
 
     const containerRect = containerElement.getBoundingClientRect();
     const relativeCellRect = cellElement.getBoundingClientRect();
@@ -1508,7 +1513,6 @@ export class CalendarComponent
 
     // Resize the shadow element
     divElement.style.position = 'fixed';
-    //divElement.style.position = 'relative';
     divElement.style.top = top + 'px';
     divElement.style.left = left + 'px';
     divElement.style.width = width + 'px';
@@ -1517,13 +1521,17 @@ export class CalendarComponent
     divElement.classList.toggle('bottom-no-border', bottomCut);
     divElement.classList.toggle('right-no-border', rightCut);
 
-    // Don't debounce by default
-    if (opts?.debouncedExpansion !== true) {
-      this.expandCellSelection(cellSelection);
-    } else {
-      // Expand selection (with a debounce time)
-      this.debouncedExpandCellSelection$.next(cellSelection);
+    // Check if need to expand cell selection
+    if (opts?.expandCellSelection !== false) {
+      // Don't debounce by default
+      if (opts?.debouncedExpansion !== true) {
+        this.expandCellSelection(cellSelection);
+      } else {
+        // Expand selection (with a debounce time)
+        this.debouncedExpandCellSelection$.next(cellSelection);
+      }
     }
+    return true;
   }
 
   protected async onMouseEnd(cellSelection?: TableCellSelection) {
