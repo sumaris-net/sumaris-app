@@ -512,6 +512,9 @@ export abstract class PmfmUtils {
         break;
 
       // Sample's pmfms
+      case PmfmIds.SEX:
+        result = { icon: 'male-female' };
+        break;
       case PmfmIds.TAG_ID:
         result = { icon: 'pricetag' };
         break;

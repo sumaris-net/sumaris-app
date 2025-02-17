@@ -86,14 +86,14 @@
           @let computed = pmfm | isComputedPmfm;
           @let style = pmfm | pmfmFieldStyle: 10;
 
-          @let suffixIcon =
+          @let icon =
             pmfmValueColor && form.valueChanges
               | push
               | propertyGet: 'measurementValues.' + pmfm.id.toString()
               | pmfmValueIcon: { pmfm: pmfm, mapWith: pmfmValueColor } : value;
           <!--<ion-col *ngIf="(pmfm|pmfmName) === 'D1'" size="12" class="dolphin-damage">
-          <mat-icon svgIcon="dolphin-damage"></mat-icon>
-        </ion-col>-->
+            <mat-icon svgIcon="dolphin-damage"></mat-icon>
+          </ion-col>-->
           <ion-col
             class="ion-no-padding pmfm-{{ pmfm.id }}"
             [class.cdk-visually-hidden]="enabled && matInput.disabled && !computed"
@@ -112,12 +112,9 @@
               [tabindex]="computed ? -1 : tabindex + 4 + i * maxVisibleButtons"
               (keyup.enter)="last && onSubmit.emit($event)"
             >
-              @if (pmfm | pmfmIcon; as prefixIcon) {
-                <app-icon matPrefix [ref]="prefixIcon"></app-icon>
-              }
               <!-- Computed icon -->
-              @if (computed && suffixIcon) {
-                <app-icon matSuffix [ref]="suffixIcon"></app-icon>
+              @if (computed && icon) {
+                <app-icon matSuffix [ref]="icon"></app-icon>
               }
             </app-pmfm-field>
           </ion-col>

@@ -6,6 +6,10 @@
     }
     <input matInput hidden type="text" readonly="true" [formControl]="formControl" />
     <ion-label>{{ value | displayWith: displayWith }}</ion-label>
+
+    <div matPrefix>
+      <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+    </div>
   </mat-form-field>
 } @else {
   @switch (style) {
@@ -184,6 +188,9 @@
           </button>
         }
 
+        <div matPrefix>
+          <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+        </div>
         <div matSuffix>
           <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
         </div>
@@ -257,6 +264,9 @@
           </ion-button>
         }
 
+        <div matPrefix>
+          <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+        </div>
         <div matSuffix>
           <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
         </div>

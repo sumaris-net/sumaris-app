@@ -96,6 +96,13 @@ export const ProgramProperties = Object.freeze({
     // DEV only ---
     // defaultValue: DataStrategyResolutions.SPATIO_TEMPORAL
   },
+  // Enable pmfm icon ?
+  DATA_PMFM_ICON_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.data.pmfm.icon.enable',
+    label: 'PROGRAM.OPTIONS.DATA_PMFM_ICON_ENABLE',
+    type: 'boolean',
+    defaultValue: true, // TODO False by default
+  },
 
   // Report options
   DATA_REPORT_COLOR_PRIMARY: <FormFieldDefinition>{
