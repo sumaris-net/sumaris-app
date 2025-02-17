@@ -79,42 +79,51 @@
     </ion-row>
 
     <!-- Measurements -->
-    <ion-row *ngIf="pmfms$ | async | arrayFilter: isNotHiddenPmfm; let pmfms" class="ion-no-padding" [formGroup]="measurementValuesForm">
-      @for (pmfm of pmfms; track pmfm.id; let i = $index; let last = $last) {
-        @let computed = pmfm | isComputedPmfm;
-        @let style = pmfm | pmfmFieldStyle: 10;
-        @let icon =
-          pmfmValueColor && form.valueChanges
-            | push
-            | propertyGet: 'measurementValues.' + pmfm.id.toString()
-            | pmfmValueIcon: { pmfm: pmfm, mapWith: pmfmValueColor } : value;
-        <!--<ion-col *ngIf="(pmfm|pmfmName) === 'D1'" size="12" class="dolphin-damage">
+    @let pmfms = pmfms$ | async;
+    @if (pmfms | arrayFilter: isNotHiddenPmfm; as pmfms) {
+      <ion-row class="ion-no-padding" [formGroup]="measurementValuesForm">
+        @for (pmfm of pmfms; track pmfm.id; let i = $index; let last = $last) {
+          @let computed = pmfm | isComputedPmfm;
+          @let style = pmfm | pmfmFieldStyle: 10;
+
+          @let suffixIcon =
+            pmfmValueColor && form.valueChanges
+              | push
+              | propertyGet: 'measurementValues.' + pmfm.id.toString()
+              | pmfmValueIcon: { pmfm: pmfm, mapWith: pmfmValueColor } : value;
+          <!--<ion-col *ngIf="(pmfm|pmfmName) === 'D1'" size="12" class="dolphin-damage">
           <mat-icon svgIcon="dolphin-damage"></mat-icon>
         </ion-col>-->
-        <ion-col
-          class="ion-no-padding pmfm-{{ pmfm.id }}"
-          [class.cdk-visually-hidden]="enabled && matInput.disabled && !computed"
-          size="12"
-          [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6"
-        >
-          <app-pmfm-field
-            #matInput
-            [pmfm]="pmfm"
-            [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
-            [style]="style"
-            [readonly]="computed"
-            [floatLabel]="computed ? 'always' : 'auto'"
-            [class.computed]="computed"
-            [maxVisibleButtons]="maxVisibleButtons"
-            [tabindex]="computed ? -1 : tabindex + 4 + i * maxVisibleButtons"
-            (keyup.enter)="last && onSubmit.emit($event)"
+          <ion-col
+            class="ion-no-padding pmfm-{{ pmfm.id }}"
+            [class.cdk-visually-hidden]="enabled && matInput.disabled && !computed"
+            size="12"
+            [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6"
           >
-            <!-- Computed icon -->
-            <app-icon matSuffix *ngIf="computed && icon" [ref]="icon"></app-icon>
-          </app-pmfm-field>
-        </ion-col>
-      }
-    </ion-row>
+            <app-pmfm-field
+              #matInput
+              [pmfm]="pmfm"
+              [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
+              [style]="style"
+              [readonly]="computed"
+              [floatLabel]="computed ? 'always' : 'auto'"
+              [class.computed]="computed"
+              [maxVisibleButtons]="maxVisibleButtons"
+              [tabindex]="computed ? -1 : tabindex + 4 + i * maxVisibleButtons"
+              (keyup.enter)="last && onSubmit.emit($event)"
+            >
+              @if (pmfm | pmfmIcon; as prefixIcon) {
+                <app-icon matPrefix [ref]="prefixIcon"></app-icon>
+              }
+              <!-- Computed icon -->
+              @if (computed && suffixIcon) {
+                <app-icon matSuffix [ref]="suffixIcon"></app-icon>
+              }
+            </app-pmfm-field>
+          </ion-col>
+        }
+      </ion-row>
+    }
 
     <ng-content select="[beforeComment]"></ng-content>
 

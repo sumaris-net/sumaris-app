@@ -8,6 +8,7 @@ import {
   IsMultiplePmfmPipe,
   IsWeightPmfmPipe,
   PmfmFieldStylePipe,
+  PmfmIconPipe,
   PmfmIdStringPipe,
   PmfmNamePipe,
   PmfmValueColorPipe,
@@ -26,6 +27,7 @@ import { CorePipesModule } from '@sumaris-net/ngx-components';
     // Pipes
     PmfmIdStringPipe,
     PmfmNamePipe,
+    PmfmIconPipe,
     PmfmValuePipe,
     PmfmValueColorPipe,
     PmfmValueIconPipe,
@@ -45,6 +47,7 @@ import { CorePipesModule } from '@sumaris-net/ngx-components';
     // Pipes
     PmfmIdStringPipe,
     PmfmNamePipe,
+    PmfmIconPipe,
     PmfmValuePipe,
     PmfmValueColorPipe,
     PmfmValueIconPipe,

@@ -14,7 +14,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
+import { PmfmIds, PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 @Pipe({
@@ -278,6 +278,47 @@ export class PmfmValueIconPipe implements PipeTransform {
       case 'danger':
         result.icon = 'alert-circle';
         break;
+    }
+
+    return result;
+  }
+}
+
+export type PmfmIconFn = (pmfm: IPmfm) => IconRef;
+export interface PmfmIconOptions {
+  mapWith?: PmfmIconFn;
+}
+
+@Pipe({
+  name: 'pmfmIcon',
+})
+export class PmfmIconPipe implements PipeTransform {
+  transform(pmfm: IPmfm, opts?: PmfmIconOptions): IconRef {
+    if (!pmfm) return null;
+
+    // Get the icon
+    if (typeof opts?.mapWith === 'function') {
+      return opts.mapWith(pmfm);
+    }
+
+    let result: IconRef;
+    switch (pmfm.id) {
+      case PmfmIds.TAG_ID:
+        result = { icon: 'pricetag' };
+        break;
+      case PmfmIds.MEASURE_TIME:
+        result = { matIcon: 'today' };
+        break;
+      case PmfmIds.RELEASE_LATITUDE:
+        result = { icon: 'location' };
+        break;
+    }
+    if (!result) {
+      if (PmfmUtils.isDate(pmfm) || PmfmUtils.isDateTime(pmfm)) {
+        result = { matIcon: 'today' };
+      } else if (PmfmUtils.isLength(pmfm)) {
+        result = { matIcon: 'straighten' };
+      }
     }
 
     return result;

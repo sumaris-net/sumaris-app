@@ -154,6 +154,9 @@
       </ng-container>
     </mat-error>
 
+    <div matPrefix>
+      <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+    </div>
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -212,6 +215,9 @@
       </ng-container>
     </mat-error>
 
+    <div matPrefix>
+      <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+    </div>
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -229,6 +235,9 @@
     [compact]="compact"
     [tabindex]="tabindex"
   >
+    <div matPrefix>
+      <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+    </div>
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -273,6 +282,9 @@
     [autofocus]="autofocus"
     [mobile]="mobile"
   >
+    <div matPrefix>
+      <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+    </div>
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -291,6 +303,9 @@
     [autofocus]="autofocus"
     [mobile]="mobile"
   >
+    <div matPrefix>
+      <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+    </div>
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -323,6 +338,9 @@
     (click)="clicked.emit($event)"
     [clearable]="!required"
   >
+    <div matPrefix>
+      <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+    </div>
     <div matSuffix class="mat-form-field-suffix-container">
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -363,7 +381,9 @@
         </span>
       </ng-container>
     </mat-error>
-
+    <div matPrefix>
+      <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+    </div>
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -381,6 +401,9 @@
     [latLongPattern]="latLongFormat"
     [defaultSign]="defaultLatitudeSign"
   >
+    <div matPrefix>
+      <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+    </div>
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -413,6 +436,9 @@
   </div>
 </ng-container>
 
+<ng-template #matPrefixTemplate>
+  <ng-content select="[matPrefix]"></ng-content>
+</ng-template>
 <ng-template #matSuffixTemplate>
   <ng-content select="[matSuffix]"></ng-content>
 </ng-template>

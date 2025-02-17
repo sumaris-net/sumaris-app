@@ -18,7 +18,7 @@
     <ion-row class="ion-no-padding">
       <!-- label -->
       @if (showLabel) {
-        <ion-col size="6">
+        <ion-col size="12" size-xs="6">
           <mat-form-field floatLabel="auto">
             <ion-icon matPrefix name="pricetag"></ion-icon>
             <input
@@ -40,7 +40,7 @@
 
       <!-- Parent -->
       @if (loaded) {
-        <ion-col size="6" size-md="">
+        <ion-col size="12" size-sm="">
           <mat-autocomplete-field
             formControlName="parent"
             [autofocus]="enabled && focusFieldName === 'parent'"
@@ -53,7 +53,12 @@
             [readonly]="!showParent"
             [showSearchBar]="false"
             required
-          ></mat-autocomplete-field>
+          >
+            @let icon = displayParentPmfm | pmfmIcon;
+            @if (icon) {
+              <app-icon [ref]="icon" matPrefix></app-icon>
+            }
+          </mat-autocomplete-field>
         </ion-col>
       }
     </ion-row>
@@ -94,6 +99,9 @@
               [defaultLongitudeSign]="defaultLongitudeSign"
               (keyup.enter)="last && doSubmit($event)"
             >
+              @if (pmfm | pmfmIcon; as prefixIcon) {
+                <app-icon matPrefix [ref]="prefixIcon"></app-icon>
+              }
               <!-- geo-->
               @if (enableGeolocation && (pmfm | isLongitudePmfm)) {
                 <button type="button" mat-icon-button matSuffix (click)="onFillPositionClick($event)" tabindex="-1" [disabled]="disabled">
