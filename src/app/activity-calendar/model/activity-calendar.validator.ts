@@ -28,7 +28,7 @@ import { DataRootVesselEntityValidatorService } from '@app/data/services/validat
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { ControlUpdateOnType } from '@app/data/services/validator/data-entity.validator';
 import { GearUseFeaturesValidatorService } from '@app/activity-calendar/model/gear-use-features.validator';
@@ -39,6 +39,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { ActivityMonth } from '../calendar/activity-month.model';
 import { ActivityMonthValidatorService } from '../calendar/activity-month.validator';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface ActivityCalendarValidatorOptions extends DataRootEntityValidatorOptions {
   timezone?: string;

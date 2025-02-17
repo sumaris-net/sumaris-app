@@ -21,12 +21,12 @@ import { SampleValidatorService } from './sample.validator';
 import { Sample } from './sample.model';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SubSampleValidatorService } from '@app/trip/sample/sub-sample.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 import { RxState } from '@rx-angular/state';
 import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 @Component({
   selector: 'app-sample-form',

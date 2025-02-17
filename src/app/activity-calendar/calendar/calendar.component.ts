@@ -80,7 +80,7 @@ import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { Moment } from 'moment';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { Metier } from '@app/referential/metier/metier.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
@@ -99,6 +99,7 @@ import { Mutex } from '@app/shared/async/mutex.class';
 import { FetchPolicy } from '@apollo/client/core';
 import { ExpertiseAreaUtils } from '@app/referential/expertise-area/expertise-area.utils';
 import { IExpertiseAreaProperties } from '@app/referential/expertise-area/expertise-area.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 30;

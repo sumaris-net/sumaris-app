@@ -28,13 +28,13 @@ import { Metier } from '@app/referential/metier/metier.model';
 import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
 import moment from 'moment';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
-import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { GearPhysicalFeaturesUtils } from '@app/activity-calendar/model/gear-physical-features.utils';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { VesselOwner } from '@app/vessel/services/model/vessel-owner.model';
 import { VesselOwnerPeriodFilter } from '@app/vessel/services/filter/vessel.filter';
 import { VesselOwnerService } from '@app/vessel/services/vessel-owner.service';
 import { VesselOwnerPeridodService } from '@app/vessel/services/vessel-owner-period.service';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export async function computeCommonActivityCalendarFormReportStats(
   data: ActivityCalendar,

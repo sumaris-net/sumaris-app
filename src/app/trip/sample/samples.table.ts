@@ -48,7 +48,7 @@ import { Sample, SampleUtils } from './sample.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { debounceTime } from 'rxjs/operators';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from './sample.filter';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/table/select-pmfm.modal';
@@ -69,6 +69,7 @@ import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { UntypedFormGroup } from '@angular/forms';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 declare interface GroupColumnDefinition {
   key: string;

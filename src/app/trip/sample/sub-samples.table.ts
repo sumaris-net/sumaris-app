@@ -21,13 +21,14 @@ import { Sample } from './sample.model';
 import { SortDirection } from '@angular/material/sort';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { environment } from '@environments/environment';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from './sample.filter';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { merge, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, mergeMap, tap } from 'rxjs/operators';
 import { RxState } from '@rx-angular/state';
 import { SamplesTableState } from '@app/trip/sample/samples.table';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];

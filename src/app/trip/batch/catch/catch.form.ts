@@ -5,7 +5,7 @@ import { BatchValidatorService } from '../common/batch.validator';
 import { isNotEmptyArray } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, MatrixIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { BatchForm, BatchFormState } from '@app/trip/batch/common/batch.form';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -15,6 +15,7 @@ import { map } from 'rxjs/operators';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { RxState } from '@rx-angular/state';
 import { RxStateSelect } from '@app/shared/state/state.decorator';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface CatchBatchFormState extends BatchFormState {
   gearPmfms: IPmfm[];

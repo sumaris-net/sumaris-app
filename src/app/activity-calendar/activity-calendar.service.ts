@@ -71,7 +71,6 @@ import { DataErrorCodes } from '@app/data/services/errors';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
-import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MEASUREMENT_PMFM_ID_REGEXP, MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/data/measurement/measurement.model';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
@@ -90,6 +89,7 @@ import { Job } from '@app/social/job/job.model';
 import { JobFragments } from '@app/social/job/job.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export const ActivityCalendarErrorCodes = {
   CSV_IMPORT_ERROR: 223,

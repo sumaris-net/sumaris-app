@@ -14,7 +14,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ChartJsUtils, ChartJsUtilsColor } from '@app/shared/chartsjs.utils';
 import { TripReportService } from '@app/trip/trip/report/trip-report.service';
-import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IDenormalizedPmfm, IPmfm } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { Function } from '@app/shared/functions';
 import { CatchCategoryType } from '@app/trip/trip/report/trip-report.model';
@@ -32,6 +32,7 @@ import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
 import { environment } from '@environments/environment';
 import { BaseNumericStats, BaseTripReport, BaseTripReportStats, SpeciesChart } from '@app/trip/trip/report/base-trip.report';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface SubCategoryWeightStats {
   total: number; // total weight

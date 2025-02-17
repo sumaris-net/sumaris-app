@@ -10,7 +10,7 @@ import {
   ReferentialRef,
 } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
@@ -26,6 +26,7 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { Trip } from '@app/trip/trip/trip.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export class LandingStats extends DataReportStats {
   sampleCount: number;

@@ -77,7 +77,7 @@ import { TripErrorCodes } from '@app/trip/trip.errors';
 import { OperationValidatorOptions, OperationValidatorService } from '@app/trip/operation/operation.validator';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { TranslateService } from '@ngx-translate/core';
 import { IDataEntityQualityService, IProgressionOptions } from '@app/data/services/data-quality-service.class';
@@ -94,6 +94,7 @@ import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragme
 import { OverlayEventDetail } from '@ionic/core';
 import { ToastController } from '@ionic/angular';
 import { PositionService } from '@app/data/position/position.service';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {

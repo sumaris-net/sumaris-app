@@ -26,7 +26,7 @@ import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { environment } from '@environments/environment';
 import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
@@ -37,6 +37,7 @@ import { RxState } from '@rx-angular/state';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ModalUtils } from '@app/shared/modal/modal.utils';
 import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;

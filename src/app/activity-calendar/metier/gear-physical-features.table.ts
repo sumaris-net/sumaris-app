@@ -28,11 +28,12 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { UntypedFormGroup } from '@angular/forms';
 import { AppColors } from '@app/shared/colors.utils';
 import { TableElement } from '@e-is/ngx-material-table';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear', 'metier'];
 @Component({

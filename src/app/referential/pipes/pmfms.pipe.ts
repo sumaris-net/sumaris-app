@@ -1,6 +1,6 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
 import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
-import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
+import { IPmfm } from '../services/model/pmfm.model';
 import {
   ColorName,
   DateFormatService,
@@ -15,6 +15,7 @@ import {
 import { TranslateService } from '@ngx-translate/core';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 @Pipe({
   name: 'pmfmIdString',

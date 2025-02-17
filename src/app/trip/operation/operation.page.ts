@@ -78,7 +78,8 @@ import { VesselPosition } from '@app/data/position/vessel/vessel-position.model'
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface OperationState extends AppDataEditorState {
   hasIndividualMeasures?: boolean;

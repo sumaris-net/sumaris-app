@@ -22,7 +22,7 @@ import {
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
@@ -31,6 +31,7 @@ import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/mea
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
 import { AppSharedFormUtils } from '@app/shared/forms.utils';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface IMeasurementsFormOptions<S extends MeasurementsFormState = MeasurementsFormState> {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;

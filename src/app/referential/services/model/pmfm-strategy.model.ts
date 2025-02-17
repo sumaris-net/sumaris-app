@@ -12,12 +12,13 @@ import {
   removeDuplicatesFromArray,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
+import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, UnitConversion } from './pmfm.model';
 import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
 import { MethodIds, UnitIds } from './model.enum';
 import { AppReferentialUtils, NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { arrayEquals } from '@app/shared/functions';
 import { StrategyAsObjectOptions } from '@app/referential/services/model/strategy.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 @EntityClass({ typename: 'PmfmStrategyVO' })
 export class PmfmStrategy extends Entity<PmfmStrategy> {

@@ -8,7 +8,7 @@ import {
   removeDuplicatesFromArray,
   TreeItemEntityUtils,
 } from '@sumaris-net/ngx-components';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { ControlUpdateOnType, DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
@@ -22,6 +22,7 @@ import { Rule } from '@app/referential/services/model/rule.model';
 import { BatchRulesService } from '@app/trip/batch/tree/batch-tree.rules';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface BatchModelValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;

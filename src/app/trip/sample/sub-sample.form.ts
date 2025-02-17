@@ -23,13 +23,14 @@ import { Sample } from './sample.model';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SubSampleValidatorService } from '@app/trip/sample/sub-sample.validator';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { merge, Subject } from 'rxjs';
 import { filter, mergeMap } from 'rxjs/operators';
 import { RxState } from '@rx-angular/state';
 import { OperationService } from '@app/trip/operation/operation.service';
 import { PositionService } from '@app/data/position/position.service';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 @Component({
   selector: 'app-sub-sample-form',

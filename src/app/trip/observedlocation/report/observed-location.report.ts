@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { IPmfm, Pmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
@@ -25,6 +25,7 @@ import { ObservedLocationService } from '@app/trip/observedlocation/observed-loc
 import { LandingService } from '@app/trip/landing/landing.service';
 import { lastValueFrom } from 'rxjs';
 import { Landing } from '@app/trip/landing/landing.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export class ObservedLocationStats extends DataReportStats {
   vesselCount: number;

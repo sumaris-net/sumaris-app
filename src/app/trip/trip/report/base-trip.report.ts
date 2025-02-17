@@ -24,7 +24,7 @@ import { BehaviorSubject } from 'rxjs';
 import { ChartJsUtils, ChartJsUtilsColor, ChartJsUtilsMedianLineOptions, ChartJsUtilsThresholdLineOptions } from '@app/shared/chartsjs.utils';
 import { ChartConfiguration, ChartOptions, ChartTypeRegistry } from 'chart.js';
 import { TripReportService } from '@app/trip/trip/report/trip-report.service';
-import { IDenormalizedPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IDenormalizedPmfm } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { ArrayElementType, collectByFunction, Function } from '@app/shared/functions';
@@ -39,6 +39,7 @@ import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { Clipboard } from '@app/shared/context.service';
 import { Operation, Trip } from '@app/trip/trip/trip.model';
 import { TripService } from '@app/trip/trip/trip.service';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export declare interface BaseNumericStats {
   min: number;

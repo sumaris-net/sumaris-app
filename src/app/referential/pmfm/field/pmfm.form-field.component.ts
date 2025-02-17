@@ -45,7 +45,7 @@ import {
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
+import { IPmfm } from '../../services/model/pmfm.model';
 import { PmfmValidators } from '../../services/validator/pmfm.validators';
 import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../../services/model/model.enum';
 import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/field/pmfm-qv.form-field.component';
@@ -55,6 +55,7 @@ import { RxState } from '@rx-angular/state';
 import { filter, map } from 'rxjs/operators';
 import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { MatIconButton } from '@angular/material/button';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 const noop = () => {};
 

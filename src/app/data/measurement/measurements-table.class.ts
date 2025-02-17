@@ -24,7 +24,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { IEntityWithMeasurement, MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils } from './measurement.model';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { map, mergeMap } from 'rxjs/operators';
@@ -34,6 +34,7 @@ import { MeasurementsTableEntitiesService } from './measurements-table.service';
 import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from './measurements-table.validator';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface BaseMeasurementsTableState extends BaseTableState {
   programLabel: string;

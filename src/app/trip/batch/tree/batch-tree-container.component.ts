@@ -55,7 +55,7 @@ import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { BatchModel } from '@app/trip/batch/tree/batch-tree.model';
 import { UntypedFormGroup } from '@angular/forms';
@@ -73,6 +73,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 interface BadgeState {
   hidden: boolean;
