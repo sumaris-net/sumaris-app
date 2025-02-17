@@ -61,7 +61,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
   @Input({ transform: booleanAttribute }) showGear = true;
   @Input({ transform: booleanAttribute }) showError = false;
   @Input({ transform: booleanAttribute }) showComment: boolean;
-  @Input() i18nSuffix: string = null;
   @Input({ transform: booleanAttribute }) mobile: boolean;
 
   @Input() @RxStateProperty() gears: ReferentialRef[];

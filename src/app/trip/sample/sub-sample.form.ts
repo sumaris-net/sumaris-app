@@ -1,15 +1,19 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { UntypedFormBuilder } from '@angular/forms';
 import {
   AppFormUtils,
+  DateUtils,
   EntityUtils,
+  fromDateISOString,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
   joinPropertiesPath,
   LocalSettingsService,
+  PlatformService,
   startsWithUpperCase,
   toNumber,
   UsageMode,
@@ -24,6 +28,8 @@ import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model
 import { merge, Subject } from 'rxjs';
 import { filter, mergeMap } from 'rxjs/operators';
 import { RxState } from '@rx-angular/state';
+import { OperationService } from '@app/trip/operation/operation.service';
+import { PositionService } from '@app/data/position/position.service';
 
 @Component({
   selector: 'app-sub-sample-form',
@@ -35,13 +41,15 @@ import { RxState } from '@rx-angular/state';
 export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnInit, OnDestroy {
   private _availableParents: Sample[] = [];
   private _availableSortedParents: Sample[] = [];
+
+  protected readonly platform = inject(PlatformService);
+  protected readonly operationService = inject(OperationService);
+  protected readonly positionService = inject(PositionService);
+
   focusFieldName: string;
   displayAttributes: string[];
   onParentChanges = new Subject<void>();
   i18nFullSuffix: string;
-
-  @Input() i18nPmfmSuffix: string;
-  @Input() i18nSuffix: string;
 
   @Input() mobile: boolean;
   @Input() tabindex: number;
@@ -54,6 +62,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnIn
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() displayParentPmfm: IPmfm;
+  @Input() enableGeolocation: boolean;
 
   @Input()
   set availableParents(parents: Sample[]) {
@@ -72,7 +81,6 @@ export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnIn
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
-    protected cd: ChangeDetectorRef,
     protected validatorService: SubSampleValidatorService,
     protected settings: LocalSettingsService
   ) {
@@ -90,6 +98,8 @@ export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnIn
   ngOnInit() {
     super.ngOnInit();
 
+    const isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
+
     // Set defaults
     this.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
     this.tabindex = toNumber(this.tabindex, 1);
@@ -98,6 +108,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnIn
     this.i18nFieldPrefix = this.i18nFieldPrefix || `TRIP.SUB_SAMPLE.`;
     this.i18nSuffix = this.i18nSuffix || '';
     this.i18nFullSuffix = `${this.acquisitionLevel}.${this.i18nSuffix}`;
+    this.enableGeolocation = this.enableGeolocation ?? (isOnFieldMode && this.mobile);
 
     // Parent combo
     this.registerAutocompleteField('parent', {
@@ -213,6 +224,54 @@ export class SubSampleForm extends MeasurementValuesForm<Sample> implements OnIn
     }
     // Search on rankOrder
     return this._availableSortedParents.filter((p) => p.rankOrder.toString().startsWith(value));
+  }
+
+  protected async onFillPositionClick(event: Event) {
+    if (event?.defaultPrevented) return; // Skip if prevented
+
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation(); // Avoid focus into the longitude field
+    }
+
+    const pmfms = this.pmfms;
+    if (isEmptyArray(pmfms)) return; //
+
+    const measurementValuesForm = this._measurementValuesForm;
+    if (!measurementValuesForm || measurementValuesForm.disabled) {
+      console.warn(`${this._logPrefix}Cannot update the disabled measurement values form group`);
+      return; // Skip
+    }
+
+    // Get lat/long controls
+    const latitudePmfm = pmfms.find(PmfmUtils.isLatitude);
+    const latitudeControl = latitudePmfm && measurementValuesForm.get(latitudePmfm.id.toString());
+    const longitudePmfm = pmfms.find(PmfmUtils.isLongitude);
+    const longitudeControl = longitudePmfm && measurementValuesForm.get(longitudePmfm.id.toString());
+    if (!latitudeControl || !longitudeControl) return; // Skip
+
+    // Get position
+    const coords = await this.positionService.getCurrentPositionUserBlocking({ stop: this.destroySubject });
+
+    if (!coords) return; // Stop
+
+    latitudeControl.patchValue(coords.latitude);
+    longitudeControl.patchValue(coords.longitude);
+
+    // Fill date time, if enabled and empty (or without time)
+    const dateTimePmfm = pmfms.find((pmfm) => PmfmUtils.isDate(pmfm) || PmfmUtils.isDateTime(pmfm));
+    const dateTimeControl = dateTimePmfm && measurementValuesForm.get(dateTimePmfm.id.toString());
+    if (dateTimeControl?.enabled) {
+      const dateTime = fromDateISOString(dateTimeControl.value);
+      const emptyDateTime = isNil(dateTime) || DateUtils.isNoTime(dateTime);
+      if (emptyDateTime) {
+        dateTimeControl.patchValue(DateUtils.moment().startOf('minutes'));
+      }
+    }
+
+    this.form.markAsDirty();
+    this.form.updateValueAndValidity();
+    this.markForCheck();
   }
 
   protected markForCheck() {

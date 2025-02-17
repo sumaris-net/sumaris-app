@@ -466,7 +466,7 @@ export class SamplesTable
       },
       openSubSampleModal: (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel),
 
-      // Override using given options
+      // Override using given options (e.g. maxVisibleButtons)
       ...this.modalOptions,
 
       // Data to open
@@ -570,40 +570,45 @@ export class SamplesTable
 
     const children = SampleUtils.filterByAcquisitionLevel(parentSample.children || [], acquisitionLevel);
     const isNew = !children || children.length === 0;
-    let subSample: Sample;
+    let dataToOpen: Sample;
     if (isNew) {
-      subSample = new Sample();
+      dataToOpen = new Sample();
     } else {
-      subSample = children[0];
+      dataToOpen = children[0];
     }
 
     // Make sure to set the parent
-    subSample.parent = parentSample.asObject({ withChildren: false });
+    dataToOpen.parent = parentSample.asObject({ withChildren: false });
 
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
       component: SubSampleModal,
       componentProps: <ISubSampleModalOptions>{
         programLabel: this.programLabel,
-        usageMode: this.usageMode,
         acquisitionLevel,
-        isNew,
-        data: subSample,
-        showParent,
+        disabled: this.disabled,
         i18nSuffix: this.i18nColumnSuffix,
+        usageMode: this.usageMode,
+        mobile: this.mobile,
+        debug: this.debug,
+        showParent,
+        showLabel: false,
         defaultLatitudeSign: this.defaultLatitudeSign,
         defaultLongitudeSign: this.defaultLongitudeSign,
-        showLabel: false,
-        disabled: this.disabled,
-        maxVisibleButtons: this.modalOptions?.maxVisibleButtons,
-        mobile: this.mobile,
 
-        onDelete: (_, __) => Promise.resolve(true),
+        onDelete: (_, __) => Promise.resolve(this.enabled),
+
+        // Override using given options
+        maxVisibleButtons: this.modalOptions?.maxVisibleButtons,
         ...this.subSampleModalOptions,
+
+        // Data to open
+        isNew,
+        data: dataToOpen,
       },
       backdropDismiss: false,
       keyboardClose: true,
-      cssClass: hasTopModal ? 'modal-large stack-modal' : 'modal-large',
+      cssClass: 'modal-large' + (hasTopModal ? ' stack-modal' : ''),
     });
 
     // Open the modal

@@ -40,7 +40,7 @@ export class AppComponent implements OnInit {
 
   constructor(
     @Inject(DOCUMENT) private _document: Document,
-    private platform: PlatformService,
+    protected platform: PlatformService,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
     private configService: ConfigService,

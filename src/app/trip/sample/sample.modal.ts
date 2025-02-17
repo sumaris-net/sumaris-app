@@ -40,6 +40,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
   showIndividualReleaseButton: boolean;
   showIndividualMonitoringButton: boolean;
   showPictures: boolean;
+  enableBulkMode?: boolean;
 
   availableTaxonGroups?: TaxonGroupRef[];
   defaultSampleDate?: Moment;
@@ -94,6 +95,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
   @Input() defaultSampleDate: Moment;
   @Input() pmfmValueColor: PmfmValueColorFn;
+  @Input() enableBulkMode: boolean;
 
   @Input() onReady: (modal: SampleModal) => Promise<void> | void;
   @Input() onSaveAndNew: (data: Sample) => Promise<Sample>;
@@ -146,6 +148,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.showPictures = toBoolean(this.showPictures, isNotEmptyArray(this.data?.images));
     this.showIndividualMonitoringButton = !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
     this.showIndividualReleaseButton = !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
+    this.enableBulkMode = (this.enableBulkMode ?? true) && !this.disabled && typeof this.onSaveAndNew === 'function';
 
     // Show/Hide individual release button
     if (this.showIndividualReleaseButton) {

@@ -1037,6 +1037,10 @@
         "SORTING_START_DATE_TIME": "Début de tri",
         "SORTING_END_DATE_TIME": "Fin de tri",
         "TAG_OPERATION": "Étiquette",
+        "ACCIDENTAL_CATCH": {
+          "TRIP_PROGRESS": "Déroulement normal de l'opération ?",
+          "IS_ACOUSTIC_DEVICE": "Pinger activé ?"
+        },
         "TRAWL_SELECTIVITY": {
           "TAG_OPERATION": "Code de rapprochement"
         }
@@ -1308,7 +1312,8 @@
         "ACCIDENTAL_CATCH": {
           "TITLE": "Capture {{label}}",
           "TAXON_GROUP": "Espèce (FAO)",
-          "TAXON_NAME": "Espèce scientifique"
+          "TAXON_NAME": "Espèce scientifique",
+          "SAMPLE_DATE": "Date de l'observation"
         },
         "OBSERVED_TRIP": {
           "TITLE": "Capture {{label}}",
@@ -1394,8 +1399,9 @@
       },
       "PMFM": {
         "TAG_ID": "Code prélèvement",
+        "SEX": "Sexe",
         "ACCIDENTAL_CATCH": {
-          "MEASURE_TIME": "Date de remise à l'eau",
+          "WEIGHT_ESTIMATED_TOTAL_KG": "Poids estimé (kg)",
           "IS_DEAD": "Mort ?",
           "TAG_ID": "Numéro bague Pélagis"
         },

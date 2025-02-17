@@ -1,87 +1,110 @@
-<form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-  <!--<ion-text *ngIf="debug">
-    showParent: {{showParent}}<br/>
-    i18nFieldPrefix: {{i18nFieldPrefix}}<br/>
-    i18nPmfmPrefix: {{i18nPmfmPrefix}}<br/>
-    i18nSuffix: {{i18nSuffix}}<br/>
-    i18nFullSuffix: {{i18nFullSuffix}}<br/>
-  </ion-text>-->
+<!-- backdrop (e.g. during geo localization) -->
+@let busy = busySubject | push;
+@if (busy) {
+  <ion-backdrop></ion-backdrop>
+}
 
+<form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
   <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (showError) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
+
+  @if (debug) {
+    <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+  }
 
   <ion-grid class="ion-no-padding ion-padding-start">
     <ion-row class="ion-no-padding">
       <!-- label -->
-      <ion-col *ngIf="showLabel" size="6">
-        <mat-form-field floatLabel="auto">
-          <ion-icon matPrefix name="pricetag"></ion-icon>
-          <input
-            matInput
-            autocomplete="off"
-            formControlName="label"
-            [appAutofocus]="enabled && focusFieldName === 'label'"
-            [tabindex]="tabindex"
-            [placeholder]="'TRIP.SUB_SAMPLE.EDIT.LABEL_PLACEHOLDER' | translateContext: i18nFullSuffix"
-            (click)="selectInputContent($event)"
-            required
-          />
-          <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <!-- Need by auction control (label as an additional validator) -->
-          <mat-error *ngIf="form.controls.label.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_PATTERN</mat-error>
-        </mat-form-field>
-      </ion-col>
+      @if (showLabel) {
+        <ion-col size="6">
+          <mat-form-field floatLabel="auto">
+            <ion-icon matPrefix name="pricetag"></ion-icon>
+            <input
+              matInput
+              autocomplete="off"
+              formControlName="label"
+              [appAutofocus]="enabled && focusFieldName === 'label'"
+              [tabindex]="tabindex"
+              [placeholder]="'TRIP.SUB_SAMPLE.EDIT.LABEL_PLACEHOLDER' | translateContext: i18nFullSuffix"
+              (click)="selectInputContent($event)"
+              required
+            />
+            <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+            <!-- Need by auction control (label as an additional validator) -->
+            <mat-error *ngIf="form.controls.label.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_PATTERN</mat-error>
+          </mat-form-field>
+        </ion-col>
+      }
 
       <!-- Parent -->
-      <ion-col size="6" size-md="" *ngIf="!loading">
-        <mat-autocomplete-field
-          formControlName="parent"
-          [autofocus]="enabled && focusFieldName === 'parent'"
-          [placeholder]="
-            (displayParentPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }) ||
-            ('TRIP.SUB_SAMPLE.EDIT.PARENT' | translateContext: i18nFullSuffix)
-          "
-          [config]="autocompleteFields.parent"
-          [tabindex]="(showLabel ? 1 : 0) + tabindex"
-          [readonly]="!showParent"
-          [showSearchBar]="false"
-          required
-        ></mat-autocomplete-field>
-      </ion-col>
+      @if (loaded) {
+        <ion-col size="6" size-md="">
+          <mat-autocomplete-field
+            formControlName="parent"
+            [autofocus]="enabled && focusFieldName === 'parent'"
+            [placeholder]="
+              (displayParentPmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }) ||
+              ('TRIP.SUB_SAMPLE.EDIT.PARENT' | translateContext: i18nFullSuffix)
+            "
+            [config]="autocompleteFields.parent"
+            [tabindex]="(showLabel ? 1 : 0) + tabindex"
+            [readonly]="!showParent"
+            [showSearchBar]="false"
+            required
+          ></mat-autocomplete-field>
+        </ion-col>
+      }
     </ion-row>
 
     <!-- Measurements -->
-    <ion-row *ngIf="pmfms$ | async | arrayFilter: isNotHiddenPmfm; let pmfms" [formGroup]="measurementValuesForm" class="ion-no-padding">
-      <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
-        <ion-col
-          *ngVar="{ computed: pmfm | isComputedPmfm, style: pmfm | pmfmFieldStyle: 10 } as vars"
-          [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
-          size="12"
-          [sizeMd]="pmfm.isQualitative && vars.style === 'button' ? 12 : 6"
-          class="pmfm-{{ pmfm.id }}"
-        >
-          <app-pmfm-field
-            #matInput
-            [pmfm]="pmfm"
-            [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
-            [style]="vars.style"
-            [readonly]="vars.computed"
-            [floatLabel]="vars.computed && 'always'"
-            [class.computed]="vars.computed"
-            [maxVisibleButtons]="maxVisibleButtons"
-            [tabindex]="vars.computed ? -1 : tabindex + 2 + i * maxVisibleButtons"
-            [compact]="compact"
-            [mobile]="mobile"
-            [defaultLatitudeSign]="defaultLatitudeSign"
-            [defaultLongitudeSign]="defaultLongitudeSign"
-            (keyup.enter)="last && doSubmit($event)"
-          ></app-pmfm-field>
-        </ion-col>
-      </ng-container>
-    </ion-row>
+    @let pmfms = pmfms$ | async;
+    @if (pmfms | arrayFilter: isNotHiddenPmfm; as pmfms) {
+      <ion-row [formGroup]="measurementValuesForm" class="ion-no-padding">
+        @for (pmfm of pmfms; track i; let i = $index; let last = $last) {
+          @let computed = pmfm | isComputedPmfm;
+          @let style = pmfm | pmfmFieldStyle: 10;
+
+          <!-- Force newline before lat/long fields -->
+          @let spacer = !pmfm.hidden && (pmfm | isLatitudePmfm) && i % 2 !== 0;
+          @if (spacer) {
+            <ion-col size="0" size-sm="6"></ion-col>
+          }
+          <ion-col
+            [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
+            size="12"
+            [sizeSm]="pmfm.isQualitative && style === 'button' ? 12 : 6"
+            class="pmfm-{{ pmfm.id }}"
+          >
+            <app-pmfm-field
+              #matInput
+              [pmfm]="pmfm"
+              [style]="style"
+              [i18nPrefix]="i18nPmfmPrefix"
+              [i18nSuffix]="i18nFullSuffix"
+              [readonly]="computed"
+              [floatLabel]="computed ? 'always' : 'auto'"
+              [class.computed]="computed"
+              [maxVisibleButtons]="maxVisibleButtons"
+              [tabindex]="computed ? -1 : tabindex + 2 + i * maxVisibleButtons"
+              [compact]="compact"
+              [mobile]="mobile"
+              [defaultLatitudeSign]="defaultLatitudeSign"
+              [defaultLongitudeSign]="defaultLongitudeSign"
+              (keyup.enter)="last && doSubmit($event)"
+            >
+              <!-- geo-->
+              @if (enableGeolocation && (pmfm | isLongitudePmfm)) {
+                <button type="button" mat-icon-button matSuffix (click)="onFillPositionClick($event)" tabindex="-1" [disabled]="disabled">
+                  <mat-icon>gps_fixed</mat-icon>
+                </button>
+              }
+            </app-pmfm-field>
+          </ion-col>
+        }
+      </ion-row>
+    }
 
     <ng-content select="[beforeComment]"></ng-content>
 
@@ -116,3 +139,45 @@
     </ion-row>
   </ion-grid>
 </form>
+
+<ng-template #debugPanel>
+  <app-debug title="Sub sample form">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          form.ready: {{ readySubject | async }}
+          <br />
+          form.loading: {{ loading }}
+          <br />
+          form.enabled: {{ enabled }}
+          <br />
+          form.dirty: {{ dirty }}
+          <br />
+          form.valid: {{ valid }}
+          <br />
+          form.empty: {{ empty }}
+          <br />
+          <br />
+          acquisitionLevel: {{ acquisitionLevel }}
+          <br />
+          i18nSuffix: {{ i18nSuffix }}
+          <br />
+          i18nFullSuffix: {{ i18nFullSuffix }}
+          <br />
+          i18nPmfmPrefix: {{ i18nPmfmPrefix }}
+        </ion-col>
+        <ion-col>
+          usageMode: {{ usageMode }}
+          <br />
+          <br />
+          form.showLabel: {{ showLabel }}
+          <br />
+          form.showParent: {{ showParent }}
+          <br />
+          <br />
+          pmfms: {{ pmfms$ | push | arrayPluck: 'label' | arrayJoin: ',' }}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

@@ -217,6 +217,8 @@
                         [requiredStrategy]="requiredStrategy$ | async"
                         [strategyId]="strategy$ | async | mapGet: 'id'"
                         [pmfms]="pmfms$ | async"
+                        [i18nPmfmPrefix]="'TRIP.PMFM.'"
+                        [i18nSuffix]="i18nContext.suffix"
                         [tabindex]="30"
                         [mobile]="mobile"
                         [debug]="debug"
