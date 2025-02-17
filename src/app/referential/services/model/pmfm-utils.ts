@@ -8,7 +8,7 @@ import {
   WeightKgConversion,
   WeightUnitSymbol,
 } from '@app/referential/services/model/model.enum';
-import { isNil, isNotNil, isNotNilOrBlank, toNumber } from '@sumaris-net/ngx-components';
+import { IconRef, isNil, isNotNil, isNotNilOrBlank, toNumber } from '@sumaris-net/ngx-components';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import {
   ExtendedPmfmType,
@@ -144,6 +144,14 @@ export abstract class PmfmUtils {
       pmfm &&
       ((UnitLabelGroups.LENGTH.includes(pmfm.unitLabel) && PmfmLabelPatterns.LENGTH.test(pmfm.label)) ||
         (pmfm instanceof Pmfm && UnitLabelGroups.LENGTH.includes(pmfm.unit?.label) && PmfmLabelPatterns.LENGTH.test(pmfm.parameter?.label)))
+    );
+  }
+
+  static isTemperature(pmfm: IPmfm) {
+    return (
+      pmfm &&
+      ((UnitLabelGroups.TEMPERATURE.includes(pmfm.unitLabel) && PmfmLabelPatterns.TEMP.test(pmfm.label)) ||
+        (pmfm instanceof Pmfm && UnitLabelGroups.TEMPERATURE.includes(pmfm.unit?.label) && PmfmLabelPatterns.TEMP.test(pmfm.parameter?.label)))
     );
   }
 
@@ -446,5 +454,113 @@ export abstract class PmfmUtils {
       pmfms1.length === pmfms2.length &&
       pmfms1.every((pmfm, index) => PmfmUtils.equals(pmfm, pmfms2[index]))
     );
+  }
+
+  /**
+   * Retrieves the appropriate icon reference for the provided pmfm object.
+   *
+   * @param {IPmfm} pmfm - The pmfm object for which the icon reference is to be determined.
+   *                       Contains properties that help identify the type of data or category.
+   * @return {IconRef} The icon representation that corresponds to the given pmfm object.
+   *                   Returns an object specifying either an `icon` or `matIcon` value.
+   */
+  static getIcon(pmfm: IPmfm): IconRef {
+    // Use existing icon value, if any
+    // /!\ 'null' should be considered as an evaluated value
+    if (pmfm?.icon !== undefined) return pmfm.icon;
+
+    let result: IconRef = null; // Init as null, to avoid a new evaluation
+
+    // Well known pmfm (by ID)
+    switch (pmfm.id) {
+      // Trip's pmfms
+      case PmfmIds.NB_FISHERMEN:
+        result = { icon: 'people-circle-outline' };
+        break;
+      case PmfmIds.CAMERA_USED:
+        result = { icon: 'videocam' };
+        break;
+      case PmfmIds.GPS_USED:
+        result = { matIcon: 'not_listed_location' };
+        break;
+
+      // Gear's pmfms
+      case PmfmIds.GEAR_SPEED: {
+        result = { matIcon: 'speed' };
+        break;
+      }
+      case PmfmIds.GEAR_DEPTH: {
+        result = { matIcon: 'vertical_distribute' };
+        break;
+      }
+
+      // Operation's pmfms
+      case PmfmIds.TRIP_PROGRESS:
+        result = { icon: 'thumbs-up-outline' };
+        break;
+      case PmfmIds.SEA_STATE:
+        result = { matIcon: 'waves' };
+        break;
+      case PmfmIds.DIURNAL_OPERATION:
+        result = { icon: 'sunny-outline' };
+        break;
+      case PmfmIds.HAS_INDIVIDUAL_MEASURES:
+        result = { matIcon: 'assessment' };
+        break;
+      case PmfmIds.HAS_ACCIDENTAL_CATCHES:
+        result = { matSvgIcon: 'fish-oblique' };
+        break;
+
+      // Sample's pmfms
+      case PmfmIds.TAG_ID:
+        result = { icon: 'pricetag' };
+        break;
+      case PmfmIds.MEASURE_TIME:
+        result = { matIcon: 'today' };
+        break;
+      case PmfmIds.RELEASE_LATITUDE:
+        result = { icon: 'location' };
+        break;
+    }
+
+    if (!result) {
+      // Gear's pmfm
+      if (PmfmLabelPatterns.SELECTIVITY_DEVICE.test(pmfm.label)) {
+        result = { matIcon: 'filter_center_focus' };
+      } else if (PmfmLabelPatterns.MESH_GAUGE.test(pmfm.label)) {
+        result = { matIcon: 'grid_4x4' };
+      } else if (PmfmLabelPatterns.SAMPLING_TYPE.test(pmfm.label)) {
+        result = { matIcon: 'line_style' };
+      } else if (PmfmLabelPatterns.BOTTOM_DEPTH.test(pmfm.label)) {
+        result = { matIcon: 'vertical_align_bottom' };
+      } else if (PmfmLabelPatterns.SUBSTRATE_TYPE.test(pmfm.label) || PmfmLabelPatterns.SEABED_FEATURES.test(pmfm.label)) {
+        result = { icon: 'layers-outline' };
+      } else if (PmfmLabelPatterns.WIND_FORCE.test(pmfm.label)) {
+        result = { matIcon: 'air' };
+      } else if (PmfmLabelPatterns.WIND_DIRECTION.test(pmfm.label)) {
+        result = { matIcon: 'swap_horiz' };
+      } else if (PmfmLabelPatterns.RECTILINEAR_OPERATION.test(pmfm.label)) {
+        result = { matIcon: 'horizontal_rule' };
+      }
+
+      // Dates
+      else if (PmfmUtils.isDate(pmfm) || PmfmUtils.isDateTime(pmfm)) {
+        result = { matIcon: 'today' };
+      }
+      // Length
+      else if (PmfmUtils.isLength(pmfm)) {
+        result = { matIcon: 'straighten' };
+      }
+      // Temperature
+      else if (PmfmUtils.isTemperature(pmfm)) {
+        result = { icon: 'thermometer-outline' };
+      }
+      // Weight
+      else if (PmfmUtils.isWeight(pmfm)) {
+        result = { matIcon: 'scale' };
+      }
+    }
+
+    return result;
   }
 }

@@ -78,6 +78,7 @@ export const TaxonomicLevelIds = {
 
 export const PmfmIds = {
   GEAR_SPEED: 9,
+  GEAR_DEPTH: 36,
   NB_FISHERMEN: 21,
   SEA_STATE: 33,
   TRIP_PROGRESS: 34,
@@ -154,7 +155,6 @@ export const PmfmIds = {
   DECOMPOSITION_STATE: 1046,
   IS_ENTANGLED: 1033,
   PINGER_ACCESSIBLE: 1040,
-
 
   /* APASE */
   CHILD_GEAR: 400,
@@ -422,8 +422,18 @@ export const PmfmLabelPatterns = {
   LENGTH: /LENGTH/i,
   WEIGHT: /WEIGHT$/i,
   DRESSING: /^DRESSING/i,
-  SELECTIVITY_DEVICE: /^SELECTIVITY_DEVICE/i,
+  SELECTIVITY_DEVICE: /(^|_)SELECTIVITY_DEVICE(_|$)/i,
+  MESH_GAUGE: /MESH_(GAUGE|SIZE)/i,
   TAG_ID: /^TAG_ID/i,
+  TEMP: /(^|_)TEMP(_|$)/i,
+  SAMPLING_TYPE: /(^|_)SAMPLING_TYPE(_|$)/i,
+  BOTTOM_DEPTH: /(^|_)BOTTOM_DEPTH(_|$)/i,
+  SUBSTRATE_TYPE: /(^|_)SUBSTRATE_TYPE(_|$)/i,
+  SEABED_FEATURES: /(^|_)SEABED_FEATURES(_|$)/i,
+  WIND_FORCE: /(^|_)WIND_FORCE(_|$)/i,
+  WIND_DIRECTION: /(^|_)WIND.*_DIRECTION(_|$)/i,
+  RECTILINEAR_OPERATION: /(^|_)RECTILINEAR_OPERATION(_|$)/i,
+  DIURNAL_OPERATION: /(^|_)DIURNAL_OPERATION(_|$)/i,
 };
 
 export const UnitIds = {
@@ -436,6 +446,7 @@ export const GearIds = {
 
 export declare type WeightUnitSymbol = 'kg' | 'g' | 'mg' | 't';
 export declare type LengthUnitSymbol = 'km' | 'm' | 'dm' | 'cm' | 'mm';
+export declare type TemperatureUnitSymbol = '°C' | '°F';
 
 // TODO Override by config properties ?
 export const UnitLabel = {
@@ -468,14 +479,19 @@ export const LengthMeterConversion: Record<LengthUnitSymbol, number> = Object.fr
   cm: 1 / 100,
   mm: 1 / 1000,
 });
+export const TemperatureCelsiusConversion: Record<TemperatureUnitSymbol, (value: number) => number> = Object.freeze({
+  ['°C']: (value: number) => value, // Celsius -> Celsius
+  ['°F']: (value: number) => ((value - 32) * 5) / 9, // Fahrenheit -> Celsius
+});
 export const UnitLabelPatterns = {
   DATE_TIME: /^Date[ &]+Time$/,
   DECIMAL_HOURS: /^(h[. ]+dec[.]?|hours)$/,
 };
-export const UnitLabelGroups = {
+export const UnitLabelGroups = Object.freeze({
   WEIGHT: Object.keys(WeightKgConversion),
   LENGTH: Object.keys(LengthMeterConversion),
-};
+  TEMPERATURE: Object.keys(TemperatureCelsiusConversion),
+});
 
 export const QualityFlagIds = {
   // Local quality flag (e.g. to manage conflicts on entity)

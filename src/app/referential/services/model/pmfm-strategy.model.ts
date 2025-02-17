@@ -3,6 +3,7 @@ import {
   EntityAsObjectOptions,
   EntityClass,
   EntityUtils,
+  IconRef,
   IReferentialRef,
   isNil,
   isNotEmptyArray,
@@ -219,6 +220,7 @@ export class DenormalizedPmfmStrategy extends Entity<DenormalizedPmfmStrategy> i
           ? source.parameter.qualitativeValues.map(ReferentialRef.fromObject)
           : undefined,
       displayConversion: source.displayConversion,
+      icon: source.icon || PmfmUtils.getIcon(source),
     });
     return target;
   }
@@ -319,6 +321,7 @@ export class DenormalizedPmfmStrategy extends Entity<DenormalizedPmfmStrategy> i
   children?: DenormalizedPmfmStrategy[];
 
   displayConversion?: UnitConversion;
+  icon?: IconRef;
 
   constructor(init?: any) {
     super(DenormalizedPmfmStrategy.TYPENAME);
@@ -371,6 +374,8 @@ export class DenormalizedPmfmStrategy extends Entity<DenormalizedPmfmStrategy> i
     this.children = (source.children && source.children.map((child) => new DenormalizedPmfmStrategy(child))) || undefined;
 
     if (this.displayConversion) PmfmUtils.applyConversion(this, this.displayConversion);
+
+    this.icon = PmfmUtils.getIcon(source);
   }
 
   get required(): boolean {

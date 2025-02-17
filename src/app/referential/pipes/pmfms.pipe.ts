@@ -14,7 +14,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { PmfmIds, PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
+import { PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 @Pipe({
@@ -293,34 +293,15 @@ export interface PmfmIconOptions {
   name: 'pmfmIcon',
 })
 export class PmfmIconPipe implements PipeTransform {
-  transform(pmfm: IPmfm, opts?: PmfmIconOptions): IconRef {
+  transform(pmfm: IPmfm, opts?: PmfmIconFn | PmfmIconOptions): IconRef {
     if (!pmfm) return null;
 
-    // Get the icon
-    if (typeof opts?.mapWith === 'function') {
-      return opts.mapWith(pmfm);
-    }
+    const mapWithFn = typeof opts === 'function' ? (opts as PmfmIconFn) : typeof opts?.['mapWith'] === 'function' ? opts['mapWith'] : undefined;
 
-    let result: IconRef;
-    switch (pmfm.id) {
-      case PmfmIds.TAG_ID:
-        result = { icon: 'pricetag' };
-        break;
-      case PmfmIds.MEASURE_TIME:
-        result = { matIcon: 'today' };
-        break;
-      case PmfmIds.RELEASE_LATITUDE:
-        result = { icon: 'location' };
-        break;
-    }
-    if (!result) {
-      if (PmfmUtils.isDate(pmfm) || PmfmUtils.isDateTime(pmfm)) {
-        result = { matIcon: 'today' };
-      } else if (PmfmUtils.isLength(pmfm)) {
-        result = { matIcon: 'straighten' };
-      }
-    }
+    // Use the input mapWith function
+    if (mapWithFn) return mapWithFn(pmfm);
 
-    return result;
+    // Fall back to the static function
+    return PmfmUtils.getIcon(pmfm);
   }
 }

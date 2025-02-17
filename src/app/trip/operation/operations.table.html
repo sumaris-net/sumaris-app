@@ -344,7 +344,12 @@
         <ion-label translate>TRIP.OPERATION.LIST.FISHING_AREA</ion-label>
       </th>
       <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
-        {{ row.currentData.fishingAreas | arrayPluck: { property: 'location' } | referentialToString: displayAttributes.fishingArea }}
+        {{
+          row.currentData.fishingAreas
+            | arrayPluck: { property: 'location' }
+            | arrayDistinct: 'id'
+            | referentialToString: displayAttributes.fishingArea
+        }}
       </td>
     </ng-container>
 

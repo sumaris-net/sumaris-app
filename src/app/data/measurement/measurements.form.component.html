@@ -25,7 +25,7 @@
         [style]="pmfm | pmfmFieldStyle: maxItemCountForButtons"
         [maxVisibleButtons]="maxVisibleButtons"
         [showButtonIcons]="showButtonIcons"
-        [class.cdk-visually-hidden]="enabled && matInput.disabled && !computed"
+        [class.cdk-visually-hidden]="!computed && _enabled && matInput.disabled"
         [floatLabel]="floatLabel"
         [readonly]="computed"
       ></app-pmfm-field>

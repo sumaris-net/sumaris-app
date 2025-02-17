@@ -11,16 +11,22 @@
           @for (childControl of formArray.controls; track j; let j = $index; let first = $first; let last = $last) {
             <ion-col (focusin)="arrayEditingIndex = j" (focusout)="formArrayRemoveEmptyOnFocusLost($event, j)">
               <app-pmfm-field
-                [pmfm]="pmfm"
                 #pmfmField
+                [pmfm]="pmfm"
                 [control]="childControl"
                 [required]="required && j === 0"
                 [readonly]="readonly"
                 [tabindex]="tabindex + j"
                 [floatLabel]="floatLabel"
                 [placeholder]="first ? placeholder : ' '"
+                [i18nPrefix]="i18nPrefix"
+                [i18nSuffix]="i18nSuffix"
                 [mobile]="mobile"
                 [style]="style"
+                [showIcon]="showIcon && j === 0"
+                [panelClass]="panelClass"
+                [panelWidth]="panelWidth"
+                [disableRipple]="disableRipple"
                 compact="true"
                 [autofocus]="autofocus && (arrayEditingIndex === j || (arrayEditingIndex === undefined && first))"
                 (click)="clicked.emit($event)"
@@ -57,16 +63,19 @@
           @for (childControl of formArray.controls; track j; let j = $index; let first = $first; let last = $last) {
             <ion-col (keydown.tab)="formArrayFocusAt($event, j + 1)" [size]="style !== 'button' ? 'auto' : 10" class="ion-align-self-center">
               <app-pmfm-field
-                [pmfm]="pmfm"
                 #pmfmField
+                [pmfm]="pmfm"
                 [control]="childControl | formGetControl"
                 [required]="required && j === 0"
                 [readonly]="readonly"
                 [tabindex]="tabindex + j"
                 [floatLabel]="floatLabel"
                 [placeholder]="placeholder"
+                [i18nPrefix]="i18nPrefix"
+                [i18nSuffix]="i18nSuffix"
                 [mobile]="mobile"
                 [style]="style"
+                [showIcon]="showIcon && j === 0"
                 [panelClass]="panelClass"
                 [panelWidth]="panelWidth"
                 [disableRipple]="disableRipple"
@@ -259,6 +268,9 @@
     [placeholder]="placeholder"
     [clearable]="!required"
   >
+    <div matPrefix>
+      <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+    </div>
     <div matSuffix class="mat-form-field-suffix-container">
       <!-- Add a fake fab button, to have same alignment as a pmfm QV field
       <ion-fab-button color="light" size="small" *ngIf="maxVisibleButtons"
@@ -437,6 +449,9 @@
 </ng-container>
 
 <ng-template #matPrefixTemplate>
+  @if (pmfm?.icon && showIcon) {
+    <app-icon matPrefix [ref]="pmfm.icon"></app-icon>
+  }
   <ng-content select="[matPrefix]"></ng-content>
 </ng-template>
 <ng-template #matSuffixTemplate>

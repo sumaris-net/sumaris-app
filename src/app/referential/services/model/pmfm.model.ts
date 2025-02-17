@@ -3,6 +3,7 @@ import {
   EntityAsObjectOptions,
   EntityClass,
   fromDateISOString,
+  IconRef,
   IEntity,
   isNil,
   ReferentialRef,
@@ -56,6 +57,7 @@ export interface IPmfm<T extends IPmfm<T, ID> = IPmfm<any, any>, ID = number> ex
   hidden?: boolean;
 
   displayConversion?: UnitConversion;
+  icon?: IconRef;
 }
 
 export interface IDenormalizedPmfm<T extends IDenormalizedPmfm<T, ID> = IDenormalizedPmfm<any, any>, ID = number> extends IPmfm<T, ID> {

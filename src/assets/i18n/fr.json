@@ -329,6 +329,8 @@
         "PMFM_NB_FISHERMEN_ID": "Référentiel > PSFM > Nombre d'homme à bord (Entier)",
         "PMFM_GPS_USED_ID": "Référentiel > PSFM > Utilisation d'un GPS ? (Booléen)",
         "PMFM_CAMERA_USED_ID": "Référentiel > PSFM > Utilisation d'une caméra ? (Booléen)",
+        "PMFM_GEAR_SPEED_ID": "Référentiel > PSFM > Vitesse de l'engin ?",
+        "PMFM_GEAR_DEPTH_ID": "Référentiel > PSFM > Profondeur de l'engin ?",
         "PMFM_SEA_STATE_ID": "Référentiel > PSFM > État de la mer",
         "PMFM_TAG_ID": "Référentiel > PSFM > Code prélèvement",
         "PMFM_TRIP_PROGRESS": "Référentiel > PSFM > Déroulement normal ? (Booléen)",

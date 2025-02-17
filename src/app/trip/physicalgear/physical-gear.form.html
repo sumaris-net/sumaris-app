@@ -60,12 +60,8 @@
       <ion-row>
         <!-- Measurements -->
         <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; strategy: 'userBlocking'; index as i; last as last">
-          <ion-col
-            class="ion-padding-end"
-            *ngVar="pmfm | pmfmFieldStyle: maxItemCountForButtons as style"
-            size="12"
-            [sizeMd]="pmfm.isMultiple || (pmfm.isQualitative && style === 'button') ? 12 : 6"
-          >
+          @let style = pmfm | pmfmFieldStyle: maxItemCountForButtons;
+          <ion-col class="ion-padding-end" size="12" [sizeMd]="pmfm.isMultiple || (pmfm.isQualitative && style === 'button') ? 12 : 6">
             <app-pmfm-field
               #matInput
               [pmfm]="pmfm"

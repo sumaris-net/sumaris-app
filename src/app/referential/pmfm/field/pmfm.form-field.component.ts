@@ -160,6 +160,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   @Input() panelClass: string;
   @Input() panelWidth: string;
   @Input() suggestFn: SuggestFn<IReferentialRef, any>;
+  @Input() showIcon = true;
 
   // When async validator (e.g. BatchForm), force update when error detected
   @Input({ transform: booleanAttribute }) listenStatusChanges = false;

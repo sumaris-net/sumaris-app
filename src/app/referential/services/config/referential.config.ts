@@ -418,6 +418,20 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.GPS_USED,
   },
+  PMFM_GEAR_SPEED_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.GEAR_SPEED.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_GEAR_SPEED_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.GEAR_SPEED,
+  },
+  PMFM_GEAR_DEPTH_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.GEAR_DEPTH.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_GEAR_DEPTH_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.GEAR_DEPTH,
+  },
   PMFM_TRIP_PROGRESS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TRIP_PROGRESS.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TRIP_PROGRESS',

@@ -54,9 +54,8 @@
             [showSearchBar]="false"
             required
           >
-            @let icon = displayParentPmfm | pmfmIcon;
-            @if (icon) {
-              <app-icon [ref]="icon" matPrefix></app-icon>
+            @if (displayParentPmfm?.icon) {
+              <app-icon matPrefix [ref]="displayParentPmfm.icon"></app-icon>
             }
           </mat-autocomplete-field>
         </ion-col>
@@ -77,10 +76,10 @@
             <ion-col size="0" size-sm="6"></ion-col>
           }
           <ion-col
-            [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
             size="12"
-            [sizeSm]="pmfm.isQualitative && style === 'button' ? 12 : 6"
+            [sizeSm]="pmfm.isMultiple || (pmfm.isQualitative && style === 'button') ? 12 : 6"
             class="pmfm-{{ pmfm.id }}"
+            [class.cdk-visually-hidden]="pmfm.hidden || (_enabled && matInput.disabled)"
           >
             <app-pmfm-field
               #matInput
@@ -97,11 +96,9 @@
               [mobile]="mobile"
               [defaultLatitudeSign]="defaultLatitudeSign"
               [defaultLongitudeSign]="defaultLongitudeSign"
+              panelClass="mat-select-panel-fit-content"
               (keyup.enter)="last && doSubmit($event)"
             >
-              @if (pmfm | pmfmIcon; as prefixIcon) {
-                <app-icon matPrefix [ref]="prefixIcon"></app-icon>
-              }
               <!-- geo-->
               @if (enableGeolocation && (pmfm | isLongitudePmfm)) {
                 <button type="button" mat-icon-button matSuffix (click)="onFillPositionClick($event)" tabindex="-1" [disabled]="disabled">
@@ -116,15 +113,17 @@
 
     <ng-content select="[beforeComment]"></ng-content>
 
-    <ion-row *ngIf="mobile && !disabled">
-      <ion-col size="12">
-        <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable>
-          <ion-toggle [checked]="showComment" [disabled]="disabled" labelPlacement="end" justify="start">
-            <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
-          </ion-toggle>
-        </ion-item>
-      </ion-col>
-    </ion-row>
+    @if (mobile && _enabled) {
+      <ion-row>
+        <ion-col size="12">
+          <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable>
+            <ion-toggle [checked]="showComment" [disabled]="disabled" labelPlacement="end" justify="start">
+              <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
+            </ion-toggle>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    }
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">
