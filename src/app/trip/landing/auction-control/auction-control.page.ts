@@ -19,11 +19,9 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNumber,
   LoadResult,
   ReferentialUtils,
   SharedValidators,
-  toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../observedlocation/observed-location.model';
@@ -31,12 +29,11 @@ import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angul
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { Sample } from '@app/trip/sample/sample.model';
-import { AppColors } from '@app/shared/colors.utils';
 
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { RxState } from '@rx-angular/state';
 import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
+import { AuctionControlUtils } from '@app/trip/landing/auction-control/auction-control.utils';
 
 @Component({
   selector: 'app-auction-control',
@@ -317,45 +314,6 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
     });
   }
 
-  getPmfmValueColor(pmfmValue: any, pmfm: IPmfm, data: Sample): AppColors {
-    switch (pmfm.id) {
-      case PmfmIds.OUT_OF_SIZE_PCT:
-        if (isNotNil(pmfmValue)) {
-          if (+pmfmValue >= 15) return 'danger';
-          if (+pmfmValue >= 10) return 'warning900';
-          if (+pmfmValue >= 5) return 'warning';
-          return 'success';
-        }
-        break;
-
-      case PmfmIds.COMPLIANT_PRODUCT:
-        if (toBoolean(pmfmValue) === false) {
-          return 'danger';
-        } else {
-          return 'success';
-        }
-
-      case PmfmIds.INDIVIDUALS_DENSITY_PER_KG: {
-        const auctionDensityCategory = data.measurementValues[PmfmIds.AUCTION_DENSITY_CATEGORY]?.label;
-
-        if (isNotNil(pmfmValue) && auctionDensityCategory) {
-          const [min, max] = auctionDensityCategory.split(/[\\/|-]/, 2);
-          if (isNumber(min) && isNumber(max)) {
-            // Must be greater than the min and strictly lesser than the max
-            if (pmfmValue < min || pmfmValue >= max) {
-              return 'danger';
-            } else {
-              return 'success';
-            }
-          }
-        }
-        break;
-      }
-    }
-
-    return null;
-  }
-
   translateFormPath(path: string, opts?: IDataFormPathTranslatorOptions): string {
     // Redirect pmfm control path, to the landing form
     if (PMFM_ID_REGEXP.test(path)) {
@@ -464,4 +422,6 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
         ? 1
         : -1;
   }
+
+  protected getPmfmValueColor = AuctionControlUtils.getPmfmValueColor;
 }

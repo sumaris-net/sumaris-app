@@ -22,6 +22,13 @@ app-samples-table {
     display: none;
     visibility: hidden;
   }
+
+  ::ng-deep .mat-mdc-cell {
+    &.mat-column-pmfm {
+      // Add a padding, because of colorized cell (avoid pmfm value to be too close of the cell's left border)
+      padding-inline-start: 4px;
+    }
+  }
 }
 
 .ion-col-button {
