@@ -125,7 +125,6 @@ export class BatchForm<
   @Input() showTaxonGroupSearchBar = true;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
-  @Input() i18nSuffix: string;
   @Input() showComment = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
 

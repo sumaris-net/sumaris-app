@@ -5,6 +5,7 @@ import {
   isNil,
   isNotNilOrBlank,
   LocalSettingsService,
+  PlatformService,
   toBoolean,
   TranslateContextService,
   UsageMode,
@@ -26,6 +27,7 @@ export interface ISubSampleModalOptions<M = SubSampleModal> extends IDataEntityM
 
   // UI Fields show/hide
   showParent: boolean;
+  enableBulkMode?: boolean;
 
   // UI Options
   maxVisibleButtons: number;
@@ -45,7 +47,6 @@ export interface ISubSampleModalOptions<M = SubSampleModal> extends IDataEntityM
 export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions {
   private _subscription = new Subscription();
   $title = new BehaviorSubject<string>(undefined);
-  debug = false;
   loading = false;
   readonly mobile: boolean;
   i18nFullSuffix: string;
@@ -68,6 +69,8 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   @Input() maxVisibleButtons: number;
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
+  @Input() enableBulkMode = false; // TODO manage multiple sub-samples
+  @Input() debug: boolean;
 
   @Input() onReady: (modal: SubSampleModal) => Promise<void> | void;
   @Input() onDelete: (event: Event, data: Sample) => Promise<boolean>;
@@ -89,6 +92,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
   constructor(
     protected injector: Injector,
+    protected platform: PlatformService,
     protected modalCtrl: ModalController,
     protected alertCtrl: AlertController,
     protected settings: LocalSettingsService,
@@ -100,7 +104,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     this.mobile = settings.mobile;
     this.showComment = !this.mobile;
 
-    // TODO: for DEV only
+    // DEV only
     this.debug = !environment.production;
   }
 

@@ -120,7 +120,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
-  @Input() i18nSuffix: string;
   @Input() mobile: boolean;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
@@ -186,13 +185,12 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
 
   constructor(
     injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
+    measurementsValidatorService: MeasurementsValidatorService,
+    formBuilder: UntypedFormBuilder,
+    programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected ichthyometerService: IchthyometerService,
-    protected translate: TranslateService
+    protected ichthyometerService: IchthyometerService
   ) {
     super(
       injector,

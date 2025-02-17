@@ -351,6 +351,10 @@ export abstract class PmfmUtils {
     return pmfm.type === 'date';
   }
 
+  static isDateTime(pmfm: IPmfm): boolean {
+    return pmfm.type === 'dateTime';
+  }
+
   static isQualitative(pmfm: IPmfm): boolean {
     return pmfm.type === 'qualitative_value';
   }
@@ -417,6 +421,24 @@ export abstract class PmfmUtils {
       pmfm && pmfm.id === PmfmIds.TAG_ID
       //|| PmfmLabelPatterns.TAG_ID.test(pmfm.label)
       //|| (pmfm instanceof Pmfm && PmfmLabelPatterns.TAG_ID.test(pmfm.parameter?.label))
+    );
+  }
+
+  /**
+   * Check if pmfm is on a latitude
+   * @param pmfm
+   */
+  static isLatitude(pmfm: IPmfm): boolean {
+    return (pmfm && PmfmLabelPatterns.LATITUDE.test(pmfm.label)) || (pmfm instanceof Pmfm && PmfmLabelPatterns.LATITUDE.test(pmfm.parameter?.label));
+  }
+
+  /**
+   * Check if pmfm is on a longitude
+   * @param pmfm
+   */
+  static isLongitude(pmfm: IPmfm): boolean {
+    return (
+      (pmfm && PmfmLabelPatterns.LONGITUDE.test(pmfm.label)) || (pmfm instanceof Pmfm && PmfmLabelPatterns.LONGITUDE.test(pmfm.parameter?.label))
     );
   }
 

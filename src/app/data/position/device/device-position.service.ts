@@ -159,7 +159,10 @@ export class DevicePositionService extends BaseEntityService<DevicePosition, Dev
     });
     this._logPrefix = '[device-position] ';
     this._logger = loggingService.getLogger('device-position');
+
+    // fod DEV only
     this._debug = !environment.production;
+    if (this._debug) console.info(this._logPrefix + 'Creating service');
   }
 
   async save(entity: DevicePosition, opts?: RootDataEntitySaveOptions): Promise<DevicePosition> {

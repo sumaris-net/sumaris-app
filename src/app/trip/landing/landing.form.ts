@@ -159,7 +159,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     return this.showMetier || this.showFishingArea;
   }
 
-  @Input() i18nSuffix: string;
   @Input() required = true;
   @Input() showProgram = false;
   @Input() showVessel = true;

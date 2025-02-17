@@ -1,9 +1,9 @@
 @let saving = savingSubject | push;
 @let loading = loadingSubject | push;
-@let busy = opeForm.busySubject | push;
 @let hasValidate = !loading && (dirty || saving);
 
-<!-- backdrop (e.g. during localization) -->
+<!-- backdrop (e.g. during geo localization) -->
+@let busy = opeForm.busySubject | push;
 @if (busy) {
   <ion-backdrop></ion-backdrop>
 }

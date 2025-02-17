@@ -103,7 +103,7 @@
             [placeholder]="pmfm | pmfmName: { i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"
             [style]="style"
             [readonly]="computed"
-            [floatLabel]="computed && 'always'"
+            [floatLabel]="computed ? 'always' : 'auto'"
             [class.computed]="computed"
             [maxVisibleButtons]="maxVisibleButtons"
             [tabindex]="computed ? -1 : tabindex + 4 + i * maxVisibleButtons"

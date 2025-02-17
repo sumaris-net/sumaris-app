@@ -27,7 +27,6 @@ import {
   IEntityService,
   ILogger,
   ILoggingService,
-  IPosition,
   isEmptyArray,
   isNil,
   isNilOrBlank,
@@ -43,7 +42,6 @@ import {
   ProgressBarService,
   QueryVariables,
   ShowToastOptions,
-  sleep,
   Toasts,
   toBoolean,
   toNumber,
@@ -90,14 +88,12 @@ import { Program } from '@app/referential/services/model/program.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { Geometries } from '@app/shared/geometries.utils';
 import { BatchService } from '@app/trip/batch/common/batch.service';
-import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/trip.config';
-import { PositionOptions } from '@capacitor/geolocation';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
-import { ToastButton } from '@ionic/core/dist/types/components/toast/toast-interface';
-import { OverlayEventDetail, ToastOptions } from '@ionic/core';
+import { OverlayEventDetail } from '@ionic/core';
 import { ToastController } from '@ionic/angular';
+import { PositionService } from '@app/data/position/position.service';
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -413,6 +409,7 @@ export class OperationService
     protected entities: EntitiesStorage,
     protected validatorService: OperationValidatorService,
     protected batchService: BatchService,
+    protected positionService: PositionService,
     protected progressBarService: ProgressBarService,
     protected programRefService: ProgramRefService,
     protected translate: TranslateService,
@@ -1258,73 +1255,6 @@ export class OperationService
     return OperationFilter.fromObject(source);
   }
 
-  /**
-   * Get the position by geo loc sensor
-   */
-  async getCurrentPosition(
-    options?: PositionOptions & { showToast?: boolean; stop?: Observable<any>; toastOptions?: ToastOptions; cancellable?: boolean }
-  ): Promise<IPosition> {
-    const timeout = options?.timeout ?? this.settings.getPropertyAsInt(TRIP_LOCAL_SETTINGS_OPTIONS.OPERATION_GEOLOCATION_TIMEOUT) * 1000;
-    const maximumAge = options?.maximumAge ?? timeout * 2;
-    // Opening a toast
-    if (options?.showToast) {
-      return new Promise(async (resolve, reject) => {
-        const toastId = `geolocation-${Date.now()}`;
-        let stop = false;
-        const closeToastAndReject = () => {
-          if (!stop) {
-            reject('CANCELLED');
-            stop = true;
-          }
-          this.closeToast(toastId);
-        };
-        // @ts-ignore
-        const subscription = options.stop ? options.stop.subscribe(closeToastAndReject) : null;
-        // Define toast cancel button
-        let toastButtons: ToastButton[];
-        if (options?.cancellable !== false) {
-          toastButtons = [
-            {
-              text: this.translate.instant('COMMON.BTN_CANCEL'),
-              handler: closeToastAndReject,
-            },
-          ];
-        }
-
-        // Open the toast after a delay (but without waiting end)
-        const toastPromise = sleep(500).then(() => {
-          if (stop) return; // skip if process already stopped
-          this.showToast({
-            id: toastId,
-            message: 'INFO.GEOLOCATION_STARTED',
-            buttons: toastButtons,
-            duration: -1,
-            ...options.toastOptions,
-          });
-        });
-
-        try {
-          // Loop to get position
-          const result = await this.getCurrentPosition({ ...options, showToast: false });
-          resolve(result);
-        } catch (err) {
-          reject(err);
-        } finally {
-          subscription?.unsubscribe();
-          stop = true; // Mark as stop (to avoid toast to appear, if not exists yet)
-          // Close toast
-          toastPromise?.then(() => this.closeToast(toastId));
-        }
-      });
-    }
-
-    return PositionUtils.getCurrentPosition(this.platform, {
-      maximumAge,
-      timeout,
-      enableHighAccuracy: false, // Not need at sea
-    });
-  }
-
   async executeImport(
     filter: Partial<OperationFilter>,
     opts?: {
@@ -1607,7 +1537,7 @@ export class OperationService
 
   async sortByDistance(sources: Operation[], sortDirection: string, sortBy: string): Promise<Operation[]> {
     // Get current operation
-    const currentPosition = await this.getCurrentPosition();
+    const currentPosition = await this.positionService.getCurrentPosition();
     if (!currentPosition) {
       console.warn('[operation-service] Cannot sort by position. Cannot get the current position');
       return sources; // Unable to sort

@@ -39,7 +39,6 @@ export class SampleForm extends MeasurementValuesForm<Sample> implements OnInit,
   childrenArrayHelper: FormArrayHelper<Sample>;
   focusFieldName: string;
 
-  @Input() i18nSuffix: string;
   @Input() mobile: boolean;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
