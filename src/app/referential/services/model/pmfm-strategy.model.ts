@@ -228,6 +228,7 @@ export class DenormalizedPmfmStrategy extends Entity<DenormalizedPmfmStrategy> i
   /**
    * Allow to merge, using the children property
    *
+   * @param pmfm
    * @param other
    */
   static merge(pmfm: DenormalizedPmfmStrategy, other: DenormalizedPmfmStrategy): DenormalizedPmfmStrategy {

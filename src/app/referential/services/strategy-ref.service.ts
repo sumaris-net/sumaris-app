@@ -29,6 +29,7 @@ import { StrategyFilter } from '@app/referential/services/filter/strategy.filter
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { DenormalizedPmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface StrategyRefLoadOptions extends EntityServiceLoadOptions {
   debug?: boolean;
@@ -333,15 +334,19 @@ export class StrategyRefService extends BaseReferentialService<
         if (!filterFn) throw new Error('Missing opts to filter pmfm (.e.g opts.acquisitionLevel)!');
         return (strategy?.denormalizedPmfms || []).filter(filterFn);
       }),
-      // Merge duplicated pmfms (make to a unique pmfm, by id)
       map((pmfms) =>
         pmfms.reduce((res, p) => {
+          // Merge duplicated pmfms (make to a unique pmfm, by id)
           const index = res.findIndex((other) => other.id === p.id);
           if (index !== -1) {
             console.warn('[program-ref-service] Merging duplicated pmfms:', res[index], p);
             res[index] = DenormalizedPmfmStrategy.merge(res[index], p);
             return res;
           }
+
+          // Compute PMFM icon (once)
+          p.icon = PmfmUtils.getIcon(p);
+
           return res.concat(p);
         }, [])
       ),
