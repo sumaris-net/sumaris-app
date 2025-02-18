@@ -158,6 +158,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   protected virtualPmfms: DenormalizedPmfmStrategy[];
   protected footerValues: { [key: string]: number } = {};
   protected enableLengthClass: boolean = true;
+  protected canFilterTaxonName: boolean = true;
+  protected enableTaxonNameFilter: boolean = true;
 
   get selectedRow(): TableElement<SubBatch> {
     return this.singleSelectedRow || this.editedRow;
@@ -301,6 +303,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.markAsReady();
 
     this.load();
+
+    this.setTaxonNameFilter();
 
     // Add footer listener
     this.registerSubscription(this.pmfms$.subscribe((pmfms) => this.addFooterListener(pmfms)));
@@ -1179,6 +1183,24 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       row.currentData.images = data;
       this.markAsDirty();
     }
+  }
+
+  async setTaxonNameFilter() {
+    const taxonGroupId = this.parentGroup && this.parentGroup?.taxonGroup && this.parentGroup?.taxonGroup?.id;
+    if (isNil(taxonGroupId)) {
+      this.enableTaxonNameFilter = false;
+      this.canFilterTaxonName = false;
+      return;
+    }
+
+    const values = await this.programRefService.suggestTaxonNames(null, {
+      programLabel: this.programLabel,
+      taxonGroupId: taxonGroupId,
+      strictMode: true,
+    });
+
+    this.enableTaxonNameFilter = !isEmptyArray(values.data);
+    this.canFilterTaxonName = isEmptyArray(values.data);
   }
 
   getFormErrors = AppFormUtils.getFormErrors;
