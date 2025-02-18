@@ -30,7 +30,7 @@
 </mat-menu>
 
 <!-- Row actions menu -->
-<mat-menu #rowActionsMenu="matMenu" xPosition="before">
+<mat-menu #rowActionsMenu="matMenu" xPosition="before" (closed)="closeRowActionMenu($event)">
   <button mat-menu-item [disabled]="disabled" (click)="editRow($event, selectedRow)">
     <mat-icon>edit</mat-icon>
     <ion-label translate>COMMON.BTN_EDIT</ion-label>
@@ -350,16 +350,17 @@
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr
             mat-row
-            *matRowDef="let row; columns: displayedColumns"
+            *matRowDef="let row; let i = index; columns: displayedColumns"
+            [class.even]="(visibleRowCount - i) % 2 === 0"
             [class.mat-mdc-row-dirty]="isNewRow(row)"
             [class.mat-mdc-row-error]="row.validator?.invalid"
             [class.mat-mdc-row-animated]="animationSelection.isSelected(row)"
             [class.mat-mdc-row-selected]="row.editing || highlightedRowId === row.id || (mobile && selection.isSelected(row))"
             [matMenuTriggerFor]="mobile ? rowActionsMenu : null"
             [matMenuTriggerRestoreFocus]="false"
+            [cdkTrapFocus]="row.editing && !row.validator.valid"
             (click)="selectRow($event, row)"
             (keydown.escape)="escapeEditingRow($event)"
-            [cdkTrapFocus]="row.editing && !row.validator.valid"
           ></tr>
         </table>
       </ion-col>
