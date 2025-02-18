@@ -20,6 +20,7 @@ import {
   IEntitiesService,
   IEntityService,
   IReferentialRef,
+  isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
@@ -1001,6 +1002,7 @@ export class ProgramRefService
       levelIds?: number[];
       searchAttribute?: string;
       taxonGroupId?: number;
+      strictMode?: boolean;
     }
   ): Promise<LoadResult<TaxonNameRef>> {
     // Search on taxon group's taxon'
@@ -1029,6 +1031,9 @@ export class ProgramRefService
 
     // If there result, use it
     if ((res && isNotEmptyArray(res.data)) || res.total > 0) return res;
+
+    // If empty result, return empty result
+    if (opts.strictMode && isEmptyArray(res.data)) return { data: [] };
 
     // Then, retry in all taxon (without taxon groups - Is the link taxon<->taxonGroup missing ?)
     if (isNotNil(opts.taxonGroupId)) {

@@ -96,6 +96,8 @@
             [class.cdk-visually-hidden]="!showIndividualCountOnly"
             [pmfms]="pmfms"
             [programLabel]="programLabel"
+            [enableTaxonNameFilter]="enableTaxonNameFilter"
+            [canFilterTaxonName]="canFilterTaxonName"
             (onSubmit)="generateSubBatchesFromRange($event)"
           ></app-sub-sorting-criteria-form>
         }
@@ -123,6 +125,8 @@
           [maxVisibleButtons]="maxVisibleButtons"
           [buttonsColCount]="buttonsColCount"
           [maxItemCountForButtons]="maxItemCountForButtons"
+          [enableTaxonNameFilter]="enableTaxonNameFilter"
+          [canFilterTaxonName]="canFilterTaxonName"
           [i18nSuffix]="i18nColumnSuffix"
           [mobile]="mobile"
           [debug]="debug"

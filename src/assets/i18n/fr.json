@@ -1215,6 +1215,7 @@
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "SAMPLING_RANK_ORDER": "Numéro Lot échant.",
         "SAMPLING_LABEL": "Libellé Lot échant.",
+        "BTN_FILTER_TAXON_NAMES": "Restreindre aux espèces scientifiques par défaut",
         "IS_EXHAUSTIVE_INVENTORY": "Inventaire exhaustif des espèces ?",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",
