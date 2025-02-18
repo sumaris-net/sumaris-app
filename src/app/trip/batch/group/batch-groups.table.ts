@@ -37,7 +37,7 @@ import { Batch } from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { SubBatch } from '../sub/sub-batch.model';
-import { debounceTime, Observable, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, debounceTime, Observable, Subject, Subscription } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
@@ -57,6 +57,7 @@ import { RxState } from '@rx-angular/state';
 import { ContextService } from '@app/shared/context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
+import { Program } from '@app/referential/services/model/program.model';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -230,6 +231,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   @RxStateSelect() protected showSamplingBatchColumns$: Observable<boolean>;
   @RxStateSelect() protected showAutoFillButton$: Observable<boolean>;
   @RxStateSelect() protected allowIndividualCountOnly$: Observable<boolean>;
+  program$ = new BehaviorSubject<Program>(null);
 
   weightMethodForm: UntypedFormGroup;
   estimatedWeightPmfm: IPmfm;

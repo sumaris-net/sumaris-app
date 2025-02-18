@@ -27,6 +27,7 @@ import {
   isEmptyArray,
   isNil,
   isNilOrBlank,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
@@ -68,13 +69,17 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { environment } from '@environments/environment';
-import { IonButton } from '@ionic/angular';
+import { IonButton, ModalController } from '@ionic/angular';
 import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
+import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
+import { AppImageAttachmentGallery } from '@app/data/image/image-attachment-gallery.component';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
 
 export interface SubBatchFormState extends MeasurementsFormState {
   computingWeight: boolean;
@@ -129,6 +134,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
   @Input() @RxStateProperty() showTaxonName: boolean;
   @Input() @RxStateProperty() qvPmfm: IPmfm;
+  @Input() enableImageAttachments: boolean = false;
 
   @Input() set availableParents(value: BatchGroup[]) {
     if (this._availableParents !== value) {
@@ -184,6 +190,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @ViewChildren(PmfmFormField) measurementFormFields: QueryList<PmfmFormField>;
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
   @ViewChild('submitButton') submitButton: IonButton;
+  @ViewChild('gallery') gallery: AppImageAttachmentGallery;
+  @ViewChild(MatExpansionPanel) panel: MatExpansionPanel;
 
   get computingWeight(): boolean {
     return this._state.get('computingWeight');
@@ -200,7 +208,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected ichthyometerService: IchthyometerService
+    protected ichthyometerService: IchthyometerService,
+    protected translate: TranslateService,
+    protected modalCtrl: ModalController
   ) {
     super(
       injector,
@@ -478,6 +488,10 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
       this.showParentGroup = this.showParentGroup || true;
     }
 
+    if (data?.images) {
+      this.gallery.setValue(data.images.map(ImageAttachment.fromObject));
+    }
+
     // Inherited method
     await super.updateView(data, opts);
   }
@@ -560,6 +574,12 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     if (event?.defaultPrevented) {
       console.debug('[sub-batch-form] Cancel submit (event.defaultPrevented=true)');
       return;
+    }
+    const images = this.gallery?.value;
+    if (isNotEmptyArray(images)) {
+      this.form.get('images')?.setValue(images);
+      this.gallery?.setValue([]);
+      this.panel?.close();
     }
 
     return super.doSubmit(event, opts);
@@ -830,5 +850,44 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
         })
       )
       .subscribe();
+  }
+
+  async openImagesModal(event: Event) {
+    const images = this.form.get('images').value;
+
+    // Skip if no images to display
+    if (this.disabled && isEmptyArray(images)) return;
+
+    event?.stopPropagation();
+
+    const modal = await this.modalCtrl.create({
+      component: AppImageAttachmentsModal,
+      componentProps: <IImageModalOptions>{
+        data: images,
+        disabled: this.disabled,
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large',
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+
+    // User cancel
+    if (isNil(data) || this.disabled) return;
+
+    //Update the form
+    this.form.get('images').setValue(data);
+  }
+
+  async addImageAttachment(event: Event) {
+    event?.stopPropagation();
+
+    const images = this.gallery?.value;
+    this.gallery?.setValue(images ?? []);
+    await this.gallery.add();
+
+    if (images?.length > 0) {
+      this.panel.open();
+    }
   }
 }

@@ -79,6 +79,7 @@
     "BTN_CLEAR_CLIPBOARD": "Vider le presse-papier",
     "BTN_CLEAR_SELECTION": "Vider les cellules",
     "BTN_LOGOUT": "Quitter",
+    "BTN_ADD_IMAGE": "Ajouter une photo",
     "CREATED_ON": "Créé le",
     "COMMENTS": "Commentaires",
     "BTN_DECIMAL_SEPARATOR": ",",
@@ -86,7 +87,6 @@
     "All_OPTION": "(Tous)",
     "AT": "à",
     "SELECT_ALL": "Tout sélectionner",
-
     "DATE_PATTERN": "DD/MM/YYYY",
     "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
     "DATE_TIME_SECONDS_PATTERN": "DD/MM/YYYY HH:mm:ss",
@@ -1194,6 +1194,7 @@
         "BTN_AUTO_INCREMENT": "Auto-incrément",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures",
         "BTN_APPLY_CHILDREN_WEIGHT": "Appliquer ce poids",
+        "IMAGES": "Photo(s)",
         "IS_ESTIMATED": "Estimé ?",
         "ESTIMATED_WEIGHT": "Poids estimé ?",
         "TOTAL_INDIVIDUAL_COUNT": "Nombre d'individus total",
@@ -1238,6 +1239,8 @@
       "TABLE": {
         "BTN_AUTO_FILL": "Remplissage automatique des espèces",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures individuelles",
+        "BTN_IMAGES": "Ajouter des photos",
+        "IMAGES": "Photo(s)",
         "LABEL": "Libellé",
         "LABEL_PLACEHOLDER": "Libellé",
         "TAXON_GROUP": "Espèce commerciale (FAO)",
@@ -2780,6 +2783,7 @@
       "SALE_LOCATION_LEVEL_IDS": "Sortie > Vente : Niveau(x) de lieu",
       "SALE_FAVORITES_ENABLE": "Sortie > Vente : Activer les favoris ?",
       "SALE_BATCH_ENABLE": "Sortie > Vente : Activer les lots ?",
+      "SALE_BATCH_IMAGES_ENABLE": "Sortie > Vente : Activer les photos ?",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",

@@ -260,6 +260,29 @@
     </ion-label>
   </mat-form-field>
 
+  <!-- Images column -->
+  @if (enableImageAttachments) {
+    <mat-expansion-panel class="no-padding-panel" hideToggle #panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          {{ gallery?.value?.length }}&nbsp;
+          <ion-label translate>TRIP.BATCH.EDIT.IMAGES</ion-label>
+        </mat-panel-title>
+        <mat-panel-description></mat-panel-description>
+        <mat-icon [title]="'COMMON.BTN_ADD_IMAGE' | translate" (click)="addImageAttachment($event)">add</mat-icon>
+      </mat-expansion-panel-header>
+      <app-image-attachment-gallery
+        #gallery
+        [disabled]="disabled"
+        [showAddCardButton]="false"
+        [showFabButton]="false"
+        [showToolbar]="false"
+        [mode]="'list'"
+        [mobile]="mobile"
+      ></app-image-attachment-gallery>
+    </mat-expansion-panel>
+  }
+  <br />
   <!-- submit button -->
   <div class="ion-no-padding ion-align-items-end" *ngIf="showSubmitButton">
     <ion-button

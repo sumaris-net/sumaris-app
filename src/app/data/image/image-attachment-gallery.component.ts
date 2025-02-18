@@ -333,6 +333,10 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy, IAppForm {
     this.cd.markForCheck();
   }
 
+  async add() {
+    await this.gallery.add();
+  }
+
   protected registerSubscription(sub: Subscription) {
     this._subscription.add(sub);
   }

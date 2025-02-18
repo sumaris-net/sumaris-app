@@ -1205,6 +1205,13 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
   },
 
+  SALE_BATCH_IMAGES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.sale.batch.images.enable',
+    label: 'PROGRAM.OPTIONS.SALE_BATCH_IMAGES_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
+
   SALE_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.sale.location.level.ids',
     label: 'PROGRAM.OPTIONS.SALE_LOCATION_LEVEL_IDS',

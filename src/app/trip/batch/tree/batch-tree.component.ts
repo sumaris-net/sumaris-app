@@ -74,6 +74,7 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   mobile: boolean;
   modalOptions: Partial<IBatchGroupModalOptions>;
   filter: BatchFilter;
+  enableImageAttachments: boolean;
 
   // Form
   disabled: boolean;
@@ -171,6 +172,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
   @Input() showAutoFillButton = true;
   @Input() allowQvPmfmGroup = true;
+  @Input() enableImageAttachments: boolean;
   @Input() @RxStateProperty() samplingRatioFormat: SamplingRatioFormat;
   @Input() @RxStateProperty() showCatchForm: boolean;
   @Input() @RxStateProperty() showBatchTables: boolean;
@@ -726,6 +728,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       'showBluetoothIcon',
       program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE)
     );
+    this.batchGroupsTable.setSubBatchesModalOption('enableImageAttachments', this.enableImageAttachments);
     if (this.subBatchesTable) {
       this.subBatchesTable.showTaxonNameColumn = subBatchesTaxonName;
       this.subBatchesTable.showTaxonNameInParentAutocomplete = !subBatchesTaxonName && this.batchGroupsTable.showTaxonNameColumn;
