@@ -143,6 +143,9 @@ export const DataFragments = {
       taxonName {
         ...TaxonNameFragment
       }
+      images {
+        ...LightImageAttachmentFragment
+      }
       measurementValues
       controlDate
       qualificationDate
@@ -152,6 +155,7 @@ export const DataFragments = {
     }
     ${DataCommonFragments.referential}
     ${ReferentialFragments.taxonName}
+    ${ImageAttachmentFragments.light}
   `,
   packet: gql`
     fragment PacketFragment on PacketVO {

@@ -126,6 +126,7 @@
           [i18nSuffix]="i18nColumnSuffix"
           [mobile]="mobile"
           [debug]="debug"
+          [enableImageAttachments]="enableImageAttachments"
         ></app-sub-batch-form>
       </ion-col>
 
@@ -447,6 +448,34 @@
                 <b>{{ footerValues | mapGet: 'individualCount' }}</b>
               </ion-text>
             </td>
+          </ng-container>
+
+          <!-- Images column -->
+          <ng-container matColumnDef="images">
+            <th mat-header-cell *matHeaderCellDef>
+              <ion-label translate>TRIP.BATCH.TABLE.IMAGES</ion-label>
+            </th>
+            <td mat-cell *matCellDef="let row">
+              @let imageCount = row.currentData.images?.length;
+              <button
+                mat-icon-button
+                [class.visible-hover]="!row.editing && !imageCount"
+                [class.cdk-visually-hidden]="disabled"
+                [title]="'TRIP.BATCH.TABLE.BTN_IMAGES' | translateContext: i18nColumnSuffix"
+                (click)="openImagesModal($event, row)"
+              >
+                <mat-icon
+                  [matBadge]="imageCount | badgeNumber"
+                  [matBadgeHidden]="!imageCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after"
+                >
+                  <ion-icon [color]="imageCount ? 'tertiary' : 'medium'" slot="icon-only" name="camera"></ion-icon>
+                </mat-icon>
+              </button>
+            </td>
+            <td mat-footer-cell *matFooterCellDef></td>
           </ng-container>
 
           <!-- Comment column -->
