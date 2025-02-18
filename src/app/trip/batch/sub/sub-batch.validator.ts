@@ -92,6 +92,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
       comments: [data?.comments || null],
       parent: [data?.parent || null, SharedValidators.object],
       measurementValues: this.formBuilder.group({}),
+      images: [data?.images || null],
 
       // Specific for SubBatch
       parentGroup: [data?.parentGroup || null, Validators.compose([Validators.required, SharedValidators.object])],

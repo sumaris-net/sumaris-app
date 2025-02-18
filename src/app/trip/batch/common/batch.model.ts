@@ -10,6 +10,7 @@ import {
 } from '@app/data/measurement/measurement.model';
 import {
   EntityClass,
+  ImageAttachment,
   isNil,
   isNilOrBlank,
   isNotNil,
@@ -160,7 +161,7 @@ export class Batch<
   measurementValues: MeasurementModelValues | MeasurementFormValues = {};
   weight: BatchWeight = null;
   childrenWeight: BatchWeight = null;
-
+  images: ImageAttachment[] = null;
   operationId: number = null;
   saleId: number = null;
   parentId: number = null;
@@ -193,7 +194,7 @@ export class Batch<
       undefined;
     target.parentId = this.parentId || (this.parent && this.parent.id) || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
-
+    target.images = (this.images && this.images.map((image) => image.asObject(opts))) || undefined;
     if (opts && opts.minify) {
       // Parent Id not need, as the tree batch will be used by pod
       delete target.parent;
@@ -227,6 +228,7 @@ export class Batch<
     this.saleId = source.saleId;
     this.parentId = source.parentId;
     this.parent = source.parent;
+    this.images = (source.images && source.images.map(ImageAttachment.fromObject)) || undefined;
     this.weight = (source.weight && { ...source.weight }) || undefined;
     this.childrenWeight = (source.childrenWeight && { ...source.childrenWeight }) || undefined;
 
