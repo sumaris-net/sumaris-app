@@ -31,6 +31,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
+  MatAutocompleteField,
   ReferentialUtils,
   SharedValidators,
   startsWithUpperCase,
@@ -135,6 +136,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @Input() @RxStateProperty() showTaxonName: boolean;
   @Input() @RxStateProperty() qvPmfm: IPmfm;
   @Input() enableImageAttachments: boolean = false;
+  @Input() enableTaxonNameFilter: boolean = true;
+  @Input() canFilterTaxonName: boolean = true;
 
   @Input() set availableParents(value: BatchGroup[]) {
     if (this._availableParents !== value) {
@@ -192,6 +195,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @ViewChild('submitButton') submitButton: IonButton;
   @ViewChild('gallery') gallery: AppImageAttachmentGallery;
   @ViewChild(MatExpansionPanel) panel: MatExpansionPanel;
+  @ViewChild('taxonNameField') taxonNameField: MatAutocompleteField;
 
   get computingWeight(): boolean {
     return this._state.get('computingWeight');
@@ -296,7 +300,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     });
 
     this.registerAutocompleteField('taxonName', {
-      items: this.taxonNames$,
+      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       mobile: this.mobile,
     });
 
@@ -662,10 +666,11 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     const parentGroup = this.parentGroup;
     if (isNil(parentGroup)) return { data: [] };
     if (this.debug) console.debug(`[sub-batch-form] Searching taxon name {${value || '*'}}...`);
+    const taxonGroupId = (parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id) || undefined;
     return this.programRefService.suggestTaxonNames(value, {
       programLabel: this.programLabel,
       searchAttribute: options && options.searchAttribute,
-      taxonGroupId: (parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id) || undefined,
+      taxonGroupId: this.enableTaxonNameFilter ? taxonGroupId : undefined,
     });
   }
 
@@ -798,6 +803,11 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     if (data.parentGroup && data.parent && !data.parent.hasTaxonNameOrGroup && data.parent.parent && data.parent.parent.hasTaxonNameOrGroup) {
       data.parentGroup = BatchGroup.fromBatch(data.parent.parent);
     }
+  }
+
+  toggleFilteredTaxonName() {
+    this.enableTaxonNameFilter = !this.enableTaxonNameFilter;
+    this.taxonNameField.reloadItems();
   }
 
   listenIchthyometer(): Subscription {

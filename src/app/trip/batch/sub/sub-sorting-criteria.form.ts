@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import {
   AppForm,
@@ -6,7 +6,9 @@ import {
   isEmptyArray,
   isNil,
   isNotEmptyArray,
+  isNotNil,
   LoadResult,
+  MatAutocompleteField,
   ReferentialRef,
   suggestFromArray,
 } from '@sumaris-net/ngx-components';
@@ -49,6 +51,10 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
   @Input() parentGroup: BatchGroup;
   @Input() programLabel: string;
   @Input() pmfms: IPmfm[];
+  @Input() enableTaxonNameFilter: boolean = true;
+  @Input() canFilterTaxonName: boolean = true;
+
+  @ViewChild('taxonNameField') taxonNameField: MatAutocompleteField;
 
   constructor(
     injector: Injector,
@@ -157,10 +163,11 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
   protected async suggestTaxonNames(value?: any, options?: any): Promise<LoadResult<TaxonNameRef>> {
     const parentGroup = this.parentGroup;
     if (isNil(parentGroup)) return { data: [] };
+    const taxonGroupId = (parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id) || undefined;
     return this.programRefService.suggestTaxonNames(value, {
       programLabel: this.programLabel,
       searchAttribute: options && options.searchAttribute,
-      taxonGroupId: (parentGroup && parentGroup.taxonGroup && parentGroup.taxonGroup.id) || undefined,
+      taxonGroupId: this.enableTaxonNameFilter ? taxonGroupId : undefined,
     });
   }
 
@@ -181,6 +188,11 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
     this.pmfmsFiltered = (this.pmfms || []).filter(
       (pmfm) => !PmfmUtils.isComputed(pmfm) && (PmfmUtils.isNumeric(pmfm) || PmfmUtils.isQualitative(pmfm))
     );
+  }
+
+  toggleFilteredTaxonName() {
+    this.enableTaxonNameFilter = !this.enableTaxonNameFilter;
+    this.taxonNameField.reloadItems();
   }
 
   doSubmit() {
