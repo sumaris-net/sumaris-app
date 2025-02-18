@@ -86,6 +86,7 @@
   <div [class.cdk-visually-hidden]="!showTaxonName">
     <!-- Taxon name (desktop) -->
     <mat-autocomplete-field
+      #taxonNameField
       #inputField
       *ngIf="!mobile || freezeTaxonName; else taxonNameMobile"
       formControlName="taxonName"
@@ -97,7 +98,6 @@
       (keyup.enter)="focusNextInput($event)"
     >
       <!-- checkbox to freeze value  -->
-      <!-- TODO MF FOR DEMO class="ion-padding-end" -->
       <mat-checkbox
         matSuffix
         [formControl]="freezeTaxonNameControl"
@@ -108,8 +108,19 @@
       >
         <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
       </mat-checkbox>
+      <button
+        matAfter
+        type="button"
+        mat-icon-button
+        tabindex="-1"
+        [disabled]="canFilterTaxonName || disabled"
+        [title]="'TRIP.BATCH.BTN_FILTER_TAXON_NAMES' | translate"
+        (click)="toggleFilteredTaxonName()"
+        [color]="enableTaxonNameFilter ? 'primary' : undefined"
+      >
+        <mat-icon>filter_list_alt</mat-icon>
+      </button>
     </mat-autocomplete-field>
-
     <!-- Taxon name (mobile: use buttons) -->
     <ng-template #taxonNameMobile>
       @if (taxonNames$ | async; as taxonNames) {

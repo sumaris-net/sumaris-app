@@ -1203,6 +1203,7 @@
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "SAMPLING_RANK_ORDER": "Sampling batch number",
         "SAMPLING_LABEL": "Sampling batch label",
+        "BTN_FILTER_TAXON_NAMES": "Restrict to default scientific species",
         "IS_EXHAUSTIVE_INVENTORY": "Exhaustive inventory of species?",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Batch {{label}}<br/></small>",
