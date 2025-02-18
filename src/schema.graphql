@@ -157,6 +157,7 @@ type BatchVO {
   rankOrder: Int
   recorderDepartment: DepartmentVO
   recorderPerson: PersonVO
+  images: [ImageAttachmentVOInput]
   sale: SaleVO
   saleId: Int
   samplingRatio: Float
@@ -2617,6 +2618,7 @@ input BatchVOInput {
   recorderPerson: PersonVOInput
   sale: SaleVOInput
   saleId: Int
+  images: [ImageAttachmentVOInput]
   samplingRatio: Float
   samplingRatioText: String
   sortingMeasurements: [MeasurementVOInput]

@@ -538,7 +538,10 @@ export class SalePage<ST extends SalePageState = SalePageState>
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
     }
 
-    if (this.batchTree) this.batchTree.program = program;
+    if (this.batchTree) {
+      this.batchTree.program = program;
+      this.batchTree.enableImageAttachments = program.getPropertyAsBoolean(ProgramProperties.SALE_BATCH_IMAGES_ENABLE);
+    }
 
     // Emit ready event (should allow children forms to apply value)
     // If strategy is required, markAsReady() will be called in setStrategy()
