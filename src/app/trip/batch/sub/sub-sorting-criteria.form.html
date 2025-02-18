@@ -3,12 +3,26 @@
     <ion-row>
       <ion-col>
         <mat-autocomplete-field
+          #taxonNameField
           formControlName="taxonName"
           [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME' | translate"
           [config]="autocompleteFields.taxonName"
           [clearable]="true"
           [required]="true"
-        ></mat-autocomplete-field>
+        >
+          <button
+            matAfter
+            type="button"
+            mat-icon-button
+            tabindex="-1"
+            [disabled]="canFilterTaxonName || disabled"
+            [title]="'TRIP.BATCH.BTN_FILTER_TAXON_NAMES' | translate"
+            (click)="toggleFilteredTaxonName()"
+            [color]="enableTaxonNameFilter ? 'primary' : undefined"
+          >
+            <mat-icon>filter_list_alt</mat-icon>
+          </button>
+        </mat-autocomplete-field>
       </ion-col>
     </ion-row>
     <ion-row>
