@@ -8,6 +8,7 @@ import {
   AudioProvider,
   firstNotNilPromise,
   FormFieldDefinition,
+  ImageAttachment,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
@@ -53,6 +54,7 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { AppSharedFormUtils } from '@app/shared/forms.utils';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { SubSortingCriteria } from './sub-sorting-criteria.form';
+import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
 
 type ModalMode = 'INDIVIDUAL_COUNT' | 'LENGTH_CLASS';
 
@@ -94,13 +96,16 @@ export interface ISubBatchesModalOptions {
   canDebug: boolean;
   allowIndividualCountOnly: boolean;
   showIndividualCountOnly: boolean;
+  enableImageAttachments: boolean;
   animationDuration: number;
 }
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
-export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED_END_COLUMNS; //.filter((col) => col !== 'individualCount');
+export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = [...SUB_BATCH_RESERVED_END_COLUMNS, 'images'];
 
-export interface SubBatchesModalState extends SubBatchesTableState {}
+export interface SubBatchesModalState extends SubBatchesTableState {
+  temporarySubBatchesImages: Map<string, ImageAttachment[]>;
+}
 
 @Component({
   selector: 'app-sub-batches-modal',
@@ -148,6 +153,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   protected modalForm: UntypedFormGroup;
   protected showSubBatchFormControl: UntypedFormControl;
   protected individualCountControl: UntypedFormControl;
+
   protected pmfmFilterDefinition: FormFieldDefinition;
   protected virtualPmfms: DenormalizedPmfmStrategy[];
   protected footerValues: { [key: string]: number } = {};
@@ -197,6 +203,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   @Input() maxItemCountForButtons: number;
   @Input() playSound: boolean;
   @Input() showBluetoothIcon = false;
+  @Input() enableImageAttachments = false;
   @Input() canDebug: boolean;
   @Input() allowIndividualCountOnly: boolean;
   @Input() defaultIsIndividualCountOnly: boolean;
@@ -301,6 +308,9 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   async load() {
     try {
+      // Apply options
+      this.setShowColumn('images', this.enableImageAttachments, { emitEvent: false });
+
       // Wait for table pmfms
       const pmfms = await firstNotNilPromise(this.pmfms$, { stop: this.destroySubject, stopError: false });
 
@@ -970,6 +980,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     this.setShowColumn('id', !show, { emitEvent: false });
     this.setShowColumn('individualCount', !show, { emitEvent: false });
+    if (this.enableImageAttachments) this.setShowColumn('images', !show, { emitEvent: false });
 
     // Show/hide computed and qualitative pmfms columns
     this.pmfms
@@ -1006,6 +1017,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     let rankOrder = (await this.getMaxRankOrder()) + 1;
 
     const newRows = [];
+    const subBatchesImages = new Map<string, ImageAttachment[]>();
 
     for (const rows of groupRows) {
       if (rows[0].parentGroup.id !== this.parentGroup.id) {
@@ -1017,6 +1029,12 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
             return pmfm.name === row.measurementValues[criteriaPmfm.id.toString()]?.name;
           });
           virtualPmfmValue.push({ virtualPmfm: virtualPmfm, individualCount: row.individualCount });
+
+          // Keep images before merging rows
+          if (row.images) {
+            const key = this.getSubBatchKey(row, criteriaPmfm.id.toString(), numericalPmfmId);
+            subBatchesImages.set(key, row.images);
+          }
         });
 
         const newRow = new SubBatch();
@@ -1034,6 +1052,9 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
         newRow.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${newRow.rankOrder}`;
         newRows.push(newRow);
       }
+
+      // Keep images before merging rows
+      this._state.set('temporarySubBatchesImages', (_) => subBatchesImages);
     }
     this._rowsAreMerged = true;
     await this.setValue(newRows);
@@ -1047,6 +1068,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     const criteriaPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isQualitative(pmfm));
 
     const newSubBatches = [];
+
+    const subBatchesImages = this._state.get('temporarySubBatchesImages');
 
     // Convert rows
     for (const subBatch of existingSubBatches) {
@@ -1066,6 +1089,11 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
           newSubBatch.parentGroup = subBatch.parentGroup;
           newSubBatch.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${newSubBatch.rankOrder}`;
 
+          // Retrieve images back after splitting rows
+          const key = this.getSubBatchKey(newSubBatch, criteriaPmfm.id.toString(), numericalPmfmId);
+          const subBatchImages = subBatchesImages?.get(key);
+          if (subBatchImages) newSubBatch.images = subBatchImages;
+
           newSubBatches.push(newSubBatch);
         }
       });
@@ -1078,6 +1106,10 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this._rowsAreMerged = false;
 
     await this.setValue(newSubBatches);
+  }
+
+  private getSubBatchKey(row: SubBatch, criteriaPmfmId: string, numericalPmfmId: string) {
+    return [row.taxonName?.id, row.measurementValues[criteriaPmfmId].id, row.measurementValues[numericalPmfmId]].join('-');
   }
 
   private async deleteEmptyRows() {
@@ -1111,6 +1143,42 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     //update modal mode
     this._modalMode = mode;
+  }
+
+  async openImagesModal(event: Event, row: TableElement<SubBatch>) {
+    const images = row.currentData.images;
+
+    // Skip if no images to display
+    if (this.disabled && isEmptyArray(images)) return;
+
+    event?.stopPropagation();
+    console.debug(this.logPrefix + 'Opening images modal...');
+
+    const modal = await this.modalCtrl.create({
+      component: AppImageAttachmentsModal,
+      componentProps: <IImageModalOptions>{
+        data: images,
+        disabled: this.disabled,
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large',
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+
+    // User cancel
+    if (isNil(data) || this.disabled) return;
+
+    if (this.inlineEdition && row.validator) {
+      const formArray = row.validator.get('images');
+      formArray.patchValue(data);
+      row.validator.markAsDirty();
+      this.confirmEditCreate();
+      this.markAsDirty();
+    } else {
+      row.currentData.images = data;
+      this.markAsDirty();
+    }
   }
 
   getFormErrors = AppFormUtils.getFormErrors;

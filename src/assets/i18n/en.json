@@ -78,6 +78,7 @@
     "BTN_CLEAR_CLIPBOARD": "Clear clipboard",
     "BTN_CLEAR_SELECTION": "Clear selection",
     "BTN_LOGOUT": "Log out",
+    "BTN_ADD_IMAGE": "Add a picture",
     "CREATED_ON": "Created on ",
     "COMMENTS": "Comments",
     "BTN_DECIMAL_SEPARATOR": ".",
@@ -1199,6 +1200,7 @@
         "BTN_AUTO_INCREMENT": "Auto increment",
         "BTN_INDIVIDUAL_MEASURE": "Fill measurements",
         "BTN_APPLY_CHILDREN_WEIGHT": "Apply this weight",
+        "IMAGES": "Picture(s)",
         "IS_ESTIMATED": "Estimated?",
         "ESTIMATED_WEIGHT": "Estimated weight",
         "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
@@ -1243,6 +1245,8 @@
       "TABLE": {
         "BTN_AUTO_FILL": "Fill all species",
         "BTN_INDIVIDUAL_MEASURE": "Measures",
+        "BTN_IMAGES": "Add pictures",
+        "IMAGES": "Picture(s)",
         "LABEL": "Label",
         "LABEL_PLACEHOLDER": "Label",
         "TAXON_GROUP": "Declarative species (FAO)",
@@ -2648,6 +2652,7 @@
       "SALE_LOCATION_LEVEL_IDS": "Occasion > Sale: Location level(s)",
       "SALE_FAVORITES_ENABLE": "Occasion > Sale: Enable favourites?",
       "SALE_BATCH_ENABLE": "Occasion > Sale: Enable batches?",
+      "SALE_BATCH_IMAGES_ENABLE": "Occasion > Sale: Enable pictures?",
       "STRATEGY_EDITOR": "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Default",
