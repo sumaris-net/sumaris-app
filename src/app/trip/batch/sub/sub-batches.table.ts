@@ -746,6 +746,9 @@ export class SubBatchesTable<S extends SubBatchesTableState = SubBatchesTableSta
   protected async addEntityToTable(newBatch: SubBatch, opts?: { confirmCreate?: boolean; editing?: boolean }): Promise<TableElement<SubBatch>> {
     if (this.debug) console.debug('[batches-table] Adding batch to table:', newBatch);
 
+    const computedPmfm = this.pmfms.find((pmfm) => PmfmUtils.isComputed(pmfm)) || null;
+    const comparedPmfms = this.pmfms.filter((pmfm) => !PmfmUtils.isComputed(pmfm)) || [];
+
     // Make sure individual count if init
     newBatch.individualCount = isNotNil(newBatch.individualCount) ? newBatch.individualCount : 1;
 
@@ -755,12 +758,13 @@ export class SubBatchesTable<S extends SubBatchesTableState = SubBatchesTableSta
     // If individual count column is shown (can be greater than 1)
     if (this.showIndividualCount) {
       // Try to find an identical sub-batch
-      const row = this.dataSource.getRows().find((r) => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
+      const row = this.dataSource.getRows().find((r) => BatchUtils.canMergeSubBatch(newBatch, r.currentData, comparedPmfms));
 
       // Already exists: increment individual count
       if (row) {
         const existingBatch = row.currentData;
         existingBatch.individualCount = (existingBatch.individualCount || 0) + newBatch.individualCount;
+        if (computedPmfm) existingBatch.measurementValues[computedPmfm?.id] += newBatch.measurementValues[computedPmfm?.id];
         await this.updateEntityToTable(existingBatch, row, { confirmEdit: opts?.confirmCreate });
         return;
       }
