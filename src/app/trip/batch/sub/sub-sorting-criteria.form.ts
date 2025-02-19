@@ -17,9 +17,10 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { RxState } from '@rx-angular/state';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface SubSortingCriteria {
   taxonName: TaxonNameRef;
