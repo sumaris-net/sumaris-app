@@ -1039,7 +1039,8 @@
         "TAG_OPERATION": "Étiquette",
         "ACCIDENTAL_CATCH": {
           "TRIP_PROGRESS": "Déroulement normal de l'opération ?",
-          "IS_ACOUSTIC_DEVICE": "Pinger activé ?"
+          "IS_ACOUSTIC_DEVICE": "Pinger activé ?",
+          "HAS_ACCIDENTAL_CATCHES": "Captures accidentelles de petits cétacés ?"
         },
         "TRAWL_SELECTIVITY": {
           "TAG_OPERATION": "Code de rapprochement"
@@ -3118,7 +3119,7 @@
       "HAS_INDIVIDUAL_MEASURES": "Mesures individuelles?",
       "DOLPHIN_PRESENCE": "Dauphin autour navire?",
       "IS_ACOUSTIC_DEVICE": "Dispositif(s) de répulsif acoustique?",
-      "HAS_ACCIDENTAL_CATCHES": "Captures accidentelles?",
+      "HAS_ACCIDENTAL_CATCHES": "Captures accidentelles ?",
       "DISCARD_REASON": "Raison du rejet",
       "DRESSING_POL": "Présentation",
       "SPECIES_CODE": "Code espèce",

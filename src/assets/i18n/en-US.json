@@ -1017,6 +1017,11 @@
         "SORTING_START_DATE_TIME": "Start of sorting",
         "SORTING_END_DATE_TIME": "End of sorting",
         "TAG_OPERATION": "Label",
+        "ACCIDENTAL_CATCH": {
+          "TRIP_PROGRESS": "Normal progress of the operation?",
+          "IS_ACOUSTIC_DEVICE": "Is the pinger activated?",
+          "HAS_ACCIDENTAL_CATCHES": "Accidental catches of small cetaceans?"
+        },
         "TRAWL_SELECTIVITY": {
           "TAG_OPERATION": "Match code"
         }
@@ -1373,8 +1378,9 @@
       },
       "PMFM": {
         "TAG_ID": "Tag-ID",
+        "SEX": "Sex",
         "ACCIDENTAL_CATCH": {
-          "MEASURE_TIME": "Release date",
+          "WEIGHT_ESTIMATED_TOTAL_KG": "Estimated weight (kg)",
           "IS_DEAD": "Is dead?",
           "TAG_ID": "Tag-ID"
         },
@@ -2996,7 +3002,7 @@
       "CA": "Sex-Age",
       "CL": "Commercial landings",
       "CE": "Efforts",
-      "ST": "Survival tests",
+      "ST": "Individual monitoring",
       "RL": "Releases",
       "FG": "Fishing gears"
     },
