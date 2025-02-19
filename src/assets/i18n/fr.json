@@ -3572,6 +3572,7 @@
       "RECORDER_PERSON": "Saisisseur",
       "RECORDER_DEPARTMENT": "Organisme saisisseur",
       "DIRECT_SURVEY_INVESTIGATION": "Objectif d'enquête directe ?",
+      "DOWNLOAD_JSON_FILENAME": "calendriers-activité-{{year}}.json",
       "ECONOMIC_SURVEY": "Objectif d'enquête éco ?",
       "REGISTRATION_LOCATION": "Lieu d'immatriculation",
       "VESSEL": "Navire",

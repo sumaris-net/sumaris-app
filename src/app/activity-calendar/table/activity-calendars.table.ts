@@ -719,7 +719,9 @@ export class ActivityCalendarsTable
 
     // Write to file
     FilesUtils.writeTextToFile(content, {
-      filename: this.translate.instant('ACTIVITY_CALENDAR.TABLE.DOWNLOAD_JSON_FILENAME'),
+      filename: this.translate.instant('ACTIVITY_CALENDAR.TABLE.DOWNLOAD_JSON_FILENAME', {
+        year: this.filterYearControl.value || '',
+      }),
       type: 'application/json',
     });
   }

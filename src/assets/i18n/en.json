@@ -3405,6 +3405,7 @@
       "RECORDER_PERSON": "Recorder",
       "RECORDER_DEPARTMENT": "Recoder department(s)",
       "DIRECT_SURVEY_INVESTIGATION": "Direct survey investigation objective?",
+      "DOWNLOAD_JSON_FILENAME": "activity-calendar-{{year}}.json",
       "ECONOMIC_SURVEY": "Economic survey?",
       "REGISTRATION_LOCATION": "Registration location",
       "VESSEL": "Vessel",
