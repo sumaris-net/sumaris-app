@@ -280,7 +280,9 @@ export class DenormalizedPmfmStrategy extends Entity<DenormalizedPmfmStrategy> i
     }
 
     // Remove strategyId
-    delete result.strategyId;
+    if (result.strategyId !== other.strategyId) {
+      delete result.strategyId;
+    }
 
     return result;
   }

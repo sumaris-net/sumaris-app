@@ -93,7 +93,7 @@ export class GearPhysicalFeaturesUtils {
     }
 
     // DEBUG
-    //console.debug(GearPhysicalFeaturesUtils.logPrefix + 'Loaded:  gearPhysicalFeatures', target);
+    //console.debug(GearPhysicalFeaturesUtils.logPrefix + 'Loaded: gearPhysicalFeatures', target);
 
     return target;
   }
