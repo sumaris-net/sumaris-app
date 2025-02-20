@@ -413,10 +413,6 @@ export class ActivityCalendarsTable
     // Vessel type filter
     this.configVesselTypeIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_IDS);
 
-    // Locations filter
-    this.registrationLocationLevelIds = [LocationLevelIds.MARITIME_DISTRICT];
-    this.basePortLocationLevelIds = [LocationLevelIds.PORT];
-
     // Program filter / column
     this.defaultShowFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
 
@@ -440,6 +436,10 @@ export class ActivityCalendarsTable
 
     this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [];
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
+
+    // Locations filter
+    this.registrationLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_REGISTRATION_LOCATION_LEVEL_IDS);
+    this.basePortLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS);
 
     // Load programs to exclude
     this.excludedProgramIds = await this.loadExcludedProgramIds(program);

@@ -1126,6 +1126,19 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelIds.PORT.toString(),
   },
+  ACTIVITY_CALENDAR_REGISTRATION_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.activityCalendar.registrationLocation.level.ids',
+    label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_REGISTRATION_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+      },
+      attributes: ['name'],
+    },
+    defaultValue: LocationLevelIds.MARITIME_DISTRICT.toString(),
+  },
   ACTIVITY_CALENDAR_VESSEL_BASE_PORT_LOCATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.activityCalendar.vesselBasePortLocation.enable',
     label: 'PROGRAM.OPTIONS.ACTIVITY_CALENDAR_VESSEL_BASE_PORT_LOCATION_ENABLE',
@@ -1444,6 +1457,7 @@ export class ProgramPropertiesUtils {
     ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.join(',');
     ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
     ProgramProperties.ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
+    ProgramProperties.ACTIVITY_CALENDAR_REGISTRATION_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.MARITIME_DISTRICT.toString();
     ProgramProperties.ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
     ProgramProperties.ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.join(',');
     ProgramProperties.ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.NATIONAL_METIER.toString();
