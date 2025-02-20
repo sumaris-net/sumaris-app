@@ -15,7 +15,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   LatLongPattern,
-  sleep,
   splitById,
   StatusIds,
   TreeItemEntityUtils,
@@ -230,15 +229,6 @@ export class FormTripReport extends AppDataEntityReport<Trip, number, FormTripRe
   computePrintHref(data: Trip, stats: FormTripReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
     return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/form/' + this.subReportType);
-  }
-
-  async updateView() {
-    await super.updateView();
-
-    if (this.reveal.printing) {
-      await sleep(500);
-      await this.reveal.print();
-    }
   }
 
   protected filterPmfmForOperationTable(pmfm: IPmfm): boolean {

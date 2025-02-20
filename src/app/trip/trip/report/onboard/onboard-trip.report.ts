@@ -44,6 +44,7 @@ export class OnboardTripReport extends BaseTripReport<OnboardExtractionData, Onb
     };
   }
 
-  // Skip : no map on the report
-  async showMap() {}
+  async showMap() {
+    console.warn(this.logPrefix + 'Show map not implemented');
+  }
 }

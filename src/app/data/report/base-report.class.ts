@@ -1,20 +1,34 @@
+import { APP_BASE_HREF } from '@angular/common';
+import { HttpClient, HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
   ChangeDetectorRef,
   Directive,
   EventEmitter,
+  inject,
   Injector,
   Input,
   OnDestroy,
   OnInit,
   Optional,
   ViewChild,
-  inject,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { Clipboard, ContextService } from '@app/shared/context.service';
+import { hasFlag } from '@app/shared/flags.utils';
+import { Function } from '@app/shared/functions';
+import { Popovers } from '@app/shared/popover/popover.utils';
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
+import { FileTransferService } from '@app/shared/service/file-transfer.service';
+import { SharedElement } from '@app/social/share/shared-page.model';
+import { SharedResourceUtils } from '@app/social/share/shared-resource.utils';
+import { Clipboard as CapacitorClipboard } from '@capacitor/clipboard';
+import { Share } from '@capacitor/share';
 import { environment } from '@environments/environment';
+import { ModalController, PopoverController, ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
@@ -35,32 +49,16 @@ import {
   MenuService,
   NetworkService,
   PlatformService,
-  sleep,
-  StorageService,
   Toasts,
   toDateISOString,
   TranslateContextService,
   WaitForOptions,
   waitForTrue,
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, lastValueFrom, Subject, Subscription } from 'rxjs';
-import { ModalController, PopoverController, ToastController } from '@ionic/angular';
-import { Share } from '@capacitor/share';
-import { Popovers } from '@app/shared/popover/popover.utils';
-import { SharedElement } from '@app/social/share/shared-page.model';
-import { v4 as uuidv4 } from 'uuid';
-import { filter, first, map, takeUntil } from 'rxjs/operators';
-import { HttpClient, HttpEventType } from '@angular/common/http';
-import { FileTransferService } from '@app/shared/service/file-transfer.service';
-import { APP_BASE_HREF } from '@angular/common';
-import { Clipboard, ContextService } from '@app/shared/context.service';
 import { instanceOf } from 'graphql/jsutils/instanceOf';
-import { Function } from '@app/shared/functions';
-import { hasFlag } from '@app/shared/flags.utils';
-import { SharedResourceUtils } from '@app/social/share/shared-resource.utils';
-import { Program } from '@app/referential/services/model/program.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { Clipboard as CapacitorClipboard } from '@capacitor/clipboard';
+import { BehaviorSubject, lastValueFrom, Subject, Subscription } from 'rxjs';
+import { filter, first, map, takeUntil } from 'rxjs/operators';
+import { v4 as uuidv4 } from 'uuid';
 
 export const ReportDataPasteFlags = Object.freeze({
   NONE: 0,
@@ -122,7 +120,6 @@ export abstract class AppBaseReport<
   >
   implements OnInit, AfterViewInit, OnDestroy
 {
-  private _printing = false;
   private _embedded: boolean;
 
   protected logPrefix = 'base-report';
@@ -227,10 +224,6 @@ export abstract class AppBaseReport<
     return `${peerUrl.replace(/\/$/, '')}/share/`;
   }
 
-  get isPrinting(): boolean {
-    return this._printing;
-  }
-
   protected constructor(
     injector: Injector,
     protected dataType: new () => T,
@@ -274,14 +267,13 @@ export abstract class AppBaseReport<
   }
 
   ngOnDestroy() {
-    if (isNotNil(this.reveal)) this.reveal.disablePrintJob();
+    //if (isNotNil(this.reveal)) this.reveal.disablePrintJob();
     this.configSubscription.unsubscribe();
     this.destroySubject.next();
   }
 
   async start(opts?: any) {
     await this.platform.ready();
-
     // Disable the menu if user is not authenticated (public shared report)
     const accountService = this.injector.get(AccountService);
     await accountService.ready();
@@ -304,7 +296,6 @@ export abstract class AppBaseReport<
 
       // Update the view: initialize reveal
       await this.updateView();
-      this.reveal.disablePrintJob();
     } catch (err) {
       console.error(err);
       this.setError(err);
@@ -451,11 +442,10 @@ export abstract class AppBaseReport<
     return undefined;
   }
 
-  async updateView() {
+  async updateView(opts?: { emitEvent?: boolean }) {
     this.cd.detectChanges();
     await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject });
-    if (!this.embedded) await this.reveal.initialize();
-    this.reveal.disablePrintJob();
+    if (!this.embedded) await this.reveal.initialize(opts);
   }
 
   markAsReady() {
@@ -685,21 +675,13 @@ export abstract class AppBaseReport<
   }
 
   protected async print() {
-    if (this._printing) return true; // Skip is already printing
-    this._printing = true;
-    await this.ready();
+    await firstFalsePromise(this.loadingSubject);
+    if (this.reveal?.printing) return;
     this.context.clipboard = this.computeShareContent();
     await this.context.saveClipboard();
     this.context.resetValue('clipboard');
-    await this.reveal.enablePrintJob();
+    //await this.reveal.enablePrintJob();
     await this.reveal?.print();
-    this._printing = false;
-  }
-
-  private isPrintngPDF(): boolean {
-    if (this._printing) return true;
-    const query = window.location.search || '?';
-    return query.indexOf('print-pdf') !== -1;
   }
 
   private computeShareContent(): any {
