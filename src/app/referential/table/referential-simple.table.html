@@ -72,8 +72,8 @@
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
-          [checked]="selection.hasValue() && isAllSelected()"
-          [indeterminate]="selection.hasValue() && !isAllSelected()"
+          [checked]="selection | isAllSelected: this"
+          [indeterminate]="selection | isNotAllSelected: this"
           [tabIndex]="-1"
         ></mat-checkbox>
       </th>
@@ -96,16 +96,14 @@
         <span translate>REFERENTIAL.LABEL</span>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn = 'label'">
-        <mat-form-field floatLabel="never">
-          <input
-            matInput
-            [formControl]="row.validator.controls['label']"
-            [placeholder]="'REFERENTIAL.LABEL' | translate"
-            [appAutofocus]="row.editing && focusColumn === 'label'"
-            [readonly]="!row.editing"
-          />
-          <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
+        @if (row.editing && row.validator | formGetControl: 'label'; as control) {
+          <mat-form-field>
+            <input matInput [formControl]="control" [placeholder]="'REFERENTIAL.LABEL' | translate" [appAutofocus]="focusColumn === 'label'" />
+            <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        } @else {
+          <ion-label appAutoTitle>{{ row.currentData?.label }}</ion-label>
+        }
       </td>
     </ng-container>
 
@@ -115,16 +113,14 @@
         <span translate>REFERENTIAL.NAME</span>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn = 'name'">
-        <mat-form-field floatLabel="never">
-          <input
-            matInput
-            [formControl]="row.validator.controls['name']"
-            [placeholder]="'REFERENTIAL.NAME' | translate"
-            [appAutofocus]="row.editing && focusColumn === 'name'"
-            [readonly]="!row.editing"
-          />
-          <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
+        @if (row.editing && row.validator | formGetControl: 'name'; as control) {
+          <mat-form-field>
+            <input matInput [formControl]="control" [placeholder]="'REFERENTIAL.NAME' | translate" [appAutofocus]="focusColumn === 'name'" />
+            <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        } @else {
+          <ion-label appAutoTitle>{{ row.currentData?.name }}</ion-label>
+        }
       </td>
     </ng-container>
 
@@ -134,23 +130,23 @@
         <span translate>REFERENTIAL.DESCRIPTION</span>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn = 'description'">
-        <mat-form-field *ngIf="row.editing && row.validator | formGetControl: 'description'; let control; else: readOnly" floatLabel="never">
-          <input
-            matInput
-            autocomplete="off"
-            [appAutofocus]="row.editing && focusColumn === 'description'"
-            [formControl]="control"
-            [placeholder]="i18nColumnPrefix + 'DESCRIPTION' | translate"
-            [readonly]="!row.editing"
-          />
-          <button mat-icon-button matSuffix (click)="openDescriptionPopover($event, row)">
-            <ion-icon [color]="control.value ? 'tertiary' : 'medium'" name="chatbox" slot="icon-only" style="width: 16px"></ion-icon>
-          </button>
-          <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-        <ng-template #readOnly>
+        @if (row.editing && row.validator | formGetControl: 'description'; as control) {
+          <mat-form-field>
+            <input
+              matInput
+              autocomplete="off"
+              [appAutofocus]="focusColumn === 'description'"
+              [formControl]="control"
+              [placeholder]="i18nColumnPrefix + 'DESCRIPTION' | translate"
+            />
+            <button mat-icon-button matSuffix (click)="openDescriptionPopover($event, row)">
+              <ion-icon [color]="control.value ? 'tertiary' : 'medium'" name="chatbox" slot="icon-only" style="width: 16px"></ion-icon>
+            </button>
+            <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        } @else {
           <ion-label appAutoTitle>{{ row.currentData?.description }}</ion-label>
-        </ng-template>
+        }
       </td>
     </ng-container>
 

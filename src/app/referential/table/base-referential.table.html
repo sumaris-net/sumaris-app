@@ -1,22 +1,25 @@
-<app-debug *ngIf="debug">
-  <ion-row>
-    <ion-col>
-      loading: {{ loading }}
-      <br />
-      enabled: {{ enabled }}
-      <br />
-      dirty: {{ dirty }}
-      <br />
-    </ion-col>
-    <ion-col>
-      filter:
-      <pre>{{ filter | json }}</pre>
-      <br />
-    </ion-col>
-  </ion-row>
+<!-- debug -->
+@if (debug) {
+  <app-debug>
+    <ion-row>
+      <ion-col>
+        loading: {{ loading }}
+        <br />
+        enabled: {{ enabled }}
+        <br />
+        dirty: {{ dirty }}
+        <br />
+      </ion-col>
+      <ion-col>
+        filter:
+        <pre>{{ filter | json }}</pre>
+        <br />
+      </ion-col>
+    </ion-row>
 
-  <ng-content select="[appDebug]"></ng-content>
-</app-debug>
+    <ng-content select="[appDebug]"></ng-content>
+  </app-debug>
+}
 
 <mat-toolbar *ngIf="showToolbar">
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
@@ -103,8 +106,9 @@
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="disabled">
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
-          [checked]="selection.hasValue() && isAllSelected()"
-          [indeterminate]="selection.hasValue() && !isAllSelected()"
+          [checked]="selection | isAllSelected: this"
+          [indeterminate]="selection | isNotAllSelected: this"
+          [tabIndex]="-1"
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="disabled">
@@ -134,20 +138,21 @@
           [class.mat-form-field-disabled]="!row.editing"
           [class.mat-mdc-cell-date]="definition.type === 'date'"
           [class.mat-mdc-cell-date-time]="definition.type === 'dateTime'"
+          (click)="focusColumn = definition.key"
         >
-          <app-form-field
-            *ngIf="row.editing && row.validator.controls | mapGet: definition.key; let control; else: readonly"
-            compact="true"
-            floatLabel="never"
-            [formControl]="control"
-            [definition]="definition"
-          ></app-form-field>
-
-          <ng-template #readonly>
+          @if (row.editing && row.validator | formGetControl: definition.key; as control) {
+            <app-form-field
+              compact="true"
+              floatLabel="never"
+              [formControl]="control"
+              [definition]="definition"
+              [autofocus]="focusColumn === definition.key"
+            ></app-form-field>
+          } @else {
             <ion-label>
               {{ row.currentData | propertyFormat: definition }}
             </ion-label>
-          </ng-template>
+          }
         </td>
       </ng-container>
     </ng-container>

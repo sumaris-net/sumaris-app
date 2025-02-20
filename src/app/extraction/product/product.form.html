@@ -8,9 +8,8 @@
 <app-referential-form #referentialForm [form]="form" [showError]="false" [debug]="debug" (onSubmit)="doSubmit($event)">
   <ion-row>
     <ion-col>
-      <mat-form-field floatLabel="never">
+      <mat-form-field>
         <input matInput hidden />
-        <ion-label>&nbsp;</ion-label>
         <mat-checkbox matPrefix [formControl]="form | formGetControl: 'isSpatial'" [disabled]="true" labelPosition="after">
           <ion-text translate>EXTRACTION.AGGREGATION.EDIT.IS_SPATIAL</ion-text>
         </mat-checkbox>
