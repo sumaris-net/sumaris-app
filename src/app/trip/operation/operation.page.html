@@ -1,11 +1,11 @@
+@let saving = savingSubject | push;
+@let loading = loadingSubject | push;
+@let hasValidate = !loading && (dirty || saving);
+
 <!-- backdrop (e.g. during geolocation) -->
 @if (platform.busySubject | push) {
   <ion-backdrop></ion-backdrop>
 }
-
-@let saving = savingSubject | push;
-@let loading = loadingSubject | push;
-@let hasValidate = !loading && (dirty || saving);
 
 <!-- Toolbar -->
 <app-toolbar
