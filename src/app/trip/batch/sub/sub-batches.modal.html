@@ -351,7 +351,7 @@
           <tr
             mat-row
             *matRowDef="let row; let i = index; columns: displayedColumns"
-            [class.even]="(visibleRowCount - i) % 2 === 0"
+            [class.even]="(mobile ? visibleRowCount - i : i) % 2 === 0"
             [class.mat-mdc-row-dirty]="isNewRow(row)"
             [class.mat-mdc-row-error]="row.validator?.invalid"
             [class.mat-mdc-row-animated]="animationSelection.isSelected(row)"
