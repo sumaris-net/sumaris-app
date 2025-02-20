@@ -1,9 +1,3 @@
-<!-- backdrop (e.g. during geo localization) -->
-@let busy = busySubject | push;
-@if (busy) {
-  <ion-backdrop></ion-backdrop>
-}
-
 <form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
   <!-- error -->
   @if (showError) {
