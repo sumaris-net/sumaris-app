@@ -16,6 +16,7 @@ import {
   isNotNilOrBlank,
   isNotNilOrNaN,
   removeDuplicatesFromArray,
+  round,
   sleep,
   toDateISOString,
   waitFor,
@@ -25,7 +26,7 @@ import { ChartJsUtils, ChartJsUtilsColor, ChartJsUtilsMedianLineOptions, ChartJs
 import { ChartConfiguration, ChartOptions, ChartTypeRegistry } from 'chart.js';
 import { TripReportService } from '@app/trip/trip/report/trip-report.service';
 import { IDenormalizedPmfm } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LengthMeterConversion } from '@app/referential/services/model/model.enum';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { ArrayElementType, collectByFunction, Function } from '@app/shared/functions';
 import { CatchCategoryType, RdbPmfmExtractionData, RdbSpeciesLength } from '@app/trip/trip/report/trip-report.model';
@@ -384,7 +385,9 @@ export abstract class BaseTripReport<
   ): SpeciesChart {
     const pmfmName =
       (lengthPmfm && this.pmfmNamePipe.transform(lengthPmfm, { withUnit: true, html: false })) || this.translate.instant('TRIP.REPORT.CHART.LENGTH');
-    const unitConversion = lengthPmfm?.unitLabel === 'cm' ? 0.1 : 1;
+
+    // actual -> meter (pivot) -> expected
+    const lengthUnitConversion = LengthMeterConversion['mm'] / LengthMeterConversion[lengthPmfm?.unitLabel || 'mm'];
 
     // Filter data
     if (opts?.filter) data = data.filter(opts.filter);
@@ -453,15 +456,15 @@ export abstract class BaseTripReport<
     let max = 0;
     let hasElevatedNumberAtLength = true;
     data.forEach((sl) => {
-      const length = sl.lengthClass * unitConversion;
+      const length = sl.lengthClass * lengthUnitConversion;
       min = Math.min(min, length);
       max = Math.max(max, length);
       if (hasElevatedNumberAtLength && isNil(sl.elevatedNumberAtLength)) hasElevatedNumberAtLength = false;
     });
 
     // Add labels
-    const labelCount = Math.max(1, Math.abs(max - min) + 1);
-    const xAxisLabels = new Array(labelCount).fill(Math.min(min, max)).map((v, index) => (v + index).toString());
+    const labelCount = Math.floor(Math.max(1, Math.abs(max - min) + 1));
+    const xAxisLabels = new Array(labelCount).fill(round(Math.min(min, max))).map((v, index) => round(v + index).toFixed(0));
     ChartJsUtils.pushLabels(chart, xAxisLabels);
 
     if (!hasElevatedNumberAtLength) {
@@ -478,7 +481,7 @@ export abstract class BaseTripReport<
       catchCategories.forEach((catchCategory, index) => {
         const data = new Array(xAxisLabels.length).fill(0);
         (dataByCatchCategory[catchCategory] || []).forEach((hl) => {
-          const labelIndex = hl.lengthClass * unitConversion - min;
+          const labelIndex = Math.floor(hl.lengthClass * lengthUnitConversion - min);
           data[labelIndex] += getNumberAtLength(hl) || 0;
         });
 
@@ -559,14 +562,16 @@ export abstract class BaseTripReport<
     this.cd.detectChanges();
 
     await waitFor(() => !!this.reveal);
-    await this.reveal.initialize();
+
+    await this.reveal.initialize({ emitEvent: false });
 
     if (this.reveal.printing) {
       await sleep(500);
       await this.showMap();
       await sleep(500);
-      await this.reveal.print();
     }
+
+    this.reveal.markAsReady();
   }
 
   async showMap() {
