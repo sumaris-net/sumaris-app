@@ -22,18 +22,32 @@
 
   <ion-buttons slot="end">
     @if (mobile && !xsMobile) {
-      <!-- New operation -->
-      <ion-button
-        fill="solid"
-        color="tertiary"
-        hidden-xxs
-        class="ion-margin-end"
-        [disabled]="disabled || loading || saving"
-        (click)="saveAndNew($event)"
-      >
-        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-        {{ 'TRIP.OPERATION.EDIT.BTN_NEW' | translate }}
-      </ion-button>
+      <!-- New operation (parent/child) -->
+      @if (allowParentOperation) {
+        <ion-button
+          fill="solid"
+          color="tertiary"
+          hidden-xxs
+          class="ion-margin-end"
+          [disabled]="disabled || loading || saving"
+          [matMenuTriggerFor]="newOperationTypeMenu"
+        >
+          <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+          {{ 'TRIP.OPERATION.EDIT.BTN_NEW' | translate }}
+        </ion-button>
+      } @else {
+        <ion-button
+          fill="solid"
+          color="tertiary"
+          hidden-xxs
+          class="ion-margin-end"
+          [disabled]="disabled || loading || saving"
+          (click)="saveAndNew($event)"
+        >
+          <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+          {{ 'TRIP.OPERATION.EDIT.BTN_NEW' | translate }}
+        </ion-button>
+      }
     }
 
     <!-- last operation (history) -->
@@ -222,6 +236,28 @@
   </ng-template>
 </mat-menu>
 
+<mat-menu #newOperationTypeMenu="matMenu" xPosition="before" class="ion-no-padding">
+  <ng-template matMenuContent>
+    <ion-row class="mat-menu-header ion-no-padding column">
+      <ion-col>
+        <ion-label translate>TRIP.OPERATION.EDIT.TYPE.PLACEHOLDER</ion-label>
+      </ion-col>
+    </ion-row>
+
+    <!-- New parent operation -->
+    <button mat-menu-item [disabled]="disabled || loading || saving" (click)="saveAndNew($event, { type: 'parent' })">
+      <mat-icon svgIcon="operation-parent"></mat-icon>
+      <ion-label translate>TRIP.OPERATION.EDIT.TYPE.PARENT</ion-label>
+    </button>
+
+    <!-- New child operation -->
+    <button mat-menu-item [disabled]="disabled || loading || saving" (click)="saveAndNew($event, { type: 'child' })">
+      <mat-icon svgIcon="operation-child"></mat-icon>
+      <ion-label translate>TRIP.OPERATION.EDIT.TYPE.CHILD</ion-label>
+    </button>
+  </ng-template>
+</mat-menu>
+
 <ion-content scroll-y="false">
   <mat-tab-group
     #tabGroup
@@ -373,8 +409,8 @@
     <mat-tab #sampleTab [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES' | translateContext: i18nContext.suffix" [disabled]="!showSamplesTab" appSubMenuTab>
       <ng-template mat-tab-label>
         <mat-icon svgIcon="fish-oblique"></mat-icon>
+        @let count = sampleTree.samplesTable.totalRowCount;
         <ion-label
-          *ngVar="sampleTree.samplesTable.totalRowCount as count"
           [matBadge]="count | badgeNumber"
           [matBadgeHidden]="sampleTree.invalid || !count"
           matBadgeOverlap="false"

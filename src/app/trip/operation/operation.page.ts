@@ -11,7 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { OperationSaveOptions, OperationService } from './operation.service';
-import { OperationForm } from './operation.form';
+import { OperationForm, OperationType } from './operation.form';
 import { TripService } from '../trip/trip.service';
 import { MapPmfmEvent, MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
@@ -227,7 +227,7 @@ export class OperationPage<S extends OperationState = OperationState>
       // Let the user save OP, even if not set
       //PmfmIds.HAS_INDIVIDUAL_MEASURES
     ];
-    this._defaultIsParentOperation = this.route.snapshot.queryParams['type'] !== 'child';
+    this._defaultIsParentOperation = this.route.snapshot.queryParams['type'] !== <OperationType>'child';
 
     // Get paste flags from clipboard, if related to Operation
     const clipboard = this.context?.clipboard;
@@ -618,6 +618,11 @@ export class OperationPage<S extends OperationState = OperationState>
 
             this.updateTablesState();
             this.markForCheck();
+
+            // Update the child/parent title
+            if (this.allowParentOperation && this.isNewData) {
+              await this.updateTitle();
+            }
           })
       );
     }
@@ -999,8 +1004,17 @@ export class OperationPage<S extends OperationState = OperationState>
         }))) ||
       '';
 
-    // new ope
+    // New operation
     if (!data || isNil(data.id)) {
+      // Child / parent
+      if (this.allowParentOperation) {
+        if (this.opeForm.isParentOperation ?? this._defaultIsParentOperation) {
+          return titlePrefix + (await this.translate.instant('TRIP.OPERATION.NEW.TITLE_PARENT'));
+        }
+        return titlePrefix + (await this.translate.instant('TRIP.OPERATION.NEW.TITLE_CHILD'));
+      }
+
+      // Legacy
       return titlePrefix + (await this.translate.instant('TRIP.OPERATION.NEW.TITLE'));
     }
 
@@ -1090,7 +1104,7 @@ export class OperationPage<S extends OperationState = OperationState>
     return this.navigateTo(+id);
   }
 
-  async saveAndNew(event: Event): Promise<boolean> {
+  async saveAndNew(event: Event, queryParams: { type?: OperationType } = {}): Promise<boolean> {
     if (event?.defaultPrevented) return false; // Skip
     event?.preventDefault(); // Avoid propagation to <ion-item>
 
@@ -1106,7 +1120,7 @@ export class OperationPage<S extends OperationState = OperationState>
     if (!saved) return; // not saved
 
     // Redirect to /new
-    return await this.navigateTo('new');
+    return await this.navigateTo('new', { queryParams });
   }
 
   async duplicate(event: Event): Promise<any> {
@@ -1233,6 +1247,15 @@ export class OperationPage<S extends OperationState = OperationState>
 
         this.setError({ message: 'COMMON.FORM.HAS_ERROR', ...error }, { detailsCssClass: 'error-details' });
       });
+    }
+
+    // No error
+    else {
+      if (this.isNewData && this.opeForm.isChildOperation && !this.data.parentOperation) {
+        // open the select parent modal
+        //await this.waitIdle({ stop: this.destroySubject });
+        this.opeForm.addParentOperation();
+      }
     }
   }
 

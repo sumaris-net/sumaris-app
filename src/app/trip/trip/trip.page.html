@@ -384,13 +384,13 @@
 
           <ion-fab-list side="top">
             <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.CHILD' | translate" (click)="onNewOperation($event, { type: 'child' })">
-              <mat-icon color="primary" svgIcon="rollback-arrow"></mat-icon>
-              <ion-icon class="icon-secondary" name="add"></ion-icon>
+              <mat-icon color="primary" svgIcon="operation-child"></mat-icon>
+              <ion-icon color="tertiary" class="icon-secondary" name="add"></ion-icon>
             </ion-fab-button>
 
             <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.PARENT' | translate" (click)="onNewOperation($event, { type: 'parent' })">
-              <mat-icon color="primary" svgIcon="down-arrow"></mat-icon>
-              <ion-icon class="icon-secondary" name="add"></ion-icon>
+              <mat-icon color="primary" svgIcon="operation-parent"></mat-icon>
+              <ion-icon color="tertiary" class="icon-secondary" name="add"></ion-icon>
             </ion-fab-button>
           </ion-fab-list>
         </ion-fab>

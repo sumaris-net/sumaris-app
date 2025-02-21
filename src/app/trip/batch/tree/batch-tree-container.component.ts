@@ -173,6 +173,18 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
   @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
   @Input() controlButtonText: 'QUALITY.BTN_CONTROL';
 
+  @Input() set disabled(value: boolean) {
+    if (value && this._enabled) {
+      this.disable();
+    } else if (!value && !this._enabled) {
+      this.enable();
+    }
+  }
+
+  get disabled(): boolean {
+    return !super.enabled;
+  }
+
   @Input() @RxStateProperty() usageMode: UsageMode;
   @Input() @RxStateProperty() programLabel: string;
   @Input() @RxStateProperty() requiredStrategy: boolean;

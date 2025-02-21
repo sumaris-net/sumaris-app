@@ -138,8 +138,13 @@
     "PLEASE_WAIT": "Please wait...",
     "NO_DATA": "No data",
     "MISSING": "Missing",
+    "DISPLAY_MODE_DOTS": "Display mode...",
     "DISPLAYED_COLUMNS": "Displayed columns",
     "DISPLAYED_COLUMNS_DOTS": "Displayed columns...",
+    "DISPLAY_MODE": {
+      "CARD": "Card view",
+      "LIST": "List view"
+    },
     "FORM": {
       "HAS_ERROR": "Please correct errors in the form"
     },
@@ -216,6 +221,7 @@
     "OPTIONS": {
       "ANDROID_INSTALL_URL": "App > Android > Install App URL",
       "IOS_INSTALL_URL": "App > iOS > Install App URL",
+      "DESKTOP_INSTALL_URL": "App > Desktop > Install URL",
       "DB_TIMEZONE": "Persistence > Database timezone (readonly option)",
       "LOGO": "Menu > Logo (max width 110px)",
       "FAVICON": "favicon",
@@ -776,6 +782,10 @@
       "BTN_DELETE": "Delete the full trip",
       "BTN_REPORT": "Edit report..."
     },
+    "CARD": {
+      "DEPARTURE_DOTS": "Departure:",
+      "RETURN_DOTS": "Return:"
+    },
     "OPTIONS": {
       "ENABLE": "Trips > Enable?",
       "NAME": "Trips > Title (menu, etc.)"
@@ -922,7 +932,9 @@
       "OPE_PREFIX": "OP",
       "TITLE_PREFIX": "<small>{{vessel}} - Trip {{departureDateTime}}<br></small>",
       "NEW": {
-        "TITLE": "New OP"
+        "TITLE": "New OP",
+        "TITLE_PARENT": "New setting",
+        "TITLE_CHILD": "New hauling"
       },
       "EDIT": {
         "TITLE": "OP #{{rankOrder}} <small>at {{startDateTime}}</small>",
@@ -967,7 +979,7 @@
         "OTHER_FEATURES": "Other features:",
         "NO_TARGET_SPECIES_FOUND": "No species for this gear",
         "DISTANCE_DOTS": "Dist.: {{distance}} miles",
-        "PARENT_OPERATION": "Associated operation",
+        "PARENT_OPERATION": "Associated setting",
         "PLEASE_SELECT_HELP": "Select an operation",
         "POSITIONS": "Positions",
         "QUALITY_FLAG_ID": "Quality flag",
@@ -997,14 +1009,22 @@
           "TAB_SAMPLES": "Survival tests"
         },
         "ACCIDENTAL_CATCH": {
-          "TAB_SAMPLES": "Accidental catches"
+          "TAB_SAMPLES": "Accidental catches",
+          "START": "Start of setting:",
+          "START_FISHING": "End of setting / Start of fishing:",
+          "END_FISHING": "End of fishing / Start of hauling:",
+          "END": "End of hauling:",
+          "START_DATE_TIME": "Setting start",
+          "FISHING_START_DATE_TIME": "Fishing start",
+          "FISHING_END_DATE_TIME": "Fishing end",
+          "END_DATE_TIME": "Hauling end"
         },
         "OBSERVED_TRIP": {
           "TAB_SAMPLES": "Accidental catches"
         }
       },
       "PARENT": {
-        "TITLE": "Select setting",
+        "TITLE": "Select the associated setting",
         "TRIP": "{{vessel}} - Trip {{departureDateTime}}",
         "FILTER": {
           "SEARCH_TEXT": "Search : code gear / target species",
@@ -1057,7 +1077,7 @@
         "QUALITY": "State"
       },
       "SETTINGS": {
-        "GEOLOCATION_TIMEOUT": "GPS location > Acquisition timeout (seconds)"
+        "GEOLOCATION_TIMEOUT": "GPS sensor > Maximum acquisition timeout (seconds)"
       },
       "INFO": {
         "CONTROL_SUCCEED": "<ion-icon name='checkmark'></ion-icon> Operation <b>successfully controlled</b>! No errors detected."
@@ -1221,6 +1241,7 @@
       },
       "PMFM": {
         "DISCARD_OR_LANDING": "Landing or discard?",
+        "BATCH_MEASURED_WEIGHT": "Total weight (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Computed weight LWR (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Total weight LWR (kg)",
         "CHILD_GEAR": "Sub-gear",
@@ -1292,7 +1313,8 @@
         "ACCIDENTAL_CATCH": {
           "TITLE": "Catch {{label}}",
           "TAXON_GROUP": "Species (FAO)",
-          "TAXON_NAME": "Scientific species"
+          "TAXON_NAME": "Scientific species",
+          "SAMPLE_DATE": "Date of observation"
         },
         "OBSERVED_TRIP": {
           "TITLE": "Catch {{label}}",
@@ -2223,8 +2245,9 @@
       "TYPE": "Transcribing type"
     },
     "EXPERTISE_AREA": {
-      "LOCATION": "Expertise area location(s)",
+      "LOCATIONS": "Location(s) of the area",
       "LOCATION_LEVEL": "Location level",
+      "LOCATION_LEVELS": "Location level(s)",
       "NEW": {
         "TITLE": "New expertise area"
       },
@@ -2346,7 +2369,6 @@
     "TAB_GENERAL": "Details",
     "TAB_LOCATIONS": "Locations",
     "TAB_STRATEGIES": "Strategies",
-    "TAB_STRATEGIES.SAMPLING": "Samples row",
     "TAB_PRIVILEGES": "Access rights",
     "TAB_PROPERTIES": "Options",
     "TAXON_GROUP_TYPE": "Referential for taxon groups",
@@ -2463,7 +2485,7 @@
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Sample: Scientific species?",
       "TRIP_SAMPLE_LABEL_ENABLE": "Trip > Sample: Label?",
       "TRIP_SAMPLE_IMAGES_ENABLE": "Trip > Sample: Images?",
-      "TRIP_SAMPLE_REQUIRED_NOT_EMPTY_PMFM_ID": "Trip > Sample : Accidental catches : Mandatory entry ?",
+      "TRIP_SAMPLE_REQUIRED_PMFM_ID": "Trip > Opération: PMFM (boolean) making sample entry mandatory",
       "TRIP_POSITION_ENABLE": "Trip > Position: Enable?",
       "TRIP_POSITION_BOUNDING_BOX": "Trip > Position: Bounding box ([x1, y1, x2, y2]):",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Trip > Position > Latitude: Default direction:",
@@ -2927,10 +2949,10 @@
       "COMMERCIAL_SIZE_CATEGORY": "Commercial size category",
       "COMMERCIAL_SIZE_CATEGORY_SCALE": "Commercial size category scale",
       "VESSEL_LENGTH_CATEGORY": "Vessel length category",
-      "VESSEL_LENGTH_CLASS": "Vessel length category",
+      "VESSEL_LENGTH_CLASS": "Vessel length class",
       "GEAR_TYPE": "Gear",
       "LENGTH_CLASS": "Length class",
-      "CATCH_CATEGORY": "Catch category",
+      "CATCH_CATEGORY": "Landing/Discard",
       "LANDING_CATEGORY": "Landing category",
       "NUMBER_AT_LENGTH": "Number at length",
       "INDIVIDUAL_SEX": "Individual sex",
@@ -3231,6 +3253,7 @@
           "WARNINGS": "Warning(s) : {{warnings}}",
           "ERRORS": "Error(s) : {{errors}}",
           "MIN_UPDATE_DATE": "min(update_date) : '{{minUpdateDate}}'",
+          "FILTER_START_DATE": "Start period: '{{filterStartDate}}'",
           "VESSELS": "Vessel(s): {{vessels}}"
         }
       },
@@ -3501,6 +3524,7 @@
       "BTN_DELETE_CALENDAR": "Delete",
       "BTN_CLEAR_CALENDAR": "Clear the calendar",
       "BTN_DELETE_CONFLICT": "Delete this conflicted month",
+      "NO_DATA_REQUIRED": "No data required",
       "IS_ACTIVE_ENUM": {
         "ENABLE": "Active",
         "DISABLE": "Inactive",
@@ -3535,7 +3559,10 @@
       "BASE_PORT_LOCATION": "Base port location",
       "PMFM": {
         "DURATION_AT_SEA_DAYS": "Nb days at sea",
+        "DURATION_AT_SEA_JOUR": "Nb days at sea",
         "FISHING_DURATION_DAYS": "Nb fishing days",
+        "FISHING_DURATION_JOUR": "Nb fishing days",
+        "CREW_SIZE": "Nb fishermen on board",
         "NB_FISHERMEN": "Nb fishermen on board"
       },
       "EFFORT_SECTION": {
@@ -3548,6 +3575,7 @@
       },
       "VESSEL_SECTION": {
         "TITLE": "Vessel",
+        "EXTERIOR_MARKING": "Exterior marking:",
         "REGISTRATION_CODE": "Registration:",
         "REGISTRATION_LOCATION": "Registration location:",
         "VESSEL_NAME": "Name:"
@@ -3555,7 +3583,7 @@
       "SURVEY_QUALIFICATION_SECTION": {
         "TITLE": "Survey qualification"
       },
-      "GUF_SECTION": {
+      "GPF_SECTION": {
         "TITLE": "Gear features",
         "METIER": "Métier(s)"
       },
@@ -3588,7 +3616,6 @@
           "NB_METIER_PEER_MONTH": "Number of métiers per month",
           "COUNT_OF_EMPTY_MONTH": "Number of empty months",
           "CALENDAR_STATUS": "Calendar status",
-          "RECORDER_PRESON": "Recorder",
           "VESSEL_REGISTRATION_LOCATION": "Location",
           "VESSEL_NAME": "Name",
           "VESSEL_LENGTH": "Length O.A. (m)",

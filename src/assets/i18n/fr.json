@@ -934,7 +934,9 @@
       "OPE_PREFIX": "OP",
       "TITLE_PREFIX": "<small>{{vessel}} - Marée {{departureDateTime}}<br></small>",
       "NEW": {
-        "TITLE": "Nouvelle OP"
+        "TITLE": "Nouvelle OP",
+        "TITLE_PARENT": "Nouveau filage",
+        "TITLE_CHILD": "Nouveau virage"
       },
       "EDIT": {
         "TITLE": "OP #{{rankOrder}} <small>du {{startDateTime}}</small>",
@@ -979,7 +981,7 @@
         "OTHER_FEATURES": "Caractéristiques :",
         "NO_TARGET_SPECIES_FOUND": "Aucun espèce pour cet engin",
         "DISTANCE_DOTS": "Distance : {{distance}} miles",
-        "PARENT_OPERATION": "Opération associée",
+        "PARENT_OPERATION": "Filage associé",
         "PLEASE_SELECT_HELP": "Sélectionner une opération",
         "POSITIONS": "Positions",
         "QUALITY_FLAG_ID": "Niveau de qualité",
@@ -1024,7 +1026,7 @@
         }
       },
       "PARENT": {
-        "TITLE": "Sélectionner filage",
+        "TITLE": "Sélectionner le filage associé",
         "TRIP": "{{vessel}} - Marée {{departureDateTime}}",
         "FILTER": {
           "SEARCH_TEXT": "Recherche : code engin / espèce",
@@ -1089,7 +1091,7 @@
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
-        "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
+        "SUBSCRIBE_OPERATION_ERROR": "Échec de l'abonnement distant aux modifications de l'opération.",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Avant la date de fin du filage",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
         "LOCAL_PARENT_OPERATION": "Opération provenant d'une marée non synchronisée",
@@ -1435,7 +1437,7 @@
         }
       },
       "ERROR": {
-        "INVALID_TAG_ID_LENGTH": "La longueur du code prélévement doit être {{length}}",
+        "INVALID_TAG_ID_LENGTH": "La longueur du code prélèvement doit être {{length}}",
         "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire",
         "OUT_OF_RANGE": "Hors fourchette",
         "DUPLICATED_TAG_ID": "Duplication de {{name}}",
@@ -2352,10 +2354,10 @@
       "LOCATION_LEVEL": "Niveau de lieu",
       "LOCATION_LEVELS": "Niveau(x) de lieu",
       "NEW": {
-        "TITLE": "Nouvelle zones de compétence"
+        "TITLE": "Nouvelle zone de compétence"
       },
       "EDIT": {
-        "TITLE": "<small>Zones de compétence<br></small>{{name}}"
+        "TITLE": "<small>Zone de compétence<br></small>{{name}}"
       }
     },
     "LIST": {
@@ -2455,7 +2457,7 @@
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",
       "LOAD_REFERENTIAL_ERROR": "Erreur de chargement.",
       "DELETE_REFERENTIAL_ERROR": "Erreur lors de la suppression",
-      "SUBSCRIBE_REFERENTIAL_ERROR": "Echec d'abonnement aux modifications distantes.",
+      "SUBSCRIBE_REFERENTIAL_ERROR": "Échec d'abonnement aux modifications distantes.",
       "LOAD_REFERENTIAL_LEVELS_ERROR": "Erreur lors de chargement des niveaux",
       "LOAD_PROGRAM_PMFMS_ERROR": "Erreur lors de chargement des paramètres collectés par le programme",
       "LOAD_PROGRAM_GEARS_ERROR": "Erreur lors de chargement des engins du programme",
@@ -3697,8 +3699,8 @@
         "DURATION_AT_SEA_JOUR": "Nb jours mer",
         "FISHING_DURATION_DAYS": "Nb jours pêche",
         "FISHING_DURATION_JOUR": "Nb jours pêche",
-        "NB_FISHERMEN": "Nb pers. à bord",
-        "CREW_SIZE": "Nb pers. à bord"
+        "CREW_SIZE": "Nb pers. à bord",
+        "NB_FISHERMEN": "Nb pers. à bord"
       },
       "EFFORT_SECTION": {
         "TITLE": "Effort de pêche"
@@ -3751,7 +3753,6 @@
           "NB_METIER_PEER_MONTH": "Nombre de métiers pratiqués par mois",
           "COUNT_OF_EMPTY_MONTH": "Nbre mois non renseignés",
           "CALENDAR_STATUS": "État calendrier",
-          "RECORDER_PRESON": "Saisisseur",
           "VESSEL_REGISTRATION_LOCATION": "QIM",
           "VESSEL_NAME": "Nom",
           "VESSEL_LENGTH": "Longueur H.T (m)",
@@ -3890,14 +3891,14 @@
     "DELETE_DATA_ERROR": "Erreur de suppression des données. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "NETWORK_REQUIRED": "Connexion au réseau impossible.<br/><b>Vérifiez votre connexion réseau</b> avant de réessayer.",
     "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Pas de réseau. Impossible de synchoniser.",
-    "IMPORT_REFERENTIAL_ERROR": "Echec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
+    "IMPORT_REFERENTIAL_ERROR": "Échec de l'importation des listes des références. Impossible d'activer le mode hors-ligne.",
     "COPY_STORAGE_ERROR": "Erreur de copie des données",
-    "DATA_MIGRATION_FAILED": "Echec de la migration de données. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+    "DATA_MIGRATION_FAILED": "Échec de la migration de données. <small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "BAD_APP_VERSION": "Veuillez mettre à jour l'application. La récupération et l'envoi de données avec la version actuelle risque de ne pas fonctionner.</small>",
     "LOAD_TRASH_ENTITY_ERROR": "Erreur de chargement du fichier de corbeille",
     "DELETE_TRASH_ENTITY_ERROR": "Erreur de suppression du fichier en corbeille",
-    "ENTITY_STORAGE_MIGRATION_FAILED": "Echec de migration de la base de données locale",
-    "STARTUP_FAILED": "Echec du lancement",
+    "ENTITY_STORAGE_MIGRATION_FAILED": "Échec de migration de la base de données locale",
+    "STARTUP_FAILED": "Échec du lancement",
     "LOAD_ENTITY_ERROR": "Erreur lors de chargement",
     "LOAD_ENTITIES_ERROR": "Erreur lors de chargement de la liste",
     "SAVE_ENTITY_ERROR": "Erreur lors de la sauvegarde",

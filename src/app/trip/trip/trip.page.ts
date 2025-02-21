@@ -77,6 +77,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { OperationType } from '@app/trip/operation/operation.form';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -687,7 +688,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     });
   }
 
-  async onNewOperation(event?: any, operationQueryParams?: any) {
+  async onNewOperation(event?: any, queryParams: { type?: OperationType } = {}) {
     const saved =
       this.isOnFieldMode && this.dirty
         ? // If on field mode: try to save silently
@@ -712,7 +713,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     setTimeout(async () => {
       const editorPath = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
       await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, 'new'], {
-        queryParams: operationQueryParams || {},
+        queryParams,
       });
       this.markAsLoaded();
     });

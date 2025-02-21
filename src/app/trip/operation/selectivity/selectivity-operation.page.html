@@ -39,7 +39,6 @@
     <!-- last operation (history) -->
     @if (showLastOperations) {
       <ion-button
-        color="light"
         [fill]="xsMobile ? 'clear' : 'outline'"
         hidden-xxs
         [disabled]="loading || saving"
@@ -70,19 +69,16 @@
     }
 
     <!-- option menu -->
-    <ion-button
-      *ngIf="!isNewData || canDebug"
-      [disabled]="loading || saving"
-      [matMenuTriggerFor]="optionsMenu"
-      [title]="'COMMON.BTN_OPTIONS' | translate"
-    >
-      <mat-icon slot="icon-only">more_vert</mat-icon>
-    </ion-button>
+    @if (canDebug || !isNewData) {
+      <ion-button [disabled]="loading || saving" [matMenuTriggerFor]="optionsMenu" [title]="'COMMON.BTN_OPTIONS' | translate">
+        <mat-icon slot="icon-only">more_vert</mat-icon>
+      </ion-button>
+    }
   </ion-buttons>
 </app-toolbar>
 
 <!-- Last operations menu -->
-<mat-menu #lastOperationsMenu="matMenu" xPosition="before" class="mat-menu-size-75vw ion-no-padding">
+<mat-menu #lastOperationsMenu="matMenu" xPosition="before" class="ion-no-padding {{ xsMobile ? 'mat-menu-size-100vw' : 'mat-menu-size-75vw' }}">
   <ng-template matMenuContent>
     <ion-row class="mat-menu-header ion-no-padding column">
       <ion-col>
@@ -91,51 +87,49 @@
     </ion-row>
 
     <ion-list class="ion-no-padding">
-      <ng-container *rxIf="lastOperations$; let items; else: noLastOperation">
-        <ion-item
-          *rxFor="let item of items; strategy: 'userBlocking'"
-          tappable
-          class="text-1x"
-          [color]="data?.id === item.id ? 'secondary100' : undefined"
-          (click)="onLastOperationClick($event, item.id)"
-        >
-          <app-operation-icon [value]="item" [allowParentOperation]="allowParentOperation"></app-operation-icon>
-          <ion-grid>
-            <ion-row>
-              <!-- FIXME: rankOrder cannot be safely computed, when using a page's offset
+      @if (lastOperations$ | push; as items) {
+        @for (item of items; track item.id) {
+          <ion-item
+            tappable
+            class="text-1x"
+            [color]="data?.id === item.id ? 'secondary100' : undefined"
+            (click)="onLastOperationClick($event, item.id)"
+          >
+            <app-operation-icon [value]="item" [allowParentOperation]="allowParentOperation"></app-operation-icon>
+            <ion-grid>
+              <ion-row>
+                <!-- FIXME: rankOrder cannot be safely computed, when using a page's offset
               <ion-col size="3">
                 <span translate>TRIP.OPERATION.OPE_PREFIX</span> #{{ item.rankOrder}}
               </ion-col>-->
-              <ion-col style="padding-top: 8px !important">
-                <ion-label>
-                  {{ item.physicalGear | referentialToString: opeForm.autocompleteFields.physicalGear.attributes }}
-                </ion-label>
-              </ion-col>
-              <ion-col size="auto">
-                <ion-text>
-                  {{ item.startDateTime | dateFormat: { pattern: dateTimePattern } }}
-                  <ion-text color="primary">
-                    <br />
-                    <small>{{ item.startDateTime | dateFromNow }}</small>
+                <ion-col style="padding-top: 10px !important">
+                  <ion-label class="ion-text-nowrap">
+                    {{ item.physicalGear | physicalGearToString: { properties: this.opeForm.autocompleteFields.physicalGear?.attributes } }}
+                  </ion-label>
+                </ion-col>
+                <ion-col size="auto">
+                  <ion-text>
+                    {{ item.startDateTime | dateFormat: { pattern: dateTimePattern } }}
+                    <ion-text color="primary">
+                      <br />
+                      <small>{{ item.startDateTime | dateFromNow }}</small>
+                    </ion-text>
                   </ion-text>
-                </ion-text>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </ion-item>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-item>
+        }
 
         <!-- no result-->
-        <ng-container *ngIf="!items.length" [ngTemplateOutlet]="noLastOperation"></ng-container>
-      </ng-container>
-
-      <!-- No last operations -->
-      <ng-template #noLastOperation>
-        <ion-item>
-          <ion-text color="medium" class="text-italic">
-            <span translate>TRIP.OPERATION.NO_LAST_OPERATION</span>
-          </ion-text>
-        </ion-item>
-      </ng-template>
+        @if (items | isEmptyArray) {
+          <ion-item>
+            <ion-text color="medium" class="text-italic">
+              <span translate>TRIP.OPERATION.NO_LAST_OPERATION</span>
+            </ion-text>
+          </ion-item>
+        }
+      }
     </ion-list>
 
     <!-- final space (need by fab button)-->
@@ -305,6 +299,7 @@
                         [gearId]="gearId$ | async"
                         [forceOptional]="forceMeasurementAsOptional"
                         [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
+                        [showDisabledPmfm]="true"
                         (mapPmfms)="mapPmfms($event)"
                         [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
                         [i18nSuffix]="i18nContext.suffix"
@@ -364,6 +359,7 @@
         [useSticky]="mobile"
         [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
         [useModal]="xsMobile"
+        [disabled]="disabled || !showCatchTab"
         [mobile]="mobile"
         [debug]="debug"
         [controlButtonText]="'QUALITY.BTN_CONTROL_WITH_SHORTCUT' | translate"

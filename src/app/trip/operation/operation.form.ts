@@ -82,6 +82,8 @@ type FilterableFieldName = 'fishingArea' | 'metier';
 
 type PositionFieldName = 'startPosition' | 'fishingStartPosition' | 'fishingEndPosition' | 'endPosition';
 
+export type OperationType = 'child' | 'parent';
+
 export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   {
     value: false,
