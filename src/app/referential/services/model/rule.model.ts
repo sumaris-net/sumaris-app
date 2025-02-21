@@ -12,6 +12,7 @@ import {
   toBoolean,
 } from '@sumaris-net/ngx-components';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
 
 interface RuleFromOptionOptions {
   withChildren?: boolean;
@@ -46,6 +47,13 @@ export function inverseOperator(operator: RuleOperator) {
 }
 function get<T>(obj: T, props: string[]): any {
   return obj && props.reduce((result, prop) => (result == null ? undefined : result[prop]), obj);
+}
+
+@EntityClass({ typename: 'RuleFilterVO' })
+export class RuleFilter extends BaseReferentialFilter<RuleFilter, Rule> {
+  static fromObject: (source: any, opts?: any) => RuleFilter;
+
+  entityName?: 'Rule';
 }
 
 @EntityClass({ typename: 'RuleVO' })

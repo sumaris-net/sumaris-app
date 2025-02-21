@@ -198,6 +198,14 @@ const routes: Routes = [
           preload: false,
         },
       },
+      // Admin module
+      {
+        path: 'admin',
+        loadChildren: () => import('./admin/admin.testing.module').then((m) => m.AdminTestingModule),
+        data: {
+          preload: false,
+        },
+      },
       // Trip module
       {
         path: 'trip',
