@@ -49,7 +49,7 @@ export class GearPhysicalFeaturesUtils {
     sources = (sources || []).filter((gph) => gph.metier && sortedMetierIds.includes(gph.metier.id)) || [];
 
     const firstDayOfYear = (timezone ? DateUtils.moment().tz(timezone) : DateUtils.moment()).year(year).startOf('year');
-    const lastDayOfYear = firstDayOfYear.clone().endOf('year');
+    const lastDayOfYear = firstDayOfYear.clone().endOf('year').startOf('day');
 
     const target = sortedMetiers
       .map((metier, index) => {
@@ -93,7 +93,7 @@ export class GearPhysicalFeaturesUtils {
     }
 
     // DEBUG
-    //console.debug(GearPhysicalFeaturesUtils.logPrefix + 'Loaded:  gearPhysicalFeatures', target);
+    //console.debug(GearPhysicalFeaturesUtils.logPrefix + 'Loaded: gearPhysicalFeatures', target);
 
     return target;
   }

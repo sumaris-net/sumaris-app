@@ -27,12 +27,13 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
 import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export declare type MapPmfmEvent = PromiseEvent<IPmfm[], { pmfms: IPmfm[] }>;
 export declare type UpdateFormGroupEvent = PromiseEvent<void, { form: UntypedFormGroup }>;

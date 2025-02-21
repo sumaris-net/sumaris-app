@@ -52,8 +52,8 @@
 <mat-menu #optionsMenu="matMenu">
   <ng-template matMenuContent>
     <!-- report -->
-    @if (enableReport) {
-      @if (isNewData || !data.controlDate || reportTypes.length < 2) {
+    @if (enableReport && (reportTypes | isNotEmptyArray)) {
+      @if (isNewData || !data.controlDate || (reportTypes | isArrayLength: { equals: 1 })) {
         <button mat-menu-item [disabled]="isNewData || !data.controlDate" (click)="openReport()">
           <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
           <ion-label translate>TRIP.EDIT.BTN_REPORT</ion-label>
@@ -121,18 +121,20 @@
 </mat-menu>
 
 <mat-menu #reportsMenu="matMenu" class="ion-no-padding">
-  <!-- header-->
-  <ion-row class="mat-menu-header ion-no-padding column">
-    <ion-col>
-      <ion-label>{{ 'COMMON.REPORT.TYPE_DIVIDER' | translate }}</ion-label>
-    </ion-col>
-  </ion-row>
+  <ng-template matMenuContent>
+    <!-- header-->
+    <ion-row class="mat-menu-header ion-no-padding column">
+      <ion-col>
+        <ion-label>{{ 'COMMON.REPORT.TYPE_DIVIDER' | translate }}</ion-label>
+      </ion-col>
+    </ion-row>
 
-  @for (item of reportTypes; track item.key) {
-    <button mat-menu-item (click)="openReport(item.key)">
-      <ion-label>{{ item.value | translate }}</ion-label>
-    </button>
-  }
+    @for (item of reportTypes; track $index) {
+      <button mat-menu-item (click)="openReport(item.key)">
+        <ion-label>{{ item.value | translate }}</ion-label>
+      </button>
+    }
+  </ng-template>
 </mat-menu>
 
 <ion-content scroll-y="false">
@@ -215,6 +217,8 @@
                         [requiredStrategy]="requiredStrategy$ | async"
                         [strategyId]="strategy$ | async | mapGet: 'id'"
                         [pmfms]="pmfms$ | async"
+                        [i18nPmfmPrefix]="'TRIP.PMFM.'"
+                        [i18nSuffix]="i18nContext.suffix"
                         [tabindex]="30"
                         [mobile]="mobile"
                         [debug]="debug"
@@ -380,13 +384,13 @@
 
           <ion-fab-list side="top">
             <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.CHILD' | translate" (click)="onNewOperation($event, { type: 'child' })">
-              <mat-icon color="primary" svgIcon="rollback-arrow"></mat-icon>
-              <ion-icon class="icon-secondary" name="add"></ion-icon>
+              <mat-icon color="primary" svgIcon="operation-child"></mat-icon>
+              <ion-icon color="tertiary" class="icon-secondary" name="add"></ion-icon>
             </ion-fab-button>
 
             <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.PARENT' | translate" (click)="onNewOperation($event, { type: 'parent' })">
-              <mat-icon color="primary" svgIcon="down-arrow"></mat-icon>
-              <ion-icon class="icon-secondary" name="add"></ion-icon>
+              <mat-icon color="primary" svgIcon="operation-parent"></mat-icon>
+              <ion-icon color="tertiary" class="icon-secondary" name="add"></ion-icon>
             </ion-fab-button>
           </ion-fab-list>
         </ion-fab>

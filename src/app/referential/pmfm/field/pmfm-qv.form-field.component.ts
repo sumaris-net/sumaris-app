@@ -45,10 +45,11 @@ import {
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../../services/model/model.enum';
-import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
+import { IPmfm } from '../../services/model/pmfm.model';
 import { IonButton } from '@ionic/angular';
 import { MatAutocomplete, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatSelect } from '@angular/material/select';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export declare type PmfmQvFormFieldStyle = 'autocomplete' | 'select' | 'button';
 

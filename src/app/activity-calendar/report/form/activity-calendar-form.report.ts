@@ -17,14 +17,13 @@ import { environment } from '@environments/environment';
 import {
   ConfigService,
   EntityAsObjectOptions,
+  isNotNil,
   LoadResult,
   LocalSettingsService,
   ReferentialRef,
-  TranslateContextService,
-  isNotNil,
   referentialToString,
-  sleep,
   splitById,
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { ActivityCalendarService } from '../../activity-calendar.service';
 import { ActivityMonth } from '../../calendar/activity-month.model';
@@ -246,15 +245,6 @@ export class ActivityCalendarFormReport extends AppDataEntityReport<ActivityCale
   computePrintHref(data: ActivityCalendar, stats: ActivityCalendarFormReportStats): URL {
     if (this.uuid) return super.computePrintHref(data, stats);
     else return new URL(window.location.origin + this.computeDefaultBackHref(data, stats).replace(/\?.*$/, '') + '/report/' + this.reportPath);
-  }
-
-  async updateView() {
-    await super.updateView();
-
-    if (this.reveal.printing) {
-      await sleep(500);
-      await this.reveal.print();
-    }
   }
 
   protected async loadData(id: number, opts?: any): Promise<ActivityCalendar> {

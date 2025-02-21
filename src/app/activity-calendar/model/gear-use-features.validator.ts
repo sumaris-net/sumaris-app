@@ -20,10 +20,11 @@ import { TranslateService } from '@ngx-translate/core';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { ControlUpdateOnType, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { ValidatorService } from '@e-is/ngx-material-table';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface GearUseFeaturesValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;

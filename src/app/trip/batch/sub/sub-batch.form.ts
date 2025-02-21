@@ -65,7 +65,7 @@ import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { TranslateService } from '@ngx-translate/core';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { environment } from '@environments/environment';
 import { IonButton } from '@ionic/angular';
@@ -74,6 +74,7 @@ import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface SubBatchFormState extends MeasurementsFormState {
   computingWeight: boolean;
@@ -120,7 +121,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
-  @Input() i18nSuffix: string;
   @Input() mobile: boolean;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
@@ -186,13 +186,12 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
 
   constructor(
     injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
+    measurementsValidatorService: MeasurementsValidatorService,
+    formBuilder: UntypedFormBuilder,
+    programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected ichthyometerService: IchthyometerService,
-    protected translate: TranslateService
+    protected ichthyometerService: IchthyometerService
   ) {
     super(
       injector,

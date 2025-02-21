@@ -39,7 +39,7 @@ import { Observable, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { BatchValidatorOptions, BatchValidatorService } from './batch.validator';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { equals, roundHalfUp } from '@app/shared/functions';
@@ -51,6 +51,7 @@ import { MeasurementsFormState } from '@app/data/measurement/measurements.utils'
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface TaxonNameBatchFilter {
   programLabel?: string;
@@ -125,7 +126,6 @@ export class BatchForm<
   @Input() showTaxonGroupSearchBar = true;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
-  @Input() i18nSuffix: string;
   @Input() showComment = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
 

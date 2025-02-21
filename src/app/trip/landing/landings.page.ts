@@ -43,7 +43,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ISelectProgramModalOptions, SelectProgramModal } from '@app/referential/program/select-program.modal';
 import { LANDING_I18N_PMFM_PREFIX, LANDING_RESERVED_END_COLUMNS, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
-import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { TripService } from '@app/trip/trip/trip.service';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 import { BaseTableConfig } from '@app/shared/table/base.table';
@@ -58,6 +58,7 @@ import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { intersectArrays } from '@app/shared/functions';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export const LandingsPageSettingsEnum = {
   PAGE_ID: 'landings',

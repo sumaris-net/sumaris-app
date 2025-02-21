@@ -34,11 +34,12 @@ import { SubBatch } from './sub-batch.model';
 import { BatchGroup } from '../group/batch-group.model';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { environment } from '@environments/environment';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { RxState } from '@rx-angular/state';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];

@@ -40,7 +40,7 @@ import { filter, map, takeUntil, tap } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-group.validator';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
@@ -55,6 +55,7 @@ import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorato
 import { RxState } from '@rx-angular/state';
 import { ContextService } from '@app/shared/context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -1168,9 +1169,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         showIndividualCountOnly,
         // Scientific species is required, only if not already set in batch groups
         showTaxonNameColumn: !this.showTaxonNameColumn,
-        // If on field mode: hide individualCount (will force individualCount=1 on each new sub-batch)
-        showIndividualCount: !isOnFieldMode,
-        // Define available parent, as an observable (if new parent can added)
+        // If on field mode, or mobile: hide individualCount (will force individualCount=1 on each new sub-batch)
+        showIndividualCount: !(this.mobile || isOnFieldMode),
+        // Define available parent, as an observable (if new parent can add)
         availableParents: this.dataSource.rowsSubject.pipe(
           takeUntil(stopSubject),
           map((rows) => rows.map((r) => r.currentData)),

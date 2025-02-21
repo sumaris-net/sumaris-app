@@ -100,94 +100,100 @@
     </ion-row>
 
     <ion-grid afterComment *ngIf="mobile && !disabled" class="ion-no-padding">
-      <ion-row class="ion-no-padding ion-row-buttons">
-        <ion-col *ngIf="showIndividualMonitoringButton">
-          <ion-button
-            class="mat-form-field-button button-round"
-            color="tertiary"
-            fill="outline"
-            expand="full"
-            [disabled]="form.invalid"
-            (click)="onIndividualMonitoringClick($event)"
-          >
-            <mat-icon slot="start">center_focus_strong</mat-icon>
-            <ion-label>{{ 'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_MONITORING' | translateContext: i18nSuffix }}</ion-label>
-          </ion-button>
-        </ion-col>
-        <ion-col *ngIf="showIndividualReleaseButton">
-          <ion-button
-            class="mat-form-field-button button-round"
-            color="tertiary"
-            fill="outline"
-            expand="full"
-            [disabled]="form.invalid"
-            (click)="onIndividualReleaseClick($event)"
-          >
-            <mat-icon slot="start">room</mat-icon>
-            <ion-label>{{ 'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE' | translateContext: i18nSuffix }}</ion-label>
-          </ion-button>
-        </ion-col>
-        <ion-col>
-          <ion-button
-            class="mat-form-field-button button-round"
-            fill="solid"
-            expand="full"
-            [disabled]="form.invalid"
-            [color]="form.invalid ? 'light' : 'tertiary'"
-            (click)="onSubmit($event)"
-          >
-            <ion-label translate>COMMON.BTN_VALIDATE_AND_CLOSE</ion-label>
-          </ion-button>
-        </ion-col>
-        <ion-col>
-          <ion-button
-            class="mat-form-field-button button-round"
-            fill="solid"
-            expand="full"
-            [disabled]="form.invalid"
-            [color]="form.invalid ? 'light' : 'tertiary'"
-            (click)="onSubmitAndNext($event)"
-          >
-            <ion-label translate>COMMON.BTN_VALIDATE_AND_NEW</ion-label>
-            <ion-icon slot="end" name="arrow-forward"></ion-icon>
-          </ion-button>
-        </ion-col>
-      </ion-row>
+      <ion-row class="ion-no-padding ion-row-buttons"></ion-row>
     </ion-grid>
   </app-sample-form>
 </ion-content>
 
-<ion-footer *ngIf="!mobile">
-  <ion-toolbar>
-    <ion-row class="ion-no-padding" nowrap>
-      <ion-col></ion-col>
+@if (!mobile || enableBulkMode) {
+  <ion-footer>
+    <ion-toolbar>
+      <ion-row class="ion-no-padding">
+        @if (enableBulkMode) {
+          <ng-container *ngTemplateOutlet="bulkButtons"></ng-container>
+        } @else {
+          <ion-col></ion-col>
 
-      <!-- buttons -->
-      <ion-col size="auto">
-        <ion-button fill="clear" color="dark" (click)="close()">
-          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
-        </ion-button>
+          <!-- buttons -->
+          <ion-col size="auto">
+            <ion-button fill="clear" color="dark" (click)="close()">
+              <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+            </ion-button>
 
-        <ion-button
-          fill="solid"
-          [color]="form.invalid ? 'light' : 'tertiary'"
-          [disabled]="disabled || form.invalid"
-          (keyup.enter)="onSubmit($event)"
-          (click)="onSubmit($event)"
-        >
-          <ion-label translate>COMMON.BTN_VALIDATE_AND_CLOSE</ion-label>
-        </ion-button>
+            <ion-button
+              [fill]="loading ? 'clear' : 'solid'"
+              [disabled]="disabled || loading || form.invalid"
+              (keyup.enter)="onSubmit($event)"
+              (click)="onSubmit($event)"
+              color="tertiary"
+            >
+              <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
+              <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
+            </ion-button>
+          </ion-col>
+        }
+      </ion-row>
+    </ion-toolbar>
+  </ion-footer>
+}
 
-        <ion-button
-          fill="solid"
-          [color]="form.invalid ? 'light' : 'tertiary'"
-          [disabled]="disabled || form.invalid"
-          (keyup.enter)="onSubmitAndNext($event)"
-          (click)="onSubmitAndNext($event)"
-        >
-          <ion-label translate>COMMON.BTN_VALIDATE_AND_NEW</ion-label>
-        </ion-button>
-      </ion-col>
-    </ion-row>
-  </ion-toolbar>
-</ion-footer>
+<ng-template #bulkButtons>
+  @if (showIndividualMonitoringButton) {
+    <ion-col>
+      <ion-button
+        class="mat-form-field-button button-round"
+        color="tertiary"
+        fill="outline"
+        expand="full"
+        [disabled]="form.invalid"
+        (click)="onIndividualMonitoringClick($event)"
+      >
+        <mat-icon slot="start">center_focus_strong</mat-icon>
+        <ion-label>{{ 'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_MONITORING' | translateContext: i18nSuffix }}</ion-label>
+      </ion-button>
+    </ion-col>
+  }
+  @if (showIndividualReleaseButton) {
+    <ion-col>
+      <ion-button
+        class="mat-form-field-button"
+        color="tertiary"
+        fill="outline"
+        expand="full"
+        shape="round"
+        [disabled]="form.invalid"
+        (click)="onIndividualReleaseClick($event)"
+      >
+        <mat-icon slot="start">room</mat-icon>
+        <ion-label>{{ 'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE' | translateContext: i18nSuffix }}</ion-label>
+      </ion-button>
+    </ion-col>
+  }
+  <ion-col>
+    <ion-button
+      class="mat-form-field-button"
+      fill="solid"
+      expand="full"
+      shape="round"
+      [disabled]="form.invalid"
+      [color]="form.invalid ? 'light' : 'tertiary'"
+      (click)="onSubmit($event)"
+    >
+      <ion-label translate>COMMON.BTN_VALIDATE_AND_CLOSE</ion-label>
+    </ion-button>
+  </ion-col>
+  <ion-col>
+    <ion-button
+      class="mat-form-field-button"
+      fill="solid"
+      expand="full"
+      shape="round"
+      [disabled]="form.invalid"
+      [color]="form.invalid ? 'light' : 'tertiary'"
+      (click)="onSubmitAndNext($event)"
+    >
+      <ion-label translate>COMMON.BTN_VALIDATE_AND_NEW</ion-label>
+      <ion-icon slot="end" name="arrow-forward"></ion-icon>
+    </ion-button>
+  </ion-col>
+</ng-template>

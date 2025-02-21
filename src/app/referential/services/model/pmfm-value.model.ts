@@ -15,10 +15,11 @@ import {
   toDateISOString,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { IPmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
+import { IPmfm, PmfmType, UnitConversion } from './pmfm.model';
 import { isNilOrNaN } from '@app/shared/functions';
 import { LengthMeterConversion, LengthUnitSymbol } from '@app/referential/services/model/model.enum';
 import { MathUtils } from '@app/shared/math.utils';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export declare type PmfmValue = number | string | boolean | Moment | IReferentialRef<any>;
 

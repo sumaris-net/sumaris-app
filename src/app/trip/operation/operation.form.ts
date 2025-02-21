@@ -76,10 +76,13 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { OverlayEventDetail } from '@ionic/core';
+import { PositionService } from '@app/data/position/position.service';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
 type PositionFieldName = 'startPosition' | 'fishingStartPosition' | 'fishingEndPosition' | 'endPosition';
+
+export type OperationType = 'child' | 'parent';
 
 export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
   {
@@ -111,7 +114,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   private _requiredComment = false;
   private _positionSubscription: Subscription;
   private _autoFillNextDateSubscription: Subscription;
-  private _emitGeolocationBusy = true;
   private _lastValidatorOpts: any;
   protected _usageMode: UsageMode;
   protected toastController = inject(ToastController);
@@ -122,7 +124,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     end: -1,
   };
 
-  busySubject = new BehaviorSubject<boolean>(false);
   startProgram: Date | Moment;
   enableGeolocation: boolean;
   enableCopyPosition: boolean;
@@ -379,6 +380,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     protected alertCtrl: AlertController,
     protected accountService: AccountService,
     protected operationService: OperationService,
+    protected positionService: PositionService,
     protected physicalGearService: PhysicalGearService,
     protected pmfmService: PmfmService,
     protected formBuilder: UntypedFormBuilder,
@@ -397,7 +399,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     const isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
     this.usageMode = isOnFieldMode ? 'FIELD' : 'DESK';
     this.latLongFormat = this.settings.latLongFormat;
-
     this.enableGeolocation = isOnFieldMode && this.mobile;
     this._allowParentOperation = toBoolean(this._allowParentOperation, false);
     this.enableCopyPosition = !this.enableGeolocation;
@@ -462,7 +463,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     const fishingAreaAttributes = this.settings.getFieldDisplayAttributes(
       'fishingAreaLocation',
       // TODO: find a way to configure/change this array dynamically (by a set/get input + set by program's option)
-      // Est-ce que la SFA a besoin des deux info, label et name ? Pour ACSOT/PIFIL non, sur les rect stats
+      // Est-ce que la SFA a besoin des deux info, label et name ? Pour ACOST/PIFIL non, sur les rect stats
       ['label', 'name']
     );
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('fishingAreaLocation', {
@@ -494,8 +495,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this.$parentOperationLabel.complete();
     this._positionSubscription?.unsubscribe();
     this._autoFillNextDateSubscription?.unsubscribe();
-    this.busySubject.complete();
-    this.busySubject.unsubscribe();
   }
 
   reset(data?: Operation, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
@@ -641,7 +640,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
    * @param fieldName
    */
   async onFillPositionClick(event: Event, fieldName: PositionFieldName) {
-    if (this.busySubject.value) return; // Skip if busy (e.g. already running a GPS resolution)
     if (event?.defaultPrevented) return; // Skip if prevented
 
     if (event) {
@@ -656,74 +654,28 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     }
     const now = Date.now();
 
-    try {
-      // Emit busy event (e.g. to show a backdrop - see operation page)
-      if (this._emitGeolocationBusy) {
-        this.markAsBusy();
+    // Get position
+    const coords = await this.positionService.getCurrentPositionUserBlocking({
+      stop: this.destroySubject,
+    });
+    if (!coords) return; // Skip
+
+    positionGroup.patchValue(coords, { emitEvent: false, onlySelf: true });
+
+    // Fill date time, if enabled and empty (or without time)
+    // See issue #874
+    const fieldNamePrefix = fieldName.substring(0, fieldName.length - 'Position'.length);
+    const dateTimeControl = this.form.get(fieldNamePrefix + 'DateTime');
+    if (dateTimeControl?.enabled) {
+      const dateTime = fromDateISOString(dateTimeControl.value);
+      const emptyDateTime = isNil(dateTime) || DateUtils.isNoTime(dateTime);
+      if (emptyDateTime) {
+        dateTimeControl.patchValue(DateUtils.moment().startOf('minutes'), { emitEvent: false, onlySelf: true });
       }
-
-      // Get position
-      const coords = await this.operationService.getCurrentPosition({
-        stop: this.destroySubject,
-        showToast: true,
-        toastOptions: { position: 'middle' },
-      });
-      positionGroup.patchValue(coords, { emitEvent: false, onlySelf: true });
-
-      // Not need to emit next time, if quick execution time
-      this._emitGeolocationBusy = Date.now() - now > 1000;
-
-      // Fill date time, if enabled and empty (or without time)
-      // See issue #874
-      const fieldNamePrefix = fieldName.substring(0, fieldName.length - 'Position'.length);
-      const dateTimeControl = this.form.get(fieldNamePrefix + 'DateTime');
-      if (dateTimeControl?.enabled) {
-        const dateTime = fromDateISOString(dateTimeControl.value);
-        const emptyDateTime = isNil(dateTime) || DateUtils.isNoTime(dateTime);
-        if (emptyDateTime) {
-          dateTimeControl.patchValue(DateUtils.moment().startOf('minutes'), { emitEvent: false, onlySelf: true });
-        }
-      }
-    } catch (err) {
-      if (err === 'CANCELLED') return; // User cancelled: stop here
-
-      // Next time: force to show spinner again
-      this._emitGeolocationBusy = true;
-
-      // Analyze error message
-      let message = err?.message || err;
-      let code = err?.code || -1;
-      switch (code) {
-        case GeolocationPositionError.PERMISSION_DENIED:
-          message = 'ERROR.PERMISSION_DENIED';
-          break;
-        case GeolocationPositionError.TIMEOUT:
-          message = 'ERROR.TIMEOUT';
-          break;
-        default:
-          if (typeof message === 'object') message = JSON.stringify(message);
-      }
-
-      // Display error to user (if component not destroyed)
-      if (!this.destroySubject.closed) {
-        this.showToast({
-          type: 'error',
-          message: 'ERROR.GEOLOCATION_ERROR',
-          messageParams: { message: this.translate.instant(message) },
-          showCloseButton: true,
-          duration: 5000,
-        });
-      }
-
-      return; // Stop here
-    } finally {
-      // Hide loading spinner
-      this.markAsNotBusy();
     }
 
     this.form.markAsDirty({ onlySelf: true });
     this.form.updateValueAndValidity();
-
     this.updateDistance({ emitEvent: false /* done after */ });
 
     this.markForCheck();
@@ -1493,14 +1445,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   protected markForCheck() {
     this.cd.markForCheck();
-  }
-
-  protected markAsBusy() {
-    if (!this.busySubject.closed) this.busySubject.next(true);
-  }
-
-  protected markAsNotBusy() {
-    if (!this.busySubject.closed) this.busySubject.next(false);
   }
 
   protected selectInputContent = selectInputContent;

@@ -8,7 +8,7 @@ import {
   TranslateContextService,
   TreeItemEntityUtils,
 } from '@sumaris-net/ngx-components';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
 import { TranslateService } from '@ngx-translate/core';
@@ -17,6 +17,7 @@ import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/mo
 import { Rule } from '@app/referential/services/model/rule.model';
 import { BatchModelValidatorOptions, BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 @Injectable({ providedIn: 'root' })
 export class AdvancedBatchModelValidatorService<

@@ -1,6 +1,6 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
 import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
-import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
+import { IPmfm } from '../services/model/pmfm.model';
 import {
   ColorName,
   DateFormatService,
@@ -14,6 +14,8 @@ import {
 } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 @Pipe({
   name: 'pmfmIdString',
@@ -22,7 +24,7 @@ export class PmfmIdStringPipe implements PipeTransform {
   constructor(
     protected translate: TranslateService,
     protected translateContext: TranslateContextService
-  ) { }
+  ) {}
 
   transform(pmfm: IPmfm): string {
     return (pmfm && pmfm.id?.toString()) || null;
@@ -37,7 +39,7 @@ export class PmfmNamePipe implements PipeTransform {
   constructor(
     protected translate: TranslateService,
     protected translateContext: TranslateContextService
-  ) { }
+  ) {}
 
   transform(
     pmfm: IPmfm,
@@ -99,7 +101,7 @@ export class PmfmValuePipe implements PipeTransform {
     private dateFormat: DateFormatService,
     private settings: LocalSettingsService,
     protected translate: TranslateService
-  ) { }
+  ) {}
 
   transform(value: any, opts: PmfmValueOptions & { separator?: string }): any {
     return this.format(value, opts);
@@ -177,10 +179,27 @@ export class IsMultiplePmfmPipe implements PipeTransform {
 @Pipe({
   name: 'isWeightPmfm',
 })
-@Injectable({ providedIn: 'root' })
 export class IsWeightPmfmPipe implements PipeTransform {
   transform(pmfm: IPmfm): boolean {
     return (pmfm && PmfmUtils.isWeight(pmfm)) || false;
+  }
+}
+
+@Pipe({
+  name: 'isLatitudePmfm',
+})
+export class IsLatitudePmfmPipe implements PipeTransform {
+  transform(pmfm: IPmfm): boolean {
+    return (pmfm && PmfmLabelPatterns.LATITUDE.test(pmfm.label)) || false;
+  }
+}
+
+@Pipe({
+  name: 'isLongitudePmfm',
+})
+export class IsLongitudePmfmPipe implements PipeTransform {
+  transform(pmfm: IPmfm): boolean {
+    return (pmfm && PmfmLabelPatterns.LONGITUDE.test(pmfm.label)) || false;
   }
 }
 

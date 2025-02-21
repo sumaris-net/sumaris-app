@@ -28,7 +28,7 @@ import {
 import { Batch, BatchWeight } from './batch.model';
 import { MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Subscription } from 'rxjs';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { ControlUpdateOnType, DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
@@ -37,6 +37,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { debounceTime } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export function getFormOptions<O>(form: UntypedFormGroup): O | undefined {
   return form['__options'] as O;

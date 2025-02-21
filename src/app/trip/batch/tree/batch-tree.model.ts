@@ -1,4 +1,4 @@
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import {
   arrayDistinct,
   Entity,
@@ -34,6 +34,7 @@ import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.
 import { Rule, RuleUtils } from '@app/referential/services/model/rule.model';
 import { BatchFormState } from '@app/trip/batch/common/batch.form';
 import { BatchGroupsTableState } from '@app/trip/batch/group/batch-groups.table';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;

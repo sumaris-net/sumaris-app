@@ -77,6 +77,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { OperationType } from '@app/trip/operation/operation.form';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -687,7 +688,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     });
   }
 
-  async onNewOperation(event?: any, operationQueryParams?: any) {
+  async onNewOperation(event?: any, queryParams: { type?: OperationType } = {}) {
     const saved =
       this.isOnFieldMode && this.dirty
         ? // If on field mode: try to save silently
@@ -712,7 +713,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     setTimeout(async () => {
       const editorPath = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
       await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, 'new'], {
-        queryParams: operationQueryParams || {},
+        queryParams,
       });
       this.markAsLoaded();
     });
@@ -889,7 +890,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     await this.ready();
 
     // DEBUG
-    //console.debug('[operation-page] Measurement form is ready');
+    if (this.debug) console.debug('[operation-page] Measurement form is ready');
 
     // Clean existing subscription (e.g. when acquisition level change, this function can= be called many times)
     this._measurementSubscription?.unsubscribe();
@@ -897,37 +898,53 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     const formGroup = this.measurementsForm.form as UntypedFormGroup;
 
-    // If PMFM "Use of a Camera?" exist, then enable/disable isGPSUsed PMFM
-    const isCameraUsedControl = formGroup?.controls[PmfmIds.CAMERA_USED];
-    if (isNotNil(isCameraUsedControl)) {
-      this._measurementSubscription.add(
-        isCameraUsedControl.valueChanges.pipe(startWith<boolean>(isCameraUsedControl.value), filter(isNotNil)).subscribe((value) => {
-          if (this.debug) console.debug('[trip] Enable/Disable GPS');
-          const control = formGroup.controls[PmfmIds.GPS_USED];
+    const cameraUsedControl = formGroup?.get(PmfmIds.CAMERA_USED.toString());
+    const gpsUsedControl = formGroup?.get(PmfmIds.GPS_USED.toString());
 
+    // If PMFM "CAMERA_USED" exist
+    if (isNotNil(cameraUsedControl)) {
+      this._measurementSubscription.add(
+        cameraUsedControl.valueChanges.pipe(startWith<boolean>(cameraUsedControl.value), filter(isNotNil)).subscribe((value) => {
+          const cameraUsed = value !== false;
+          const gpsUsed = cameraUsed || gpsUsedControl?.value !== false; // True is GPS_USED control NOT exists
+          // Camera is used
           if (value == true) {
-            AppFormUtils.disableAndClearControl(control, { onlySelf: true });
-          } else {
-            AppFormUtils.enableControl(control, { onlySelf: true, required: true });
+            // Disable GPS_USED PMFM
+            if (gpsUsedControl) {
+              if (this.debug) console.debug('[trip] Disable GPS, because CAMERA_USED=' + value);
+              AppFormUtils.disableControl(gpsUsedControl, { onlySelf: true });
+            }
           }
+
+          // Camera not used (or undefined)
+          else {
+            // Enable GPS_USED PMFM
+            if (gpsUsedControl) {
+              if (this.debug) console.debug('[trip] Enable GPS, because CAMERA_USED=' + value);
+              AppFormUtils.enableControl(gpsUsedControl, { onlySelf: true, required: true });
+            }
+          }
+
+          this.operationsTable.showPosition = !cameraUsed && gpsUsed;
+          this.operationsTable.showFishingArea = !cameraUsed && !gpsUsed;
+
           this.markForCheck();
         })
       );
     }
 
-    // If PMFM "Use of a GPS ?" exists, then use to enable/disable positions or fishing area
-    const isGPSUsed = formGroup?.controls[PmfmIds.GPS_USED];
-    if (isNotNil(isGPSUsed)) {
+    // If PMFM "GPS_USED" exists (but NOT CAMERA_USED)
+    if (isNotNil(gpsUsedControl)) {
       this._measurementSubscription.add(
-        isGPSUsed.valueChanges
-          .pipe(debounceTime(400), startWith<any>(isGPSUsed.value), filter(isNotNil), distinctUntilChanged())
+        gpsUsedControl.valueChanges
+          .pipe(debounceTime(400), startWith<any>(gpsUsedControl.value), filter(isNotNil), distinctUntilChanged())
           .subscribe((value) => {
             if (this.debug) console.debug('[trip] Enable/Disable positions or fishing area, because GPS_USED=' + value);
+            const cameraUsed = cameraUsedControl?.value ?? false;
+            const gpsUsed = cameraUsed || value !== false; // True by default, if CAMERA_USED control NOT exists
 
-            // Enable positions, when has gps
-            this.operationsTable.showPosition = value;
-            // Enable fishing area, when has not gps
-            this.operationsTable.showFishingArea = !value;
+            this.operationsTable.showPosition = !cameraUsed && gpsUsed;
+            this.operationsTable.showFishingArea = !cameraUsed && !gpsUsed;
 
             this.markForCheck();
           })

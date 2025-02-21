@@ -11,7 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { OperationSaveOptions, OperationService } from './operation.service';
-import { OperationForm } from './operation.form';
+import { OperationForm, OperationType } from './operation.form';
 import { TripService } from '../trip/trip.service';
 import { MapPmfmEvent, MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
@@ -78,7 +78,8 @@ import { VesselPosition } from '@app/data/position/vessel/vessel-position.model'
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface OperationState extends AppDataEditorState {
   hasIndividualMeasures?: boolean;
@@ -226,7 +227,7 @@ export class OperationPage<S extends OperationState = OperationState>
       // Let the user save OP, even if not set
       //PmfmIds.HAS_INDIVIDUAL_MEASURES
     ];
-    this._defaultIsParentOperation = this.route.snapshot.queryParams['type'] !== 'child';
+    this._defaultIsParentOperation = this.route.snapshot.queryParams['type'] !== <OperationType>'child';
 
     // Get paste flags from clipboard, if related to Operation
     const clipboard = this.context?.clipboard;
@@ -617,6 +618,11 @@ export class OperationPage<S extends OperationState = OperationState>
 
             this.updateTablesState();
             this.markForCheck();
+
+            // Update the child/parent title
+            if (this.allowParentOperation && this.isNewData) {
+              await this.updateTitle();
+            }
           })
       );
     }
@@ -755,18 +761,20 @@ export class OperationPage<S extends OperationState = OperationState>
     this.autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_COPY_TRIP_DATE);
     this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
 
-    const skipDatesPmfmId = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_SKIP_DATES_PMFM_ID);
-    const skipDates = isNotNil(skipDatesPmfmId) ? toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, skipDatesPmfmId), false) : false;
+    const skipDatesAndPositionsPmfmId = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_SKIP_DATES_PMFM_ID);
+    const skipDatesAndPositions = isNotNil(skipDatesAndPositionsPmfmId)
+      ? toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, skipDatesAndPositionsPmfmId), false)
+      : false;
     const isGPSUsed =
       toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.CAMERA_USED), false) ||
       toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true); // GPS is enable by default
-    const enablePosition = !skipDates && isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+    const enablePosition = !skipDatesAndPositions && isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
 
     this.opeForm.trip = this.trip;
     this.opeForm.showPosition = enablePosition;
     this.opeForm.boundingBox = enablePosition && Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
     // TODO: make possible to have both showPosition and showFishingArea at true (ex SFA artisanal logbook program)
-    this.opeForm.showFishingArea = !skipDates && !enablePosition; // Trip has gps in use, so active positions controls else active fishing area control
+    this.opeForm.showFishingArea = !skipDatesAndPositions && !enablePosition; // Trip has gps in use, so active positions controls else active fishing area control
     this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
     const defaultLatitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     const defaultLongitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
@@ -781,10 +789,18 @@ export class OperationPage<S extends OperationState = OperationState>
     this.opeForm.showMetierFilter = this.opeForm.showMetier && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_FILTER);
     this.opeForm.programLabel = program.label;
     const fishingStartDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
-    this.opeForm.startDateTimeEnable = skipDates || fishingStartDateTimeEnable;
-    this.opeForm.fishingStartDateTimeEnable = !skipDates && fishingStartDateTimeEnable;
-    this.opeForm.fishingEndDateTimeEnable = !skipDates && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
-    this.opeForm.endDateTimeEnable = !skipDates && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
+    const fishingEndDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
+    const endDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
+    this.opeForm.startDateTimeEnable = true; // Always true
+    this.opeForm.fishingStartDateTimeEnable = !skipDatesAndPositions && fishingStartDateTimeEnable;
+    if (this.allowParentOperation) {
+      // If skipDatesAndPositions, we always need one end date visible
+      this.opeForm.fishingEndDateTimeEnable = fishingEndDateTimeEnable;
+      this.opeForm.endDateTimeEnable = (!skipDatesAndPositions || !fishingEndDateTimeEnable) && endDateTimeEnable;
+    } else {
+      this.opeForm.fishingEndDateTimeEnable = !skipDatesAndPositions && fishingEndDateTimeEnable;
+      this.opeForm.endDateTimeEnable = !skipDatesAndPositions && endDateTimeEnable;
+    }
     this.opeForm.maxShootingDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS);
     this.opeForm.maxTotalDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS);
     this.opeForm.defaultIsParentOperation = this._defaultIsParentOperation;
@@ -988,8 +1004,17 @@ export class OperationPage<S extends OperationState = OperationState>
         }))) ||
       '';
 
-    // new ope
+    // New operation
     if (!data || isNil(data.id)) {
+      // Child / parent
+      if (this.allowParentOperation) {
+        if (this.opeForm.isParentOperation ?? this._defaultIsParentOperation) {
+          return titlePrefix + (await this.translate.instant('TRIP.OPERATION.NEW.TITLE_PARENT'));
+        }
+        return titlePrefix + (await this.translate.instant('TRIP.OPERATION.NEW.TITLE_CHILD'));
+      }
+
+      // Legacy
       return titlePrefix + (await this.translate.instant('TRIP.OPERATION.NEW.TITLE'));
     }
 
@@ -1079,7 +1104,7 @@ export class OperationPage<S extends OperationState = OperationState>
     return this.navigateTo(+id);
   }
 
-  async saveAndNew(event: Event): Promise<boolean> {
+  async saveAndNew(event: Event, queryParams: { type?: OperationType } = {}): Promise<boolean> {
     if (event?.defaultPrevented) return false; // Skip
     event?.preventDefault(); // Avoid propagation to <ion-item>
 
@@ -1095,7 +1120,7 @@ export class OperationPage<S extends OperationState = OperationState>
     if (!saved) return; // not saved
 
     // Redirect to /new
-    return await this.navigateTo('new');
+    return await this.navigateTo('new', { queryParams });
   }
 
   async duplicate(event: Event): Promise<any> {
@@ -1222,6 +1247,15 @@ export class OperationPage<S extends OperationState = OperationState>
 
         this.setError({ message: 'COMMON.FORM.HAS_ERROR', ...error }, { detailsCssClass: 'error-details' });
       });
+    }
+
+    // No error
+    else {
+      if (this.isNewData && this.opeForm.isChildOperation && !this.data.parentOperation) {
+        // open the select parent modal
+        //await this.waitIdle({ stop: this.destroySubject });
+        this.opeForm.addParentOperation();
+      }
     }
   }
 

@@ -15,7 +15,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
 import { AcquisitionLevelCodes, MethodIds } from '@app/referential/services/model/model.enum';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { IDataEntityQualityService, IProgressionOptions } from '@app/data/services/data-quality-service.class';
 import { BatchValidatorOptions, BatchValidatorService } from '@app/trip/batch/common/batch.validator';
@@ -33,6 +33,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { SelectivityBatchModelValidatorService } from '@app/trip/batch/tree/selectivity/selectivity-batch-model.validator';
 import { AdvancedBatchModelValidatorService } from '@app/trip/batch/tree/advanced/advanced-batch-model.validator';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface BatchControlOptions extends BatchValidatorOptions, IProgressionOptions {
   program: Program;

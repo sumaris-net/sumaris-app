@@ -21,7 +21,7 @@ import { Subscription } from 'rxjs';
 import { BatchWeightValidator } from '@app/trip/batch/common/batch.validator';
 import { LocationLevelIds, MethodIds, PmfmIds, QualitativeValueIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { WeightLengthConversionRefService } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.service';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { LocationUtils } from '@app/referential/location/location.utils';
@@ -40,6 +40,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface BatchContext extends DataContext {
   parentGroup?: BatchGroup;

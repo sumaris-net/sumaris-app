@@ -38,7 +38,7 @@ import {
   MeasurementValuesTypes,
   MeasurementValuesUtils,
 } from '@app/data/measurement/measurement.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { GearUseFeaturesValidatorOptions, GearUseFeaturesValidatorService } from '@app/activity-calendar/model/gear-use-features.validator';
 import { ActivityMonth } from '@app/activity-calendar/calendar/activity-month.model';
 import { VesselUseFeatures, VesselUseFeaturesIsActiveEnum } from '@app/activity-calendar/model/vessel-use-features.model';
@@ -47,6 +47,7 @@ import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { Subscription } from 'rxjs';
 import { FORM_VALIDATOR_OPTIONS_PROPERTY } from '@app/shared/service/base.validator.service';
 import { Moment } from 'moment';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface ActivityMonthValidatorOptions extends GearUseFeaturesValidatorOptions {
   required?: boolean;

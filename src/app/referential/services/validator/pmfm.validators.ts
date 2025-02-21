@@ -1,6 +1,7 @@
 import { AbstractControl, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { isNil, isNotNil, SharedValidators } from '@sumaris-net/ngx-components';
-import { IPmfm, PmfmUtils } from '../model/pmfm.model';
+import { IPmfm } from '../model/pmfm.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 const REGEXP_INTEGER = /^[+|-]?[0-9]+$/;
 const REGEXP_DOUBLE = /^[+|-]?[0-9]+(\.[0-9]+)?$/;

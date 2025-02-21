@@ -18,7 +18,6 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '@app/data/measurement/measurements-table.class';
 import { Animation, IonContent, ModalController } from '@ionic/angular';
@@ -26,7 +25,7 @@ import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { APP_MAIN_CONTEXT_SERVICE, ContextService } from '@app/shared/context.service';
 import { environment } from '@environments/environment';
 import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
@@ -37,6 +36,8 @@ import { RxState } from '@rx-angular/state';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ModalUtils } from '@app/shared/modal/modal.utils';
 import { AbstractControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
+import { MenuCloseReason } from '@angular/material/menu';
 
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -228,7 +229,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
     this.showToolbar = this._enabled && this.inlineEdition; // Hide toolbar if not used
     this.showParentGroup = toBoolean(this.showParentGroup, true);
-    this.showIndividualCount = toBoolean(this.showIndividualCount, !this._isOnFieldMode); // Hide individual count on mobile device
+    this.showIndividualCount = toBoolean(this.showIndividualCount, !(this.mobile || this._isOnFieldMode)); // Hide individual count, if mobile or on field
     this.showForm = this._enabled && this.showForm && this.form && true;
     this.playSound = toBoolean(this.playSound, this.mobile);
     this.showBluetoothIcon = this.showBluetoothIcon && this._enabled && this.platform.isApp();
@@ -433,6 +434,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
       // Copy the row into the form
       this.form.setValue(this.toEntity(row), { emitEvent: true });
+      this.form.markAsPristine();
 
       // Mark the row as edited
       this.selectedRow = row;
@@ -451,6 +453,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       this.selection.select(row);
     } else {
       super.clickRow(event, row);
+    }
+  }
+
+  closeRowActionMenu(event: MenuCloseReason) {
+    if (event !== 'click') {
+      this.selection.clear();
     }
   }
 
@@ -609,6 +617,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   private createRowAnimation(rowElement: Element, isNew: boolean): Animation {
+    const even = rowElement && rowElement.classList.contains('even');
     const cellElements = rowElement && Array.from(rowElement.querySelectorAll('.mat-mdc-cell'));
     if (!rowElement || isEmptyArray(cellElements)) {
       return createAnimation();
@@ -621,10 +630,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
           .keyframes([
             { offset: 0, opacity: '0.4', transform: 'translateX(50%)', background: 'var(--ion-color-accent)' },
             { offset: 0.2, opacity: '0.9', transform: 'translateX(0%)', background: 'var(--ion-color-accent)' },
-            { offset: 1, opacity: '1', transform: 'translateX(0)', background: 'var(--ion-color-base)' },
+            { offset: 1, opacity: '1', transform: 'translateX(0)', background: 'var(--mat-table-row-item-background-color)' },
           ])
           .afterStyles({
-            background: 'rgba(var(--ion-color-accent-rgb), 0.8)',
+            background: 'var(--mat-table-row-item-background-color)',
           })
       : createAnimation()
           .addElement(rowElement)
@@ -632,10 +641,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
           .keyframes([
             { offset: 0, opacity: '0.4', background: 'var(--ion-color-secondary)' },
             { offset: 0.2, opacity: '0.9', background: 'var(--ion-color-secondary)' },
-            { offset: 1, opacity: '1', background: 'var(--ion-color-base)' },
+            { offset: 1, opacity: '1', background: 'var(--mat-table-row-item-background-color)' },
           ])
           .afterStyles({
-            background: 'rgba(var(--ion-color-accent-rgb), 0.8)',
+            background: 'var(--mat-table-row-item-background-color)',
           });
 
     const cellAnimation = isNew
@@ -649,7 +658,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
           .keyframes([
             { offset: 0, color: 'var(--ion-color-accent-contrast)', 'font-weight': 'bold', background: 'var(--ion-color-accent)' },
             { offset: 0.9, color: 'var(--ion-color-accent-contrast)', 'font-weight': 'bold', background: 'var(--ion-color-accent)' },
-            { offset: 1, color: 'var(--ion-color-base)', 'font-weight': 'normal' },
+            { offset: 1, color: 'var(--mat-table-row-item-label-text-color)', 'font-weight': 'normal' },
           ])
           .afterStyles({
             'font-weight': '',
@@ -664,7 +673,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
           .keyframes([
             { offset: 0, color: 'var(--ion-color-secondary-contrast)', 'font-weight': 'bold' },
             { offset: 0.9, color: 'var(--ion-color-secondary-contrast)', 'font-weight': 'bold' },
-            { offset: 1, color: 'var(--ion-color-base)', 'font-weight': 'normal' },
+            { offset: 1, color: 'var(--mat-table-row-item-label-text-color)', 'font-weight': 'normal' },
           ])
           .afterStyles({
             'font-weight': '',

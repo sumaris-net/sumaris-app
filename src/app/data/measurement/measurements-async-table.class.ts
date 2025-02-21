@@ -20,7 +20,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from './measurement.model';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { mergeMap } from 'rxjs/operators';
@@ -32,6 +32,7 @@ import { BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/da
 import { AppBaseAsyncTable } from '@app/shared/table/base.async-table';
 import { AsyncTableElement } from '@e-is/ngx-material-table';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix

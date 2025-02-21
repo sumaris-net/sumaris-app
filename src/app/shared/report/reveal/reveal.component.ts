@@ -24,7 +24,6 @@ import {
   ViewEncapsulation,
   ViewRef,
 } from '@angular/core';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { DOCUMENT } from '@angular/common';
 import { ToastController } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
@@ -33,8 +32,8 @@ import {
   getUserAgent,
   isNotNil,
   isSafari,
+  PrintService,
   ShowToastOptions,
-  sleep,
   StorageService,
   Toasts,
   waitForFalse,
@@ -74,13 +73,14 @@ export class RevealSectionDefDirective {
   changeDetection: ChangeDetectionStrategy.Default,
 })
 export class RevealComponent implements AfterViewInit, OnDestroy {
+  private _logPrefix: string;
   private _reveal: IReveal;
   private _embedded = false;
   private _parent: RevealComponent;
   private loadingSubject = new BehaviorSubject(true);
   private _subscription = new Subscription();
   private _printing = false;
-  private _printIframe: HTMLIFrameElement;
+  private readonly _printJobId: number | string;
   private _registeredSections: RevealSectionDefDirective[] = [];
 
   get loading(): boolean {
@@ -100,7 +100,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   }
 
   get printing(): boolean {
-    return this._printing;
+    return this._printing || this.isPrintingUrl();
   }
 
   @Input() options: Partial<IRevealExtendedOptions>;
@@ -120,6 +120,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     @Inject(ChangeDetectorRef) private viewRef: ViewRef,
     @Inject(DOCUMENT) private _document: Document,
     @Inject(StorageService) private _storageService: StorageService,
+    @Inject(PrintService) private _printService: PrintService,
     private toastController: ToastController,
     private cd: ChangeDetectorRef,
     private translate: TranslateService,
@@ -127,31 +128,19 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   ) {
     this._parent = parent !== this ? parent : undefined;
     this._embedded = !!this._parent;
+    this._logPrefix = '[reveal] ';
 
-    if (this.isPrintingPDF()) {
+    // Configure if running inside an iframe
+    if (!this._embedded && this.isPrintingUrl()) {
+      this._printJobId = this._printService.getJobId();
       this.configurePrintPdfCss();
+      this.redirectPrintIframeConsole();
     }
   }
 
   @HostListener('window:resize', ['$event'])
   onResize(event: UIEvent) {
     this._reveal?.layout();
-  }
-
-  @HostListener('window:beforeprint')
-  onbeforeprint(event?: Event) {
-    console.debug('[reveal] Received before print event');
-    if (!this.isPrintingPDF()) {
-      //event?.preventDefault();
-      this.print();
-    }
-  }
-
-  @HostListener('window:afterprint')
-  onafterprint(event: Event) {
-    if (this.isPrintingPDF()) {
-      window.close();
-    }
   }
 
   ngAfterViewInit() {
@@ -161,7 +150,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
         setTimeout(() => this.initialize(), 100);
       }
 
-      if (this.isPrintingPDF() && this.options.autoPrint !== false) {
+      if (this.isPrintingUrl() && this.options.autoPrint !== false) {
         this.waitIdle().then(() => this.print());
       }
     }
@@ -171,8 +160,6 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
         this._parent.registerSection(section);
       });
     }
-
-    console.log('[reveal] ngAfterViewInit finished');
   }
 
   ngOnDestroy(): void {
@@ -185,7 +172,6 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
       if (exists) return; // Skip if already registered (e.g. see testing embedded page)
 
-      console.debug(`[reveal] registerSection`, section);
       this._registeredSections.push(section);
     } else {
       this._parent.registerSection(section);
@@ -193,16 +179,16 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   }
 
   moveToBody(): void {
-    console.debug(`[reveal] Moving <div class="reveal"> into <body> ...`);
+    console.debug('Moving <div class="reveal"> into <body> ...', 'debug');
     this.viewRef.detach();
     this.appRef.attachView(this.viewRef);
     const domElement: HTMLElement = (this.viewRef as EmbeddedViewRef<RevealComponent>).rootNodes[0];
     this._document.body.appendChild(domElement);
   }
 
-  async initialize() {
+  async initialize(opts?: { emitEvent?: boolean }) {
     const now = Date.now();
-    console.debug(`[reveal] Initialize Reveal.js ... {printing: ${this._printing}}`);
+    console.debug(`${this._logPrefix}Initializing... {printing: ${this.isPrintingUrl()}}`);
 
     await this.renderSections();
 
@@ -210,7 +196,8 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     await Promise.all(this.markdownList.map((md) => lastValueFrom(md.ready)));
 
     // Move content to body
-    if (this.isPrintingPDF()) {
+    if (this.isPrintingUrl()) {
+      console.info(this._logPrefix + 'Move content to body');
       this.moveToBody();
     }
 
@@ -231,16 +218,12 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
       ...this.options,
 
-      embedded: !this._printing, // Required for multi .reveal div
+      embedded: !this.isPrintingUrl(), // Required for multi .reveal div
       keyboardCondition: 'focused',
       plugins: [RevealMarkdown],
     });
 
     await this._reveal.initialize();
-
-    console.info(`[reveal] Reveal initialized in ${Date.now() - now}ms`);
-    this.ready.emit();
-    this.markAsLoaded();
 
     this._reveal.on('slidechanged', (event: RevealSlideChangedEvent) => {
       this.slideChanged.emit(event);
@@ -250,6 +233,18 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
       this._reveal.destroy();
       this._revealDiv.nativeElement.innerHTML = '';
     });
+
+    console.info(`${this._logPrefix}Initialized in ${Date.now() - now}ms`);
+
+    // Emit event
+    if (opts?.emitEvent !== false) {
+      this.markAsReady();
+    }
+  }
+
+  markAsReady() {
+    this.ready.emit();
+    this.markAsLoaded();
   }
 
   protected async renderSections() {
@@ -282,35 +277,34 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   }
 
   async print() {
-    if (this.loading) return; // skip
+    if (this.loading || this.isPrintingUrl()) return; // skip
 
-    console.debug('[reveal] Print...');
+    if (this._printing) {
+      console.warn(this._logPrefix + 'Previous printing task not finished');
+      return;
+    }
 
-    if (!this.isPrintingPDF()) {
+    this._printing = true;
+    console.debug(this._logPrefix + 'Print...');
+
+    if (!this.isPrintingUrl()) {
       // Safari print feature seems to hide some part...
       // As a workaround, we display a warning message
       if (isSafari(window)) {
-        console.warn('[reveal] Detecting Safari - User-Agent: ', getUserAgent(window));
+        console.debug(this._logPrefix + 'Detecting Safari - User-Agent: ', 'warn', getUserAgent(window));
         this.showToast({ type: 'warning', message: 'ERROR.INCOMPATIBLE_WEB_BROWSER', duration: 5000 });
       }
 
-      // Create a iframe with '?print-pdf'
-      const printUrl = this.getPrintPdfUrl();
-
-      this.markAsLoading();
-
       try {
-        const toast = await this.showToast({ message: 'COMMON.PLEASE_WAIT', duration: 0 });
-        this._printIframe = this.createPrintHiddenIframe(printUrl);
-        await this._checkIfReadyToPrint();
-        await this.toastController.dismiss(toast);
-        this._printIframe.contentWindow.window.print();
+        const jobId = this._printService.nextJobId();
+        const printUrl = this.getPrintPdfUrl(jobId);
+        this.markAsLoading();
+        await this._printService.markAsLoading(jobId);
+        await this._printService.printUrl(printUrl, { id: jobId });
       } catch (err) {
-        this.disablePrintJob();
-        console.error('[reveal] Failed to create hidden iframe', err);
+        console.debug(this._logPrefix + 'Print task failed', 'error', err);
       } finally {
-        this._printIframe?.remove();
-        this._printIframe = null;
+        this._printing = false;
         this.markAsLoaded();
       }
     }
@@ -320,20 +314,11 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     return waitForFalse(this.loadingSubject, opts);
   }
 
-  async hasPrintingJob(): Promise<boolean> {
-    const result = await this._storageService.get('prepare-printing-report-' + this.options.reportId);
-    return isNotNil(result);
+  isPrintingUrl(): boolean {
+    return this._printService.isPrintingUrl();
   }
 
-  async enablePrintJob() {
-    console.debug('[reveal] Enable print job', this.options.reportId);
-    await this._storageService.set('prepare-printing-report-' + this.options.reportId, '1');
-  }
-
-  async disablePrintJob() {
-    console.debug('[reveal] Disable print job', this.options.reportId);
-    await this._storageService.remove('prepare-printing-report-' + this.options.reportId);
-  }
+  /* -- protected functions -- */
 
   protected markAsLoading() {
     this.loadingSubject.next(true);
@@ -341,51 +326,49 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
   protected markAsLoaded() {
     this.loadingSubject.next(false);
+
+    // If inside an iframe, tell the print service that the print job is ready
+    if (this.isPrintingUrl() && isNotNil(this._printJobId)) {
+      setTimeout(async () => {
+        await this._printService.markAsLoaded(this._printJobId);
+      }, 250);
+    }
   }
 
-  private createPrintHiddenIframe(url: string): HTMLIFrameElement {
-    // Create a iframe with '?print-pdf'
-    const iframe = this._document.createElement('iframe');
-    iframe.classList.add('cdk-visually-hidden');
-    iframe.style.width = '100%';
-    iframe.style.height = '100%';
-    this._document.body.appendChild(iframe);
-    iframe.src = url;
-    return iframe;
-  }
-
-  private getPrintPdfUrl() {
+  private getPrintPdfUrl(jobId: number) {
     const printUrl = this.options.printUrl || new URL(window.location.href);
 
-    if (!printUrl.searchParams.has('print-pdf')) {
-      printUrl.searchParams.append('print-pdf', '1');
-    }
-    printUrl.searchParams.append('report-id', this.options.reportId);
+    printUrl.searchParams.set('print-pdf', jobId.toString());
 
     return printUrl.href;
   }
 
-  private isPrintingPDF(): boolean {
-    if (this._printing) return true;
-    const query = window.location.search || '?';
-    return query.indexOf('print-pdf') !== -1;
-  }
-
   private configurePrintPdfCss() {
-    this._printing = true;
     const html = this._document.getElementsByTagName('html')[0];
     html.classList.add('print-pdf');
+  }
+
+  private redirectPrintIframeConsole() {
+    const parentConsole = (window.parent as any)?.console;
+    if (parentConsole) {
+      this._logPrefix = '[print-iframe] ';
+      ['debug', 'info', 'warn', 'error'].forEach((level) => {
+        console[level] = (...args: any[]) => {
+          // Si le premier argument est une chaîne, ajoute le préfixe
+          if (typeof args[0] === 'string') {
+            args[0] = this._logPrefix + args[0];
+          } else {
+            // Si le premier argument n'est pas une chaîne, ajoute le préfixe comme argument séparé
+            args.unshift(this._logPrefix);
+          }
+          parentConsole[level].apply(console, args);
+        };
+      });
+    }
   }
 
   private async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     if (!this.toastController) throw new Error("Missing toastController in component's constructor");
     return await Toasts.show(this.toastController, this.translate, opts);
-  }
-
-  private async _checkIfReadyToPrint(): Promise<void> {
-    while (await this.hasPrintingJob()) {
-      console.debug('[reveal] Wait for printing iframe', this.options.reportId);
-      await sleep(1000);
-    }
   }
 }

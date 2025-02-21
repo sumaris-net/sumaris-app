@@ -1,100 +1,99 @@
-<mat-toolbar *ngIf="showToolbar">
-  <ng-container *ngIf="!selection.hasValue(); else hasSelection">
-    <!-- Add -->
-    <button mat-icon-button *ngIf="!mobile && canEdit && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
-      <mat-icon>add</mat-icon>
+@if (showToolbar) {
+  <mat-toolbar>
+    @if (selection | isEmptySelection) {
+      <!-- Add -->
+      <button mat-icon-button *ngIf="!mobile && canEdit && enabled" [title]="'COMMON.BTN_ADD' | translate" (click)="addRow()">
+        <mat-icon>add</mat-icon>
+      </button>
+
+      <!-- Refresh -->
+      <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+
+      <!-- Reset filter
+      <button mat-icon-button (click)="resetFilterAndClose()"
+              *ngIf="filterCriteriaCount">
+        <mat-icon color="accent">filter_list_alt</mat-icon>
+        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+      </button> -->
+
+      <!-- Show filter
+      <button mat-icon-button (click)="filterExpansionPanel.toggle()">
+        <mat-icon *ngIf="filterCriteriaCount; else emptyFilter"
+                  [matBadge]="filterCriteriaCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">filter_list_alt</mat-icon>
+        <ng-template #emptyFilter>
+          <mat-icon>filter_list_alt</mat-icon>
+        </ng-template>
+      </button> -->
+    } @else {
+      <!-- if row selection -->
+      <button mat-icon-button *ngIf="canDelete && enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
+        <mat-icon>delete</mat-icon>
+      </button>
+
+      <!-- duplicate (if desktop) -->
+      <button
+        mat-icon-button
+        *ngIf="canDuplicate && enabled"
+        [disabled]="disabled || invalid || (loadingSubject | async) || (savingSubject | async)"
+        [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE' | translate"
+        (click)="duplicate()"
+      >
+        <mat-icon>content_copy</mat-icon>
+      </button>
+
+      <!-- Download button -->
+      <app-extraction-button
+        *ngIf="canDownload"
+        [programLabel]="filter?.levelLabel"
+        (downloadAsJson)="exportSelectionToJson($event)"
+      ></app-extraction-button>
+    }
+
+    <!-- error (desktop) -->
+    @if (showError && !mobile) {
+      <app-error-item [message]="errorSubject | async"></app-error-item>
+    }
+
+    <!-- spacer -->
+    <span class="toolbar-spacer"></span>
+
+    <ng-content select="[matToolbarEnd]"></ng-content>
+
+    <!-- options button -->
+    <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" *ngIf="canEdit" [matMenuTriggerFor]="toolbarOptionsMenu">
+      <mat-icon>more_vert</mat-icon>
     </button>
 
-    <!-- Refresh -->
-    <button mat-icon-button *ngIf="!mobile" [title]="'COMMON.BTN_REFRESH' | translate" (click)="onRefresh.emit()">
-      <mat-icon>refresh</mat-icon>
-    </button>
-
-    <!-- Reset filter
-    <button mat-icon-button (click)="resetFilterAndClose()"
-            *ngIf="filterCriteriaCount">
-      <mat-icon color="accent">filter_list_alt</mat-icon>
-      <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
-    </button> -->
-
-    <!-- Show filter
-    <button mat-icon-button (click)="filterExpansionPanel.toggle()">
-      <mat-icon *ngIf="filterCriteriaCount; else emptyFilter"
-                [matBadge]="filterCriteriaCount"
-                matBadgeColor="accent"
-                matBadgeSize="small"
-                matBadgePosition="above after">filter_list_alt</mat-icon>
-      <ng-template #emptyFilter>
-        <mat-icon>filter_list_alt</mat-icon>
-      </ng-template>
-    </button> -->
-  </ng-container>
-
-  <!-- if row selection -->
-  <ng-template #hasSelection>
-    <button mat-icon-button *ngIf="canDelete && enabled" [title]="'COMMON.BTN_DELETE' | translate" (click)="deleteSelection($event)">
-      <mat-icon>delete</mat-icon>
-    </button>
-
-    <!-- duplicate (if desktop) -->
-    <button
-      mat-icon-button
-      *ngIf="canDuplicate && enabled"
-      [disabled]="disabled || invalid || (loadingSubject | async) || (savingSubject | async)"
-      [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE' | translate"
-      (click)="duplicate()"
-    >
-      <mat-icon>content_copy</mat-icon>
-    </button>
-
-    <!-- Download button -->
-    <app-extraction-button
-      *ngIf="canDownload"
-      [programLabel]="filter?.levelLabel"
-      (downloadAsJson)="exportSelectionToJson($event)"
-    ></app-extraction-button>
-  </ng-template>
-
-  <!-- error (desktop) -->
-  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
-
-  <!-- spacer -->
-  <span class="toolbar-spacer"></span>
-
-  <ng-content select="[matToolbarEnd]"></ng-content>
-
-  <!-- options button -->
-  <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" *ngIf="canEdit" [matMenuTriggerFor]="toolbarOptionsMenu">
-    <mat-icon>more_vert</mat-icon>
-  </button>
-
-  <!-- Toolbar option menu -->
-  <mat-menu #toolbarOptionsMenu="matMenu" xPosition="after">
-    <!-- upload button -->
-    <button mat-menu-item [disabled]="!canUpload && debug" (click)="uploadFromJson($event)">
-      <mat-icon>upload</mat-icon>
-      <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
-    </button>
-  </mat-menu>
-</mat-toolbar>
+    <!-- Toolbar option menu -->
+    <mat-menu #toolbarOptionsMenu="matMenu" xPosition="after">
+      <!-- upload button -->
+      <button mat-menu-item [disabled]="!canUpload && debug" (click)="uploadFromJson($event)">
+        <mat-icon>upload</mat-icon>
+        <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
+      </button>
+    </mat-menu>
+  </mat-toolbar>
+}
 
 <!-- error (mobile) -->
-<ion-item *ngIf="showError && error" visible-xs visible-sm visible-mobile lines="none">
-  <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-  <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-</ion-item>
+@if (showError && mobile) {
+  <app-error-item [message]="errorSubject | async"></app-error-item>
+}
 
 <div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
-  <table mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc" matSortDisableClear [trackBy]="trackByFn">
+  <table mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc" matSortDisableClear="true" [trackBy]="trackByFn">
     <ng-container matColumnDef="select">
       <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox
           (change)="$event ? masterToggle() : null"
-          [checked]="selection.hasValue() && isAllSelected()"
-          [indeterminate]="selection.hasValue() && !isAllSelected()"
+          [checked]="selection | isAllSelected: this"
+          [indeterminate]="selection | isNotAllSelected: this"
+          [tabIndex]="-1"
         ></mat-checkbox>
       </th>
       <td mat-cell *matCellDef="let row">
@@ -116,16 +115,24 @@
         <span translate>REFERENTIAL.LABEL</span>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-form-field floatLabel="never">
-          <input
-            matInput
-            [formControl]="row.validator.controls['label']"
-            [placeholder]="'REFERENTIAL.LABEL' | translate"
-            [appAutofocus]="row.id === -1 && row.editing"
-            [readonly]="!row.editing"
-          />
-          <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
+        @if (row.editing && row.validator | formGetControl: 'label'; as control) {
+          <mat-form-field>
+            <input
+              matInput
+              [formControl]="control"
+              [placeholder]="'REFERENTIAL.LABEL' | translate"
+              [appAutofocus]="row.id === -1 && row.editing"
+              [readonly]="!row.editing"
+            />
+            <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        } @else if (inlineEdition) {
+          <!-- readonly (desktop) -->
+          {{ row.validator | formGetValue: 'label' }}
+        } @else {
+          <!-- readonly (mobile) -->
+          {{ row.currentData.label }}
+        }
       </td>
     </ng-container>
 
@@ -134,11 +141,19 @@
       <th mat-header-cell *matHeaderCellDef>
         <span translate>REFERENTIAL.NAME</span>
       </th>
-      <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['name']" [placeholder]="'REFERENTIAL.NAME' | translate" [readonly]="!row.editing" />
-          <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
+      <td mat-cell *matCellDef="let row">
+        @if (row.editing && row.validator | formGetControl: 'name'; as control) {
+          <mat-form-field>
+            <input matInput [formControl]="control" [placeholder]="'REFERENTIAL.NAME' | translate" [readonly]="!row.editing" />
+            <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        } @else if (inlineEdition) {
+          <!-- readonly (desktop) -->
+          {{ row.validator | formGetValue: 'name' }}
+        } @else {
+          <!-- readonly (mobile) -->
+          {{ row.currentData.name }}
+        }
       </td>
     </ng-container>
 
@@ -147,16 +162,19 @@
       <th mat-header-cell *matHeaderCellDef>
         <span translate>REFERENTIAL.DESCRIPTION</span>
       </th>
-      <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatLabel="never">
-          <input
-            matInput
-            [formControl]="row.validator.controls.description"
-            [placeholder]="'REFERENTIAL.DESCRIPTION' | translate"
-            [readonly]="!row.editing"
-          />
-          <mat-error *ngIf="row.validator.controls.description.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
+      <td mat-cell *matCellDef="let row">
+        @if (row.editing && row.validator | formGetControl: 'description'; as control) {
+          <mat-form-field>
+            <input matInput [formControl]="control" [placeholder]="'REFERENTIAL.DESCRIPTION' | translate" [readonly]="!row.editing" />
+            <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        } @else if (inlineEdition) {
+          <!-- readonly (desktop) -->
+          {{ row.validator | formGetValue: 'description' }}
+        } @else {
+          <!-- readonly (mobile) -->
+          {{ row.currentData.description }}
+        }
       </td>
     </ng-container>
 
@@ -165,27 +183,35 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <span translate>REFERENTIAL.STATUS</span>
       </th>
-      <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatLabel="never">
-          <ion-icon
-            matPrefix
-            *ngIf="row.validator.controls.statusId.value &gt;=0"
-            [name]="statusById[row.validator.controls.statusId.value]?.icon"
-          ></ion-icon>
+      <td mat-cell *matCellDef="let row">
+        @if (row.editing && row.validator | formGetControl: 'statusId'; as control) {
+          @let value = control | formGetValue;
+          <mat-form-field>
+            @if (value >= 0) {
+              <ion-icon matPrefix [name]="statusById[value]?.icon"></ion-icon>
+            }
 
-          <mat-select [formControl]="row.validator.controls.statusId" [placeholder]="'REFERENTIAL.STATUS' | translate">
-            <mat-select-trigger>
-              <span *ngIf="row.validator.controls.statusId.value &gt;=0">
-                {{ statusById[row.validator.controls.statusId.value]?.label | translate }}
-              </span>
-            </mat-select-trigger>
-            <mat-option *ngFor="let item of statusList" [value]="item.id">
-              <ion-icon [name]="item.icon"></ion-icon>
-              {{ item.label | translate }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="row.validator.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
+            <mat-select [formControl]="control" [placeholder]="'REFERENTIAL.STATUS' | translate">
+              <mat-select-trigger>
+                @if (value >= 0) {
+                  <span translate>{{ statusById[value]?.label }}</span>
+                }
+              </mat-select-trigger>
+              <mat-option *ngFor="let item of statusList" [value]="item.id">
+                <ion-icon [name]="item.icon"></ion-icon>
+                {{ item.label | translate }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        } @else {
+          @let value = inlineEdition ? (row.validator | formGetValue: 'statusId') : row.currentData.statusId;
+          @let status = statusById[value];
+          @if (status) {
+            <ion-icon [name]="status.icon"></ion-icon>
+            {{ statusById[value]?.label | translate }}
+          }
+        }
       </td>
     </ng-container>
 
@@ -194,15 +220,17 @@
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
         <span translate>REFERENTIAL.COMMENTS</span>
       </th>
-      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile" [class.mat-form-field-disabled]="!row.editing">
-        <mat-form-field floatLabel="never">
-          <input
-            matInput
-            [formControl]="row.validator.controls['comments']"
-            [placeholder]="'REFERENTIAL.COMMENTS' | translate"
-            [readonly]="!row.editing"
-          />
-        </mat-form-field>
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
+        @if (row.editing && row.validator | formGetControl: 'comments'; as control) {
+          <mat-form-field>
+            <input matInput [formControl]="control" [placeholder]="'REFERENTIAL.COMMENTS' | translate" [readonly]="!row.editing" />
+          </mat-form-field>
+        } @else {
+          @let value = inlineEdition ? (row.validator | formGetValue: 'comments') : row.currentData.comments;
+          @if (value) {
+            <ion-icon [title]="row.currentData.comments || ''" color="secondary" name="chatbox" slot="icon-only"></ion-icon>
+          }
+        }
       </td>
     </ng-container>
 

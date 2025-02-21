@@ -44,6 +44,17 @@ ion-col.ion-col-form {
     --mat-row-max-height: 33px !important;
   }
 
+  .mat-mdc-row {
+    &.mat-mdc-row-selected {
+      background-color: var(--ion-color-secondary100) !important;
+    }
+
+    &.even {
+      --mat-table-row-item-background-color: var(--ion-color-step-100, whitesmoke);
+      background-color: var(--mat-table-row-item-background-color);
+    }
+  }
+
   .mat-mdc-header-row,
   .mat-mdc-row {
     .mat-column-parentGroup,

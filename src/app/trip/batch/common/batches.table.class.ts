@@ -20,7 +20,7 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
 import { Batch } from './batch.model';
 import { Landing } from '../../landing/landing.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { Operation } from '../../trip/trip.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
@@ -32,6 +32,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { BatchValidatorOptions, BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 import { IEntityWithMeasurement } from '@app/data/measurement/measurement.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
