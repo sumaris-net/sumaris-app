@@ -131,9 +131,10 @@ export class FishingAreaUtils {
     remoteFishingAreas = remoteFishingAreas?.filter((fa) => isNotNil(fa.id));
     if (isEmptyArray(remoteFishingAreas)) return; // OK, no remote data
 
-    localFishingAreas
-      .filter((fa) => remoteFishingAreas.some((p) => fa.id !== p.id && FishingArea.isSameRemoteUniqueKey(fa, p)))
-      // Clean id, to force a deletion of the duplication, then a new insert
-      .forEach(EntityUtils.cleanIdAndUpdateDate);
+    // If existing remote fishing areas with different ids...
+    if (localFishingAreas.some((fa) => remoteFishingAreas.some((p) => fa.id !== p.id && FishingArea.isSameRemoteUniqueKey(fa, p)))) {
+      // ...clean ids, to force a deletion of the duplication, then a new insert
+      EntityUtils.cleanIdsAndUpdateDates(localFishingAreas);
+    }
   }
 }
