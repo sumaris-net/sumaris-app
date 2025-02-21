@@ -197,27 +197,21 @@
     <ng-content></ng-content>
 
     <!-- Comments -->
-    <ion-row *ngIf="showComment">
-      <ion-col size="12">
-        <mat-form-field appearance="outline">
-          <mat-label translate>COMMON.COMMENTS</mat-label>
-          <textarea
-            matInput
-            #comments
-            cdkTextareaAutosize="true"
-            cdkAutosizeMinRows="4"
-            maxlength="2000"
-            tabindex="100"
-            formControlName="comments"
-          ></textarea>
-          <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
-          <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls.comments.hasError('maxlength')">
-            {{ 'ERROR.FIELD_MAX_LENGTH' | translate: form.controls.comments.errors.maxlength }}
-          </mat-error>
-        </mat-form-field>
-      </ion-col>
-    </ion-row>
+    @if (showComment) {
+      <ion-row>
+        <ion-col size="12">
+          <mat-form-field appearance="outline">
+            <mat-label translate>COMMON.COMMENTS</mat-label>
+            <textarea matInput #comments maxlength="2000" tabindex="100" formControlName="comments" (input)="autoResizeTextarea(comments)"></textarea>
+            <mat-hint align="end">{{ comments.value.length }} / 2000</mat-hint>
+            <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="form.controls.comments.hasError('maxlength')">
+              {{ 'ERROR.FIELD_MAX_LENGTH' | translate: form.controls.comments.errors.maxlength }}
+            </mat-error>
+          </mat-form-field>
+        </ion-col>
+      </ion-row>
+    }
   </ion-grid>
 </form>
 
