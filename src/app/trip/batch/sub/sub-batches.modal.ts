@@ -20,7 +20,6 @@ import {
   NetworkService,
   PlatformService,
   SharedValidators,
-  sleep,
   suggestFromArray,
   toBoolean,
   UsageMode,
@@ -977,6 +976,11 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.updateColumns();
   }
 
+  protected onPrepareRowForm(form: UntypedFormGroup, opts?: { enableWeightConversion?: boolean }) {
+    const enableWeightConversion = opts?.enableWeightConversion ?? (this.enableWeightConversion && this._modalMode === 'INDIVIDUAL_COUNT');
+    return super.onPrepareRowForm(form, { ...opts, enableWeightConversion });
+  }
+
   private setShowVirtualColumns(show: boolean) {
     this.virtualPmfms?.forEach((col) => {
       this.setShowColumn(col.id.toString(), show);
@@ -1075,9 +1079,12 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     const subBatchesImages = this._state.get('temporarySubBatchesImages');
 
+    const formGroup = this.validatorService.getFormGroup(null);
+    this.onPrepareRowForm(formGroup, { enableWeightConversion: true });
+
     // Convert rows
     for (const subBatch of existingSubBatches) {
-      this.virtualPmfms?.forEach((pmfm) => {
+      for (const pmfm of this.virtualPmfms) {
         const individualCount = subBatch.measurementValues[pmfm.id];
         const lengthTotalCm = subBatch.measurementValues[numericalPmfmId];
 
@@ -1098,9 +1105,12 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
           const subBatchImages = subBatchesImages?.get(key);
           if (subBatchImages) newSubBatch.images = subBatchImages;
 
-          newSubBatches.push(newSubBatch);
+          formGroup.patchValue(newSubBatch.asObject());
+          formGroup.updateValueAndValidity();
+          await AppFormUtils.waitWhilePending(formGroup, { checkPeriod: 5 });
+          newSubBatches.push(SubBatch.fromObject(formGroup.value));
         }
-      });
+      }
 
       // Conserve subbatches from parentGroup
       if (subBatch.parentGroup.id !== this.parentGroup.id) {
