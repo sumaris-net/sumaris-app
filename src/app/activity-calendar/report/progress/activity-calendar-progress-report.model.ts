@@ -30,6 +30,10 @@ export interface ActivityMonitoringExtractionData extends IReportData {
   AM: ActivityMonitoring[];
 }
 
+const replacePipeSeparator = (value: string, replacement = ', ') => {
+  return value?.replace(/\s*[|]\s*/g, replacement).trim();
+};
+
 export class Calendar extends Entity<Calendar> {
   vesselName: string;
   vesselLength: string;
@@ -55,9 +59,9 @@ export class Calendar extends Entity<Calendar> {
   fromObject(source: any, opts?: any): void {
     this.vesselName = source.vesselName?.replace(' | ', ', ');
     this.vesselLength = source.vesselLength;
-    this.registrationLocationLabel = source.registrationLocationLabel?.replace('|', ', ');
-    this.vesselRegistrationCode = source.vesselRegistrationCode?.replace('|', ', ');
-    this.vesselIntRegistrationCode = source.vesselIntRegistrationCode?.replace('|', ', ');
+    this.registrationLocationLabel = replacePipeSeparator(source.registrationLocationLabel);
+    this.vesselRegistrationCode = replacePipeSeparator(source.vesselRegistrationCode);
+    this.vesselIntRegistrationCode = replacePipeSeparator(source.vesselIntRegistrationCode);
     this.observerName = source.observerName;
     this.surveyQualification = source.surveyQualification;
     this.recorderPerson = source.recorderPerson;
@@ -71,6 +75,7 @@ export class Calendar extends Entity<Calendar> {
 }
 
 export class ActivityMonitoring extends Entity<ActivityMonitoring> {
+  static readonly LIST_SEPARATOR_REGEXP = /\s*[|]\s*/g;
   vesselName: string;
   vesselLength: string;
   registrationLocationLabel: string;
@@ -117,12 +122,12 @@ export class ActivityMonitoring extends Entity<ActivityMonitoring> {
   static fromObject: (source: any, opts?: any) => ActivityMonitoring;
 
   fromObject(source: any, opts?: any): void {
-    this.vesselName = source.vesselName?.replace(' | ', ', ');
+    this.vesselName = replacePipeSeparator(source.vesselName);
     this.vesselLength = source.vesselLength;
-    this.registrationLocationLabel = source.registrationLocationLabel?.replace('|', ', ');
-    this.vesselRegistrationCode = source.vesselRegistrationCode?.replace('|', ', ');
-    this.vesselIntRegistrationCode = source.vesselIntRegistrationCode?.replace('|', ', ');
-    this.observerName = source.observerName;
+    this.registrationLocationLabel = replacePipeSeparator(source.registrationLocationLabel);
+    this.vesselRegistrationCode = replacePipeSeparator(source.vesselRegistrationCode);
+    this.vesselIntRegistrationCode = replacePipeSeparator(source.vesselIntRegistrationCode);
+    this.observerName = replacePipeSeparator(source.observerName);
     this.recorderPerson = source.recorderPerson;
     this.surveyQualification = source.surveyQualification;
     this.emptyMonthCount = source.emptyMonthCount;
