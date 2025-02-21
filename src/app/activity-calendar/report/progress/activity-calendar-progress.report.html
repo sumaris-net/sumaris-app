@@ -207,8 +207,8 @@
               <tr [style.--row-title-height]="'30px'">
                 <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL' | translate }}</th>
                 <th class="ion-text-center col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_NAME' | translate }}</th>
-                <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_REGISTRATION_LOCATION' | translate }}</th>
-                <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_LENGTH' | translate }}</th>
+                <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_REGISTRATION_LOCATION' | translate }}</th>
+                <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_LENGTH' | translate }}</th>
                 <th class="ion-text-center col-compact">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.SURVEY_QUALIFICATION_SECTION' | translate }}</th>
                 @for (month of months; track $index) {
                   <th class="ion-text-center col-tiny">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.' + month | uppercase | translate }}</th>
@@ -220,7 +220,7 @@
                 <tr [style.--row-height]="'30px'">
                   <td class="ion-text-center col-small">{{ row.vesselRegistrationCode }}</td>
                   <td class="ion-text-center col-medium">{{ row.vesselName }}</td>
-                  <td class="ion-text-center col-compact">{{ row.registrationLocationLabel }}</td>
+                  <td class="ion-text-center col-small">{{ row.registrationLocationLabel }}</td>
                   <td class="ion-text-center col-small">{{ row.vesselLength }}</td>
                   <td class="ion-text-center col-compact">{{ row.surveyQualification }}</td>
                   @for (month of months; track $index) {
@@ -237,7 +237,11 @@
                   <td class="ion-text-center col-compact">
                     {{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.STATUS.' + row.status | translate }}
                   </td>
-                  <td class="ion-text-center col-compact">{{ row.observerName }}</td>
+                  <td class="ion-text-center col-large">
+                    <div>
+                      {{ row.observerName | truncText: 60 }}
+                    </div>
+                  </td>
                 </tr>
               }
             </tbody>
@@ -256,12 +260,14 @@
             }
           </ul>
         } @else {
-          <!-- no data -->
-          <ion-label color="danger" class="ion-text-center">
-            <ion-icon name="alert-circle" color="danger"></ion-icon>
-            &nbsp;
-            <h3 [style.color]="'var(--ion-color-danger)'">{{ 'COMMON.NO_DATA' | translate }}</h3>
-          </ion-label>
+          @if (firstChunk) {
+            <!-- no data -->
+            <ion-label color="danger" class="ion-text-center">
+              <ion-icon name="alert-circle" color="danger"></ion-icon>
+              &nbsp;
+              <h3 [style.color]="'var(--ion-color-danger)'">{{ 'COMMON.NO_DATA' | translate }}</h3>
+            </ion-label>
+          }
         }
 
         <!-- Synthesis -->
@@ -322,13 +328,13 @@
         <!-- footer -->
         <ion-grid class="report-footer ion-no-padding">
           <ion-row class="footer-text">
-            <ion-col class="ion-text-center" size="12">
+            <ion-col class="ion-text-start" size="2">{{ stats.reportDate | dateFormat }}</ion-col>
+            <ion-col class="ion-text-center" size="8">
               @if (stats.footerText) {
                 {{ stats.footerText | translate: { year: stats.reportDate | dateFormat: { pattern: 'YYYY' } } }}
               }
             </ion-col>
-            <ion-col class="ion-text-start" size="6">{{ stats.reportDate | dateFormat }}</ion-col>
-            <ion-col class="ion-text-end" size="6">
+            <ion-col class="ion-text-end" size="2">
               {{ ('COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber: chunkIndex + 1 }) + '/' + stats.tableRowChunk.length }}
             </ion-col>
           </ion-row>
@@ -339,7 +345,7 @@
 
   <ng-template #loadingTemplate>
     <div class="loader">
-      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+      <ion-spinner slot="start" color="secondary"></ion-spinner>
     </div>
   </ng-template>
 </ion-content>
