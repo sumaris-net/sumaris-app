@@ -34,12 +34,27 @@ html {
 html.dark {
   @include css-variables-to-root-dark();
 
-  --ion-color-primary: #428cff;
-  --ion-color-primary-rgb: 66, 140, 255;
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #3a7be0;
-  --ion-color-primary-tint: #5598ff;
+  --ion-background-color: #181818 !important;
+  --ion-background-color-rgb: 33,33,33 !important;;
+  --ion-card-background-color: #181818;
+  --ion-text-color: #b8b8b8;
+  --ion-text-color-rgb: 184, 184, 184;
+  --app-form-color: #dddddd;
+  --app-form-color-rgb: 221, 221, 221;
+
+  --ion-color-primary: #3670cc;
+  --ion-color-primary-rgb: 54, 112, 204;
+  --ion-color-primary-contrast: #dddddd;
+  --ion-color-primary-contrast-rgb: 221, 221, 221;
+  --ion-color-primary-shade: #4b80d1;
+  --ion-color-primary-tint: #2f62b4;
+
+  --ion-color-primary100: #2d5dad;
+  --ion-color-primary100-rgb: 45, 93, 173;
+  --ion-color-primary100-contrast: #dddddd;
+  --ion-color-primary100-contrast-rgb: 221, 221, 221;
+  --ion-color-primary100-shade: #416db2;
+  --ion-color-primary100-tint: #275198;
 
   //--ion-color-secondary: #75c4fd;
   //--ion-color-secondary-rgb: 117, 196, 253;
@@ -47,6 +62,20 @@ html.dark {
   //--ion-color-secondary-contrast-rgb: 255, 255, 255;
   //--ion-color-secondary-shade: #46b0e0;
   //--ion-color-secondary-tint: #62ceff;
+
+  --ion-color-secondary100: #33567f;
+  --ion-color-secondary100-rgb: 51, 86, 127;
+  --ion-color-secondary100-contrast: #dddddd;
+  --ion-color-secondary100-contrast-rgb: 221, 221, 221;
+  --ion-color-secondary100-shade: #47658c;
+  --ion-color-secondary100-tint: #2c4b6f;
+
+  --ion-color-secondary50: #294561;
+  --ion-color-secondary50-rgb: 41, 69, 97;
+  --ion-color-secondary50-contrast: #dddddd;
+  --ion-color-secondary50-contrast-rgb: 221, 221, 221;
+  --ion-color-secondary500-shade: #3b536f;
+  --ion-color-secondary50-tint: #233c54;
 
   --ion-color-tertiary: #6a64ff;
   --ion-color-tertiary-rgb: 106, 100, 255;
