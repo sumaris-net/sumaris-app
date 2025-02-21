@@ -921,18 +921,20 @@ export class SubBatchesTable<S extends SubBatchesTableState = SubBatchesTableSta
     this.cd.markForCheck();
   }
 
-  private onPrepareRowForm(form: UntypedFormGroup) {
+  protected onPrepareRowForm(form: UntypedFormGroup, opts?: { enableWeightConversion?: boolean }) {
     if (!form) return; // Skip
     console.debug('[sub-batches-table] Initializing row validator');
 
+    const enableWeightConversion = opts?.enableWeightConversion ?? this.enableWeightConversion;
+
     this.validatorService.updateFormGroup(form, {
-      withWeight: this.enableWeightConversion,
+      withWeight: enableWeightConversion,
       pmfms: this.pmfms,
     });
 
     // Add length -> weight conversion
     this._rowValidatorSubscription?.unsubscribe();
-    if (this.enableWeightConversion) {
+    if (enableWeightConversion) {
       const subscription = this.validatorService.delegate.enableWeightLengthConversion(form, {
         pmfms: this.pmfms,
         qvPmfm: this._qvPmfm,
