@@ -243,6 +243,18 @@ mat-toolbar {
       color: var(--ion-color-primary-tint) !important;
       font-style: italic !important;
     }
+
+    // Add tree indent to first level cells
+    &.mat-column-fishingArea,
+    &.mat-column-distanceToCoastGradient {
+      padding-inline-start: 12px;
+    }
+    // Add tree indent to second level cells
+    &.mat-column-depthGradient,
+    &.mat-column-nearbySpecificArea {
+      padding-inline-start: 16px;
+    }
+
   }
 
   .mat-column-select,
