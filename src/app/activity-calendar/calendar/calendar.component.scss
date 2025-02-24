@@ -195,13 +195,13 @@ mat-toolbar {
     flex: 1 !important;
     width: 100%;
     border: 1px solid transparent;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    border-bottom: 1px solid var(--ion-border-color, rgba(0, 0, 0, 0.12));
     min-height: var(--mat-row-height) !important;
     height: var(--mat-row-height) !important;
     max-height: var(--mat-row-height) !important;
     padding-inline-start: 4px;
     padding-inline-end: 4px;
-    border-left: 1px solid rgba(0, 0, 0, 0.12);
+    border-left: 1px solid var(--ion-border-color, rgba(0, 0, 0, 0.12));
 
     &.odd {
       --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.15) !important;
@@ -234,11 +234,15 @@ mat-toolbar {
         background-color: rgba(var(--ion-color-warning-rgb), 0.7) !important;
       }
     }
+
+
   }
 
-  .mat-mdc-cell .computed {
-    color: var(--ion-color-primary-tint) !important;
-    font-style: italic !important;
+  .mat-mdc-cell  {
+    &.computed {
+      color: var(--ion-color-primary-tint) !important;
+      font-style: italic !important;
+    }
   }
 
   .mat-column-select,
@@ -259,6 +263,7 @@ mat-toolbar {
     --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.4) !important;
     background-color: var(--mat-table-background-color);
   }
+
 
   .mat-column-reset-background-color,
   ::ng-deep .mat-column-reset-background-color {
@@ -367,7 +372,7 @@ mat-toolbar {
 
     .mat-mdc-cell-resizable:hover {
       border: 1px solid transparent;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+      border-bottom: 1px solid var(--ion-border-color, rgba(0, 0, 0, 0.12));
     }
 
     .mat-mdc-row.mat-mdc-row-disabled:hover,
