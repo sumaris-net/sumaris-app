@@ -541,7 +541,7 @@ export abstract class AppDataEntityEditor<
         title: this.translate.instant('COMMON.HELP.TITLE'),
         src: url,
         enableNavigationHistory: true,
-        canPrint: true,
+        canPrint: !this.mobile,
       });
     } else {
       // Open as external link

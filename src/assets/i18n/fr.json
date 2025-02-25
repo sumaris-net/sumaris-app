@@ -3127,14 +3127,15 @@
       "DRESSING_POL": "Présentation",
       "SPECIES_CODE": "Code espèce",
       "SPECIES_NAME": "Espèce",
-      "CAPTURE_TRACE": "Trace de capture?",
-      "HAS_INJURIES": "Blessures?",
+      "CAPTURE_TRACE": "Trace de capture ?",
+      "HAS_INJURIES": "Blessures ?",
       "INDIVIDUAL_ON_DECK": "Remonté sur le pont?",
       "IS_DEAD": "Mort?",
       "COMMENTS": "Commentaires",
       "MEASURE_TIME": "Date de la mesure",
-      "GPS_USED": "Utilisation d'un GPS?",
-      "CAMERA_USED": "Utilisation d'une caméra?",
+      "MEASURE_TYPE": "Type de mesure",
+      "GPS_USED": "Utilisation d'un GPS ?",
+      "CAMERA_USED": "Utilisation d'une caméra ?",
       "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids RTP",
       "CATCH_WEIGHT": "Poids total capture",
       "DISCARD_WEIGHT": "Poids total rejet",
@@ -3235,13 +3236,15 @@
       "RJB_TRIP": {
         "TITLE": "Marées Pocheteaux (RJB v{{version}})",
         "NAME": "Pocheteaux",
-        "SUBSAMPLE_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés",
-        "SUBSAMPLING_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés"
+        "INDIVIDUAL_COUNT": "Nombre d'individus",
+        "SUBSAMPLE_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés"
       },
       "PMFM_TRIP": {
         "TITLE": "Marées brutes > Générique",
         "TITLE_PROGRAM": "Marées brutes {{label}}",
-        "NAME": "Générique"
+        "NAME": "Générique",
+        "INDIVIDUAL_COUNT": "Nombre d'individus total",
+        "SUBSAMPLE_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés"
       },
       "ACTIMONIT": {
         "TITLE": "Avancement des calendriers d'activité",
