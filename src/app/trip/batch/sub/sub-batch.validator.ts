@@ -254,7 +254,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
         parentGroup,
         qvPmfm,
       }),
-      { markForCheck: opts?.markForCheck, debug: true, debounceTime: 10 }
+      { markForCheck: opts?.markForCheck, debug: true, debounceTime: 1 }
     );
   }
 

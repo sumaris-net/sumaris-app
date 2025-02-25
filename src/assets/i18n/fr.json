@@ -163,7 +163,8 @@
       "BTN_DEBUG_DOTS": "Débogage...",
       "BTN_ENABLE_DEBUG": "Activer le débogage ?",
       "BTN_COPY_LOCALLY": "Copier en local",
-      "BTN_AUTO_FILL": "Remplissage auto ?"
+      "BTN_AUTO_FILL": "Remplissage auto ?",
+      "BTN_FILL_DATA": "Générer des données de test"
     },
     "SHARE": {
       "BTN_SHARE": "Partager",

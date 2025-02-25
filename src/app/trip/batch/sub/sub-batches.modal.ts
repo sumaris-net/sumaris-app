@@ -1021,7 +1021,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   private async mergeRows(numericalPmfm: IPmfm) {
     const numericalPmfmId = numericalPmfm.id.toString();
     const criteriaPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isQualitative(pmfm));
-    const groupRows = this.groupByProperty(numericalPmfmId);
+    let groupRows = this.groupByProperty(numericalPmfmId);
+    groupRows = this.mergeSameSubBatch(groupRows);
     let rankOrder = (await this.getMaxRankOrder()) + 1;
 
     const newRows = [];
@@ -1068,6 +1069,27 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     await this.setValue(newRows);
   }
 
+  private mergeSameSubBatch(subBatches: SubBatch[][]): SubBatch[][] {
+    const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm));
+    if (!numericalPmfm) return subBatches;
+
+    const nmId = numericalPmfm.id.toString();
+
+    return subBatches.map((batch) =>
+      batch.reduce((merged: SubBatch[], current: SubBatch) => {
+        const existing = merged.find(
+          (sb) => sb.measurementValues[nmId] === current.measurementValues[nmId] && sb.taxonName.id === current.taxonName.id
+        );
+        if (existing) {
+          existing.individualCount += current.individualCount;
+        } else {
+          merged.push(current);
+        }
+        return merged;
+      }, [])
+    );
+  }
+
   private async splitRows(numericalPmfm: IPmfm) {
     const numericalPmfmId = numericalPmfm.id.toString();
     await this.save();
@@ -1107,7 +1129,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
           formGroup.patchValue(newSubBatch.asObject());
           formGroup.updateValueAndValidity();
-          await AppFormUtils.waitWhilePending(formGroup, { checkPeriod: 5 });
+          await AppFormUtils.waitWhilePending(formGroup, { checkPeriod: 1 });
           newSubBatches.push(SubBatch.fromObject(formGroup.value));
         }
       }
@@ -1213,6 +1235,49 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.canFilterTaxonName = isEmptyArray(values.data);
   }
 
+  private randomIntInRange(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  async setMocks(rowsNumber?: number): Promise<void> {
+    rowsNumber ??= 200;
+    const taxonGroupId = this.parentGroup?.taxonGroup?.id;
+    const subBatchFixture: SubBatch[] = [];
+
+    const criteriaPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isQualitative(pmfm));
+    const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm));
+
+    const taxon = await this.programRefService.suggestTaxonNames(null, {
+      programLabel: this.programLabel,
+      taxonGroupId,
+      strictMode: false,
+    });
+
+    for (let i = 0; i < rowsNumber; i++) {
+      const subBatch = new SubBatch();
+      subBatch.individualCount = this.randomIntInRange(1, 10);
+
+      const randomIndex = this.randomIntInRange(0, taxon.data.length - 1);
+      subBatch.taxonName = taxon.data[randomIndex];
+
+      if (criteriaPmfm) {
+        const randomQualIndex = this.randomIntInRange(0, criteriaPmfm.qualitativeValues.length - 1);
+        subBatch.measurementValues[criteriaPmfm.id.toString()] = criteriaPmfm.qualitativeValues[randomQualIndex];
+      }
+
+      if (numericalPmfm) {
+        subBatch.measurementValues[numericalPmfm.id.toString()] = this.randomIntInRange(1, 150);
+      }
+
+      subBatch.rankOrder = i + 1;
+      subBatch.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${subBatch.rankOrder}`;
+      subBatch.parentGroup = this.parentGroup;
+
+      subBatchFixture.push(subBatch);
+    }
+
+    await this.setValue(subBatchFixture);
+  }
   getFormErrors = AppFormUtils.getFormErrors;
   filterNumberInput = AppFormUtils.filterNumberInput;
 }
