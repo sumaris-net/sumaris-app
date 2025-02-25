@@ -50,6 +50,15 @@
         <ion-label translate>COMMON.DEBUG.BTN_ENABLE_DEBUG</ion-label>
       </button>
     }
+
+    @if (debug) {
+      <button mat-menu-item (click)="setMocks()">
+        <ng-template>
+          <mat-icon>check_box_outline_blank</mat-icon>
+        </ng-template>
+        <ion-label translate>COMMON.DEBUG.BTN_FILL_DATA</ion-label>
+      </button>
+    }
   </ng-template>
 </mat-menu>
 
