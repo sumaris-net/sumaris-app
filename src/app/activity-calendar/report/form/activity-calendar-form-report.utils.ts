@@ -26,7 +26,6 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
-import moment from 'moment';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
 import { GearPhysicalFeaturesUtils } from '@app/activity-calendar/model/gear-physical-features.utils';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -184,19 +183,21 @@ export async function computeIndividualActivityCalendarFormReportStats(
 export function fillActivityCalendarBlankData(data: ActivityCalendar, program: Program): ActivityCalendar {
   const nbOfMetierBlock = program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER_BLOCK);
   const nbOfGearsColumn = program.getPropertyAsInt(ProgramProperties.ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GEARS_COLUMN);
-  data.gearPhysicalFeatures = Array(nbOfGearsColumn).fill(
+  data.gearPhysicalFeatures = new Array(nbOfGearsColumn).fill(
     GearPhysicalFeatures.fromObject({
       metier: Metier.fromObject({}),
     })
   );
-  data.gearUseFeatures = Array(nbOfMetierBlock)
-    .fill(-1)
-    .map((value, index) =>
-      GearUseFeatures.fromObject({
-        metier: Metier.fromObject({ id: value * index - 1 }),
-      })
-    );
-  data.year = moment().year() - 1;
+  data.gearUseFeatures = new Array(nbOfMetierBlock).fill(-1).map((value, index) =>
+    GearUseFeatures.fromObject({
+      metier: Metier.fromObject({
+        id: value * index - 1,
+      }),
+      startDate: DateUtils.toDateISOString(DateUtils.moment()),
+      endDate: DateUtils.toDateISOString(DateUtils.moment()),
+    })
+  );
+  data.year = DateUtils.moment().year() - 1;
   return data;
 }
 
