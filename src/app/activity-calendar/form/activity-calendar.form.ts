@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { ActivityCalendarValidatorOptions, ActivityCalendarValidatorService } from '../model/activity-calendar.validator';
 import { IMeasurementsFormOptions, MeasurementValuesForm } from '@app/data/measurement/measurement-values.form.class';
@@ -109,7 +109,6 @@ export class ActivityCalendarForm
   }
 
   @Output() yearChanges = new EventEmitter<number>();
-  @ViewChild('comments') commentsInput: ElementRef<HTMLTextAreaElement>;
 
   constructor(
     injector: Injector,
@@ -266,7 +265,6 @@ export class ActivityCalendarForm
         control.disable({ emitEvent: false });
       });
 
-      this.autoResizeTextarea(this.commentsInput.nativeElement);
       this.markForCheck();
     }
   }
@@ -374,10 +372,6 @@ export class ActivityCalendarForm
       };
     }
     return this.vesselSnapshotService.suggest(value, filter);
-  }
-
-  autoResizeTextarea(textarea: HTMLTextAreaElement) {
-    textarea.style.height = Math.max(100, textarea.scrollHeight) + 'px';
   }
 
   protected markForCheck() {
