@@ -123,6 +123,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   @RxStateSelect() protected returnDateTime$: Observable<Moment>;
 
+  protected showRecorder = true;
   protected showSaleForm = false;
   protected saleLocationLevelIds: number[];
   protected showGearTable = false;

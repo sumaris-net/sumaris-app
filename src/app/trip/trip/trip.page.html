@@ -178,7 +178,7 @@
         }
 
         <ion-grid class="ion-no-padding">
-          <ion-row class="ion-no-padding">
+          <ion-row>
             <ion-col class="ion-padding">
               <!-- trip -->
               <app-form-trip #tripForm [showError]="false" [returnFieldsRequired]="usageMode | isOnDesk" (onSubmit)="save($event)">
@@ -230,12 +230,12 @@
             </ion-col>
 
             <!-- quality data -->
-            <ion-col size="12" size-xl="3" class="ion-no-padding">
+            <ion-col size="12" size-xl="3">
               <!-- strategy summary -->
               <app-strategy-summary-card></app-strategy-summary-card>
 
               <!-- metadata -->
-              <app-entity-metadata [value]="data">
+              <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
                 <!-- Compose message -->
                 <ion-button
                   recorderSuffix
