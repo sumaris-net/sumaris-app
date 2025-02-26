@@ -459,7 +459,7 @@ export class ObservedLocationPage
       startDate,
       endDate,
       locationId: ReferentialUtils.isNotEmpty(this.data.location) ? this.data.location.id : undefined,
-      groupByVessel: (this.landingsTable && this.landingsTable.isTripDetailEditor) || isNotNil(this.aggregatedLandingsTable),
+      groupByVessel: this.landingsTable?.isTripDetailEditor || isNotNil(this.aggregatedLandingsTable),
       excludeVesselIds,
       synchronizationStatus: 'SYNC', // only remote entities. This is required to read 'Remote#LandingVO' local storage
     });
