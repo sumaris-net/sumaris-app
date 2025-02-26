@@ -54,6 +54,7 @@ import { AppSharedFormUtils } from '@app/shared/forms.utils';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { SubSortingCriteria } from './sub-sorting-criteria.form';
 import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
+import { sequence } from '@angular/animations';
 
 type ModalMode = 'INDIVIDUAL_COUNT' | 'LENGTH_CLASS';
 
@@ -1082,6 +1083,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
         );
         if (existing) {
           existing.individualCount += current.individualCount;
+          existing.images.push(...current.images);
         } else {
           merged.push(current);
         }
