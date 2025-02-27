@@ -1,8 +1,11 @@
 <app-toolbar
   [title]="titleSubject | async"
   color="primary"
-  [hasValidate]="!loading"
+  [hasValidate]="!loading && (dirty || saving)"
+  [hasClose]="!loading && !dirty && !saving"
   (onValidate)="save($event)"
+  (onValidateAndClose)="saveAndClose($event)"
+  (onClose)="close($event)"
   [defaultBackHref]="defaultBackHref"
   [canGoBack]="true"
 >

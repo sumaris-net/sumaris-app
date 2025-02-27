@@ -29,6 +29,7 @@ import { VesselFilter } from '../services/filter/vessel.filter';
 import { SearchbarChangeEventDetail as ISearchbarSearchbarChangeEventDetail } from '@ionic/core/dist/types/components/searchbar/searchbar-interface';
 import { debounceTime, filter } from 'rxjs/operators';
 import { RxState } from '@rx-angular/state';
+import { AppBaseTableFilterRestoreSource } from '@app/shared/table/base.table';
 
 export const VesselsTableSettingsEnum = {
   TABLE_ID: 'vessels',
@@ -135,6 +136,8 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     this.autoLoad = false;
     this.showIdColumn = accountService.isAdmin();
 
+    // DEV only
+    this.logPrefix = '[vessels-table] ';
     this.debug = !environment.production;
   }
 
@@ -186,6 +189,14 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
 
     // Restore filter from settings, or load all
     this.ready().then(() => this.restoreFilterOrLoad());
+  }
+
+  protected loadFilter(sources?: AppBaseTableFilterRestoreSource[]): any {
+    const json = super.loadFilter(sources);
+    return {
+      synchronizationStatus: this.synchronizationStatus,
+      ...json,
+    };
   }
 
   protected ionSearchBarChanged(event: CustomEvent<ISearchbarSearchbarChangeEventDetail>) {
