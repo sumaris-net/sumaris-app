@@ -129,7 +129,6 @@
     "DURATION_DOTS": "Durée :",
     "YES": "Oui",
     "NO": "Non",
-
     "UPDATED_ON": "Mis à jour le",
     "RECORDER": "Saisisseur",
     "OBSERVERS": "Observateur(s)",
@@ -1876,6 +1875,27 @@
         "TITLE_SHORT": "Synthèse des contrôles",
         "VESSEL_COUNT": "Nombre de navires contrôlés :",
         "EXPORT_JSON_FILENAME": "RapportDeControle-{{ location }}-{{ dateTime }}.json"
+      },
+      "FORM": {
+        "TITLE": "Dossier d'observation à terre",
+        "LAND_TRIPS": {
+          "TITLE": "Fiche sortie à terre",
+          "SECTIONS": {
+            "LINK_WITH_THE_SAMPLING_PLAN": "Liaison avec le plan d’échantillonnage (voir le site web WAO)",
+            "OBSERVERS": "Observateur(s)",
+            "GENERAL_INFORMATIONS": "Informations générales de la sortie",
+            "OTHER_FEATURES": "Autres caractéristiques"
+          },
+          "FIELDS": {
+            "PROGRAM": "Programme de collecte :",
+            "SAMPLING_STRATA": "Référence de la ligne de plan :",
+            "LOCATION": "Lieu de la sortie :",
+            "OBSERVERS_NAMES": "Nom(s), Prénom(s) (société) :",
+            "START_DATE_TIME": "Date et heure de début :",
+            "END_DATE_TIME": "Date et heure de fin :",
+            "COMMENTS": "Commentaire"
+          }
+        }
       }
     },
     "SELECT_OBSERVED_LOCATION_MODAL": {
@@ -2754,6 +2774,7 @@
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Sortie > Hors-Ligne > Niveau(x) de lieu à importer",
       "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Sortie > Afficher la stratégie ?",
       "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)",
+      "OBSERVED_LOCATION_REPORT_FORM_SUBTITLE": "Sortie > Rapport : Sous-titre du rapport",
       "LANDING_BATCH_ENABLE": "Sortie > Débarquement : Activer les lots (BATCH) ?",
       "LANDING_EDITOR": "Sortie > Débarquement : Éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",

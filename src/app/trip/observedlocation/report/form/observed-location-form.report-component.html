@@ -1,0 +1,174 @@
+@if (loaded) {
+  <app-reveal #reveal [options]="revealOptions">
+    @if (isPrintingPDF) {
+    } @else {
+      <section *sectionDef class="portrait" [style.--page-horizontal-margin]="parentPageDimensions.pageHorizontalMargin">
+        <!-- header -->
+        <ion-grid class="report-header ion-no-padding">
+          <ion-row class="document-title">
+            <ion-col class="logo" size="2">
+              @if (logoHeadLeftUrl | isNotNilOrBlank) {
+                <img [src]="logoHeadLeftUrl" />
+              }
+            </ion-col>
+            <ion-col size="8">
+              <h1 class="ion-text-uppercase">{{ 'OBSERVED_LOCATION.REPORT.FORM.TITLE' | translateContext: i18nContext.suffix }}</h1>
+              <h2>
+                {{ stats.options.subtitle }}
+              </h2>
+            </ion-col>
+            <ion-col class="logo" size="2">
+              @if (logoHeadRightUrl | isNotNilOrBlank) {
+                <img [src]="logoHeadRightUrl" />
+              }
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!-- section title -->
+        <ion-grid class="report-section">
+          <ion-row class="page-title ion-padding">
+            <ion-col>
+              <h2>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.TITLE' | translate }}</h2>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!-- link with the sampling plan -->
+        <ion-grid class="report-section">
+          <ion-row class="section-title">
+            <ion-col>
+              <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.SECTIONS.LINK_WITH_THE_SAMPLING_PLAN' | translate }}</h3>
+            </ion-col>
+          </ion-row>
+          <ion-row class="form-field">
+            <ion-col class="form-label" size="4">
+              {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.FIELDS.PROGRAM' | translate }}
+            </ion-col>
+            <ion-col class="form-value" size="8">
+              @if (!isBlankForm) {
+                {{ program.label }}
+              }
+            </ion-col>
+          </ion-row>
+          <ion-row class="form-field">
+            <ion-col class="form-label" size="4">
+              {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.FIELDS.SAMPLING_STRATA' | translate }}
+            </ion-col>
+            <ion-col class="form-value no-border-top" size="8">
+              @if (!isBlankForm) {
+                {{ data.samplingStrata?.properties?.samplingSchemeLabel }}
+              }
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!-- Observers section -->
+        <ion-grid class="report-section">
+          <ion-row class="section-title">
+            <ion-col>
+              <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.SECTIONS.OBSERVERS' | translate }}</h3>
+            </ion-col>
+          </ion-row>
+          <ion-row class="form-field">
+            <ion-col class="form-label" size="4">
+              {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.FIELDS.OBSERVERS_NAMES' | translate }}
+            </ion-col>
+            <ion-col class="form-value" size="8">
+              {{ data.observers | personToString: ', ' : { withDepartment: true } }}
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!-- General informations -->
+        <ion-grid class="report-section">
+          <ion-row class="section-title">
+            <ion-col>
+              <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.SECTIONS.GENERAL_INFORMATIONS' | translate }}</h3>
+            </ion-col>
+          </ion-row>
+          <ion-row class="form-field">
+            <ion-col class="form-label" size="4">
+              {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.FIELDS.LOCATION' | translate }}
+            </ion-col>
+            <ion-col class="form-value" size="8">
+              @if (!isBlankForm) {
+                {{ data.location | referentialToString: displayAttributesLocation }}
+              }
+            </ion-col>
+          </ion-row>
+          <ion-row class="form-field">
+            <ion-col class="form-label" size="4">
+              {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.FIELDS.START_DATE_TIME' | translate }}
+            </ion-col>
+            <ion-col class="form-value no-border-top" size="8">
+              @if (!isBlankForm) {
+                {{ data.startDateTime | dateFormat: { time: true } }}
+              }
+            </ion-col>
+          </ion-row>
+          <ion-row class="form-field">
+            <ion-col class="form-label" size="4">
+              {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.FIELDS.END_DATE_TIME' | translate }}
+            </ion-col>
+            <ion-col class="form-value no-border-top" size="8">
+              @if (!isBlankForm) {
+                {{ data.endDateTime | dateFormat: { time: true } }}
+              }
+            </ion-col>
+          </ion-row>
+          <!-- TODO: Sale date ? -->
+        </ion-grid>
+
+        <!-- Features section -->
+        @if (pmfms | isNotEmptyArray) {
+          <ion-grid class="report-section">
+            <ion-row class="section-title">
+              <ion-col>
+                <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.SECTIONS.OTHER_FEATURES' | translate }}</h3>
+              </ion-col>
+            </ion-row>
+            @for (pmfm of pmfms; track pmfm.id) {
+              <ion-row class="form-field">
+                <ion-col class="form-label" size="6">
+                  {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix } }}
+                </ion-col>
+                <ion-col class="form-value" [class.horiz-checkbox]="isBlankForm" size="6" [class.no-border-bottom]="!$last">
+                  @if (isBlankForm) {
+                    <ion-grid>
+                      <ion-row>
+                        <ion-col>
+                          {{ 'COMMON.YES' | translate }}&nbsp;
+                          <ion-icon name="square-outline"></ion-icon>
+                        </ion-col>
+                        <ion-col>
+                          {{ 'COMMON.NO' | translate }}&nbsp;
+                          <ion-icon name="square-outline"></ion-icon>
+                        </ion-col>
+                      </ion-row>
+                    </ion-grid>
+                  } @else {
+                    {{ data.measurementValues | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm, showYesOrNo: true } }}
+                  }
+                </ion-col>
+              </ion-row>
+            }
+          </ion-grid>
+        }
+        <!-- Comments -->
+        <ion-grid class="report-section">
+          <ion-row class="section-title">
+            <ion-col>
+              <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIPS.FIELDS.COMMENTS' | translate }}</h3>
+            </ion-col>
+          </ion-row>
+          <ion-row class="form-field" [style.--form-field-height]="'120'">
+            <ion-col class="form-value" size="12">
+              {{ data?.comments }}
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </section>
+    }
+  </app-reveal>
+}

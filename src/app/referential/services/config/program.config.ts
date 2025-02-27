@@ -1010,6 +1010,11 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  OBSERVED_LOCATION_REPORT_FORM_SUBTITLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.form.subTitle',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_SUBTITLE',
+    type: 'string',
+  },
 
   VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.vessel.type.enable',

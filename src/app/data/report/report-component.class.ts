@@ -84,7 +84,7 @@ export class TipsReportChunk {
   @Input({ required: true }) tips: ReportTips[];
 }
 
-export abstract class CommonReportComponentStats {
+export abstract class CommonReportComponentStats extends CommonReportStats {
   headerItems: string[];
 }
 

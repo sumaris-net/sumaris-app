@@ -10,9 +10,20 @@ const routes: Routes = [
     component: ObservedLocationReport,
   },
   {
-    path: 'legacy',
+    data: {
+      isBlankForm: false,
+    },
+    path: 'form',
     pathMatch: 'full',
-    component: ObservedLocationReport,
+    loadChildren: () => import('./form/observed-location-form-report-routing.module').then((m) => m.ObservedLocationFormReportRoutingModule),
+  },
+  {
+    data: {
+      isBlankForm: true,
+    },
+    path: 'blank-form',
+    pathMatch: 'full',
+    loadChildren: () => import('./form/observed-location-form-report-routing.module').then((m) => m.ObservedLocationFormReportRoutingModule),
   },
 ];
 

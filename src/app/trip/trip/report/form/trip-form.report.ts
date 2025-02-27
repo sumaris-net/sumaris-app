@@ -173,8 +173,8 @@ export class TripFormReport extends AppDataEntityReport<Trip, number, TripFormRe
   protected computeSlidesOptions(data: Trip, stats: TripFormReportStats): Partial<IRevealExtendedOptions> {
     return {
       ...super.computeSlidesOptions(data, stats),
-      width: 210 * 4,
-      height: 297 * 4,
+      width: this.pageDimensions.pageWidth,
+      height: this.pageDimensions.pageHeight,
       center: false,
     };
   }
