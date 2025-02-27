@@ -1,13 +1,24 @@
 import { Injectable } from '@angular/core';
 import { GraphqlService } from '@sumaris-net/ngx-components';
 import { TripReportService } from '../trip-report.service';
-import { FormExtractionData, FormSpeciesLength, FormSpeciesList, FormStation, FormTrip } from './form-trip-report.model';
-import { SelectivityExtractionData } from '../selectivity/selectivity-trip-report.model';
+import {
+  FormExtractionData,
+  TripFormReportDataSpeciesLength,
+  TripFormReportDataSpeciesList,
+  TripFormReportDataStation,
+  TripFormReportData,
+} from './trip-form-report.model';
 import { ExtractionCacheDurationType, ExtractionFilter } from '@app/extraction/type/extraction-type.model';
 import { FetchPolicy } from '@apollo/client/core';
 
 @Injectable()
-export class FormTripReportService extends TripReportService<FormExtractionData, FormTrip, FormStation, FormSpeciesList, FormSpeciesLength> {
+export class TripFormReportService extends TripReportService<
+  FormExtractionData,
+  TripFormReportData,
+  TripFormReportDataStation,
+  TripFormReportDataSpeciesList,
+  TripFormReportDataSpeciesLength
+> {
   constructor(protected graphql: GraphqlService) {
     super(graphql);
   }
@@ -24,10 +35,10 @@ export class FormTripReportService extends TripReportService<FormExtractionData,
       ...opts,
       sheetNames: ['TR', 'HH'],
       dataTypes: {
-        TR: FormTrip,
-        HH: FormStation,
-        SL: FormSpeciesList,
-        HL: FormSpeciesLength,
+        TR: TripFormReportData,
+        HH: TripFormReportDataStation,
+        SL: TripFormReportDataSpeciesList,
+        HL: TripFormReportDataSpeciesLength,
       },
     });
   }

@@ -1,0 +1,453 @@
+@if (loaded) {
+  <app-reveal #reveal [options]="revealOptions">
+    <section>
+      @for (metierChunk of stats.metierTableChunks; track metierChunk; let pageIndex = $index; let firstPage = $first; let lastPage = $last) {
+        <section
+          *sectionDef
+          [style.--month-table-title-row-height]="pageDimensions.monthTableRowTitleHeight"
+          [style.--month-table-row-height]="pageDimensions.monthTableRowHeight"
+          [style.--month-table-large-row-height]="pageDimensions.monthTableMetierRowHeight"
+          [style.--gear-table-title-row-height]="pageDimensions.gpfTableRowTitleHeight"
+          [style.--gear-table-row-height]="pageDimensions.gpfTableRowHeight"
+          [style.--header-height]="pageDimensions.headerHeight"
+          [style.--section-title-height]="pageDimensions.sectionTitleHeight"
+          [style.--margin-bottom]="pageDimensions.marginBottom"
+          [style.--color-primary]="parentStats.options.colorPrimary"
+          [style.--color-secondary]="parentStats.options.colorSecondary"
+        >
+          <ion-grid class="report-section report-header">
+            <ion-row class="document-title">
+              <ion-col class="logo" size="auto">
+                @if (parentStats.options.logoHeadLeftUrl | isNotNilOrBlank) {
+                  <img [src]="parentStats.options.logoHeadLeftUrl" />
+                }
+              </ion-col>
+              <ion-col size="auto">
+                <h1 class="ion-text-uppercase">
+                  {{ 'ACTIVITY_CALENDAR.REPORT.TITLE' | translateContext: i18nContext.suffix : { year: data.year } }}
+                </h1>
+              </ion-col>
+              <ion-col class="logo" size="auto">
+                @if (parentStats.options.logoHeadRightUrl | isNotNilOrBlank) {
+                  <img [src]="parentStats.options.logoHeadRightUrl" />
+                }
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+          @if (firstPage) {
+            <ion-grid class="report-section ion-no-padding font-compact">
+              <ion-row>
+                <ion-col size="4">
+                  <ion-grid class="ion-no-padding">
+                    <ion-row class="section-title red-border-bottom">
+                      <ion-col class="ion-padding-end">
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
+                      <ion-col class="ion-margin-right" size="7">
+                        <ion-grid class="ion-no-padding">
+                          <ion-row>
+                            <ion-col size="auto">
+                              <strong>
+                                {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_LOCATION' | translate }}
+                              </strong>
+                              &nbsp;
+                            </ion-col>
+                            <ion-col size="auto">
+                              @for (registrationPeriod of data.vesselRegistrationPeriods; track registrationPeriod.id) {
+                                {{ registrationPeriod.registrationLocation | referentialToString: ['label', 'name'] }}
+                                @if (!$last) {
+                                  <br />
+                                }
+                              }
+                            </ion-col>
+                          </ion-row>
+                        </ion-grid>
+                      </ion-col>
+                      <ion-col size="5">
+                        <ion-grid class="ion-no-padding">
+                          <ion-row>
+                            <ion-col>
+                              <strong>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.VESSEL_NAME' | translate }}</strong>
+                              &nbsp;
+                              {{ data.vesselSnapshot.name }}
+                            </ion-col>
+                          </ion-row>
+                          <ion-row>
+                            <ion-col>
+                              <strong>
+                                @if (parentStats.displayAttributes.vesselSnapshot[0] == 'exteriorMarking') {
+                                  {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.EXTERIOR_MARKING' | translate }}
+                                } @else {
+                                  {{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_SECTION.REGISTRATION_CODE' | translate }}
+                                }
+                                &nbsp;
+                              </strong>
+                              {{
+                                (data.vesselSnapshot | mapGet: parentStats.displayAttributes.vesselSnapshot[0]) ||
+                                  data.vesselSnapshot.intRegistrationCode
+                              }}
+                            </ion-col>
+                          </ion-row>
+                        </ion-grid>
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+                <ion-col size="5" class="ion-padding-horizontal">
+                  <ion-grid class="ion-no-padding">
+                    <ion-row class="section-title red-border-bottom">
+                      <ion-col>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.SURVEY_QUALIFICATION_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
+                      @for (qv of parentStats.surveyQualificationQualitativeValues; track qv.id) {
+                        <ion-col size="3">
+                          <ion-icon
+                            [name]="
+                              (data.measurementValues
+                                | mapGet: pmfmIdsMap.SURVEY_QUALIFICATION
+                                | pmfmValue
+                                  : {
+                                      pmfm: parentStats.pmfm.activityCalendar | arrayFilter: filterPmfmSurveyQualification | arrayFirst,
+                                    }) === qv.name
+                                ? 'checkbox-outline'
+                                : 'square-outline'
+                            "
+                            class="font-compact"
+                          ></ion-icon>
+                          <strong>
+                            {{ qv.name }}
+                          </strong>
+                        </ion-col>
+                      }
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+                <ion-col size="3">
+                  <ion-grid class="ion-no-padding">
+                    <ion-row class="section-title red-border-bottom">
+                      <ion-col>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.VESSEL_OWNER_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
+                      <ion-col size="12">
+                        {{
+                          stats.lastVesselOwner
+                            | referentialToString: { properties: parentStats.displayAttributes.vesselOwner, propertySeparator: ' ' }
+                        }}
+                      </ion-col>
+                      <ion-col size="12">
+                        {{ stats.lastVesselOwner | referentialToString: { properties: ['street', 'zipCode', 'city'], propertySeparator: ' ' } }}
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+            <ion-grid class="report-section ion-no-padding">
+              <ion-row class="ion-no-padding section-title">
+                <ion-col>
+                  <h2>{{ 'ACTIVITY_CALENDAR.REPORT.EFFORT_SECTION.TITLE' | translate }}</h2>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+            <table class="month-table">
+              <thead>
+                <tr>
+                  <th></th>
+                  @for (month of stats.activityMonth; track $index) {
+                    <th>
+                      {{ month.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                <!-- isActive row -->
+                <tr>
+                  <th class="col-label">
+                    {{ 'ACTIVITY_CALENDAR.EDIT.IS_ACTIVE' | translate }}
+                  </th>
+                  @for (month of stats.activityMonth; track $index) {
+                    <td>
+                      {{ isActiveMap[month.isActive] | mapGet: 'label' | translate }}
+                    </td>
+                  }
+                </tr>
+                <!-- basePortLocation row -->
+                <tr class="large-height-row">
+                  <th class="col-label">
+                    {{ 'ACTIVITY_CALENDAR.REPORT.BASE_PORT_LOCATION' | translate }}
+                  </th>
+                  @for (month of stats.activityMonth; track $index) {
+                    <td [class.activity-not-exists]="(month | mapGet: 'isActive') === 2" class="fit-one-line">
+                      <div>
+                        <div [title]="month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label', 'name'] }">
+                          {{ month | mapGet: 'basePortLocation' | referentialToString: { properties: ['label'] } }}
+                        </div>
+                        <div>
+                          {{ month | mapGet: 'basePortLocation' | referentialToString: { properties: ['name'] } }}
+                        </div>
+                      </div>
+                    </td>
+                  }
+                </tr>
+                @for (monthPmfm of parentStats.pmfm.activityMonth; track monthPmfm.id) {
+                  <tr>
+                    <th class="col-label">
+                      {{ monthPmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix, withUnit: false } }}
+                    </th>
+                    @for (month of stats.activityMonth; track $index) {
+                      <td
+                        [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
+                        [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
+                      >
+                        {{ month | mapGet: 'measurementValues' | mapGet: monthPmfm.id | pmfmValue: { pmfm: monthPmfm } }}
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          @if (metierChunk | isNotEmptyArray) {
+            <ion-grid class="report-section ion-no-padding ion-padding-top" [style.--ion-padding]="'8px'">
+              <ion-row class="ion-no-padding">
+                <ion-col>
+                  <h2>{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.TITLE' | translate }}</h2>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+            <table class="month-table">
+              <thead>
+                <tr>
+                  <th class="col-label"></th>
+                  @for (month of stats.activityMonth; track $index) {
+                    <th>
+                      {{ month.startDate | dateFormat: { pattern: 'MMMM' } | capitalize }}
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (metierIndex of metierChunk | arrayPluck: 'metierIndex'; track metierIndex; let metierChunkIndex = $index) {
+                  <tr class="large-height-row">
+                    <th class="col-label">
+                      {{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_METIER' | translate }}
+                    </th>
+                    @for (month of stats.activityMonth; track monthIndex; let monthIndex = $index) {
+                      @if (stats.activityMonthColspan[monthIndex][metierIndex] > 0) {
+                        <td
+                          [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
+                          [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
+                          [attr.colspan]="stats.activityMonthColspan[monthIndex][metierIndex]"
+                          [class.fit-one-line]="stats.activityMonthColspan[monthIndex][metierIndex] > 0"
+                        >
+                          <div
+                            [title]="(month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label', 'name']) || ''"
+                            [class.cdk-visually-hidden]="stats.activityMonthColspan[monthIndex][metierIndex] === 0"
+                          >
+                            <div>
+                              {{ month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['label'] }}
+                            </div>
+                            <div>
+                              {{ month['gearUseFeatures'][metierIndex] | mapGet: 'metier' | referentialToString: ['name'] }}
+                            </div>
+                          </div>
+                        </td>
+                      }
+                    }
+                  </tr>
+                  @for (fishingAreasIndex of metierChunk[metierChunkIndex] | mapGet: 'fishingAreasIndexes'; track fishingAreasIndex) {
+                    <tr>
+                      <th class="col-label">{{ 'ACTIVITY_CALENDAR.REPORT.METIERS_SECTION.ROW_FISHING_AREA' | translate }}</th>
+                      @for (month of stats.activityMonth; track $index) {
+                        <td
+                          [class.activity-not-exists]="(month | mapGet: 'isActive') === 2"
+                          [class.activity-inactive]="(month | mapGet: 'isActive') === 0"
+                          class="fit-one-line"
+                        >
+                          <div>
+                            {{
+                              month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]
+                                | mapGet: 'location'
+                                | referentialToString: ['label']
+                            }}
+                            @if (month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]['distanceToCoastGradient'] | isNotNil) {
+                              &nbsp;-&nbsp;
+                              {{
+                                month['gearUseFeatures'][metierIndex]['fishingAreas'][fishingAreasIndex]
+                                  | mapGet: 'distanceToCoastGradient'
+                                  | referentialToString: ['label']
+                              }}
+                            }
+                          </div>
+                        </td>
+                      }
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          }
+          @if (lastPage) {
+            <ion-grid class="report-section ion-no-padding ion-padding-top font-compact" [style.--ion-padding]="'8px'">
+              <ion-row>
+                <ion-col size="8" class="ion-padding-end">
+                  @if (
+                    ((stats.pmfm.forGpfTable | isNotEmptyArray) && (data.gearPhysicalFeatures | isNotEmptyArray)) ||
+                    (data.gearUseFeatures | isNotEmptyArray)
+                  ) {
+                    <ion-grid class="ion-no-padding">
+                      <ion-row class="section-title">
+                        <ion-col>
+                          <h2>{{ 'ACTIVITY_CALENDAR.REPORT.GPF_SECTION.TITLE' | translate }}</h2>
+                        </ion-col>
+                      </ion-row>
+                      <ion-row>
+                        <table class="gpf-table" [style.width]="'100%'">
+                          <thead>
+                            <tr>
+                              <th [style.--col-width]="pageDimensions.gpfTableColTitleWidth">
+                                {{ 'ACTIVITY_CALENDAR.REPORT.GPF_SECTION.METIER' | translate }}
+                              </th>
+                              @for (labelMetier of stats.filteredAndOrderedGpf | arrayPluck: 'metier.label'; track $index) {
+                                <th
+                                  [style.--col-width]="
+                                    'calc(1px * (100% - ' + pageDimensions.gpfTableColTitleWidth + ' / ' + data.gearUseFeatures.length + ')'
+                                  "
+                                >
+                                  {{ labelMetier }}
+                                </th>
+                              }
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (pmfm of stats.pmfm.forGpfTable; track pmfm.id) {
+                              <tr [style.--col-width]="pageDimensions.gpfTableColTitleWidth">
+                                <th>{{ pmfm | pmfmName: { withDetails: false } }}</th>
+                                @for (useFeature of stats.filteredAndOrderedGpf; track $index) {
+                                  <td
+                                    [style.--col-width]="
+                                      'calc(1px * (100% - ' + pageDimensions.gpfTableColTitleWidth + ' / ' + data.gearPhysicalFeatures.length + ')'
+                                    "
+                                  >
+                                    {{ useFeature | mapGet: 'measurementValues' | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm } }}
+                                  </td>
+                                }
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </ion-row>
+                    </ion-grid>
+                  }
+                </ion-col>
+                <ion-col size="2" class="ion-padding-start">
+                  <ion-grid class="ion-no-padding">
+                    <ion-row class="section-title red-border-bottom">
+                      <ion-col>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.SELL_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
+                      @for (
+                        qv of parentStats.pmfmById.activityCalendar | mapGet: pmfmIdsMap.AUCTION_HABIT | mapGet: 'qualitativeValues';
+                        track qv.id
+                      ) {
+                        <ion-col size="12">
+                          <ion-icon
+                            [name]="
+                              (data.measurementValues
+                                | mapGet: pmfmIdsMap.AUCTION_HABIT
+                                | pmfmValue
+                                  : {
+                                      pmfm: parentStats.pmfm.activityCalendar | arrayFilter: filterPmfmAuctionHabit | arrayFirst,
+                                    }) === qv.name
+                                ? 'checkbox-outline'
+                                : 'square-outline'
+                            "
+                            class="font-compact"
+                          ></ion-icon>
+                          <strong>
+                            {{ qv.name }}
+                          </strong>
+                        </ion-col>
+                      }
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+                <ion-col size="2" class="ion-padding-start">
+                  <ion-grid>
+                    <ion-row class="section-title red-border-bottom">
+                      <ion-col>
+                        <h2>{{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.TITLE' | translate }}</h2>
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="ion-padding-top" [style.--ion-padding]="'4px'">
+                      @if (isBlankForm) {
+                        <ion-col size="12">
+                          <strong>
+                            {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.LAST_NAME' | translate }}
+                          </strong>
+                        </ion-col>
+                        <ion-col size="12">
+                          <strong>
+                            {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.FIRST_NAME' | translate }}
+                          </strong>
+                        </ion-col>
+                        <ion-col size="12">
+                          <strong>
+                            {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.LAST_NAME' | translate }}
+                          </strong>
+                        </ion-col>
+                        <ion-col size="12">
+                          <strong>
+                            {{ 'ACTIVITY_CALENDAR.REPORT.OBSERVER_SECTION.FIRST_NAME' | translate }}
+                          </strong>
+                        </ion-col>
+                      } @else {
+                        <ion-col size="12">
+                          @for (observer of data.observers; track observer.id; let lastObserver = $last) {
+                            {{ observer | personToString }}
+                            @if (!lastObserver) {
+                              <br />
+                            }
+                          }
+                        </ion-col>
+                      }
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          }
+          <ng-content *ngTemplateOutlet="pageFooter; context: { pageNumber: pageIndex + 1, pageTotal: stats.metierTableChunks.length }"></ng-content>
+        </section>
+      }
+    </section>
+  </app-reveal>
+}
+
+<ng-template #pageFooter let-help="help" let-pageNumber="pageNumber" let-pageTotal="pageTotal">
+  <ion-grid class="report-footer ion-no-padding">
+    @if (help | isNotNilOrBlank) {
+      <ion-row class="footer-help">
+        <ion-col>
+          {{ help | translate }}
+        </ion-col>
+      </ion-row>
+    }
+    <ion-row class="footer-text ion-justify-content-between">
+      <ion-col
+        size="auto"
+        [innerHTML]="(parentStats.options.footerText | isNotNil) ? parentStats.options.footerText : (data | rootDataQualityToString)"
+      ></ion-col>
+      <ion-col size="auto">{{ 'COMMON.REPORT.PAGE_NUMBER' | translate: { pageNumber: pageNumber } }} / {{ pageTotal }}</ion-col>
+    </ion-row>
+  </ion-grid>
+</ng-template>

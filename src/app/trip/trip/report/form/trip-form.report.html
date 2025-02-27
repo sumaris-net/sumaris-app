@@ -1,0 +1,648 @@
+<ng-container *ngIf="showToolbar">
+  <app-toolbar *ngIf="!modal; else modalToolbar" [defaultBackHref]="$defaultBackHref | async" canGoBack="false">
+    <ion-title [innerHTML]="$title | async"></ion-title>
+
+    <ion-buttons slot="end">
+      <!-- Refresh -->
+      <ion-button *ngIf="uuid | isNilOrBlank" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH' | translate">
+        <mat-icon>refresh</mat-icon>
+      </ion-button>
+
+      <!-- Help button -->
+      <ion-button (click)="reveal.toggleHelp()">
+        <mat-icon>help_outline</mat-icon>
+      </ion-button>
+
+      <!-- Print -->
+      <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+      <ion-button (click)="print()" *ngIf="!mobile">
+        <!-- Print button -->
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- share menu -->
+      <button mat-icon-button matHeader [title]="'COMMON.SHARE.BTN_SHARE' | translate" [matMenuTriggerFor]="shareMenu">
+        <mat-icon>share</mat-icon>
+      </button>
+    </ion-buttons>
+  </app-toolbar>
+
+  <mat-menu #shareMenu="matMenu" xPosition="after">
+    <!-- Share popover -->
+    <button mat-menu-item (click)="showSharePopover($event)" [disabled]="(loadingSubject | async) || network.offline">
+      <ion-label>{{ 'COMMON.SHARE.BTN_SHARE_DOTS' | translate }}</ion-label>
+    </button>
+  </mat-menu>
+
+  <ng-template #modalToolbar>
+    <app-modal-toolbar *ngIf="showToolbar" [modalName]="modalName" [color]="'secondary'" (cancel)="cancel()" [canValidate]="false">
+      <ion-title [innerHTML]="$title | async"></ion-title>
+
+      <!-- Print button -->
+      <ion-button slot="end" (click)="reveal.print()">
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- Close button (on desktop screen) -->
+      <ion-button hidden-xs hidden-sm hidden-mobile slot="end" (click)="cancel()" (keyup.enter)="cancel()">
+        <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+      </ion-button>
+    </app-modal-toolbar>
+  </ng-template>
+</ng-container>
+
+<ion-content>
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
+  </ion-item>
+
+  @if (loaded) {
+    <app-reveal
+      #reveal
+      [options]="revealOptions"
+      [style.--color-primary]="stats.options.colorPrimary"
+      [style.--color-secondary]="stats.options.colorSecondary"
+    >
+      <!-- If has tripLines use tripTable, else show trip card for the main trip -->
+      @if (stats.options.multiTrip) {
+        <!-- Cover page -->
+        <section *sectionDef class="portrait" [style.--page-horizontal-margin]="pageDimensions.pageHorizontalMargin">
+          <ion-grid class="cover-page">
+            <ion-row>
+              @if (stats.options.logoHeadLeftUrl | isNotNilOrBlank) {
+                <ion-col>
+                  <img [src]="stats.options.logoHeadLeftUrl" />
+                </ion-col>
+              }
+              @if (stats.options.logoHeadRightUrl | isNotNilOrBlank) {
+                <ion-col>
+                  <img [src]="stats.options.logoHeadRightUrl" />
+                </ion-col>
+              }
+            </ion-row>
+            <ion-row class="cover-title">
+              <ion-col>
+                <h1 class="ion-text-uppercase">{{ 'TRIP.REPORT.FORM.TITLE' | translateContext: i18nContext.suffix }}</h1>
+                <h2>
+                  @if (stats.options.subtitle | isNotNilOrBlank) {
+                    {{ stats.options.subtitle }}
+                  } @else {
+                    {{ stats.program.description }}
+                  }
+                </h2>
+              </ion-col>
+            </ion-row>
+            <ion-row class="cover-title">
+              <ion-col size="12">
+                @let reportDate = stats.reportDate | dateFormat: { time: true };
+                <p>{{ 'TRIP.REPORT.FORM.VERSION_OF' | translate: { reportDate: reportDate } }}</p>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col>
+                <page-footer-from-report-chunk
+                  [footerText]="stats.options.footerText"
+                  [helpText]="'TRIP.REPORT.FORM.TRIP.HELP' | translate: { program: stats.program.label }"
+                ></page-footer-from-report-chunk>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </section>
+        <trip-table-form-report-component
+          [rankOrder]="10"
+          [stats]="stats?.reportComponents?.[10]"
+          [data]="stats.tripLines"
+          [hiddenPmfms]="stats.options.hiddenPmfms"
+          [parentPageDimensions]="pageDimensions"
+          [revealOptions]="revealOptions"
+          [i18nContext]="i18nContext"
+          [program]="stats.program"
+          [strategy]="stats.strategy"
+          [isBlankForm]="isBlankForm"
+          [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
+          [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
+          [isPrintingPDF]="isPrintingPDF"
+          [titleComplement]="stats.hasPmfm.cameraUsed ? 'TRIP.REPORT.FORM.WITH_OR_WITHOUT_CAMERA' : undefined"
+          [footerText]="stats.options.footerText"
+          [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+        ></trip-table-form-report-component>
+      } @else {
+        <!-- TODO: Move this section in it own component -->
+        <!-- Trip card -->
+        <section *sectionDef class="portrait" [style.--page-horizontal-margin]="pageDimensions.pageHorizontalMargin">
+          <!-- Header section -->
+          <ion-grid class="report-header ion-no-padding">
+            <ion-row class="document-title">
+              <ion-col class="logo" size="2">
+                @if (stats.options.logoHeadLeftUrl | isNotNilOrBlank) {
+                  <img [src]="stats.options.logoHeadLeftUrl" />
+                }
+              </ion-col>
+              <ion-col size="8">
+                <h1 class="ion-text-uppercase">{{ 'TRIP.REPORT.FORM.TITLE' | translateContext: i18nContext.suffix }}</h1>
+                <h2>
+                  @if (stats.options.subtitle | isNotNilOrBlank) {
+                    {{ stats.options.subtitle }}
+                  } @else {
+                    {{ stats.program.description }}
+                  }
+                </h2>
+              </ion-col>
+              <ion-col class="logo" size="2">
+                @if (stats.options.logoHeadRightUrl | isNotNilOrBlank) {
+                  <img [src]="stats.options.logoHeadRightUrl" />
+                }
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+
+          <!-- Title section -->
+          <ion-grid class="report-section">
+            <ion-row class="page-title ion-padding">
+              <ion-col>
+                <h2>{{ 'TRIP.REPORT.FORM.TRIP.TITLE' | translate }}</h2>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+
+          <!-- Link with the sampling plan section -->
+          @if (stats.options.strataEnabled || (data.samplingStrata | isNotNil)) {
+            <ion-grid class="report-section">
+              <ion-row class="section-title">
+                <ion-col>
+                  <h3>{{ 'TRIP.REPORT.FORM.TRIP.LINK_WITH_THE_SAMPLING_PLAN' | translate }}</h3>
+                </ion-col>
+              </ion-row>
+              <ion-row class="form-field" [style.--form-field-height]="'90'">
+                <ion-col class="form-label" size="4">
+                  {{ 'TRIP.REPORT.FORM.TRIP.SAMPLING_STRATA_LABEL' | translate }}
+                </ion-col>
+                <ion-col class="form-value" size="8">
+                  @if (!isBlankForm) {
+                    {{ data.samplingStrata?.label }}
+                  }
+                </ion-col>
+              </ion-row>
+              <ion-row class="form-field">
+                <ion-col class="form-label" size="4">
+                  {{ 'TRIP.REPORT.FORM.TRIP.ATTACHMENT_PROGRAM' | translate }}
+                </ion-col>
+                <ion-col class="form-value no-border-top" size="8">
+                  @if (!isBlankForm) {
+                    {{ data.samplingStrata?.properties?.samplingSchemeLabel }}
+                  }
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          }
+
+          <!-- Observers section -->
+          @if (stats.options.showObservers) {
+            <ion-grid class="report-section">
+              <ion-row class="section-title">
+                <ion-col>
+                  <h3>{{ 'TRIP.REPORT.FORM.TRIP.OBSERVERS' | translate }}</h3>
+                </ion-col>
+              </ion-row>
+              <ion-row class="form-field">
+                <ion-col class="form-label" size="4">
+                  {{ 'TRIP.REPORT.FORM.TRIP.OBSERVERS_NAMES' | translate }}
+                </ion-col>
+                <ion-col class="form-value" size="8">
+                  {{ data.observers | personToString: ', ' : { withDepartment: true } }}
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          }
+
+          <!-- Trip departure section -->
+          <ion-grid class="report-section">
+            <ion-row class="section-title">
+              <ion-col>
+                <h3>{{ 'TRIP.REPORT.FORM.TRIP.TRIP_DEPARTURE' | translate }}</h3>
+              </ion-col>
+            </ion-row>
+            <ion-row class="form-field">
+              <ion-col class="form-label" size="4">
+                {{ 'TRIP.REPORT.FORM.TRIP.VESSEL_REGISTRATION_CODE' | translate }}
+              </ion-col>
+              <ion-col class="form-value" size="8">
+                {{ data.vesselSnapshot?.registrationCode || data.vesselSnapshot?.intRegistrationCode }}
+              </ion-col>
+            </ion-row>
+            <ion-row class="form-field">
+              <ion-col class="form-label" size="4">
+                {{ 'TRIP.REPORT.FORM.TRIP.VESSEL_NAME' | translate }}
+              </ion-col>
+              <ion-col class="form-value no-border-top" size="8">
+                {{ data.vesselSnapshot?.name }}
+              </ion-col>
+            </ion-row>
+            <ion-row class="form-field">
+              <ion-col class="form-label" size="4">
+                {{ 'TRIP.REPORT.FORM.TRIP.DEPARTURE_LOCATION' | translate }}
+              </ion-col>
+              <ion-col class="form-value no-border-top" size="8">
+                {{ data.departureLocation | referentialToString: stats.options.displayAttributeLocation }}
+              </ion-col>
+            </ion-row>
+            <ion-row class="form-field">
+              <ion-col class="form-label" size="4">
+                {{ 'TRIP.REPORT.FORM.TRIP.DEPARTURE_DATE_TIME' | translate }}
+              </ion-col>
+              <ion-col class="form-value no-border-top" size="3">
+                {{ data.departureDateTime | dateFormat: { time: true } }}
+              </ion-col>
+              @if (stats.hasPmfm.nbFishermen) {
+                <ion-col class="form-label" size="4">
+                  {{ 'TRIP.REPORT.FORM.TRIP.NB_FISHERMEN' | translateContext: i18nContext.suffix }}
+                  <br />
+                  <span class="help">{{ 'TRIP.REPORT.FORM.TRIP.NB_FISHERMEN_HELP' | translate }}</span>
+                </ion-col>
+                <ion-col class="form-value no-border-top ion-text-right" size="1">
+                  {{
+                    stats.measurementValues
+                      | mapGet: stats.pmfmIdsMap.NB_FISHERMEN
+                      | pmfmValue: { pmfm: stats.pmfmsByIds | mapGet: stats.pmfmIdsMap.NB_FISHERMEN }
+                  }}
+                </ion-col>
+              }
+            </ion-row>
+          </ion-grid>
+
+          <!-- Trip return section -->
+          <ion-grid class="report-section">
+            <ion-row class="section-title">
+              <ion-col>
+                <h3>{{ 'TRIP.REPORT.FORM.TRIP.TRIP_RETURN' | translate }}</h3>
+              </ion-col>
+            </ion-row>
+            <ion-row class="form-field">
+              <ion-col class="form-label" size="4">
+                {{ 'TRIP.REPORT.FORM.TRIP.RETURN_LOCATION' | translate }}
+              </ion-col>
+              <ion-col class="form-value" size="8">
+                {{ data.returnLocation | referentialToString: stats.options.displayAttributeLocation }}
+              </ion-col>
+            </ion-row>
+            <ion-row class="form-field">
+              <ion-col class="form-label" size="4">
+                {{ 'TRIP.REPORT.FORM.TRIP.RETURN_DATE_TIME' | translate }}
+              </ion-col>
+              <ion-col class="form-value no-border-top" size="3">
+                {{ data.returnDateTime | dateFormat: { time: true } }}
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+
+          <!-- Sales section -->
+          @if (stats.options.showSale) {
+            <ion-grid class="report-section">
+              <ion-row class="section-title">
+                <ion-col>
+                  <h3>{{ 'TRIP.REPORT.FORM.TRIP.SALES' | translate }}</h3>
+                </ion-col>
+              </ion-row>
+              <ion-row class="form-field">
+                <ion-col class="form-label" size="4">
+                  {{ 'TRIP.REPORT.FORM.TRIP.SELL_LOCATION' | translate }}
+                </ion-col>
+                <ion-col class="form-value" size="8">
+                  {{ data.sale?.saleLocation | referentialToString: stats.options.displayAttributeLocation }}
+                </ion-col>
+              </ion-row>
+              <ion-row class="form-field">
+                <ion-col class="form-label" size="4">
+                  {{ 'TRIP.REPORT.FORM.TRIP.SELL_DATE' | translate }}
+                </ion-col>
+                <ion-col class="form-value no-border-top no-border-bottom" size="3">
+                  {{ data.sale?.startDateTime | dateFormat: { time: true } }}
+                </ion-col>
+              </ion-row>
+              <ion-row class="form-field">
+                <ion-col class="form-label" size="2">
+                  {{ 'TRIP.REPORT.FORM.TRIP.SELL_TYPE' | translate }}
+                </ion-col>
+                <ion-col class="form-value horiz-checkbox" size="10">
+                  <ion-grid>
+                    <ion-row>
+                      @for (type of stats.options.saleTypes; track $index) {
+                        <ion-col>
+                          {{ type }}&nbsp;
+                          <ion-icon [name]="data?.sale?.saleType.label === type ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                        </ion-col>
+                      }
+                    </ion-row>
+                  </ion-grid>
+                </ion-col>
+              </ion-row>
+
+              <ion-row class="form-field ion-margin-top">
+                <ion-col class="form-label horiz-checkbox" size="6">
+                  <span>
+                    {{ 'TRIP.REPORT.FORM.TRIP.RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK' | translate }}
+                    <br />
+                    <span class="help">
+                      {{ 'TRIP.REPORT.FORM.TRIP.RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK_HELP' | translate }}
+                    </span>
+                  </span>
+                  <ion-icon [name]="'square-outline'"></ion-icon>
+                </ion-col>
+                <ion-col class="form-label horiz-checkbox" size="6">
+                  <span>
+                    {{ 'TRIP.REPORT.FORM.TRIP.RETURN_TO_CAPTAIN' | translate }}
+                    <br />
+                    <span class="help">
+                      {{ 'TRIP.REPORT.FORM.TRIP.RETURN_TO_CAPTAIN_HELP' | translate }}
+                    </span>
+                  </span>
+                  <ion-icon [name]="'square-outline'"></ion-icon>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          }
+
+          <!-- Other features section -->
+          @if (stats.pmfms | isNotEmptyArray) {
+            <ion-grid class="report-section">
+              <ion-row class="section-title">
+                <ion-col>
+                  <h3>{{ 'TRIP.REPORT.FORM.TRIP.OTHER_FEATURES' | translate }}</h3>
+                </ion-col>
+              </ion-row>
+              @for (pmfm of stats.pmfms; track pmfm.id) {
+                <ion-row class="form-field">
+                  <ion-col class="form-label" size="6">
+                    {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix } }}
+                  </ion-col>
+                  <ion-col class="form-value" [class.horiz-checkbox]="isBlankForm" size="6" [class.no-border-bottom]="!$last">
+                    @if (isBlankForm) {
+                      <ion-grid>
+                        <ion-row>
+                          <ion-col>
+                            {{ 'COMMON.YES' | translate }}&nbsp;
+                            <ion-icon name="square-outline"></ion-icon>
+                          </ion-col>
+                          <ion-col>
+                            {{ 'COMMON.NO' | translate }}&nbsp;
+                            <ion-icon name="square-outline"></ion-icon>
+                          </ion-col>
+                        </ion-row>
+                      </ion-grid>
+                    } @else {
+                      {{ stats.measurementValues | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm, showYesOrNo: true } }}
+                    }
+                  </ion-col>
+                </ion-row>
+              }
+            </ion-grid>
+          }
+
+          <!-- Comments -->
+          <ion-grid class="report-section">
+            <ion-row class="section-title">
+              <ion-col>
+                <h3>{{ 'TRIP.REPORT.FORM.COMMENTS' | translate }}</h3>
+              </ion-col>
+            </ion-row>
+            <ion-row class="form-field" [style.--form-field-height]="'120'">
+              <ion-col class="form-value" size="12">
+                {{ data?.comments }}
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+
+          <page-footer-from-report-chunk
+            [footerText]="stats.options.footerText"
+            [helpText]="'TRIP.REPORT.FORM.TRIP.HELP' | translate: { program: stats.program.label }"
+          ></page-footer-from-report-chunk>
+        </section>
+      }
+
+      <!-- Physical gears -->
+      @if (data.gears | isNotEmptyArray) {
+        <physicalgear-report-component
+          [rankOrder]="20"
+          [stats]="stats?.reportComponents?.[20]"
+          [data]="data.gears"
+          [hiddenPmfms]="stats.options.hiddenPmfms"
+          [multiTrip]="stats.options.multiTrip"
+          [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+          [isPrintingPDF]="isPrintingPDF"
+          [i18nContext]="i18nContext"
+          [isBlankForm]="isBlankForm"
+          [program]="stats.program"
+          [strategy]="stats.strategy"
+          [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
+          [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
+          [footerText]="stats.options.footerText"
+          [departureDateTime]="data.departureDateTime"
+          [vesselName]="data.vesselSnapshot?.name"
+          [revealOptions]="revealOptions"
+          [parentPageDimensions]="pageDimensions"
+          [operations]="data.operations"
+          [titleComplement]="stats.hasPmfm.cameraUsed ? 'TRIP.REPORT.FORM.WITH_OR_WITHOUT_CAMERA' : undefined"
+        ></physicalgear-report-component>
+      }
+
+      <!-- Operations table -->
+      @if (stats.options.multiTrip) {
+        <!-- TODO: when call with child or not -->
+        @if (isBlankForm) {
+          <operation-with-child-form-report-component
+            [rankOrder]="30"
+            [stats]="stats?.reportComponents?.[30]"
+            [data]="data.operations"
+            [hiddenPmfms]="stats.options.hiddenPmfms"
+            [multiTrip]="stats.options.multiTrip"
+            [isPrintingPDF]="isPrintingPDF"
+            [i18nContext]="i18nContext"
+            [isBlankForm]="isBlankForm"
+            [program]="stats.program"
+            [strategy]="stats.strategy"
+            [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
+            [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
+            [footerText]="stats.options.footerText"
+            [departureDateTime]="data.departureDateTime"
+            [vesselName]="data.vesselSnapshot?.name"
+            [revealOptions]="revealOptions"
+            [parentPageDimensions]="pageDimensions"
+            [cameraUsed]="false"
+            [hideComments]="stats.hasPmfm.cameraUsed"
+            [enablePosition]="stats.options.enablePosition"
+            [useColumnGearNumber]="stats.options.gearHasLabel"
+            [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+          ></operation-with-child-form-report-component>
+
+          <!-- Add one more page, without camera-->
+          @if (stats.hasPmfm.cameraUsed) {
+            <operation-with-child-form-report-component
+              [rankOrder]="30"
+              [stats]="stats?.reportComponents?.[30]"
+              [data]="data.operations"
+              [hiddenPmfms]="stats.options.hiddenPmfms"
+              [multiTrip]="stats.options.multiTrip"
+              [isPrintingPDF]="isPrintingPDF"
+              [i18nContext]="i18nContext"
+              [isBlankForm]="isBlankForm"
+              [program]="stats.program"
+              [strategy]="stats.strategy"
+              [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
+              [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
+              [footerText]="stats.options.footerText"
+              [departureDateTime]="data.departureDateTime"
+              [vesselName]="data.vesselSnapshot?.name"
+              [revealOptions]="revealOptions"
+              [parentPageDimensions]="pageDimensions"
+              [cameraUsed]="true"
+              [enablePosition]="stats.options.enablePosition"
+              [hideComments]="false"
+              [useColumnGearNumber]="stats.options.gearHasLabel"
+              [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+            ></operation-with-child-form-report-component>
+          }
+        } @else {
+          <operation-with-child-form-report-component
+            [rankOrder]="30"
+            [stats]="stats?.reportComponents?.[30]"
+            [data]="data.operations"
+            [hiddenPmfms]="stats.options.hiddenPmfms"
+            [multiTrip]="stats.options.multiTrip"
+            [isPrintingPDF]="isPrintingPDF"
+            [i18nContext]="i18nContext"
+            [isBlankForm]="isBlankForm"
+            [program]="stats.program"
+            [strategy]="stats.strategy"
+            [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
+            [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
+            [footerText]="stats.options.footerText"
+            [departureDateTime]="data.departureDateTime"
+            [vesselName]="data.vesselSnapshot?.name"
+            [revealOptions]="revealOptions"
+            [parentPageDimensions]="pageDimensions"
+            [cameraUsed]="stats.options.cameraUsed"
+            [enablePosition]="stats.options.enablePosition"
+            [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+          ></operation-with-child-form-report-component>
+        }
+      } @else {
+        <operation-form-report-component
+          [rankOrder]="30"
+          [stats]="stats?.reportComponents?.[30]"
+          [data]="data.operations"
+          [hiddenPmfms]="stats.options.hiddenPmfms"
+          [multiTrip]="stats.options.multiTrip"
+          [isPrintingPDF]="isPrintingPDF"
+          [i18nContext]="i18nContext"
+          [isBlankForm]="isBlankForm"
+          [program]="stats.program"
+          [strategy]="stats.strategy"
+          [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
+          [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
+          [footerText]="stats.options.footerText"
+          [departureDateTime]="data.departureDateTime"
+          [vesselName]="data.vesselSnapshot?.name"
+          [revealOptions]="revealOptions"
+          [parentPageDimensions]="pageDimensions"
+          [enablePosition]="stats.options.enablePosition"
+          [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+        ></operation-form-report-component>
+      }
+
+      <!-- DenormalizedBatch by operations -->
+      @if (stats.options.enableBatch) {
+        <denormalized-batch-form-report-component
+          [rankOrder]="40"
+          [stats]="stats?.reportComponents?.[40]"
+          [tripId]="data.id"
+          [data]="data.operations"
+          [parentPageDimensions]="pageDimensions"
+          [isPrintingPDF]="isPrintingPDF"
+          [i18nContext]="i18nContext"
+          [isBlankForm]="isBlankForm"
+          [program]="stats.program"
+          [strategy]="stats.strategy"
+          [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
+          [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
+          [footerText]="stats.options.footerText"
+          [departureDateTime]="data.departureDateTime"
+          [vesselName]="data.vesselSnapshot?.name"
+          [revealOptions]="revealOptions"
+        ></denormalized-batch-form-report-component>
+      }
+
+      <!-- Sample by operation -->
+      <sample-form-report-component
+        [rankOrder]="50"
+        [stats]="stats?.reportComponents?.[50]"
+        [data]="data.operations"
+        [hiddenPmfms]="stats.options.hiddenPmfms"
+        [multiTrip]="stats.options.multiTrip"
+        [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+        [isPrintingPDF]="isPrintingPDF"
+        [i18nContext]="{ prefix: 'TRIP.SAMPLE.PMFM.', suffix: i18nContext.suffix }"
+        [isBlankForm]="isBlankForm"
+        [program]="stats.program"
+        [strategy]="stats.strategy"
+        [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
+        [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
+        [footerText]="stats.options.footerText"
+        [departureDateTime]="data.departureDateTime"
+        [vesselName]="data.vesselSnapshot?.name"
+        [revealOptions]="revealOptions"
+        [parentPageDimensions]="pageDimensions"
+      ></sample-form-report-component>
+
+      <report-appendix
+        [isPrintingPDF]="isPrintingPDF"
+        [revealOptions]="revealOptions"
+        [parentPageDimensions]="pageDimensions"
+        [titleColor]="stats.options.colorPrimary"
+        [i18nContext]="i18nContext"
+        [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
+        [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
+      ></report-appendix>
+    </app-reveal>
+
+    <ng-template #coverPage>
+      <section *sectionDef class="landscape" [style.--page-horizontal-margin]="pageDimensions.pageHorizontalMargin">
+        <ion-grid class="report-header ion-no-padding">
+          <ion-row class="page-title">
+            <ion-col class="logo" size="auto">
+              @if (stats.options.logoHeadLeftUrl | isNotNilOrBlank) {
+                <img [src]="stats.options.logoHeadLeftUrl" />
+              }
+            </ion-col>
+            <ion-col>
+              <ion-grid class="ion-no-padding">
+                <ion-row class="title-items">
+                  <ion-col size="auto">
+                    {{ 'TRIP.REPORT.FORM.VESSEL_NAME' | translate }}{{ 'COMMON.COLON' | translate }}
+                    .................................
+                  </ion-col>
+                  <ion-col size="auto">
+                    {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING' | translate }}
+                    .................................
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-col>
+            <ion-col>
+              <h2>
+                {{ 'TRIP.REPORT.FORM.TRIP.TITLE' | translate }}
+              </h2>
+            </ion-col>
+            <ion-col class="logo" size="auto">
+              @if (stats.options.logoHeadRightUrl | isNotNilOrBlank) {
+                <img [src]="stats.options.logoHeadRightUrl" />
+              }
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </section>
+    </ng-template>
+  } @else {
+    <loader-report-chunk></loader-report-chunk>
+  }
+</ion-content>

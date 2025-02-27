@@ -1,4 +1,4 @@
-import { Component, inject, Injector, ViewEncapsulation } from '@angular/core';
+import { Component, inject, ViewEncapsulation } from '@angular/core';
 import { ActivityCalendarFilter } from '@app/activity-calendar/activity-calendar.filter';
 import { DirectSurveyInvestigationList } from '@app/activity-calendar/model/activity-calendar.model';
 import { ActivityCalendarsTableSettingsEnum } from '@app/activity-calendar/table/activity-calendars.table';
@@ -32,6 +32,25 @@ import {
   ActivityMonitoringStatusErrorIds,
 } from './activity-calendar-progress-report.model';
 import { ActivityCalendarProgressReportService } from './activity-calendar-progress-report.service';
+import { FormReportPageDimensions } from '@app/data/report/common-report.class';
+
+export interface ActivityCalendarProgressReportPageDimensions extends FormReportPageDimensions {
+  pageWidth: number;
+  pageHeight: number;
+  pageHorizontalMargin: number;
+  availableWidthForTableLandscape: number;
+  availableWidthForTablePortrait: number;
+  marginTop: number;
+  marginBottom: number;
+  headerHeight: number;
+  footerHeight: number;
+  captionHeight: number;
+  sectionTitleHeight: number;
+  filterSectionHeight: number;
+  synthesisSectionHeight: number;
+  theadHeight: number;
+  tableRowHeight: number;
+}
 
 export class ActivityCalendarProgressReportStats extends BaseReportStats {
   subtitle: string;
@@ -124,23 +143,9 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
 
   protected readonly activityMonitoringStatusErrorIds = ActivityMonitoringStatusErrorIds;
   protected readonly months = new Array(12).fill(1).map((v, i) => 'month' + (v + i));
+  protected pageDimensions: ActivityCalendarProgressReportPageDimensions;
 
-  protected logPrefix = 'activity-calendar-progress-report';
-
-  protected readonly pageDimensions = Object.freeze({
-    height: 210 * 4,
-    width: 297 * 4,
-    marginTop: 16,
-    marginBottom: 16,
-    headerHeight: 80,
-    footerHeight: 35,
-    captionHeight: 11,
-    sectionTitleHeight: 25,
-    filterSectionHeight: 140,
-    synthesisSectionHeight: 140,
-    theadHeight: 50,
-    tableRowHeight: 30,
-  });
+  protected logPrefix = '[activity-calendar-progress-report]';
 
   protected readonly vesselSnapshotService = inject(VesselSnapshotService);
   protected readonly activityCalendarProgressReportService = inject(ActivityCalendarProgressReportService);
@@ -149,8 +154,8 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   protected readonly settings = inject(LocalSettingsService);
   protected readonly directSurveyInvestigationMap = Object.freeze(splitById(DirectSurveyInvestigationList));
 
-  constructor(injector: Injector) {
-    super(injector, null, ActivityCalendarProgressReportStats);
+  constructor() {
+    super(ActivityMonitoringExtractionData, ActivityCalendarProgressReportStats);
   }
 
   protected computeSlidesOptions(
@@ -159,8 +164,8 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
   ): Partial<IRevealExtendedOptions> {
     return {
       ...super.computeSlidesOptions(data, stats),
-      width: this.pageDimensions.width,
-      height: this.pageDimensions.height,
+      width: this.pageDimensions.pageWidth,
+      height: this.pageDimensions.pageHeight,
       center: false,
     };
   }
@@ -186,10 +191,13 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     return this.load(extractionFilter);
   }
 
-  dataAsObject(source: ActivityMonitoringExtractionData, opts?: EntityAsObjectOptions) {
+  dataAsObject(opts?: EntityAsObjectOptions) {
+    if (!this.loaded) {
+      throw `${this.logPrefix} Data are not already loaded`;
+    }
     return {
-      AC: source.AC.map((item) => item.asObject(opts)),
-      AM: source.AM.map((item) => item.asObject(opts)),
+      AC: this.data.AC.map((item) => item.asObject(opts)),
+      AM: this.data.AM.map((item) => item.asObject(opts)),
     };
   }
 
@@ -272,7 +280,7 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
 
   protected computeTableChunk(data: ActivityMonitoringExtractionData, stats: ActivityCalendarProgressReportStats): ActivityMonitoring[][] {
     const totalAvailableHeightForContent =
-      this.pageDimensions.height -
+      this.pageDimensions.pageHeight -
       this.pageDimensions.marginTop -
       this.pageDimensions.marginBottom -
       this.pageDimensions.headerHeight -
@@ -340,5 +348,30 @@ export class ActivityCalendarProgressReport extends AppExtractionReport<Activity
     }
 
     return null;
+  }
+
+  protected computePageDimensions(): ActivityCalendarProgressReportPageDimensions {
+    const pageWidth = 297 * 4;
+    const pageHeight = 210 * 4;
+    const pageHorizontalMargin = 50;
+    const availableWidthForTablePortrait = pageWidth - pageHorizontalMargin * 2;
+    const availableWidthForTableLandscape = pageHeight - pageHorizontalMargin * 2;
+    return {
+      pageWidth,
+      pageHeight,
+      pageHorizontalMargin,
+      availableWidthForTableLandscape,
+      availableWidthForTablePortrait,
+      marginTop: 16,
+      marginBottom: 16,
+      headerHeight: 80,
+      footerHeight: 35,
+      captionHeight: 11,
+      sectionTitleHeight: 25,
+      filterSectionHeight: 140,
+      synthesisSectionHeight: 140,
+      theadHeight: 50,
+      tableRowHeight: 30,
+    };
   }
 }

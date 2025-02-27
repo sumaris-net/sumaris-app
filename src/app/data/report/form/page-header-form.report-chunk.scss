@@ -1,0 +1,33 @@
+ion-grid {
+  &.report-header {
+    height: var(--header-height);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    width: calc(100% - (var(--page-horizontal-margin) * 2px));
+    ion-row {
+      align-items: center;
+      justify-content: space-between;
+      &.title-items {
+        align-items: flex-start;
+        ion-col {
+          margin: 0;
+          padding: 0 5px 0 0;
+          font-size: var(--font-large);
+        }
+      }
+    }
+    .logo {
+      padding: var(--ion-padding);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: calc(var(--logo-max-size) * 1px);
+      width: calc(var(--logo-max-size) * 1px);
+      img {
+        max-height: calc(var(--logo-max-size) * 1px);
+        max-width: calc(var(--logo-max-size) * 1px);
+      }
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import {
   AfterViewInit,
   ApplicationRef,
@@ -24,23 +25,22 @@ import {
   ViewEncapsulation,
   ViewRef,
 } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
 import { ToastController } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import {
-  getUserAgent,
-  isNotNil,
-  isSafari,
   PrintService,
   ShowToastOptions,
   StorageService,
   Toasts,
-  waitForFalse,
   WaitForOptions,
+  getUserAgent,
+  isNotNil,
+  isSafari,
+  waitForFalse,
 } from '@sumaris-net/ngx-components';
 import { MarkdownComponent } from 'ngx-markdown';
-import { BehaviorSubject, lastValueFrom, Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription, lastValueFrom } from 'rxjs';
 import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
 
 export interface IRevealExtendedOptions extends IRevealOptions {
@@ -105,8 +105,10 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
   @Input() options: Partial<IRevealExtendedOptions>;
   @Input() autoPrint = true;
+  @Input() renderOrder = 0;
 
-  @Output() ready = new EventEmitter();
+  @Output() loadedEvent = new EventEmitter();
+  @Output() loadingEvent = new EventEmitter();
   @Output() slideChanged = new EventEmitter<RevealSlideChangedEvent>();
 
   @ViewChild('main') _revealDiv!: ElementRef;
@@ -145,20 +147,12 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     // Root component
-    if (!this._embedded) {
-      if (this.options && this.options.autoInitialize !== false) {
-        setTimeout(() => this.initialize(), 100);
-      }
-
-      if (this.isPrintingUrl() && this.options.autoPrint !== false) {
-        this.waitIdle().then(() => this.print());
-      }
+    if (this.options && this.options.autoInitialize !== false) {
+      setTimeout(() => this.initialize(), 100);
     }
-    // Embedded component
-    else {
-      this._sectionDefs.forEach((section) => {
-        this._parent.registerSection(section);
-      });
+
+    if (this.isPrintingUrl() && this.options.autoPrint !== false) {
+      this.waitIdle().then(() => this.print());
     }
   }
 
@@ -189,6 +183,14 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
   async initialize(opts?: { emitEvent?: boolean }) {
     const now = Date.now();
     console.debug(`${this._logPrefix}Initializing... {printing: ${this.isPrintingUrl()}}`);
+
+    if (this._embedded) {
+      this._sectionDefs.forEach((section) => {
+        this._parent.registerSection(section);
+      });
+      this.markAsLoaded();
+      return;
+    }
 
     await this.renderSections();
 
@@ -238,13 +240,8 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
     // Emit event
     if (opts?.emitEvent !== false) {
-      this.markAsReady();
+      this.markAsLoaded();
     }
-  }
-
-  markAsReady() {
-    this.ready.emit();
-    this.markAsLoaded();
   }
 
   protected async renderSections() {
@@ -252,7 +249,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
     const viewContainer = this._sectionOutlet.viewContainer;
     let indexSection = 0;
     this._sectionDefs.forEach((section, index) => viewContainer.createEmbeddedView(section.template, {}, indexSection++));
-    this._registeredSections.forEach((section, index) => viewContainer.createEmbeddedView(section.template, {}, indexSection++));
+    this._registeredSections.forEach((section) => viewContainer.createEmbeddedView(section.template, {}, indexSection++));
     this.cd.detectChanges();
   }
 
@@ -320,11 +317,15 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
   /* -- protected functions -- */
 
-  protected markAsLoading() {
+  protected markAsLoading(opts = { emitEvent: true }) {
     this.loadingSubject.next(true);
+
+    if (opts.emitEvent) {
+      this.loadingEvent.emit();
+    }
   }
 
-  protected markAsLoaded() {
+  protected markAsLoaded(opts = { emitEvent: true }) {
     this.loadingSubject.next(false);
 
     // If inside an iframe, tell the print service that the print job is ready
@@ -332,6 +333,10 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
       setTimeout(async () => {
         await this._printService.markAsLoaded(this._printJobId);
       }, 250);
+    }
+
+    if (opts.emitEvent) {
+      this.loadedEvent.emit();
     }
   }
 
@@ -354,11 +359,11 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
       this._logPrefix = '[print-iframe] ';
       ['debug', 'info', 'warn', 'error'].forEach((level) => {
         console[level] = (...args: any[]) => {
-          // Si le premier argument est une chaîne, ajoute le préfixe
+          // If first argument is a string, add prefix
           if (typeof args[0] === 'string') {
             args[0] = this._logPrefix + args[0];
           } else {
-            // Si le premier argument n'est pas une chaîne, ajoute le préfixe comme argument séparé
+            // If first argument is not a string, add the prefix as separate argument
             args.unshift(this._logPrefix);
           }
           parentConsole[level].apply(console, args);

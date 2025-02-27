@@ -581,6 +581,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  TRIP_OPERATION_ENABLE_VESSEL_ASSOCIATION: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.enableVesselAssociation',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_ENABLE_VESSEL_ASSOCIATION',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
 
   TRIP_REPORT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.report.enable',
@@ -640,6 +646,78 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.report.form.header.right.logo.url',
     label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL',
     type: 'string',
+  },
+  TRIP_REPORT_FORM_SAMPLE_TABLE_MULTI_OP: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.sampleMultiOp',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_SAMPLE_TABLE_MULTI_OP',
+    type: 'boolean',
+    defaultValue: false,
+  },
+  TRIP_REPORT_FORM_PHYSICAL_SHOW_BY_TABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.physicalGearsShowByTable',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_PHYSICAL_SHOW_TABLE',
+    type: 'boolean',
+    defaultValue: false,
+  },
+  TRIP_REPORT_FORM_HIDDEN_PMFM_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.pmfm.hiddenIds',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_HIDDEN_PMFM_IDS',
+    defaultValue: [],
+    type: 'entities',
+    autocomplete: pmfmAutocomplete,
+  },
+  TRIP_REPORT_FORM_OPERATION_COMMENT_HELP_TEXT: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.operation.comment.help.text',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_OPERATION_COMMENT_HELP_TEXT',
+    type: 'string',
+  },
+  TRIP_REPORT_FORM_BLANK_SHOW_SAMPLE_RANK_ORDER: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.showSampleRankOrder',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_SHOW_SAMPLE_RANK_ORDER',
+    type: 'boolean',
+    defaultValue: true,
+  },
+  TRIP_REPORT_FORM_BLANK_TIPS_LIMIT_TO_SHOW_ON_APPENDIX: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.tipsLimitToShowOn_annex',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_TIPS_LIMIT_TO_SHOW_ON_APPENDIX',
+    type: 'integer',
+    defaultValue: 12,
+  },
+  TRIP_REPORT_FORM_BLANK_SHOW_QUALITATIVE_VALUES_CHECK_BOX: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.showQualitativeValuesCheckBox',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_SHOW_QUALITATIVE_VALUES_CHECK_BOX',
+    type: 'boolean',
+    defaultValue: true,
+  },
+  TRIP_REPORT_FORM_BLANK_NB_OF_OPERATION_PAGE: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.nbOfOperationPage',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_NB_OF_OPERATION_PAGE',
+    type: 'integer',
+    defaultValue: 1,
+  },
+  TRIP_REPORT_FORM_BLANK_NB_OF_INDIVIDUAL_SAMPLE_PAGE: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.nbOfIndividualSamplePage',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_NB_OF_INDIVIDUAL_SAMPLE_PAGE',
+    type: 'integer',
+    defaultValue: 1,
+  },
+  TRIP_REPORT_FORM_BLANK_NB_OF_RELEASED_SAMPLE_PAGE: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.nbOfReleasedSamplePage',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_NB_OF_RELEASED_SAMPLE_PAGE',
+    type: 'integer',
+    defaultValue: 1,
+  },
+  TRIP_REPORT_FORM_BLANK_SAMPLE_TAXON_GROUP_HELP: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.sample.taxonGroup.help',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_SAMPLE_TAXON_GROUP_HELP',
+    type: 'string',
+    defaultValue: 'TODO',
+  },
+  TRIP_REPORT_FORM_BLANK_MULTI_TRIP: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.form.blank.multiTrip',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_MULTI_TRIP',
+    type: 'boolean',
+    defaultValue: false,
   },
 
   // Operation

@@ -14,6 +14,12 @@ const routes: Routes = [
     component: TripTable,
   },
 
+  // Shared report
+  {
+    path: 'report',
+    loadChildren: () => import('./report/trip-report-routing.module').then((m) => m.TripReportRoutingModule),
+  },
+
   // Page
   {
     path: ':tripId',
@@ -48,12 +54,6 @@ const routes: Routes = [
         loadChildren: () => import('./report/trip-report-routing.module').then((m) => m.TripReportRoutingModule),
       },
     ],
-  },
-
-  // Shared report
-  {
-    path: 'report',
-    loadChildren: () => import('./report/trip-report-routing.module').then((m) => m.TripReportRoutingModule),
   },
 ];
 

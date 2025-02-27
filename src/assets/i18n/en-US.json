@@ -81,7 +81,6 @@
     "EMPTY_OPTION": "(Empty)",
     "All_OPTION": "(All)",
     "AT": "at",
-
     "DATE_PATTERN": "MM/DD/YYYY",
     "DATE_TIME_PATTERN": "MM/DD/YYYY HH:mm",
     "DATE_TIME_SECONDS_PATTERN": "MM/DD/YYYY HH:mm:ss",
@@ -93,7 +92,6 @@
     "DATE_YEAR_PLACEHOLDER": "yyyy",
     "DATE_PLACEHOLDER": "mm/dd/yyyy",
     "DATE_TIME_PLACEHOLDER": "mm/dd/yyyy hh:mm",
-
     "LAT_LONG": {
       "DD_PLACEHOLDER": "DD",
       "DD_DDDDDDD_PLACEHOLDER": "± DD.DDDDDDD",
@@ -114,9 +112,7 @@
         "DD": "± DD.DDDDDDD"
       }
     },
-
     "METADATA": "Metadata:",
-
     "DAY_UNIT": "j",
     "DATE": "Date",
     "TIME": "Time",
@@ -125,10 +121,8 @@
     "TIME_PLACEHOLDER": "hh:mm",
     "DURATION_PLACEHOLDER": "hhh:mm",
     "DURATION_DOTS": "Duration:",
-
     "YES": "Yes",
     "NO": "No",
-
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
     "OBSERVERS": "Observer(s)",
@@ -145,6 +139,8 @@
       "CARD": "Card view",
       "LIST": "List view"
     },
+    "COLON": ":",
+    "OR": "or",
     "FORM": {
       "HAS_ERROR": "Please correct errors in the form"
     },
@@ -386,6 +382,7 @@
         "PMFM_DECOMPOSITION_STATE_ID": "Reference > PMFM > Decomposition state (individual)",
         "PMFM_IS_ENTANGLED_ID": "Reference > PMFM > Is individual entangled? (Boolean)",
         "PMFM_PINGER_ACCESSIBLE_ID": "Reference > PMFM > Is pinger number accessible? (Boolean)",
+        "PMFM_PINGER_CODE_ID": "Référentiel > PSFM > Pinger code",
         "PARAMETER_HULL_MATERIAL_ID": "Referential > Parameter > Hull material",
         "PARAMETER_GROUP_SURVEY_ID": "Referential > Parameter group > Survey characteristics",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Referential > Method > Measured by observer",
@@ -469,6 +466,7 @@
     "HOME": "Home",
     "TESTING": "Developer mode",
     "TRIPS": "Trips",
+    "SEA_TRIPS": "Sea trips",
     "SCIENTIFIC_CRUISES": "Scientific cruises",
     "LOGBOOKS": "Logbooks",
     "DOWNLOADS": "Downloads",
@@ -478,6 +476,7 @@
     "AUCTION_OCCASIONS": "Occasions in auction",
     "ACTIVITY_CALENDAR": "Activity calendar",
     "OCCASIONS": "Occasions",
+    "LAND_TRIPS": "Land trips",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Referential",
     "USERS": "Users",
@@ -2497,6 +2496,18 @@
       "TRIP_REPORT_FORM_FOOTER": "Trip > Form report footer",
       "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Trip > Report: Logo for the left header",
       "TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Trip > Report: Logo for the right header",
+      "TRIP_REPORT_FORM_SAMPLE_TABLE_MULTI_OP": "Trip > Report > Form > Samples: Multi-operations table?",
+      "TRIP_REPORT_FORM_PHYSICAL_SHOW_TABLE": "Trip > Report > Form: Display gears in table?",
+      "TRIP_REPORT_FORM_HIDDEN_PMFM_IDS": "Trip > Report > Form: List of PMFMs to hide",
+      "TRIP_REPORT_FORM_OPERATION_COMMENT_HELP_TEXT": "Trip > Report > Form: Help text for operation comments",
+      "TRIP_REPORT_FORM_BLANK_SHOW_SAMPLE_RANK_ORDER": "Trip > Report > Blank form > Samples: Display rank number?",
+      "TRIP_REPORT_FORM_BLANK_TIPS_LIMIT_TO_SHOW_ON_APPENDIX": "Trip > Report > Form > Tables: Limit number of items in legend",
+      "TRIP_REPORT_FORM_BLANK_SHOW_QUALITATIVE_VALUES_CHECK_BOX": "Trip > Report > Blank form: Qualitative values checkbox?",
+      "TRIP_REPORT_FORM_BLANK_NB_OF_OPERATION_PAGE": "Trip > Report > Blank form > Operations: Number of pages to create",
+      "TRIP_REPORT_FORM_BLANK_NB_OF_INDIVIDUAL_SAMPLE_PAGE": "Trip > Report > Blank form > Individual monitoring: Number of pages to create",
+      "TRIP_REPORT_FORM_BLANK_NB_OF_RELEASED_SAMPLE_PAGE": "Trip > Report > Blank form > Releases: Number of pages to create",
+      "TRIP_REPORT_FORM_BLANK_SAMPLE_TAXON_GROUP_HELP": "Trip > Report > Blank form > Samples: Legend for commercial species",
+      "TRIP_REPORT_FORM_BLANK_MULTI_TRIP": "Trip > Report > Blank form: Multi-trips table?",
       "TRIP_OPERATIONS_HELP_MESSAGE": "Trip > Operations: Help message",
       "TRIP_OPERATION_EDITOR": "Trip > Operation: Editor",
       "TRIP_OPERATION_EDITOR_LEGACY": "Default",
@@ -2526,6 +2537,7 @@
       "TRIP_OPERATION_HELP_URL": "Trip > Operation: Online helper (URL)",
       "TRIP_OPERATION_FISHING_AREA_INLINE": "Trip > Operation: Align fishing areas with dates",
       "TRIP_OPERATION_SKIP_DATES_TRIP_PMFM_ID": "Trip > Operation: Trip PMFM (boolean) to disable dates?",
+      "TRIP_OPERATION_ENABLE_VESSEL_ASSOCIATION": "Trip > Operation: Enable associated vessel?",
       "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Trips: Column 'SAMPLING_METHOD'",
       "TRIP_EXTRACTION_SAMPLING_METHODS": {
         "OBSERVER": "Observer",
@@ -2678,7 +2690,6 @@
         "LENGTH": "Length",
         "MATURITY": "Maturity",
         "OTHER": "Other",
-
         "SAMPLING": {
           "BTN_ADD_DATA_DOTS": "Enter an occasion or a landing...",
           "LABEL": "Sampling code",

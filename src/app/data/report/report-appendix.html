@@ -1,0 +1,68 @@
+@if (loaded) {
+  <app-reveal #reveal [options]="revealOptions">
+    @if (pages | isNotEmptyArray) {
+      @if (isPrintingPDF) {
+        <section></section>
+      } @else {
+        <section *sectionDef>
+          @for (pageSections of pages; track pageIndex; let pageIndex = $index) {
+            <section class="portrait" [style.--base-margin]="pageDimensions.baseMargin">
+              <page-header-form-report-chunk
+                [i18nContext]="i18nContext"
+                [title]="'TRIP.REPORT.FORM.APPENDIX.TITLE'"
+                [pageNumber]="pageIndex + 1"
+                [logoRightUrl]="logoHeadRightUrl"
+                [logoLeftUrl]="logoHeadLeftUrl"
+              ></page-header-form-report-chunk>
+              <div
+                class="page-container"
+                [style.--page-margin]="pageDimensions.baseMargin"
+                [style.--page-height]="pageDimensions.pageContentHeight"
+                [style.--page-width]="pageDimensions.pageContentWidth"
+                [style.--block-width]="pageDimensions.blockWidth"
+                [style.--title-height]="pageDimensions.itemTitleHeight"
+                [style.--title-color]="titleColor"
+              >
+                @for (section of pageSections; track sectionIndex; let sectionIndex = $index) {
+                  @for (block of section.blocks; track blockIndex; let blockIndex = $index) {
+                    <div class="page-block">
+                      @if (blockIndex === 0 && (section.title | isNotNilOrBlank)) {
+                        <div class="block-title">
+                          <h1>{{ section.title }}</h1>
+                        </div>
+                      }
+                      <table
+                        [class.margin-top]="blockIndex > 0"
+                        [style.--row-title-height]="pageDimensions.rowHeight"
+                        [style.--row-height]="pageDimensions.rowHeight"
+                      >
+                        <thead>
+                          <tr>
+                            <th colspan="2">
+                              @if (block.index) {
+                                ({{ block.index }})&nbsp;
+                              }
+                              {{ block.title }}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (item of block.items; track $index) {
+                            <tr>
+                              <td [style.--col-width]="'var(--col-small)'">{{ item.label }}</td>
+                              <td>{{ item.name }}</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  }
+                }
+              </div>
+            </section>
+          }
+        </section>
+      }
+    }
+  </app-reveal>
+}

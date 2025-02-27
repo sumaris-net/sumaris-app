@@ -1,18 +1,6 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { HttpClient, HttpEventType } from '@angular/common/http';
-import {
-  AfterViewInit,
-  ChangeDetectorRef,
-  Directive,
-  EventEmitter,
-  inject,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Optional,
-  ViewChild,
-} from '@angular/core';
+import { AfterViewInit, Directive, EventEmitter, inject, InjectionToken, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Program } from '@app/referential/services/model/program.model';
@@ -38,6 +26,7 @@ import {
   DateUtils,
   EntityAsObjectOptions,
   firstFalsePromise,
+  isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotNil,
@@ -48,17 +37,17 @@ import {
   LocalSettingsService,
   MenuService,
   NetworkService,
-  PlatformService,
+  removeDuplicatesFromArray,
   Toasts,
   toDateISOString,
   TranslateContextService,
-  WaitForOptions,
-  waitForTrue,
 } from '@sumaris-net/ngx-components';
-import { instanceOf } from 'graphql/jsutils/instanceOf';
-import { BehaviorSubject, lastValueFrom, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, lastValueFrom, Subscription } from 'rxjs';
 import { filter, first, map, takeUntil } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
+import { CommonReport, FormReportPageDimensions } from './common-report.class';
+import { ReportAppendix } from './report-appendix';
+import { ReportAppendixSection, ReportComponent } from './report-component.class';
 
 export const ReportDataPasteFlags = Object.freeze({
   NONE: 0,
@@ -78,18 +67,17 @@ export interface BaseReportOptions {
 }
 
 export interface IReportData {
-  fromObject?: (source: any) => void;
-  asObject?: (opts?: EntityAsObjectOptions) => any;
+  fromObject: (source: any) => void;
+  asObject: (opts?: EntityAsObjectOptions) => any;
 }
 
-export class BaseReportStats {
+export abstract class BaseReportStats {
   program: Program;
-
-  // TODO: A retirer à mon avis, cela ne sert à rien. il faut ajouter @Entity()
-  //static fromObject: (source: any) => BaseReportStats;
+  reportComponents?: { [key: number]: ReportComponent<any, any, any> };
 
   fromObject(source: any) {
     this.program = isNotNil(source.program) ? Program.fromObject(source.program) : undefined;
+    this.reportComponents = source.reportComponents;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -111,27 +99,29 @@ export interface IComputeStatsOpts<S> {
   cache?: boolean;
 }
 
+export const BASE_REPORT = new InjectionToken<any>('BASE_REPORT');
+
 @Directive()
 export abstract class AppBaseReport<
     T extends IReportData | IReportData[],
-    ID = number | number[],
     S extends BaseReportStats = BaseReportStats,
     O extends BaseReportOptions = BaseReportOptions,
   >
+  extends CommonReport<T, S, O>
   implements OnInit, AfterViewInit, OnDestroy
 {
-  private _embedded: boolean;
-
   protected logPrefix = 'base-report';
+  protected reportComponents: ReportComponent<any, any, any>[] = [];
+  protected pageDimensions: FormReportPageDimensions;
+  protected isPrintingPDF = false;
+
   protected readonly reportId = uuidv4();
   protected readonly route = inject(ActivatedRoute);
-  protected readonly cd = inject(ChangeDetectorRef);
   protected readonly dateFormat = inject(DateFormatService);
   protected readonly settings = inject(LocalSettingsService);
   protected readonly modalCtrl = inject(ModalController);
+  protected onReadyToInitializeSubscription: Subscription;
 
-  protected readonly injector: Injector;
-  protected readonly platform = inject(PlatformService);
   protected readonly translate = inject(TranslateService);
   protected readonly programRefService = inject(ProgramRefService);
   protected readonly fileTransferService = inject(FileTransferService);
@@ -141,14 +131,9 @@ export abstract class AppBaseReport<
   protected readonly configService = inject(ConfigService);
 
   protected readonly router = inject(Router);
-  protected readonly destroySubject = new Subject<void>();
-  protected readonly readySubject = new BehaviorSubject<boolean>(false);
-  protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
   protected readonly toastController = inject(ToastController);
   protected readonly network = inject(NetworkService);
 
-  protected _autoLoad = true;
-  protected _autoLoadDelay = 0;
   protected _pathIdAttribute: string;
   protected _pathParentIdAttribute: string;
   protected _stats: S = null;
@@ -159,8 +144,6 @@ export abstract class AppBaseReport<
   protected configSubscription: Subscription;
 
   error: string;
-  revealOptions: Partial<IRevealExtendedOptions>;
-  i18nContext: IReportI18nContext = null;
 
   $defaultBackHref = new BehaviorSubject<string>('');
   $title = new BehaviorSubject<string>('');
@@ -171,27 +154,8 @@ export abstract class AppBaseReport<
   @Input() showToolbar = true;
   @Input() debug = !environment.production;
 
-  @Input() data: T;
-  @Input() set stats(value) {
-    if (isNil(value)) return;
-    if (instanceOf(value, this.statsType)) this._stats = value;
-    else this._stats = this.statsFromObject(value);
-  }
-  get stats(): S {
-    return this._stats;
-  }
-
-  @Input() set embedded(value: boolean) {
-    this._embedded = value;
-  }
-
-  get embedded(): boolean {
-    return isNotNil(this._embedded) ? this._embedded : this.reveal?.embedded || false;
-  }
-
-  @Input() i18nContextSuffix: string;
-
   @ViewChild(RevealComponent, { static: false }) protected reveal: RevealComponent;
+  @ViewChild(ReportAppendix) protected reportAppendix: ReportAppendix;
 
   get loaded(): boolean {
     return !this.loadingSubject.value;
@@ -225,12 +189,11 @@ export abstract class AppBaseReport<
   }
 
   protected constructor(
-    injector: Injector,
     protected dataType: new () => T,
     protected statsType: new () => S,
     @Optional() protected options?: O
   ) {
-    this.injector = injector;
+    super(dataType, statsType);
 
     this.mobile = this.settings.mobile;
     this.uuid = this.route.snapshot.queryParamMap.get('uuid');
@@ -258,18 +221,22 @@ export abstract class AppBaseReport<
   }
 
   ngAfterViewInit() {
-    if (this._autoLoad) {
-      setTimeout(() => this.start(), this._autoLoadDelay);
-    }
+    super.ngAfterViewInit();
     this.configSubscription = this.configService.config.subscribe((config) => {
       this._peerUrl = config.properties['server.app.url'] === undefined ? this.settings.settings?.peerUrl : config.properties['server.app.url'];
+    });
+    this.onReadyToInitializeSubscription = this.readyToInitialize.subscribe((value) => {
+      if (value) {
+        this.reveal.initialize();
+      }
     });
   }
 
   ngOnDestroy() {
     //if (isNotNil(this.reveal)) this.reveal.disablePrintJob();
     this.configSubscription.unsubscribe();
-    this.destroySubject.next();
+    this.onReadyToInitializeSubscription.unsubscribe();
+    super.ngOnDestroy();
   }
 
   async start(opts?: any) {
@@ -285,6 +252,7 @@ export abstract class AppBaseReport<
     this.markAsReady();
 
     try {
+      this.pageDimensions = this.computePageDimensions();
       // Load or fill this.data, this.stats and this.i18nContext
       await this.ngOnStart(opts);
 
@@ -295,7 +263,8 @@ export abstract class AppBaseReport<
       this.markAsLoaded();
 
       // Update the view: initialize reveal
-      await this.updateView();
+      this.updateView();
+      this.markAsReadyToInitialize();
     } catch (err) {
       console.error(err);
       this.setError(err);
@@ -356,8 +325,6 @@ export abstract class AppBaseReport<
     }
   }
 
-  protected abstract loadFromRoute(opts?: any): Promise<T>;
-
   protected async loadFromClipboard(clipboard: Clipboard, opts?: any): Promise<boolean> {
     if (this.debug) console.debug(`[${this.logPrefix}] loadFromClipboard`, clipboard);
 
@@ -390,8 +357,6 @@ export abstract class AppBaseReport<
 
   // NOTE : Can have parent. Can take param from interface ?
   protected abstract computeTitle(data: T, stats: S): Promise<string>;
-
-  protected abstract computeStats(data: T, opts?: IComputeStatsOpts<S>): Promise<S>;
 
   // NOTE : Can have parent. Can take param from interface ?
   protected abstract computeDefaultBackHref(data: T, stats: S): string;
@@ -442,49 +407,8 @@ export abstract class AppBaseReport<
     return undefined;
   }
 
-  async updateView(opts?: { emitEvent?: boolean }) {
-    this.cd.detectChanges();
-    await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject });
-    if (!this.embedded) await this.reveal.initialize(opts);
-  }
-
-  markAsReady() {
-    if (!this.readySubject.value) {
-      this.readySubject.next(true);
-    }
-  }
-
   protected isApp() {
     return this.mobile && this.platform.isApp();
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  protected markAsLoading(opts = { emitEvent: true }) {
-    if (!this.loadingSubject.value) {
-      this.loadingSubject.next(true);
-      if (opts.emitEvent !== false) this.markForCheck();
-    }
-  }
-
-  protected markAsLoaded(opts = { emitEvent: true }) {
-    if (this.loadingSubject.value) {
-      this.loadingSubject.next(false);
-      if (opts.emitEvent !== false) this.markForCheck();
-    }
-  }
-
-  async waitIdle(opts: WaitForOptions) {
-    console.debug(`[${this.constructor.name}]`);
-    if (this.loaded) return;
-    await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
-  }
-
-  async ready(opts?: WaitForOptions): Promise<void> {
-    if (this.readySubject.value) return;
-    await waitForTrue(this.readySubject, opts);
   }
 
   setError(
@@ -517,7 +441,11 @@ export abstract class AppBaseReport<
     }
   }
 
-  abstract dataAsObject(source: T, opts?: EntityAsObjectOptions): any;
+  registerReportComponent(reportComponent: ReportComponent<any, any, any>) {
+    this.reportComponents.push(reportComponent);
+  }
+
+  abstract dataAsObject(opts?: EntityAsObjectOptions): any;
 
   dataFromObject(source: any): T {
     if (this.dataType) {
@@ -532,17 +460,13 @@ export abstract class AppBaseReport<
     return source as T;
   }
 
-  dataArrayFromObject(source: any): T {
-    throw new Error('Method not implemented.');
-  }
-
-  statsAsObject(source: S, opts?: EntityAsObjectOptions): any {
-    return source.asObject(opts);
-  }
-
-  statsFromObject(source: any): S {
-    const stats = new this.statsType();
-    stats.fromObject(source);
+  statsAsObject(opts?: EntityAsObjectOptions): any {
+    const stats = this.stats.asObject(opts);
+    stats.reportComponent = this.reportComponents.reduce((result, reportComponent) => {
+      const rankOrder = reportComponent.rankOrder;
+      result[rankOrder] = reportComponent.statsAsObject(opts);
+      return result;
+    }, {});
     return stats;
   }
 
@@ -684,15 +608,50 @@ export abstract class AppBaseReport<
     await this.reveal?.print();
   }
 
+  protected async markAsReadyToInitialize(opts = { emitEvent: true }) {
+    const sortedReportComponents = this.reportComponents.sort((a, b) => a.rankOrder - b.rankOrder);
+    for (const reportComponent of sortedReportComponents) {
+      await reportComponent.waitIdle({ timeout: 1000 });
+      await reportComponent.initializeReveal();
+    }
+    // If has report appendix: add it to reveal
+    if (isNotNil(this.reportAppendix)) {
+      this.reportAppendix.data = sortedReportComponents
+        .flatMap((reportComponent) => reportComponent.computeAppendixBlocks())
+        .reduce(
+          (result, section) => {
+            const blocks = section.blocks.filter((block) => isNotNilOrBlank(block.title));
+            if (isEmptyArray(blocks)) return result; // Should never occur
+            const existingSection = result.find((section) => section.title === section.title);
+            // Section already exists (e.g. Operation pages with/without camera can have same section title)
+            if (existingSection) {
+              // Merge blocks, by title
+              existingSection.blocks = removeDuplicatesFromArray(existingSection.blocks.concat(blocks), 'title');
+              // Clear block index
+              existingSection.blocks.forEach((block) => (block.index = null));
+              return result;
+            }
+            return result.concat(section);
+          },
+          <ReportAppendixSection[]>[]
+        );
+      await this.reportAppendix.waitIdle({ timeout: 1000 });
+      await this.reportAppendix.initializeReveal();
+    }
+    super.markAsReadyToInitialize(opts);
+  }
+
   private computeShareContent(): any {
     return {
       data: {
-        data: this.dataAsObject(this.data),
-        stats: this.statsAsObject(this.stats),
+        data: this.dataAsObject(),
+        stats: this.statsAsObject(),
         i18nContext: this.i18nContext,
       },
       // eslint-disable-next-line no-bitwise
       pasteFlags: ReportDataPasteFlags.DATA | ReportDataPasteFlags.STATS | ReportDataPasteFlags.I18N_CONTEXT,
     };
   }
+
+  protected abstract computePageDimensions(): FormReportPageDimensions;
 }
