@@ -74,6 +74,7 @@
   </mat-tab-group>
 </ion-content>
 
+<!-- form bottom toolbar -->
 <ion-footer hidden-xs hidden-sm hidden-mobile>
   <app-form-buttons-bar
     (onCancel)="reloadWithConfirmation()"
@@ -82,10 +83,7 @@
     [disabled]="!dirty || loading"
   >
     <!-- error -->
-    <ion-item *ngIf="error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-    </ion-item>
+    <app-error-item [message]="referentialForm.error || error"></app-error-item>
   </app-form-buttons-bar>
 </ion-footer>
 

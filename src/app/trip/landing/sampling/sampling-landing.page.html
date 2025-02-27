@@ -230,6 +230,7 @@
   </mat-tab-group>
 </ion-content>
 
+<!-- form bottom toolbar -->
 <ion-footer hidden-xs hidden-sm hidden-mobile>
   <app-form-buttons-bar
     (onCancel)="reloadWithConfirmation()"
@@ -238,9 +239,7 @@
     [disabled]="!dirty || loading"
   >
     <!-- error -->
-    @if (!mobile && (errorSubject | async); as error) {
-      <app-error-item [message]="error"></app-error-item>
-    }
+    <app-error-item [message]="errorSubject | async"></app-error-item>
   </app-form-buttons-bar>
 </ion-footer>
 

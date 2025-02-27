@@ -169,19 +169,18 @@
   </mat-tab-group>
 </ion-content>
 
-@if (!mobile) {
-  <ion-footer hidden-xs hidden-sm>
-    <app-form-buttons-bar
-      (onCancel)="reloadWithConfirmation()"
-      [disabledCancel]="!dirty || loading"
-      (onSave)="save($event)"
-      [disabled]="!dirty || loading"
-    >
-      <!-- error -->
-      <app-error-item [message]="errorSubject | async"></app-error-item>
-    </app-form-buttons-bar>
-  </ion-footer>
-}
+<!-- form bottom toolbar -->
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+  <app-form-buttons-bar
+    (onCancel)="reloadWithConfirmation()"
+    [disabledCancel]="!dirty || loading"
+    (onSave)="save($event)"
+    [disabled]="!dirty || loading"
+  >
+    <!-- error -->
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  </app-form-buttons-bar>
+</ion-footer>
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && _enabled && showSamplesTable && selectedTabIndex === 1" @fadeInOutAnimation>
