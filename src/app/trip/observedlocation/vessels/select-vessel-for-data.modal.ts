@@ -53,7 +53,7 @@ export interface SelectVesselsForDataModalOptions {
 @Component({
   selector: 'app-select-vessel-for-data-modal',
   templateUrl: 'select-vessel-for-data.modal.html',
-  styleUrls: ['select-vessel-for-data.modal.scss'],
+  styleUrls: ['./select-vessel-for-data.modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })

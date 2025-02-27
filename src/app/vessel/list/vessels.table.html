@@ -1,16 +1,17 @@
 @if (showToolbar) {
   <mat-toolbar [class.has-searchbar]="showSearchbar" [class.expanded]="showSearchbar && filterExpansionPanel.expanded">
     <!-- search bar -->
-    <ion-searchbar
-      *ngIf="showSearchbar"
-      inputmode="search"
-      autocomplete="off"
-      showClearButton="true"
-      [formControl]="filterForm | formGetControl: 'searchText'"
-      [placeholder]="'VESSEL.LIST.FILTER.SEARCH_TEXT' | translate"
-      (ionInput)="ionSearchBarChanged($event)"
-      (keyup.enter)="applyFilterAndClosePanel($event)"
-    ></ion-searchbar>
+    @if (showSearchbar) {
+      <ion-searchbar
+        inputmode="search"
+        autocomplete="off"
+        showClearButton="true"
+        [formControl]="filterForm | formGetControl: 'searchText'"
+        [placeholder]="'VESSEL.LIST.FILTER.SEARCH_TEXT' | translate"
+        (ionInput)="ionSearchBarChanged($event)"
+        (keyup.enter)="applyFilterAndClosePanel($event)"
+      ></ion-searchbar>
+    }
 
     <div class="toolbar-spacer"></div>
 
@@ -216,18 +217,21 @@
 }
 
 <!-- Tab nav - synchro status-->
-<nav mat-tab-nav-bar *ngIf="(showOfflineMode && hasOfflineMode && synchronizationStatus) || true; let syncStatus" [tabPanel]="tableContainer">
-  <a mat-tab-link [active]="syncStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
-    <mat-icon>cloud_off</mat-icon>
-    &nbsp;
-    <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
-  </a>
-  <a mat-tab-link [active]="syncStatus === 'SYNC'" (click)="setSynchronizationStatus('SYNC')">
-    <mat-icon>cloud_done</mat-icon>
-    &nbsp;
-    <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
-  </a>
-</nav>
+@if (showOfflineMode && hasOfflineMode) {
+  @let syncStatus = synchronizationStatus;
+  <nav mat-tab-nav-bar [tabPanel]="tableContainer">
+    <a mat-tab-link [active]="syncStatus === 'DIRTY'" (click)="setSynchronizationStatus('DIRTY')">
+      <mat-icon>cloud_off</mat-icon>
+      &nbsp;
+      <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
+    </a>
+    <a mat-tab-link [active]="syncStatus === 'SYNC'" (click)="setSynchronizationStatus('SYNC')">
+      <mat-icon>cloud_done</mat-icon>
+      &nbsp;
+      <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
+    </a>
+  </nav>
+}
 
 <div
   #tableContainer
@@ -235,6 +239,7 @@
   [class.has-toolbar]="showToolbar"
   [class.has-offline-nav]="showOfflineMode && hasOfflineMode"
   [class.has-paginator]="showPaginator"
+  cdkScrollable
 >
   <table
     mat-table
@@ -413,15 +418,17 @@
 </div>
 
 <!-- paginator -->
-<ion-footer *ngIf="showPaginator">
-  <mat-paginator
-    class="mat-paginator-footer"
-    [length]="totalRowCount"
-    [pageSize]="defaultPageSize"
-    [pageSizeOptions]="defaultPageSizeOptions"
-    [showFirstLastButtons]="true"
-  ></mat-paginator>
-</ion-footer>
+@if (showPaginator) {
+  <ion-footer>
+    <mat-paginator
+      class="mat-paginator-footer"
+      [length]="totalRowCount"
+      [pageSize]="defaultPageSize"
+      [pageSizeOptions]="defaultPageSizeOptions"
+      [showFirstLastButtons]="true"
+    ></mat-paginator>
+  </ion-footer>
+}
 
 <!-- Add Button  -->
 <ion-fab vertical="bottom" horizontal="end" *ngIf="canEdit && showFabButton && mobile">
