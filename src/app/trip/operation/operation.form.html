@@ -30,16 +30,16 @@
 
         <!-- parent operation -->
         <ion-col size="12" size-sm="6" size-md="" size-lg="" class="ion-align-self-end">
+          @let control = parentControl;
           <mat-form-field
+            class="ion-tappable"
             [class.cdk-visually-hidden]="!isChildOperation"
             [class.mat-form-field-invalid]="control.invalid"
-            *ngVar="parentControl as control"
             (click)="addParentOperation($event)"
-            class="cursor-pointer"
           >
             <mat-label translate>TRIP.OPERATION.EDIT.PARENT_OPERATION</mat-label>
             <input matInput type="text" hidden [placeholder]="" formControlName="parentOperation" />
-            <input matInput type="text" [value]="$parentOperationLabel | async" [tabindex]="tabindex + 1" readonly />
+            <input matInput [readOnly]="true" type="text" [value]="$parentOperationLabel | async" [tabindex]="tabindex + 1" />
             <button *ngIf="!(control | formGetValue); else otherButtons" matSuffix mat-icon-button type="button" tabindex="-1">
               <mat-icon>more_horiz</mat-icon>
             </button>
