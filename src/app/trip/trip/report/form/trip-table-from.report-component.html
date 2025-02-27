@@ -1,0 +1,181 @@
+@if (loaded) {
+  <app-reveal #reveal [options]="revealOptions">
+    @if (isPrintingPDF) {
+      @for (dataChunk of data | splitArrayInChunks: stats.nbLinesPeerPage; track $index) {
+        @for (tablePart of stats.tableParts; track partIndex; let partIndex = $index; let firstPart = $first; let lastPart = $last) {
+          <section *sectionDef class="landscape" [style.--page-horizontal-margin]="parentPageDimensions.pageHorizontalMargin">
+            <ng-content
+              *ngTemplateOutlet="
+                table;
+                context: { dataChunk: dataChunk, tablePart: tablePart, partIndex: partIndex, firstPart: firstPart, lastPart: lastPart }
+              "
+            ></ng-content>
+          </section>
+        }
+      }
+    } @else {
+      <section *sectionDef>
+        @for (dataChunk of data | splitArrayInChunks: stats.nbLinesPeerPage; track $index) {
+          @for (tablePart of stats.tableParts; track partIndex; let partIndex = $index; let firstPart = $first; let lastPart = $last) {
+            <section class="landscape" [style.--page-horizontal-margin]="parentPageDimensions.pageHorizontalMargin">
+              <ng-content
+                *ngTemplateOutlet="
+                  table;
+                  context: { dataChunk: dataChunk, tablePart: tablePart, partIndex: partIndex, firstPart: firstPart, lastPart: lastPart }
+                "
+              ></ng-content>
+            </section>
+          }
+        }
+      </section>
+    }
+  </app-reveal>
+
+  <ng-template #table let-dataChunk="dataChunk" let-tablePart="tablePart" let-partIndex="partIndex" let-firstPart="firstPart" let-lastPart="lastPart">
+    <page-header-form-report-chunk
+      [i18nContext]="i18nContext"
+      [title]="'TRIP.REPORT.FORM.TRIP.TITLE'"
+      [titleComplement]="titleComplement"
+      [pageNumber]="null"
+      [items]="stats.headerItems"
+      [logoRightUrl]="logoHeadRightUrl"
+      [logoLeftUrl]="logoHeadLeftUrl"
+    ></page-header-form-report-chunk>
+    <table class="table-full-width" [style.--row-height]="'60'">
+      <thead>
+        <tr>
+          @if (firstPart) {
+            <th class="font-medium text-vertical ion-text-center column-tripNumber" [style.--col-width]="pageDimensions.columnTripNumberWidth">
+              <div>
+                {{ 'TRIP.REPORT.FORM.TRIP.TRIP_NUMBER' | translate }}
+              </div>
+            </th>
+            @if (stats.options.showObservers) {
+              <th class="font-medium ion-text-center column-observers" [style.--col-width]="pageDimensions.columnObserversWidth">
+                {{ 'TRIP.REPORT.FORM.TRIP.OBSERVERS' | translate }}
+              </th>
+            }
+            <th class="font-medium ion-text-center column-departueDate" [style.--col-width]="pageDimensions.columnLocation">
+              <!-- TODO replace '&' by '<br/>&' -->
+              <div
+                [innerHtml]="
+                  stats.locationLevels.length === 1
+                    ? ('TRIP.REPORT.FORM.TRIP.DEPARTURE_LOCATION_SPECIFIC' | translate: { locationName: stats.locationLevels[0].name })
+                    : ('TRIP.REPORT.FORM.TRIP.DEPARTURE_LOCATION' | translate) + '*'
+                "
+              ></div>
+            </th>
+            <th class="font-medium ion-text-center column-departureLocation" [style.--col-width]="pageDimensions.columnDateTime">
+              {{ 'TRIP.REPORT.FORM.TRIP.DEPARTURE_DATE_TIME' | translate }}
+            </th>
+            <th class="font-medium ion-text-center column-returnDate" [style.--col-width]="pageDimensions.columnLocation">
+              <!-- TODO replace '&' by '<br/>&' -->
+              <div
+                [innerHtml]="
+                  stats.locationLevels.length === 1
+                    ? ('TRIP.REPORT.FORM.TRIP.RETURN_LOCATION_SPECIFIC' | translate: { locationName: stats.locationLevels[0].name })
+                    : ('TRIP.REPORT.FORM.TRIP.RETURN_LOCATION' | translate) + '*'
+                "
+              ></div>
+            </th>
+            <th class="font-medium ion-text-center column-returnLocation" [style.--col-width]="pageDimensions.columnDateTime">
+              {{ 'TRIP.REPORT.FORM.TRIP.RETURN_DATE_TIME' | translate }}
+            </th>
+          }
+          @for (pmfm of stats.pmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
+            <th
+              class="no-padding column-{{ pmfm.label }} column-pmfmType-{{ pmfm | getPmfmExtendedType }}"
+              [class.text-vertical]="stats.pmfmsColumnsWidthByPmfmIds[pmfm.id] < pageDimensions.columnPmfmWidth"
+              [class.font-small]="!isBlankForm"
+              [class.horizontal-margin]="!isBlankForm"
+              [style.--col-width]="stats.pmfmsColumnsWidthByPmfmIds[pmfm.id]"
+            >
+              <table-head-pmfm-name-report-chunk
+                [pmfm]="pmfm"
+                [i18nContext]="i18nContext"
+                [pmfmTipsByPmfmIds]="stats.tipsByPmfmIdByTablePart[partIndex]"
+              ></table-head-pmfm-name-report-chunk>
+            </th>
+          }
+          @if (lastPart) {
+            <th class="font-medium col-maximum">
+              <div class="ion-text-center">
+                {{ 'TRIP.REPORT.FORM.COMMENTS' | translate }}
+              </div>
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (trip of dataChunk; track chunkIndex; let chunkIndex = $index) {
+          <tr>
+            <td class="font-medium place ion-text-center column-tripNumber" [style.--col-width]="pageDimensions.columnTripNumberWidth">
+              <b [class.place-holder]="isBlankForm">{{ trip.id + 1 }}</b>
+            </td>
+            @if (stats.options.showObservers) {
+              <td class="ion-text-center column-observers" [style.--col-width]="pageDimensions.columnObserversWidth"></td>
+            }
+            <td class="ion-text-center column-departureLocation" [style.--col-width]="pageDimensions.columnLocation"></td>
+            <td class="ion-text-center column-departueDate" [style.--col-width]="pageDimensions.columnDateTime"></td>
+            <td class="ion-text-center column-returnLocation" [style.--col-width]="pageDimensions.columnLocation"></td>
+            <td class="ion-text-center column-returnDate" [style.--col-width]="pageDimensions.columnDateTime"></td>
+            @for (pmfm of stats.pmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
+              <td
+                class="ion-text-center font-medium column-{{ pmfm.label }} column-pmfmType-{{ pmfm | getPmfmExtendedType }} "
+                [style.--col-width]="stats.pmfmsColumnsWidthByPmfmIds[pmfm.id]"
+              >
+                @switch (pmfm | getPmfmExtendedType) {
+                  @case ('boolean') {
+                    <ion-icon [style.--text-color]="'var(--ion-color-medium)'" name="square-outline"></ion-icon>
+                  }
+                  @case ('qualitative_value') {
+                    @if (stats.options.showQualitativeValuesCheckBox) {
+                      <ion-grid class="value-grid ion-no-padding">
+                        <ion-row>
+                          @for (qv of pmfm.qualitativeValues; track qv.id) {
+                            <ion-col class="font-compact text-center">
+                              {{ qv.label }}
+                              <br />
+                              <ion-icon name="square-outline"></ion-icon>
+                            </ion-col>
+                          }
+                        </ion-row>
+                      </ion-grid>
+                    }
+                  }
+                  @case ('latitude') {
+                    <ng-content *ngTemplateOutlet="latitudePlaceHolder"></ng-content>
+                  }
+                  @case ('longitude') {
+                    <ng-content *ngTemplateOutlet="longitudePlaceHolder"></ng-content>
+                  }
+                }
+              </td>
+            }
+            @if (lastPart) {
+              <td class="column-comments font-medium col-maximum"></td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (isBlankForm) {
+      <tips-report-chunk [tips]="stats.tipsByTablePart[partIndex] | arraySort: sortByTipsIndex"></tips-report-chunk>
+    }
+    <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
+  </ng-template>
+
+  <ng-template #latitudePlaceHolder>
+    <span class="font-large place-holder">
+      <span [style.letter-spacing]="'3px'">__°__.___</span>
+      N
+    </span>
+  </ng-template>
+
+  <ng-template #longitudePlaceHolder>
+    <span class="font-large place-holder">
+      <span [style.letter-spacing]="'3px'">__°__.___</span>
+      E ou W
+    </span>
+  </ng-template>
+}

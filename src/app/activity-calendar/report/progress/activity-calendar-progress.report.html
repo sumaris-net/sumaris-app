@@ -61,7 +61,7 @@
     @for (tableChunk of stats.tableRowChunk; track chunkIndex; let chunkIndex = $index; let firstChunk = $first; let lastChunk = $last) {
       <section
         *sectionDef
-        [style.--margin-bottom]="pageDimensions.marginBottom + 'px'"
+        [style.--margin-bottom]="pageDimensions.marginBottom"
         [style.--color-primary]="stats.colorPrimary"
         [style.--color-secondary]="stats.colorSecondary"
       >
@@ -195,7 +195,7 @@
         @if (tableChunk | isNotEmptyArray) {
           <table>
             <thead>
-              <tr [style.--row-title-height]="'20px'">
+              <tr [style.--row-title-height]="'20'">
                 <th class="ion-text-center" colspan="5">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL' | translate }}</th>
                 <th class="ion-text-center" colspan="12">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.NB_METIER_PEER_MONTH' | translate }}</th>
                 <th class="ion-text-center col-compact" rowspan="2">
@@ -204,7 +204,7 @@
                 <th class="ion-text-center col-compact" rowspan="2">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.CALENDAR_STATUS' | translate }}</th>
                 <th class="ion-text-center col-compact" rowspan="2">{{ 'ACTIVITY_CALENDAR.TABLE.OBSERVERS' | translate }}</th>
               </tr>
-              <tr [style.--row-title-height]="'30px'">
+              <tr [style.--row-title-height]="'30'">
                 <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL' | translate }}</th>
                 <th class="ion-text-center col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_NAME' | translate }}</th>
                 <th class="ion-text-center col-small">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.TABLE.VESSEL_REGISTRATION_LOCATION' | translate }}</th>
@@ -217,7 +217,7 @@
             </thead>
             <tbody>
               @for (row of tableChunk; track $index) {
-                <tr [style.--row-height]="'30px'">
+                <tr [style.--row-height]="'30'">
                   <td class="ion-text-center col-small">{{ row.vesselRegistrationCode }}</td>
                   <td class="ion-text-center col-medium">{{ row.vesselName }}</td>
                   <td class="ion-text-center col-small">{{ row.registrationLocationLabel }}</td>
@@ -282,7 +282,7 @@
             </ion-row>
             <ion-row class="synthesis">
               <ion-col>
-                <table [style.--row-height]="'20px'" [style.margin-right]="'var(--col-medium)'">
+                <table [style.--row-height]="'20'" [style.margin-right]="'var(--col-medium)'">
                   <tbody>
                     <tr>
                       <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.VESSEL_COUNT' | translate }}</th>
@@ -290,7 +290,7 @@
                     </tr>
                   </tbody>
                 </table>
-                <table [style.--row-height]="'20px'">
+                <table [style.--row-height]="'20'">
                   <tbody>
                     <tr>
                       <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.DIRECT_SURVEY' | translate }}</th>
@@ -301,7 +301,7 @@
                 </table>
               </ion-col>
               <ion-col>
-                <table [style.--row-height]="'20px'">
+                <table [style.--row-height]="'20'">
                   <tbody>
                     <tr>
                       <th class="col-medium">{{ 'ACTIVITY_CALENDAR.REPORT.PROGRESS.SYNTHESIS.EMPTY_VESSEL' | translate }}</th>

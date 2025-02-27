@@ -63,6 +63,13 @@
         }
       }
     }
+    .report-footer {
+      margin-top: auto;
+      margin-bottom: var(--ion-padding);
+      padding-left: calc(var(--page-horizontal-margin) * 1px);
+      padding-right: calc(var(--page-horizontal-margin) * 1px);
+      width: 100%;
+    }
   }
 }
 

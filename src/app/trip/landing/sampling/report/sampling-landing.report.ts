@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { Landing } from '@app/trip/landing/landing.model';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { environment } from '@environments/environment';
-import { BaseLandingReport, LandingStats } from '@app/trip/landing/report/base-landing-report.class';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
-import { lastValueFrom } from 'rxjs';
+import { FormReportPageDimensions } from '@app/data/report/common-report.class';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { Landing } from '@app/trip/landing/landing.model';
+import { BaseLandingReport, LandingStats } from '@app/trip/landing/report/base-landing-report.class';
+import { environment } from '@environments/environment';
+import { lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-sampling-landing-report',
@@ -15,15 +16,12 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
   preserveWhitespaces: true,
 })
 export class SamplingLandingReport extends BaseLandingReport {
-  protected referentialRefService: ReferentialRefService;
-
-  constructor(injector: Injector) {
-    super(injector, LandingStats, {
+  protected referentialRefService: ReferentialRefService = inject(ReferentialRefService);
+  constructor() {
+    super(LandingStats, {
       pathParentIdAttribute: 'observedLocationId',
       pathIdAttribute: 'samplingId',
     });
-
-    this.referentialRefService = this.injector.get(ReferentialRefService);
   }
 
   /* -- protected function -- */
@@ -44,7 +42,7 @@ export class SamplingLandingReport extends BaseLandingReport {
     return stats;
   }
 
-  protected async computeTitle(data: Landing, stats: LandingStats): Promise<string> {
+  protected async computeTitle(data: Landing, _: LandingStats): Promise<string> {
     const titlePrefix = await lastValueFrom(
       this.translate.get('LANDING.TITLE_PREFIX', {
         location: data.location?.name || '',
@@ -61,7 +59,7 @@ export class SamplingLandingReport extends BaseLandingReport {
     return titlePrefix + title;
   }
 
-  protected computeDefaultBackHref(data: Landing, stats?: LandingStats): string {
+  protected computeDefaultBackHref(data: Landing, _?: LandingStats): string {
     return `/observations/${data.observedLocationId}/sampling/${data.id}?tab=1`;
   }
 
@@ -73,5 +71,21 @@ export class SamplingLandingReport extends BaseLandingReport {
     if (environment.production) return; // Skip
     super.addFakeSamplesForDev(data, count);
     data.samples.forEach((s, index) => (s.measurementValues[PmfmIds.TAG_ID] = `${index + 1}`));
+  }
+
+  // TODO: Not used in this report
+  protected computePageDimensions(): FormReportPageDimensions {
+    const pageWidth = 297 * 4;
+    const pageHeight = 210 * 4;
+    const pageHorizontalMargin = 50;
+    const availableWidthForTablePortrait = pageWidth - pageHorizontalMargin * 2;
+    const availableWidthForTableLandscape = pageHeight - pageHorizontalMargin * 2;
+    return {
+      pageWidth,
+      pageHeight,
+      pageHorizontalMargin,
+      availableWidthForTableLandscape,
+      availableWidthForTablePortrait,
+    };
   }
 }

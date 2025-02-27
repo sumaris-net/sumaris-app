@@ -1,11 +1,28 @@
 import { Directive, Injector, Optional, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { IComputeStatsOpts } from '@app/data/report/base-report.class';
+import { AppExtractionReport, ExtractionReportStats } from '@app/data/report/extraction-report.class';
+import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
+import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { AcquisitionLevelCodes, LengthMeterConversion } from '@app/referential/services/model/model.enum';
+import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
+import { IDenormalizedPmfm } from '@app/referential/services/model/pmfm.model';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { ChartJsUtils, ChartJsUtilsColor, ChartJsUtilsMedianLineOptions, ChartJsUtilsThresholdLineOptions } from '@app/shared/chartsjs.utils';
+import { Clipboard } from '@app/shared/context.service';
+import { ArrayElementType, Function, collectByFunction } from '@app/shared/functions';
+import { CatchCategoryType, RdbPmfmExtractionData, RdbSpeciesLength } from '@app/trip/trip/report/trip-report.model';
+import { TripReportService } from '@app/trip/trip/report/trip-report.service';
+import { Operation, Trip } from '@app/trip/trip/trip.model';
+import { TripService } from '@app/trip/trip/trip.service';
 import {
-  arrayDistinct,
-  collectByProperty,
   Color,
   DateUtils,
   EntityAsObjectOptions,
   FilterFn,
+  arrayDistinct,
+  collectByProperty,
   firstTruePromise,
   fromDateISOString,
   getProperty,
@@ -17,30 +34,11 @@ import {
   isNotNilOrNaN,
   removeDuplicatesFromArray,
   round,
-  sleep,
   toDateISOString,
-  waitFor,
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject } from 'rxjs';
-import { ChartJsUtils, ChartJsUtilsColor, ChartJsUtilsMedianLineOptions, ChartJsUtilsThresholdLineOptions } from '@app/shared/chartsjs.utils';
 import { ChartConfiguration, ChartOptions, ChartTypeRegistry } from 'chart.js';
-import { TripReportService } from '@app/trip/trip/report/trip-report.service';
-import { IDenormalizedPmfm } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes, LengthMeterConversion } from '@app/referential/services/model/model.enum';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { ArrayElementType, collectByFunction, Function } from '@app/shared/functions';
-import { CatchCategoryType, RdbPmfmExtractionData, RdbSpeciesLength } from '@app/trip/trip/report/trip-report.model';
-import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
-import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
-import { AppExtractionReport, ExtractionReportStats } from '@app/data/report/extraction-report.class';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';
-import { IComputeStatsOpts } from '@app/data/report/base-report.class';
-import { Clipboard } from '@app/shared/context.service';
-import { Operation, Trip } from '@app/trip/trip/trip.model';
-import { TripService } from '@app/trip/trip/trip.service';
-import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
+import { BehaviorSubject } from 'rxjs';
 
 export declare interface BaseNumericStats {
   min: number;
@@ -139,7 +137,7 @@ export abstract class BaseTripReport<
   @ViewChild('mapTemplate') protected mapTemplate: TemplateRef<null>;
 
   protected constructor(injector: Injector, tripReportService: TripReportService<T>, @Optional() statsType?: new () => S) {
-    super(injector, null, statsType || (BaseTripReportStats as any));
+    super(null, statsType || (BaseTripReportStats as any));
     this.tripReportService = tripReportService;
     this.tripService = injector.get(TripService);
     this.vesselSnapshotService = injector.get(VesselSnapshotService);
@@ -557,25 +555,8 @@ export abstract class BaseTripReport<
     this.mapReadySubject.next(true);
   }
 
-  async updateView() {
-    console.debug(`[${this.constructor.name}.updateView]`);
-    this.cd.detectChanges();
-
-    await waitFor(() => !!this.reveal);
-
-    await this.reveal.initialize({ emitEvent: false });
-
-    if (this.reveal.printing) {
-      await sleep(500);
-      await this.showMap();
-      await sleep(500);
-    }
-
-    this.reveal.markAsReady();
-  }
-
   async showMap() {
-    this.mapContainer.createEmbeddedView(this.mapTemplate);
+    setTimeout(() => this.mapContainer.createEmbeddedView(this.mapTemplate), this.reveal.printing ? 250 : 0);
     await firstTruePromise(this.mapReadySubject);
   }
 
@@ -628,12 +609,15 @@ export abstract class BaseTripReport<
     );
   }
 
-  dataAsObject(source: RdbPmfmExtractionData, opts?: EntityAsObjectOptions): any {
+  dataAsObject(opts?: EntityAsObjectOptions): any {
+    if (!this.loaded) {
+      throw `${this.logPrefix} Data are not already loaded`;
+    }
     return {
-      TR: source.TR.map((item) => item.asObject(opts)),
-      HH: source.HH.map((item) => item.asObject(opts)),
-      SL: source.SL.map((item) => item.asObject(opts)),
-      HL: source.HL.map((item) => item.asObject(opts)),
+      TR: this.data.TR.map((item) => item.asObject(opts)),
+      HH: this.data.HH.map((item) => item.asObject(opts)),
+      SL: this.data.SL.map((item) => item.asObject(opts)),
+      HL: this.data.HL.map((item) => item.asObject(opts)),
     };
   }
 

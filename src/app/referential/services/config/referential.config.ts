@@ -810,6 +810,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.PINGER_ACCESSIBLE,
   },
+  PMFM_PINGER_CODE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.PINGER_CODE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PINGER_CODE_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.PINGER_CODE,
+  },
 
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',

@@ -37,6 +37,9 @@ const routes: Routes = [
       },
       {
         path: 'report',
+        data: {
+          pathIdParam: 'calendarId',
+        },
         loadChildren: () => import('./report/activity-calendar-report-routing.module').then((m) => m.ActivityCalendarReportRoutingModule),
       },
     ],

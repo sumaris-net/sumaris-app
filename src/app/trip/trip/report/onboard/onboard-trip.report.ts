@@ -8,6 +8,7 @@ import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.compone
 import { isNotNil } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { FormReportPageDimensions } from '@app/data/report/common-report.class';
 
 export class OnboardTripReportStats extends BaseTripReportStats {
   gearPmfms: DenormalizedPmfmStrategy[];
@@ -46,5 +47,21 @@ export class OnboardTripReport extends BaseTripReport<OnboardExtractionData, Onb
 
   async showMap() {
     console.warn(this.logPrefix + 'Show map not implemented');
+  }
+
+  // TODO: Not used in this report
+  protected computePageDimensions(): FormReportPageDimensions {
+    const pageWidth = 297 * 4;
+    const pageHeight = 210 * 4;
+    const pageHorizontalMargin = 50;
+    const availableWidthForTablePortrait = pageWidth - pageHorizontalMargin * 2;
+    const availableWidthForTableLandscape = pageHeight - pageHorizontalMargin * 2;
+    return {
+      pageWidth,
+      pageHeight,
+      pageHorizontalMargin,
+      availableWidthForTableLandscape,
+      availableWidthForTablePortrait,
+    };
   }
 }

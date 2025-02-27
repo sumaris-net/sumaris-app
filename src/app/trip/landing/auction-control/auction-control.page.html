@@ -23,7 +23,7 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
-  <button mat-menu-item [disabled]="isNewData || disabled" (click)="openReport($event)">
+  <button mat-menu-item [disabled]="isNewData || !data.controlDate" (click)="openReport($event)">
     <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
     <ion-label translate>LANDING.EDIT.BTN_REPORT</ion-label>
   </button>
