@@ -10,7 +10,7 @@ import {
   fadeInOutAnimation,
   firstArrayValue,
   firstNotNilPromise,
-  firstTruePromise,
+  firstTrue,
   fromDateISOString,
   HistoryPageReference,
   isEmptyArray,
@@ -141,10 +141,12 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     super.ngAfterViewInit();
 
     // Enable samples tab, when has pmfms
-    firstTruePromise(this.samplesTable.hasPmfms$, { stop: this.destroySubject }).then(() => {
-      this.showSamplesTable = true;
-      this.markForCheck();
-    });
+    this.registerSubscription(
+      firstTrue(this.samplesTable.hasPmfms$, { stop: this.destroySubject, stopError: false }).subscribe(() => {
+        this.showSamplesTable = true;
+        this.markForCheck();
+      })
+    );
 
     // Use landing date as default dateTime for samples
     this.registerSubscription(

@@ -336,17 +336,19 @@
   </mat-tab-group>
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
-  <app-form-buttons-bar
-    (onCancel)="reloadWithConfirmation()"
-    [disabledCancel]="!dirty || loading"
-    (onSave)="save($event)"
-    [disabled]="!dirty || loading"
-  >
-    <!-- error -->
-    <app-error-item [message]="errorSubject | async"></app-error-item>
-  </app-form-buttons-bar>
-</ion-footer>
+@if (!mobile) {
+  <ion-footer hidden-xs hidden-sm>
+    <app-form-buttons-bar
+      (onCancel)="reloadWithConfirmation()"
+      [disabledCancel]="!dirty || loading"
+      (onSave)="save($event)"
+      [disabled]="!dirty || loading"
+    >
+      <!-- error -->
+      <app-error-item [message]="errorSubject | async"></app-error-item>
+    </app-form-buttons-bar>
+  </ion-footer>
+}
 
 @if (mobile) {
   @switch (_selectedTabIndex) {

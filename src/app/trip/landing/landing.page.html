@@ -74,11 +74,10 @@
           <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
         </ng-container>
 
-        <!-- error -->
-        <ion-item *ngIf="landingForm.error || error as error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-        </ion-item>
+        <!-- error (mobile) -->
+        @if (mobile) {
+          <app-error-item [message]="(landingForm.errorSubject | async) || (errorSubject | async)"></app-error-item>
+        }
 
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
@@ -105,9 +104,11 @@
               ></app-strategy-summary-card>
 
               <!-- data quality -->
-              <app-entity-metadata [value]="data" *ngIf="showEntityMetadata">
-                <app-entity-quality-form *ngIf="showQualityForm"></app-entity-quality-form>
-              </app-entity-metadata>
+              @if (showEntityMetadata) {
+                <app-entity-metadata [value]="data">
+                  <app-entity-quality-form *ngIf="showQualityForm"></app-entity-quality-form>
+                </app-entity-metadata>
+              }
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -168,20 +169,19 @@
   </mat-tab-group>
 </ion-content>
 
-<ion-footer hidden-xs hidden-sm hidden-mobile>
-  <app-form-buttons-bar
-    (onCancel)="reloadWithConfirmation()"
-    [disabledCancel]="!dirty || loading"
-    (onSave)="save($event)"
-    [disabled]="!dirty || loading"
-  >
-    <!-- error -->
-    <ion-item *ngIf="error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-    </ion-item>
-  </app-form-buttons-bar>
-</ion-footer>
+@if (!mobile) {
+  <ion-footer hidden-xs hidden-sm>
+    <app-form-buttons-bar
+      (onCancel)="reloadWithConfirmation()"
+      [disabledCancel]="!dirty || loading"
+      (onSave)="save($event)"
+      [disabled]="!dirty || loading"
+    >
+      <!-- error -->
+      <app-error-item [message]="errorSubject | async"></app-error-item>
+    </app-form-buttons-bar>
+  </ion-footer>
+}
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && _enabled && showSamplesTable && selectedTabIndex === 1" @fadeInOutAnimation>
