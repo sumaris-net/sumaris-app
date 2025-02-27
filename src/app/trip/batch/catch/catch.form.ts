@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, numberAttribute, OnInit } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
 import { BatchValidatorService } from '../common/batch.validator';
@@ -12,7 +12,6 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { environment } from '@environments/environment';
 import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { RxState } from '@rx-angular/state';
 import { RxStateSelect } from '@app/shared/state/state.decorator';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
@@ -45,8 +44,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState> implem
   @RxStateSelect() readonly otherPmfms$: Observable<IPmfm[]>;
   @RxStateSelect() readonly gridColCount$: Observable<IPmfm[]>;
 
-  @Input() labelColSize = 1;
-  @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
+  @Input({ transform: numberAttribute }) labelColSize = 1;
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
@@ -70,6 +68,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState> implem
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
     this.showTaxonGroup = false;
     this.showTaxonName = false;
+    this.rxStrategy = 'userBlocking';
     //this.samplingBatchEnabled = false;
 
     // DEBUG
