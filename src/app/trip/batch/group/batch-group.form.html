@@ -21,7 +21,7 @@
             <ion-row class="ion-no-padding ion-row-buttons" *ngIf="!loading; else rowSkeleton">
               <ion-col>
                 <ion-button
-                  class="mat-form-field-button"
+                  class="mat-form-field-button ion-text-wrap"
                   [disabled]="hasSubBatchesControl.disabled"
                   [tabindex]="(tabindex && tabindex + 8) || -1"
                   (click)="hasSubBatchesControl.setValue(false)"
@@ -35,7 +35,7 @@
               </ion-col>
               <ion-col>
                 <ion-button
-                  class="mat-form-field-button"
+                  class="mat-form-field-button ion-text-wrap"
                   [disabled]="hasSubBatchesControl.disabled"
                   [tabindex]="(tabindex && tabindex + 9) || -1"
                   (click)="hasSubBatchesControl.setValue(true)"
