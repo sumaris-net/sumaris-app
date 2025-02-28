@@ -89,7 +89,7 @@
           weightValue: weightForm | formGetControl: 'value',
           weightMethodId: weightForm | formGetControl: 'methodId',
           weightComputed: weightForm | formGetControl: 'computed',
-          weightEstimated: weightForm | formGetControl: 'estimated'
+          weightEstimated: weightForm | formGetControl: 'estimated',
         } as controls"
       >
         <app-pmfm-field
@@ -166,12 +166,19 @@
           weightComputed: samplingForm | formGetControl: 'weight.computed',
           weightEstimated: samplingForm | formGetControl: 'weight.estimated',
           childrenWeightValue: samplingForm | formGetControl: 'childrenWeight.value',
-          childrenWeightMethodId: samplingForm | formGetControl: 'childrenWeight.methodId'
+          childrenWeightMethodId: samplingForm | formGetControl: 'childrenWeight.methodId',
         } as controls"
       >
         <!-- SUM of children weight-->
         <ion-col *ngIf="delegate.showChildrenWeight && (controls.childrenWeightValue?.value | isNotNil)" offset="4" size="8" class="ion-no-padding">
           <mat-form-field class="computed">
+            <mat-label>
+              {{
+                delegate.weightPmfmsByMethod
+                  | mapGet: controls.childrenWeightMethodId.value
+                  | pmfmName: { i18nPrefix: delegate.i18nPmfmPrefix, i18nSuffix: delegate.i18nSuffix }
+              }}
+            </mat-label>
             <input
               matInput
               autocomplete="off"
@@ -179,11 +186,6 @@
               [readonly]="true"
               type="number"
               (click)="selectInputContent($event)"
-              [placeholder]="
-                delegate.weightPmfmsByMethod
-                  | mapGet: controls.childrenWeightMethodId.value
-                  | pmfmName: { i18nPrefix: delegate.i18nPmfmPrefix, i18nSuffix: delegate.i18nSuffix }
-              "
               [tabindex]="-1"
             />
 
@@ -342,7 +344,7 @@
                 childrenWeightValue: childForm | formGetControl: 'childrenWeight.value',
                 childrenWeightComputed: childForm | formGetControl: 'childrenWeight.computed',
                 childrenWeightMethodId: childForm | formGetControl: 'childrenWeight.methodId',
-                samplingIndividualCount: childForm | formGetControl: 'individualCount'
+                samplingIndividualCount: childForm | formGetControl: 'individualCount',
               } as controls"
             >
               samplingRatio: {{ controls.samplingRatio.value | numberFormat: { fixedDecimals: 6 } }}
