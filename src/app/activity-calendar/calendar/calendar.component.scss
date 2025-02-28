@@ -204,16 +204,16 @@ mat-toolbar {
     border-left: 1px solid var(--ion-border-color, rgba(0, 0, 0, 0.12));
 
     &.odd {
-      --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.15) !important;
+      --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.15);
       background-color: var(--mat-table-background-color);
 
       &.mat-column-reset-background-color {
-        --mat-table-background-color: var(--ion-color-step-100) !important;
+        --mat-table-background-color: var(--ion-color-step-100);
       }
     }
 
     &.mat-column-fishingArea {
-      --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.2) !important;
+      --mat-table-background-color: rgba(var(--ion-color-medium-rgb), 0.2);
       background-color: var(--mat-table-background-color);
     }
 
@@ -224,24 +224,6 @@ mat-toolbar {
         visibility: hidden;
         display: none;
       }
-    }
-
-    &.mat-mdc-cell-error {
-      background-color: rgba(var(--ion-color-warning-rgb), 0.7);
-
-      &.mat-mdc-row-disabled:hover,
-      &.mat-row-disabled:hover {
-        background-color: rgba(var(--ion-color-warning-rgb), 0.7) !important;
-      }
-    }
-
-
-  }
-
-  .mat-mdc-cell  {
-    &.computed {
-      color: var(--ion-color-primary-tint) !important;
-      font-style: italic !important;
     }
   }
 

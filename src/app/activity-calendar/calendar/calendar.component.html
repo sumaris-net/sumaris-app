@@ -290,18 +290,18 @@
         <ng-container *matCellDef="let row">
           <mat-cell
             #cell
-            class="mat-column-reset-background-color"
+            class="mat-column-reset-background-color mat-mdc-cell-computed"
             (click)="clickMonthHeader($event, row)"
             (contextmenu)="onMonthContextMenu($event, row)"
           >
             @if (vesselOwners$ | push | mapGet: row.id; as owners) {
               @if (owners | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: '\n', propertySeparator: ' ' }; as title) {
-                <ion-label class="ion-text-nowrap computed" (ngInit)="cell.title = title">
+                <ion-label class="ion-text-nowrap" (ngInit)="cell.title = title">
                   {{ owners | arrayFirst | referentialToString: { properties: vesselOwnerDisplayAttributes, propertySeparator: ' ' } }}
                 </ion-label>
 
                 @if (owners | isArrayLength: { greaterThan: 1 }) {
-                  <ion-label class="details computed">(+{{ owners.length - 1 }})</ion-label>
+                  <ion-label class="details">(+{{ owners.length - 1 }})</ion-label>
                 }
               }
             } @else {
@@ -318,7 +318,7 @@
         <ng-container *matCellDef="let row">
           <mat-cell
             #cell
-            class="odd mat-column-reset-background-color"
+            class="odd mat-column-reset-background-color mat-mdc-cell-computed"
             (click)="clickMonthHeader($event, row)"
             (contextmenu)="onMonthContextMenu($event, row)"
           >
@@ -327,11 +327,11 @@
               as registrationLocations
             ) {
               @if (registrationLocations | referentialToString: { properties: locationDisplayAttributes, separator: '\n' }; as title) {
-                <ion-label class="ion-text-nowrap computed" (ngInit)="cell.title = title">
+                <ion-label class="ion-text-nowrap" (ngInit)="cell.title = title">
                   {{ registrationLocations | arrayFirst | referentialToString: locationDisplayAttributes }}
                 </ion-label>
                 @if (registrationLocations | isArrayLength: { greaterThan: 1 }) {
-                  <ion-label class="details computed">(+{{ registrationLocations.length - 1 }})</ion-label>
+                  <ion-label class="details">(+{{ registrationLocations.length - 1 }})</ion-label>
                 }
               }
             }
@@ -345,11 +345,11 @@
         </mat-header-cell>
         <mat-cell
           *matCellDef="let row"
-          class="odd mat-column-reset-background-color"
+          class="odd mat-column-reset-background-color mat-mdc-cell-computed"
           (click)="clickMonthHeader($event, row)"
           (contextmenu)="onMonthContextMenu($event, row)"
         >
-          <ion-label class="ion-text-nowrap computed" [title]="content.innerText">
+          <ion-label class="ion-text-nowrap" [title]="content.innerText">
             <span #content>{{ 'ACTIVITY_CALENDAR.EDIT.SOURCE_PREDOC' | translateContext: row.currentData.program?.label }}</span>
           </ion-label>
         </mat-cell>
@@ -420,7 +420,7 @@
           *matCellDef="let row"
           class="odd mat-mdc-cell-resizable"
           #cell
-          [class.mat-mdc-cell-error]="row.currentData.basePortLocation?.properties?.outsideExpertiseArea"
+          [class.mat-mdc-cell-warning]="row.currentData.basePortLocation?.properties?.outsideExpertiseArea"
           (click)="clickCell($event, row, 'basePortLocation')"
           (dblclick)="dblClickCell($event, row, 'basePortLocation')"
           (contextmenu)="onContextMenu($event, cell, row, 'basePortLocation')"
@@ -548,7 +548,7 @@
             [class]="col.class"
             [class.mat-mdc-cell-resizable]="!col.hidden"
             [class.collapsed]="col.hidden"
-            [class.mat-mdc-cell-error]="(row.currentData | propertyGet: col.path)?.properties?.outsideExpertiseArea"
+            [class.mat-mdc-cell-warning]="(row.currentData | propertyGet: col.path)?.properties?.outsideExpertiseArea"
             (click)="col.hidden ? col.expand($event) : clickCell($event, row, col.key)"
             (dblclick)="!col.hidden && dblClickCell($event, row, col.key)"
             (contextmenu)="onContextMenu($event, cell, row, col.key)"

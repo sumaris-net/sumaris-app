@@ -31,11 +31,11 @@
 
   .mat-mdc-row {
     overflow: hidden;
-  }
 
-  .mat-mdc-row.mat-row-selected {
-    .mat-mdc-cell .visible-selected-row {
-      visibility: visible !important;
+    &.mat-row-selected {
+      .mat-mdc-cell .visible-selected-row {
+        visibility: visible !important;
+      }
     }
   }
 
@@ -64,6 +64,15 @@
       --mdc-checkbox-disabled-selected-checkmark-color: transparent;
       --mdc-checkbox-disabled-unselected-icon-color: transparent;
       --mdc-checkbox-disabled-unselected-checkmark-color: transparent;
+
+      &.mat-mdc-cell-warning {
+        background-color: rgba(var(--ion-color-warning-rgb), 0.7) !important;
+
+        &.mat-mdc-row-disabled:hover,
+        &.mat-row-disabled:hover {
+          background-color: rgba(var(--ion-color-warning-rgb), 0.7) !important;
+        }
+      }
     }
   }
 
@@ -94,6 +103,8 @@
       }
     }
   }
+
+
 }
 
 app-toolbar app-named-filter-selector {
