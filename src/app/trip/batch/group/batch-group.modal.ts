@@ -184,7 +184,7 @@ export class BatchGroupModal implements OnInit, AfterViewInit, OnDestroy, IBatch
 
     this.form.childrenState = {
       showSamplingBatch: this.showSamplingBatch,
-      samplingBatchEnabled: this.data?.observedIndividualCount > 0 || this.defaultHasSubBatches,
+      samplingBatchEnabled: this.data?.observedIndividualCount > 0 || this.defaultHasSubBatches || false,
       showExhaustiveInventory: false,
       showEstimatedWeight: false,
     };
