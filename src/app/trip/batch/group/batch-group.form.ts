@@ -5,7 +5,6 @@ import {
   AppFormUtils,
   InputElement,
   isNil,
-  isNotNil,
   isNotNilOrBlank,
   ReferentialUtils,
   toBoolean,
@@ -78,35 +77,33 @@ export class BatchGroupForm
   @ViewChildren('childForm') childrenList!: QueryList<BatchForm>;
 
   get invalid(): boolean {
-    return this.form.invalid || this.hasSubBatchesControl.invalid || ((this.childrenList || []).find((child) => child.invalid) && true) || false;
+    return this.form.invalid || this.childrenList?.some((child) => child.invalid) || this.hasSubBatchesControl.invalid || false;
   }
 
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')
     return (
       (this.form.valid &&
-        (this.hasSubBatchesControl.disabled /*ignore when disabled*/ || this.hasSubBatchesControl.valid) &&
-        (!this.childrenList || !this.childrenList.find((child) => child.enabled && !child.valid))) ||
+        (!this.childrenList || !this.childrenList?.some((child) => child.enabled && !child.valid)) &&
+        (this.hasSubBatchesControl.disabled /*ignore when disabled*/ || this.hasSubBatchesControl.valid)) ||
       false
     );
   }
 
   get pending(): boolean {
-    return (
-      this.form.pending ||
-      this.hasSubBatchesControl.pending ||
-      (this.childrenList && this.childrenList.find((child) => child.pending) && true) ||
-      false
-    );
+    return this.form.pending || this.childrenList?.some((child) => child.pending) || this.hasSubBatchesControl.pending;
   }
 
   get loading(): boolean {
-    return super.loading || (this.childrenList && this.childrenList.find((child) => child.loading) && true) || false;
+    return super.loading || this.childrenList?.some((child) => child.loading) || false;
   }
 
   get dirty(): boolean {
     return (
-      this.form.dirty || this.hasSubBatchesControl.dirty || (this.childrenList && this.childrenList.find((child) => child.dirty) && true) || false
+      this.form.dirty ||
+      this.childrenList?.some((child) => child.dirty) ||
+      (this.hasSubBatchesControl.enabled /*ignore when disabled*/ && this.hasSubBatchesControl.dirty) ||
+      false
     );
   }
 
@@ -137,12 +134,13 @@ export class BatchGroupForm
   disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.disable(opts);
     (this.childrenList || []).forEach((child) => child.disable(opts));
-    this.hasSubBatchesControl.disable(opts);
+    this.updateHasSubBatchesControl(this.hasSubBatches, opts);
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
     (this.childrenList || []).forEach((child) => child.enable(opts));
+    this.updateHasSubBatchesControl(this.hasSubBatches, opts);
   }
 
   constructor(
@@ -177,33 +175,20 @@ export class BatchGroupForm
   ngOnInit() {
     super.ngOnInit();
 
-    this.showHasSubBatchesButton = toBoolean(this.showHasSubBatchesButton, true);
-    this.defaultHasSubBatches = toBoolean(this.defaultHasSubBatches, false);
+    this.showHasSubBatchesButton = this.showHasSubBatchesButton ?? true;
+    this.defaultHasSubBatches = this.defaultHasSubBatches ?? false;
 
     // Set isSampling on each child forms, when has indiv. measure changed
     this._state.connect(
       'hasSubBatches',
       this.hasSubBatchesControl.valueChanges.pipe(
-        filter(() => !this.applyingValue && !this.loading),
+        filter(() => !this.applyingValue && this.loaded),
         distinctUntilChanged(),
         tap((_) => this.markAsDirty())
       )
     );
 
-    this._state.hold(this.hasSubBatches$, (value) => {
-      if (this.hasSubBatchesControl.value !== value) {
-        this.hasSubBatchesControl.setValue(value, { emitEvent: false });
-        this.markForCheck();
-      }
-      // Enable control if need
-      if (!value && this.hasSubBatchesControl.disabled && this.enabled) {
-        this.hasSubBatchesControl.enable();
-      }
-      // Disable control if need
-      else if (value && this.hasSubBatchesControl.enabled && this.enabled) {
-        this.hasSubBatchesControl.disable();
-      }
-    });
+    this._state.hold(this.hasSubBatches$, (hasSubBatches) => this.updateHasSubBatchesControl(hasSubBatches));
 
     // Listen form changes, to update children state (e.g. when taxonGroup changes, check if RJB special case)
     this._state.connect(
@@ -307,16 +292,16 @@ export class BatchGroupForm
         child.rankOrder = index + 1;
 
         // Should have sub batches, when sampling batch exists
-        const samplingBatchExists = isNotNil(BatchUtils.getSamplingChild(child));
-        hasSubBatches = hasSubBatches || samplingBatchExists;
+        const samplingBatch = BatchUtils.getSamplingChild(child);
+        hasSubBatches = hasSubBatches || (samplingBatch && BatchUtils.isNotEmptySamplingBatch(samplingBatch));
 
         // Create sampling batch, if has sub batches
-        if (hasSubBatches && !samplingBatchExists) BatchUtils.getOrCreateSamplingChild(child);
+        if (hasSubBatches && !samplingBatch) BatchUtils.getOrCreateSamplingChild(child);
 
         return child;
       });
 
-      // Set has subbatches, if changed
+      // Update has sub batches, if changed
       if (this.hasSubBatches !== hasSubBatches) this.hasSubBatches = hasSubBatches;
 
       // Compute if should show total individual count, instead of weight (eg. ADAP program, for species "RJB_x - Pocheteaux")
@@ -341,11 +326,11 @@ export class BatchGroupForm
     // No QV pmfm
     else {
       // Should have sub batches, when sampling batch exists
-      const samplingBatchExists = isNotNil(BatchUtils.getSamplingChild(data));
-      hasSubBatches = hasSubBatches || samplingBatchExists;
+      const samplingBatch = BatchUtils.getSamplingChild(data);
+      hasSubBatches = hasSubBatches || (samplingBatch && BatchUtils.isNotEmptySamplingBatch(samplingBatch));
 
       // Create sampling batch, if has sub batches
-      if (hasSubBatches && !samplingBatchExists) BatchUtils.getOrCreateSamplingChild(data);
+      if (hasSubBatches && !samplingBatch) BatchUtils.getOrCreateSamplingChild(data);
 
       // Configure as child form (will copy some childrenXXX properties into self)
       if (hasSubBatches !== this.hasSubBatches) this.hasSubBatches = hasSubBatches;
@@ -361,17 +346,7 @@ export class BatchGroupForm
     }
 
     // Apply computed value
-    if (this.showHasSubBatchesButton || !this.hasSubBatchesControl.value) {
-      this.hasSubBatchesControl.setValue(hasSubBatches, { emitEvent: false });
-    }
-
-    // If there is already some measure
-    // Not allow to change 'has measure' field
-    if (data.observedIndividualCount > 0) {
-      this.hasSubBatchesControl.disable();
-    } else if (this.enabled) {
-      this.hasSubBatchesControl.enable();
-    }
+    this.updateHasSubBatchesControl(hasSubBatches, { emitEvent: false });
   }
 
   getValue(): BatchGroup {
@@ -456,5 +431,26 @@ export class BatchGroupForm
 
   protected async onUpdateFormGroup(form?: UntypedFormGroup): Promise<void> {
     await super.onUpdateFormGroup(form);
+  }
+
+  protected setHasSubBatches(value?: boolean) {
+    this.hasSubBatches = value;
+    // This will trigger the state property, then call updateHasSubBatchesControl() below
+  }
+
+  protected updateHasSubBatchesControl(hasSubBatches?: boolean, opts?: { emitEvent?: boolean }) {
+    hasSubBatches = hasSubBatches ?? this.hasSubBatches;
+    if (isNil(hasSubBatches)) return; // Skip
+
+    if (this.debug) console.debug(this._logPrefix + 'Updating hasSubBatchesControl with value: ' + hasSubBatches);
+
+    if (this.hasSubBatchesControl.value !== hasSubBatches) {
+      this.hasSubBatchesControl.setValue(hasSubBatches, { emitEvent: this.loaded, ...opts });
+      this.markForCheck();
+    }
+
+    // Enable / disable
+    const enable = this.showHasSubBatchesButton && !(this.data.observedIndividualCount > 0) && !this.defaultHasSubBatches && this.enabled;
+    AppFormUtils.setControlEnabled(this.hasSubBatchesControl, enable, { emitEvent: false });
   }
 }

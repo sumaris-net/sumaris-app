@@ -8,15 +8,10 @@
       <ion-col size="0" size-sm="6" *ngIf="showTaxonGroup !== showTaxonName"></ion-col>
 
       <ion-col size="12" size-sm="6">
+        @let hasSubBatches = hasSubBatchesControl | formGetValue;
         <mat-form-field floatLabel="always">
-          <input
-            matInput
-            type="text"
-            hidden
-            [formControl]="hasSubBatchesControl"
-            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_MEASURE' | translate"
-            required
-          />
+          <mat-label translate>TRIP.BATCH.EDIT.INDIVIDUAL_MEASURE</mat-label>
+          <input matInput type="text" hidden [formControl]="hasSubBatchesControl" required />
           <ion-grid class="ion-no-padding">
             <ion-row class="ion-no-padding ion-row-buttons" *ngIf="!loading; else rowSkeleton">
               <ion-col>
@@ -24,8 +19,8 @@
                   class="mat-form-field-button ion-text-wrap"
                   [disabled]="hasSubBatchesControl.disabled"
                   [tabindex]="(tabindex && tabindex + 8) || -1"
-                  (click)="hasSubBatchesControl.setValue(false)"
-                  (keyup.enter)="hasSubBatchesControl.setValue(false)"
+                  (click)="setHasSubBatches(false)"
+                  (keyup.enter)="setHasSubBatches(false)"
                   fill="solid"
                   expand="full"
                   [color]="hasSubBatches === undefined ? 'danger' : !hasSubBatches ? 'accent' : 'light'"
@@ -38,8 +33,8 @@
                   class="mat-form-field-button ion-text-wrap"
                   [disabled]="hasSubBatchesControl.disabled"
                   [tabindex]="(tabindex && tabindex + 9) || -1"
-                  (click)="hasSubBatchesControl.setValue(true)"
-                  (keyup.enter)="hasSubBatchesControl.setValue(true)"
+                  (click)="setHasSubBatches(true)"
+                  (keyup.enter)="setHasSubBatches(true)"
                   fill="solid"
                   expand="full"
                   [color]="hasSubBatches === undefined ? 'danger' : hasSubBatches ? 'accent' : 'light'"
