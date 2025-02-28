@@ -163,6 +163,10 @@ export class BatchUtils {
     return parent.children?.length === 1 && parent.children.find((b) => b.label === samplingLabel);
   }
 
+  static isNotEmptySamplingBatch(batch: Batch) {
+    return !BatchUtils.isEmptySamplingBatch(batch);
+  }
+
   static isEmptySamplingBatch(batch: Batch) {
     return (
       BatchUtils.isSamplingBatch(batch) &&

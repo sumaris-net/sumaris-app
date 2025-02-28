@@ -103,7 +103,7 @@
       </section>
 
       <!-- Operations map -->
-      <section *ngIf="stats?.operations | isNotEmptyArray" (entered)="!reveal.printing && showMap()">
+      <section *ngIf="stats?.operations | isNotEmptyArray" (entered)="showMap()">
         <h4>{{ 'TRIP.OPERATION.MAP.TITLE' | translate }}</h4>
         <div style="height: 550px">
           <ng-container #mapContainer></ng-container>
@@ -111,15 +111,17 @@
       </section>
     </section>
 
-    <section *sectionDef>
-      <ng-container *ngFor="let s of stats?.species | arrayFilter: isNotEmptySpecies">
-        <section *ngFor="let chart of s.charts | mapValues">
-          <div class="chart-container">
-            <canvas baseChart [type]="chart.type" [data]="chart.data" [options]="chart.options"></canvas>
-          </div>
-        </section>
-      </ng-container>
-    </section>
+    @if (stats?.species | isNotEmptyArray) {
+      <section *sectionDef>
+        <ng-container *ngFor="let s of stats?.species | arrayFilter: isNotEmptySpecies">
+          <section *ngFor="let chart of s.charts | mapValues">
+            <div class="chart-container">
+              <canvas baseChart [type]="chart.type" [data]="chart.data" [options]="chart.options"></canvas>
+            </div>
+          </section>
+        </ng-container>
+      </section>
+    }
   </app-reveal>
 
   <ng-template #loadingTemplate>

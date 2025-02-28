@@ -592,7 +592,7 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
 
   protected async suggestStrategy(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
     // Avoid to reload, when value is already a valid strategy
-    if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
+    if (ReferentialUtils.isNotEmpty(value) || EntityUtils.isNotEmpty(value, 'label')) return { data: [value] };
 
     filter = {
       ...filter,

@@ -1,0 +1,372 @@
+@if (loaded) {
+  <app-reveal #reveal [options]="revealOptions">
+    @if (isPrintingPDF) {
+      @if (stats.options.showByTable) {
+        @for (dataChunk of data | splitArrayInChunks: stats.table.nbLinesPeerPage; track chunkIndex; let chunkIndex = $index) {
+          @for (tablePart of stats.table.tableParts; track partIndex; let partIndex = $index; let firstPart = $first; let lastPart = $last) {
+            <section *sectionDef class="landscape">
+              <ng-content
+                *ngTemplateOutlet="
+                  table;
+                  context: {
+                    dataChunk: dataChunk,
+                    chunkIndex: chunkIndex,
+                    tablePart: tablePart,
+                    partIndex: partIndex,
+                    firstPart: firstPart,
+                    lastPart: lastPart,
+                  }
+                "
+              ></ng-content>
+            </section>
+          }
+        }
+      } @else {
+        @for (physicalGears of data | splitArrayInChunks: 4; track physicalGearSplitIndex; let physicalGearSplitIndex = $index) {
+          <section *sectionDef class="portrait" [style.--page-horizontal-margin]="parentPageDimensions.pageHorizontalMargin">
+            <ng-content
+              *ngTemplateOutlet="
+                form;
+                context: {
+                  physicalGearSplitIndex: physicalGearSplitIndex,
+                  physicalGears: physicalGears,
+                }
+              "
+            ></ng-content>
+          </section>
+        }
+      }
+    } @else {
+      <section *sectionDef [style.--page-horizontal-margin]="parentPageDimensions.pageHorizontalMargin">
+        @if (stats.options.showByTable) {
+          @for (dataChunk of data | splitArrayInChunks: stats.table.nbLinesPeerPage; track chunkIndex; let chunkIndex = $index) {
+            @for (tablePart of stats.table.tableParts; track partIndex; let partIndex = $index; let firstPart = $first; let lastPart = $last) {
+              <section class="landscape">
+                <ng-content
+                  *ngTemplateOutlet="
+                    table;
+                    context: {
+                      dataChunk: dataChunk,
+                      chunkIndex: chunkIndex,
+                      tablePart: tablePart,
+                      partIndex: partIndex,
+                      firstPart: firstPart,
+                      lastPart: lastPart,
+                    }
+                  "
+                ></ng-content>
+              </section>
+            }
+          }
+        } @else {
+          @for (physicalGears of data | splitArrayInChunks: 4; track physicalGearSplitIndex; let physicalGearSplitIndex = $index) {
+            <section class="portrait">
+              <ng-content
+                *ngTemplateOutlet="
+                  form;
+                  context: {
+                    physicalGearSplitIndex: physicalGearSplitIndex,
+                    physicalGears: physicalGears,
+                  }
+                "
+              ></ng-content>
+            </section>
+          }
+        }
+      </section>
+    }
+  </app-reveal>
+
+  <ng-template #form let-physicalGears="physicalGears" let-physicalGearSplitIndex="physicalGearSplitIndex">
+    <page-header-form-report-chunk
+      [i18nContext]="i18nContext"
+      [title]="'TRIP.REPORT.FORM.PHYSICAL_GEAR.TITLE'"
+      [pageNumber]="data.length > 4 ? physicalGearSplitIndex + 1 : null"
+      [items]="stats.headerItems"
+      [logoRightUrl]="logoHeadRightUrl"
+      [logoLeftUrl]="logoHeadLeftUrl"
+    ></page-header-form-report-chunk>
+    @for (physicalGear of physicalGears; track physicalGear.rankOrder; let physicalGearIndex = $index) {
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ physicalGear.gear.label }} - {{ physicalGear.gear.name }}</h3>
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field ion-margin-bottom">
+          <ion-col class="form-label" size="3">{{ 'TRIP.REPORT.FORM.PHYSICAL_GEAR.OPERATIONS' | translate }}{{ 'COMMON.COLON' | translate }}</ion-col>
+          <ion-col class="form-value" size="9">
+            {{ stats.operationsRankByGears[physicalGear.id] | arrayJoin: ', ' }}
+          </ion-col>
+        </ion-row>
+        @for (pmfms of stats.pmfmsByGearsId[physicalGear.gear.id] | splitArrayInChunks: 2; track pmfmSplitIndex; let pmfmSplitIndex = $index) {
+          <ion-row class="form-field">
+            @for (pmfm of pmfms; track pmfm.id) {
+              <ion-col class="form-label" size="3">
+                {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix, withUnit: true, html: false } }}
+                @if (stats.pmfmTipsByPmfmIds[0] | mapGet: pmfm.id | isNotNil) {
+                  ({{ stats.pmfmTipsByPmfmIds[0] | mapGet: pmfm.id | mapGet: 'index' }})
+                }
+              </ion-col>
+              @if (isBlankForm) {
+                @switch (pmfm | getPmfmExtendedType) {
+                  @case ('boolean') {
+                    <ion-col class="form-value" size="3" [class.no-border-top]="pmfmSplitIndex > 0">
+                      <ion-grid class="value-grid ion-no-padding">
+                        <ion-row class="text--center">
+                          <ion-col class="ion-text-center">
+                            {{ 'COMMON.YES' | translate }}
+                            <ion-icon name="square-outline"></ion-icon>
+                          </ion-col>
+                          <ion-col class="ion-text-center">
+                            {{ 'COMMON.NO' | translate }}
+                            <ion-icon name="square-outline"></ion-icon>
+                          </ion-col>
+                        </ion-row>
+                      </ion-grid>
+                    </ion-col>
+                  }
+                  @case ('qualitative_value') {
+                    @if (stats.options.showQualitativeValuesCheckBox) {
+                      <ion-col
+                        class="form-value"
+                        [size]="pmfm.qualitativeValues.length > 3 ? 9 : 3"
+                        [class.no-border-top]="pmfmSplitIndex > 0 && pmfm.qualitativeValues.length < 4"
+                      >
+                        <ion-grid class="value-grid ion-no-padding">
+                          <ion-row>
+                            @for (qv of pmfm.qualitativeValues; track qv.id) {
+                              <ion-col class="ion-text-center">
+                                {{ qv.label }}
+                                <ion-icon name="square-outline"></ion-icon>
+                              </ion-col>
+                            }
+                          </ion-row>
+                        </ion-grid>
+                      </ion-col>
+                    } @else {
+                      <ion-col class="form-value" size="3" [class.no-border-top]="pmfmSplitIndex > 0"></ion-col>
+                    }
+                  }
+                  @default {
+                    <ion-col class="form-value" size="3" [class.no-border-top]="pmfmSplitIndex > 0"></ion-col>
+                  }
+                }
+              } @else {
+                <ion-col
+                  class="form-value"
+                  size="3"
+                  [class.no-border-top]="pmfmSplitIndex > 0"
+                  [innerHTML]="
+                    stats.measurementValues
+                      | mapGet: physicalGearIndex * (physicalGearSplitIndex + 1)
+                      | mapGet: pmfm.id
+                      | pmfmValue: { pmfm: pmfm, html: false, showYesOrNo: true }
+                  "
+                ></ion-col>
+              }
+            }
+          </ion-row>
+        }
+        <ion-row class="form-field ion-margin-top">
+          <ion-col class="form-label" size="3">
+            {{ 'COMMON.COMMENTS' | translate }}
+          </ion-col>
+          <ion-col class="form-value" size="9">
+            {{ physicalGear.comments }}
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    }
+
+    <tips-report-chunk [tips]="stats.pmfmTipsByPmfmIds[0] | mapValues | arraySort: sortByTipsIndex"></tips-report-chunk>
+    <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
+  </ng-template>
+
+  <ng-template
+    #table
+    let-dataChunk="dataChunk"
+    let-chunkIndex="chunkIndex"
+    let-tablePart="tablePart"
+    let-partIndex="partIndex"
+    let-firstPart="firstPart"
+    let-lastPart="lastPart"
+  >
+    <page-header-form-report-chunk
+      [i18nContext]="i18nContext"
+      [title]="'TRIP.REPORT.FORM.PHYSICAL_GEAR.TITLE'"
+      [titleComplement]="titleComplement"
+      [pageNumber]="null"
+      [items]="stats.headerItems"
+      [logoRightUrl]="logoHeadRightUrl"
+      [logoLeftUrl]="logoHeadLeftUrl"
+    ></page-header-form-report-chunk>
+    <table class="table-full-width" [style.--row-height]="'60'">
+      <thead>
+        <tr>
+          @if (firstPart) {
+            @if (isBlankForm) {
+              <th class="font-medium text-vertical ion-text-center column-numGear" [style.--col-width]="pageDimensions.columnGearNum">
+                <div>
+                  {{ 'TRIP.REPORT.FORM.GEAR_NUMBER' | translate }}
+                </div>
+              </th>
+            }
+            <th class="font-medium ion-text-center column-gearsCode" [style.--col-width]="pageDimensions.columnGearCode">
+              @if (isBlankForm) {
+                {{ 'TRIP.PHYSICAL_GEAR.EDIT.GEAR' | translate }}*
+              } @else {
+                {{ 'TRIP.PHYSICAL_GEAR.TABLE.GEAR' | translate }}
+              }
+            </th>
+            @if (!isBlankForm) {
+              <th class="font-medium ion-text-center column-numOp" [style.--col-width]="pageDimensions.columnOpNum">
+                {{ 'TRIP.REPORT.FORM.PHYSICAL_GEAR.OPERATIONS' | translate }}
+              </th>
+            }
+          }
+          @for (pmfm of stats.table.allPmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
+            @if (stats.table.compactPmfmColumn || isBlankForm) {
+              <!-- FIXME use columnWithByPmfmId for GEAR_LABEL -->
+              <th
+                class="no-padding column-{{ pmfm.label }} column-pmfmType-{{ pmfm | getPmfmExtendedType }}"
+                [class.text-vertical]="stats.table.pmfmsColumnsWidthByPmfmIds[pmfm.id] < pageDimensions.columnPmfmWidth"
+                [class.font-small]="!isBlankForm"
+                [class.horizontal-margin]="!isBlankForm"
+                [style.--col-width]="pmfm.id === pmfmIds.GEAR_LABEL ? 'var(--col-maximum)' : stats.table.pmfmsColumnsWidthByPmfmIds[pmfm.id]"
+              >
+                <table-head-pmfm-name-report-chunk
+                  [pmfm]="pmfm"
+                  [i18nContext]="i18nContext"
+                  [pmfmTipsByPmfmIds]="stats.pmfmTipsByPmfmIds[partIndex]"
+                ></table-head-pmfm-name-report-chunk>
+              </th>
+            } @else {
+              <th
+                class="ion-text-center font-medium column-pmfmType-{{ pmfm | getPmfmExtendedType }} column-{{ pmfm.label }}"
+                [style.--col-width]="stats.table.pmfmsColumnsWidthByPmfmIds[pmfm.id]"
+              >
+                <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: i18nContext.prefix, i18nSuffix: i18nContext.suffix }"></div>
+              </th>
+            }
+          }
+          @if (lastPart) {
+            <th class="font-medium" [style.--col-width]="tablePart > 0 ? 'var(--col-maximum)' : pageDimensions.columnComments">
+              <div class="ion-text-center">
+                {{ 'TRIP.REPORT.FORM.COMMENTS' | translate }}
+              </div>
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (physicalGear of dataChunk; track physicalGear.id) {
+          <tr>
+            @if (firstPart) {
+              @if (isBlankForm) {
+                <td class="font-medium column-gearNum" [style.--col-width]="pageDimensions.columnGearNum">
+                  <b class="place-holder">{{ physicalGear.id }}</b>
+                </td>
+              }
+              <td class="font-medium column-gearCode" [style.--col-width]="pageDimensions.columnGearCode">
+                @if (!isBlankForm) {
+                  {{ physicalGear.gear.label }} - {{ physicalGear.gear.name }}
+                }
+              </td>
+              @if (!isBlankForm) {
+                <td class="font-medium column-gearCode" [style.--col-width]="pageDimensions.columnOpNum">
+                  {{ stats.operationsRankByGears[physicalGear.id] | arrayJoin: ', ' }}
+                </td>
+              }
+            }
+            @for (pmfm of stats.table.allPmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
+              @if (stats.table.compactPmfmColumn) {
+                <td class="font-small ion-text-center column-{{ pmfm.label }}" [style.--col-width]="stats.table.pmfmsColumnsWidthByPmfmIds[pmfm.id]">
+                  @if (pmfm | isNotNil) {
+                    <div
+                      [innerHTML]="
+                        physicalGear.measurementValues
+                          | mapGet: pmfm.id
+                          | pmfmValue: { pmfm: pmfm, html: false, showYesOrNo: true, propertyNames: ['label'] }
+                      "
+                    ></div>
+                  }
+                </td>
+              } @else {
+                @if (isBlankForm) {
+                  <td
+                    class="ion-text-center font-medium column-{{ pmfm.label }} column-pmfmType-{{ pmfm | getPmfmExtendedType }} "
+                    [style.--col-width]="pmfm.id === pmfmIds.GEAR_LABEL ? 'var(--col-maximum)' : stats.table.pmfmsColumnsWidthByPmfmIds[pmfm.id]"
+                  >
+                    @switch (pmfm | getPmfmExtendedType) {
+                      @case ('boolean') {
+                        <!--<ion-icon [style.--text-color]="'var(--ion-color-medium)'" name="square-outline"></ion-icon>-->
+                      }
+                      @case ('qualitative_value') {
+                        @if (stats.options.showQualitativeValuesCheckBox) {
+                          <ion-grid class="value-grid ion-no-padding">
+                            <ion-row>
+                              @for (qv of pmfm.qualitativeValues; track qv.id) {
+                                <ion-col class="font-compact text-center">
+                                  {{ qv.label }}
+                                  <br />
+                                  <ion-icon name="square-outline"></ion-icon>
+                                </ion-col>
+                              }
+                            </ion-row>
+                          </ion-grid>
+                        }
+                      }
+                      @case ('latitude') {
+                        <ng-content *ngTemplateOutlet="latitudePlaceHolder"></ng-content>
+                      }
+                      @case ('longitude') {
+                        <ng-content *ngTemplateOutlet="longitudePlaceHolder"></ng-content>
+                      }
+                    }
+                  </td>
+                } @else {
+                  <td
+                    class="ion-text-center font-medium column-{{ pmfm.label }} column-pmfmType-{{ pmfm | getPmfmExtendedType }}"
+                    [style.--col-width]="stats.table.pmfmsColumnsWidthByPmfmIds[pmfm.id]"
+                    [innerHtml]="
+                      physicalGear.measurementValues
+                        | mapGet: pmfm.id
+                        | pmfmValue
+                          : {
+                              pmfm: stats.pmfmsByIds | mapGet: pmfm.id,
+                              propertyNames: ['label', 'name'],
+                              showYesOrNo: true,
+                            }
+                    "
+                  ></td>
+                }
+              }
+            }
+            @if (lastPart) {
+              <td class="column-comments font-medium" [style.--col-width]="tablePart > 0 ? 'var(--col-maximum)' : pageDimensions.columnComments">
+                {{ physicalGear.comments }}
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+    <tips-report-chunk [tips]="stats.table.tipsByTablePart[partIndex] | mapValues | arraySort: sortByTipsIndex"></tips-report-chunk>
+    <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
+  </ng-template>
+
+  <ng-template #latitudePlaceHolder>
+    <span class="font-large place-holder">
+      <span [style.letter-spacing]="'3px'">__°__.___</span>
+      N
+    </span>
+  </ng-template>
+
+  <ng-template #longitudePlaceHolder>
+    <span class="font-large place-holder">
+      <span [style.letter-spacing]="'3px'">__°__.___</span>
+      E ou W
+    </span>
+  </ng-template>
+}

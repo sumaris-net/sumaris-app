@@ -1,0 +1,38 @@
+.page-container {
+  height: calc(var(--page-height) * 1px);
+  width: calc(var(--page-width) * 1px);
+  margin-top: calc(var(--page-margin) * 1px);
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  flex-direction: column;
+}
+
+.page-block {
+  width: calc(var(--block-width) * 1px);
+  margin-left: calc(var(--page-margin) * 1px);
+
+  table {
+    width: 100%;
+    &.margin-top {
+      margin-top: calc(var(--page-margin) * 1px);
+    }
+    td:first-of-type {
+      text-align: right;
+    }
+    td {
+      text-align: left;
+      padding: 0 10px;
+    }
+  }
+}
+
+.block-title {
+  height: calc(var(--title-height) * 1px);
+  display: flex;
+  h1 {
+    --r-heading1-size: var(--font-large);
+    font-weight: bold;
+    color: var(--title-color);
+  }
+}

@@ -47,6 +47,10 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
         key: 'MENU.LOGBOOKS',
         value: 'MENU.LOGBOOKS',
       },
+      {
+        key: 'MENU.SEA_TRIPS',
+        value: 'MENU.SEA_TRIPS',
+      },
     ],
     defaultValue: 'MENU.TRIPS',
   },
@@ -71,6 +75,10 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
       {
         key: 'MENU.AUCTION_OCCASIONS',
         value: 'MENU.AUCTION_OCCASIONS',
+      },
+      {
+        key: 'MENU.LAND_TRIPS',
+        value: 'MENU.LAND_TRIPS',
       },
     ],
     defaultValue: 'MENU.OCCASIONS',

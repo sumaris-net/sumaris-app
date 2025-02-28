@@ -1,5 +1,5 @@
 @let entity = $selectedEntity | async;
-<app-toolbar [title]="(title | translate: {entity: entity?.label})" color="primary" [canGoBack]="false">
+<app-toolbar [title]="title | translate: { entity: entity?.label }" color="primary" [canGoBack]="false">
   <ion-buttons slot="end">
     <!-- no selection -->
     @if (selection | isEmptySelection) {
@@ -51,7 +51,7 @@
     <!-- select entity (desktop) -->
     @if (canSelectEntity) {
       <ion-button fill="solid" color="accent" class="hidden-xs" [matMenuTriggerFor]="selectEntityMenu">
-        <ion-label>{{ entity?.label ||  ('COMMON.EMPTY_OPTION' | translate) }}</ion-label>
+        <ion-label>{{ entity?.label || ('COMMON.EMPTY_OPTION' | translate) }}</ion-label>
         <mat-icon slot="end">arrow_drop_down</mat-icon>
       </ion-button>
     }
@@ -304,7 +304,6 @@
 
   <!-- table -->
   <div #tableContainer class="table-container">
-
     <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)">
       <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
@@ -568,25 +567,27 @@
     showFirstLastButtons
   ></mat-paginator>
 
-  <app-form-buttons-bar
-    hidden-xs
-    hidden-sm
-    hidden-mobile
-    *ngIf="(canEdit && !canOpenDetail) || (errorSubject | push)"
-    (onCancel)="onRefresh.emit()"
-    (onSave)="save()"
-    [disabled]="(loadingSubject | async) || !dirty"
-  >
-    <!-- error -->
-    <ion-item *rxIf="errorSubject; let error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-    </ion-item>
-  </app-form-buttons-bar>
+  <!-- form bottom toolbar -->
+  @if ((canEdit && !canOpenDetail) || (errorSubject | push)) {
+    <app-form-buttons-bar
+      hidden-xs
+      hidden-sm
+      hidden-mobile
+      (onCancel)="onRefresh.emit()"
+      (onSave)="save()"
+      [disabled]="(loadingSubject | async) || !dirty"
+    >
+      <!-- error -->
+      <app-error-item [message]="errorSubject | async"></app-error-item>
+    </app-form-buttons-bar>
+  }
 </ion-footer>
 
-<ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="canEdit && mobile">
-  <ion-fab-button color="tertiary" (click)="addRow($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+<!-- Add fab button -->
+@if (mobile && canEdit) {
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button color="tertiary" (click)="addRow($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}

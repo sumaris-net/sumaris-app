@@ -2599,15 +2599,17 @@ export class CalendarComponent
     const sourceValue = getPropertyByPath(sourceRow.currentData, path);
 
     let dirty = false;
-    targetRows.forEach((row, index) => {
+    for (let index = 0; index < targetRows.length; index++) {
+      const row = targetRows[index];
       if (row.currentData.readonly) {
         this.showUnauthorizedToast();
-        return;
+        continue;
       }
       const form = row.validator;
       if (form) {
         const isActiveControl = form.get('isActive');
         let isActive = isActiveControl.value;
+
         if (isNotNil(sourceValue) && columnName !== 'isActive' && columnName !== 'basePortLocation') {
           if (isNil(isActive)) {
             isActive = VesselUseFeaturesIsActiveEnum.ACTIVE;
@@ -2620,7 +2622,8 @@ export class CalendarComponent
 
         const control = form.get(path);
         if (control && (isActive === VesselUseFeaturesIsActiveEnum.ACTIVE || columnName === 'isActive' || columnName === 'basePortLocation')) {
-          control.setValue(isNil(sourceValue) ? null : sourceValue);
+          const isValidSourceLocation = await this.isValidateSourceLocation(form, path, sourceValue);
+          isValidSourceLocation ? control.setValue(isNil(sourceValue) ? null : sourceValue) : control.setValue(null);
           form.markAllAsTouched();
           form.markAsDirty();
           dirty = true;
@@ -2628,7 +2631,7 @@ export class CalendarComponent
           console.debug(`- Skipping copy value to month ${index + 1}`);
         }
       }
-    });
+    }
 
     if (dirty) {
       this.markAsDirty({ emitEvent: false });
@@ -3038,27 +3041,11 @@ export class CalendarComponent
           // Update control from the path
           const targetPath = targetPaths[index];
           const targetControl = targetPath && this.findOrCreateControl(targetForm, targetPath);
-          let isValid = true;
-
-          if (sourceValue?.entityName === 'NearbySpecificArea' || sourceValue?.entityName === 'DistanceToCoastGradient') {
-            const path = sourceValue?.entityName === 'NearbySpecificArea' ? '.nearbySpecificArea' : '.distanceToCoastGradient';
-            const locationPath = targetPath.replace(path, '.location');
-            const fishingAreaLocationId = this.findOrCreateControl(targetForm, locationPath).value;
-            if (isNotNil(fishingAreaLocationId)) {
-              isValid =
-                sourceValue?.entityName === 'NearbySpecificArea'
-                  ? await this.isValidNearbySpecificArea(sourceValue?.name, fishingAreaLocationId?.id)
-                  : await this.isValidDistanceToCoastGradient(sourceValue?.name, fishingAreaLocationId?.id);
-            }
-            if (isNil(fishingAreaLocationId) || !isValid) {
-              sourceValue = undefined;
-              this.showUnauthorizedToast('ACTIVITY_CALENDAR.WARNING.OUTSIDE_EXPERTISE_AREA_PASTE');
-            }
-          }
+          const isValidSourceLocation = await this.isValidateSourceLocation(targetForm, targetPath, sourceValue);
 
           if (targetControl) {
             targetControl.enable({ emitEvent: false });
-            targetControl.setValue(sourceValue);
+            isValidSourceLocation ? targetControl.setValue(sourceValue) : targetControl.setValue(undefined);
           }
         }
 
@@ -3512,6 +3499,26 @@ export class CalendarComponent
     if (isNil(gradientName) || isNil(fishingAreaLocationId)) return false;
     const value = await this.suggestNearbySpecificArea(gradientName, { searchAttribute: 'name', locationIds: [fishingAreaLocationId] });
     return isNotEmptyArray(value?.data);
+  }
+
+  protected async isValidateSourceLocation(targetForm: UntypedFormGroup, targetPath: string, sourceValue: any) {
+    let isValid = true;
+    if (sourceValue?.entityName === 'NearbySpecificArea' || sourceValue?.entityName === 'DistanceToCoastGradient') {
+      const path = sourceValue?.entityName === 'NearbySpecificArea' ? '.nearbySpecificArea' : '.distanceToCoastGradient';
+      const locationPath = targetPath.replace(path, '.location');
+      const fishingAreaLocationId = this.findOrCreateControl(targetForm, locationPath).value;
+      if (isNotNil(fishingAreaLocationId)) {
+        isValid =
+          sourceValue?.entityName === 'NearbySpecificArea'
+            ? await this.isValidNearbySpecificArea(sourceValue?.name, fishingAreaLocationId?.id)
+            : await this.isValidDistanceToCoastGradient(sourceValue?.name, fishingAreaLocationId?.id);
+      }
+      if (isNil(fishingAreaLocationId) || !isValid) {
+        this.showUnauthorizedToast('ACTIVITY_CALENDAR.WARNING.OUTSIDE_EXPERTISE_AREA_PASTE');
+        return false;
+      }
+    }
+    return true;
   }
 
   protected onScroll() {

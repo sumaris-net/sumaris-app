@@ -27,6 +27,18 @@ form.form-container {
       }
     }
 
+
+    // Tappable field (e.g. a parent field that open a modal when clicked)
+    &.ion-tappable,
+    &.ion-tappable:hover {
+      cursor: pointer !important;
+
+      input,
+      input:hover{
+        cursor: pointer !important;
+      }
+    }
+
     .datetime-md {
       padding: 0 !important;
     }
@@ -97,6 +109,7 @@ form.form-container {
     align-content: end;
   }
 }
+
 
 // Mobile: change form labels style
 @media screen and (max-width: $screen-sm-max) {

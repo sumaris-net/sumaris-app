@@ -33,6 +33,7 @@ import { environment } from '@environments/environment';
 import { BaseNumericStats, BaseTripReport, BaseTripReportStats, SpeciesChart } from '@app/trip/trip/report/base-trip.report';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
+import { FormReportPageDimensions } from '@app/data/report/common-report.class';
 
 export interface SubCategoryWeightStats {
   total: number; // total weight
@@ -107,10 +108,14 @@ export class SelectivityTripReport extends BaseTripReport<SelectivityExtractionD
     super(injector, tripReportService, SelectivityTripReportStats);
   }
 
-  dataAsObject(source: SelectivityExtractionData, opts?: EntityAsObjectOptions): any {
+  dataAsObject(opts?: EntityAsObjectOptions): any {
+    if (!this.loaded) {
+      throw `${this.logPrefix} Data are not already loaded`;
+    }
+    const stats = super.dataAsObject(opts);
     return {
-      ...super.dataAsObject(source, opts),
-      FG: source.FG.map((item) => item.asObject(opts)),
+      ...stats,
+      FG: this.data.FG.map((item) => item.asObject(opts)),
     };
   }
 
@@ -184,7 +189,8 @@ export class SelectivityTripReport extends BaseTripReport<SelectivityExtractionD
     stats.subCategories = this.computeSubCategories(data.SL, { getSubCategory, firstSubCategory: standardSubCategory });
     stats.weights = this.computeWeightStats(data.SL, { getSubCategory: (sl) => sl.meta?.subCategory, standardSubCategory });
 
-    return super.computeStats(data, { ...opts, stats, getSubCategory });
+    const result = await super.computeStats(data, { ...opts, stats, getSubCategory });
+    return result;
   }
 
   protected async computeSpecies(
@@ -645,5 +651,21 @@ export class SelectivityTripReport extends BaseTripReport<SelectivityExtractionD
 
   protected computeShareBasePath(): string {
     return 'trips/report/selectivity';
+  }
+
+  // TODO: Not used in this report
+  protected computePageDimensions(): FormReportPageDimensions {
+    const pageWidth = 297 * 4;
+    const pageHeight = 210 * 4;
+    const pageHorizontalMargin = 50;
+    const availableWidthForTablePortrait = pageWidth - pageHorizontalMargin * 2;
+    const availableWidthForTableLandscape = pageHeight - pageHorizontalMargin * 2;
+    return {
+      pageWidth,
+      pageHeight,
+      pageHorizontalMargin,
+      availableWidthForTableLandscape,
+      availableWidthForTablePortrait,
+    };
   }
 }

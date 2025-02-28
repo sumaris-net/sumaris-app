@@ -35,12 +35,25 @@ html.dark {
   @include css-variables-to-root-dark();
 
   --ion-background-color: #181818 !important;
-  --ion-background-color-rgb: 33,33,33 !important;;
+  --ion-background-color-rgb: 24,24,24 !important;;
   --ion-card-background-color: #181818;
-  --ion-text-color: #b8b8b8;
-  --ion-text-color-rgb: 184, 184, 184;
-  --app-form-color: #dddddd;
-  --app-form-color-rgb: 221, 221, 221;
+  --ion-text-color: #d3d3d3;
+  --ion-text-color-rgb: 211, 211, 211;
+  --ion-toolbar-background: #1f1f1f;
+  --ion-border-color: #2d2d2d;
+
+  --mat-select-panel-background-color: #2a2a2a;
+  --mat-menu-container-color: #2a2a2a;
+  --as-gutter-background-color: var(--ion-toolbar-background);
+
+  --app-form-color: #d3d3d3;
+  --app-form-color-rgb: 211, 211, 211;
+  --app-form-field-background-color: #2a2a2a;
+  --app-form-field-background-color-shade: #a0a0a0;
+  --app-form-field-focus-background-color: var(--ion-color-primary);
+  --app-form-field-disabled-background-color: #1e1e1e;
+  --app-form-field-label-color: #949494;
+  --app-form-field-disabled-label-color: #7d7d7d;
 
   --ion-color-primary: #3670cc;
   --ion-color-primary-rgb: 54, 112, 204;
@@ -112,31 +125,28 @@ html.dark {
   --ion-color-dark-shade: #d7d8da;
   --ion-color-dark-tint: #f5f6f9;
 
-  --ion-color-medium: #989aa2;
-  --ion-color-medium-rgb: 152, 154, 162;
-  --ion-color-medium-contrast: #000000;
-  --ion-color-medium-contrast-rgb: 0, 0, 0;
+  --ion-color-medium: #505050;
+  --ion-color-medium-rgb: 80, 80, 80;
+  --ion-color-medium-contrast: #d3d3d3;
+  --ion-color-medium-contrast-rgb: 211, 211, 211;
   --ion-color-medium-shade: #86888f;
   --ion-color-medium-tint: #a2a4ab;
   --ion-color-medium-200: mix(#fff, $medium, 20%) !important;
 
   --ion-color-light: #222428;
   --ion-color-light-rgb: 34, 36, 40;
-  --ion-color-light-contrast: #ffffff;
-  --ion-color-light-contrast-rgb: 255, 255, 255;
+  --ion-color-light-contrast: #d3d3d3;
+  --ion-color-light-contrast-rgb: 211, 211, 211;
   --ion-color-light-shade: #1e2023;
   --ion-color-light-tint: #383a3e;
-  --ion-toolbar-background: #1f1f1f;
-  --ion-border-color: #222222;
 
-  --app-form-field-background-color: #383a3e;
-  --app-form-field-background-color-shade: #a0a0a0;
-  --app-form-field-focus-background-color: var(--ion-color-primary);
-  --app-form-field-disabled-background-color: #282828;
-  --app-form-field-label-color: #949494;
-  --app-form-field-disabled-label-color: #7d7d7d;
-  --mat-select-panel-background-color: #2a2a2a;
-  --as-gutter-background-color: var(--ion-toolbar-background);
+
+  --ion-color-transparent: transparent;
+  --ion-color-transparent-rgb: 0, 0, 0;
+  --ion-color-transparent-contrast: var(--ion-text-color);
+  --ion-color-transparent-contrast-rgb: var(--ion-text-color-rgb);
+  --ion-color-transparent-shade: transparent;
+  --ion-color-transparent-tint: transparent;
 
   ion-menu#menu {
     --ion-item-text-color-selected: var(--ion-color-secondary100-contrast);

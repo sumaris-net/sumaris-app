@@ -97,7 +97,7 @@
         </ng-container>
 
         <ion-grid class="ion-no-padding">
-          <ion-row class="ion-no-padding">
+          <ion-row>
             <ion-col class="ion-padding">
               <!-- observed location -->
               <app-form-observed-location
@@ -115,30 +115,33 @@
             </ion-col>
 
             <!-- quality data -->
-            <ion-col size="12" size-xl="3" class="ion-no-padding">
+            <ion-col size="12" size-xl="3">
               <!-- strategy summary -->
               <app-strategy-summary-card *ngIf="showStrategyCard"></app-strategy-summary-card>
 
               <!-- metadata -->
-              <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
-                <!-- Compose message -->
-                <ion-button
-                  recorderSuffix
-                  *ngIf="showRecorder && canSendMessage"
-                  slot="end"
-                  size="small"
-                  fill="clear"
-                  color="tertiary"
-                  class="visible-hover ion-no-margin"
-                  [title]="'DATA.BTN_WRITE_TO_RECORDER' | translate"
-                  (click)="openComposeMessageModal(data?.recorderPerson)"
-                >
-                  <ion-icon slot="icon-only" name="mail"></ion-icon>
-                </ion-button>
+              @if (!isNewData) {
+                <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
+                  <!-- Compose message -->
+                  @if (showRecorder && canSendMessage) {
+                    <ion-button
+                      recorderSuffix
+                      slot="end"
+                      size="small"
+                      fill="clear"
+                      color="tertiary"
+                      class="visible-hover ion-no-margin"
+                      [title]="'DATA.BTN_WRITE_TO_RECORDER' | translate"
+                      (click)="openComposeMessageModal(data?.recorderPerson)"
+                    >
+                      <ion-icon slot="icon-only" name="mail"></ion-icon>
+                    </ion-button>
+                  }
 
-                <!-- quality process -->
-                <app-entity-quality-form></app-entity-quality-form>
-              </app-entity-metadata>
+                  <!-- quality process -->
+                  <app-entity-quality-form></app-entity-quality-form>
+                </app-entity-metadata>
+              }
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -249,6 +252,7 @@
   </mat-tab-group>
 </ion-content>
 
+<!-- form bottom toolbar -->
 <ion-footer hidden-xs hidden-sm hidden-mobile>
   <app-form-buttons-bar
     (onCancel)="reloadWithConfirmation()"
@@ -257,10 +261,7 @@
     [disabled]="!dirty || loading"
   >
     <!-- error -->
-    <ion-item *ngIf="error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
-    </ion-item>
+    <app-error-item [message]="errorSubject | async"></app-error-item>
   </app-form-buttons-bar>
 </ion-footer>
 

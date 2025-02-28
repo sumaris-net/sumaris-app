@@ -1,0 +1,551 @@
+@if (loaded) {
+  <app-reveal #reveal [options]="revealOptions">
+    @if (isPrintingPDF) {
+      <!-- individual sample table -->
+      @for (opId of stats.individualSamplePeerOpId | mapKeys; track opId) {
+        @if (stats.individualSamplePeerOpId[opId] | isNotEmptyArray) {
+          <section [style.--page-horizontal-margin]="parentPageDimensions.pageHorizontalMargin">
+            @for (
+              samplesChunk of stats.individualSamplePeerOpId[opId] | splitArrayInChunks: stats.nbIndividualSamplesPeerPage;
+              track samplesChunkIndex;
+              let samplesChunkIndex = $index;
+              let firstSampleChunk = $first;
+              let lastSampleChunk = $last
+            ) {
+              @for (tablePart of stats.sampleTableParts; track partIndex; let partIndex = $index; let firstPart = $first; let lastPart = $last) {
+                <section *sectionDef class="landscape">
+                  <ng-content
+                    *ngTemplateOutlet="
+                      table;
+                      context: {
+                        operationId: opId,
+                        samples: stats.individualSamplePeerOpId[opId],
+                        chunkSize: stats.nbIndividualSamplesPeerPage,
+                        samplesChunk: samplesChunk,
+                        tablePart: tablePart,
+                        tableTitle: 'TRIP.SAMPLE.TABLE.TITLE',
+                        options: stats.options,
+                        pmfms: stats.samplePmfms,
+                        pmfmsByIds: stats.samplePmfmsById,
+                        pmfmTipsByPmfmIds: stats.samplePmfmTipsByPmfmIdByTableParts,
+                        pmfmsTips: stats.sampleTipsByTablePart,
+                        compactPmfmsColumn: !isBlankForm,
+                        showNumOp: stats.options.multiOp,
+                        showLabel: stats.options.labelEnabled,
+                        showRankOrder: stats.options.showRankOrder,
+                        showSampleDateColumn: stats.options.showSampleDateColumn,
+                        showOpDateColumn: stats.options.showOpDateColumn,
+                        showTaxonNameColumn: stats.options.showTaxonNameColumn,
+                        showTaxonGroupColumn: stats.options.showTaxonGroupColumn,
+                        firstPart: firstPart,
+                        lastPart: lastPart,
+                        partIndex: partIndex,
+                        pmfmsColumnsWidthByPmfmIds: stats.samplePmfmsColumnsWidthByPmfmIds,
+                      }
+                    "
+                  ></ng-content>
+                </section>
+              }
+
+              <!-- imag board -->
+              @for (
+                imagesChunk of stats.imagesByOperationId | mapGet: opId | splitArrayInChunks: 6;
+                track imagesChunkIndex;
+                let imagesChunkIndex = $index
+              ) {
+                <section *sectionDef class="landscape">
+                  <ng-content
+                    *ngTemplateOutlet="imageBoard; context: { imagesChunk: imagesChunk, imagesChunkIndex: imagesChunkIndex, operationId: opId }"
+                  ></ng-content>
+                </section>
+              }
+            }
+          </section>
+        }
+      }
+
+      @if (!multiTrip) {
+        <!-- released sample table -->
+        @for (opId of stats.releasedSamplePeerOpId | mapKeys; track opId) {
+          @if (stats.releasedSamplePeerOpId[opId] | isNotEmptyArray) {
+            <section [style.--page-horizontal-margin]="parentPageDimensions.pageHorizontalMargin">
+              @for (
+                samplesChunk of stats.releasedSamplePeerOpId[opId] | splitArrayInChunks: stats.nbReleasedSamplesPeerPage;
+                track samplesChunkIndex;
+                let samplesChunkIndex = $index;
+                let firstSampleChunk = $first;
+                let lastSampleChunk = $last
+              ) {
+                @for (tablePart of stats.releasedTableParts; track partIndex; let partIndex = $index; let firstPart = $first; let lastPart = $last) {
+                  <section *sectionDef class="landscape">
+                    <ng-content
+                      *ngTemplateOutlet="
+                        table;
+                        context: {
+                          operationId: opId,
+                          samples: stats.releasedSamplePeerOpId[opId],
+                          samplesChunk: samplesChunk,
+                          chunkSize: stats.nbReleasedSamplesPeerPage,
+                          tablePart: tablePart,
+                          tableTitle: 'TRIP.SAMPLE.TABLE.TAB_INDIVIDUAL_RELEASES',
+                          options: releasedTableOptions,
+                          pmfms: stats.releasedPmfms,
+                          pmfmsByIds: stats.releasedPmfmsById,
+                          pmfmTipsByPmfmIds: stats.releasedPmfmTipsByPmfmIdByTablePart,
+                          pmfmsTips: stats.releasedTipsByTablePart,
+                          compactPmfmsColumn: false,
+                          showNumOp: stats.options.multiOp,
+                          showLabel: false,
+                          showRankOrder: !isBlankForm,
+                          showSampleDateColumn: false,
+                          showOpDateColumn: false,
+                          showTaxonNameColumn: false,
+                          showTaxonGroupColumn: false,
+                          firstPart: firstPart,
+                          lastPart: lastPart,
+                          partIndex: partIndex,
+                          pmfmsColumnsWidthByPmfmIds: stats.releasedPmfmsColumnsWidthByPmfmIds,
+                        }
+                      "
+                    ></ng-content>
+                  </section>
+                }
+              }
+            </section>
+          }
+        }
+      }
+    } @else {
+      <!-- individual sample table -->
+      @for (opId of stats.individualSamplePeerOpId | mapKeys; track opId) {
+        @if (stats.individualSamplePeerOpId[opId] | isNotEmptyArray) {
+          <section *sectionDef [style.--page-horizontal-margin]="parentPageDimensions.pageHorizontalMargin">
+            @for (
+              samplesChunk of stats.individualSamplePeerOpId[opId] | splitArrayInChunks: stats.nbIndividualSamplesPeerPage;
+              track samplesChunkIndex;
+              let samplesChunkIndex = $index;
+              let firstSampleChunk = $first;
+              let lastSampleChunk = $last
+            ) {
+              @for (tablePart of stats.sampleTableParts; track partIndex; let partIndex = $index; let firstPart = $first; let lastPart = $last) {
+                <section class="landscape">
+                  <ng-content
+                    *ngTemplateOutlet="
+                      table;
+                      context: {
+                        operationId: opId,
+                        samples: stats.individualSamplePeerOpId[opId],
+                        chunkSize: stats.nbIndividualSamplesPeerPage,
+                        samplesChunk: samplesChunk,
+                        tablePart: tablePart,
+                        tableTitle: 'TRIP.SAMPLE.TABLE.TITLE',
+                        options: stats.options,
+                        pmfms: stats.samplePmfms,
+                        pmfmsByIds: stats.samplePmfmsById,
+                        pmfmTipsByPmfmIds: stats.samplePmfmTipsByPmfmIdByTableParts,
+                        pmfmsTips: stats.sampleTipsByTablePart,
+                        compactPmfmsColumn: !isBlankForm,
+                        showNumOp: stats.options.multiOp,
+                        showLabel: stats.options.labelEnabled,
+                        showRankOrder: stats.options.showRankOrder,
+                        showSampleDateColumn: stats.options.showSampleDateColumn,
+                        showOpDateColumn: stats.options.showOpDateColumn,
+                        showTaxonNameColumn: stats.options.showTaxonNameColumn,
+                        showTaxonGroupColumn: stats.options.showTaxonGroupColumn,
+                        firstPart: firstPart,
+                        lastPart: lastPart,
+                        partIndex: partIndex,
+                        pmfmsColumnsWidthByPmfmIds: stats.samplePmfmsColumnsWidthByPmfmIds,
+                      }
+                    "
+                  ></ng-content>
+                </section>
+              }
+            }
+
+            <!-- imag board -->
+            @for (
+              imagesChunk of stats.imagesByOperationId | mapGet: opId | splitArrayInChunks: 6;
+              track imagesChunkIndex;
+              let imagesChunkIndex = $index
+            ) {
+              <section class="landscape">
+                <ng-content
+                  *ngTemplateOutlet="imageBoard; context: { imagesChunk: imagesChunk, imagesChunkIndex: imagesChunkIndex, operationId: opId }"
+                ></ng-content>
+              </section>
+            }
+          </section>
+        }
+      }
+
+      @if (!multiTrip) {
+        <!-- released sample table -->
+        @for (opId of stats.releasedSamplePeerOpId | mapKeys; track opId) {
+          @if (stats.releasedSamplePeerOpId[opId] | isNotEmptyArray) {
+            <section *sectionDef [style.--page-horizontal-margin]="parentPageDimensions.pageHorizontalMargin">
+              @for (
+                samplesChunk of stats.releasedSamplePeerOpId[opId] | splitArrayInChunks: stats.nbReleasedSamplesPeerPage;
+                track samplesChunkIndex;
+                let samplesChunkIndex = $index;
+                let firstSampleChunk = $first;
+                let lastSampleChunk = $last
+              ) {
+                @for (tablePart of stats.releasedTableParts; track partIndex; let partIndex = $index; let firstPart = $first; let lastPart = $last) {
+                  <section class="landscape">
+                    <ng-content
+                      *ngTemplateOutlet="
+                        table;
+                        context: {
+                          operationId: opId,
+                          samples: stats.releasedSamplePeerOpId[opId],
+                          samplesChunk: samplesChunk,
+                          chunkSize: stats.nbReleasedSamplesPeerPage,
+                          tablePart: tablePart,
+                          tableTitle: 'TRIP.SAMPLE.TABLE.TAB_INDIVIDUAL_RELEASES',
+                          options: releasedTableOptions,
+                          pmfms: stats.releasedPmfms,
+                          pmfmsByIds: stats.releasedPmfmsById,
+                          pmfmTipsByPmfmIds: stats.releasedPmfmTipsByPmfmIdByTablePart,
+                          pmfmsTips: stats.releasedTipsByTablePart,
+                          compactPmfmsColumn: false,
+                          showNumOp: stats.options.multiOp,
+                          showLabel: false,
+                          showRankOrder: !isBlankForm,
+                          showSampleDateColumn: false,
+                          showOpDateColumn: false,
+                          showTaxonNameColumn: false,
+                          showTaxonGroupColumn: false,
+                          firstPart: firstPart,
+                          lastPart: lastPart,
+                          partIndex: partIndex,
+                          pmfmsColumnsWidthByPmfmIds: stats.releasedPmfmsColumnsWidthByPmfmIds,
+                        }
+                      "
+                    ></ng-content>
+                  </section>
+                }
+              }
+            </section>
+          }
+        }
+      }
+    }
+  </app-reveal>
+
+  <ng-template
+    #table
+    let-samplesChunkIndex="samplesChunkIndex"
+    let-operationId="operationId"
+    let-samples="samples"
+    let-chunkSize="chunkSize"
+    let-samplesChunk="samplesChunk"
+    let-tablePart="tablePart"
+    let-tableTitle="tableTitle"
+    let-options="options"
+    let-pmfms="pmfms"
+    let-pmfmsByIds="pmfmsByIds"
+    let-pmfmTipsByPmfmIds="pmfmTipsByPmfmIds"
+    let-pmfmsTips="pmfmsTips"
+    let-compactPmfmsColumn="compactPmfmsColumn"
+    let-showNumOp="showNumOp"
+    let-showLabel="showLabel"
+    let-showRankOrder="showRankOrder"
+    let-showSampleDateColumn="showSampleDateColumn"
+    let-showOpDateColumn="showOpDateColumn"
+    let-showTaxonNameColumn="showTaxonNameColumn"
+    let-showTaxonGroupColumn="showTaxonGroupColumn"
+    let-firstPart="firstPart"
+    let-lastPart="lastPart"
+    let-partIndex="partIndex"
+    let-pmfmsColumnsWidthByPmfmIds="pmfmsColumnsWidthByPmfmIds"
+  >
+    <page-header-form-report-chunk
+      [i18nContext]="i18nContext"
+      [title]="tableTitle"
+      [titleComplement]="'TRIP.REPORT.FORM.WITH_OR_WITHOUT_CAMERA'"
+      [pageNumber]="samples.length > chunkSize ? samplesChunkIndex + 1 : null"
+      [logoRightUrl]="logoHeadRightUrl"
+      [logoLeftUrl]="logoHeadLeftUrl"
+      [items]="stats.headerItems"
+    ></page-header-form-report-chunk>
+    @if (!stats.options.multiOp) {
+      <ion-grid class="report-section ion-no-padding">
+        <ion-row class="section-title">
+          <ion-col size="auto">
+            <h3>{{ 'TRIP.REPORT.FORM.OP_NUM' | translate }}</h3>
+          </ion-col>
+          <ion-col class="title-value ion-text-center font-large no-border-bottom" size="auto">
+            @if (!isBlankForm) {
+              {{ stats.operationRankOrderByOperationIds[operationId] }}
+            }
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    }
+    <table class="table-full-width" [style.--row-height]="'30'">
+      <thead>
+        <tr>
+          @if (multiTrip) {
+            <th class="font-medium text-vertical ion-text-center column-tripNumber" [style.--col-width]="pageDimensions.columnTripNumberWidth">
+              <div>
+                {{ 'TRIP.REPORT.FORM.TRIP.TRIP_NUMBER' | translate }}
+              </div>
+            </th>
+          }
+          @if (showNumOp) {
+            <th class="text-vertical column-numOp" [style.--col-width]="pageDimensions.columnRankOrderWidth">
+              <div>{{ 'TRIP.REPORT.FORM.OP_NUM' | translate }}</div>
+            </th>
+          }
+          @if (showLabel) {
+            <th class="font-medium ion-text-center column-sampleLabel" [style.--col-width]="pageDimensions.columnLabelWidth">
+              <div>{{ 'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nContext.suffix }}</div>
+            </th>
+          } @else if (showRankOrder) {
+            <th class="font-medium ion-text-center column-sampleRankOrder" [style.--col-width]="pageDimensions.columnRankOrderWidth">
+              <div>{{ 'TRIP.SAMPLE.TABLE.RANK_ORDER' | translateContext: i18nContext.suffix }}</div>
+            </th>
+          }
+          @if (firstPart) {
+            @if (showSampleDateColumn) {
+              <th class="font-medium ion-text-center column-sampleDate" [style.--col-width]="pageDimensions.columnDateWidth">
+                @if (isBlankForm) {
+                } @else {
+                  <div>{{ 'TRIP.SAMPLE.TABLE.SAMPLE_DATE' | translateContext: i18nContext.suffix }}</div>
+                }
+              </th>
+            } @else if (showOpDateColumn) {
+              <th class="font-medium ion-text-center column-opDate" [style.--col-width]="pageDimensions.columnDateWidth">
+                <div [class.optional]="showNumOp">
+                  {{ 'TRIP.REPORT.FORM.SAMPLE.OP_DATE' | translateContext: i18nContext.suffix }}
+                </div>
+              </th>
+            }
+            @if (showTaxonNameColumn) {
+              <th class="font-medium ion-text-center column-taxonName" [style.--col-width]="pageDimensions.columnTaxonNameWidth">
+                <div>{{ 'TRIP.SAMPLE.TABLE.TAXON_NAME' | translateContext: i18nContext.suffix }}*</div>
+              </th>
+            }
+            @if (showTaxonGroupColumn) {
+              <th class="font-medium ion-text-center column-taxonGroup" [style.--col-width]="pageDimensions.columnTaxonGroupWidth">
+                <div>
+                  {{ 'TRIP.SAMPLE.TABLE.TAXON_GROUP' | translateContext: i18nContext.suffix }}{{ stats.options.showTaxonNameColumn ? '**' : '*' }}
+                </div>
+              </th>
+            }
+          }
+          @for (pmfm of pmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
+            @if (compactPmfmsColumn || isBlankForm) {
+              <th
+                class="no-padding column-{{ pmfm.label }} column-pmfmType-{{ pmfm | getPmfmExtendedType }}"
+                [class.text-vertical]="pmfmsColumnsWidthByPmfmIds[pmfm.id] < pageDimensions.columnPmfmWidth"
+                [class.font-small]="!isBlankForm"
+                [class.horizontal-margin]="!isBlankForm"
+                [style.--col-width]="pmfm.id === pmfmIds.TAG_ID ? 'var(--col-maximum)' : pmfmsColumnsWidthByPmfmIds[pmfm.id]"
+              >
+                <table-head-pmfm-name-report-chunk
+                  [pmfm]="pmfm"
+                  [i18nContext]="i18nContext"
+                  [pmfmTipsByPmfmIds]="pmfmTipsByPmfmIds[partIndex]"
+                ></table-head-pmfm-name-report-chunk>
+              </th>
+            } @else {
+              <th
+                class="ion-text-center font-medium column-pmfmType-{{ pmfm | getPmfmExtendedType }} column-{{ pmfm.label }}"
+                [style.--col-width]="pmfmsColumnsWidthByPmfmIds[pmfm.id]"
+              >
+                <div [innerHTML]="pmfm | pmfmName: { i18nPrefix: i18nContext.prefix, i18nSuffix: i18nContext.suffix }"></div>
+              </th>
+            }
+          }
+          @if (lastPart && stats.showSampleCommentColumn) {
+            <th class="font-medium col-maximum">
+              <div class="ion-text-center">
+                {{ 'TRIP.REPORT.FORM.COMMENTS' | translate }}
+              </div>
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (sample of samplesChunk; track sample.id) {
+          <tr>
+            @if (multiTrip) {
+              <td class="font-medium ion-text-center column-tripNumber" [style.--col-width]="pageDimensions.columnTripNumberWidth"></td>
+            }
+            @if (showNumOp) {
+              <td class="ion-text-center column-numOp font-medium" [style.padding]="0" [style.--col-width]="pageDimensions.columnRankOrderWidth">
+                @if (!isBlankForm) {
+                  <div>
+                    <b>{{ stats.operationRankOrderByOperationIds[sample.operationId] }}</b>
+                  </div>
+                }
+              </td>
+            }
+            @if (showLabel) {
+              <td class="font-medium column-sampleLabel" [style.--col-width]="pageDimensions.columnLabelWidth">
+                <div>
+                  <b>{{ sample.label }}</b>
+                </div>
+              </td>
+            } @else if (showRankOrder) {
+              <td
+                class="ion-text-center column-sampleRankOrder font-medium"
+                [style.padding]="0"
+                [style.--col-width]="pageDimensions.columnRankOrderWidth"
+              >
+                @if (!isBlankForm) {
+                  <div>
+                    <b>{{ sample.rankOrder }}</b>
+                  </div>
+                }
+              </td>
+            }
+            @if (firstPart) {
+              @if (showSampleDateColumn) {
+                <td class="font-medium ion-text-center column-sampleDate" [style.--col-width]="pageDimensions.columnDateWidth">
+                  <div>{{ sample.sampleDate }}</div>
+                </td>
+              } @else if (showOpDateColumn) {
+                <td class="font-medium ion-text-center column-opDate" [style.--col-width]="pageDimensions.columnDateWidth"></td>
+              }
+              @if (showTaxonNameColumn) {
+                <td class="font-medium ion-text-center column-taxonName" [style.--col-width]="pageDimensions.columnTaxonNameWidth">
+                  {{ sample.taxonName | referentialToString }}
+                </td>
+              }
+              @if (showTaxonGroupColumn) {
+                <td class="font-medium ion-text-center column-taxonGroup" [style.--col-width]="pageDimensions.columnTaxonGroupWidth">
+                  {{ sample.taxonGroup | referentialToString }}
+                </td>
+              }
+            }
+            @for (pmfm of pmfms.slice(tablePart[0], tablePart[1]); track pmfm.id) {
+              @if (compactPmfmsColumn) {
+                <td class="font-small ion-text-center column-{{ pmfm.label }}" [style.--col-width]="pmfmsColumnsWidthByPmfmIds[pmfm.id]">
+                  @if (pmfm | isNotNil) {
+                    <div
+                      [innerHTML]="
+                        sample.measurementValues
+                          | mapGet: pmfm.id
+                          | pmfmValue: { pmfm: pmfm, html: false, showYesOrNo: true, propertyNames: ['label'] }
+                      "
+                    ></div>
+                  }
+                </td>
+              } @else {
+                @if (isBlankForm) {
+                  <td
+                    class="ion-text-center font-medium column-{{ pmfm.label }} column-pmfmType-{{ pmfm | getPmfmExtendedType }} "
+                    [style.--col-width]="pmfm.id === pmfmIds.TAG_ID ? 'var(--col-maximum)' : pmfmsColumnsWidthByPmfmIds[pmfm.id]"
+                  >
+                    @switch (pmfm | getPmfmExtendedType) {
+                      @case ('boolean') {
+                        <!--<ion-icon [style.--text-color]="'var(--ion-color-medium)'" name="square-outline"></ion-icon>-->
+                      }
+                      @case ('qualitative_value') {
+                        @if (stats.options.showQualitativeValuesCheckBox) {
+                          <ion-grid class="value-grid ion-no-padding">
+                            <ion-row>
+                              @for (qv of pmfm.qualitativeValues; track qv.id) {
+                                <ion-col class="font-compact text-center">
+                                  {{ qv.label }}
+                                  <br />
+                                  <ion-icon name="square-outline"></ion-icon>
+                                </ion-col>
+                              }
+                            </ion-row>
+                          </ion-grid>
+                        }
+                      }
+                      @case ('latitude') {
+                        <ng-content *ngTemplateOutlet="latitudePlaceHolder"></ng-content>
+                      }
+                      @case ('longitude') {
+                        <ng-content *ngTemplateOutlet="longitudePlaceHolder"></ng-content>
+                      }
+                    }
+                  </td>
+                } @else {
+                  <td
+                    class="ion-text-center font-medium column-{{ pmfm.label }} column-pmfmType-{{ pmfm | getPmfmExtendedType }}"
+                    [style.--col-width]="pmfmsColumnsWidthByPmfmIds[pmfm.id]"
+                    [innerHtml]="
+                      sample.measurementValues
+                        | mapGet: pmfm.id
+                        | pmfmValue
+                          : {
+                              pmfm: pmfmsByIds | mapGet: pmfm.id,
+                              propertyNames: ['label', 'name'],
+                              showYesOrNo: true,
+                            }
+                    "
+                  ></td>
+                }
+              }
+            }
+            @if (lastPart && stats.showSampleCommentColumn) {
+              <td class="column-comments font-medium col-maximum">
+                {{ sample.comments }}
+              </td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (compactPmfmsColumn || isBlankForm) {
+      <tips-report-chunk [tips]="pmfmsTips[partIndex] | arraySort: sortByTipsIndex"></tips-report-chunk>
+    }
+    <page-footer-from-report-chunk [footerText]="footerText" [helpText]="footerHelp"></page-footer-from-report-chunk>
+  </ng-template>
+
+  <ng-template #imageBoard let-imagesChunk="imagesChunk" let-imagesChunkIndex="imagesChunkIndex" let-operationId="operationId">
+    <page-header-form-report-chunk
+      [i18nContext]="i18nContext"
+      [title]="'TRIP.SAMPLE.TABLE.TITLE'"
+      [pageNumber]="imagesChunkIndex + 1"
+      [logoRightUrl]="logoHeadRightUrl"
+      [logoLeftUrl]="logoHeadLeftUrl"
+      [items]="stats.headerItems"
+    ></page-header-form-report-chunk>
+    <ion-grid class="report-section ion-no-padding">
+      @if (!stats.options.multiOp) {
+        <ion-row class="section-title ion-margin-bottom">
+          <ion-col size="auto">
+            <h3>{{ 'TRIP.REPORT.FORM.OP_NUM' | translate }}</h3>
+          </ion-col>
+          <ion-col class="title-value ion-text-center font-large" size="auto">
+            {{ stats.operationRankOrderByOperationIds[operationId] }}
+          </ion-col>
+        </ion-row>
+      }
+      <ion-row class="gallery">
+        @for (image of imagesChunk; track $index) {
+          <ion-col size="auto">
+            <figure>
+              <img [src]="image.url || image.dataUrl" [alt]="image.title" />
+              <figcaption>{{ image.title }}</figcaption>
+            </figure>
+          </ion-col>
+        }
+      </ion-row>
+    </ion-grid>
+    <page-footer-from-report-chunk [footerText]="footerText" [helpText]="footerHelp"></page-footer-from-report-chunk>
+  </ng-template>
+
+  <ng-template #latitudePlaceHolder>
+    <span [class.font-medium]="!multiTrip" [class.font-compact]="multiTrip" class="place-holder">
+      <span [style.letter-spacing]="'3px'">__°__.___</span>
+      N
+    </span>
+  </ng-template>
+
+  <ng-template #longitudePlaceHolder>
+    <span [class.font-medium]="!multiTrip" [class.font-compact]="multiTrip" class="place-holder">
+      <span [style.letter-spacing]="'3px'">__°__.___</span>
+      <br />
+      E ou W
+    </span>
+  </ng-template>
+}

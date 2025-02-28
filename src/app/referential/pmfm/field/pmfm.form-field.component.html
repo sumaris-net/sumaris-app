@@ -321,7 +321,7 @@
     [selectInputContentOnFocus]="selectInputContentOnFocus"
     (keyup.enter)="onKeyupEnter.emit($event)"
     (click)="clicked.emit($event)"
-    [clearable]="!required"
+    [clearable]="mobile && !required"
   >
     <div matSuffix class="mat-form-field-suffix-container">
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>

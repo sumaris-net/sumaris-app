@@ -10,6 +10,7 @@ import { ObservedLocationFilter } from '@app/trip/observedlocation/observed-loca
 import { ObservedLocationForm } from '@app/trip/observedlocation/form/observed-location.form';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
+
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 export interface ISelectObservedLocationsModalOptions {
@@ -28,11 +29,11 @@ export interface ISelectObservedLocationsModalOptions {
 @Component({
   selector: 'app-select-observed-locations-modal',
   templateUrl: './select-observed-locations.modal.html',
+  styleUrls: ['./select-observed-locations.modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectObservedLocationsModal implements OnInit, OnDestroy, ISelectObservedLocationsModalOptions {
-  selectedTabIndex = 0;
-
+  protected selectedTabIndex = 0;
   protected _subscription = new Subscription();
   protected _logPrefix = '[select-observed-location-modal]';
   protected readonly settings: LocalSettingsService;

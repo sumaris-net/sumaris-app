@@ -1,11 +1,13 @@
 import {
   AfterViewInit,
+  booleanAttribute,
   ChangeDetectionStrategy,
   Component,
   Inject,
   InjectionToken,
   Injector,
   Input,
+  numberAttribute,
   OnDestroy,
   OnInit,
   Optional,
@@ -118,14 +120,13 @@ export class BatchForm<
   protected _disableByDefaultControls: AbstractControl[] = [];
   @RxStateProperty() protected afterViewInitialized: boolean;
 
-  @Input() mobile: boolean;
-  @Input() tabindex: number;
+  @Input({ transform: booleanAttribute }) mobile: boolean;
   @Input() usageMode: UsageMode;
-  @Input() showError = true;
+  @Input({ transform: booleanAttribute }) showError = true;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
-  @Input() showTaxonGroupSearchBar = true;
-  @Input() maxVisibleButtons: number;
-  @Input() maxItemCountForButtons: number;
+  @Input({ transform: booleanAttribute }) showTaxonGroupSearchBar = true;
+  @Input({ transform: numberAttribute }) maxVisibleButtons: number;
+  @Input({ transform: numberAttribute }) maxItemCountForButtons: number;
   @Input() showComment = false;
   @Input() rxStrategy: RxConcurrentStrategyNames = 'normal';
 

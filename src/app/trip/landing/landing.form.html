@@ -1,9 +1,8 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
-  <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  <!-- error (mobile) -->
+  @if (showError && mobile) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
 
   <ion-grid>
     <!-- Program -->
@@ -60,20 +59,11 @@
         </ion-label>
       </ion-col>
       <ion-col>
-        <mat-form-field [class.mat-form-field-disabled]="disabledParent">
+        <mat-form-field [class.mat-form-field-disabled]="disabledParent" (click)="openSelectObservedLocationModal($event)" class="ion-tappable">
           <ion-icon matPrefix name="location"></ion-icon>
           <mat-label translate>LANDING.EDIT.OBSERVED_LOCATION_PLACEHOLDER</mat-label>
           <input matInput type="text" hidden [formControl]="control" required />
-          <input
-            matInput
-            type="text"
-            class="cursor-pointer"
-            [value]="observedLocationLabel$ | async"
-            [disabled]="disabledParent"
-            (click)="openSelectObservedLocationModal($event)"
-            [tabindex]="tabindex"
-            readonly
-          />
+          <input matInput type="text" [value]="observedLocationLabel$ | async" [disabled]="disabledParent" [tabindex]="tabindex" readonly />
 
           <button
             *ngIf="!(control | formGetValue); else otherButtons"
@@ -105,6 +95,7 @@
               [matMenuTriggerFor]="parentFieldMenu"
               tabindex="-1"
               [title]="'COMMON.BTN_OPTIONS' | translate"
+              (click)="$event.stopImmediatePropagation()"
             >
               <mat-icon>more_vert</mat-icon>
             </button>
@@ -422,10 +413,8 @@
 <mat-menu #parentFieldMenu="matMenu" xPosition="after">
   <ng-template matMenuContent>
     <button mat-menu-item type="button" *ngIf="enabled" tabindex="-1" [disabled]="disabledParent" (click)="openSelectObservedLocationModal($event)">
-      <ion-label>
-        <mat-icon>list</mat-icon>
-        <span translate>LANDING.EDIT.BTN_SELECT_OBSERVED_LOCATION</span>
-      </ion-label>
+      <mat-icon>list</mat-icon>
+      <mat-label translate>LANDING.EDIT.BTN_SELECT_OBSERVED_LOCATION</mat-label>
     </button>
     <button
       mat-menu-item
@@ -435,10 +424,8 @@
       tabindex="-1"
       (click)="openObservedLocation.emit(observedLocationControl.value)"
     >
-      <ion-label>
-        <mat-icon>open_in_new</mat-icon>
-        <span translate>LANDING.EDIT.BTN_OPEN_OBSERVED_LOCATION</span>
-      </ion-label>
+      <mat-icon>open_in_new</mat-icon>
+      <mat-label translate>LANDING.EDIT.BTN_OPEN_OBSERVED_LOCATION</mat-label>
     </button>
   </ng-template>
 </mat-menu>

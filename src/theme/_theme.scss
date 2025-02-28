@@ -18,6 +18,10 @@
 @import 'theme.table';
 @import 'theme.forms';
 
+*::selection {
+  background: var(--ion-color-shade, rgba(var(--ion-text-color-rgb, 0, 0, 0), 0.3));
+}
+
 // --------------------------------------------------
 // Override material style
 // --------------------------------------------------
@@ -282,4 +286,16 @@ ion-card ion-card-title .title {
       content: "";
     }
   }
+}
+
+/* -- Mat Side Nav -- */
+
+.mat-drawer-container {
+  --mat-sidenav-container-text-color: var(--ion-text-color);
+  --mat-sidenav-container-background-color: var(--ion-background-color);
+  --mat-sidenav-container-divider-color: var(--ion-border-color, rgba(0, 0, 0, 0.12));
+  --mat-sidenav-container-elevation-shadow: 4px 0px 16px rgba(0, 0, 0, 0.18);
+  --mat-sidenav-content-text-color: var(--ion-text-color);
+  --mat-sidenav-content-background-color: var(--ion-background-color);
+  --mat-sidenav-scrim-color: rgba(var(--ion-backdrop-color-rgb), var(--ion-backdrop-opacity));
 }

@@ -12,6 +12,7 @@ import {
   IEntitiesService,
   IEntityFilter,
   InMemoryEntitiesService,
+  isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
@@ -631,8 +632,10 @@ export abstract class AppBaseTable<
   }
 
   protected loadFilter(sources?: AppBaseTableFilterRestoreSource[]): any | undefined {
-    sources = sources || <AppBaseTableFilterRestoreSource[]>['settings', 'queryParams'];
-    console.debug(`${this.logPrefix}Loading filter from sources: `, sources);
+    sources = sources ?? <AppBaseTableFilterRestoreSource[]>['settings', 'queryParams'];
+    if (isEmptyArray(sources)) return undefined; // Skip if no source
+
+    if (this.debug) console.debug(`${this.logPrefix}Loading filter from sources: `, sources);
 
     return sources
       .map((source) => {
@@ -640,12 +643,12 @@ export abstract class AppBaseTable<
           case 'settings':
             if (!this.usePageSettings || isNilOrBlank(this.settingsId)) return; // Skip if settings not usable
 
-            console.debug(this.logPrefix + 'Restoring filter from settings...');
+            if (this.debug) console.debug(this.logPrefix + 'Restoring filter from settings...');
             return this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.FILTER_KEY);
           case 'queryParams': {
             const { q } = this.route.snapshot.queryParams;
             if (q) {
-              console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
+              if (this.debug) console.debug(this.logPrefix + 'Restoring filter from route query param: ', q);
               try {
                 return JSON.parse(q);
               } catch (err) {

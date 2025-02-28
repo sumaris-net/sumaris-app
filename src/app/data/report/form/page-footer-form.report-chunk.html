@@ -1,0 +1,14 @@
+<ion-grid class="report-footer ion-no-padding">
+  @if (helpText | isNotNilOrBlank) {
+    <ion-row class="footer-help">
+      <!-- FIXME use safeStyle instead (update ngx) -->
+      <ion-col [innerHTML]="helpText | translate | safeHtml"></ion-col>
+    </ion-row>
+  }
+  <ion-row class="footer-text">
+    @if (footerText | isNotNilOrBlank) {
+      <!-- FIXME use safeStyle instead (update ngx) -->
+      <ion-col [innerHTML]="footerText | translate | safeHtml"></ion-col>
+    }
+  </ion-row>
+</ion-grid>

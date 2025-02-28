@@ -137,6 +137,8 @@
     "DISPLAY_MODE_DOTS": "Mode d'affichage...",
     "DISPLAYED_COLUMNS": "Paramétrage des colonnes",
     "DISPLAYED_COLUMNS_DOTS": "Paramétrage des colonnes...",
+    "COLON": " :",
+    "OR": "ou",
     "DISPLAY_MODE": {
       "CARD": "Affichage en carte",
       "LIST": "Affichage en liste"
@@ -382,6 +384,7 @@
         "PMFM_DECOMPOSITION_STATE_ID": "Référentiel > PSFM > État de décomposition (individu)",
         "PMFM_IS_ENTANGLED_ID": "Référentiel > PSFM > Maillé (individu) ? (Booléen)",
         "PMFM_PINGER_ACCESSIBLE_ID": "Référentiel > PSFM > Numéro du pinger accessible ? (Booléen)",
+        "PMFM_PINGER_CODE_ID": "Référentiel > PSFM > Numéro du pinger",
         "PARAMETER_HULL_MATERIAL_ID": "Référentiel > Paramètres > Matériau de la coque",
         "PARAMETER_GROUP_SURVEY_ID": "Référentiel > Groupe de paramètres > Caractéristiques d'enquêtes",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Référentiel > Méthode > Mesuré par un observateur",
@@ -465,6 +468,7 @@
     "HOME": "Accueil",
     "TESTING": "Mode développeur",
     "TRIPS": "Marées",
+    "SEA_TRIPS": "Sorties en mer",
     "SCIENTIFIC_CRUISES": "Campagnes en mer",
     "LOGBOOKS": "Logbooks",
     "DOWNLOADS": "Téléchargements",
@@ -474,6 +478,7 @@
     "AUCTION_OCCASIONS": "Sorties en criée",
     "ACTIVITY_CALENDAR": "Calendriers d'activité",
     "OCCASIONS": "Sorties",
+    "LAND_TRIPS": "Sorties à terre",
     "ADMINISTRATION_DIVIDER": "Administration",
     "REFERENTIAL_DIVIDER": "Référentiels",
     "USERS": "Utilisateurs",
@@ -1404,8 +1409,11 @@
         "TAG_ID": "Code prélèvement",
         "SEX": "Sexe",
         "ACCIDENTAL_CATCH": {
-          "WEIGHT_ESTIMATED_TOTAL_KG": "Poids estimé (kg)",
           "IS_DEAD": "Mort ?",
+          "WEIGHT_ESTIMATED_TOTAL_KG": "Poids estimé (kg)",
+          "MEASURE_TIME": "Date & heure de remise à l'eau",
+          "LATITUDE": "Latitude",
+          "LONGITUDE": "Longitude",
           "TAG_ID": "Numéro bague Pélagis"
         },
         "AUCTION_CONTROL": {
@@ -1415,12 +1423,16 @@
         "INDIVIDUAL_RELEASE": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "ACCIDENTAL_CATCH": {
-            "MEASURE_TIME": "Heure de remise à l'eau",
-            "TAG_ID": "Référence de la marque"
+            "MEASURE_TIME": "Date de remise à l'eau",
+            "LATITUDE": "Latitude",
+            "LONGITUDE": "Longitude",
+            "TAG_ID": "Numéro bague Pélagis"
           },
           "OBSERVED_TRIP": {
-            "MEASURE_TIME": "Heure de remise à l'eau",
-            "TAG_ID": "Référence de la marque"
+            "MEASURE_TIME": "Date du rejet",
+            "TAG_ID": "Référence bracelet caudale",
+            "LATITUDE": "Latitude du rejet",
+            "LONGITUDE": "Longitude du rejet"
           }
         },
         "SAMPLING": {
@@ -1431,9 +1443,11 @@
           "TAG_ID": "Tag-ID"
         },
         "OBSERVED_TRIP": {
-          "MEASURE_TIME": "Date de remise à l'eau",
           "IS_DEAD": "Mort ?",
-          "TAG_ID": "Référence de la marque"
+          "MEASURE_TIME": "Date & heure du rejet",
+          "LATITUDE": "Latitude du rejet",
+          "LONGITUDE": "Longitude du rejet",
+          "TAG_ID": "Référence bracelet caudale"
         }
       },
       "ERROR": {
@@ -1473,8 +1487,8 @@
     "REPORT": {
       "TITLE": "<small>{{ vessel }}</small> Rapport marée du {{ departureDate }}",
       "TITLE_SLIDE": "Rapport marée",
-      "VESSEL_NAME": "Nom navire(s) :",
-      "VESSEL_EXTERIOR_MARKING": "Immatriculation(s) :",
+      "VESSEL_NAME": "Nom navire(s)",
+      "VESSEL_EXTERIOR_MARKING": "Immatriculation(s)",
       "SELECTIVITY_DEVICES": "Dispositif(s) testé(s) :",
       "DATES": "Dates : du {{startDate}} au {{endDate}}",
       "SEA_STATE": "État de la mer :",
@@ -1522,73 +1536,88 @@
         "TRIP_DEPARTURE_DATE_TIME": "Départ de la marée",
         "VESSEL_NAME": "Nom du bateau",
         "DATE_TIME": "Date et heure",
-        "NUM_OP": "N° OP",
+        "START_DATE_TIME": "Date et heure de début",
+        "OP_NUM": "N° OP",
+        "GEAR_NUMBER": "N° engin",
+        "REFER_APPENDIX": "Se référer à l'annexe.",
+        "VERSION_OF": "Version du {{versionDate}}",
+        "YES_OR_NO": "O/N",
+        "WITH_CAMERA": "<b><u>AVEC CAMÉRA</u></b>",
+        "WITHOUT_CAMERA": "<b><u>SANS CAMÉRA</u></b>",
+        "WITH_OR_WITHOUT_CAMERA": "<small>(AVEC OU SANS CAMÉRA)</small>",
+        "RECTO_PARENTHESIS": "(recto)",
+        "VERSO_PARENTHESIS": "(verso)",
+        "TYPE_OP": {
+          "PARENT_PMFM": "Filage (F)",
+          "CHILD_PMFM": "Virage (V)",
+          "PARENT": "F",
+          "CHILD": "V"
+        },
         "TRIP": {
           "TITLE": "Fiche sortie en mer",
-          "HELP": "Rappel : Les informations et données relatives au programme ObsMer sont confidentielles et ne sauraient de quelque manière que ce soit être communiquées à des tiers.",
+          "TRIP_NUMBER": "N° Marée",
+          "HELP": "<strong>Rappel :</strong> Les informations et données relatives au programme {{ program }} sont confidentielles<br/>et ne sauraient de quelque manière que ce soit être communiquées à des tiers.<br/><br/><strong>Note</strong> : Les données indiquées <strong>en noir (sans italique)</strong> sont à collecter de façon obligatoire.<br/>Celles <strong style=\"color: var(--color-primary); font-style: italic;\">en bleu et italique</strong> sont à collecter de façon facultative.",
           "LINK_WITH_THE_SAMPLING_PLAN": "Liaison avec le plan d’échantillonnage (voir le site web WAO)",
           "OBSERVERS": "Observateur(s)",
           "TRIP_DEPARTURE": "Départ de la marée",
           "TRIP_RETURN": "Retour de la marée",
           "SALES": "Ventes",
-          "SAMPLING_STATA_LABEL": "Strate observée justifiant l’embarquement",
+          "SAMPLING_STRATA_LABEL": "Strate observée justifiant l’embarquement",
           "ATTACHMENT_PROGRAM": "Programme de rattachement",
           "OBSERVERS_NAMES": "Nom(s), Prénom(s) (société)",
+          "OTHER_FEATURES": "Caractéristiques autres",
           "VESSEL_REGISTRATION_CODE": "Immatriculation du navire",
           "VESSEL_NAME": "Nom du navire",
           "DEPARTURE_LOCATION": "Lieu de départ & Type de lieu",
+          "DEPARTURE_LOCATION_SPECIFIC": "Lieu de départ ({{ locationName }})",
           "DEPARTURE_DATE_TIME": "Date & Heure de départ",
           "NB_FISHERMEN": "Nombre de personnes à bord",
           "NB_FISHERMEN_HELP": "(sans le(s) observateur(s))",
           "RETURN_LOCATION": "Lieu de retour & Type de lieu",
           "RETURN_DATE_TIME": "Date & Heure de retour",
+          "RETURN_LOCATION_SPECIFIC": "Lieu de retour ({{ locationName }})",
           "SELL_LOCATION": "Lieu de vente & Type de lieu",
           "SELL_DATE": "Date de vente",
           "SELL_TYPE": "Type de vente",
           "RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK": "Récupération de la photocopie du journal de bord",
           "RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK_HELP": "(inclure le document dans le dossier)",
           "RETURN_TO_CAPTAIN": "Restitution au patron",
-          "RETURN_TO_CAPTAIN_HELP": "(inclure le document dans le dossier)"
+          "RETURN_TO_CAPTAIN_HELP": "(inclure le document dans le dossier)",
+          "LOCATION_LEVEL": "Type de lieux"
         },
         "OPERATION": {
-          "TITLE": "FICHE OPERATIONS DE PECHE (recto)",
-          "TITLE_VERSO": "FICHE OPERATIONS DE PECHE (verso)",
+          "TITLE": "FICHE OPERATIONS DE PÊCHE",
           "NB_OP": "Nombre total d'opérations de pêche effectuées pendant la marée :",
+          "PARENT_OPERATION_HEADER": "Filage",
+          "CHILD_OPERATION_HEADER": "Virage",
           "TABLE": {
             "OPERATION_START": "Début de l'opération",
             "OPERATION_END": "Fin de l'opération",
-            "PARENT": "Filage (fin de mise à l’eau de l’engin)*",
-            "CHILD": "Virage (début de remontée de l’engin)*",
             "ECH_ON": "Échantillonnage (O/N)",
-            "PROGRESS": "Déroulement normal ? (O/N)",
-            "GEAR_SPECIES": "Engin* + Espèce(s) cible(s) si navire associé** (IMMAT du navire)",
             "CAPTURE": "Capture remontée sur navire observé (O/N)**",
-            "LAT_LONG_LOCATION": "Position GPS Latitude + longitude (DD°MM)",
-            "COMMENTS": "Commentaires, préciser si possible le temps de traitement de la capture pour les OP échantillonnées"
+            "GPS_POSITION": "Position GPS",
+            "FISHING_AREA": "Zone de pêche",
+            "COMMENTS": "Commentaires, préciser si possible le temps de traitement de la capture pour les OP échantillonnées",
+            "GEAR_SPECIES": "Engin* + Espèce(s) cible(s)",
+            "GEAR": "Engin",
+            "SPECIES": "Espèce(s) cible(s)",
+            "VESSEL_ASSOCIATION": "si navire associé** (IMMAT du navire)"
           },
           "HELP": {
             "ONE_STAR": "Attention, pour les arts dormants, la date de fin de mise à l'eau est le plus souvent la veille ou l'avant-veille de la marée observée.",
-            "TWO_STAR": "Préciser longueur relevée en mètres pour les filets.",
-            "ONE": "De la corde de dos pour chalut.",
-            "TWO": "0 : Calme, 1 : Ridée, 2 : Belle, 3 : Peu agitée, 4 : Agitée, 5 : Forte, 6 : Très forte, 7 : Grosse, 8 : Très grosse, 9 : Enorme",
-            "THREE": "Si oui, se référer à la fiche dispositifs sélectifs"
+            "TWO_STAR": "Préciser longueur relevée en mètres pour les filets."
           }
         },
         "PHYSICAL_GEAR": {
           "TITLE": "FICHE ENGINS",
-          "OPERATIONS": "N° OP associée(s) :"
+          "OPERATIONS": "N° OP associée(s)"
         },
         "OBSERVED_TRIP": {
           "TITLE": "Dossier d'observation en mer"
         },
-        "PMFM": {
-          "OBSERVED_TRIP": {
-            "HAS_INDIVIDUAL_MEASURES": "Échantillonnage"
-          }
-        },
         "BATCH": {
-          "TITLE_LANDING": "FICHE ECHANTILLONNAGE PARTIE RETENUE",
-          "TITLE_DISCARD": "FICHE ECHANTILLONNAGE PARTIE REJETÉE",
+          "TITLE_LANDING": "FICHE ÉCHANTILLONNAGE PARTIE RETENUE",
+          "TITLE_DISCARD": "FICHE ÉCHANTILLONNAGE PARTIE REJETÉE",
           "TAXON_GROUPS": "Espèces commerciales",
           "TAXON_NAMES": "Espèces scientifique",
           "SORT_CRITERIAS": "Critères de classement",
@@ -1599,11 +1628,21 @@
           "NB_INDIV": "Nb. Indiv.",
           "EXCLUSIVE_SCIENTIFIC_SPECIES": "Exhaustivité des espèces scientifiques ?",
           "PR_TOTAL_WEIGHT": "Poids TOTAL partie retenue (kg) :",
-          "SUB_SAMPLING": "Sous echantillon",
+          "SUB_SAMPLING": "Sous échantillon",
           "PNR_TOTAL_WEIGHT": "Poids TOTAL de la PNR (kg) :",
-          "PNR_SAMPLING_WEIGHT": "Poids ECHANTILLONNE de la PNR (kg) :",
+          "PNR_SAMPLING_WEIGHT": "Poids ÉCHANTILLONNÉ de la PNR (kg) :",
           "FRACTION_FIELD": "Fraction :",
-          "TABLE_LEGEND": "Légende : Les lots dont la qualité est invalide sont en <span class=\"invalid\">rouge</span>, les valeurs calculées sont en <span class=\"computed\">bleu et italique</span>, les valeurs issues d'estimation terrain sont surlignées, les valeurs mesurées, pesées ou comptées sont en noir."
+          "TABLE_LEGEND": "Légende : Les lots dont la qualité est invalide sont en <span class=\"invalid\">rouge</span>, les valeurs calculées sont en <span class=\"computed\">bleu et italique</span>, les valeurs issues d'estimation terrain sont surlignées, les valeurs mesurées, pesées ou comptées sont en noir.",
+          "OBSERVED_TRIP": {
+            "TITLE_LANDING": "FICHE ÉCHANTILLONNAGE PR",
+            "TITLE_DISCARD": "FICHE ÉCHANTILLONNAGE PNR"
+          }
+        },
+        "SAMPLE": {
+          "OP_DATE": "Date et heure du virage"
+        },
+        "APPENDIX": {
+          "TITLE": "Annexe"
         }
       },
       "REPORT_TYPE": {
@@ -1759,8 +1798,7 @@
         "END_DATE": "Fin de période",
         "RECORDER_PERSON": "Saisisseur",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
-        "OBSERVERS": "Observateurs",
-        "QUALITY_FLAG_ID": "Niveau de qualité"
+        "OBSERVERS": "Observateurs"
       }
     },
     "PMFM": {},
@@ -2600,8 +2638,20 @@
       "TRIP_REPORT_TYPES": "Marée > Rapport : Type(s) de rapport",
       "TRIP_REPORT_FORM_SUBTITLE": "Marée > Rapport : Sous-titre du rapport",
       "TRIP_REPORT_FORM_FOOTER": "Marée > Rapport : Texte de pied de page",
-      "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Marée > Rapport : Logo à gauche de l'entête",
-      "TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Marée > Rapport : Logo à droite de l'entête",
+      "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Marée > Rapport > Formulaire : Logo à gauche de l'entête",
+      "TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Marée > Rapport > Formulaire : Logo à droite de l'entête",
+      "TRIP_REPORT_FORM_SAMPLE_TABLE_MULTI_OP": "Marée > Rapport > Formulaire > Échantillons : Tableau multi-opérations ?",
+      "TRIP_REPORT_FORM_PHYSICAL_SHOW_TABLE": "Marée > Rapport > Formulaire : Afficher les engins en tableau ?",
+      "TRIP_REPORT_FORM_HIDDEN_PMFM_IDS": "Marée > Rapport > Formulaire : Liste de PSFMs à masquer",
+      "TRIP_REPORT_FORM_OPERATION_COMMENT_HELP_TEXT": "Marée > Rapport > Formulaire : Texte d'aide pour les commentaires d'opérations",
+      "TRIP_REPORT_FORM_BLANK_SHOW_SAMPLE_RANK_ORDER": "Marée > Rapport > Formulaire vierge : Échantillons : Afficher le numéro d'ordre ?",
+      "TRIP_REPORT_FORM_BLANK_TIPS_LIMIT_TO_SHOW_ON_APPENDIX": "Marée > Rapport > Formulaire > Tableaux : Nombre limite d'éléments dans la légende",
+      "TRIP_REPORT_FORM_BLANK_SHOW_QUALITATIVE_VALUES_CHECK_BOX": "Marée > Rapport > Formulaire vierge : Case à cocher de valeurs qualitatives ?",
+      "TRIP_REPORT_FORM_BLANK_NB_OF_OPERATION_PAGE": "Marée > Rapport > Formulaire vierge > Opérations : Nombre de page à créer",
+      "TRIP_REPORT_FORM_BLANK_NB_OF_INDIVIDUAL_SAMPLE_PAGE": "Marée > Rapport > Formulaire vierge > Suivis individuels : Nombre de page à créer",
+      "TRIP_REPORT_FORM_BLANK_NB_OF_RELEASED_SAMPLE_PAGE": "Marée > Rapport > Formulaire vierge > Relâchés : Nombre de page à créer",
+      "TRIP_REPORT_FORM_BLANK_SAMPLE_TAXON_GROUP_HELP": "Marée > Rapport > Formulaire vierge > Échantillons : Légende pour l'espèce commerciale",
+      "TRIP_REPORT_FORM_BLANK_MULTI_TRIP": "Marée > Rapport > Formulaire vierge : Tableau multi-marées ?",
       "TRIP_OPERATIONS_HELP_MESSAGE": "Marée > Opérations : Message d'aide",
       "TRIP_OPERATION_EDITOR": "Marée > Opération : Éditeur",
       "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
@@ -3127,14 +3177,15 @@
       "DRESSING_POL": "Présentation",
       "SPECIES_CODE": "Code espèce",
       "SPECIES_NAME": "Espèce",
-      "CAPTURE_TRACE": "Trace de capture?",
-      "HAS_INJURIES": "Blessures?",
-      "INDIVIDUAL_ON_DECK": "Remonté sur le pont?",
-      "IS_DEAD": "Mort?",
+      "CAPTURE_TRACE": "Trace de capture ?",
+      "HAS_INJURIES": "Blessures ?",
+      "INDIVIDUAL_ON_DECK": "Remonté sur le pont ?",
+      "IS_DEAD": "Mort ?",
       "COMMENTS": "Commentaires",
-      "MEASURE_TIME": "Date de la mesure",
-      "GPS_USED": "Utilisation d'un GPS?",
-      "CAMERA_USED": "Utilisation d'une caméra?",
+      "MEASURE_TIME": "Date & heure de la mesure",
+      "MEASURE_TYPE": "Type de mesure",
+      "GPS_USED": "Utilisation d'un GPS ?",
+      "CAMERA_USED": "Utilisation d'une caméra ?",
       "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids RTP",
       "CATCH_WEIGHT": "Poids total capture",
       "DISCARD_WEIGHT": "Poids total rejet",
@@ -3235,13 +3286,15 @@
       "RJB_TRIP": {
         "TITLE": "Marées Pocheteaux (RJB v{{version}})",
         "NAME": "Pocheteaux",
-        "SUBSAMPLE_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés",
-        "SUBSAMPLING_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés"
+        "INDIVIDUAL_COUNT": "Nombre d'individus",
+        "SUBSAMPLE_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés"
       },
       "PMFM_TRIP": {
         "TITLE": "Marées brutes > Générique",
         "TITLE_PROGRAM": "Marées brutes {{label}}",
-        "NAME": "Générique"
+        "NAME": "Générique",
+        "INDIVIDUAL_COUNT": "Nombre d'individus total",
+        "SUBSAMPLE_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés"
       },
       "ACTIMONIT": {
         "TITLE": "Avancement des calendriers d'activité",

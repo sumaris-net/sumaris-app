@@ -28,8 +28,8 @@
     <ion-label color="danger" class="error" [innerHTML]="table.error | translate"></ion-label>
   </ion-item>
 
-  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" dynamicHeight="true">
-    <mat-tab #tabSearch label="{{ 'OBSERVED_LOCATION.SELECT_OBSERVED_LOCATION_MODAL.TAB_SELECT' | translate }}">
+  <mat-tab-group #tabGroup [(selectedIndex)]="selectedTabIndex" [dynamicHeight]="false" class="mat-mdc-tab-fixed-content">
+    <mat-tab #tabSearch [label]="'OBSERVED_LOCATION.SELECT_OBSERVED_LOCATION_MODAL.TAB_SELECT' | translate">
       <ng-template mat-tab-label>
         <mat-icon matPrefix slot="start">search</mat-icon>
         <ion-label translate>OBSERVED_LOCATION.SELECT_OBSERVED_LOCATION_MODAL.TAB_SELECT</ion-label>
@@ -37,6 +37,7 @@
       </ng-template>
       <app-observed-locations-page
         #table
+        class="ion-flex-direction-column"
         [allowMultipleSelection]="allowMultipleSelection"
         [showToolbar]="false"
         [showRecorder]="true"
@@ -51,7 +52,7 @@
       ></app-observed-locations-page>
     </mat-tab>
 
-    <mat-tab #tabNew label="{{ 'OBSERVED_LOCATION.SELECT_OBSERVED_LOCATION_MODAL.TAB_NEW' | translate }}">
+    <mat-tab #tabNew [label]="'OBSERVED_LOCATION.SELECT_OBSERVED_LOCATION_MODAL.TAB_NEW' | translate">
       <ng-template mat-tab-label>
         <ion-icon matPrefix slot="start" name="add-circle-outline"></ion-icon>
         <ion-label translate>OBSERVED_LOCATION.SELECT_OBSERVED_LOCATION_MODAL.TAB_NEW</ion-label>
@@ -69,8 +70,6 @@
       </ion-grid>
     </mat-tab>
   </mat-tab-group>
-  <!-- buttons -->
-  <ion-toolbar class="toolbar-buttons hidden-xs hidden-sm"></ion-toolbar>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

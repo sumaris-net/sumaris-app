@@ -38,6 +38,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 })
 export class StrategyForm extends AppEntityEditor<Strategy> implements OnInit, OnDestroy {
   private $isPmfmStrategyEmpty = new BehaviorSubject<boolean>(true);
+  protected mobile = this.settings.mobile;
 
   filterForm: UntypedFormGroup;
   $filter = new BehaviorSubject<Partial<PmfmStrategyFilter>>({});

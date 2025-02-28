@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { environment } from '@environments/environment';
-import { BaseLandingReport, LandingStats } from '@app/trip/landing/report/base-landing-report.class';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { FormReportPageDimensions } from '@app/data/report/common-report.class';
 import { Landing } from '@app/trip/landing/landing.model';
+import { BaseLandingReport, LandingStats } from '@app/trip/landing/report/base-landing-report.class';
+import { environment } from '@environments/environment';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -11,8 +12,8 @@ import { firstValueFrom } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuctionControlReport extends BaseLandingReport {
-  constructor(injector: Injector) {
-    super(injector, LandingStats, {
+  constructor() {
+    super(LandingStats, {
       pathIdAttribute: 'controlId',
     });
   }
@@ -40,5 +41,21 @@ export class AuctionControlReport extends BaseLandingReport {
     if (environment.production) return; // Skip
     super.addFakeSamplesForDev(data, count);
     data.samples.forEach((s, index) => (s.label = `${index + 1}`));
+  }
+
+  // TODO: Not used in this report
+  protected computePageDimensions(): FormReportPageDimensions {
+    const pageWidth = 297 * 4;
+    const pageHeight = 210 * 4;
+    const pageHorizontalMargin = 50;
+    const availableWidthForTablePortrait = pageWidth - pageHorizontalMargin * 2;
+    const availableWidthForTableLandscape = pageHeight - pageHorizontalMargin * 2;
+    return {
+      pageWidth,
+      pageHeight,
+      pageHorizontalMargin,
+      availableWidthForTableLandscape,
+      availableWidthForTablePortrait,
+    };
   }
 }

@@ -1,0 +1,473 @@
+@if (loaded) {
+  <app-reveal #reveal [options]="revealOptions">
+    @if (stats.dummyOps || data | isNotEmptyArray) {
+      @if (isPrintingPDF) {
+        <section [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
+          @for (ops of stats.dummyOps || data | splitArrayInChunks: stats.nbOperationByPage; track $index) {
+            <section *sectionDef class="landscape">
+              <ng-content *ngTemplateOutlet="tableContent; context: { index: $index, ops: ops }"></ng-content>
+            </section>
+
+            <!-- Comments -->
+            <section *sectionDef class="landscape">
+              <ng-content *ngTemplateOutlet="tableCommentContent; context: { index: $index, ops: ops }"></ng-content>
+            </section>
+          }
+        </section>
+      } @else {
+        <section *sectionDef [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
+          @for (ops of stats.dummyOps || data | splitArrayInChunks: stats.nbOperationByPage; track $index) {
+            <section class="landscape">
+              <ng-content *ngTemplateOutlet="tableContent; context: { index: $index, ops: ops }"></ng-content>
+            </section>
+
+            <!-- Comments -->
+            <section class="landscape">
+              <ng-content *ngTemplateOutlet="tableCommentContent; context: { index: $index, ops: ops }"></ng-content>
+            </section>
+          }
+        </section>
+      }
+    }
+  </app-reveal>
+}
+
+<ng-template #tableContent let-index="index" let-ops="ops">
+  <page-header-form-report-chunk
+    [i18nContext]="i18nContext"
+    [title]="'TRIP.REPORT.FORM.OPERATION.TITLE'"
+    [titleSuffix]="'TRIP.REPORT.FORM.RECTO_PARENTHESIS'"
+    [items]="stats.headerItems"
+    [logoRightUrl]="logoHeadRightUrl"
+    [logoLeftUrl]="logoHeadLeftUrl"
+  ></page-header-form-report-chunk>
+  @if (!multiTrip) {
+    <ion-grid class="report-section ion-no-padding">
+      <ion-row class="section-title ion-no-margin">
+        <ion-col size="auto">
+          <h3>{{ 'TRIP.REPORT.FORM.OPERATION.NB_OP' | translate }}</h3>
+        </ion-col>
+        <ion-col class="title-value ion-text-center font-large no-border-bottom" size="auto">
+          @if (!isBlankForm) {
+            {{ data?.length }}
+          }
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  }
+  <table class="table-full-width">
+    <thead>
+      <tr [class.group-head]="!stats.options.allowParentOperation">
+        <th [attr.colspan]="stats.tableHeadColspan"></th>
+        <th colspan="2" class="font-medium ion-text-center">
+          <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.OPERATION_START' | translateContext: this.i18nContext.suffix }}</div>
+        </th>
+        @if (stats.options.showEndDate) {
+          <th colspan="2" class="font-medium ion-text-center">
+            <div>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.OPERATION_END' | translateContext: this.i18nContext.suffix }}</div>
+          </th>
+        }
+        @if (stats.options.allowParentOperation) {
+          <th class="col-tiny font-small text-vertical">
+            <div>{{ 'TRIP.REPORT.FORM.TYPE_OP.PARENT_PMFM' | translate }}&nbsp;&#x2B07;</div>
+          </th>
+          @for (
+            pmfm of stats.pmfms.slice(stats.pmfmsTablePart[0][0], stats.pmfmsTablePart[0][1]) | arrayFilter: filterPmfmForOperationTable;
+            track pmfm
+          ) {
+            <th class="col-tiny text-vertical font-small ion-no-padding">
+              <table-head-pmfm-name-report-chunk
+                [pmfm]="pmfm"
+                [i18nContext]="i18nContext"
+                [pmfmTipsByPmfmIds]="stats.pmfmsTipsByPmfmIdByTableParts[0]"
+              ></table-head-pmfm-name-report-chunk>
+            </th>
+          }
+        }
+        <!-- TODO else -->
+      </tr>
+      <tr>
+        @if (multiTrip) {
+          <th class="font-medium text-vertical ion-text-center column-tripNumber" [style.--col-width]="pageDimensions.columnTripNumberWidth">
+            <div>
+              {{ 'TRIP.REPORT.FORM.TRIP.TRIP_NUMBER' | translate }}
+            </div>
+          </th>
+        }
+        <th class="col-tiny font-medium text-vertical">
+          <div>{{ 'TRIP.REPORT.FORM.OP_NUM' | translate }}</div>
+        </th>
+        @if (stats.hasPmfm.hasIndividualMeasure) {
+          <th class="col-tiny text-vertical font-small text-vertical">
+            <div>
+              {{
+                stats.pmfmsById[pmfmIdsMap.HAS_INDIVIDUAL_MEASURES] | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix }
+              }}
+            </div>
+          </th>
+        }
+        @if (stats.hasPmfm.tripProgress) {
+          <th class="col-tiny font-small text-vertical">
+            <div>
+              {{ stats.pmfmsById[pmfmIdsMap.TRIP_PROGRESS] | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix } }}
+            </div>
+          </th>
+        }
+        <th class="col-maximum font-medium ion-text-center">
+          <div>
+            {{ 'TRIP.REPORT.FORM.OPERATION.TABLE.GEAR_SPECIES' | translate }}
+            @if (stats.options.enableVesselAssociation) {
+              <br />
+              <em>{{ 'TRIP.REPORT.FORM.OPERATION.TABLE.VESSEL_ASSOCIATION' | translate }}</em>
+            }
+          </div>
+        </th>
+        <th class="col-medium font-medium ion-text-center">
+          <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+        </th>
+        <th class="col-medium font-medium ion-text-center">
+          <div>
+            @if (isBlankForm) {
+              {{ 'TRIP.REPORT.FORM.OPERATION.TABLE.GPS_POSITION' | translate }}
+              <br />
+              {{ 'COMMON.OR' | translate }}
+              <br />
+              {{ 'TRIP.REPORT.FORM.OPERATION.TABLE.FISHING_AREA' | translate }}**
+            } @else {
+              @if (enablePosition) {
+                {{ 'TRIP.REPORT.FORM.OPERATION.TABLE.GPS_POSITION' | translate }}
+              } @else {
+                {{ 'TRIP.REPORT.FORM.OPERATION.TABLE.FISHING_AREA' | translate }}**
+              }
+            }
+          </div>
+        </th>
+        @if (stats.options.showEndDate) {
+          <th class="col-medium font-medium ion-text-center">
+            <div>{{ 'TRIP.REPORT.FORM.DATE_TIME' | translate }}</div>
+          </th>
+          <th class="col-medium font-medium ion-text-center">
+            <div>
+              @if (isBlankForm) {
+                {{ 'TRIP.REPORT.FORM.OPERATION.TABLE.GPS_POSITION' | translate }}
+                <br />
+                {{ 'COMMON.OR' | translate }}
+                <br />
+                {{ 'TRIP.REPORT.FORM.OPERATION.TABLE.FISHING_AREA' | translate }}**
+              } @else {
+                @if (enablePosition) {
+                  {{ 'TRIP.REPORT.FORM.OPERATION.TABLE.GPS_POSITION' | translate }}
+                } @else {
+                  {{ 'TRIP.REPORT.FORM.OPERATION.TABLE.FISHING_AREA' | translate }}**
+                }
+              }
+            </div>
+          </th>
+        }
+        @if (stats.options.allowParentOperation) {
+          <th class="col-tiny font-small text-vertical">
+            <div>{{ 'TRIP.REPORT.FORM.TYPE_OP.CHILD_PMFM' | translate }}&nbsp;&#x2B07;</div>
+          </th>
+          @for (
+            pmfm of stats.childPmfms.slice(stats.pmfmsTablePart[0][0], stats.pmfmsTablePart[0][1]) | arrayFilter: filterPmfmForOperationTable;
+            track pmfm
+          ) {
+            <th class="col-tiny text-vertical font-small ion-no-padding">
+              <table-head-pmfm-name-report-chunk
+                [pmfm]="pmfm"
+                [i18nContext]="i18nContext"
+                [pmfmTipsByPmfmIds]="stats.pmfmsTipsByPmfmIdByTableParts[0]"
+              ></table-head-pmfm-name-report-chunk>
+            </th>
+          }
+        } @else {
+          @for (
+            pmfm of stats.pmfms.slice(stats.pmfmsTablePart[0][0], stats.pmfmsTablePart[0][1]) | arrayFilter: filterPmfmForOperationTable;
+            track pmfm
+          ) {
+            <th class="col-tiny text-vertical font-small ion-no-padding">
+              <table-head-pmfm-name-report-chunk
+                [pmfm]="pmfm"
+                [i18nContext]="i18nContext"
+                [pmfmTipsByPmfmIds]="stats.pmfmsTipsByPmfmIdByTableParts[0]"
+              ></table-head-pmfm-name-report-chunk>
+            </th>
+          }
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (op of ops; track op.id; let index = $index) {
+        <tr>
+          @if (multiTrip) {
+            <td class="font-medium ion-text-center column-tripNumber" [style.--col-width]="pageDimensions.columnTripNumberWidth"></td>
+          }
+          <td class="col-tiny ion-text-center font-medium" [style.padding]="0">
+            <div>
+              @if (!multiTrip) {
+                <b [class.place-holder]="isBlankForm">{{ op.rankOrder }}</b>
+              }
+            </div>
+          </td>
+          @if (stats.hasPmfm.hasIndividualMeasure) {
+            <td class="col-tiny ion-text-center">
+              <div
+                [innerHTML]="
+                  stats.measurementValues
+                    | mapGet: index
+                    | mapGet: pmfmIdsMap.HAS_INDIVIDUAL_MEASURES
+                    | pmfmValue: { pmfm: stats.pmfmsById | mapGet: pmfmIdsMap.HAS_INDIVIDUAL_MEASURES, showYesOrNo: true }
+                "
+              ></div>
+            </td>
+          }
+          @if (stats.hasPmfm.tripProgress) {
+            <td class="col-tiny ion-text-center">
+              <div
+                [innerHTML]="
+                  stats.measurementValues
+                    | mapGet: index
+                    | mapGet: pmfmIdsMap.TRIP_PROGRESS
+                    | pmfmValue: { pmfm: stats.pmfmsById | mapGet: pmfmIdsMap.TRIP_PROGRESS, showYesOrNo: true }
+                "
+              ></div>
+            </td>
+          }
+          <!-- metier -->
+          <td class="col-maximum">
+            @if (!isBlankForm) {
+              <b>[{{ op.physicalGear?.rankOrder }}]</b>
+              {{ op.physicalGear?.gear?.label }}{{ op.metier?.label }} - {{ op.physicalGear?.gear?.name }} {{ op.metier?.name }}
+            }
+          </td>
+          <!-- Start date and position -->
+          <td class="col-medium">
+            @if (!isBlankForm) {
+              @if (op.parentOperationId | isNil) {
+                {{ op.startDateTime | dateFormat: { time: true } }}
+              } @else {
+                {{ op.fishingEndDateTime | dateFormat: { time: true } }}
+              }
+            }
+          </td>
+          <td class="col-medium">
+            @if (!isBlankForm) {
+              @if (enablePosition) {
+                @if (op.parentOperationId | isNil) {
+                  @if (op.startPosition?.latitude | isNotNil) {
+                    {{ op.startPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                    <br />
+                    {{ op.startPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                  } @else {}
+                } @else {
+                  {{ op.fishingEndPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                  <br />
+                  {{ op.fishingEndPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                }
+              } @else {
+                {{ op.fishingAreas | arrayPluck: { property: 'location' } | referentialToString: stats.options.fishingAreaDisplayAttributes }}
+              }
+            }
+          </td>
+          <!-- End date and position -->
+          @if (stats.options.showEndDate) {
+            <td class="col-medium">
+              @if (!isBlankForm) {
+                @if (stats.options.allowParentOperation && (op.parentOperationId | isNil)) {
+                  {{ op.fishingStartDateTime | dateFormat: { time: true } }}
+                } @else {
+                  {{ op.endDateTime | dateFormat: { time: true } }}
+                }
+              }
+            </td>
+            <td class="col-medium">
+              @if (!isBlankForm) {
+                @if (enablePosition) {
+                  @if (stats.options.allowParentOperation && (op.parentOperationId | isNil)) {
+                    {{ op.fishingStartPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                    <br />
+                    {{ op.fishingStartPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                  } @else {
+                    {{ op.endPosition?.latitude | latitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                    <br />
+                    {{ op.endPosition?.longitude | longitudeFormat: { pattern: stats.options.latLongPattern, placeholderChar: '0' } }}
+                  }
+                } @else {
+                  {{ op.fishingAreas | arrayPluck: { property: 'location' } | referentialToString: stats.options.fishingAreaDisplayAttributes }}
+                }
+              }
+            </td>
+          }
+          @if (stats.options.allowParentOperation) {
+            <td class="col-tiny font-small ion-text-center">
+              @if (!isBlankForm) {
+                <div>
+                  @if (op.parentOperationId | isNil) {
+                    {{ 'TRIP.REPORT.FORM.TYPE_OP.PARENT' | translate }}
+                  } @else {
+                    {{ 'TRIP.REPORT.FORM.TYPE_OP.CHILD' | translate }}
+                  }
+                </div>
+              }
+            </td>
+          }
+          @for (
+            pmfm of (((op.parentOperationId | isNotNil) ? stats.childPmfms : stats.pmfms) | arrayFilter: filterPmfmForOperationTable).slice(
+              stats.pmfmsTablePart[0][0],
+              stats.pmfmsTablePart[0][1]
+            );
+            track pmfm
+          ) {
+            <td class="col-tiny font-small ion-text-center">
+              @if (pmfm | isNotNil) {
+                <div
+                  [innerHTML]="
+                    stats.measurementValues
+                      | mapGet: index
+                      | mapGet: pmfm.id
+                      | pmfmValue: { pmfm: pmfm, html: false, showYesOrNo: true, propertyNames: ['label'] }
+                  "
+                ></div>
+              }
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+  <tips-report-chunk [tips]="stats.tipsByTablePart[0] | mapValues | arraySort: sortByTipsIndex"></tips-report-chunk>
+  <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
+</ng-template>
+
+<ng-template #tableCommentContent let-index="index" let-ops="ops">
+  <page-header-form-report-chunk
+    [i18nContext]="i18nContext"
+    [title]="'TRIP.REPORT.FORM.OPERATION.TITLE'"
+    [titleSuffix]="'TRIP.REPORT.FORM.VERSO_PARENTHESIS'"
+    [pageNumber]="(stats.dummyOps || data).length > stats.nbOperationByPage ? index + 1 : null"
+    [items]="stats.headerItems"
+    [logoRightUrl]="logoHeadRightUrl"
+    [logoLeftUrl]="logoHeadLeftUrl"
+  ></page-header-form-report-chunk>
+  <table class="table-full-width" [style.margin-top]="multiTrip ? 0 : '50px'">
+    <thead>
+      <tr>
+        <th class="col-tiny font-medium text-vertical" [attr.rowspan]="stats.pmfmsTablePart.length > 1 ? 2 : 1">
+          <div>{{ 'TRIP.REPORT.FORM.OP_NUM' | translate }}</div>
+        </th>
+        @if (stats.options.allowParentOperation && stats.pmfmsTablePart.length > 1) {
+          <th class="col-tiny font-small text-vertical">
+            <div>{{ 'TRIP.REPORT.FORM.TYPE_OP.PARENT_PMFM' | translate }}&nbsp;&#x2B07;</div>
+          </th>
+        }
+        @if (stats.pmfmsTablePart.length > 1) {
+          @for (
+            pmfm of stats.pmfms.slice(stats.pmfmsTablePart[1][0], stats.pmfmsTablePart[1][1]) | arrayFilter: filterPmfmForOperationTable;
+            track pmfm
+          ) {
+            <th class="col-tiny text-vertical font-small ion-no-padding">
+              <table-head-pmfm-name-report-chunk
+                [pmfm]="pmfm"
+                [i18nContext]="i18nContext"
+                [pmfmTipsByPmfmIds]="stats.pmfmsTipsByPmfmIdByTableParts[1]"
+              ></table-head-pmfm-name-report-chunk>
+            </th>
+          }
+        }
+        <th class="col-maximum font-medium" [attr.rowspan]="stats.pmfmsTablePart.length > 1 ? 2 : 1">
+          <div>
+            {{ 'TRIP.REPORT.FORM.COMMENTS' | translate }}
+            @if (stats.options.commentsHelpText | isNotNilOrBlank) {
+              <br />
+              <span class="font-compact">{{ stats.options.commentsHelpText }}</span>
+            }
+          </div>
+        </th>
+      </tr>
+      @if (stats.options.allowParentOperation && stats.pmfmsTablePart.length > 1) {
+        <tr>
+          <th class="col-tiny font-small text-vertical">
+            <div>{{ 'TRIP.REPORT.FORM.TYPE_OP.CHILD_PMFM' | translate }}&nbsp;&#x2B07;</div>
+          </th>
+          @if (stats.pmfmsTablePart.length > 1) {
+            @for (
+              pmfm of stats.childPmfms.slice(stats.pmfmsTablePart[1][0], stats.pmfmsTablePart[1][1]) | arrayFilter: filterPmfmForOperationTable;
+              track pmfm
+            ) {
+              <th class="col-tiny text-vertical font-small">
+                <table-head-pmfm-name-report-chunk
+                  [pmfm]="pmfm"
+                  [i18nContext]="i18nContext"
+                  [pmfmTipsByPmfmIds]="stats.pmfmsTipsByPmfmIdByTableParts[1]"
+                ></table-head-pmfm-name-report-chunk>
+              </th>
+            }
+          }
+        </tr>
+      }
+    </thead>
+    <tbody>
+      @for (op of ops; track op.id; let index = $index) {
+        <tr>
+          <td class="col-tiny font-medium ion-text-center" [style.padding]="0">
+            <div>
+              @if (!multiTrip) {
+                <b [class.place-holder]="isBlankForm">{{ op.rankOrder }}</b>
+              }
+            </div>
+          </td>
+          @if (stats.options.allowParentOperation && stats.pmfmsTablePart.length > 1) {
+            <td class="col-tiny font-small ion-text-center">
+              <div>
+                @if (!isBlankForm) {
+                  @if (op.parentOperationId | isNil) {
+                    {{ 'TRIP.REPORT.FORM.TYPE_OP.PARENT' | translate }}
+                  } @else {
+                    {{ 'TRIP.REPORT.FORM.TYPE_OP.CHILD' | translate }}
+                  }
+                }
+              </div>
+            </td>
+          }
+          @if (stats.pmfmsTablePart.length > 1) {
+            @for (
+              pmfm of (((op.parentOperationId | isNotNil) ? stats.childPmfms : stats.pmfms) | arrayFilter: filterPmfmForOperationTable).slice(
+                stats.pmfmsTablePart[1][0],
+                stats.pmfmsTablePart[1][1]
+              );
+              track pmfm
+            ) {
+              <td class="col-tiny font-small ion-text-center">
+                @if (pmfm | isNotNil) {
+                  <div
+                    [innerHTML]="
+                      stats.measurementValues
+                        | mapGet: index
+                        | mapGet: pmfm.id
+                        | pmfmValue: { pmfm: pmfm, html: false, showYesOrNo: true, propertyNames: ['label'] }
+                    "
+                  ></div>
+                }
+              </td>
+            }
+          }
+          <td class="col-maximum ion-text-left">
+            <div>{{ op.comments }}</div>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  <tips-report-chunk [tips]="stats.tipsByTablePart[1] | mapValues | arraySort: sortByTipsIndex"></tips-report-chunk>
+  <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
+</ng-template>
+
+<ng-template #latLongPlaceHolder>
+  <span class="font-large place-holder">
+    <span [style.letter-spacing]="'3px'">__°__.___</span>
+    N
+    <br />
+    <span [style.letter-spacing]="'3px'">__°__.___</span>
+    E ou W
+  </span>
+</ng-template>

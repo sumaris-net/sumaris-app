@@ -52,9 +52,9 @@
 <mat-menu #optionsMenu="matMenu">
   <ng-template matMenuContent>
     <!-- report -->
-    @if (enableReport && (reportTypes | isNotEmptyArray)) {
-      @if (isNewData || !data.controlDate || (reportTypes | isArrayLength: { equals: 1 })) {
-        <button mat-menu-item [disabled]="isNewData || !data.controlDate" (click)="openReport()">
+    @if (enableReport) {
+      @if (isNewData || !data.controlDate || reportTypes.length < 2) {
+        <button mat-menu-item [disabled]="isNewData || !data.controlDate" (click)="openReport(reportTypes?.[0]?.key)">
           <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
           <ion-label translate>TRIP.EDIT.BTN_REPORT</ion-label>
         </button>
@@ -129,7 +129,7 @@
       </ion-col>
     </ion-row>
 
-    @for (item of reportTypes; track $index) {
+    @for (item of reportTypes; track item.key) {
       <button mat-menu-item (click)="openReport(item.key)">
         <ion-label>{{ item.value | translate }}</ion-label>
       </button>
@@ -178,7 +178,7 @@
         }
 
         <ion-grid class="ion-no-padding">
-          <ion-row class="ion-no-padding">
+          <ion-row>
             <ion-col class="ion-padding">
               <!-- trip -->
               <app-form-trip #tripForm [showError]="false" [returnFieldsRequired]="usageMode | isOnDesk" (onSubmit)="save($event)">
@@ -230,12 +230,12 @@
             </ion-col>
 
             <!-- quality data -->
-            <ion-col size="12" size-xl="3" class="ion-no-padding">
+            <ion-col size="12" size-xl="3">
               <!-- strategy summary -->
               <app-strategy-summary-card></app-strategy-summary-card>
 
               <!-- metadata -->
-              <app-entity-metadata [value]="data">
+              <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
                 <!-- Compose message -->
                 <ion-button
                   recorderSuffix
@@ -336,6 +336,7 @@
   </mat-tab-group>
 </ion-content>
 
+<!-- form bottom toolbar -->
 <ion-footer hidden-xs hidden-sm hidden-mobile>
   <app-form-buttons-bar
     (onCancel)="reloadWithConfirmation()"

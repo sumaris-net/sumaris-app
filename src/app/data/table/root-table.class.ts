@@ -149,12 +149,12 @@ export abstract class AppRootDataTable<
   @Input() showQuality = true;
 
   get synchronizationStatus(): SynchronizationStatus {
-    return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
+    return this.filterForm?.controls.synchronizationStatus?.value || 'SYNC' /*= the default status*/;
   }
 
   @Input()
   set synchronizationStatus(value: SynchronizationStatus) {
-    this.setSynchronizationStatus(value);
+    this.setSynchronizationStatus(value, { showToast: false });
   }
 
   get isLogin(): boolean {
@@ -282,7 +282,7 @@ export abstract class AppRootDataTable<
           tap((json) => this.setFilter(json, { emitEvent: false })),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          filter(() => isNotNilOrBlank(this.settingsId) && this.restoreFilterSources !== false && this.restoreFilterSources.includes('settings')),
+          filter(() => isNotNilOrBlank(this.settingsId) && this.restoreFilterSources !== false && this.restoreFilterSources?.includes('settings')),
           tap((json) => this.settings.savePageSetting(this.settingsId, { ...json }, AppRootTableSettingsEnum.FILTER_KEY))
         )
         .subscribe()
@@ -705,8 +705,13 @@ export abstract class AppRootDataTable<
     return source as F;
   }
 
+  protected loadFilter(sources?: AppBaseTableFilterRestoreSource[]): any {
+    if (this.restoreFilterSources === false) return null; // Skip if restoration has been disabled
+    return super.loadFilter(sources ?? this.restoreFilterSources);
+  }
+
   protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; sources?: AppRootTableFilterRestoreSource[] }) {
-    console.debug(`${this.logPrefix}restoreFilterOrLoad()`, opts);
+    if (this.debug) console.debug(`${this.logPrefix}restoreFilterOrLoad()`, opts);
 
     this.markAsLoading();
 

@@ -1,21 +1,21 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
-import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
-import { IPmfm } from '../services/model/pmfm.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
+import { TranslateService } from '@ngx-translate/core';
 import {
   ColorName,
   DateFormatService,
-  formatLatitude,
-  formatLongitude,
   IconRef,
-  isNotNil,
-  isNotNilOrBlank,
   LocalSettingsService,
   TranslateContextService,
+  formatLatitude,
+  formatLongitude,
+  isNotNil,
+  isNotNilOrBlank,
 } from '@sumaris-net/ngx-components';
-import { TranslateService } from '@ngx-translate/core';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { PmfmLabelPatterns } from '@app/referential/services/model/model.enum';
-import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
+import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
+import { ExtendedPmfmType, IPmfm } from '../services/model/pmfm.model';
+import { PmfmUtils } from '../services/model/pmfm-utils';
 
 @Pipe({
   name: 'pmfmIdString',
@@ -143,6 +143,16 @@ export class PmfmValuePipe implements PipeTransform {
       default:
         return PmfmValueUtils.valueToString(value, opts);
     }
+  }
+}
+
+@Pipe({
+  name: 'getPmfmExtendedType',
+})
+@Injectable({ providedIn: 'root' })
+export class GetPmfmExtendedTypePipe implements PipeTransform {
+  transform(pmfm: IPmfm): ExtendedPmfmType {
+    return PmfmUtils.getExtendedType(pmfm);
   }
 }
 

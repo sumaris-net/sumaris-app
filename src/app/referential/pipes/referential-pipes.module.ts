@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import {
+  GetPmfmExtendedTypePipe,
   IsComputedPmfmPipe,
   IsDatePmfmPipe,
   IsLatitudePmfmPipe,
@@ -29,6 +30,9 @@ import { CorePipesModule } from '@sumaris-net/ngx-components';
     PmfmValuePipe,
     PmfmValueColorPipe,
     PmfmValueIconPipe,
+    GetPmfmExtendedTypePipe,
+    IsDatePmfmPipe,
+    IsWeightPmfmPipe,
     IsComputedPmfmPipe,
     IsMultiplePmfmPipe,
     IsDatePmfmPipe,
@@ -48,6 +52,9 @@ import { CorePipesModule } from '@sumaris-net/ngx-components';
     PmfmValuePipe,
     PmfmValueColorPipe,
     PmfmValueIconPipe,
+    GetPmfmExtendedTypePipe,
+    IsDatePmfmPipe,
+    IsWeightPmfmPipe,
     IsComputedPmfmPipe,
     IsMultiplePmfmPipe,
     IsDatePmfmPipe,
