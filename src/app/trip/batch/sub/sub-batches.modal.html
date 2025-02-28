@@ -169,6 +169,10 @@
             <ion-label color="danger" [innerHTML]="error | translate"></ion-label>
           </ion-item>
 
+          @if (!showIndividualCount) {
+            <app-warning-item size="small" [message]="'Certaines données sont masquées' | translate"></app-warning-item>
+          }
+
           <div class="toolbar-spacer"></div>
 
           <!-- Hide filter for demo  -->
@@ -303,6 +307,7 @@
           [matSortDirection]="defaultSortDirection"
           matSortDisableClear="true"
           [class.compact]="compact"
+          [class]="useCssDisabled ? 'disabled-table' : null"
         >
           <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
             <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
@@ -518,7 +523,7 @@
             </button>
           </app-actions-column>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
           <tr
             mat-row
             *matRowDef="let row; let i = index; columns: displayedColumns"

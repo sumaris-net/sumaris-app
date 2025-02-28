@@ -54,7 +54,6 @@ import { AppSharedFormUtils } from '@app/shared/forms.utils';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { SubSortingCriteria } from './sub-sorting-criteria.form';
 import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
-import { sequence } from '@angular/animations';
 
 type ModalMode = 'INDIVIDUAL_COUNT' | 'LENGTH_CLASS';
 
@@ -160,6 +159,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   protected enableLengthClass: boolean = true;
   protected canFilterTaxonName: boolean = true;
   protected enableTaxonNameFilter: boolean = true;
+  protected useCssDisabled: boolean = false;
 
   get selectedRow(): TableElement<SubBatch> {
     return this.singleSelectedRow || this.editedRow;
@@ -308,6 +308,14 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     // Add footer listener
     this.registerSubscription(this.pmfms$.subscribe((pmfms) => this.addFooterListener(pmfms)));
+
+    this.registerSubscription(
+      this.modalForm.get('showSubBatchForm').valueChanges.subscribe((value) => {
+        const disable = !value && this.showIndividualCount;
+        this.inlineEdition = !disable;
+        this.useCssDisabled = disable;
+      })
+    );
   }
 
   async load() {
@@ -925,6 +933,9 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   protected async generateSubBatchesFromRange(data: SubSortingCriteria) {
     await this.save();
+    // reset disabled effect on the table
+    this.inlineEdition = true;
+    this.useCssDisabled = false;
 
     if (data.selectAll || isNotEmptyArray(data.secondaryQvPmfm)) {
       // find the qv pmfm
@@ -1083,7 +1094,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
         );
         if (existing) {
           existing.individualCount += current.individualCount;
-          existing.images.push(...current.images);
+          if (existing.images) existing.images.push(...current.images);
         } else {
           merged.push(current);
         }
