@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, numberAttribute } from '@angular/core';
 
 @Component({
   selector: 'mat-form-fields-skeleton',
@@ -8,8 +8,9 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 export class MatFormFieldsSkeleton {
   protected array: number[];
 
-  @Input() count: number;
+  @Input({ transform: numberAttribute }) count: number;
   @Input() width: string = '60%';
+  @Input() placeholder: string;
 
   protected get countArray() {
     return Array(this.count || 1);
