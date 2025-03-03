@@ -759,9 +759,11 @@ export class ActivityCalendarsTable
 
   protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
     const vesselTypeId = this.filterForm.get('vesselType')?.value?.id;
-    let vesselTypeIds = isNotNil(vesselTypeId) ? [vesselTypeId] : undefined;
+    let vesselTypeIds: number[] = isNotNil(vesselTypeId) ? [+vesselTypeId] : undefined;
+
+    // Limit type, using the program's vessel types
     if (isNotEmptyArray(this.programVesselTypeIds)) {
-      vesselTypeIds = intersectArrays([vesselTypeIds, this.programVesselTypeIds]);
+      vesselTypeIds = vesselTypeIds ? intersectArrays([vesselTypeIds, this.programVesselTypeIds]) : this.programVesselTypeIds;
     }
 
     return this.vesselSnapshotService.suggest(value, {
