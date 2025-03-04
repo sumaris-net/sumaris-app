@@ -12,6 +12,8 @@ import {
   PersonService,
   PersonUtils,
   ReferentialRef,
+  RxStateProperty,
+  RxStateSelect,
   SharedValidators,
   slideUpDownAnimation,
   StatusIds,
@@ -23,7 +25,7 @@ import { ObservedLocation } from '../observed-location.model';
 import { AppRootDataTable, AppRootDataTableState } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../../trip.config';
 import { Observable } from 'rxjs';
-import { ObservedLocationOfflineModal } from '../offline/observed-location-offline.modal';
+import { ObservedLocationOfflineModal, ObservedLocationOfflineModalOptions } from '../offline/observed-location-offline.modal';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observed-location.filter';
 import { filter } from 'rxjs/operators';
@@ -35,7 +37,6 @@ import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.ta
 import { IonSegment } from '@ionic/angular';
 import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 
 export const ObservedLocationsPageSettingsEnum = {
   PAGE_ID: 'observedLocations',
@@ -263,7 +264,7 @@ export class ObservedLocationsPage
       };
       const modal = await this.modalCtrl.create({
         component: ObservedLocationOfflineModal,
-        componentProps: {
+        componentProps: <ObservedLocationOfflineModalOptions>{
           value,
         },
         keyboardClose: true,

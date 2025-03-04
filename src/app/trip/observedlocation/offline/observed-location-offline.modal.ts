@@ -17,6 +17,9 @@ import {
   referentialsToString,
   referentialToString,
   ReferentialUtils,
+  RxStateProperty,
+  RxStateRegister,
+  RxStateSelect,
   SharedValidators,
   StatusIds,
 } from '@sumaris-net/ngx-components';
@@ -31,13 +34,17 @@ import { StrategyRefService } from '@app/referential/services/strategy-ref.servi
 import { combineLatestWith, Observable } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
-export interface IObservedLocationOfflineModalState {
+export interface ObservedLocationOfflineModalOptions {
+  title?: string;
+  value?: ObservedLocationOfflineFilter | any;
+}
+
+export interface ObservedLocationOfflineModalState {
   program: Program;
   locations: ReferentialRef[];
 }
@@ -49,8 +56,8 @@ export interface IObservedLocationOfflineModalState {
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflineFilter> implements OnInit {
-  @RxStateRegister() protected readonly _state: RxState<IObservedLocationOfflineModalState> = inject(RxState<IObservedLocationOfflineModalState>);
+export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflineFilter> implements OnInit, ObservedLocationOfflineModalOptions {
+  @RxStateRegister() protected readonly _state: RxState<ObservedLocationOfflineModalState> = inject(RxState);
   protected readonly networkService = inject(NetworkService);
   protected mobile: boolean;
   protected periodDurationLabels: { key: string; label: string; startDate: Moment }[];
@@ -65,11 +72,11 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
   @Input() title = 'OBSERVED_LOCATION.OFFLINE_MODAL.TITLE';
 
-  get value(): any {
+  get value(): ObservedLocationOfflineFilter | any {
     return this.getValue();
   }
 
-  set value(data: any) {
+  set value(data: ObservedLocationOfflineFilter | any) {
     this.setValue(data);
   }
 
@@ -122,17 +129,6 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         startDate: date.startOf('day'), // Reset time
       };
     });
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
-
-    // Program
-    this.registerAutocompleteField('program', {
-      service: this.programRefService,
-      filter: OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
-      mobile: this.mobile,
-    });
 
     // Listen program (with properties)
     this._state.connect(
@@ -151,18 +147,6 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       )
     );
 
-    const displayAttributes = this.settings.getFieldDisplayAttributes('location');
-    this.registerAutocompleteField('location', {
-      suggestFn: (value, filter) => this.suggestLocation(value, filter),
-      displayWith: (arg) => {
-        if (Array.isArray(arg)) {
-          return referentialsToString(arg, displayAttributes);
-        }
-        return referentialToString(arg, displayAttributes);
-      },
-      mobile: this.mobile,
-      showAllOnFocus: true,
-    });
     this._state.hold(
       this.program$.pipe(
         mergeMap(async (program) => {
@@ -187,6 +171,30 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         this.markForCheck();
       }
     );
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+
+    // Program
+    this.registerAutocompleteField('program', {
+      service: this.programRefService,
+      filter: OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
+      mobile: this.mobile,
+    });
+
+    const displayAttributes = this.settings.getFieldDisplayAttributes('location');
+    this.registerAutocompleteField('location', {
+      suggestFn: (value, filter) => this.suggestLocation(value, filter),
+      displayWith: (arg) => {
+        if (Array.isArray(arg)) {
+          return referentialsToString(arg, displayAttributes);
+        }
+        return referentialToString(arg, displayAttributes);
+      },
+      mobile: this.mobile,
+      showAllOnFocus: true,
+    });
 
     // Strategies
     this.registerAutocompleteField('strategy', {
@@ -256,7 +264,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       try {
         json.program = await this.programRefService.loadByLabel(value.programLabel, { query: ProgramRefQueries.loadLight });
       } catch (err) {
-        console.error(err);
+        console.error(`[observed-location-offline] Error while load program with label ${value.programLabel}`, err);
         json.program = null;
         if (err && err.message) {
           this.setError(err.message);

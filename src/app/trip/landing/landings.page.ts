@@ -18,6 +18,8 @@ import {
   ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
+  RxStateProperty,
+  RxStateSelect,
   SharedValidators,
   slideUpDownAnimation,
   StatusIds,
@@ -30,7 +32,7 @@ import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } fro
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
 import { environment } from '@environments/environment';
 import { Observable } from 'rxjs';
-import { ObservedLocationOfflineModal } from '../observedlocation/offline/observed-location-offline.modal';
+import { ObservedLocationOfflineModal, ObservedLocationOfflineModalOptions } from '../observedlocation/offline/observed-location-offline.modal';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observedlocation/observed-location.filter';
 import { filter } from 'rxjs/operators';
@@ -56,7 +58,6 @@ import { ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/ta
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { intersectArrays } from '@app/shared/functions';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
@@ -723,7 +724,7 @@ export class LandingsPage
       };
       const modal = await this.modalCtrl.create({
         component: ObservedLocationOfflineModal,
-        componentProps: {
+        componentProps: <ObservedLocationOfflineModalOptions>{
           value,
         },
         keyboardClose: true,
