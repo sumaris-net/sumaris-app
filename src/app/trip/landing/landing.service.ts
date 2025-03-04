@@ -428,7 +428,7 @@ export class LandingService
     if (this._debug) console.debug('[landing-service] Watching landings... using variables:', variables);
 
     const fullLoad = opts && opts.fullLoad === true; // false by default
-    const withTotal = !opts || opts.withTotal !== false;
+    const withTotal = (!opts || opts.withTotal !== false) && !groupByVessel;
     const query = fullLoad ? LandingQueries.loadAllFullWithTotal : withTotal ? this.queries.loadAllWithTotal : this.queries.loadAll;
 
     return this.mutableWatchQuery<LoadResult<any>>({
