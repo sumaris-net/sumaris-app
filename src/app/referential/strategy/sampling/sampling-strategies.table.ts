@@ -42,7 +42,7 @@ import moment from 'moment';
 import { RxState } from '@rx-angular/state';
 import { LandingFilter } from '@app/trip/landing/landing.filter';
 import { AppBaseTable, AppBaseTableFilterRestoreSource, BaseTableState } from '@app/shared/table/base.table';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 
 export const SamplingStrategiesPageSettingsEnum = {

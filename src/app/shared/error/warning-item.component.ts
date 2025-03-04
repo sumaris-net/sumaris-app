@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppErrorItem } from '@app/shared/error/error-item.component';
-import { slideDownAnimation } from '@app/shared/material/material.animation';
+import { slideDownAnimation } from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-warning-item',

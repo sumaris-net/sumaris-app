@@ -51,7 +51,7 @@ import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 import { environment } from '@environments/environment';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 import { ContextService } from '@app/shared/context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';

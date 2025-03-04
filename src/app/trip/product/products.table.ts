@@ -23,7 +23,7 @@ import { IProductModalOptions, ProductModal } from '@app/trip/product/product.mo
 import { mergeMap } from 'rxjs/operators';
 import moment from 'moment';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'saleType', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo

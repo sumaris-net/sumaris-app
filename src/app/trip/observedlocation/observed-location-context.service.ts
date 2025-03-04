@@ -3,7 +3,7 @@ import { ObservedLocation } from '@app/trip/observedlocation/observed-location.m
 import { Landing } from '@app/trip/landing/landing.model';
 import { TripContext, TripContextService } from '@app/trip/trip-context.service';
 import { APP_MAIN_CONTEXT_SERVICE } from '@app/shared/context.service';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty } from '@sumaris-net/ngx-components';
 
 export interface ObservedLocationContext extends TripContext {
   observedLocation?: ObservedLocation;

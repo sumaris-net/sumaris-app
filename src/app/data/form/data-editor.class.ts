@@ -45,7 +45,7 @@ import { AcquisitionLevelType } from '@app/referential/services/model/model.enum
 import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 import { ContextService } from '@app/shared/context.service';
 import { BaseDataService, IDataEntityService, IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
 import { ExpertiseAreaService } from '@app/referential/expertise-area/expertise-area.service';

@@ -66,7 +66,7 @@ import {
   ActivityMonthValidatorService,
 } from '@app/activity-calendar/calendar/activity-month.validator';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, distinctUntilChanged, fromEvent, Observable, Subject, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';

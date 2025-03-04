@@ -31,7 +31,7 @@ import { StrategyRefService } from '@app/referential/services/strategy-ref.servi
 import { combineLatestWith, Observable } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';

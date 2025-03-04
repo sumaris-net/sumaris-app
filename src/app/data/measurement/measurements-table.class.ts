@@ -32,7 +32,7 @@ import { AppBaseTable, BaseTableConfig, BaseTableState } from '@app/shared/table
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MeasurementsTableEntitiesService } from './measurements-table.service';
 import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from './measurements-table.validator';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 

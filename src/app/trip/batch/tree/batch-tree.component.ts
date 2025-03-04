@@ -50,7 +50,7 @@ import { RxState } from '@rx-angular/state';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { qualityFlagInvalid } from '@app/data/services/model/model.utils';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;

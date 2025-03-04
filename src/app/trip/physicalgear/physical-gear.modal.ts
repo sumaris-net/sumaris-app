@@ -30,6 +30,7 @@ import {
   isNotNilOrBlank,
   PromiseEvent,
   ReferentialRef,
+  slideDownAnimation,
   toBoolean,
   toNumber,
   TranslateContextService,
@@ -42,10 +43,9 @@ import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physica
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
 import { filter, switchMap } from 'rxjs/operators';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { slideDownAnimation } from '@app/shared/material/material.animation';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';

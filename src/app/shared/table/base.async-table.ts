@@ -33,7 +33,7 @@ import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
 import { timer } from 'rxjs';
-import { RxStateRegister } from '@app/shared/state/state.decorator';
+import { RxStateRegister } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 
 export const BASE_TABLE_SETTINGS_ENUM = {

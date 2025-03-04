@@ -19,7 +19,7 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 import { AppBaseTable } from '@app/shared/table/base.table';
 

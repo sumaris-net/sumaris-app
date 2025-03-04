@@ -33,7 +33,7 @@ import { DateFilterFn } from '@angular/material/datepicker';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { Observable, of } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';

@@ -43,7 +43,7 @@ import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/servic
 import { IPmfmForm } from '@app/trip/operation/operation.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 export interface SampleTreeState {

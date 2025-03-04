@@ -3,7 +3,7 @@ import { inject, Inject, Injectable, Optional } from '@angular/core';
 import { DataContext, DataContextService } from '@app/data/services/model/data-context.model';
 import { BacthTreeContext, BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { APP_MAIN_CONTEXT_SERVICE, CONTEXT_DEFAULT_STATE } from '@app/shared/context.service';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty } from '@sumaris-net/ngx-components';
 
 export interface TripContext extends DataContext, BatchContext {
   trip?: Trip;
