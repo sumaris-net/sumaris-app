@@ -666,7 +666,7 @@
     "BTN_RESET_PROPERTY": "Reset the option",
     "FIELDS": {
       "DEPARTMENT": "Dropdown list > Departments",
-      "LOCATION": "Dropdown list > Locations (e.g. harbour)",
+      "LOCATION": "Dropdown list > Locations (e.g. port)",
       "FISHING_AREA_LOCATION": "Dropdown list > Fishing Areas (e.g. rectangle)",
       "QUALITATIVE_VALUE": "Dropdown list > Parameter's qualitative values",
       "TAXON_GROUP": "Dropdown list > Commercial species",
@@ -796,9 +796,9 @@
       "VESSEL": "Vessel",
       "PROGRAM": "Program",
       "DEPARTURE_DATE_TIME": "Departure date",
-      "DEPARTURE_LOCATION": "Departure harbour",
+      "DEPARTURE_LOCATION": "Departure port",
       "RETURN_DATE_TIME": "Return date",
-      "RETURN_LOCATION": "Return harbour",
+      "RETURN_LOCATION": "Return port",
       "QUALITY": "State",
       "OBSERVERS": "Observer(s)",
       "RECORDER_PERSON": "Recorder",
@@ -2029,7 +2029,7 @@
     "ACTION": {
       "EDIT": "Edit",
       "REGISTRATION_DIVIDER": "Registration (code, country flag)",
-      "FEATURES_DIVIDER": "Features (exterior marking, name, harbour, etc.)",
+      "FEATURES_DIVIDER": "Features (exterior marking, name, port, etc.)",
       "EDIT_REGISTRATION": "Fix registration",
       "NEW_REGISTRATION": "Declare a change",
       "EDIT_FEATURES": "Fix features",
@@ -2091,8 +2091,8 @@
       "NAME": "Organization name"
     },
     "BASE_PORT_LOCATION": {
-      "LABEL": "Harbour code",
-      "NAME": "Harbour name"
+      "LABEL": "Port code",
+      "NAME": "Port name"
     },
     "TAXON_GROUP": {
       "LABEL": "Commercial species code",
@@ -2574,11 +2574,11 @@
       "LANDING_EDITOR_SAMPLING": "Biological parameters",
       "LANDING_CREATION_DATE_ENABLE": "Occasion > Landings: Show creation date?",
       "LANDING_RECORDER_PERSON_ENABLE": "Occasion > Landings: Show recorder?",
-      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Occasion > Landings: Show base harbour?",
+      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Occasion > Landings: Show base port?",
       "LANDING_STRATEGY_ENABLE": "Occasion > Landing: Enter strategy?",
       "LANDING_DATE_TIME_ENABLE": "Occasion > Landing: Enter date?",
       "LANDING_OBSERVERS_ENABLE": "Occasion > Landing: Enter observers?",
-      "LANDING_LOCATION_ENABLE": "Occasion > Landings: Show harbour?",
+      "LANDING_LOCATION_ENABLE": "Occasion > Landings: Show port?",
       "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Landing > Fishing area: Location level(s)",
       "LANDING_SAMPLES_COUNT_ENABLE": "Occasion > Landings: Show samples count?",
       "LANDING_SAMPLE_ENABLE": "Occasion > Landing > Enable samples?",
@@ -2942,9 +2942,9 @@
       "VESSEL_FLAG_COUNTRY": "Vessel country flag",
       "LANDING_COUNTRY": "Landing country",
       "RECORD_TYPE": "Type",
-      "HARBOUR": "Harbour",
-      "HARBOUR_LABEL": "Harbour code",
-      "HARBOUR_NAME": "Harbour name",
+      "HARBOUR": "Port",
+      "HARBOUR_LABEL": "Port code",
+      "HARBOUR_NAME": "Port name",
       "PROJECT": "Project",
       "TRIP_CODE": "Trip code",
       "STATION_NUMBER": "Station number",
