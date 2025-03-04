@@ -69,7 +69,7 @@
     [(selectedIndex)]="selectedTabIndex"
     (selectedTabChange)="onTabChange($event)"
     [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
-    [dynamicHeight]="false"
+    [dynamicHeight]="true"
   >
     <!-- TAB: general -->
     <mat-tab
