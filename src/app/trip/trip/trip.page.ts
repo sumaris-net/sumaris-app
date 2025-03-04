@@ -78,6 +78,7 @@ import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
+import { ExpenseForm } from '@app/trip/expense/expense.form';
 import { OperationType } from '@app/trip/operation/operation.form';
 import { expansionInOutAnimation } from '@app/shared/material/material.animations';
 
@@ -118,6 +119,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     GENERAL: 0,
     PHYSICAL_GEARS: 1,
     OPERATIONS: 2,
+    EXPENSES: 3,
   };
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
@@ -130,6 +132,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   protected saleLocationLevelIds: number[];
   protected showGearTable = false;
   protected showOperationTable = false;
+  protected showExpensesForm = false;
   protected enableReport: boolean;
   protected operationEditor: OperationEditor;
   protected operationPasteFlags: number;
@@ -146,6 +149,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
   @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
   @ViewChild('generaleTabContent', { static: true }) generalTabContent: IonContent;
+  @ViewChild('expenseForm', { static: true }) expenseForm: ExpenseForm;
 
   get dirty(): boolean {
     return (
@@ -180,7 +184,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   ) {
     super(injector, Trip, injector.get(TripService), {
       pathIdAttribute: 'tripId',
-      tabCount: 3,
+      tabCount: 4,
       enableListenChanges: true,
       i18nPrefix: 'TRIP.',
       acquisitionLevel: AcquisitionLevelCodes.TRIP,
@@ -314,6 +318,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
       // Reset other errors
       this.physicalGearsTable.resetError(opts);
+      this.expenseForm.resetError(opts);
       super.setError(undefined, opts);
     }
 
@@ -326,6 +331,21 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       this.tabGroup.selectedIndex = TripPage.TABS.PHYSICAL_GEARS;
 
       // Reset other errors
+      this.operationsTable.resetError(opts);
+      this.expenseForm.resetError(opts);
+      super.setError(undefined, opts);
+    }
+
+    // If errors in Expenses
+    else if (typeof error !== 'string' && error?.details?.errors?.expenses) {
+      // Show error in errors table
+      this.expenseForm.setError('TRIP.ERROR.INVALID_EXPENSES');
+
+      // Open the errors tab
+      this.tabGroup.selectedIndex = TripPage.TABS.EXPENSES;
+
+      // Reset errors errors
+      this.physicalGearsTable.resetError(opts);
       this.operationsTable.resetError(opts);
       super.setError(undefined, opts);
     }
@@ -358,7 +378,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   protected registerForms() {
-    this.addForms([this.tripForm, this.saleForm, this.measurementsForm, this.physicalGearsTable, this.operationsTable]);
+    this.addForms([this.tripForm, this.saleForm, this.measurementsForm, this.physicalGearsTable, this.operationsTable, this.expenseForm]);
   }
 
   protected async setProgram(program: Program) {
@@ -393,6 +413,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.tripForm.locationSuggestLengthThreshold = program.getPropertyAsInt(ProgramProperties.TRIP_LOCATION_FILTER_MIN_LENGTH);
     this.tripForm.minDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_MIN_DURATION_HOURS);
     this.tripForm.maxDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_MAX_DURATION_HOURS);
+
+    this.showExpensesForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_EXPENSES_ENABLE);
 
     // Sale form
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
@@ -612,6 +634,12 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Enable operations tab if has gears
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
+
+    // Enable expenses tab if has the program
+    this.showExpensesForm = this.showExpensesForm || !this.isNewData;
+    if (this.showExpensesForm) {
+      this.expenseForm.realignInkBar();
+    }
   }
 
   async openReport(reportType?: TripReportType | string) {
@@ -636,10 +664,12 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
       // Measurements
       if (isNewData) {
-        this.measurementsForm.value = data?.measurements || [];
+        this.measurementsForm.value = data?.measurements ?? [];
+        this.expenseForm.value = data?.measurements ?? [];
       } else {
         this.measurementsForm.programLabel = data.program?.label;
-        jobs.push(this.measurementsForm.setValue(data?.measurements || []));
+        jobs.push(this.measurementsForm.setValue(data?.measurements ?? []));
+        jobs.push(this.expenseForm.setValue(data?.measurements ?? []));
       }
 
       // Set physical gears
@@ -872,7 +902,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   async getValue(): Promise<Trip> {
     const data = await super.getValue();
 
-    data.measurements = this.measurementsForm.value;
+    data.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
 
     if (this.physicalGearsTable.dirty) {
       await this.physicalGearsTable.save();
@@ -887,6 +917,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       this.tripForm.invalid || this.measurementsForm.invalid,
       this.showGearTable && this.physicalGearsTable.invalid,
       this.showOperationTable && this.operationsTable.invalid,
+      this.showExpensesForm && this.expenseForm.invalid,
     ];
 
     return invalidTabs.findIndex((invalid) => invalid === true);

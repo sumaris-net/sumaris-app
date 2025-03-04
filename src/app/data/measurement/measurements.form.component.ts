@@ -186,7 +186,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     // DEBUG
     this._logPrefix = '[measurements-form]';
     this._state.hold(this._state.select('acquisitionLevel'), (acquisitionLevel) => {
-      this._logPrefix += `[measurements-form] (${acquisitionLevel})`;
+      this._logPrefix += `(${acquisitionLevel})`;
     });
     //this.debug = !environment.production;
   }

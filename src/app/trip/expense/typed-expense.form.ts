@@ -12,12 +12,21 @@ import {
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { TypedExpenseValidatorService } from './typed-expense.validator';
-import { BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Measurement } from '@app/data/measurement/measurement.model';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
+
+export interface TypedExpenseFormState extends MeasurementsFormState {
+  pmfmReady: boolean;
+  typePmfm: IPmfm;
+  totalPmfm: IPmfm;
+  packagingPmfms: IPmfm[];
+}
 
 @Component({
   selector: 'app-typed-expense-form',
@@ -26,12 +35,16 @@ import { RxState } from '@rx-angular/state';
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [RxState],
 })
-export class TypedExpenseForm extends MeasurementsForm implements OnInit {
-  mobile: boolean;
-  $pmfmReady = new BehaviorSubject<boolean>(false);
-  $typePmfm = new BehaviorSubject<IPmfm>(undefined);
-  $totalPmfm = new BehaviorSubject<IPmfm>(undefined);
-  $packagingPmfms = new BehaviorSubject<IPmfm[]>(undefined);
+export class TypedExpenseForm extends MeasurementsForm<TypedExpenseFormState> implements OnInit {
+  @RxStateProperty() pmfmReady: boolean;
+  @RxStateSelect() pmfmReady$: Observable<boolean>;
+
+  @RxStateProperty() typePmfm: IPmfm;
+  @RxStateSelect() typePmfm$: Observable<IPmfm>;
+  @RxStateProperty() totalPmfm: IPmfm;
+  @RxStateSelect() totalPmfm$: Observable<IPmfm>;
+  @RxStateProperty() packagingPmfms: IPmfm[];
+  @RxStateSelect() packagingPmfms$: Observable<IPmfm[]>;
   amountDefinition: FormFieldDefinition;
 
   @Input() rankOrder: number;
@@ -40,8 +53,7 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
   @Output() totalValueChanges = new EventEmitter<any>();
 
   get total(): number {
-    const totalPmfm = this.$totalPmfm.getValue();
-    return (totalPmfm && this.form.get(totalPmfm.id.toString()).value) || 0;
+    return (this.totalPmfm && this.form.get(this.totalPmfm.id.toString()).value) || 0;
   }
 
   constructor(
@@ -51,7 +63,7 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
     protected programRefService: ProgramRefService
   ) {
     super(injector, validatorService, formBuilder, programRefService);
-    this.mobile = this.settings.mobile;
+    // this.mobile = this.settings.mobile;
     this.keepRankOrder = true;
   }
 
@@ -65,16 +77,19 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
       minValue: 0,
       maximumNumberDecimals: 2,
     };
-
+    if (this.debug) console.debug('[expense] amountDefinition.label:', this.amountDefinition.label);
     this.registerSubscription(
       this.pmfms$
         // Wait form controls ready
         .pipe(mergeMap((pmfms) => this.ready().then((_) => pmfms)))
-        .subscribe((pmfms) => this.parsePmfms(pmfms))
+        .subscribe((pmfms) => {
+          if (this.debug) console.debug(`[expense] ${this.expenseType} pmfms: `, pmfms);
+          this.parsePmfms(pmfms);
+        })
     );
 
     this.registerSubscription(
-      filterNotNil(this.$totalPmfm).subscribe((totalPmfm) => {
+      filterNotNil(this.totalPmfm$).subscribe((totalPmfm) => {
         this.form
           .get(totalPmfm.id.toString())
           .valueChanges.pipe(
@@ -88,7 +103,7 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
     // type
     this.registerAutocompleteField('packaging', {
       showAllOnFocus: true,
-      items: this.$packagingPmfms,
+      items: this.packagingPmfms$,
       attributes: ['unitLabel'],
       columnNames: ['REFERENTIAL.PMFM.UNIT'],
       mobile: this.mobile,
@@ -99,7 +114,7 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
     const values = super.getValue();
 
     // parse values
-    const packagingPmfms: IPmfm[] = this.$packagingPmfms.getValue() || [];
+    const packagingPmfms: IPmfm[] = this.packagingPmfms || [];
     if (values && packagingPmfms.length) {
       packagingPmfms.forEach((packagingPmfm) => {
         const value = values.find((v) => v.pmfmId === packagingPmfm.id);
@@ -129,9 +144,10 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
 
     await super.updateView(data, opts);
     await this.readyPmfms({ stop: this.destroySubject });
+    this.markForCheck();
 
     // set packaging and amount value
-    const packaging = (this.$packagingPmfms.getValue() || []).find(
+    const packaging = (this.packagingPmfms || []).find(
       (pmfm) => this.form.get(pmfm.id.toString()) && isNotNilOrNaN(this.form.get(pmfm.id.toString()).value)
     );
     const amount = (packaging && this.form.get(packaging.id.toString()).value) || undefined;
@@ -139,15 +155,15 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
   }
 
   readyPmfms(opts: WaitForOptions): Promise<void> {
-    return firstTruePromise(this.$pmfmReady, opts);
+    return firstTruePromise(this.pmfmReady$, opts);
   }
 
   parsePmfms(pmfms: IPmfm[]) {
     if (isNotEmptyArray(pmfms)) {
       const remainingPmfms = pmfms.slice();
-      this.$typePmfm.next(remove(remainingPmfms, this.isTypePmfm));
-      this.$totalPmfm.next(remove(remainingPmfms, this.isTotalPmfm));
-      this.$packagingPmfms.next(removeAll(remainingPmfms, this.isPackagingPmfm));
+      this.typePmfm = remove(remainingPmfms, this.isTypePmfm);
+      this.totalPmfm = remove(remainingPmfms, this.isTotalPmfm);
+      this.packagingPmfms = removeAll(remainingPmfms, this.isPackagingPmfm);
       if (remainingPmfms.length) {
         console.warn('[typed-expense] some pmfms have not been parsed', remainingPmfms);
       }
@@ -155,11 +171,11 @@ export class TypedExpenseForm extends MeasurementsForm implements OnInit {
       // must update controls
       this.validatorService.updateFormGroup(this.form, {
         pmfms,
-        typePmfm: this.$typePmfm.getValue(),
-        totalPmfm: this.$totalPmfm.getValue(),
+        typePmfm: this.typePmfm,
+        totalPmfm: this.totalPmfm,
       });
 
-      this.$pmfmReady.next(true);
+      this.pmfmReady = true;
     }
   }
 

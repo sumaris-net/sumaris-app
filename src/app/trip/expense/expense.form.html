@@ -1,4 +1,7 @@
 <form class="form-container" [formGroup]="form">
+  @if (debug) {
+    <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+  }
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -8,7 +11,7 @@
   <!-- Top form -->
   <div class="ion-padding">
     <ion-grid class="form-container">
-      <ion-row *ngIf="$estimatedTotalPmfm | async; let estimatedTotalPmfm">
+      <ion-row *ngIf="estimatedTotalPmfm$ | async; let estimatedTotalPmfm">
         <ion-col size="12" size-md="3" size-lg="4">
           <ion-label class="ion-float-end" translate>EXPENSE.TOTAL_ESTIMATION</ion-label>
         </ion-col>
@@ -43,14 +46,17 @@
     [dynamicHeight]="false"
   >
     <!-- SUB-TAB: fluid -->
-    <mat-tab label="{{ 'EXPENSE.TAB_FLUID' | translate }}">
+    <mat-tab
+      label="{{ 'EXPENSE.TAB_FLUID' | translate }}"
+      [disabled]="(fuelPmfms$ | async | isEmptyArray) && (engineOilPmfms$ | async | isEmptyArray) && (hydraulicOilPmfms$ | async | isEmptyArray)"
+    >
       <div class="ion-padding">
         <ion-grid class="form-container">
           <!-- fuel -->
-          <ion-row [class.cdk-visually-hidden]="($fuelTypePmfm | async | isNil) && ($fuelPmfms | async | isEmptyArray)">
+          <ion-row [class.cdk-visually-hidden]="(fuelTypePmfm$ | async | isNil) && (fuelPmfms$ | async | isEmptyArray)">
             <ion-col size="12" size-md="3" size-lg="3">
               <app-pmfm-field
-                *ngIf="$fuelTypePmfm | async; let pmfm; index as i"
+                *ngIf="fuelTypePmfm$ | async; let pmfm; index as i"
                 [pmfm]="pmfm"
                 [compact]="false"
                 [tabindex]="tabindex + 3 + i * 2"
@@ -58,7 +64,7 @@
                 [maxVisibleButtons]="2"
               ></app-pmfm-field>
             </ion-col>
-            <ng-container *ngIf="$fuelPmfms | async; let fuelPmfms">
+            <ng-container *ngIf="fuelPmfms$ | async; let fuelPmfms">
               <ion-col *ngFor="let pmfm of fuelPmfms; index as i">
                 <app-pmfm-field
                   [pmfm]="pmfm"
@@ -74,7 +80,7 @@
           </ion-row>
 
           <!-- engine oil -->
-          <ion-row *ngIf="$engineOilPmfms | async; let engineOilPmfms">
+          <ion-row *ngIf="(engineOilPmfms$ | async)?.length > 0 && engineOilPmfms$ | async; let engineOilPmfms">
             <ion-col size="12" size-md="3" size-lg="3">
               <ion-label class="ion-float-end" translate>EXPENSE.FLUID.ENGINE_OIL</ion-label>
             </ion-col>
@@ -92,7 +98,7 @@
           </ion-row>
 
           <!-- hydraulic oil -->
-          <ion-row *ngIf="$hydraulicOilPmfms | async; let hydraulicOilPmfms">
+          <ion-row *ngIf="(hydraulicOilPmfms$ | async)?.length > 0 && hydraulicOilPmfms$ | async; let hydraulicOilPmfms">
             <ion-col size="12" size-md="3" size-lg="3">
               <ion-label class="ion-float-end" translate>EXPENSE.FLUID.HYDRAULIC_OIL</ion-label>
             </ion-col>
@@ -113,14 +119,13 @@
     </mat-tab>
 
     <!-- SUB-TAB: ice -->
-    <mat-tab label="{{ 'EXPENSE.TAB_ICE' | translate }}" [disabled]="iceExpenseForm.pmfms$ | async | isEmptyArray">
+    <mat-tab label="{{ 'EXPENSE.TAB_ICE' | translate }}" [disabled]="icePmfms$ | async | isEmptyArray">
       <div class="ion-padding">
         <app-typed-expense-form
           #iceExpenseForm
           expenseType="ICE"
           entityName="VesselUseMeasurement"
-          [programLabel]="programLabel"
-          acquisitionLevel="ICE_EXPENSE"
+          [pmfms]="icePmfms"
           [forceOptional]="forceOptional"
           [compact]="compact"
           [debug]="debug"
@@ -130,63 +135,121 @@
     </mat-tab>
 
     <!-- SUB-TAB: bait -->
-    <mat-tab label="{{ 'EXPENSE.TAB_BAIT' | translate }}" [disabled]="!baitsFormArray?.length">
+    <mat-tab label="{{ 'EXPENSE.TAB_BAIT' | translate }}" [disabled]="baitPmfms$ | async | isEmptyArray">
       <ion-grid class="form-container ion-no-padding" (focusout)="baitEditedIndex = -1">
-        <ion-row
-          *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first; last as last; odd as odd"
-          class="typed-expense-row ion-padding-bottom"
-          [class.mat-mdc-row-selected]="baitEditedIndex === i"
-          [class.odd]="odd"
-          (focusin)="baitEditedIndex = i"
-        >
-          <ion-col>
-            <div class="ion-padding">
-              <app-typed-expense-form
-                #baitExpenseForm
-                expenseType="BAIT"
-                [rankOrder]="i + 1"
-                entityName="VesselUseMeasurement"
-                [programLabel]="programLabel"
-                acquisitionLevel="BAIT_EXPENSE"
-                [forceOptional]="forceOptional"
-                [compact]="compact"
-                [tabindex]="tabindex + 50 + i * 3"
-              ></app-typed-expense-form>
-            </div>
-          </ion-col>
-          <!-- buttons -->
-          <ion-col size="1" class="ion-align-self-center ion-text-end">
-            <ion-buttons>
-              <button
-                type="button"
-                mat-icon-button
-                [style.visibility]="last ? 'visible' : 'hidden'"
-                [tabindex]="tabindex + 4 + i * 3 + 1"
-                [disabled]="disabled"
-                [title]="'COMMON.BTN_ADD' | translate"
-                (click)="addBait()"
-              >
-                <mat-icon>add</mat-icon>
-              </button>
-              <button
-                type="button"
-                mat-icon-button
-                [tabindex]="tabindex + 4 + i * 3 + 2"
-                [class.visible-hover-row]="!mobile"
-                [disabled]="disabled"
-                [title]="'COMMON.BTN_DELETE' | translate"
-                (click)="removeBait(i)"
-              >
-                <mat-icon>delete_outline</mat-icon>
-              </button>
-            </ion-buttons>
-          </ion-col>
-        </ion-row>
+        @for (rankOrder of baitRankOrders; track rankOrder; let i=$index, first=$first, last=$last, odd=$odd) {
+          <ion-row
+            class="typed-expense-row ion-padding-bottom"
+            [class.mat-mdc-row-selected]="baitEditedIndex === i"
+            [class.odd]="odd"
+            (focusin)="baitEditedIndex = i"
+          >
+            <ion-col>
+              <div class="ion-padding">
+                <app-typed-expense-form
+                  #baitExpenseForm
+                  expenseType="BAIT"
+                  [rankOrder]="rankOrder"
+                  entityName="VesselUseMeasurement"
+                  [pmfms]="baitPmfms"
+                  [forceOptional]="forceOptional"
+                  [compact]="compact"
+                  [tabindex]="tabindex + 50 + i * 3"
+                  [debug]="debug"
+                ></app-typed-expense-form>
+              </div>
+            </ion-col>
+            <!-- buttons -->
+            <ion-col size="1" class="ion-align-self-center ion-text-end">
+              <ion-buttons>
+                <button
+                  type="button"
+                  mat-icon-button
+                  [style.visibility]="last ? 'visible' : 'hidden'"
+                  [tabindex]="tabindex + 4 + i * 3 + 1"
+                  [disabled]="disabled"
+                  [title]="'COMMON.BTN_ADD' | translate"
+                  (click)="addBait()"
+                >
+                  <mat-icon>add</mat-icon>
+                </button>
+                <button
+                  type="button"
+                  mat-icon-button
+                  [tabindex]="tabindex + 4 + i * 3 + 2"
+                  [class.visible-hover-row]="!mobile"
+                  [disabled]="disabled"
+                  [title]="'COMMON.BTN_DELETE' | translate"
+                  (click)="removeBait(i)"
+                >
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </ion-buttons>
+            </ion-col>
+          </ion-row>
+        }
+      </ion-grid>
+    </mat-tab>
+
+    <!-- SUB-TAB: gear -->
+    <mat-tab label="{{ 'EXPENSE.TAB_GEAR' | translate }}" [disabled]="gearPmfms$ | async | isEmptyArray">
+      <ion-grid class="form-container ion-no-padding" (focusout)="gearEditedIndex = -1">
+        @for (rankOrder of gearRankOrders; track rankOrder; let i=$index, first=$first, last=$last, odd=$odd) {
+          <ion-row
+            class="typed-expense-row ion-padding-bottom"
+            [class.mat-mdc-row-selected]="gearEditedIndex === i"
+            [class.odd]="odd"
+            (focusin)="gearEditedIndex = i"
+          >
+            <ion-col>
+              <div class="ion-padding">
+                <app-typed-expense-form
+                  #gearExpenseForm
+                  expenseType="GEAR"
+                  [rankOrder]="rankOrder"
+                  entityName="VesselUseMeasurement"
+                  [pmfms]="gearPmfms"
+                  [forceOptional]="forceOptional"
+                  [compact]="compact"
+                  [debug]="debug"
+                  [tabindex]="tabindex + 60 + i * 3"
+                ></app-typed-expense-form>
+              </div>
+            </ion-col>
+            <!-- buttons -->
+            <ion-col size="1" class="ion-align-self-center ion-text-end">
+              <ion-buttons>
+                <button
+                  type="button"
+                  mat-icon-button
+                  [style.visibility]="last ? 'visible' : 'hidden'"
+                  [tabindex]="tabindex + 4 + i * 3 + 1"
+                  [disabled]="disabled"
+                  [title]="'COMMON.BTN_ADD' | translate"
+                  (click)="addGear()"
+                >
+                  <mat-icon>add</mat-icon>
+                </button>
+                <button
+                  type="button"
+                  mat-icon-button
+                  [tabindex]="tabindex + 4 + i * 3 + 2"
+                  [class.visible-hover-row]="!mobile"
+                  [disabled]="disabled"
+                  [title]="'COMMON.BTN_DELETE' | translate"
+                  (click)="removeGearAt(i)"
+                >
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </ion-buttons>
+            </ion-col>
+          </ion-row>
+        }
       </ion-grid>
     </mat-tab>
 
     <!-- SUB-TAB: misc -->
-    <mat-tab label="{{ 'EXPENSE.TAB_MISC' | translate }}" [disabled]="$miscPmfms | async | isEmptyArray">
+    <mat-tab label="{{ 'EXPENSE.TAB_MISC' | translate }}" [disabled]="miscPmfms$ | async | isEmptyArray">
       <div class="ion-padding">
         <ion-grid class="form-container">
           <ion-row>
@@ -194,7 +257,7 @@
               <ion-label class="ion-float-end" translate>EXPENSE.MISC.OTHER</ion-label>
             </ion-col>
             <ion-col>
-              <div *ngFor="let pmfm of $miscPmfms | async; index as i">
+              <div *ngFor="let pmfm of miscPmfms$ | async; index as i">
                 <app-pmfm-field
                   [pmfm]="pmfm"
                   [hidden]="pmfm.hidden"
@@ -211,3 +274,46 @@
     </mat-tab>
   </mat-tab-group>
 </form>
+
+<ng-template #debugPanel>
+  <app-debug title="Expense Form">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          form.ready: {{ readySubject | push }}
+          <br />
+          loading: {{ loadingSubject | push }}
+          <br />
+          enabled: {{ enabled }}
+          <br />
+          dirty: {{ dirty }}
+          <br />
+          valid: {{ valid }}
+          <br />
+          i18nPmfmPrefix: {{ i18nPmfmPrefix }}
+          <br />
+          i18nSuffix: {{ i18nSuffix }}
+        </ion-col>
+        <ion-col>
+          pmfms count: {{ (pmfms$ | push)?.length || 0 }}
+          <br />
+          fuelPmfms count: {{ (fuelPmfms$ | push)?.length || 0 }}
+          <br />
+          engineOilPmfms count: {{ (engineOilPmfms$ | push)?.length || 0 }}
+          <br />
+          hydraulicOilPmfms count: {{ (hydraulicOilPmfms$ | push)?.length || 0 }}
+          <br />
+          icePmfms count: {{ (icePmfms$ | push)?.length || 0 }}
+          <br />
+          baitPmfms count: {{ (baitPmfms$ | push)?.length || 0 }}
+          <br />
+          gearPmfms count: {{ (gearPmfms$ | push)?.length || 0 }}
+          <br />
+          miscPmfms count: {{ (miscPmfms$ | push)?.length || 0 }}
+          <br />
+          selectedTabIndex: {{ selectedTabIndex }}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>
