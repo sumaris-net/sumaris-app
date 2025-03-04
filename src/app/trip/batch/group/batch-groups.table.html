@@ -46,7 +46,7 @@
             <!-- Auto fill species -->
             <button
               mat-icon-button
-              *rxIf="showAutoFillButton$"
+              *ngIf="_enabled && showAutoFillButton && (availableTaxonGroups | isNotEmptyArray)"
               [disabled]="disabled"
               [title]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL' | translate"
               (click)="autoFillTable()"
