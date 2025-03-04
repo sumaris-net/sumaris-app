@@ -4,6 +4,7 @@ import { AbstractControlOptions, UntypedFormGroup, ValidatorFn, Validators } fro
 import { Measurement } from '@app/data/measurement/measurement.model';
 import { SharedFormGroupValidators, SharedValidators } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { isNotNilOrBlank } from '../../../../ngx-sumaris-components/src/app/shared/functions';
 
 interface TypedExpenseValidatorOptions extends MeasurementsValidatorOptions {
   typePmfm?: IPmfm;
@@ -14,6 +15,7 @@ interface TypedExpenseValidatorOptions extends MeasurementsValidatorOptions {
 export class TypedExpenseValidatorService extends MeasurementsValidatorService<Measurement, TypedExpenseValidatorOptions> {
   getFormGroupConfig(data: Measurement[], opts?: TypedExpenseValidatorOptions): { [p: string]: any } {
     return Object.assign(super.getFormGroupConfig(data, opts), {
+      rankOrder: [null],
       amount: [null, Validators.compose([SharedValidators.decimal({ maxDecimals: 2 }), Validators.min(0)])],
       packaging: [null, SharedValidators.entity],
     });
@@ -35,10 +37,12 @@ export class TypedExpenseValidatorService extends MeasurementsValidatorService<M
     // add formGroup validator for type requirement
     const additionalValidators: ValidatorFn[] = [];
     if (opts.typePmfm) {
-      additionalValidators.push(SharedFormGroupValidators.requiredIf(opts.typePmfm.id.toString(), 'amount'));
-      if (opts.totalPmfm) {
-        additionalValidators.push(SharedFormGroupValidators.requiredIf(opts.typePmfm.id.toString(), opts.totalPmfm.id.toString()));
-      }
+      additionalValidators.push(
+        // type is required if amount or total is filled
+        SharedFormGroupValidators.requiredIf(opts.typePmfm.id.toString(), 'amount', {
+          predicate: (control) => isNotNilOrBlank(control.value) || (opts.totalPmfm && isNotNilOrBlank(form.get(opts.totalPmfm.id.toString()).value)),
+        })
+      );
     }
     if (additionalValidators.length) {
       form.setValidators(this.getDefaultValidators().concat(...additionalValidators));
@@ -49,7 +53,7 @@ export class TypedExpenseValidatorService extends MeasurementsValidatorService<M
     opts = super.fillDefaultOptions(opts);
 
     // add expense fields as protected attributes
-    opts.protectedAttributes.push('amount', 'packaging');
+    opts.protectedAttributes.push('rankOrder', 'amount', 'packaging');
 
     return opts;
   }

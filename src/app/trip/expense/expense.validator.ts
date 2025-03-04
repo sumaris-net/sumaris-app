@@ -14,26 +14,19 @@ export class ExpenseValidatorService extends MeasurementsValidatorService {
   getFormGroupConfig(data: Measurement[], opts?: MeasurementsValidatorOptions): { [p: string]: any } {
     return Object.assign(super.getFormGroupConfig(data, opts), {
       calculatedTotal: [null],
-      baits: this.getBaitsFormArray(),
     });
+  }
+
+  updateFormGroup(form: UntypedFormGroup, opts?: MeasurementsValidatorOptions & { emitEvent?: boolean }) {
+    super.updateFormGroup(form, opts);
   }
 
   protected fillDefaultOptions(opts?: MeasurementsValidatorOptions): MeasurementsValidatorOptions {
     opts = super.fillDefaultOptions(opts);
 
     // add expense fields as protected attributes
-    opts.protectedAttributes.push('calculatedTotal', 'baits');
+    opts.protectedAttributes.push('calculatedTotal');
 
     return opts;
-  }
-
-  getBaitsFormArray() {
-    return this.formBuilder.array([this.getBaitControl()]);
-  }
-
-  getBaitControl(data?: number): UntypedFormGroup {
-    return this.formBuilder.group({
-      rankOrder: [data || 1],
-    });
   }
 }

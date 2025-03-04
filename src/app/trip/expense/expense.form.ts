@@ -11,12 +11,12 @@ import {
   ViewChild,
   ViewChildren,
 } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import {
-  firstNotNilPromise,
-  FormArrayHelper,
-  isNil,
+  FormGetArrayPipe,
+  isEmptyArray,
   isNotEmptyArray,
+  isNotNilOrBlank,
   isNotNilOrNaN,
   ObjectMap,
   remove,
@@ -25,16 +25,17 @@ import {
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
-import { BehaviorSubject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
 import { Measurement, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { ExpenseValidatorService } from './expense.validator';
-import { getMaxRankOrder } from '@app/data/services/model/model.utils';
 import { TypedExpenseForm } from './typed-expense.form';
 import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
+import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
+import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 
@@ -43,41 +44,81 @@ class TupleValue {
   type: TupleType;
 }
 
+export interface ExpenseFormState extends MeasurementsFormState {
+  estimatedTotalPmfm: IPmfm;
+  fuelTypePmfm: IPmfm;
+  fuelPmfms: IPmfm[];
+  engineOilPmfms: IPmfm[];
+  hydraulicOilPmfms: IPmfm[];
+  miscPmfms: IPmfm[];
+  icePmfms: IPmfm[];
+  baitPmfms: IPmfm[];
+  gearPmfms: IPmfm[];
+}
+
 @Component({
   selector: 'app-expense-form',
   templateUrl: './expense.form.html',
   styleUrls: ['./expense.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [RxState],
+  providers: [RxState, FormGetArrayPipe],
 })
-export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewInit {
-  mobile: boolean;
-  $estimatedTotalPmfm = new BehaviorSubject<IPmfm>(undefined);
-  $fuelTypePmfm = new BehaviorSubject<IPmfm>(undefined);
-  $fuelPmfms = new BehaviorSubject<IPmfm[]>(undefined);
+export class ExpenseForm extends MeasurementsForm<ExpenseFormState> implements OnInit, AfterViewInit {
+  static TABS = {
+    FLUID: 0,
+    ICE: 1,
+    BAIT: 2,
+    GEAR: 3,
+    MISC: 4,
+  };
+
+  @RxStateProperty() protected estimatedTotalPmfm: IPmfm;
+  @RxStateSelect() protected estimatedTotalPmfm$: Observable<IPmfm>;
+  @RxStateProperty() protected fuelTypePmfm: IPmfm;
+  @RxStateSelect() protected fuelTypePmfm$: Observable<IPmfm>;
+  @RxStateProperty() protected fuelPmfms: IPmfm[];
+  @RxStateSelect() protected fuelPmfms$: Observable<IPmfm[]>;
+  @RxStateProperty() protected engineOilPmfms: IPmfm[];
+  @RxStateSelect() protected engineOilPmfms$: Observable<IPmfm[]>;
+  @RxStateProperty() protected hydraulicOilPmfms: IPmfm[];
+  @RxStateSelect() protected hydraulicOilPmfms$: Observable<IPmfm[]>;
+  @RxStateProperty() protected miscPmfms: IPmfm[];
+  @RxStateSelect() protected miscPmfms$: Observable<IPmfm[]>;
+  @RxStateProperty() protected icePmfms: IPmfm[];
+  @RxStateSelect() protected icePmfms$: Observable<IPmfm[]>;
+  @RxStateProperty() protected baitPmfms: IPmfm[];
+  @RxStateSelect() protected baitPmfms$: Observable<IPmfm[]>;
+  @RxStateProperty() protected gearPmfms: IPmfm[];
+  @RxStateSelect() protected gearPmfms$: Observable<IPmfm[]>;
+
   fuelTuple: ObjectMap<TupleValue> = undefined;
-  $engineOilPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   engineOilTuple: ObjectMap<TupleValue> = undefined;
-  $hydraulicOilPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   hydraulicOilTuple: ObjectMap<TupleValue> = undefined;
-  $miscPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   totalPmfms: IPmfm[];
   calculating = false;
   baitEditedIndex = -1;
+  gearEditedIndex = -1;
 
+  baitRankOrders = [];
+  gearRankOrders = [];
   baitMeasurements: Measurement[];
+  gearMeasurements: Measurement[];
   applyingBaitMeasurements = false;
+  applyingGearMeasurements = false;
   addingNewBait = false;
   removingBait = false;
-  baitsHelper: FormArrayHelper<number>;
+  addingNewGear = false;
+  removingGear = false;
   baitsFocusIndex = -1;
+  gearsFocusIndex = -1;
   allData: Measurement[];
 
   /** The index of the active tab. */
-  private _selectedTabIndex = 0;
+  private _selectedTabIndex = ExpenseForm.TABS.FLUID;
   get selectedTabIndex(): number | null {
     return this._selectedTabIndex;
   }
+
   @Input() set selectedTabIndex(value: number | null) {
     if (value !== this._selectedTabIndex) {
       this._selectedTabIndex = value;
@@ -89,39 +130,58 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   @ViewChild('iceExpenseForm') iceForm: TypedExpenseForm;
   @ViewChildren('baitExpenseForm') baitForms: QueryList<TypedExpenseForm>;
+  @ViewChildren('gearExpenseForm') gearForms: QueryList<TypedExpenseForm>;
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
-  get baitsFormArray(): UntypedFormArray {
-    // 'baits' FormArray is just a array of number of fake rankOrder
-    return this.form.get('baits') as UntypedFormArray;
-  }
-
   get dirty(): boolean {
-    return super.dirty || (this.iceForm && !!this.iceForm.dirty) || (this.baitForms && !!this.baitForms.find((form) => form.dirty));
+    return (
+      super.dirty ||
+      (this.iceForm?.dirty) ||
+      (this.baitForms?.some((form) => form.dirty)) ||
+      (this.gearForms?.some((form) => form.dirty))
+    );
   }
 
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')
-    return super.valid && (!this.iceForm || !this.iceForm.valid) && (!this.baitForms || !this.baitForms.some((form) => !form.valid));
+    return (
+      super.valid &&
+      (this.iceForm?.valid ?? true) &&
+      (this.baitForms?.toArray()?.every((form) => form.valid) ?? true) &&
+      (this.gearForms?.toArray()?.every((form) => form.valid) ?? true)
+    );
   }
 
   get invalid(): boolean {
-    return super.invalid || (this.iceForm && this.iceForm.invalid) || (this.baitForms && this.baitForms.some((form) => form.invalid));
+    return (
+      super.invalid ||
+      (this.iceForm?.invalid) ||
+      (this.baitForms?.some((form) => form.invalid)) ||
+      (this.gearForms?.some((form) => form.invalid))
+    );
   }
 
   get pending(): boolean {
-    return super.pending || (this.iceForm && !!this.iceForm.pending) || (this.baitForms && this.baitForms.some((form) => form.pending));
+    return (
+      super.pending ||
+      (this.iceForm?.pending) ||
+      (this.baitForms?.some((form) => form.pending)) ||
+      (this.gearForms?.some((form) => form.pending))
+    );
   }
 
   markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsReady(opts);
     this.iceForm?.markAsReady(opts);
     this.baitForms?.forEach((form) => form.markAsReady(opts));
+    this.gearForms?.forEach((form) => form.markAsReady(opts));
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {
     await super.ready(opts);
     if (this.iceForm) await this.iceForm.ready(opts);
+    if (this.baitForms) await this.baitForms.forEach((form) => form.ready(opts));
+    if (this.gearForms) await this.gearForms.forEach((form) => form.ready(opts));
   }
 
   constructor(
@@ -139,33 +199,57 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   ngOnInit() {
     super.ngOnInit();
 
-    this.initBaitHelper();
+    this._state.select('filteredPmfms').subscribe((pmfms) => {
+      const expensePmfms: IPmfm[] = pmfms.slice();
 
-    this.registerSubscription(
-      this.pmfms$
-        // Wait form controls ready
-        .pipe(mergeMap((pmfms) => this.ready().then((_) => pmfms)))
-        .subscribe((pmfms) => {
-          const expensePmfms: IPmfm[] = pmfms.slice();
-          // dispatch pmfms
-          this.$estimatedTotalPmfm.next(remove(expensePmfms, this.isEstimatedTotalPmfm));
-          this.$fuelTypePmfm.next(remove(expensePmfms, this.isFuelTypePmfm));
+      if (this.debug) console.debug('[expense] pmfms: ', pmfms);
+      // dispatch pmfms
+      this.estimatedTotalPmfm = remove(expensePmfms, this.isEstimatedTotalPmfm);
+      this.fuelTypePmfm = remove(expensePmfms, this.isFuelTypePmfm);
 
-          this.$fuelPmfms.next(removeAll(expensePmfms, this.isFuelPmfm));
-          this.fuelTuple = this.getValidTuple(this.$fuelPmfms.getValue());
+      this.fuelPmfms = removeAll(expensePmfms, this.isFuelPmfm);
+      this.fuelTuple = this.getValidTuple(this.fuelPmfms);
 
-          this.$engineOilPmfms.next(removeAll(expensePmfms, this.isEngineOilPmfm));
-          this.engineOilTuple = this.getValidTuple(this.$engineOilPmfms.getValue());
+      this.engineOilPmfms = removeAll(expensePmfms, this.isEngineOilPmfm);
+      this.engineOilTuple = this.getValidTuple(this.engineOilPmfms);
 
-          this.$hydraulicOilPmfms.next(removeAll(expensePmfms, this.isHydraulicPmfm));
-          this.hydraulicOilTuple = this.getValidTuple(this.$hydraulicOilPmfms.getValue());
+      this.hydraulicOilPmfms = removeAll(expensePmfms, this.isHydraulicPmfm);
+      this.hydraulicOilTuple = this.getValidTuple(this.hydraulicOilPmfms);
 
-          // remaining pmfms go to miscellaneous part
-          this.$miscPmfms.next(expensePmfms);
+      // remaining pmfms go to miscellaneous part
+      this.miscPmfms = expensePmfms;
 
-          // register total pmfms for calculated total
-          this.registerTotalSubscription(pmfms.filter((pmfm) => this.isTotalPmfm(pmfm) && !this.isEstimatedTotalPmfm(pmfm)));
+      // register total pmfms for calculated total
+      this.registerTotalSubscription(pmfms.filter((pmfm) => this.isTotalPmfm(pmfm) && !this.isEstimatedTotalPmfm(pmfm)));
+    });
+
+    // Load other pmfms for typed expense
+    this._state.connect(
+      'icePmfms',
+      this._state.select('programLabel').pipe(
+        filter(isNotNilOrBlank),
+        mergeMap((programLabel) => {
+          return this.programRefService.watchProgramPmfms(programLabel, { acquisitionLevel: 'ICE_EXPENSE' });
         })
+      )
+    );
+    this._state.connect(
+      'baitPmfms',
+      this._state.select('programLabel').pipe(
+        filter(isNotNilOrBlank),
+        mergeMap((programLabel) => {
+          return this.programRefService.watchProgramPmfms(programLabel, { acquisitionLevel: 'BAIT_EXPENSE' });
+        })
+      )
+    );
+    this._state.connect(
+      'gearPmfms',
+      this._state.select('programLabel').pipe(
+        filter(isNotNilOrBlank),
+        mergeMap((programLabel) => {
+          return this.programRefService.watchProgramPmfms(programLabel, { acquisitionLevel: 'GEAR_EXPENSE' });
+        })
+      )
     );
   }
 
@@ -173,29 +257,47 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     // listen to bait forms children view changes
     this.registerSubscription(this.baitForms.changes.subscribe(() => this.refreshBaitForms()));
 
+    // listen to gear forms children view changes
+    this.registerSubscription(this.gearForms.changes.subscribe(() => this.refreshGearForms()));
+
     // add totalValueChange subscription on iceForm
     this.registerSubscription(this.iceForm.totalValueChanges.subscribe(() => this.calculateTotal()));
   }
 
   realignInkBar() {
-    if (this.tabGroup) this.tabGroup.realignInkBar();
+    if (this.tabGroup && this.tabGroup._tabs.length > 0) {
+      // Change selected tab if current cannot be show
+      this.tabGroup.selectedIndex = this.getValidTab(this.selectedTabIndex);
+      this.tabGroup.realignInkBar();
+    }
   }
 
-  initBaitHelper() {
-    this.baitsHelper = new FormArrayHelper<number>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'baits'),
-      (data) => this.validatorService.getBaitControl(data),
-      (v1, v2) => v1 === v2,
-      (value) => isNil(value),
-      {
-        allowEmptyArray: false,
-      }
-    );
-    if (this.baitsHelper.size() === 0) {
-      // add at least one bait
-      this.baitsHelper.resize(1);
+  // fixme : maybe useless, check in data editor
+  protected getValidTab(index: number): number {
+    const tabIndex = index ?? ExpenseForm.TABS.FLUID;
+    if (tabIndex < 0 || tabIndex >= this.tabGroup._tabs.length) return 0;
+    let validTab: boolean = false;
+    switch (tabIndex) {
+      case ExpenseForm.TABS.FLUID:
+        validTab = isNotEmptyArray(this.fuelPmfms) || isNotEmptyArray(this.engineOilPmfms) || isNotEmptyArray(this.hydraulicOilPmfms);
+        break;
+      case ExpenseForm.TABS.ICE:
+        validTab = isNotEmptyArray(this.icePmfms);
+        break;
+      case ExpenseForm.TABS.BAIT:
+        validTab = isNotEmptyArray(this.baitPmfms);
+        break;
+      case ExpenseForm.TABS.GEAR:
+        validTab = isNotEmptyArray(this.gearPmfms);
+        break;
+      case ExpenseForm.TABS.MISC:
+        validTab = isNotEmptyArray(this.miscPmfms);
+        break;
     }
-    this.markForCheck();
+    if (!validTab) {
+      return this.getValidTab(tabIndex + 1);
+    }
+    return tabIndex;
   }
 
   getValue(): Measurement[] {
@@ -215,15 +317,23 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
       .filter(isNotEmptyArray)
       .forEach((value) => values.push(...value));
 
+    // add gear values
+    this.gearForms
+      .map((form) => form.value)
+      .filter(isNotEmptyArray)
+      .forEach((value) => values.push(...value));
+
     this.allData = values;
     return values;
   }
 
   async applyValue(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    // Make a copy of data to keep ice and bait measurements
-    this.allData = this.allData || data.slice();
+    // Make a copy of data to keep ice, bait and gear measurements
+    this.allData = this.allData || data?.slice();
 
     await super.applyValue(data, opts);
+
+    if (this.debug) console.debug('[expense] this.allData: ', this.allData);
 
     try {
       // set ice value
@@ -231,6 +341,9 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
       // set bait values
       await this.setBaitValue(this.allData);
+
+      // set gear values
+      await this.setGearValue(this.allData);
 
       // initial calculation of tuples
       this.calculateInitialTupleValues(this.fuelTuple);
@@ -244,16 +357,14 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
       this.calculateTotal();
     } catch (err) {
       if (this.destroyed) return; // Skip if component destroyed
-      console.error('[expense-form] Cannot load ice pmfms', err);
+      console.error('[expense-form] Cannot load expense pmfms', err);
     }
   }
 
   async setIceValue(data: Measurement[]) {
     try {
-      const icePmfms = await firstNotNilPromise(this.iceForm.pmfms$, { stop: this.destroySubject, timeout: 10000 });
-
       // filter data before set to ice form
-      this.iceForm.value = MeasurementUtils.filter(data, icePmfms);
+      this.iceForm.value = MeasurementUtils.filter(data, this.icePmfms);
     } catch (err) {
       if (this.destroyed) return; // Skip if component destroyed
       console.error('[expense-form] Cannot load ice pmfms', err);
@@ -262,20 +373,29 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   }
 
   async setBaitValue(data: Measurement[]) {
+    if (isEmptyArray(this.baitPmfms)) return;
     try {
-      const baitPmfms = await firstNotNilPromise(this.baitForms.first.pmfms$, { stop: this.destroySubject, timeout: 10000 });
-
       // filter data before set to each bait form
-      this.baitMeasurements = MeasurementUtils.filter(data, baitPmfms);
+      const baitMeasurements = MeasurementUtils.filter(data, this.baitPmfms);
 
-      // get max rankOrder (should be = nbBaits)
-      const nbBait = getMaxRankOrder(this.baitMeasurements);
-      const baits = [...Array(nbBait).keys()];
+      // get all rankOrders
+      const baitRankOrders = baitMeasurements
+        .map((bait) => bait.rankOrder)
+        .filter((value, index, array) => array.indexOf(value) === index)
+        .sort((a, b) => a - b);
 
+      if (baitRankOrders.length === 0) {
+        baitRankOrders.push(1);
+      }
+
+      this.baitMeasurements = baitMeasurements;
+      this.baitRankOrders = baitRankOrders;
+      if (this.debug) {
+        console.debug('[expense] baitMeasurements: ', this.baitMeasurements);
+        console.debug('[expense] baitRankOrders: ', this.baitRankOrders);
+      }
       this.applyingBaitMeasurements = true;
-      // resize 'baits' FormArray and patch main form to adjust number of bait children forms
-      this.baitsHelper.resize(Math.max(1, nbBait));
-      this.form.patchValue({ baits });
+      this.cd.detectChanges();
       this.refreshBaitForms();
     } catch (err) {
       if (this.destroyed) return; // Skip if component destroyed
@@ -284,15 +404,46 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     }
   }
 
-  refreshBaitForms() {
-    this.cd.detectChanges();
+  async setGearValue(data: Measurement[]) {
+    if (isEmptyArray(this.gearPmfms)) return;
+    try {
+      // filter data before set to each gear form
+      const gearMeasurements = MeasurementUtils.filter(data, this.gearPmfms);
 
+      // get all rankOrders
+      const gearRankOrders = gearMeasurements
+        .map((bait) => bait.rankOrder)
+        .filter((value, index, array) => array.indexOf(value) === index)
+        .sort((a, b) => a - b);
+
+      if (gearRankOrders.length === 0) {
+        gearRankOrders.push(1);
+      }
+
+      this.gearMeasurements = gearMeasurements;
+      this.gearRankOrders = gearRankOrders;
+      if (this.debug) {
+        console.debug('[expense] gearMeasurements: ', this.gearMeasurements);
+        console.debug('[expense] gearsRankOrders: ', this.gearRankOrders);
+      }
+      this.applyingGearMeasurements = true;
+      this.cd.detectChanges();
+      this.refreshGearForms();
+    } catch (err) {
+      if (this.destroyed) return; // Skip if component destroyed
+      console.error('[expense-form] Cannot load gear pmfms', err);
+      throw new Error('Cannot load gear pmfms');
+    }
+  }
+
+  refreshBaitForms() {
     // on applying bait measurements, set them after forms are ready
     if (this.applyingBaitMeasurements) {
       this.applyingBaitMeasurements = false;
-      this.applyBaitMeasurements();
-      // set all as enabled
+      // set filtered bait measurements to each form, which will also filter with its rankOrder
       this.baitForms.forEach((baitForm) => {
+        baitForm.value = this.baitMeasurements;
+        // set all as enabled
         baitForm.markAsReady();
         if (this._enabled) baitForm.enable();
       });
@@ -321,28 +472,78 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     });
   }
 
-  applyBaitMeasurements() {
-    // set filtered bait measurements to each form, which will also filter with its rankOrder
-    this.baitForms.forEach((baitForm) => {
-      baitForm.value = this.baitMeasurements;
+  refreshGearForms() {
+    // on applying gear measurements, set them after forms are ready
+    if (this.applyingGearMeasurements) {
+      this.applyingGearMeasurements = false;
+      // set filtered gear measurements to each form, which will also filter with its rankOrder
+      this.gearForms.forEach((gearForm) => {
+        gearForm.value = this.gearMeasurements;
+        // set all as enabled
+        gearForm.markAsReady();
+        if (this._enabled) gearForm.enable();
+      });
+    }
+
+    // on adding a new gear, prepare the new form
+    if (this.addingNewGear) {
+      this.addingNewGear = false;
+      this.gearForms.last.value = [];
+      this.gearForms.last.markAsReady();
+      if (this._enabled) this.gearForms.last.enable();
+    }
+
+    // on removing gear, total has to be recalculate
+    if (this.removingGear) {
+      this.removingGear = false;
+      this.calculateTotal();
+    }
+
+    // check all gear children forms having totalValueChange registered,
+    this.gearForms.forEach((gearForm) => {
+      // add it if missing
+      if (!gearForm.totalValueChanges.observed) {
+        this.registerSubscription(gearForm.totalValueChanges.subscribe(() => this.calculateTotal()));
+      }
     });
   }
 
   addBait() {
     // just add a new fake rankOrder value in 'baits' array, the real rankOrder is driven by template index
     this.addingNewBait = true;
-    this.baitsHelper.add(getMaxRankOrder(this.baitsFormArray.value) + 1);
+    this.baitRankOrders.push(Math.max(...this.baitRankOrders, 0) + 1);
     if (!this.mobile) {
-      this.baitsFocusIndex = this.baitsHelper.size() - 1;
+      this.baitsFocusIndex = this.baitRankOrders.length - 1;
     }
   }
 
   removeBait(index: number) {
     this.removingBait = true;
-    if (!this.baitsHelper.allowEmptyArray && this.baitsHelper.size() === 1) {
+    if (this.baitRankOrders.length === 1) {
       this.baitForms.first.value = [];
+    } else {
+      this.baitRankOrders.splice(index, 1);
     }
-    this.baitsHelper.removeAt(index);
+    this.markAsDirty();
+  }
+
+  addGear() {
+    // just add a new fake rankOrder value in 'gear' array, the real rankOrder is driven by template index
+    this.addingNewGear = true;
+    this.gearRankOrders.push(Math.max(...this.gearRankOrders, 0) + 1);
+    if (!this.mobile) {
+      this.gearsFocusIndex = this.gearRankOrders.length - 1;
+    }
+  }
+
+  removeGearAt(index: number) {
+    this.removingGear = true;
+    if (this.gearRankOrders.length === 1) {
+      this.gearForms.first.value = [];
+    } else {
+      this.gearRankOrders.splice(index, 1);
+    }
+    this.markAsDirty();
   }
 
   registerTupleSubscription(tuple: ObjectMap<TupleValue>) {
@@ -481,6 +682,11 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
       total += baitForm.total;
     });
 
+    // add total from each gear form
+    this.gearForms.forEach((gearForm) => {
+      total += gearForm.total;
+    });
+
     this.form.patchValue({ calculatedTotal: round(total) });
   }
 
@@ -535,41 +741,49 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.calculating = true;
     super.enable(opts);
-    if (this.iceForm) this.iceForm.enable(opts);
-    if (this.baitForms) this.baitForms.forEach((form) => form.enable(opts));
+    this.iceForm?.enable(opts);
+    this.baitForms?.forEach((form) => form.enable(opts));
+    this.gearForms?.forEach((form) => form.enable(opts));
     this.calculating = false;
   }
 
   disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.calculating = true;
     super.disable(opts);
-    if (this.iceForm) this.iceForm.disable(opts);
-    if (this.baitForms) this.baitForms.forEach((form) => form.disable(opts));
+    this.iceForm?.disable(opts);
+    this.baitForms?.forEach((form) => form.disable(opts));
+    this.gearForms?.forEach((form) => form.disable(opts));
     this.calculating = false;
   }
 
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsPristine(opts);
-    if (this.iceForm) this.iceForm.markAsPristine(opts);
-    if (this.baitForms) this.baitForms.forEach((form) => form.markAsPristine(opts));
+    this.iceForm?.markAsPristine(opts);
+    this.baitForms?.forEach((form) => form.markAsPristine(opts));
+    this.gearForms?.forEach((form) => form.markAsPristine(opts));
   }
 
   markAsUntouched(opts?: { onlySelf?: boolean }) {
     super.markAsUntouched(opts);
-    if (this.iceForm) this.iceForm.markAsUntouched(opts);
-    if (this.baitForms) this.baitForms.forEach((form) => form.markAsUntouched());
-  }
-
-  markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsTouched(opts);
-    this.iceForm?.markAsTouched(opts);
-    this.baitForms?.forEach((form) => form.markAsTouched(opts));
+    this.iceForm?.markAsUntouched(opts);
+    this.baitForms?.forEach((form) => form.markAsUntouched());
+    this.gearForms?.forEach((form) => form.markAsUntouched());
   }
 
   markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAllAsTouched(opts);
-    if (this.iceForm) this.iceForm.markAllAsTouched(opts);
-    if (this.baitForms) this.baitForms.forEach((form) => form.markAllAsTouched(opts));
+    this.iceForm?.markAllAsTouched(opts);
+    this.baitForms?.forEach((form) => form.markAllAsTouched(opts));
+    this.gearForms?.forEach((form) => form.markAllAsTouched(opts));
+  }
+
+  // Change visibility to public
+  resetError(opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean }) {
+    this.setError(undefined, opts);
+  }
+
+  setError(error: string, opts?: { emitEvent?: boolean }) {
+    super.setError(error, opts);
   }
 
   protected markForCheck() {
