@@ -1664,7 +1664,7 @@
     "CALCULATED_TOTAL": "Total calculé :"
   },
   "SALE": {
-    "TITLE_PREFIX": "<small>{{location}} - {{date}}</small>",
+    "TITLE_PREFIX": "<small>Sortie : {{location}} - {{date}}<br></small>",
     "TITLE": "Vente",
     "SALE_FIELD": "Vente :",
     "DATE_TIME": "Date/heure",
@@ -1878,9 +1878,9 @@
       "OBSERVERS": "Observateurs :",
       "OBSERVER_PLACEHOLDER": "Observateur #",
       "OTHER_FEATURES": "Autres caractéristiques :",
-      "TAB_SAMPLES": "Echantillons",
+      "TAB_SAMPLES": "Échantillons",
       "SAMPLING": {
-        "TITLE": "<span class=\"hidden-xs hidden-sm\">Ligne de plan </span>{{strategyLabel}} - <ion-icon name=\"boat\"></ion-icon> {{vessel}}",
+        "TITLE": "<span class=\"hidden-xs hidden-sm\">Ligne de plan </span>{{strategyLabel}} - Navire {{vessel}}",
         "STRATEGY": "Ligne de plan :",
         "STRATEGY_PLACEHOLDER": "Code ligne de plan",
         "STRATEGY_SUMMARY_TITLE": "Plan d'échantillonnage",

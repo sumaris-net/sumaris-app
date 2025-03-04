@@ -76,8 +76,9 @@ import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { OperationType } from '@app/trip/operation/operation.form';
+import { expansionInOutAnimation } from '@app/shared/material/material.animations';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -96,7 +97,7 @@ export interface TripPageState extends RootDataEntityEditorState {
   selector: 'app-trip-page',
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss'],
-  animations: [fadeInOutAnimation],
+  animations: [fadeInOutAnimation, expansionInOutAnimation],
   providers: [
     { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => TripPage) },
     {

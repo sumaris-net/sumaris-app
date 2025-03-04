@@ -1527,7 +1527,7 @@
     "CALCULATED_TOTAL": "Calculated total:"
   },
   "SALE": {
-    "TITLE_PREFIX": "<small>{{location}} - {{date}}</small>",
+    "TITLE_PREFIX": "<small>Occasion: {{location}} - {{date}}<br></small>",
     "TITLE": "Sale",
     "SALE_FIELD": "Sale:",
     "DATE_TIME": "Date/Time",
@@ -1736,7 +1736,7 @@
       "OTHER_FEATURES": "Other features:",
       "TAB_SAMPLES": "Samples",
       "SAMPLING": {
-        "TITLE": "<span class=\"hidden-xs hidden-sm\">Sampling plan </span>{{strategyLabel}} - <ion-icon name=\"boat\"></ion-icon> {{vessel}}",
+        "TITLE": "<span class=\"hidden-xs hidden-sm\">Sampling plan </span>{{strategyLabel}} - Vessel {{vessel}}",
         "STRATEGY": "Sample row:",
         "STRATEGY_PLACEHOLDER": "Sample row code",
         "STRATEGY_SUMMARY_TITLE": "Sampling scheme",

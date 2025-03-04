@@ -1,10 +1,12 @@
 import {
   EntityClass,
   EntityUtils,
+  getPropertyByPath,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   ITreeItemEntity,
   ReferentialRef,
   ReferentialUtils,
@@ -23,6 +25,7 @@ import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { TripRef } from '@app/trip/trip/trip-ref.model';
 import { hasFlag } from '@app/shared/flags.utils';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 export interface PhysicalGearAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -281,5 +284,36 @@ export class PhysicalGear
         // Same measurementsValues
         (opts.withMeasurementValues !== true || MeasurementValuesUtils.equals(this.measurementValues, other.measurementValues)))
     );
+  }
+}
+
+export class PhysicalGearUtils {
+  /**
+   * Retrieves the user label of a given physical gear by accessing its measurement values.
+   *
+   * @param {PhysicalGear} physicalGear - The physical gear object from which to extract the user label.
+   * @return {string} The user label extracted from the provided physical gear.
+   */
+  static getUserLabel(physicalGear: PhysicalGear): string {
+    return getPropertyByPath(physicalGear, `measurementValues.${PmfmIds.GEAR_LABEL}`);
+  }
+
+  /**
+   * Computes and updates the user label for a given PhysicalGear object based on its current properties.
+   *
+   * @param {PhysicalGear} source - The source PhysicalGear object to compute the user label for.
+   * @return {PhysicalGear} A new or modified PhysicalGear object with the updated user label if applicable.
+   */
+  static computeUserLabel(source: PhysicalGear): PhysicalGear {
+    let target = PhysicalGear.fromObject(source);
+    if (!source?.gear) return target;
+
+    const userLabel = PhysicalGearUtils.getUserLabel(source);
+    if (isNotNilOrBlank(userLabel) && source.gear.name !== userLabel) {
+      target = target.clone();
+      target.gear.name = userLabel;
+    }
+
+    return target;
   }
 }

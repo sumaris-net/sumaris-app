@@ -1751,7 +1751,7 @@ export class TripService
       const savedTrip = await this.save(trip);
 
       // Return the saved gear
-      const savedEntity = savedTrip.gears.find((g) => g.rankOrder === entity.rankOrder);
+      const savedEntity = savedTrip.gears?.find((g) => g.rankOrder === entity.rankOrder);
 
       // Check that the gear has been added
       if (!savedEntity) throw new Error('Cannot find expected physical gear, in the saved trip!');

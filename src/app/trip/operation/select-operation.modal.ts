@@ -24,8 +24,8 @@ export interface ISelectOperationModalOptions {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectOperationModal implements OnInit, ISelectOperationModalOptions {
-  selectedTabIndex = 0;
-  datasource: EntitiesTableDataSource<Operation, OperationFilter>;
+  protected selectedTabIndex = 0;
+  protected datasource: EntitiesTableDataSource<Operation, OperationFilter>;
 
   @ViewChild('table', { static: true }) table: SelectOperationByTripTable;
 

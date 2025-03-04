@@ -1,6 +1,6 @@
 <app-toolbar
-  [title]="$title | async"
   color="primary"
+  [title]="titleSubject | async"
   [hasValidate]="!loading && (dirty || saving)"
   [hasClose]="!loading && !dirty && !saving"
   (onValidate)="save($event)"

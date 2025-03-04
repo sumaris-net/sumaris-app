@@ -183,21 +183,21 @@
               <!-- trip -->
               <app-form-trip #tripForm [showError]="false" [returnFieldsRequired]="usageMode | isOnDesk" (onSubmit)="save($event)">
                 <!-- sale -->
-                <app-form-sale
-                  #saleForm
-                  [class.cdk-visually-hidden]="!showSaleForm || (measurementsForm.readySubject | async) === false"
-                  [locationLevelIds]="saleLocationLevelIds"
-                  [showProgram]="false"
-                  [showVessel]="false"
-                  [showError]="false"
-                  [showComment]="false"
-                  [showEndDateTime]="false"
-                  [required]="false"
-                  [tabindex]="showSaleForm ? 10 : -1"
-                  [minDate]="returnDateTime$ | async"
-                  [debug]="debug"
-                  beforeObservers
-                ></app-form-sale>
+                <div beforeObservers [@expansionInOutAnimation]="showSaleForm && (measurementsForm.readySubject | async) ? 'expanded' : 'collapsed'">
+                  <app-form-sale
+                    #saleForm
+                    [locationLevelIds]="saleLocationLevelIds"
+                    [showProgram]="false"
+                    [showVessel]="false"
+                    [showError]="false"
+                    [showComment]="false"
+                    [showEndDateTime]="false"
+                    [required]="false"
+                    [tabindex]="showSaleForm ? 10 : -1"
+                    [minDate]="returnDateTime$ | async"
+                    [debug]="debug"
+                  ></app-form-sale>
+                </div>
 
                 <!-- Other features (Measurements) -->
                 <ion-grid class="ion-no-padding ion-padding-top form-container" afterObservers>
@@ -287,7 +287,6 @@
         [requiredGear]="false"
         (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
         [showToolbar]="!mobile"
-        [sticky]="!mobile"
         [usageMode]="usageMode"
         [mobile]="mobile"
         [debug]="debug"
@@ -331,6 +330,8 @@
         [defaultSortBy]="mobile ? 'startDateTime' : 'endDateTime'"
         [defaultSortDirection]="mobile ? 'desc' : 'asc'"
         [helpMessage]="showOperationHelpMessage && operationHelpMessage"
+        [mobile]="mobile"
+        [debug]="debug"
       ></app-operations-table>
     </mat-tab>
   </mat-tab-group>
