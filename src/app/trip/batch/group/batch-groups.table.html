@@ -145,7 +145,7 @@
           @if (row.editing) {
             <mat-autocomplete-field
               floatLabel="never"
-              panelClass="min-width-medium"
+              panelClass="mat-select-panel-fit-content"
               [autofocus]="focusColumn === 'taxonGroup'"
               [formControl]="row.validator | formGetControl: 'taxonGroup'"
               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER' | translate"
@@ -167,7 +167,7 @@
           @if (row.editing) {
             <mat-autocomplete-field
               floatLabel="never"
-              panelClass="min-width-medium"
+              panelClass="mat-select-panel-fit-content"
               [autofocus]="focusColumn === 'taxonName'"
               [formControl]="row.validator | formGetControl: 'taxonName'"
               [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER' | translate"

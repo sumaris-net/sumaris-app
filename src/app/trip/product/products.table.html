@@ -115,7 +115,7 @@
         @if (row.editing) {
           <mat-autocomplete-field
             floatLabel="never"
-            panelClass="min-width-large ion-text-wrap"
+            panelClass="mat-select-panel-fit-content ion-text-wrap"
             [autofocus]="row.id === -1 && row.editing && !!row.currentData.parent"
             [formControl]="row.validator.controls.taxonGroup"
             [placeholder]="'TRIP.PRODUCT.LIST.TAXON_GROUP' | translate"
