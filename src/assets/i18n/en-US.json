@@ -800,7 +800,7 @@
       "RETURN_DATE_TIME": "Return date",
       "RETURN_LOCATION": "Return harbour",
       "QUALITY": "State",
-      "OBSERVERS": "Observers",
+      "OBSERVERS": "Observer(s)",
       "RECORDER_PERSON": "Recorder",
       "COMMENTS": "Comments",
       "NO_LOCAL_RESULT": "No result (among <b>unsynchronized</b> trips)",
