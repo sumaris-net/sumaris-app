@@ -22,6 +22,8 @@ import {
   remove,
   removeAll,
   round,
+  RxStateProperty,
+  RxStateSelect,
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
@@ -35,7 +37,6 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 type TupleType = 'quantity' | 'unitPrice' | 'total';
 
@@ -134,12 +135,7 @@ export class ExpenseForm extends MeasurementsForm<ExpenseFormState> implements O
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
   get dirty(): boolean {
-    return (
-      super.dirty ||
-      (this.iceForm?.dirty) ||
-      (this.baitForms?.some((form) => form.dirty)) ||
-      (this.gearForms?.some((form) => form.dirty))
-    );
+    return super.dirty || this.iceForm?.dirty || this.baitForms?.some((form) => form.dirty) || this.gearForms?.some((form) => form.dirty);
   }
 
   get valid(): boolean {
@@ -153,21 +149,11 @@ export class ExpenseForm extends MeasurementsForm<ExpenseFormState> implements O
   }
 
   get invalid(): boolean {
-    return (
-      super.invalid ||
-      (this.iceForm?.invalid) ||
-      (this.baitForms?.some((form) => form.invalid)) ||
-      (this.gearForms?.some((form) => form.invalid))
-    );
+    return super.invalid || this.iceForm?.invalid || this.baitForms?.some((form) => form.invalid) || this.gearForms?.some((form) => form.invalid);
   }
 
   get pending(): boolean {
-    return (
-      super.pending ||
-      (this.iceForm?.pending) ||
-      (this.baitForms?.some((form) => form.pending)) ||
-      (this.gearForms?.some((form) => form.pending))
-    );
+    return super.pending || this.iceForm?.pending || this.baitForms?.some((form) => form.pending) || this.gearForms?.some((form) => form.pending);
   }
 
   markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
