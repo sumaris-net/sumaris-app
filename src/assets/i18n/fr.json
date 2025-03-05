@@ -2609,6 +2609,7 @@
       "TRIP_MIN_DURATION_HOURS": "Marée > Durée minimale (heures)",
       "TRIP_MAX_DURATION_HOURS": "Marée > Durée maximale (heures)",
       "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplissage ?",
+      "TRIP_BATCH_ADD_ALL_SPECIES_ENABLE": "Capture > Lot espèce: Afficher le bouton d'ajout de toutes les espèces ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces comm. sans poids :",
       "TRIP_BATCH_TAXON_GROUPS_NO_LANDING": "Capture > Lot espèce: Espèces comm. non débarqués:",

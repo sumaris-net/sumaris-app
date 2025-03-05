@@ -140,6 +140,7 @@ export class OperationPage<S extends OperationState = OperationState>
   selectedSubTabIndex = 0;
   allowParentOperation = false;
   autoFillBatch = false;
+  showAutoFillButton = true;
   autoFillDatesFromTrip = false;
   displayAttributes: {
     gear?: string[];
@@ -759,6 +760,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     this.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
     this.autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
+    this.showAutoFillButton = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ADD_ALL_SPECIES_ENABLE);
     this.autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_COPY_TRIP_DATE);
     this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
 
