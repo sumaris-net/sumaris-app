@@ -9,6 +9,8 @@ import {
   isNotNilOrNaN,
   remove,
   removeAll,
+  RxStateProperty,
+  RxStateSelect,
   WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { TypedExpenseValidatorService } from './typed-expense.validator';
@@ -18,7 +20,6 @@ import { debounceTime, filter, mergeMap } from 'rxjs/operators';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 
 export interface TypedExpenseFormState extends MeasurementsFormState {
