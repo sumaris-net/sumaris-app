@@ -152,14 +152,6 @@ html.print-pdf .reveal .slides section {
               flex-direction: column;
               align-items: flex-end;
               justify-content: center;
-              &.horiz-checkbox {
-                flex-direction: row;
-                align-items: flex-start;
-                span {
-                  display: inline-block;
-                  margin-right: 5px;
-                }
-              }
               .help {
                 font-size: var(--font-small);
                 font-style: italic;
@@ -210,6 +202,16 @@ html.print-pdf .reveal .slides section {
             }
           }
 
+          &.horiz-checkbox {
+            width: 100%;
+            flex-direction: row;
+            align-items: flex-start;
+            span {
+              display: inline-block;
+              margin-right: 5px;
+            }
+          }
+
           figure {
             max-height: 250px;
             max-width: 250px;
@@ -253,6 +255,33 @@ html.print-pdf .reveal .slides section {
 
       &.report-section {
         margin: 0 calc(var(--page-horizontal-margin) * 1px);
+      }
+    }
+
+    .mat-mdc-table {
+      --row-title-height: 48;
+      --row-height: 48;
+      margin: 0 auto;
+      border: 3px solid var(--text-color);
+      --mat-table-header-color: var(--text-color);
+      --mat-table-row-item-outline-color: black;
+      .mat-mdc-header-cell,
+      .mat-mdc-cell {
+        &:not(lat-child) {
+          border-left: solid 1px;
+        }
+      }
+      .mat-mdc-header-cell {
+        justify-content: center;
+      }
+      .mat-mdc-cell {
+        padding-inline: 8px !important;
+      }
+      mat-header-row,
+      mat-row {
+        min-height: calc(var(--row-height) * 1px);
+        max-height: calc(var(--row-height) * 1px);
+        height: calc(var(--row-height) * 1px);
       }
     }
 
@@ -383,10 +412,6 @@ html.print-pdf .reveal .slides section {
         tr {
           height: calc(var(--row-height) * 1px);
         }
-      }
-
-      &.table-full-width {
-        width: calc(100% - (var(--page-horizontal-margin) * 2px));
       }
 
       .icon-check-box {

@@ -3,7 +3,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { AppBaseReport, BASE_REPORT, IReportData, IReportI18nContext } from './base-report.class';
 import { CommonReport, CommonReportOptions, CommonReportStats, FormReportPageDimensions } from './common-report.class';
-import { isNil, SharedPipesModule, TranslateContextService } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, isNil, SharedPipesModule, TranslateContextService } from '@sumaris-net/ngx-components';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { Moment } from 'moment';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -86,6 +86,14 @@ export class TipsReportChunk {
 
 export abstract class CommonReportComponentStats extends CommonReportStats {
   headerItems: string[];
+  fromObject(source: any) {
+    this.headerItems = source.headerItems;
+  }
+  asObject(opts?: EntityAsObjectOptions): any {
+    return {
+      headerItems: this.headerItems,
+    };
+  }
 }
 
 @Directive()
@@ -146,7 +154,9 @@ export abstract class ReportComponent<
   }
 
   async ngOnStart(opts?: any): Promise<void> {
-    if (isNil(this.stats)) this.stats = await this.computeStats(this.data, opts);
+    if (isNil(this.stats)) {
+      this.stats = await this.computeStats(this.data, opts);
+    }
   }
 
   abstract computeAppendixBlocks(): ReportAppendixSection[];

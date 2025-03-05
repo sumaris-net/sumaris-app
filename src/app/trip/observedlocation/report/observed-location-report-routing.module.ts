@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ObservedLocationReport } from './observed-location.report';
 import { AppObservedLocationReportModule } from './observed-location.report.module';
+import { ObservedLocationFormReport } from './form/observed-location-form.report';
 
 const routes: Routes = [
   {
@@ -15,7 +16,7 @@ const routes: Routes = [
     },
     path: 'form',
     pathMatch: 'full',
-    loadChildren: () => import('./form/observed-location-form-report-routing.module').then((m) => m.ObservedLocationFormReportRoutingModule),
+    component: ObservedLocationFormReport,
   },
   {
     data: {
@@ -23,7 +24,7 @@ const routes: Routes = [
     },
     path: 'blank-form',
     pathMatch: 'full',
-    loadChildren: () => import('./form/observed-location-form-report-routing.module').then((m) => m.ObservedLocationFormReportRoutingModule),
+    component: ObservedLocationFormReport,
   },
 ];
 

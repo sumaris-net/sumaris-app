@@ -207,7 +207,7 @@ export class TripFormReport extends AppDataEntityReport<Trip, number, TripFormRe
         gearHasLabel: isNotNil(pmfmGearLabel),
         hiddenPmfms: this.isBlankForm ? stats.program.getPropertyAsNumbers(ProgramProperties.TRIP_REPORT_FORM_HIDDEN_PMFM_IDS) : [],
         latLongPattern: this.settings.latLongFormat,
-        limitTipsToShowOnAppendix: stats.program.getPropertyAsInt(ProgramProperties.TRIP_REPORT_FORM_BLANK_TIPS_LIMIT_TO_SHOW_ON_APPENDIX),
+        limitTipsToShowOnAppendix: stats.program.getPropertyAsInt(ProgramProperties.REPORT_FORM_BLANK_TIPS_MAX_TO_GO_APPENDIX),
         logoHeadLeftUrl: stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL),
         logoHeadRightUrl: stats.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL),
         multiTrip: this.isBlankForm && stats.program.getPropertyAsBoolean(ProgramProperties.TRIP_REPORT_FORM_BLANK_MULTI_TRIP),

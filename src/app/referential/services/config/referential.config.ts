@@ -677,6 +677,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.EMV_CATEGORY,
   },
+  PMFM_SIZE_UNLI_CAT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SIZE_UNLI_CAT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SIZE_UNLI_CAT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.SIZE_UNLI_CAT,
+  },
   PMFM_HAS_PETS_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.HAS_PETS.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_HAS_PETS_ID',

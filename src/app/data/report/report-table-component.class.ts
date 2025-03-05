@@ -70,7 +70,6 @@ export abstract class ReportTableComponent<
   protected readonly pmfmIds = PmfmIds;
 
   @Input() hiddenPmfms: number[] = [];
-
   @Input({ required: true, transform: numberAttribute }) limitTipsToShowOnAppendix: number;
 
   async ngOnStart(opts?: any): Promise<void> {

@@ -31,13 +31,7 @@ const routes: Routes = [
   // (must always be before the route that matches the entity id otherwise the route will never be selected)
   {
     path: 'report',
-    pathMatch: 'full',
     children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        loadChildren: () => import('./report/observed-location-report-routing.module').then((m) => m.AppObservedLocationReportRoutingModule),
-      },
       {
         path: 'landing',
         pathMatch: 'full',
@@ -54,6 +48,10 @@ const routes: Routes = [
         pathMatch: 'full',
         loadChildren: () =>
           import('@app/trip/landing/sampling/report/sampling-landing-report-routing.module').then((m) => m.SamplingReportRoutingModule),
+      },
+      {
+        path: '',
+        loadChildren: () => import('./report/observed-location-report-routing.module').then((m) => m.AppObservedLocationReportRoutingModule),
       },
     ],
   },

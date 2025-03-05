@@ -605,7 +605,6 @@ export abstract class AppBaseReport<
     this.context.clipboard = this.computeShareContent();
     await this.context.saveClipboard();
     this.context.resetValue('clipboard');
-    //await this.reveal.enablePrintJob();
     await this.reveal?.print();
   }
 

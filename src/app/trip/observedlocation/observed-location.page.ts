@@ -52,6 +52,7 @@ import { RxState } from '@rx-angular/state';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { Moment } from 'moment';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 
 export const ObservedLocationPageSettingsEnum = {
   PAGE_ID: 'observedLocation',

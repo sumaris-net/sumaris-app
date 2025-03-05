@@ -546,4 +546,14 @@ export class MeasurementValuesUtils {
         .some((pmfmId) => PmfmValueUtils.isNotEmpty(measurementValues[pmfmId]))
     );
   }
+
+  static getDistinctValuesByPmfmId(values: (MeasurementModelValues | MeasurementFormValues)[], pmfmId: number): PmfmValue[] {
+    return values.reduce((result: PmfmValue[], measure) => {
+      const value = measure?.[pmfmId];
+      if (!!value && !result.includes(value)) {
+        result.push(value);
+      }
+      return result;
+    }, []);
+  }
 }

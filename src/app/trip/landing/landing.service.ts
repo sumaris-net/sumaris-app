@@ -90,6 +90,7 @@ export type LandingServiceLoadOptions = EntityServiceLoadOptions<Landing>;
 export declare interface LandingServiceWatchOptions extends EntitiesServiceWatchOptions<Landing> {
   fullLoad?: boolean;
   computeRankOrder?: boolean;
+  withSaleIds?: boolean;
 }
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {

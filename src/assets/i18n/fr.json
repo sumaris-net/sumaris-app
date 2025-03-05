@@ -1895,6 +1895,27 @@
             "END_DATE_TIME": "Date et heure de fin :",
             "COMMENTS": "Commentaire"
           }
+        },
+        "LAND_TRIP_PLAN": {
+          "TITLE": "Plan de sortie",
+          "HEADER": {
+            "DATE": "Date de la sortie :",
+            "LOCATION": "Lieux de la sortie :"
+          },
+          "FIELDS": {
+            "TOTAL_VESSEL_SAMPLED": "Nombre total de navires échantillonées pendant la sortie :",
+            "NUMBER_OF_SAMPLED_PRIORITY_SPECIES": "Nombre d'espèces prioritaires échantillonnées pendant la sortie :",
+            "HAS_PETS": "Présence de PETS :"
+          },
+          "TABLE": {
+            "MARITIM_QUARTER": "Quartier maritime",
+            "SPECIE": "Espèce",
+            "COMMERCIAL_SIZE_CATEGORY": "Catégorie commerciale",
+            "COMMENTS": "Commentaire"
+          },
+          "MENTIONS": {
+            "INCLUDE_SAMPLED_SPECIES": "(Inclure dans le dossier la liste des éspèces a échantilloner (en cochant les espèces échantillonées))"
+          }
         }
       }
     },
@@ -2710,7 +2731,7 @@
       "TRIP_REPORT_FORM_HIDDEN_PMFM_IDS": "Marée > Rapport > Formulaire : Liste de PSFMs à masquer",
       "TRIP_REPORT_FORM_OPERATION_COMMENT_HELP_TEXT": "Marée > Rapport > Formulaire : Texte d'aide pour les commentaires d'opérations",
       "TRIP_REPORT_FORM_BLANK_SHOW_SAMPLE_RANK_ORDER": "Marée > Rapport > Formulaire vierge : Échantillons : Afficher le numéro d'ordre ?",
-      "TRIP_REPORT_FORM_BLANK_TIPS_LIMIT_TO_SHOW_ON_APPENDIX": "Marée > Rapport > Formulaire > Tableaux : Nombre limite d'éléments dans la légende",
+      "REPORT_FORM_BLANK_TIPS_MAX_TO_GO_APPENDIX": "Marée > Rapport > Formulaire > Tableaux : Maximum d'élément d'annotations affiché avant d'être déplacé sur la fiche d'annex",
       "TRIP_REPORT_FORM_BLANK_SHOW_QUALITATIVE_VALUES_CHECK_BOX": "Marée > Rapport > Formulaire vierge : Case à cocher de valeurs qualitatives ?",
       "TRIP_REPORT_FORM_BLANK_NB_OF_OPERATION_PAGE": "Marée > Rapport > Formulaire vierge > Opérations : Nombre de page à créer",
       "TRIP_REPORT_FORM_BLANK_NB_OF_INDIVIDUAL_SAMPLE_PAGE": "Marée > Rapport > Formulaire vierge > Suivis individuels : Nombre de page à créer",
@@ -2771,6 +2792,10 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Sortie > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
       "OBSERVED_LOCATION_REPORT_ENABLE": "Sortie > Activer l'édition de rapport ?",
+      "OBSERVED_LOCATION_REPORT_FORM_SUBTITLE": "Sortie > Rapport > Formulaire > Sous-titre du rapport",
+      "OBSERVED_LOCATION_REPORT_FORM_LAND_TRIP_PLAN_FOOTER_TEXT": "Sortie > Rapport > Formulaire > Plan de sortie > Texte du pied de page",
+      "OBSERVED_LOCATION_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Sortie > Rapport > Formulaire > Logo à gauche de l'entête",
+      "OBSERVED_LOCATION_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Sortie > Rapport > Formulaire > Logo à droite de l'entête",
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Sortie > Hors-Ligne > Niveau(x) de lieu à importer",
       "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Sortie > Afficher la stratégie ?",
       "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)",

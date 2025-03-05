@@ -1,4 +1,16 @@
-import { AfterViewInit, booleanAttribute, Directive, ElementRef, inject, Injector, Input, numberAttribute, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  booleanAttribute,
+  Directive,
+  ElementRef,
+  inject,
+  Injector,
+  Input,
+  numberAttribute,
+  OnInit,
+  ViewChild,
+  OnDestroy,
+} from '@angular/core';
 import {
   AppTable,
   AppTableUtils,
@@ -71,7 +83,7 @@ export abstract class AppBaseTable<
     O extends BaseTableConfig<T, ID, ST> = BaseTableConfig<T, ID, ST>,
   >
   extends AppTable<T, F, ID>
-  implements OnInit, AfterViewInit
+  implements OnInit, AfterViewInit, OnDestroy
 {
   private _canEdit: boolean;
   private _showSelectColumn: boolean;

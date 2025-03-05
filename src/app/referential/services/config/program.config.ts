@@ -716,9 +716,9 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
     defaultValue: true,
   },
-  TRIP_REPORT_FORM_BLANK_TIPS_LIMIT_TO_SHOW_ON_APPENDIX: <FormFieldDefinition>{
-    key: 'sumaris.trip.report.form.blank.tipsLimitToShowOn_annex',
-    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_BLANK_TIPS_LIMIT_TO_SHOW_ON_APPENDIX',
+  REPORT_FORM_BLANK_TIPS_MAX_TO_GO_APPENDIX: <FormFieldDefinition>{
+    key: 'sumaris.report.form.blank.tips.maxToGoAppendix',
+    label: 'PROGRAM.OPTIONS.REPORT_FORM_BLANK_TIPS_MAX_TO_GO_APPENDIX',
     type: 'integer',
     defaultValue: 12,
   },
@@ -1011,8 +1011,23 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
   },
   OBSERVED_LOCATION_REPORT_FORM_SUBTITLE: <FormFieldDefinition>{
-    key: 'sumaris.observedLocation.report.form.subTitle',
-    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_SUBTITLE',
+    key: 'sumaris.observedLocation.report.form.subtitle',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_SUBTITLE',
+    type: 'string',
+  },
+  OBSERVED_LOCATION_REPORT_FORM_LAND_TRIP_PLAN_FOOTER_TEXT: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.form.landTripPlan.footerText',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_LAND_TRIP_PLAN_FOOTER_TEXT',
+    type: 'string',
+  },
+  OBSERVED_LOCATION_REPORT_FORM_HEADER_LEFT_LOGO_URL: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.form.header.left.logo.url',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_HEADER_LEFT_LOGO_URL',
+    type: 'string',
+  },
+  OBSERVED_LOCATION_REPORT_FORM_HEADER_RIGHT_LOGO_URL: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.form.header.right.logo.url',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_HEADER_RIGHT_LOGO_URL',
     type: 'string',
   },
 

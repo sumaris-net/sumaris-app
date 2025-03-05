@@ -177,7 +177,7 @@ export const PmfmIds = {
   LANDING_CATEGORY: 436,
   EMV_CATEGORY: 437,
 
-  //SIZE_UNLI_CAT: , TODO not used
+  SIZE_UNLI_CAT: 141,
 
   /* OBSVENTE */
   HAS_PETS: 502,
