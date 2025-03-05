@@ -399,6 +399,7 @@
         [requiredGear]="gearId$ | async | isNotNilOrNaN"
         [gearId]="gearId$ | async"
         [physicalGear]="physicalGear$ | async"
+        [showAutoFillButton]="showAutoFillButton"
         [useSticky]="mobile"
         [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
         [disabled]="disabled || !showCatchTab"

@@ -2467,6 +2467,7 @@
       "TRIP_MIN_DURATION_HOURS": "Trip > Minimal duration (hours)",
       "TRIP_MAX_DURATION_HOURS": "Trip > Maximum duration (hours)",
       "TRIP_BATCH_AUTO_FILL": "Catch > Species batch: Auto-fill?",
+      "TRIP_BATCH_ADD_ALL_SPECIES_ENABLE": "Catch > Species batch: Show add all species button?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Catch > Species batch: Commercial species?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Catch > Species batch: Commercial species without weight:",
       "TRIP_BATCH_TAXON_GROUPS_NO_LANDING": "Catch > Species batch: Commercial species without landings:",

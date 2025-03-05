@@ -364,6 +364,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  TRIP_BATCH_ADD_ALL_SPECIES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.addAllSpecies.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_ADD_ALL_SPECIES_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
   TRIP_BATCH_SAMPLING_RATIO_FORMAT: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.samplingRatio.format',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_SAMPLING_RATIO_FORMAT',
