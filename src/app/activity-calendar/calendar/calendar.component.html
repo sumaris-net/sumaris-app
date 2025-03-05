@@ -295,9 +295,9 @@
             (contextmenu)="onMonthContextMenu($event, row)"
           >
             @if (vesselOwners$ | push | mapGet: row.id; as owners) {
-              @if (owners | referentialToString: { properties: vesselOwnerDisplayAttributes, separator: '\n', propertySeparator: ' ' }; as title) {
+              @if (owners | toString: vesselOwnerToString; as title) {
                 <ion-label class="ion-text-nowrap" (ngInit)="cell.title = title">
-                  {{ owners | arrayFirst | referentialToString: { properties: vesselOwnerDisplayAttributes, propertySeparator: ' ' } }}
+                  {{ owners | arrayFirst | toString: vesselOwnerToString }}
                 </ion-label>
 
                 @if (owners | isArrayLength: { greaterThan: 1 }) {
