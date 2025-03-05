@@ -93,7 +93,6 @@
             [autofocus]="row.id === -1 && row.editing"
             [config]="autocompleteFields.person"
             [i18nPrefix]="'USER.'"
-            panelClass="mat-select-panel-fit-content"
             floatLabel="never"
             required
           ></mat-autocomplete-field>
@@ -167,7 +166,6 @@
             [placeholder]="'PROGRAM.PRIVILEGES.REFERENCE_PERSON' | translate"
             [config]="autocompleteFields.person"
             [i18nPrefix]="'USER.'"
-            panelClass="mat-select-panel-fit-content"
             floatLabel="never"
           ></mat-autocomplete-field>
         } @else {
