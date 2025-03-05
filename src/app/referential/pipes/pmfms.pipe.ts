@@ -5,13 +5,14 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   ColorName,
   DateFormatService,
-  IconRef,
-  LocalSettingsService,
-  TranslateContextService,
+  DurationPipe,
   formatLatitude,
   formatLongitude,
+  IconRef,
   isNotNil,
   isNotNilOrBlank,
+  LocalSettingsService,
+  TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { ExtendedPmfmType, IPmfm } from '../services/model/pmfm.model';
@@ -99,6 +100,7 @@ interface PmfmValueOptions {
 export class PmfmValuePipe implements PipeTransform {
   constructor(
     private dateFormat: DateFormatService,
+    private durationFormat: DurationPipe,
     private settings: LocalSettingsService,
     protected translate: TranslateService
   ) {}
@@ -120,7 +122,7 @@ export class PmfmValuePipe implements PipeTransform {
       case 'dateTime':
         return this.dateFormat.transform(value, { time: true });
       case 'duration':
-        return value || null;
+        return this.durationFormat.transform(value);
       case 'latitude':
         return formatLatitude(value, { pattern: this.settings.latLongFormat, placeholderChar: '0' });
       case 'longitude':
