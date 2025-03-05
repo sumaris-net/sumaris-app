@@ -10,10 +10,12 @@ import {
   isNotEmptyArray,
   isNotNilOrBlank,
   isNotNilOrNaN,
+  RxStateProperty,
   RxStateRegister,
   RxStateSelect,
   SharedValidators,
   StatusIds,
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 
 import { Moment } from 'moment';
@@ -63,6 +65,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
 
   protected mobile: boolean;
   protected periodDurationLabels: { key: string; label: string; startDate: Moment }[];
+  @RxStateProperty() protected requiredHistory: boolean;
 
   @Input() title = 'TRIP.OFFLINE_MODAL.TITLE';
 
@@ -255,6 +258,9 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
 
     // Set program
     value.programLabel = json.program?.label || json.program;
+
+    // Set enable history (e.g. can be undefined, when disabled)
+    json.enableHistory = toBoolean(json.enableHistory, this.requiredHistory);
 
     // Set start date
     if (json.enableHistory && json.periodDuration) {
