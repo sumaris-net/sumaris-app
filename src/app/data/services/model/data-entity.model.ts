@@ -153,18 +153,30 @@ export abstract class DataEntityUtils {
   static isControlled(entity: DataEntity<any, any> | undefined): boolean {
     return !!entity?.controlDate;
   }
+
+  /**
+   * Check if an entity has not been controlled
+   *
+   * @param entity
+   */
+  static isNotControlled(entity: DataEntity<any, any> | undefined): boolean {
+    return !entity?.controlDate;
+  }
+
   /**
    * Set controlDate, and reset quality fLag and comment
    *
    * @param entity
    * @param opts
    */
-  static markAsControlled(entity: DataEntity<any, any> | undefined, opts?: { controlDate?: Moment }) {
+  static markAsControlled(entity: DataEntity<any, any> | undefined, opts?: { controlDate?: Moment; keepQualityFlag?: boolean }) {
     if (!entity) return; // skip
     // Mark as controlled
     entity.controlDate = opts?.controlDate || DateUtils.moment();
     // Clean quality flag
-    entity.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
+    if (!opts || opts.keepQualityFlag !== true) {
+      entity.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
+    }
     // Clean qualification data
     entity.qualificationComments = null;
     entity.qualificationDate = null;
@@ -246,7 +258,6 @@ export abstract class DataEntityUtils {
    * Reset controlDate, and reset quality fLag and comment
    *
    * @param entity
-   * @param opts
    */
   static hasNoQualityFlag(entity: DataEntity<any, any> | undefined): boolean {
     return isNil(entity.qualityFlagId) || entity.qualityFlagId === QualityFlagIds.NOT_QUALIFIED;

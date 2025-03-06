@@ -83,11 +83,11 @@ export class OperationIconComponent {
       this.icon = null;
     }
     // Is parent, and has a child
-    else if (isNotNil(value.childOperationId) || value.qualityFlagId === QualityFlagIds.NOT_COMPLETED || this.allowParentOperation) {
+    else if (isNotNil(value.childOperationId) || value.qualityFlagId === QualityFlagIds.NOT_COMPLETED || this._allowParentOperation) {
       this.matSvgIcon = 'operation-parent';
       this.icon = null;
       this.badgeIcon = isNil(value.childOperationId) ? 'time-outline' : null;
-      this.badgeColor = (this.badgeIcon && 'accent') || null;
+      this.badgeColor = this.badgeIcon ? 'accent' : null;
     }
     // Other
     else {
@@ -123,7 +123,9 @@ export class OperationIconComponent {
           this.title = value.qualificationComments;
         }
       } else {
-        this.badgeIcon = 'checkmark';
+        if (!this.badgeIcon) {
+          this.badgeIcon = 'checkmark';
+        }
         this.badgeColor = 'tertiary';
       }
     } else if (isNil(value.qualityFlagId) || value.qualityFlagId === QualityFlagIds.NOT_QUALIFIED) {
