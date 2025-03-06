@@ -272,10 +272,10 @@
         >
           <form [formGroup]="appliedPeriodForm">
             <mat-form-field>
+              <mat-label>{{ i18nFieldPrefix + 'QUARTER_PLACEHOLDER' | translate }} {{ i + 1 }}</mat-label>
               <input
                 matInput
                 formControlName="acquisitionNumber"
-                [placeholder]="(i18nFieldPrefix + 'QUARTER_PLACEHOLDER' | translate) + (i + 1)"
                 type="number"
                 step="1"
                 min="0"

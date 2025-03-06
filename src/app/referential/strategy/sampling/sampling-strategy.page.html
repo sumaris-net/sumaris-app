@@ -35,10 +35,9 @@
 
       <div class="ion-padding">
         <!-- error -->
-        <ion-item *ngIf="form.error || error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="form.error || error | translate"></ion-label>
-        </ion-item>
+        @if (mobile) {
+          <app-error-item [message]="(form.errorSubject | async) || (errorSubject | async)"></app-error-item>
+        }
 
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
@@ -72,7 +71,9 @@
     [disabled]="!dirty || loading"
   >
     <!-- error -->
-    <app-error-item [message]="errorSubject | async"></app-error-item>
+    @if (!mobile) {
+      <app-error-item [message]="(form.errorSubject | async) || (errorSubject | async)"></app-error-item>
+    }
   </app-form-buttons-bar>
 </ion-footer>
 

@@ -37,6 +37,7 @@ import { PROGRAM_TABS } from '@app/referential/program/program.page';
 })
 export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, SamplingStrategyService> implements OnInit {
   $program = new BehaviorSubject<Program>(null);
+  protected mobile = this.settings.mobile;
 
   @ViewChild('form', { static: true }) strategyForm: SamplingStrategyForm;
 
