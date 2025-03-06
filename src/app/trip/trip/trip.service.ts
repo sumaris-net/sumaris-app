@@ -1265,8 +1265,6 @@ export class TripService
       const offlineFilter = this.settings.getOfflineFeature<TripSynchroImportFilter>(this.featureName)?.filter;
       const filter = TripSynchroImportFilter.toTripFilter(offlineFilter || {});
 
-      console.log(this._logPrefix + 'Importing historical data...', filter);
-
       // Force the data program, because user can fill data on many programs (e.g. PIFIL and ACOST) but have configured only once for offline data importation
       filter.program = entity.program;
 

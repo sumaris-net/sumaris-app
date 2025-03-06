@@ -19,6 +19,7 @@ import { BBox } from 'geojson';
 import { Geometries } from '@app/shared/geometries.utils';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { FishingAreaUtils } from '@app/data/fishing-area/fishing-area.model';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 
 @EntityClass({ typename: 'OperationFilterVO' })
 export class OperationFilter extends DataEntityFilter<OperationFilter, Operation> {
@@ -196,6 +197,11 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     if (isNotEmptyArray(this.parentOperationIds)) {
       const parentOperationIds = this.parentOperationIds.slice();
       filterFns.push((o) => parentOperationIds.includes(toNumber(o.parentOperationId, o.parentOperation?.id)));
+    }
+
+    if (this.dataQualityStatus === 'VALIDATED') {
+      // Exclude incomplete parent operation (=filage)
+      filterFns.push((t) => isNil(t.parentOperationId ?? t.parentOperation?.id) || t.qualityFlagId !== QualityFlagIds.NOT_COMPLETED);
     }
 
     return filterFns;

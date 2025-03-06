@@ -77,7 +77,7 @@ export class LandingFilter extends RootDataEntityFilter<LandingFilter, Landing> 
       delete target.vesselSnapshot;
 
       // Location
-      target.locationId = (this.location && this.location.id) || undefined;
+      target.locationId = this.locationId ?? this.location?.id;
       delete target.location;
 
       // Observers

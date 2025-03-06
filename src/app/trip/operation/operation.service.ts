@@ -1,4 +1,4 @@
-import { Inject, Injectable, Optional } from '@angular/core';
+import { inject, Inject, Injectable, Optional } from '@angular/core';
 import { FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { BehaviorSubject, combineLatest, EMPTY, from, Observable } from 'rxjs';
 import { filter, first, map, mergeMap } from 'rxjs/operators';
@@ -95,6 +95,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { ToastController } from '@ionic/angular';
 import { PositionService } from '@app/data/position/position.service';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
+import { UserEventService } from '@app/social/user-event/user-event.service';
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -391,6 +392,7 @@ export class OperationService
   protected _logger: ILogger;
   protected _watchQueriesUpdatePolicy: MutableWatchQueriesUpdatePolicy;
   protected _tripService: IEntityService<Trip, number, TripLoadOptions>;
+  protected readonly userEventService = inject(UserEventService);
 
   set tripService(value: IEntityService<Trip, number, TripLoadOptions>) {
     this._tripService = value;
@@ -527,7 +529,7 @@ export class OperationService
     if (isNil(id)) throw new Error("Missing argument 'id' ");
 
     const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[operation-service] Loading operation #${id}...`);
+    if (this._debug) console.debug(`${this._logPrefix}Loading operation #${id}...`);
     this.loading = true;
 
     try {
@@ -553,7 +555,7 @@ export class OperationService
 
       // Transform to entity
       const data = this.fromObject(json, opts);
-      if (data && this._debug) console.debug(`[operation-service] Operation #${id} loaded in ${Date.now() - now}ms`, data);
+      if (data && this._debug) console.debug(`${this._logPrefix}Operation #${id} loaded in ${Date.now() - now}ms`, data);
       return data;
     } finally {
       this.loading = false;
@@ -638,7 +640,7 @@ export class OperationService
           await this.terminate(entity);
         }
 
-        // increament, after save/terminate
+        // increment, after save/terminate
         opts.progression.increment(progressionStep);
       }
 
@@ -724,7 +726,7 @@ export class OperationService
       incrementProgression();
 
       if (errors) {
-        console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
+        console.info(this._logPrefix + `Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
 
         // Keep only a simple error message
         // Detail error should have been saved into batch
@@ -732,11 +734,18 @@ export class OperationService
       }
     }
 
-    console.info(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
+    console.info(this._logPrefix + `Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
 
     // Mark local operation has controlled (to have a checkmark icon in the operation table)
-    if (entity.tripId < 0) {
-      DataEntityUtils.markAsControlled(entity);
+    if (EntityUtils.isLocalId(entity.id) && DataEntityUtils.isNotControlled(entity)) {
+      // Keep NOT_COMPLETED quality flag, because used to filter remote parent operations on offline mode
+      // (See issue sumaris-app#983)
+      const parentOperationId = entity.parentOperationId ?? entity.parentOperation?.id;
+      const isIncompleteParentOperation =
+        opts.allowParentOperation && isNil(parentOperationId) && entity.qualityFlagId === QualityFlagIds.NOT_COMPLETED;
+      DataEntityUtils.markAsControlled(entity, {
+        keepQualityFlag: isIncompleteParentOperation,
+      });
       dirty = true;
     }
 
@@ -787,7 +796,7 @@ export class OperationService
   }
 
   async qualify(data: Operation, qualityFlagId: number): Promise<Operation> {
-    console.warn('[operation-service] qualify() not implemented yet !');
+    console.warn(this._logPrefix + 'qualify() not implemented yet !');
     return data;
   }
 
@@ -809,7 +818,7 @@ export class OperationService
       return EMPTY;
     }
 
-    if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
+    if (this._debug) console.debug(this._logPrefix + `[WS] Listening changes for operation {${id}}...`);
 
     return this.graphql
       .subscribe<{ data: Operation }, { id: number; interval: number }>({
@@ -824,7 +833,7 @@ export class OperationService
       .pipe(
         map(({ data }) => {
           const entity = data && Operation.fromObject(data);
-          if (entity && this._debug) console.debug(`[operation-service] Operation {${id}} updated on server!`, entity);
+          if (entity && this._debug) console.debug(this._logPrefix + `Operation {${id}} updated on server!`, entity);
           return entity;
         })
       );
@@ -839,7 +848,7 @@ export class OperationService
   async saveAll(entities: Operation[], opts?: OperationSaveOptions): Promise<Operation[]> {
     if (isEmptyArray(entities)) return entities;
 
-    if (this._debug) console.debug(`[operation-service] Saving ${entities.length} operations...`);
+    if (this._debug) console.debug(this._logPrefix + `Saving ${entities.length} operations...`);
     const jobsFactories = (entities || []).map((entity) => () => this.save(entity, { ...opts }));
     return chainPromises<Operation>(jobsFactories);
   }
@@ -867,7 +876,7 @@ export class OperationService
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug('[operation-service] Saving operation remotely...', json);
+    if (this._debug) console.debug(this._logPrefix + 'Saving operation remotely...', json);
 
     await this.graphql.mutate<{ data: Operation[] }>({
       mutation: OperationMutations.saveAll,
@@ -892,7 +901,7 @@ export class OperationService
 
         // Local entity (from an optimistic response): save it
         if (savedEntity.id < 0) {
-          if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', savedEntity);
+          if (this._debug) console.debug(this._logPrefix + '[offline] Saving operation locally...', savedEntity);
 
           // Save response locally
           await this.entities.save(savedEntity.asObject(MINIFY_ENTITY_FOR_LOCAL_STORAGE));
@@ -934,7 +943,7 @@ export class OperationService
             opts.update(cache, { data }, options);
           }
 
-          if (this._debug) console.debug(`[operation-service] Operation saved in ${Date.now() - now}ms`, entity);
+          if (this._debug) console.debug(this._logPrefix + `Operation saved in ${Date.now() - now}ms`, entity);
         }
       },
     });
@@ -965,7 +974,7 @@ export class OperationService
     if (isNotEmptyArray(remoteEntities)) {
       const ids = remoteEntities.map((e) => e.id);
       const now = Date.now();
-      if (this._debug) console.debug('[operation-service] Deleting operations... ids:', ids);
+      if (this._debug) console.debug(this._logPrefix + 'Deleting operations... ids:', ids);
 
       await this.graphql.mutate({
         mutation: OperationMutations.deleteAll,
@@ -985,7 +994,7 @@ export class OperationService
             opts.update(cache, res, options);
           }
 
-          if (this._debug) console.debug(`[operation-service] Operations deleted in ${Date.now() - now}ms`);
+          if (this._debug) console.debug(this._logPrefix + `Operations deleted in ${Date.now() - now}ms`);
         },
       });
     }
@@ -1009,7 +1018,7 @@ export class OperationService
     }
 
     const trash = !opts || opts.trash !== false;
-    if (this._debug) console.debug(`[operation-service] Deleting local operations... {trash: ${trash}}`);
+    if (this._debug) console.debug(this._logPrefix + `Deleting local operations... {trash: ${trash}}`);
 
     if (trash) {
       await this.entities.moveManyToTrash<Operation>(localIds, { entityName: Operation.TYPENAME });
@@ -1054,7 +1063,7 @@ export class OperationService
       // Apply deletion
       return await this.entities.deleteMany(ids, { entityName: Operation.TYPENAME });
     } catch (err) {
-      console.error(`[operation-service] Failed to delete operations ${JSON.stringify(filter)}`, err);
+      console.error(this._logPrefix + `Failed to delete operations ${JSON.stringify(filter)}`, err);
       throw err;
     }
   }
@@ -1098,7 +1107,7 @@ export class OperationService
     };
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug('[operation-service] Loading operations... using options:', variables);
+    if (this._debug) console.debug(this._logPrefix + 'Loading operations... using options:', variables);
 
     const withTotal = !opts || opts.withTotal !== false;
     const query = opts?.query || (withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll);
@@ -1131,7 +1140,7 @@ export class OperationService
 
       mergeMap(async ({ data, total }) => {
         if (now) {
-          console.debug(`[operation-service] Loaded ${data.length} operations in ${Date.now() - now}ms`);
+          console.debug(this._logPrefix + `Loaded ${data.length} operations in ${Date.now() - now}ms`);
           now = undefined;
         }
         return await this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, dataFilter, opts);
@@ -1167,7 +1176,7 @@ export class OperationService
       filter: filter.asFilterFn(),
     };
 
-    if (this._debug) console.debug('[operation-service] Loading operations locally... using options:', variables);
+    if (this._debug) console.debug(this._logPrefix + 'Loading operations locally... using options:', variables);
     return this.entities
       .watchAll<Operation>(Operation.TYPENAME, variables, { fullLoad: opts && opts.fullLoad })
       .pipe(mergeMap(async ({ data, total }) => await this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, filter, opts)));
@@ -1239,7 +1248,7 @@ export class OperationService
    * @param opts
    */
   watchRankOrder(source: Operation, opts?: OperationServiceWatchOptions): Observable<number> {
-    console.debug(`[operation-service] Loading rankOrder of operation #${source.id}...`);
+    console.debug(this._logPrefix + `Loading rankOrder of operation #${source.id}...`);
     const tripId = source.tripId;
     return this.watchAllByTrip(
       { tripId },
@@ -1295,71 +1304,85 @@ export class OperationService
     console.info(this._logPrefix + `Importing parent operations, from program '${programLabel}'...`);
     this._logger?.info(`Importing parent operations, from program '${programLabel}'...`);
 
-    const res = await JobUtils.fetchAllPages(
-      (offset, size) =>
-        this.loadAll(offset, size, 'id', null, filter, {
-          fetchPolicy: 'no-cache', // Not need to keep result in the cache
-          withTotal: offset === 0, // Compute total only once
-          toEntity: false,
-          computeRankOrder: false,
-          query: OperationQueries.loadAllWithTripAndTotal,
-        }),
-      {
-        progression: opts?.progression,
-        maxProgression: maxProgression * 0.9,
-        logPrefix: this._logPrefix,
-        fetchSize: 100,
-      }
-    );
-
-    // Collected ids
-    const importedOperations = res?.data || [];
-    const importedIds = importedOperations.map((ope) => +ope.id);
-
-    // Find data imported previously, that not exists in new imported data
-    // Make sure to filter on the filter program (to keep other ope)
-    const unusedRemoteOperations = (
-      await this.entities.loadAll<Operation>(
-        Operation.TYPENAME,
+    try {
+      // Load parents operations
+      const res = await JobUtils.fetchAllPages(
+        (offset, size) =>
+          this.loadAll(offset, size, 'id', null, filter, {
+            fetchPolicy: 'no-cache', // Not need to keep result in the cache
+            withTotal: offset === 0, // Compute total only once
+            toEntity: false,
+            computeRankOrder: false,
+            query: OperationQueries.loadAllWithTripAndTotal,
+          }),
         {
-          filter: (ope) =>
-            EntityUtils.isRemoteId(ope.id) && !importedIds.includes(+ope.id) && (!ope.programLabel || ope.programLabel === programLabel), // /!\ keep other program
-        },
-        { fullLoad: false }
-      )
-    )?.data;
-
-    // Remove from the local storage
-    if (unusedRemoteOperations?.length) {
-      const ids = unusedRemoteOperations.map((o) => +o.id);
-      await this.entities.deleteMany<Operation>(ids, { entityName: Operation.TYPENAME, emitEvent: false });
-    }
-
-    if (isNotEmptyArray(res?.data)) {
-      // Patch imported operations (add some attribute from the trip)
-      const operationsByTripId = collectByProperty(importedOperations, 'tripId');
-      await chainPromises(
-        Object.keys(operationsByTripId).map((tripId) => async () => {
-          const trip = await this._tripService.load(+tripId, { fullLoad: false, fetchPolicy: 'cache-first', toEntity: false });
-          operationsByTripId[tripId].forEach((o) => {
-            o.vesselId = trip.vesselSnapshot?.id;
-            o.programLabel = trip.program.label;
-            o.trip = <Trip>{
-              id: trip.id,
-              departureDateTime: trip.departureDateTime,
-              returnDateTime: trip.returnDateTime,
-              vesselSnapshot: trip.vesselSnapshot,
-            };
-          });
-        })
+          progression: opts?.progression,
+          maxProgression: maxProgression * 0.9,
+          logPrefix: this._logPrefix,
+          fetchSize: 100,
+        }
       );
 
-      // Save result locally
-      await this.entities.saveAll(res.data, { entityName: Operation.TYPENAME, reset: false /* /!\ keep local operations */ });
+      // Collected ids
+      const importedOperations = res?.data || [];
+      const importedIds = importedOperations.map((ope) => +ope.id);
+
+      // Find data imported previously, that not exists in new imported data
+      // Make sure to filter on the filter program (to keep other ope)
+      const unusedRemoteOperations =
+        programLabel &&
+        (
+          await this.entities.loadAll<Operation>(
+            Operation.TYPENAME,
+            {
+              filter: (ope) =>
+                EntityUtils.isRemoteId(ope.id) && !importedIds.includes(+ope.id) && (!ope.programLabel || ope.programLabel === programLabel), // /!\ keep other program
+            },
+            { fullLoad: false }
+          )
+        )?.data;
+
+      // Remove from the local storage
+      if (unusedRemoteOperations?.length) {
+        // LOG
+        console.info(this._logPrefix + `Forgetting ${unusedRemoteOperations.length} parent operations, from program '${programLabel}'`);
+        this._logger?.info(`Forgetting ${unusedRemoteOperations.length} parent operations, from program '${programLabel}'`);
+        const ids = unusedRemoteOperations.map((o) => +o.id);
+        await this.entities.deleteMany<Operation>(ids, { entityName: Operation.TYPENAME, emitEvent: false });
+      }
+
+      // Has some parent operations
+      if (isNotEmptyArray(res?.data)) {
+        // Patch imported operations (add some attribute from the trip)
+        const operationsByTripId = collectByProperty(importedOperations, 'tripId');
+        await chainPromises(
+          Object.keys(operationsByTripId).map((tripId) => async () => {
+            const trip = await this._tripService.load(+tripId, { fullLoad: false, fetchPolicy: 'cache-first', toEntity: false });
+            operationsByTripId[tripId].forEach((o) => {
+              o.vesselId = trip.vesselSnapshot?.id;
+              o.programLabel = trip.program.label;
+              o.trip = <Trip>{
+                id: trip.id,
+                departureDateTime: trip.departureDateTime,
+                returnDateTime: trip.returnDateTime,
+                vesselSnapshot: trip.vesselSnapshot,
+              };
+            });
+          })
+        );
+
+        // Save result locally
+        await this.entities.saveAll(res.data, { entityName: Operation.TYPENAME, reset: false /* /!\ keep local operations */ });
+      }
 
       // LOG
-      console.info(this._logPrefix + `Successfully import ${res.data.length} parent operations, from program '${programLabel}'`);
-      this._logger?.info(`Successfully import ${res.data.length} parent operations, from program '${programLabel}'`);
+      console.info(this._logPrefix + `Successfully import ${res.data?.length ?? 0} parent operations, from program '${programLabel}'`);
+      this._logger?.info(`Successfully import ${res.data?.length ?? 0} parent operations, from program '${programLabel}'`);
+    } catch (error) {
+      // Log error
+      console.error(this._logPrefix + `Failed to import parent operations, from program '${programLabel}'`, error);
+      this._logger?.error(`Failed to import parent operations, from program '${programLabel}'`, error);
+      throw error;
     }
   }
 
@@ -1372,7 +1395,7 @@ export class OperationService
   async saveAllLocally(entities: Operation[], opts?: OperationSaveOptions): Promise<Operation[]> {
     if (isEmptyArray(entities)) return entities;
 
-    if (this._debug) console.debug(`[operation-service] Saving locally ${entities.length} operations...`);
+    if (this._debug) console.debug(this._logPrefix + `Saving locally ${entities.length} operations...`);
     const jobsFactories = (entities || []).map((entity) => () => this.saveLocally(entity, { ...opts }));
     return chainPromises<Operation>(jobsFactories);
   }
@@ -1393,7 +1416,7 @@ export class OperationService
     await this.fillOfflineDefaultProperties(entity, opts);
 
     const json = this.asObject(entity, MINIFY_OPERATION_FOR_LOCAL_STORAGE);
-    if (this._debug) console.debug('[operation-service] [offline] Saving operation locally...', json);
+    if (this._debug) console.debug(this._logPrefix + '[offline] Saving operation locally...', json);
 
     // Save response locally
     await this.entities.save(json);
@@ -1414,9 +1437,9 @@ export class OperationService
           json.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
           await this.entities.save(json);
         } else if (err?.code === TripErrorCodes.PARENT_OPERATION_NOT_FOUND) {
-          console.error('[operation-service] [offline] Cannot found the parent operation: ' + ((err && err.message) || err), err);
+          console.error(this._logPrefix + '[offline] Cannot found the parent operation: ' + ((err && err.message) || err), err);
         } else {
-          console.error('[operation-service] [offline] Cannot update linked operation: ' + ((err && err.message) || err), err);
+          console.error(this._logPrefix + '[offline] Cannot update linked operation: ' + ((err && err.message) || err), err);
         }
       }
     }
@@ -1426,7 +1449,7 @@ export class OperationService
 
   async updateLinkedOperation(entity: Operation, opts?: OperationSaveOptions) {
     // DEBUG
-    //console.debug('[operation-service] Updating linked operation of op #' + entity.id);
+    //console.debug(this._logPrefix + 'Updating linked operation of op #' + entity.id);
 
     // Update the child operation
     const childOperationId = toNumber(entity.childOperation?.id, entity.childOperationId);
@@ -1443,7 +1466,7 @@ export class OperationService
 
       // Update the child operation, if need
       if (needUpdateChild) {
-        console.info('[operation-service] Updating child operation...');
+        console.info(this._logPrefix + 'Updating child operation...');
 
         // Replace cached entity by a full entity
         if (child === cachedChild) {
@@ -1499,7 +1522,7 @@ export class OperationService
 
         let savedParent: Operation;
         if (parent && parent.childOperationId !== entity.id) {
-          console.info('[operation-service] Updating parent operation...');
+          console.info(this._logPrefix + 'Updating parent operation...');
 
           if (EntityUtils.isLocal(parent)) {
             // Replace cached entity by a full entity
@@ -1540,7 +1563,7 @@ export class OperationService
     // Get current operation
     const currentPosition = await this.positionService.getCurrentPosition();
     if (!currentPosition) {
-      console.warn('[operation-service] Cannot sort by position. Cannot get the current position');
+      console.warn(this._logPrefix + 'Cannot sort by position. Cannot get the current position');
       return sources; // Unable to sort
     }
 
@@ -1686,7 +1709,7 @@ export class OperationService
     if (isNotEmptyArray(batches)) {
       await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues('BatchVO', count));
       if (this._debug) {
-        console.debug('[operation-service] Preparing batches to be saved locally:');
+        console.debug(this._logPrefix + 'Preparing batches to be saved locally:');
         BatchUtils.logTree(entity.catchBatch);
       }
     }
@@ -2071,9 +2094,5 @@ export class OperationService
 
   protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     return Toasts.show(this.toastController, this.translate, opts);
-  }
-
-  protected async closeToast(id: string) {
-    return this.toastController.dismiss(null, null, id);
   }
 }

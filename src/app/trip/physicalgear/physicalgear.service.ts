@@ -227,7 +227,7 @@ export class PhysicalGearService
     };
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug('[physical-gear-service] Loading physical gears... using options:', variables);
+    if (this._debug) console.debug(this._logPrefix + 'Loading physical gears... using options:', variables);
 
     const withTrip = (isNotNil(dataFilter?.vesselId) || isNotEmptyArray(dataFilter.vesselIds)) && isNil(dataFilter.tripId);
     const query = opts?.query || (withTrip ? Queries.loadAllWithTrip : Queries.loadAll);
@@ -243,7 +243,7 @@ export class PhysicalGearService
         filter(() => !this.loading),
         map(({ data, total }) => {
           if (now) {
-            console.debug(`[physical-gear-service] Loaded ${data.length} physical gears in ${Date.now() - now}ms`);
+            console.debug(this._logPrefix + `Loaded ${data.length} physical gears in ${Date.now() - now}ms`);
             now = undefined;
           }
           return {
@@ -292,7 +292,7 @@ export class PhysicalGearService
       sortDirection: sortDirection || 'desc',
       filter: dataFilter.asFilterFn(),
     };
-    if (this._debug) console.debug('[physical-gear-service] Loading physical gears locally... using variables:', variables);
+    if (this._debug) console.debug(this._logPrefix + 'Loading physical gears locally... using variables:', variables);
     const fromStorage$ = this.entities.watchAll<PhysicalGear>(PhysicalGear.TYPENAME, variables, { fullLoad: opts && opts.fullLoad });
 
     const res =
@@ -313,7 +313,7 @@ export class PhysicalGearService
     opts?: PhysicalGearServiceWatchOptions
   ): Observable<LoadResult<PhysicalGear>> {
     if (!dataFilter || (isNil(dataFilter.tripId) && (isNil(dataFilter.vesselId) || isNil(dataFilter.program)))) {
-      console.warn('[physical-gear-service] Trying to load gears from trips without [vesselId, program] or without [tripdId]. Skipping.');
+      console.warn(this._logPrefix + 'Trying to load gears from trips without [vesselId, program] or without [tripdId]. Skipping.');
       return EMPTY;
     }
     const tripFilter = TripFilter.fromObject(
@@ -338,7 +338,7 @@ export class PhysicalGearService
       filter: tripFilter.asFilterFn(),
     };
 
-    if (this._debug) console.debug('[physical-gear-service] Loading physical gears, from local trips... using variables:', variables);
+    if (this._debug) console.debug(this._logPrefix + 'Loading physical gears, from local trips... using variables:', variables);
 
     const withTrip = isNil(dataFilter.tripId);
 
@@ -429,7 +429,7 @@ export class PhysicalGearService
     if (isNil(id)) throw new Error("Missing argument 'id' ");
 
     const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[physical-gear-service] Loading physical gear #${id}...`);
+    if (this._debug) console.debug(this._logPrefix + `Loading physical gear #${id}...`);
     this.loading = true;
 
     try {
@@ -463,7 +463,7 @@ export class PhysicalGearService
 
       // Transform to entity
       const data = !opts || opts.toEntity !== false ? PhysicalGear.fromObject(json) : (json as PhysicalGear);
-      if (data && this._debug) console.debug(`[physical-gear-service] Physical gear #${id} loaded in ${Date.now() - now}ms`, data);
+      if (data && this._debug) console.debug(this._logPrefix + `Physical gear #${id} loaded in ${Date.now() - now}ms`, data);
       return data;
     } finally {
       this.loading = false;
@@ -560,7 +560,7 @@ export class PhysicalGearService
 
   async control(entity: PhysicalGear, opts?: PhysicalGearControlOptions): Promise<FormErrors> {
     const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[physical-gear-service] Control #${entity.id}...`, entity);
+    if (this._debug) console.debug(this._logPrefix + `Control #${entity.id}...`, entity);
 
     // Prepare control options
     opts = await this.fillControlOptionsForGear(entity, opts);
@@ -584,7 +584,7 @@ export class PhysicalGearService
       // Get form errors
       if (form.invalid) {
         const errors = AppFormUtils.getFormErrors(form);
-        console.info(`[physical-gear-service] Control #${entity.id} [INVALID] in ${Date.now() - now}ms`, errors);
+        console.info(this._logPrefix + `Control #${entity.id} [INVALID] in ${Date.now() - now}ms`, errors);
 
         return errors;
       }
@@ -604,26 +604,35 @@ export class PhysicalGearService
       ...filter,
     };
 
-    console.info('[physical-gear-service] Importing physical gears...');
+    const programLabel = filter?.program?.label || '*';
+    console.info(this._logPrefix + this._logPrefix + `Importing physical gears, from program '${programLabel}'...`);
 
-    const res = await JobUtils.fetchAllPages(
-      (offset, size) =>
-        this.loadAll(offset, size, 'id', null, filter, {
-          fetchPolicy: 'no-cache',
-          distinctByRankOrder: true,
-          toEntity: false,
-          query: Queries.loadAllWithTrip,
-        }),
-      {
-        progression: opts?.progression,
-        maxProgression: maxProgression * 0.9,
-        logPrefix: this._logPrefix,
-        fetchSize: 100,
-      }
-    );
+    try {
+      const res = await JobUtils.fetchAllPages(
+        (offset, size) =>
+          this.loadAll(offset, size, 'id', null, filter, {
+            fetchPolicy: 'no-cache',
+            distinctByRankOrder: true,
+            toEntity: false,
+            query: Queries.loadAllWithTrip,
+          }),
+        {
+          progression: opts?.progression,
+          maxProgression: maxProgression * 0.9,
+          logPrefix: this._logPrefix,
+          fetchSize: 100,
+        }
+      );
 
-    // Save result locally
-    await this.entities.saveAll(res.data, { entityName: PhysicalGear.TYPENAME, reset: true });
+      // Save result locally
+      await this.entities.saveAll(res.data, { entityName: PhysicalGear.TYPENAME, reset: true });
+
+      console.info(this._logPrefix + `Successfully import ${res.data?.length ?? 0} physical gears, from program '${programLabel}'`);
+    } catch (error) {
+      // Log error
+      console.error(this._logPrefix + `Failed to import physical gears, from program '${programLabel}'`, error);
+      throw error;
+    }
   }
 
   asFilter(filter: Partial<PhysicalGearFilter>): PhysicalGearFilter {

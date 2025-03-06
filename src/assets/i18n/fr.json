@@ -849,7 +849,7 @@
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne",
       "VESSELS": "Navire(s)",
-      "ENABLE_HISTORICAL_DATA": "Importer l'historique de données ?",
+      "ENABLE_HISTORICAL_DATA": "Importer les données du navire (engins, filages) ?",
       "DURATION_PLACEHOLDER": "Période à importer"
     },
     "ERROR": {

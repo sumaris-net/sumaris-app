@@ -847,7 +847,7 @@
     "OFFLINE_MODAL": {
       "TITLE": "Configuring offline mode",
       "VESSELS": "Vessel(s)",
-      "ENABLE_HISTORICAL_DATA": "Import data history?",
+      "ENABLE_HISTORICAL_DATA": "Import vessel data (gears, settings)?",
       "DURATION_PLACEHOLDER": "Period to import"
     },
     "ERROR": {
