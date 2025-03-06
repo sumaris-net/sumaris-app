@@ -33,7 +33,7 @@ import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { PmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 
 export interface PmfmStrategiesTableState {
   acquisitionLevels: IReferentialRef[];

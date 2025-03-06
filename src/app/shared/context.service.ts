@@ -5,7 +5,7 @@ import { DateUtils, equals, fromDateISOString, removeDuplicatesFromArray, Storag
 import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty } from '@sumaris-net/ngx-components';
 
 export interface Clipboard<TData = any> {
   source?: any;

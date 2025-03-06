@@ -3,7 +3,29 @@
 // --------------------------------------------------
 .table-container {
   flex: 1 1 auto;
-  overflow-y: auto;
+  --overflow: auto;
+  overflow-x: var(--overflow);
+  overflow-y: var(--overflow);
+  overscroll-behavior-y: contain;
+  overscroll-behavior-x: contain;
+}
+
+// In mobile, force to display a small vertical scrollbar
+@media (pointer: coarse) {
+  ::-webkit-scrollbar {
+    height: 0;
+    width: 0;
+    background-color: transparent;
+  }
+
+  .table-container::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .table-container::-webkit-scrollbar-thumb {
+    background-color: lightgrey;
+    border-radius: 1px;
+  }
 }
 
 .mat-mdc-table {
@@ -19,7 +41,7 @@
       .mat-mdc-icon-button.mat-mdc-button-base {
         --mdc-icon-button-state-layer-size: calc(var(--mat-row-height) - 1px) !important;
         --ion-icon-size: 24px;
-        padding: calc((var(--mdc-icon-button-state-layer-size) - var(--ion-icon-size)) /  2);
+        padding: calc((var(--mdc-icon-button-state-layer-size) - var(--ion-icon-size)) / 2);
         ion-icon[slot] {
           font-size: var(--ion-icon-size);
           width: var(--ion-icon-size);
@@ -103,8 +125,6 @@
       }
     }
   }
-
-
 }
 
 app-toolbar app-named-filter-selector {

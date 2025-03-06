@@ -36,7 +36,7 @@ import { OperationService } from '@app/trip/operation/operation.service';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
 
 interface PhysicalGearFormState extends MeasurementsFormState {

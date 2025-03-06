@@ -151,7 +151,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     if (this.network.offline && EntityUtils.isRemote(data)) {
       return false;
     }
-    return !this.editing && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
+    return !this.editing && (this.accountService.isAdmin() || this.accountService.canUserWriteDataForDepartment(data.recorderDepartment));
   }
 
   setValue(data: Vessel) {

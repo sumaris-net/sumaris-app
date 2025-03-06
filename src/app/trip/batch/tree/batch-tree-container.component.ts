@@ -72,7 +72,7 @@ import { ContextService } from '@app/shared/context.service';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 interface BadgeState {

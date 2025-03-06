@@ -13,11 +13,11 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          *ngIf="autocompleteFields.vesselSnapshot; else skeletonText100"
           formControlName="program"
           [placeholder]="'TRIP.PROGRAM' | translate"
           [config]="autocompleteFields.program"
           [required]="true"
+          [clearable]="!mobile"
         >
           <ion-icon matPrefix name="contract"></ion-icon>
         </mat-autocomplete-field>
@@ -25,67 +25,68 @@
     </ion-row>
 
     <!-- Sampling strata -->
-    @if (showSamplingStrata) {
-      <ion-row>
-        <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-          <ion-label class="ion-float-end hidden-xs hidden-sm">{{ 'TRIP.SAMPLING_SCHEME' | translateContext: i18nSuffix }}</ion-label>
-        </ion-col>
-        <ion-col>
+    <ion-row [@expansionInOutAnimation]="showSamplingStrata ? 'expanded' : 'collapsed'">
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+        <ion-label class="ion-float-end hidden-xs hidden-sm">{{ 'TRIP.SAMPLING_SCHEME' | translateContext: i18nSuffix }}</ion-label>
+      </ion-col>
+      <ion-col class="has-form-field">
+        @if (showSamplingStrata) {
           <mat-autocomplete-field
-            *ngIf="loaded; else skeletonText100"
             formControlName="samplingStrata"
             [placeholder]="'TRIP.SAMPLING_STRATA' | translateContext: i18nSuffix"
             [config]="autocompleteFields.samplingStrata"
+            [mobile]="mobile"
             [required]="true"
           >
             <ion-icon matPrefix name="calendar"></ion-icon>
           </mat-autocomplete-field>
-        </ion-col>
-      </ion-row>
-    }
+        }
+      </ion-col>
+    </ion-row>
 
     <!-- VESSEL -->
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
-      <ion-col>
-        <mat-autocomplete-field
-          *ngIf="autocompleteFields.vesselSnapshot; else skeletonText100"
-          formControlName="vesselSnapshot"
-          [placeholder]="'TRIP.VESSEL_SNAPSHOT' | translate"
-          [config]="autocompleteFields.vesselSnapshot"
-          [required]="true"
-          [mobile]="mobile"
-          [panelWidth]="mobile ? '80vw' : undefined"
-        >
-          <ion-icon matPrefix name="boat"></ion-icon>
-          <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
-          <button
-            matSuffix
-            type="button"
-            mat-icon-button
-            tabindex="-1"
-            [class.large]="mobile"
-            *ngIf="allowAddNewVessel && network.online"
-            [title]="'TRIP.BTN_ADD_VESSEL' | translate"
-            (click)="addVesselModal($event)"
+      <ion-col class="has-form-field">
+        @if (autocompleteFields.vesselSnapshot) {
+          <mat-autocomplete-field
+            formControlName="vesselSnapshot"
+            [placeholder]="'TRIP.VESSEL_SNAPSHOT' | translate"
+            [config]="autocompleteFields.vesselSnapshot"
+            [required]="true"
+            [panelWidth]="mobile ? '80vw' : undefined"
           >
-            <mat-icon>add</mat-icon>
-          </button>
-        </mat-autocomplete-field>
+            <ion-icon matPrefix name="boat"></ion-icon>
+            <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
+            <button
+              matSuffix
+              type="button"
+              mat-icon-button
+              tabindex="-1"
+              [class.large]="mobile"
+              *ngIf="allowAddNewVessel && network.online"
+              [title]="'TRIP.BTN_ADD_VESSEL' | translate"
+              (click)="addVesselModal($event)"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          </mat-autocomplete-field>
+        }
       </ion-col>
     </ion-row>
 
     <!-- DEPARTURE -->
     <ion-row>
-      <ion-col size="12" size-md="2" size-lg="3">
+      <ion-col size="12" size-sm="12" size-md="2" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.DEPARTURE</ion-label>
       </ion-col>
-      <ion-col>
+      <ion-col size="12" size-sm="7" size-md="6" size-lg="5">
+        @let departureLocationControl = form | formGetControl: 'departureLocation';
         <mat-autocomplete-field
           #departureLocation
-          formControlName="departureLocation"
+          [formControl]="departureLocationControl"
           [placeholder]="'TRIP.DEPARTURE_LOCATION' | translate"
           [config]="autocompleteFields.location"
           [required]="true"
@@ -99,8 +100,8 @@
               type="button"
               mat-icon-button
               matSuffix
-              [hidden]="form.controls.departureLocation?.invalid"
-              (click)="copyLocation($event)"
+              [hidden]="departureLocationControl.invalid"
+              (click)="copyDepartureLocation($event)"
               [title]="'TRIP.EDIT.BTN_DUPLICATE_LOCATION' | translate"
               [disabled]="disabled"
             >
@@ -109,7 +110,7 @@
           }
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="12" size-sm="5" size-md="4">
+      <ion-col size="12" size-sm="5" size-md="4" size-lg="4">
         <mat-date-time-field [placeholder]="'TRIP.DEPARTURE_DATE_TIME' | translate" formControlName="departureDateTime" [required]="true">
           <!-- icon (need for small screen) -->
           <mat-icon matPrefix class="visible-xs">today</mat-icon>
@@ -119,10 +120,10 @@
 
     <!-- RETURN -->
     <ion-row>
-      <ion-col size="12" size-md="2" size-lg="3">
+      <ion-col size="12" size-sm="12" size-md="2" size-lg="3">
         <ion-label class="ion-float-end" translate>TRIP.RETURN</ion-label>
       </ion-col>
-      <ion-col>
+      <ion-col size="12" size-sm="7" size-md="6" size-lg="5">
         <mat-autocomplete-field
           #returnLocation
           formControlName="returnLocation"
@@ -135,7 +136,8 @@
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="12" size-sm="5" size-md="4" *ngVar="form | formGetControl: 'returnDateTime'; let control">
+      <ion-col size="12" size-sm="5" size-md="4" size-lg="4">
+        @let control = form | formGetControl: 'returnDateTime';
         <mat-date-time-field
           [placeholder]="'TRIP.RETURN_DATE_TIME' | translate"
           [formControl]="control"
@@ -160,8 +162,8 @@
     </ion-row>
 
     <!-- Metiers -->
-    <ng-container *ngIf="showMetiers">
-      <ion-row *ngFor="let metierForm of metiersForm?.controls; index as i; first as first; last as last">
+    @for (metierForm of metiersForm?.controls; track i; let i = $index; let first = $first; let last = $last) {
+      <ion-row [@expansionInOutAnimation]="showMetiers ? 'expanded' : 'collapsed'">
         <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.METIERS</ion-label>
         </ion-col>
@@ -216,13 +218,13 @@
           </button>
         </ion-col>
       </ion-row>
-    </ng-container>
+    }
 
     <ng-content select="[beforeObservers]"></ng-content>
 
     <!-- Observers -->
-    <ng-container *ngIf="showObservers">
-      <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first; last as last">
+    @for (observerForm of observersForm?.controls; track i; let i = $index; let first = $first; let last = $last) {
+      <ion-row [@expansionInOutAnimation]="showObservers ? 'expanded' : 'collapsed'">
         <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end" *ngIf="first" translate>TRIP.OBSERVERS</ion-label>
         </ion-col>
@@ -263,7 +265,7 @@
           </button>
         </ion-col>
       </ion-row>
-    </ng-container>
+    }
 
     <!-- PMFMS -->
     <ng-content select="[afterObservers]"></ng-content>
@@ -287,8 +289,11 @@
   </ion-grid>
 </form>
 
-<ng-template #skeletonText100>
+<ng-template #skeletonText100 let-icon="icon">
   <mat-form-field>
+    @if (icon) {
+      <mat-icon matPrefix>{{ icon }}</mat-icon>
+    }
     <input matInput hidden />
     <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
   </mat-form-field>

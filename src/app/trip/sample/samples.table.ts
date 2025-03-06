@@ -68,7 +68,7 @@ import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { UntypedFormGroup } from '@angular/forms';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 declare interface GroupColumnDefinition {

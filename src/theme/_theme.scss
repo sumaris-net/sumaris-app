@@ -85,14 +85,6 @@ ion-content.ion-flex-direction-column::part(scroll) {
   }
 }
 
-ion-toast {
-  &.secondary {
-    --background: var(--ion-color-secondary);
-    --color: var(--ion-color-primary);
-    --button-color: var(--ion-color-tertiary);
-  }
-}
-
 // Form buttons bar
 app-form-buttons-bar {
   // Default width of form bar left buttons
@@ -104,6 +96,24 @@ app-form-buttons-bar {
   .measurements-form-padding-start {
     /* Add offset = icon width (24px) + margin (2*5px) */
     padding-inline-start: 34px;
+  }
+}
+
+/* -- Toast  -- */
+.dark ion-toast {
+  --button-color: var(--color);
+
+  &.secondary {
+    --background: var(--ion-color-secondary);
+    --color: var(--ion-color-secondary-contrast);
+  }
+  &.accent {
+    --background: var(--ion-color-accent);
+    --color: var(--ion-color-accent-contrast);
+  }
+  &.danger {
+    --background: var(--ion-color-danger);
+    --color: var(--ion-color-danger-contrast);
   }
 }
 
@@ -205,36 +215,6 @@ app-toolbar ion-segment-button {
   }
 }
 
-/* -- table container -- */
-
-.table-container {
-  --overflow: auto;
-  overflow-x: var(--overflow);
-  overflow-y: var(--overflow);
-  overscroll-behavior-y: contain;
-  overscroll-behavior-x: contain;
-  //will-change: scroll-position;
-  //box-sizing: border-box;
-}
-
-// In mobile, force to display a small vertical scrollbar
-@media (pointer: coarse) {
-  ::-webkit-scrollbar {
-    height: 0;
-    width: 0;
-    background-color: transparent;
-  }
-
-  .table-container::-webkit-scrollbar {
-    width: 3px;
-  }
-
-  .table-container::-webkit-scrollbar-thumb {
-    background-color: lightgrey;
-    border-radius: 1px;
-  }
-}
-
 .hidden {
   visibility: hidden;
   display: none;
@@ -258,7 +238,6 @@ app-toolbar ion-segment-button {
 /* -- Ion card -- */
 
 ion-card ion-card-title .title {
-
   small {
     font-weight: normal;
     br {
@@ -268,7 +247,7 @@ ion-card ion-card-title .title {
   }
   // Add a separator, after the <small> part
   small:first-of-type:after {
-    content: " -  ";
+    content: ' -  ';
   }
 }
 
@@ -283,7 +262,7 @@ ion-card ion-card-title .title {
     }
     // Add a separator, after the <small> part
     small:first-of-type:after {
-      content: "";
+      content: '';
     }
   }
 }

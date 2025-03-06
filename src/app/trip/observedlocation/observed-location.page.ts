@@ -47,7 +47,7 @@ import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import { AcquisitionLevelCodes, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { Moment } from 'moment';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';

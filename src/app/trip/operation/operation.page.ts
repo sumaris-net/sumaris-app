@@ -36,6 +36,8 @@ import {
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   ReferentialRef,
   ReferentialUtils,
+  RxStateProperty,
+  RxStateSelect,
   sleep,
   toBoolean,
   toInt,
@@ -72,7 +74,6 @@ import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { AppDataEditorOptions, AppDataEditorState, AppDataEntityEditor } from '@app/data/form/data-editor.class';
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
 import { Batch } from '@app/trip/batch/common/batch.model';
@@ -1273,8 +1274,8 @@ export class OperationPage<S extends OperationState = OperationState>
     if (this.mobile) await sleep(50);
 
     // Save new gear to the trip
-    const physicalGear = await this.getOrAddPhysicalGear({ emitEvent: false });
-    if (!physicalGear) {
+    const physicalGearFound = await this.getOrAddPhysicalGear({ emitEvent: false });
+    if (!physicalGearFound) {
       this.markForCheck();
       return false; // Stop if failed
     }
@@ -1341,7 +1342,7 @@ export class OperationPage<S extends OperationState = OperationState>
     if (!this.dirty) return true; // Skip
 
     const physicalGear = this.opeForm.physicalGearControl.value;
-    if (!physicalGear || isNotNil(physicalGear.id)) return true; // Skip
+    if (!physicalGear || isNotNil(physicalGear.id)) return true; // Skip if empty, or already saved
 
     // DEBUG
     console.debug('[operation-page] Saving new physical gear...');
@@ -1352,14 +1353,15 @@ export class OperationPage<S extends OperationState = OperationState>
     try {
       const savedPhysicalGear = await this.tripService.getOrAddGear(this.trip.id, physicalGear);
 
-      // Update form with the new gear
-      this.opeForm.physicalGearControl.patchValue(savedPhysicalGear, { emitEvent: false });
-
       // Update the current trip object
       if (!this.trip.gears?.some((g) => PhysicalGear.equals(g, savedPhysicalGear))) {
         this.trip.gears = this.trip.gears || [];
         this.trip.gears.push(savedPhysicalGear);
       }
+
+      // Update form with the new gear
+      console.debug('[operation-page] Saving new physical gear [OK]', savedPhysicalGear);
+      this.opeForm.physicalGearControl.patchValue(savedPhysicalGear, { emitEvent: false });
 
       return true;
     } catch (err) {

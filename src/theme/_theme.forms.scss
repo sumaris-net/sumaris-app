@@ -27,14 +27,13 @@ form.form-container {
       }
     }
 
-
     // Tappable field (e.g. a parent field that open a modal when clicked)
     &.ion-tappable,
     &.ion-tappable:hover {
       cursor: pointer !important;
 
       input,
-      input:hover{
+      input:hover {
         cursor: pointer !important;
       }
     }
@@ -108,8 +107,13 @@ form.form-container {
   & > ion-grid > ion-col:has(ion-label) {
     align-content: end;
   }
-}
 
+  // Use to fix row/col height when field if not display yet (e.g. the vessel field autocomplete)
+  ion-row .has-form-field,
+  ion-col .has-form-field {
+    min-height: calc(var(--mat-form-field-container-height, 43px) + var(--mat-form-field-subscript-text-line-height, 22px));
+  }
+}
 
 // Mobile: change form labels style
 @media screen and (max-width: $screen-sm-max) {
@@ -136,9 +140,7 @@ mat-sampling-ratio-field {
   }
 }
 
-
 @media screen and (max-width: #{$screen-xs-max}) {
-
   .mat-form-field-buttons {
     --buttons-col-count: 3 !important;
     ion-button {

@@ -23,6 +23,7 @@ import {
   AppFormUtils,
   changeCaseToUnderscore,
   DateUtils,
+  DisplayFn,
   EntityUtils,
   equals,
   getPropertyByPath,
@@ -44,10 +45,13 @@ import {
   MatAutocompleteFieldConfig,
   PlatformService,
   ReferentialRef,
+  referentialToString,
   ReferentialUtils,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
+  RxStateProperty,
+  RxStateSelect,
   setPropertyByPath,
   sleep,
   splitById,
@@ -66,7 +70,6 @@ import {
   ActivityMonthValidatorService,
 } from '@app/activity-calendar/calendar/activity-month.validator';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { BehaviorSubject, distinctUntilChanged, fromEvent, Observable, Subject, Subscription, tap } from 'rxjs';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
@@ -255,6 +258,7 @@ export class CalendarComponent
   protected unauthorizedToast$ = new Subject<void | string>();
   protected confirmingRowMutex = new Mutex();
   protected contextMenuId: number;
+  protected vesselOwnerToString: DisplayFn;
 
   @RxStateSelect() protected vesselOwners$: Observable<VesselOwner[][]>;
   @RxStateSelect() protected dynamicColumns$: Observable<ColumnDefinition[]>;
@@ -592,6 +596,14 @@ export class CalendarComponent
       this.settingsId = this.generateTableId();
       this.restoreCollapseAfterSave();
     });
+
+    const vesselOwnerToString = (value: VesselOwner | VesselOwner[]): string => {
+      if (Array.isArray(value)) return value.map((v) => vesselOwnerToString(v)).join('\n');
+      const defaultResult = referentialToString(value, this.vesselOwnerDisplayAttributes, ' ');
+      if (isNotNilOrBlank(defaultResult)) return defaultResult;
+      return referentialToString(value, [<keyof VesselOwner>'registrationCode']);
+    };
+    this.vesselOwnerToString = vesselOwnerToString;
   }
 
   ngAfterViewInit() {
@@ -3026,7 +3038,7 @@ export class CalendarComponent
             this.showUnauthorizedToast('ACTIVITY_CALENDAR.WARNING.OUTSIDE_EXPERTISE_AREA_PASTE');
           }
 
-          // Force isActive if paste some not null value, that is relative to an fishing activity (e.g metier, fishing area, etc.)
+          // Force isActive if paste some not null value, that is relative to a fishing activity (e.g metier, fishing area, etc.)
           isActive = isActive || (isNotNil(sourceValue) && sourcePath !== 'isActive' && sourcePath !== 'basePortLocation');
 
           // Force IsActive = true, if need
@@ -3060,7 +3072,7 @@ export class CalendarComponent
           }
         }
 
-        // Check if changes (e.g. if some of source or target cell has content) - see issue #840
+        // Check if changes (e.g. if some source or target cell has content) - see issue #840
         const hasChanges = sourceHasSomeValue || targetPaths.some((path) => isNotNil(getPropertyByPath(targetPreviousValue, path)));
 
         // Update the row, using the computed entity
@@ -3405,7 +3417,7 @@ export class CalendarComponent
     return this.getErrorsInRows()?.length > 0;
   }
 
-  addMetierBlocksForPaste(sourcePaths: string[], targetPaths: string[]) {
+  protected addMetierBlocksForPaste(sourcePaths: string[], targetPaths: string[]) {
     let targetMetierPath = sourcePaths.filter((path) => path.includes('gearUseFeatures'));
     let sourceMetierPath = targetPaths.filter((path) => path.includes('gearUseFeatures'));
 
@@ -3436,7 +3448,7 @@ export class CalendarComponent
     }
   }
 
-  extractGearUseFeatureIndex(str: string[]): string[] {
+  protected extractGearUseFeatureIndex(str: string[]): string[] {
     if (isNil(str)) return [];
     return removeDuplicatesFromArray(
       str
@@ -3448,7 +3460,7 @@ export class CalendarComponent
     );
   }
 
-  collapseEmptyMetierBlock(programLabels: string[]) {
+  protected collapseEmptyMetierBlock(programLabels: string[]) {
     if (programLabels.length === 1) {
       const rows = (this.dataSource.getData() || []).filter((row) => row.program.label === programLabels[0]);
       if (isEmptyArray(rows)) return;

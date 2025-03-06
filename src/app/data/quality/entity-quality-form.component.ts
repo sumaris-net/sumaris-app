@@ -202,7 +202,8 @@ export class EntityQualityFormComponent<
 
         // Emit event (refresh component with the new data)
         if (!opts || opts.emitEvent !== false) {
-          await this.updateView(data);
+          this.busy = false;
+          await this.updateView(data, { emitEvent: false });
         } else {
           this.data = data;
         }
@@ -210,7 +211,9 @@ export class EntityQualityFormComponent<
     } finally {
       this.editor.enable(opts);
       this.busy = false;
-      this.markForCheck();
+      if (!opts || opts.emitEvent !== false) {
+        this.markForCheck();
+      }
       progressionSubscription?.unsubscribe();
     }
 
@@ -260,7 +263,9 @@ export class EntityQualityFormComponent<
     } finally {
       this.editor.enable(opts);
       this.busy = false;
-      this.markForCheck();
+      if (!opts || opts.emitEvent !== false) {
+        this.markForCheck();
+      }
       progressionSubscription?.unsubscribe();
     }
   }
@@ -400,7 +405,7 @@ export class EntityQualityFormComponent<
 
   /* -- protected method -- */
 
-  protected async updateView(data?: T) {
+  protected async updateView(data?: T, opts?: { emitEvent?: boolean }) {
     if (this.busy) return; // Skip
 
     data = data || this.data || this.editor?.data;
@@ -417,7 +422,9 @@ export class EntityQualityFormComponent<
       this.canQualify = false;
       this.canUnqualify = false;
     } else if (data instanceof DataEntity) {
-      console.debug('[entity-quality] Updating view...');
+      // DEBUG
+      //console.debug('[entity-quality] Updating view...');
+
       // If local, avoid to check too many properties (for performance in mobile devices)
       const isLocalData = EntityUtils.isLocal(data);
       const canWrite = isLocalData || this.editor.canUserWrite(data);
@@ -452,7 +459,10 @@ export class EntityQualityFormComponent<
     if ((this.canQualify || this.canUnqualify) && !this.qualityFlags) {
       this.qualityFlags = await this.referentialRefService.loadQualityFlags();
     }
-    this.markForCheck();
+
+    if (!opts || opts.emitEvent !== false) {
+      this.markForCheck();
+    }
   }
 
   protected async showToast<R = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<R>> {

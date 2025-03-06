@@ -1281,7 +1281,7 @@ export class TripService
         filter.startDate = null;
       }
       // Make sure the period include the actual trip
-      filter.startDate = DateUtils.min(entity.departureDateTime.clone().utc(false).startOf('day'), filter.startDate);
+      filter.startDate = DateUtils.min(filter.startDate, entity.departureDateTime.clone().utc(false).startOf('day'));
       filter.endDate = null;
 
       // Run importation
@@ -1751,7 +1751,7 @@ export class TripService
       const savedTrip = await this.save(trip);
 
       // Return the saved gear
-      const savedEntity = savedTrip.gears.find((g) => g.rankOrder === entity.rankOrder);
+      const savedEntity = savedTrip.gears?.find((g) => g.rankOrder === entity.rankOrder);
 
       // Check that the gear has been added
       if (!savedEntity) throw new Error('Cannot find expected physical gear, in the saved trip!');

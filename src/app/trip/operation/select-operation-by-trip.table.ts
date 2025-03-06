@@ -6,6 +6,7 @@ import {
   AccountService,
   AppTable,
   collectByProperty,
+  DateUtils,
   EntitiesTableDataSource,
   isEmptyArray,
   isNotEmptyArray,
@@ -23,7 +24,6 @@ import { OperationFilter } from '@app/trip/operation/operation.filter';
 import { TripService } from '@app/trip/trip/trip.service';
 import { debounceTime, filter } from 'rxjs/operators';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import moment from 'moment';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { BehaviorSubject, from, merge } from 'rxjs';
@@ -41,7 +41,7 @@ class OperationDivider extends Operation {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectOperationByTripTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
-  limitDateForLostOperation = moment().add(-4, 'day');
+  limitDateForLostOperation = DateUtils.moment().add(-4, 'day');
   trips = new Array<Trip>();
   filterForm: UntypedFormGroup;
   displayAttributes: {

@@ -57,7 +57,7 @@ import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model'
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsAsyncTable } from '@app/data/measurement/measurements-async-table.class';
 
 export class LandingEditorOptions extends RootDataEditorOptions {}

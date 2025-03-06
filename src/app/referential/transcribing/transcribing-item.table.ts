@@ -22,7 +22,7 @@ import {
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { Validators } from '@angular/forms';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
 import { ModelEnumUtils } from '@app/referential/services/model/model.enum';
 

@@ -248,9 +248,24 @@
     </ng-container>
 
     <!-- Actions column -->
-    <app-actions-column [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)" [cellTemplate]="cellTemplate">
-      <ng-template #cellTemplate let-row>
+    <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let row">
         <!-- Delete row button -->
+        <button
+          mat-icon-button
+          *ngIf="enabled && mobile && singleSelectedRow === row"
+          [title]="'COMMON.BTN_DELETE' | translate"
+          (click)="cancelOrDelete($event, row)"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <!--<app-actions-column [stickyEnd]="stickyEnd || (mobile && (selection | isSingleSelection))" [cellTemplate]="cellTemplate">
+      <ng-template #cellTemplate let-row>
+        &lt;!&ndash; Delete row button &ndash;&gt;
         <button
           mat-icon-button
           *ngIf="mobile && enabled && singleSelectedRow === row"
@@ -260,7 +275,7 @@
           <mat-icon>delete</mat-icon>
         </button>
       </ng-template>
-    </app-actions-column>
+    </app-actions-column>-->
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr

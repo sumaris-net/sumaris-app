@@ -51,7 +51,7 @@ import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.fi
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 

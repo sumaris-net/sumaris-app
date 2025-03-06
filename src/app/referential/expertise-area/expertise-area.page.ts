@@ -18,7 +18,7 @@ import { ExpertiseAreaValidatorService } from '@app/referential/expertise-area/e
 import { ExpertiseArea } from '@app/referential/expertise-area/expertise-area.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 import { firstValueFrom, Observable } from 'rxjs';
 
 export class LocationRef extends ReferentialRef<LocationRef> {

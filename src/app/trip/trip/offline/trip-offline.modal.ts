@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, Injector, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
@@ -6,11 +6,16 @@ import {
   AppForm,
   AppFormUtils,
   DateUtils,
+  isNilOrBlank,
   isNotEmptyArray,
+  isNotNilOrBlank,
   isNotNilOrNaN,
+  RxStateProperty,
+  RxStateRegister,
+  RxStateSelect,
   SharedValidators,
-  slideUpDownAnimation,
   StatusIds,
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 
 import { Moment } from 'moment';
@@ -20,24 +25,47 @@ import { TripSynchroImportFilter } from '@app/trip/trip/trip.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { DATA_IMPORT_PERIODS } from '@app/data/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { mergeMap } from 'rxjs/operators';
+import { map, mergeMap } from 'rxjs/operators';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { Program } from '@app/referential/services/model/program.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { RxState } from '@rx-angular/state';
+import { Observable } from 'rxjs';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 export interface TripOfflineModalOptions {
+  title?: string;
   value?: TripSynchroImportFilter;
+}
+
+export interface TripOfflineModalFormData {
+  program: Program;
+  vesselSnapshot: VesselSnapshot | VesselSnapshot[];
+  enableHistory: boolean;
+  periodDuration: string;
+}
+
+export interface TripOfflineModalOptionsState {
+  program: Program;
+  requiredHistory: boolean;
 }
 
 @Component({
   selector: 'app-trip-offline-modal',
   styleUrls: ['./trip-offline.modal.scss'],
   templateUrl: './trip-offline.modal.html',
-  animations: [slideUpDownAnimation],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implements OnInit, TripOfflineModalOptions {
+  @RxStateRegister() protected readonly _state: RxState<TripOfflineModalOptionsState> = inject(RxState);
+  @RxStateSelect() protected program$: Observable<Program>;
+  @RxStateSelect() protected requiredHistory$: Observable<boolean>;
+
   protected mobile: boolean;
   protected periodDurationLabels: { key: string; label: string; startDate: Moment }[];
+  @RxStateProperty() protected requiredHistory: boolean;
 
   @Input() title = 'TRIP.OFFLINE_MODAL.TITLE';
 
@@ -45,7 +73,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     return this.getValue();
   }
 
-  set value(data: any) {
+  @Input() set value(data: any) {
     this.setValue(data);
   }
 
@@ -94,6 +122,37 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
         startDate: date.startOf('day'), // Reset time
       };
     });
+
+    // Listen program (with properties)
+    this._state.connect(
+      'program',
+      this.form.get('program').valueChanges.pipe(
+        map((program) => program?.label || program),
+        // Load the program
+        mergeMap((programLabel) =>
+          isNilOrBlank(programLabel)
+            ? Promise.resolve(null)
+            : this.programRefService.loadByLabel(programLabel, {
+                query: ProgramRefQueries.loadLight,
+                fetchPolicy: 'cache-first',
+              })
+        )
+      )
+    );
+
+    this._state.connect(
+      'requiredHistory',
+      this.program$.pipe(map((program) => program?.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION) || false))
+    );
+
+    this._state.hold(this.requiredHistory$, (requiredHistory) => {
+      if (requiredHistory) {
+        this.form.get('enableHistory').setValue(true);
+        this.form.get('enableHistory').disable();
+      } else if (this.enabled) {
+        this.form.get('enableHistory').enable();
+      }
+    });
   }
 
   ngOnInit() {
@@ -107,6 +166,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
         acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION],
       },
       mobile: this.mobile,
+      showAllOnFocus: !this.mobile,
     });
 
     // Enable/disable sub controls, from the 'enable history' checkbox
@@ -135,7 +195,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
   async setValue(value: TripSynchroImportFilter | any) {
     if (!value) return; // skip
 
-    const json = {
+    const json: TripOfflineModalFormData = {
       program: null,
       vesselSnapshot: null,
       enableHistory: true,
@@ -143,11 +203,11 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     };
 
     // Program
-    if (value.programLabel) {
+    if (isNotNilOrBlank(value.programLabel)) {
       try {
         json.program = await this.programRefService.loadByLabel(value.programLabel, { query: ProgramRefQueries.loadLight });
       } catch (err) {
-        console.error(err);
+        console.error(`[trip-offline] Error while load program with label ${value.programLabel}`, err);
         json.program = null;
         if (err && err.message) {
           this.setError(err.message);
@@ -167,13 +227,14 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     const vesselIds = isNotNilOrNaN(value.vesselId) ? [value.vesselId] : value.vesselIds;
     if (isNotEmptyArray(vesselIds)) {
       try {
-        json.vesselSnapshot = (
-          await this.vesselSnapshotService.loadAll(0, vesselIds.length, undefined, undefined, <VesselSnapshotFilter>{
-            includedIds: vesselIds,
-          })
-        )?.data;
+        json.vesselSnapshot =
+          (
+            await this.vesselSnapshotService.loadAll(0, vesselIds.length, undefined, undefined, <VesselSnapshotFilter>{
+              includedIds: vesselIds,
+            })
+          )?.data || null;
       } catch (err) {
-        console.error(err);
+        console.error('[trip-offline] Error while loading vessels', err);
         json.vesselSnapshot = null;
         if (err && err.message) {
           this.errorSubject.next(err.message);
@@ -196,7 +257,10 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     const value = new TripSynchroImportFilter();
 
     // Set program
-    value.programLabel = (json.program && json.program.label) || json.program;
+    value.programLabel = json.program?.label || json.program;
+
+    // Set enable history (e.g. can be undefined, when disabled)
+    json.enableHistory = toBoolean(json.enableHistory, this.requiredHistory);
 
     // Set start date
     if (json.enableHistory && json.periodDuration) {

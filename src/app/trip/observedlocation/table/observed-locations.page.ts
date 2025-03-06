@@ -12,9 +12,12 @@ import {
   PersonService,
   PersonUtils,
   ReferentialRef,
+  RxStateProperty,
+  RxStateSelect,
   SharedValidators,
   slideUpDownAnimation,
   StatusIds,
+  toBoolean,
 } from '@sumaris-net/ngx-components';
 import { ObservedLocationService } from '../observed-location.service';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -22,7 +25,7 @@ import { ObservedLocation } from '../observed-location.model';
 import { AppRootDataTable, AppRootDataTableState } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../../trip.config';
 import { Observable } from 'rxjs';
-import { ObservedLocationOfflineModal } from '../offline/observed-location-offline.modal';
+import { ObservedLocationOfflineModal, ObservedLocationOfflineModalOptions } from '../offline/observed-location-offline.modal';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observed-location.filter';
 import { filter } from 'rxjs/operators';
@@ -34,7 +37,6 @@ import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.ta
 import { IonSegment } from '@ionic/angular';
 import { LandingsPageSettingsEnum } from '@app/trip/landing/landings.page';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 
 export const ObservedLocationsPageSettingsEnum = {
   PAGE_ID: 'observedLocations',
@@ -138,7 +140,7 @@ export class ObservedLocationsPage
 
     this.registerSubscription(
       this.route.queryParams.subscribe((queryParams) => {
-        if (queryParams?.expandFilter && this.filterExpansionPanel) {
+        if (toBoolean(queryParams?.expandFilter) && this.filterExpansionPanel) {
           this.filterExpansionPanel.expanded = true;
         }
       })
@@ -262,7 +264,7 @@ export class ObservedLocationsPage
       };
       const modal = await this.modalCtrl.create({
         component: ObservedLocationOfflineModal,
-        componentProps: {
+        componentProps: <ObservedLocationOfflineModalOptions>{
           value,
         },
         keyboardClose: true,

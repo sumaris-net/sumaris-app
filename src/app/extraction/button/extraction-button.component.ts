@@ -7,7 +7,7 @@ import { ExtractionTypeFilter } from '../../extraction/type/extraction-type.filt
 import { ExtractionTypeService } from '../../extraction/type/extraction-type.service';
 import { RxState } from '@rx-angular/state';
 import { MatMenuTrigger } from '@angular/material/menu';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty } from '@sumaris-net/ngx-components';
 
 interface EntityExtractionMenuState {
   programLabels: string[];

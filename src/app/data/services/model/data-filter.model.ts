@@ -1,4 +1,4 @@
-import { Department, EntityAsObjectOptions, EntityFilter, FilterFn, isNil, isNotNil } from '@sumaris-net/ngx-components';
+import { Department, EntityAsObjectOptions, EntityFilter, FilterFn, isNil, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
 import { DataEntity } from './data-entity.model';
 import { DataQualityStatusIdType } from '@app/data/services/model/model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
@@ -14,6 +14,7 @@ export abstract class DataEntityFilter<
   recorderDepartment: Department;
   recorderDepartments: Department[];
   qualityFlagId?: number;
+  qualityFlagIds?: number[];
   dataQualityStatus?: DataQualityStatusIdType;
 
   fromObject(source: any, opts?: FO) {
@@ -31,11 +32,15 @@ export abstract class DataEntityFilter<
     if (opts && opts.minify) {
       target.recorderDepartmentId = this.recorderDepartment && isNotNil(this.recorderDepartment.id) ? this.recorderDepartment.id : undefined;
       delete target.recorderDepartment;
-      target.qualityFlagIds = isNotNil(this.qualityFlagId) ? [this.qualityFlagId] : undefined;
+      target.qualityFlagIds = isNotNil(this.qualityFlagId)
+        ? [this.qualityFlagId]
+        : isNotEmptyArray(this.qualityFlagIds)
+          ? this.qualityFlagIds
+          : undefined;
       delete target.qualityFlagId;
-      target.dataQualityStatus = (this.dataQualityStatus && [this.dataQualityStatus]) || undefined;
+      target.dataQualityStatus = this.dataQualityStatus ? [this.dataQualityStatus] : undefined;
 
-      // If filter on NOT qualified data, remove quality flag
+      // If filter is NOT on qualified data, remove the quality flag criteria
       if (
         Array.isArray(target.dataQualityStatus) &&
         target.dataQualityStatus.length &&
@@ -62,9 +67,9 @@ export abstract class DataEntityFilter<
     }
 
     // Quality flag
-    if (isNotNil(this.qualityFlagId)) {
-      const qualityFlagId = this.qualityFlagId;
-      filterFns.push((t) => isNotNil(t.qualityFlagId) && t.qualityFlagId === qualityFlagId);
+    const qualityFlagIds = isNotNil(this.qualityFlagId) ? [this.qualityFlagId] : this.qualityFlagIds;
+    if (isNotEmptyArray(qualityFlagIds)) {
+      filterFns.push((t) => isNotNil(t.qualityFlagId) && qualityFlagIds.includes(t.qualityFlagId));
     }
 
     // Quality status
@@ -77,16 +82,10 @@ export abstract class DataEntityFilter<
           filterFns.push((t) => isNotNil(t.controlDate));
           break;
         case 'VALIDATED':
-          // Must be done in sub-classes (see RootDataEntity)
+          // Must be done in sub-classes (see RootDataEntityFilter)
           break;
         case 'QUALIFIED':
-          filterFns.push(
-            (t) =>
-              isNotNil(t.qualityFlagId) &&
-              t.qualityFlagId !== QualityFlagIds.NOT_QUALIFIED &&
-              // Exclude incomplete OPE (e.g. filage)
-              t.qualityFlagId !== QualityFlagIds.NOT_COMPLETED
-          );
+          filterFns.push((t) => isNotNil(t.qualityFlagId) && t.qualityFlagId !== QualityFlagIds.NOT_QUALIFIED);
           break;
       }
     }

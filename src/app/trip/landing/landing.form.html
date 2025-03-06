@@ -24,7 +24,7 @@
     </ion-row>
 
     <!-- Strategy -->
-    <ng-container *rxIf="strategyControl$; let control">
+    @if (strategyControl$ | async; as control) {
       <ion-row>
         <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
           <ion-label class="ion-float-end hidden-xs hidden-sm">
@@ -44,104 +44,110 @@
           </mat-autocomplete-field>
         </ion-col>
       </ion-row>
-      <ion-row *ngIf="!isNewData || control.touched">
-        <ion-col size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3" class="mat-form-field-errors">
-          <ng-content select="[afterStrategy]"></ng-content>
-        </ion-col>
-      </ion-row>
-    </ng-container>
+      @if (!isNewData || control.touched) {
+        <ion-row>
+          <ion-col size="12" size-md="10" offset-md="2" size-lg="9" offset-lg="3" class="mat-form-field-errors">
+            <ng-content select="[afterStrategy]"></ng-content>
+          </ion-col>
+        </ion-row>
+      }
+    }
 
     <!-- Prent: Observed location -->
-    <ion-row *rxIf="observedLocationControl$; let control">
+    @let observedLocationControl = observedLocationControl$ | async;
+    <ion-row [@expansionInOutAnimation]="observedLocationControl ? 'expanded' : 'collapsed'">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label class="ion-float-end hidden-xs hidden-sm">
           {{ 'LANDING.EDIT.OBSERVED_LOCATION' | translateContext: i18nSuffix }}
         </ion-label>
       </ion-col>
-      <ion-col>
-        <mat-form-field [class.mat-form-field-disabled]="disabledParent" (click)="openSelectObservedLocationModal($event)" class="ion-tappable">
-          <ion-icon matPrefix name="location"></ion-icon>
-          <mat-label translate>LANDING.EDIT.OBSERVED_LOCATION_PLACEHOLDER</mat-label>
-          <input matInput type="text" hidden [formControl]="control" required />
-          <input matInput type="text" [value]="observedLocationLabel$ | async" [disabled]="disabledParent" [tabindex]="tabindex" readonly />
+      <ion-col class="has-form-field">
+        @if (observedLocationControl) {
+          <mat-form-field [class.mat-form-field-disabled]="disabledParent" (click)="openSelectObservedLocationModal($event)" class="ion-tappable">
+            <ion-icon matPrefix name="location"></ion-icon>
+            <mat-label translate>LANDING.EDIT.OBSERVED_LOCATION_PLACEHOLDER</mat-label>
+            <input matInput type="text" hidden [formControl]="observedLocationControl" required />
+            <input matInput type="text" [value]="observedLocationLabel$ | async" [disabled]="disabledParent" [tabindex]="tabindex" readonly />
 
-          <button
-            *ngIf="!(control | formGetValue); else otherButtons"
-            matSuffix
-            mat-icon-button
-            type="button"
-            tabindex="-1"
-            (click)="openSelectObservedLocationModal($event)"
-          >
-            <mat-icon>more_horiz</mat-icon>
-          </button>
-          <ng-template #otherButtons>
-            <button
-              *ngIf="control.errors | mapGet: 'msg' as msg"
-              matSuffix
-              mat-icon-button
-              type="button"
-              tabindex="-1"
-              style="color: var(--ion-color-danger)"
-              (click)="openSelectObservedLocationModal($event)"
-              [title]="msg | translate"
-            >
-              <mat-icon>error</mat-icon>
-            </button>
-            <button
-              matSuffix
-              mat-icon-button
-              type="button"
-              [matMenuTriggerFor]="parentFieldMenu"
-              tabindex="-1"
-              [title]="'COMMON.BTN_OPTIONS' | translate"
-              (click)="$event.stopImmediatePropagation()"
-            >
-              <mat-icon>more_vert</mat-icon>
-            </button>
-          </ng-template>
+            <div matSuffix>
+              @if (observedLocationControl.errors | mapGet: 'msg'; as msg) {
+                <button
+                  matSuffix
+                  mat-icon-button
+                  type="button"
+                  tabindex="-1"
+                  style="color: var(--ion-color-danger)"
+                  (click)="openSelectObservedLocationModal($event)"
+                  [title]="msg | translate"
+                >
+                  <mat-icon>error</mat-icon>
+                </button>
+              }
+              @if (observedLocationControl | formGetValue) {
+                <button
+                  matSuffix
+                  mat-icon-button
+                  type="button"
+                  [matMenuTriggerFor]="parentFieldMenu"
+                  tabindex="-1"
+                  [title]="'COMMON.BTN_OPTIONS' | translate"
+                  (click)="$event.stopImmediatePropagation()"
+                >
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+              } @else {
+                <button matSuffix mat-icon-button type="button" tabindex="-1" (click)="openSelectObservedLocationModal($event)">
+                  <mat-icon>more_horiz</mat-icon>
+                </button>
+              }
+            </div>
 
-          <mat-error [ngSwitch]="control.errors | mapKeys | arrayFirst">
-            <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-            <span *ngSwitchCase="'remoteParent'" translate>LANDING.ERROR.LOCAL_OBSERVED_LOCATION</span>
-            <span *ngSwitchCase="'existsParent'" translate>LANDING.ERROR.MISSING_OBSERVED_LOCATION</span>
-            <span *ngSwitchCase="'msg'">
-              {{ control.errors.msg?.key || control.errors.msg | translate: control.errors.msg?.params }}
-            </span>
-          </mat-error>
-        </mat-form-field>
+            <mat-error [ngSwitch]="observedLocationControl.errors | mapKeys | arrayFirst">
+              <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+              <span *ngSwitchCase="'remoteParent'" translate>LANDING.ERROR.LOCAL_OBSERVED_LOCATION</span>
+              <span *ngSwitchCase="'existsParent'" translate>LANDING.ERROR.MISSING_OBSERVED_LOCATION</span>
+              <span *ngSwitchCase="'msg'">
+                {{
+                  observedLocationControl.errors.msg?.key || observedLocationControl.errors.msg
+                    | translate: observedLocationControl.errors.msg?.params
+                }}
+              </span>
+            </mat-error>
+          </mat-form-field>
+        }
       </ion-col>
     </ion-row>
 
     <!-- Vessel -->
-    <ion-row *ngIf="showVessel">
+    <ion-row [@expansionInOutAnimation]="showVessel ? 'expanded' : 'collapsed'">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
-      <ion-col>
-        <mat-autocomplete-field
-          *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
-          [placeholder]="'LANDING.EDIT.VESSEL_SNAPSHOT' | translate"
-          formControlName="vesselSnapshot"
-          [config]="autocompleteFields.vesselSnapshot"
-          [tabindex]="tabindex + 3"
-          required
-        >
-          <ion-icon matPrefix name="boat"></ion-icon>
-
-          <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
-          <button
-            matAfter
-            type="button"
-            mat-icon-button
-            tabindex="-1"
-            *ngIf="allowAddNewVessel && networkService.online"
-            [title]="'TRIP.BTN_ADD_VESSEL' | translate"
-            (click)="addVesselModal()"
+      <ion-col class="has-form-field">
+        @if (showVessel && autocompleteFields.vesselSnapshot) {
+          <mat-autocomplete-field
+            [placeholder]="'LANDING.EDIT.VESSEL_SNAPSHOT' | translate"
+            formControlName="vesselSnapshot"
+            [config]="autocompleteFields.vesselSnapshot"
+            [tabindex]="tabindex + 3"
+            required
           >
-            <mat-icon>add</mat-icon>
-          </button>
-        </mat-autocomplete-field>
+            <ion-icon matPrefix name="boat"></ion-icon>
+
+            <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
+            <button
+              matAfter
+              type="button"
+              mat-icon-button
+              tabindex="-1"
+              *ngIf="allowAddNewVessel && networkService.online"
+              [title]="'TRIP.BTN_ADD_VESSEL' | translate"
+              (click)="addVesselModal()"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          </mat-autocomplete-field>
+        }
       </ion-col>
     </ion-row>
 

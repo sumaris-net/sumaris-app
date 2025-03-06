@@ -519,6 +519,7 @@
     "BTN_DISCONNECT": "Disconnect this account",
     "BTN_MY_ACCOUNT": "My account",
     "BTN_REGISTER": "Register",
+    "BTN_DARK_MODE": "Dark or light theme",
     "SHOW_AT": "Show at",
     "LEGAL_INFORMATION": "Legal information",
     "PRIVACY_POLICY": "Privacy policy",
@@ -846,7 +847,7 @@
     "OFFLINE_MODAL": {
       "TITLE": "Configuring offline mode",
       "VESSELS": "Vessel(s)",
-      "ENABLE_HISTORICAL_DATA": "Import data history?",
+      "ENABLE_HISTORICAL_DATA": "Import vessel data (gears, settings)?",
       "DURATION_PLACEHOLDER": "Period to import"
     },
     "ERROR": {
@@ -1527,7 +1528,7 @@
     "CALCULATED_TOTAL": "Calculated total:"
   },
   "SALE": {
-    "TITLE_PREFIX": "<small>{{location}} - {{date}}</small>",
+    "TITLE_PREFIX": "<small>Occasion: {{location}} - {{date}}<br></small>",
     "TITLE": "Sale",
     "SALE_FIELD": "Sale:",
     "DATE_TIME": "Date/Time",
@@ -1736,7 +1737,7 @@
       "OTHER_FEATURES": "Other features:",
       "TAB_SAMPLES": "Samples",
       "SAMPLING": {
-        "TITLE": "<span class=\"hidden-xs hidden-sm\">Sampling plan </span>{{strategyLabel}} - <ion-icon name=\"boat\"></ion-icon> {{vessel}}",
+        "TITLE": "<span class=\"hidden-xs hidden-sm\">Sampling plan </span>{{strategyLabel}} - Vessel {{vessel}}",
         "STRATEGY": "Sample row:",
         "STRATEGY_PLACEHOLDER": "Sample row code",
         "STRATEGY_SUMMARY_TITLE": "Sampling scheme",

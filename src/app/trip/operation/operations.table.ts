@@ -2,7 +2,16 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnDe
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from './operation.validator';
 import { OperationService, OperationServiceWatchOptions } from './operation.service';
-import { AccountService, AppFormUtils, isNotNil, LatLongPattern, LocalSettings, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  AppFormUtils,
+  isNotNil,
+  LatLongPattern,
+  LocalSettings,
+  LocalSettingsService,
+  slideDownAnimation,
+  toBoolean,
+} from '@sumaris-net/ngx-components';
 import { OperationsMapModal, OperationsMapModalOptions } from './map/operations-map.modal';
 import { environment } from '@environments/environment';
 import { Operation } from '../trip/trip.model';
@@ -14,7 +23,6 @@ import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { AppBaseTable } from '@app/shared/table/base.table';
 import { OperationEditor } from '@app/referential/services/config/program.config';
-import { slideDownAnimation } from '@app/shared/material/material.animation';
 
 @Component({
   selector: 'app-operations-table',
@@ -34,7 +42,6 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter, Op
   @Input() latLongPattern: LatLongPattern;
   @Input() showMap: boolean;
   @Input() programLabel: string;
-  @Input() useSticky = true;
   @Input() allowParentOperation = false;
   @Input() showQuality = true;
   @Input() showRowError = false;

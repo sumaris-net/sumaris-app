@@ -29,7 +29,7 @@ import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils 
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';

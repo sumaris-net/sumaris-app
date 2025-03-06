@@ -52,7 +52,7 @@ import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { AppBaseTableFilterRestoreSource, BaseTableConfig } from '@app/shared/table/base.table';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';
@@ -759,9 +759,11 @@ export class ActivityCalendarsTable
 
   protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
     const vesselTypeId = this.filterForm.get('vesselType')?.value?.id;
-    let vesselTypeIds = isNotNil(vesselTypeId) ? [vesselTypeId] : undefined;
+    let vesselTypeIds: number[] = isNotNil(vesselTypeId) ? [+vesselTypeId] : undefined;
+
+    // Limit type, using the program's vessel types
     if (isNotEmptyArray(this.programVesselTypeIds)) {
-      vesselTypeIds = intersectArrays([vesselTypeIds, this.programVesselTypeIds]);
+      vesselTypeIds = vesselTypeIds ? intersectArrays([vesselTypeIds, this.programVesselTypeIds]) : this.programVesselTypeIds;
     }
 
     return this.vesselSnapshotService.suggest(value, {

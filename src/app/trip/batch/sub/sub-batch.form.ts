@@ -73,7 +73,7 @@ import { IchthyometerService } from '@app/shared/ichthyometer/ichthyometer.servi
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface SubBatchFormState extends MeasurementsFormState {

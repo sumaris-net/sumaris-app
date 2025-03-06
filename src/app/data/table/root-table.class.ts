@@ -22,6 +22,8 @@ import {
   Property,
   ReferentialRef,
   referentialToString,
+  RxStateProperty,
+  RxStateSelect,
   splitByProperty,
   StatusIds,
   toBoolean,
@@ -44,7 +46,6 @@ import { IDataEntityQualityService } from '@app/data/services/data-quality-servi
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';

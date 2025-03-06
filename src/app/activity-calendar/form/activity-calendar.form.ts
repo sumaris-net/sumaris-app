@@ -40,7 +40,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { ModalController } from '@ionic/angular';
 import { merge, Observable, tap } from 'rxjs';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export interface ActivityCalendarFormState extends MeasurementsFormState {

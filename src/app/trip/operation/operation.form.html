@@ -39,7 +39,7 @@
           >
             <mat-label translate>TRIP.OPERATION.EDIT.PARENT_OPERATION</mat-label>
             <input matInput type="text" hidden [placeholder]="" formControlName="parentOperation" />
-            <input matInput [readOnly]="true" type="text" [value]="$parentOperationLabel | async" [tabindex]="tabindex + 1" />
+            <input matInput [readOnly]="true" type="text" [value]="parentOperationLabel$ | async" [tabindex]="tabindex + 1" />
             <button *ngIf="!(control | formGetValue); else otherButtons" matSuffix mat-icon-button type="button" tabindex="-1">
               <mat-icon>more_horiz</mat-icon>
             </button>

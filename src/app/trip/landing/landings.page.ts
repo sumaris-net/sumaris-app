@@ -6,6 +6,7 @@ import {
   ConfigService,
   Configuration,
   HammerSwipeEvent,
+  isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
@@ -17,6 +18,8 @@ import {
   ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
+  RxStateProperty,
+  RxStateSelect,
   SharedValidators,
   slideUpDownAnimation,
   StatusIds,
@@ -29,7 +32,7 @@ import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } fro
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
 import { environment } from '@environments/environment';
 import { Observable } from 'rxjs';
-import { ObservedLocationOfflineModal } from '../observedlocation/offline/observed-location-offline.modal';
+import { ObservedLocationOfflineModal, ObservedLocationOfflineModalOptions } from '../observedlocation/offline/observed-location-offline.modal';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observedlocation/observed-location.filter';
 import { filter } from 'rxjs/operators';
@@ -55,7 +58,6 @@ import { ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/ta
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { intersectArrays } from '@app/shared/functions';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
@@ -264,7 +266,7 @@ export class LandingsPage
 
     this.registerSubscription(
       this.route.queryParams.subscribe((queryParams) => {
-        if (queryParams?.expandFilter && this.filterExpansionPanel) {
+        if (toBoolean(queryParams?.expandFilter) && this.filterExpansionPanel) {
           this.filterExpansionPanel.expanded = true;
         }
       })
@@ -605,18 +607,37 @@ export class LandingsPage
     const editor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
     console.debug('[landings] Opening a landing, using editor: ' + editor);
 
-    if (editor === 'trip') {
-      return this.navController.navigateForward([editor, data.tripId], {
-        relativeTo: this.route,
-      });
+    switch (editor) {
+      case 'trip':
+        return this.navController.navigateForward([editor, data.tripId], {
+          relativeTo: this.route,
+        });
+      case 'sale':
+        const saleId = data.saleIds?.[0];
+        if (isNil(saleId)) {
+          console.debug(this.logPrefix + 'Cannot open sale editor (no sale found). Create new sale');
+          return this.navController.navigateForward([editor, 'new'], {
+            relativeTo: this.route,
+            queryParams: {
+              parent: AcquisitionLevelCodes.OBSERVED_LOCATION,
+              landing: data.id,
+            },
+          });
+        }
+        return this.navController.navigateForward([editor, saleId], {
+          relativeTo: this.route,
+          queryParams: {
+            parent: AcquisitionLevelCodes.OBSERVED_LOCATION,
+          },
+        });
+      default:
+        return this.navController.navigateForward([editor, id], {
+          relativeTo: this.route,
+          queryParams: {
+            parent: AcquisitionLevelCodes.OBSERVED_LOCATION,
+          },
+        });
     }
-
-    return this.navController.navigateForward([editor, id], {
-      relativeTo: this.route,
-      queryParams: {
-        parent: AcquisitionLevelCodes.OBSERVED_LOCATION,
-      },
-    });
   }
 
   protected async openNewRowDetail(event?: any): Promise<boolean> {
@@ -648,6 +669,19 @@ export class LandingsPage
         tableId: this.settingsId,
       },
     });
+  }
+
+  closeFilterPanel() {
+    super.closeFilterPanel();
+
+    // Update route queryParam
+    if (this.route) {
+      return this.router.navigate(['.'], {
+        relativeTo: this.route,
+        queryParams: { expandFilter: false },
+        state: { animated: false },
+      });
+    }
   }
 
   protected async openTrashModal(event?: Event) {
@@ -690,7 +724,7 @@ export class LandingsPage
       };
       const modal = await this.modalCtrl.create({
         component: ObservedLocationOfflineModal,
-        componentProps: {
+        componentProps: <ObservedLocationOfflineModalOptions>{
           value,
         },
         keyboardClose: true,

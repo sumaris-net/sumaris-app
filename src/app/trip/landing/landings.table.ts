@@ -45,7 +45,7 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 import { debounceTime, filter, first } from 'rxjs/operators';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';

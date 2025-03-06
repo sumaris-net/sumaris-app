@@ -42,7 +42,7 @@ import { SaleFilter } from './sale.filter';
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty } from '@app/shared/state/state.decorator';
+import { RxStateProperty } from '@sumaris-net/ngx-components';
 import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
 import { FishingAreaForm } from '@app/data/fishing-area/fishing-area.form';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';

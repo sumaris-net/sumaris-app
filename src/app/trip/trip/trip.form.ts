@@ -47,6 +47,7 @@ import { combineLatest } from 'rxjs';
 import { Moment } from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SortDirection } from '@angular/material/sort';
+import { expansionInOutAnimation } from '@app/shared/material/material.animations';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -55,6 +56,7 @@ const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
   templateUrl: './trip.form.html',
   styleUrls: ['./trip.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [expansionInOutAnimation],
 })
 export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   private _showSamplingStrata: boolean;
@@ -444,7 +446,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
   /* -- protected methods-- */
 
-  protected copyLocation(event: Event) {
+  protected copyDepartureLocation(event: Event) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();

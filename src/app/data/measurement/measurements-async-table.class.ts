@@ -27,7 +27,7 @@ import { mergeMap } from 'rxjs/operators';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MeasurementsTableEntitiesService } from './measurements-table.service';
 import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from './measurements-table.validator';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsTableConfig, BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
 import { AppBaseAsyncTable } from '@app/shared/table/base.async-table';
 import { AsyncTableElement } from '@e-is/ngx-material-table';

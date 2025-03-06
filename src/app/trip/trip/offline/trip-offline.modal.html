@@ -47,38 +47,35 @@
       </ion-row>
 
       @let enableHistoryControl = form | formGetControl: 'enableHistory';
+      @let requiredHistory = requiredHistory$ | async;
       <ion-row>
         <ion-col size="12">
           <!-- enable history ? -->
           <mat-form-field>
-            <input matInput hidden /><!-- fake input -->
+            <input matInput hidden [readonly]="requiredHistory" />
+            <!-- fake input -->
             <mat-checkbox matPrefix [formControl]="enableHistoryControl" labelPosition="after" [tabindex]="4">
-              <ion-text translate>TRIP.OFFLINE_MODAL.ENABLE_HISTORICAL_DATA</ion-text>
+              <ion-text [style.font-style]="requiredHistory ? 'italic' : undefined" translate>TRIP.OFFLINE_MODAL.ENABLE_HISTORICAL_DATA</ion-text>
             </mat-checkbox>
             <mat-error *ngIf="enableHistoryControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           </mat-form-field>
         </ion-col>
 
-        @if (enableHistoryControl.valueChanges | async) {
-
+        @if (requiredHistory || (enableHistoryControl | formGetValue)) {
           <!-- Period duration -->
           <ion-col offset="1" size="11">
-          <mat-form-field>
-            <ion-icon matPrefix name="calendar-outline"></ion-icon>
+            <mat-form-field>
+              <ion-icon matPrefix name="calendar-outline"></ion-icon>
               <mat-label translate>TRIP.OFFLINE_MODAL.DURATION_PLACEHOLDER</mat-label>
-            <mat-select
-              formControlName="periodDuration"
-              [tabindex]="6"
-              required
-            >
-              <mat-option *ngFor="let item of periodDurationLabels" [value]="item.key">
-                {{ item.label | translate }}
-              </mat-option>
-            </mat-select>
+              <mat-select formControlName="periodDuration" [tabindex]="6" required>
+                <mat-option *ngFor="let item of periodDurationLabels" [value]="item.key">
+                  {{ item.label | translate }}
+                </mat-option>
+              </mat-select>
 
-            <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          </mat-form-field>
-        </ion-col>
+              <mat-error *ngIf="form.controls.periodDuration.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+            </mat-form-field>
+          </ion-col>
         }
       </ion-row>
     </ion-grid>

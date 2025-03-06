@@ -50,7 +50,7 @@ import { LandedTripService } from '@app/trip/landedtrip/landed-trip.service';
 import moment from 'moment';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 
 export interface LandedTripPageState extends RootDataEntityEditorState {
   metiers: ReferentialRef[];

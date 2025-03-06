@@ -23,7 +23,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { merge, Observable } from 'rxjs';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 
 export interface IPmfmMap {
   [key: number]: IPmfm[];

@@ -13,7 +13,7 @@ import { environment } from '@environments/environment';
 import { combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RxState } from '@rx-angular/state';
-import { RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateSelect } from '@sumaris-net/ngx-components';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface CatchBatchFormState extends BatchFormState {

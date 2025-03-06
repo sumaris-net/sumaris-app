@@ -21,7 +21,7 @@ import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.mode
 import { SortDirection } from '@angular/material/sort';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@app/shared/state/state.decorator';
+import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { equals } from '@app/shared/functions';
 

@@ -1,9 +1,8 @@
 import { booleanAttribute, ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
-import { SharedPipesModule } from '@sumaris-net/ngx-components';
+import { SharedPipesModule, slideDownAnimation } from '@sumaris-net/ngx-components';
 import { AppColors } from '@app/shared/colors.utils';
 import { IonicModule } from '@ionic/angular';
 import { TranslateModule } from '@ngx-translate/core';
-import { slideDownAnimation } from '@app/shared/material/material.animation';
 
 @Component({
   selector: 'app-error-item',
