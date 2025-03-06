@@ -9,7 +9,7 @@ import { ReportTableComponent, ReportTableComponentPageDimension } from '@app/da
 import { RootVesselEntityUtils } from '@app/data/services/model/root-vessel-entity.utils';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
+import { PmfmIds, QualitativeValueIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { arrayPluck } from '@app/shared/functions';
@@ -77,6 +77,7 @@ export class LandingFormReportComponentStats extends CommonReportComponentStats 
 export class LandingFormReportComponent extends ReportTableComponent<Landing[], LandingFormReportComponentStats, LandingFormReportPageDimension> {
   protected readonly nbLinesPeerPage = 12;
 
+  protected _data: Landing[];
   protected readonly referentialRefService = inject(ReferentialRefService);
   protected dateAdapter: MomentDateAdapter = inject(MomentDateAdapter);
 
@@ -137,6 +138,17 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
       fieldsHeight: 40 + (this.isBlankForm ? 10 : 0),
       rowHeight: 38 + (this.isBlankForm ? 10 : 0),
     };
+  }
+
+  protected setData(value: Landing[]) {
+    // Remove unknow vessel from the list
+    this._data = value.filter((landing) => {
+      const vesselId = landing?.vesselSnapshot.id;
+      if (vesselId) {
+        return vesselId != VesselIds.UNKNOWN;
+      }
+      return true;
+    });
   }
 
   private computeObservedSpeciesIds(landings: Landing[]): number[] {

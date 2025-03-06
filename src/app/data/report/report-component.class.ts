@@ -103,9 +103,13 @@ export abstract class ReportComponent<
   O extends CommonReportOptions = CommonReportOptions,
 > extends CommonReport<T, S, O> {
   protected logPrefix = '[report-component] ';
+
+  protected translate = inject(TranslateService);
+  protected translateContext = inject(TranslateContextService);
+  protected baseReport: AppBaseReport<any, any, any>;
+
   @Input({ required: true }) parentPageDimensions: FormReportPageDimensions;
   @Input({ required: true }) revealOptions: Partial<IRevealExtendedOptions>;
-  @Input({ required: true }) data: T;
   @Input({ required: true }) i18nContext: IReportI18nContext;
   @Input({ required: true }) program: Program;
   @Input({ required: true }) strategy: Strategy;
@@ -119,10 +123,6 @@ export abstract class ReportComponent<
   @Input() vesselName: string;
   @Input({ required: true }) isPrintingPDF: boolean;
   @Input({ required: true }) rankOrder: number;
-
-  protected translate = inject(TranslateService);
-  protected translateContext = inject(TranslateContextService);
-  protected baseReport: AppBaseReport<any, any, any>;
 
   protected constructor(
     protected dataType: new () => T,
