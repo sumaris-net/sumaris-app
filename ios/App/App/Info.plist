@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>SUMARiS</string>
+	<string>SUMARiS</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -46,12 +46,14 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-  <string>To take picture of a specimen</string>
+	<string>To take picture of a specimen</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-  <string>To choose and add picture of a specimen</string>
+	<string>To choose and add picture of a specimen</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-  <string>To choose and add picture of a specimen</string>
-  <key>NSLocationWhenInUseUsageDescription</key>
-  <string>Auto-fill GPS position, in the operation screen</string>
+	<string>To choose and add picture of a specimen</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Auto-fill GPS position, in the operation screen</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
