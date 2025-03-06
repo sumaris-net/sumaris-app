@@ -88,16 +88,23 @@
                     [style.--row-height]="pageDimensions.rowHeight"
                   >
                     <ng-container matColumnDef="maritimDistrict">
-                      <mat-header-cell *matHeaderCellDef>
-                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.MARITIM_QUARTER' | translateContext: i18nContext.suffix }}
+                      <mat-header-cell *matHeaderCellDef class="ion-text-center">
+                        @if (isBlankForm) {
+                          {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.MARITIM_QUARTER' | translate }}&nbsp;/&nbsp;
+                        }
+                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.REGISTRATION_CODE' | translate }}
+                        <br />
+                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.VESSEL_NAME' | translateContext: i18nContext.suffix }}
                       </mat-header-cell>
                       <mat-cell *matCellDef="let landing">
-                        {{ landing.vesselSnapshot | referentialToString: displayAttributesLocation }}
+                        {{ landing.vesselSnapshot?.registrationCode || landing.vesselSnapshot?.intRegistrationCode }}
+                        <br />
+                        {{ landing.vesselSnapshot?.name }}
                       </mat-cell>
                     </ng-container>
 
                     <ng-container matColumnDef="specie">
-                      <mat-header-cell *matHeaderCellDef>
+                      <mat-header-cell *matHeaderCellDef class="ion-text-center">
                         {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.SPECIE' | translateContext: i18nContext.suffix }}
                       </mat-header-cell>
                       <mat-cell *matCellDef="let landing">
@@ -109,7 +116,7 @@
                       </mat-cell>
                     </ng-container>
 
-                    <ng-container matColumnDef="sizeUnliCat">
+                    <ng-container matColumnDef="sizeUnliCat" class="ion-text-center">
                       <mat-header-cell *matHeaderCellDef>
                         {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.COMMERCIAL_SIZE_CATEGORY' | translateContext: i18nContext.suffix }}
                       </mat-header-cell>
@@ -118,7 +125,7 @@
                       </mat-cell>
                     </ng-container>
 
-                    <ng-container matColumnDef="comments">
+                    <ng-container matColumnDef="comments" class="ion-text-center">
                       <mat-header-cell *matHeaderCellDef>
                         {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.COMMENTS' | translateContext: i18nContext.suffix }}
                       </mat-header-cell>

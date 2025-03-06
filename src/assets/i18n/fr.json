@@ -1909,6 +1909,8 @@
           },
           "TABLE": {
             "MARITIM_QUARTER": "Quartier maritime",
+            "REGISTRATION_CODE": "Immatriculation",
+            "VESSEL_NAME": "Nom du navire",
             "SPECIE": "Espèce",
             "COMMERCIAL_SIZE_CATEGORY": "Catégorie commerciale",
             "COMMENTS": "Commentaire"

@@ -141,9 +141,9 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
   }
 
   protected setData(value: Landing[]) {
-    // Remove unknow vessel from the list
+    // Remove unknown vessel from the list
     this._data = value.filter((landing) => {
-      const vesselId = landing?.vesselSnapshot.id;
+      const vesselId = landing?.vesselSnapshot?.id;
       if (vesselId) {
         return vesselId != VesselIds.UNKNOWN;
       }

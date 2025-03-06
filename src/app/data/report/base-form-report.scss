@@ -269,6 +269,7 @@ html.print-pdf .reveal .slides section {
       .mat-mdc-cell {
         &:not(lat-child) {
           border-left: solid 1px;
+          line-height: 1;
         }
       }
       .mat-mdc-header-cell {
