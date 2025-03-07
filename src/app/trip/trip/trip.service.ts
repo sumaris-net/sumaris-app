@@ -816,7 +816,7 @@ export class TripService
       offset: 0,
       size: 0,
     });
-    return res && res.total > 0;
+    return res?.total > 0;
   }
 
   listenChanges(id: number, opts?: EntityServiceListenChangesOptions): Observable<Trip> {
