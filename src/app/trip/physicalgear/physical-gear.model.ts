@@ -4,9 +4,9 @@ import {
   getPropertyByPath,
   isEmptyArray,
   isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
   ITreeItemEntity,
   ReferentialRef,
   ReferentialUtils,
@@ -184,6 +184,7 @@ export class PhysicalGear
   }
 
   copy(target: PhysicalGear) {
+    // FIXME why not to use default implementation (target.fromObject(this.asObject())) ??
     target.fromObject(this);
   }
 
@@ -292,7 +293,7 @@ export class PhysicalGearUtils {
    * Retrieves the user label of a given physical gear by accessing its measurement values.
    *
    * @param {PhysicalGear} physicalGear - The physical gear object from which to extract the user label.
-   * @return {string} The user label extracted from the provided physical gear.
+   * @return {string} The user label extracted from the provided physical gear. Or undefined if no user label found
    */
   static getUserLabel(physicalGear: PhysicalGear): string {
     return getPropertyByPath(physicalGear, `measurementValues.${PmfmIds.GEAR_LABEL}`);
@@ -305,14 +306,20 @@ export class PhysicalGearUtils {
    * @return {PhysicalGear} A new or modified PhysicalGear object with the updated user label if applicable.
    */
   static computeUserLabel(source: PhysicalGear): PhysicalGear {
-    let target = PhysicalGear.fromObject(source);
-    if (!source?.gear) return target;
-
+    source = PhysicalGear.fromObject(source);
     const userLabel = PhysicalGearUtils.getUserLabel(source);
-    if (isNotNilOrBlank(userLabel) && source.gear.name !== userLabel) {
-      target = target.clone();
-      target.gear.name = userLabel;
-    }
+
+    if (isNilOrBlank(userLabel) || !source?.gear || source.gear?.name === userLabel) return source;
+
+    // Override the gear name with the user label
+    const target = source.clone();
+
+    // FIXME: remove this line when previous `source.clone()` will do reality a complete copy
+    //       (instead of a partial copy - e.g. gear is not cloned - See PhysicalGear.copy())
+    target.gear = target.gear.clone();
+
+    // Override the gear label
+    target.gear.name = userLabel;
 
     return target;
   }

@@ -12,7 +12,6 @@ import {
   SharedValidators,
   waitFor,
 } from '@sumaris-net/ngx-components';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { GearUseFeaturesTable } from '../gear-use-features.table';
@@ -199,8 +198,8 @@ export class GearUseFeaturesTestPage implements OnInit {
   dumpData(data: GearUseFeatures[], outputName?: string) {
     let html = '';
     if (data) {
-      data.map((gear) => {
-        html += '<br/> - ' + gear.measurementValues[PmfmIds.GEAR_LABEL];
+      data.map((guf) => {
+        html += '<br/> - ' + (guf.metier?.label || guf.gear?.label || '') + '#' + guf.rankOrder;
       });
       html = html.replace(/\t/g, '&nbsp;&nbsp;');
 

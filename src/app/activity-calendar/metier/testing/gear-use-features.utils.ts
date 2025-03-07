@@ -1,8 +1,5 @@
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
-import { MeasurementModelValues } from '@app/data/measurement/measurement.model';
 import { Metier } from '@app/referential/metier/metier.model';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { isNotNil } from '@sumaris-net/ngx-components';
 
 export class GearUseFeaturesTestUtils {
   static EXAMPLES = ['default', 'empty'];
@@ -44,23 +41,5 @@ export class GearUseFeaturesTestUtils {
     }
 
     throw new Error('Unknown key: ' + key);
-  }
-
-  static getMeasurementValues(values: { label?: string; meshSize: number; selectiveDevice?: 'T90' | 'MACAR' }): MeasurementModelValues {
-    const result: MeasurementModelValues = {};
-    result[PmfmIds.GEAR_LABEL] = values?.label || null;
-    result['3'] = isNotNil(values?.meshSize) ? '' + values?.meshSize : null;
-    if (values.selectiveDevice) {
-      switch (values.selectiveDevice) {
-        case 'T90':
-          result['4'] = '36';
-          break;
-        case 'MACAR':
-          result['4'] = '10';
-          break;
-      }
-    }
-
-    return result;
   }
 }

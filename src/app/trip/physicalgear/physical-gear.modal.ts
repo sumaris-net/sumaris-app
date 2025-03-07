@@ -15,7 +15,7 @@ import {
   ViewChild,
 } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, AcquisitionLevelType, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGearForm } from './physical-gear.form';
 import {
   AppEntityEditorModal,
@@ -30,13 +30,15 @@ import {
   isNotNilOrBlank,
   PromiseEvent,
   ReferentialRef,
+  RxStateProperty,
+  RxStateSelect,
   slideDownAnimation,
   toBoolean,
   toNumber,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { PhysicalGear, PhysicalGearUtils } from '@app/trip/physicalgear/physical-gear.model';
 import { UntypedFormGroup } from '@angular/forms';
 import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
@@ -45,7 +47,6 @@ import { filter, switchMap } from 'rxjs/operators';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
 import { BaseMeasurementsTable } from '@app/data/measurement/measurements-table.class';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
@@ -386,10 +387,10 @@ export class PhysicalGearModal extends AppEntityEditorModal<PhysicalGear> implem
   protected computeTitle(data?: PhysicalGear): Promise<string> {
     data = data || this.data;
 
-    if (this.isNewData || !data) {
+    if (this.isNew || !data) {
       return this.translateContext.instant('TRIP.PHYSICAL_GEAR.NEW.TITLE', this.i18nSuffix);
     } else {
-      const label = data?.measurementValues[PmfmIds.GEAR_LABEL] || '#' + data.rankOrder;
+      const label = PhysicalGearUtils.getUserLabel(data) || '#' + data.rankOrder;
       return this.translateContext.instant('TRIP.PHYSICAL_GEAR.EDIT.TITLE', this.i18nSuffix, { label });
     }
   }

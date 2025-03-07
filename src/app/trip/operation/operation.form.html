@@ -35,7 +35,7 @@
             class="ion-tappable"
             [class.cdk-visually-hidden]="!isChildOperation"
             [class.mat-form-field-invalid]="control.invalid"
-            (click)="addParentOperation($event)"
+            (click)="selectParentOperation($event)"
           >
             <mat-label translate>TRIP.OPERATION.EDIT.PARENT_OPERATION</mat-label>
             <input matInput type="text" hidden [placeholder]="" formControlName="parentOperation" />
@@ -70,7 +70,7 @@
               <!-- Parent = options menu -->
               <mat-menu #parentFieldMenu="matMenu" xPosition="after">
                 <ng-template matMenuContent>
-                  <button mat-menu-item type="button" tabindex="-1" (click)="addParentOperation()">
+                  <button mat-menu-item type="button" tabindex="-1" (click)="selectParentOperation()">
                     <mat-icon>list</mat-icon>
                     <ion-label>
                       <span translate>TRIP.OPERATION.EDIT.BTN_SELECT_PARENT</span>
