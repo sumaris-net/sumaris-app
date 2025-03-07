@@ -431,8 +431,10 @@
 }
 
 <!-- Add Button  -->
-<ion-fab vertical="bottom" horizontal="end" *ngIf="canEdit && showFabButton && mobile">
-  <ion-fab-button color="tertiary" (click)="addRow()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+@if (mobile && showFabButton && canEdit) {
+  <ion-fab vertical="bottom" horizontal="end">
+    <ion-fab-button color="tertiary" (click)="addRow()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}
