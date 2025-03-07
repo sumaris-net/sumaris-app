@@ -60,9 +60,6 @@ export abstract class CommonReport<
   protected loadingSubject = new BehaviorSubject<boolean>(true);
   protected readyToInitialize = new BehaviorSubject<boolean>(false);
 
-  protected _data: T;
-  protected _stats: S = null;
-
   revealOptions: Partial<IRevealExtendedOptions>;
   i18nContext: IReportI18nContext = null;
 
@@ -81,19 +78,9 @@ export abstract class CommonReport<
   }
 
   @Input() debug = !environment.production;
-  @Input() set stats(value: S) {
-    this.setStats(value);
-  }
-  get stats(): S {
-    return this._stats;
-  }
+  @Input() stats: S;
 
-  @Input({ required: true }) set data(value: T) {
-    this.setData(value);
-  }
-  get data(): T {
-    return this._data;
-  }
+  @Input({ required: true }) data: T;
 
   @Input() i18nContextSuffix: string;
 
@@ -194,16 +181,6 @@ export abstract class CommonReport<
 
   protected markForCheck() {
     this.cd.markForCheck();
-  }
-
-  protected setData(value: T) {
-    this._data = value;
-  }
-
-  protected setStats(value: S) {
-    if (isNil(value)) return;
-    if (instanceOf(value, this.statsType)) this._stats = value;
-    else this._stats = this.statsFromObject(value);
   }
 
   protected abstract computeStats(data: T, opts?: IComputeStatsOpts<S>): Promise<S>;

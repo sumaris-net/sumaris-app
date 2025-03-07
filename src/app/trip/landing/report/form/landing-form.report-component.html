@@ -1,7 +1,7 @@
 @if (loaded) {
   <app-reveal #reveal [options]="revealOptions">
     @if (data | isNotEmptyArray) {
-      @for (pageSlice of stats.pagesSlice; track $index) {
+      @for (page of pages; track $index) {
         <section [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
           <section *sectionDef class="landscape">
             <page-header-form-report-chunk
@@ -81,12 +81,7 @@
             <ion-grid class="report-section ion-no-padding ion-no-margin">
               <ion-row>
                 <ion-col>
-                  <mat-table
-                    #landingTable
-                    [dataSource]="data | slice: pageSlice.start : pageSlice.end"
-                    class="table-full-width"
-                    [style.--row-height]="pageDimensions.rowHeight"
-                  >
+                  <mat-table #landingTable [dataSource]="page" [style.--row-height]="pageDimensions.rowHeight">
                     <ng-container matColumnDef="maritimDistrict">
                       <mat-header-cell *matHeaderCellDef class="ion-text-center">
                         @if (isBlankForm) {
@@ -132,10 +127,18 @@
                       <mat-cell *matCellDef="let landing">
                         {{ landing.comments }}
                       </mat-cell>
+                      trackByFn
+                    </ng-container>
+
+                    <ng-container matColumnDef="divider">
+                      <mat-cell *matCellDef="let landing">
+                        {{ landing.measurementValues | mapGet: dividerPmfm.id | pmfmValue: { pmfm: dividerPmfm } }}
+                      </mat-cell>
                     </ng-container>
 
                     <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-                    <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+                    <mat-row *matRowDef="let row; columns: displayedColumns; when: isLanding"></mat-row>
+                    <mat-row *matRowDef="let row; columns: ['divider']; when: isDivider" class="divider"></mat-row>
                   </mat-table>
                 </ion-col>
               </ion-row>

@@ -54,6 +54,7 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { StrategyUtils } from '@app/referential/services/model/strategy.model';
+import { LandingUtils } from './landing.utils';
 
 export const LANDING_RESERVED_START_COLUMNS: string[] = [
   'quality',
@@ -915,47 +916,8 @@ export class LandingsTable
   }
 
   protected mapLandings(res: LoadResult<Landing>): LoadResult<Landing> {
-    if (isNil(this.dividerPmfmId) || !res?.total) return res; // No divider: skip
-
-    // Get distinct pmfm values
-    const dividerValues =
-      this.dividerPmfm?.qualitativeValues ||
-      removeDuplicatesFromArray(
-        res.data.map((landing) => landing.measurementValues?.[this.dividerPmfmId] || QualitativeValueIds.SPECIES_LIST_ORIGIN.UNK).filter(isNotNil)
-      );
-
-    if (this.dividerPmfmId === PmfmIds.SPECIES_LIST_ORIGIN) {
-      // Put UNK value at the beginning (if present)
-      const unkValueIndex = dividerValues.findIndex((qv) => PmfmValueUtils.equals(qv, QualitativeValueIds.SPECIES_LIST_ORIGIN.UNK));
-      if (unkValueIndex !== -1) {
-        const unkValue = dividerValues.splice(unkValueIndex, 1)[0];
-        dividerValues.unshift(unkValue);
-      }
-
-      // Put random value at the end (if present)
-      const randomValueIndex = dividerValues.findIndex((qv) => PmfmValueUtils.equals(qv, QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM));
-      if (randomValueIndex !== -1) {
-        const randomValue = dividerValues.splice(randomValueIndex, 1)[0];
-        dividerValues.push(randomValue);
-      }
-    }
-
-    // Merge landings and divider values
-    const entities = dividerValues.reduce((acc, dividerValue) => {
-      const divider = Landing.fromObject({
-        measurementValues: { [this.dividerPmfmId]: dividerValue },
-      });
-      DataEntityUtils.markAsDivider(divider);
-      const landings = res.data.filter((landing: Landing) =>
-        PmfmValueUtils.equals(landing.measurementValues?.[this.dividerPmfmId] || QualitativeValueIds.SPECIES_LIST_ORIGIN.UNK, dividerValue)
-      );
-      // Hide unknown divider value
-      if (dividerValue === QualitativeValueIds.SPECIES_LIST_ORIGIN.UNK) return acc.concat(landings);
-      // Hide disabled divider value, if has no landing
-      if (dividerValue?.statusId === StatusIds.DISABLE && !landings.length) return acc;
-      return acc.concat([divider, ...landings]);
-    }, []);
-
+    if (isNil(this.dividerPmfm) || !res?.total) return res; // No divider: skip
+    const entities = LandingUtils.injectDividerLines(res.data, this.dividerPmfm);
     return { data: entities, total: res.total };
   }
 

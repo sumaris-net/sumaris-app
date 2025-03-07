@@ -36,6 +36,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
     urlHeaderLogoLeft: string;
     urlHeaderLogoRight: string;
     maxTipsToGoAppendix: number;
+    landingTableDividerPmfmId: number;
   };
   fieldsValues: {
     hasPets?: boolean;
@@ -52,6 +53,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
     sortingBatch: { [key: number]: IPmfm };
   };
   sales: Sale[];
+  landingTableDividerPmfm: IPmfm;
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -69,6 +71,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
       sortingBatch: splitById(this.pmfms.sortingBatch),
     };
     this.sales = source.sales.map(Sale.fromObject);
+    this.landingTableDividerPmfm = this.pmfmsByIds.landing?.[this.options.landingTableDividerPmfmId];
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -175,6 +178,7 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       urlHeaderLogoLeft: stats.program.getProperty(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_HEADER_LEFT_LOGO_URL),
       urlHeaderLogoRight: stats.program.getProperty(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_HEADER_RIGHT_LOGO_URL),
       maxTipsToGoAppendix: stats.program.getPropertyAsInt(ProgramProperties.REPORT_FORM_BLANK_TIPS_MAX_TO_GO_APPENDIX),
+      landingTableDividerPmfmId: stats.program.getPropertyAsInt(ProgramProperties.LANDING_ROWS_DIVIDER_PMFM_ID),
     };
 
     stats.pmfms = {
@@ -203,6 +207,8 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       landing: splitById(stats.pmfms.landing),
       sortingBatch: splitById(stats.pmfms.sortingBatch),
     };
+
+    stats.landingTableDividerPmfm = stats.pmfmsByIds.landing?.[stats.options.landingTableDividerPmfmId];
 
     stats.fieldsValues = {};
     if (!this.isBlankForm) {

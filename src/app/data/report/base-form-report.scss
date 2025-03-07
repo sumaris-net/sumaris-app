@@ -267,8 +267,8 @@ html.print-pdf .reveal .slides section {
       --mat-table-row-item-outline-color: black;
       .mat-mdc-header-cell,
       .mat-mdc-cell {
-        &:not(lat-child) {
-          border-left: solid 1px;
+        &:not(:last-child) {
+          border-right: solid 1px;
           line-height: 1;
         }
       }
@@ -283,6 +283,10 @@ html.print-pdf .reveal .slides section {
         min-height: calc(var(--row-height) * 1px);
         max-height: calc(var(--row-height) * 1px);
         height: calc(var(--row-height) * 1px);
+        &.divider {
+          font-weight: bold;
+          background-color: var(--ion-color-light-tint);
+        }
       }
     }
 

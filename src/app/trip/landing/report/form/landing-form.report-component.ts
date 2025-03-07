@@ -21,11 +21,15 @@ import {
   ReferentialRef,
   isEmptyArray,
   isNil,
+  isNotNil,
   referentialToString,
   splitById,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { Landing } from '../../landing.model';
+import { LandingUtils } from '../../landing.utils';
+import { MatTableDataSource } from '@angular/material/table';
 
 export interface LandingFormReportPageDimension extends ReportTableComponentPageDimension {
   headerHeight: number;
@@ -80,6 +84,7 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
   protected _data: Landing[];
   protected readonly referentialRefService = inject(ReferentialRefService);
   protected dateAdapter: MomentDateAdapter = inject(MomentDateAdapter);
+  protected pages: MatTableDataSource<Landing>[];
 
   @Input({ required: true }) sales: Sale[];
   @Input({ required: true }) displayAttributesLocation: string[];
@@ -88,10 +93,16 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
   @Input({ required: true }) landTripLocation: IReferentialRef;
   @Input({ required: true }) pmfms: IPmfm[];
   @Input({ required: true }) sortingBatchPmfmsByIds: { [key: number]: IPmfm };
+  @Input({ required: true }) dividerPmfm: IPmfm;
   @Input() displayedColumns: string[] = ['maritimDistrict', 'specie', 'sizeUnliCat', 'comments'];
 
   constructor() {
     super(Array<Landing>, LandingFormReportComponentStats);
+  }
+
+  async ngOnStart(opts?: any): Promise<void> {
+    await super.ngOnStart(opts);
+    this.pages = this.computePagesRows(this.data);
   }
 
   computeAppendixBlocks(): ReportAppendixSection[] {
@@ -140,15 +151,25 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
     };
   }
 
-  protected setData(value: Landing[]) {
-    // Remove unknown vessel from the list
-    this._data = value.filter((landing) => {
+  protected computePagesRows(data: Landing[]): MatTableDataSource<Landing>[] {
+    const landingWithKnownsVessel = data.filter((landing) => {
       const vesselId = landing?.vesselSnapshot?.id;
       if (vesselId) {
         return vesselId != VesselIds.UNKNOWN;
       }
       return true;
     });
+    const row = isNotNil(this.dividerPmfm) ? LandingUtils.injectDividerLines(landingWithKnownsVessel, this.dividerPmfm) : landingWithKnownsVessel;
+
+    return this.stats.pagesSlice.map((slice) => new MatTableDataSource(row.slice(slice.start, slice.end)));
+  }
+
+  protected isDivider(index: number, landing: Landing): boolean {
+    return landing.__typename === 'divider';
+  }
+
+  protected isLanding(index: number, landing: Landing): boolean {
+    return landing.__typename !== 'divider';
   }
 
   private computeObservedSpeciesIds(landings: Landing[]): number[] {
