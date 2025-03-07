@@ -25,14 +25,12 @@ import {
   equals,
   firstNotNilPromise,
   fromDateISOString,
-  getPropertyByPath,
   IPosition,
   IReferentialRef,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
   isNotNilOrNaN,
   LatLongPattern,
   LoadResult,
@@ -68,7 +66,7 @@ import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
-import { LocationLevelGroups, PmfmIds, QualityFlagIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelGroups, QualityFlagIds, TaxonGroupTypeIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { VesselPosition } from '@app/data/position/vessel/vessel-position.model';
@@ -592,21 +590,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this._trip = trip;
 
     if (trip) {
+      // Use gear user label, if any
+      const physicalGears = (trip.gears || []).map(PhysicalGearUtils.computeUserLabel);
+
       // Propagate physical gears
-      const gearLabelPath = 'measurementValues.' + PmfmIds.GEAR_LABEL;
-      const physicalGears = (trip.gears || []).map((pg, i) => {
-        const pgCopy = PhysicalGear.fromObject(pg).clone();
-
-        // Keep children (need by selection operation page)
-        //physicalGear.children = null;
-
-        // Use physical gear label, if present (see issue #314)
-        const physicalGearLabel = getPropertyByPath(pg, gearLabelPath);
-        if (isNotNilOrBlank(physicalGearLabel)) {
-          pgCopy.gear.name = physicalGearLabel;
-        }
-        return pgCopy;
-      });
       this.physicalGears = physicalGears;
 
       // Use trip physical gear Object (if possible)
@@ -830,7 +817,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     this.parentOperationLabel = parentLabel;
   }
 
-  async addParentOperation(event?: Event): Promise<Operation> {
+  async selectParentOperation(event?: Event): Promise<Operation> {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -866,13 +853,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     // Parent is on the same trip: will use same physical gear
     let physicalGear: PhysicalGear;
     if (this._trip.id === parentOperation.tripId) {
-      // Use gear label, if any
+      // Use gear user label, if any
       physicalGear = PhysicalGearUtils.computeUserLabel(parentOperation.physicalGear);
     }
     // Parent is not on the same trip
     else {
       // Load physical gear with measurements
-      let physicalGear = await this.physicalGearService.load(parentOperation.physicalGear.id, parentOperation.tripId);
+      physicalGear = await this.physicalGearService.load(parentOperation.physicalGear.id, parentOperation.tripId);
 
       // Clean the local id, before searching (avoid false positive, because local ids are used many times, in different trips)
       if (EntityUtils.isLocalId(physicalGear.id)) {
@@ -905,7 +892,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
         }
 
         // Keep the best match
-        physicalGear = physicalGearMatches[0];
+        physicalGear = PhysicalGearUtils.computeUserLabel(physicalGearMatches[0]);
 
         // Use gear label, if any
         physicalGear = PhysicalGearUtils.computeUserLabel(physicalGear);
@@ -1257,7 +1244,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
           this.updateFormGroup();
 
           // Select a parent (or same if user cancelled)
-          this.addParentOperation();
+          this.selectParentOperation();
         }
       }
       // Silent mode

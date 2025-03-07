@@ -168,9 +168,9 @@
 
       <ion-content class="ion-no-padding" #generaleTabContent>
         <!-- debug -->
-        <ng-container *ngIf="debug">
+        @if (debug) {
           <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
-        </ng-container>
+        }
 
         <!-- error -->
         @if (mobile) {

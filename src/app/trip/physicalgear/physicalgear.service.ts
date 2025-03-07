@@ -161,9 +161,7 @@ export class PhysicalGearService
       !dataFilter ||
       (isNil(dataFilter.parentGearId) && (isNil(dataFilter.program) || (isNil(dataFilter.vesselId) && isNil(dataFilter.startDate))))
     ) {
-      console.warn(
-        "[physical-gear-service] Missing physical gears filter. At least 'parentGearId', or 'program' and 'vesselId' or 'startDate'. Skipping."
-      );
+      console.warn(`${this._logPrefix}Missing physical gears filter. At least 'parentGearId', or 'program' and 'vesselId' or 'startDate'. Skipping.`);
       return EMPTY;
     }
 

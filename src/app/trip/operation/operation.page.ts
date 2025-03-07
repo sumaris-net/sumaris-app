@@ -1255,7 +1255,7 @@ export class OperationPage<S extends OperationState = OperationState>
       if (this.isNewData && this.opeForm.isChildOperation && !this.data.parentOperation) {
         // open the select parent modal
         //await this.waitIdle({ stop: this.destroySubject });
-        this.opeForm.addParentOperation();
+        this.opeForm.selectParentOperation();
       }
     }
   }

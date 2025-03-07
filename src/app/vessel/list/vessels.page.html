@@ -62,7 +62,7 @@
   <app-vessels-table
     #table
     [canEdit]="canEdit"
-    [showFabButton]="true"
+    [showFabButton]="false"
     [canDelete]="canDelete"
     [showPaginator]="false"
     [showToolbar]="false"
@@ -82,3 +82,12 @@
     showFirstLastButtons
   ></mat-paginator>
 </ion-footer>
+
+<!-- Add Button  -->
+@if (mobile && canEdit) {
+  <ion-fab vertical="bottom" horizontal="end">
+    <ion-fab-button color="tertiary" (click)="table.addRow()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}

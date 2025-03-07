@@ -140,6 +140,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         initialState: {
           requiredStrategy: true,
+          requiredGear: false,
         },
       }
     );

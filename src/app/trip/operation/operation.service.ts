@@ -1582,6 +1582,9 @@ export class OperationService
       // Extract operations
       .map((d) => d.operation);
 
+    // DEBUG
+    //console.debug(this._logPrefix + 'Sort operations by position:', sortedOperations);
+
     return sortedOperations;
   }
 

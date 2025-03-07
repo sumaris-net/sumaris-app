@@ -10,14 +10,19 @@ import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 export interface ISelectPhysicalGearModalOptions {
+  programLabel?: string;
+  requiredStrategy: boolean;
   strategyId?: number;
+  strategyLabel?: string;
   allowMultiple?: boolean;
   filter?: PhysicalGearFilter;
   acquisitionLevel?: AcquisitionLevelType;
-  programLabel?: string;
   distinctBy?: string[];
   withOffline?: boolean;
   showGearColumn?: boolean;
+
+  // debug
+  debug?: boolean;
 }
 
 @Component({
@@ -36,12 +41,15 @@ export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModal
 
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() programLabel: string;
+  @Input() requiredStrategy: boolean;
   @Input() strategyId: number;
+  @Input() strategyLabel: string;
   @Input() filter: PhysicalGearFilter | null = null;
   @Input() allowMultiple: boolean;
   @Input() distinctBy: string[];
   @Input() withOffline: boolean;
   @Input() showGearColumn: boolean;
+  @Input() debug = false;
 
   get loadingSubject(): Observable<boolean> {
     return this.table.loadingSubject;
@@ -71,10 +79,7 @@ export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModal
       distinctBy: this.distinctBy || ['gear.id', 'rankOrder', `measurementValues.${PmfmIds.GEAR_LABEL}`],
       withOffline: this.withOffline,
     };
-    this.table.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.PHYSICAL_GEAR;
-    this.table.programLabel = this.programLabel;
-    this.table.markAsReady();
-    this.table.onRefresh.emit();
+    this.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.PHYSICAL_GEAR;
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
