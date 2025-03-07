@@ -220,6 +220,7 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
 
     stats.sales = await this.getSalesByLandings(data.landings);
 
+    console.debug('MYTEST observedLocationReport data/stats', { data, stats });
     return stats;
   }
 

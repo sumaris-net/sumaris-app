@@ -138,8 +138,20 @@
                       <mat-cell *matCellDef="let landing" class="padding-medium">
                         {{ landing.comments }}
                       </mat-cell>
-                      trackByFn
                     </ng-container>
+
+                    @for (pmfm of pmfms; track pmfm.id) {
+                      <ng-container [matColumnDef]="pmfm | pmfmIdString">
+                        <mat-header-cell *matHeaderCellDef class="centred mat-column-pmfm mat-column-{{ pmfm.label }}">
+                          <table-head-pmfm-name-report-chunk
+                            [pmfm]="pmfm"
+                            [i18nContext]="i18nContext"
+                            [pmfmTipsByPmfmIds]="[]"
+                          ></table-head-pmfm-name-report-chunk>
+                        </mat-header-cell>
+                        <mat-cell *matCellDef="let landing" class="padding-medium"></mat-cell>
+                      </ng-container>
+                    }
 
                     <ng-container matColumnDef="divider">
                       <mat-cell *matCellDef="let landing" class="padding-medium">

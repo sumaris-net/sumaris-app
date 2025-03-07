@@ -1,11 +1,12 @@
 import { Component, Input, ViewEncapsulation, inject } from '@angular/core';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
+import { MatTableDataSource } from '@angular/material/table';
 import { AppCoreModule } from '@app/core/core.module';
 import { MeasurementFormValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
 import { CommonReportComponentStats, ReportAppendixSection } from '@app/data/report/report-component.class';
-import { ReportTableComponent, ReportTableComponentPageDimension } from '@app/data/report/report-table-component.class';
+import { ReportTableComponent, ReportTableComponentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table-component.class';
 import { RootVesselEntityUtils } from '@app/data/services/model/root-vessel-entity.utils';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -24,12 +25,10 @@ import {
   isNotNil,
   referentialToString,
   splitById,
-  toNumber,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { Landing } from '../../landing.model';
 import { LandingUtils } from '../../landing.utils';
-import { MatTableDataSource } from '@angular/material/table';
 
 export interface LandingFormReportPageDimension extends ReportTableComponentPageDimension {
   headerHeight: number;
@@ -72,7 +71,7 @@ export class LandingFormReportComponentStats extends CommonReportComponentStats 
 
 @Component({
   standalone: true,
-  imports: [AppCoreModule, AppSharedReportModule, AppReferentialPipesModule, ReportChunkModule],
+  imports: [AppCoreModule, AppSharedReportModule, AppReferentialPipesModule, ReportChunkModule, TableHeadPmfmNameReportChunk],
   selector: 'landing-form-report-component',
   templateUrl: './landing-form.report-component.html',
   styleUrls: ['../../../../data/report/base-report.scss', '../../../../data/report/base-form-report.scss', './landing-form.report-component.scss'],
@@ -81,18 +80,17 @@ export class LandingFormReportComponentStats extends CommonReportComponentStats 
 export class LandingFormReportComponent extends ReportTableComponent<Landing[], LandingFormReportComponentStats, LandingFormReportPageDimension> {
   protected readonly nbLinesPeerPage = 12;
 
-  protected _data: Landing[];
   protected readonly referentialRefService = inject(ReferentialRefService);
   protected dateAdapter: MomentDateAdapter = inject(MomentDateAdapter);
   protected pages: MatTableDataSource<Landing>[];
   protected displayedColumns: string[];
 
-  @Input({ required: true }) sales: Sale[];
   @Input({ required: true }) displayAttributesLocation: string[];
   @Input({ required: true }) displayAttributesTaxonGroup: string[];
   @Input({ required: true }) landTripDate: Moment;
   @Input({ required: true }) landTripLocation: IReferentialRef;
   @Input({ required: true }) pmfms: IPmfm[];
+  @Input({ required: true }) sales: Sale[];
   @Input({ required: true }) sortingBatchPmfmsByIds: { [key: number]: IPmfm };
   @Input({ required: true }) dividerPmfm: IPmfm;
 
@@ -139,6 +137,7 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
 
     stats.pagesSlice = this.computePageSlice(data.length);
 
+    console.debug('MYTEST landingFormReportComponent data/stats', { data, stats });
     return stats;
   }
 
@@ -153,7 +152,8 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
   }
 
   protected computeDisplayedColumns(): string[] {
-    let result = ['maritimDistrict', 'specie', 'sizeUnliCat', 'comments'];
+    const pmfmsDisplayedColumns = this.pmfms.map((pmfm) => pmfm.id.toString());
+    let result = ['maritimDistrict', 'specie', 'sizeUnliCat', ...pmfmsDisplayedColumns, 'comments'];
     if (!this.isBlankForm) {
       result = ['rankOrder', ...result];
     }
