@@ -35,9 +35,13 @@
     [showGearColumn]="showGearColumn"
     [showLastUsedColumn]="true"
     [showCommentsColumn]="!mobile"
-    [requiredGear]="false"
+    [acquisitionLevel]="acquisitionLevel"
+    [programLabel]="programLabel"
+    [requiredStrategy]="requiredStrategy"
     [strategyId]="strategyId"
+    [strategyLabel]="strategyLabel"
     (onOpenRow)="selectRow($event)"
+    [debug]="debug"
   ></app-physical-gears-table>
 </ion-content>
 

@@ -45,6 +45,8 @@ import {
   Property,
   ReferentialRef,
   ReferentialUtils,
+  RxStateProperty,
+  RxStateSelect,
   sleep,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -76,7 +78,6 @@ import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { OperationType } from '@app/trip/operation/operation.form';
 import { expansionInOutAnimation } from '@app/shared/material/material.animations';
 
@@ -549,7 +550,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       }
 
       // program
-      if (searchFilter.program && searchFilter.program.label) {
+      if (searchFilter.program?.label) {
         data.program = ReferentialRef.fromObject(searchFilter.program);
         dirty = true;
       }
@@ -752,14 +753,20 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     if (!vessel || !date) return; // Skip
 
     const acquisitionLevel = event?.type || this.physicalGearsTable.acquisitionLevel;
+
+    // TODO use the offline mode period, to compute start date ?
+    //const tripOfflineFilter = this.settings.getOfflineFeature<TripSynchroImportFilter>(TripsPageSettingsEnum.FEATURE_ID)?.filter;
+    //console.log('TODO offlineFilter' + JSON.stringify(tripOfflineFilter));
+
     const programLabel = this.programLabel;
+    const requiredStrategy = this.requiredStrategy ?? this.physicalGearsTable.requiredStrategy;
     const strategyId = toNumber(this.strategy?.id, this.physicalGearsTable.strategyId);
     const filter = <PhysicalGearFilter>{
       program: { label: programLabel },
       vesselId: vessel.id,
       excludeTripId: trip.id,
-      startDate: DateUtils.min(DateUtils.moment(), date && date.clone()).add(-1, 'month'),
-      endDate: date && date.clone(),
+      startDate: DateUtils.min(DateUtils.moment(), date).clone().add(-1, 'month'),
+      endDate: date?.clone(),
       excludeChildGear: acquisitionLevel === AcquisitionLevelCodes.PHYSICAL_GEAR,
       excludeParentGear: acquisitionLevel === AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR,
     };
@@ -780,11 +787,13 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
         allowMultiple: false,
         acquisitionLevel,
         programLabel,
+        requiredStrategy, // Required by the physicalGearTable (otherwise the table will not load in offline mode - see issue #989)
         strategyId,
         filter,
         distinctBy,
         withOffline,
         showGearColumn,
+        debug: this.debug,
       },
       backdropDismiss: false,
       keyboardClose: true,

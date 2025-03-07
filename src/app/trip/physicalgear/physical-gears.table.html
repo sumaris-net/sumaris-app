@@ -43,9 +43,11 @@
         <br />
         service.programLabel: {{ _dataService.programLabel }}
         <br />
-        service.strategy {{ _dataService.requiredStrategy && '(required)' }}: id={{ _dataService.strategyId }}, label={{ _dataService.strategyLabel }}
+        service.strategy{{ _dataService.requiredStrategy ? ' (required)' : '' }}: id={{ _dataService.strategyId }}, label={{
+          _dataService.strategyLabel
+        }}
         <br />
-        service.gear ({{ _dataService.requiredGear ? 'required' : 'optional' }}): id={{ _dataService.gearId }}
+        service.gear{{ _dataService.requiredGear ? ' (required)' : '' }}): id={{ _dataService.gearId }}
         <br />
         service.count: {{ memoryDataService.count }}
         <br />
