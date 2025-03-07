@@ -259,6 +259,13 @@ html.print-pdf .reveal .slides section {
     }
 
     .mat-mdc-table {
+      --col-tiny: 30;
+      --col-small: 50;
+      --col-compact: 90;
+      --col-medium: 140;
+      --col-large: 200;
+      --col-extra-large: 250;
+      --col-extra-extra-large: 300;
       --row-title-height: 48;
       --row-height: 48;
       margin: 0 auto;
@@ -267,19 +274,68 @@ html.print-pdf .reveal .slides section {
       --mat-table-row-item-outline-color: black;
       .mat-mdc-header-cell,
       .mat-mdc-cell {
+        flex-direction: column;
+        align-items: start;
+        justify-content: center;
+        div,
+        p {
+          margin: 0;
+          padding: 0;
+        }
         &:not(:last-child) {
           border-right: solid 1px;
           line-height: 1;
         }
+        &.tiny {
+          width: calc(var(--col-tiny) * 1px);
+          max-width: calc(var(--col-tiny) * 1px);
+          min-width: calc(var(--col-tiny) * 1px);
+        }
+        &.small {
+          width: calc(var(--col-small) * 1px);
+          max-width: calc(var(--col-small) * 1px);
+          min-width: calc(var(--col-small) * 1px);
+        }
+        &.compact {
+          width: calc(var(--col-compact) * 1px);
+          max-width: calc(var(--col-compact) * 1px);
+          min-width: calc(var(--col-compact) * 1px);
+        }
+        &.medium {
+          width: calc(var(--col-medium) * 1px);
+          max-width: calc(var(--col-medium) * 1px);
+          min-width: calc(var(--col-medium) * 1px);
+        }
+        &.large {
+          width: calc(var(--col-large) * 1px);
+          max-width: calc(var(--col-large) * 1px);
+          min-width: calc(var(--col-large) * 1px);
+        }
+        &.extra-large {
+          width: calc(var(--col-extra-large) * 1px);
+          max-width: calc(var(--col-extra-large) * 1px);
+          min-width: calc(var(--col-extra-large) * 1px);
+        }
+        &.extra-extra-large {
+          width: calc(var(--col-extra-extra-large) * 1px);
+          max-width: calc(var(--col-extra-extra-large) * 1px);
+          min-width: calc(var(--col-extra-extra-large) * 1px);
+        }
+        &.padding-small {
+          padding-inline: 4px !important;
+        }
+        &.padding-medium {
+          padding-inline: 8px !important;
+        }
+        &.padding-large {
+          padding-inline: 16px !important;
+        }
+        &.centred {
+          align-items: center;
+        }
       }
-      .mat-mdc-header-cell {
-        justify-content: center;
-      }
-      .mat-mdc-cell {
-        padding-inline: 8px !important;
-      }
-      mat-header-row,
-      mat-row {
+      .mat-mdc-header-row,
+      .mat-mdc-row {
         min-height: calc(var(--row-height) * 1px);
         max-height: calc(var(--row-height) * 1px);
         height: calc(var(--row-height) * 1px);

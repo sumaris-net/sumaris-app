@@ -82,27 +82,38 @@
               <ion-row>
                 <ion-col>
                   <mat-table #landingTable [dataSource]="page" [style.--row-height]="pageDimensions.rowHeight">
-                    <ng-container matColumnDef="maritimDistrict">
-                      <mat-header-cell *matHeaderCellDef class="ion-text-center">
-                        @if (isBlankForm) {
-                          {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.MARITIM_QUARTER' | translate }}&nbsp;/&nbsp;
-                        }
-                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.REGISTRATION_CODE' | translate }}
-                        <br />
-                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.VESSEL_NAME' | translateContext: i18nContext.suffix }}
+                    <ng-container matColumnDef="rankOrder">
+                      <mat-header-cell *matHeaderCellDef class="tiny centred">
+                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.RANK_ORDER' | translate }}
                       </mat-header-cell>
-                      <mat-cell *matCellDef="let landing">
+                      <mat-cell *matCellDef="let landing" class="tiny centred">
+                        {{ landing.rankOrder }}
+                      </mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="maritimDistrict">
+                      <mat-header-cell *matHeaderCellDef class="centred">
+                        <p>
+                          @if (isBlankForm) {
+                            {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.MARITIM_QUARTER' | translate }}&nbsp;/&nbsp;
+                          }
+                          {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.REGISTRATION_CODE' | translate }}
+                        </p>
+                        <p>
+                          {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.VESSEL_NAME' | translateContext: i18nContext.suffix }}
+                        </p>
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let landing" class="padding-medium">
                         {{ landing.vesselSnapshot?.registrationCode || landing.vesselSnapshot?.intRegistrationCode }}
-                        <br />
                         {{ landing.vesselSnapshot?.name }}
                       </mat-cell>
                     </ng-container>
 
                     <ng-container matColumnDef="specie">
-                      <mat-header-cell *matHeaderCellDef class="ion-text-center">
+                      <mat-header-cell *matHeaderCellDef class="centred">
                         {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.SPECIE' | translateContext: i18nContext.suffix }}
                       </mat-header-cell>
-                      <mat-cell *matCellDef="let landing">
+                      <mat-cell *matCellDef="let landing" class="padding-medium">
                         {{
                           stats.observedSpeciesByIds
                             | mapGet: (landing.measurementValues | mapGet: pmfmIds.TAXON_GROUP_ID)
@@ -111,27 +122,27 @@
                       </mat-cell>
                     </ng-container>
 
-                    <ng-container matColumnDef="sizeUnliCat" class="ion-text-center">
-                      <mat-header-cell *matHeaderCellDef>
+                    <ng-container matColumnDef="sizeUnliCat">
+                      <mat-header-cell *matHeaderCellDef class="centred">
                         {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.COMMERCIAL_SIZE_CATEGORY' | translateContext: i18nContext.suffix }}
                       </mat-header-cell>
-                      <mat-cell *matCellDef="let landing">
+                      <mat-cell *matCellDef="let landing" class="padding-medium">
                         {{ stats.fieldsValues.sizeUnliCatLabelsByLandingId | mapGet: landing.id }}
                       </mat-cell>
                     </ng-container>
 
-                    <ng-container matColumnDef="comments" class="ion-text-center">
-                      <mat-header-cell *matHeaderCellDef>
+                    <ng-container matColumnDef="comments">
+                      <mat-header-cell *matHeaderCellDef class="centred">
                         {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.COMMENTS' | translateContext: i18nContext.suffix }}
                       </mat-header-cell>
-                      <mat-cell *matCellDef="let landing">
+                      <mat-cell *matCellDef="let landing" class="padding-medium">
                         {{ landing.comments }}
                       </mat-cell>
                       trackByFn
                     </ng-container>
 
                     <ng-container matColumnDef="divider">
-                      <mat-cell *matCellDef="let landing">
+                      <mat-cell *matCellDef="let landing" class="padding-medium">
                         {{ landing.measurementValues | mapGet: dividerPmfm.id | pmfmValue: { pmfm: dividerPmfm } }}
                       </mat-cell>
                     </ng-container>

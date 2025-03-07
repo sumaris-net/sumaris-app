@@ -85,6 +85,7 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
   protected readonly referentialRefService = inject(ReferentialRefService);
   protected dateAdapter: MomentDateAdapter = inject(MomentDateAdapter);
   protected pages: MatTableDataSource<Landing>[];
+  protected displayedColumns: string[];
 
   @Input({ required: true }) sales: Sale[];
   @Input({ required: true }) displayAttributesLocation: string[];
@@ -94,7 +95,6 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
   @Input({ required: true }) pmfms: IPmfm[];
   @Input({ required: true }) sortingBatchPmfmsByIds: { [key: number]: IPmfm };
   @Input({ required: true }) dividerPmfm: IPmfm;
-  @Input() displayedColumns: string[] = ['maritimDistrict', 'specie', 'sizeUnliCat', 'comments'];
 
   constructor() {
     super(Array<Landing>, LandingFormReportComponentStats);
@@ -102,6 +102,7 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
 
   async ngOnStart(opts?: any): Promise<void> {
     await super.ngOnStart(opts);
+    this.displayedColumns = this.computeDisplayedColumns();
     this.pages = this.computePagesRows(this.data);
   }
 
@@ -151,17 +152,12 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
     };
   }
 
-  protected computePagesRows(data: Landing[]): MatTableDataSource<Landing>[] {
-    const landingWithKnownsVessel = data.filter((landing) => {
-      const vesselId = landing?.vesselSnapshot?.id;
-      if (vesselId) {
-        return vesselId != VesselIds.UNKNOWN;
-      }
-      return true;
-    });
-    const row = isNotNil(this.dividerPmfm) ? LandingUtils.injectDividerLines(landingWithKnownsVessel, this.dividerPmfm) : landingWithKnownsVessel;
-
-    return this.stats.pagesSlice.map((slice) => new MatTableDataSource(row.slice(slice.start, slice.end)));
+  protected computeDisplayedColumns(): string[] {
+    let result = ['maritimDistrict', 'specie', 'sizeUnliCat', 'comments'];
+    if (!this.isBlankForm) {
+      result = ['rankOrder', ...result];
+    }
+    return result;
   }
 
   protected isDivider(index: number, landing: Landing): boolean {
@@ -170,6 +166,29 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
 
   protected isLanding(index: number, landing: Landing): boolean {
     return landing.__typename !== 'divider';
+  }
+
+  private computePagesRows(data: Landing[]): MatTableDataSource<Landing>[] {
+    const landingWithKnownsVessel = data.filter((landing) => {
+      const vesselId = landing?.vesselSnapshot?.id;
+      if (vesselId) {
+        return vesselId != VesselIds.UNKNOWN;
+      }
+      return true;
+    });
+    const row = isNotNil(this.dividerPmfm) ? LandingUtils.injectDividerLines(landingWithKnownsVessel, this.dividerPmfm) : landingWithKnownsVessel;
+    this.remapRankOrder(row);
+    return this.stats.pagesSlice.map((slice) => new MatTableDataSource(row.slice(slice.start, slice.end)));
+  }
+
+  private remapRankOrder(landings: Landing[]) {
+    let index = 1;
+    for (const landing of landings) {
+      if (this.isLanding(index, landing)) {
+        landing.rankOrder = index;
+        index++;
+      }
+    }
   }
 
   private computeObservedSpeciesIds(landings: Landing[]): number[] {

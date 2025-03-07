@@ -1908,6 +1908,7 @@
             "HAS_PETS": "Présence de PETS :"
           },
           "TABLE": {
+            "RANK_ORDER": "#",
             "MARITIM_QUARTER": "Quartier maritime",
             "REGISTRATION_CODE": "Immatriculation",
             "VESSEL_NAME": "Nom du navire",
