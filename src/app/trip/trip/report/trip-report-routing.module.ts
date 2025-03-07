@@ -10,6 +10,11 @@ const routes: Routes = [
     component: TripReport,
   },
   {
+    path: 'legacy',
+    pathMatch: 'full',
+    component: TripReport,
+  },
+  {
     path: 'selectivity',
     loadChildren: () => import('./selectivity/selectivity-trip-report-routing.module').then((m) => m.SelectivityTripReportRoutingModule),
   },

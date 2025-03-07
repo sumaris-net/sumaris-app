@@ -9,6 +9,11 @@ const routes: Routes = [
     pathMatch: 'full',
     component: LandingReport,
   },
+  {
+    path: 'legacy',
+    pathMatch: 'full',
+    component: LandingReport,
+  },
 ];
 
 @NgModule({
