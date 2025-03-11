@@ -174,7 +174,7 @@
 
 <mat-tab-group
   #tabGroup
-  class="mat-mdc-tab-disabled-visible mat-mdc-tab-group-header-pagination-hidden"
+  class="mat-mdc-tab-disabled-hidden mat-mdc-tab-group-header-pagination-hidden"
   [class.cdk-visually-hidden]="(showBatchTables$ | push: rxStrategy) !== true"
   [class.mat-mdc-tab-group-header-hidden]="!allowQvPmfmGroup || mobile"
   [(selectedIndex)]="selectedTabIndex"
