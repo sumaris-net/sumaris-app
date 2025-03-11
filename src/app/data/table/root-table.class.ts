@@ -33,7 +33,7 @@ import {
 import { BehaviorSubject, Observable } from 'rxjs';
 import { RootDataEntity, RootDataEntityUtils } from '../services/model/root-data-entity.model';
 import { DataQualityStatusEnum, DataQualityStatusList, SynchronizationStatus } from '../services/model/model.utils';
-import { IDataSynchroService } from '../services/root-data-synchro-service.class';
+import { IRootDataSynchroService } from '../services/root-data-synchro-service.class';
 import { TableElement } from '@e-is/ngx-material-table';
 import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
 import { HttpEventType } from '@angular/common/http';
@@ -64,7 +64,7 @@ export interface IRootDataEntitiesService<
   F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
   ID = number,
 > extends IEntitiesService<T, F>,
-    IDataSynchroService<T, F, ID>,
+    IRootDataSynchroService<T, F, ID>,
     IDataEntityQualityService<T, ID> {
   featureName: string;
 }
@@ -208,7 +208,7 @@ export abstract class AppRootDataTable<
     );
 
     // Init program, when loaded (or reset)
-    this._state.hold(this._state.select('program'), (program) => {
+    this._state.hold(this.program$, (program) => {
       if (program?.label) {
         return this.setProgram(program);
       } else {
@@ -225,7 +225,7 @@ export abstract class AppRootDataTable<
         map((rows) => (rows || []).map((row) => row.currentData?.program?.label).filter(isNotNilOrBlank)),
         map((programLabels) => arrayDistinct(programLabels)),
         // DEBUG
-        tap((programLabels) => console.debug(this.logPrefix + `Selection programs: [${programLabels.join(', ')}]`))
+        tap((programLabels) => console.debug(this.logPrefix + `Selection's programs: [${programLabels.join(', ')}]`))
       )
     );
 
@@ -656,10 +656,19 @@ export abstract class AppRootDataTable<
         });
       }
     } catch (error) {
-      this.userEventService.showToastErrorWithContext({
-        error,
-        context: () => chainPromises(ids.map((id) => () => this._dataService.load(id, { withOperation: true, toEntity: false }))),
-      });
+      const context = () =>
+        chainPromises(
+          ids.map(
+            (id) => () =>
+              this._dataService.load(id, {
+                toEntity: false,
+                // Make sure to load children - FIXME: find a better way
+                withOperation: true,
+                withLanding: true,
+              })
+          )
+        );
+      this.userEventService.showToastErrorWithContext({ error, context });
       throw error;
     } finally {
       if (!opts || opts.emitEvent !== false) {
@@ -833,11 +842,19 @@ export abstract class AppRootDataTable<
   }
 
   protected async loadProgram(programLabel?: string, filter?: Partial<ProgramFilter>): Promise<Program | undefined> {
-    filter = filter ?? this.autocompleteFields.program?.filter;
+    // Load by label
     if (isNotNilOrBlank(programLabel)) {
-      return this.programRefService.loadByLabel(programLabel);
+      try {
+        return this.programRefService.loadByLabel(programLabel);
+      } catch (error) {
+        // Can fail (e.g. when peer changes, and previous program does not exist)
+        console.error(this.logPrefix + `Error while loading program by label '${programLabel}'`, error);
+        return null;
+      }
     }
+
     // Check if user can access more than one program
+    filter = filter ?? this.autocompleteFields.program?.filter;
     const { data, total } = await this.programRefService.loadAll(
       0,
       1,

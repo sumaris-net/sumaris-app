@@ -48,7 +48,7 @@ import {
   IRootDataValidateOptions,
 } from '@app/data/services/data-quality-service.class';
 import { LandingFragments, LandingService } from '../landing/landing.service';
-import { IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { IRootDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { Landing } from '../landing/landing.model';
 import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } from './observed-location.validator';
 import { environment } from '@environments/environment';
@@ -330,7 +330,7 @@ export class ObservedLocationService
     IEntitiesService<ObservedLocation, ObservedLocationFilter>,
     IEntityService<ObservedLocation, number, ObservedLocationServiceLoadOptions>,
     IDataEntityQualityService<ObservedLocation, number>,
-    IDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationServiceLoadOptions>
+    IRootDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationServiceLoadOptions>
 {
   constructor(
     injector: Injector,
@@ -850,6 +850,7 @@ export class ObservedLocationService
     opts.progression = opts.progression || new ProgressionModel({ total: maxProgression });
 
     const progressionStep = maxProgression / 20;
+    const incrementProgression = () => opts.progression.increment(progressionStep);
 
     if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} ...`);
 
@@ -872,6 +873,7 @@ export class ObservedLocationService
         const errors: FormErrors = AppFormUtils.getFormErrors(form);
 
         if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+        incrementProgression();
 
         return {
           message: 'COMMON.FORM.HAS_ERROR',
@@ -883,7 +885,7 @@ export class ObservedLocationService
     }
 
     if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [OK] in ${Date.now() - now}ms`);
-    if (opts?.progression) opts.progression.increment(progressionStep);
+    incrementProgression();
 
     // Get if meta operation and the program label for sub operations
     const subProgramLabel = opts.program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
@@ -901,6 +903,8 @@ export class ObservedLocationService
         maxProgression: maxProgression - progressionStep,
       });
       if (errors) {
+        incrementProgression();
+
         return {
           message: 'OBSERVED_LOCATION.ERROR.INVALID_SUB',
           details: {
@@ -921,6 +925,8 @@ export class ObservedLocationService
         maxProgression: opts?.maxProgression - progressionStep,
       });
       if (errors) {
+        incrementProgression();
+
         return {
           message: 'OBSERVED_LOCATION.ERROR.INVALID_LANDINGS',
           details: {
@@ -930,11 +936,10 @@ export class ObservedLocationService
           },
         };
       }
-
-      if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [OK] in ${Date.now() - now}ms`);
     }
 
-    // TODO Mark local as controlled ?
+    if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [OK] in ${Date.now() - now}ms`);
+    incrementProgression();
 
     return undefined;
   }
@@ -956,6 +961,7 @@ export class ObservedLocationService
 
       if (isEmptyArray(data)) return undefined;
       const progressionStep = maxProgression / data.length / 2; // 2 steps by observed location: control, then save
+      const incrementProgression = () => opts.progression.increment(progressionStep);
 
       let errorsById: FormErrors = null;
 
@@ -981,12 +987,14 @@ export class ObservedLocationService
         // OK succeed: terminate
         else {
           if (opts.progression?.cancelled) return; // Cancel
+
           // Need to exclude data that already validated (else got exception when pod control already validated data)
-          if (isNil(entity.validationDate)) await this.terminate(entity);
+          if (RootDataEntityUtils.isNotValidated(entity)) {
+            await this.terminate(entity);
+          }
         }
 
-        // increament, after save/terminate
-        opts.progression.increment(progressionStep);
+        incrementProgression();
       }
 
       return errorsById;
@@ -1126,6 +1134,76 @@ export class ObservedLocationService
       await this.settings.clearPageHistory();
     } catch (err) {
       /* Continue */
+    }
+
+    return entity;
+  }
+
+  async unvalidate(entity: ObservedLocation, opts?: IRootDataValidateOptions): Promise<ObservedLocation> {
+    entity = await super.unvalidate(entity, opts);
+
+    const program = await this.programRefService.loadByLabel(entity.program?.label);
+    const useAggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
+
+    if (useAggregatedLandings) {
+      // TODO unvalidate aggregated landings
+    } else {
+      // Unvalidate landings
+      const { data: landings } = await this.landingService.loadAllByObservedLocation(
+        { observedLocationId: entity.id },
+        { fullLoad: false, computeRankOrder: false }
+      );
+      for (let landing of landings) {
+        if (RootDataEntityUtils.isValidated(landing)) {
+          // Full load entity
+          landing = await this.landingService.load(landing.id);
+          // Unvalidate
+          await this.landingService.unvalidate(landing);
+        }
+      }
+    }
+
+    return entity;
+  }
+
+  async validate(entity: ObservedLocation, opts?: IRootDataValidateOptions): Promise<ObservedLocation> {
+    const errors = await this.control(entity);
+
+    if (errors) {
+      return null;
+    }
+
+    return super.validate(entity, opts);
+  }
+
+  async terminate(entity: ObservedLocation, opts?: IRootDataTerminateOptions): Promise<ObservedLocation> {
+    if (!entity) return entity; // Skip
+
+    opts = await this.fillTerminateOption(entity, opts);
+
+    entity = await super.terminate(entity, opts);
+
+    // If local entity, terminate children
+    if (opts?.withChildren) {
+      const useAggregatedLandings = opts?.program?.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
+
+      // Terminate aggregated landings
+      if (useAggregatedLandings) {
+        // TODO
+      }
+
+      // Terminate landings
+      else {
+        if (this._debug) console.debug(this._logPrefix + `Terminate landings...`);
+
+        const { data: landings } = await this.landingService.loadAllByObservedLocation(
+          { observedLocationId: entity.id },
+          { fullLoad: false, computeRankOrder: false }
+        );
+        for (let landing of landings) {
+          await this.landingService.terminateById(landing.id, { program: opts?.program });
+        }
+      }
     }
 
     return entity;
@@ -1390,7 +1468,7 @@ export class ObservedLocationService
     opts = await super.fillTerminateOption(entity, opts);
 
     return {
-      withChildren: !opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
+      withChildren: opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
       ...opts,
     };
   }
@@ -1398,7 +1476,7 @@ export class ObservedLocationService
     opts = await super.fillValidateOption(entity, opts);
 
     return {
-      withChildren: !opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
+      withChildren: opts.program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE),
       ...opts,
     };
   }

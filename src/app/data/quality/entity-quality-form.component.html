@@ -40,7 +40,7 @@
     <!-- Control (only if local) -->
     <ion-button [disabled]="busy" (click)="control($event)" expand="block" color="tertiary">
       <ion-icon *ngIf="_mobile" slot="start" name="checkmark" class="ion-float-start"></ion-icon>
-      <ion-label translate>QUALITY.BTN_CONTROL</ion-label>
+      <ion-label class="ion-text-wrap" translate>QUALITY.BTN_CONTROL</ion-label>
     </ion-button>
   } @else if (canTerminate) {
     <!-- Terminate -->
@@ -53,14 +53,14 @@
     <!-- synchronize -->
     <ion-button expand="block" [disabled]="busy" [color]="network.offline ? 'danger100' : 'danger'" (click)="synchronize($event)">
       <ion-icon *ngIf="_mobile" slot="start" name="cloud-upload" class="ion-float-start"></ion-icon>
-      <ion-label translate>QUALITY.BTN_SYNCHRONIZE</ion-label>
+      <ion-label class="ion-text-wrap" translate>QUALITY.BTN_SYNCHRONIZE</ion-label>
     </ion-button>
   } @else if (canValidate) {
     <!-- validate -->
     <ion-button expand="block" color="success" [disabled]="busy" (click)="validate($event)">
       <ion-icon *ngIf="_mobile" slot="start" name="checkmark-circle" class="ion-float-start"></ion-icon>
       &nbsp;
-      <ion-label translate>QUALITY.BTN_VALIDATE</ion-label>
+      <ion-label class="ion-text-wrap" translate>QUALITY.BTN_VALIDATE</ion-label>
     </ion-button>
   } @else if (canUnvalidate) {
     <!-- unvalidate -->

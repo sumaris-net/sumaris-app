@@ -35,6 +35,7 @@ import { ObservedLocation } from '@app/trip/observedlocation/observed-location.m
 import { RootDataEntityFilter } from './model/root-data-filter.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { IRootDataTerminateOptions, IRootDataValidateOptions } from '@app/data/services/data-quality-service.class';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 export class DataSynchroImportFilter {
@@ -75,11 +76,12 @@ export class DataSynchroImportFilter {
   }
 }
 
-export interface IDataSynchroService<
+export interface IRootDataSynchroService<
   T extends RootDataEntity<T, ID>,
   F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
   ID = number,
   LO extends EntityServiceLoadOptions = EntityServiceLoadOptions,
+  TO extends IRootDataTerminateOptions = IRootDataTerminateOptions,
 > {
   load(id: ID, opts?: LO): Promise<T>;
 
@@ -90,9 +92,9 @@ export interface IDataSynchroService<
     }
   ): Observable<number>;
 
-  terminateById(id: ID): Promise<T>;
+  terminateById(id: ID, opts?: TO): Promise<T>;
 
-  terminate(entity: T): Promise<T>;
+  terminate(entity: T, opts?: TO): Promise<T>;
 
   synchronizeById(id: ID): Promise<T>;
 
@@ -103,7 +105,7 @@ export interface IDataSynchroService<
   lastUpdateDate(): Promise<Moment>;
 }
 
-const DataSynchroServiceFnName: (keyof IDataSynchroService<any>)[] = ['load', 'runImport', 'synchronizeById', 'synchronize', 'lastUpdateDate'];
+const DataSynchroServiceFnName: (keyof IRootDataSynchroService<any>)[] = ['load', 'runImport', 'synchronizeById', 'synchronize', 'lastUpdateDate'];
 
 export interface ISynchronizeEvent {
   localId: any;
@@ -114,7 +116,7 @@ export interface RootDataEntitySaveOptions extends EntitySaveOptions {
   emitEvent?: boolean;
 }
 
-export function isDataSynchroService(object: any): object is IDataSynchroService<any> {
+export function isDataSynchroService(object: any): object is IRootDataSynchroService<any> {
   return (
     (object && DataSynchroServiceFnName.filter((fnName) => typeof object[fnName] === 'function').length === DataSynchroServiceFnName.length) || false
   );
@@ -131,9 +133,11 @@ export abstract class RootDataSynchroService<
     Q extends BaseEntityGraphqlQueries = BaseEntityGraphqlQueries,
     M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
     S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions,
+    TO extends IRootDataTerminateOptions = IRootDataTerminateOptions,
+    VO extends IRootDataValidateOptions = IRootDataValidateOptions,
   >
-  extends BaseRootDataService<T, F, ID, WO, LO, Q, M, S>
-  implements IDataSynchroService<T, F, ID, LO>
+  extends BaseRootDataService<T, F, ID, WO, LO, Q, M, S, TO, VO>
+  implements IRootDataSynchroService<T, F, ID, LO, TO>
 {
   protected _featureName: string;
 
@@ -231,20 +235,20 @@ export abstract class RootDataSynchroService<
     return this.importationProgress$;
   }
 
-  async terminateById(id: ID): Promise<T> {
+  async terminateById(id: ID, opts?: TO): Promise<T> {
     const entity = await this.load(id);
 
-    return this.terminate(entity);
+    return this.terminate(entity, opts);
   }
 
-  async terminate(entity: T): Promise<T> {
+  async terminate(entity: T, opts?: TO): Promise<T> {
     // If local entity
     if (EntityUtils.isLocal(entity)) {
       // Make sure to fill id, with local ids
       await this.fillOfflineDefaultProperties(entity);
 
-      // Update sync status
-      entity.synchronizationStatus = 'READY_TO_SYNC';
+      // Mark as ready to sync (and mark as controlled)
+      RootDataEntityUtils.markAsReadyToSync(entity);
 
       const json = this.asObject(entity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
       if (this._debug) console.debug(`${this._logPrefix}Terminate {${entity.id}} locally...`, json);
@@ -256,7 +260,7 @@ export abstract class RootDataSynchroService<
     }
 
     // Terminate a remote entity
-    return super.terminate(entity);
+    return super.terminate(entity, opts);
   }
 
   async synchronizeById(id: ID): Promise<T> {

@@ -624,6 +624,8 @@ export class OperationService
 
           // translate, then save normally
           const errorMessage = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
+
+          // TODO Mark as invalid, using DataEntityUtils.markAsInvalid() ?
           entity.controlDate = null;
           entity.qualificationComments = errorMessage;
 
@@ -737,7 +739,7 @@ export class OperationService
     console.info(this._logPrefix + `Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
 
     // Mark local operation has controlled (to have a checkmark icon in the operation table)
-    if (EntityUtils.isLocalId(entity.id) && DataEntityUtils.isNotControlled(entity)) {
+    if (EntityUtils.isLocalId(entity.id) && DataEntityUtils.isNotControlled(entity) && opts?.terminate !== false) {
       // Keep NOT_COMPLETED quality flag, because used to filter remote parent operations on offline mode
       // (See issue sumaris-app#983)
       const parentOperationId = entity.parentOperationId ?? entity.parentOperation?.id;

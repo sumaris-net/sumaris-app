@@ -22,19 +22,44 @@
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
+  <!-- Control -->
+  @if (showControlButton) {
+    <button mat-menu-item [disabled]="disabled" (click)="saveAndControl($event)">
+      <mat-icon><ion-icon name="shield-checkmark-outline"></ion-icon></mat-icon>
+      <ion-label translate>QUALITY.BTN_CONTROL</ion-label>
+      @if (!mobile) {
+        <ion-label color="medium">
+          <small>{{ hotkeys.defaultControlKeyName + '+O' }}</small>
+        </ion-label>
+      }
+    </button>
+
+    <mat-divider></mat-divider>
+  }
+
   <!-- report -->
-  <button mat-menu-item [disabled]="isNewData || !data.controlDate" (click)="openReport($event)">
+  <button mat-menu-item [disabled]="isNewData || (showControlButton && !data.controlDate)" (click)="openReport($event)">
     <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
     <ion-label translate>LANDING.EDIT.BTN_REPORT</ion-label>
   </button>
 
-  <!-- reset -->
-  <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
-    <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
-    <ion-label translate>COMMON.BTN_RESET</ion-label>
-  </button>
+  @if (mobile) {
+    <mat-divider></mat-divider>
 
-  <mat-divider></mat-divider>
+    <!-- reset -->
+    <button mat-menu-item *ngIf="mobile" [disabled]="!dirty" (click)="cancel($event)">
+      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>
+      <ion-label translate>COMMON.BTN_RESET</ion-label>
+    </button>
+  } @else {
+    <!-- online help -->
+    <button mat-menu-item [disabled]="!helpUrl" (click)="openHelpModal($event)">
+      <mat-icon><ion-icon name="help-circle-outline"></ion-icon></mat-icon>
+      <ion-label translate>COMMON.BTN_SHOW_HELP</ion-label>
+    </button>
+
+    <mat-divider></mat-divider>
+  }
 
   <!-- delete -->
   <button mat-menu-item [disabled]="isNewData || disabled" (click)="delete($event)">
@@ -70,9 +95,9 @@
 
       <div>
         <!-- debug -->
-        <ng-container *ngIf="debug">
+        @if (debug) {
           <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
-        </ng-container>
+        }
 
         <!-- error (mobile) -->
         @if (mobile) {
@@ -97,14 +122,18 @@
               ></app-landing-form>
             </ion-col>
 
-            <ion-col class="ion-no-padding" size="12" size-xl="3">
-              <!-- data quality -->
-              @if (showEntityMetadata) {
-                <app-entity-metadata [value]="data">
-                  <app-entity-quality-form *ngIf="showQualityForm"></app-entity-quality-form>
-                </app-entity-metadata>
-              }
-            </ion-col>
+            @if (!mobile) {
+              <ion-col class="ion-no-padding" size="12" size-xl="3">
+                <!-- data quality -->
+                @if (showEntityMetadata) {
+                  <app-entity-metadata [value]="data">
+                    @if (showQualityForm) {
+                      <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
+                    }
+                  </app-entity-metadata>
+                }
+              </ion-col>
+            }
           </ion-row>
         </ion-grid>
       </div>
@@ -304,6 +333,10 @@
           form.dateTime: {{ form | formGetValue: 'dateTime' | dateFormat: { time: true } }}
           <br />
           form.location: {{ form | formGetValue: 'location' | propertyGet: 'label' }}
+          <br />
+          form.controlDate: {{ form | formGetValue: 'controlDate' | dateFormat: { time: true } }}
+          <br />
+          form.synchronizationStatus: {{ form | formGetValue: 'synchronizationStatus' }}
           <br />
           <br />
           form.showStrategy: {{ landingForm.showStrategy }}

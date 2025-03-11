@@ -38,7 +38,7 @@ import { Vessel } from './model/vessel.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { SortDirection } from '@angular/material/sort';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
-import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { IRootDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { VESSEL_FEATURE_NAME } from './config/vessel.config';
 import { VesselFilter } from './filter/vessel.filter';
@@ -219,7 +219,7 @@ export interface VesselSaveOptions extends EntitySaveOptions {
 @Injectable({ providedIn: 'root' })
 export class VesselService
   extends RootDataSynchroService<Vessel, VesselFilter>
-  implements IEntitiesService<Vessel, VesselFilter>, IEntityService<Vessel>, IDataSynchroService<Vessel, VesselFilter>
+  implements IEntitiesService<Vessel, VesselFilter>, IEntityService<Vessel>, IRootDataSynchroService<Vessel, VesselFilter>
 {
   constructor(
     injector: Injector,

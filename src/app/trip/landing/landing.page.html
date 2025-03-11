@@ -96,20 +96,24 @@
               ></app-landing-form>
             </ion-col>
 
-            <ion-col class="ion-no-padding" size="12" size-xl="3">
-              <!-- strategy summary -->
-              <app-strategy-summary-card
-                #strategyCard
-                [title]="'LANDING.EDIT.STRATEGY_SUMMARY_TITLE' | translateContext: i18nContext.suffix"
-              ></app-strategy-summary-card>
+            @if (!mobile) {
+              <ion-col class="ion-no-padding" size="12" size-xl="3">
+                <!-- strategy summary -->
+                <app-strategy-summary-card
+                  #strategyCard
+                  [title]="'LANDING.EDIT.STRATEGY_SUMMARY_TITLE' | translateContext: i18nContext.suffix"
+                ></app-strategy-summary-card>
 
-              <!-- data quality -->
-              @if (showEntityMetadata) {
-                <app-entity-metadata [value]="data">
-                  <app-entity-quality-form *ngIf="showQualityForm"></app-entity-quality-form>
-                </app-entity-metadata>
-              }
-            </ion-col>
+                <!-- data quality -->
+                @if (showEntityMetadata) {
+                  <app-entity-metadata [value]="data">
+                    @if (showQualityForm) {
+                      <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
+                    }
+                  </app-entity-metadata>
+                }
+              </ion-col>
+            }
           </ion-row>
         </ion-grid>
       </div>
@@ -138,11 +142,10 @@
       </ng-template>
 
       <div>
-        <!-- error -->
-        <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="samplesTable.error | translate"></ion-label>
-        </ion-item>
+        <!-- error (mobile) -->
+        @if (mobile) {
+          <app-error-item [message]="samplesTable.errorSubject | async"></app-error-item>
+        }
 
         <app-samples-table
           #samplesTable
@@ -178,16 +181,20 @@
     [disabled]="!dirty || loading"
   >
     <!-- error -->
-    <app-error-item [message]="errorSubject | async"></app-error-item>
+    @if (!mobile) {
+      <app-error-item [message]="errorSubject | async"></app-error-item>
+    }
   </app-form-buttons-bar>
 </ion-footer>
 
 <!-- FAB button -->
-<ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && _enabled && showSamplesTable && selectedTabIndex === 1" @fadeInOutAnimation>
-  <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+@if (mobile && _enabled && showFabButton) {
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" @fadeInOutAnimation>
+    <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}
 
 <!-- DEBUG -->
 <ng-template #debugPanel>

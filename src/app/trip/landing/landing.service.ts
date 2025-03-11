@@ -93,6 +93,9 @@ export declare interface LandingServiceWatchOptions extends EntitiesServiceWatch
 }
 
 export declare interface LandingControlOptions extends LandingValidatorOptions, IProgressionOptions {
+  // Should save entity, after control ? (e.g. update 'controlDate', 'qualificationComments', etc.) - True by default
+  terminate?: boolean;
+
   translatorOptions?: FormErrorTranslateOptions;
 }
 
@@ -277,19 +280,55 @@ const LandingMutations: BaseRootEntityGraphqlMutations = {
     ${TripFragments.embeddedLandedTrip}
   `,
 
-  terminate: gql`
-    mutation TerminateLanding($data: LandingVOInput!) {
-      data: controlLanding(landing: $data) {
-        ...LightLandingFragment
-      }
-    }
-    ${LandingFragments.lightLanding}
-  `,
-
   deleteAll: gql`
     mutation DeleteLandings($ids: [Int!]!) {
       deleteLandings(ids: $ids)
     }
+  `,
+
+  terminate: gql`
+    mutation TerminateLanding($data: LandingVOInput!) {
+      data: controlLanding(landing: $data) {
+        ...LandingFragment
+      }
+    }
+    ${LandingFragments.landing}
+    ${DataCommonFragments.location}
+    ${DataCommonFragments.lightDepartment}
+    ${DataCommonFragments.lightPerson}
+    ${VesselSnapshotFragments.vesselSnapshot}
+    ${DataFragments.sample}
+    ${TripFragments.embeddedLandedTrip}
+  `,
+
+  unvalidate: gql`
+    mutation UnvalidateTrip($data: LandingVOInput!) {
+      data: unvalidateLanding(landing: $data) {
+        ...LandingFragment
+      }
+    }
+    ${LandingFragments.landing}
+    ${DataCommonFragments.location}
+    ${DataCommonFragments.lightDepartment}
+    ${DataCommonFragments.lightPerson}
+    ${VesselSnapshotFragments.vesselSnapshot}
+    ${DataFragments.sample}
+    ${TripFragments.embeddedLandedTrip}
+  `,
+
+  qualify: gql`
+    mutation QualifyObservedLocation($data: LandingVOInput!) {
+      data: qualifyLanding(landing: $data) {
+        ...LandingFragment
+      }
+    }
+    ${LandingFragments.landing}
+    ${DataCommonFragments.location}
+    ${DataCommonFragments.lightDepartment}
+    ${DataCommonFragments.lightPerson}
+    ${VesselSnapshotFragments.vesselSnapshot}
+    ${DataFragments.sample}
+    ${TripFragments.embeddedLandedTrip}
   `,
 };
 
@@ -932,7 +971,8 @@ export class LandingService
     opts = { ...opts, maxProgression };
     opts.progression = opts.progression || new ProgressionModel({ total: maxProgression });
 
-    const progressionStep = maxProgression / 3;
+    const progressionStep = maxProgression / 3; // 3 steps: landing control, control trip, and save
+    const incrementProgression = () => opts.progression.increment(progressionStep);
 
     if (this._debug) console.debug(`[landing-service] Control {${entity.id}} ...`);
 
@@ -947,16 +987,16 @@ export class LandingService
       // Get form errors
       if (form.invalid) {
         const errors: FormErrors = AppFormUtils.getFormErrors(form);
+        console.info(`[landing-service] Control {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
 
-        if (this._debug) console.debug(`[landing-service] Control {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+        incrementProgression(); // Increment progression
 
         return errors;
       }
     }
 
     if (this._debug) console.debug(`[landing-service] Control {${entity.id}} [OK] in ${Date.now() - now}ms`);
-
-    if (opts?.progression) opts.progression.increment(progressionStep);
+    incrementProgression();
 
     // Also control trip
     if (isNotNil(entity.tripId)) {
@@ -971,6 +1011,8 @@ export class LandingService
         maxProgression: opts?.maxProgression - progressionStep,
       });
 
+      incrementProgression();
+
       if (errors) {
         return {
           trip: errors?.details?.errors,
@@ -978,8 +1020,31 @@ export class LandingService
       }
 
       // terminate the trip
-      if (isNil(trip.controlDate)) await this.tripService.terminate(trip);
-    } else if (opts?.progression) opts.progression.increment(progressionStep);
+      if (DataEntityUtils.isNotControlled(trip)) {
+        await this.tripService.terminate(trip, { program: opts?.program });
+      }
+    }
+
+    // Terminate (= set the controlDate)
+    if (DataEntityUtils.isNotControlled(entity) && opts?.terminate !== false) {
+      // Mark local landing has controlled (to have a checkmark icon in the operation table)
+      if (EntityUtils.isLocal(entity)) {
+        DataEntityUtils.markAsControlled(entity);
+        await this.save(entity);
+      }
+
+      // If remote entity
+      else {
+        // Need to exclude already validated entity (to avoid a pod exception pod, when controlling an already validated data)
+        if (RootDataEntityUtils.isNotValidated(entity)) {
+          // Reset previous error
+          entity.qualificationComments = null;
+
+          // Mark as control
+          await this.terminate(entity);
+        }
+      }
+    }
 
     return undefined; // No error
   }
@@ -998,31 +1063,36 @@ export class LandingService
 
     try {
       let { data } = await this.loadAllByObservedLocation(
-        LandingFilter.fromObject({
-          observedLocationId: observedLocation.id,
-        }),
-        { fetchPolicy: 'no-cache' } // TODO BLA
+        { observedLocationId: observedLocation.id },
+        { fetchPolicy: 'no-cache' } // TODO BLA A quoi cela sert il ?
       );
 
-      // Filter dividers
-      data = data.filter((entity) => entity.__typename !== 'divider');
+      // Exclude dividers, if any
+      data = data.filter(DataEntityUtils.isNotDivider);
 
       if (isEmptyArray(data)) return undefined;
       const progressionStep = maxProgression / data.length / 2; // 2 steps by landing: control, then save
+      const incrementProgression = () => opts.progression.increment(progressionStep);
 
       let errorsById: FormErrors = null;
 
-      for (const entity of data) {
+      for (let entity of data) {
+        // Full load
+        entity = await this.load(entity.id);
+
         opts = await this.fillControlOptions(entity, opts);
 
         const errors = await this.control(entity, { ...opts, maxProgression: progressionStep });
+
+        incrementProgression();
+
         if (errors) {
           errorsById = errorsById || {};
           errorsById[entity.id] = errors;
 
           const errorMessage = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
-          entity.controlDate = null;
-          entity.qualificationComments = errorMessage;
+
+          DataEntityUtils.markAsInvalid(entity, errorMessage);
 
           if (opts.progression?.cancelled) return; // Cancel
 
@@ -1030,8 +1100,9 @@ export class LandingService
           await this.save(entity);
         } else {
           if (opts.progression?.cancelled) return; // Cancel
-          // Need to exclude data that already validated (else got exception when pod control already validated data)
-          if (isNil(entity.validationDate)) {
+
+          // Need to exclude already validated entity (to avoid a pod exception pod, when mark as controlled a validated data)
+          if (RootDataEntityUtils.isNotValidated(entity)) {
             // reset previous error
             entity.qualificationComments = null;
 
@@ -1040,7 +1111,7 @@ export class LandingService
         }
 
         // increment, after save/terminate
-        opts.progression.increment(progressionStep);
+        incrementProgression();
       }
 
       return errorsById ? { landings: errorsById } : null;
