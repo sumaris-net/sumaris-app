@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Input, OnDestroy, QueryList, ViewChild, ViewChildren, inject } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input, OnDestroy, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
 import { FormReportPageDimensions } from '@app/data/report/common-report.class';
 import { AppDataEntityReport, DataReportStats } from '@app/data/report/data-entity-report.class';
@@ -9,22 +9,20 @@ import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
-import { AuctionControlReport } from '@app/trip/landing/auction-control/report/auction-control.report';
 import { Landing } from '@app/trip/landing/landing.model';
 import { LandingService } from '@app/trip/landing/landing.service';
 import { LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 import { LandingStats } from '@app/trip/landing/report/base-landing-report.class';
 import { LandingReport } from '@app/trip/landing/report/landing.report';
-import { SamplingLandingReport } from '@app/trip/landing/sampling/report/sampling-landing.report';
 import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
 import { ObservedLocationService } from '@app/trip/observedlocation/observed-location.service';
 import {
+  arrayDistinct,
   EntityAsObjectOptions,
   EntityServiceLoadOptions,
-  WaitForOptions,
-  arrayDistinct,
   isNotEmptyArray,
   isNotNil,
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { lastValueFrom } from 'rxjs';
 
@@ -48,7 +46,7 @@ export class ObservedLocationStats extends DataReportStats {
     this.landingI18nColumnPrefix = source.landingI18nColumnPrefix;
     this.landingShowSampleCount = source.landingShowSampleCount;
     this.landingSamplesPmfms = source.landingSamplesPmfms.map((lv1) => lv1.map((lv2) => Pmfm.fromObject(lv2)));
-    this.landingsStats = source.landingsStats.map((s) => {
+    this.landingsStats = source.landingsStats?.map((s) => {
       const stats = new LandingStats();
       stats.fromObject(s);
       return stats;
@@ -70,7 +68,7 @@ export class ObservedLocationStats extends DataReportStats {
       landingSamplesPmfms: this.landingSamplesPmfms.map((lv1) => lv1.map((lv2) => lv2.asObject())),
       // NOTE : can not be sure that landing stats are present at this moment because they are not computed in ObservedLocationReport:computeStats
       //        see ObservedLocationReport:statsAsObject
-      landingsStats: this.landingsStats.map((s) => s.asObject(opts)),
+      landingsStats: this.landingsStats?.map((s) => s.asObject(opts)),
     };
     return target;
   }
@@ -87,9 +85,6 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
 
   protected readonly isNotEmptyArray = isNotEmptyArray;
   protected readonly isNotNil = isNotNil;
-  protected readonly AuctionControlReport = AuctionControlReport;
-  protected readonly SamplingLandingReport = SamplingLandingReport;
-  protected readonly LandingReport = LandingReport;
 
   private readonly observedLocationService: ObservedLocationService = inject(ObservedLocationService);
   private readonly landingService: LandingService = inject(LandingService);
@@ -139,6 +134,14 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
     return copySource.asObject();
   }
 
+  statsAsObject(opts?: EntityAsObjectOptions): any {
+    const result = this.stats.asObject(opts);
+    // TODO This is not really the place and the moment for push children stats in this stats, try to find a better way to do this
+    //      (can not be done in computeStats because children was not available at this moment)
+    result.landingsStats = this.children.map((c) => c.stats?.asObject(opts));
+    return result;
+  }
+
   markAsReady() {
     super.markAsReady();
     if (!this.children.length && isNotEmptyArray(this.data?.landings)) {
@@ -155,14 +158,6 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
     super.markAsReadyToInitialize(opts);
   }
 
-  statsAsObject(opts?: EntityAsObjectOptions): any {
-    const result = this.stats.asObject(opts);
-    // TODO This is not really the place and the moment for push children stats in this stats, try to find a better way to do this
-    //      (can not be done in computeStats because children was not available at this moment)
-    result.landingsStats = this.children.map((c) => c.stats);
-    return result.asObject(opts);
-  }
-
   protected async computeTitle(data: ObservedLocation, _: ObservedLocationStats): Promise<string> {
     return await lastValueFrom(
       this.translate.get('OBSERVED_LOCATION.REPORT.TITLE', {
@@ -175,6 +170,7 @@ export class ObservedLocationReport extends AppDataEntityReport<ObservedLocation
   protected computeDefaultBackHref(data: ObservedLocation): string {
     return `/observations/${data.id}?tab=1`;
   }
+
   protected async computeStats(data: ObservedLocation, opts?: IComputeStatsOpts<ObservedLocationStats>): Promise<ObservedLocationStats> {
     if (this.debug) console.log(`[${this.logPrefix}.computeStats]`);
     const stats: ObservedLocationStats = opts?.stats || new this.statsType();
