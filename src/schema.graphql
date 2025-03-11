@@ -6,6 +6,9 @@ schema {
   subscription: Subscription
 }
 
+"Indicates an Input Object is a OneOf Input Object."
+directive @oneOf on INPUT_OBJECT
+
 type AccountVO {
   avatar: String
   creationDate: Date
@@ -770,7 +773,7 @@ type Mutation {
   deleteLanding(id: Int!): Boolean!
   "Delete many observed locations"
   deleteLandings(ids: [Int]!): Boolean!
-  "Delete many named filters by ids"
+  "Delete a named filter by id"
   deleteNamedFilter(id: Int, ids: [Int]): Boolean!
   "Delete an observed location"
   deleteObservedLocation(id: Int!): Boolean!
@@ -818,6 +821,8 @@ type Mutation {
   markAsReadUserEvents(ids: [Int]): Boolean!
   "Qualify a activityCalendar"
   qualifyActivityCalendar(activityCalendar: ActivityCalendarVOInput!): ActivityCalendarVO
+  "Qualify a landing"
+  qualifyLanding(landing: LandingVOInput): LandingVO
   "Qualify an observed location"
   qualifyObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
   "Qualify a trip"
@@ -834,10 +839,10 @@ type Mutation {
   ): JobVO
   "Create or update an account"
   saveAccount(account: AccountVOInput): AccountVO
-  "Create or update an observed location"
-  saveActivityCalendar(activityCalendar: ActivityCalendarVOInput): ActivityCalendarVO
-  "Create or update many observed locations"
-  saveActivityCalendars(activityCalendars: [ActivityCalendarVOInput]): [ActivityCalendarVO]
+  "Create or update an activity calendar"
+  saveActivityCalendar(activityCalendar: ActivityCalendarVOInput, options: ActivityCalendarSaveOptionsInput): ActivityCalendarVO
+  "Create or update many activity calendars"
+  saveActivityCalendars(activityCalendars: [ActivityCalendarVOInput], options: ActivityCalendarSaveOptionsInput): [ActivityCalendarVO]
   "Save aggregated landings"
   saveAggregatedLandings(aggregatedLandings: [AggregatedLandingVOInput], filter: AggregatedLandingFilterVOInput): [AggregatedLandingVO]
   "Save pod configuration"
@@ -922,6 +927,8 @@ type Mutation {
   shareFile(fileName: String): String
   "Unvalidate a activityCalendar"
   unvalidateActivityCalendar(activityCalendar: ActivityCalendarVOInput!): ActivityCalendarVO
+  "Unvalidate a landing"
+  unvalidateLanding(landing: LandingVOInput, options: DataValidateOptionsInput): LandingVO
   "Unvalidate an observed location"
   unvalidateObservedLocation(observedLocation: ObservedLocationVOInput, options: DataValidateOptionsInput): ObservedLocationVO
   "Unvalidate a trip"
@@ -1364,7 +1371,7 @@ type Query {
   activityCalendar(id: Int!): ActivityCalendarVO
   "Search in activity calendars"
   activityCalendars(filter: ActivityCalendarFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "year", sortDirection: String = "desc", trash: Boolean = false): [ActivityCalendarVO]
-  "Get total number of observed locations"
+  "Get total number of activity calendars"
   activityCalendarsCount(filter: ActivityCalendarFilterVOInput, trash: Boolean = false): Long!
   "Find aggregated landings by filter"
   aggregatedLandings(filter: AggregatedLandingFilterVOInput): [AggregatedLandingVO]
@@ -1498,9 +1505,9 @@ type Query {
   "Get all types of referential"
   referentialTypes: [ReferentialTypeVO]
   "Search in referentials"
-  referentials(entityName: String, filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
+  referentials(cache: Boolean, entityName: String, filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
   "Get referentials count"
-  referentialsCount(entityName: String, filter: ReferentialFilterVOInput): Long
+  referentialsCount(cache: Boolean, entityName: String, filter: ReferentialFilterVOInput): Long
   "Reset account pubkey"
   resetAccountPubkey(token: String, username: String): Boolean!
   "Search in round weight conversions"
@@ -1551,7 +1558,7 @@ type Query {
   "Search in taxon groups"
   taxonGroups(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonGroupVO]
   "Count taxon groups"
-  taxonGroupsCount(filter: ReferentialFilterVOInput): Long
+  taxonGroupsCount(filter: ReferentialFilterVOInput): Long @deprecated(reason: "Replace by referentialsCount(entityName: \"TaxonGroup\", filter: $filter)")
   "Get a Taxon Name"
   taxonName(id: Int, label: String): TaxonNameVO
   "Get taxon name count"
@@ -2446,6 +2453,10 @@ input ActivityCalendarFilterVOInput {
   year: Int
 }
 
+input ActivityCalendarSaveOptionsInput {
+  withChildren: Boolean
+}
+
 input ActivityCalendarVOInput {
   basePortLocationIds: [Int]
   comments: String
@@ -3253,6 +3264,7 @@ input OperationFilterVOInput {
   gearIds: [Int]
   hasNoChildOperation: Boolean
   includedIds: [Int]
+  minId: Int
   needBatchDenormalization: Boolean
   physicalGearIds: [Int]
   programLabel: String
@@ -3288,6 +3300,7 @@ input OperationGroupVOInput {
   samples: [SampleVOInput]
   trip: TripVOInput
   tripId: Int
+  undefined: Boolean!
   updateDate: Date
   validationDate: Date
 }

@@ -13,6 +13,7 @@ import {
   firstTrue,
   fromDateISOString,
   HistoryPageReference,
+  Hotkeys,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
@@ -21,7 +22,9 @@ import {
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
+  RxStateProperty,
   ServerErrorCodes,
+  toBoolean,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -57,8 +60,11 @@ import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model'
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsAsyncTable } from '@app/data/measurement/measurements-async-table.class';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { ContextService } from '@app/shared/context.service';
 
 export class LandingEditorOptions extends RootDataEditorOptions {}
 
@@ -80,40 +86,54 @@ export interface LandingPageState extends RootDataEntityEditorState {
         pathIdAttribute: 'landingId',
       },
     },
+    { provide: ContextService, useExisting: ObservedLocationService },
     RxState,
   ],
 })
 export class LandingPage<ST extends LandingPageState = LandingPageState>
   extends AppRootDataEntityEditor<Landing, LandingService, number, ST>
-  implements OnInit, AfterViewInit
+  implements OnInit, AfterViewInit, IDataEntityQualityService<Landing>
 {
   static TABS = {
     GENERAL: 0,
     SAMPLES: 1,
-    BATCHES: 2,
   };
 
-  protected parent: Trip | ObservedLocation;
-  protected observedLocationService = inject(ObservedLocationService);
-  protected tripService = inject(TripService);
-  protected pmfmService = inject(PmfmService);
-  protected vesselSnapshotService = inject(VesselSnapshotService);
   private _rowValidatorSubscription: Subscription;
+
+  protected readonly observedLocationService = inject(ObservedLocationService);
+  protected readonly tripService = inject(TripService);
+  protected readonly pmfmService = inject(PmfmService);
+  protected readonly vesselSnapshotService = inject(VesselSnapshotService);
+  protected readonly hotkeys = inject(Hotkeys);
+  protected parent: Trip | ObservedLocation;
   protected selectedSubTabIndex = 0;
 
-  showParent = false;
-  showEntityMetadata = false;
-  showQualityForm = false;
-  enableReport = false;
-  parentAcquisitionLevel: AcquisitionLevelType;
+  protected showParent = false;
+  protected parentAcquisitionLevel: AcquisitionLevelType;
 
-  showSampleTablesByProgram = false;
-  showSamplesTable = false;
+  protected showEntityMetadata = false;
+  protected showQualityForm = false;
+  protected showControlButton = false; // TODO change to true, but should be well tested
+  protected showSampleTablesByProgram = false;
+  protected showSamplesTable = false;
+  protected enableReport = false;
 
   @RxStateProperty() strategyLabel: string;
 
   get form(): UntypedFormGroup {
     return this.landingForm.form;
+  }
+
+  get showFabButton(): boolean {
+    return this._enabled && this.showSamplesTable && this._selectedTabIndex === LandingPage.TABS.SAMPLES;
+  }
+
+  /**
+   * Allow to override function from LandingService, by passing some options
+   */
+  get entityQualityService(): IDataEntityQualityService<Landing> {
+    return this;
   }
 
   @ViewChild('landingForm', { static: true }) landingForm: LandingForm;
@@ -132,6 +152,27 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
     });
     this.parentAcquisitionLevel = this.route.snapshot.queryParamMap.get('parent') as AcquisitionLevelType;
     this.showParent = !!this.parentAcquisitionLevel;
+
+    // Add shortcut
+    if (!this.mobile) {
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'F2', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
+          .subscribe((event) => this.openHelpModal(event))
+      );
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: `${this.hotkeys.defaultControlKey}.shift.+`, description: 'COMMON.BTN_ADD', preventDefault: true })
+          .pipe(filter((_) => !this.disabled && this.showFabButton))
+          .subscribe((event) => this.onNewFabButtonClick(event))
+      );
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: `${this.hotkeys.defaultControlKey}.o`, description: 'QUALITY.BTN_CONTROL', preventDefault: true })
+          .pipe(filter(() => this.showControlButton && !this.disabled))
+          .subscribe(() => this.saveAndControl())
+      );
+    }
 
     // FOR DEV ONLY ----
     this.logPrefix = '[landing-page] ';
@@ -178,10 +219,6 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
       const queryParams = this.route.snapshot.queryParams;
       this.selectedSubTabIndex = toNumber(queryParams['subtab'], 0);
     }
-  }
-
-  canUserWrite(data: Landing, opts?: any): boolean {
-    return isNil(this.parent?.validationDate) && super.canUserWrite(data, opts);
   }
 
   async reload(): Promise<void> {
@@ -266,6 +303,9 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
         this.landingForm.showProgram = false;
         this.landingForm.showVessel = false;
       }
+
+      // Show quality, if control button is enabled
+      this.showQualityForm = this.showControlButton && DataEntityUtils.isControlled(this.parent);
     }
     // No parent defined
     else {
@@ -305,6 +345,105 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
       if (!data) return; // Cancel
     }
     return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+  }
+
+  async saveAndControl(event?: Event, opts?: { emitEvent?: false }) {
+    if (event?.defaultPrevented) return false; // Skip
+    event?.preventDefault(); // Avoid propagation to <ion-item>
+
+    // Avoid reloading while saving or still loading
+    await this.waitIdle();
+
+    const saved =
+      (this.mobile || this.isOnFieldMode) && this.dirty && this.valid
+        ? // If on field mode AND valid: save silently
+          await this.save(event, { openTabIndex: -1 })
+        : // Else If desktop mode: ask before save
+          await this.saveIfDirtyAndConfirm(null, { openTabIndex: -1 });
+    if (!saved) return; // not saved
+
+    // Control (using a clone)
+    const data = this.data.clone();
+    const errors: AppErrorWithDetails = await this.control(data);
+    const valid = isNil(errors);
+
+    if (!valid) {
+      // Force the desktop mode (to enable strict validation)
+      this.usageMode = 'DESK';
+
+      // Load data with error (e.g. quality flags)
+      await this.updateView(data, opts);
+
+      errors.message = errors.message || 'COMMON.FORM.HAS_ERROR';
+
+      this.setError(errors, opts);
+      this.markAllAsTouched(opts);
+      this.scrollToTop();
+    } else {
+      // Clean previous error
+      this.resetError(opts);
+
+      await this.updateView(data);
+    }
+  }
+
+  protected async onEntitySaved(data: Landing): Promise<void> {
+    // Mark parent as dirty
+    if (RootDataEntityUtils.isReadyToSync(this.parent)) {
+      RootDataEntityUtils.markAsDirty(this.parent);
+      if (this.parent instanceof ObservedLocation) {
+        this.parent = await this.observedLocationService.save(this.parent);
+        // Update the context
+        this.context.setValue('observedLocation', this.parent);
+      } else if (this.parent instanceof Trip) {
+        this.parent = await this.tripService.save(this.parent);
+
+        // Update the context
+        this.context.setValue('trip', this.parent);
+      }
+    }
+
+    return super.onEntitySaved(data);
+  }
+
+  async control(data: Landing, opts?: any): Promise<AppErrorWithDetails> {
+    const pmfms = await firstNotNilPromise(this.landingForm.initialPmfms$, { stop: this.destroySubject });
+    const errors = await this.service.control(data, {
+      ...opts,
+      withObservedLocation: this.showParent,
+      initialPmfms: pmfms,
+    });
+
+    if (errors) {
+      return { details: { errors } };
+    }
+
+    // Show success toast
+    if (!opts || opts.emitEvent !== false) {
+      await this.showToast({ message: 'LANDING.INFO.CONTROL_SUCCEED', type: 'info' });
+    }
+
+    return; // No errors
+  }
+
+  canUserWrite(data: Landing, opts?: any): boolean {
+    return RootDataEntityUtils.isNotValidated(this.parent) && this.dataService.canUserWrite(data, opts);
+  }
+
+  qualify(data: Landing, qualityFlagId: number): Promise<Landing> {
+    return this.dataService.qualify(data, qualityFlagId);
+  }
+
+  async saveIfDirtyAndConfirm(event?: Event, opts?: { emitEvent?: boolean; confirmed?: boolean; openTabIndex?: number }): Promise<boolean> {
+    return super.saveIfDirtyAndConfirm(event, opts);
+  }
+
+  onNewFabButtonClick(event: Event) {
+    switch (this.selectedTabIndex) {
+      case LandingPage.TABS.SAMPLES:
+        if (this.showSamplesTable && this.samplesTable) this.samplesTable.addRow(event);
+        break;
+    }
   }
 
   /* -- protected methods  -- */
@@ -387,6 +526,9 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
     this.parent = await this.loadParent(data);
+
+    // Reset the synchronization Status
+    data.synchronizationStatus = null;
 
     // Copy not fetched data
     if (this.parent) {
@@ -533,6 +675,11 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
 
     this.requiredStrategy = requiredStrategy;
     this.strategyResolution = showStrategy ? 'user-select' : program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
+    this.showControlButton = toBoolean(
+      program.getPropertyAsBoolean(ProgramProperties.LANDING_CONTROL_ENABLE),
+      program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE)
+    );
+    this.helpUrl = program.getProperty(ProgramProperties.LANDING_HELP_URL) || program.getProperty(ProgramProperties.OBSERVED_LOCATION_HELP_URL);
 
     // Customize the UI, using program options
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
@@ -802,7 +949,12 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   }
 
   protected getJsonValueToSave(): Promise<any> {
-    return this.landingForm.value?.asObject();
+    const json = this.landingForm.value?.asObject();
+
+    // Mark as dirty (remove control date, etc.)
+    RootDataEntityUtils.markAsDirty(json);
+
+    return json;
   }
 
   protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: IPmfm[]): Subscription {

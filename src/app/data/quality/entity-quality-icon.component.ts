@@ -50,11 +50,17 @@ export class EntityQualityIconComponent {
           this.color = 'danger';
           break;
         case 'DIRTY':
-        default:
-          this.icon = 'pencil';
-          this.title = 'QUALITY.MODIFIED_OFFLINE';
+        default: {
+          if (!value.controlDate) {
+            this.icon = 'pencil';
+            this.title = 'QUALITY.MODIFIED_OFFLINE';
+          } else {
+            this.icon = 'checkmark';
+            this.title = 'QUALITY.CONTROLLED_OFFLINE';
+          }
           this.color = 'danger';
           break;
+        }
       }
     }
     // Remote data

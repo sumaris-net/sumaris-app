@@ -71,6 +71,7 @@ export class AuctionControlPage extends LandingPage implements OnInit, AfterView
 
     this.taxonGroupControl = this.formBuilder.control(null, [SharedValidators.entity]);
     this.errorTranslateOptions = { separator: '<br/>', pathTranslator: this };
+    this.showControlButton = true; // Enable control button
 
     // FOR DEV ONLY ----
     this.logPrefix = '[auction-control-page] ';

@@ -21,6 +21,8 @@ import {
   isNotNil,
   ReferentialRef,
   ReferentialUtils,
+  RxStateProperty,
+  RxStateSelect,
   StatusIds,
   toBoolean,
 } from '@sumaris-net/ngx-components';
@@ -47,7 +49,6 @@ import { APP_DATA_ENTITY_EDITOR, DataStrategyResolutions } from '@app/data/form/
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
 import { AcquisitionLevelCodes, PmfmIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { Moment } from 'moment';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
@@ -272,11 +273,12 @@ export class ObservedLocationPage
     }
 
     // Move to second tab
-    if (this.showLandingTab && this.autoOpenNextTab && !this.isNewData && this.selectedTabIndex === 0) {
+    // 10/03/25 - BLA - This is no more need, has we have a table to access landings directly
+    /*if (this.showLandingTab && this.autoOpenNextTab && !this.isNewData && this.selectedTabIndex === 0) {
       this.selectedTabIndex = 1;
       this.tabGroup.realignInkBar();
       this.autoOpenNextTab = false; // Should switch only once
-    }
+    }*/
   }
 
   async onOpenLanding(row) {
@@ -293,11 +295,18 @@ export class ObservedLocationPage
 
     this.markAsLoading();
 
-    try {
-      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${row.currentData.id}`);
-    } finally {
+    // Propagate the usage mode (e.g. when try to 'terminate' the trip)
+    this.observedLocationContext.setValue('usageMode', this.usageMode);
+
+    // Store the observed location in context
+    this.observedLocationContext.setValue('observedLocation', this.data.clone());
+
+    setTimeout(async () => {
+      await this.router.navigate(['observations', this.data.id, this.landingEditor, row.currentData.id], {
+        queryParams: {} /*reset query params*/,
+      });
       this.markAsLoaded();
-    }
+    });
   }
 
   async onNewLanding(event?: any) {

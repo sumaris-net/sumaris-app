@@ -65,7 +65,7 @@ import { SortDirection } from '@angular/material/sort';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from '@ionic/angular';
 import { ACTIVITY_CALENDAR_FEATURE_DEFAULT_PROGRAM_FILTER, ACTIVITY_CALENDAR_FEATURE_NAME } from './activity-calendar.config';
-import { IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { IRootDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { environment } from '@environments/environment';
 import { DataErrorCodes } from '@app/data/services/errors';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
@@ -413,7 +413,7 @@ export class ActivityCalendarService
     IEntitiesService<ActivityCalendar, ActivityCalendarFilter>,
     IEntityService<ActivityCalendar, number, ActivityCalendarLoadOptions>,
     IRootDataEntityQualityService<ActivityCalendar>,
-    IDataSynchroService<ActivityCalendar, ActivityCalendarFilter, number, ActivityCalendarLoadOptions>
+    IRootDataSynchroService<ActivityCalendar, ActivityCalendarFilter, number, ActivityCalendarLoadOptions>
 {
   $dbTimeZone = new BehaviorSubject<string>(null);
 

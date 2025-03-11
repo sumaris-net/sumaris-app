@@ -29,18 +29,18 @@ import { ToastController } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import {
+  getUserAgent,
+  isNotNil,
+  isSafari,
   PrintService,
   ShowToastOptions,
   StorageService,
   Toasts,
-  WaitForOptions,
-  getUserAgent,
-  isNotNil,
-  isSafari,
   waitForFalse,
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { MarkdownComponent } from 'ngx-markdown';
-import { BehaviorSubject, Subscription, lastValueFrom } from 'rxjs';
+import { BehaviorSubject, lastValueFrom, Subscription } from 'rxjs';
 import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
 
 export interface IRevealExtendedOptions extends IRevealOptions {
@@ -147,11 +147,11 @@ export class RevealComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     // Root component
-    if (this.options && this.options.autoInitialize !== false) {
+    if (this.options?.autoInitialize !== false) {
       setTimeout(() => this.initialize(), 100);
     }
 
-    if (this.isPrintingUrl() && this.options.autoPrint !== false) {
+    if (this.isPrintingUrl() && this.options?.autoPrint !== false) {
       this.waitIdle().then(() => this.print());
     }
   }

@@ -3,6 +3,7 @@ import {
   EntityUtils,
   fromDateISOString,
   isNil,
+  isNotNil,
   Person,
   ReferentialAsObjectOptions,
   ReferentialRef,
@@ -110,9 +111,27 @@ export abstract class RootDataEntityUtils {
     // Remove control flags
     DataEntityUtils.markAsNotControlled(entity);
 
-    // On local entity: change the synchronization statuc
-    if (entity.id < 0) {
+    // On local entity: reset the synchronization status to DIRTY
+    if (EntityUtils.isLocalId(entity.id)) {
       entity.synchronizationStatus = 'DIRTY';
     }
+  }
+
+  static markAsReadyToSync(entity: RootDataEntity<any, any>, opts?: { controlDate?: Moment; keepQualityFlag?: boolean }) {
+    if (!entity || !EntityUtils.isLocal(entity)) return; // skip
+
+    // Mark as controlled (and clear error, quality flag, etc.)
+    DataEntityUtils.markAsControlled(entity, { controlDate: entity.controlDate, ...opts });
+
+    // Mark as ready to sync
+    entity.synchronizationStatus = 'READY_TO_SYNC';
+  }
+
+  static isValidated(entity: RootDataEntity<any, any>) {
+    return entity && isNotNil(entity.validationDate);
+  }
+
+  static isNotValidated(entity: RootDataEntity<any, any>) {
+    return entity && isNil(entity.validationDate);
   }
 }

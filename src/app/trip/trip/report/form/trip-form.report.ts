@@ -90,7 +90,7 @@ export class TripFormReportStats extends BaseReportStats {
       pmfms: this.pmfms.map((item) => item.asObject(opts)),
       reportDate: DateUtils.toDateISOString(this.reportDate),
       strategy: this.strategy.asObject(opts),
-      tripLines: this?.tripLines.map((trip) => trip.asObject(opts)),
+      tripLines: this.tripLines?.map((trip) => trip.asObject(opts)),
     };
   }
 }

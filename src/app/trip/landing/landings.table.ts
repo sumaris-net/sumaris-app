@@ -13,6 +13,8 @@ import {
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
+  RxStateProperty,
+  RxStateSelect,
   StatusIds,
   toBoolean,
   toNumber,
@@ -44,8 +46,7 @@ import { RxState } from '@rx-angular/state';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 import { debounceTime, filter, first } from 'rxjs/operators';
-import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
+import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
@@ -106,7 +107,7 @@ export class LandingsTable
   protected showRowError = false;
   protected errorDetails: any;
   protected dividerPmfm: IPmfm;
-  protected statusList = DataQualityStatusList.filter((s) => s.id !== DataQualityStatusIds.VALIDATED);
+  protected statusList = DataQualityStatusList;
   protected statusById = DataQualityStatusEnum;
   @RxStateProperty() protected observedCount: number;
   @RxStateProperty() protected availableTaxonGroups: TaxonGroupRef[];

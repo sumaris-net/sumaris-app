@@ -9,6 +9,11 @@ const routes: Routes = [
     pathMatch: 'full',
     component: ObservedLocationReport,
   },
+  {
+    path: 'legacy',
+    pathMatch: 'full',
+    component: ObservedLocationReport,
+  },
 ];
 
 @NgModule({

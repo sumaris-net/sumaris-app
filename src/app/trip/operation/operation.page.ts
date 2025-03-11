@@ -451,7 +451,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
   canUserWrite(data: Operation, opts?: any): boolean {
     return (
-      isNil(this.trip?.validationDate) &&
+      RootDataEntityUtils.isNotValidated(this.trip) &&
       this.dataService.canUserWrite(data, {
         ...opts,
         trip: this.trip,

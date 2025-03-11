@@ -849,6 +849,11 @@ export const ProgramProperties = Object.freeze({
   },
 
   // Observed location
+  OBSERVED_LOCATION_HELP_URL: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.help.url',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_HELP_URL',
+    type: 'string',
+  },
   OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.samplingStrata.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE',
@@ -939,7 +944,7 @@ export const ProgramProperties = Object.freeze({
   OBSERVED_LOCATION_CONTROL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.control.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_CONTROL_ENABLE',
-    defaultValue: 'false', // FIXME: should be enable by default, when error translations will be OK
+    defaultValue: 'true',
     type: 'boolean',
   },
   OBSERVED_LOCATION_STRATEGY_CARD_ENABLE: <FormFieldDefinition>{
@@ -1002,6 +1007,17 @@ export const ProgramProperties = Object.freeze({
       },
     ],
     defaultValue: <LandingEditor>'landing',
+  },
+  LANDING_HELP_URL: <FormFieldDefinition>{
+    key: 'sumaris.landing.help.url',
+    label: 'PROGRAM.OPTIONS.LANDING_HELP_URL',
+    type: 'string',
+  },
+  LANDING_CONTROL_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.control.enable',
+    label: 'PROGRAM.OPTIONS.LANDING_CONTROL_ENABLE',
+    defaultValue: true,
+    type: 'boolean',
   },
   LANDING_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.dateTime.enable',

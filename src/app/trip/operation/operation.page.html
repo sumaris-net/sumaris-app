@@ -179,12 +179,14 @@
 <mat-menu #optionsMenu="matMenu" xPosition="after">
   <ng-template matMenuContent>
     <!-- duplicate (if mobile) -->
-    <button mat-menu-item class="ion-color-danger" *ngIf="mobile && canDuplicate" [disabled]="disabled" (click)="duplicate($event)">
-      <ion-label>
-        <mat-icon>content_copy</mat-icon>
-        <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
-      </ion-label>
-    </button>
+    @if (mobile && canDuplicate) {
+      <button mat-menu-item class="ion-color-danger" [disabled]="disabled" (click)="duplicate($event)">
+        <ion-label>
+          <mat-icon>content_copy</mat-icon>
+          <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
+        </ion-label>
+      </button>
+    }
 
     <!-- Control -->
     <button mat-menu-item [disabled]="disabled" (click)="saveAndControl($event)">
@@ -523,6 +525,7 @@
           <br />
           opeForm.endDateTime: {{ form.controls.endDateTime.valueChanges | async | dateFormat: { time: true } }}
           <br />
+          opeForm.controlDate: {{ form | formGetValue: 'controlDate' | dateFormat: { time: true } }}
         </ion-col>
         <ion-col *ngIf="allowParentOperation">
           <span *ngIf="opeForm.isChildOperation">

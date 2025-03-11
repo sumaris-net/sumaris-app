@@ -1955,6 +1955,9 @@
     "SELECT_MODAL": {
       "TITLE": "Détail des navires contrôlés"
     },
+    "INFO": {
+      "CONTROL_SUCCEED": "<ion-icon name='checkmark'></ion-icon> Saisie contrôlée <b>avec succès</b> ! Aucune erreur détectée."
+    },
     "CONFIRM": {
       "DELETE_ONE_HAS_SAMPLE": "La donnée sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
       "DELETE_MANY_HAS_SAMPLE": "Les données sélectionnées sont liées à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
@@ -2081,6 +2084,7 @@
     "MODIFIED": "En cours de saisie",
     "MODIFIED_OFFLINE": "En cours de saisie, non envoyée",
     "CONTROLLED": "Terminé",
+    "CONTROLLED_OFFLINE": "Contrôlé, non envoyé",
     "CONTROLLED_ON": "Terminé le ",
     "VALIDATED": "Validé",
     "VALIDATED_ON": "Validé le ",
@@ -2689,6 +2693,7 @@
       },
       "TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS": "Extraction > Marées: Niveau(x) de lieux pour la colonne 'AREA'",
       "TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE": "Extraction > Marées: Activer la dénormalisation des lots ?",
+      "OBSERVED_LOCATION_HELP_URL": "Sortie > Aide en ligne (URL)",
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
       "OBSERVED_LOCATION_END_DATE_REQUIRED": "Sortie: Date de fin obligatoire ?",
@@ -2713,6 +2718,8 @@
       "LANDING_EDITOR_TRIP": "Marée",
       "LANDING_EDITOR_SALE": "Vente",
       "LANDING_EDITOR_SAMPLING": "Échantillonnage biologique",
+      "LANDING_HELP_URL": "Sortie > Débarquements : Aide en ligne (URL)",
+      "LANDING_CONTROL_ENABLE": "Sortie > Débarquements : Activer le contrôle ?",
       "LANDING_CREATION_DATE_ENABLE": "Sortie > Débarquements : Afficher la date de création ?",
       "LANDING_RECORDER_PERSON_ENABLE": "Sortie > Débarquements : Afficher le saisisseur ?",
       "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port d'attache ?",

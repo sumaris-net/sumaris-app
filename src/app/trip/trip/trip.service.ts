@@ -62,7 +62,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from '@ionic/angular';
 import { TRIP_FEATURE_DEFAULT_PROGRAM_FILTER, TRIP_FEATURE_NAME } from '../trip.config';
-import { IDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { IRootDataSynchroService, RootDataEntitySaveOptions, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { environment } from '@environments/environment';
 import { Sample } from '../sample/sample.model';
 import { DataErrorCodes } from '@app/data/services/errors';
@@ -480,7 +480,7 @@ export class TripService
     IEntitiesService<Trip, TripFilter>,
     IEntityService<Trip, number, TripLoadOptions>,
     IRootDataEntityQualityService<Trip>,
-    IDataSynchroService<Trip, TripFilter, number, TripLoadOptions>
+    IRootDataSynchroService<Trip, TripFilter, number, TripLoadOptions>
 {
   protected _logger: ILogger;
 
@@ -1317,6 +1317,8 @@ export class TripService
     opts.progression = opts.progression || new ProgressionModel({ total: maxProgression });
 
     const progressionStep = maxProgression / 20;
+    const incrementProgression = () => opts.progression.increment(progressionStep);
+
     if (this._debug) console.debug(`[trip-service] Control {${entity.id}}...`, entity);
 
     const programLabel = (entity.program && entity.program.label) || null;
@@ -1347,7 +1349,7 @@ export class TripService
       }
     }
 
-    if (opts?.progression) opts.progression.increment(progressionStep);
+    incrementProgression();
 
     // If trip is valid: continue
     if (!opts || !opts.withOperationGroup) {
@@ -1361,6 +1363,8 @@ export class TripService
         });
 
         if (errors) {
+          incrementProgression();
+
           return {
             message: 'TRIP.ERROR.INVALID_GEARS',
             details: {
@@ -1380,6 +1384,7 @@ export class TripService
           maxProgression: maxProgression - progressionStep * 2,
         });
         if (errors) {
+          incrementProgression();
           return {
             message: 'TRIP.ERROR.INVALID_OPERATIONS',
             details: {
@@ -1393,6 +1398,7 @@ export class TripService
     }
 
     if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}} [OK] in ${Date.now() - now}ms`);
+    incrementProgression();
 
     return undefined;
   }
@@ -1733,7 +1739,7 @@ export class TripService
         return existingGear;
       }
 
-      // Mark as temporary (to force to clear unused gears, in save() )
+      // Mark as temporary (to force to clear unused gears when calling synchronize() )
       entity.synchronizationStatus = SynchronizationStatusEnum.TEMPORARY;
 
       // Compute new rankOrder, according to existing gears

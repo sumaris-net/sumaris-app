@@ -620,6 +620,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       if (!data) return; // Cancel
     }
 
+    // legacy report not need a specific path
+    reportType = reportType === 'legacy' ? null : reportType;
+
     return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', reportType].filter(isNotNilOrBlank).join('/'));
   }
 

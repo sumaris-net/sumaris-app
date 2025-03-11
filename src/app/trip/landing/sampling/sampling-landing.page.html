@@ -125,9 +125,9 @@
 
             <ion-col class="ion-no-padding" size="12" size-xl="5">
               <ion-grid class="ion-no-padding">
-                <ion-row class="ion-no-padding">
+                <ion-row>
                   <!-- strategy summary -->
-                  <ion-col class="ion-no-padding">
+                  <ion-col>
                     <app-strategy-summary-card
                       [compact]="false"
                       [showName]="false"
@@ -159,19 +159,27 @@
                   </ion-col>
 
                   <!-- data quality -->
-                  <ion-col class="ion-no-padding" *ngIf="showEntityMetadata">
-                    <app-entity-metadata [value]="data">
-                      <app-entity-quality-form *ngIf="showQualityForm"></app-entity-quality-form>
+                  @if (!mobile) {
+                    <ion-col>
+                      @if (showEntityMetadata) {
+                        <app-entity-metadata [value]="data">
+                          @if (showQualityForm) {
+                            <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
+                          }
 
-                      <!-- not observer (warning) -->
-                      <ion-text class="ion-text-wrap warning" *ngIf="warning">
-                        <p>
-                          <ion-icon name="warning"></ion-icon>
-                          &nbsp;{{ warning | translate }}
-                        </p>
-                      </ion-text>
-                    </app-entity-metadata>
-                  </ion-col>
+                          <!-- not observer (warning) -->
+                          @if (warning) {
+                            <ion-text class="ion-text-wrap warning">
+                              <p>
+                                <ion-icon name="warning"></ion-icon>
+                                &nbsp;{{ warning | translate }}
+                              </p>
+                            </ion-text>
+                          }
+                        </app-entity-metadata>
+                      }
+                    </ion-col>
+                  }
                 </ion-row>
               </ion-grid>
             </ion-col>

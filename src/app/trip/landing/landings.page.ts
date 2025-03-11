@@ -761,10 +761,7 @@ export class LandingsPage
     if (isNotEmptyArray(landingIds) && (!opts || opts.interactive !== false)) {
       const hasSample = await this._dataService.hasSampleWithTagId(landingIds);
       if (hasSample) {
-        const messageKey =
-          landingIds.length === 1
-            ? 'OBSERVED_LOCATION.LANDING.CONFIRM.DELETE_ONE_HAS_SAMPLE'
-            : 'OBSERVED_LOCATION.LANDING.CONFIRM.DELETE_MANY_HAS_SAMPLE';
+        const messageKey = landingIds.length === 1 ? 'LANDING.CONFIRM.DELETE_ONE_HAS_SAMPLE' : 'LANDING.CONFIRM.DELETE_MANY_HAS_SAMPLE';
         const confirmed = await Alerts.askConfirmation(messageKey, this.alertCtrl, this.translate, event);
         if (!confirmed) return; // skip
       }

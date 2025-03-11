@@ -288,6 +288,7 @@ export class EntityQualityFormComponent<
     opts = opts || {};
     const progressionSubscription = this.fillProgressionOptions(opts, 'QUALITY.INFO.SYNCHRONIZE_DOTS');
     const progressionStep = opts.maxProgression / 3; // 3 steps : control, synchronize, and terminate
+    const incrementProgression = () => opts.progression.increment(progressionStep);
 
     // Control data
     const controlled = await this.control(event, {
@@ -308,7 +309,7 @@ export class EntityQualityFormComponent<
       console.debug('[entity-quality] Synchronizing entity...');
       const remoteData = await this.synchroService.synchronize(this.editor.data);
 
-      opts.progression.increment(progressionStep); // Increment progression
+      incrementProgression();
 
       // Success message
       this.showToast({ message: 'INFO.SYNCHRONIZATION_SUCCEED', type: 'info', showCloseButton: true });
@@ -320,7 +321,7 @@ export class EntityQualityFormComponent<
       console.debug('[entity-quality] Terminate entity...');
       const data = await this.serviceForRootEntity.terminate(remoteData);
 
-      opts.progression.increment(progressionStep); // Increment progression
+      incrementProgression();
 
       // Update the editor (Will refresh the component)
       this.busy = false;
@@ -367,7 +368,7 @@ export class EntityQualityFormComponent<
     try {
       this.busy = true;
 
-      if (!DataEntityUtils.isControlled(this.data)) {
+      if (DataEntityUtils.isNotControlled(this.data)) {
         console.debug('[entity-quality] Terminate entity input...');
         this.data = await this.serviceForRootEntity.terminate(this.data);
       }
