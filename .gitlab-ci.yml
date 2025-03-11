@@ -147,7 +147,7 @@ build:env:
         - scripts/**/*
         - package.json
         - package-lock.json
-    - if: '$CI_COMMIT_BRANCH =~ /^features?\/.*/ || $CI_MERGE_REQUEST_ID'
+    - if: '$CI_MERGE_REQUEST_ID || $CI_COMMIT_BRANCH =~ /^features?\/.*/ || $CI_COMMIT_BRANCH =~ /^stable\/.*/'
       when: manual
     - when: never
 
@@ -189,8 +189,8 @@ build:feature:
     # Build
     - npm run build:${BUILD_ENVIRONMENT}
   only:
-    - /^feature\/.*/
-    - /^features\/.*/
+    - /^features?\/.*/
+    - /^stable\/.*/
   when: manual
 
 # ---------------------------------------------------------------
@@ -250,8 +250,8 @@ package:electron:feature:
   extends: .package:electron
   needs: [build:feature]
   only:
-    - /^feature\/.*/
-    - /^features\/.*/
+    - /^features?\/.*/
+    - /^stable\/.*/
 
 .package:webext:
   <<: *webext-setup
@@ -276,8 +276,8 @@ package:webext:feature:
   extends: .package:webext
   needs: [build:feature]
   only:
-    - /^feature\/.*/
-    - /^features\/.*/
+    - /^features?\/.*/
+    - /^stable\/.*/
 
 # ---------------------------------------------------------------
 # Release jobs
@@ -339,8 +339,8 @@ release:feature:
   image: ${CI_BUILD_IMAGE}
   needs: [build:feature]
   only:
-    - /^feature\/.*/
-    - /^features\/.*/
+    - /^features?\/.*/
+    - /^stable\/.*/
   when: manual
 
 release:tags:
@@ -439,8 +439,8 @@ deploy:web:feature:
   extends: .deploy:web
   needs: [release:feature]
   only:
-    - /^feature\/.*/
-    - /^features\/.*/
+    - /^features?\/.*/
+    - /^stable\/.*/
 
 deploy:web:tags:
   extends: .deploy:web
@@ -486,8 +486,8 @@ deploy:android:feature:
   extends: .deploy:android
   needs: [release:feature]
   only:
-    - /^feature\/.*/
-    - /^features\/.*/
+    - /^features?\/.*/
+    - /^stable\/.*/
 
 deploy:android:tags:
   extends: .deploy:android
@@ -541,8 +541,8 @@ deploy:electron:feature:
   extends: .deploy:electron
   needs: [release:feature]
   only:
-    - /^feature\/.*/
-    - /^features\/.*/
+    - /^features?\/.*/
+    - /^stable\/.*/
 
 deploy:electron:tags:
   extends: .deploy:electron
@@ -586,8 +586,8 @@ deploy:webext:prerelease:feature:
   variables:
     DEPLOY_ENVIRONMENT: 'test'
   only:
-    - /^feature\/.*/
-    - /^features\/.*/
+    - /^features?\/.*/
+    - /^stable\/.*/
 
 deploy:webext:prerelease:tags:
   extends: .deploy:webext
@@ -611,8 +611,8 @@ deploy:webext:release:feature:
   variables:
     DEPLOY_ENVIRONMENT: 'prod'
   only:
-    - /^feature\/.*/
-    - /^features\/.*/
+    - /^features?\/.*/
+    - /^stable\/.*/
 
 deploy:webext:release:tags:
   extends: .deploy:webext
@@ -652,8 +652,8 @@ docker:feature:
   variables:
     IMAGE_TAG: feature
   only:
-    - /^feature\/.*/
-    - /^features\/.*/
+    - /^features?\/.*/
+    - /^stable\/.*/
   when: manual
 
 docker:release:
