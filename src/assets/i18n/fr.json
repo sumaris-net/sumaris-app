@@ -345,6 +345,7 @@
         "PMFM_HAS_ACCIDENTAL_CATCHES_ID": "Référentiel > PSFM > Capture accidentelle",
         "PMFM_HULL_MATERIAL_ID": "Référentiel > PSFM > Matériaux de la coque (navire)",
         "PMFM_BATCH_SORTING_ID": "Référentiel > PSFM > Vrac/Hors vrac",
+        "PMFM_DISCARD_OR_LANDING_ID": "Référentiel > PSFM > Rejet ou retenue",
         "PMFM_DISCARD_WEIGHT_ID": "Référentiel > PSFM > Poids du rejet",
         "PMFM_CATCH_WEIGHT_ID": "Référentiel > PSFM > Poids total de la capture",
         "PMFM_BATCH_CALCULATED_WEIGHT_ID": "Référentiel > PSFM > Poids du lot (calculé)",

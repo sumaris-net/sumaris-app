@@ -565,6 +565,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.CATCH_WEIGHT,
   },
+  PMFM_DISCARD_OR_LANDING: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.DISCARD_OR_LANDING.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DISCARD_OR_LANDING_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.DISCARD_OR_LANDING,
+  },
   PMFM_DISCARD_WEIGHT_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.DISCARD_WEIGHT.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DISCARD_WEIGHT_ID',

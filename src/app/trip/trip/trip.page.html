@@ -349,12 +349,7 @@
         </mat-icon>
         <ion-label matBadgeColor="primary" matBadgeOverlap="false" matBadgeSize="small" translate>TRIP.TAB_EXPENSES</ion-label>
         <mat-icon>
-          <ion-icon
-            slot="end"
-            name="alert-circle"
-            color="danger"
-            *ngIf="operationsTable.error || (operationsTable.invalid && operationsTable.dirty)"
-          ></ion-icon>
+          <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="expenseForm.error || (expenseForm.invalid && expenseForm.dirty)"></ion-icon>
         </mat-icon>
       </ng-template>
       <app-expense-form
