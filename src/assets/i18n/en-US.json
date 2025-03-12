@@ -1214,7 +1214,7 @@
         }
       },
       "TABLE": {
-        "BTN_AUTO_FILL": "Automatically fill species",
+        "BTN_AUTO_FILL": "Fill all species",
         "BTN_INDIVIDUAL_MEASURE": "Measures",
         "LABEL": "Label",
         "LABEL_PLACEHOLDER": "Label",
