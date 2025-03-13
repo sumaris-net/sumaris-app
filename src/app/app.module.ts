@@ -478,16 +478,36 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           logo: 'assets/img/logo/logo-interreg2seas.png',
         },
         {
-          siteUrl: 'https://www.fromnord.fr',
-          logo: 'assets/img/logo/logo-fromnord_50px.png',
-        },
-        {
-          siteUrl: 'https://www.rederscentrale.be',
-          logo: 'assets/img/logo/logo-redercentrale.png',
+          siteUrl: 'https://www.mer.gouv.fr',
+          logo: 'assets/img/logo/logo-dgampa-simple.png',
         },
         {
           siteUrl: 'https://www.ifremer.fr',
           logo: 'assets/img/logo/logo-ifremer.png',
+        },
+        {
+          siteUrl: 'https://www.sfa.sc',
+          logo: 'assets/img/logo/logo-sfa.png',
+        },
+        {
+          siteUrl: 'https://www.comite-peches.fr',
+          logo: 'assets/img/logo/logo-cnpmem.png',
+        },
+        {
+          siteUrl: 'https://www.pecheursdebretagne.eu',
+          logo: 'assets/img/logo/logo-lpdb.png',
+        },
+        {
+          siteUrl: 'https://www.fromnord.fr',
+          logo: 'assets/img/logo/logo-fromnord_50px.png',
+        },
+        {
+          siteUrl: 'https://www.aglia.fr',
+          logo: 'assets/img/logo/logo-aglia.png',
+        },
+        {
+          siteUrl: 'https://www.rederscentrale.be',
+          logo: 'assets/img/logo/logo-redercentrale.png',
         },
         {
           siteUrl: 'https://www.ilvo.vlaanderen.be/',
@@ -496,22 +516,6 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         {
           siteUrl: 'https://www.nausicaa.fr',
           logo: 'assets/img/logo/logo-nausicaa.png',
-        },
-        {
-          siteUrl: 'https://www.pecheursdebretagne.eu',
-          logo: 'assets/img/logo/logo-lpdb.png',
-        },
-        {
-          siteUrl: 'https://www.aglia.fr',
-          logo: 'assets/img/logo/logo-aglia.png',
-        },
-        {
-          siteUrl: 'https://www.sfa.sc',
-          logo: 'assets/img/logo/logo-sfa.png',
-        },
-        {
-          siteUrl: 'https://www.comite-peches.fr/',
-          logo: 'assets/img/logo/logo-cnpmem.png',
         },
       ],
     },
