@@ -445,6 +445,7 @@
       "DATA_SHOW_OBSERVERS": "Saisie > Afficher les observateurs ?",
       "DATA_IMPORT_DEFAULT_PERIOD": "Saisie hors-ligne > Période à importer (par défaut)",
       "DATA_IMAGES_ENABLE": "Saisie > Activer la gestion des images",
+      "DATA_IMAGES_DIRECTORY_ENABLE": "Persistance > Sauvegarder les images en fichier (plutôt qu'en BDD) ?",
       "DATA_VESSEL_TYPE_IDS": "Saisie > Navire: Type(s) de navire autorisé(s) (POD)",
       "LANDING": {
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",

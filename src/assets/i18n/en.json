@@ -443,6 +443,7 @@
       "DATA_SHOW_OBSERVERS": "Forms > Show observers?",
       "DATA_IMPORT_DEFAULT_PERIOD": "Offline mode > Period to import (by default)",
       "DATA_IMAGES_ENABLE": "Forms > Allow images",
+      "DATA_IMAGES_DIRECTORY_ENABLE": "Persistence > Save images as files (rather than in DB)",
       "DATA_VESSEL_TYPE_IDS": "Forms > Vessel: Vessel type(s) (ids)",
       "LANDING": {
         "FILTER_PROGRAM": "Landing > Show program filter?",
