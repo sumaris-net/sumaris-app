@@ -157,6 +157,12 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     type: 'boolean',
     defaultValue: 'false',
   },
+  DATA_IMAGES_DIRECTORY_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.data.images.directory.enable',
+    label: 'CONFIGURATION.OPTIONS.DATA_IMAGES_DIRECTORY_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false',
+  },
   DATA_VESSEL_TYPE_IDS: <FormFieldDefinition>{
     key: 'sumaris.data.vessel.type.ids',
     label: 'CONFIGURATION.OPTIONS.DATA_VESSEL_TYPE_IDS',
