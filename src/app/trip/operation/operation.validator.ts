@@ -17,6 +17,7 @@ import {
   AppFormUtils,
   DateUtils,
   equals,
+  firstArrayValue,
   FormErrors,
   fromDateISOString,
   isEmptyArray,
@@ -210,6 +211,18 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       parentOperation: [data?.parentOperation || null], // Validators define later, in updateFormGroup
       parentOperationId: [toNumber(data?.parentOperationId, null)],
       childOperationId: [toNumber(data?.childOperationId, null)],
+
+      //OperationVesselAssociation
+      operationVesselAssociations: this.formBuilder.group({
+        vesselSnapshot: [
+          firstArrayValue(data?.operationVesselAssociations)?.vesselSnapshot || null,
+          opts?.isOnFieldMode ? null : Validators.required,
+        ],
+        isCatchOnOperationVessel: [
+          firstArrayValue(data?.operationVesselAssociations)?.isCatchOnOperationVessel || null,
+          opts?.isOnFieldMode ? null : Validators.required,
+        ],
+      }),
     });
 
     // Add metier
@@ -278,6 +291,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
             'hour'
           ),
           OperationValidators.nonOverlapping(opts?.nonOverlappingOperations),
+          OperationValidators.validOperationVesselAssociation,
         ]),
       };
     }
@@ -424,6 +438,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     const fishingStartPositionControl = form.get('fishingStartPosition');
     const fishingEndPositionControl = form.get('fishingEndPosition');
     const endPositionControl = form.get('endPosition');
+    const operationVesselAssociation = form.get('operationVesselAssociations');
 
     // Validator to date inside the trip
     const tripDatesValidators = (opts?.trip && [this.createTripDatesValidator(opts.trip)]) || [];
@@ -1038,6 +1053,19 @@ export class OperationValidators {
     const qualityFlagId = parent?.qualityFlagId;
     if (qualityFlagId === QualityFlagIds.MISSING) {
       return { existsParent: true };
+    }
+    return null;
+  }
+
+  static validOperationVesselAssociation(operationVesselAssociationControl: UntypedFormGroup): ValidationErrors | null {
+    const operationVesselAssociation = operationVesselAssociationControl.get('operationVesselAssociations')?.value;
+    if (isNil(operationVesselAssociation)) return null;
+
+    const vesselSnapshot = operationVesselAssociation?.vesselSnapshot;
+    const isCatchOnOperationVessel = operationVesselAssociation?.isCatchOnOperationVessel;
+    const empty = !vesselSnapshot && isNil(isCatchOnOperationVessel);
+    if (!empty && (isNil(vesselSnapshot?.id) || isNil(isCatchOnOperationVessel))) {
+      return { invalidOrIncomplete: true };
     }
     return null;
   }

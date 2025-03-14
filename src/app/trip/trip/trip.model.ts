@@ -10,7 +10,9 @@ import {
 import { Sale } from '../sale/sale.model';
 import {
   DateUtils,
+  Entity,
   EntityClass,
+  firstArrayValue,
   fromDateISOString,
   isEmptyArray,
   isNil,
@@ -121,6 +123,7 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
   parentOperation: Operation = null;
   childOperationId: number = null;
   childOperation: Operation = null;
+  operationVesselAssociations: OperationVesselAssociation[];
 
   constructor() {
     super(Operation.TYPENAME);
@@ -133,6 +136,10 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     target.endDateTime = toDateISOString(this.endDateTime);
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
     target.fishingEndDateTime = toDateISOString(this.fishingEndDateTime);
+    target.operationVesselAssociations =
+      (OperationVesselAssociation.isNotEmpty(firstArrayValue(this.operationVesselAssociations)) &&
+        this.operationVesselAssociations.map((value) => value?.asObject(opts))) ||
+      [];
 
     // Fill date of start position (if valid)
     if (PositionUtils.isNotNilAndValid(target.startPosition)) {
@@ -291,7 +298,10 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
     this.tripId = source.tripId;
     this.programLabel = source.programLabel;
     this.vesselId = source.vesselId;
-
+    this.operationVesselAssociations =
+      (OperationVesselAssociation.isNotEmpty(firstArrayValue(source.operationVesselAssociations)) &&
+        source.operationVesselAssociations?.map(OperationVesselAssociation.fromObject)) ||
+      [];
     this.hasCatch = source.hasCatch;
     this.comments = source.comments;
     this.physicalGear =
@@ -453,6 +463,41 @@ export class Operation extends DataEntity<Operation, number, OperationAsObjectOp
 
   getStrategyDateTime() {
     return this.endDateTime || this.fishingEndDateTime || this.fishingEndDateTime || this.startDateTime;
+  }
+}
+
+@EntityClass({ typename: 'OperationVesselAssociationVO' })
+export class OperationVesselAssociation extends Entity<OperationVesselAssociation> {
+  static fromObject: (source: any) => OperationVesselAssociation;
+
+  static isNotEmpty(operationVesselAssociation: OperationVesselAssociation): boolean {
+    return isNotNil(operationVesselAssociation?.vesselSnapshot?.id) || isNotNil(operationVesselAssociation?.isCatchOnOperationVessel);
+  }
+
+  operationId: number;
+  vesselSnapshot: VesselSnapshot;
+  isCatchOnOperationVessel: boolean;
+
+  constructor() {
+    super(OperationVesselAssociation.TYPENAME);
+  }
+
+  asObject(opts?: DataEntityAsObjectOptions): any {
+    const target = super.asObject(opts);
+    target.operationId = this.operationId;
+    target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject(opts)) || null;
+    target.isCatchOnOperationVessel = this.isCatchOnOperationVessel;
+
+    return target;
+  }
+
+  fromObject(source: any): any {
+    super.fromObject(source);
+    this.operationId = source.operationId;
+    this.vesselSnapshot = (source.vesselSnapshot && VesselSnapshot.fromObject(source.vesselSnapshot)) || null;
+    this.isCatchOnOperationVessel = source.isCatchOnOperationVessel;
+
+    return this;
   }
 }
 
