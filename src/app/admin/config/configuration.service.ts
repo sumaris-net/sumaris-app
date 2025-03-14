@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ConfigFragments, ConfigService, Configuration, EntityServiceLoadOptions, IEntityService } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 
 const Queries: { load: any } = {
   // Load configuration, without inherited properties

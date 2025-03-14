@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 
 export const StrategyFragments = {
   lightStrategy: gql`
@@ -207,8 +207,8 @@ export const StrategyFragments = {
       creationDate
       statusId
       programId
-      gears {
-        ...LightReferentialFragment
+      gears: fullGears {
+        ...GearFragment
       }
       taxonGroups {
         ...TaxonGroupStrategyFragment

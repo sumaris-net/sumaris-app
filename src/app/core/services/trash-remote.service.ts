@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { BaseGraphqlService, chainPromises, GraphqlService } from '@sumaris-net/ngx-components';
 import { AppCoreErrorCodes } from '@app/core/services/errors';
 import { environment } from '@environments/environment';

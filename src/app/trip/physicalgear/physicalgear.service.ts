@@ -62,6 +62,7 @@ const Queries: BaseEntityGraphqlQueries & { loadAllWithTrip: any } = {
     ${PhysicalGearFragments.physicalGear}
     ${ReferentialFragments.lightReferential}
     ${ReferentialFragments.lightDepartment}
+    ${ReferentialFragments.gear}
   `,
 
   load: gql`
@@ -73,6 +74,7 @@ const Queries: BaseEntityGraphqlQueries & { loadAllWithTrip: any } = {
     ${PhysicalGearFragments.physicalGear}
     ${ReferentialFragments.lightReferential}
     ${ReferentialFragments.lightDepartment}
+    ${ReferentialFragments.gear}
   `,
 
   loadAllWithTrip: gql`
@@ -96,6 +98,7 @@ const Queries: BaseEntityGraphqlQueries & { loadAllWithTrip: any } = {
     ${ReferentialFragments.lightReferential}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightDepartment}
+    ${ReferentialFragments.gear}
     ${VesselSnapshotFragments.lightVesselSnapshot}
     ${ProgramFragments.programRef}
   `,

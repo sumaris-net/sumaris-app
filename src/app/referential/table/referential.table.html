@@ -160,10 +160,7 @@
 
   <!-- Compact mode -->
   <button mat-menu-item (click)="toggleCompactMode()">
-    <mat-icon *ngIf="compact; else notCompactIcon">check_box</mat-icon>
-    <ng-template #notCompactIcon>
-      <mat-icon>check_box_outline_blank</mat-icon>
-    </ng-template>
+    <mat-icon>{{ compact ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
     <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
   </button>
 </mat-menu>

@@ -1,5 +1,5 @@
 import { Inject, Injectable, Injector, Optional } from '@angular/core';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { map } from 'rxjs/operators';
 
 import {

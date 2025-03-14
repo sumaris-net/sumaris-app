@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 
 export const RoundWeightConversionFragments = {

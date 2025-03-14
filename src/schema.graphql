@@ -136,6 +136,8 @@ type BatchVO {
   exhaustiveInventory: Boolean
   flags: Int!
   id: Int
+  "Get batch images"
+  images: [ImageAttachmentVO]
   individualCount: Int
   label: String
   leaf: Boolean!
@@ -538,6 +540,29 @@ type GearUseFeaturesVO {
   vesselSnapshot: VesselSnapshotVO
 }
 
+type GearVO {
+  comments: String
+  creationDate: Date
+  description: String
+  entityName: String
+  id: Int
+  isActive: Boolean
+  isTowed: Boolean
+  label: String
+  "Get the level from a referential entity"
+  level: ReferentialVO
+  levelId: Int
+  name: String
+  "Get referential's parent"
+  parent: ReferentialVO
+  parentId: Int
+  properties: Map_String_ObjectScalar
+  rankOrder: Int
+  statusId: Int
+  updateDate: Date
+  validityStatusId: Int
+}
+
 type IExtractionType_PersonVO_DepartmentVO {
   LABEL_SEPARATOR: String
   format: String
@@ -713,6 +738,7 @@ type MetierVO {
   creationDate: Date
   description: String
   entityName: String
+  fullGear: GearVO
   gear: ReferentialVO
   id: Int
   label: String
@@ -1142,8 +1168,11 @@ type PhysicalGearVO {
   controlDate: Date
   creationDate: Date
   flags: Int!
+  fullGear: GearVO
   gear: ReferentialVO
   id: Int
+  isActive: Boolean
+  isTowed: Boolean
   leaf: Boolean!
   "Get physical gear measurements"
   measurementValues: Map_Integer_StringScalar
@@ -1804,6 +1833,7 @@ type StrategyVO {
   departments: [StrategyDepartmentVO]
   description: String
   entityName: String
+  fullGears: [GearVO]
   gearIds: [Int]
   "Get strategy's gears"
   gears: [ReferentialVO]
@@ -2562,6 +2592,7 @@ input BatchVOInput {
   controlDate: Date
   exhaustiveInventory: Boolean
   id: Int
+  images: [ImageAttachmentVOInput]
   individualCount: Int
   label: String
   locationId: Int
@@ -2963,9 +2994,33 @@ input GearUseFeaturesVOInput {
   vesselSnapshot: VesselSnapshotVOInput
 }
 
+input GearVOInput {
+  comments: String
+  creationDate: Date
+  description: String
+  entityName: String
+  id: Int
+  isActive: Boolean
+  isTowed: Boolean
+  label: String
+  level: ReferentialVOInput
+  levelId: Int
+  name: String
+  parent: ReferentialVOInput
+  parentId: Int
+  properties: Map_String_ObjectScalar
+  rankOrder: Int
+  statusId: Int
+  updateDate: Date
+  validityStatusId: Int
+}
+
 input ImageAttachmentFilterVOInput {
   dataQualityStatus: [DataQualityStatusEnum]
+  excludeIds: [Int]
+  includeIds: [Int]
   objectId: Int
+  objectIds: [Int]
   objectTypeId: Int
   qualityFlagIds: [Int]
   recorderDepartmentId: Int
@@ -3168,6 +3223,7 @@ input MetierVOInput {
   creationDate: Date
   description: String
   entityName: String
+  fullGear: GearVOInput
   gear: ReferentialVOInput
   id: Int
   label: String
@@ -3476,8 +3532,11 @@ input PhysicalGearVOInput {
   comments: String
   controlDate: Date
   creationDate: Date
+  fullGear: GearVOInput
   gear: ReferentialVOInput
   id: Int
+  isActive: Boolean
+  isTowed: Boolean
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]
   parent: PhysicalGearVOInput
@@ -3936,6 +3995,7 @@ input StrategyVOInput {
   departments: [StrategyDepartmentVOInput]
   description: String
   entityName: String
+  fullGears: [GearVOInput]
   gearIds: [Int]
   gears: [ReferentialVOInput]
   id: Int

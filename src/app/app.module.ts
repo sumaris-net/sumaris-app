@@ -58,7 +58,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { AudioManagement } from '@ionic-native/audio-management/ngx';
+import { AudioManagement } from '@awesome-cordova-plugins/audio-management/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES } from './trip/trip.config';
 import { IonicStorageModule } from '@ionic/storage-angular';
@@ -82,7 +82,7 @@ import { AppSharedModule } from '@app/shared/shared.module';
 import { APP_CORE_CONFIG_OPTIONS } from '@app/core/services/config/core.config';
 import { AppCoreModule } from '@app/core/core.module';
 import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/sample/sample.validator';
-import { Downloader } from '@ionic-native/downloader/ngx';
+import { Downloader } from '@awesome-cordova-plugins/downloader/ngx';
 import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/operation/operation.validator';
 import { APP_SHARED_TESTING_PAGES } from '@app/shared/shared.testing.module';
 import { UserEventService } from '@app/social/user-event/user-event.service';

@@ -16,7 +16,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import { WeightLengthConversion, WeightLengthConversionRef } from './weight-length-conversion.model';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { WeightLengthConversionFragments } from './weight-length-conversion.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { CacheService } from 'ionic-cache';

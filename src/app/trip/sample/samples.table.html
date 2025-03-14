@@ -69,22 +69,21 @@
     <ion-label>{{ 'TRIP.SAMPLE.TABLE.BTN_GENERATE_TAG_ID_DOTS' | translateContext: i18nColumnSuffix }}</ion-label>
   </button>
 
-  <mat-divider *ngIf="showDisplayColumnModal"></mat-divider>
+  @if (showDisplayColumnModal) {
+    <mat-divider></mat-divider>
 
-  <!-- display columns option -->
-  <button *ngIf="showDisplayColumnModal" mat-menu-item (click)="openSelectColumnsModal($event)">
-    <mat-icon>view_column</mat-icon>
-    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
-  </button>
+    <!-- display columns option -->
+    <button mat-menu-item (click)="openSelectColumnsModal($event)">
+      <mat-icon>view_column</mat-icon>
+      <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+    </button>
+  }
 
   <mat-divider></mat-divider>
 
   <!-- Compact mode -->
   <button mat-menu-item (click)="toggleCompactMode()">
-    <mat-icon *ngIf="compact; else disabledIcon">check_box</mat-icon>
-    <ng-template #disabledIcon>
-      <mat-icon>check_box_outline_blank</mat-icon>
-    </ng-template>
+    <mat-icon>{{ compact ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
     <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
   </button>
 </mat-menu>

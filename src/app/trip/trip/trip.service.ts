@@ -1,5 +1,5 @@
 import { Inject, Injectable, Injector, Optional } from '@angular/core';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { filter, map } from 'rxjs/operators';
 
 import {
@@ -194,6 +194,7 @@ export const TripFragments = {
   ${DataCommonFragments.measurement}
   ${DataCommonFragments.referential}
   ${DataCommonFragments.location}
+  ${DataCommonFragments.lightGear}
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${PhysicalGearFragments.physicalGear}
   ${DataCommonFragments.metier},
@@ -263,6 +264,7 @@ export const TripFragments = {
     ${DataCommonFragments.measurement}
     ${DataCommonFragments.referential}
     ${DataCommonFragments.location}
+    ${DataCommonFragments.lightGear}
     ${VesselSnapshotFragments.lightVesselSnapshot}
     ${DataCommonFragments.metier}
     ${PhysicalGearFragments.physicalGear}
@@ -1779,23 +1781,26 @@ export class TripService
 
   protected asObject(entity: Trip, opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
-    const copy: any = entity.asObject(opts);
+    const target: any = entity.asObject(opts);
 
     // Fill return date using departure date
-    copy.returnDateTime = copy.returnDateTime || copy.departureDateTime;
+    target.returnDateTime = target.returnDateTime || target.departureDateTime;
 
     // Fill return location using departure location
-    if (!copy.returnLocation || !copy.returnLocation.id) {
-      copy.returnLocation = { ...copy.departureLocation };
+    if (!target.returnLocation || !target.returnLocation.id) {
+      target.returnLocation = { ...target.departureLocation };
     }
 
     // Full json optimisation
     if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
       // Clean vessel features object, before saving
-      copy.vesselSnapshot = { id: entity.vesselSnapshot && entity.vesselSnapshot.id };
+      target.vesselSnapshot = { id: entity.vesselSnapshot?.id };
+
+      // optimize physical gear
+      target.gears?.forEach((pg) => (pg.gear = { id: pg.gear?.id }));
     }
 
-    return copy;
+    return target;
   }
 
   protected fillDefaultProperties(entity: Trip) {

@@ -21,7 +21,7 @@ import {
   NetworkService,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { EMPTY, Observable } from 'rxjs';

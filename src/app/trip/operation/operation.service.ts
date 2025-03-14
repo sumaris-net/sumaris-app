@@ -96,6 +96,7 @@ import { ToastController } from '@ionic/angular';
 import { PositionService } from '@app/data/position/position.service';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 import { UserEventService } from '@app/social/user-event/user-event.service';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 export const OperationFragments = {
   lightOperation: gql`fragment LightOperationFragment on OperationVO {
@@ -117,8 +118,8 @@ export const OperationFragments = {
     physicalGear {
       id
       rankOrder
-      gear {
-        ...LightReferentialFragment
+      gear: fullGear {
+        ...GearFragment
       }
     }
     metier {
@@ -141,9 +142,9 @@ export const OperationFragments = {
   }
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.metier}
-  ${ReferentialFragments.lightReferential}
+  ${ReferentialFragments.gear}
   ${DataCommonFragments.position},
-  ${DataCommonFragments.location}`,
+  ${ReferentialFragments.location}`,
 
   operation: gql`
     fragment OperationFragment on OperationVO {
@@ -161,8 +162,8 @@ export const OperationFragments = {
       physicalGear {
         id
         rankOrder
-        gear {
-          ...LightReferentialFragment
+        gear: fullGear {
+          ...GearFragment
         }
       }
       tripId
@@ -199,6 +200,7 @@ export const OperationFragments = {
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.metier}
     ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.gear}
     ${DataCommonFragments.position}
     ${DataCommonFragments.measurement}
     ${DataFragments.sample}
@@ -604,6 +606,10 @@ export class OperationService
 
       if (isEmptyArray(data)) return undefined; // Skip if empty
 
+      // Get towed operations
+      const towedPhysicalGearIds = EntityUtils.collectIds((trip.gears || []).filter(PhysicalGear.isTowed));
+      const towedOperations = data.filter((op) => op.physicalGear && towedPhysicalGearIds.includes(op.physicalGear.id));
+
       // Prepare control options
       opts = await this.fillControlOptionsForTrip(trip.id, { trip, ...opts });
       const progressionStep = maxProgression / data.length / 2; // 2 steps by operation: control, then save
@@ -612,10 +618,14 @@ export class OperationService
 
       // For each entity
       for (let entity of data) {
+        // Check if current operation use a towed gear
+        const isTowed = towedOperations.some((op) => op.id === entity.id);
+        const nonOverlappingOperations = isTowed ? towedOperations : undefined;
+
         // Load full entity
         entity = await this.load(entity.id);
 
-        const errors = await this.control(entity, { ...opts, maxProgression: progressionStep });
+        const errors = await this.control(entity, { ...opts, maxProgression: progressionStep, nonOverlappingOperations });
 
         // Control failed: save error
         if (errors) {
@@ -924,9 +934,8 @@ export class OperationService
           DataEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
 
           // Copy gear
-          if (savedEntity.metier && !savedEntity.metier.gear) {
-            savedEntity.metier.gear =
-              savedEntity.metier.gear || (entity.physicalGear && entity.physicalGear.gear && entity.physicalGear.gear.asObject());
+          if (savedEntity.metier && !savedEntity.metier.gear && entity.physicalGear.gear) {
+            savedEntity.metier.gear = entity.physicalGear.gear.asObject();
           }
 
           // Update parent/child operation
@@ -1644,14 +1653,17 @@ export class OperationService
 
   protected asObject(entity: Operation, opts?: OperationAsObjectOptions): any {
     opts = { ...MINIFY_OPTIONS, ...opts };
-    const copy: any = entity.asObject(opts);
+    const target: any = entity.asObject(opts);
 
     // Full json optimisation
     if (opts.minify && !opts.keepTypename && !opts.keepEntityName) {
       // Clean metier object, before saving
-      copy.metier = { id: entity.metier && entity.metier.id };
+      target.metier = entity.metier && { id: entity.metier?.id };
+      // Clean physicalGear object, before saving
+      target.physicalGearId = entity.physicalGear?.id ?? target.physicalGearId;
+      delete target.physicalGear;
     }
-    return copy;
+    return target;
   }
 
   protected fillDefaultProperties(entity: Operation, opts?: Partial<OperationSaveOptions>) {

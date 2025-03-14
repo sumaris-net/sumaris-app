@@ -8,7 +8,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   ITreeItemEntity,
-  ReferentialRef,
   ReferentialUtils,
 } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
@@ -26,6 +25,7 @@ import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { TripRef } from '@app/trip/trip/trip-ref.model';
 import { hasFlag } from '@app/shared/flags.utils';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { GearRef } from '@app/referential/gear/gear.model';
 
 export interface PhysicalGearAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -165,8 +165,15 @@ export class PhysicalGear
     return ReferentialUtils.isNotEmpty(source?.gear);
   }
 
+  static isTowed(source: Partial<PhysicalGear>): boolean {
+    return GearRef.isTowed(source?.gear);
+  }
+  static isActive(source: Partial<PhysicalGear>): boolean {
+    return GearRef.isActive(source?.gear);
+  }
+
   rankOrder: number = null;
-  gear: ReferentialRef = null;
+  gear: GearRef = null;
   measurements: Measurement[] = null;
   measurementValues: MeasurementModelValues | MeasurementFormValues = {};
 
@@ -191,7 +198,7 @@ export class PhysicalGear
   fromObject(source: any, opts?: PhysicalGearFromObjectOptions): PhysicalGear {
     super.fromObject(source);
     this.rankOrder = source.rankOrder;
-    this.gear = source.gear && ReferentialRef.fromObject(source.gear);
+    this.gear = source.gear && GearRef.fromObject(source.gear);
     this.measurementValues =
       (source.measurementValues && { ...source.measurementValues }) || MeasurementUtils.toMeasurementValues(source.measurements);
 

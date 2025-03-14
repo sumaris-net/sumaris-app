@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { ErrorCodes } from './errors';
 import { AccountService, AppErrorWithDetails, isEmptyArray, isNilOrBlank, ReferentialUtils } from '@sumaris-net/ngx-components';
 import { GraphqlService } from '@sumaris-net/ngx-components';

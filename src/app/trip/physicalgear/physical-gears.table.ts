@@ -9,7 +9,6 @@ import {
   isNil,
   isNotNil,
   LoadResult,
-  ReferentialRef,
   SharedValidators,
   toBoolean,
   UsageMode,
@@ -30,6 +29,7 @@ import { TripContextService } from '@app/trip/trip-context.service';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { RxState } from '@rx-angular/state';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { GearRef } from '@app/referential/gear/gear.model';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed', 'comments'];
@@ -49,7 +49,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   @Input() canSelect = true;
   @Input() copyPreviousGears: (event: Event) => Promise<PhysicalGear>;
   @Input() title: string = null;
-  @Input() defaultGear: ReferentialRef = null;
+  @Input() defaultGear: GearRef = null;
   @Input() canEditGear = true;
   @Input() showFilter = false;
   @Input() showPmfmDetails = false;

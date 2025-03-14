@@ -20,12 +20,7 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 import { firstValueFrom, Observable } from 'rxjs';
-
-export class LocationRef extends ReferentialRef<LocationRef> {
-  static fromObject: (source: any, opts?: any) => LocationRef;
-
-  locationLevel: ReferentialRef;
-}
+import { LocationRef } from '@app/referential/location/location.model';
 
 export interface ExpertiseAreaPageState {
   locationLevelById: { [key: number]: LocationRef };

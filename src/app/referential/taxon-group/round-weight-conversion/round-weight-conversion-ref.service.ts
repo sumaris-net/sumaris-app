@@ -14,7 +14,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import { RoundWeightConversion, RoundWeightConversionRef } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.model';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { RoundWeightConversionFragments } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.fragments';
 import { Moment } from 'moment';
 import { CacheService } from 'ionic-cache';

@@ -9,7 +9,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import { RoundWeightConversion } from './round-weight-conversion.model';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { RoundWeightConversionFragments } from './round-weight-conversion.fragments';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { RoundWeightConversionFilter } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.filter';

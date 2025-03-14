@@ -24,6 +24,8 @@ import {
   PersonUtils,
   Property,
   ReferentialRef,
+  RxStateProperty,
+  RxStateSelect,
   SharedValidators,
   slideUpDownAnimation,
   splitById,
@@ -52,7 +54,6 @@ import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { AppBaseTableFilterRestoreSource, BaseTableConfig } from '@app/shared/table/base.table';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { isMoment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { ActivityCalendarReportType, ProgramProperties } from '@app/referential/services/config/program.config';

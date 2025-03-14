@@ -21,7 +21,6 @@ import {
   GetFocusableInputOptions,
   isNotNil,
   isNotNilOrBlank,
-  ReferentialRef,
   ReferentialUtils,
   selectInputContent,
   toBoolean,
@@ -38,9 +37,10 @@ import { MeasurementsFormState } from '@app/data/measurement/measurements.utils'
 import { RxState } from '@rx-angular/state';
 import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
+import { GearRef } from '@app/referential/gear/gear.model';
 
 interface PhysicalGearFormState extends MeasurementsFormState {
-  gears: ReferentialRef[];
+  gears: GearRef[];
 }
 
 @Component({
@@ -51,7 +51,7 @@ interface PhysicalGearFormState extends MeasurementsFormState {
   providers: [RxState],
 })
 export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, PhysicalGearFormState> implements OnInit {
-  @RxStateSelect() gears$: Observable<ReferentialRef[]>;
+  @RxStateSelect() gears$: Observable<GearRef[]>;
 
   @Input({ transform: numberAttribute }) tabindex: number;
   @Input({ transform: booleanAttribute }) canEditRankOrder = false;
@@ -63,7 +63,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
   @Input({ transform: booleanAttribute }) showComment: boolean;
   @Input({ transform: booleanAttribute }) mobile: boolean;
 
-  @Input() @RxStateProperty() gears: ReferentialRef[];
+  @Input() @RxStateProperty() gears: GearRef[];
 
   @ViewChildren('matInput') matInputs: QueryList<ElementRef<any>>;
 
@@ -166,7 +166,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
 
     // Re Add gear, if control has been disabled
     const jsonGear = this.form.get('gear').value;
-    target.gear = jsonGear && ReferentialRef.fromObject(jsonGear);
+    target.gear = jsonGear && GearRef.fromObject(jsonGear);
 
     return target;
   }
