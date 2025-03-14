@@ -19,6 +19,7 @@ import {
   equals,
   FormErrors,
   fromDateISOString,
+  isEmptyArray,
   isNil,
   isNotNil,
   LocalSettingsService,
@@ -32,7 +33,7 @@ import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/dat
 import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
 import { MeasurementsValidatorService } from '@app/data/measurement/measurement.validator';
-import { Operation, Trip } from '../trip/trip.model';
+import { Operation, OperationUtils, Trip } from '../trip/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
@@ -75,6 +76,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   boundingBox?: BBox;
   trip?: Trip;
   pmfms?: DenormalizedPmfmStrategy[];
+  nonOverlappingOperations?: Operation[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -275,6 +277,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
             opts?.maxTotalDurationInHours || OperationValidatorService.DEFAULT_MAX_TOTAL_DURATION_HOURS,
             'hour'
           ),
+          OperationValidators.nonOverlapping(opts?.nonOverlappingOperations),
         ]),
       };
     }
@@ -424,6 +427,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Validator to date inside the trip
     const tripDatesValidators = (opts?.trip && [this.createTripDatesValidator(opts.trip)]) || [];
+    const tripStartDateValidators = (opts?.trip && [this.createTripStartDateValidator(form, opts.trip)]) || [];
 
     // Is a parent
     if (opts.isParent) {
@@ -587,6 +591,14 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       if (isNil(qualityFlagControl.value) || qualityFlagControl.value === QualityFlagIds.NOT_COMPLETED) {
         qualityFlagControl.patchValue(QualityFlagIds.NOT_QUALIFIED, { emitEvent: false });
       }
+      // Add tripStartDateValidators
+      startDateTimeControl.setValidators(
+        Validators.compose([
+          ...tripStartDateValidators,
+          Validators.required,
+          SharedValidators.dateRangeStart('childOperation.fishingEndDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_CHILD_OPERATION'),
+        ])
+      );
 
       if (opts.withEnd) {
         // = END DATE
@@ -693,7 +705,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     };
   }
 
-  protected createTripDatesValidator(trip): ValidatorFn {
+  protected createTripDatesValidator(trip: Trip): ValidatorFn {
     return (control) => {
       const dateTime = fromDateISOString(control.value);
       const tripDepartureDateTime = fromDateISOString(trip.departureDateTime);
@@ -704,6 +716,28 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       if (hasDateTime && tripDepartureDateTime && tripDepartureDateTime.isBefore(dateTime) === false) {
         console.warn(`[operation] Invalid operation: before the trip`, dateTime, tripDepartureDateTime);
         return <ValidationErrors>{ msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP' };
+      }
+      // Make sure operation.endDateTime < trip.returnDateTime
+      else if (hasDateTime && tripReturnDateTime && dateTime.isBefore(tripReturnDateTime) === false) {
+        console.warn(`[operation] Invalid operation: after the trip`, dateTime, tripReturnDateTime);
+        return <ValidationErrors>{ msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_AFTER_TRIP' };
+      }
+    };
+  }
+
+  protected createTripStartDateValidator(form: UntypedFormGroup, trip: Trip): ValidatorFn {
+    return (control) => {
+      const dateTime = fromDateISOString(control.value);
+      const tripDepartureDateTime = fromDateISOString(trip.departureDateTime);
+      const tripReturnDateTime = fromDateISOString(trip.returnDateTime);
+      const physicalGear = form.get('physicalGear')?.value;
+      const isTowed = physicalGear?.isTowed;
+
+      const hasDateTime = dateTime && !DateUtils.isNoTime(dateTime);
+      // Make sure trip.departureDateTime < operation.endDateTime (only if gear is towed)
+      if (isTowed && hasDateTime && tripDepartureDateTime && tripDepartureDateTime.isBefore(dateTime) === false) {
+        console.warn(`[operation] Invalid operation: before the trip`, dateTime, tripDepartureDateTime);
+        return <ValidationErrors>{ msg: 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_TRIP_TOWED_GEAR' };
       }
       // Make sure operation.endDateTime < trip.returnDateTime
       else if (hasDateTime && tripReturnDateTime && dateTime.isBefore(tripReturnDateTime) === false) {
@@ -740,6 +774,19 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 }
 
 export class OperationValidators {
+  static nonOverlapping(operations: Operation[]): ValidatorFn {
+    // Skip if not other towed operations
+    if (isEmptyArray(operations)) return null;
+
+    return (control) => {
+      const operation = control.value as Operation;
+      if (OperationUtils.isOverlapSome(operation, operations)) {
+        return { nonOverlapping: true };
+      }
+      return null;
+    };
+  }
+
   static requiredArrayMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
     return (array: UntypedFormArray): ValidationErrors | null => {
@@ -848,7 +895,8 @@ export class OperationValidators {
           if (form.enabled) {
             pmfms
               .filter(
-                (pmfm) => pmfm.rankOrder > isEntangledPmfm.rankOrder && pmfm.rankOrder <= isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
+                (pmfm) =>
+                  pmfm.rankOrder > isEntangledPmfm.rankOrder && pmfm.rankOrder <= isPingerAccessiblePmfm.rankOrder && pmfm.id !== PmfmIds.TAG_ID
               )
               .map((pmfm) => {
                 const control = measForm.controls[pmfm.id];
@@ -1000,4 +1048,5 @@ export const OPERATION_VALIDATOR_I18N_ERROR_KEYS = {
   remoteParent: 'TRIP.OPERATION.ERROR.LOCAL_PARENT_OPERATION',
   existsParent: 'TRIP.OPERATION.ERROR.MISSING_PARENT_OPERATION',
   invalidOrIncomplete: 'ERROR.INVALID_OR_INCOMPLETE_FILL',
+  nonOverlapping: 'TRIP.OPERATION.ERROR.OVERLAPPING_SOME_OPERATION',
 };

@@ -1093,6 +1093,7 @@
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
         "FIELD_DATE_AFTER_TRIP": "Après le retour de la marée",
+        "FIELD_DATE_BEFORE_TRIP_TOWED_GEAR": "Avant le départ de la marée (engin remorqué)",
         "LOAD_OPERATION_ERROR": "Erreur de chargement de l'opération.",
         "LOAD_OPERATIONS_ERROR": "Erreur de chargement des opérations.",
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
@@ -1102,6 +1103,7 @@
         "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
         "LOCAL_PARENT_OPERATION": "Opération provenant d'une marée non synchronisée",
         "MISSING_PARENT_OPERATION": "Opération inexistante ou associée à un autre virage",
+        "OVERLAPPING_SOME_OPERATION": "Chevauchement avec une autre opération d'engin traînant - vérifiez les dates.",
         "TOO_LONG_DISTANCE": "Distance trop grande ({{distance}} miles)",
         "CANNOT_ENABLE_FILTER": "Filtrage non disponible",
         "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "Aucun métier pratiqué trouvé dans les données disponibles.",

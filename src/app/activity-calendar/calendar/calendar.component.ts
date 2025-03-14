@@ -861,7 +861,7 @@ export class CalendarComponent
 
     const { data } = await this.vesselOwnerPeriodService.loadAll(0, 100, 'startDate', 'asc', filter);
 
-    this.vesselOwners = months.map((month) => IUseFeaturesUtils.filterIntersectPeriod(data, month).map((vop) => vop.vesselOwner));
+    this.vesselOwners = months.map((month) => IUseFeaturesUtils.filterOverlappingPeriod(data, month).map((vop) => vop.vesselOwner));
   }
 
   async waitForChildren(opts?: WaitForOptions) {

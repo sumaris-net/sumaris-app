@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { ReferentialService } from '@app/referential/services/referential.service';
 import { AccountService, GraphqlService, LocalSettingsService, MINIFY_ENTITY_FOR_POD, ReferentialRef } from '@sumaris-net/ngx-components';
 import { Metier } from '@app/referential/metier/metier.model';
+import { GearRef } from '@app/referential/gear/gear.model';
 
 @Injectable({ providedIn: 'root' })
 export class MetierService extends ReferentialService<Metier> {
@@ -27,7 +28,7 @@ export class MetierService extends ReferentialService<Metier> {
 
   fromObject(source: any, opts?: any): Metier {
     const target = super.fromObject(source, opts);
-    target.gear = ReferentialRef.fromObject(source.gear || source.properties?.gear);
+    target.gear = GearRef.fromObject(source.gear || source.properties?.gear);
     target.taxonGroup = ReferentialRef.fromObject(source.taxonGroup || source.properties?.taxonGroup);
     return target;
   }

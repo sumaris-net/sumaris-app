@@ -34,7 +34,7 @@ import { VesselSnapshotFilter } from './filter/vessel.filter';
 import { ProgramLabels } from '@app/referential/services/model/model.enum';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { debounceTime, filter, map } from 'rxjs/operators';
-import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
+import { MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
 import { mergeLoadResult } from '@app/shared/functions';
 
 export const VesselSnapshotFragments = {
@@ -420,7 +420,7 @@ export class VesselSnapshotService
   async saveLocally(entity: VesselSnapshot): Promise<VesselSnapshot> {
     if (this._debug) console.debug('[vessel-snapshot-service] [offline] Saving vesselSnapshot locally...', entity);
 
-    const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
+    const json = entity.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
 
     // Save locally
     return await this.entities.save(json, { entityName: VesselSnapshot.TYPENAME });

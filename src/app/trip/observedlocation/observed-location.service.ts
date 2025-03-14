@@ -31,7 +31,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
 
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { filter, map } from 'rxjs/operators';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,

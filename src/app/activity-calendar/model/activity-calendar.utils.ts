@@ -77,7 +77,7 @@ export class ActivityCalendarUtils {
     const conflictualRemoteEntities: T[] = [];
 
     // Keep only source with access right
-    const writableSources = sources.filter((source) => IUseFeaturesUtils.intersectSomePeriods(source, writablePeriods));
+    const writableSources = sources.filter((source) => IUseFeaturesUtils.isOverlapSomePeriods(source, writablePeriods));
 
     let mergedSources = writableSources.map((source) => {
       const existingRemoteEntities = remoteEntities.filter((remoteEntity) =>

@@ -10,7 +10,7 @@ import {
 import { Injectable } from '@angular/core';
 import { WeightLengthConversion } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
 import { WeightLengthConversionFilter } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.filter';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { WeightLengthConversionFragments } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.fragments';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 

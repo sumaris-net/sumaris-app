@@ -13,7 +13,7 @@ import {
 import { Observable, of } from 'rxjs';
 import { HttpClient, HttpErrorResponse, HttpEvent, HttpHeaders, HttpRequest } from '@angular/common/http';
 import { switchMap } from 'rxjs/operators';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 
 export interface UploadOptions {
   resourceType?: string;

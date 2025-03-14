@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 
 export const ReferentialFragments = {
   lightReferential: gql`
@@ -223,10 +223,12 @@ export const ReferentialFragments = {
         entityName
         __typename
       }
-      gear {
+      gear: fullGear {
         id
         label
         name
+        isTowed
+        isActive
         entityName
         __typename
       }
@@ -348,6 +350,19 @@ export const ReferentialFragments = {
       qualitativeValues {
         ...ReferentialFragment
       }
+      __typename
+    }
+  `,
+  gear: gql`
+    fragment GearFragment on GearVO {
+      id
+      label
+      name
+      rankOrder
+      statusId
+      isTowed
+      isActive
+      entityName
       __typename
     }
   `,

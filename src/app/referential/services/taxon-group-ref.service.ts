@@ -2,7 +2,7 @@ import { Injectable, Injector } from '@angular/core';
 import { BaseReferentialRefService } from '@app/referential/services/base-referential-ref-service.class';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { BaseEntityGraphqlQueries } from '@sumaris-net/ngx-components';
 

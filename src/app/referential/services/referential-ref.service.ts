@@ -908,6 +908,8 @@ export class ReferentialRefService
             );
           break;
 
+        // Entity with properties
+        case 'Gear':
         case 'ExpertiseArea':
           loadPageFn = (offset, size) =>
             this.loadAll(offset, size, 'id', 'asc', { ...filter, statusIds }, { ...getLoadOptions(offset), withProperties: true });

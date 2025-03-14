@@ -68,6 +68,7 @@ import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
+import { GearRef } from '@app/referential/gear/gear.model';
 
 export const ProgramRefQueries = {
   // Load by id, with only properties
@@ -105,7 +106,7 @@ export const ProgramRefQueries = {
     ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
-    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.gear}
     ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
@@ -153,7 +154,7 @@ export const ProgramRefQueries = {
     ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
-    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.gear}
     ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
@@ -181,7 +182,7 @@ export const ProgramRefQueries = {
     ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
-    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.gear}
     ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
@@ -738,7 +739,7 @@ export class ProgramRefService
       toEntity?: boolean;
       cache?: boolean;
     }
-  ): Observable<ReferentialRef[]> {
+  ): Observable<GearRef[]> {
     // Use cache (enable by default)
     if (!opts || opts.cache !== false) {
       const cacheKey = [ProgramRefCacheKeys.GEARS, programLabel, JSON.stringify({ ...opts, cache: undefined, toEntity: undefined })].join('|');
@@ -774,7 +775,7 @@ export class ProgramRefService
         if (this._debug) console.debug(`[program-ref-service] Found ${data.length} gears on program {${programLabel}}`);
 
         // Convert into entities
-        return !opts || opts.toEntity !== false ? data.map(ReferentialRef.fromObject) : (data as ReferentialRef[]);
+        return !opts || opts.toEntity !== false ? data.map(GearRef.fromObject) : (data as GearRef[]);
       })
     );
   }
@@ -792,7 +793,7 @@ export class ProgramRefService
       toEntity?: boolean;
       cache?: boolean;
     }
-  ): Promise<ReferentialRef[]> {
+  ): Promise<GearRef[]> {
     return firstNotNilPromise(this.watchGears(programLabel, opts));
   }
 

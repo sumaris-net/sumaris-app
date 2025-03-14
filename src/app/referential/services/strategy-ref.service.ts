@@ -1,5 +1,5 @@
 import { Injectable, Injector } from '@angular/core';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { ReferentialFragments } from './referential.fragments';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
@@ -60,7 +60,7 @@ const Queries: StrategyRefQueries = {
     ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
-    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.gear}
     ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
@@ -94,7 +94,7 @@ const Queries: StrategyRefQueries = {
     ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
-    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.gear}
     ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,
@@ -110,7 +110,7 @@ const Queries: StrategyRefQueries = {
     ${StrategyFragments.denormalizedPmfmStrategy}
     ${StrategyFragments.taxonGroupStrategy}
     ${StrategyFragments.taxonNameStrategy}
-    ${ReferentialFragments.lightReferential}
+    ${ReferentialFragments.gear}
     ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
   `,

@@ -1,7 +1,8 @@
 import { MeasurementModelValues } from '@app/data/measurement/measurement.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
+import { isNotNil } from '@sumaris-net/ngx-components';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { GearRef } from '@app/referential/gear/gear.model';
 
 export class PhysicalGearTestUtils {
   static EXAMPLES = ['default', 'empty'];
@@ -13,19 +14,40 @@ export class PhysicalGearTestUtils {
           {
             id: null,
             rankOrder: 1,
-            gear: <ReferentialRef>{ id: 7, label: 'OTT', name: 'Chaluts jumeaux à panneaux', __typename: 'ReferentialVO', entityName: 'Gear' },
+            gear: <GearRef>{
+              id: 7,
+              label: 'OTT',
+              name: 'Chaluts jumeaux à panneaux',
+              isTowed: true,
+              __typename: 'ReferentialVO',
+              entityName: 'Gear',
+            },
             measurementValues: this.getMeasurementValues({ label: 'Gear #1', meshSize: 110 }),
             children: <PhysicalGear[]>[
               {
                 id: null,
                 rankOrder: 1,
-                gear: <ReferentialRef>{ id: 7, label: 'OTT', name: 'Chaluts jumeaux à panneaux', __typename: 'ReferentialVO', entityName: 'Gear' },
+                gear: <GearRef>{
+                  id: 7,
+                  label: 'OTT',
+                  name: 'Chaluts jumeaux à panneaux',
+                  isTowed: true,
+                  __typename: 'ReferentialVO',
+                  entityName: 'Gear',
+                },
                 measurementValues: this.getMeasurementValues({ label: 'Chalut sélectif mailles carrées', meshSize: 110, selectiveDevice: 'MACAR' }),
               },
               {
                 id: null,
                 rankOrder: 2,
-                gear: <ReferentialRef>{ id: 7, label: 'OTT', name: 'Chaluts jumeaux à panneaux', __typename: 'ReferentialVO', entityName: 'Gear' },
+                gear: <GearRef>{
+                  id: 7,
+                  label: 'OTT',
+                  name: 'Chaluts jumeaux à panneaux',
+                  isTowed: true,
+                  __typename: 'ReferentialVO',
+                  entityName: 'Gear',
+                },
                 measurementValues: this.getMeasurementValues({ label: 'Chalut sélectif T90', meshSize: 150, selectiveDevice: 'T90' }),
               },
             ],

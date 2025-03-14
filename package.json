@@ -94,7 +94,6 @@
     "@angular/platform-browser-dynamic": "^18.2.13",
     "@angular/router": "^18.2.13",
     "@apollo/client": "~3.12.4",
-    "@awesome-cordova-plugins/core": "^6.14.0",
     "@bepo65/leaflet.fullscreen": "^2.0.2",
     "@bluehalo/ngx-leaflet": "~18.0.2",
     "@capacitor-community/native-audio": "^6.0.0",
@@ -113,12 +112,11 @@
     "@capacitor/splash-screen": "^6.0.0",
     "@capacitor/status-bar": "^6.0.0",
     "@e-is/ngx-material-table": "~17.3.0",
-    "@ionic-native/audio-management": "^5.36.0",
-    "@ionic-native/core": "^5.36.0",
-    "@ionic-native/downloader": "^5.36.0",
+    "@awesome-cordova-plugins/audio-management": "^6.15.0",
+    "@awesome-cordova-plugins/core": "^6.15.0",
+    "@awesome-cordova-plugins/downloader": "^6.15.0",
     "@ionic/angular": "~7.8.6",
     "@ionic/pwa-elements": "~3.3.0",
-    "@ionic/storage": "~4.0.0",
     "@ionic/storage-angular": "~4.0.0",
     "@maskito/angular": "^3.2.1",
     "@maskito/core": "^3.2.1",
@@ -129,7 +127,7 @@
     "@rx-angular/state": "^18.1.0",
     "@rx-angular/template": "^18.0.3",
     "@sgratzl/chartjs-chart-boxplot": "~3.9.1",
-    "@sumaris-net/ngx-components": "~18.6.67",
+    "@sumaris-net/ngx-components": "~18.6.70",
     "angular-split": "~18.0.0",
     "apollo-angular": "~7.2.1",
     "apollo-link-logger": "~2.0.1",
@@ -255,7 +253,7 @@
     "url": "https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-app/-/issues"
   },
   "engines": {
-    "node": ">= 18.19.1",
+    "node": ">= 20.0.0",
     "npm": ">= 10.7.0"
   }
 }

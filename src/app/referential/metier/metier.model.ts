@@ -1,5 +1,5 @@
 import { BaseReferential, EntityClass, ReferentialAsObjectOptions, ReferentialRef, uncapitalizeFirstLetter } from '@sumaris-net/ngx-components';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { GearRef } from '@app/referential/gear/gear.model';
 
 export interface MetierFromObjectOptions {
   useChildAttributes?: false | 'TaxonGroup' | 'Gear';
@@ -10,7 +10,7 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
   static ENTITY_NAME = 'Metier';
   static fromObject: (source: any, opts?: MetierFromObjectOptions) => Metier;
 
-  gear: ReferentialRef = null;
+  gear: GearRef = null;
   taxonGroup: ReferentialRef = null;
   properties?: { [key: string]: any };
 
@@ -41,7 +41,7 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
   fromObject(source: any, opts?: MetierFromObjectOptions) {
     super.fromObject(source);
     this.entityName = source.entityName || Metier.ENTITY_NAME;
-    this.gear = source.gear && ReferentialRef.fromObject(source.gear);
+    this.gear = source.gear && GearRef.fromObject(source.gear);
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup);
     this.properties = (source.properties && { ...source.properties }) || undefined;
 

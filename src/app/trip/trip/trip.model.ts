@@ -41,6 +41,7 @@ import { OperationPasteFlags } from '@app/referential/services/config/program.co
 import { hasFlag } from '@app/shared/flags.utils';
 import { PositionUtils } from '@app/data/position/position.utils';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { unitOfTime } from 'moment/moment';
 
 /* -- Helper function -- */
 
@@ -464,6 +465,25 @@ export class OperationUtils {
   }
   static hasParentOperation(data: Operation): boolean {
     return (data && isNotNil(data.parentOperationId)) || isNotNil(data.parentOperation?.id);
+  }
+
+  static isOverlapSome(entity: Operation, operations: Operation[], granularity?: unitOfTime.StartOf): boolean {
+    return (operations || []).filter((o) => o.id !== entity.id).some((o) => this.isOverlap(entity, o, granularity));
+  }
+
+  static isOverlap(o1: Operation, o2: Operation, granularity?: unitOfTime.StartOf): boolean {
+    const o1EndDate = OperationUtils.getLastEndDateTime(o1);
+    const o2EndDate = OperationUtils.getLastEndDateTime(o2);
+    if (!o1EndDate && !o2EndDate) return true;
+    const o1StartDate = fromDateISOString(o1.startDateTime);
+    const o2StartDate = fromDateISOString(o1.startDateTime);
+    return (!o2EndDate || o1StartDate.isSameOrBefore(o2EndDate, granularity)) && (!o1EndDate || o1EndDate.isSameOrAfter(o2StartDate, granularity));
+  }
+
+  static getLastEndDateTime(o: Operation): Moment | null {
+    if (!o) return null;
+    const date = o.endDateTime ?? o.fishingEndDateTime;
+    return fromDateISOString(date);
   }
 }
 

@@ -106,7 +106,7 @@ export class ActivityMonthUtils {
         target.program = program;
 
         const vesselRegistrationPeriods = removeDuplicatesFromArray(
-          IUseFeaturesUtils.filterIntersectPeriod(data.vesselRegistrationPeriods, target),
+          IUseFeaturesUtils.filterOverlappingPeriod(data.vesselRegistrationPeriods, target),
           'id'
         );
         // A user can edit a month if the first QIM est editable - see issue #764

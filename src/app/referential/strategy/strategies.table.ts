@@ -43,6 +43,7 @@ import { TranscribingItemsModal, TranscribingItemsModalOptions } from '@app/refe
 import { Pmfm } from '@app/referential/services/model/pmfm.model';
 import { ObjectTypeLabels } from '@app/referential/services/model/model.enum';
 import { StrategyModal } from '@app/referential/strategy/strategy.modal';
+import { GearRef } from '@app/referential/gear/gear.model';
 
 @Component({
   selector: 'app-strategy-table',
@@ -456,7 +457,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
       .map((gear) => {
         const gearTscb = gearTscbType?.items.find((i) => i.label === gear.label || i.label === gear.name);
         if (!gearTscb?.object) return;
-        return ReferentialRef.fromObject(gearTscb.object);
+        return GearRef.fromObject(gearTscb.object);
       })
       .filter(isNotNil);
 

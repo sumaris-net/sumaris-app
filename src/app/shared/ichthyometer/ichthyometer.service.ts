@@ -23,7 +23,7 @@ import {
 import { catchError, debounceTime, filter, finalize, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ICHTHYOMETER_LOCAL_SETTINGS_OPTIONS } from '@app/shared/ichthyometer/ichthyometer.config';
 import { LengthUnitSymbol } from '@app/referential/services/model/model.enum';
-import { AudioManagement } from '@ionic-native/audio-management/ngx';
+import { AudioMode } from '@awesome-cordova-plugins/audio-management/ngx';
 import { Platform } from '@ionic/angular';
 import { BluetoothErrorCodes } from '@app/shared/bluetooth/bluetooth.errors';
 import { IchthyometerErrorCodes } from '@app/shared/ichthyometer/ichthyometer.errors';
@@ -159,7 +159,7 @@ export class IchthyometerService extends StartableService implements OnDestroy, 
 
   async checkAudioMode() {
     try {
-      await this.audioProvider.setAudioMode(AudioManagement.AudioMode.NORMAL);
+      await this.audioProvider.setAudioMode(AudioMode.NORMAL);
     } catch (err) {
       // Continue
     }

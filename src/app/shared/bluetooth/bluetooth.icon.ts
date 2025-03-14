@@ -2,9 +2,9 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  inject,
   Inject,
   InjectionToken,
-  Injector,
   Input,
   OnInit,
   Optional,
@@ -59,8 +59,11 @@ export class AppBluetoothIcon<S extends BluetoothIconState<D> = BluetoothIconSta
   private _forceDisabled = false;
   private _blinkSubscription: Subscription;
 
-  protected readonly cd: ChangeDetectorRef;
-  protected readonly popoverController: PopoverController;
+  protected readonly cd = inject(ChangeDetectorRef, { optional: true });
+  protected readonly popoverController = inject(PopoverController);
+  protected readonly bluetoothService = inject(BluetoothService);
+
+  protected readonly _state: RxState<S> = inject(RxState);
   protected readonly icon$ = this._state.select('icon');
   protected readonly badgeHidden$ = this._state.select('badgeHidden');
 
@@ -137,14 +140,7 @@ export class AppBluetoothIcon<S extends BluetoothIconState<D> = BluetoothIconSta
   @Input() badgeSize: MatBadgeSize = 'small';
   @Input() badgePosition: MatBadgePosition = 'above after';
 
-  constructor(
-    injector: Injector,
-    protected bluetoothService: BluetoothService,
-    protected _state: RxState<S>,
-    @Optional() @Inject(APP_BLUETOOTH_ICON_DEFAULT_STATE) state: Partial<S>
-  ) {
-    this.cd = injector.get(ChangeDetectorRef);
-    this.popoverController = injector.get(PopoverController);
+  constructor(@Optional() @Inject(APP_BLUETOOTH_ICON_DEFAULT_STATE) state: Partial<S>) {
     this._state.set(<Partial<S>>{
       icon: { matIcon: 'bluetooth', badge: '' },
       badgeHidden: true,

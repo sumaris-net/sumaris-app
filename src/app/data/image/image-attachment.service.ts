@@ -8,7 +8,7 @@ import {
   PlatformService,
 } from '@sumaris-net/ngx-components';
 import { ImageAttachment, ImageAttachmentFilter } from '@app/data/image/image-attachment.model';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 
 export const APP_IMAGE_ATTACHMENT_SERVICE = new InjectionToken<IEntitiesService<ImageAttachment, ImageAttachmentFilter>>('ImageAttachmentService');
 

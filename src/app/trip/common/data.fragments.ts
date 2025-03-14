@@ -1,5 +1,5 @@
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
-import { gql } from '@apollo/client/core';
+import { gql } from 'apollo-angular';
 import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
 
 export const DataCommonFragments = {
@@ -9,6 +9,7 @@ export const DataCommonFragments = {
   location: ReferentialFragments.location,
   metier: ReferentialFragments.metier,
   lightMetier: ReferentialFragments.lightMetier,
+  lightGear: ReferentialFragments.gear,
   lightPerson: gql`
     fragment LightPersonFragment on PersonVO {
       id
@@ -332,8 +333,8 @@ export const PhysicalGearFragments = {
       updateDate
       creationDate
       comments
-      gear {
-        ...LightReferentialFragment
+      gear: fullGear {
+        ...GearFragment
       }
       recorderDepartment {
         ...LightDepartmentFragment

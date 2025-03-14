@@ -168,6 +168,14 @@
     <mat-icon>sort</mat-icon>
     <ion-label translate>COMMON.BTN_SORT_BY_DOTS</ion-label>
   </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- Compact mode -->
+  <button mat-menu-item (click)="toggleCompactMode()">
+    <mat-icon>{{ compact ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+    <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
+  </button>
 </mat-menu>
 
 <!-- display mode menu-->

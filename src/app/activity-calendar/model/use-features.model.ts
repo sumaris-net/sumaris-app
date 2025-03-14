@@ -11,31 +11,31 @@ export interface IUseFeatures<T extends DataEntity<T> = DataEntity<any>> extends
 }
 
 export class IUseFeaturesUtils {
-  static filterIntersectSomePeriods<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
+  static filterOverlappingSomePeriods<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
     sources: T[],
     periods: { startDate: Moment; endDate: Moment }[],
     granularity?: unitOfTime.StartOf
   ): T[] {
-    return (sources || []).filter((source) => IUseFeaturesUtils.intersectSomePeriods(source, periods, granularity));
+    return (sources || []).filter((source) => IUseFeaturesUtils.isOverlapSomePeriods(source, periods, granularity));
   }
 
-  static filterIntersectPeriod<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
+  static filterOverlappingPeriod<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
     sources: T[],
     period: { startDate: Moment; endDate?: Moment },
     granularity?: unitOfTime.StartOf
   ): T[] {
-    return (sources || []).filter((source) => IUseFeaturesUtils.intersectPeriod(source, period, granularity));
+    return (sources || []).filter((source) => IUseFeaturesUtils.isOverlapPeriod(source, period, granularity));
   }
 
-  static intersectSomePeriods<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
+  static isOverlapSomePeriods<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
     source: T,
     periods: { startDate: Moment; endDate?: Moment }[],
     granularity?: unitOfTime.StartOf
   ): boolean {
-    return (periods || []).some((period) => this.intersectPeriod(source, period, granularity));
+    return (periods || []).some((period) => this.isOverlapPeriod(source, period, granularity));
   }
 
-  static intersectPeriod<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
+  static isOverlapPeriod<T extends IUseFeatures<any> | { startDate: Moment; endDate?: Moment }>(
     source: T,
     period: { startDate: Moment; endDate?: Moment },
     granularity?: unitOfTime.StartOf

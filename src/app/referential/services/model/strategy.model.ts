@@ -15,6 +15,7 @@ import { DenormalizedPmfmStrategy, PmfmStrategy } from './pmfm-strategy.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { AppReferentialUtils, MINIFY_OPTIONS, NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { StrategyTaxonPriorityLevels } from '@app/referential/services/model/model.enum';
+import { GearRef } from '@app/referential/gear/gear.model';
 
 export interface StrategyAsObjectOptions extends ReferentialAsObjectOptions {
   keepRemoteId?: boolean;
@@ -35,7 +36,7 @@ export class Strategy<T extends Strategy<any> = Strategy<any>, O extends Strateg
   denormalizedPmfms: DenormalizedPmfmStrategy[] = null;
   departments: StrategyDepartment[] = null;
 
-  gears: (any | ReferentialRef)[] = null; // FIXME use ReferentialRef only ?
+  gears: GearRef[] = null;
   taxonGroups: TaxonGroupStrategy[] = null;
   taxonNames: TaxonNameStrategy[] = null;
   programId: number = null;
@@ -59,7 +60,7 @@ export class Strategy<T extends Strategy<any> = Strategy<any>, O extends Strateg
     this.pmfms = (source.pmfms && source.pmfms.map(PmfmStrategy.fromObject)) || [];
     this.denormalizedPmfms = (source.denormalizedPmfms && source.denormalizedPmfms.map(DenormalizedPmfmStrategy.fromObject)) || [];
     this.departments = (source.departments && source.departments.map(StrategyDepartment.fromObject)) || [];
-    this.gears = (source.gears && source.gears.map(ReferentialRef.fromObject)) || [];
+    this.gears = (source.gears && source.gears.map(GearRef.fromObject)) || [];
     // Taxon groups, sorted by priority level
     this.taxonGroups = (source.taxonGroups && source.taxonGroups.map(TaxonGroupStrategy.fromObject)) || [];
     this.taxonNames = (source.taxonNames && source.taxonNames.map(TaxonNameStrategy.fromObject)) || [];
