@@ -20,6 +20,8 @@ import {
   PersonService,
   PersonUtils,
   ReferentialUtils,
+  RxStateProperty,
+  RxStateSelect,
   setPropertyByPath,
   splitById,
   StatusIds,
@@ -40,7 +42,6 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { ModalController } from '@ionic/angular';
 import { merge, Observable, tap } from 'rxjs';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 
 export interface ActivityCalendarFormState extends MeasurementsFormState {
@@ -180,7 +181,7 @@ export class ActivityCalendarForm
     this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
       this.registerAutocompleteField('vesselSnapshot', {
         ...opts,
-        suggestFn: (value, filter) => this.suggestVessel(value, filter),
+        suggestFn: (value, filter) => this.suggestVessels(value, filter),
       });
     });
 
@@ -362,7 +363,7 @@ export class ActivityCalendarForm
     }
   }
 
-  protected suggestVessel(value: any, filter: Partial<VesselSnapshotFilter>) {
+  protected suggestVessels(value: any, filter: Partial<VesselSnapshotFilter>) {
     const year = this.yearControl.value;
     if (isNotNil(year)) {
       const startDate = (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year');

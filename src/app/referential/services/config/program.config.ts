@@ -44,6 +44,14 @@ const locationLevelAutocomplete = {
   },
   attributes: ['name'],
 };
+
+const gearAutocomplete = {
+  filter: {
+    entityName: 'Gear',
+    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE],
+  },
+  attributes: ['label', 'name'],
+};
 const pmfmAutocomplete = Object.freeze(<MatAutocompleteFieldConfig>{
   filter: {
     entityName: 'Pmfm',
@@ -238,6 +246,12 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.operations.help.message',
     label: 'PROGRAM.OPTIONS.TRIP_OPERATIONS_HELP_MESSAGE',
     type: 'string',
+  },
+  TRIP_OPERATION_VESSEL_ASSOCIATION_GEAR_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.vesselAssociation.gear.ids',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_VESSEL_ASSOCIATION_GEAR_IDS',
+    type: 'entities',
+    autocomplete: gearAutocomplete,
   },
   TRIP_OPERATION_PASTE_FLAGS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.paste.flags',

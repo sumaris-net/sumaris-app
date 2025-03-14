@@ -151,6 +151,9 @@ export const TRIP_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   VesselActivityVO: {
     keyFields: ['date', 'rankOrder', 'observedLocationId', 'tripId'], //'landingId',
   },
+  OperationVesselAssociationVO: {
+    keyFields: ['operationId', 'vesselSnapshot', ['id']],
+  },
 };
 
 /**

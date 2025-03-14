@@ -782,6 +782,8 @@ export class OperationPage<S extends OperationState = OperationState>
     this.opeForm.defaultLatitudeSign = defaultLatitudeSign;
     this.opeForm.defaultLongitudeSign = defaultLongitudeSign;
     this.opeForm.metierTaxonGroupTypeIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS);
+    this.opeForm.vesselAssociatedGearIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_VESSEL_ASSOCIATION_GEAR_IDS);
+    this.opeForm.vesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [];
     this.opeForm.maxDistanceWarning = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_WARNING);
     this.opeForm.maxDistanceError = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR);
     this.opeForm.allowParentOperation = this.allowParentOperation;
@@ -1530,6 +1532,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
   protected getJsonValueToSave(): Promise<any> {
     const json = this.opeForm.value;
+    json.operationVesselAssociations = [json.operationVesselAssociations];
 
     // Mark as not controlled (remove control date, etc.)
     // BUT keep qualityFlag (e.g. need to keep it when = NOT_COMPLETED - see below)

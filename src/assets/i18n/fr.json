@@ -974,6 +974,10 @@
         "END_FISHING": "Fin pêche :",
         "END": "Fin virage :",
         "GEAR_AND_TARGETED_SPECIES": "Engin / espèce ciblée :",
+        "ASSOCIATED_VESSEL": "Navire associé :",
+        "REGISTRATION_LOCATION": "Lieu d'immatriculation",
+        "VESSEL": "Navire",
+        "IS_CATCH_ON_OPERATION_VESSEL": "Capture remontée sur le navire observé ?",
         "GEAR": "Engin :",
         "LATITUDE": "Latitude",
         "LONGITUDE": "Longitude",
@@ -2688,6 +2692,7 @@
       },
       "TRIP_OPERATION_HELP_URL": "Marée > Opération : Aide en ligne (URL)",
       "TRIP_OPERATION_FISHING_AREA_INLINE": "Marée > Opération : Aligner les zones de pêche avec les dates",
+      "TRIP_OPERATION_VESSEL_ASSOCIATION_GEAR_IDS": "Marée > Opération : engin(s) permettant l'association de navires",
       "TRIP_OPERATION_SKIP_DATES_TRIP_PMFM_ID": "Marée > Opération : PSFM (booléan) de marée pour désactiver les dates ?",
       "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Marée brutes: Valeur de la colonne 'SAMPLING_METHOD'",
       "TRIP_EXTRACTION_SAMPLING_METHODS": {

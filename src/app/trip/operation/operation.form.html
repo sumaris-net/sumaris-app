@@ -562,6 +562,49 @@
       </ion-col>
     </ion-row>
 
+    <ion-row [@expansionInOutAnimation]="vesselAssociatedGearIds && showVesselAssociated ? 'expanded' : 'collapsed'">
+      <ion-col size="12" size-md="3" size-lg="3">
+        <ion-label class="ion-float-end">
+          {{ 'TRIP.OPERATION.EDIT.ASSOCIATED_VESSEL' | translate }}
+        </ion-label>
+      </ion-col>
+
+      <!-- Vessel -->
+      <ion-col size="12" size-sm="6" size-md="" class="has-form-field">
+        @if (autocompleteFields.vesselSnapshot) {
+          <mat-autocomplete-field
+            [formControl]="form | formGetControl: 'operationVesselAssociations.vesselSnapshot'"
+            [placeholder]="'TRIP.OPERATION.EDIT.VESSEL' | translate"
+            [config]="autocompleteFields.vesselSnapshot"
+            [required]="!isOnFieldMode"
+            [clearable]="true"
+          ></mat-autocomplete-field>
+        }
+
+        <!-- IsCatchOnOperationVessel -->
+        <div size="12" size-sm="6" size-md="">
+          <mat-boolean-field
+            [formControl]="form | formGetControl: 'operationVesselAssociations.isCatchOnOperationVessel'"
+            [placeholder]="'TRIP.OPERATION.EDIT.IS_CATCH_ON_OPERATION_VESSEL' | translate"
+            [required]="!isOnFieldMode"
+            [clearable]="true"
+          ></mat-boolean-field>
+        </div>
+      </ion-col>
+
+      <!-- basePortLocation -->
+      <ion-col size="12" size-sm="6" size-md="">
+        <mat-form-field>
+          <mat-label>{{ 'TRIP.OPERATION.EDIT.REGISTRATION_LOCATION' | translate }}</mat-label>
+          <input
+            matInput
+            readonly
+            disabled
+            [value]="(form | formGetValue: 'operationVesselAssociations')?.vesselSnapshot?.registrationLocation?.name || ''"
+          />
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
     <!-- Fishing areas (as array) -->
     @if (showFishingAreaArray) {
       @for (fishingAreaForm of fishingAreasForm?.controls; track i; let i = $index; let first = $first; let last = $last) {

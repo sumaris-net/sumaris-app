@@ -159,6 +159,13 @@ export const OperationFragments = {
       qualificationComments
       qualityFlagId
       physicalGearId
+      operationVesselAssociations {
+        operationId
+        isCatchOnOperationVessel
+        vesselSnapshot {
+          ...LightVesselSnapshotFragment
+        }
+      }
       physicalGear {
         id
         rankOrder
@@ -206,6 +213,7 @@ export const OperationFragments = {
     ${DataFragments.sample}
     ${DataFragments.batch}
     ${DataFragments.fishingArea}
+    ${VesselSnapshotFragments.lightVesselSnapshot}
   `,
 };
 

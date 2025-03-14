@@ -18,11 +18,13 @@ import {
   Alerts,
   AppForm,
   AppFormArray,
+  arrayDistinct,
   arrayResize,
   DateFormatService,
   DateUtils,
   EntityUtils,
   equals,
+  firstArrayValue,
   firstNotNilPromise,
   fromDateISOString,
   IPosition,
@@ -43,7 +45,6 @@ import {
   RxStateRegister,
   RxStateSelect,
   selectInputContent,
-  selectInputContentFromEvent,
   ShowToastOptions,
   StatusIds,
   suggestFromArray,
@@ -53,7 +54,7 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormGroup, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Operation, Trip } from '../trip/trip.model';
 import { combineLatest, firstValueFrom, merge, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
@@ -79,6 +80,9 @@ import { Metier } from '@app/referential/metier/metier.model';
 import { OverlayEventDetail } from '@ionic/core';
 import { PositionService } from '@app/data/position/position.service';
 import { RxState } from '@rx-angular/state';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { expansionInOutAnimation } from '@app/shared/material/material.animations';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -110,6 +114,7 @@ interface OperationFormState {
   styleUrls: ['./operation.form.scss'],
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [expansionInOutAnimation],
 })
 export class OperationForm extends AppForm<Operation> implements OnInit, OnDestroy, OnReady {
   private _showMetier = true;
@@ -125,6 +130,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
   protected _usageMode: UsageMode;
   protected toastController = inject(ToastController);
+  protected isOnFieldMode: boolean;
   protected _dateIndexMap = {
     start: 0,
     startFishing: -1,
@@ -148,6 +154,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   mobile: boolean;
   distance: number;
   distanceWarning: boolean;
+  showVesselAssociated: boolean;
 
   isParentOperationControl: UntypedFormControl;
   canEditType: boolean;
@@ -170,12 +177,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
   @Input() fishingAreaLocationLevelIds: number[] = LocationLevelGroups.FISHING_AREA;
   @Input() metierTaxonGroupTypeIds: number[] = [TaxonGroupTypeIds.DCF_METIER_LVL_5];
+  @Input() vesselAssociatedGearIds: number[];
   @Input() maxDistanceWarning: number;
   @Input() maxDistanceError: number;
   @Input() maxShootingDurationInHours: number;
   @Input() maxTotalDurationInHours: number;
   @Input() isInlineFishingArea: boolean;
   @Input() autoFillNextDate: boolean;
+  @Input() vesselTypeIds: number[];
 
   @Input() set usageMode(usageMode: UsageMode) {
     if (this._usageMode !== usageMode) {
@@ -392,6 +401,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     protected dateFormat: DateFormatService,
     protected validatorService: OperationValidatorService,
     protected referentialRefService: ReferentialRefService,
+    protected vesselSnapshotService: VesselSnapshotService,
     protected modalCtrl: ModalController,
     protected alertCtrl: AlertController,
     protected accountService: AccountService,
@@ -412,10 +422,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   }
 
   ngOnInit() {
-    const isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
-    this.usageMode = isOnFieldMode ? 'FIELD' : 'DESK';
+    this.isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
+    this.usageMode = this.isOnFieldMode ? 'FIELD' : 'DESK';
     this.latLongFormat = this.settings.latLongFormat;
-    this.enableGeolocation = isOnFieldMode && this.mobile;
+    this.enableGeolocation = this.isOnFieldMode && this.mobile;
     this._allowParentOperation = toBoolean(this._allowParentOperation, false);
     this.enableCopyPosition = !this.enableGeolocation;
 
@@ -497,6 +507,32 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
       suggestLengthThreshold: 2,
       mobile: this.mobile,
     });
+
+    // Combo: vessels
+    this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => {
+      this.registerAutocompleteField('vesselSnapshot', {
+        ...opts,
+        suggestFn: (value, filter) => this.suggestVessels(value, filter),
+      });
+    });
+
+    // Update showVesselAssociated
+    this.registerSubscription(
+      this.form.get('physicalGear').valueChanges.subscribe((value) => {
+        this.showVesselAssociated = this.vesselAssociatedGearIds?.includes(value?.gear?.id);
+        const vesselFormGroup = this.form.get('operationVesselAssociations') as FormGroup;
+
+        if (this.showVesselAssociated) {
+          vesselFormGroup.enable({ emitEvent: false });
+        } else {
+          vesselFormGroup.disable({ emitEvent: false });
+        }
+      })
+    );
+    // Program option is false or not defined
+    if (isEmptyArray(this.vesselAssociatedGearIds)) {
+      this.form.get('operationVesselAssociations').disable();
+    }
   }
 
   ngOnReady() {
@@ -583,7 +619,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
 
     // Send value for form
     if (this.debug) console.debug('[operation-form] Updating form (using entity)', data);
-    super.setValue(data, opts);
+
+    // Fill operationVesselAssociation
+    if (isNotEmptyArray(this.vesselAssociatedGearIds)) {
+      this.form.get('operationVesselAssociations').patchValue(firstArrayValue(data.operationVesselAssociations));
+    }
+
+    this.form.patchValue(data, opts);
+    this.markAsLoaded();
   }
 
   setTrip(trip: Trip) {
@@ -1357,6 +1400,26 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
     }
   }
 
+  protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
+    // Exclude the trip's vessel
+    const tripVesselId = this._trip?.vesselSnapshot?.id;
+    if (isNotNil(tripVesselId)) {
+      filter = {
+        ...filter,
+        excludedIds: arrayDistinct([tripVesselId, ...(filter.excludedIds || [])]),
+      };
+    }
+
+    // Filter on program vessel types
+    if (isNotEmptyArray(this.vesselTypeIds)) {
+      filter = {
+        ...filter,
+        vesselTypIds: arrayDistinct([this.vesselTypeIds, ...(filter.vesselTypIds || [])]),
+      };
+    }
+    return this.vesselSnapshotService.suggest(value, filter);
+  }
+
   protected isFieldFilterEnable(fieldName: FilterableFieldName) {
     return this.autocompleteFilters[fieldName];
   }
@@ -1463,5 +1526,4 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnDestr
   }
 
   protected selectInputContent = selectInputContent;
-  protected readonly selectInputContentFromEvent = selectInputContentFromEvent;
 }

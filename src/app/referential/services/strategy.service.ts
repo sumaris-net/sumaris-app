@@ -54,6 +54,7 @@ import { COPY_LOCALLY_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-en
 import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs';
 import { Moment } from 'moment';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 const FindStrategyNextLabel: any = gql`
   query StrategyNextLabelQuery($programId: Int!, $labelPrefix: String, $nbDigit: Int) {
@@ -713,12 +714,21 @@ export class StrategyService
   }
 
   protected asObject(entity: Strategy, opts?: EntityAsObjectOptions): StoreObject {
+    opts = { ...MINIFY_OPTIONS, ...opts };
+
     const target: any = super.asObject(entity, opts);
 
     (target.pmfms || []).forEach((pmfmStrategy) => {
       pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm && pmfmStrategy.pmfm.id, pmfmStrategy.pmfmId);
       delete pmfmStrategy.pmfm;
     });
+
+    // Optimize gears json serialization
+    if (opts?.minify && !opts.keepTypename) {
+      target.gears = target.gears?.map((gear) => {
+        return { id: gear?.id };
+      });
+    }
 
     return target;
   }

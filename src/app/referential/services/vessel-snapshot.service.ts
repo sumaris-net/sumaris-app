@@ -319,7 +319,18 @@ export class VesselSnapshotService
     return res;
   }
 
-  async suggest(value: any, filter?: Partial<VesselSnapshotFilter>): Promise<LoadResult<VesselSnapshot>> {
+  async suggest(
+    value: any,
+    filter?: Partial<VesselSnapshotFilter>,
+    sortBy?: string | keyof VesselSnapshot,
+    sortDirection?: SortDirection,
+    opts?: {
+      fetchPolicy?: FetchPolicy;
+      offset?: number;
+      size?: number;
+      withBasePortLocation?: boolean;
+    }
+  ): Promise<LoadResult<VesselSnapshot>> {
     if (ReferentialUtils.isNotEmpty(value)) return { data: [value] };
 
     // Make sure service has been started, before using defaults (e.g. minSearchTextLength)
@@ -339,6 +350,11 @@ export class VesselSnapshotService
       }
     }
 
+    opts = {
+      fetchPolicy: 'cache-first',
+      ...opts,
+    };
+
     return this.loadAll(
       0,
       !value ? 30 : 20,
@@ -349,9 +365,7 @@ export class VesselSnapshotService
         searchText,
         searchAttributes,
       },
-      {
-        fetchPolicy: 'cache-first',
-      }
+      opts
     );
   }
 
