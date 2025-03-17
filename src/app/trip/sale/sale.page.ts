@@ -1,6 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, forwardRef, inject, Injector, OnInit, Optional, ViewChild } from '@angular/core';
 // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import {
+  AccountService,
   AppEditorOptions,
   DateUtils,
   EntityServiceLoadOptions,
@@ -101,12 +102,16 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected showParent = false;
   protected showEntityMetadata = false;
   protected showQualityForm = false;
-  protected showFishingArea = false;
+  protected showFishingArea = true;
   protected enableReport = false;
   protected parentAcquisitionLevel: AcquisitionLevelType;
   protected showBatchTablesByProgram = false;
   protected showBatchTables = true;
   protected defaultTaxonGroup: TaxonGroupRef;
+  protected showMetiers = true;
+  protected allowManyMetiers = true;
+  protected isSupervisorOrManager = this.accountService.isAdmin();
+  protected enableExpertiseArea = false;
   @RxStateProperty() protected parent: Trip | Landing;
   @RxStateProperty() protected strategyLabel: string;
 
@@ -119,7 +124,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
   }
 
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
-  @ViewChild('fishingAreaForm', { static: true }) fishingAreaForm: FishingAreaForm;
   @ViewChild('strategyCard', { static: false }) strategyCard: StrategySummaryCardComponent;
 
   // Catch batch, sorting batches, individual measure
@@ -128,7 +132,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
   constructor(
     injector: Injector,
     @Optional() options: SaleEditorOptions,
-    protected saleContext: SaleContextService
+    protected saleContext: SaleContextService,
+    protected accountService: AccountService
   ) {
     super(injector, Sale, injector.get(SaleService), {
       pathIdAttribute: 'saleId',
@@ -137,6 +142,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       enableListenChanges: true,
       acquisitionLevel: AcquisitionLevelCodes.SALE,
       settingsId: AcquisitionLevelCodes.SALE.toLowerCase(),
+      canUseExpertiseArea: true, // Enable expertise area
       ...options,
     });
     const queryParams = this.route.snapshot.queryParamMap;
@@ -301,7 +307,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   /* -- protected methods  -- */
 
   protected registerForms() {
-    this.addForms([this.saleForm, this.fishingAreaForm, this.batchTree]);
+    this.addForms([this.saleForm, this.batchTree]);
   }
 
   protected async onNewEntity(data: Sale, options?: EntityServiceLoadOptions): Promise<void> {
@@ -396,7 +402,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
         data.startDateTime = data.startDateTime || this.parent.dateTime;
         data.landing = this.showParent ? this.parent : undefined;
         data.landingId = this.showParent ? null : this.parent.id;
-        data.tripId = undefined;
       }
 
       this.showEntityMetadata = EntityUtils.isRemote(data);
@@ -523,6 +528,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     // this.saleForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     // this.saleForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
     // this.saleForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS);
+    this.enableExpertiseArea = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_EXPERTISE_AREA_ENABLE);
 
     // Compute i18n prefix
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
@@ -533,6 +539,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
     // TODO Implement a sale report ?
     this.enableReport = false; // program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.SALE_BATCH_ENABLE);
+
+    this.showMetiers = program.getPropertyAsBoolean(ProgramProperties.SALE_METIER_ENABLE);
 
     if (this.strategyCard) {
       this.strategyCard.i18nPrefix = STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX + i18nSuffix;
@@ -548,6 +556,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
     if (!requiredStrategy || (isNewData && this.strategyResolution === 'user-select')) {
       this.markAsReady();
     }
+
+    this.isSupervisorOrManager = this.programRefService.hasUserManagerPrivilege(program) || this.accountService.isSupervisor();
 
     // Listen program's strategies change (will reload strategy if need)
     // if (this.network.online) {
@@ -581,10 +591,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected async loadParent(data: Sale): Promise<Landing | Trip> {
     let parent: Landing | Trip;
 
-    if (isNotNilOrNaN(data.tripId)) {
-      console.debug(`[sale-page] Loading parent trip #${data.tripId} ...`);
-      parent = await this.tripService.load(data.tripId, { fetchPolicy: 'cache-first' });
-    } else if (isNotNilOrNaN(data.landingId)) {
+    if (isNotNilOrNaN(data.landingId)) {
       console.debug(`[sale-page] Loading parent landing #${data.landingId} ...`);
       const landing = await this.landingService.load(data.landingId, { fetchPolicy: 'cache-first' });
       parent = landing;
@@ -594,6 +601,10 @@ export class SalePage<ST extends SalePageState = SalePageState>
       if (isNotNil(landingTaxonGroupId)) {
         this.defaultTaxonGroup = await this.taxonGroupRefService.load(landingTaxonGroupId, { fetchPolicy: 'cache-first' });
       }
+      parent = await this.landingService.load(data.landingId, { fetchPolicy: 'cache-first' });
+    } else if (isNotNilOrNaN(data.tripId)) {
+      console.debug(`[sale-page] Loading parent trip #${data.tripId} ...`);
+      parent = await this.tripService.load(data.tripId, { fetchPolicy: 'cache-first' });
     }
 
     return parent;
@@ -605,8 +616,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
     await this.saleForm.setValue(data);
 
     const jobs: Promise<any>[] = [];
-
-    this.fishingAreaForm.value = data.fishingAreas?.[0] || {};
 
     // Set batch tree
     if (this.batchTree) {
@@ -713,9 +722,6 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected async getJsonValueToSave(): Promise<any> {
     const json = await super.getJsonValueToSave();
 
-    const fishingAreaJson = this.fishingAreaForm.value;
-    json.fishingAreas = fishingAreaJson ? [fishingAreaJson] : [];
-
     // Add program, because can be disabled
     json.program = this.data.program?.asObject() || json.program;
 
@@ -736,8 +742,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     // Fishing area
     if (this.showFishingArea) {
-      const fishingArea = this.fishingAreaForm?.value;
-      const fishingAreas = fishingArea ? [fishingArea] : this.data?.fishingAreas;
+      const fishingAreas = this.saleForm?.fishingAreasForm?.value || this.data?.fishingAreas;
       this.saleContext.setValue('fishingAreas', fishingAreas);
       this.saleContext.resetValue('vesselPositions');
     } else {

@@ -102,6 +102,14 @@ form.form-container {
         padding-left: var(--padding-left);
       }
     }
+
+    &.mat-mdc-form-field-warning {
+      --mdc-filled-text-field-container-color: rgba(var(--ion-color-warning-rgb), 0.7);
+    }
+  }
+
+  mat-autocomplete-field.mat-autocomplete-field-warning {
+    --mdc-filled-text-field-container-color: rgba(var(--ion-color-warning-rgb), 0.7);
   }
 
   & > ion-grid > ion-col:has(ion-label) {

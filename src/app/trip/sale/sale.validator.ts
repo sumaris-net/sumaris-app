@@ -1,9 +1,13 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import {
+  AppFormArray,
   fromDateISOString,
   isNotNil,
   LocalSettingsService,
+  ReferentialRef,
+  ReferentialUtils,
+  SharedFormArrayValidators,
   SharedFormGroupValidators,
   SharedValidators,
   toBoolean,
@@ -14,12 +18,16 @@ import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '
 import { Moment } from 'moment';
 import { DateAdapter } from '@angular/material/core';
 import { TranslateService } from '@ngx-translate/core';
+import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 
 export interface SaleValidatorOptions extends DataRootEntityValidatorOptions {
   required?: boolean;
   withProgram?: boolean;
   withVessel?: boolean;
   minDate?: Moment;
+  withMetiers?: boolean;
+  withFishingAreas?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -31,7 +39,8 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
     formBuilder: UntypedFormBuilder,
     translate: TranslateService,
     settings: LocalSettingsService,
-    protected dateAdapter: DateAdapter<Moment>
+    protected dateAdapter: DateAdapter<Moment>,
+    protected fishingAreaValidator: FishingAreaValidatorService
   ) {
     super(formBuilder, translate, settings);
   }
@@ -61,6 +70,14 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
         (data && data.vesselSnapshot) || null,
         !opts?.required ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity]),
       ];
+    }
+    // Add metiers
+    if (opts.withMetiers) {
+      config.metiers = this.getMetiersArray(data?.metiers);
+    }
+    // Add fishing areas
+    if (opts.withFishingAreas) {
+      config.fishingAreas = this.getFishingAreasArray(data?.fishingAreas);
     }
 
     return config;
@@ -126,11 +143,65 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
       form.controls['startDateTime'].setValidators(SharedValidators.validDate);
     }
 
+    // Metier array
+    if (opts?.withMetiers) {
+      if (!form.controls.metiers) {
+        form.addControl('metiers', this.getMetiersArray(null, { required: false }));
+      }
+      if (enabled) form.controls.metiers.enable();
+      else form.controls.metiers.disable();
+    } else {
+      if (form.controls.metiers) form.removeControl('metiers');
+    }
+
+    // Fishing areas
+    if (opts?.withFishingAreas) {
+      if (!form.controls.fishingAreas) form.addControl('fishingAreas', this.getFishingAreasArray(null, { required: false }));
+      if (enabled) form.controls.fishingAreas.enable();
+      else form.controls.fishingAreas.disable();
+    } else {
+      if (form.controls.fishingAreas) form.removeControl('fishingAreas');
+    }
+
     // Re add group validators
     const formGroupOptions = this.getFormGroupOptions(null, opts);
     form.setValidators(formGroupOptions?.validators);
 
     return form;
+  }
+
+  getMetiersArray(data?: ReferentialRef<any>[], opts?: { required?: boolean }) {
+    const required = !opts || opts.required !== false;
+    const formArray = new AppFormArray<ReferentialRef<any>, UntypedFormControl>(
+      (metier) => this.getMetierControl(metier, { required }),
+      ReferentialUtils.equals,
+      ReferentialUtils.isEmpty,
+      {
+        allowEmptyArray: false,
+        validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : null,
+      }
+    );
+    if (data || required) {
+      formArray.patchValue(data || [null]);
+    }
+    return formArray;
+  }
+
+  protected getFishingAreasArray(data?: FishingArea[], opts?: { required?: boolean }) {
+    const required = !opts || opts.required !== false;
+    const formArray = new AppFormArray((fa) => this.fishingAreaValidator.getFormGroup(fa, { required }), FishingArea.equals, FishingArea.isEmpty, {
+      allowEmptyArray: false,
+      validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined,
+    });
+    if (data || required) {
+      formArray.patchValue(data || [null]);
+    }
+    return formArray;
+  }
+
+  getMetierControl(value: any, opts?: { required?: boolean }): UntypedFormControl {
+    const required = !opts || opts.required !== false;
+    return this.formBuilder.control(value || null, required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
   }
 
   /* -- fill options defaults -- */
@@ -145,6 +216,10 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
     opts.withProgram = toBoolean(opts.withProgram, true);
 
     opts.withVessel = toBoolean(opts.withVessel, true);
+
+    opts.withMetiers = toBoolean(opts.withMetiers, false);
+
+    opts.withFishingAreas = toBoolean(opts.withFishingAreas, false);
 
     return opts;
   }

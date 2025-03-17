@@ -134,6 +134,110 @@
       </ion-row>
     }
 
+    <!-- metier -->
+    @if (showMetiers) {
+      @for (metierForm of metiersForm?.controls; track i; let i = $index; let first = $first; let last = $last) {
+        <ion-row>
+          <ion-col size="12" size-md="2" size-lg="3">
+            <ion-label class="ion-float-end" *ngIf="first">
+              {{ (allowManyMetiers ? 'TRIP.METIERS' : 'TRIP.METIER') | translate }}
+            </ion-label>
+          </ion-col>
+          <ion-col>
+            <mat-autocomplete-field
+              [formControl]="metierForm | formGetControl"
+              [placeholder]="(first && 'TRIP.MAIN_METIER_PLACEHOLDER') || 'TRIP.SECONDARY_METIER_PLACEHOLDER' | translate: { rank: i }"
+              [autofocus]="metierFocusIndex === i"
+              [config]="autocompleteFields.metier"
+              [tabindex]="tabindex + 20 + i * 3"
+              [panelWidth]="mobile ? '500px' : undefined"
+              [class.mat-autocomplete-field-warning]="invalidMetierIds | arrayIncludes: (metierForm | formGetValue | mapGet: 'id')"
+            >
+              <ion-icon matPrefix name="locate"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+          @if (allowManyMetiers) {
+            <ion-col size="auto">
+              @if (last) {
+                <button
+                  type="button"
+                  mat-icon-button
+                  *ngIf="last"
+                  [tabindex]="tabindex + 20 + i * 3 + 1"
+                  [disabled]="disabled"
+                  [title]="'COMMON.BTN_ADD' | translate"
+                  (click)="this.addMetier()"
+                >
+                  <mat-icon>add</mat-icon>
+                </button>
+              }
+              <button
+                type="button"
+                mat-icon-button
+                [tabindex]="tabindex + 20 + i * 3 + 2"
+                [disabled]="disabled"
+                [title]="'COMMON.BTN_DELETE' | translate"
+                (click)="this.removeMetierAt(i)"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </ion-col>
+          }
+        </ion-row>
+      }
+    }
+
+    <!-- Fishing areas -->
+    @if (showFishingAreas) {
+      @for (fishingAreaForm of fishingAreasForm?.controls; track i; let i = $index; let first = $first; let last = $last) {
+        <ion-row>
+          <ion-col size="12" size-md="2" size-lg="3">
+            <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.FISHING_AREAS</ion-label>
+          </ion-col>
+          <ion-col [formGroup]="fishingAreaForm | formGetGroup">
+            <mat-autocomplete-field
+              #fishingAreaField
+              formControlName="location"
+              [placeholder]="('OBSERVED_LOCATION.EDIT.FISHING_AREA_PLACEHOLDER' | translate) + (i + 1)"
+              [autofocus]="fishingAreaFocusIndex === i"
+              [config]="autocompleteFields.fishingAreaLocation"
+              [tabindex]="tabindex + 30 + i * 3"
+              [panelWidth]="!mobile && '500px'"
+              [class.mat-autocomplete-field-warning]="
+                invalidFishingAreaLocationIds | arrayIncludes: (fishingAreaForm | formGetValue | mapGet: 'location' | mapGet: 'id')
+              "
+            >
+              <mat-icon matPrefix>room</mat-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+          <ion-col size="auto">
+            @if (last) {
+              <button
+                type="button"
+                mat-icon-button
+                [tabindex]="tabindex + 30 + i * 3 + 1"
+                [disabled]="disabled"
+                [title]="'COMMON.BTN_ADD' | translate"
+                (click)="addFishingArea()"
+              >
+                <mat-icon>add</mat-icon>
+              </button>
+            }
+            <button
+              type="button"
+              mat-icon-button
+              [tabindex]="tabindex + 30 + i * 3 + 2"
+              [disabled]="disabled"
+              [title]="'COMMON.BTN_DELETE' | translate"
+              (click)="fishingAreasForm.removeAt(i)"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          </ion-col>
+        </ion-row>
+      }
+    }
+
     <ng-content></ng-content>
 
     <!-- Comments -->
@@ -194,6 +298,14 @@
           form.showVessel: {{ showVessel }}
           <br />
           form.showParent: {{ showParent }}
+          <br />
+          form.showMetiers: {{ showMetiers }}
+          <br />
+          form.showFishingAreas: {{ showFishingAreas }}
+          <br />
+          form.expertiseArea.locationIds: {{ expertiseAreaProperties?.locationIds }}
+          <br />
+          form.expertiseArea.locationLevelIds: {{ expertiseAreaProperties?.locationLevelIds }}
         </ion-col>
       </ion-row>
     </ion-grid>
