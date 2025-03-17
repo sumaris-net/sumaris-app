@@ -207,15 +207,20 @@ export class ExtractionUtils {
   static createActivityCalendarFilter(programLabel: string, source: ActivityCalendarFilter): ExtractionFilter {
     const target = new ExtractionFilter();
     target.sheetName = 'AC';
-    const criteria: Partial<ExtractionFilterCriterion>[] = [
-      {
+    const criteria: Partial<ExtractionFilterCriterion>[] = [];
+
+    // Program
+    programLabel = programLabel ?? source.program?.label;
+    if (isNotNilOrBlank(programLabel)) {
+      criteria.push({
         sheetName: 'AC',
         name: 'project',
         operator: '=',
         value: programLabel,
-      },
-    ];
+      });
+    }
 
+    // IDS
     if (isNotNil(source.includedIds)) {
       criteria.push({
         sheetName: 'AC',
@@ -225,15 +230,7 @@ export class ExtractionUtils {
       });
     }
 
-    if (isNotNil(source.program)) {
-      criteria.push({
-        sheetName: 'AC',
-        name: 'project',
-        operator: '=',
-        value: source.program.label,
-      });
-    }
-
+    // Observers
     if (isNotEmptyArray(source.observers)) {
       criteria.push({
         sheetName: 'AC',
@@ -243,6 +240,7 @@ export class ExtractionUtils {
       });
     }
 
+    // Year
     if (isNotNil(source.year)) {
       criteria.push({
         sheetName: 'AC',
@@ -252,6 +250,7 @@ export class ExtractionUtils {
       });
     }
 
+    // Vessels
     if (isNotNil(source.vesselSnapshot)) {
       criteria.push({
         sheetName: 'AC',
@@ -261,6 +260,7 @@ export class ExtractionUtils {
       });
     }
 
+    // Vessel type
     if (isNotNil(source.vesselType)) {
       criteria.push({
         sheetName: 'AC',
