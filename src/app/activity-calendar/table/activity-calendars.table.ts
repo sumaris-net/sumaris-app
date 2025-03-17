@@ -9,6 +9,7 @@ import {
   Configuration,
   CORE_CONFIG_OPTIONS,
   DateUtils,
+  EntityUtils,
   FilesUtils,
   HammerSwipeEvent,
   isEmptyArray,
@@ -51,7 +52,7 @@ import { ActivityCalendarOfflineModal, ActivityCalendarOfflineModalOptions } fro
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
-import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { AppBaseTableFilterRestoreSource, BaseTableConfig } from '@app/shared/table/base.table';
 import { RxState } from '@rx-angular/state';
 import { isMoment } from 'moment';
@@ -610,6 +611,7 @@ export class ActivityCalendarsTable
       });
       return; // Skip if no program
     }
+    const programLabel = programs[0].label;
 
     // Clear selection
     this.selection.clear();
@@ -618,12 +620,11 @@ export class ActivityCalendarsTable
     // Create extraction type and filter
     type = type || ExtractionType.fromLiveLabel('ACTIVITY_CALENDAR');
 
-    const filter = ExtractionFilter.fromObject({});
-    // TODO
-    // const programLabel = programs[0].label;
-    // const activityCalendarIds = activityCalendars.map((t) => t.id);
-    // = ExtractionUtils.createActivityCalendarFilter(programLabel, activityCalendarIds);
-    const queryParams = ExtractionUtils.asQueryParams(type, filter);
+    const extractionFilter = ExtractionUtils.createActivityCalendarFilter(programLabel, <ActivityCalendarFilter>{
+      ...this.filter,
+      includedIds: EntityUtils.collectIds(activityCalendars),
+    });
+    const queryParams = ExtractionUtils.asQueryParams(type, extractionFilter);
 
     // Open extraction
     await this.router.navigate(['extraction', 'data'], { queryParams });
