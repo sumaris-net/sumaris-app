@@ -119,6 +119,7 @@ export class BatchValidatorService<
       qualityFlagId: [toNumber(data?.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)],
       // Sub forms
       measurementValues: this.formBuilder.group({}),
+      images: [data?.images || null],
       // TODO: add operationId, saleId, parentId
     };
 

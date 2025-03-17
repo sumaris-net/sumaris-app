@@ -35,7 +35,7 @@ import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
-export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
+export const BATCH_RESERVED_END_COLUMNS: string[] = ['images', 'comments'];
 
 export interface AbstractBatchesTableState extends BaseMeasurementsTableState {
   showTaxonGroupColumn: boolean;

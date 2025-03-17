@@ -57,6 +57,7 @@ import { ContextService } from '@app/shared/context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 import { Program } from '@app/referential/services/model/program.model';
+import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -272,6 +273,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   get dirty(): boolean {
     return this.dirtySubject.value || (this.weightMethodForm && this.weightMethodForm.dirty);
+  }
+
+  @Input() set showImageAttachments(value: boolean) {
+    this.setShowColumn('images', value);
   }
 
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
@@ -1025,7 +1030,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     if (!this.dynamicColumns) return; // skip
     this.displayedColumns = this.getDisplayColumns();
 
-    this.groupColumnStartColSpan = RESERVED_START_COLUMNS.length + (this.showTaxonGroupColumn ? 1 : 0) + (this.showTaxonNameColumn ? 1 : 0);
+    this.groupColumnStartColSpan =
+      RESERVED_START_COLUMNS.length + (this.showTaxonGroupColumn ? 1 : 0) + (this.showTaxonNameColumn ? 1 : 0) + RESERVED_END_COLUMNS.length;
     if (this.qvPmfm) {
       this.groupColumnStartColSpan += isEmptyArray(this._speciesPmfms)
         ? 0
@@ -1670,6 +1676,42 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         form.disable();
         return form;
       }
+    }
+  }
+
+  async openImagesModal(event: Event, row: TableElement<BatchGroup>) {
+    const images = row.currentData.images;
+
+    // Skip if no images to display
+    if (this.disabled && isEmptyArray(images)) return;
+
+    event?.stopPropagation();
+    console.debug(this.logPrefix + 'Opening images modal...');
+
+    const modal = await this.modalCtrl.create({
+      component: AppImageAttachmentsModal,
+      componentProps: <IImageModalOptions>{
+        data: images,
+        disabled: this.disabled,
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large',
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss();
+
+    // User cancel
+    if (isNil(data) || this.disabled) return;
+
+    if (this.inlineEdition && row.validator) {
+      const formArray = row.validator.get('images');
+      formArray.patchValue(data);
+      row.validator.markAsDirty();
+      this.confirmEditCreate();
+      this.markAsDirty();
+    } else {
+      row.currentData.images = data;
+      this.markAsDirty();
     }
   }
 }
