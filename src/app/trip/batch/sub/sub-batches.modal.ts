@@ -1083,14 +1083,19 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   private mergeSameSubBatch(subBatches: SubBatch[][]): SubBatch[][] {
     const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm));
-    if (!numericalPmfm) return subBatches;
+    const criteriaPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isQualitative(pmfm));
+    if (!numericalPmfm || !criteriaPmfm) return subBatches;
 
     const nmId = numericalPmfm.id.toString();
+    const cmId = criteriaPmfm.id.toString();
 
     return subBatches.map((batch) =>
       batch.reduce((merged: SubBatch[], current: SubBatch) => {
         const existing = merged.find(
-          (sb) => sb.measurementValues[nmId] === current.measurementValues[nmId] && sb.taxonName.id === current.taxonName.id
+          (sb) =>
+            sb.measurementValues[nmId] === current.measurementValues[nmId] &&
+            sb.taxonName.id === current.taxonName.id &&
+            sb.measurementValues[cmId] === current.measurementValues[cmId]
         );
         if (existing) {
           existing.individualCount += current.individualCount;
