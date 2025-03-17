@@ -2626,6 +2626,7 @@
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Occasion > Offline > Location level(s) to import",
       "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Occasion > Show strategy card?",
       "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Occasion > Automatically fill landings? (e.g., by species)",
+      "OBSERVED_LOCATION_EXPERTISE_AREA_ENABLE": "Occasion > Enable expertise areas?",
       "LANDING_BATCH_ENABLE": "Occasion > Landing: Enable batches?",
       "LANDING_EDITOR": "Occasion > Landing: editor",
       "LANDING_EDITOR_LANDING": "Landing",
@@ -2655,6 +2656,7 @@
       "SALE_FAVORITES_ENABLE": "Occasion > Sale: Enable favourites?",
       "SALE_BATCH_ENABLE": "Occasion > Sale: Enable batches?",
       "SALE_BATCH_IMAGES_ENABLE": "Occasion > Sale: Enable pictures?",
+      "SALE_METIER_ENABLE": "Occasion > Sale: Metier ?",
       "STRATEGY_EDITOR": "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Default",
