@@ -2744,6 +2744,7 @@
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Sortie > Hors-Ligne > Niveau(x) de lieu à importer",
       "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Sortie > Afficher la stratégie ?",
       "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Sortie > Remplir automatiquement les débarquements ? (ex: par espèces)",
+      "OBSERVED_LOCATION_EXPERTISE_AREA_ENABLE": "Sortie > Activer les zones de compétence ?",
       "LANDING_BATCH_ENABLE": "Sortie > Débarquement : Activer les lots (BATCH) ?",
       "LANDING_EDITOR": "Sortie > Débarquement : Éditeur",
       "LANDING_EDITOR_LANDING": "Débarquement",
@@ -2774,6 +2775,7 @@
       "SALE_LOCATION_LEVEL_IDS": "Sortie > Vente : Niveau(x) de lieu",
       "SALE_BATCH_ENABLE": "Sortie > Vente : Activer les lots ?",
       "SALE_BATCH_IMAGES_ENABLE": "Sortie > Vente : Activer les photos ?",
+      "SALE_METIER_ENABLE": "Sortie > Vente : Métier ?",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",
