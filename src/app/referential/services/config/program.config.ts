@@ -986,6 +986,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  OBSERVED_LOCATION_EXPERTISE_AREA_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.expertiseArea.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_EXPERTISE_AREA_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
 
   VESSEL_TYPE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.vessel.type.enable',
@@ -1186,6 +1192,13 @@ export const ProgramProperties = Object.freeze({
   SALE_BATCH_IMAGES_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.sale.batch.images.enable',
     label: 'PROGRAM.OPTIONS.SALE_BATCH_IMAGES_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
+
+  SALE_METIER_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.sale.metier.enable',
+    label: 'PROGRAM.OPTIONS.SALE_METIER_ENABLE',
     defaultValue: 'false',
     type: 'boolean',
   },
