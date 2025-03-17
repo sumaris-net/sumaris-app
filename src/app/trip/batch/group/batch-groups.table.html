@@ -282,6 +282,30 @@
         </td>
       </ng-container>
 
+      <!-- Images column -->
+      <ng-container matColumnDef="images">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
+          @let imageCount = row.currentData.images?.length;
+          <button
+            mat-icon-button
+            [class.cdk-visually-hidden]="disabled"
+            [title]="'TRIP.BATCH.TABLE.BTN_IMAGES' | translateContext: i18nColumnSuffix"
+            (click)="openImagesModal($event, row)"
+          >
+            <mat-icon
+              [matBadge]="imageCount | badgeNumber"
+              [matBadgeHidden]="!imageCount"
+              matBadgeColor="accent"
+              matBadgeSize="small"
+              matBadgePosition="above after"
+            >
+              <ion-icon [color]="imageCount ? 'tertiary' : 'medium'" slot="icon-only" name="camera"></ion-icon>
+            </mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
       <!-- Actions buttons column -->
       <app-actions-column
         [stickyEnd]="stickyEnd"
@@ -485,6 +509,30 @@
           </ng-container>
         </ng-container>
       }
+
+      <!-- Images column -->
+      <ng-container matColumnDef="images">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
+          @let imageCount = row.currentData.images?.length;
+          <button
+            mat-icon-button
+            [class.cdk-visually-hidden]="disabled"
+            [title]="'TRIP.BATCH.TABLE.BTN_IMAGES' | translateContext: i18nColumnSuffix"
+            (click)="openImagesModal($event, row)"
+          >
+            <mat-icon
+              [matBadge]="imageCount | badgeNumber"
+              [matBadgeHidden]="!imageCount"
+              matBadgeColor="accent"
+              matBadgeSize="small"
+              matBadgePosition="above after"
+            >
+              <ion-icon [color]="imageCount ? 'tertiary' : 'medium'" slot="icon-only" name="camera"></ion-icon>
+            </mat-icon>
+          </button>
+        </td>
+      </ng-container>
 
       <!-- Comment column -->
       <ng-container matColumnDef="comments">
