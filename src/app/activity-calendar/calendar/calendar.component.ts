@@ -103,6 +103,7 @@ import { FetchPolicy } from '@apollo/client/core';
 import { ExpertiseAreaUtils } from '@app/referential/expertise-area/expertise-area.utils';
 import { IExpertiseAreaProperties } from '@app/referential/expertise-area/expertise-area.model';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 const DEFAULT_METIER_COUNT = 2;
 const MAX_METIER_COUNT = 30;
@@ -208,6 +209,10 @@ export interface TableCellSelection<T = any> {
   originalMouseY?: number;
   validating?: boolean;
   resizing?: boolean;
+  lastCellOnFocus?: {
+    row: AsyncTableElement<T>;
+    columnName: string;
+  };
 }
 
 export function isSingleCellSelection(selection: TableCellSelection) {
@@ -659,7 +664,11 @@ export class CalendarComponent
       this.registerSubscription(
         this.hotkeys
           .addShortcut({ keys: 'backspace', description: 'COMMON.BTN_CLEAR_SELECTION', preventDefault: false /*keep delete in <input>*/ })
-          .subscribe((event) => this.clearCellSelection(event))
+          .subscribe((event) => {
+            if (!this.isEditableCellOnHover(this.cellSelection?.columnName)) {
+              this.clearCellSelection(event);
+            }
+          })
       );
     }
   }
@@ -917,6 +926,7 @@ export class CalendarComponent
       colspan: 1,
       rowspan: 1,
       resizing: true,
+      lastCellOnFocus: this.cellSelection?.lastCellOnFocus ?? null,
     };
 
     // Resize the cell selection
@@ -1173,6 +1183,7 @@ export class CalendarComponent
       colspan,
       rowspan,
       resizing: false,
+      lastCellOnFocus: this.cellSelection?.lastCellOnFocus ?? null,
     };
 
     // Set new focus column
@@ -1193,6 +1204,7 @@ export class CalendarComponent
 
   protected onNumericKeyPress(event: KeyboardEvent, row: AsyncTableElement<ActivityMonth>, columnName: string) {
     if (!this.inlineEdition || !event || !row?.validator || !columnName) return;
+    const isSameCell = (this.cellSelection?.lastCellOnFocus?.row === row && this.cellSelection?.lastCellOnFocus?.columnName === columnName) ?? true;
 
     // Check if the selected cell is on a numeric pmfm
     const pmfm = this.pmfms?.find((p) => p.id.toString() === columnName);
@@ -1205,17 +1217,23 @@ export class CalendarComponent
 
     // Compute new control's value
     let valueStr: string = pmfmControl.value?.toString() || '';
-    if (isNotNilOrNaN(+event.key)) {
-      valueStr += event.key;
+    const isNumberKey = isNotNilOrNaN(+event.key);
+
+    if (isNumberKey) {
+      valueStr = isSameCell ? valueStr + event.key : event.key;
     } else if (event.key === 'Backspace') {
-      if (valueStr.length) {
-        // Remove last character
-        valueStr = valueStr.substring(0, valueStr.length - 1);
+      if (isSameCell) {
+        valueStr = valueStr.length ? valueStr.slice(0, -1) : null;
       } else {
         valueStr = null;
+        this.cellSelection.lastCellOnFocus = {
+          row: this.cellSelection.row,
+          columnName: this.cellSelection.columnName,
+        };
       }
-    } else return; // Skip (unknown key)
-
+    } else {
+      return;
+    }
     // Update control's value
     const newValue = isNotNilOrBlank(valueStr) ? toNumber(+valueStr, null) : null;
     if (pmfmControl.value !== newValue) {
@@ -1233,6 +1251,10 @@ export class CalendarComponent
       if (this.debug) console.debug(this.logPrefix + `Updating Pmfm#${pmfm.id} cell value with: ${newValue}`);
 
       pmfmControl.patchValue(newValue);
+      this.cellSelection.lastCellOnFocus = {
+        row: this.cellSelection.row,
+        columnName: this.cellSelection.columnName,
+      };
       this.markAsDirty();
     }
   }
@@ -1350,6 +1372,7 @@ export class CalendarComponent
       colspan,
       rowspan,
       resizing: false,
+      lastCellOnFocus: this.cellSelection?.lastCellOnFocus ?? null,
     };
 
     this.resizeCellSelection(this.cellSelection, 'cell');
@@ -1408,6 +1431,7 @@ export class CalendarComponent
       colspan,
       rowspan,
       resizing: false,
+      lastCellOnFocus: this.cellSelection?.lastCellOnFocus ?? null,
     };
 
     this.resizeCellSelection(this.cellSelection, 'cell');
@@ -1444,6 +1468,9 @@ export class CalendarComponent
     opts?: { emitEvent?: boolean; expandCellSelection?: boolean; debouncedExpansion?: boolean }
   ) {
     if (!cellSelection) return false;
+
+    // Reset last cell on focus
+    this.cellSelection.lastCellOnFocus = null;
 
     const containerElement = this.tableContainerElement;
     if (!containerElement) return false;
@@ -3221,6 +3248,7 @@ export class CalendarComponent
       colspan: 1,
       rowspan: 1,
       resizing: false,
+      lastCellOnFocus: this.cellSelection?.lastCellOnFocus ?? null,
     };
 
     // Resize the new cell selection
@@ -3546,5 +3574,10 @@ export class CalendarComponent
     if (this.scrolling$.value) {
       this.scrolling$.next(false);
     }
+  }
+
+  protected isEditableCellOnHover(columnName: string) {
+    const pmfm = this.pmfms.find((pmfm) => pmfm.id.toString() === columnName) as DenormalizedPmfmStrategy;
+    return !!pmfm?.isNumeric;
   }
 }
