@@ -726,6 +726,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE)
     );
     this.batchGroupsTable.setSubBatchesModalOption('enableImageAttachments', this.enableImageAttachments);
+    this.batchGroupsTable.showImageAttachments = this.enableImageAttachments;
     if (this.subBatchesTable) {
       this.subBatchesTable.showTaxonNameColumn = subBatchesTaxonName;
       this.subBatchesTable.showTaxonNameInParentAutocomplete = !subBatchesTaxonName && this.batchGroupsTable.showTaxonNameColumn;
