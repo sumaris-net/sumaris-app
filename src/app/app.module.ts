@@ -28,6 +28,7 @@ import {
   APP_STORAGE,
   APP_TESTING_PAGES,
   APP_USER_EVENT_SERVICE,
+  APP_USER_SETTINGS_OPTIONS,
   AppGestureConfig,
   CORE_CONFIG_OPTIONS,
   CORE_TESTING_PAGES,
@@ -55,6 +56,7 @@ import {
   StorageService,
   TestingPage,
   UserEventModule,
+  UserSettingsOptions,
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -113,6 +115,7 @@ import { NamedFilterService } from '@app/shared/service/named-filter.service';
 import { ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS } from '@app/activity-calendar/calendar/activity-month.validator';
 import { ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS } from './activity-calendar/model/activity-calendar.validator';
 import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
+import { TEST_USER_SETTINGS_OPTIONS } from '../../ngx-sumaris-components/src/app/core/services/testing/user-settings.config';
 
 @NgModule({
   declarations: [AppComponent],
@@ -301,6 +304,20 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           ...DATA_LOCAL_SETTINGS_OPTIONS,
           ...TRIP_LOCAL_SETTINGS_OPTIONS,
         },
+      },
+    },
+    // User options (comment out to enable user properties in AccountPage)
+    {
+      provide: APP_USER_SETTINGS_OPTIONS,
+      useValue: <UserSettingsOptions>{
+        options: {
+          ...TEST_USER_SETTINGS_OPTIONS,
+        },
+        remoteLocalSettingsKeys: <(keyof LocalSettings)[]>[
+          // Properties used by SUMARiS
+          'locale',
+          'latLongFormat',
+        ],
       },
     },
     // Config options definition (Core + trip)
