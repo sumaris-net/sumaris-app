@@ -118,7 +118,7 @@ export const OperationFragments = {
     physicalGear {
       id
       rankOrder
-      gear: fullGear {
+      gear {
         ...GearFragment
       }
     }
@@ -169,7 +169,7 @@ export const OperationFragments = {
       physicalGear {
         id
         rankOrder
-        gear: fullGear {
+        gear {
           ...GearFragment
         }
       }

@@ -9,7 +9,7 @@ export const DataCommonFragments = {
   location: ReferentialFragments.location,
   metier: ReferentialFragments.metier,
   lightMetier: ReferentialFragments.lightMetier,
-  lightGear: ReferentialFragments.gear,
+  gear: ReferentialFragments.gear,
   lightPerson: gql`
     fragment LightPersonFragment on PersonVO {
       id
@@ -333,7 +333,7 @@ export const PhysicalGearFragments = {
       updateDate
       creationDate
       comments
-      gear: fullGear {
+      gear {
         ...GearFragment
       }
       recorderDepartment {

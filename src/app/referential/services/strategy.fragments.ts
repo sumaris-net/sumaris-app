@@ -207,7 +207,7 @@ export const StrategyFragments = {
       creationDate
       statusId
       programId
-      gears: fullGears {
+      gears {
         ...GearFragment
       }
       taxonGroups {

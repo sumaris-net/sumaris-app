@@ -223,7 +223,7 @@ export const ReferentialFragments = {
         entityName
         __typename
       }
-      gear: fullGear {
+      gear {
         id
         label
         name

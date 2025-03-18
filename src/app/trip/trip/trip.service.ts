@@ -194,7 +194,7 @@ export const TripFragments = {
   ${DataCommonFragments.measurement}
   ${DataCommonFragments.referential}
   ${DataCommonFragments.location}
-  ${DataCommonFragments.lightGear}
+  ${DataCommonFragments.gear}
   ${VesselSnapshotFragments.lightVesselSnapshot}
   ${PhysicalGearFragments.physicalGear}
   ${DataCommonFragments.metier},
@@ -264,7 +264,7 @@ export const TripFragments = {
     ${DataCommonFragments.measurement}
     ${DataCommonFragments.referential}
     ${DataCommonFragments.location}
-    ${DataCommonFragments.lightGear}
+    ${DataCommonFragments.gear}
     ${VesselSnapshotFragments.lightVesselSnapshot}
     ${DataCommonFragments.metier}
     ${PhysicalGearFragments.physicalGear}
@@ -1797,9 +1797,6 @@ export class TripService
     if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
       // Clean vessel features object, before saving
       target.vesselSnapshot = { id: entity.vesselSnapshot?.id };
-
-      // optimize physical gear
-      target.gears?.forEach((pg) => (pg.gear = { id: pg.gear?.id }));
     }
 
     return target;
