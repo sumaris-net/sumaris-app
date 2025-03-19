@@ -168,6 +168,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   protected useCssDisabled: boolean = false;
   protected showFilterTab: boolean = false;
   protected taxonNameTabs: TaxonNameTab[] = [];
+  minInterval: number = null;
+  maxInterval: number = null;
 
   get selectedRow(): TableElement<SubBatch> {
     return this.singleSelectedRow || this.editedRow;
@@ -322,6 +324,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
         const disable = !value && this.showIndividualCount;
         this.inlineEdition = !disable;
         this.useCssDisabled = disable;
+        if (disable) this.updateControlsInterval();
       })
     );
   }
@@ -1354,6 +1357,25 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       ...obj,
       [property]: item,
     }));
+  }
+  async updateControlsInterval() {
+    const subBatches = this.dataSource.getRows()?.map((row) => row.currentData);
+    if (isEmptyArray(subBatches)) {
+      this.minInterval = null;
+      this.maxInterval = null;
+      return;
+    }
+
+    const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm));
+    if (!numericalPmfm) return;
+
+    const numericalPmfmId = numericalPmfm.id.toString();
+
+    const min = Math.min(...subBatches.map((subBatch) => subBatch.measurementValues[numericalPmfmId]));
+    const max = Math.max(...subBatches.map((subBatch) => subBatch.measurementValues[numericalPmfmId]));
+
+    this.minInterval = min;
+    this.maxInterval = max;
   }
 
   getFormErrors = AppFormUtils.getFormErrors;

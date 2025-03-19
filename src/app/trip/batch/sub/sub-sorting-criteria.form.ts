@@ -54,6 +54,8 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
   @Input() pmfms: IPmfm[];
   @Input() enableTaxonNameFilter: boolean = true;
   @Input() canFilterTaxonName: boolean = true;
+  @Input() minInterval: number = null;
+  @Input() maxInterval: number = null;
 
   @ViewChild('taxonNameField') taxonNameField: MatAutocompleteField;
 
@@ -96,6 +98,14 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
         } else {
           this.disabledPrecision = false;
         }
+      })
+    );
+
+    this.registerSubscription(
+      // Set min and max validators
+      this.form.valueChanges.subscribe((value) => {
+        this.form.get('min').setValidators([Validators.required, Validators.min(0), Validators.max(this.minInterval)]);
+        this.form.get('max').setValidators([Validators.required, Validators.min(this.maxInterval)]);
       })
     );
 
