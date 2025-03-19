@@ -58,6 +58,11 @@ import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/im
 
 type ModalMode = 'INDIVIDUAL_COUNT' | 'LENGTH_CLASS';
 
+export interface TaxonNameTab {
+  name: string;
+  id: number;
+  isActive: boolean;
+}
 export interface ISubBatchesModalOptions {
   disabled: boolean;
   showParentGroup: boolean;
@@ -161,6 +166,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   protected canFilterTaxonName: boolean = true;
   protected enableTaxonNameFilter: boolean = true;
   protected useCssDisabled: boolean = false;
+  protected showFilterTab: boolean = false;
+  protected taxonNameTabs: TaxonNameTab[] = [];
 
   get selectedRow(): TableElement<SubBatch> {
     return this.singleSelectedRow || this.editedRow;
@@ -948,34 +955,40 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       await this.setModalMode('INDIVIDUAL_COUNT', false);
     }
     // Create subbatches
-    const subBatchesToAdd = [];
+    let subBatchesToAdd = [];
     let rankOrder = await this.getMaxRankOrder();
     for (let size = data.min; size <= data.max; size += data.precision) {
       // Do not add already existing row for this taxonname and size
-      const existing = this.getValue().some(
-        (subbatch) =>
-          subbatch.measurementValues[data.criteriaPmfm.id] === size &&
-          subbatch.taxonName?.id === data.taxonName.id &&
-          subbatch.parentGroup?.id === this.parentGroup.id
-      );
-      if (!existing) {
-        const subBatch = new SubBatch();
-        subBatch.individualCount = 0;
-        subBatch.taxonName = data.taxonName;
-        subBatch.measurementValues[data.criteriaPmfm.id] = size;
-        subBatch.rankOrder = ++rankOrder;
-        subBatchesToAdd.push(subBatch);
-      }
+
+      Array.isArray(data.taxonNames) &&
+        data.taxonNames.forEach((taxonName) => {
+          const existing = this.getValue().some(
+            (subbatch) =>
+              subbatch.measurementValues[data.criteriaPmfm.id] === size &&
+              subbatch.taxonName?.id === taxonName.id &&
+              subbatch.parentGroup?.id === this.parentGroup.id
+          );
+          if (!existing) {
+            const subBatch = new SubBatch();
+            subBatch.individualCount = 0;
+            subBatch.taxonName = taxonName;
+            subBatch.measurementValues[data.criteriaPmfm.id] = size;
+            subBatch.rankOrder = ++rankOrder;
+            subBatchesToAdd.push(subBatch);
+          }
+        });
     }
+    subBatchesToAdd = subBatchesToAdd.flatMap((subBatch) => this.splitByProperty(subBatch, 'taxonName'));
 
     await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
+    this.loadTaxonNameTabs(data.taxonNames);
 
     // Only show added entities
     const filter = new SubBatchFilter();
     filter.numericalMinValue = data.min;
     filter.numericalMaxValue = data.max;
     filter.numericalPmfm = data.criteriaPmfm;
-    filter.taxonNameId = data.taxonName.id;
+    // filter.taxonNameId = data.taxonName.id;
 
     this.setFilter(filter);
 
@@ -1001,6 +1014,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     this.setShowColumn('id', !show, { emitEvent: false });
     this.setShowColumn('individualCount', !show, { emitEvent: false });
+    this.setShowColumn('taxonName', !show, { emitEvent: false });
     if (this.enableImageAttachments) this.setShowColumn('images', !show, { emitEvent: false });
 
     // Show/hide computed and qualitative pmfms columns
@@ -1180,16 +1194,17 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     const showVirtualColums = isNotNil(showVirtualColumns) ? showVirtualColumns : mode === 'LENGTH_CLASS';
     const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm));
     this.setShowVirtualColumns(showVirtualColums);
-
     switch (mode) {
       case 'LENGTH_CLASS':
         if (!this._rowsAreMerged || this._modalMode === 'INDIVIDUAL_COUNT') {
           await this.mergeRows(numericalPmfm);
+          this.showFilterTab = true;
         }
         break;
       case 'INDIVIDUAL_COUNT':
         if (this._rowsAreMerged || this._modalMode === 'LENGTH_CLASS') {
           await this.splitRows(numericalPmfm);
+          this.showFilterTab = false;
         } else {
           await this.deleteEmptyRows();
         }
@@ -1297,6 +1312,50 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     await this.setValue(subBatchFixture);
   }
+
+  loadTaxonNameTabs(subBatches: TaxonNameRef[]) {
+    if (isEmptyArray(subBatches)) return;
+    // Clear
+    this.taxonNameTabs = [];
+
+    subBatches.forEach((subBatch) => {
+      if (!this.taxonNameTabs.some((tab) => tab.id === subBatch.id)) {
+        this.taxonNameTabs.push({ name: subBatch.name, id: subBatch.id, isActive: false });
+      }
+    });
+
+    // Set first tab as active
+    this.taxonNameTabs[0].isActive = true;
+
+    // Set filter
+    const filter = new SubBatchFilter();
+    filter.taxonNameId = this.taxonNameTabs[0].id;
+    this.setFilter(filter);
+  }
+
+  setTabFilter(id: number) {
+    // Set active tab
+    this.taxonNameTabs = this.taxonNameTabs.map((tab) => {
+      tab.isActive = tab.id === id;
+      return tab;
+    });
+
+    // Set filter
+    const filter = new SubBatchFilter();
+    filter.taxonNameId = id;
+    this.setFilter(filter);
+  }
+
+  splitByProperty<T extends Record<string, any>>(obj: T, property: string): T[] {
+    if (obj[property] && !Array.isArray(obj[property])) {
+      return [obj];
+    }
+    return obj[property].map((item) => ({
+      ...obj,
+      [property]: item,
+    }));
+  }
+
   getFormErrors = AppFormUtils.getFormErrors;
   filterNumberInput = AppFormUtils.filterNumberInput;
 }

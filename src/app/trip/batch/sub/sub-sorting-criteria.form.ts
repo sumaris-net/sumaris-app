@@ -23,7 +23,7 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface SubSortingCriteria {
-  taxonName: TaxonNameRef;
+  taxonNames: TaxonNameRef[];
   criteriaPmfm: IPmfm;
   min: number;
   max: number;
@@ -67,7 +67,7 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
     super(
       injector,
       fb.group({
-        taxonName: [null, Validators.required],
+        taxonNames: [null, Validators.required],
         criteriaPmfm: [null, Validators.required],
         min: [null, [Validators.required, Validators.min(0)]],
         max: [null, Validators.required],
@@ -107,7 +107,7 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
       })
     );
 
-    this.registerAutocompleteField('taxonName', {
+    this.registerAutocompleteField('taxonNames', {
       suggestFn: (value, filter) => this.suggestTaxonNames(value, filter),
       panelClass: 'min-width-large',
       selectInputContentOnFocus: true,
