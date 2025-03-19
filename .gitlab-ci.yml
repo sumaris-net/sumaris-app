@@ -438,6 +438,7 @@ deploy:web:
 deploy:web:feature:
   extends: .deploy:web
   needs: [release:feature]
+  when: manual
   only:
     - /^features?\/.*/
     - /^stable\/.*/
@@ -488,6 +489,7 @@ deploy:android:feature:
   only:
     - /^features?\/.*/
     - /^stable\/.*/
+  when: manual
 
 deploy:android:tags:
   extends: .deploy:android
@@ -540,6 +542,7 @@ deploy:electron:
 deploy:electron:feature:
   extends: .deploy:electron
   needs: [release:feature]
+  when: manual
   only:
     - /^features?\/.*/
     - /^stable\/.*/
@@ -585,6 +588,7 @@ deploy:webext:prerelease:feature:
   needs: [release:feature]
   variables:
     DEPLOY_ENVIRONMENT: 'test'
+  when: manual
   only:
     - /^features?\/.*/
     - /^stable\/.*/
@@ -594,6 +598,7 @@ deploy:webext:prerelease:tags:
   needs: [gitlab-release]
   variables:
     DEPLOY_ENVIRONMENT: 'test'
+  when: manual
   only:
     - tags
 
@@ -610,6 +615,7 @@ deploy:webext:release:feature:
   needs: [release:feature]
   variables:
     DEPLOY_ENVIRONMENT: 'prod'
+  when: manual
   only:
     - /^features?\/.*/
     - /^stable\/.*/
