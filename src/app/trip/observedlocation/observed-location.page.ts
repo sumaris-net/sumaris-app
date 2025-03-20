@@ -19,6 +19,8 @@ import {
   HistoryPageReference,
   isNil,
   isNotNil,
+  isNotNilOrBlank,
+  Property,
   ReferentialRef,
   ReferentialUtils,
   RxStateProperty,
@@ -29,7 +31,7 @@ import {
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
 import { ObservedLocation } from './observed-location.model';
 import { Landing } from '../landing/landing.model';
-import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
+import { LandingEditor, ObservedLocationReportType, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { from, merge, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap, throttleTime } from 'rxjs/operators';
@@ -68,7 +70,7 @@ type ILandingsTable = AppTable<any> & {
 export interface ObservedLocationPageState extends RootDataEntityEditorState {
   landingTableType: LandingTableType;
   landingTable: ILandingsTable;
-
+  reportTypes: Property[];
   location: ReferentialRef;
   startDateTime: Moment;
 }
@@ -150,6 +152,17 @@ export class ObservedLocationPage
 
     this._state.connect('startDateTime', this.observedLocationForm.startDateTimeChanges);
     this._state.connect('location', this.observedLocationForm.locationChanges);
+    this._state.connect(
+      'reportTypes',
+      this.program$.pipe(
+        map((program) => {
+          return program.getPropertyAsStrings(ProgramProperties.OBSERVED_LOCATION_REPORT_TYPES).map((key) => {
+            const values = ProgramProperties.OBSERVED_LOCATION_REPORT_TYPES.values as Property[];
+            return values.find((item) => item.key === key);
+          });
+        })
+      )
+    );
 
     this.registerSubscription(
       this.configService.config.subscribe((config) => {
@@ -581,12 +594,16 @@ export class ObservedLocationPage
     }
   }
 
-  async openReport() {
+  async openReport(reportType?: ObservedLocationReportType | string) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
     }
-    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+
+    // legacy report not need a specific path
+    reportType = reportType === 'legacy' ? null : reportType;
+
+    return this.router.navigateByUrl([this.computePageUrl(this.data.id), 'report', reportType].filter(isNotNilOrBlank).join('/'));
   }
 
   async copyLocally() {

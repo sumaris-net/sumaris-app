@@ -1920,6 +1920,10 @@
             "INCLUDE_SAMPLED_SPECIES": "(Inclure dans le dossier la liste des éspèces a échantilloner (en cochant les espèces échantillonées))"
           }
         }
+      },
+      "REPORT_TYPE": {
+        "BLANK_FORM": "Formulaire vierge",
+        "FORM": "Formulaire avec données"
       }
     },
     "SELECT_OBSERVED_LOCATION_MODAL": {
@@ -2795,6 +2799,7 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Sortie > Calendrier d'activité hebdomadaire > Jour de début de semaine",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Sortie > Calendrier d'activité hebdomadaire > Nombre de jour de semaine",
       "OBSERVED_LOCATION_REPORT_ENABLE": "Sortie > Activer l'édition de rapport ?",
+      "OBSERVED_LOCATION_REPORT_TYPES": "Sortie > Rapport : Type(s) de rapport",
       "OBSERVED_LOCATION_REPORT_FORM_SUBTITLE": "Sortie > Rapport > Formulaire > Sous-titre du rapport",
       "OBSERVED_LOCATION_REPORT_FORM_LAND_TRIP_PLAN_FOOTER_TEXT": "Sortie > Rapport > Formulaire > Plan de sortie > Texte du pied de page",
       "OBSERVED_LOCATION_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Sortie > Rapport > Formulaire > Logo à gauche de l'entête",

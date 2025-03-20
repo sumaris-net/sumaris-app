@@ -2622,6 +2622,7 @@
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Occasion > Weekly activity calendar > First day of the week",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Occasion > Weekly activity calendar > Number of days in the week",
       "OBSERVED_LOCATION_REPORT_ENABLE": "Occasion > Enable report edition?",
+      "OBSERVED_LOCATION_REPORT_TYPES": "Occasion > Report type(s)",
       "OBSERVED_LOCATION_REPORT_FORM_SUBTITLE": "Occasion > Report > Form > Report sub-title",
       "OBSERVED_LOCATION_REPORT_FORM_LAND_TRIP_PLAN_FOOTER_TEXT": "Occasion > Report > Form > Land trip plan > Footer text",
       "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Occasion > Offline > Location level(s) to import",

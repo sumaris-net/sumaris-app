@@ -27,10 +27,21 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
   <!-- report -->
-  <button mat-menu-item *ngIf="enableReport" [disabled]="isNewData || !data.controlDate" (click)="openReport()">
-    <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
-    <ion-label translate>OBSERVED_LOCATION.EDIT.BTN_REPORT</ion-label>
-  </button>
+  @if (enableReport) {
+    @if (isNewData || !data.controlDate || reportTypes.length < 2) {
+      <button mat-menu-item [disabled]="isNewData || !data.controlDate" (click)="openReport(reportTypes?.[0]?.key)">
+        <mat-icon><ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon></mat-icon>
+        <ion-label translate>TRIP.EDIT.BTN_REPORT</ion-label>
+      </button>
+    } @else {
+      <button mat-menu-item [matMenuTriggerFor]="reportsMenu">
+        <mat-icon>
+          <ion-icon slot="icon-only" name="bar-chart-outline"></ion-icon>
+        </mat-icon>
+        <ion-label translate>TRIP.EDIT.BTN_REPORT</ion-label>
+      </button>
+    }
+  }
 
   <!-- reset -->
   <button mat-menu-item *ngIf="mobile" [disabled]="disabled || !dirty" (click)="cancel($event)">
@@ -60,6 +71,23 @@
 
   <!-- DEV only -->
   <app-data-editor-debug-button></app-data-editor-debug-button>
+</mat-menu>
+
+<mat-menu #reportsMenu="matMenu" class="ion-no-padding">
+  <ng-template matMenuContent>
+    <!-- header-->
+    <ion-row class="mat-menu-header ion-no-padding column">
+      <ion-col>
+        <ion-label>{{ 'COMMON.REPORT.TYPE_DIVIDER' | translate }}</ion-label>
+      </ion-col>
+    </ion-row>
+
+    @for (item of reportTypes; track item.key) {
+      <button mat-menu-item (click)="openReport(item.key)">
+        <ion-label>{{ item.value | translate }}</ion-label>
+      </button>
+    }
+  </ng-template>
 </mat-menu>
 
 <ion-content scroll-y="false">

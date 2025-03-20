@@ -13,17 +13,17 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
+import { Landing } from '@app/trip/landing/landing.model';
+import { LandingService } from '@app/trip/landing/landing.service';
 import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
+import { Sale } from '@app/trip/sale/sale.model';
+import { SaleService } from '@app/trip/sale/sale.service';
 import { environment } from '@environments/environment';
-import { EntityAsObjectOptions, isEmptyArray, isNotNil, splitById, splitByProperty } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, isEmptyArray, isNotNil, splitById } from '@sumaris-net/ngx-components';
 import { ReportChunkModule } from '../../../../data/report/form/report-chunk.module';
 import { LandingFormReportComponent } from '../../../landing/report/form/landing-form.report-component';
 import { ObservedLocationService } from '../../observed-location.service';
 import { ObservedLocationFormReportComponent } from './observed-location-form.report-component';
-import { LandingService, LandingServiceLoadOptions } from '@app/trip/landing/landing.service';
-import { SaleService } from '@app/trip/sale/sale.service';
-import { Sale } from '@app/trip/sale/sale.model';
-import { Landing } from '@app/trip/landing/landing.model';
 
 export class ObservedLocationFormReportStats extends BaseReportStats {
   options: {
@@ -46,6 +46,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
     observedLocation: IPmfm[];
     landing: IPmfm[];
     sortingBatch: IPmfm[];
+    sale: IPmfm[];
   };
   pmfmsByIds: {
     observedLocation: { [key: number]: IPmfm };
@@ -64,6 +65,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
       observedLocation: (source?.pmfms?.observedLocation || {}).map(Pmfm.fromObject),
       landing: (source?.pmfms?.landing || {}).map(Pmfm.fromObject),
       sortingBatch: (source?.pmfms?.sortingBatch || {}).map(Pmfm.fromObject),
+      sale: (source?.pmfms?.sale || {}).map(Pmfm.fromObject),
     };
     this.pmfmsByIds = {
       observedLocation: splitById(this.pmfms.observedLocation),
@@ -84,6 +86,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
         observedLocation: this.pmfms.observedLocation.map((pmfm) => pmfm.asObject(opts)),
         landing: this.pmfms.landing.map((pmfm) => pmfm.asObject(opts)),
         sortingBatch: this.pmfms.sortingBatch.map((pmfm) => pmfm.asObject(opts)),
+        sale: this.pmfms.sale.map((pmfm) => pmfm.asObject(opts)),
       },
       sales: this.sales.map((sale) => sale.asObject(opts)),
     };
@@ -197,6 +200,12 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       sortingBatch: isNotNil(strategyId)
         ? await this.programRefService.loadProgramPmfms(data.program.label, {
             acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
+            strategyId,
+          })
+        : [],
+      sale: isNotNil(strategyId)
+        ? await this.programRefService.loadProgramPmfms(data.program.label, {
+            acquisitionLevel: AcquisitionLevelCodes.SALE,
             strategyId,
           })
         : [],
