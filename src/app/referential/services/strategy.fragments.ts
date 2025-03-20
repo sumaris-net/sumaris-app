@@ -32,7 +32,7 @@ export const StrategyFragments = {
       statusId
       programId
       gears {
-        ...LightReferentialFragment
+        ...GearFragment
       }
       taxonGroups {
         ...TaxonGroupStrategyFragment

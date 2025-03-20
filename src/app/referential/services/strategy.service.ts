@@ -131,6 +131,7 @@ const StrategyQueries: BaseEntityGraphqlQueries & { loadAllFull: any } = {
     ${ReferentialFragments.referential}
     ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
+    ${ReferentialFragments.gear}
   `,
 
   loadAll: gql`
