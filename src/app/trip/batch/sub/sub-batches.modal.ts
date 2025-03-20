@@ -984,6 +984,13 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     }
     subBatchesToAdd = subBatchesToAdd.flatMap((subBatch) => this.splitByProperty(subBatch, 'taxonName'));
 
+    const columnsToHide = this.virtualPmfms?.filter((pmfm) => !data.secondaryQvPmfm.map((qv) => -qv.id).includes(pmfm.id));
+    if (!data.selectAll) {
+      columnsToHide?.forEach((vf) => {
+        this.setShowColumn(vf.id.toString(), false);
+      });
+    }
+
     await this.addEntitiesToTable(subBatchesToAdd, { editing: false });
     this.loadTaxonNameTabs(data.taxonNames);
 
@@ -995,13 +1002,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     // filter.taxonNameId = data.taxonName.id;
 
     this.setFilter(filter);
-
-    const columnsToHide = this.virtualPmfms?.filter((pmfm) => !data.secondaryQvPmfm.map((qv) => -qv.id).includes(pmfm.id));
-    if (!data.selectAll) {
-      columnsToHide?.forEach((vf) => {
-        this.setShowColumn(vf.id.toString(), false);
-      });
-    }
 
     this.updateColumns();
   }
@@ -1347,19 +1347,23 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     // Search all rows and remove duplicates
     data = this.removeDuplicatesByProperties([...data, ...this.getValue()], ['label']);
-
+    const virtualPmfmsDispalyed = this.virtualPmfms?.filter((pmfm) => this.getShowColumn(pmfm.id.toString()));
     if (isEmptyArray(data)) return;
 
     this.taxonNameTabs.forEach((tab) => {
       const subBatches = data?.filter((row) => {
         if (row.taxonName.id === tab.id) {
-          const isNotEmpty = this.virtualPmfms?.some((pmfm) => isNotNil(row.measurementValues[pmfm.id]) || row.individualCount > 0);
+          const isNotEmpty = virtualPmfmsDispalyed?.some((pmfm) => isNotNil(row.measurementValues[pmfm.id]));
           if (isNotEmpty) {
             return row;
           }
         }
       });
-      if (isNotEmptyArray(subBatches)) tab.usedRowsCount = subBatches?.length;
+      if (isNotEmptyArray(subBatches)) {
+        tab.usedRowsCount = subBatches?.length;
+      } else if (isEmptyArray(subBatches) && tab.usedRowsCount > 0) {
+        tab.usedRowsCount = 0;
+      }
     });
   }
 
