@@ -984,7 +984,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     }
     subBatchesToAdd = subBatchesToAdd.flatMap((subBatch) => this.splitByProperty(subBatch, 'taxonName'));
 
-    const columnsToHide = this.virtualPmfms?.filter((pmfm) => !data.secondaryQvPmfm.map((qv) => -qv.id).includes(pmfm.id));
+    const columnsToHide = this.virtualPmfms?.filter((pmfm) => !(data.secondaryQvPmfm ?? []).map((qv) => -qv.id).includes(pmfm.id));
     if (!data.selectAll) {
       columnsToHide?.forEach((vf) => {
         this.setShowColumn(vf.id.toString(), false);
@@ -1359,11 +1359,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
           }
         }
       });
-      if (isNotEmptyArray(subBatches)) {
-        tab.usedRowsCount = subBatches?.length;
-      } else if (isEmptyArray(subBatches) && tab.usedRowsCount > 0) {
-        tab.usedRowsCount = 0;
-      }
+      tab.usedRowsCount = subBatches?.length || 0;
     });
   }
 
