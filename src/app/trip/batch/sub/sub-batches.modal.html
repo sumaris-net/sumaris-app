@@ -306,7 +306,15 @@
               <a mat-tab-link [active]="item.isActive" (click)="setTabFilter(item.id)">
                 <ion-icon name="fish"></ion-icon>
                 &nbsp;
-                <mat-label translate>{{ item.name }}</mat-label>
+                <ion-label
+                  [matBadge]="item.usedRowsCount"
+                  matBadgeOverlap="false"
+                  [matBadgeColor]="item.usedRowsCount > 0 ? 'primary' : 'warn'"
+                  matBadgeSize="small"
+                  matBadgePosition="above after"
+                >
+                  <mat-label translate>{{ item.name }}</mat-label>
+                </ion-label>
               </a>
             }
           </nav>
@@ -407,6 +415,7 @@
               [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
               [class.mat-mdc-cell-computed]="computed"
               (click)="focusColumn = (pmfm.id || index).toString()"
+              (focusout)="onRowBlur(row)"
             >
               @if (row.editing) {
                 <app-pmfm-field

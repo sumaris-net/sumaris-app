@@ -20,7 +20,6 @@ import {
   NetworkService,
   PlatformService,
   SharedValidators,
-  sleep,
   suggestFromArray,
   toBoolean,
   UsageMode,
@@ -62,6 +61,7 @@ export interface TaxonNameTab {
   name: string;
   id: number;
   isActive: boolean;
+  usedRowsCount: number;
 }
 export interface ISubBatchesModalOptions {
   disabled: boolean;
@@ -944,6 +944,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   protected async generateSubBatchesFromRange(data: SubSortingCriteria) {
     await this.save();
+
     // reset disabled effect on the table
     this.inlineEdition = true;
     this.useCssDisabled = false;
@@ -1323,17 +1324,43 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     subBatches.forEach((subBatch) => {
       if (!this.taxonNameTabs.some((tab) => tab.id === subBatch.id)) {
-        this.taxonNameTabs.push({ name: subBatch.name, id: subBatch.id, isActive: false });
+        this.taxonNameTabs.push({ name: subBatch.name, id: subBatch.id, isActive: false, usedRowsCount: 0 });
       }
     });
 
     // Set first tab as active
     this.taxonNameTabs[0].isActive = true;
 
+    // Udape number of row used
+    this.updateTaxonRowsUsed();
+
     // Set filter
     const filter = new SubBatchFilter();
     filter.taxonNameId = this.taxonNameTabs[0].id;
     this.setFilter(filter);
+  }
+
+  updateTaxonRowsUsed() {
+    if (isEmptyArray(this.taxonNameTabs)) return;
+
+    let data = this.dataSource.getRows().map((row) => SubBatch.fromObject(row.currentData));
+
+    // Search all rows and remove duplicates
+    data = this.removeDuplicatesByProperties([...data, ...this.getValue()], ['label']);
+
+    if (isEmptyArray(data)) return;
+
+    this.taxonNameTabs.forEach((tab) => {
+      const subBatches = data?.filter((row) => {
+        if (row.taxonName.id === tab.id) {
+          const isNotEmpty = this.virtualPmfms?.some((pmfm) => isNotNil(row.measurementValues[pmfm.id]) || row.individualCount > 0);
+          if (isNotEmpty) {
+            return row;
+          }
+        }
+      });
+      if (isNotEmptyArray(subBatches)) tab.usedRowsCount = subBatches?.length;
+    });
   }
 
   setTabFilter(id: number) {
@@ -1377,7 +1404,20 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.minInterval = min;
     this.maxInterval = max;
   }
+  onRowBlur(row: TableElement<SubBatch>) {
+    if (isEmptyArray(this.taxonNameTabs) || !row.dirty) return;
+    this.updateTaxonRowsUsed();
+  }
 
+  removeDuplicatesByProperties<T extends Record<string, any>>(list: T[], keys: (keyof T)[]): T[] {
+    const seen = new Set<string>();
+    return list.filter((item) => {
+      const key = keys.map((k) => item[k]).join('|');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
   getFormErrors = AppFormUtils.getFormErrors;
   filterNumberInput = AppFormUtils.filterNumberInput;
 }
