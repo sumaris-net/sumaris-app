@@ -2,7 +2,7 @@ import { Component, Input, ViewEncapsulation, inject } from '@angular/core';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { MatTableDataSource } from '@angular/material/table';
 import { AppCoreModule } from '@app/core/core.module';
-import { MeasurementFormValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
 import { CommonReportComponentStats, ReportAppendixSection } from '@app/data/report/report-component.class';
@@ -12,8 +12,6 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { PmfmIds, QualitativeValueIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { arrayPluck } from '@app/shared/functions';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { Sale } from '@app/trip/sale/sale.model';
 import {
@@ -47,16 +45,12 @@ export class LandingFormReportComponentStats extends CommonReportComponentStats 
     hasPets: boolean;
     sizeUnliCatLabelsByLandingId: { [key: number]: string };
   };
-  observedSpecies: ReferentialRef[];
-  observedSpeciesByIds: { [key: number]: ReferentialRef };
   pagesSlice: { start: number; end: number }[];
 
   fromObject(source: any) {
     super.fromObject(source);
     this.options = source.options;
     this.fieldsValues = source.fieldsValues;
-    this.observedSpecies = source.observedSpecies.map(ReferentialRef.fromObject);
-    this.observedSpeciesByIds = splitById(this.observedSpecies);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -64,7 +58,6 @@ export class LandingFormReportComponentStats extends CommonReportComponentStats 
       ...super.asObject(opts),
       options: this.options,
       fieldsValues: this.fieldsValues,
-      observedSpecies: this.observedSpecies.map((source) => source.asObject(opts)),
     };
   }
 }
@@ -80,7 +73,6 @@ export class LandingFormReportComponentStats extends CommonReportComponentStats 
 export class LandingFormReportComponent extends ReportTableComponent<Landing[], LandingFormReportComponentStats, LandingFormReportPageDimension> {
   protected readonly nbLinesPeerPage = 12;
 
-  protected readonly referentialRefService = inject(ReferentialRefService);
   protected dateAdapter: MomentDateAdapter = inject(MomentDateAdapter);
   protected pages: MatTableDataSource<Landing>[];
   protected displayedColumns: string[];
@@ -93,6 +85,7 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
   @Input({ required: true }) sales: Sale[];
   @Input({ required: true }) sortingBatchPmfmsByIds: { [key: number]: IPmfm };
   @Input({ required: true }) dividerPmfm: IPmfm;
+  @Input({ required: true }) observedSpeciesByIds: { [key: number]: ReferentialRef };
 
   constructor() {
     super(Array<Landing>, LandingFormReportComponentStats);
@@ -111,9 +104,6 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
   protected async computeStats(data: Landing[], _?: IComputeStatsOpts<LandingFormReportComponentStats>): Promise<LandingFormReportComponentStats> {
     const stats = new LandingFormReportComponentStats();
     const datePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
-    const observedSpeciesIds = this.computeObservedSpeciesIds(data);
-    stats.observedSpecies = await this.referentialRefService.loadAllByIds(observedSpeciesIds, 'TaxonGroup');
-    stats.observedSpeciesByIds = splitById(stats.observedSpecies);
 
     stats.headerItems = [
       this.translate.instant('OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.HEADER.DATE') +
@@ -130,14 +120,13 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
 
     stats.fieldsValues = {
       totalVesselSampled: RootVesselEntityUtils.getDistinctVessel(data).length,
-      numberOfSampledPrioritySpecies: observedSpeciesIds.length,
+      numberOfSampledPrioritySpecies: Object.keys(this.observedSpeciesByIds).length,
       hasPets: this.computeHasPets(data),
       sizeUnliCatLabelsByLandingId: this.computeSizeUnliCatLabelsByLandingId(this.sales),
     };
 
     stats.pagesSlice = this.computePageSlice(data.length);
 
-    console.debug('MYTEST landingFormReportComponent data/stats', { data, stats });
     return stats;
   }
 
@@ -189,15 +178,6 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
         index++;
       }
     }
-  }
-
-  private computeObservedSpeciesIds(landings: Landing[]): number[] {
-    return MeasurementValuesUtils.getDistinctValuesByPmfmId(
-      arrayPluck(landings, 'measurementValues', true) as MeasurementFormValues[],
-      PmfmIds.TAXON_GROUP_ID
-    )
-      .filter((v) => typeof v === 'string')
-      .map((v: string) => parseInt(v));
   }
 
   private computeHasPets(landings: Landing[]): boolean {

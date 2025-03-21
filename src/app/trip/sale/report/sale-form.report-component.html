@@ -1,0 +1,81 @@
+@if (loaded) {
+  <app-reveal #reveal [options]="revealOptions">
+    <section *sectionDef class="portrait" [style.--page-horizontal-margin]="parentPageDimensions.pageHorizontalMargin">
+      <!-- header -->
+      <page-header-form-report-chunk
+        [i18nContext]="i18nContext"
+        [title]="'SALE.REPORT.FORM.TITLE'"
+        [items]="stats.headerItems"
+        [logoRightUrl]="logoHeadRightUrl"
+        [logoLeftUrl]="logoHeadLeftUrl"
+        [pageNumber]=""
+      ></page-header-form-report-chunk>
+
+      <!-- Sale -->
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ 'SALE.REPORT.FORM.SECTION.SALE.TITLE' | translate }}</h3>
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'SALE.REPORT.FORM.SECTION.SALE.FIELDS.SALE_TYPE' | translate }}
+          </ion-col>
+          <ion-col class="form-value" size="8">
+            @if (!isBlankForm) {
+              {{ data.saleType | referentialToString: ['name'] }}
+            }
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'SALE.REPORT.FORM.SECTION.SALE.FIELDS.SALE_LOCATION' | translate }}
+          </ion-col>
+          <ion-col class="form-value" size="8">
+            @if (!isBlankForm) {
+              {{ data.saleLocation | referentialToString: displayAttributes.location }}
+            }
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Fishing area -->
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ 'SALE.REPORT.FORM.SECTION.FISHING_AREA.TITLE' | translate }}</h3>
+          </ion-col>
+        </ion-row>
+        <!-- FIXME: Handle case of several fishing areas ? -->
+        <ion-row class="form-field">
+          <ion-col class="form-label" size="4">
+            {{ 'SALE.REPORT.FORM.SECTION.FISHING_AREA.FIELDS.LOCATION' | translate }}
+          </ion-col>
+          <ion-col class="form-value" size="8">
+            @if (!isBlankForm && (data.fishingAreas | isNotEmptyArray)) {
+              {{ data.fishingAreas[0].location | referentialToString: displayAttributes.location }}
+            }
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Comments -->
+      <ion-grid class="report-section">
+        <ion-row class="section-title">
+          <ion-col>
+            <h3>{{ 'SALE.REPORT.FORM.COMMENT' | translate }}</h3>
+          </ion-col>
+        </ion-row>
+        <ion-row class="form-field" [style.--form-field-height]="'120'">
+          <ion-col class="form-value" size="12">
+            {{ data?.comments }}
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- TODO -->
+      <page-footer-from-report-chunk [footerText]="" [helpText]=""></page-footer-from-report-chunk>
+    </section>
+  </app-reveal>
+}

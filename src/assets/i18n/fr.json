@@ -1743,6 +1743,29 @@
       "LOAD_ALL_ERROR": "Erreur de chargement des ventes.",
       "SAVE_ERROR": "Erreur lors de la sauvegarde de la vente.",
       "SAVE_ALL_ERROR": "Erreur lors de la sauvegarde des ventes."
+    },
+    "REPORT": {
+      "FORM": {
+        "TITLE": "FICHE VENTE",
+        "VESSEL": "Navire",
+        "SPECIE": "Éspèce",
+        "COMMENT": "Commentaire",
+        "SECTION": {
+          "SALE": {
+            "TITLE": "Vente",
+            "FIELDS": {
+              "SALE_TYPE": "Type de vente",
+              "SALE_LOCATION": "Lieu de vente"
+            }
+          },
+          "FISHING_AREA": {
+            "TITLE": "Zones de pêche",
+            "FIELDS": {
+              "LOCATION": "Lieu"
+            }
+          }
+        }
+      }
     }
   },
   "SCIENTIFIC_CRUISE": {

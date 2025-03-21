@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { AppCoreModule } from '@app/core/core.module';
 import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
-import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
+import { MeasurementFormValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { BASE_REPORT, BaseReportStats, IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
 import { FormReportPageDimensions } from '@app/data/report/common-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
@@ -10,7 +10,9 @@ import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/
 import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { arrayPluck } from '@app/shared/functions';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { Landing } from '@app/trip/landing/landing.model';
@@ -19,11 +21,12 @@ import { ObservedLocation } from '@app/trip/observedlocation/observed-location.m
 import { Sale } from '@app/trip/sale/sale.model';
 import { SaleService } from '@app/trip/sale/sale.service';
 import { environment } from '@environments/environment';
-import { EntityAsObjectOptions, isEmptyArray, isNotNil, splitById } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, ReferentialRef, isEmptyArray, isNil, isNotEmptyArray, isNotNil, splitById } from '@sumaris-net/ngx-components';
 import { ReportChunkModule } from '../../../../data/report/form/report-chunk.module';
 import { LandingFormReportComponent } from '../../../landing/report/form/landing-form.report-component';
 import { ObservedLocationService } from '../../observed-location.service';
 import { ObservedLocationFormReportComponent } from './observed-location-form.report-component';
+import { SaleFormReportComponent } from '@app/trip/sale/report/sale-form.report-component';
 
 export class ObservedLocationFormReportStats extends BaseReportStats {
   options: {
@@ -32,6 +35,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
     displayAttributes: {
       location: string[];
       taxonGroup: string[];
+      vesselSnapshot: string[];
     };
     urlHeaderLogoLeft: string;
     urlHeaderLogoRight: string;
@@ -41,20 +45,29 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
   fieldsValues: {
     hasPets?: boolean;
   };
+  mappings: {
+    saleIdToObservedSpeciesId: { [key: number]: number };
+  };
   strategy: Strategy;
   pmfms: {
     observedLocation: IPmfm[];
     landing: IPmfm[];
+    catchBatch: IPmfm[];
     sortingBatch: IPmfm[];
+    sortingBatchIndividual: IPmfm[];
     sale: IPmfm[];
   };
   pmfmsByIds: {
     observedLocation: { [key: number]: IPmfm };
     landing: { [key: number]: IPmfm };
+    catchBatch: { [key: number]: IPmfm };
     sortingBatch: { [key: number]: IPmfm };
+    sortingBatchIndividual: { [key: number]: IPmfm };
   };
   sales: Sale[];
   landingTableDividerPmfm: IPmfm;
+  observedSpecies: ReferentialRef[];
+  observedSpeciesByIds: { [key: number]: ReferentialRef };
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -64,16 +77,23 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
     this.pmfms = {
       observedLocation: (source?.pmfms?.observedLocation || {}).map(Pmfm.fromObject),
       landing: (source?.pmfms?.landing || {}).map(Pmfm.fromObject),
+      catchBatch: (source?.pmfms?.catchBatch || {}).map(Pmfm.fromObject),
       sortingBatch: (source?.pmfms?.sortingBatch || {}).map(Pmfm.fromObject),
+      sortingBatchIndividual: (source?.pmfms?.sortingBatchIndividual || {}).map(Pmfm.fromObject),
       sale: (source?.pmfms?.sale || {}).map(Pmfm.fromObject),
     };
     this.pmfmsByIds = {
       observedLocation: splitById(this.pmfms.observedLocation),
       landing: splitById(this.pmfms.landing),
+      catchBatch: splitById(this.pmfms.catchBatch),
       sortingBatch: splitById(this.pmfms.sortingBatch),
+      sortingBatchIndividual: splitById(this.pmfms.sortingBatchIndividual),
     };
     this.sales = source.sales.map(Sale.fromObject);
     this.landingTableDividerPmfm = this.pmfmsByIds.landing?.[this.options.landingTableDividerPmfmId];
+    this.observedSpecies = source.observedSpecies.map(ReferentialRef.fromObject);
+    this.observedSpeciesByIds = splitById(this.observedSpecies);
+    this.mappings = source.mappings;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -89,13 +109,22 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
         sale: this.pmfms.sale.map((pmfm) => pmfm.asObject(opts)),
       },
       sales: this.sales.map((sale) => sale.asObject(opts)),
+      observedSpecies: this.observedSpecies.map((source) => source.asObject(opts)),
+      mappings: this.mappings,
     };
   }
 }
 
 @Component({
   standalone: true,
-  imports: [AppCoreModule, AppSharedReportModule, ReportChunkModule, ObservedLocationFormReportComponent, LandingFormReportComponent],
+  imports: [
+    AppCoreModule,
+    AppSharedReportModule,
+    ReportChunkModule,
+    ObservedLocationFormReportComponent,
+    LandingFormReportComponent,
+    SaleFormReportComponent,
+  ],
   selector: 'observed-location-form-report',
   templateUrl: './observed-location-form.report.html',
   styleUrls: ['../../../../data/report/base-report.scss', './observed-location-form.report.scss'],
@@ -108,6 +137,7 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
   protected readonly landingService = inject(LandingService);
   protected readonly saleService = inject(SaleService);
   protected readonly strategyRefService: StrategyRefService = inject(StrategyRefService);
+  protected readonly referentialRefService = inject(ReferentialRefService);
 
   constructor() {
     super(ObservedLocation, ObservedLocationFormReportStats);
@@ -175,8 +205,9 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       colorPrimary: stats.program.getProperty(ProgramProperties.DATA_REPORT_COLOR_PRIMARY) || 'var(--ion-color-primary)',
       colorSecondary: stats.program.getProperty(ProgramProperties.DATA_REPORT_COLOR_SECONDARY) || 'var(--ion-color-secondary)',
       displayAttributes: {
-        location: this.settings.getFieldDisplayAttributes('location'),
-        taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup'),
+        location: this.settings.getFieldDisplayAttributes('location', ['label', 'name']),
+        taxonGroup: this.settings.getFieldDisplayAttributes('taxonGroup', ['label', 'name']),
+        vesselSnapshot: this.settings.getFieldDisplayAttributes('vesselSnapshot', ['registrationCode', 'name']),
       },
       urlHeaderLogoLeft: stats.program.getProperty(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_HEADER_LEFT_LOGO_URL),
       urlHeaderLogoRight: stats.program.getProperty(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_HEADER_RIGHT_LOGO_URL),
@@ -197,9 +228,21 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
             strategyId,
           })
         : [],
+      catchBatch: isNotNil(strategyId)
+        ? await this.programRefService.loadProgramPmfms(data.program.label, {
+            acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH,
+            strategyId,
+          })
+        : [],
       sortingBatch: isNotNil(strategyId)
         ? await this.programRefService.loadProgramPmfms(data.program.label, {
             acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
+            strategyId,
+          })
+        : [],
+      sortingBatchIndividual: isNotNil(strategyId)
+        ? await this.programRefService.loadProgramPmfms(data.program.label, {
+            acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
             strategyId,
           })
         : [],
@@ -214,7 +257,9 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
     stats.pmfmsByIds = {
       observedLocation: splitById(stats.pmfms.observedLocation),
       landing: splitById(stats.pmfms.landing),
+      catchBatch: splitById(stats.pmfms.catchBatch),
       sortingBatch: splitById(stats.pmfms.sortingBatch),
+      sortingBatchIndividual: splitById(stats.pmfms.sortingBatchIndividual),
     };
 
     stats.landingTableDividerPmfm = stats.pmfmsByIds.landing?.[stats.options.landingTableDividerPmfmId];
@@ -227,9 +272,16 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       };
     }
 
+    const observedSpeciesIds = this.computeObservedSpeciesIds(data.landings);
+    stats.observedSpecies = await this.referentialRefService.loadAllByIds(observedSpeciesIds, 'TaxonGroup');
+    stats.observedSpeciesByIds = splitById(stats.observedSpecies);
+    stats.mappings = {
+      saleIdToObservedSpeciesId: this.computeMappingSaleIdToObservedSpeciesId(data.landings, stats.pmfms.landing),
+    };
+
     stats.sales = await this.getSalesByLandings(data.landings);
 
-    console.debug('MYTEST observedLocationReport data/stats', { data, stats });
+    console.debug('MYTEST ObservedLocationFormReportComponent data/stats', { data, stats });
     return stats;
   }
 
@@ -303,5 +355,24 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       result.push(await this.saleService.load(landing.saleIds[0]));
     }
     return result;
+  }
+
+  private computeObservedSpeciesIds(landings: Landing[]): number[] {
+    return MeasurementValuesUtils.getDistinctValuesByPmfmId(
+      arrayPluck(landings, 'measurementValues', true) as MeasurementFormValues[],
+      PmfmIds.TAXON_GROUP_ID
+    )
+      .filter((v) => typeof v === 'string')
+      .map((v: string) => parseInt(v));
+  }
+
+  private computeMappingSaleIdToObservedSpeciesId(landings: Landing[], landingPmfms: IPmfm[]): { [key: number]: number } {
+    return landings.reduce((result, landing) => {
+      if (isEmptyArray(landing.saleIds)) return result;
+      const observedSpecieId = MeasurementValuesUtils.getFormValue(landing.measurementValues, landingPmfms, PmfmIds.TAXON_GROUP_ID);
+      if (isNil(observedSpecieId)) return result;
+      landing.saleIds.forEach((saleId) => (result[saleId] = observedSpecieId));
+      return result;
+    }, {});
   }
 }

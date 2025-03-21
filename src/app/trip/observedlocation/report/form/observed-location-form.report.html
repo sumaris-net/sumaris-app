@@ -69,8 +69,8 @@
       [style.--color-secondary]="stats.options.colorSecondary"
     >
       <observed-location-form-report-component
-        [rankOrder]="10"
-        [stats]="stats?.reportComponents?.[10]"
+        [rankOrder]="1000"
+        [stats]="stats?.reportComponents?.[1000]"
         [data]="data"
         [pmfms]="stats.pmfms.observedLocation"
         [parentPageDimensions]="pageDimensions"
@@ -86,8 +86,8 @@
       ></observed-location-form-report-component>
 
       <landing-form-report-component
-        [rankOrder]="20"
-        [stats]="stats?.reportComponents?.[20]"
+        [rankOrder]="2000"
+        [stats]="stats?.reportComponents?.[2000]"
         [data]="data?.landings"
         [sales]="stats.sales"
         [pmfms]="stats.pmfms.landing"
@@ -107,7 +107,27 @@
         [landTripDate]="data.endDateTime"
         [landTripLocation]="data.location"
         [dividerPmfm]="stats.landingTableDividerPmfm"
+        [observedSpeciesByIds]="stats.observedSpeciesByIds"
       ></landing-form-report-component>
+
+      @for (sale of stats.sales; track sale.id) {
+        <sale-form-report-component
+          [rankOrder]="3000 + $index"
+          [stats]="stats?.reportComponents?.[3000 + $index]"
+          [data]="sale"
+          [parentPageDimensions]="pageDimensions"
+          [revealOptions]="revealOptions"
+          [i18nContext]="i18nContext"
+          [program]="stats.program"
+          [strategy]="stats.strategy"
+          [isBlankForm]="isBlankForm"
+          [logoHeadLeftUrl]="stats.options.urlHeaderLogoLeft"
+          [logoHeadRightUrl]="stats.options.urlHeaderLogoRight"
+          [isPrintingPDF]="false"
+          [displayAttributes]="stats.options.displayAttributes"
+          [observedSpecie]="stats.observedSpeciesByIds | mapGet: (stats.mappings.saleIdToObservedSpeciesId | mapGet: sale.id)"
+        ></sale-form-report-component>
+      }
     </app-reveal>
   } @else {
     <loader-report-chunk></loader-report-chunk>

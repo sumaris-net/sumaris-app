@@ -115,7 +115,7 @@
                       </mat-header-cell>
                       <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
                         {{
-                          stats.observedSpeciesByIds
+                          observedSpeciesByIds
                             | mapGet: (landing.measurementValues | mapGet: pmfmIds.TAXON_GROUP_ID)
                             | referentialToString: displayAttributesTaxonGroup
                         }}
@@ -151,7 +151,7 @@
                               ></table-head-pmfm-name-report-chunk>
                             </div>
                         </mat-header-cell>
-                        <mat-cell *matCellDef="let landing" class="padding-medium font-medium"></mat-cell>
+                        <mat-cell *matCellDef="let landing" class="padding-medium"></mat-cell>
                       </ng-container>
                     }
 
