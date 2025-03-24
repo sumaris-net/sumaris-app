@@ -329,7 +329,7 @@
           [matSortDirection]="defaultSortDirection"
           matSortDisableClear="true"
           [class.compact]="compact"
-          [class]="useCssDisabled ? 'disabled-table' : null"
+          [class.disabled-table]="useCssDisabled"
         >
           <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
             <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">

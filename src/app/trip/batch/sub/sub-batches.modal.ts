@@ -57,7 +57,7 @@ import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/im
 
 type ModalMode = 'INDIVIDUAL_COUNT' | 'LENGTH_CLASS';
 
-export interface TaxonNameTab {
+interface TaxonNameTab {
   name: string;
   id: number;
   isActive: boolean;
@@ -168,8 +168,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   protected useCssDisabled: boolean = false;
   protected showFilterTab: boolean = false;
   protected taxonNameTabs: TaxonNameTab[] = [];
-  minInterval: number = null;
-  maxInterval: number = null;
+  protected minInterval: number = null;
+  protected maxInterval: number = null;
 
   get selectedRow(): TableElement<SubBatch> {
     return this.singleSelectedRow || this.editedRow;
@@ -959,7 +959,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       await this.setModalMode('INDIVIDUAL_COUNT', false);
     }
     // Create subbatches
-    let subBatchesToAdd = [];
+    const subBatchesToAdd = [];
     let rankOrder = await this.getMaxRankOrder();
     for (let size = data.min; size <= data.max; size += data.precision) {
       // Do not add already existing row for this taxonname and size
@@ -982,7 +982,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
           }
         });
     }
-    subBatchesToAdd = subBatchesToAdd.flatMap((subBatch) => this.splitByProperty(subBatch, 'taxonName'));
 
     const columnsToHide = this.virtualPmfms?.filter((pmfm) => !(data.secondaryQvPmfm ?? []).map((qv) => -qv.id).includes(pmfm.id));
     if (!data.selectAll) {
@@ -1198,6 +1197,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     const showVirtualColums = isNotNil(showVirtualColumns) ? showVirtualColumns : mode === 'LENGTH_CLASS';
     const numericalPmfm = this.pmfms.find((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isNumeric(pmfm) && !PmfmUtils.isVirtual(pmfm));
     this.setShowVirtualColumns(showVirtualColums);
+
     switch (mode) {
       case 'LENGTH_CLASS':
         if (!this._rowsAreMerged || this._modalMode === 'INDIVIDUAL_COUNT') {
@@ -1317,7 +1317,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     await this.setValue(subBatchFixture);
   }
 
-  loadTaxonNameTabs(subBatches: TaxonNameRef[]) {
+  private loadTaxonNameTabs(subBatches: TaxonNameRef[]) {
     if (isEmptyArray(subBatches)) return;
     // Clear
     this.taxonNameTabs = [];
@@ -1329,31 +1329,26 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     });
 
     // Set first tab as active
-    this.taxonNameTabs[0].isActive = true;
+    this.setTabFilter(this.taxonNameTabs[0].id);
 
-    // Udape number of row used
+    // Update number of row used
     this.updateTaxonRowsUsed();
-
-    // Set filter
-    const filter = new SubBatchFilter();
-    filter.taxonNameId = this.taxonNameTabs[0].id;
-    this.setFilter(filter);
   }
 
-  updateTaxonRowsUsed() {
+  private updateTaxonRowsUsed() {
     if (isEmptyArray(this.taxonNameTabs)) return;
 
     let data = this.dataSource.getRows().map((row) => SubBatch.fromObject(row.currentData));
 
     // Search all rows and remove duplicates
-    data = this.removeDuplicatesByProperties([...data, ...this.getValue()], ['label']);
-    const virtualPmfmsDispalyed = this.virtualPmfms?.filter((pmfm) => this.getShowColumn(pmfm.id.toString()));
+    data = removeDuplicatesByProperties([...data, ...this.getValue()], ['label']);
+    const virtualPmfmsDisplayed = this.virtualPmfms?.filter((pmfm) => this.getShowColumn(pmfm.id.toString()));
     if (isEmptyArray(data)) return;
 
     this.taxonNameTabs.forEach((tab) => {
       const subBatches = data?.filter((row) => {
         if (row.taxonName.id === tab.id) {
-          const isNotEmpty = virtualPmfmsDispalyed?.some((pmfm) => isNotNil(row.measurementValues[pmfm.id]));
+          const isNotEmpty = virtualPmfmsDisplayed?.some((pmfm) => isNotNil(row.measurementValues[pmfm.id]));
           if (isNotEmpty) {
             return row;
           }
@@ -1363,7 +1358,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     });
   }
 
-  setTabFilter(id: number) {
+  protected setTabFilter(id: number) {
     // Set active tab
     this.taxonNameTabs = this.taxonNameTabs.map((tab) => {
       tab.isActive = tab.id === id;
@@ -1376,15 +1371,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.setFilter(filter);
   }
 
-  splitByProperty<T extends Record<string, any>>(obj: T, property: string): T[] {
-    if (obj[property] && !Array.isArray(obj[property])) {
-      return [obj];
-    }
-    return obj[property].map((item) => ({
-      ...obj,
-      [property]: item,
-    }));
-  }
   async updateControlsInterval() {
     const subBatches = this.dataSource.getRows()?.map((row) => row.currentData);
     if (isEmptyArray(subBatches)) {
@@ -1404,20 +1390,23 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.minInterval = min;
     this.maxInterval = max;
   }
-  onRowBlur(row: TableElement<SubBatch>) {
+
+  protected onRowBlur(row: TableElement<SubBatch>) {
     if (isEmptyArray(this.taxonNameTabs) || !row.dirty) return;
     this.updateTaxonRowsUsed();
   }
 
-  removeDuplicatesByProperties<T extends Record<string, any>>(list: T[], keys: (keyof T)[]): T[] {
-    const seen = new Set<string>();
-    return list.filter((item) => {
-      const key = keys.map((k) => item[k]).join('|');
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }
   getFormErrors = AppFormUtils.getFormErrors;
   filterNumberInput = AppFormUtils.filterNumberInput;
+}
+
+// TODO: à déplacer ou supprimer
+function removeDuplicatesByProperties<T extends Record<string, any>>(list: T[], keys: (keyof T)[]): T[] {
+  const seen = new Set<string>();
+  return list.filter((item) => {
+    const key = keys.map((k) => item[k]).join('|');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
