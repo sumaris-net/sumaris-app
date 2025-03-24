@@ -48,14 +48,32 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
   protected disabledPrecision: boolean = false;
   protected showQvPmfm: boolean = false;
   protected pmfmsFiltered: IPmfm[];
+  private _minInterval: number = null;
+  private _maxInterval: number = null;
 
   @Input() parentGroup: BatchGroup;
   @Input() programLabel: string;
   @Input() pmfms: IPmfm[];
   @Input() enableTaxonNameFilter: boolean = true;
   @Input() canFilterTaxonName: boolean = true;
-  @Input() minInterval: number = null;
-  @Input() maxInterval: number = null;
+
+  @Input()
+  set minInterval(value: number) {
+    this._minInterval = value;
+    this.updateIntervalValidators();
+  }
+  get minInterval(): number {
+    return this._minInterval;
+  }
+
+  @Input()
+  set maxInterval(value: number) {
+    this._maxInterval = value;
+    this.updateIntervalValidators();
+  }
+  get maxInterval(): number {
+    return this._maxInterval;
+  }
 
   @ViewChild('taxonNameField') taxonNameField: MatAutocompleteField;
 
@@ -98,14 +116,6 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
         } else {
           this.disabledPrecision = false;
         }
-      })
-    );
-
-    this.registerSubscription(
-      // Set min and max validators
-      this.form.valueChanges.subscribe((value) => {
-        this.form.get('min').setValidators([Validators.required, Validators.min(0), Validators.max(this.minInterval)]);
-        this.form.get('max').setValidators([Validators.required, Validators.min(this.maxInterval)]);
       })
     );
 
@@ -204,6 +214,11 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
   toggleFilteredTaxonName() {
     this.enableTaxonNameFilter = !this.enableTaxonNameFilter;
     this.taxonNameField.reloadItems();
+  }
+
+  updateIntervalValidators() {
+    this.form.get('min').setValidators([Validators.required, Validators.min(0), Validators.max(this._minInterval)]);
+    this.form.get('max').setValidators([Validators.required, Validators.min(this._maxInterval)]);
   }
 
   doSubmit() {
