@@ -2776,6 +2776,7 @@
       "SALE_BATCH_ENABLE": "Sortie > Vente : Activer les lots ?",
       "SALE_BATCH_IMAGES_ENABLE": "Sortie > Vente : Activer les photos ?",
       "SALE_METIER_ENABLE": "Sortie > Vente : Métier ?",
+      "SALE_FISHING_AREA_LOCATION_LEVEL_IDS": "Sortie > Vente : Zone de pêche: Niveau(x) de lieu",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",
