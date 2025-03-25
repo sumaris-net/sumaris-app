@@ -217,8 +217,15 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
   }
 
   updateIntervalValidators() {
-    this.form.get('min').setValidators([Validators.required, Validators.min(0), Validators.max(this._minInterval)]);
-    this.form.get('max').setValidators([Validators.required, Validators.min(this._maxInterval)]);
+    const min = this.form.get('min');
+    const max = this.form.get('max');
+
+    // Wait return of moa
+    min.setValue(this._minInterval);
+    max.setValue(this._maxInterval);
+
+    min.setValidators([Validators.required, Validators.min(0), Validators.max(this._minInterval)]);
+    max.setValidators([Validators.required, Validators.min(this._maxInterval)]);
   }
 
   doSubmit() {
