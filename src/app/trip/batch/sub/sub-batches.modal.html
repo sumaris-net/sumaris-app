@@ -107,6 +107,8 @@
             [programLabel]="programLabel"
             [enableTaxonNameFilter]="enableTaxonNameFilter"
             [canFilterTaxonName]="canFilterTaxonName"
+            [minInterval]="minInterval"
+            [maxInterval]="maxInterval"
             (onSubmit)="generateSubBatchesFromRange($event)"
           ></app-sub-sorting-criteria-form>
         }
@@ -298,7 +300,27 @@
           </mat-action-row>
         </mat-expansion-panel>
 
+        @if (showFilterTab) {
+          <nav mat-tab-nav-bar [tabPanel]="tableContainer">
+            @for (item of taxonNameTabs; track item.id) {
+              <a mat-tab-link [active]="item.isActive" (click)="setTabFilter(item.id)">
+                <ion-icon name="fish"></ion-icon>
+                &nbsp;
+                <ion-label
+                  [matBadge]="item.usedRowsCount"
+                  matBadgeOverlap="false"
+                  [matBadgeColor]="item.usedRowsCount > 0 ? 'primary' : 'warn'"
+                  matBadgeSize="small"
+                  matBadgePosition="above after"
+                >
+                  <mat-label translate>{{ item.name }}</mat-label>
+                </ion-label>
+              </a>
+            }
+          </nav>
+        }
         <table
+          #tableContainer
           mat-table
           [dataSource]="dataSource"
           [trackBy]="trackByFn"
@@ -307,7 +329,7 @@
           [matSortDirection]="defaultSortDirection"
           matSortDisableClear="true"
           [class.compact]="compact"
-          [class]="useCssDisabled ? 'disabled-table' : null"
+          [class.disabled-table]="useCssDisabled"
         >
           <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
             <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
@@ -393,6 +415,7 @@
               [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm"
               [class.mat-mdc-cell-computed]="computed"
               (click)="focusColumn = (pmfm.id || index).toString()"
+              (focusout)="onRowBlur(row)"
             >
               @if (row.editing) {
                 <app-pmfm-field

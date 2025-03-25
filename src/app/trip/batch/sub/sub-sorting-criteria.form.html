@@ -2,13 +2,14 @@
   <ion-grid>
     <ion-row>
       <ion-col>
-        <mat-autocomplete-field
+        <mat-chips-field
           #taxonNameField
-          formControlName="taxonName"
+          formControlName="taxonNames"
           [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME' | translate"
-          [config]="autocompleteFields.taxonName"
+          [config]="autocompleteFields.taxonNames"
           [clearable]="true"
           [required]="true"
+          chipColor="accent"
         >
           <button
             matAfter
@@ -22,7 +23,7 @@
           >
             <mat-icon>filter_list_alt</mat-icon>
           </button>
-        </mat-autocomplete-field>
+        </mat-chips-field>
       </ion-col>
     </ion-row>
     <ion-row>
