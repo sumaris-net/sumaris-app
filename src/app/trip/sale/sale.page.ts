@@ -575,7 +575,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     // this.saleForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
     // this.saleForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     // this.saleForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
-    // this.saleForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS);
+    this.saleForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.SALE_FISHING_AREA_LOCATION_LEVEL_IDS);
     this.enableExpertiseArea = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_EXPERTISE_AREA_ENABLE);
 
     // Compute i18n prefix

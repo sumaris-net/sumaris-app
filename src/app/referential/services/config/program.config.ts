@@ -1251,6 +1251,13 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
   },
 
+  SALE_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.sale.fishingArea.locationLevel.ids',
+    label: 'PROGRAM.OPTIONS.SALE_FISHING_AREA_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: locationLevelAutocomplete,
+    defaultValue: LocationLevelGroups.FISHING_AREA.toString(),
+  },
   /* -- Landed trip options -- */
 
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{

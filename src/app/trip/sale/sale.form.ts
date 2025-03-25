@@ -22,7 +22,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Sale } from './sale.model';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -67,6 +67,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   @Input() showMetiers = false;
   @Input() showFishingAreas = false;
   @Input() allowManyMetiers: boolean = null;
+  @Input() fishingAreaLocationLevelIds: number[] = null;
 
   @Input()
   set enableExpertiseArea(value: boolean) {
@@ -275,7 +276,10 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
       statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       ...filter,
       excludedIds: existingFishingAreaLocationIds,
-      levelIds: this.enableExpertiseArea ? this.expertiseAreaProperties?.locationLevelIds : undefined,
+      levelIds:
+        this.enableExpertiseArea && isNotEmptyArray(this.expertiseAreaProperties?.locationLevelIds)
+          ? this.expertiseAreaProperties.locationLevelIds
+          : this.fishingAreaLocationLevelIds || LocationLevelGroups.FISHING_AREA,
       locationIds: this.enableExpertiseArea ? this.expertiseAreaProperties?.locationIds : filter?.locationIds,
     };
   }
