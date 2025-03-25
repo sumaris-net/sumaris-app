@@ -23,7 +23,7 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 
 export interface SubSortingCriteria {
-  taxonName: TaxonNameRef;
+  taxonNames: TaxonNameRef[];
   criteriaPmfm: IPmfm;
   min: number;
   max: number;
@@ -48,12 +48,32 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
   protected disabledPrecision: boolean = false;
   protected showQvPmfm: boolean = false;
   protected pmfmsFiltered: IPmfm[];
+  private _minInterval: number = null;
+  private _maxInterval: number = null;
 
   @Input() parentGroup: BatchGroup;
   @Input() programLabel: string;
   @Input() pmfms: IPmfm[];
   @Input() enableTaxonNameFilter: boolean = true;
   @Input() canFilterTaxonName: boolean = true;
+
+  @Input()
+  set minInterval(value: number) {
+    this._minInterval = value;
+    this.updateIntervalValidators();
+  }
+  get minInterval(): number {
+    return this._minInterval;
+  }
+
+  @Input()
+  set maxInterval(value: number) {
+    this._maxInterval = value;
+    this.updateIntervalValidators();
+  }
+  get maxInterval(): number {
+    return this._maxInterval;
+  }
 
   @ViewChild('taxonNameField') taxonNameField: MatAutocompleteField;
 
@@ -67,7 +87,7 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
     super(
       injector,
       fb.group({
-        taxonName: [null, Validators.required],
+        taxonNames: [null, Validators.required],
         criteriaPmfm: [null, Validators.required],
         min: [null, [Validators.required, Validators.min(0)]],
         max: [null, Validators.required],
@@ -107,7 +127,7 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
       })
     );
 
-    this.registerAutocompleteField('taxonName', {
+    this.registerAutocompleteField('taxonNames', {
       suggestFn: (value, filter) => this.suggestTaxonNames(value, filter),
       panelClass: 'min-width-large',
       selectInputContentOnFocus: true,
@@ -194,6 +214,18 @@ export class SubSortingCriteriaForm extends AppForm<SubSortingCriteria> implemen
   toggleFilteredTaxonName() {
     this.enableTaxonNameFilter = !this.enableTaxonNameFilter;
     this.taxonNameField.reloadItems();
+  }
+
+  updateIntervalValidators() {
+    const min = this.form.get('min');
+    const max = this.form.get('max');
+
+    // Wait return of moa
+    min.setValue(this._minInterval);
+    max.setValue(this._maxInterval);
+
+    min.setValidators([Validators.required, Validators.min(0), Validators.max(this._minInterval)]);
+    max.setValidators([Validators.required, Validators.min(this._maxInterval)]);
   }
 
   doSubmit() {
