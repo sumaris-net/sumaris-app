@@ -1,6 +1,6 @@
 @if (loaded) {
   <app-reveal #reveal [options]="revealOptions">
-    @if (data | isNotEmptyArray) {
+    @if (pages | isNotEmptyArray) {
       @for (page of pages; track $index) {
         <section [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
           <section *sectionDef class="landscape">
@@ -81,7 +81,12 @@
             <ion-grid class="report-section ion-no-padding ion-no-margin">
               <ion-row>
                 <ion-col>
-                  <mat-table #landingTable [dataSource]="page" [style.--row-height]="pageDimensions.rowHeight">
+                  <mat-table
+                    #landingTable
+                    [dataSource]="page"
+                    [style.--row-height]="pageDimensions.rowHeight"
+                    [style.--row-title-height]="pageDimensions.rowHeight"
+                  >
                     <ng-container matColumnDef="rankOrder">
                       <mat-header-cell *matHeaderCellDef class="tiny centred">
                         {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.RANK_ORDER' | translate }}
@@ -143,13 +148,13 @@
                     @for (pmfm of pmfms; track pmfm.id) {
                       <ng-container [matColumnDef]="pmfm | pmfmIdString">
                         <mat-header-cell *matHeaderCellDef class="centred mat-column-pmfm mat-column-{{ pmfm.label }}" class="centred font-medium">
-                            <div class="ion-text-center">
-                              <table-head-pmfm-name-report-chunk
-                                [pmfm]="pmfm"
-                                [i18nContext]="i18nContext"
-                                [pmfmTipsByPmfmIds]="[]"
-                              ></table-head-pmfm-name-report-chunk>
-                            </div>
+                          <div class="ion-text-center">
+                            <table-head-pmfm-name-report-chunk
+                              [pmfm]="pmfm"
+                              [i18nContext]="i18nContext"
+                              [pmfmTipsByPmfmIds]="[]"
+                            ></table-head-pmfm-name-report-chunk>
+                          </div>
                         </mat-header-cell>
                         <mat-cell *matCellDef="let landing" class="padding-medium"></mat-cell>
                       </ng-container>
@@ -169,7 +174,7 @@
               </ion-row>
             </ion-grid>
 
-            <page-footer-from-report-chunk [footerText]="stats.options.footerText"></page-footer-from-report-chunk>
+            <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
           </section>
         </section>
       }

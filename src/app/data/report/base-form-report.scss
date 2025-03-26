@@ -68,9 +68,51 @@ html.print-pdf .reveal .slides section {
       display: flex;
       align-items: center;
     }
+
     .horizontal-centred-content {
       display: flex;
       justify-content: center;
+    }
+
+    .border-top {
+      border-top: solid 1px;
+    }
+
+    .border-right {
+      border-right: solid 1px;
+    }
+
+    .border-bottom {
+      border-bottom: solid 1px;
+    }
+
+    .border-left {
+      border-left: solid 1px;
+    }
+
+    .no-border-top {
+      border-top: 0 !important;
+    }
+
+    .no-border-right {
+      border-right: 0 !important;
+    }
+
+    .no-border-bottom {
+      border-bottom: 0 !important;
+    }
+
+    .no-border-left {
+      border-left: 0 !important;
+    }
+
+    .computed {
+      color: var(--ion-color-tertiary);
+      font-style: italic;
+    }
+
+    .invalid {
+      color: var(--ion-color-danger);
     }
 
     color: var(--text-color);
@@ -188,11 +230,10 @@ html.print-pdf .reveal .slides section {
         }
 
         ion-col {
-          &.no-border-top {
-            border-top: none !important;
-          }
-          &.no-border-bottom {
-            border-bottom: none !important;
+          &.fixed-width {
+            width: calc(var(--col-width) * 1px);
+            max-width: calc(var(--col-width) * 1px);
+            min-width: calc(var(--col-width) * 1px);
           }
 
           &.logo {
@@ -266,6 +307,7 @@ html.print-pdf .reveal .slides section {
       --col-large: 200;
       --col-extra-large: 250;
       --col-extra-extra-large: 300;
+      --col-width: unset;
       --row-title-height: 48;
       --row-height: 48;
       margin: 0 auto;
@@ -277,6 +319,9 @@ html.print-pdf .reveal .slides section {
         flex-direction: column;
         align-items: start;
         justify-content: center;
+        width: calc(var(--col-width) * 1px);
+        max-width: calc(var(--col-width) * 1px);
+        min-width: calc(var(--col-width) * 1px);
         div,
         p {
           margin: 0;
@@ -332,9 +377,49 @@ html.print-pdf .reveal .slides section {
         }
         &.centred {
           align-items: center;
+          text-align: center;
+        }
+
+        &.tree-indent {
+          padding-left: 10px;
+          flex-direction: row;
+          align-items: center;
+          justify-content: start;
+          span.tree-element {
+            margin-right: 5px;
+            height: 100%;
+            width: 10px;
+            &.leaf {
+              border-left: dotted 1px;
+              &:before {
+                content: '';
+                display: block;
+                height: 50%;
+                border-bottom: 1px dotted;
+              }
+            }
+            &.last-leaf {
+              &:before {
+                content: '';
+                display: block;
+                height: 50%;
+                border-left: dotted 1px;
+                border-bottom: 1px dotted;
+              }
+            }
+            &.trunc {
+              border-left: dotted 1px;
+            }
+          }
         }
       }
-      .mat-mdc-header-row,
+
+      .mat-mdc-header-row {
+        min-height: calc(var(--row-title-height) * 1px);
+        max-height: calc(var(--row-title-height) * 1px);
+        height: calc(var(--row-title-height) * 1px);
+      }
+
       .mat-mdc-row {
         min-height: calc(var(--row-height) * 1px);
         max-height: calc(var(--row-height) * 1px);
@@ -485,15 +570,6 @@ html.print-pdf .reveal .slides section {
 
       .place-holder {
         color: var(--ion-color-medium);
-      }
-
-      .computed {
-        color: var(--ion-color-tertiary);
-        font-style: italic;
-      }
-
-      .invalid {
-        color: var(--ion-color-danger);
       }
     }
   }

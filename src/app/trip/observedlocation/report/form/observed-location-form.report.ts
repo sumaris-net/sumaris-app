@@ -27,6 +27,7 @@ import { LandingFormReportComponent } from '../../../landing/report/form/landing
 import { ObservedLocationService } from '../../observed-location.service';
 import { ObservedLocationFormReportComponent } from './observed-location-form.report-component';
 import { SaleFormReportComponent } from '@app/trip/sale/report/sale-form.report-component';
+import { BatchFormReportComponent } from '@app/trip/batch/common/report/batch-form.report-component';
 
 export class ObservedLocationFormReportStats extends BaseReportStats {
   options: {
@@ -41,6 +42,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
     urlHeaderLogoRight: string;
     maxTipsToGoAppendix: number;
     landingTableDividerPmfmId: number;
+    footerText: string;
   };
   fieldsValues: {
     hasPets?: boolean;
@@ -124,6 +126,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
     ObservedLocationFormReportComponent,
     LandingFormReportComponent,
     SaleFormReportComponent,
+    BatchFormReportComponent,
   ],
   selector: 'observed-location-form-report',
   templateUrl: './observed-location-form.report.html',
@@ -213,6 +216,7 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       urlHeaderLogoRight: stats.program.getProperty(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_HEADER_RIGHT_LOGO_URL),
       maxTipsToGoAppendix: stats.program.getPropertyAsInt(ProgramProperties.REPORT_FORM_BLANK_TIPS_MAX_TO_GO_APPENDIX),
       landingTableDividerPmfmId: stats.program.getPropertyAsInt(ProgramProperties.LANDING_ROWS_DIVIDER_PMFM_ID),
+      footerText: stats.program.getProperty(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_FOOTER_TEXT),
     };
 
     stats.pmfms = {
@@ -281,7 +285,6 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
 
     stats.sales = await this.getSalesByLandings(data.landings);
 
-    console.debug('MYTEST ObservedLocationFormReportComponent data/stats', { data, stats });
     return stats;
   }
 

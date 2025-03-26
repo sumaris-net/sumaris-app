@@ -1736,6 +1736,33 @@
           "UNCERTAIN_SPECIES": "Identification à confirmer ?",
           "SIZE_UNLI_CAT": "Catégorie de tri terrain"
         }
+      },
+      "REPORT": {
+        "TITLE": "Fiche d'échantillonage",
+        "HEADER": {
+          "SELL_DATE_TIME": "Date et heure de vente",
+          "SALE_LOCATION": "Lieu de vente",
+          "VESSEL": "Navire"
+        },
+        "TABLE": {
+          "SELL_PART": {
+            "TITLE": "Partie vendue",
+            "EXHAUSTIVE_INVENTORY": "Exhaustivité des espèces scientifiques ?",
+            "TAXON_GROUP": "Espèce commerciale",
+            "TAXON_NAME": "Espèce scientifique",
+            "SORT_CRITERIONS": "Critères de classement",
+            "TOTAL_WEIGHT": "Poids TOTAL (kg)",
+            "TOTAL_INDIV": "Nombre TOTAL",
+            "FRACTION": "Fraction",
+            "WEIGHT": "Poids (kg)",
+            "NB_INDIV": "Nb. Indiv.",
+            "LEGEND": "Légende : Les lots dont la qualité est invalide sont en <span class=\"invalid\">rouge</span>, les valeurs calculées sont en <span class=\"computed\">bleu et italique</span>, les valeurs issues d'estimation terrain sont surlignées, les valeurs mesurées, pesées ou comptées sont en noir.",
+            "SAMPLE": "Échantillon"
+          },
+          "VALUES": {
+            "LENGTH_TOTAL": "LT={{value}} {{unitLabel}}"
+          }
+        }
       }
     },
     "ERROR": {

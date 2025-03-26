@@ -36,9 +36,6 @@ export interface LandingFormReportPageDimension extends ReportTableComponentPage
 }
 
 export class LandingFormReportComponentStats extends CommonReportComponentStats {
-  options: {
-    footerText: string;
-  };
   fieldsValues: {
     totalVesselSampled: number;
     numberOfSampledPrioritySpecies: number;
@@ -49,15 +46,15 @@ export class LandingFormReportComponentStats extends CommonReportComponentStats 
 
   fromObject(source: any) {
     super.fromObject(source);
-    this.options = source.options;
     this.fieldsValues = source.fieldsValues;
+    this.pagesSlice = source.pageSlice;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     return {
       ...super.asObject(opts),
-      options: this.options,
       fieldsValues: this.fieldsValues,
+      pageSlice: this.pagesSlice,
     };
   }
 }
@@ -86,6 +83,7 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
   @Input({ required: true }) sortingBatchPmfmsByIds: { [key: number]: IPmfm };
   @Input({ required: true }) dividerPmfm: IPmfm;
   @Input({ required: true }) observedSpeciesByIds: { [key: number]: ReferentialRef };
+  @Input({ required: true }) footerText: string;
 
   constructor() {
     super(Array<Landing>, LandingFormReportComponentStats);
@@ -114,10 +112,6 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
         (this.isBlankForm ? '.................................' : referentialToString(this.landTripLocation, this.displayAttributesLocation)),
     ];
 
-    stats.options = {
-      footerText: this.program.getProperty(ProgramProperties.OBSERVED_LOCATION_REPORT_FORM_LAND_TRIP_PLAN_FOOTER_TEXT),
-    };
-
     stats.fieldsValues = {
       totalVesselSampled: RootVesselEntityUtils.getDistinctVessel(data).length,
       numberOfSampledPrioritySpecies: Object.keys(this.observedSpeciesByIds).length,
@@ -126,7 +120,6 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
     };
 
     stats.pagesSlice = this.computePageSlice(data.length);
-
     return stats;
   }
 

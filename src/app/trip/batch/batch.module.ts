@@ -18,7 +18,15 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppVesselModule } from '@app/vessel/vessel.module';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 import { MatSamplingRatioFieldModule } from '@app/shared/material/sampling-ratio/material.sampling-ratio.module';
-import { BatchSortingValueIconPipe, IsSamplingRatioComputedPipe, SamplingRatioFormatPipe } from '@app/trip/batch/common/batch.pipes';
+import {
+  BatchIsCatchBatchPipe,
+  BatchIsIndividualBatchPipe,
+  BatchIsSamplingBatchPipe,
+  BatchIsSortingBatchPipe,
+  BatchSortingValueIconPipe,
+  IsSamplingRatioComputedPipe,
+  SamplingRatioFormatPipe,
+} from '@app/trip/batch/common/batch.pipes';
 import { BatchFilterForm } from '@app/trip/batch/filter/batch-filter.form';
 import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-container.component';
 import { MatTreeModule } from '@angular/material/tree';
@@ -56,6 +64,10 @@ import { SubSortingCriteriaForm } from './sub/sub-sorting-criteria.form';
     IsSamplingRatioComputedPipe,
     SamplingRatioFormatPipe,
     BatchSortingValueIconPipe,
+    BatchIsCatchBatchPipe,
+    BatchIsSortingBatchPipe,
+    BatchIsSamplingBatchPipe,
+    BatchIsIndividualBatchPipe,
 
     // Components
     BatchTreeComponent,
@@ -87,6 +99,10 @@ import { SubSortingCriteriaForm } from './sub/sub-sorting-criteria.form';
     IsSamplingRatioComputedPipe,
     SamplingRatioFormatPipe,
     BatchSortingValueIconPipe,
+    BatchIsCatchBatchPipe,
+    BatchIsSortingBatchPipe,
+    BatchIsSamplingBatchPipe,
+    BatchIsIndividualBatchPipe,
 
     // Components
     BatchTreeComponent,

@@ -77,3 +77,39 @@ export class BatchSortingValueIconPipe implements PipeTransform {
     }
   }
 }
+
+@Pipe({
+  name: 'batchIsCatchBatch',
+})
+export class BatchIsCatchBatchPipe implements PipeTransform {
+  transform(batch: Batch): boolean {
+    return BatchUtils.isCatchBatch(batch);
+  }
+}
+
+@Pipe({
+  name: 'batchIsSortingBatch',
+})
+export class BatchIsSortingBatchPipe implements PipeTransform {
+  transform(batch: Batch): boolean {
+    return BatchUtils.isSortingBatch(batch);
+  }
+}
+
+@Pipe({
+  name: 'batchIsSamplingBatch',
+})
+export class BatchIsSamplingBatchPipe implements PipeTransform {
+  transform(batch: Batch): boolean {
+    return BatchUtils.isSamplingBatch(batch);
+  }
+}
+
+@Pipe({
+  name: 'batchIsIndividualBatch',
+})
+export class BatchIsIndividualBatchPipe implements PipeTransform {
+  transform(batch: Batch): boolean {
+    return BatchUtils.isIndividualBatch(batch);
+  }
+}

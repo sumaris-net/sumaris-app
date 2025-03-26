@@ -1037,9 +1037,9 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_REPORT_FORM_SUBTITLE',
     type: 'string',
   },
-  OBSERVED_LOCATION_REPORT_FORM_LAND_TRIP_PLAN_FOOTER_TEXT: <FormFieldDefinition>{
-    key: 'sumaris.observedLocation.report.form.landTripPlan.footerText',
-    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_LAND_TRIP_PLAN_FOOTER_TEXT',
+  OBSERVED_LOCATION_REPORT_FORM_FOOTER_TEXT: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.report.form.footerText',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_REPORT_FORM_FOOTER_TEXT',
     type: 'string',
   },
   OBSERVED_LOCATION_REPORT_FORM_HEADER_LEFT_LOGO_URL: <FormFieldDefinition>{

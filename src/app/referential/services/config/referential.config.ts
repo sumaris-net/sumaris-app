@@ -726,6 +726,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.TAXON_GROUP_ID,
   },
+  PMFM_SIZE_UE_CAT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SIZE_UE_CAT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SIZE_UE_CAT_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.SIZE_UE_CAT,
+  },
   PMFM_SURVEY_QUALIFICATION_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.SURVEY_QUALIFICATION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SURVEY_QUALIFICATION_ID',

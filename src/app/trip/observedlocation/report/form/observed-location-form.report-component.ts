@@ -37,6 +37,8 @@ export class ObservedLocationFormReportComponentStats extends CommonReportCompon
 export class ObservedLocationFormReportComponent extends ReportComponent<ObservedLocation, ObservedLocationFormReportComponentStats> {
   @Input({ required: true }) displayAttributesLocation: string[];
   @Input({ required: true }) pmfms: IPmfm[];
+  @Input({ required: true }) footerText: string;
+
   constructor() {
     super(ObservedLocation, ObservedLocationFormReportComponentStats);
   }
