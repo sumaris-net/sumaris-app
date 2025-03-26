@@ -322,8 +322,10 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.registerSubscription(
       this.modalForm.get('showSubBatchForm').valueChanges.subscribe((value) => {
         const disable = !value && this.showIndividualCount;
-        this.inlineEdition = !disable;
-        this.useCssDisabled = disable;
+        // Handle css disabled  effect on table
+        // this.inlineEdition = !disable;
+        // this.useCssDisabled = disable;
+        if (disable) this.displayControlMode();
         if (disable) this.updateControlsInterval();
       })
     );
@@ -1217,6 +1219,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
     //update modal mode
     this._modalMode = mode;
+    return Promise.resolve();
   }
 
   async openImagesModal(event: Event, row: TableElement<SubBatch>) {
@@ -1354,8 +1357,31 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
           }
         }
       });
-      tab.usedRowsCount = subBatches?.length || 0;
+      tab.usedRowsCount =
+        subBatches.reduce((acc, subBatch) => {
+          let sumPmfm = 0;
+          virtualPmfmsDisplayed?.forEach((pmfm) => {
+            sumPmfm += +(subBatch.measurementValues[pmfm.id] ?? 0);
+          });
+          return acc + sumPmfm;
+        }, 0) || 0;
     });
+  }
+
+  protected async displayControlMode() {
+    const qvPmfms = this.pmfms.filter((pmfm) => !PmfmUtils.isComputed(pmfm) && PmfmUtils.isQualitative(pmfm));
+
+    for (const pmfm of qvPmfms) {
+      await this.generateDynamicColumns(pmfm);
+    }
+    await this.setModalMode('LENGTH_CLASS', true);
+
+    const uniqueTaxonNames = this.dataSource
+      .getRows()
+      ?.map((row) => row.currentData.taxonName)
+      .filter((tn, index, arr) => arr.findIndex((t) => t.id === tn.id) === index);
+
+    this.loadTaxonNameTabs(uniqueTaxonNames);
   }
 
   protected setTabFilter(id: number) {
