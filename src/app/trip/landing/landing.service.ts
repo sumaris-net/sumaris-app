@@ -70,13 +70,14 @@ import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model'
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { OBSERVED_LOCATION_FEATURE_NAME } from '@app/trip/trip.config';
-import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds, VesselIds } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
 import { environment } from '@environments/environment';
+import { SaleService } from '../sale/sale.service';
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
   observedLocationId?: number;
@@ -164,6 +165,7 @@ export const LandingFragments = {
       rankOrder
       observedLocationId
       tripId
+      saleIds
       trip {
         ...EmbeddedLandedTripFragment
       }
@@ -370,6 +372,7 @@ export class LandingService
     protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
     protected tripService: TripService,
+    protected saleService: SaleService,
     protected validatorService: LandingValidatorService,
     protected progressBarService: ProgressBarService,
     protected formErrorTranslator: FormErrorTranslator,
@@ -380,7 +383,6 @@ export class LandingService
       mutations: LandingMutations,
       subscriptions: LandingSubscriptions,
     });
-
     // /!\ should be same as observed location service
     this._featureName = OBSERVED_LOCATION_FEATURE_NAME;
 
@@ -1124,6 +1126,26 @@ export class LandingService
         opts.progression.current = endProgression;
       }
     }
+  }
+
+  async clearEmptyLandings(observedLocation: ObservedLocation) {
+    let { data } = await this.loadAllByObservedLocation({ observedLocationId: observedLocation.id }, { fetchPolicy: 'no-cache' });
+
+    // Exclude dividers, if any
+    data = data.filter(DataEntityUtils.isNotDivider);
+
+    if (isEmptyArray(data)) return;
+
+    for (let entity of data) {
+      entity = await this.load(entity.id);
+      const isEmpty = await this.isEmpty(entity);
+      if (isEmpty) await this.delete(entity);
+    }
+  }
+
+  async isEmpty(landing: Landing): Promise<boolean> {
+    const landingSale = landing?.saleIds[0] ? await this.saleService.load(landing?.saleIds[0]) : null;
+    return !landing.comments && landing.vesselSnapshot.id === VesselIds.UNKNOWN && !landingSale;
   }
 
   async executeImport(

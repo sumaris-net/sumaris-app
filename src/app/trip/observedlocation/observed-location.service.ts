@@ -845,6 +845,9 @@ export class ObservedLocationService
   async control(entity: ObservedLocation, opts?: ObservedLocationControlOptions): Promise<AppErrorWithDetails> {
     const now = this._debug && Date.now();
 
+    // Clear Empty Landings
+    await this.landingService.clearEmptyLandings(entity);
+
     const maxProgression = toNumber(opts?.maxProgression, 100);
     opts = { ...opts, maxProgression };
     opts.progression = opts.progression || new ProgressionModel({ total: maxProgression });
@@ -1200,7 +1203,7 @@ export class ObservedLocationService
           { observedLocationId: entity.id },
           { fullLoad: false, computeRankOrder: false }
         );
-        for (let landing of landings) {
+        for (const landing of landings) {
           await this.landingService.terminateById(landing.id, { program: opts?.program });
         }
       }
