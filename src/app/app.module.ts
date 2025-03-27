@@ -115,7 +115,7 @@ import { NamedFilterService } from '@app/shared/service/named-filter.service';
 import { ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS } from '@app/activity-calendar/calendar/activity-month.validator';
 import { ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS } from './activity-calendar/model/activity-calendar.validator';
 import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
-import { TEST_USER_SETTINGS_OPTIONS } from '../../ngx-sumaris-components/src/app/core/services/testing/user-settings.config';
+// import { TEST_USER_SETTINGS_OPTIONS } from '../../ngx-sumaris-components/src/app/core/services/testing/user-settings.config';
 
 @NgModule({
   declarations: [AppComponent],
@@ -310,9 +310,9 @@ import { TEST_USER_SETTINGS_OPTIONS } from '../../ngx-sumaris-components/src/app
     {
       provide: APP_USER_SETTINGS_OPTIONS,
       useValue: <UserSettingsOptions>{
-        options: {
-          ...TEST_USER_SETTINGS_OPTIONS,
-        },
+        // options: {
+        //   ...TEST_USER_SETTINGS_OPTIONS,
+        // },
         remoteLocalSettingsKeys: <(keyof LocalSettings)[]>[
           // Properties used by SUMARiS
           'locale',
