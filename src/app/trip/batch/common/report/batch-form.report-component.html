@@ -50,6 +50,7 @@
         <ng-content *ngTemplateOutlet="linesChunk"></ng-content>
         <ng-content *ngTemplateOutlet="linesChunk"></ng-content>
         <ng-content *ngTemplateOutlet="linesChunk"></ng-content>
+        <ng-content *ngTemplateOutlet="totalIndChunk"></ng-content>
       </ng-template>
       <ng-template #headerChunk>
         <table class="blank-table" [style.--col-width]="pageDimensions.colWidthBlank">
@@ -94,6 +95,15 @@
               <td></td>
             </tr>
           }
+        </table>
+      </ng-template>
+      <ng-template #totalIndChunk>
+        <table class="blank-table" [style.--col-width]="pageDimensions.colWidthBlank">
+          <tr>
+            <th>{{ 'SALE.BATCH.REPORT.BLANK.FIELDS.TOTAL_IND' | translate }}</th>
+            <td></td>
+            <td></td>
+          </tr>
         </table>
       </ng-template>
     } @else {

@@ -1771,7 +1771,8 @@
             "FRACTION": "Tx d'éch",
             "SEX": "Sexe",
             "OTHER": "Autres",
-            "MEASURE_UNIT": "Unité de mesure"
+            "MEASURE_UNIT": "Unité de mesure",
+            "TOTAL_IND": "Tot. Ind."
           }
         }
       }
