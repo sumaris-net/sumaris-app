@@ -105,8 +105,8 @@ export abstract class ReportTableComponent<
           const title = this.pmfmNamePipe.transform(pmfm, { i18nPrefix: this.i18nContext?.pmfmPrefix, i18nSuffix: this.i18nContext?.suffix });
           res[pmfm.id] = {
             index: (index + 1).toString(),
-            title,
-            showOnAnnex: pmfm.qualitativeValues.length > limitToPutInAnnex,
+            title: pmfm.name,
+            showOnAppendix: pmfm.qualitativeValues.length > limitToPutInAnnex,
             items: pmfm.qualitativeValues.map((qv) => {
               return {
                 label: qv.label,

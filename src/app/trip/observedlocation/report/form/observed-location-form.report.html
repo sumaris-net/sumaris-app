@@ -154,6 +154,16 @@
           [footerText]="stats.options.footerText"
         ></batch-form-report-component>
       }
+
+      <report-appendix
+        [isPrintingPDF]="isPrintingPDF"
+        [revealOptions]="revealOptions"
+        [parentPageDimensions]="pageDimensions"
+        [titleColor]="stats.options.colorPrimary"
+        [i18nContext]="i18nContext"
+        [logoHeadRightUrl]="stats.options.urlHeaderLogoRight"
+        [logoHeadLeftUrl]="stats.options.urlHeaderLogoLeft"
+      ></report-appendix>
     </app-reveal>
   } @else {
     <loader-report-chunk></loader-report-chunk>

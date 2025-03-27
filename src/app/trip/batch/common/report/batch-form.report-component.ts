@@ -1,22 +1,26 @@
-import { CommonReportComponentStats, ReportAppendixSection, ReportComponent } from '@app/data/report/report-component.class';
-import { EntityAsObjectOptions, ReferentialRef, isNilOrBlank, isNotEmptyArray, isNotNil, referentialToString } from '@sumaris-net/ngx-components';
-import { Batch } from '../batch.model';
-import { IComputeStatsOpts } from '@app/data/report/base-report.class';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Component, Input, ViewEncapsulation, inject } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
-import { ReportTableComponent, ReportTableComponentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table-component.class';
-import { BatchUtils } from '../batch.utils';
-import { AppCoreModule } from '@app/core/core.module';
-import { AppSharedReportModule } from '@app/shared/report/report.module';
-import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
-import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
-import { AppBatchModule } from '../../batch.module';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { Sale } from '@app/trip/sale/sale.model';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
-import { Moment } from 'moment';
+import { MatTableDataSource } from '@angular/material/table';
+import { AppCoreModule } from '@app/core/core.module';
+import { IComputeStatsOpts } from '@app/data/report/base-report.class';
+import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
+import {
+  CommonReportComponentStats,
+  ReportAppendixSection,
+  ReportPmfmsTipsByPmfmIds,
+  TipsReportChunk,
+} from '@app/data/report/report-component.class';
+import { ReportTableComponent, ReportTableComponentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table-component.class';
+import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { IDenormalizedPmfm, IPmfm } from '@app/referential/services/model/pmfm.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { AppSharedReportModule } from '@app/shared/report/report.module';
+import { EntityAsObjectOptions, ReferentialRef, isNotEmptyArray, isNotNil, referentialToString } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { AppBatchModule } from '../../batch.module';
+import { Batch } from '../batch.model';
+import { BatchUtils } from '../batch.utils';
 
 type TreeComponent = 'blank' | 'trunc' | 'last-leaf' | 'leaf';
 
@@ -35,25 +39,42 @@ export interface BatchFormReportPageDimension extends ReportTableComponentPageDi
   colWidthTitleExhaustiveInventory: number;
   colWidthTitleExhaustiveInventoryYesNo: number;
   colWidthMeasure: number;
+  colWidthBlank: number;
 }
 
 export class BatchFormReportComponentStats extends CommonReportComponentStats {
+  options: {
+    blankFormLineNumberSuite: string[];
+  };
+  tips: ReportPmfmsTipsByPmfmIds;
   fromObject(source: any) {
     super.fromObject(source);
+    this.options = source.options;
+    this.tips = source.tips;
   }
   asObject(opts?: EntityAsObjectOptions): any {
     return {
       ...super.asObject(opts),
+      options: this.options,
+      tips: this.tips,
     };
   }
 }
 
 @Component({
   standalone: true,
-  imports: [AppCoreModule, AppSharedReportModule, AppReferentialPipesModule, ReportChunkModule, TableHeadPmfmNameReportChunk, AppBatchModule],
+  imports: [
+    AppCoreModule,
+    AppSharedReportModule,
+    AppReferentialPipesModule,
+    ReportChunkModule,
+    TableHeadPmfmNameReportChunk,
+    AppBatchModule,
+    TipsReportChunk,
+  ],
   selector: 'batch-form-report-component',
   templateUrl: './batch-form.report-component.html',
-  styleUrls: ['../../../../data/report/base-report.scss', '../../../../data/report/base-form-report.scss'],
+  styleUrls: ['./batch-form.report-component.scss', '../../../../data/report/base-report.scss', '../../../../data/report/base-form-report.scss'],
   encapsulation: ViewEncapsulation.None,
 })
 export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchFormReportComponentStats, BatchFormReportPageDimension> {
@@ -65,13 +86,12 @@ export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchF
   protected dateAdapter: MomentDateAdapter = inject(MomentDateAdapter);
 
   @Input({ required: true }) pmfms: {
-    sortingBatch: IPmfm[];
-    sortingBatchIndividual: IPmfm[];
-    vesselSnapshot: string[];
+    sortingBatch: IDenormalizedPmfm[];
+    sortingBatchIndividual: IDenormalizedPmfm[];
   };
   @Input({ required: true }) pmfmsByIds: {
-    sortingBatch: { [key: number]: IPmfm };
-    sortingBatchIndividual: { [key: number]: IPmfm };
+    sortingBatch: { [key: number]: IDenormalizedPmfm };
+    sortingBatchIndividual: { [key: number]: IDenormalizedPmfm };
   };
   @Input({ required: true }) displayAttributes: {
     location: string[];
@@ -89,37 +109,61 @@ export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchF
 
   async ngOnStart(opts?: any): Promise<void> {
     await super.ngOnStart(opts);
-    this.displayedColumns = this.computeDisplayedColumns();
-    if (isNotNil(this.data)) {
-      this.pages = this.computePagesRows(this.data);
-    } else {
-      this.pages = [];
+    if (!this.isBlankForm) {
+      this.displayedColumns = this.computeDisplayedColumns();
+      if (isNotNil(this.data)) {
+        this.pages = this.computePagesRows(this.data);
+      } else {
+        this.pages = [];
+      }
     }
   }
 
   computeAppendixBlocks(): ReportAppendixSection[] {
-    return []; // There is not appendix blocks
+    this.checkIfStatsAreComputed();
+    return [
+      {
+        title: this.translate.instant('SALE.BATCH.REPORT.TITLE'),
+        blocks: this.flatPmfmTipsForAnnex([this.stats.tips]),
+      },
+    ];
   }
 
   protected async computeStats(data: Batch, opts?: IComputeStatsOpts<BatchFormReportComponentStats>): Promise<BatchFormReportComponentStats> {
     const stats = new BatchFormReportComponentStats();
 
+    stats.options = {
+      blankFormLineNumberSuite: ['0.0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9'],
+    };
+
     const datePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
 
     stats.headerItems = [
-      this.translate.instant('SALE.BATCH.REPORT.HEADER.SELL_DATE_TIME') +
-        this.translate.instant('COMMON.COLON') +
-        ' ' +
-        (this.isBlankForm ? '.................................' : this.dateAdapter.format(this.saleDate, datePattern)),
-      this.translate.instant('SALE.BATCH.REPORT.HEADER.SALE_LOCATION') +
-        this.translate.instant('COMMON.COLON') +
-        ' ' +
-        (this.isBlankForm ? '.................................' : referentialToString(this.saleLocation, this.displayAttributes.location)),
       this.translate.instant('SALE.BATCH.REPORT.HEADER.VESSEL') +
         this.translate.instant('COMMON.COLON') +
         ' ' +
         (this.isBlankForm ? '.................................' : referentialToString(this.vesselSnapshot, this.displayAttributes.vesselSnapshot)),
+      this.translate.instant('SALE.BATCH.REPORT.HEADER.SALE_LOCATION') +
+        this.translate.instant('COMMON.COLON') +
+        ' ' +
+        (this.isBlankForm ? '.................................' : referentialToString(this.saleLocation, this.displayAttributes.location)),
+      this.translate.instant('SALE.BATCH.REPORT.HEADER.SELL_DATE_TIME') +
+        this.translate.instant('COMMON.COLON') +
+        ' ' +
+        (this.isBlankForm ? '.................................' : this.dateAdapter.format(this.saleDate, datePattern)),
     ];
+
+    stats.tips = this.isBlankForm
+      ? this.computeReportPmfmsTips(
+          [[0, this.pmfms.sortingBatch.length]],
+          [
+            this.pmfmsByIds.sortingBatch[PmfmIds.SIZE_UNLI_CAT],
+            this.pmfmsByIds.sortingBatch[PmfmIds.DRESSING],
+            this.pmfmsByIds.sortingBatchIndividual[PmfmIds.SEX],
+          ],
+          this.limitTipsToShowOnAppendix
+        )[0]
+      : [];
 
     return stats;
   }
@@ -161,6 +205,7 @@ export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchF
       colWidthTitleExhaustiveInventory,
       colWidthTitleExhaustiveInventoryYesNo,
       colWidthMeasure,
+      colWidthBlank: this.parentPageDimensions.availableWidthForTablePortrait / 9,
     };
   }
 

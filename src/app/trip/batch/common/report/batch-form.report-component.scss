@@ -1,0 +1,17 @@
+.slide {
+  section {
+    table.blank-table {
+      border-width: 2px;
+      th {
+        max-width: calc(var(--col-width) * 0.66 * 1px) !important;
+        min-width: calc(var(--col-width) * 0.66 * 1px) !important;
+        width: calc(var(--col-width) * 0.66 * 1px) !important;
+      }
+      td {
+        max-width: calc((var(--col-width) * 1.165) * 1px) !important;
+        min-width: calc((var(--col-width) * 1.165) * 1px) !important;
+        width: calc((var(--col-width) * 1.165) * 1px) !important;
+      }
+    }
+  }
+}

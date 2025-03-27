@@ -7,7 +7,7 @@ import { FormReportPageDimensions } from '@app/data/report/common-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
-import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
+import { IDenormalizedPmfm, IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -28,6 +28,8 @@ import { ObservedLocationService } from '../../observed-location.service';
 import { ObservedLocationFormReportComponent } from './observed-location-form.report-component';
 import { SaleFormReportComponent } from '@app/trip/sale/report/sale-form.report-component';
 import { BatchFormReportComponent } from '@app/trip/batch/common/report/batch-form.report-component';
+import { Batch } from '@app/trip/batch/common/batch.model';
+import { ReportAppendix } from '../../../../data/report/report-appendix';
 
 export class ObservedLocationFormReportStats extends BaseReportStats {
   options: {
@@ -52,19 +54,19 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
   };
   strategy: Strategy;
   pmfms: {
-    observedLocation: IPmfm[];
-    landing: IPmfm[];
-    catchBatch: IPmfm[];
-    sortingBatch: IPmfm[];
-    sortingBatchIndividual: IPmfm[];
-    sale: IPmfm[];
+    observedLocation: IDenormalizedPmfm[];
+    landing: IDenormalizedPmfm[];
+    catchBatch: IDenormalizedPmfm[];
+    sortingBatch: IDenormalizedPmfm[];
+    sortingBatchIndividual: IDenormalizedPmfm[];
+    sale: IDenormalizedPmfm[];
   };
   pmfmsByIds: {
-    observedLocation: { [key: number]: IPmfm };
-    landing: { [key: number]: IPmfm };
-    catchBatch: { [key: number]: IPmfm };
-    sortingBatch: { [key: number]: IPmfm };
-    sortingBatchIndividual: { [key: number]: IPmfm };
+    observedLocation: { [key: number]: IDenormalizedPmfm };
+    landing: { [key: number]: IDenormalizedPmfm };
+    catchBatch: { [key: number]: IDenormalizedPmfm };
+    sortingBatch: { [key: number]: IDenormalizedPmfm };
+    sortingBatchIndividual: { [key: number]: IDenormalizedPmfm };
   };
   sales: Sale[];
   landingTableDividerPmfm: IPmfm;
@@ -127,6 +129,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
     LandingFormReportComponent,
     SaleFormReportComponent,
     BatchFormReportComponent,
+    ReportAppendix,
   ],
   selector: 'observed-location-form-report',
   templateUrl: './observed-location-form.report.html',
@@ -283,7 +286,16 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       saleIdToObservedSpeciesId: this.computeMappingSaleIdToObservedSpeciesId(data.landings, stats.pmfms.landing),
     };
 
-    stats.sales = await this.getSalesByLandings(data.landings);
+    if (this.isBlankForm) {
+      stats.sales = [
+        Sale.fromObject({
+          id: -1,
+          catchBatch: Batch.fromObject({ id: -1 }),
+        }),
+      ];
+    } else {
+      stats.sales = await this.getSalesByLandings(data.landings);
+    }
 
     return stats;
   }

@@ -1,4 +1,4 @@
-import { Component, Directive, inject, Input, Optional } from '@angular/core';
+import { Component, Directive, inject, Input, OnInit, Optional } from '@angular/core';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { AppBaseReport, BASE_REPORT, IReportData, IReportI18nContext } from './base-report.class';
@@ -165,7 +165,7 @@ export abstract class ReportComponent<
     return pmfmTipsByPmfmIdsAndByTablePart.reduce((result: ReportTips[], item) => {
       const tips = Object.keys(item).map((key) => item[key]);
       tips.forEach((t) => {
-        if (t.showOnAnnex) {
+        if (t.showOnAppendix) {
           result.push(t);
         }
       });

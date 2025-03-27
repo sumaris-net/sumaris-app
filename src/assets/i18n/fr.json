@@ -1762,6 +1762,17 @@
           "VALUES": {
             "LENGTH_TOTAL": "LT={{value}} {{unitLabel}}"
           }
+        },
+        "BLANK": {
+          "FIELDS": {
+            "SPECIES_CATEGORY": "Espèces + CAT",
+            "PRESENTATION": "Pres.",
+            "WEIGHT": "Poids Ech/Total",
+            "FRACTION": "Tx d'éch",
+            "SEX": "Sexe",
+            "OTHER": "Autres",
+            "MEASURE_UNIT": "Unité de mesure"
+          }
         }
       }
     },

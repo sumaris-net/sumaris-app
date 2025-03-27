@@ -9,9 +9,8 @@ import { CommonReportComponentStats, ReportAppendixSection } from '@app/data/rep
 import { ReportTableComponent, ReportTableComponentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table-component.class';
 import { RootVesselEntityUtils } from '@app/data/services/model/root-vessel-entity.utils';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { PmfmIds, QualitativeValueIds, VesselIds } from '@app/referential/services/model/model.enum';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IDenormalizedPmfm } from '@app/referential/services/model/pmfm.model';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { Sale } from '@app/trip/sale/sale.model';
 import {
@@ -78,10 +77,10 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
   @Input({ required: true }) displayAttributesTaxonGroup: string[];
   @Input({ required: true }) landTripDate: Moment;
   @Input({ required: true }) landTripLocation: IReferentialRef;
-  @Input({ required: true }) pmfms: IPmfm[];
+  @Input({ required: true }) pmfms: IDenormalizedPmfm[];
   @Input({ required: true }) sales: Sale[];
-  @Input({ required: true }) sortingBatchPmfmsByIds: { [key: number]: IPmfm };
-  @Input({ required: true }) dividerPmfm: IPmfm;
+  @Input({ required: true }) sortingBatchPmfmsByIds: { [key: number]: IDenormalizedPmfm };
+  @Input({ required: true }) dividerPmfm: IDenormalizedPmfm;
   @Input({ required: true }) observedSpeciesByIds: { [key: number]: ReferentialRef };
   @Input({ required: true }) footerText: string;
 

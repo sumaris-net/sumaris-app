@@ -52,8 +52,12 @@ export class SaleFormReportComponent extends ReportComponent<Sale, SaleFormRepor
   }
 
   private computeHeaderItems(sale: Sale): string[] {
-    const vessel = referentialToString(sale.vesselSnapshot, this.displayAttributes.vesselSnapshot);
-    const observedSpecie = referentialToString(this.observedSpecie, this.displayAttributes.taxonGroup);
+    const vessel = this.isBlankForm
+      ? '.................................'
+      : referentialToString(sale.vesselSnapshot, this.displayAttributes.vesselSnapshot);
+    const observedSpecie = this.isBlankForm
+      ? '.................................'
+      : referentialToString(this.observedSpecie, this.displayAttributes.taxonGroup);
     return [
       `${this.translate.instant('SALE.REPORT.FORM.VESSEL')}${this.translate.instant('COMMON.COLON')}&nbsp;${vessel}`,
       `${this.translate.instant('SALE.REPORT.FORM.SPECIE')}${this.translate.instant('COMMON.COLON')}&nbsp;${observedSpecie}`,
