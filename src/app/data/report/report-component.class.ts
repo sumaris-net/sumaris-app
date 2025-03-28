@@ -162,7 +162,7 @@ export abstract class ReportComponent<
   abstract computeAppendixBlocks(): ReportAppendixSection[];
 
   protected flatPmfmTipsForAnnex(pmfmTipsByPmfmIdsAndByTablePart: ReportPmfmsTipsByPmfmIds[]): ReportTips[] {
-    return pmfmTipsByPmfmIdsAndByTablePart.reduce((result: ReportTips[], item) => {
+    const result = pmfmTipsByPmfmIdsAndByTablePart.reduce((result: ReportTips[], item) => {
       const tips = Object.keys(item).map((key) => item[key]);
       tips.forEach((t) => {
         if (t.showOnAppendix) {
@@ -171,6 +171,7 @@ export abstract class ReportComponent<
       });
       return result;
     }, []) as ReportTips[];
+    return result.sort((a, b) => a.index.localeCompare(b.index));
   }
 
   protected checkIfStatsAreComputed() {

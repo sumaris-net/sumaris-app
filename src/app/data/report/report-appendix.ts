@@ -9,6 +9,18 @@ import { FormReportPageDimensions } from './common-report.class';
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
 import { IReportI18nContext } from './base-report.class';
 
+interface AppendixBloc {
+  index: string;
+  title: string;
+  columnBreak: boolean;
+  items?: { label: string; name: string }[];
+}
+
+interface AppendixPage {
+  sectionTitle: string;
+  blocks: AppendixBloc[];
+}
+
 interface ReportAnnexPageDimensions {
   baseMargin: number;
   headerHeight: number;
@@ -43,7 +55,7 @@ export class ReportAppendix implements OnInit, OnDestroy {
   protected subscriptions = new Subscription();
 
   protected pageDimensions: ReportAnnexPageDimensions;
-  protected pages: ReportAppendixSection[][];
+  protected pages: AppendixPage[];
 
   @ViewChild(RevealComponent, { static: false }) protected reveal: RevealComponent;
 
@@ -106,7 +118,7 @@ export class ReportAppendix implements OnInit, OnDestroy {
     const baseMargin = 25;
     const headerHeight = 72;
     const pageContentWidth = this.parentPageDimensions.pageWidth - baseMargin;
-    const pageContentHeight = this.parentPageDimensions.pageHeight - baseMargin * 2 - headerHeight;
+    const pageContentHeight = this.parentPageDimensions.pageHeight - baseMargin * 2 - headerHeight - 30;
     const blockWidth = pageContentWidth / 2 - baseMargin;
     this.pageDimensions = {
       baseMargin,
@@ -142,48 +154,67 @@ export class ReportAppendix implements OnInit, OnDestroy {
     this.cd.markForCheck();
   }
 
-  protected splitSectionsIntoChunks(data: ReportAppendixSection[]): ReportAppendixSection[][] {
-    const result: ReportAppendixSection[][] = [];
-
-    // * 2 -> pages are splited into 2 columns
-    const pageHeight = this.pageDimensions.pageContentHeight * 2;
-    let currentPage: ReportAppendixSection[] = [];
-    let currentPageRemainingHeight = pageHeight;
-    let currentSection: ReportAppendixSection;
-
-    // For each section
+  protected splitSectionsIntoChunks(data: ReportAppendixSection[]): AppendixPage[] {
+    const pages: AppendixPage[] = [];
+    const availableHeightOnOneColumn = this.pageDimensions.pageContentHeight;
+    let currentPage: AppendixPage;
     for (const section of data) {
-      // For each blocks
+      currentPage = { sectionTitle: section.title, blocks: [] };
+      let remainHeightOnCurrentColumn = availableHeightOnOneColumn;
+      let onRightSide = false;
+      let columnBreak = false;
       for (const block of section.blocks) {
-        const blockHeight = this.computeBlockHeight(block);
-
-        // Not enough height: slip
-        if (!currentSection || blockHeight > currentPageRemainingHeight) {
-          // Flush the current page (is not empty)
-          if (isNotEmptyArray(currentPage)) result.push(currentPage);
-
-          // Create a new page, and new section
-          currentPage = [];
-          currentPageRemainingHeight = pageHeight - this.pageDimensions.blockTitleHeight;
-          currentSection = { title: section.title, blocks: [] };
-          currentPage.push(currentSection);
+        let nbDisplayedLines = 0;
+        const nbLinesToDisplay = block.items.length;
+        let nbRemainLineToDisplay = nbLinesToDisplay;
+        while (nbRemainLineToDisplay > 0) {
+          const nbLinesThatCanBeDisplayed = this.computeNbLinesThatCanBeDisplayed(remainHeightOnCurrentColumn);
+          // If have not enough available place to current column
+          // go on right column or create new page
+          if (nbLinesThatCanBeDisplayed < 1) {
+            if (onRightSide) {
+              // Add New page
+              pages.push(currentPage);
+              currentPage = { sectionTitle: section.title, blocks: [] };
+              onRightSide = false;
+            } else {
+              // Mark that we jump on right column
+              onRightSide = true;
+              columnBreak = true;
+            }
+            remainHeightOnCurrentColumn = availableHeightOnOneColumn;
+            continue;
+          }
+          const nbLinesThatBeDisplayed = Math.min(nbLinesThatCanBeDisplayed, nbRemainLineToDisplay);
+          currentPage.blocks.push({
+            index: block.index,
+            title: block.title,
+            items: block.items.slice(nbDisplayedLines, nbDisplayedLines + nbLinesThatBeDisplayed),
+            columnBreak: columnBreak,
+          });
+          columnBreak = false;
+          nbDisplayedLines += nbLinesThatBeDisplayed;
+          nbRemainLineToDisplay -= nbLinesThatBeDisplayed;
+          remainHeightOnCurrentColumn -= this.computeBlockHeight(nbLinesThatBeDisplayed);
         }
-
-        currentSection.blocks = currentSection.blocks.concat(block);
-        currentPageRemainingHeight -= blockHeight;
       }
     }
 
-    // Add last page
-    if (isNotEmptyArray(currentPage)) result.push(currentPage);
-
-    return result;
+    pages.push(currentPage);
+    return pages;
   }
 
-  protected computeBlockHeight(tips: ReportTips): number {
-    const titleHeight = this.pageDimensions.rowHeight;
-    const linesHeight = this.pageDimensions.rowHeight * tips.items?.length;
-    const marginBottom = this.pageDimensions.reportTipsTableMarginBottom;
-    return titleHeight + linesHeight + 30; // 30 for the table padding top and bottom
+  private computeBlockHeight(nbItems: number): number {
+    return this.pageDimensions.rowHeight * (nbItems + 1) + this.pageDimensions.baseMargin;
+  }
+
+  private heightToNbLine(remainSpace: number): number {
+    return Math.trunc(remainSpace / this.pageDimensions.rowHeight);
+  }
+
+  private computeNbLinesThatCanBeDisplayed(remainHeightOnCurrentColumn: number) {
+    // Remove title line + bottom margin
+    const availableHeight = remainHeightOnCurrentColumn - this.pageDimensions.rowHeight - this.pageDimensions.baseMargin;
+    return Math.trunc(availableHeight / this.pageDimensions.rowHeight);
   }
 }

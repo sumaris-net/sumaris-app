@@ -30,6 +30,7 @@
 .block-title {
   height: calc(var(--title-height) * 1px);
   display: flex;
+  margin-left: calc(var(--page-margin) * 1px);
   h1 {
     --r-heading1-size: var(--font-large);
     font-weight: bold;
