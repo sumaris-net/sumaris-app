@@ -868,7 +868,16 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       });
 
       const childrenColumns = this.computeDynamicColumnsByQv();
-      this.dynamicColumns = speciesColumns.concat(childrenColumns);
+
+      const columns = speciesColumns.concat(childrenColumns);
+
+      // Move "Uncertain species" column at the end
+      const uncertainSpeciesColumn = speciesColumns.find((column) => column.pmfm?.id === PmfmIds.UNCERTAIN_SPECIES);
+      if (uncertainSpeciesColumn) {
+        uncertainSpeciesColumn.rankOrder = columns.length + 1;
+      }
+
+      this.dynamicColumns = columns;
 
       // show toolbar if desktop, or on mobile when auto-fill button is visible
       this.showToolbar = !this.mobile || this.showAutoFillButton;

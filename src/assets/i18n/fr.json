@@ -372,6 +372,7 @@
         "PMFM_INACTIVITY_YEAR_ID": "Référentiel > PSFM > Inactivité annuelle confirmée par l'observateur (Booléen)",
         "PMFM_FISHING_DURATION_DAYS_ID": "Référentiel > PSFM > Nombre de jour de pêche",
         "PMFM_FISHING_AT_SEA_DAYS_ID": "Référentiel > PSFM > Nombre de jour de mer",
+        "PMFM_UNCERTAIN_SPECIES_ID": "Référentiel > PSFM > Espèce à confirmer ? (Booléen)",
         "PMFM_IS_OBSERVED_ID": "Référentiel > PSFM > Espèce observée ? (Booléen)",
         "PMFM_NON_OBSERVATION_REASON_ID": "Référentiel > PSFM > Raison de non observation (d'une espèce)",
         "PMFM_SPECIES_LIST_ORIGIN_ID": "Référentiel > PSFM > Origine de la liste d'espèces (PETS/Tirage au sort)",
