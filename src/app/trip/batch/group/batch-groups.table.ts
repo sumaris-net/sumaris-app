@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, HostListener, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
@@ -399,6 +399,19 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         this.updateColumns();
       }
     });
+
+    this.registerSubscription(
+      this.hotkeys
+        .addShortcut({
+          keys: `${this.hotkeys.defaultControlKey}.m`,
+          description: 'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE',
+        })
+        .subscribe((event) => {
+          if (this.editedRow) {
+            this.onSubBatchesClick(event, this.editedRow);
+          }
+        })
+    );
   }
 
   ngOnDestroy() {
