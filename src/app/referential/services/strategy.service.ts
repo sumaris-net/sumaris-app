@@ -178,6 +178,7 @@ const StrategyQueries: BaseEntityGraphqlQueries & { loadAllFull: any } = {
     ${ReferentialFragments.referential}
     ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
+    ${ReferentialFragments.gear}
   `,
 
   countAll: gql`
@@ -207,6 +208,7 @@ const StrategyMutations: BaseEntityGraphqlMutations = {
     ${ReferentialFragments.referential}
     ${ReferentialFragments.taxonGroup}
     ${ReferentialFragments.taxonName}
+    ${ReferentialFragments.gear}
   `,
 
   delete: gql`
