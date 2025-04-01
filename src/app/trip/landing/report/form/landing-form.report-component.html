@@ -113,24 +113,11 @@
                     </mat-cell>
                   </ng-container>
 
-                  <ng-container matColumnDef="specie">
-                    <mat-header-cell *matHeaderCellDef class="centred font-medium">
-                      {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.SPECIE' | translateContext: i18nContext.suffix }}
-                    </mat-header-cell>
-                    <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
-                      {{
-                        observedSpeciesByIds
-                          | mapGet: (landing.measurementValues | mapGet: pmfmIds.TAXON_GROUP_ID)
-                          | referentialToString: displayAttributesTaxonGroup
-                      }}
-                    </mat-cell>
-                  </ng-container>
-
                   <ng-container matColumnDef="sizeUnliCat">
-                    <mat-header-cell *matHeaderCellDef class="centred font-medium">
+                    <mat-header-cell *matHeaderCellDef class="centred font-medium" [style.--col-width]="80">
                       {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.COMMERCIAL_SIZE_CATEGORY' | translateContext: i18nContext.suffix }}
                     </mat-header-cell>
-                    <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
+                    <mat-cell *matCellDef="let landing" class="padding-medium font-medium vertical-centred-content" [style.--col-width]="80">
                       {{ stats.fieldsValues.sizeUnliCatLabelsByLandingId | mapGet: landing.id }}
                     </mat-cell>
                   </ng-container>
@@ -146,7 +133,12 @@
 
                   @for (pmfm of pmfms; track pmfm.id) {
                     <ng-container [matColumnDef]="pmfm | pmfmIdString">
-                      <mat-header-cell *matHeaderCellDef class="centred mat-column-pmfm mat-column-{{ pmfm.label }}" class="centred font-medium">
+                      <mat-header-cell
+                        *matHeaderCellDef
+                        class="centred mat-column-pmfm mat-column-{{ pmfm.label }}"
+                        class="centred font-medium"
+                        [style.--col-width]="stats.columnWidthByPmfmIds[pmfm.id]"
+                      >
                         <div class="ion-text-center">
                           <table-head-pmfm-name-report-chunk
                             [pmfm]="pmfm"
@@ -155,7 +147,21 @@
                           ></table-head-pmfm-name-report-chunk>
                         </div>
                       </mat-header-cell>
-                      <mat-cell *matCellDef="let landing" class="padding-medium"></mat-cell>
+                      <mat-cell
+                        *matCellDef="let landing"
+                        class="padding-medium vertical-centred-content"
+                        [style.--col-width]="stats.columnWidthByPmfmIds[pmfm.id]"
+                      >
+                        @if (pmfm.id === pmfmIds.TAXON_GROUP_ID) {
+                          {{
+                            observedSpeciesByIds
+                              | mapGet: (landing.measurementValues | mapGet: pmfmIds.TAXON_GROUP_ID)
+                              | referentialToString: displayAttributesTaxonGroup
+                          }}
+                        } @else {
+                          {{ landing.measurementValues | mapGet: pmfm.id | pmfmValue: { pmfm: pmfm, showYesOrNo: true, shortValue: true } }}
+                        }
+                      </mat-cell>
                     </ng-container>
                   }
 

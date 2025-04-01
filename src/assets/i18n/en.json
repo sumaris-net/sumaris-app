@@ -128,6 +128,8 @@
     "DURATION_DOTS": "Duration:",
     "YES": "Yes",
     "NO": "No",
+    "YES_SHORT": "Y",
+    "NO_SHORT": "N",
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
     "OBSERVERS": "Observer(s)",

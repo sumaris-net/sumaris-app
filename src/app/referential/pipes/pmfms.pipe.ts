@@ -91,6 +91,7 @@ interface PmfmValueOptions {
   showNameForPmfmIds?: number[];
   applyDisplayConversion?: boolean;
   showYesOrNo?: boolean;
+  shortValue?: boolean;
 }
 
 @Pipe({
@@ -136,9 +137,9 @@ export class PmfmValuePipe implements PipeTransform {
       case 'boolean':
         if (opts.showYesOrNo) {
           return value === 'true' || value === true || value === 1
-            ? this.translate.instant('COMMON.YES')
+            ? this.translate.instant(opts.shortValue ? 'COMMON.YES_SHORT' : 'COMMON.YES')
             : value === 'false' || value === false || value === 0
-              ? this.translate.instant('COMMON.NO')
+              ? this.translate.instant(opts.shortValue ? 'COMMON.NO_SHORT' : 'COMMON.NO')
               : null;
         }
         return PmfmValueUtils.valueToString(value, opts);

@@ -129,6 +129,8 @@
     "DURATION_DOTS": "Durée :",
     "YES": "Oui",
     "NO": "Non",
+    "YES_SHORT": "O",
+    "NO_SHORT": "N",
     "UPDATED_ON": "Mis à jour le",
     "RECORDER": "Saisisseur",
     "OBSERVERS": "Observateur(s)",

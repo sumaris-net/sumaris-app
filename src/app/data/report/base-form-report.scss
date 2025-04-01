@@ -66,13 +66,13 @@ html.print-pdf .reveal .slides section {
 
     .vertical-centred-content {
       display: flex;
-      align-items: center;
+      align-items: center !important;
       line-height: normal;
     }
 
     .horizontal-centred-content {
       display: flex;
-      justify-content: center;
+      justify-content: center !important;
     }
 
     .border-top {

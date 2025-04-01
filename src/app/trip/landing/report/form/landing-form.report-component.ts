@@ -43,11 +43,13 @@ export class LandingFormReportComponentStats extends CommonReportComponentStats 
     sizeUnliCatLabelsByLandingId: { [key: number]: string };
   };
   pagesSlice: { start: number; end: number }[];
+  columnWidthByPmfmIds: { [key: number]: number };
 
   fromObject(source: any) {
     super.fromObject(source);
     this.fieldsValues = source.fieldsValues;
     this.pagesSlice = source.pageSlice;
+    this.columnWidthByPmfmIds = source.columnWidthByPmfmIds;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -55,6 +57,7 @@ export class LandingFormReportComponentStats extends CommonReportComponentStats 
       ...super.asObject(opts),
       fieldsValues: this.fieldsValues,
       pageSlice: this.pagesSlice,
+      columnWidthByPmfmIds: this.columnWidthByPmfmIds,
     };
   }
 }
@@ -121,22 +124,29 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
     };
 
     stats.pagesSlice = this.computePageSlice(data.length);
+    stats.columnWidthByPmfmIds = this.computePmfmColumnsWidthByPmfmIds(this.pmfms, false, false, {
+      [PmfmIds.TAXON_GROUP_ID]: 300,
+    });
+
     return stats;
   }
 
   protected computePageDimensions(): LandingFormReportPageDimension {
     return {
       ...super._computePageDimensions(),
+      columnPmfmBooleanWidth: 60,
+      columnPmfmNumberWidth: 80,
+      columnPmfmQualitativeValueWidth: 140,
       headerHeight: 70,
       footerHeight: 20,
       fieldsHeight: 40 + (this.isBlankForm ? 10 : 0),
-      rowHeight: 38 + (this.isBlankForm ? 10 : 0),
+      rowHeight: 42 + (this.isBlankForm ? 10 : 0),
     };
   }
 
   protected computeDisplayedColumns(): string[] {
-    const pmfmsDisplayedColumns = this.pmfms.map((pmfm) => pmfm.id.toString());
-    let result = ['maritimDistrict', 'specie', 'sizeUnliCat', ...pmfmsDisplayedColumns, 'comments'];
+    const pmfmsDisplayedColumns = this.pmfms.sort((a, b) => a.rankOrder - b.rankOrder).map((pmfm) => pmfm.id.toString());
+    let result = ['maritimDistrict', ...pmfmsDisplayedColumns, 'sizeUnliCat', 'comments'];
     if (!this.isBlankForm) {
       result = ['rankOrder', ...result];
     }
