@@ -26,6 +26,7 @@ import {
 import { Moment } from 'moment';
 import { Landing } from '../../landing.model';
 import { LandingUtils } from '../../landing.utils';
+import { LandingsTable } from '../../landings.table';
 
 export interface LandingFormReportPageDimension extends ReportTableComponentPageDimension {
   headerHeight: number;
@@ -67,6 +68,7 @@ export class LandingFormReportComponentStats extends CommonReportComponentStats 
   encapsulation: ViewEncapsulation.None,
 })
 export class LandingFormReportComponent extends ReportTableComponent<Landing[], LandingFormReportComponentStats, LandingFormReportPageDimension> {
+  readonly randomLandingsRankOrderOffset = LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET;
   protected readonly nbLinesPeerPage = 12;
 
   protected dateAdapter: MomentDateAdapter = inject(MomentDateAdapter);
@@ -157,19 +159,18 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
       }
       return true;
     });
+    this.fixRankOrder(data);
     const row = isNotNil(this.dividerPmfm) ? LandingUtils.injectDividerLines(landingWithKnownsVessel, this.dividerPmfm) : landingWithKnownsVessel;
-    this.remapRankOrder(row);
     return this.stats.pagesSlice.map((slice) => new MatTableDataSource(row.slice(slice.start, slice.end)));
   }
 
-  private remapRankOrder(landings: Landing[]) {
-    let index = 1;
-    for (const landing of landings) {
-      if (this.isLanding(index, landing)) {
-        landing.rankOrder = index;
-        index++;
+  private fixRankOrder(landings: Landing[]) {
+    landings.forEach((landing) => {
+      const measureSpeciesListOrigin = landing.measurementValues[PmfmIds.SPECIES_LIST_ORIGIN];
+      if (measureSpeciesListOrigin && measureSpeciesListOrigin == QualitativeValueIds.SPECIES_LIST_ORIGIN.RANDOM) {
+        landing.rankOrder -= this.randomLandingsRankOrderOffset;
       }
-    }
+    });
   }
 
   private computeHasPets(landings: Landing[]): boolean {
