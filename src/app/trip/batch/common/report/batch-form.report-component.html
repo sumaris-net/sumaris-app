@@ -1,48 +1,46 @@
 @if (loaded) {
   <app-reveal #reveal [options]="revealOptions">
     @if (isBlankForm) {
-      <section [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
-        <section *sectionDef class="portrait">
-          <page-header-form-report-chunk
-            [i18nContext]="i18nContext"
-            [title]="'SALE.BATCH.REPORT.TITLE'"
-            [items]="stats.headerItems"
-            [logoRightUrl]="logoHeadRightUrl"
-            [logoLeftUrl]="logoHeadLeftUrl"
-          ></page-header-form-report-chunk>
-          <ion-grid class="report-section ion-no-padding ion-no-margin">
-            <ion-row class="section-title">
-              <ion-col size="6">
-                <h3>{{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TITLE' | translate }}</h3>
-              </ion-col>
-              <ion-col class="form-label ion-text-end" size="4">
-                {{ 'SALE.BATCH.REPORT.BLANK.FIELDS.MEASURE_UNIT' | translate }}
-                {{ 'COMMON.COLON' | translate }}
-              </ion-col>
-              <ion-col class="form-value vertical-centred-content horizontal-centred-content" size="1">
-                mm
-                <ion-icon name="square-outline"></ion-icon>
-              </ion-col>
-              <ion-col class="form-value vertical-centred-content horizontal-centred-content" size="1">
-                cm
-                <ion-icon name="square-outline"></ion-icon>
-              </ion-col>
-            </ion-row>
-            <ion-row [style.border]="'solid 3px'">
-              <ion-col size="4">
-                <ng-content *ngTemplateOutlet="batchColumn"></ng-content>
-              </ion-col>
-              <ion-col size="4">
-                <ng-content *ngTemplateOutlet="batchColumn"></ng-content>
-              </ion-col>
-              <ion-col size="4">
-                <ng-content *ngTemplateOutlet="batchColumn"></ng-content>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-          <tips-report-chunk [tips]="stats.tips | mapValues | arraySort: sortByTipsIndex"></tips-report-chunk>
-          <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
-        </section>
+      <section *sectionDef class="portrait" [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
+        <page-header-form-report-chunk
+          [i18nContext]="i18nContext"
+          [title]="'SALE.BATCH.REPORT.TITLE'"
+          [items]="stats.headerItems"
+          [logoRightUrl]="logoHeadRightUrl"
+          [logoLeftUrl]="logoHeadLeftUrl"
+        ></page-header-form-report-chunk>
+        <ion-grid class="report-section ion-no-padding ion-no-margin">
+          <ion-row class="section-title">
+            <ion-col size="6">
+              <h3>{{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TITLE' | translate }}</h3>
+            </ion-col>
+            <ion-col class="form-label ion-text-end" size="4">
+              {{ 'SALE.BATCH.REPORT.BLANK.FIELDS.MEASURE_UNIT' | translate }}
+              {{ 'COMMON.COLON' | translate }}
+            </ion-col>
+            <ion-col class="form-value vertical-centred-content horizontal-centred-content" size="1">
+              mm
+              <ion-icon name="square-outline"></ion-icon>
+            </ion-col>
+            <ion-col class="form-value vertical-centred-content horizontal-centred-content" size="1">
+              cm
+              <ion-icon name="square-outline"></ion-icon>
+            </ion-col>
+          </ion-row>
+          <ion-row [style.border]="'solid 3px'">
+            <ion-col size="4">
+              <ng-content *ngTemplateOutlet="batchColumn"></ng-content>
+            </ion-col>
+            <ion-col size="4">
+              <ng-content *ngTemplateOutlet="batchColumn"></ng-content>
+            </ion-col>
+            <ion-col size="4">
+              <ng-content *ngTemplateOutlet="batchColumn"></ng-content>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+        <tips-report-chunk [tips]="stats.tips | mapValues | arraySort: sortByTipsIndex"></tips-report-chunk>
+        <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
       </section>
       <ng-template #batchColumn>
         <ng-content *ngTemplateOutlet="headerChunk"></ng-content>
@@ -109,269 +107,263 @@
     } @else {
       @if (pages | isNotEmptyArray) {
         @for (page of pages; track $index) {
-          <section [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
-            <section *sectionDef class="portrait">
-              <page-header-form-report-chunk
-                [i18nContext]="i18nContext"
-                [title]="'SALE.BATCH.REPORT.TITLE'"
-                [items]="stats.headerItems"
-                [logoRightUrl]="logoHeadRightUrl"
-                [logoLeftUrl]="logoHeadLeftUrl"
-                [pageNumber]="$index + 1"
-              ></page-header-form-report-chunk>
+          <section *sectionDef class="portrait" [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
+            <page-header-form-report-chunk
+              [i18nContext]="i18nContext"
+              [title]="'SALE.BATCH.REPORT.TITLE'"
+              [items]="stats.headerItems"
+              [logoRightUrl]="logoHeadRightUrl"
+              [logoLeftUrl]="logoHeadLeftUrl"
+              [pageNumber]="$index + 1"
+            ></page-header-form-report-chunk>
 
-              <ion-grid class="report-section ion-no-padding ion-no-margin">
-                <ion-row class="section-title">
-                  <ion-col>
-                    <h3>{{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TITLE' | translate }}</h3>
-                  </ion-col>
-                </ion-row>
-                <ion-row class="border-right border-left" [style.height]="'30px'" [style.border-width]="'2px'">
-                  <ion-col
-                    class="fixed-width vertical-centred-content ion-padding-horizontal border-top"
-                    [style.--ion-padding]="'12px'"
-                    [style.border-top-width]="'2px'"
-                    [style.--col-width]="this.pageDimensions.colWidthTitleExhaustiveInventory"
+            <ion-grid class="report-section ion-no-padding ion-no-margin">
+              <ion-row class="section-title">
+                <ion-col>
+                  <h3>{{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TITLE' | translate }}</h3>
+                </ion-col>
+              </ion-row>
+              <ion-row class="border-right border-left" [style.height]="'30px'" [style.border-width]="'2px'">
+                <ion-col
+                  class="fixed-width vertical-centred-content ion-padding-horizontal border-top"
+                  [style.--ion-padding]="'12px'"
+                  [style.border-top-width]="'2px'"
+                  [style.--col-width]="this.pageDimensions.colWidthTitleExhaustiveInventory"
+                >
+                  {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.EXHAUSTIVE_INVENTORY' | translateContext: i18nContext.suffix }}
+                </ion-col>
+                <ion-col
+                  class="fixed-width vertical-centred-content border-top"
+                  [style.border-top-width]="'2px'"
+                  [style.--col-width]="this.pageDimensions.colWidthTitleExhaustiveInventoryYesNo"
+                >
+                  <ion-icon [style.font-size]="'1.5em'" [name]="data.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                  &nbsp;
+                  {{ 'COMMON.YES' | translate }}
+                </ion-col>
+                <ion-col
+                  class="border-right fixed-width vertical-centred-content border-top"
+                  [style.border-width]="'2px'"
+                  [style.--col-width]="this.pageDimensions.colWidthTitleExhaustiveInventoryYesNo"
+                >
+                  <ion-icon [style.font-size]="'1.5em'" [name]="!data.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                  &nbsp;
+                  {{ 'COMMON.NO' | translate }}
+                </ion-col>
+                <ion-col
+                  class="fixed-width border-right no-border-top border-bottom"
+                  [style.border-width]="'2px'"
+                  [style.--col-width]="pageDimensions.colWidthMeasure * 2 - 1"
+                ></ion-col>
+                <ion-col class="fixed-width vertical-centred-content horizontal-centred-content border-top" [style.border-width]="'2px'">
+                  {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.SAMPLE' | translate }}
+                </ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col>
+                  <mat-table
+                    #batchTable
+                    class="no-border-top"
+                    [dataSource]="page"
+                    [style.border-bottom-width]="'2px'"
+                    [style.--row-height]="pageDimensions.rowHeight"
+                    [style.--row-title-height]="pageDimensions.rowTitleHeight"
                   >
-                    {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.EXHAUSTIVE_INVENTORY' | translateContext: i18nContext.suffix }}
-                  </ion-col>
-                  <ion-col
-                    class="fixed-width vertical-centred-content border-top"
-                    [style.border-top-width]="'2px'"
-                    [style.--col-width]="this.pageDimensions.colWidthTitleExhaustiveInventoryYesNo"
-                  >
-                    <ion-icon [style.font-size]="'1.5em'" [name]="data.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
-                    &nbsp;
-                    {{ 'COMMON.YES' | translate }}
-                  </ion-col>
-                  <ion-col
-                    class="border-right fixed-width vertical-centred-content border-top"
-                    [style.border-width]="'2px'"
-                    [style.--col-width]="this.pageDimensions.colWidthTitleExhaustiveInventoryYesNo"
-                  >
-                    <ion-icon [style.font-size]="'1.5em'" [name]="!data.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
-                    &nbsp;
-                    {{ 'COMMON.NO' | translate }}
-                  </ion-col>
-                  <ion-col
-                    class="fixed-width border-right no-border-top border-bottom"
-                    [style.border-width]="'2px'"
-                    [style.--col-width]="pageDimensions.colWidthMeasure * 2 - 1"
-                  ></ion-col>
-                  <ion-col class="fixed-width vertical-centred-content horizontal-centred-content border-top" [style.border-width]="'2px'">
-                    {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.SAMPLE' | translate }}
-                  </ion-col>
-                </ion-row>
+                    <ng-container matColumnDef="exhaustiveInventory">
+                      <mat-header-cell
+                        *matHeaderCellDef
+                        class="centred font-compact"
+                        [style.--col-width]="pageDimensions.colWidthExhaustiveInventory"
+                      >
+                        <mat-icon class="mat-icon mat-icon-sm">arrow_downward</mat-icon>
+                      </mat-header-cell>
+                      <mat-cell
+                        *matCellDef="let batch"
+                        class="padding-medium font-compact"
+                        [style.--col-width]="pageDimensions.colWidthExhaustiveInventory"
+                      >
+                        <ion-icon [style.font-size]="'1.1em'" [name]="batch.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                      </mat-cell>
+                    </ng-container>
 
-                <ion-row>
-                  <ion-col>
-                    <mat-table
-                      #batchTable
-                      class="no-border-top"
-                      [dataSource]="page"
-                      [style.border-bottom-width]="'2px'"
-                      [style.--row-height]="pageDimensions.rowHeight"
-                      [style.--row-title-height]="pageDimensions.rowTitleHeight"
-                    >
-                      <ng-container matColumnDef="exhaustiveInventory">
-                        <mat-header-cell
-                          *matHeaderCellDef
-                          class="centred font-compact"
-                          [style.--col-width]="pageDimensions.colWidthExhaustiveInventory"
-                        >
-                          <mat-icon class="mat-icon mat-icon-sm">arrow_downward</mat-icon>
-                        </mat-header-cell>
-                        <mat-cell
-                          *matCellDef="let batch"
-                          class="padding-medium font-compact"
-                          [style.--col-width]="pageDimensions.colWidthExhaustiveInventory"
-                        >
-                          <ion-icon [style.font-size]="'1.1em'" [name]="batch.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
-                        </mat-cell>
-                      </ng-container>
+                    <ng-container matColumnDef="taxonGroup">
+                      <mat-header-cell
+                        *matHeaderCellDef
+                        class="centred font-compact border-top"
+                        [style.--col-width]="pageDimensions.colWidthTaxonGroup"
+                      >
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TAXON_GROUP' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact" [style.--col-width]="pageDimensions.colWidthTaxonGroup">
+                        @if (batch | batchIsCatchBatch) {
+                          {{ batch.taxonGroup | referentialToString: displayAttributes.taxonGroup }}
+                        }
+                      </mat-cell>
+                    </ng-container>
 
-                      <ng-container matColumnDef="taxonGroup">
-                        <mat-header-cell
-                          *matHeaderCellDef
-                          class="centred font-compact border-top"
-                          [style.--col-width]="pageDimensions.colWidthTaxonGroup"
-                        >
-                          {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TAXON_GROUP' | translateContext: i18nContext.suffix }}
-                        </mat-header-cell>
-                        <mat-cell *matCellDef="let batch" class="padding-medium font-compact" [style.--col-width]="pageDimensions.colWidthTaxonGroup">
-                          @if (batch | batchIsCatchBatch) {
-                            {{ batch.taxonGroup | referentialToString: displayAttributes.taxonGroup }}
-                          }
-                        </mat-cell>
-                      </ng-container>
+                    <ng-container matColumnDef="taxonName">
+                      <mat-header-cell
+                        *matHeaderCellDef
+                        class="centred font-compact border-top"
+                        [style.--col-width]="pageDimensions.colWidthTaxonName"
+                      >
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TAXON_NAME' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact" [style.--col-width]="pageDimensions.colWidthTaxonName">
+                        @if (batch | batchIsIndividualBatch) {
+                          {{ batch.taxonName | referentialToString: displayAttributes.taxonGroup }}
+                        }
+                      </mat-cell>
+                    </ng-container>
 
-                      <ng-container matColumnDef="taxonName">
-                        <mat-header-cell
-                          *matHeaderCellDef
-                          class="centred font-compact border-top"
-                          [style.--col-width]="pageDimensions.colWidthTaxonName"
-                        >
-                          {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TAXON_NAME' | translateContext: i18nContext.suffix }}
-                        </mat-header-cell>
-                        <mat-cell *matCellDef="let batch" class="padding-medium font-compact" [style.--col-width]="pageDimensions.colWidthTaxonName">
-                          @if (batch | batchIsIndividualBatch) {
-                            {{ batch.taxonName | referentialToString: displayAttributes.taxonGroup }}
-                          }
-                        </mat-cell>
-                      </ng-container>
-
-                      <ng-container matColumnDef="sortCriterions">
-                        <mat-header-cell
-                          *matHeaderCellDef
-                          class="centred font-compact border-top"
-                          [style.--col-width]="pageDimensions.colWidthSortCriterions"
-                        >
-                          {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.SORT_CRITERIONS' | translateContext: i18nContext.suffix }}
-                        </mat-header-cell>
-                        <mat-cell
-                          *matCellDef="let batch"
-                          class="font-compact tree-indent"
-                          [style.--col-width]="pageDimensions.colWidthSortCriterions"
-                        >
-                          @for (indent of treeIndentByBatchId | mapGet: batch.id; track $index) {
-                            <span class="tree-element {{ indent }}"></span>
-                          }
-                          @if (batch | batchIsIndividualBatch) {
-                            {{ sortingValueTextByBatchId | mapGet: batch.id }}
-                          } @else if (batch | batchIsSamplingBatch) {
-                            <strong>
-                              {{ batch.rankOrder }}
-                            </strong>
-                          } @else if (batch | batchIsSortingBatch) {
-                            <strong>
-                              {{
-                                batch.measurementValues
-                                  | mapGet: pmfmIds.SIZE_UNLI_CAT
-                                  | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.SIZE_UNLI_CAT), propertyNames: ['label'] }
-                              }}
-                              ,&nbsp;
-                              {{
-                                batch.measurementValues
-                                  | mapGet: pmfmIds.SIZE_UE_CAT
-                                  | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.SIZE_UE_CAT), propertyNames: ['name'] }
-                              }}
-                              ,&nbsp;
-                              {{
-                                batch.measurementValues
-                                  | mapGet: pmfmIds.PRESERVATION
-                                  | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.PRESERVATION), propertyNames: ['label', 'name'] }
-                              }}
-                              ,&nbsp;
-                              {{
-                                batch.measurementValues
-                                  | mapGet: pmfmIds.DRESSING
-                                  | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.DRESSING), propertyNames: ['label', 'name'] }
-                              }}
-                            </strong>
-                          } @else if (batch | batchIsCatchBatch) {
-                            {{ batch.taxonGroup | referentialToString: displayAttributes.taxonGroup }}
-                          }
-                        </mat-cell>
-                      </ng-container>
-
-                      <ng-container matColumnDef="totalWeight">
-                        <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
-                          {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TOTAL_WEIGHT' | translateContext: i18nContext.suffix }}
-                        </mat-header-cell>
-                        <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
-                          @if (batch | batchIsSortingBatch) {
+                    <ng-container matColumnDef="sortCriterions">
+                      <mat-header-cell
+                        *matHeaderCellDef
+                        class="centred font-compact border-top"
+                        [style.--col-width]="pageDimensions.colWidthSortCriterions"
+                      >
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.SORT_CRITERIONS' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="font-compact tree-indent" [style.--col-width]="pageDimensions.colWidthSortCriterions">
+                        @for (indent of treeIndentByBatchId | mapGet: batch.id; track $index) {
+                          <span class="tree-element {{ indent }}"></span>
+                        }
+                        @if (batch | batchIsIndividualBatch) {
+                          {{ sortingValueTextByBatchId | mapGet: batch.id }}
+                        } @else if (batch | batchIsSamplingBatch) {
+                          <strong>
+                            {{ batch.rankOrder }}
+                          </strong>
+                        } @else if (batch | batchIsSortingBatch) {
+                          <strong>
                             {{
                               batch.measurementValues
-                                | mapGet: pmfmIds.BATCH_MEASURED_WEIGHT
-                                | pmfmValue: { pmfm: pmfmsByIds.sortingBatch | mapGet: pmfmIds.BATCH_MEASURED_WEIGHT }
+                                | mapGet: pmfmIds.SIZE_UNLI_CAT
+                                | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.SIZE_UNLI_CAT), propertyNames: ['label'] }
                             }}
-                          }
-                        </mat-cell>
-                      </ng-container>
+                            ,&nbsp;
+                            {{
+                              batch.measurementValues
+                                | mapGet: pmfmIds.SIZE_UE_CAT
+                                | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.SIZE_UE_CAT), propertyNames: ['name'] }
+                            }}
+                            ,&nbsp;
+                            {{
+                              batch.measurementValues
+                                | mapGet: pmfmIds.PRESERVATION
+                                | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.PRESERVATION), propertyNames: ['label', 'name'] }
+                            }}
+                            ,&nbsp;
+                            {{
+                              batch.measurementValues
+                                | mapGet: pmfmIds.DRESSING
+                                | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.DRESSING), propertyNames: ['label', 'name'] }
+                            }}
+                          </strong>
+                        } @else if (batch | batchIsCatchBatch) {
+                          {{ batch.taxonGroup | referentialToString: displayAttributes.taxonGroup }}
+                        }
+                      </mat-cell>
+                    </ng-container>
 
-                      <ng-container matColumnDef="totalIndiv">
-                        <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
-                          {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TOTAL_INDIV' | translateContext: i18nContext.suffix }}
-                        </mat-header-cell>
-                        <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
-                          @if ((batch | batchIsSortingBatch) && !(batch | batchIsSamplingBatch)) {
-                            {{ batch.individualCount }}
-                          }
-                        </mat-cell>
-                      </ng-container>
+                    <ng-container matColumnDef="totalWeight">
+                      <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TOTAL_WEIGHT' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        @if (batch | batchIsSortingBatch) {
+                          {{
+                            batch.measurementValues
+                              | mapGet: pmfmIds.BATCH_MEASURED_WEIGHT
+                              | pmfmValue: { pmfm: pmfmsByIds.sortingBatch | mapGet: pmfmIds.BATCH_MEASURED_WEIGHT }
+                          }}
+                        }
+                      </mat-cell>
+                    </ng-container>
 
-                      <ng-container matColumnDef="faction">
-                        <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
-                          {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.FRACTION' | translateContext: i18nContext.suffix }}
-                        </mat-header-cell>
-                        <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
-                          <span [class.computed]="!(sortingBatchWithCalculatedWeightById | mapGet: batch.id)">
-                            @if (batch | batchIsSamplingBatch) {
-                              {{ batch.samplingRatio }}
-                            }
-                          </span>
-                        </mat-cell>
-                      </ng-container>
+                    <ng-container matColumnDef="totalIndiv">
+                      <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TOTAL_INDIV' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        @if ((batch | batchIsSortingBatch) && !(batch | batchIsSamplingBatch)) {
+                          {{ batch.individualCount }}
+                        }
+                      </mat-cell>
+                    </ng-container>
 
-                      <ng-container matColumnDef="weight">
-                        <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
-                          {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.WEIGHT' | translateContext: i18nContext.suffix }}
-                        </mat-header-cell>
-                        <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                    <ng-container matColumnDef="faction">
+                      <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.FRACTION' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        <span [class.computed]="!(sortingBatchWithCalculatedWeightById | mapGet: batch.id)">
                           @if (batch | batchIsSamplingBatch) {
-                            @if (sortingBatchWithCalculatedWeightById | mapGet: batch.id) {
-                              <span class="computed">
-                                {{
-                                  batch.measurementValues
-                                    | mapGet: pmfmIds.BATCH_CALCULATED_WEIGHT
-                                    | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.BATCH_CALCULATED_WEIGHT) }
-                                }}
-                              </span>
-                            } @else {
-                              {{
-                                batch.measurementValues
-                                  | mapGet: pmfmIds.BATCH_MEASURED_WEIGHT
-                                  | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.BATCH_MEASURED_WEIGHT) }
-                              }}
-                            }
-                          } @else if (batch | batchIsIndividualBatch) {
+                            {{ batch.samplingRatio }}
+                          }
+                        </span>
+                      </mat-cell>
+                    </ng-container>
+
+                    <ng-container matColumnDef="weight">
+                      <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.WEIGHT' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        @if (batch | batchIsSamplingBatch) {
+                          @if (sortingBatchWithCalculatedWeightById | mapGet: batch.id) {
                             <span class="computed">
                               {{
                                 batch.measurementValues
-                                  | mapGet: pmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
-                                  | pmfmValue: { pmfm: (pmfmsByIds.sortingBatchIndividual | mapGet: pmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH) }
+                                  | mapGet: pmfmIds.BATCH_CALCULATED_WEIGHT
+                                  | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.BATCH_CALCULATED_WEIGHT) }
                               }}
                             </span>
+                          } @else {
+                            {{
+                              batch.measurementValues
+                                | mapGet: pmfmIds.BATCH_MEASURED_WEIGHT
+                                | pmfmValue: { pmfm: (pmfmsByIds.sortingBatch | mapGet: pmfmIds.BATCH_MEASURED_WEIGHT) }
+                            }}
                           }
-                        </mat-cell>
-                      </ng-container>
+                        } @else if (batch | batchIsIndividualBatch) {
+                          <span class="computed">
+                            {{
+                              batch.measurementValues
+                                | mapGet: pmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
+                                | pmfmValue: { pmfm: (pmfmsByIds.sortingBatchIndividual | mapGet: pmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH) }
+                            }}
+                          </span>
+                        }
+                      </mat-cell>
+                    </ng-container>
 
-                      <ng-container matColumnDef="nbIndiv">
-                        <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
-                          {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.NB_INDIV' | translateContext: i18nContext.suffix }}
-                        </mat-header-cell>
-                        <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
-                          @if ((batch | batchIsIndividualBatch) || (batch | batchIsSamplingBatch)) {
-                            {{ batch.individualCount }}
-                          }
-                        </mat-cell>
-                      </ng-container>
+                    <ng-container matColumnDef="nbIndiv">
+                      <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.NB_INDIV' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        @if ((batch | batchIsIndividualBatch) || (batch | batchIsSamplingBatch)) {
+                          {{ batch.individualCount }}
+                        }
+                      </mat-cell>
+                    </ng-container>
 
-                      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-                      <mat-row *matRowDef="let batch; columns: displayedColumns"></mat-row>
-                    </mat-table>
-                  </ion-col>
-                </ion-row>
+                    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                    <mat-row *matRowDef="let batch; columns: displayedColumns"></mat-row>
+                  </mat-table>
+                </ion-col>
+              </ion-row>
 
-                <ion-row>
-                  <ion-col size="12">
-                    <p [innerHtml]="'SALE.BATCH.REPORT.TABLE.SELL_PART.LEGEND' | translate"></p>
-                  </ion-col>
-                </ion-row>
-              </ion-grid>
+              <ion-row>
+                <ion-col size="12">
+                  <p [innerHtml]="'SALE.BATCH.REPORT.TABLE.SELL_PART.LEGEND' | translate"></p>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
 
-              <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
-            </section>
+            <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
           </section>
         }
       }

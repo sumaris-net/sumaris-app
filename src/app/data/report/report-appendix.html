@@ -1,58 +1,56 @@
 @if (loaded) {
   <app-reveal #reveal [options]="revealOptions">
-    <section *sectionDef>
-      @for (page of pages; track pageIndex; let pageIndex = $index) {
-        <section class="portrait" [style.--base-margin]="pageDimensions.baseMargin">
-          <page-header-form-report-chunk
-            [i18nContext]="i18nContext"
-            [title]="'TRIP.REPORT.FORM.APPENDIX.TITLE'"
-            [pageNumber]="pageIndex + 1"
-            [logoRightUrl]="logoHeadRightUrl"
-            [logoLeftUrl]="logoHeadLeftUrl"
-          ></page-header-form-report-chunk>
-          <div class="block-title" [style.--title-color]="titleColor" [style.--page-margin]="pageDimensions.baseMargin">
-            <h1>{{ page.sectionTitle }}</h1>
-          </div>
-          <div
-            class="page-container"
-            [style.--page-margin]="pageDimensions.baseMargin"
-            [style.--page-height]="pageDimensions.pageContentHeight"
-            [style.--page-width]="pageDimensions.pageContentWidth"
-            [style.--block-width]="pageDimensions.blockWidth"
-            [style.--title-height]="pageDimensions.itemTitleHeight"
-            [style.--title-color]="titleColor"
-          >
-            @for (block of page.blocks; track blockIndex; let blockIndex = $index) {
-              <div class="page-block">
-                <table
-                  [class.margin-top]="blockIndex > 0 && !block.columnBreak"
-                  [style.--row-title-height]="pageDimensions.rowHeight"
-                  [style.--row-height]="pageDimensions.rowHeight"
-                >
-                  <thead>
+    @for (page of pages; track pageIndex; let pageIndex = $index) {
+      <section *sectionDef class="portrait" [style.--base-margin]="pageDimensions.baseMargin">
+        <page-header-form-report-chunk
+          [i18nContext]="i18nContext"
+          [title]="'TRIP.REPORT.FORM.APPENDIX.TITLE'"
+          [pageNumber]="pageIndex + 1"
+          [logoRightUrl]="logoHeadRightUrl"
+          [logoLeftUrl]="logoHeadLeftUrl"
+        ></page-header-form-report-chunk>
+        <div class="block-title" [style.--title-color]="titleColor" [style.--page-margin]="pageDimensions.baseMargin">
+          <h1>{{ page.sectionTitle }}</h1>
+        </div>
+        <div
+          class="page-container"
+          [style.--page-margin]="pageDimensions.baseMargin"
+          [style.--page-height]="pageDimensions.pageContentHeight"
+          [style.--page-width]="pageDimensions.pageContentWidth"
+          [style.--block-width]="pageDimensions.blockWidth"
+          [style.--title-height]="pageDimensions.itemTitleHeight"
+          [style.--title-color]="titleColor"
+        >
+          @for (block of page.blocks; track blockIndex; let blockIndex = $index) {
+            <div class="page-block">
+              <table
+                [class.margin-top]="blockIndex > 0 && !block.columnBreak"
+                [style.--row-title-height]="pageDimensions.rowHeight"
+                [style.--row-height]="pageDimensions.rowHeight"
+              >
+                <thead>
+                  <tr>
+                    <th colspan="2">
+                      @if (block.index) {
+                        ({{ block.index }})&nbsp;
+                      }
+                      {{ block.title }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of block.items; track $index) {
                     <tr>
-                      <th colspan="2">
-                        @if (block.index) {
-                          ({{ block.index }})&nbsp;
-                        }
-                        {{ block.title }}
-                      </th>
+                      <td [style.--col-width]="'var(--col-small)'">{{ item.label }}</td>
+                      <td>{{ item.name }}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    @for (item of block.items; track $index) {
-                      <tr>
-                        <td [style.--col-width]="'var(--col-small)'">{{ item.label }}</td>
-                        <td>{{ item.name }}</td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            }
-          </div>
-        </section>
-      }
-    </section>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </section>
+    }
   </app-reveal>
 }

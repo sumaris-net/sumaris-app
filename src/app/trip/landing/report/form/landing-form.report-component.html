@@ -2,180 +2,178 @@
   <app-reveal #reveal [options]="revealOptions">
     @if (pages | isNotEmptyArray) {
       @for (page of pages; track $index) {
-        <section [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
-          <section *sectionDef class="landscape">
-            <page-header-form-report-chunk
-              [i18nContext]="i18nContext"
-              [title]="'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TITLE'"
-              [items]="stats.headerItems"
-              [logoRightUrl]="logoHeadRightUrl"
-              [logoLeftUrl]="logoHeadLeftUrl"
-              [pageNumber]=""
-            ></page-header-form-report-chunk>
-            @if ($first) {
-              <ion-grid class="report-section ion-no-padding ion-no-margin">
-                <ion-row>
-                  <ion-col size="6">
-                    <ion-grid class="ion-no-margin ion-no-padding">
-                      <ion-row class="section-title ion-no-margin ion-justify-content-between">
-                        <ion-col size="auto">
-                          <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.FIELDS.TOTAL_VESSEL_SAMPLED' | translate }}</h3>
-                        </ion-col>
-                        <ion-col class="title-value ion-text-center font-large no-border-bottom" size="auto">
-                          @if (!isBlankForm) {
-                            {{ stats.fieldsValues.totalVesselSampled }}
-                          }
-                        </ion-col>
-                      </ion-row>
-                      <ion-row class="section-title ion-no-margin ion-justify-content-between">
-                        <ion-col size="auto">
-                          <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.FIELDS.NUMBER_OF_SAMPLED_PRIORITY_SPECIES' | translate }}</h3>
-                        </ion-col>
-                        <ion-col class="title-value ion-text-center font-large" [class.no-border-bottom]="!isBlankForm" size="auto">
-                          @if (!isBlankForm) {
-                            {{ stats.fieldsValues.numberOfSampledPrioritySpecies }}
-                          }
-                        </ion-col>
-                      </ion-row>
-                    </ion-grid>
-                  </ion-col>
-                  <!--<ion-col size="6" [style.margin]="'auto'">-->
-                  <!--  <ion-grid class="ion-no-margin ion-no-padding">-->
-                  <!--    <ion-row class="section-title ion-justify-content-center">-->
-                  <!--      <ion-col size="auto">-->
-                  <!--        <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.FIELDS.HAS_PETS' | translate }}</h3>-->
-                  <!--      </ion-col>-->
-                  <!--      <ion-col-->
-                  <!--        class="title-value ion-text-center font-large"-->
-                  <!--        [class.horiz-checkbox]="isBlankForm"-->
-                  <!--        [size]="isBlankForm ? 4 : 'auto'"-->
-                  <!--      >-->
-                  <!--        @if (isBlankForm) {-->
-                  <!--          <ion-grid [fixed]="true">-->
-                  <!--            <ion-row>-->
-                  <!--              <ion-col>-->
-                  <!--                {{ 'COMMON.YES' | translate }}&nbsp;-->
-                  <!--                <ion-icon name="square-outline"></ion-icon>-->
-                  <!--              </ion-col>-->
-                  <!--              <ion-col>-->
-                  <!--                {{ 'COMMON.NO' | translate }}&nbsp;-->
-                  <!--                <ion-icon name="square-outline"></ion-icon>-->
-                  <!--              </ion-col>-->
-                  <!--            </ion-row>-->
-                  <!--          </ion-grid>-->
-                  <!--        } @else {-->
-                  <!--          {{ (stats.fieldsValues.hasPets ? 'COMMON.YES' : 'COMMON.NO') | translate }}-->
-                  <!--        }-->
-                  <!--      </ion-col>-->
-                  <!--    </ion-row>-->
-                  <!--  </ion-grid>-->
-                  <!--</ion-col>-->
-                </ion-row>
-                @if (isBlankForm) {
-                  <ion-row class="ion-padding-vertical" [style.--ion-padding]="'4px'">
-                    <ion-col>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.MENTIONS.INCLUDE_SAMPLED_SPECIES' | translate }}</ion-col>
-                  </ion-row>
-                }
-              </ion-grid>
-            }
+        <section *sectionDef class="landscape" [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
+          <page-header-form-report-chunk
+            [i18nContext]="i18nContext"
+            [title]="'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TITLE'"
+            [items]="stats.headerItems"
+            [logoRightUrl]="logoHeadRightUrl"
+            [logoLeftUrl]="logoHeadLeftUrl"
+            [pageNumber]=""
+          ></page-header-form-report-chunk>
+          @if ($first) {
             <ion-grid class="report-section ion-no-padding ion-no-margin">
               <ion-row>
-                <ion-col>
-                  <mat-table
-                    #landingTable
-                    [dataSource]="page"
-                    [style.--row-height]="pageDimensions.rowHeight"
-                    [style.--row-title-height]="pageDimensions.rowHeight"
-                  >
-                    <ng-container matColumnDef="rankOrder">
-                      <mat-header-cell *matHeaderCellDef class="tiny centred">
-                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.RANK_ORDER' | translate }}
-                      </mat-header-cell>
-                      <mat-cell *matCellDef="let landing" class="tiny centred">
-                        {{ landing.rankOrder }}
-                      </mat-cell>
-                    </ng-container>
-
-                    <ng-container matColumnDef="maritimDistrict">
-                      <mat-header-cell *matHeaderCellDef class="centred font-medium">
-                        <p>
-                          @if (isBlankForm) {
-                            {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.MARITIM_QUARTER' | translate }}&nbsp;/&nbsp;
-                          }
-                          {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.REGISTRATION_CODE' | translate }}
-                        </p>
-                        <p>
-                          {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.VESSEL_NAME' | translateContext: i18nContext.suffix }}
-                        </p>
-                      </mat-header-cell>
-                      <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
-                        {{ landing.vesselSnapshot?.registrationCode || landing.vesselSnapshot?.intRegistrationCode }}
-                        {{ landing.vesselSnapshot?.name }}
-                      </mat-cell>
-                    </ng-container>
-
-                    <ng-container matColumnDef="specie">
-                      <mat-header-cell *matHeaderCellDef class="centred font-medium">
-                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.SPECIE' | translateContext: i18nContext.suffix }}
-                      </mat-header-cell>
-                      <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
-                        {{
-                          observedSpeciesByIds
-                            | mapGet: (landing.measurementValues | mapGet: pmfmIds.TAXON_GROUP_ID)
-                            | referentialToString: displayAttributesTaxonGroup
-                        }}
-                      </mat-cell>
-                    </ng-container>
-
-                    <ng-container matColumnDef="sizeUnliCat">
-                      <mat-header-cell *matHeaderCellDef class="centred font-medium">
-                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.COMMERCIAL_SIZE_CATEGORY' | translateContext: i18nContext.suffix }}
-                      </mat-header-cell>
-                      <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
-                        {{ stats.fieldsValues.sizeUnliCatLabelsByLandingId | mapGet: landing.id }}
-                      </mat-cell>
-                    </ng-container>
-
-                    <ng-container matColumnDef="comments">
-                      <mat-header-cell *matHeaderCellDef class="centred font-medium">
-                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.COMMENTS' | translateContext: i18nContext.suffix }}
-                      </mat-header-cell>
-                      <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
-                        {{ landing.comments }}
-                      </mat-cell>
-                    </ng-container>
-
-                    @for (pmfm of pmfms; track pmfm.id) {
-                      <ng-container [matColumnDef]="pmfm | pmfmIdString">
-                        <mat-header-cell *matHeaderCellDef class="centred mat-column-pmfm mat-column-{{ pmfm.label }}" class="centred font-medium">
-                          <div class="ion-text-center">
-                            <table-head-pmfm-name-report-chunk
-                              [pmfm]="pmfm"
-                              [i18nContext]="i18nContext"
-                              [pmfmTipsByPmfmIds]="[]"
-                            ></table-head-pmfm-name-report-chunk>
-                          </div>
-                        </mat-header-cell>
-                        <mat-cell *matCellDef="let landing" class="padding-medium"></mat-cell>
-                      </ng-container>
-                    }
-
-                    <ng-container matColumnDef="divider">
-                      <mat-cell *matCellDef="let landing" class="padding-medium">
-                        {{ landing.measurementValues | mapGet: dividerPmfm.id | pmfmValue: { pmfm: dividerPmfm } }}
-                      </mat-cell>
-                    </ng-container>
-
-                    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-                    <mat-row *matRowDef="let row; columns: displayedColumns; when: isLanding"></mat-row>
-                    <mat-row *matRowDef="let row; columns: ['divider']; when: isDivider" class="divider"></mat-row>
-                  </mat-table>
+                <ion-col size="6">
+                  <ion-grid class="ion-no-margin ion-no-padding">
+                    <ion-row class="section-title ion-no-margin ion-justify-content-between">
+                      <ion-col size="auto">
+                        <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.FIELDS.TOTAL_VESSEL_SAMPLED' | translate }}</h3>
+                      </ion-col>
+                      <ion-col class="title-value ion-text-center font-large no-border-bottom" size="auto">
+                        @if (!isBlankForm) {
+                          {{ stats.fieldsValues.totalVesselSampled }}
+                        }
+                      </ion-col>
+                    </ion-row>
+                    <ion-row class="section-title ion-no-margin ion-justify-content-between">
+                      <ion-col size="auto">
+                        <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.FIELDS.NUMBER_OF_SAMPLED_PRIORITY_SPECIES' | translate }}</h3>
+                      </ion-col>
+                      <ion-col class="title-value ion-text-center font-large" [class.no-border-bottom]="!isBlankForm" size="auto">
+                        @if (!isBlankForm) {
+                          {{ stats.fieldsValues.numberOfSampledPrioritySpecies }}
+                        }
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
                 </ion-col>
+                <!--<ion-col size="6" [style.margin]="'auto'">-->
+                <!--  <ion-grid class="ion-no-margin ion-no-padding">-->
+                <!--    <ion-row class="section-title ion-justify-content-center">-->
+                <!--      <ion-col size="auto">-->
+                <!--        <h3>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.FIELDS.HAS_PETS' | translate }}</h3>-->
+                <!--      </ion-col>-->
+                <!--      <ion-col-->
+                <!--        class="title-value ion-text-center font-large"-->
+                <!--        [class.horiz-checkbox]="isBlankForm"-->
+                <!--        [size]="isBlankForm ? 4 : 'auto'"-->
+                <!--      >-->
+                <!--        @if (isBlankForm) {-->
+                <!--          <ion-grid [fixed]="true">-->
+                <!--            <ion-row>-->
+                <!--              <ion-col>-->
+                <!--                {{ 'COMMON.YES' | translate }}&nbsp;-->
+                <!--                <ion-icon name="square-outline"></ion-icon>-->
+                <!--              </ion-col>-->
+                <!--              <ion-col>-->
+                <!--                {{ 'COMMON.NO' | translate }}&nbsp;-->
+                <!--                <ion-icon name="square-outline"></ion-icon>-->
+                <!--              </ion-col>-->
+                <!--            </ion-row>-->
+                <!--          </ion-grid>-->
+                <!--        } @else {-->
+                <!--          {{ (stats.fieldsValues.hasPets ? 'COMMON.YES' : 'COMMON.NO') | translate }}-->
+                <!--        }-->
+                <!--      </ion-col>-->
+                <!--    </ion-row>-->
+                <!--  </ion-grid>-->
+                <!--</ion-col>-->
               </ion-row>
+              @if (isBlankForm) {
+                <ion-row class="ion-padding-vertical" [style.--ion-padding]="'4px'">
+                  <ion-col>{{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.MENTIONS.INCLUDE_SAMPLED_SPECIES' | translate }}</ion-col>
+                </ion-row>
+              }
             </ion-grid>
+          }
+          <ion-grid class="report-section ion-no-padding ion-no-margin">
+            <ion-row>
+              <ion-col>
+                <mat-table
+                  #landingTable
+                  [dataSource]="page"
+                  [style.--row-height]="pageDimensions.rowHeight"
+                  [style.--row-title-height]="pageDimensions.rowHeight"
+                >
+                  <ng-container matColumnDef="rankOrder">
+                    <mat-header-cell *matHeaderCellDef class="tiny centred">
+                      {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.RANK_ORDER' | translate }}
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let landing" class="tiny centred">
+                      {{ landing.rankOrder }}
+                    </mat-cell>
+                  </ng-container>
 
-            <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
-          </section>
+                  <ng-container matColumnDef="maritimDistrict">
+                    <mat-header-cell *matHeaderCellDef class="centred font-medium">
+                      <p>
+                        @if (isBlankForm) {
+                          {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.MARITIM_QUARTER' | translate }}&nbsp;/&nbsp;
+                        }
+                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.REGISTRATION_CODE' | translate }}
+                      </p>
+                      <p>
+                        {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.VESSEL_NAME' | translateContext: i18nContext.suffix }}
+                      </p>
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
+                      {{ landing.vesselSnapshot?.registrationCode || landing.vesselSnapshot?.intRegistrationCode }}
+                      {{ landing.vesselSnapshot?.name }}
+                    </mat-cell>
+                  </ng-container>
+
+                  <ng-container matColumnDef="specie">
+                    <mat-header-cell *matHeaderCellDef class="centred font-medium">
+                      {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.SPECIE' | translateContext: i18nContext.suffix }}
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
+                      {{
+                        observedSpeciesByIds
+                          | mapGet: (landing.measurementValues | mapGet: pmfmIds.TAXON_GROUP_ID)
+                          | referentialToString: displayAttributesTaxonGroup
+                      }}
+                    </mat-cell>
+                  </ng-container>
+
+                  <ng-container matColumnDef="sizeUnliCat">
+                    <mat-header-cell *matHeaderCellDef class="centred font-medium">
+                      {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.COMMERCIAL_SIZE_CATEGORY' | translateContext: i18nContext.suffix }}
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
+                      {{ stats.fieldsValues.sizeUnliCatLabelsByLandingId | mapGet: landing.id }}
+                    </mat-cell>
+                  </ng-container>
+
+                  <ng-container matColumnDef="comments">
+                    <mat-header-cell *matHeaderCellDef class="centred font-medium">
+                      {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.COMMENTS' | translateContext: i18nContext.suffix }}
+                    </mat-header-cell>
+                    <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
+                      {{ landing.comments }}
+                    </mat-cell>
+                  </ng-container>
+
+                  @for (pmfm of pmfms; track pmfm.id) {
+                    <ng-container [matColumnDef]="pmfm | pmfmIdString">
+                      <mat-header-cell *matHeaderCellDef class="centred mat-column-pmfm mat-column-{{ pmfm.label }}" class="centred font-medium">
+                        <div class="ion-text-center">
+                          <table-head-pmfm-name-report-chunk
+                            [pmfm]="pmfm"
+                            [i18nContext]="i18nContext"
+                            [pmfmTipsByPmfmIds]="[]"
+                          ></table-head-pmfm-name-report-chunk>
+                        </div>
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let landing" class="padding-medium"></mat-cell>
+                    </ng-container>
+                  }
+
+                  <ng-container matColumnDef="divider">
+                    <mat-cell *matCellDef="let landing" class="padding-medium">
+                      {{ landing.measurementValues | mapGet: dividerPmfm.id | pmfmValue: { pmfm: dividerPmfm } }}
+                    </mat-cell>
+                  </ng-container>
+
+                  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                  <mat-row *matRowDef="let row; columns: displayedColumns; when: isLanding"></mat-row>
+                  <mat-row *matRowDef="let row; columns: ['divider']; when: isDivider" class="divider"></mat-row>
+                </mat-table>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+
+          <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
         </section>
       }
     }
