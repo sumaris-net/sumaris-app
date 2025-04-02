@@ -222,7 +222,7 @@ export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchF
 
   private computeBatchRow(data: Batch, result: Batch[] = [], last = { sorting: false, sampling: false, individual: false }): Batch[] {
     const batch = Batch.fromObject(data.asObject());
-    const children = batch.children;
+    let children = batch.children;
     if (BatchUtils.isCatchBatch(batch) && !batch.hasTaxonNameOrGroup) {
       if (isNotEmptyArray(children)) {
         batch.taxonGroup = children[0].taxonGroup;
@@ -238,9 +238,19 @@ export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchF
     this.computeSortingValueText(batch);
     this.computeBatchWithCalculatedWeightById(batch);
     if (isNotEmptyArray(children)) {
+      // Sort all individual batch bay label to be able to group them by label
+      if (BatchUtils.isSamplingBatch(data)) {
+        children = children.sort((a, b) => a.taxonName.label.localeCompare(b.taxonName.label));
+      }
+      let previousTaxonNameId: number;
       children.forEach((child, index) => {
         if (BatchUtils.isIndividualBatch(child)) {
           last.individual = index + 1 === children.length;
+          if (child.taxonName.id !== previousTaxonNameId) {
+            previousTaxonNameId = child.taxonName.id;
+          } else {
+            child.taxonName = undefined;
+          }
         } else if (BatchUtils.isSamplingBatch(child)) {
           last.sampling = index + 1 === children.length;
         } else if (BatchUtils.isSortingBatch(child)) {
