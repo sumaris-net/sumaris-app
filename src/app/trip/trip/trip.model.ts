@@ -708,7 +708,8 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
   returnDateTime: Moment = null;
   departureLocation: ReferentialRef = null;
   returnLocation: ReferentialRef = null;
-  sale: Sale = null;
+  sale: Sale = null; // TODO OLM: remove sale in the future, keep during dev when sales does'nt works
+  sales: Sale[] = null; // TODO OLM: remove sale in the future
   expectedSale: ExpectedSale = null;
   gears: PhysicalGear[] = null;
   measurements: Measurement[] = null;
@@ -732,7 +733,8 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     target.returnDateTime = toDateISOString(this.returnDateTime);
     target.departureLocation = (this.departureLocation && this.departureLocation.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
     target.returnLocation = (this.returnLocation && this.returnLocation.asObject({ ...opts, ...NOT_MINIFY_OPTIONS })) || undefined;
-    target.sale = (this.sale && this.sale.asObject(opts)) || undefined;
+    target.sale = (this.sale && this.sale.asObject(opts)) || undefined; // TODO OLM: remove sale in the future
+    target.sales = (this.sales && this.sales.map((s) => s.asObject(opts))) || undefined;
     target.expectedSale = (this.expectedSale && this.expectedSale.asObject(opts)) || undefined;
     target.measurements = (this.measurements && this.measurements.filter(MeasurementUtils.isNotEmpty).map((m) => m.asObject(opts))) || undefined;
     target.observers = (this.observers && this.observers.map((o) => o?.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }))) || undefined;
@@ -778,7 +780,8 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.returnDateTime = fromDateISOString(source.returnDateTime);
     this.departureLocation = source.departureLocation && ReferentialRef.fromObject(source.departureLocation);
     this.returnLocation = source.returnLocation && ReferentialRef.fromObject(source.returnLocation);
-    this.sale = (source.sale && Sale.fromObject(source.sale)) || undefined;
+    this.sale = (source.sale && Sale.fromObject(source.sale)) || undefined; // TODO OLM: remove sale in the future
+    this.sales = (source.sales && source.sales.map(Sale.fromObject)) || undefined;
     this.expectedSale = (source.expectedSale && ExpectedSale.fromObject(source.expectedSale)) || undefined;
     this.measurements = (source.measurements && source.measurements.map(Measurement.fromObject)) || [];
     this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];

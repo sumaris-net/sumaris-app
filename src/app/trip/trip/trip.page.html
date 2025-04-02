@@ -196,21 +196,54 @@
                 (onSubmit)="save($event)"
               >
                 <!-- sale -->
-                <div beforeObservers [@expansionAnimation]="showSaleForm && (measurementsForm.readySubject | async)">
-                  <app-form-sale
-                    #saleForm
-                    [locationLevelIds]="saleLocationLevelIds"
-                    [showProgram]="false"
-                    [showVessel]="false"
-                    [showError]="false"
-                    [showComment]="false"
-                    [showEndDateTime]="false"
-                    [required]="false"
-                    [tabindex]="showSaleForm ? 10 : -1"
-                    [minDate]="returnDateTime$ | async"
-                    [showFavorites]="showFavorites"
-                    [debug]="debug"
-                  ></app-form-sale>
+                <div beforeObservers [@expansionInOutAnimation]="showSaleForm && (measurementsForm.readySubject | async) ? 'expanded' : 'collapsed'">
+                  <!-- debug -->
+                  <ion-row *ngIf="debug">
+                    <ion-col offset="0" offset-md="2" offset-lg="3">
+                      <ng-container *ngTemplateOutlet="debugSalePanel"></ng-container>
+                    </ion-col>
+                  </ion-row>
+                  @for (saleForm of saleForms; track i; let i = $index; let first = $first; let last = $last) {
+                    <!-- [formControl]="observerForm | formGetControl" -->
+                    <app-form-sale
+                      [formControl]="saleForm | formGetControl"
+                      [locationLevelIds]="saleLocationLevelIds"
+                      [showProgram]="false"
+                      [showVessel]="false"
+                      [showError]="false"
+                      [showComment]="false"
+                      [showEndDateTime]="false"
+                      [required]="false"
+                      [tabindex]="showSaleForm ? 10 : -1"
+                      [minDate]="returnDateTime$ | async"
+                      [debug]="debug"
+                    ></app-form-sale>
+                    <ion-row>
+                      <ion-col offset="0" offset-md="2" offset-lg="3">
+                        <button
+                          type="button"
+                          mat-icon-button
+                          *ngIf="last"
+                          [tabindex]="tabindex + 10 + i * 3 + 1"
+                          [disabled]="disabledSaleAdd"
+                          [title]="'COMMON.BTN_ADD' | translate"
+                          (click)="addSale()"
+                        >
+                          <mat-icon>add</mat-icon>
+                        </button>
+                        <button
+                          type="button"
+                          mat-icon-button
+                          [tabindex]="tabindex + 10 + i * 3 + 2"
+                          [disabled]="disabledSaleRemove"
+                          [title]="'COMMON.BTN_DELETE' | translate"
+                          (click)="removeSale(i)"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </ion-col>
+                    </ion-row>
+                  }
                 </div>
 
                 <!-- Other features (Measurements) -->
@@ -518,6 +551,24 @@
           measurementsForm.acquisitionLevel: {{ measurementsForm.acquisitionLevel }}
           <br />
         </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>
+
+<ng-template #debugSalePanel>
+  <app-debug title="Sales Array">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          <br />
+          saleForms.length {{ saleForms?.length }}
+          <br />
+          showSaleForm : {{ showSaleForm }}
+          <br />
+          measurementsForm.readySubject: {{ measurementsForm.readySubject | async }}
+        </ion-col>
+        <ion-col></ion-col>
       </ion-row>
     </ion-grid>
   </app-debug>

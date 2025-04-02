@@ -10,6 +10,7 @@ import {
   OnInit,
   Self,
   ViewChild,
+  ViewChildren,
 } from '@angular/core';
 
 import { TripService } from './trip.service';
@@ -20,7 +21,7 @@ import { MeasurementsForm } from '@app/data/measurement/measurements.form.compon
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table'; // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
-import { UntypedFormGroup } from '@angular/forms';
+import { FormGroup, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   Alerts,
@@ -130,6 +131,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   protected showRecorder = true;
   protected showObservers = true;
   protected showSaleForm = false;
+  protected disabledSaleRemove = false;
+  protected disabledSaleAdd = false;
   protected saleLocationLevelIds: number[];
   protected showGearTable = false;
   protected showOperationTable = false;
@@ -146,6 +149,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
   @ViewChild('saleForm', { static: true }) saleForm: SaleForm;
+  @ViewChildren('saleForm') saleForms: SaleForm[];
   @ViewChild('physicalGearsTable', { static: true }) physicalGearsTable: PhysicalGearTable;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
   @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
@@ -253,6 +257,24 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
         .pipe(debounceTime(500), throttleTime(500))
         .subscribe(() => this.updateDataContext())
     );
+
+    // if(isEmptyArray(this.saleForms)){
+    this.addSale();
+    // }
+  }
+
+  addSale() {
+    if (!this.saleForms) this.saleForms = [];
+
+    const newForm = this.saleForm; // ?? new SaleForm(null/*this.injector*/, null/*this.tripService*/, null/*this.saleLocationLevelIds*/, this.showSaleForm, this.mobile, this.tripContext);
+    if (newForm) {
+      this.addForms([newForm]);
+      this.saleForms = [...this.saleForms, newForm];
+    }
+  }
+
+  removeSale(index: number) {
+    this.saleForms = this.saleForms.filter((a, i) => i != index);
   }
 
   ngAfterViewInit() {
@@ -387,7 +409,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   protected registerForms() {
-    this.addForms([this.tripForm, this.saleForm, this.measurementsForm, this.physicalGearsTable, this.operationsTable, this.expenseForm]);
+    this.addForms([this.tripForm, /*this.saleForm,*/ this.measurementsForm, this.physicalGearsTable, this.operationsTable, this.expenseForm]);
   }
 
   protected async setProgram(program: Program) {
@@ -412,7 +434,10 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     // Trip form
     this.tripForm.i18nSuffix = i18nSuffix;
     this.tripForm.showSamplingStrata = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
-    this.tripForm.showObservers = this.showObservers;
+
+    //sales
+
+    this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
     if (!this.tripForm.showObservers && this.data?.observers) {
       this.data.observers = []; // make sure to reset data observers, if any
     }
@@ -429,6 +454,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Sale form
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
+    this.data.sales = [];
+
     this.saleLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_SALE_LOCATION_LEVEL_IDS);
 
     // Measurement form
@@ -731,7 +758,24 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       // Set data to form
       jobs.push(this.tripForm.setValue(data));
 
-      this.saleForm.value = (data && data.sale) || new Sale();
+      console.debug('[trip] setValue() [OK] tripForm', data);
+
+      if (isNewData) {
+        this.saleForms = [this.saleForm];
+        if (this.saleForm) {
+          this.saleForm.value = data?.sale || new Sale();
+        }
+      } else {
+        // if(isEmptyArray(data.sales)){
+        //   data.sales = [new Sale()]
+        // }
+        // const forms = [];
+        // data.sales.forEach((sale, index) => {
+        //   if(this.saleForms[index]){
+        //     this.saleForms[index].setValue(sale);
+        //   }
+        // });
+      }
 
       // Measurements
       if (isNewData) {
@@ -970,6 +1014,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     const json = await super.getJsonValueToSave();
 
     json.sale = !this.saleForm.empty ? this.saleForm.value : null;
+    //json.sales = isEmptyArray(this.saleForms) ? [] : this.saleForms.map((form) => form.value);
 
     return json;
   }
