@@ -691,6 +691,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.SALE_TYPE_ID,
   },
+  PMFM_UNCERTAIN_SPECIES_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.UNCERTAIN_SPECIES.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_UNCERTAIN_SPECIES_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.UNCERTAIN_SPECIES,
+  },
   PMFM_IS_OBSERVED_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.IS_OBSERVED.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_IS_OBSERVED_ID',
