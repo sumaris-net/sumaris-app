@@ -140,7 +140,7 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
       headerHeight: 70,
       footerHeight: 20,
       fieldsHeight: 40 + (this.isBlankForm ? 10 : 0),
-      rowHeight: 42 + (this.isBlankForm ? 10 : 0),
+      rowHeight: 38 + (this.isBlankForm ? 10 : 0),
     };
   }
 

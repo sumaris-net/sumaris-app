@@ -97,15 +97,15 @@
 
                   <ng-container matColumnDef="maritimDistrict">
                     <mat-header-cell *matHeaderCellDef class="centred font-medium">
-                      <p>
+                      <div>
                         @if (isBlankForm) {
                           {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.MARITIM_QUARTER' | translate }}&nbsp;/&nbsp;
                         }
                         {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.REGISTRATION_CODE' | translate }}
-                      </p>
-                      <p>
+                      </div>
+                      <div>
                         {{ 'OBSERVED_LOCATION.REPORT.FORM.LAND_TRIP_PLAN.TABLE.VESSEL_NAME' | translateContext: i18nContext.suffix }}
-                      </p>
+                      </div>
                     </mat-header-cell>
                     <mat-cell *matCellDef="let landing" class="padding-medium font-medium">
                       {{ landing.vesselSnapshot?.registrationCode || landing.vesselSnapshot?.intRegistrationCode }}
