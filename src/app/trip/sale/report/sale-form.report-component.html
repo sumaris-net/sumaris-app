@@ -32,7 +32,7 @@
           <ion-col class="form-label" size="4">
             {{ 'SALE.REPORT.FORM.SECTION.SALE.FIELDS.SALE_LOCATION' | translate }}
           </ion-col>
-          <ion-col class="form-value" size="8">
+          <ion-col class="form-value no-border-top" size="8">
             @if (!isBlankForm) {
               {{ data.saleLocation | referentialToString: displayAttributes.location }}
             }
