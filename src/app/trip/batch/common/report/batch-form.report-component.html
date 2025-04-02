@@ -298,10 +298,8 @@
                         {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.FRACTION' | translateContext: i18nContext.suffix }}
                       </mat-header-cell>
                       <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
-                        <span [class.computed]="!(sortingBatchWithCalculatedWeightById | mapGet: batch.id)">
-                          @if (batch | batchIsSamplingBatch) {
-                            {{ batch.samplingRatio }}
-                          }
+                        <span [class.computed]="!(batchWithCalculatedWeightById | mapGet: batch.id)">
+                          {{ batch.samplingRatio }}
                         </span>
                       </mat-cell>
                     </ng-container>
@@ -311,8 +309,8 @@
                         {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.WEIGHT' | translateContext: i18nContext.suffix }}
                       </mat-header-cell>
                       <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
-                        @if (batch | batchIsSamplingBatch) {
-                          @if (sortingBatchWithCalculatedWeightById | mapGet: batch.id) {
+                        @if (batch | batchIsSortingBatch) {
+                          @if (batchWithCalculatedWeightById | mapGet: batch.id) {
                             <span class="computed">
                               {{
                                 batch.measurementValues
@@ -344,7 +342,7 @@
                         {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.NB_INDIV' | translateContext: i18nContext.suffix }}
                       </mat-header-cell>
                       <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
-                        @if ((batch | batchIsIndividualBatch) || (batch | batchIsSamplingBatch)) {
+                        @if ((batch | batchIsIndividualBatch) || (batch | batchIsSortingBatch)) {
                           {{ batch.individualCount }}
                         }
                       </mat-cell>

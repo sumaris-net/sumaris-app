@@ -80,7 +80,7 @@ export class BatchFormReportComponentStats extends CommonReportComponentStats {
 export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchFormReportComponentStats, BatchFormReportPageDimension> {
   protected treeIndentByBatchId: { [key: number]: TreeComponent[] } = {};
   protected sortingValueTextByBatchId: { [key: number]: string[] } = {};
-  protected sortingBatchWithCalculatedWeightById: { [key: number]: boolean } = {};
+  protected batchWithCalculatedWeightById: { [key: number]: boolean } = {};
   protected pages: MatTableDataSource<Batch>[];
   protected displayedColumns: string[];
   protected dateAdapter: MomentDateAdapter = inject(MomentDateAdapter);
@@ -230,10 +230,13 @@ export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchF
         return [];
       }
     }
-    result.push(batch);
+    // Ignore sorting batch
+    if (!BatchUtils.isSamplingBatch(data)) {
+      result.push(batch);
+    }
     this.computeTreeComponent(batch, last);
     this.computeSortingValueText(batch);
-    this.computeSortingBatchWithCalculatedWeightById(batch);
+    this.computeBatchWithCalculatedWeightById(batch);
     if (isNotEmptyArray(children)) {
       children.forEach((child, index) => {
         if (BatchUtils.isIndividualBatch(child)) {
@@ -244,6 +247,16 @@ export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchF
           last.sorting = index + 1 === children.length;
           last.sampling = false;
           last.individual = false;
+          if (child.children.length === 1 && BatchUtils.isSamplingBatch(child.children[0])) {
+            child.samplingRatio = child.children[0].samplingRatio;
+            child.individualCount = child.children[0].individualCount;
+            if (child.children[0].measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT]) {
+              batch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT] = child.children[0].measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT];
+            }
+            if (child.children[0].measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT]) {
+              batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT] = child.children[0].measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT];
+            }
+          }
         } else {
           return; // unknown ? -> skip
         }
@@ -312,6 +325,7 @@ export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchF
 
   computeSortingValueText(batch: Batch) {
     if (BatchUtils.isIndividualBatch(batch)) {
+      // TODO: Other length measure
       if (Object.keys(batch.measurementValues).includes(PmfmIds.LENGTH_TOTAL_CM.toString())) {
         this.sortingValueTextByBatchId[batch.id] = this.translate.instant('SALE.BATCH.REPORT.TABLE.VALUES.LENGTH_TOTAL', {
           value: batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM],
@@ -339,7 +353,7 @@ export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchF
     return result;
   }
 
-  private computeSortingBatchWithCalculatedWeightById(batch: Batch) {
-    this.sortingBatchWithCalculatedWeightById[batch.id] = Object.keys(batch.measurementValues).includes(PmfmIds.BATCH_CALCULATED_WEIGHT.toString());
+  private computeBatchWithCalculatedWeightById(batch: Batch) {
+    this.batchWithCalculatedWeightById[batch.id] = Object.keys(batch.measurementValues).includes(PmfmIds.BATCH_CALCULATED_WEIGHT.toString());
   }
 }
