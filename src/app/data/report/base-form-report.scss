@@ -445,6 +445,10 @@ html.print-pdf .reveal .slides section {
       --col-maximum: (100% - (var(--page-horizontal-margin) * 2px));
       --col-width: var(--col-medium);
 
+      &.table-full-width {
+        width: calc(100% - calc(var(--page-horizontal-margin) * 1px));
+      }
+
       margin: 0 auto;
       border: 3px solid var(--text-color);
 
