@@ -48,6 +48,7 @@ import { Moment } from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SortDirection } from '@angular/material/sort';
 import { expansionInOutAnimation } from '@app/shared/material/material.animations';
+import { Sale } from '../sale/sale.model';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -182,6 +183,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
   get observersForm() {
     return this.form.controls.observers as AppFormArray<Person, UntypedFormControl>;
+  }
+
+  get salesForm() {
+    return this.form.controls.sales as AppFormArray<Sale, UntypedFormControl>;
   }
 
   get metiersForm() {
@@ -371,6 +376,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   async setValue(data: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    console.debug('[trip-form] setValue()', data, opts);
     // Wait ready (= form group updated, by the parent page)
     await this.ready();
 

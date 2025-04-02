@@ -21,6 +21,7 @@ import { DataRootVesselEntityValidatorService } from '@app/data/services/validat
 import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { TranslateService } from '@ngx-translate/core';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
+import { Sale } from '../sale/sale.model';
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSamplingStrata?: boolean;
@@ -58,6 +59,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
     // Add sale form
     if (opts.withSale) {
+      form.addControl('sales', this.getSalesArray(data?.sales));
       form.addControl(
         'sale',
         this.saleValidator.getFormGroup(data?.sale, {
@@ -83,6 +85,26 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     }
 
     return form;
+  }
+
+  // Méthode pour créer un AppFormArray pour les ventes
+  getSalesArray(data?: Sale[]): AppFormArray<Sale, UntypedFormGroup> {
+    const formArray = new AppFormArray<Sale, UntypedFormGroup>(
+      (sale) => this.saleValidator.getFormGroup(sale), // Utilisation du SaleValidatorService pour chaque vente
+      (a, b) => a.id === b.id, // Comparaison des ventes
+      (a) => !!a.id, // Vérification si une vente est vide
+      {
+        allowEmptyArray: true, // Permet un tableau vide
+        validators: SharedFormArrayValidators.requiredArrayMinLength(1), // Au moins une vente requise
+      }
+    );
+
+    // Initialiser les données si elles existent
+    if (data) {
+      formArray.patchValue(data);
+    }
+
+    return formArray;
   }
 
   getFormGroupConfig(data?: Trip, opts?: O): { [key: string]: any } {
