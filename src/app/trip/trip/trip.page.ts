@@ -10,6 +10,7 @@ import {
   OnInit,
   Self,
   ViewChild,
+  ViewChildren,
 } from '@angular/core';
 
 import { TripService } from './trip.service';
@@ -20,7 +21,7 @@ import { MeasurementsForm } from '@app/data/measurement/measurements.form.compon
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table'; // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
-import { UntypedFormGroup } from '@angular/forms';
+import { FormGroup, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   Alerts,
@@ -268,6 +269,10 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
         .pipe(debounceTime(500), throttleTime(500))
         .subscribe(() => this.updateDataContext())
     );
+
+    // if(isEmptyArray(this.saleForms)){
+    this.addSale();
+    // }
   }
 
   addSale() {
@@ -417,7 +422,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   protected registerForms() {
-    this.addForms([this.tripForm, /*this.saleForms,*/ this.measurementsForm, this.physicalGearsTable, this.operationsTable, this.expenseForm]);
+    this.addForms([this.tripForm, this.measurementsForm, this.physicalGearsTable, this.operationsTable, this.expenseForm]);
   }
 
   protected async setProgram(program: Program) {
@@ -442,6 +447,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     // Trip form
     this.tripForm.i18nSuffix = i18nSuffix;
     this.tripForm.showSamplingStrata = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
+
+    //sales
+
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
     if (!this.tripForm.showObservers && this.data?.observers) {
       this.data.observers = []; // make sure to reset data observers, if any
@@ -459,8 +467,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Sale form
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
-    this.data.sales = [new Sale()];
-
     this.saleLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_SALE_LOCATION_LEVEL_IDS);
 
     // Measurement form
@@ -763,31 +769,23 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       // Set data to form
       jobs.push(this.tripForm.setValue(data));
 
-      console.debug(this.logPrefix + 'setValue() [OK] tripForm', data);
+      console.debug('[trip] setValue() [OK] tripForm', data);
 
       if (isNewData) {
-        // this.saleForms = [this.saleForm];
-        // if (this.saleForm) {
-        //   this.saleForm.value = data?.sale || new Sale();
-        // }
+        this.saleForms = [this.saleForm];
+        if (this.saleForm) {
+          this.saleForm.value = data?.sale || new Sale();
+        }
       } else {
-        // Set sales forms
-        //this.saleForms = this.saleForms || [this.saleForm];
-        // if (this.saleForms.length === 0) {
-        //   this.saleForms = [this.saleForm];
+        // if(isEmptyArray(data.sales)){
+        //   data.sales = [new Sale()]
         // }
+        // const forms = [];
         // data.sales.forEach((sale, index) => {
-        //   jobs.push(this.saleForms.setValue(data?.sales ?? []));
-        //   if(!this.saleForms[index]){
-        //     this.saleForms[index] = this.injector.get(SaleForm);
-        //   }
         //   if(this.saleForms[index]){
         //     this.saleForms[index].setValue(sale);
         //   }
         // });
-        //this.saleForms.addForm(null);
-        console.debug(this.logPrefix + ' Ici on devrait avoir a moins une sales et une saleforms');
-        console.debug(this.logPrefix + 'setValue() [OK] saleForm(s)', data.sales /*, this.saleForms */ /*, this.saleForm*/);
       }
 
       // Measurements

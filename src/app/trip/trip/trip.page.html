@@ -202,64 +202,55 @@
                   </ion-col>
                 </ion-row>
                 <!-- sale -->
-                <ion-grid
-                  class="ion-no-padding"
-                  beforeObservers
-                  [@expansionInOutAnimation]="showSaleForm && (measurementsForm.readySubject | async) ? 'expanded' : 'collapsed'"
-                >
-                  @let saleFormArrayControl = tripForm.form.get('sales');
-                  @let saleFormArray = saleFormArrayControl | formGetArray;
-
-                  @if (saleFormArray) {
-                    @for (saleFormGroup of saleFormArray.controls; track saleFormGroup; let i=$index, first=$first, last=$last, odd=$odd) {
-                      <ion-row [class.odd]="odd">
-                        <ion-col>
-                          <app-form-sale
-                            #saleComponent
-                            [form]="saleFormGroup"
-                            [locationLevelIds]="saleLocationLevelIds"
-                            [showProgram]="false"
-                            [showVessel]="false"
-                            [showError]="false"
-                            [showComment]="false"
-                            [showEndDateTime]="false"
-                            [required]="false"
-                            [tabindex]="showSaleForm ? 10 : -1"
-                            [minDate]="returnDateTime$ | async"
-                            [debug]="debug"
-                            (ngInit)="addForm(null, saleComponent)"
-                            [config]="{ showTitle: first }"
-                          ></app-form-sale>
-                        </ion-col>
-                        <ion-col size="1" class="ion-text-end ion-align-self-center">
-                          <!-- [tabindex]="tabindex + 10 + i * 3 + 1" -->
-                          <button
-                            type="button"
-                            mat-icon-button
-                            *ngIf="last"
-                            [disabled]="disabledSaleAdd"
-                            [title]="'COMMON.BTN_ADD' | translate"
-                            (click)="addSale()"
-                          >
-                            <!-- tripForm.addSale()" -->
-                            <!-- (saleFormArray as AppFormArray).add() -->
-                            <mat-icon>add</mat-icon>
-                          </button>
-                          <!-- [tabindex]="tabindex + 10 + i * 3 + 2" -->
-                          <button
-                            type="button"
-                            mat-icon-button
-                            [disabled]="disabledSaleRemove"
-                            [title]="'COMMON.BTN_DELETE' | translate"
-                            (click)="removeSale(i)"
-                          >
-                            <mat-icon>close</mat-icon>
-                          </button>
-                        </ion-col>
-                      </ion-row>
-                    }
+                <div beforeObservers [@expansionInOutAnimation]="showSaleForm && (measurementsForm.readySubject | async) ? 'expanded' : 'collapsed'">
+                  <!-- debug -->
+                  <ion-row *ngIf="debug">
+                    <ion-col offset="0" offset-md="2" offset-lg="3">
+                      <ng-container *ngTemplateOutlet="debugSalePanel"></ng-container>
+                    </ion-col>
+                  </ion-row>
+                  @for (saleForm of saleForms; track i; let i = $index; let first = $first; let last = $last) {
+                    <!-- [formControl]="observerForm | formGetControl" -->
+                    <app-form-sale
+                      [formControl]="saleForm | formGetControl"
+                      [locationLevelIds]="saleLocationLevelIds"
+                      [showProgram]="false"
+                      [showVessel]="false"
+                      [showError]="false"
+                      [showComment]="false"
+                      [showEndDateTime]="false"
+                      [required]="false"
+                      [tabindex]="showSaleForm ? 10 : -1"
+                      [minDate]="returnDateTime$ | async"
+                      [debug]="debug"
+                    ></app-form-sale>
+                    <ion-row>
+                      <ion-col offset="0" offset-md="2" offset-lg="3">
+                        <button
+                          type="button"
+                          mat-icon-button
+                          *ngIf="last"
+                          [tabindex]="tabindex + 10 + i * 3 + 1"
+                          [disabled]="disabledSaleAdd"
+                          [title]="'COMMON.BTN_ADD' | translate"
+                          (click)="addSale()"
+                        >
+                          <mat-icon>add</mat-icon>
+                        </button>
+                        <button
+                          type="button"
+                          mat-icon-button
+                          [tabindex]="tabindex + 10 + i * 3 + 2"
+                          [disabled]="disabledSaleRemove"
+                          [title]="'COMMON.BTN_DELETE' | translate"
+                          (click)="removeSale(i)"
+                        >
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      </ion-col>
+                    </ion-row>
                   }
-                </ion-grid>
+                </div>
 
                 <!-- Other features (Measurements) -->
                 <ion-grid class="ion-no-padding ion-padding-top form-container" afterObservers>
@@ -578,8 +569,6 @@
         <ion-col>
           <br />
           saleForms.length {{ saleForms?.length }}
-          <br />
-          saleForms.enabled {{ saleFormsEnabledCount }}
           <br />
           showSaleForm : {{ showSaleForm }}
           <br />

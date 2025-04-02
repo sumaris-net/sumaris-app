@@ -198,6 +198,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this.form.controls.observers as AppFormArray<Person, UntypedFormControl>;
   }
 
+  get salesForm() {
+    return this.form.controls.sales as AppFormArray<Sale, UntypedFormControl>;
+  }
+
   get metiersForm() {
     return this.form.controls.metiers as AppFormArray<ReferentialRef<any>, UntypedFormControl>;
   }
@@ -382,6 +386,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   async setValue(data: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    console.debug('[trip-form] setValue()', data, opts);
     // Wait ready (= form group updated, by the parent page)
     await this.ready();
 
