@@ -15,21 +15,22 @@ import { StrategyRefService } from '@app/referential/services/strategy-ref.servi
 import { arrayPluck } from '@app/shared/functions';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
+import { Batch } from '@app/trip/batch/common/batch.model';
+import { BatchFormReportComponent } from '@app/trip/batch/common/report/batch-form.report-component';
 import { Landing } from '@app/trip/landing/landing.model';
 import { LandingService } from '@app/trip/landing/landing.service';
 import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
+import { SaleFormReportComponent } from '@app/trip/sale/report/sale-form.report-component';
 import { Sale } from '@app/trip/sale/sale.model';
 import { SaleService } from '@app/trip/sale/sale.service';
 import { environment } from '@environments/environment';
-import { EntityAsObjectOptions, ReferentialRef, isEmptyArray, isNil, isNotEmptyArray, isNotNil, splitById } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, ReferentialRef, isEmptyArray, isNil, isNotNil, splitById } from '@sumaris-net/ngx-components';
 import { ReportChunkModule } from '../../../../data/report/form/report-chunk.module';
+import { ReportAppendix } from '../../../../data/report/report-appendix';
 import { LandingFormReportComponent } from '../../../landing/report/form/landing-form.report-component';
 import { ObservedLocationService } from '../../observed-location.service';
 import { ObservedLocationFormReportComponent } from './observed-location-form.report-component';
-import { SaleFormReportComponent } from '@app/trip/sale/report/sale-form.report-component';
-import { BatchFormReportComponent } from '@app/trip/batch/common/report/batch-form.report-component';
-import { Batch } from '@app/trip/batch/common/batch.model';
-import { ReportAppendix } from '../../../../data/report/report-appendix';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 export class ObservedLocationFormReportStats extends BaseReportStats {
   options: {
@@ -79,12 +80,12 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
     this.strategy = Strategy.fromObject(source.strategy);
     this.fieldsValues = source.fieldsValues;
     this.pmfms = {
-      observedLocation: (source?.pmfms?.observedLocation || {}).map(Pmfm.fromObject),
-      landing: (source?.pmfms?.landing || {}).map(Pmfm.fromObject),
-      catchBatch: (source?.pmfms?.catchBatch || {}).map(Pmfm.fromObject),
-      sortingBatch: (source?.pmfms?.sortingBatch || {}).map(Pmfm.fromObject),
-      sortingBatchIndividual: (source?.pmfms?.sortingBatchIndividual || {}).map(Pmfm.fromObject),
-      sale: (source?.pmfms?.sale || {}).map(Pmfm.fromObject),
+      observedLocation: (source?.pmfms?.observedLocation || {}).map(DenormalizedPmfmStrategy.fromObject),
+      landing: (source?.pmfms?.landing || {}).map(DenormalizedPmfmStrategy.fromObject),
+      catchBatch: (source?.pmfms?.catchBatch || {}).map(DenormalizedPmfmStrategy.fromObject),
+      sortingBatch: (source?.pmfms?.sortingBatch || {}).map(DenormalizedPmfmStrategy.fromObject),
+      sortingBatchIndividual: (source?.pmfms?.sortingBatchIndividual || {}).map(DenormalizedPmfmStrategy.fromObject),
+      sale: (source?.pmfms?.sale || {}).map(DenormalizedPmfmStrategy.fromObject),
     };
     this.pmfmsByIds = {
       observedLocation: splitById(this.pmfms.observedLocation),
@@ -109,7 +110,9 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
       pmfms: {
         observedLocation: this.pmfms.observedLocation.map((pmfm) => pmfm.asObject(opts)),
         landing: this.pmfms.landing.map((pmfm) => pmfm.asObject(opts)),
+        catchBatch: this.pmfms.catchBatch.map((pmfm) => pmfm.asObject(opts)),
         sortingBatch: this.pmfms.sortingBatch.map((pmfm) => pmfm.asObject(opts)),
+        sortingBatchIndividual: this.pmfms.sortingBatchIndividual.map((pmfm) => pmfm.asObject(opts)),
         sale: this.pmfms.sale.map((pmfm) => pmfm.asObject(opts)),
       },
       sales: this.sales.map((sale) => sale.asObject(opts)),
