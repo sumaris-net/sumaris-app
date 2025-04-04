@@ -55,13 +55,15 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   }
 
   getFormGroup(data?: Trip, opts?: O): UntypedFormGroup {
+    console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroup()`);
     opts = this.fillDefaultOptions(opts);
 
     const form = super.getFormGroup(data, opts);
 
+    // todo olm : manage sales
     // Add sale form
     if (opts.withSale) {
-      form.addControl('sales', this.getSalesArray(data?.sales)); // ### TODO dedoublonner
+      form.addControl('sales', this.getSalesArray(data?.sales));
       // form.addControl(
       //   'sale',
       //   this.saleValidator.getFormGroup(data?.sale, {
@@ -99,14 +101,16 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       (a, b) => a?.equals(b) /*a.id === b.id*/, // Comparaison des ventes
       (a) => false /*!!a.id*/, // Vérification si une vente est vide
       {
-        allowEmptyArray: true, // Permet un tableau vide TODO OLM enlever
-        validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : null, // Validation pour s'assurer qu'il y a au moins une vente
+        allowEmptyArray: true, // Permet un tableau vide
+        validators: [
+          SharedFormArrayValidators.requiredArrayMinLength(1), // Validation pour s'assurer qu'il y a au moins une vente
+        ],
       }
     );
 
     // Initialiser les données si elles existent
     if (data) {
-      console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray() patchValue Initialiser les données si elles existent`, data);
+      console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray() patchValue`, data);
       formArray.patchValue(data);
     }
 
@@ -116,6 +120,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
   // configuration du formGroup
   getFormGroupConfig(data?: Trip, opts?: O): { [key: string]: any } {
+    console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroupConfig()`);
     const formConfig = Object.assign(super.getFormGroupConfig(data, opts), {
       __typename: [Trip.TYPENAME],
       departureDateTime: [(data && data.departureDateTime) || null, !opts.departureDateTimeRequired ? null : Validators.required],
@@ -174,6 +179,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
   //mise à jour du formGroup dans le cas où les options sont modifiées (par exemple, si on passe d'un programme à un autre)
   updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
+    console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup()`);
     opts = this.fillDefaultOptions(opts);
 
     const enabled = form.enabled;
@@ -321,6 +327,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     opts.minDurationInHours = toNumber(opts.minDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_MIN_DURATION_HOURS));
     opts.maxDurationInHours = toNumber(opts.maxDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_MAX_DURATION_HOURS));
 
+    console.debug(this.logPrefix + `(${opts?.program?.id}) fillDefaultOptions()`, opts);
     return opts;
   }
 
