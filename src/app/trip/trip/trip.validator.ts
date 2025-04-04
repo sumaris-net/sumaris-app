@@ -40,6 +40,7 @@ export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
 export class TripValidatorService<O extends TripValidatorOptions = TripValidatorOptions> extends DataRootVesselEntityValidatorService<Trip, O> {
   static readonly DEFAULT_MIN_DURATION_HOURS = 1; // 1 hour
   static readonly DEFAULT_MAX_DURATION_HOURS = 100 * 24; // 100 days
+  logPrefix: string = '🟡[trip-validator]';
 
   constructor(
     formBuilder: UntypedFormBuilder,
@@ -53,21 +54,23 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   }
 
   getFormGroup(data?: Trip, opts?: O): UntypedFormGroup {
+    console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroup()`);
     opts = this.fillDefaultOptions(opts);
 
     const form = super.getFormGroup(data, opts);
 
+    // todo olm : manage sales
     // Add sale form
     if (opts.withSale) {
       form.addControl('sales', this.getSalesArray(data?.sales));
-      form.addControl(
-        'sale',
-        this.saleValidator.getFormGroup(data?.sale, {
-          required: false,
-          withVessel: false,
-          withProgram: false,
-        })
-      );
+      // form.addControl(
+      //   'sale',
+      //   this.saleValidator.getFormGroup(data?.sale, {
+      //     required: false,
+      //     withVessel: false,
+      //     withProgram: false,
+      //   })
+      // );
     }
 
     // Add measurement form
@@ -89,25 +92,33 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
   // Méthode pour créer un AppFormArray pour les ventes
   getSalesArray(data?: Sale[]): AppFormArray<Sale, UntypedFormGroup> {
+    if (!data) data = [new Sale()]; // Crée une vente vide si aucune donnée n'est fournie
+
+    console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray()`);
     const formArray = new AppFormArray<Sale, UntypedFormGroup>(
       (sale) => this.saleValidator.getFormGroup(sale), // Utilisation du SaleValidatorService pour chaque vente
       (a, b) => a.id === b.id, // Comparaison des ventes
       (a) => !!a.id, // Vérification si une vente est vide
       {
         allowEmptyArray: true, // Permet un tableau vide
-        validators: SharedFormArrayValidators.requiredArrayMinLength(1), // Au moins une vente requise
+        validators: [
+          SharedFormArrayValidators.requiredArrayMinLength(1), // Validation pour s'assurer qu'il y a au moins une vente
+        ],
       }
     );
 
     // Initialiser les données si elles existent
     if (data) {
+      console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray() patchValue`, data);
       formArray.patchValue(data);
     }
 
+    console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray()`, formArray.controls);
     return formArray;
   }
 
   getFormGroupConfig(data?: Trip, opts?: O): { [key: string]: any } {
+    console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroupConfig()`);
     const formConfig = Object.assign(super.getFormGroupConfig(data, opts), {
       __typename: [Trip.TYPENAME],
       departureDateTime: [(data && data.departureDateTime) || null, !opts.departureDateTimeRequired ? null : Validators.required],
@@ -160,6 +171,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   }
 
   updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
+    console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup()`);
     opts = this.fillDefaultOptions(opts);
 
     const enabled = form.enabled;
@@ -205,6 +217,49 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     } else {
       if (form.controls.metiers) form.removeControl('metiers');
     }
+
+    // Sale array
+    if (opts?.withSale) {
+      console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup() before`, form.controls.sales);
+      if (!form.controls.sales) form.addControl('sales', this.getSalesArray(null));
+      if (enabled) form.controls.sales.enable();
+      else form.controls.sales.disable();
+    } else {
+      if (form.controls.sales) form.removeControl('sales');
+    }
+    console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup()`, form.controls.sales);
+
+    // opts.pmfms.forEach((pmfm) => {
+    //   const controlName = pmfm.id.toString();
+    //   const validator = PmfmValidators.create(pmfm, null, opts);
+    //   const defaultValue = PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm) || null;
+
+    //   // Multiple acquisition: use form array
+    //   if (pmfm.isMultiple) {
+    //     const formArray = new AppFormArray((value) => this.formBuilder.control(value, validator), PmfmValueUtils.equals, PmfmValueUtils.isEmpty, {
+    //       allowEmptyArray: false,
+    //     });
+    //     // TODO set defaultValue
+
+    //     form.addControl(controlName, formArray, { emitEvent: opts?.emitEvent });
+    //   }
+
+    //   // Only one acquisition
+    //   else {
+    //     let control: AbstractControl = form.get(controlName);
+    //     // If new pmfm: add as control
+    //     if (!control) {
+    //       control = this.formBuilder.control(defaultValue, validator);
+    //       form.addControl(controlName, control, { emitEvent: opts?.emitEvent });
+    //     } else {
+    //       control.setValidators(validator);
+    //     }
+    //   }
+
+    //   // Remove from the remove list
+    //   const index = controlNamesToRemove.indexOf(controlName);
+    //   if (index !== -1) controlNamesToRemove.splice(index, 1);
+    // });
 
     // Observers
     if (opts?.withObservers) {
@@ -284,12 +339,13 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
         ProgramProperties.TRIP_METIERS_ENABLE.defaultValue === 'true'
       )
     );
-    opts.withSale = toBoolean(opts.withSale, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
+    opts.withSale = toBoolean(opts.withSale, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), true)); //TODO OLM replace true by false
     opts.withMeasurements = toBoolean(opts.withMeasurements, !!opts.program);
     opts.returnFieldsRequired = toBoolean(opts.returnFieldsRequired, !opts.isOnFieldMode);
     opts.minDurationInHours = toNumber(opts.minDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_MIN_DURATION_HOURS));
     opts.maxDurationInHours = toNumber(opts.maxDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_MAX_DURATION_HOURS));
 
+    console.debug(this.logPrefix + `(${opts?.program?.id}) fillDefaultOptions()`, opts);
     return opts;
   }
 
