@@ -5,6 +5,11 @@
     );
   }
 }
+ion-row {
+  &.odd {
+    background-color: var(--ion-color-light, grey);
+  }
+}
 
 ion-col > ion-label {
   word-wrap: break-word;
@@ -24,4 +29,3 @@ app-entity-metadata {
     }
   }
 }
-
