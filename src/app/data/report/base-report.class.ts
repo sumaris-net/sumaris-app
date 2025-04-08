@@ -276,6 +276,7 @@ export abstract class AppBaseReport<
     if (!this.loaded) return; // skip
 
     this.markAsLoading();
+    this.readyToInitialize.next(false);
     this.cd.detectChanges();
 
     setTimeout(() => {
