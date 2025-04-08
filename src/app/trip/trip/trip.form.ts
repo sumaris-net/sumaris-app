@@ -361,15 +361,16 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       this.registerSubscription(this.form.get('metiers').valueChanges.subscribe((metiers) => this.metiersChanges.next(metiers)));
     }
 
-    //if (true) { //TOODO OLM: remove this condition
-    console.debug(this.logPrefix + 'ngOnReady() - subscribes sales vale change sales form', this.form.get('sales'));
+    // //if (true) { //TOODO OLM: add condition on mutli sale if needed
+    // console.debug(this.logPrefix + 'ngOnReady() - subscribes sales vale change sales form', this.form.get('sales'));
 
-    this.registerSubscription(
-      this.form.get('sales').valueChanges.subscribe((sales) => {
-        console.debug(this.logPrefix + 'ngOnReady() - sales value changes', sales);
-        return this.salesChanges.next(sales);
-      })
-    );
+    // this.registerSubscription(
+    //   this.form.get('sales').valueChanges.subscribe((sales) => {
+    //     console.debug(this.logPrefix + 'ngOnReady() - sales value changes', sales);
+
+    //     //return this.salesChanges.next(sales);
+    //   })
+    // );
     //}
   }
 
