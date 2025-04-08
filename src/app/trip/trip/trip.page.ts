@@ -1,91 +1,3 @@
-/**
- * The `TripPage` component is responsible for managing the trip page in the application.
- * It provides functionality for creating, editing, and managing trips, including operations,
- * physical gears, measurements, sales, and expenses. The component integrates with various
- * services and forms to handle data and user interactions.
- *
- * ## Features:
- * - Handles trip creation and editing.
- * - Manages operations, physical gears, measurements, sales, and expenses.
- * - Provides support for program-specific configurations.
- * - Integrates with Ionic and Angular Material components.
- * - Supports offline and online modes.
- * - Provides error handling and validation for different tabs and forms.
- * - Allows downloading trip data as JSON or opening extraction pages.
- *
- * ## Dependencies:
- * - `TripService`: Service for managing trip data.
- * - `OperationService`: Service for managing operations.
- * - `TripContextService`: Context service for sharing trip-related data.
- * - `EntitiesStorage`: Service for managing entity storage.
- * - `AccountService`: Service for managing account-related data.
- * - `InMemoryEntitiesService`: Service for managing in-memory entities.
- *
- * ## Lifecycle Hooks:
- * - `ngOnInit`: Initializes the component and sets up state connections.
- * - `ngAfterViewInit`: Handles post-view initialization tasks.
- * - `ngOnDestroy`: Cleans up subscriptions and resources.
- *
- * ## Inputs:
- * - `toolbarColor`: Defines the color of the toolbar. Default is `'primary'`.
- *
- * ## ViewChild and ViewChildren:
- * - `tripForm`: Reference to the trip form component.
- * - `saleForm`: Reference to the sale form component.
- * - `saleForms`: References to multiple sale form components.
- * - `physicalGearsTable`: Reference to the physical gears table component.
- * - `measurementsForm`: Reference to the measurements form component.
- * - `operationsTable`: Reference to the operations table component.
- * - `generalTabContent`: Reference to the general tab content.
- * - `expenseForm`: Reference to the expense form component.
- *
- * ## Observables:
- * - `returnDateTime$`: Observable for the return date and time.
- *
- * ## State Properties:
- * - `showOperationHelpMessage`: Indicates whether to show the operation help message.
- * - `reportTypes`: List of report types.
- *
- * ## Methods:
- * - `addSale`: Adds a new sale form.
- * - `removeSale`: Removes a sale form by index.
- * - `setError`: Sets error messages for different tabs and forms.
- * - `resetError`: Resets error messages for all tabs and forms.
- * - `setProgram`: Configures the component based on the selected program.
- * - `setValue`: Sets the value of the trip data to the forms.
- * - `getValue`: Retrieves the current value of the trip data.
- * - `save`: Saves the trip data.
- * - `openReport`: Opens the trip report page.
- * - `onOpenOperation`: Opens the operation editor for a specific operation.
- * - `onNewOperation`: Creates a new operation.
- * - `onDuplicateOperation`: Duplicates an existing operation.
- * - `copyLocally`: Copies the trip data locally.
- * - `openSearchPhysicalGearModal`: Opens a modal to select a previous gear.
- * - `downloadAsJson`: Downloads the trip data as a JSON file.
- * - `openDownloadPage`: Opens the download page for trip data extraction.
- * - `updateTabsState`: Updates the visibility of tabs based on the trip data.
- * - `updateDataContext`: Updates the data context for the trip.
- * - `devFillTestValue`: Fills the form with test values for development purposes.
- *
- * ## Tabs:
- * - `GENERAL`: General information about the trip.
- * - `PHYSICAL_GEARS`: Physical gears used in the trip.
- * - `OPERATIONS`: Operations performed during the trip.
- * - `EXPENSES`: Expenses related to the trip.
- *
- * ## Animations:
- * - `fadeInOutAnimation`: Animation for fading in and out.
- * - `expansionInOutAnimation`: Animation for expanding and collapsing.
- *
- * ## Error Handling:
- * - Handles errors for operations, physical gears, and expenses.
- * - Displays appropriate error messages and highlights invalid tabs.
- *
- * ## Miscellaneous:
- * - Supports program-specific configurations for forms and tables.
- * - Provides contextual help and tooltips.
- * - Integrates with the Ionic framework for mobile support.
- */
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -172,7 +84,6 @@ import { RxState } from '@rx-angular/state';
 import { ExpenseForm } from '@app/trip/expense/expense.form';
 import { OperationType } from '@app/trip/operation/operation.form';
 import { expansionInOutAnimation } from '@app/shared/material/material.animations';
-import { AppForm, AppFormArray, isEmptyArray } from 'ngx-sumaris-components/public_api';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -248,7 +159,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   @ViewChild('expenseForm', { static: true }) expenseForm: ExpenseForm;
 
   get saleFormsEnabledCount(): number {
-    return -1; // return this.saleForms?.filter((f) => f.enabled).length;
+    return this.saleForms?.filter((f) => f.enabled).length;
   }
 
   get dirty(): boolean {
@@ -256,7 +167,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       this.dirtySubject.value ||
       // Ignore operation table, when computing dirty state
       this.children?.filter((c) => c !== this.operationsTable).some((c) => c.dirty) ||
-      //this.saleForms?.some((form) => form.dirty) ||
+      this.saleForms?.some((form) => form.dirty) ||
       false
     );
   }
@@ -267,6 +178,13 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   get loading(): boolean {
+    console.debug(
+      this.logPrefix + 'loading()',
+      this.loadingSubject.value,
+      this.children?.filter((c) => c !== this.operationsTable).some((c) => c.loading),
+      this.children
+    );
+
     return (
       this.loadingSubject.value ||
       // Ignore operation table, when computing loading state (to be able to save)
@@ -274,6 +192,16 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       false
     );
   }
+
+  // markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+  //   super.markAsReady(opts);
+  //   this.saleForms?.forEach((form) => form.markAsReady(opts));
+  // }
+
+  // async ready(opts?: WaitForOptions): Promise<void> {
+  //   await super.ready(opts);
+  //   if (this.saleForms) await this.saleForms.forEach((form) => form.ready(opts));
+  // }
 
   get forceMeasurementAsOptional(): boolean {
     return this._forceMeasurementAsOptionalOnFieldMode && this.isOnFieldMode;
@@ -365,6 +293,13 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     console.debug(this.logPrefix + 'addSale()');
     this.saleAppFormArray.add();
     this.markForCheck();
+    // // TODO ici voir si saleForms est a jour et subscrire au changement de value si besoin ?
+    // this.saleForms.last.value = [];
+    // this.saleForms.last.markAsReady();
+    //if (this._enabled)
+    this.saleForms.last.enable();
+
+    console.debug(this.logPrefix + 'addSale() sales', this.data.sales, this.saleForms);
   }
 
   removeSale(index: number) {
@@ -421,6 +356,26 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
           .subscribe(() => this.onMeasurementsFormReady())
       );
     }
+
+    // listen to sale forms children view changes
+    this.registerSubscription(this.saleForms.changes.subscribe(() => this.refreshSaleForms()));
+  }
+
+  refreshSaleForms() {
+    console.debug(this.logPrefix + 'refreshSaleForms() if needed later');
+    this.saleForms.forEach((saleForm) => {
+      // set all as enabled
+      saleForm.markAsReady();
+      if (this._enabled) saleForm.enable();
+    });
+
+    // // on adding a new bait, prepare the new form
+    // if (this.addingNewBait) {
+    //   this.addingNewBait = false;
+    //   this.baitForms.last.value = [];
+    //   this.baitForms.last.markAsReady();
+    //   if (this._enabled) this.baitForms.last.enable();
+    // }
   }
 
   ngOnDestroy() {
@@ -553,6 +508,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.showExpensesForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_EXPENSES_ENABLE);
 
     // Sale form
+
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
     this.saleLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_SALE_LOCATION_LEVEL_IDS);
 
@@ -848,6 +804,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async setValue(data: Trip) {
+    console.debug(this.logPrefix + 'setValue()', data);
     try {
       const isNewData = isNil(data.id);
 
@@ -1073,17 +1030,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async save(event?: Event, opts?: any): Promise<boolean> {
-    console.debug(
-      this.logPrefix + 'save()',
-      {
-        program: this.program,
-        data: this.data,
-        form: this.form,
-        'tripForm.value': this.tripForm.value,
-      },
-      this.saving,
-      this.loading
-    );
+    console.debug(this.logPrefix + 'save()', this.data, this.form, this.tripForm.value, this.saleForms);
+    console.debug(this.logPrefix + 'save() suite', this.saving, this.loading);
     if (this.saving || this.loading) return false;
 
     // Workaround to avoid the option menu to be selected
@@ -1184,6 +1132,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async getValue(): Promise<Trip> {
+    console.debug(this.logPrefix + 'getValue() tripForm', this.tripForm.value);
     const data = await super.getValue();
 
     data.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
@@ -1194,10 +1143,10 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     data.gears = this.physicalGearService.value;
 
     // add sales values
-    this.saleAppFormArray.value
+    this.saleForms
       .map((form) => form.value)
       .filter(isNotEmptyArray)
-      .forEach((value) => data.sales.push(value));
+      .forEach((value) => data.sales.push(...value));
 
     return data;
   }
@@ -1379,6 +1328,33 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     this.measurementsForm.value = trip.measurements;
     this.form.patchValue(trip);
+  }
+
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    console.debug(this.logPrefix + 'enable()');
+    const r = super.enable(opts);
+    this.saleForms?.forEach((form) => form.enable(opts));
+    return r;
+  }
+
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.disable(opts);
+    this.saleForms?.forEach((form) => form.disable(opts));
+  }
+
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsPristine(opts);
+    this.saleForms?.forEach((form) => form.markAsPristine(opts));
+  }
+
+  markAsUntouched(opts?: { onlySelf?: boolean }) {
+    super.markAsUntouched(opts);
+    this.saleForms?.forEach((form) => form.markAsUntouched());
+  }
+
+  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAllAsTouched(opts);
+    this.saleForms?.forEach((form) => form.markAllAsTouched(opts));
   }
 
   protected markForCheck() {

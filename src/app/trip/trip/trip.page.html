@@ -205,33 +205,25 @@
                 <div
                   beforeObservers
                   [@expansionInOutAnimation]="showSaleForm && (measurementsForm.readySubject | async) ? 'expanded' : 'collapsed'"
-                  *ngFor="let sale of data?.sales; index as i; first as first; last as last"
+                  *ngFor="let sale of data?.sales; index as i; first as first; last as last; odd as odd"
                 >
-                  <!-- debug -->
-                  <ion-row *ngIf="debug">
-                    <ion-col offset="0" offset-md="2" offset-lg="3">
-                      <ng-container *ngTemplateOutlet="debugSalePanel"></ng-container>
+                  <ion-row [class.odd]="odd">
+                    <ion-col size="11">
+                      <app-form-sale
+                        #saleComponent
+                        [locationLevelIds]="saleLocationLevelIds"
+                        [showProgram]="false"
+                        [showVessel]="false"
+                        [showError]="false"
+                        [showComment]="false"
+                        [showEndDateTime]="false"
+                        [required]="false"
+                        [tabindex]="showSaleForm ? 10 : -1"
+                        [minDate]="returnDateTime$ | async"
+                        [debug]="debug"
+                      ></app-form-sale>
                     </ion-col>
-                  </ion-row>
-                  <!-- [formControl]="observerForm | formGetControl" -->
-                  <!-- [formControl]="saleForm" -->
-                  <!--
-                                          formArrayName="sale"-->
-                  <app-form-sale
-                    #saleComponent
-                    [locationLevelIds]="saleLocationLevelIds"
-                    [showProgram]="false"
-                    [showVessel]="false"
-                    [showError]="false"
-                    [showComment]="false"
-                    [showEndDateTime]="false"
-                    [required]="false"
-                    [tabindex]="showSaleForm ? 10 : -1"
-                    [minDate]="returnDateTime$ | async"
-                    [debug]="debug"
-                  ></app-form-sale>
-                  <ion-row>
-                    <ion-col offset="0" offset-md="2" offset-lg="3">
+                    <ion-col size="1" class="ion-text-end ion-align-self-center">
                       <button
                         type="button"
                         mat-icon-button
@@ -574,6 +566,8 @@
         <ion-col>
           <br />
           saleForms.length {{ saleForms?.length }}
+          <br />
+          saleForms.enabled {{ saleFormsEnabledCount }}
           <br />
           showSaleForm : {{ showSaleForm }}
           <br />
