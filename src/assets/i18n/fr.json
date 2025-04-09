@@ -817,6 +817,7 @@
         "END_DATE": "Fin de période",
         "LOCATION": "Port (départ ou retour)",
         "VESSEL": "Navire",
+        "VESSEL_TYPE": "Type de navire",
         "SYNCHRONIZATION_STATUS": "Etat de la données",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "RECORDER_PERSON": "Saisisseur",

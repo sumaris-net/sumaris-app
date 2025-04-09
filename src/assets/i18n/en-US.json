@@ -815,6 +815,7 @@
         "END_DATE": "End period",
         "LOCATION": "Port (departure or return)",
         "VESSEL": "Vessel",
+        "VESSEL_TYPE": "Vessel type",
         "SYNCHRONIZATION_STATUS": "State",
         "RECORDER_DEPARTMENT": "Recorder department",
         "RECORDER_PERSON": "Recorder user",

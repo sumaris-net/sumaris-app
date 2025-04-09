@@ -48,6 +48,7 @@ import { RxState } from '@rx-angular/state';
 import { Program } from '@app/referential/services/model/program.model';
 import { intersectArrays } from '@app/shared/functions';
 import { BASE_TABLE_SETTINGS_ENUM } from '@app/shared/table/base.table';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: 'trips',
@@ -67,6 +68,7 @@ export interface TripTableState extends AppRootDataTableState {}
 })
 export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, any, number, TripTableState> implements OnInit, OnDestroy {
   protected programVesselTypeIds: number[];
+  protected configVesselTypeIds: number[] = [];
 
   @Input() showFilterProgram = true;
   @Input() showRecorder = true;
@@ -78,6 +80,15 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
   get filterObserversForm(): UntypedFormArray {
     return this.filterForm.controls.observers as UntypedFormArray;
+  }
+
+  @Input()
+  set showVesselTypeColumn(value: boolean) {
+    this.setShowColumn('vesselType', value);
+  }
+
+  get showVesselTypeColumn(): boolean {
+    return this.getShowColumn('vesselType');
   }
 
   @Input()
@@ -112,6 +123,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
       vesselSnapshot: [null, SharedValidators.entity],
+      vesselType: [null, SharedValidators.entity],
       location: [null, SharedValidators.entity],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
@@ -180,13 +192,12 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     // Combo: Vessel type
     this.registerAutocompleteField('vesselType', {
       attributes: ['name'],
-      service: this.referentialRefService,
       filter: {
         entityName: 'VesselType',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       mobile: this.mobile,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, { ...filter, includedIds: this.programVesselTypeIds }),
+      suggestFn: (value, filter) => this.suggestVesselTypes(value, filter),
     });
 
     // Combo: recorder department
@@ -517,6 +528,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     // Program filter / column
     this.defaultShowFilterProgram = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_FILTER_PROGRAM);
 
+    // Vessel type filter
+    this.configVesselTypeIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_TYPE_IDS);
+
     // Restore filter from settings, or load all
     if (this.enabled) await this.restoreFilterOrLoad();
 
@@ -558,7 +572,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
     // Hide program if cannot change it
     this.showProgramColumn = this.showFilterProgram;
-    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
+    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [];
+    this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
 
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.TRIP_REPORT_ENABLE);
     const reportTypeByKey = splitByProperty((ProgramProperties.TRIP_REPORT_TYPES.values || []) as Property[], 'key');
@@ -573,7 +588,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     this.showFilterProgram = this.defaultShowFilterProgram;
     this.showProgramColumn = this.defaultShowFilterProgram;
     this.programVesselTypeIds = null;
-
+    this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
     this.enableReport = toBoolean(ProgramProperties.TRIP_REPORT_ENABLE.defaultValue, false);
     const reportTypeByKey = splitByProperty((ProgramProperties.TRIP_REPORT_TYPES.values || []) as Property[], 'key');
     this.reportTypes = (ProgramProperties.TRIP_REPORT_TYPES.defaultValue || '').split(',').map((key) => reportTypeByKey[key]);
@@ -583,14 +598,34 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
   protected suggestVessels(value: any, filter?: any): Promise<LoadResult<VesselSnapshot>> {
     const vesselTypeId = this.filterForm.get('vesselType')?.value?.id;
-    let vesselTypeIds = isNotNil(vesselTypeId) ? [vesselTypeId] : undefined;
+    let vesselTypeIds: number[] = isNotNil(vesselTypeId) ? [+vesselTypeId] : undefined;
+
+    // Limit type, using the program's vessel types
     if (isNotEmptyArray(this.programVesselTypeIds)) {
-      vesselTypeIds = intersectArrays([vesselTypeIds, this.programVesselTypeIds]);
+      vesselTypeIds = vesselTypeIds ? intersectArrays([vesselTypeIds, this.programVesselTypeIds]) : this.programVesselTypeIds;
     }
 
     return this.vesselSnapshotService.suggest(value, {
-      vesselTypeIds,
       ...filter,
+      vesselTypeIds,
     });
+  }
+
+  protected suggestVesselTypes(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    let vesselTypeIds;
+    const hasConfig = isNotEmptyArray(this.configVesselTypeIds);
+    const hasProgram = isNotEmptyArray(this.programVesselTypeIds);
+
+    if (!hasConfig && hasProgram) {
+      vesselTypeIds = this.programVesselTypeIds;
+    } else if (hasConfig && !hasProgram) {
+      vesselTypeIds = this.configVesselTypeIds;
+    } else if (hasConfig && hasProgram) {
+      vesselTypeIds = intersectArrays([this.programVesselTypeIds, this.configVesselTypeIds]);
+    } else {
+      vesselTypeIds = [];
+    }
+
+    return this.referentialRefService.suggest(value, { ...filter, includedIds: vesselTypeIds });
   }
 }
