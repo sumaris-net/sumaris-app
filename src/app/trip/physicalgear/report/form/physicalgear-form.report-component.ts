@@ -18,7 +18,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { Operation } from '@app/trip/trip/trip.model';
-import { arrayDistinct, EntityAsObjectOptions, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, splitById } from '@sumaris-net/ngx-components';
+import { arrayDistinct, EntityAsObjectOptions, isNil, isNotEmptyArray, isNotNil, splitById } from '@sumaris-net/ngx-components';
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 
@@ -124,7 +124,10 @@ export class PhysicalGearsReportFormComponent extends ReportTableComponent<
 
   async ngOnStart(opts?: any): Promise<void> {
     // Set defaults
-    this.i18nContext.pmfmPrefix = isNotNilOrBlank(this.i18nContext.pmfmPrefix) ? this.i18nContext.pmfmPrefix : 'TRIP.PHYSICAL_GEAR.PMFM.';
+    this.i18nContext = {
+      ...this.i18nContext,
+      pmfmPrefix: 'TRIP.PHYSICAL_GEAR.PMFM.',
+    };
 
     return super.ngOnStart(opts);
   }

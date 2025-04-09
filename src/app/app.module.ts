@@ -235,6 +235,11 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           value: 'English (US)',
           country: 'us',
         },
+        {
+          key: 'es-ES',
+          value: 'Español',
+          country: 'es',
+        },
       ],
     },
     { provide: MAT_DATE_LOCALE, useValue: environment.defaultLocale || 'en' },

@@ -25,7 +25,6 @@ import { Operation } from '@app/trip/trip/trip.model';
 import {
   EntityAsObjectOptions,
   isNotNil,
-  isNotNilOrBlank,
   LatLongPattern,
   LocalSettingsService,
   removeDuplicatesFromArray,
@@ -146,7 +145,10 @@ export class OperationWithChildFormReportComponent
     super.ngOnInit();
 
     // Set defaults
-    this.i18nContext.pmfmPrefix = isNotNilOrBlank(this.i18nContext.pmfmPrefix) ? this.i18nContext.pmfmPrefix : 'TRIP.OPERATION.PMFM.';
+    this.i18nContext = {
+      ...this.i18nContext,
+      pmfmPrefix: 'TRIP.OPERATION.PMFM.',
+    };
   }
 
   async ngOnStart(opts?: any): Promise<void> {
