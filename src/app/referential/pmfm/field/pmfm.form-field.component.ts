@@ -42,13 +42,14 @@ import {
   selectInputContentFromEvent,
   setTabIndex,
   SuggestFn,
+  suggestFromArray,
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { IPmfm } from '../../services/model/pmfm.model';
 import { PmfmValidators } from '../../services/validator/pmfm.validators';
 import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../../services/model/model.enum';
-import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/field/pmfm-qv.form-field.component';
+import { PmfmQvFormField, PmfmQvFormFieldStyle } from '@app/referential/pmfm/field/pmfm-qv.form-field.component';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { Subscription } from 'rxjs';
 import { RxState } from '@rx-angular/state';
@@ -176,7 +177,7 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   /**
    * @deprecated Use panelClass instead
    */
-  @Input({ alias: 'class' }) set classList(value: string) {
+  @Input() set classList(value: string) {
     this.panelClass = value;
   }
   get classList(): string {
@@ -417,6 +418,13 @@ export class PmfmFormField extends RxState<PmfmFormFieldState> implements OnInit
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+  protected suggestFnForMultiValuedPmfm = (value, filter) => {
+    const excludedIds = this.pmfmFields ? this.pmfmFields.map((p) => p.control?.value?.id).filter(isNotNil) : [];
+
+    const firstQvField = this.pmfmFields.get(0).matInput as unknown as PmfmQvFormField;
+    return suggestFromArray(firstQvField.sortedQualitativeValues, value, { ...filter, excludedIds });
+  };
 
   protected formArrayAdd(event: UIEvent) {
     const autofocus = this.autofocus;
