@@ -1,0 +1,4031 @@
+{
+  "APP_NAME": "SUMARiS",
+  "COMMON": {
+    "BTN_ADD_COMMENT": "Adicionar um comentário",
+    "BTN_CANCEL": "Cancelar",
+    "BTN_OK": "Ok",
+    "BTN_ABORT_CHANGES": "Descartar as alterações",
+    "BTN_ADD": "Adicionar",
+    "BTN_ADD_ROW": "Adicionar uma linha",
+    "BTN_APPLY": "Aplicar",
+    "BTN_BACKWARD": "Retroceder",
+    "BTN_BURST_INPUT": "Modo rajada",
+    "BTN_BURST_INPUT_HELP": "Inserir em modo rajada",
+    "BTN_COPY": "Copiar",
+    "BTN_PASTE": "Colar",
+    "BTN_CUT": "Cortar",
+    "BTN_CLEAR": "Limpar",
+    "BTN_CLOSE": "Fechar",
+    "BTN_COMPACT_ROWS": "Compactar as linhas",
+    "BTN_DONE": "Concluir",
+    "BTN_DOWNLOAD": "Baixar",
+    "BTN_DOWNLOAD_DOTS": "Baixar...",
+    "BTN_DOWNLOAD_JSON": "Baixar (JSON)",
+    "BTN_DOWNLOAD_CSV": "Baixar (CSV)",
+    "BTN_DOWNLOAD_GEOJSON": "Baixar (GeoJSON)",
+    "BTN_DOWNLOAD_AS_FORMATS_DOTS": "Baixar no formato...",
+    "BTN_IMPORT": "Importar",
+    "BTN_IMPORT_FROM_FILE_DOTS": "Importar de um arquivo...",
+    "BTN_DUPLICATE": "Duplicar",
+    "BTN_DELETE": "Excluir",
+    "BTN_DELETE_FOREVER": "Excluir definitivamente",
+    "BTN_EDIT": "Editar",
+    "BTN_EXPAND": "Expandir",
+    "BTN_FORWARD": "Avançar",
+    "BTN_FREEZE_VALUE": "Fixar",
+    "BTN_FREEZE_VALUE_HELP": "Fixar o valor",
+    "BTN_INSTALL": "Instalar",
+    "BTN_YES_DELETE": "Sim, excluir",
+    "BTN_YES_CONTINUE": "Sim, continuar",
+    "BTN_VALIDATE": "Validar",
+    "BTN_VALIDATE_AND_CLOSE": "Validar e fechar",
+    "BTN_VALIDATE_WITH_SHORTCUT_HELP": "Validar (Ctrl+Enter)",
+    "BTN_VALIDATE_AND_CONTINUE": "Validar e continuar",
+    "BTN_VALIDATE_AND_NEW": "Validar e novo",
+    "BTN_NOT_SAVE": "NÃO salvar",
+    "BTN_SAVE": "Salvar",
+    "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>alvar",
+    "BTN_SAVE_WITH_SHORTCUT_HELP": "Salvar (Ctrl+S)",
+    "BTN_FILTER": "Filtrar",
+    "BTN_RELOAD": "Recarregar",
+    "BTN_REFRESH": "Atualizar",
+    "BTN_RESET": "Reiniciar",
+    "BTN_SEARCH": "Pesquisar",
+    "BTN_NEXT": "Seguinte",
+    "BTN_NEXT_SHORT": "Seg.",
+    "BTN_PREVIOUS": "Anterior",
+    "BTN_PREVIEW": "Pré-visualizar",
+    "BTN_BACK": "Voltar",
+    "BTN_SEND": "Enviar",
+    "BTN_OPTIONS": "Opções",
+    "BTN_UNDO": "Desfazer alterações",
+    "BTN_UPDATE": "Atualizar",
+    "BTN_TABLE_EDIT": "Editar na tabela",
+    "BTN_TABLE_OPEN": "Editar em um formulário",
+    "BTN_SHOW_HELP": "Ajuda online",
+    "BTN_HIDE": "Ocultar",
+    "BTN_HIDE_MENU": "Ocultar o menu",
+    "BTN_SORT_BY_DOTS": "Ordenar por...",
+    "BTN_SHOW": "Exibir",
+    "BTN_SHOW_MENU": "Exibir o menu",
+    "BTN_SHOW_MORE": "Exibir mais",
+    "BTN_SHOW_TRASH_DOTS": "Abrir a lixeira...",
+    "BTN_CLEAN_TRASH": "Esvaziar a lixeira",
+    "BTN_RESTORE": "Restaurar",
+    "BTN_CLEAR_CLIPBOARD": "Limpar a área de transferência",
+    "BTN_CLEAR_SELECTION": "Limpar as células",
+    "BTN_LOGOUT": "Sair",
+    "CREATED_ON": "Criado em",
+    "COMMENTS": "Comentários",
+    "BTN_DECIMAL_SEPARATOR": ",",
+    "EMPTY_OPTION": "(Vazio)",
+    "All_OPTION": "(Todos)",
+    "AT": "às",
+
+    "DATE_PATTERN": "DD/MM/YYYY",
+    "DATE_TIME_PATTERN": "DD/MM/YYYY HH:mm",
+    "DATE_TIME_SECONDS_PATTERN": "DD/MM/YYYY HH:mm:ss",
+    "TIME_PATTERN": "HH:mm",
+    "DATE_FILE_PATTERN": "YYYY-MM-DD",
+    "DATE_SHORT_PATTERN": "DD/MM/YY",
+    "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
+    "DATE_YEAR_PATTERN": "YYYY",
+    "DATE_YEAR_PLACEHOLDER": "aaaa",
+    "DATE_PLACEHOLDER": "dd/mm/aaaa",
+    "DATE_TIME_PLACEHOLDER": "dd/mm/aaaa hh:mm",
+    "LAT_LONG": {
+      "DD_PLACEHOLDER": "DD",
+      "DD_DDDDDDD_PLACEHOLDER": "± DD.DDDDDDD",
+      "DDD_PLACEHOLDER": "DDD",
+      "DDD_DDDDDDD_PLACEHOLDER": "±DDD.DDDDDDD",
+      "MM_PLACEHOLDER": "MM",
+      "MM_MMM_PLACEHOLDER": "MM",
+      "SS_SS_PLACEHOLDER": "SS",
+      "LAT_SIGN_PLACEHOLDER": "N|S",
+      "LAT_SIGN_N": "N",
+      "LAT_SIGN_S": "S",
+      "LONG_SIGN_PLACEHOLDER": "E|W",
+      "LONG_SIGN_E": "E",
+      "LONG_SIGN_W": "W",
+      "ENUM": {
+        "DDMMSS": "DD° MM' SS.SS\"",
+        "DDMM": "DD° MM.MMM'",
+        "DD": "± DD.DDDDDDD"
+      }
+    },
+    "METADATA": "Metadados:",
+    "DAY_UNIT": "d",
+    "DATE": "Data",
+    "TIME": "Hora",
+    "HOUR": "Hora",
+    "MINUTE": "Minuto",
+    "TIME_PLACEHOLDER": "hh:mm",
+    "DURATION_PLACEHOLDER": "hhh:mm",
+    "DURATION_DOTS": "Duração:",
+    "YES": "Sim",
+    "NO": "Não",
+
+    "UPDATED_ON": "Atualizado em",
+    "RECORDER": "Digitador",
+    "OBSERVERS": "Observador(es)",
+    "RESULT_COUNT": "{{count}} resultados",
+    "NO_RESULT": "Nenhum resultado",
+    "LOADING_DOTS": "Carregando...",
+    "PLEASE_WAIT": "Por favor, aguarde...",
+    "NO_DATA": "Sem dados",
+    "MISSING": "Ausente",
+    "DISPLAY_MODE_DOTS": "Modo de exibição...",
+    "DISPLAYED_COLUMNS": "Configuração de colunas",
+    "DISPLAYED_COLUMNS_DOTS": "Configuração de colunas...",
+    "COLON": ":",
+    "OR": "ou",
+    "DISPLAY_MODE": {
+      "CARD": "Exibição em cartão",
+      "LIST": "Exibição em lista"
+    },
+    "FORM": {
+      "HAS_ERROR": "Por favor, corrija os erros no formulário"
+    },
+    "PAGINATOR": {
+      "ITEMS_PER_PAGE": "Número de linhas",
+      "NEXT_PAGE": "Próxima página",
+      "PREVIOUS_PAGE": "Página anterior",
+      "OF": "de",
+      "FIRST_PAGE": "Primeira página",
+      "LAST_PAGE": "Última página"
+    },
+    "TABLE": {
+      "FILTERED_PARENTHESIS": "(filtrado)"
+    },
+    "DEBUG": {
+      "TITLE": "Debug",
+      "BTN_DEBUG_DOTS": "Depuração...",
+      "BTN_ENABLE_DEBUG": "Ativar depuração?",
+      "BTN_COPY_LOCALLY": "Copiar localmente",
+      "BTN_AUTO_FILL": "Preenchimento automático?"
+    },
+    "SHARE": {
+      "BTN_SHARE": "Compartilhar",
+      "BTN_SHARE_DOTS": "Compartilhar...",
+      "DIALOG_TITLE": "Compartilhar",
+      "LINK": "Link para compartilhamento"
+    },
+    "REPORT": {
+      "REPORT": "Relatório",
+      "SHARE_LINK_PLACEHOLDER": "Link para o relatório:",
+      "TYPE_DIVIDER": "Tipos de relatório",
+      "PAGE_NUMBER": "página {{ pageNumber }}"
+    },
+    "HELP": {
+      "TITLE": "Ajuda online"
+    },
+    "NAMED_FILTER": {
+      "TITLE": "Filtro salvo",
+      "SAVE": "Salvar o filtro",
+      "DELETE": "Excluir o filtro",
+      "DELETED": "Filtro <b>excluído</b>",
+      "EXPORT": "Baixar o filtro",
+      "IMPORT": "Importar um filtro...",
+      "LOAD_FAILED": "Falha ao carregar o filtro",
+      "IMPORT_FAILED": "Falha ao importar o filtro",
+      "NOT_FOUND": "Filtro não encontrado"
+    }
+  },
+  "CONFIGURATION": {
+    "TAB_GENERAL": "Detalhes",
+    "TAB_PROPERTIES": "Opções",
+    "TAB_CACHE": "Dados em cache",
+    "TAB_NOTIFICATIONS": "Notificações",
+    "APP_NAME": "Nome da aplicação",
+    "TAB_JOBS": "Processamentos",
+    "DESCRIPTION": "Descrição (página inicial)",
+    "STATUS": "Estado",
+    "PREVIEW_DIVIDER": "Pré-visualização",
+    "LOGOS": "Logotipos da aplicação",
+    "LOGO_PARTNERS": "Logotipos dos parceiros (página inicial)",
+    "PROPERTIES_DIVIDER": "Opções:",
+    "PROPERTY_KEY": "Opção",
+    "PROPERTY_VALUE": "Valor",
+    "BTN_SHOW_OPTION_KEY": "Mostrar o código das opções",
+    "BTN_ADD_OPTION": "Adicionar uma opção",
+    "BTN_CLEAR_CACHE": "Limpar o cache do servidor",
+    "CACHE_TITLE": "Estatística do cache do servidor",
+    "NEW": {
+      "TITLE": "Nova configuração"
+    },
+    "EDIT": {
+      "TITLE": "Configuração {{label}}"
+    },
+    "OPTIONS": {
+      "ANDROID_INSTALL_URL": "App > Android > URL de instalação do App",
+      "IOS_INSTALL_URL": "App > iOS > URL de instalação do App",
+      "DESKTOP_INSTALL_URL": "App > Desktop > URL de instalação",
+      "DB_TIMEZONE": "Persistência > Fuso horário da base de dados (opção não modificável)",
+      "LOGO": "Menu > Logo (largura máx. 110px)",
+      "FAVICON": "favicon",
+      "GRAVATAR_URL": "Usuário > URL Gravatar (com '{md5}')",
+      "ENABLE_GRAVATAR": "Usuário > Usar Gravatar?",
+      "FORM_FIELD_BACKGROUND_COLOR": "Tema > Cor de fundo > Campo de entrada",
+      "FORM_FIELD_FOCUS_BACKGROUND_COLOR": "Tema > Cor de fundo > Campo de entrada com foco",
+      "FORM_FIELD_DISABLED_BACKGROUND_COLOR": "Tema > Cor de fundo > Campo de entrada inativo",
+      "DEFAULT_LOCALE": "Idioma padrão",
+      "DEFAULT_LATLONG_FORMAT": "Formato lat/lon padrão",
+      "ACCESS_PROGRAM_IDS": "Entrada > Programas de coleta autorizados",
+      "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Entrada > Função mín. para ver dados de outros",
+      "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Entrada > Departamentos permitindo ver dados de outros",
+      "ADAGIO_OPTIMIZATION": "Persistência > Oracle: Otimizar consultas para SIH-Adagio",
+      "ADAGIO_SCHEMA": "Persistência > Oracle: Esquema SIH-Adagio",
+      "SAMPLE_UNIQUE_TAG": "Persistência > Amostra: Verificar unicidade do código de amostragem",
+      "SAMPLE_HASH_OPTIMIZATION": "Persistência > Amostra: Otimizar o salvamento (hash)",
+      "BATCH_HASH_OPTIMIZATION": "Persistência > Lote: Otimizar o salvamento (hash)",
+      "PHYSICAL_GEAR_HASH_OPTIMIZATION": "Persistência > Equipamento Físico: Otimizar o salvamento (hash)",
+      "ACTIVITY_CALENDAR_HASH_OPTIMIZATION": "Persistência > Calendário de Atividades: Otimizar o salvamento (hash)",
+      "APP_MIN_VERSION": "App > Versão mínima compatível (x.y.z)",
+      "HELP_URL": "App > Endereço do manual do usuário (URL)",
+      "FORUM_URL": "App > Endereço do fórum (URL)",
+      "APP_URL": "App > Endereço do App (URL)",
+      "REPORT_ISSUE_URL": "App > Endereço para reportar um problema (URL)",
+      "PRIVACY_POLICY_URL": "App > Endereço da política de privacidade (URL - Markdown de preferência)",
+      "TERMS_OF_USE_URL": "App > Endereço dos Termos de Uso (URL - Markdown de preferência)",
+      "ACCOUNT": {
+        "ENABLE_LATLONG_FORMAT": "Minha Conta > Preferências > Ativar o formato lat/lon?",
+        "READONLY": "Minha conta > Nome e sobrenome somente leitura?"
+      },
+      "HOME": {
+        "LOGO_LARGE": "Início > Logo (largura máx. 400px)",
+        "PARTNER_DEPARTMENTS": "Início > Logo dos parceiros",
+        "BACKGROUND_IMAGES": "Início > Imagens de fundo",
+        "ENABLE_REGISTRATION": "Início > Permitir registros?"
+      },
+      "MENU": {
+        "ITEMS": "Menu > Entradas adicionais (JSON Array)"
+      },
+      "COLORS": {
+        "PRIMARY": "Tema > Cor principal",
+        "SECONDARY": "Tema > Cor secundária",
+        "TERTIARY": "Tema > Cor terciária",
+        "SUCCESS": "Tema > Cor de sucesso",
+        "WARNING": "Tema > Cor de aviso",
+        "ACCENT": "Tema > Cor de destaque",
+        "DANGER": "Tema > Cor de perigo"
+      },
+      "PROFILE": {
+        "ADMIN": "Descrição do perfil Administrador",
+        "USER": "Descrição do perfil Usuário",
+        "SUPERVISOR": "Descrição do perfil Supervisor",
+        "GUEST": "Descrição do perfil Convidado"
+      },
+      "SOCIAL": {
+        "ENABLE_NOTIFICATION_ICONS": "Menu > Exibir os ícones de notificações?"
+      },
+      "VESSEL": {
+        "DEFAULT_NEW_VESSEL_STATUS": "Navio > Novo: Status padrão",
+        "DEFAULT_FILTER_COUNTRY_ID": "Entrada > Navio: Bandeira (filtro)",
+        "DEFAULT_FILTER_TYPE_ID": "Entrada > Navio: Tipo de navio (filtro) (NÃO UTILIZAR MAIS)",
+        "BASE_PORT_LOCATION_VISIBLE": "Navios: Mostrar o porto de origem?",
+        "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Navios > Porto de origem: Núm. mín. de caract. para pesquisa",
+        "FILTER_DEFAULT_TYPE_IDS": "Entrada > Navio: Tipo(s) de navio (filtro)",
+        "FILTER_SEARCH_TEXT_MIN_LENGTH": "Entrada > Navio: Núm. mín. de caract. para pesquisa",
+        "FILTER_DEFAULT_SEARCH_ATTRIBUTES": "Entrada > Navio: Lista suspensa",
+        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Entrada > Navio: Pesquisa de matrícula por prefixo (matríc., nome)?",
+        "NAME_REQUIRED": "Navio: Nome obrigatório?",
+        "REGISTRATION_CODE_NATURAL_ORDER_ENABLE": "Entrada > Navio: Ordenação natural das matrículas?"
+      },
+      "ENUMERATION": {
+        "PROGRAM_SIH_LABEL": "Referencial > Programa de navios",
+        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_LABEL": "Referencial > Nível de aquisição > Calendário de atividade",
+        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES_LABEL": "Referencial > Nível de aquisição > Calendário de atividade: Característica física da arte",
+        "ACQUISITION_LEVEL_ACTIVITY_CALENDAR_GEAR_USE_FEATURES_LABEL": "Referencial > Nível de aquisição > Calendário de atividade: Característica de utilização da arte",
+        "ACQUISITION_LEVEL_MONTHLY_ACTIVITY": "Referencial > Nível de aquisição > Calendário de atividade: Mês",
+        "ACQUISITION_LEVEL_OPERATION_LABEL": "Referencial > Nível de aquisição > Operação",
+        "ACQUISITION_LEVEL_PHYSICAL_GEAR_LABEL": "Referencial > Nível de aquisição > Arte física",
+        "ACQUISITION_LEVEL_PRODUCT_LABEL": "Referencial > Nível de aquisição > Produto",
+        "ACQUISITION_LEVEL_PRODUCT_SALE_LABEL": "Referencial > Nível de aquisição > Produto (de uma venda)",
+        "ACQUISITION_LEVEL_CATCH_BATCH_LABEL": "Referencial > Nível de aquisição > Captura",
+        "ACQUISITION_LEVEL_SORTING_BATCH_LABEL": "Referencial > Nível de aquisição > Lote de espécie",
+        "ACQUISITION_LEVEL_SORTING_BATCH_INDIVIDUAL_LABEL": "Referencial > Nível de aquisição > Medição individual",
+        "ACQUISITION_LEVEL_SALE_LABEL": "Referencial > Nível de aquisição > Venda",
+        "ACQUISITION_LEVEL_SAMPLE_LABEL": "Referencial > Nível de aquisição > Amostra",
+        "ACQUISITION_LEVEL_TRIP_LABEL": "Referencial > Nível de aquisição > Viagem",
+        "LOCATION_LEVEL_COUNTRY_ID": "Referencial > Nível de local > País",
+        "LOCATION_LEVEL_PORT_ID": "Referencial > Nível de local > Porto",
+        "LOCATION_LEVEL_MARITIME_DISTRICT_ID": "Referencial > Nível de local > Distrito marítimo",
+        "LOCATION_LEVEL_AUCTION_ID": "Referencial > Nível de local > Leilão",
+        "LOCATION_LEVEL_RECTANGLE_ICES_ID": "Referencial > Nível de local > Retângulo estatístico CIEM/ICES",
+        "LOCATION_LEVEL_AREA_FAO_ID": "Referencial > Nível de local > Zona FAO",
+        "LOCATION_LEVEL_SUB_AREA_ICES_ID": "Referencial > Nível de local > Sub-Zona CIEM/ICES",
+        "LOCATION_LEVEL_DIVISION_ICES_ID": "Referencial > Nível de local > Divisão CIEM/ICES",
+        "LOCATION_LEVEL_SUB_DIVISION_ICES_ID": "Referencial > Nível de local > Sub-Divisão CIEM/ICES",
+        "LOCATION_LEVEL_RECTANGLE_GFCM_ID": "Referencial > Nível de local > Retângulo estatístico CGPM/GFCM",
+        "LOCATION_LEVEL_SUB_AREA_GFCM_ID": "Referencial > Nível de local > Sub-Zona CGPM/GFCM",
+        "LOCATION_LEVEL_DIVISION_GFCM_ID": "Referencial > Nível de local > Divisão CGPM/GFCM",
+        "LOCATION_LEVEL_SUB_DIVISION_GFCM_ID": "Referencial > Nível de local > Sub-Divisão CGPM/GFCM",
+        "LOCATION_LEVEL_LOCATIONS_AREA_IDS": "Referencial > Nível(is) de local para as zonas de pesca (ids)",
+        "WEIGHT_LENGTH_CONVERSION_AREA_IDS": "Referencial > Nível(is) de local para as zonas dos RTP (ids)",
+        "ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY_ID": "Referencial > País predefinido para os equivalentes de peso vivo (id)",
+        "TAXONOMIC_LEVEL_FAMILY_ID": "Referencial > Nível taxonómico > Família",
+        "TAXONOMIC_LEVEL_GENUS_ID": "Referencial > Nível taxonómico > Género",
+        "TAXONOMIC_LEVEL_SPECIES_ID": "Referencial > Nível taxonómico > Espécie",
+        "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referencial > Nível taxonómico > Subespécie",
+        "PMFM_STRATEGY_LABEL_ID": "Referencial > PSFM > Linha de plano",
+        "PMFM_NB_FISHERMEN_ID": "Referencial > PSFM > Número de homens a bordo (Inteiro)",
+        "PMFM_GPS_USED_ID": "Referencial > PSFM > Utilização de GPS? (Booleano)",
+        "PMFM_CAMERA_USED_ID": "Referencial > PSFM > Utilização de câmara? (Booleano)",
+        "PMFM_SEA_STATE_ID": "Referencial > PSFM > Estado do mar",
+        "PMFM_TAG_ID": "Referencial > PSFM > Código de amostragem",
+        "PMFM_TRIP_PROGRESS": "Referencial > PSFM > Decorrer normal? (Booleano)",
+        "PMFM_DRESSING": "Referencial > PSFM > Apresentação da espécie (Inteiro, ...)",
+        "PMFM_PRESERVATION": "Referencial > PSFM > Estado da espécie (Fresco, ...)",
+        "PMFM_TRAWL_SIZE_CAT": "Referencial > PSFM > Categoria de triagem de arrasto (NA, ...)",
+        "PMFM_DIURNAL_OPERATION_ID": "Referencial > PSFM > Operação diurna? (Booleano)",
+        "PMFM_AGE_ID": "Referencial > PSFM > Idade",
+        "PMFM_SEX_ID": "Referencial > PSFM > Sexo",
+        "PMFM_GEAR_LABEL_ID": "Referencial > PSFM > Designação da arte física",
+        "PMFM_CHILD_GEAR_ID": "Referencial > PSFM > Sub-arte",
+        "PMFM_HAS_ACCIDENTAL_CATCHES_ID": "Referencial > PSFM > Captura acidental",
+        "PMFM_HULL_MATERIAL_ID": "Referencial > PSFM > Materiais do casco (navio)",
+        "PMFM_BATCH_SORTING_ID": "Referencial > PSFM > Granel/Fora de granel",
+        "PMFM_DISCARD_WEIGHT_ID": "Referencial > PSFM > Peso da rejeição",
+        "PMFM_CATCH_WEIGHT_ID": "Referencial > PSFM > Peso total da captura",
+        "PMFM_BATCH_CALCULATED_WEIGHT_ID": "Referencial > PSFM > Peso do lote (calculado)",
+        "PMFM_BATCH_ESTIMATED_WEIGHT_ID": "Referencial > PSFM > Peso do lote (estimativa)",
+        "PMFM_BATCH_MEASURED_WEIGHT_ID": "Referencial > PSFM > Peso do lote (medido por um observador)",
+        "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID": "Referencial > PSFM > Peso do lote calculado por RTP",
+        "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Referencial > PSFM > Soma de pesos RTP dos lotes filhos",
+        "PMFM_SELECTIVITY_DEVICE_ID": "Referencial > PSFM > Dispositivo seletivo de arte",
+        "PMFM_PACKAGING_ID": "Referencial > PSFM > Embalagem (produto)",
+        "PMFM_AVERAGE_WEIGHT_PRICE_ID": "Referencial > PSFM > Preço médio por kg (produto)",
+        "PMFM_AVERAGE_PACKAGING_PRICE_ID": "Referencial > PSFM > Preço médio (produto)",
+        "PMFM_SALE_ESTIMATED_RATIO_ID": "Referencial > PSFM > Rácio de venda (produto)",
+        "PMFM_SALE_RANK_ORDER_ID": "Referencial > PSFM > Número de ordem da venda",
+        "PMFM_LANDING_CATEGORY_ID": "Referencial > PSFM > Destino do produto desembarcado",
+        "PMFM_IS_SAMPLING_ID": "Referencial > PSFM > O lote está detalhado ou não?",
+        "PMFM_HAS_PETS_ID": "Referencial > PSFM > Presença de PETS? (Booleano)",
+        "PMFM_TAXON_GROUP_ID": "Referencial > PSFM > Espécie comercial",
+        "PMFM_SALE_TYPE_ID": "Referencial > PSFM > Tipo de venda",
+        "PMFM_SURVEY_QUALIFICATION_ID": "Referencial > PSFM > Qualificação do inquérito",
+        "PMFM_SURVEY_RELIABILITY_ID": "Referencial > PSFM > Fiabilidade do inquérito",
+        "PMFM_AUCTION_HABIT_ID": "Referencial > PSFM > Hábito de venda em leilão",
+        "PMFM_INACTIVITY_YEAR_ID": "Referencial > PSFM > Inatividade anual confirmada pelo observador (Booleano)",
+        "PMFM_FISHING_DURATION_DAYS_ID": "Referencial > PSFM > Número de dias de pesca",
+        "PMFM_FISHING_AT_SEA_DAYS_ID": "Referencial > PSFM > Número de dias no mar",
+        "PMFM_IS_OBSERVED_ID": "Referencial > PSFM > Espécie observada? (Booleano)",
+        "PMFM_NON_OBSERVATION_REASON_ID": "Referencial > PSFM > Razão da não observação (de uma espécie)",
+        "PMFM_SPECIES_LIST_ORIGIN_ID": "Referencial > PSFM > Origem da lista de espécies (PETS/Sorteio)",
+        "PMFM_DISCARD_REASON_ID": "Referencial > PSFM > Razão da rejeição (lote)",
+        "PMFM_DISCARD_TYPE_ID": "Referencial > PSFM > Tipo de rejeição (lote)",
+        "PMFM_EMV_CATEGORY_ID": "Referencial > PSFM > Categoria EMV (lote)",
+        "PMFM_SIZE_CATEGORY_ID": "Referencial > PSFM > Categoria de triagem (lote)",
+        "PMFM_SIZE_UNLI_CAT_ID": "Referencial > PSFM > Categoria de triagem de campo (lote)",
+        "PMFM_NET_STRING_LAYOUT_ID": "Referencial > PSFM > Disposição da teia",
+        "PMFM_DISTANCE_TO_NEAREST_NET_ID": "Referencial > PSFM > Distância à teia mais próxima",
+        "PMFM_DISTANCE_BETWEEN_ZIGZAG_NETS_ID": "Referencial > PSFM > Distância entre os ziguezagues (teia)",
+        "PMFM_OTHER_NET_STRING_LAYOUT_ID": "Referencial > PSFM > Outra disposição da teia",
+        "PMFM_DECOMPOSITION_STATE_ID": "Referencial > PSFM > Estado de decomposição (indivíduo)",
+        "PMFM_IS_ENTANGLED_ID": "Referencial > PSFM > Enmalhado (indivíduo)? (Booleano)",
+        "PMFM_PINGER_ACCESSIBLE_ID": "Referencial > PSFM > Número do pinger acessível? (Booleano)",
+        "PMFM_PINGER_CODE_ID": "Referencial > PSFM > Número do pinger",
+        "PARAMETER_HULL_MATERIAL_ID": "Referencial > Parâmetros > Material do casco",
+        "PARAMETER_GROUP_SURVEY_ID": "Referencial > Grupo de parâmetros > Características de inquéritos",
+        "METHOD_MEASURED_BY_OBSERVER_ID": "Referencial > Método > Medido por um observador",
+        "METHOD_OBSERVED_BY_OBSERVER_ID": "Referencial > Método > Observado por um observador",
+        "METHOD_ESTIMATED_BY_OBSERVER_ID": "Referencial > Método > Estimado por um observador",
+        "METHOD_CALCULATED_ID": "Referencial > Método > Calculado",
+        "METHOD_CALCULATED_WEIGHT_LENGTH_ID": "Referencial > Método > Cálculo de peso por RTP",
+        "METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Referencial > Método > Cálculo da soma dos pesos RTP",
+        "METHOD_UNKNOWN_ID": "Referencial > Método > Desconhecido",
+        "FRACTION_INDIVIDUAL_ID": "Referencial > Fração > Indivíduo",
+        "PARAMETER_GROUP_TAG_ID_LABELS": "Referencial > Conjunto de parâmetros > Etiquetagem (códigos)",
+        "PARAMETER_GROUP_AGE_LABELS": "Referencial > Conjunto de parâmetros > Idade (códigos)",
+        "PARAMETER_GROUP_SEX_LABELS": "Referencial > Conjunto de parâmetros > Sexo (códigos)",
+        "PARAMETER_GROUP_WEIGHT_LABELS": "Referencial > Conjunto de parâmetros > Peso (códigos)",
+        "PARAMETER_GROUP_LENGTH_LABELS": "Referencial > Conjunto de parâmetros > Comprimento (códigos)",
+        "PARAMETER_GROUP_MATURITY_LABELS": "Referencial > Conjunto de parâmetros > Maturidade (códigos)",
+        "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Referencial > Fração > Peças calcificadas (ids)",
+        "UNIT_NONE_ID": "Referencial > Unidade > Nenhuma (ocultas por defeito)",
+        "QUALITY_FLAG_NOT_COMPLETED_ID": "Referencial > Indicador de qualidade > Incompleto",
+        "QUALITY_FLAG_MISSING_ID": "Referencial > Indicador de qualidade > Em falta",
+        "QUALITATIVE_VALUE_LANDING_ID": "Referencial > Valor qualitativo > Parte retida (LAN)",
+        "QUALITATIVE_VALUE_DISCARD_ID": "Referencial > Valor qualitativo > Parte rejeitada (DIS)",
+        "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Referencial > Valor qualitativo > Apresentação da espécie / Inteiro",
+        "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Referencial > Valor qualitativo > Estado da espécie / Fresco",
+        "QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID": "Referencial > Valor qualitativo > Categoria de triagem de campo / Sem",
+        "QUALITATIVE_VALUE_SORTING_BULK_ID": "Referencial > Valor qualitativo > Triagem de lote / Granel",
+        "QUALITATIVE_VALUE_SORTING_NON_BULK_ID": "Referencial > Valor qualitativo > Triagem de lote / Fora de Granel",
+        "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Referencial > Valor qualitativo > Sexo / Não sexado",
+        "QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_PETS_ID": "Referencial > Valor qualitativo > Origem das espécies / PETS",
+        "QUALITATIVE_VALUE_SPECIES_LIST_ORIGIN_RANDOM_ID": "Referencial > Valor qualitativo > Origem das espécies / Sorteio",
+        "QUALITATIVE_VALUE_SURVEY_QUALIFICATION_DIRECT_ID": "Referencial > Valor qualitativo > Qualificação do inquérito / Direta",
+        "TAXON_GROUP_TYPE_FAO_ID": "Referencial > Tipo de grupo de espécies / FAO",
+        "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Referencial > Tipo de grupo de espécies / Métiers nacionais",
+        "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Referencial > Tipo de grupo de espécies / Métiers DCF nível 5",
+        "VESSEL_TYPE_FISHING_VESSEL_ID": "Referencial > Tipo de navio > Navio profissional",
+        "VESSEL_TYPE_SCIENTIFIC_RESEARCH_VESSEL_ID": "Referencial > Tipo de navio > Navio científico",
+        "VESSEL_UNKNOWN_ID": "Referencial > Navio > Navio desconhecido (id)"
+      },
+      "TESTING": "Modo de desenvolvedor?",
+      "ENTITY_TRASH": "Ativar a reciclagem do pod?",
+      "UPDATE_TECHNICAL_TABLES": "Pod > Tabelas técnicas: atualização automática?",
+      "GEOMETRY_SRID": "Pod > Geometrias: SRID (0=Nenhum, 4326=WGS84)",
+      "REGISTER_CONFIRMED_USER_PROFILE": "Segurança > Perfil de um utilizador recentemente confirmado",
+      "ELASTICSEARCH_ENABLED": "Elasticsearch > Ativar?",
+      "ELASTICSEARCH_URIS": "Elasticsearch > URI(s)",
+      "ANALYTIC_REFERENCES_ENABLE": "Estratégia > Referências analíticas: Ativar?",
+      "AUTH_TOKEN_TYPE_PLACEHOLDER": "Segurança > Tipo de autenticação",
+      "AUTH_TOKEN_TYPE": {
+        "BASIC": "Básico",
+        "TOKEN": "Criptográfico",
+        "BASIC_AND_TOKEN": "Básico e criptográfico"
+      },
+      "ENABLE_AUTH_API_TOKENS": "API > Ativar os tokens de autenticação (API GraphQL)",
+      "ENABLE_AUTH_API_TOKENS_SCOPE": "API > Ativar as permissões dos tokens de autenticação",
+      "DEFAULT_AUTH_API_TOKEN_SCOPE": "API > Permissão predefinida de um novo token de autenticação",
+      "DATA_QUALITY_PROCESS_ENABLE": "Introdução > Ativar o processo de qualidade?",
+      "DATA_SHOW_RECORDER": "Introdução > Mostrar o responsável pela introdução?",
+      "DATA_SHOW_OBSERVERS": "Introdução > Mostrar os observadores?",
+      "DATA_IMPORT_DEFAULT_PERIOD": "Introdução offline > Período a importar (por defeito)",
+      "DATA_IMAGES_ENABLE": "Introdução > Ativar a gestão de imagens",
+      "DATA_VESSEL_TYPE_IDS": "Introdução > Navio: Tipo(s) de navio autorizado(s) (POD)",
+      "LANDING": {
+        "FILTER_PROGRAM": "Saídas > Mostrar o filtro para o programa?",
+        "FILTER_LOCATION": "Saídas > Mostrar o filtro para os locais?",
+        "FILTER_PERIOD": "Saídas > Mostrar o filtro para o período?"
+      },
+      "REFERENTIAL": {
+        "PMFM_LABEL_ENABLE": "Referencial > PSFM > Mostrar o código (etiqueta) do PSFM?"
+      }
+    },
+    "CACHE": {
+      "NAME": "Nome",
+      "SIZE": "Nº de elementos",
+      "HEAP_SIZE": "Tamanho HEAP",
+      "OFF_HEAP_SIZE": "Tamanho OFF-HEAP",
+      "DISK_SIZE": "Tamanho no disco",
+      "TOTAL": "Total"
+    }
+  },
+  "MENU": {
+    "HOME": "Início",
+    "TESTING": "Modo de desenvolvedor",
+    "TRIPS": "Viagens",
+    "SEA_TRIPS": "Saídas para o mar",
+    "SCIENTIFIC_CRUISES": "Campanhas científicas",
+    "LOGBOOKS": "Diários de bordo",
+    "DOWNLOADS": "Transferências",
+    "DATA_ENTRY_DIVIDER": "Introdução de dados",
+    "DATA_ACCESS_DIVIDER": "Acesso aos dados",
+    "OBSERVATIONS": "Observações",
+    "AUCTION_OCCASIONS": "Saídas em leilão",
+    "ACTIVITY_CALENDAR": "Calendários de atividade",
+    "OCCASIONS": "Saídas",
+    "LAND_TRIPS": "Saídas em terra",
+    "ADMINISTRATION_DIVIDER": "Administração",
+    "REFERENTIAL_DIVIDER": "Referenciais",
+    "USERS": "Utilizadores",
+    "VESSELS": "Navios",
+    "REFERENTIAL": "Referenciais",
+    "PROGRAMS": "Programas",
+    "EXTRACTIONS": "Extrações",
+    "MAP": "Mapas",
+    "FOOTER_VERSION_ABOUT": "v{{version}} | sobre",
+    "LOCAL_SETTINGS": "Parâmetros",
+    "SYSTEM_DIVIDER": "Sistema",
+    "SERVER": "Parâmetros do sistema",
+    "INBOX": "Mensagens",
+    "LOGOUT": "Terminar sessão",
+    "ABOUT": "Sobre",
+    "BTN_MY_ACCOUNT": "A minha conta",
+    "DEVICE_POSITION": "Posições"
+  },
+  "ABOUT": {
+    "TITLE": "Sobre",
+    "POWERED_BY": "Desenvolvido por",
+    "VERSION": "<b>v{{version}}</b>",
+    "LICENSE": "Aplicação <b>livre</b> (Licença GNU AGPL v3).",
+    "REPORT_ISSUE": "Não hesite em reportar-nos as anomalias encontradas!",
+    "BTN_REPORT_ISSUE": "Reportar um problema",
+    "HELP": "Ajuda online:",
+    "FORUM": "Fórum",
+    "USER_MANUAL": "Manual",
+    "SOURCE_CODE": "Código fonte:",
+    "DEVELOPED_BY": "Desenvolvido por:",
+    "PARTNERS": "Parceiros e patrocinadores:"
+  },
+  "HOME": {
+    "WELCOME_WEB": "Bem-vindo ao site web {{appName}}!",
+    "WELCOME_APP": "Bem-vindo à aplicação {{appName}}!",
+    "DESCRIPTION": "Base de dados europeia partilhada<br/>para a gestão dos stocks de raias.",
+    "BTN_DATA_ENTRY": "Introdução dos {{name}}",
+    "REGISTER_HELP": "O registo é fácil. Junte-se a nós hoje!",
+    "NOT_THIS_ACCOUNT_QUESTION": "Não é <b>{{displayName}}</b>?",
+    "BTN_DISCONNECT": "Desligar esta conta",
+    "BTN_MY_ACCOUNT": "A minha conta",
+    "BTN_REGISTER": "Registar-se",
+    "BTN_DARK_MODE": "Tema (escuro ou claro)",
+    "SHOW_AT": "Consultado a ",
+    "LEGAL_INFORMATION": "Informações legais",
+    "PRIVACY_POLICY": "Política de privacidade",
+    "TERMS_OF_USE": "Termos de utilização",
+    "PARTNERS": "Parceiros e patrocinadores",
+    "INSTALL_APP": "Aplicação"
+  },
+  "AUTH": {
+    "TITLE": "Autenticação",
+    "BTN_LOGIN": "Iniciar sessão",
+    "BTN_REGISTER": "Criar uma conta",
+    "NO_ACCOUNT_QUESTION": "Ainda não tem uma conta?",
+    "RESET_PASSWORD_QUESTION": "Já não tem acesso à sua conta?",
+    "BTN_RESET_PASSWORD": "Repor a sua palavra-passe",
+    "OFFLINE_MODE": "Forçar o modo offline?",
+    "LOGOUT": {
+      "CONFIRM_TITLE": "Confirmação",
+      "CONFIRM_MESSAGE": "Tem a certeza de que deseja terminar a sessão?",
+      "BTN_CONFIRM": "Sim, continuar"
+    },
+    "RESET_PASSWORD": {
+      "TITLE": "Reposição da palavra-passe",
+      "HELP": "Por favor, introduza o seu identificador de conta. Ser-lhe-á enviado por email um <b>link de recuperação</b>:",
+      "BTN_SEND": "Enviar o pedido"
+    },
+    "CONFIRM": {
+      "RESET_PASSWORD_SENT": "Pedido enviado! Deverá <b>receber um link de recuperação</b> por email.",
+      "PASSWORD_CHANGED": "Palavra-passe atualizada <b>com sucesso</b>!"
+    }
+  },
+  "REGISTER": {
+    "TITLE": "Inscrição",
+    "STEP_EMAIL": "Email",
+    "STEP_PASSWORD": "Palavra-passe",
+    "STEP_USER_DETAILS": "Dados pessoais",
+    "CONFIRM_EMAIL": "Email (confirmação)",
+    "CONFIRM_PASSWORD": "Palavra-passe (confirmação)",
+    "CONFIRMED": {
+      "TITLE": "Finalização da inscrição",
+      "LOADING": "A aguardar confirmação...",
+      "SUB_TITLE": "Inscrição concluída!",
+      "SUCCESS": "O seu endereço de email <b>{{email}}</b> foi validado com sucesso.<br/>A sua inscrição está agora <b>concluída</b>!",
+      "LOGIN_HELP": "Para iniciar sessão, <b>clique abaixo</b>:"
+    },
+    "ERROR": {
+      "NOT_SAME_EMAIL": "Os emails não correspondem",
+      "NOT_SAME_PASSWORD": "As palavras-passe não correspondem",
+      "EMAIL_ALREADY_REGISTERED": "Email já registado"
+    }
+  },
+  "ACCOUNT": {
+    "TITLE": "A minha conta",
+    "EMAIL_NOT_CONFIRMED_LABEL": "O email desta conta ainda não foi validado: <b>consulte a sua caixa de correio</b> e clique no link fornecido.",
+    "EMAIL_NOT_RECEIVED_QUESTION": "Se não recebeu o email de validação,<br/>pode <b>solicitar um novo envio</b>:",
+    "BTN_RESEND": "Reenviar",
+    "USER_DETAILS": {
+      "TITLE": "Perfil",
+      "DESCRIPTION": "Aqui estão os dados registados relativos à sua conta:",
+      "TECHNICAL_DIVIDER": "Informações técnicas",
+      "PROFILE": "Perfil de utilizador",
+      "PUBKEY": "Chave pública para assinatura digital"
+    },
+    "SETTINGS": {
+      "TITLE": "Preferências",
+      "DESCRIPTION": "As preferências abaixo serão utilizadas nos emails e relatórios que receberá.",
+      "LOCALE": "Idioma",
+      "LAT_LONG_FORMAT": "Formato latitude/longitude"
+    },
+    "SECURITY": {
+      "TITLE": "Segurança",
+      "PASSWORD": "Palavra-passe",
+      "BTN_CHANGE_PASSWORD": "Alterar a palavra-passe"
+    },
+    "TOKENS": {
+      "TITLE": "Tokens",
+      "DESCRIPTION": "Lista de tokens de autenticação",
+      "SCOPES": {
+        "READ": "Leitura",
+        "WRITE": "Escrita",
+        "ADMIN": "Administração"
+      },
+      "TABLE": {
+        "NAME": "Nome",
+        "UNKNOWN": "Token desconhecido",
+        "FLAGS": "Permissões (numérico)",
+        "SCOPES": "Permissões",
+        "CREATION_DATE": "Data de criação",
+        "UPDATE_DATE": "Data de modificação",
+        "LAST_USED_DATE": "Data da última utilização",
+        "EXPIRATION_DATE": "Data de expiração"
+      },
+      "CREATE": {
+        "TITLE": "Criação de um novo token",
+        "DESCRIPTION": "Dê um nome a este token, mas não introduza informações sensíveis que possam ser recuperadas por terceiros!",
+        "NAME": "Nome",
+        "NAME_ALREADY_EXISTS": "Este nome já está em uso",
+        "SCOPES": "Permissões",
+        "EXPIRATION_DATE": "Data de expiração",
+        "BTN_GENERATE": "Gerar",
+        "BTN_GENERATE_TITLE": "Gerar",
+        "COPY_HELP": "Por favor, copie o token abaixo para a área de transferência clicando no botão. Uma vez validado, este token não será mais visível.",
+        "BTN_COPY_TITLE": "Copiar o token para a área de transferência",
+        "COPIED": "Copiado"
+      }
+    },
+    "INFO": {
+      "RELOADED": "A sua conta de utilizador foi <b>atualizada</b>!"
+    },
+    "ERROR": {
+      "SUBSCRIBE_ERROR": "Falha na subscrição remota da conta de utilizador.",
+      "SEND_RESET_PASSWORD_EMAIL_ERROR": "Falha na solicitação de reposição,<br/><small>Por favor <b>verifique os dados inseridos</b>, pois este identificador parece ser desconhecido.<br/>Se o problema persistir, por favor <b>contacte o seu administrador</b>.</small>",
+      "UPDATE_PUBKEY_ERROR": "Falha na alteração da palavra-passe.<br/><small>Se o problema persistir, por favor <b>contacte o seu administrador</b>",
+      "RESET_PUBKEY_ERROR": "Falha na alteração da palavra-passe.<br/><small>Verifique se está a utilizar <b>o link de reposição correto</b>. Se o problema persistir, por favor <b>contacte o seu administrador</b>"
+    }
+  },
+  "SETTINGS": {
+    "TITLE": "Parâmetros",
+    "DESCRIPTION": "Aqui estão os parâmetros da aplicação:",
+    "DISPLAY_DIVIDER": "Parâmetros de visualização",
+    "INHERIT_FROM_ACCOUNT": "Utilizar as preferências da minha conta de utilizador",
+    "INHERIT_FROM_ACCOUNT_HELP": "Clique aqui para aceder à sua conta e <b>modificar as suas preferências</b>:",
+    "LOCALE": "Idioma",
+    "LAT_LONG_FORMAT": "Formato latitude/longitude",
+    "NETWORK_DIVIDER": "Parâmetros de rede",
+    "PEER_URL": "Endereço do nó de rede",
+    "BTN_CHANGE_PEER": "Ver os nós disponíveis",
+    "BTN_DARK_MODE": "Tema escuro? (experimental)",
+    "BTN_SHOW_ACCOUNT": "Ver a minha conta",
+    "BTN_SHOW_MORE_HELP": "Mostrar mais parâmetros",
+    "BTN_SHOW_OPTION_KEY": "Mostrar o código das opções?",
+    "BTN_CLEAR_CACHE": "Limpar a cache",
+    "OFFLINE_MODE": "Forçar o modo offline?",
+    "DATA_ENTRY_DIVIDER": "Parâmetros de introdução",
+    "USAGE_MODE": "Modo de introdução",
+    "USAGE_MODE_FIELD": "Modo introdução <b>campo</b>",
+    "USAGE_MODE_DESK": "Modo introdução <b>escritório</b>",
+    "USAGE_MODES": {
+      "FIELD": "Introdução campo",
+      "DESK": "Introdução escritório"
+    },
+    "PROPERTY_KEY": "Opção",
+    "PROPERTY_VALUE": "Valor",
+    "BTN_ADD_PROPERTY": "Adicionar uma opção",
+    "BTN_RESET_PROPERTY": "Reiniciar a opção",
+    "FIELDS": {
+      "DEPARTMENT": "Lista suspensa > Organismos",
+      "LOCATION": "Lista suspensa > Locais (porto, etc.)",
+      "FISHING_AREA_LOCATION": "Lista suspensa > Zona de pesca (retângulo, etc.)",
+      "QUALITATIVE_VALUE": "Lista suspensa > Valores qualitativos de parâmetro",
+      "TAXON_GROUP": "Lista suspensa > Espécies comerciais",
+      "TAXON_NAME": "Lista suspensa > Espécies científicas",
+      "DISTANCE_TO_COAST_GRADIENT": "Lista suspensa > Distância à costa",
+      "DEPTH_GRADIENT": "Lista suspensa > Profundidade",
+      "NEARBY_SPECIFIC_AREA": "Lista suspensa > Zona específica",
+      "GEAR": "Lista suspensa > Artes de pesca",
+      "FRACTION": "Lista suspensa > Fração (peça calcificada, etc.)",
+      "ATTRIBUTES": {
+        "LABEL": "Código",
+        "NAME": "Nome",
+        "LABEL_NAME": "Código - Nome",
+        "NAME_LABEL": "Nome - Código"
+      },
+      "VESSEL": {
+        "NAME": "Lista suspensa > Navios",
+        "ATTRIBUTES": {
+          "EXTERIOR_MARKING_NAME": "Marcação exterior - Nome",
+          "REGISTRATION_CODE_NAME": "Código de registo - Nome"
+        }
+      }
+    },
+    "FILTER": {
+      "SEARCH": "Pesquisa: Opção",
+      "ONLY_NOT_DEFAULT": "Mostrar apenas as opções pessoais"
+    },
+    "DATA": {
+      "EXPERTISE_AREA": "Zona de competência"
+    },
+    "ERROR": {
+      "PEER_NOT_REACHABLE": "Nó inacessível"
+    }
+  },
+  "USER": {
+    "TITLE": "Utilizador",
+    "AVATAR": "Avatar",
+    "EMAIL": "Email",
+    "USERNAME": "Identificador",
+    "USERNAME_EXTRANET": "Identificador Extranet",
+    "PASSWORD": "Palavra-passe",
+    "FIRST_NAME": "Nome próprio",
+    "LAST_NAME": "Apelido",
+    "DEPARTMENT": {
+      "TITLE": "Organismo",
+      "LABEL": "Código do organismo",
+      "NAME": "Nome do organismo"
+    },
+    "STATUS": "Estado",
+    "PUBKEY": "Chave pública",
+    "PROFILE": "Perfil",
+    "PROFILE_ENUM": {
+      "ADMIN": "Administrador",
+      "SUPERVISOR": "Supervisor",
+      "USER": "Observador",
+      "GUEST": "Convidado"
+    },
+    "LIST": {
+      "TITLE": "Utilizadores",
+      "BTN_SEND_MESSAGE": "Enviar uma mensagem",
+      "BTN_ACTIONS": "Ações",
+      "FILTER": {
+        "SEARCH": "Pesquisa: nome, nome próprio..."
+      }
+    }
+  },
+  "DATA": {
+    "BTN_WRITE_TO_RECORDER": "Escrever ao registador",
+    "MESSAGE_BODY": "Olá,\n\nsobre [{{title}}]({{url}}),\n\n...",
+    "SETTINGS": {
+      "EXPERTISE_AREA": "Zona de competência",
+      "EXPERTISE_AREAS": "Zona(s) de competência"
+    }
+  },
+  "TRIP": {
+    "TITLE": "Viagem",
+    "PROGRAM": "Programa de recolha",
+    "SAMPLING_SCHEME": "Plano de amostragem:",
+    "SAMPLING_STRATA": "Referência da linha do plano",
+    "SAMPLING_SCHEME_LABEL": "Programa de vinculação",
+    "VESSEL_SNAPSHOT": "Navio",
+    "BTN_ADD_VESSEL": "Adicionar um navio",
+    "DEPARTURE": "Partida:",
+    "DEPARTURE_DATE_TIME": "Data de partida",
+    "DEPARTURE_LOCATION": "Porto de partida",
+    "RETURN": "Regresso:",
+    "RETURN_DATE_TIME": "Data de regresso",
+    "RETURN_LOCATION": "Porto de regresso",
+    "OBSERVER_PLACEHOLDER": "Observador #",
+    "OBSERVERS": "Observadores:",
+    "MAIN_METIER_PLACEHOLDER": "Métier principal",
+    "SECONDARY_METIER_PLACEHOLDER": "Métier secundário #{{rank}}",
+    "METIERS": "Métiers:",
+    "METIER": "Métier:",
+    "BTN_FILTER_METIER": "Restringir aos métiers já praticados",
+    "BTN_DUPLICATE_LOCATION": "Duplicar no local de regresso",
+    "COMMENTS": "Comentários",
+    "QUALITY": "Estado de introdução",
+    "TAB_GENERAL": "Detalhes",
+    "TAB_PHYSICAL_GEAR": "Artes",
+    "TAB_OPERATIONS": "Operações",
+    "TAB_OPERATION_GROUPS": "Esforço",
+    "TAB_CATCHES": "Capturas desembarcadas",
+    "TAB_SALES": "Vendas",
+    "TAB_EXPENSES": "Despesas",
+    "NEW": {
+      "TITLE": "Nova viagem",
+      "ACCESS_OPERATIONS_HELP": "Por favor <b>guarde a viagem</b>, para poder aceder à introdução das operações"
+    },
+    "EDIT": {
+      "TITLE": "<small>{{vessel}}<br></small>Viagem de {{departureDateTime}}",
+      "OTHER_FEATURES": "Características:",
+      "BTN_DELETE": "Eliminar toda a viagem",
+      "BTN_REPORT": "Editar o relatório..."
+    },
+    "CARD": {
+      "DEPARTURE_DOTS": "Partida:",
+      "RETURN_DOTS": "Regresso:"
+    },
+    "OPTIONS": {
+      "ENABLE": "Viagens > Ativar?",
+      "NAME": "Viagens > Título (menu, etc.)"
+    },
+    "TABLE": {
+      "ID": "Identificador",
+      "TITLE": "Viagens",
+      "VESSEL": "Navio",
+      "PROGRAM": "Programa",
+      "DEPARTURE_DATE_TIME": "Data de partida",
+      "DEPARTURE_LOCATION": "Porto de partida",
+      "RETURN_DATE_TIME": "Data de regresso",
+      "RETURN_LOCATION": "Porto de regresso",
+      "QUALITY": "Estado",
+      "OBSERVERS": "Observador(es)",
+      "RECORDER_PERSON": "Registador",
+      "COMMENTS": "Comentários",
+      "NO_LOCAL_RESULT": "Nenhum resultado (entre as viagens <b>não sincronizadas</b>)",
+      "BTN_NEW_OFFLINE": "Introdução no terreno (modo offline)",
+      "BTN_NEW_ONLINE": "Introdução no escritório (modo conectado)",
+      "DOWNLOAD_JSON_FILENAME": "Viagens.json",
+      "FILTER": {
+        "PROGRAM": "Programa de recolha",
+        "START_DATE": "Início do período",
+        "END_DATE": "Fim do período",
+        "LOCATION": "Porto (partida ou regresso)",
+        "VESSEL": "Navio",
+        "SYNCHRONIZATION_STATUS": "Estado dos dados",
+        "RECORDER_DEPARTMENT": "Organismo registador",
+        "RECORDER_PERSON": "Registador",
+        "OBSERVERS": "Observadores",
+        "QUALITY_FLAG_ID": "Nível de qualidade"
+      },
+      "SYNCHRONIZATION_STATUS": {
+        "DIRTY_HELP": "Viagens offline",
+        "READY_TO_SYNC_HELP": "Viagens a aguardar envio",
+        "SYNC_HELP": "Viagens sincronizadas"
+      },
+      "INFO": {
+        "IMPORT_FILE_SUCCEED": "Importação concluída:<br><b>{{inserts}} viagem(ns) importada(s)!",
+        "IMPORT_FILE_SUCCEED_WITH_ERRORS": "Importação concluída:<br><ul><li>{{inserts}} viagem(ns) importada(s);<li>{{errors}} viagem(ns) ignorada(s)."
+      },
+      "WARNING": {
+        "NEED_ONE_PROGRAM": "Por favor, primeiro <b>filtre por um programa</b> de recolha."
+      },
+      "ERROR": {
+        "IMPORT_FILE_FAILED": "<b>Nenhuma viagem pôde ser importada</b>!<br/><small>Erro técnico: {{error}}</small>"
+      }
+    },
+    "TRASH": {
+      "TITLE": "Lixeira",
+      "DELETION_DATE": "Data de eliminação",
+      "INFO": {
+        "ONE_TRIP_RESTORED": "Viagem restaurada <b>com sucesso</b>, nas suas viagens <b>não enviadas</b>!",
+        "MANY_TRIPS_RESTORED": "Viagens restauradas <b>com sucesso</b>, nas suas viagens <b>não enviadas</b>!",
+        "LOCAL_TRASH_CLEANED": "A lixeira local foi esvaziada"
+      }
+    },
+    "OFFLINE_MODAL": {
+      "TITLE": "Configuração do modo offline",
+      "VESSELS": "Navio(s)",
+      "ENABLE_HISTORICAL_DATA": "Importar os dados do navio (artes, lançamentos)?",
+      "DURATION_PLACEHOLDER": "Período a importar"
+    },
+    "ERROR": {
+      "NO_PRACTICED_METIER_FOUND": "Nenhum métier praticado encontrado",
+      "ADD_GEAR": "Erro ao adicionar uma arte à viagem",
+      "INVALID_GEARS": "Por favor, corrija as artes inválidas abaixo",
+      "INVALID_OPERATIONS": "Por favor, corrija as operações inválidas abaixo"
+    },
+    "WARNING": {
+      "NO_HELP_URL": "Parece que o programa de recolha {{programLabel}} <b>ainda não tem ajuda online</b> específica disponível.<br/><small><br/>Se o problema persistir, por favor <b>contacte o seu administrador</b>.</small>"
+    },
+    "MEASUREMENT": {
+      "FEATURE_PLACEHOLDER": "Característica #{{rankOrder}}",
+      "ERROR": {
+        "DUPLICATE_RANK_ORDER": "O número #{{rankOrder}} já existe. Impossível adicioná-lo novamente."
+      }
+    },
+    "PHYSICAL_GEAR": {
+      "COMMENTS": "Comentários",
+      "RANK_ORDER": "#",
+      "BTN_SEARCH_EXISTING_HELP": "Procurar entre as artes existentes",
+      "NEW": {
+        "TITLE": "Nova arte",
+        "CHILD": {
+          "TITLE": "Nova sub-arte"
+        }
+      },
+      "EDIT": {
+        "TITLE": "Arte {{label}}",
+        "GEAR": "Código da arte",
+        "RANK_ORDER": "Número da arte",
+        "FEATURES": "Características físicas:",
+        "TAB_GENERAL": "Detalhes",
+        "TAB_SUB_GEARS": "Sub-artes",
+        "CHILD": {
+          "GEAR": "Código da sub-arte",
+          "RANK_ORDER": "Número da sub-arte",
+          "TITLE": "Sub-arte {{label}}"
+        }
+      },
+      "TABLE": {
+        "SELECT_ROW_HELP": "Selecione uma arte na lista para poder editá-la",
+        "GEAR": "Arte",
+        "SUB_GEARS_COUNT": "Nº Sub-artes",
+        "LAST_USED": "Última utilização",
+        "COMMENTS": "Comentários",
+        "BTN_ADD_NEW": "Nova",
+        "BTN_SEARCH_ADD": "Procurar",
+        "FILTER": {
+          "START_DATE": "Início do período",
+          "END_DATE": "Fim do período"
+        }
+      },
+      "SELECT_MODAL": {
+        "TITLE": "Artes existentes"
+      },
+      "PMFM": {
+        "GEAR_LABEL": "Nome da arte",
+        "MESH_GAUGE_UPPER_WING_MM": "Malha - Asas superiores (mm)",
+        "MESH_GAUGE_LOWER_WING_MM": "Malha - Asas inferiores (mm)",
+        "MESH_GAUGE_BACK_MM": "Malha - Dorsal (mm)",
+        "MESH_GAUGE_BELLY_MM": "Malha - Ventral (mm)",
+        "MESH_GAUGE_GOR_MM": "Malha - Garganta (mm)",
+        "MESH_GAUGE_EXT_MM": "Malha - Extensão (mm)",
+        "MESH_GAUGE_ASS_MM": "Malha - Saco (mm)",
+        "GROUNDROPE_TYPE": "Tipo de borlão",
+        "VERTICAL_OPENING_ESTIMATED": "Abertura vertical - Estimada (m)",
+        "VERTICAL_OPENING_MEASURED": "Abertura vertical - Medida (m)",
+        "CHILD": {
+          "GEAR_LABEL": "Nome da sub-arte"
+        }
+      },
+      "ERROR": {
+        "LOAD_PHYSICAL_GEARS_ERROR": "Erro ao carregar as artes.",
+        "CANNOT_DELETE": "Eliminação impossível",
+        "CANNOT_DELETE_USED_GEAR_HELP": "Arte(s) utilizada(s) numa ou mais operações.<br/><br/>Por favor <b>modifique estas operações</b> antes de tentar novamente.",
+        "NOT_ENOUGH_SUB_GEAR": "É necessária pelo menos uma sub-arte.",
+        "NOT_ENOUGH_SUB_GEARS": "São necessárias pelo menos {{minRowCount}} sub-artes."
+      }
+    },
+    "OPERATION": {
+      "TITLE": "OP #{{rankOrder}}",
+      "BTN_SHOW_ALL": "Ver tudo",
+      "BTN_HISTORY": "Histórico",
+      "BTN_SHOW_MAP": "Mapa das operações",
+      "LAST_OPERATIONS": "Últimas operações",
+      "NO_LAST_OPERATION": "Nenhuma operação anterior",
+      "OPE_PREFIX": "OP",
+      "TITLE_PREFIX": "<small>{{vessel}} - Viagem {{departureDateTime}}<br></small>",
+      "NEW": {
+        "TITLE": "Nova OP",
+        "TITLE_PARENT": "Nova largada",
+        "TITLE_CHILD": "Nova alagem"
+      },
+      "EDIT": {
+        "TITLE": "OP #{{rankOrder}} <small>de {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "OP {{startDateTime}}",
+        "BTN_DELETE": "Eliminar esta operação",
+        "BTN_DUPLICATE": "Duplicar esta operação",
+        "BTN_DUPLICATE_POSITION": "Duplicar a posição",
+        "BTN_DUPLICATE_FISHING_AREA": "Duplicar a zona de pesca",
+        "BTN_OPEN_PARENT": "Abrir a largada...",
+        "BTN_SELECT_PARENT": "Selecionar a largada...",
+        "BTN_SAVE_AND_NEW": "Guardar e novo",
+        "BTN_NEW": "OP",
+        "BTN_LOG": "Registo",
+        "COMMENTS": "Comentários",
+        "CATCH": "Captura",
+        "TAB_GENERAL": "Detalhes",
+        "TAB_PHYSICAL_GEAR": "Implementação da arte",
+        "TAB_CATCH": "Captura",
+        "TAB_CATCH_TOTAL": "Captura total",
+        "TAB_SAMPLES": "Amostras",
+        "TAB_BATCH_SPECIES": "Lotes por espécie",
+        "TAB_BATCH_INDIVIDUAL": "Medidas individuais",
+        "METIER": "Espécie-alvo",
+        "TARGET_SPECIES": "Espécie-alvo",
+        "PHYSICAL_GEAR": "Arte utilizada",
+        "START": "Início largada:",
+        "START_FISHING": "Início pesca:",
+        "END_FISHING": "Fim pesca:",
+        "END": "Fim alagem:",
+        "GEAR_AND_TARGETED_SPECIES": "Arte / espécie-alvo:",
+        "GEAR": "Arte:",
+        "LATITUDE": "Latitude",
+        "LONGITUDE": "Longitude",
+        "START_DATE_TIME": "Início da operação",
+        "FISHING_START_DATE_TIME": "Início da pesca",
+        "FISHING_END_DATE_TIME": "Fim da pesca",
+        "FISHING_AREA_RANK": "Zona de pesca #",
+        "FISHING_AREA": "Zona de pesca",
+        "FISHING_AREAS_DOTS": "Zonas de pesca:",
+        "FISHING_AREAS": "Zonas de pesca",
+        "END_DATE_TIME": "Fim da operação",
+        "OTHER_FEATURES": "Características:",
+        "NO_TARGET_SPECIES_FOUND": "Nenhuma espécie para esta arte",
+        "DISTANCE_DOTS": "Distância: {{distance}} milhas",
+        "PARENT_OPERATION": "Largada associada",
+        "PLEASE_SELECT_HELP": "Selecionar uma operação",
+        "POSITIONS": "Posições",
+        "QUALITY_FLAG_ID": "Nível de qualidade",
+        "TYPE": {
+          "TITLE": "Tipo de operação:",
+          "PLACEHOLDER": "Tipo de operação",
+          "PARENT": "Largada",
+          "CHILD": "Alagem"
+        },
+        "START_POSITION": {
+          "LATITUDE": "Latitude de início",
+          "LONGITUDE": "Longitude de início"
+        },
+        "END_POSITION": {
+          "LATITUDE": "Latitude de fim",
+          "LONGITUDE": "Longitude de fim"
+        },
+        "FISHING_START_POSITION": {
+          "LATITUDE": "Latitude de início de pesca",
+          "LONGITUDE": "Longitude de início de pesca"
+        },
+        "FISHING_END_POSITION": {
+          "LATITUDE": "Latitude de fim de pesca",
+          "LONGITUDE": "Longitude de fim de pesca"
+        },
+        "SURVIVAL_TEST": {
+          "TAB_SAMPLES": "Testes de sobrevivência"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TAB_SAMPLES": "Capturas acidentais",
+          "START": "Início largada:",
+          "START_FISHING": "Fim largada / Início pesca:",
+          "END_FISHING": "Fim pesca / Início alagem:",
+          "END": "Fim alagem:",
+          "START_DATE_TIME": "Início largada",
+          "FISHING_START_DATE_TIME": "Início pesca",
+          "FISHING_END_DATE_TIME": "Fim pesca",
+          "END_DATE_TIME": "Fim alagem"
+        },
+        "OBSERVED_TRIP": {
+          "TAB_SAMPLES": "Capturas acidentais"
+        }
+      },
+      "PARENT": {
+        "TITLE": "Selecionar a largada associada",
+        "TRIP": "{{vessel}} - Viagem {{departureDateTime}}",
+        "FILTER": {
+          "SEARCH_TEXT": "Pesquisa: código arte / espécie",
+          "START_DATE": "Início do período",
+          "GEAR": "Arte",
+          "TARGET_SPECIE": "Espécie-alvo"
+        }
+      },
+      "PMFM": {
+        "SORTING_START_DATE_TIME": "Início da triagem",
+        "SORTING_END_DATE_TIME": "Fim da triagem",
+        "TAG_OPERATION": "Etiqueta",
+        "ACCIDENTAL_CATCH": {
+          "TRIP_PROGRESS": "Desenrolar normal da operação?",
+          "IS_ACOUSTIC_DEVICE": "Pinger ativado?",
+          "HAS_ACCIDENTAL_CATCHES": "Capturas acidentais de pequenos cetáceos?"
+        },
+        "TRAWL_SELECTIVITY": {
+          "TAG_OPERATION": "Código de correspondência"
+        }
+      },
+      "MAP": {
+        "TITLE": "Mapa das posições",
+        "TRIP_LAYER_WITH_DETAILS": "{{vessel}} - Viagem {{departureDateTime}}",
+        "OPERATIONS_LAYER_WITH_DETAILS": "{{trip}} - Operações",
+        "TRIP_LAYER": "Viagem",
+        "OPERATIONS_LAYER": "Operações"
+      },
+      "LIST": {
+        "ID": "Número",
+        "TRIP": "Viagem",
+        "PHYSICAL_GEAR": "Arte utilizada",
+        "METIER": "Métier",
+        "TARGET_SPECIES": "Espécie-alvo",
+        "START_DATE_TIME": "Início da operação",
+        "END_DATE_TIME": "Fim da operação",
+        "FISHING_START_DATE_TIME": "Início da pesca",
+        "FISHING_END_DATE_TIME": "Fim da pesca",
+        "START_POSITION": "Posição início",
+        "END_POSITION": "Posição de fim",
+        "FISHING_AREA": "Zona de pesca",
+        "COMMENTS": "Comentários",
+        "QUALITY": "Estado",
+        "QUALITY_FILTER": "Filtrar por estado:",
+        "DOWNLOAD_JSON_FILENAME": "Operacoes.json"
+      },
+      "FILTER": {
+        "GEAR": "Arte",
+        "START_DATE": "Início do período",
+        "QUALITY": "Estado"
+      },
+      "SETTINGS": {
+        "GEOLOCATION_TIMEOUT": "Sensor GPS > Tempo máximo de aquisição (segundos)"
+      },
+      "INFO": {
+        "CONTROL_SUCCEED": "<ion-icon name='checkmark'></ion-icon> Operação controlada <b>com sucesso</b>! Nenhum erro detetado."
+      },
+      "ERROR": {
+        "FIELD_DATE_BEFORE_TRIP": "Antes da partida da viagem",
+        "FIELD_DATE_AFTER_TRIP": "Após o regresso da viagem",
+        "LOAD_OPERATION_ERROR": "Erro ao carregar a operação.",
+        "LOAD_OPERATIONS_ERROR": "Erro ao carregar as operações.",
+        "SAVE_OPERATION_ERROR": "Erro ao guardar a operação.",
+        "SAVE_OPERATIONS_ERROR": "Erro ao guardar as operações.",
+        "SUBSCRIBE_OPERATION_ERROR": "Falha na subscrição remota às modificações da operação.",
+        "FIELD_DATE_BEFORE_PARENT_OPERATION": "Antes da data de fim da largada",
+        "FIELD_DATE_AFTER_CHILD_OPERATION": "Após o início da alagem",
+        "LOCAL_PARENT_OPERATION": "Operação proveniente de uma viagem não sincronizada",
+        "MISSING_PARENT_OPERATION": "Operação inexistente ou associada a outra alagem",
+        "TOO_LONG_DISTANCE": "Distância demasiado grande ({{distance}} milhas)",
+        "CANNOT_ENABLE_FILTER": "Filtragem não disponível",
+        "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "Nenhum métier praticado encontrado nos dados disponíveis.",
+        "CATCH_ERROR": "Erro na inserção da captura"
+      },
+      "WARNING": {
+        "ABNORMAL_PROGRESS": "Desenrolar anormal: {{comments}}"
+      },
+      "REPORT": {
+        "TITLE": "Relatório OP #{{rankOrder}} <small>de {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "Relatório OP {{startDateTime}}",
+        "TITLE_SLIDE": "Relatório operação"
+      }
+    },
+    "OPERATION_GROUP": {
+      "NEW": {
+        "TITLE": "Novo esforço"
+      },
+      "EDIT": {
+        "TITLE": "Esforço #{{rankOrderOnPeriod}}"
+      }
+    },
+    "CATCH": {
+      "FORM": {
+        "SUB_GEAR": "Subarte de pesca:",
+        "ON_DECK": "Chegada ao convés:",
+        "SORTING": "Início/fim da triagem:",
+        "TOTAL_CATCH": "Captura (todas as espécies):"
+      }
+    },
+    "LANDED_CATCH": {
+      "TAB_PRODUCT": "Lotes por espécie",
+      "TAB_BATCH": "Lotes em pacote",
+      "OPERATION_GROUP_FILTER": "Filtrar por esforço:"
+    },
+    "PRODUCT": {
+      "LIST": {
+        "PARENT": "Esforço",
+        "TAXON_GROUP": "Espécie comercial (FAO)",
+        "SALE_TYPE": "Tipo de venda",
+        "WEIGHT": "Peso (kg)",
+        "INDIVIDUAL_COUNT": "Número de indivíduos",
+        "INDIVIDUAL_SAMPLING": "Amostragem",
+        "PRODUCT_SALE": "Vendas"
+      },
+      "SALE": {
+        "TITLE": "Venda de {{ taxonGroup }}",
+        "SALE_TYPE": "Tipo de venda",
+        "RATIO": "Rácio (%)",
+        "AVG_WEIGHT_PRICE": "Preço médio / peso",
+        "AVG_PACKAGING_PRICE": "Preço médio / embalagem",
+        "TOTAL_PRICE": "Preço total",
+        "TOTAL_PRODUCT": "Resumo do lote:"
+      },
+      "NEW": {
+        "TITLE": "Novo lote"
+      },
+      "EDIT": {
+        "TITLE": "Lote #{{rankOrder}}",
+        "BTN_SALE": "Registar vendas",
+        "BTN_INDIVIDUAL_SAMPLING": "Registar amostragem"
+      }
+    },
+    "BATCH": {
+      "NEW": {
+        "TITLE": "Novo lote de espécie"
+      },
+      "EDIT": {
+        "TITLE": "Lote {{label}}",
+        "TAXON_GROUP": "Espécie comercial (FAO)",
+        "TAXON_NAME": "Espécie científica",
+        "PARENT_GROUP": "Lote de espécie",
+        "CATCH_BATCH": "Captura",
+        "RANK_ORDER": "Número do Lote",
+        "LABEL": "Rótulo do Lote",
+        "BTN_AUTO_INCREMENT": "Auto-incremento",
+        "BTN_INDIVIDUAL_MEASURE": "Registar medidas",
+        "BTN_APPLY_CHILDREN_WEIGHT": "Aplicar este peso",
+        "IS_ESTIMATED": "Estimado?",
+        "ESTIMATED_WEIGHT": "Peso estimado?",
+        "TOTAL_INDIVIDUAL_COUNT": "Número total de indivíduos",
+        "TOTAL_WEIGHT": "Peso total (kg)",
+        "TOTAL_RANK_ORDER": "Número do Lote",
+        "TOTAL_LABEL": "Rótulo do Lote",
+        "INDIVIDUAL_MEASURE": "Medidas individuais?",
+        "WITH_MEASURE": "Com medida",
+        "WITHOUT_MEASURE": "Sem medida",
+        "IS_SAMPLING": "Registar o peso amostrado (se medido):",
+        "IS_INDIVIDUAL_MEASURE": "Mensurações",
+        "IS_INDIVIDUAL_COUNT": "Contagem",
+        "SAMPLING_BATCH": "Amostra",
+        "SAMPLING_WEIGHT": "Peso da amostra (kg)",
+        "SAMPLING_CHILDREN_WEIGHT": "Peso calculado por RTP",
+        "SAMPLING_RATIO_PCT": "Taxa de amostragem (%)",
+        "SAMPLING_COEFFICIENT": "Coef. de amostragem",
+        "SAMPLING_INDIVIDUAL_COUNT": "Nº indiv. na amostra",
+        "SAMPLING_RANK_ORDER": "Número do Lote amostrado",
+        "SAMPLING_LABEL": "Rótulo do Lote amostrado",
+        "IS_EXHAUSTIVE_INVENTORY": "Inventário exaustivo de espécies?",
+        "INDIVIDUAL": {
+          "TITLE_PREFIX": "<small>Lote {{label}}<br/></small>",
+          "TITLE": "Medidas individuais",
+          "INDIVIDUAL_COUNT": "Nº indivíduos",
+          "BURST_FORM_TITLE": "Registo em rajada:",
+          "ADD_MEASURE_DOTS": "Adicionar uma medida:",
+          "EDIT_MEASURE_DOTS": "Modificar uma medida:",
+          "BTN_MANUAL_ENTRY": "Entrada manual"
+        },
+        "INDIVIDUAL_COUNT": {
+          "TITLE": "Contagem"
+        }
+      },
+      "TABLE": {
+        "BTN_AUTO_FILL": "Preenchimento automático de espécies",
+        "BTN_INDIVIDUAL_MEASURE": "Registar medidas individuais",
+        "LABEL": "Rótulo",
+        "LABEL_PLACEHOLDER": "Rótulo",
+        "TAXON_GROUP": "Espécie comercial (FAO)",
+        "TAXON_GROUP_PLACEHOLDER": "Código de espécie",
+        "TAXON_NAME": "Espécie científica",
+        "TAXON_NAME_PLACEHOLDER": "Código de espécie",
+        "TOTAL_INDIVIDUAL_COUNT": "Nº total de indiv.",
+        "TOTAL_WEIGHT": "Peso total",
+        "SAMPLING_RATIO": "Taxa de amostragem",
+        "SAMPLING_COEFFICIENT": "Coef. de amostragem",
+        "SAMPLING_INDIVIDUAL_COUNT": "Nº indiv. na amostra",
+        "SAMPLING_WEIGHT": "Peso da amostra",
+        "PARENT_GROUP": "Lote de espécie",
+        "INDIVIDUAL_COUNT": "Número de indivíduos",
+        "INDIVIDUAL_UNIT": "indiv.",
+        "WEIGHT": "Peso (kg)",
+        "COMMENTS": "Comentários",
+        "ESTIMATED_WEIGHT_QUESTION": "Pesos estimados?",
+        "ESTIMATED_WEIGHT_QUESTION_SHORT": "Peso est.?"
+      },
+      "TREE": {
+        "SELECT_PARENT_HELP": "Selecionar um lote, na árvore ao lado",
+        "EMPTY": "vazio",
+        "BATCH_COUNT": "{{count}} lote",
+        "BATCHES_COUNT": "{{count}} lotes",
+        "WEIGHT_COUNT": "{{count}} peso",
+        "WEIGHTS_COUNT": "{{count}} pesos",
+        "MEASUREMENT_COUNT": "{{count}} medida",
+        "MEASUREMENTS_COUNT": "{{count}} medidas"
+      },
+      "PMFM": {
+        "DISCARD_OR_LANDING": "Parte retida ou rejeitada?",
+        "BATCH_MEASURED_WEIGHT": "Peso total (kg)",
+        "BATCH_CALCULATED_WEIGHT_LENGTH": "Peso calculado RTP (kg)",
+        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Peso total RTP (kg)",
+        "CHILD_GEAR": "Subarte de pesca",
+        "SORTING_START_DATE_TIME": "Início da triagem",
+        "SORTING_END_DATE_TIME": "Fim da triagem",
+        "TRAWL_SELECTIVITY": {
+          "BATCH_MEASURED_WEIGHT": "Peso total (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Peso total (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Peso total (kg)"
+        },
+        "OBSERVED_TRIP": {
+          "BATCH_MEASURED_WEIGHT": "Peso total (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Peso total (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Peso total (kg)"
+        }
+      },
+      "PMFM_QUALITATIVE_VALUES": {
+        "DISCARD_OR_LANDING": {
+          "LANDING": "Parte retida",
+          "DISCARD": "Parte rejeitada",
+          "OBSERVED_TRIP": {
+            "LANDING": "Parte retida",
+            "DISCARD": "Parte não retida"
+          }
+        }
+      },
+      "ERROR": {
+        "INVALID_WEIGHT_FOR_INDIVIDUAL_COUNT": "Peso inconsistente para {{individualCount}} indiv."
+      }
+    },
+    "SUB_BATCH": {
+      "NEW": {
+        "TITLE": "Novo indivíduo"
+      },
+      "EDIT": {
+        "TITLE": "Indivíduo {{label}}"
+      },
+      "ERROR": {
+        "WEIGHT_LENGTH_CONVERSION_FAILED": "Pesos RTP desativados",
+        "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "Pesos RTP desativados (retângulo desconhecido)",
+        "WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM": "Pesos RTP desativados (parâmetro de comprimento em falta)"
+      }
+    },
+    "SAMPLE": {
+      "TITLE_PREFIX": "<small>{{prefix}}<br></small>",
+      "NEW": {
+        "TITLE": "Novo indivíduo",
+        "AUCTION_CONTROL": {
+          "TITLE": "Novo lote"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TITLE": "Nova captura acidental"
+        },
+        "OBSERVED_TRIP": {
+          "TITLE": "Nova captura acidental"
+        }
+      },
+      "EDIT": {
+        "TITLE": "Indivíduo {{label}}",
+        "LABEL": "Rótulo",
+        "SAMPLE_DATE": "Data da medição",
+        "TAXON_GROUP": "Espécie comercial (FAO)",
+        "TAXON_NAME": "Espécie científica (FAO)",
+        "IMAGES": "Fotografias",
+        "AUCTION_CONTROL": {
+          "TITLE": "Lote n°{{label}}",
+          "LABEL": "Número do lote"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TITLE": "Captura {{label}}",
+          "TAXON_GROUP": "Espécie (FAO)",
+          "TAXON_NAME": "Espécie científica",
+          "SAMPLE_DATE": "Data da observação"
+        },
+        "OBSERVED_TRIP": {
+          "TITLE": "Captura {{label}}",
+          "TAXON_NAME": "Espécie científica"
+        }
+      },
+      "TABLE": {
+        "TITLE": "Amostras",
+        "TAB_SAMPLES": "Amostras",
+        "TAB_SUB_SAMPLES": "Subamostras",
+        "TAB_INDIVIDUAL_RELEASES": "Libertados",
+        "LABEL": "Rótulo",
+        "LABEL_PLACEHOLDER": "Rótulo",
+        "RANK_ORDER": "#",
+        "TAXON_GROUP": "Espécie comercial (FAO)",
+        "TAXON_GROUP_PLACEHOLDER": "Código de espécie",
+        "TAXON_NAME": "Espécie científica (FAO)",
+        "TAXON_NAME_PLACEHOLDER": "Código de espécie",
+        "SAMPLE_DATE": "Data/Hora da medição",
+        "SAMPLE_DATE_PLACEHOLDER": "Data/Hora",
+        "PARENT": "Amostra-mãe",
+        "COMMENTS": "Comentários",
+        "COMMENTS_PLACEHOLDER": "Comentários",
+        "IMAGES": "Fotografias",
+        "BTN_AUTO_FILL": "Preencher automaticamente",
+        "BTN_ADD_PMFM": "Adicionar um PSFM...",
+        "BTN_WEIGHT_UNIT_DOTS": "Peso...",
+        "BTN_GENERATE_TAG_ID_DOTS": "Código de amostra...",
+        "WEIGHT": "Peso",
+        "LENGTH": "Tamanho",
+        "MATURITY": "Maturidade",
+        "SEX": "Sexo",
+        "AGE": "Idade",
+        "OTHER": "Outro",
+        "TOTAL_DOTS": "Total:",
+        "TAG_COUNT": "<b>{{tagCount}}</b> amostra(s)",
+        "BTN_INDIVIDUAL_MONITORING": "Registar a subamostra",
+        "BTN_INDIVIDUAL_RELEASE": "Registar a libertação",
+        "BTN_IMAGES": "Adicionar fotografias",
+        "TAG_ID_GENERATION_MODE": {
+          "REMOTE": "Gerado automaticamente pelo sistema",
+          "NONE": "Introdução manual",
+          "PREVIOUS_ROW": "Linha anterior + 1"
+        },
+        "AUCTION_CONTROL": {
+          "LABEL": "N° Lote",
+          "LABEL_PLACEHOLDER": "N° Lote",
+          "COMMENTS": "Comentários",
+          "IMAGES": "Fotografias"
+        },
+        "ACCIDENTAL_CATCH": {
+          "TITLE": "Capturas acidentais",
+          "TAB_SAMPLES": "Medidas individuais",
+          "TAXON_GROUP": "Espécie (FAO)",
+          "TAXON_NAME": "Espécie científica",
+          "TAG_COUNT": "<b>{{tagCount}}</b> indivíduo(s) marcado(s)"
+        },
+        "OBSERVED_TRIP": {
+          "TITLE": "Capturas acidentais",
+          "RANK_ORDER": "N° AM",
+          "TAB_SAMPLES": "Medidas individuais",
+          "TAXON_NAME": "Espécie científica",
+          "TAG_COUNT": "<b>{{tagCount}}</b> indivíduo(s) marcado(s)"
+        },
+        "SURVIVAL_TEST": {
+          "TITLE": "Testes de sobrevivência",
+          "TAB_SAMPLES": "Medidas individuais",
+          "TAB_SUB_SAMPLES": "Monitorização individual",
+          "BTN_INDIVIDUAL_MONITORING": "Registar a monitorização individual",
+          "TAG_COUNT": "<b>{{tagCount}}</b> Tag-ID"
+        },
+        "SAMPLING": {
+          "LABEL": "Rótulo do Lote"
+        },
+        "PMFM_GROUP": {
+          "WEIGHT": "Peso",
+          "LENGTH": "Tamanho",
+          "MATURITY": "Maturidade",
+          "SEX": "Sexo",
+          "AGE": "Idade",
+          "OTHER": "Outro"
+        },
+        "PMFM": {
+          "TAG_ID": "Código de amostra",
+          "SEX": "Sexo",
+          "ACCIDENTAL_CATCH": {
+            "IS_DEAD": "Morto?",
+            "WEIGHT_ESTIMATED_TOTAL_KG": "Peso estimado (kg)",
+            "MEASURE_TIME": "Data e hora de devolução ao mar",
+            "LATITUDE": "Latitude",
+            "LONGITUDE": "Longitude",
+            "TAG_ID": "Número de anilha Pelágis"
+          },
+          "AUCTION_CONTROL": {
+            "SAMPLE_MEASURED_WEIGHT": "Peso da amostra",
+            "INDIVIDUALS_DENSITY_PER_KG": "Molde (Nº ind/kg)"
+          },
+          "INDIVIDUAL_RELEASE": {
+            "MEASURE_TIME": "Data de devolução ao mar",
+            "ACCIDENTAL_CATCH": {
+              "MEASURE_TIME": "Data de devolução ao mar",
+              "LATITUDE": "Latitude",
+              "LONGITUDE": "Longitude",
+              "TAG_ID": "Número de anilha Pelágis"
+            },
+            "OBSERVED_TRIP": {
+              "MEASURE_TIME": "Data da rejeição",
+              "TAG_ID": "Referência de bracelete caudal",
+              "LATITUDE": "Latitude da rejeição",
+              "LONGITUDE": "Longitude da rejeição"
+            }
+          },
+          "SAMPLING": {
+            "TAG_ID": "Código de amostra",
+            "DRESSING": "Apresentação"
+          },
+          "SURVIVAL_TEST": {
+            "TAG_ID": "Tag-ID"
+          },
+          "OBSERVED_TRIP": {
+            "IS_DEAD": "Morto?",
+            "MEASURE_TIME": "Data e hora da rejeição",
+            "LATITUDE": "Latitude da rejeição",
+            "LONGITUDE": "Longitude da rejeição",
+            "TAG_ID": "Referência de bracelete caudal"
+          }
+        },
+        "ERROR": {
+          "INVALID_TAG_ID_LENGTH": "O comprimento do código de amostra deve ser {{length}}",
+          "WEIGHT_OR_LENGTH_REQUIRED": "Peso ou tamanho obrigatório",
+          "OUT_OF_RANGE": "Fora do intervalo",
+          "DUPLICATED_TAG_ID": "Duplicação de {{name}}",
+          "REQUIRED": "Por favor adicione pelo menos uma linha"
+        },
+        "SETTINGS": {
+          "SAMPLE_WEIGHT_UNIT": "Amostras: Unidade de peso"
+        }
+      },
+      "SUB_SAMPLE": {
+        "TITLE_PREFIX": "<small>{{prefix}}<br></small>",
+        "NEW": {
+          "TITLE": "Nova sub-amostra",
+          "INDIVIDUAL_MONITORING": {
+            "TITLE": "Nova monitorização individual"
+          },
+          "INDIVIDUAL_RELEASE": {
+            "TITLE": "Nova libertação"
+          }
+        },
+        "EDIT": {
+          "TITLE": "Sub-amostra {{label}}",
+          "LABEL_PLACEHOLDER": "Rótulo",
+          "PARENT": "Amostra principal",
+          "INDIVIDUAL_MONITORING": {
+            "TITLE": "Monitorização individual {{label}}"
+          },
+          "INDIVIDUAL_RELEASE": {
+            "TITLE": "Libertação {{label}}"
+          }
+        }
+      },
+      "REPORT": {
+        "TITLE": "<small>{{ vessel }}</small> Relatório de viagem de {{ departureDate }}",
+        "TITLE_SLIDE": "Relatório de viagem",
+        "VESSEL_NAME": "Nome do(s) navio(s)",
+        "VESSEL_EXTERIOR_MARKING": "Matrícula(s)",
+        "SELECTIVITY_DEVICES": "Dispositivo(s) testado(s):",
+        "DATES": "Datas: de {{startDate}} a {{endDate}}",
+        "SEA_STATE": "Estado do mar:",
+        "GEAR_SPEED": "Velocidade de arrasto:",
+        "GEAR_SPEED_STATS": "{{min}} a {{max}} Nós ({{avg}} Nós em média)",
+        "GEAR_SPEED_AVG": "{{avg}} Nós",
+        "VESSEL_LENGTH": "Comprimento do(s) navio(s):",
+        "VESSEL_LENGTH_STATS": "{{min}} a {{max}} m",
+        "VESSEL_LENGTH_AVG": "{{avg}} m",
+        "SEABED_FEATURES": "Tipos de fundo:",
+        "OPERATION_COUNT": "Número de OP selecionadas:",
+        "SPECIES": "Espécie",
+        "LANDING": "Desembarque",
+        "DISCARD": "Rejeição",
+        "CHART": {
+          "INDIVIDUAL_COUNT": "Nº indivíduos",
+          "LENGTH": "Tamanho",
+          "GEAR_POSITION_T": "Estibordo",
+          "GEAR_POSITION_B": "Bombordo",
+          "SPECIES_LENGTH": "Distribuição por tamanho",
+          "TOTAL_CATCH": "Captura total",
+          "LANDING_AND_DISCARD_COMPARISON": "Comparação dos desembarques e rejeições",
+          "TRAWL_SELECTIVITY": {
+            "STANDARD": "Standard",
+            "SELECTIVE": "{{label}}",
+            "QUANTITY_IN_STANDARD": "Quantidade na rede standard (kg)",
+            "QUANTITY_IN_SELECTIVE": "Quantidade na rede {{selectionDevice}} (kg)"
+          }
+        },
+        "TABLE": {
+          "SPECIES_LIST": "Captura por espécie",
+          "STANDARD_DERIVATION": "&sigma;",
+          "TRAWL_SELECTIVITY": {
+            "SPECIES_LIST": "Comparação por espécie",
+            "TOTAL_WEIGHT": "Peso total rede<br/>{{selectionDevice}}<br/><small>(kg)</small>",
+            "TOTAL_VARIATION_LANDING": "Taxa de variação total<br/>Desembarque<br/><small>(%)</small>",
+            "TOTAL_VARIATION_DISCARD": "Taxa de variação total<br/>Rejeição<br/><small>(%)</small>",
+            "AVG_VARIATION_LANDING": "Taxa de variação média<br/>Desembarque<br/><small>(%)</small>",
+            "AVG_VARIATION_DISCARD": "Taxa de variação média<br/>Rejeição<br/><small>(%)</small>"
+          }
+        },
+        "FORM": {
+          "TITLE": "Processo de observação no mar",
+          "COMMENTS": "Comentários",
+          "TRIP_DEPARTURE_DATE_TIME": "Partida da viagem",
+          "VESSEL_NAME": "Nome do barco",
+          "DATE_TIME": "Data e hora",
+          "START_DATE_TIME": "Data e hora de início",
+          "OP_NUM": "N° OP",
+          "GEAR_NUMBER": "N° arte",
+          "REFER_APPENDIX": "Consultar o anexo.",
+          "VERSION_OF": "Versão de {{versionDate}}",
+          "YES_OR_NO": "S/N",
+          "WITH_CAMERA": "<b><u>COM CÂMARA</u></b>",
+          "WITHOUT_CAMERA": "<b><u>SEM CÂMARA</u></b>",
+          "WITH_OR_WITHOUT_CAMERA": "<small>(COM OU SEM CÂMARA)</small>",
+          "RECTO_PARENTHESIS": "(frente)",
+          "VERSO_PARENTHESIS": "(verso)",
+          "TYPE_OP": {
+            "PARENT_PMFM": "Largada (L)",
+            "CHILD_PMFM": "Alagem (A)",
+            "PARENT": "L",
+            "CHILD": "A"
+          },
+          "TRIP": {
+            "TITLE": "Ficha de saída para o mar",
+            "TRIP_NUMBER": "N° Viagem",
+            "HELP": "<strong>Lembrete:</strong> As informações e dados relativos ao programa {{ program }} são confidenciais<br/>e não devem, de forma alguma, ser comunicados a terceiros.<br/><br/><strong>Nota</strong>: Os dados indicados <strong>a preto (sem itálico)</strong> devem ser recolhidos obrigatoriamente.<br/>Os <strong style=\"color: var(--color-primary); font-style: italic;\">a azul e em itálico</strong> são de recolha facultativa.",
+            "LINK_WITH_THE_SAMPLING_PLAN": "Ligação com o plano de amostragem (ver o site WAO)",
+            "OBSERVERS": "Observador(es)",
+            "TRIP_DEPARTURE": "Partida da viagem",
+            "TRIP_RETURN": "Regresso da viagem",
+            "SALES": "Vendas",
+            "SAMPLING_STRATA_LABEL": "Estrato observado que justifica o embarque",
+            "ATTACHMENT_PROGRAM": "Programa de associação",
+            "OBSERVERS_NAMES": "Nome(s), Apelido(s) (empresa)",
+            "OTHER_FEATURES": "Outras características",
+            "VESSEL_REGISTRATION_CODE": "Matrícula do navio",
+            "VESSEL_NAME": "Nome do navio",
+            "DEPARTURE_LOCATION": "Local de partida & Tipo de local",
+            "DEPARTURE_LOCATION_SPECIFIC": "Local de partida ({{ locationName }})",
+            "DEPARTURE_DATE_TIME": "Data & Hora de partida",
+            "NB_FISHERMEN": "Número de pessoas a bordo",
+            "NB_FISHERMEN_HELP": "(sem o(s) observador(es))",
+            "RETURN_LOCATION": "Local de regresso & Tipo de local",
+            "RETURN_DATE_TIME": "Data & Hora de regresso",
+            "RETURN_LOCATION_SPECIFIC": "Local de regresso ({{ locationName }})",
+            "SELL_LOCATION": "Local de venda & Tipo de local",
+            "SELL_DATE": "Data de venda",
+            "SELL_TYPE": "Tipo de venda",
+            "RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK": "Recuperação da fotocópia do diário de bordo",
+            "RECOVERY_OF_THE_PHOTOCOPY_OF_THE_LOGBOOK_HELP": "(incluir o documento no processo)",
+            "RETURN_TO_CAPTAIN": "Devolução ao capitão",
+            "RETURN_TO_CAPTAIN_HELP": "(incluir o documento no processo)",
+            "LOCATION_LEVEL": "Tipo de locais"
+          },
+          "OPERATION": {
+            "TITLE": "FICHA DE OPERAÇÕES DE PESCA",
+            "NB_OP": "Número total de operações de pesca efetuadas durante a viagem:",
+            "PARENT_OPERATION_HEADER": "Largada",
+            "CHILD_OPERATION_HEADER": "Alagem",
+            "TABLE": {
+              "OPERATION_START": "Início da operação",
+              "OPERATION_END": "Fim da operação",
+              "ECH_ON": "Amostragem (S/N)",
+              "CAPTURE": "Captura recolhida no navio observado (S/N)**",
+              "GPS_POSITION": "Posição GPS",
+              "FISHING_AREA": "Zona de pesca",
+              "COMMENTS": "Comentários, especificar se possível o tempo de processamento da captura para as OP amostradas",
+              "GEAR_SPECIES": "Arte* + Espécie(s) alvo",
+              "GEAR": "Arte",
+              "SPECIES": "Espécie(s) alvo",
+              "VESSEL_ASSOCIATION": "se navio associado** (MATRÍCULA do navio)"
+            },
+            "HELP": {
+              "ONE_STAR": "Atenção, para as artes passivas, a data de fim da largada é frequentemente na véspera ou antevéspera da viagem observada.",
+              "TWO_STAR": "Especificar comprimento medido em metros para as redes."
+            }
+          },
+          "PHYSICAL_GEAR": {
+            "TITLE": "FICHA DE ARTES",
+            "OPERATIONS": "N° OP associada(s)"
+          },
+          "OBSERVED_TRIP": {
+            "TITLE": "Processo de observação no mar"
+          },
+          "BATCH": {
+            "TITLE_LANDING": "FICHA DE AMOSTRAGEM PARTE RETIDA",
+            "TITLE_DISCARD": "FICHA DE AMOSTRAGEM PARTE REJEITADA",
+            "TAXON_GROUPS": "Espécies comerciais",
+            "TAXON_NAMES": "Espécies científicas",
+            "SORT_CRITERIAS": "Critérios de classificação",
+            "TOTAL_WEIGHT": "Peso TOTAL (kg)",
+            "TOTAL_INDIV": "Número TOTAL",
+            "FRACTION": "Fração",
+            "WEIGHT": "Peso (kg)",
+            "NB_INDIV": "Nº. Indiv.",
+            "EXCLUSIVE_SCIENTIFIC_SPECIES": "Exaustividade das espécies científicas?",
+            "PR_TOTAL_WEIGHT": "Peso TOTAL parte retida (kg):",
+            "SUB_SAMPLING": "Sub-amostra",
+            "PNR_TOTAL_WEIGHT": "Peso TOTAL da PNR (kg):",
+            "PNR_SAMPLING_WEIGHT": "Peso AMOSTRADO da PNR (kg):",
+            "FRACTION_FIELD": "Fração:",
+            "TABLE_LEGEND": "Legenda: Os lotes cuja qualidade é inválida estão a <span class=\"invalid\">vermelho</span>, os valores calculados estão a <span class=\"computed\">azul e itálico</span>, os valores provenientes de estimativa no terreno estão realçados, os valores medidos, pesados ou contados estão a preto.",
+            "OBSERVED_TRIP": {
+              "TITLE_LANDING": "FICHA DE AMOSTRAGEM PR",
+              "TITLE_DISCARD": "FICHA DE AMOSTRAGEM PNR"
+            }
+          },
+          "SAMPLE": {
+            "OP_DATE": "Data e hora da alagem"
+          },
+          "APPENDIX": {
+            "TITLE": "Anexo"
+          }
+        },
+        "REPORT_TYPE": {
+          "LEGACY": "Por defeito",
+          "TRAWL_SELECTIVITY": "Seletividade de rede",
+          "OBSERVED_TRIP": "Observação de viagens no mar",
+          "FORM": "Formulário de campo",
+          "BLANK_FORM": "Formulário de campo em branco"
+        }
+      },
+      "PMFM": {
+        "OBSERVED_TRIP": {
+          "NB_FISHERMEN": "Número de pessoas a bordo"
+        }
+      }
+    },
+    "EXPECTED_SALE": {
+      "FEATURES": "Características:",
+      "CALCULATED_TOTAL": "Total calculado:"
+    },
+    "SALE": {
+      "TITLE_PREFIX": "<small>Saída: {{location}} - {{date}}<br></small>",
+      "TITLE": "Venda",
+      "SALE_FIELD": "Venda:",
+      "DATE_TIME": "Data/hora",
+      "START": "Início da venda:",
+      "START_DATE": "Data de início",
+      "START_DATE_TIME": "Data/hora de início",
+      "END": "Fim da venda:",
+      "END_DATE": "Data de fim",
+      "END_DATE_TIME": "Data/hora de fim",
+      "SALE_LOCATION": "Local de venda",
+      "SALE_TYPE": "Tipo de venda",
+      "COMMENTS": "Comentários",
+      "VESSEL": "Navio",
+      "NEW": {
+        "TITLE": "Nova venda",
+        "OBSERVED_SALE": {
+          "TITLE": "{{taxonGroup}} - Nova venda"
+        }
+      },
+      "EDIT": {
+        "TITLE": "Navio {{vessel}}",
+        "BTN_REPORT": "Editar o relatório...",
+        "PROGRAM": "Programa",
+        "TAB_GENERAL": "Detalhes",
+        "TAB_BATCHES": "Lotes",
+        "OBSERVED_SALE": {
+          "TITLE": "{{taxonGroup}} - Navio {{vessel}}"
+        }
+      },
+      "TABLE": {
+        "VESSEL": "Navio",
+        "START_DATE_TIME": "Data/hora",
+        "OBSERVERS": "Observadores",
+        "COMMENTS": "Comentários"
+      },
+      "BATCH": {
+        "PMFM": {
+          "OBSERVED_SALE": {
+            "UNCERTAIN_SPECIES": "Identificação a confirmar?",
+            "SIZE_UNLI_CAT": "Categoria de triagem no terreno"
+          }
+        }
+      },
+      "ERROR": {
+        "LOAD_ERROR": "Erro ao carregar a venda.",
+        "LOAD_ALL_ERROR": "Erro ao carregar as vendas.",
+        "SAVE_ERROR": "Erro ao guardar a venda.",
+        "SAVE_ALL_ERROR": "Erro ao guardar as vendas."
+      }
+    },
+    "SCIENTIFIC_CRUISE": {
+      "TABLE": {
+        "NAME": "Nome",
+        "MANAGER": "Responsável"
+      },
+      "OPTIONS": {
+        "ENABLE": "Campanhas no mar > Ativar?",
+        "NAME": "Campanhas no mar > Título (menu, etc.)"
+      }
+    },
+    "OBSERVED_LOCATION": {
+      "TITLE": "Saída",
+      "SAMPLING_SCHEME": "Plano de amostragem:",
+      "SAMPLING_STRATA": "Referência da linha do plano",
+      "SAMPLING_SCHEME_LABEL": "Programa de afiliação",
+      "NEW": {
+        "TITLE": "Nova saída"
+      },
+      "EDIT": {
+        "TITLE": "{{location}} - {{dateTime}}",
+        "OTHER_FEATURES": "Características:",
+        "TAB_LANDINGS": "Navios observados",
+        "DATE_TIME": "Data",
+        "START_DATE": "Data de início",
+        "START_DATE_TIME": "Data/hora de início",
+        "END_DATE": "Data de fim",
+        "END_DATE_TIME": "Data/hora de fim",
+        "BTN_REPORT": "Editar o relatório...",
+        "START": "Início:",
+        "END": "Fim:",
+        "START_END": "Início / Fim:",
+        "LOCATION": "Local da saída",
+        "LOCATION_AND_DATE": "Local / Data:",
+        "TAB_GENERAL": "Detalhes",
+        "OBSERVER_PLACEHOLDER": "Observador #",
+        "OBSERVERS": "Observadores:",
+        "FISHING_AREA_PLACEHOLDER": "Zona de pesca #",
+        "FISHING_AREAS": "Zonas de pesca:",
+        "LANDINGS": "Desembarque(s)",
+        "AUCTION_CONTROL": {
+          "TITLE": "{{location}} - <span class=\"hidden-xs hidden-sm\">Controle de </span>{{dateTime}}",
+          "TAB_LANDINGS": "Navios controlados"
+        },
+        "SAMPLING": {
+          "TITLE": "{{location}} - {{dateTime}}",
+          "TAB_LANDINGS": "Amostragens",
+          "TAB_GENERAL": "Saída"
+        },
+        "OBSERVED_SALE": {
+          "TITLE": "{{location}} - {{dateTime}}",
+          "TAB_LANDINGS": "Amostragens",
+          "TAB_GENERAL": "Saída"
+        }
+      },
+      "SELECT_MODAL": {
+        "TITLE": "Seleção de saída"
+      },
+      "SELECT_VESSEL_MODAL": {
+        "TITLE": "Seleção do navio",
+        "TAB_VESSELS": "Pesquisa de navio",
+        "TAB_LANDINGS": "Histórico",
+        "TAB_NEW_VESSEL": "Novo navio"
+      },
+      "TABLE": {
+        "PROGRAM": "Programa",
+        "DATE_TIME": "Data/Hora",
+        "START_DATE_TIME": "Data de início",
+        "END_DATE_TIME": "Data de fim",
+        "QUALITY": "Estado",
+        "QUALITY_FILTER": "Filtrar por estado:",
+        "LOCATION": "Local da saída",
+        "OBSERVERS": "Observador(es)",
+        "RECORDER_PERSON": "Registrador",
+        "COMMENTS": "Comentários",
+        "NO_LOCAL_RESULT": "Nenhum resultado (entre as saídas <b>não enviadas</b>)",
+        "FILTER": {
+          "PROGRAM": "Programa de coleta",
+          "STRATEGY": "Estratégia",
+          "LOCATION": "Local da saída",
+          "START_DATE": "Início do período",
+          "END_DATE": "Fim do período",
+          "RECORDER_PERSON": "Registrador",
+          "RECORDER_DEPARTMENT": "Organização registradora",
+          "OBSERVERS": "Observadores"
+        }
+      },
+      "PMFM": {},
+      "OFFLINE_MODAL": {
+        "TITLE": "Configuração do modo offline",
+        "VESSELS": "Navio(s) (opcional)",
+        "ENABLE_HISTORICAL_DATA": "Importar histórico de dados?",
+        "DURATION_PLACEHOLDER": "Período a importar"
+      },
+      "OPTIONS": {
+        "ENABLE": "Saídas > Ativar?",
+        "NAME": "Saídas > Título (menu)",
+        "LANDINGS_TAB_ENABLE": "Saídas > Ativar a aba de desembarques?"
+      },
+      "ERROR": {
+        "UPDATE_CHILDREN_DATE_ERROR": "Erro ao copiar a data de observação para os dados filhos.",
+        "COUNT_SAMPLES_ERROR": "Erro na contagem das amostragens da observação.",
+        "START_DATE_INVALID": "Deve começar em {{day}}",
+        "INVALID_LANDING": "Desembarque inválido",
+        "INVALID_LANDINGS": "Por favor observe ou indique o motivo da não observação"
+      },
+      "WARNING": {
+        "INVALID_OBSERVED_COUNT": "Número de espécies observadas incorreto. Por favor observe pelo menos {{minObservedCount}} espécies"
+      },
+      "CONFIRM": {
+        "DELETE_ONE_HAS_SAMPLE": "A saída selecionada está vinculada a medidas individuais.<br/><br/><b>Tem certeza</b> que deseja excluí-la?",
+        "DELETE_MANY_HAS_SAMPLE": "As saídas selecionadas estão vinculadas a medidas individuais.<br/><br/><b>Tem certeza</b> que deseja excluí-las?"
+      }
+    },
+    "REPORT": {
+      "TITLE": "Relatório de saída - {{ location }} - {{ dateTime }}",
+      "TITLE_SHORT": "Relatório de saída",
+      "LOCATION": "Local:",
+      "DATE_TIME": "Data/hora:",
+      "OBSERVERS": "Observador(es):",
+      "VESSEL_COUNT": "Número de navios:",
+      "SUMMARY_TITLE": "Síntese global",
+      "EXPORT_JSON_FILENAME": "RelatorioSaida-{{ location }}-{{ dateTime }}.json",
+      "SAMPLING": {
+        "SUMMARY_TITLE": "Síntese das amostragens"
+      },
+      "AUCTION_CONTROL": {
+        "TITLE": "Síntese dos controles: {{ location }} - {{ dateTime }}",
+        "TITLE_SHORT": "Síntese dos controles",
+        "VESSEL_COUNT": "Número de navios controlados:",
+        "EXPORT_JSON_FILENAME": "RelatorioControle-{{ location }}-{{ dateTime }}.json"
+      }
+    },
+    "SELECT_OBSERVED_LOCATION_MODAL": {
+      "TAB_SELECT": "Pesquisa",
+      "TAB_NEW": "Nova Saída"
+    }
+  },
+  "LANDING": {
+    "TITLE_PREFIX": "<small>Saída: {{location}} - {{date}}<br/></small>",
+    "NEW": {
+      "TITLE": "Novo desembarque",
+      "SAMPLING": {
+        "TITLE": "Nova amostragem"
+      }
+    },
+    "EDIT": {
+      "TITLE": "Navio {{vessel}}",
+      "TAB_GENERAL": "Detalhes",
+      "PROGRAM": "Programa",
+      "STRATEGY": "Estratégia:",
+      "STRATEGY_PLACEHOLDER": "Estratégia",
+      "STRATEGY_SUMMARY_TITLE": "Estratégia aplicada",
+      "VESSEL_SNAPSHOT": "Navio",
+      "OBSERVED_LOCATION": "Saída:",
+      "OBSERVED_LOCATION_PLACEHOLDER": "Saída",
+      "BTN_SELECT_OBSERVED_LOCATION": "Selecionar a saída",
+      "BTN_OPEN_OBSERVED_LOCATION": "Abrir a saída",
+      "BTN_REPORT": "Editar o relatório...",
+      "LANDING": "Desembarque:",
+      "DATE": "Data de desembarque",
+      "LOCATION": "Local de desembarque",
+      "OBSERVERS": "Observadores:",
+      "OBSERVER_PLACEHOLDER": "Observador #",
+      "OTHER_FEATURES": "Outras características:",
+      "TAB_SAMPLES": "Amostras",
+      "SAMPLING": {
+        "TITLE": "<span class=\"hidden-xs hidden-sm\">Linha de plano </span>{{strategyLabel}} - Navio {{vessel}}",
+        "STRATEGY": "Linha de plano:",
+        "STRATEGY_PLACEHOLDER": "Código linha de plano",
+        "STRATEGY_SUMMARY_TITLE": "Plano de amostragem",
+        "LANDING": "Desembarque:",
+        "DATE": "Data de desembarque",
+        "TAB_SAMPLES": "Medidas individuais",
+        "LOCATION": "Porto de desembarque",
+        "CALCIFIED_TYPE": "Peças calcificadas:"
+      }
+    },
+    "TABLE": {
+      "TITLE": "Desembarques",
+      "VESSEL": "Navio",
+      "VESSEL_TYPE": "Tipo",
+      "VESSEL_BASE_PORT_LOCATION": "Porto de origem",
+      "DATE_TIME": "Data/hora",
+      "PROGRAM": "Programa",
+      "STRATEGY": "Estratégia",
+      "LOCATION": "Porto de desembarque",
+      "OBSERVERS": "Observadores",
+      "COMMENTS": "Comentário",
+      "CREATION_DATE": "Data de criação",
+      "RECORDER_PERSON": "Registrador",
+      "SAMPLES_COUNT": "Nº medidas",
+      "QUALITY": "Estado",
+      "TAXON_GROUP": "Espécie comercial (FAO)",
+      "TAXON_NAME": "Espécie científica",
+      "BTN_OPEN_TRIP": "Abrir a viagem",
+      "BTN_OPEN_SALE": "Abrir a venda",
+      "OBSERVED_SPECIES_COUNT": "<b>{{observedCount}}</b> espécie(s) observada(s) (mín.: {{minObservedCount}})",
+      "BTN_AUTO_FILL": "Preenchimento automático das espécies",
+      "UNKNOWN_VESSEL_NAME": "Navio desconhecido",
+      "SAMPLING": {
+        "STRATEGY": "Linha de plano",
+        "SAMPLES_COUNT": "Nº. amostras",
+        "TITLE": "Amostragens"
+      },
+      "AUCTION_CONTROL": {
+        "SAMPLES_COUNT": "Nº. amostras",
+        "TITLE": "Navios controlados"
+      },
+      "OBSERVED_SALE": {
+        "TITLE": "Amostragens",
+        "SAMPLES_COUNT": "Nº. amostras"
+      }
+    },
+    "PMFM": {
+      "SAMPLING": {
+        "STRATEGY_LABEL": "Linha de plano"
+      }
+    },
+    "REPORT": {
+      "TITLE": "Desembarque",
+      "DATE_TIME": "Data/Hora:",
+      "VESSEL": "Navio:",
+      "RECORDER_PERSON": "Registrador: ",
+      "TAXON_NAME": "Espécie alvo",
+      "METIERS": "Métodos de pesca",
+      "FISHING_AREA": "Zona de pesca",
+      "EXPORT_JSON_FILENAME": "Relatorio-de-desembarque-{{vessel}}-{{dateTime}}.json",
+      "SAMPLING": {
+        "TITLE": "Linha de plano {{strategyLabel}} - {{vessel}}",
+        "TITLE_SHORT": "Relatório de amostragem",
+        "SAMPLES_TITLE": "Medidas individuais"
+      },
+      "AUCTION_CONTROL": {
+        "EMBEDDED_TITLE": "Controle <b>{{species}}</b>",
+        "EXPORT_JSON_FILENAME": "Relatorio-de-controle.json"
+      }
+    },
+    "SELECT_MODAL": {
+      "TITLE": "Detalhe dos navios controlados"
+    },
+    "INFO": {
+      "CONTROL_SUCCEED": "<ion-icon name='checkmark'></ion-icon> Registro controlado <b>com sucesso</b>! Nenhum erro detectado."
+    },
+    "CONFIRM": {
+      "DELETE_ONE_HAS_SAMPLE": "O dado selecionado está vinculado a medidas individuais.<br/><br/><b>Tem certeza</b> que deseja excluí-lo?",
+      "DELETE_MANY_HAS_SAMPLE": "Os dados selecionados estão vinculados a medidas individuais.<br/><br/><b>Tem certeza</b> que deseja excluí-los?"
+    },
+    "WARNING": {
+      "NOT_OBSERVER_ERROR": "O registrador da amostragem não é um observador da saída"
+    },
+    "ERROR": {
+      "NO_STRATEGY_EFFORT_ERROR": "Para esta linha de plano e esta data, não há esforço definido na linha de plano (nenhum valor definido)",
+      "ZERO_STRATEGY_EFFORT_ERROR": "Para esta linha de plano e esta data, o esforço definido na linha de plano é 0",
+      "DUPLICATED_SAMPLE_TAG_ID": "Alguns códigos de amostra já estão sendo utilizados"
+    }
+  },
+  "AGGREGATED_LANDING": {
+    "TITLE": "Desembarque de {{vessel}}",
+    "ACTIVITY": "Atividade #{{rankOrder}}",
+    "OPEN_TRIP": "Ir para a viagem",
+    "VESSEL_ALREADY_PRESENT": "Este navio já está presente"
+  },
+  "PACKET": {
+    "LABEL": "Número do lote",
+    "LABEL_VALUE": "Lote #{{rankOrder}}",
+    "NUMBER": "Número de pacotes",
+    "WEIGHT": "Peso total dos pacotes (kg)",
+    "SAMPLED_WEIGHTS": "Peso das amostras<small><br/>(kg)</small>",
+    "SAMPLED_WEIGHT": "Pacote #{{rankOrder}}",
+    "TAXON_GROUP_SAMPLED_WEIGHT": "Peso total da espécie<small><br/>(kg)</small>",
+    "SAMPLED_RATIO": "Composição %",
+    "LIST": {
+      "RANK_ORDER": "Número do lote",
+      "LABEL": "Número do lote",
+      "LABEL_VALUE": "Lote #{{rankOrder}}",
+      "PARENT": "Esforço",
+      "NUMBER": "Número de pacotes",
+      "WEIGHT": "Peso (kg)",
+      "COMPOSITION": "Composição",
+      "PACKET_SALE": "Vendas"
+    },
+    "COMPOSITION": {
+      "SAMPLED_PACKETS": "Pacotes amostrados",
+      "PACKETS_WEIGHT_DOTS": "Peso (kg):",
+      "TITLE": "Composição do Lote #{{rankOrder}}",
+      "TAXON_GROUP": "Espécie comercial (FAO)",
+      "TOTAL_PCT_DOTS": "Totais (%):",
+      "RATIO": "#{{rankOrder}} %",
+      "WEIGHT": "Peso (kg)",
+      "BTN_SALE": "Registrar as vendas",
+      "NEW": {
+        "TITLE": "Novo Lote"
+      }
+    },
+    "SALE": {
+      "TITLE": "Vendas do Lote #{{rankOrder}}",
+      "SALE_TYPE": "Tipo de venda"
+    }
+  },
+  "AUCTION_CONTROL": {
+    "TITLE_PREFIX": "<small>{{location}} - Controle {{date}}<br/></small>",
+    "TAB_SAMPLES": "Pontos de controle",
+    "TAXON_GROUP_PLACEHOLDER": "Espécie controlada",
+    "NEW": {
+      "TITLE": "Novo navio controlado"
+    },
+    "EDIT": {
+      "TITLE": "<span class=\"visible-mobile\">Navio </span>{{vessel}}",
+      "OTHER_TAXON_GROUP": "Espécie comercial (FAO)"
+    },
+    "SAMPLE": {
+      "NEW": {
+        "TITLE": "Novo lote controlado"
+      },
+      "EDIT": {
+        "TITLE": "Lote controlado {{label}}"
+      }
+    },
+    "REPORT": {
+      "TITLE": "Relatório de controle - {{vessel}} - {{date}}",
+      "TITLE_SHORT": "Relatório de controle",
+      "AUCTION": "Leilão:",
+      "CONTROLLED_SPECIES": "Espécie controlada:",
+      "CONTROL_REALIZED_ON": "Controle realizado em {{date}} em {{ location }}"
+    }
+  },
+  "EXPENSE": {
+    "TOTAL_ESTIMATION": "Estimativa de despesas totais:",
+    "TOTAL_CALCULATED": "Total das despesas registradas:",
+    "TAB_FLUID": "Fluidos",
+    "FLUID": {
+      "ENGINE_OIL": "Óleo do motor:",
+      "HYDRAULIC_OIL": "Óleo hidráulico:"
+    },
+    "TAB_MISC": "Outras despesas",
+    "MISC": {
+      "OTHER": "Despesas anexas:"
+    },
+    "TAB_ICE": "Gelo",
+    "ICE": {
+      "AMOUNT": "Quantidade de gelo",
+      "PACKAGING": "Unidade"
+    },
+    "TAB_BAIT": "Iscas",
+    "BAIT": {
+      "AMOUNT": "Quantidade de isca",
+      "PACKAGING": "Unidade"
+    }
+  },
+  "FISHING_AREA": {
+    "TITLE": "Zona de pesca:",
+    "LOCATION": "Local",
+    "DISTANCE_TO_COAST_GRADIENT": "Gradiente de distância da costa",
+    "DEPTH_GRADIENT": "Gradiente de profundidade",
+    "NEARBY_SPECIFIC_AREA": "Área específica próxima"
+  },
+  "QUALITY": {
+    "BTN_CONTROL": "Controlar o registro",
+    "BTN_CONTROL_WITH_SHORTCUT": "C<u>o</u>ntrolar o registro",
+    "BTN_TERMINATE": "Finalizar o registro",
+    "BTN_VALIDATE": "Validar",
+    "BTN_UNVALIDATE": "Desvalidar",
+    "BTN_TERMINATE_AND_SYNCHRONIZE": "Finalizar e enviar",
+    "BTN_SYNCHRONIZE": "Enviar",
+    "BTN_QUALIFY": "Qualificar",
+    "NOT_SYNCHRONIZED": "Dados não enviados",
+    "MODIFIED": "Em processo de registro",
+    "MODIFIED_OFFLINE": "Em processo de registro, não enviado",
+    "CONTROLLED": "Finalizado",
+    "CONTROLLED_OFFLINE": "Controlado, não enviado",
+    "CONTROLLED_ON": "Finalizado em ",
+    "VALIDATED": "Validado",
+    "VALIDATED_ON": "Validado em ",
+    "QUALIFIED": "Qualificado",
+    "QUALIFIED_ON": "Qualificado em ",
+    "QUALIFICATION_COMMENT": "Comentário de qualificação",
+    "QUALITY_FLAG": "Nível de qualidade",
+    "QUALITY_FLAG_SHORT": "Qualidade:",
+    "READY_TO_SYNC": "Finalizado, não enviado",
+    "QUALITY_FLAGS": {
+      "NOT_QUALIFIED": "Não qualificado",
+      "GOOD": "Bom",
+      "OUT_STATS": "Fora de estatísticas",
+      "DOUBTFUL": "Duvidoso",
+      "BAD": "Incorreto",
+      "FIXED": "Corrigido",
+      "NOT_COMPLETED": "Incompleto",
+      "MISSING": "Ausente"
+    },
+    "INFO": {
+      "CONTROL_DOTS": "Controle...",
+      "TERMINATE_DOTS": "Finalizando o registro...",
+      "VALIDATE_DOTS": "Validação...",
+      "SYNCHRONIZE_DOTS": "Sincronização..."
+    },
+    "ERROR": {
+      "INVALID_FORM": "Verificar e corrigir seu registro."
+    }
+  },
+  "VESSEL": {
+    "VESSEL_ID": "Código interno",
+    "VESSEL_TYPE": "Tipo",
+    "STATUS": "Estado",
+    "COMMENTS": "Comentários",
+    "TAB_GENERAL": "Detalhes",
+    "TAB_HISTORY": "Histórico",
+    "VESSEL_REGISTRATION_DIVIDER": "Registro",
+    "VESSEL_FEATURES_DIVIDER": "Características",
+    "VESSEL_SNAPSHOT": {
+      "ID": "Código interno",
+      "NAME": "Nome",
+      "EXTERIOR_MARKING": "Marcação externa",
+      "REGISTRATION_CODE": "Registro",
+      "REGISTRATION_LOCATION": "Bandeira",
+      "BASE_PORT_LOCATION": {
+        "LABEL": "Código do porto de origem",
+        "NAME": "Nome do porto de origem"
+      }
+    },
+    "VESSEL_FEATURES": {
+      "START_DATE": "Início de validade",
+      "END_DATE": "Fim de validade",
+      "NAME": "Nome",
+      "EXTERIOR_MARKING": "Marcação externa",
+      "CONSTRUCTION_YEAR": "Ano de construção",
+      "IRCS": "Indicativo de rádio (IRCS)",
+      "IS_FPC": "FPC?",
+      "HULL_MATERIAL": "Material do casco",
+      "BASE_PORT_LOCATION": "Porto de origem",
+      "GROSS_TONNAGE_GT": "Tonelagem (UMS)",
+      "GROSS_TONNAGE_GRT": "Tonelagem bruta (TJB)",
+      "ADMINISTRATIVE_POWER": "Potência administrativa (kW)",
+      "LENGTH_OVER_ALL": "Comprimento total (m)",
+      "COMMENTS": "Comentários",
+      "ACTIVITY_CALENDAR": {
+        "BASE_PORT_LOCATION": "Porto de operação"
+      }
+    },
+    "VESSEL_REGISTRATION_PERIOD": {
+      "START_DATE": "Início de registro",
+      "END_DATE": "Fim de registro",
+      "REGISTRATION_CODE": "Registro",
+      "INT_REGISTRATION_CODE": "Registro internacional",
+      "REGISTRATION_LOCATION": "Local de registro"
+    },
+    "VESSEL_OWNER": {
+      "REGISTRATION_CODE": "Código do armador",
+      "START_DATE": "Início de armamento",
+      "END_DATE": "Fim de armamento",
+      "ACTIVITY_START_DATE": "Início de atividade",
+      "RETIREMENT_DATE": "Data de aposentadoria",
+      "FIRST_NAME": "Nome",
+      "LAST_NAME": "Sobrenome"
+    },
+    "HISTORY": {
+      "FEATURES": "Características",
+      "REGISTRATIONS": "Registros",
+      "OWNER": "Relações navio-armador"
+    },
+    "ACTION": {
+      "EDIT": "Modificar",
+      "REGISTRATION_DIVIDER": "Registro (código, bandeira)",
+      "FEATURES_DIVIDER": "Características (marcação, nome, porto, etc.)",
+      "EDIT_REGISTRATION": "Corrigir o registro",
+      "NEW_REGISTRATION": "Declarar uma mudança",
+      "EDIT_FEATURES": "Corrigir as características",
+      "NEW_FEATURES": "Declarar uma mudança",
+      "EDIT_STATUS": "Modificar o estado do registro",
+      "REPLACE": "Substituir este navio temporário...",
+      "REPLACE_CONFIRMATION": "Tem certeza que deseja substituir este navio temporário por '{{vessel}}'?",
+      "REPLACE_MANY": "Substituir estes navios por...",
+      "REPLACE_MANY_CONFIRMATION": "Tem certeza que deseja substituir os navios temporários selecionados por '{{vessel}}'?",
+      "IMPORT_FROM_FILE": "Importar de um arquivo..."
+    },
+    "SELECT_MODAL": {
+      "TITLE": "Seleção do navio",
+      "REPLACE_TITLE": "Seleção do navio de substituição"
+    },
+    "EDIT": {
+      "TITLE": "Navio {{exteriorMarking}}"
+    },
+    "NEW": {
+      "TITLE": "Novo navio"
+    },
+    "LIST": {
+      "TITLE": "Navios",
+      "FILTER": {
+        "DATE": "Data de validade",
+        "SEARCH_TEXT": "Pesquisa: código, nome",
+        "REGISTRATION_LOCATION": "Bandeira",
+        "BASE_PORT_LOCATION": "Porto de origem",
+        "VESSEL_TYPE": "Tipo de navio"
+      }
+    },
+    "ERROR": {
+      "LOAD_ERROR": "Erro ao carregar navios.",
+      "REPLACE_ERROR": "Erro ao substituir navio temporário.<small><br/>Se o problema persistir, entre em contato com seu administrador.</small>",
+      "SIOP_IMPORT_ERROR": "Falha na importação do arquivo SIOP.<small><br/>Se o problema persistir, entre em contato com seu administrador.</small>"
+    }
+  },
+  "REFERENTIAL": {
+    "ID": "#",
+    "LABEL": "Código",
+    "NAME": "Nome",
+    "LEVEL": "Nível",
+    "TYPE": "Tipo",
+    "PARENT": "Superior",
+    "DESCRIPTION": "Descrição",
+    "COMMENTS": "Comentários",
+    "STATUS": "Estado",
+    "RANK_ORDER": "#",
+    "UPDATE_DATE": "Data de atualização",
+    "CREATION_DATE": "Data de criação",
+    "EXTERIOR_MARKING": "Marcação externa",
+    "REGISTRATION_CODE": "Registro",
+    "PAGE_HISTORY_SUBTITLE": "Referencial",
+    "LAST_NAME": "Sobrenome",
+    "FIRST_NAME": "Nome",
+    "TAB_GENERAL": "Detalhes",
+    "DEPARTMENT": {
+      "LABEL": "Código da instituição",
+      "NAME": "Nome da instituição"
+    },
+    "BASE_PORT_LOCATION": {
+      "LABEL": "Código do porto de origem",
+      "NAME": "Nome do porto de origem"
+    },
+    "TAXON_GROUP": {
+      "LABEL": "Código de espécie comercial",
+      "NAME": "Nome de espécie comercial",
+      "PARENT": "Espécie comercial superior",
+      "TAXON_GROUP_TYPE": "Tipo de grupo",
+      "TAB_ROUND_WEIGHT_CONVERSION": "Equivalentes de Peso Vivo (EPV)",
+      "NEW": {
+        "TITLE": "Nova espécie comercial"
+      },
+      "EDIT": {
+        "TITLE": "Espécie comercial {{label}} - {{name}}"
+      },
+      "ROUND_WEIGHT_CONVERSION": {
+        "EXPORT_CSV_FILENAME": "Equivalente_peso_vivo-{{taxonGroupId}}.csv",
+        "CONVERSION_COEFFICIENT": "Coef. conversão",
+        "COMMENTS": "Comentários",
+        "CREATION_DATE": "Data criação",
+        "DESCRIPTION": "Descrição",
+        "START_DATE": "Data início",
+        "END_DATE": "Data fim",
+        "LOCATION": "País",
+        "TAXON_GROUP_ID": "Espécie comercial",
+        "DRESSING": "Apresentação",
+        "PRESERVING": "Estado",
+        "STATUS_ID": "Estado"
+      }
+    },
+    "TAXON_NAME": {
+      "LABEL": "Código de espécie científica",
+      "NAME": "Nome de espécie científica",
+      "PARENT": "Espécie científica superior",
+      "IS_REFERENT": "Referente?",
+      "IS_NAMING": "Nomeação convencional?",
+      "IS_VIRTUAL": "Virtual?",
+      "USE_EXISTING_REFERENCE_TAXON": "Usar referência única de táxon existente?",
+      "REFERENCE_TAXON": "Referência única de táxon",
+      "TAXONOMIC_LEVEL": "Nível taxonômico",
+      "START_DATE": "Data de início",
+      "END_DATE": "Data de fim",
+      "TAB_WEIGHT_LENGTH_CONVERSION": "Relações Tamanho-Peso (RTP)",
+      "NEW": {
+        "TITLE": "Nova espécie científica"
+      },
+      "EDIT": {
+        "TITLE": "Espécie científica {{label}} - {{name}}"
+      },
+      "WEIGHT_LENGTH_CONVERSION": {
+        "EXPORT_CSV_FILENAME": "RTP-{{referenceTaxonId}}.csv",
+        "CONVERSION_COEFFICIENT_A": "Coef. A",
+        "CONVERSION_COEFFICIENT_B": "Coef. B",
+        "COMMENTS": "Comentários",
+        "CREATION_DATE": "Data criação",
+        "DESCRIPTION": "Descrição",
+        "END_MONTH": "Mês fim",
+        "LOCATION": "Zona FAO",
+        "REFERENCE_TAXON_ID": "Espécie científica",
+        "SEX": "Sexo",
+        "LENGTH_PARAMETER": "Parâmetro de comprimento",
+        "LENGTH_UNIT": "Unidade de comprimento",
+        "STATUS_ID": "Estado",
+        "START_MONTH": "Mês início",
+        "YEAR": "Ano"
+      }
+    },
+    "GEAR": {
+      "LABEL": "Código de arte de pesca",
+      "NAME": "Nome da arte de pesca"
+    },
+    "PARAMETER": {
+      "TAB_QUALITATIVE_VALUE": "Valores qualitativos",
+      "TYPE": "Tipo de valor",
+      "CODE": "Código parâmetro",
+      "NAME": "Nome",
+      "NEW": {
+        "TITLE": "Novo Parâmetro"
+      },
+      "EDIT": {
+        "TITLE": "Parâmetro {{label}} - {{name}}"
+      },
+      "TYPE_ENUM": {
+        "DOUBLE": "Numérico",
+        "STRING": "Texto",
+        "DATE": "Data",
+        "DATE_TIME": "Data/Hora",
+        "QUALITATIVE_VALUE": "Lista de valores",
+        "BOOLEAN": "Booleano"
+      }
+    },
+    "PMFM": {
+      "USE_DEFAULT_QUALITATIVES_VALUES": "Todos os valores do parâmetro",
+      "TAB_QUALITATIVE_VALUE": "Valores qualitativos",
+      "TYPE": "Tipo",
+      "MIN_VALUE": "Valor mín",
+      "MAX_VALUE": "Valor máx",
+      "DEFAULT_VALUE": "Valor padrão",
+      "MAXIMUM_NUMBER_DECIMALS": "Núm. decimais máx",
+      "SIGNIF_FIGURES_NUMBER": "Núm. dígitos significativos",
+      "PRECISION": "Precisão",
+      "PARAMETER": "Parâmetro",
+      "MATRIX": "Suporte",
+      "FRACTION": "Fração",
+      "METHOD": "Método de coleta",
+      "UNIT": "Unidade",
+      "BTN_ADD_PARAMETER": "Criar novo parâmetro",
+      "BTN_OPEN_PARAMETER": "Abrir parâmetro",
+      "NEW": {
+        "TITLE": "Novo PSFM"
+      },
+      "EDIT": {
+        "TITLE": "PSFM {{title}}"
+      },
+      "ERROR": {
+        "FIELD_SIGNIF_FIGURES_NUMBER": "Núm. dígitos significativos: {{significantFiguresNumber}}"
+      }
+    },
+    "MATRIX": {
+      "NAME": "Suporte",
+      "DESCRIPTION": "descrição"
+    },
+    "FRACTION": {
+      "NAME": "Fração",
+      "DESCRIPTION": "descrição"
+    },
+    "METHOD": {
+      "NAME": "Método de coleta",
+      "DESCRIPTION": "descrição",
+      "IS_CALCULATED": "Calculado?",
+      "IS_ESTIMATED": "É estimado?",
+      "NEW": {
+        "TITLE": "Novo método"
+      },
+      "EDIT": {
+        "TITLE": "Método {{label}} - {{name}}"
+      }
+    },
+    "METIER": {
+      "NAME": "Ofício",
+      "GEAR": "Arte de pesca utilizada",
+      "TAXON_GROUP": "Espécie alvo",
+      "EDIT": {
+        "TITLE": "Ofício {{label}}"
+      }
+    },
+    "TRANSCRIBING_ITEM": {
+      "OBJECT": "Referência",
+      "LABEL": "Código transcodificado",
+      "NAME": "Nome transcodificado",
+      "STATUS_ID": "Estado",
+      "TYPE": "Tipo de transcodificação"
+    },
+    "EXPERTISE_AREA": {
+      "LOCATIONS": "Local(is) da área",
+      "LOCATION_LEVEL": "Nível de local",
+      "LOCATION_LEVELS": "Nível(is) de local",
+      "NEW": {
+        "TITLE": "Nova área de competência"
+      },
+      "EDIT": {
+        "TITLE": "<small>Área de competência<br></small>{{name}}"
+      }
+    },
+    "LIST": {
+      "TITLE": "Referenciais<small><br></small><small>{{entity}}</small>",
+      "BTN_IMPORT_OPTIONS_DOTS": "Opções de importação...",
+      "FILTER": {
+        "ENTITY": "Tipo de referencial",
+        "SEARCH_TEXT": "Pesquisa: código, nome"
+      },
+      "IMPORT_POLICY": {
+        "TITLE": "Opções de importação",
+        "INSERT-ONLY": "Somente inserções",
+        "UPDATE-ONLY": "Somente atualizações",
+        "INSERT-UPDATE": "Inserções e atualizações"
+      }
+    },
+    "UNIT": {
+      "WEIGHT": {
+        "KG": "Quilogramas",
+        "G": "Gramas"
+      }
+    },
+    "STATUS_ENUM": {
+      "ENABLE": "Ativo para entrada",
+      "DISABLE": "Inativo para entrada",
+      "TEMPORARY": "Temporário",
+      "DELETED": "Em processo de exclusão"
+    },
+    "ENTITY_DIVIDER": {
+      "OTHER": "Outros..."
+    },
+    "ENTITY": {
+      "CORPUS": "Regulamentação > Corpus regulatório",
+      "CORPUS_TYPE": "Regulamentação > Tipos de corpus",
+      "DEPARTMENT": "Instituições",
+      "DISTANCE_TO_COAST_GRADIENT": "Local/Área > Gradientes de distância da costa",
+      "DEPTH_GRADIENT": "Local/Área > Gradientes de profundidade",
+      "EXTRACTION_PRODUCT": "Extração > Produtos",
+      "EXTRACTION_PRODUCT_TABLE": "Extração > Tabelas de produto",
+      "FISHERY": "Regulamentação > Pescarias",
+      "SALE_TYPE": "Tipos de venda",
+      "LOCATION": "Local/Área > Locais",
+      "LOCATION_LEVEL": "Local/Área > Níveis de locais",
+      "LOCATION_CLASSIFICATION": "Local/Área > Classificação de locais",
+      "GEAR": "Arte/ofício > Artes de pesca",
+      "GEAR_LEVEL": "Arte/ofício > Níveis de arte de pesca",
+      "GEAR_CLASSIFICATION": "Arte/ofício > Classificação de artes de pesca",
+      "GROUPING": "Agrupamento > Agrupamentos",
+      "GROUPING_LEVEL": "Agrupamento > Níveis",
+      "GROUPING_CLASSIFICATION": "Agrupamento > Classificações",
+      "PARAMETER": "PSFM > Parâmetros",
+      "PARAMETER_GROUP": "PSFM > Grupos de parâmetros",
+      "USER_PROFILE": "Perfis de usuário",
+      "EXPERTISE_AREA": "Local/Área > Áreas de competência",
+      "VESSEL_TYPE": "Tipos de navio",
+      "PMFM": "PSFM > Quadrupletos PSFM",
+      "MATRIX": "PSFM > Suportes de medição",
+      "METHOD": "PSFM > Métodos de medição",
+      "FRACTION": "PSFM > Frações do suporte",
+      "ORIGIN_ITEM_TYPE": "Tipo de origem",
+      "OBJECT_TYPE": "Tipos de objeto",
+      "PROCESSING_TYPE": "Tipos de processamento",
+      "PROCESSING_FREQUENCY": "Frequência de execução",
+      "PROCESSING_STATUS": "Estado de execução",
+      "QUALITATIVE_VALUE": "PSFM > Valores qualitativos",
+      "QUALITY_FLAG": "Nível de qualidade",
+      "TAXON_GROUP_TYPE": "Espécie > Tipos de grupo de espécie",
+      "TAXON_GROUP": "Espécie > Espécies comerciais (FAO)",
+      "TAXON_NAME": "Espécie > Espécies científicas",
+      "TAXONOMIC_LEVEL": "Espécie > Níveis taxonômicos",
+      "REFERENCE_TAXON": "Espécie > Referências únicas de táxon",
+      "PROGRAM": "Administração > Programas de coleta",
+      "STRATEGY": "Administração > Estratégias de coleta",
+      "ACQUISITION_LEVEL": "Níveis de aquisição",
+      "TRANSCRIBING_ITEM": "Transcodificação > Transcodificações",
+      "TRANSCRIBING_ITEM_TYPE": "Transcodificação > Tipos de transcodificação",
+      "TRANSCRIBING_SYSTEM": "Transcodificação > Sistemas de transcodificação",
+      "UNIT": "PSFM > Unidades de medida",
+      "METIER": "Arte/ofício > Ofícios",
+      "SOFTWARE": "Sistema > Softwares",
+      "STATUS": "Estado de entrada",
+      "SAMPLING_STRATA": "Administração > Linhas de plano",
+      "SAMPLING_SCHEME": "Administração > Planos de amostragem",
+      "SYSTEM_VERSION": "Sistema > Versões do banco de dados"
+    },
+    "OPTIONS": {
+      "VESSELS_ENABLE": "Referenciais > Navios: Ativar?",
+      "VESSELS_IMPORT_ENABLE": "Referenciais > Navios: Ativar importação de arquivo?",
+      "VESSELS_REPLACEMENT_ENABLE": "Referenciais > Navios: Ativar substituição de navios temporários?",
+      "VESSEL_REGISTRATION_LOCATION_LEVEL_IDS": "Referenciais > Navios: Nível(is) de local de registro?"
+    },
+    "INFO": {
+      "IMPORT_ENTITIES_SUCCEED": "Importação concluída <b>com sucesso</b>!<br/>{{insertCount}} inserção(ões), {{updateCount}} atualização(ões), {{skipCount}} ignorado(s).",
+      "IMPORT_ENTITIES_WARNING": "Importação concluída <b>com erro</b>:<br/>{{insertCount}} inserção(ões), {{updateCount}} atualização(ões), {{skipCount}} ignorado(s), {{errorCount}} erros:<br/>{{error}}"
+    },
+    "ERROR": {
+      "SAVE_REFERENTIAL_ERROR": "Erro ao salvar.",
+      "LOAD_REFERENTIAL_ERROR": "Erro ao carregar.",
+      "DELETE_REFERENTIAL_ERROR": "Erro ao excluir",
+      "SUBSCRIBE_REFERENTIAL_ERROR": "Falha ao assinar modificações remotas.",
+      "LOAD_REFERENTIAL_LEVELS_ERROR": "Erro ao carregar níveis",
+      "LOAD_PROGRAM_PMFMS_ERROR": "Erro ao carregar parâmetros coletados pelo programa",
+      "LOAD_PROGRAM_GEARS_ERROR": "Erro ao carregar artes de pesca do programa",
+      "LOAD_PROGRAM_TAXON_GROUPS_ERROR": "Erro ao carregar espécies comerciais do programa",
+      "SAVE_PERSONS_ERROR": "Erro ao salvar usuários",
+      "DELETE_PERSONS_ERROR": "Erro ao excluir usuários",
+      "LABEL_NOT_UNIQUE": "Código já em uso",
+      "IMPORT_ENTITIES_ERROR": "Falha na importação:<br/>{{error}}",
+      "IMPORT_ENTITY_ERROR": "'{{label}}': {{message}}",
+      "MISSING_REFERENCES": "Referência(s) ausente(s): {{error}}"
+    }
+  },
+  "PROGRAM": {
+    "TAB_GENERAL": "Detalhes",
+    "TAB_LOCATIONS": "Locais",
+    "TAB_STRATEGIES": "Estratégias",
+    "TAB_PRIVILEGES": "Direitos de acesso",
+    "TAB_PROPERTIES": "Opções",
+    "TAXON_GROUP_TYPE": "Tipo de espécies comerciais",
+    "GEAR_CLASSIFICATION": "Classificação para as artes",
+    "LOCATION_CLASSIFICATION": "Classificação para os locais",
+    "LOCATIONS": "Locais",
+    "PROPERTY_KEY": "Opção",
+    "PROPERTY_VALUE": "Valor",
+    "BTN_SHOW_MORE_HELP": "Mostrar mais parâmetros",
+    "NEW": {
+      "TITLE": "Novo programa"
+    },
+    "EDIT": {
+      "TITLE": "Programa {{label}} - {{name}}",
+      "BTN_DOWNLOAD_PROPERTIES_AS_CSV": "Descarregar opções (CSV)",
+      "BTN_IMPORT_PROPERTIES_FROM_CSV": "Importar opções (CSV)..."
+    },
+    "LIST": {
+      "TITLE": "Programas de recolha"
+    },
+    "PRIVILEGES": {
+      "TITLE": "Utilizadores",
+      "PERSON": "Utilizador",
+      "DEPARTMENT": "Serviço",
+      "LOCATION": "Local/Zona",
+      "PRIVILEGE": "Privilégio",
+      "REFERENCE_PERSON": "Utilizador supervisionado"
+    },
+    "SAMPLING": {
+      "TAB_STRATEGIES": "Linhas de plano"
+    },
+    "OPTIONS": {
+      "ACTIVITY_CALENDAR_REPORT_ENABLE": "Calendário de atividade > Relatório: Ativar edição de relatório?",
+      "ACTIVITY_CALENDAR_REPORT_TYPES": "Calendário de atividade > Relatório: Tipos de relatório permitidos:",
+      "ACTIVITY_CALENDAR_REPORT_FORM_FOOTER": "Calendário de atividade > Relatório > Formulários: Texto de rodapé",
+      "ACTIVITY_CALENDAR_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Calendário de atividade > Relatório: Logótipo à esquerda do cabeçalho",
+      "ACTIVITY_CALENDAR_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Calendário de atividade > Relatório: Logótipo à direita do cabeçalho",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_METIER_BLOCK": "Calendário de atividade > Relatório > Formulário em branco: Número de blocos de métier",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_GEARS_COLUMN": "Calendário de atividade > Relatório > Formulário em branco: Número de colunas de artes",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_NB_FISHING_AREA_PER_METIER": "Calendário de atividade > Relatório > Formulário em branco: Número de zonas de pesca por bloco de métier",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_1": "Calendário de atividade > Relatório > Formulário em branco: Etiqueta característica da arte #1",
+      "ACTIVITY_CALENDAR_REPORT_FORM_BLANK_PHYSICAL_GEAR_PMFM_2": "Calendário de atividade > Relatório > Formulário em branco: Etiqueta característica da arte #2",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_FOOTER": "Calendário de atividade > Relatório de progresso: Texto de rodapé",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULTS_WARNING": "Calendário de atividade > Relatório: Nº calendários mínimo para aviso de lentidão (0 = sem aviso)",
+      "ACTIVITY_CALENDAR_REPORT_PROGRESS_TOO_MANY_RESULT_ERROR": "Calendário de atividade > Relatório: Nº calendários máximo para geração (0 = sem limite)",
+      "ACTIVITY_CALENDAR_FISHING_AREA_LOCATION_LEVEL_IDS": "Calendário de atividade > Zona de pesca: Nível(is) de local",
+      "ACTIVITY_CALENDAR_VESSEL_COUNTRY_ID": "Calendário de atividade: País de registo das embarcações",
+      "ACTIVITY_CALENDAR_MERGE_CONFLICT_ENABLE": "Calendário de atividade > Ativar resolução de conflitos?",
+      "ACTIVITY_CALENDAR_PREDOC_PROGRAM_LABELS": "Calendário de atividade > Pré-documentação: Código(s) programa(s)",
+      "ACTIVITY_CALENDAR_IMAGES_ENABLE": "Calendário de atividade: Ativar fotografias?",
+      "ACTIVITY_CALENDAR_OBSERVERS_ENABLE": "Calendário de atividade: Registar observadores?",
+      "ACTIVITY_CALENDAR_HELP_URL": "Calendário de atividade: Ajuda online (URL)",
+      "ACTIVITY_CALENDAR_BASE_PORT_LOCATION_LEVEL_IDS": "Calendário de atividade > Porto de operação: Nível(is) de local",
+      "ACTIVITY_CALENDAR_REGISTRATION_LOCATION_LEVEL_IDS": "Calendário de atividade > Locais de registo: Nível(is) de local",
+      "ACTIVITY_CALENDAR_METIER_TAXON_GROUP_TYPE_IDS": "Calendário de atividade > Métier: Espécie-alvo: Nível(is)",
+      "ACTIVITY_CALENDAR_CREATE_VESSEL_ENABLE": "Calendário de atividade > Detalhes: Adição de embarcação?",
+      "ACTIVITY_CALENDAR_VESSEL_BASE_PORT_LOCATION_ENABLE": "Calendário de atividade > Embarcações: Mostrar porto de origem?",
+      "EXTRACTION_FORMATS": "Extração > Formatos disponíveis:",
+      "PROGRAM_LOGO": "Programa: Logótipo (URL)",
+      "I18N_SUFFIX": "Dicionário temático",
+      "I18N_SUFFIX_LEGACY": "Predefinido",
+      "I18N_SUFFIX_SAMPLING": "Parâmetros biológicos",
+      "I18N_SUFFIX_SURVIVAL_TEST": "Testes de sobrevivência",
+      "I18N_SUFFIX_ACCIDENTAL_CATCH": "Captura acidental",
+      "I18N_SUFFIX_AUCTION_CONTROL": "Controlo de lota",
+      "I18N_SUFFIX_TRAWL_SELECTIVITY": "Seletividade de arrasto",
+      "I18N_SUFFIX_OBSERVED_TRIP": "Observação de viagens no mar (ObsMar)",
+      "I18N_SUFFIX_OBSERVED_SALE": "Observação de vendas (ObsVendas)",
+      "TRIP_LOCATION_LEVEL_IDS": "Viagem: Nível(is) de local",
+      "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Viagem > Locais: nº caract. mín para pesquisa",
+      "TRIP_SALE_ENABLE": "Viagem: Registar a venda?",
+      "TRIP_SALE_LOCATION_LEVEL_IDS": "Viagem > Venda: Nível(is) de local",
+      "TRIP_SAMPLING_STRATA_ENABLE": "Viagem: Registar a linha de plano de amostragem?",
+      "TRIP_OBSERVERS_ENABLE": "Viagem: Registar os observadores?",
+      "TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Viagem > Offline > Nível(is) de local a importar",
+      "TRIP_METIERS_ENABLE": "Viagem: Registar os métiers?",
+      "TRIP_METIERS_HISTORY_NB_DAYS": "Viagem: Pré-doc métiers > Nº de dias",
+      "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Viagem: Características opcionais se registo em campo?",
+      "TRIP_HELP_URL": "Viagem: Ajuda online (URL)",
+      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Viagem > Artes: Coluna(s) PSFM adicional(is)",
+      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY": "Viagem > Artes: Ocultar colunas PSFM vazias?",
+      "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Viagem > Arte: Registar o número da arte?",
+      "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Viagem > Arte: Permitir sub-artes?",
+      "TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT": "Viagem > Arte: Número mínimo de sub-artes?",
+      "TRIP_PHYSICAL_GEAR_HELP_MESSAGE": "Viagem > Arte: Mensagem de ajuda",
+      "TRIP_MAP_ENABLE": "Viagem > Mapa: Ativar?",
+      "TRIP_MAP_CENTER": "Viagem > Mapa: Posição do centro",
+      "TRIP_MAP_ZOOM": "Viagem > Mapa: Nível de zoom",
+      "TRIP_MIN_DURATION_HOURS": "Viagem > Duração mínima (horas)",
+      "TRIP_MAX_DURATION_HOURS": "Viagem > Duração máxima (horas)",
+      "TRIP_BATCH_AUTO_FILL": "Captura > Lote espécie: Preenchimento automático?",
+      "TRIP_BATCH_TAXON_GROUP_ENABLE": "Captura > Lote espécie: Espécies comerciais?",
+      "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Captura > Lote espécie: Espécies com. sem peso:",
+      "TRIP_BATCH_TAXON_GROUPS_NO_LANDING": "Captura > Lote espécie: Espécies com. não desembarcadas:",
+      "TRIP_BATCH_TAXON_NAME_ENABLE": "Captura > Lote espécie: Espécies científicas?",
+      "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Captura > Lote espécie: Cálculo auto nº indiv. amostrados?",
+      "TRIP_BATCH_ENABLE": "Captura > Lote espécie: Ativar?",
+      "TRIP_BATCH_SAMPLING_RATIO_FORMAT": "Captura > Lote espécie: Formato da fração",
+      "TRIP_BATCH_EXHAUSTIVE_INVENTORY_ENABLE": "Captura > Lotes espécies: Inventário exaustivo?",
+      "TRIP_BATCH_WEIGHT_ENABLE": "Captura > Lote espécie: Registar os pesos?",
+      "TRIP_BATCH_MEASURE_ENABLE": "Captura > Lote espécie: Ativar as medidas individuais?",
+      "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Captura > Medidas individuais: Reordenar ao guardar?",
+      "TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE": "Captura > Medidas individuais: Mostrar o ícone bluetooth?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ONLY_ENABLE": "Captura > Medidas individuais: Permitir escolha mensuração ou contagem?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Captura > Medidas individuais: Registar nº indiv.?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Captura > Medidas individuais: Espécies científicas?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Captura > Medidas individuais: Espécies comerciais?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Captura > Medidas individuais: Unidade de peso",
+      "TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE": "Captura > Medidas individuais: Cálculo peso por RTP?",
+      "TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID": "Captura > País (ID) para os equivalentes peso vivo",
+      "TRIP_SAMPLE_ENABLE": "Viagem > Amostra: Ativar?",
+      "TRIP_SAMPLE_DATE_TIME_ENABLE": "Viagem > Amostra: Data e hora?",
+      "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Viagem > Amostra: Espécies comerciais?",
+      "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Viagem > Amostra: Espécies científicas?",
+      "TRIP_SAMPLE_LABEL_ENABLE": "Viagem > Amostra: Etiqueta?",
+      "TRIP_SAMPLE_IMAGES_ENABLE": "Viagem > Amostra: Imagens?",
+      "TRIP_SAMPLE_REQUIRED_PMFM_ID": "Viagem > Operação: PSFM (booleano) tornando obrigatório o registo de amostras",
+      "TRIP_POSITION_ENABLE": "Viagem > Posição: Ativar?",
+      "TRIP_POSITION_BOUNDING_BOX": "Viagem > Posição: Caixa limite ([x1, y1, x2, y2]):",
+      "TRIP_LATITUDE_DEFAULT_SIGN": "Viagem > Posição > Latitude: Direção predefinida:",
+      "TRIP_LONGITUDE_DEFAULT_SIGN": "Viagem > Posição > Longitude: Direção predefinida:",
+      "TRIP_ALLOW_PARENT_OPERATION": "Viagem > Operação: Operações ligadas (Largada/Alagem)?",
+      "TRIP_REPORT_ENABLE": "Viagem > Relatório: Ativar edição de relatório?",
+      "TRIP_REPORT_TYPES": "Viagem > Relatório: Tipo(s) de relatório",
+      "TRIP_REPORT_FORM_SUBTITLE": "Viagem > Relatório: Subtítulo do relatório",
+      "TRIP_REPORT_FORM_FOOTER": "Viagem > Relatório: Texto de rodapé",
+      "TRIP_REPORT_FORM_HEADER_LEFT_LOGO_URL": "Viagem > Relatório > Formulário: Logótipo à esquerda do cabeçalho",
+      "TRIP_REPORT_FORM_HEADER_RIGHT_LOGO_URL": "Viagem > Relatório > Formulário: Logótipo à direita do cabeçalho",
+      "TRIP_REPORT_FORM_SAMPLE_TABLE_MULTI_OP": "Viagem > Relatório > Formulário > Amostras: Tabela multi-operações?",
+      "TRIP_REPORT_FORM_PHYSICAL_SHOW_TABLE": "Viagem > Relatório > Formulário: Mostrar as artes em tabela?",
+      "TRIP_REPORT_FORM_HIDDEN_PMFM_IDS": "Viagem > Relatório > Formulário: Lista de PSFMs a ocultar",
+      "TRIP_REPORT_FORM_OPERATION_COMMENT_HELP_TEXT": "Viagem > Relatório > Formulário: Texto de ajuda para os comentários de operações",
+      "TRIP_REPORT_FORM_BLANK_SHOW_SAMPLE_RANK_ORDER": "Viagem > Relatório > Formulário em branco: Amostras: Mostrar o número de ordem?",
+      "TRIP_REPORT_FORM_BLANK_TIPS_LIMIT_TO_SHOW_ON_APPENDIX": "Viagem > Relatório > Formulário > Tabelas: Número limite de elementos na legenda",
+      "TRIP_REPORT_FORM_BLANK_SHOW_QUALITATIVE_VALUES_CHECK_BOX": "Viagem > Relatório > Formulário em branco: Caixa de verificação de valores qualitativos?",
+      "TRIP_REPORT_FORM_BLANK_NB_OF_OPERATION_PAGE": "Viagem > Relatório > Formulário em branco > Operações: Número de páginas a criar",
+      "TRIP_REPORT_FORM_BLANK_NB_OF_INDIVIDUAL_SAMPLE_PAGE": "Viagem > Relatório > Formulário em branco > Acompanhamentos individuais: Número de páginas a criar",
+      "TRIP_REPORT_FORM_BLANK_NB_OF_RELEASED_SAMPLE_PAGE": "Viagem > Relatório > Formulário em branco > Libertados: Número de páginas a criar",
+      "TRIP_REPORT_FORM_BLANK_SAMPLE_TAXON_GROUP_HELP": "Viagem > Relatório > Formulário em branco > Amostras: Legenda para a espécie comercial",
+      "TRIP_REPORT_FORM_BLANK_MULTI_TRIP": "Viagem > Relatório > Formulário em branco: Tabela multi-viagens?",
+      "TRIP_OPERATIONS_HELP_MESSAGE": "Viagem > Operações: Mensagem de ajuda",
+      "TRIP_OPERATION_EDITOR": "Viagem > Operação: Editor",
+      "TRIP_OPERATION_EDITOR_LEGACY": "Predefinido",
+      "TRIP_OPERATION_EDITOR_TRAWL_SELECTIVITY": "Seletividade de arrasto",
+      "TRIP_OPERATION_EDITOR_ADVANCED": "Avançado",
+      "TRIP_OPERATION_METIER_ENABLE": "Viagem > Operação: Métier?",
+      "TRIP_OPERATION_METIER_FILTER": "Viagem > Operação: Filtrar pelos métiers já registados?",
+      "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Viagem > Operação: Características opcionais se registo em campo?",
+      "TRIP_OPERATION_DISTANCE_MAX_WARNING": "Viagem > Operação: Distância máx percorrida antes de alerta (milhas):",
+      "TRIP_OPERATION_DISTANCE_MAX_ERROR": "Viagem > Operação: Distância máx percorrida antes de erro (milhas):",
+      "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Viagem > Operação: Duração máxima de calagem ou alagem (horas)",
+      "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Viagem > Operação: Duração máxima total (horas)",
+      "TRIP_OPERATION_AUTO_FILL_NEXT_DATE": "Viagem > Operação: Propagação do dia para a data seguinte",
+      "TRIP_OPERATION_COPY_TRIP_DATE": "Viagem > Operação: Inicializar as datas com as da viagem?",
+      "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Viagem > Operação: Zona de pesca: Nível(is) de local",
+      "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Viagem > Operação: Espécie-alvo: Nível(is)",
+      "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Viagem > Operação: Data de início de pesca?",
+      "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Viagem > Operação: Data de fim de pesca?",
+      "TRIP_OPERATION_END_DATE_ENABLE": "Viagem > Operação: Data de fim?",
+      "TRIP_OPERATION_PASTE_FLAGS": "Viagem > Operação: Duplicação",
+      "TRIP_OPERATION_PASTE_FLAGS_ENUM": {
+        "NONE": "Desativada",
+        "DATE_POSITION_FISHING_AREA_GEAR_METIER": "Data, Arte, Métier, Posição/Zona de pesca",
+        "DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER": "Data/Hora, Arte, Métier, Posição/Zona de pesca",
+        "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Data, Arte, Métier, Posição/Zona de pesca, Características"
+      },
+      "TRIP_OPERATION_HELP_URL": "Viagem > Operação: Ajuda online (URL)",
+      "TRIP_OPERATION_FISHING_AREA_INLINE": "Viagem > Operação: Alinhar as zonas de pesca com as datas",
+      "TRIP_OPERATION_SKIP_DATES_TRIP_PMFM_ID": "Viagem > Operação: PSFM (booleano) de viagem para desativar as datas?",
+      "TRIP_EXTRACTION_SAMPLING_METHOD": "Extração > Viagens brutas: Valor da coluna 'SAMPLING_METHOD'",
+      "TRIP_EXTRACTION_SAMPLING_METHODS": {
+        "OBSERVER": "Observer",
+        "SELF_SAMPLING": "SelfSampling"
+      },
+      "TRIP_EXTRACTION_AREA_LOCATION_LEVEL_IDS": "Extração > Viagens: Nível(is) de locais para a coluna 'AREA'",
+      "TRIP_EXTRACTION_BATCH_DENORMALIZATION_ENABLE": "Extração > Viagens: Ativar a desnormalização dos lotes?",
+      "OBSERVED_LOCATION_HELP_URL": "Saída > Ajuda online (URL)",
+      "OBSERVED_LOCATION_START_TIME_ENABLE": "Saída > Data de início: Hora?",
+      "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Saída: Data de fim?",
+      "OBSERVED_LOCATION_END_DATE_REQUIRED": "Saída: Data de fim obrigatória?",
+      "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Saída: Registar os observadores?",
+      "OBSERVED_LOCATION_CREATE_VESSEL_ENABLE": "Saída > Desembarques: Adição de embarcação?",
+      "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Saída > Mostrar o histórico para adicionar um desembarque?",
+      "OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE": "Saída > Registar a linha de plano de amostragem?",
+      "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Saída: Nível(is) de local",
+      "OBSERVED_LOCATION_CONTROL_ENABLE": "Saída: Ativar o controlo ao finalizar o registo?",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Saída > Calendário de atividade semanal?",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Saída > Calendário de atividade semanal > Programa alvo",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY": "Saída > Calendário de atividade semanal > Dia de início de semana",
+      "OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT": "Saída > Calendário de atividade semanal > Número de dias de semana",
+      "OBSERVED_LOCATION_REPORT_ENABLE": "Saída > Ativar edição de relatório?",
+      "OBSERVED_LOCATION_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Saída > Offline > Nível(is) de local a importar",
+      "OBSERVED_LOCATION_STRATEGY_CARD_ENABLE": "Saída > Mostrar a estratégia?",
+      "OBSERVED_LOCATION_LANDINGS_AUTO_FILL": "Saída > Preencher automaticamente os desembarques? (ex: por espécies)",
+      "LANDING_BATCH_ENABLE": "Saída > Desembarque: Ativar os lotes (BATCH)?",
+      "LANDING_EDITOR": "Saída > Desembarque: Editor",
+      "LANDING_EDITOR_LANDING": "Desembarque",
+      "LANDING_EDITOR_CONTROL": "Controlo",
+      "LANDING_EDITOR_TRIP": "Viagem",
+      "LANDING_EDITOR_SALE": "Venda",
+      "LANDING_EDITOR_SAMPLING": "Amostragem biológica",
+      "LANDING_HELP_URL": "Saída > Desembarques: Ajuda online (URL)",
+      "LANDING_CONTROL_ENABLE": "Saída > Desembarques: Ativar o controlo?",
+      "LANDING_CREATION_DATE_ENABLE": "Saída > Desembarques: Mostrar a data de criação?",
+      "LANDING_RECORDER_PERSON_ENABLE": "Saída > Desembarques: Mostrar o registador?",
+      "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Saída > Desembarques: Mostrar o porto de origem?",
+      "LANDING_STRATEGY_ENABLE": "Saída > Desembarque: Registar a estratégia?",
+      "LANDING_DATE_TIME_ENABLE": "Saída > Desembarque: Registar a data?",
+      "LANDING_OBSERVERS_ENABLE": "Saída > Desembarque: Registar os observadores?",
+      "LANDING_LOCATION_ENABLE": "Saída > Desembarques: Mostrar o porto?",
+      "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Saída > Desembarques: Zona de pesca: Nível(is) de local",
+      "LANDING_SAMPLES_COUNT_ENABLE": "Saída > Desembarques: Mostrar o número de medidas?",
+      "LANDING_SAMPLE_ENABLE": "Saída > Desembarque > Ativar as medidas (SAMPLE)?",
+      "LANDING_SAMPLE_WEIGHT_UNIT": "Saída > Desembarque > Medidas: Unidade de peso",
+      "LANDING_SAMPLE_LABEL_ENABLE": "Saída > Desembarque > Medidas: Registar a etiqueta?",
+      "LANDING_COLUMNS_PMFM_IDS": "Saída > Desembarques: Coluna(s) adicional(is) (PSFM)",
+      "LANDING_ROWS_DIVIDER_PMFM_ID": "Saída > Desembarques: Separador de linhas (PSFM qualitativo)",
+      "LANDING_MIN_OBSERVED_SPECIES_COUNT": "Saída > Desembarques: Número mín. de espécies a observar",
+      "LANDING_TOP_PMFM_IDS": "Saída > Desembarques: PSFM(s) no cabeçalho",
+      "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Viagem observada no desembarque > Zona de pesca: Nível(is) de local",
+      "PROGRAM_PRIVILEGE_READONLY": "Programa > Direitos de acesso: Apenas leitura?",
+      "SALE_LOCATION_LEVEL_IDS": "Saída > Venda: Nível(is) de local",
+      "SALE_BATCH_ENABLE": "Saída > Venda: Ativar os lotes?",
+      "STRATEGY_EDITOR": "Estratégia > Editor",
+      "STRATEGY_EDITOR_ENUM": {
+        "LEGACY": "Predefinido",
+        "SAMPLING": "Parâmetros biológicos"
+      },
+      "STRATEGY_EDITOR_LOCATION_LEVEL_IDS": "Estratégia > Editor: Nível(is) de local (ids)",
+      "STRATEGY_EDITOR_PREDOC_ENABLE": "Estratégia > Editor: Ativar a pré-filtragem dos campos",
+      "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Estratégia > Editor: Nº elementos exibidos para a pré-filtragem dos campos",
+      "STRATEGY_DEPARTMENT_ENABLE": "Estratégia > Ativar os direitos de acesso por departamento (STRATEGY_DEPARTMENT)",
+      "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valores qualitativos > Nº máx botões (móvel)",
+      "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Valores qualitativos > Nº valores máx para exibição em botões (móvel)",
+      "VESSEL_TYPE_ENABLE": "Embarcações > Ativar o tipo de embarcação?",
+      "VESSEL_FILTER_DEFAULT_TYPE_IDS": "Registo > Embarcação: Tipo(s) de embarcação (filtro)",
+      "DATA_OBSERVERS_CAN_WRITE": "Registo > Autorizar os observadores de um dado a modificá-lo?",
+      "DATA_STRATEGY_RESOLUTION": "Registo > Resolução da estratégia",
+      "DATA_STRATEGY_RESOLUTION_ENUM": {
+        "LAST": "A mais recente",
+        "USER_SELECT": "Seleção pelo utilizador",
+        "SPATIO_TEMPORAL": "Espácio-temporal",
+        "NONE": "Nenhuma"
+      },
+      "DATA_REPORT_COLORS": {
+        "PRIMARY": "Tema > Relatório > Cor primária",
+        "SECONDARY": "Tema > Relatório > Cor secundária"
+      }
+    },
+    "STRATEGY": {
+      "ACQUISITION_LEVELS": "Níveis de aquisição",
+      "LOCATIONS": "Locais",
+      "TAB_PMFM": "Protocolo de recolha",
+      "GEARS": "Aparelhos",
+      "TAXON_GROUPS": "Espécies comerciais",
+      "TAXON_NAMES": "Espécies científicas",
+      "PMFMS": "Parâmetros recolhidos",
+      "SCIENTIFIC_TAXON_NAMES": "Espécies científicas",
+      "BTN_OPEN_STRATEGY": "Abrir a estratégia",
+      "BTN_APPLY_TO_SELECTED_PMFM": "Aplicar aos PSFMs selecionados",
+      "BTN_REMOVE_FROM_SELECTED_PMFM": "Remover dos PSFMs selecionados",
+      "DOWNLOAD_JSON_FILENAME": "{{programLabel}}-estratégia-{{label}}.json",
+      "DOWNLOAD_MANY_JSON_FILENAME": "{{programLabel}}-estratégias.json",
+      "TAB_TRANSCRIBING": "Transcodificações",
+      "DUPLICATE_MODAL": {
+        "TITLE": "Duplicação",
+        "HELP": "Selecione um ano de monitorização para as novas linhas de plano:"
+      },
+      "NEW": {
+        "TITLE": "Nova estratégia",
+        "SAMPLING": {
+          "TITLE": "Nova linha de plano"
+        }
+      },
+      "EDIT": {
+        "TITLE": "<small>{{program}}<br></small>Estratégia {{label}}",
+        "LABEL": "Código",
+        "GENERATE_LABEL_INCREMENT_BUTTON": "gerar o incremento",
+        "ANALYTIC_REFERENCE_PLACEHOLDER": "Código analítico",
+        "DEPARTMENTS": "Serviço(s) de inserção:",
+        "DEPARTMENT_PLACEHOLDER": "Serviço de inserção #",
+        "LOCATIONS": "Local(is) aplicável(is):",
+        "LOCATION_PLACEHOLDER": "Local aplicável #",
+        "TAXON_NAMES": "Espécie(s) científica(s):",
+        "TAXON_NAME_PLACEHOLDER": "Espécie científica #",
+        "QUARTER_PLACEHOLDER": "Trimestre ",
+        "EFFORT": "Esforço:",
+        "PARAMETERS_DIVIDER": "Parâmetros a medir:",
+        "AGE": "Idade:",
+        "AGE_PLACEHOLDER": "Idade",
+        "SEX": "Sexo:",
+        "SEX_PLACEHOLDER": "Sexo",
+        "WEIGHTS": "Pesos:",
+        "WEIGHTS_PLACEHOLDER": "Peso #",
+        "LENGTHS": "Tamanhos:",
+        "LENGTHS_PLACEHOLDER": "Tamanho #",
+        "MATURITIES": "Maturidades:",
+        "MATURITIES_PLACEHOLDER": "Maturidade #",
+        "CALCIFIED_TYPE": "Peças calcificadas:",
+        "CALCIFIED_TYPE_PLACEHOLDER": "Tipo de peça calcificada #",
+        "YEAR_PLACEHOLDER": "Ano",
+        "SAMPLING": {
+          "TITLE": "Linha de plano {{label}}",
+          "LABEL": "Código linha de plano - incremento",
+          "ANALYTIC_REFERENCE_PLACEHOLDER": "EOTP",
+          "DEPARTMENTS": "Laboratório(s) de inserção:",
+          "DEPARTMENT_PLACEHOLDER": "Laboratório de inserção #",
+          "LOCATIONS": "Zona(s) de pesca:",
+          "LOCATION_PLACEHOLDER": "Zona de pesca #",
+          "TAXON_NAMES": "Espécie alvo:",
+          "TAXON_NAME_PLACEHOLDER": "Espécie alvo",
+          "QUARTER_PLACEHOLDER": "Trimestre ",
+          "EFFORT": "Esforço:",
+          "REALIZED_EFFORT": "(realizado: {{count}})",
+          "PARAMETERS_DIVIDER": "Parâmetros a medir:",
+          "AGE": "Idade:",
+          "AGE_PLACEHOLDER": "Idade",
+          "SEX": "Sexo:",
+          "SEX_PLACEHOLDER": "Sexo",
+          "WEIGHTS": "Pesos:",
+          "WEIGHTS_PLACEHOLDER": "Peso #",
+          "LENGTHS": "Tamanhos:",
+          "LENGTHS_PLACEHOLDER": "Tamanho #",
+          "MATURITIES": "Maturidades:",
+          "MATURITIES_PLACEHOLDER": "Maturidade #",
+          "CALCIFIED_TYPE": "Peças calcificadas:",
+          "CALCIFIED_TYPE_PLACEHOLDER": "Tipos de peças calcificadas #",
+          "YEAR_PLACEHOLDER": "Ano"
+        }
+      },
+      "TABLE": {
+        "BTN_ADD_DATA_DOTS": "Adicionar um dado...",
+        "LABEL": "Código",
+        "LOCATIONS": "Local(is) aplicável(is)",
+        "ANALYTIC_REFERENCE": "Código analítico",
+        "RECORDER_DEPARTMENTS": "Serviço(s) de inserção",
+        "TAXON_NAMES": "Espécie(s) científica(s)",
+        "START_YEAR": "Ano início",
+        "END_YEAR": "Ano fim",
+        "EFFORT_Q1": "Esforço T1",
+        "EFFORT_Q2": "Esforço T2",
+        "EFFORT_Q3": "Esforço T3",
+        "EFFORT_Q4": "Esforço T4",
+        "PARAMETERS": "Parâmetros recolhidos",
+        "COMMENTS": "Comentários",
+        "AGE": "Idade",
+        "SEX": "Sexo",
+        "WEIGHT": "Peso",
+        "LENGTH": "Tamanho",
+        "MATURITY": "Maturidade",
+        "OTHER": "Outro",
+        "SAMPLING": {
+          "BTN_ADD_DATA_DOTS": "Adicionar uma saída ou uma amostragem...",
+          "LABEL": "Código da linha",
+          "LOCATIONS": "Zona(s) de pesca",
+          "ANALYTIC_REFERENCE": "EOTP",
+          "RECORDER_DEPARTMENTS": "Laboratório(s) de inserção",
+          "TAXON_NAMES": "Espécie alvo",
+          "QUARTERS_DOTS": "Esforços:",
+          "PARAMETER_GROUPS": "Parâmetros a medir",
+          "PARAMETERS": "Parâmetros a medir",
+          "PARAMETERS_DOTS": "Parâmetros a medir:",
+          "COMMENTS": "Comentários",
+          "AGE": "Idade",
+          "SEX": "Sexo",
+          "WEIGHT": "Peso",
+          "LENGTH": "Tamanho",
+          "MATURITY": "Maturidade",
+          "OTHER": "Outro"
+        }
+      },
+      "TRANSCRIBING_MODAL": {
+        "TITLE": "Transcodificações a validar"
+      },
+      "SUMMARY": {
+        "TITLE": "Estratégia",
+        "LOCATIONS": "Locais aplicáveis:",
+        "TAXON_NAMES": "Espécie(s) científica(s):",
+        "TAXON_GROUPS": "Espécie(s) comercial(is):",
+        "BTN_SHOW": "Abrir a estratégia",
+        "SAMPLING": {
+          "TITLE": "Plano de amostragem",
+          "LOCATIONS": "Zona(s) de pesca:",
+          "TAXON_NAMES": "Espécie alvo:",
+          "TAXON_GROUPS": "Espécies comerciais:",
+          "BTN_SHOW": "Abrir a linha de plano"
+        }
+      },
+      "PMFM_STRATEGY": {
+        "ACQUISITION_LEVEL": "Nível de aquisição",
+        "RANK_ORDER": "Ordem",
+        "PMFM": "PSFM",
+        "PARAMETER": "Parâmetro",
+        "MATRIX": "Suporte",
+        "FRACTION": "Fração",
+        "METHOD": "Método",
+        "UNIT": "Unidade",
+        "IS_MANDATORY": "Obrig?",
+        "ACQUISITION_NUMBER": "Nº aquis.",
+        "MIN_VALUE": "Mín",
+        "MAX_VALUE": "Máx",
+        "DEFAULT_VALUE": "Valor predefinido",
+        "DEFAULT_QUALITATIVE_VALUE": "Valor predefinido",
+        "CONDITIONS": "Condições",
+        "TABLE": {
+          "TITLE": "Parâmetros recolhidos"
+        }
+      },
+      "ERROR": {
+        "LOAD_STRATEGY_LABEL_ERROR": "Erro ao carregar o código da estratégia",
+        "LOAD_STRATEGY_SAMPLE_LABEL_ERROR": "Erro ao carregar o código da amostra da estratégia",
+        "LOAD_STRATEGY_REFERENCES_ERROR": "Erro ao carregar as referências analíticas para a estratégia",
+        "LOAD_STRATEGY_ERROR": "Erro ao carregar a estratégia",
+        "STRATEGY_DUPLICATED": "Duplicação de estratégia",
+        "STRATEGY_NOT_FOUND_OR_ALLOWED": "Estratégia não autorizada ou não encontrada.",
+        "PARAMETERS.MIN_LENGTH": "O número de parâmetros a medir deve ser igual ou superior a {{minLength}}",
+        "PARAMETERS.WEIGHT_OR_LENGTH": "O peso ou o tamanho é obrigatório",
+        "PARAMETERS.MISSING_FRACTION": "Pelo menos uma peça calcificada é obrigatória",
+        "EFFORT.MIN_LENGTH": "O número de esforços deve ser igual ou superior a {{minLength}}",
+        "EFFORT.REALIZED_EFFORT": "Esforço obrigatório para o(s) trimestre(s) {{quarters}} que tenham medidas individuais",
+        "LABEL.UNIQUE": "O código da linha de plano já existe",
+        "LABEL.ZERO": "O incremento mínimo é 001",
+        "STRATEGY_HAS_DATA": "A linha de plano {{ label }} está ligada a uma ou várias observações individuais",
+        "STRATEGIES_HAS_DATA": "As linhas de plano {{ label }} estão ligadas a uma ou várias observações individuais",
+        "CANNOT_COMPUTE_TAXON_CODE": "Por favor, insira manualmente o código de espécie do código da linha de plano",
+        "NOT_UNIQUE_TAXON_CODE": "O código de espécie gerado não é único, por favor insira-o manualmente",
+        "SUBSCRIBE_AUTHORIZED_PROGRAMS": "Erro de subscrição aos programas de recolha autorizados"
+      },
+      "CONFIRM": {
+        "MANY_PMFM_DELETED": "ATENÇÃO! Vários parâmetros recolhidos ({{count}}) <b>serão removidos</b> da estratégia.<br/><br/><b>Tem a certeza</b> que pretende continuar?",
+        "RELOAD_PAGE": "Pretende recarregar a página para <b>cancelar as suas últimas alterações</b>?"
+      }
+    },
+    "INFO": {
+      "AUTHORIZED_PROGRAMS_UPDATED": "Os seus <b>direitos de acesso</b> foram <b>atualizados</b>!"
+    },
+    "ERROR": {
+      "LOAD_PROGRAM_ERROR": "Erro ao carregar o programa",
+      "LOAD_PROGRAMS_ERROR": "Erro ao carregar os programas",
+      "SAVE_PROGRAM_ERROR": "Erro ao guardar o programa",
+      "SAVE_PROGRAMS_ERROR": "Erro ao guardar os programas"
+    }
+  },
+  "EXTRACTION": {
+    "BTN_DOWNLOAD_HELP": "Descarregar os dados (CSV)",
+    "BTN_SAVE_HELP": "Permite criar um produto",
+    "NEW_SPATIAL_AGGREGATION": "Criar uma agregação espacial...",
+    "NEW_PRODUCT": "Criar um novo produto",
+    "BTN_PUBLISH": "Tornar público",
+    "BTN_UNPUBLISH": "Tornar privado",
+    "BTN_OPEN_MAP": "Visualizar os dados num mapa",
+    "TYPE": "Tipo de extração",
+    "TYPES_MENU": {
+      "PRODUCT_DIVIDER": "Produtos",
+      "SPATIAL_PRODUCT_DIVIDER": "Mapas",
+      "LIVE_DIVIDER": "Formatos em tempo real",
+      "PROGRAM_DIVIDER": "Programas de recolha"
+    },
+    "AGGREGATION": {
+      "NEW": {
+        "TITLE": "Novo produto",
+        "DEFAULT_NAME": "Nova agregação {{format}}"
+      },
+      "EDIT": {
+        "TITLE": "<small>Produto<br/></small>{{name}}",
+        "IS_SPATIAL": "Agregação espacial?",
+        "BTN_OPEN_MAP": "Ver o mapa",
+        "BTN_EXECUTE": "Executar",
+        "BTN_EXECUTE_HELP": "Executar agora",
+        "BTN_PREVIEW_DOC": "Pré-visualizar a doc",
+        "FILTER_DOTS": "Filtro sobre a fonte dos dados:",
+        "STRATUM_DOTS": "Camadas geográficas:",
+        "FORMAT_DOTS": "Documentação do formato:",
+        "MARKDOWN_HELP": "Inserir no formato <a href=\"https://www.markdownguide.org/getting-started/\" target=\"_blank\">markdown</a>",
+        "FORMAT_PLACEHOLDER": "Descreva o formato de saída...",
+        "FORMAT_PREVIEW_DOTS": "Pré-visualização:",
+        "PROCESSING_FREQUENCY": "Frequência de atualização",
+        "TAB_GENERAL": "Detalhes",
+        "TAB_DATASOURCE": "Filtro",
+        "TAB_RESULT": "Resultado",
+        "STRATA": {
+          "SHEET_NAME": "Camada",
+          "TIME_COLUMN": "Tempo",
+          "SPACE_COLUMN": "Geometria",
+          "AGG_COLUMN": "Acumulação",
+          "AGG_FUNCTION": "Função de acumulação",
+          "TECH_COLUMN": "Técnica"
+        },
+        "AGG_FUNCTION": {
+          "SUM": "Soma",
+          "AVG": "Média"
+        },
+        "STATUS_ENUM": {
+          "PUBLIC": "Visibilidade: pública",
+          "PRIVATE": "Visibilidade: privada",
+          "DISABLE": "Obsoleto"
+        },
+        "PROCESSING_FREQUENCY_ENUM": {
+          "NEVER": "Nunca",
+          "MANUALLY": "Manual",
+          "HOURLY": "De hora em hora",
+          "DAILY": "Diária",
+          "WEEKLY": "Semanal",
+          "MONTHLY": "Mensal"
+        }
+      }
+    },
+    "FILTER": {
+      "TITLE": "Filtrar os dados:",
+      "CRITERION_NAME": "Critério de filtro",
+      "CRITERION_VALUE": "Valor",
+      "CRITERION_START_VALUE": "Início",
+      "CRITERION_END_VALUE": "Fim",
+      "BTN_ADD_CRITERION": "Adicionar um critério de pesquisa",
+      "BETWEEN": "entre",
+      "NULL": "vazio",
+      "NOT_NULL": "não vazio",
+      "HELP": "Para filtrar rapidamente, clique na célula. Mantenha a tecla 'Ctrl' para filtrar por vários valores.",
+      "NO_FILTER_PARENTHESIS": "(não filtrados)",
+      "WITH_FILTER_PARENTHESIS": "(filtrados)",
+      "BTN_EXCLUDE_INVALID_DATA": "Excluir dados inválidos"
+    },
+    "HELP": {
+      "MODAL": {
+        "TITLE": "Ajuda > {{name}}",
+        "DESCRIPTION": "Descrição",
+        "FORMAT": "Formato"
+      }
+    },
+    "TABLE": {
+      "TITLE": "Extração de dados",
+      "BTN_SELECT_TYPE": "Fontes<span class=\"hidden-xs hidden-sm\"> de dados</span>",
+      "SELECT_TYPE_HELP": "Por favor <b>escolha uma fonte de dados</b>, para iniciar uma extração:",
+      "BTN_REPORT": "Editar o relatório...",
+      "NO_ACCESS": "Não tem <b>direitos de acesso</b> à extração de dados.<small><br/>Por favor tente mais tarde ou contacte o seu administrador.</small>"
+    },
+    "MAP": {
+      "BTN_MAP_LIST": "Lista de mapas",
+      "BTN_MAPS": "Mapas",
+      "BTN_SELECT_TYPE_HELP": "Mostra a lista de mapas disponíveis",
+      "BTN_SELECT_AGG": "Indicador?",
+      "BTN_ADD_CHART": "Gráfico...",
+      "BTN_ADD_CHART_HELP": "Adicionar um gráfico",
+      "BTN_EDIT": "Editar",
+      "BTN_ANIMATION_PLAY": "Iniciar a animação",
+      "BTN_ANIMATION_PAUSE": "Parar a animação",
+      "BTN_CHART_SERIES_HELP": "Clique aqui para alterar a série do gráfico",
+      "BTN_EDIT_LEGEND_HELP": "Configurar a legenda",
+      "LAYER": "Camada",
+      "LAYERS": "Camadas de dados",
+      "SHOW_INVALID_GEOMETRIES": "Ver todas as geometrias",
+      "FILTER": "Filtro",
+      "YEAR": "Ano",
+      "SPACE": "Geometria",
+      "AGG_VALUE": "Indicador",
+      "TECH_VALUE": "Série do gráfico",
+      "DISPLAY_OPTIONS": "Opções de visualização",
+      "QUARTER": "Trimestre",
+      "DETAILS": "Detalhes",
+      "TECH_CHART_TITLE": "{{aggColumnName}} por <b>{{techColumnName}}</b>",
+      "FREEZE_VALUES": "Fixar os valores",
+      "LEGEND": "Legenda",
+      "SCALE_LINEAR": "Linear",
+      "SCALE_LOGARITHMIC": "Logarítmica",
+      "CHART_AXIS_Y": "Escala Y (esquerda)",
+      "CHART_AXIS_X": "Escala X (baixo)",
+      "LEGEND_FORM": {
+        "TITLE": "Parâmetros",
+        "OPACITY_PLACEHOLDER": "Opacidade (%)",
+        "MIN": "Mín:",
+        "MAX": "Máx:"
+      },
+      "CHART_TYPE": {
+        "TITLE": "Tipo de gráfico",
+        "PIE": "Circular",
+        "BAR": "Histograma",
+        "DOUGHNUT": "Donut"
+      },
+      "CHART_SORT_BY": {
+        "TITLE": "Ordenar por",
+        "LABEL": "Legenda (asc)",
+        "VALUE": "Valor (desc)"
+      },
+      "SELECT_MODAL": {
+        "TITLE": "Lista de mapas",
+        "HELP": "Por favor escolha o mapa a mostrar:"
+      },
+      "WARNING": {
+        "NO_DATA": "Nenhum dado encontrado. Por favor escolha outro mapa."
+      }
+    },
+    "CATEGORY": {
+      "PRODUCT": "Produtos",
+      "SPATIAL_PRODUCT": "Mapas",
+      "LIVE": "Tempo real"
+    },
+    "COLUMNS": {
+      "VESSEL_FLAG_COUNTRY": "Pavilhão",
+      "LANDING_COUNTRY": "País de desembarque",
+      "RECORD_TYPE": "Tipo",
+      "HARBOUR": "Porto",
+      "HARBOUR_LABEL": "Código do porto",
+      "HARBOUR_NAME": "Nome do porto",
+      "PROJECT": "Programa de recolha",
+      "TRIP_CODE": "Código de viagem",
+      "STATION_NUMBER": "Número da estação",
+      "SAMPLING_TYPE": "Tipo de amostragem",
+      "YEAR": "Ano",
+      "QUARTER": "Trimestre",
+      "MONTH": "Mês",
+      "AREA": "Zona",
+      "STATISTICAL_RECTANGLE": "Retângulo estatístico",
+      "SQUARE": "Quadrado 10'x10'",
+      "SUB_POLYGON": "Sub-retângulo",
+      "SPECIES": "Espécie",
+      "TAXON_CODE": "Código do táxon",
+      "TAXON_NAME": "Nome do táxon",
+      "OFFICIAL_LANDING_WEIGHT": "Peso oficial desembarcado",
+      "COMMERCIAL_SIZE_CATEGORY": "Categoria comercial",
+      "COMMERCIAL_SIZE_CATEGORY_SCALE": "Tipo de categoria comercial",
+      "VESSEL_LENGTH_CATEGORY": "Classe de comprimento da embarcação",
+      "VESSEL_LENGTH_CLASS": "Classe de comprimento da embarcação",
+      "GEAR_TYPE": "Arte de pesca",
+      "LENGTH_CLASS": "Classe de tamanho",
+      "CATCH_CATEGORY": "Desembarque/Rejeição",
+      "LANDING_CATEGORY": "Destino do desembarque",
+      "NUMBER_AT_LENGTH": "Número de indivíduos",
+      "INDIVIDUAL_SEX": "Sexo do indivíduo",
+      "SEX": "Sexo",
+      "WEIGHT": "Peso (g)",
+      "SUBSAMPLE_WEIGHT": "Peso amostrado (g)",
+      "SUBSAMPLING_WEIGHT": "Peso amostrado (g)",
+      "SUBSAMPLE_INDIVIDUAL_COUNT": "Número de indivíduos amostrados",
+      "SUBSAMPLING_INDIVIDUAL_COUNT": "Número de indivíduos amostrados",
+      "SUBSAMPLING_RATIO": "Taxa de subamostragem",
+      "SUBSAMPLING_CATEGORY": "Categoria de subamostragem",
+      "STATION_COUNT": "Número de estações",
+      "TRIP_COUNT_BY_STATION": "Nº de viagens, por estação",
+      "TRIP_COUNT_BY_FISHING_TIME": "Nº de viagens, por tempo de pesca",
+      "VESSEL_COUNT": "Número de embarcações",
+      "DATE": "Data",
+      "TIME": "Hora",
+      "FISHING_DATE": "Data",
+      "FISHING_TIME": "Tempo de pesca (min)",
+      "OFFICIAL_LANDINGS_VALUE": "Valor oficial desembarcado (€)",
+      "OFFICIAL_LANDINGS_WEIGHT": "Peso oficial desembarcado (g)",
+      "NB_FISHERMEN": "Número de tripulantes a bordo",
+      "GEAR_LABEL": "Nome da arte de pesca",
+      "SMALLER_MESH_GAUGE": "Malhagem ao calibrador",
+      "NAME": "Nome",
+      "NET_LENGTH": "Comprimento largado",
+      "NET_HEIGHT": "Altura da rede",
+      "LENGTH_TOTAL_KM": "Comprimento total (km)",
+      "LENGTH_TOTAL_CM": "Comprimento total (cm)",
+      "LENGTH_CARAPACE_CM": "Comprimento cefalotorácico (cm)",
+      "SEGMENT_LENGTH": "Comprimento do segundo segmento (cm)",
+      "HAS_BUOY": "Presença de flutuador?",
+      "WIND_FORCE": "Força do vento",
+      "SEA_STATE": "Estado do mar",
+      "HAS_INDIVIDUAL_MEASURES": "Medidas individuais?",
+      "DOLPHIN_PRESENCE": "Golfinho à volta da embarcação?",
+      "IS_ACOUSTIC_DEVICE": "Dispositivo(s) repulsivo(s) acústico(s)?",
+      "HAS_ACCIDENTAL_CATCHES": "Capturas acidentais?",
+      "DISCARD_REASON": "Razão da rejeição",
+      "DRESSING_POL": "Apresentação",
+      "SPECIES_CODE": "Código da espécie",
+      "SPECIES_NAME": "Espécie",
+      "CAPTURE_TRACE": "Vestígio de captura?",
+      "HAS_INJURIES": "Ferimentos?",
+      "INDIVIDUAL_ON_DECK": "Trazido para o convés?",
+      "IS_DEAD": "Morto?",
+      "COMMENTS": "Comentários",
+      "MEASURE_TIME": "Data e hora da medição",
+      "MEASURE_TYPE": "Tipo de medição",
+      "GPS_USED": "Utilização de GPS?",
+      "CAMERA_USED": "Utilização de câmera?",
+      "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Peso RTP",
+      "CATCH_WEIGHT": "Peso total da captura",
+      "DISCARD_WEIGHT": "Peso total da rejeição",
+      "LENGTH_CODE": "Precisão do tamanho",
+      "OBSERVER_NAME": "Observador",
+      "OBSERVER_ID": "Identificador do observador",
+      "VESSEL_NAME": "Nome da embarcação",
+      "VESSEL_LENGTH": "Comprimento F.F da embarcação (m)",
+      "VESSEL_REGISTRATION_CODE": "Matrícula da embarcação",
+      "VESSEL_INT_REGISTRATION_CODE": "Matrícula internacional da embarcação",
+      "REGISTRATION_LOCATION_LABEL": "Local de matrícula",
+      "REGISTRATION_LOCATION_ID": "Identificador do local de matrícula",
+      "SURVEY_QUALIFICATION": "Qualificação do inquérito",
+      "RECORDER_PERSON_NAME": "Responsável pelo registo",
+      "RECORDER_PERSON_ID": "Identificador do responsável pelo registo",
+      "RECORDER_DEPARTMENT": "Organismo do responsável pelo registo"
+    },
+    "SHEET": {
+      "TR": "Viagens",
+      "HH": "Operações",
+      "CT": "Capturas",
+      "SL": "Espécies",
+      "HL": "Mensurações",
+      "CA": "Sexo-Idade",
+      "CL": "Desembarques",
+      "CE": "Esforços",
+      "ST": "Seguimentos individuais",
+      "RL": "Libertação",
+      "FG": "Artes de pesca"
+    },
+    "OPTIONS": {
+      "ENABLE": "Extração > Ativar?",
+      "MAP_ENABLE": "Extração > Mapas: Ativar?",
+      "MAP_CENTER_LAT_LNG": "Extração > Mapas: Posição por defeito (lat,lng)",
+      "MAP_CENTER_ZOOM": "Extração > Mapas: Zoom por defeito (1 a 18)",
+      "PRODUCT_ENABLE": "Extração > Produtos: Ativar?",
+      "ACCESS_NOT_SELF_ROLE": "Extração > Função mín. para ver as extrações dos outros",
+      "BATCH_DENORMALIZATION_ENABLE": "Extração > Ativar a desnormalização dos lotes?",
+      "SPECIES_LENGTH_PMFM_IDS": "Extração > Mensurações (HL): PSFM(s) de comprimento",
+      "STRAT_MONITORING_SCIENTIFIC_CRUISE_ENABLE": "Extração > Seguimento das estratégias (SM): Ativar o seguimento das campanhas no mar?"
+    },
+    "PRODUCT": {
+      "NEW": {
+        "DEFAULT_NAME": "Novo produto {{format}}",
+        "DEFAULT_DESCRIPTION": "Criado por {{firstName}} {{lastName}}"
+      },
+      "P01_RDB": {
+        "TITLE": "Pedido de dados CIEM (RDB v1.3)"
+      },
+      "INFO": {
+        "UPDATED_SUCCEED": "Execução <b>concluída</b> com sucesso!"
+      }
+    },
+    "FORMAT": {
+      "APASE": {
+        "TITLE": "Viagens em bruto (APASE v{{version}})",
+        "NAME": "Seletividade de arrasto",
+        "SUB_GEAR_POSITION": "Posição da sub-arte",
+        "SUB_GEAR_IDENTIFIER": "Identificador da sub-arte",
+        "CATCH_WEIGHT": "Peso total da captura (g)",
+        "DISCARD_WEIGHT": "Peso total da rejeição (g)",
+        "ELEVATED_NUMBER_AT_LENGTH": "Número de indivíduos elevado"
+      },
+      "RDB": {
+        "TITLE": "Viagens em bruto (RDB v{{version}})",
+        "NAME": "Regional DataBase (CIEM)"
+      },
+      "COST": {
+        "TITLE": "Viagens em bruto (COST v{{version}})",
+        "NAME": "COST"
+      },
+      "FREE1": {
+        "TITLE": "Viagens em bruto (FREE v{{version}})",
+        "NAME": "FREE1",
+        "FISHING_TIME": "Hora",
+        "FISHING_DURATION": "Tempo de pesca (min)"
+      },
+      "FREE2": {
+        "TITLE": "Viagens em bruto (FREE2 v{{version}})",
+        "NAME": "FREE2",
+        "SHEET": {
+          "MAREE": "Viagens",
+          "OPERATION_PECHE": "Operações",
+          "ENGINS": "Artes",
+          "STRATEGIE": "Estratégia",
+          "DETAIL": "Detalhe",
+          "CAPTURES": "Capturas",
+          "MESURES": "Medidas"
+        }
+      },
+      "SURVIVAL_TEST": {
+        "TITLE": "Viagens em bruto (SUMARiS v{{version}})",
+        "NAME": "Testes de sobrevivência",
+        "SHEET": {
+          "ST": "Seguimentos individuais"
+        }
+      },
+      "RJB_TRIP": {
+        "TITLE": "Viagens Raias (RJB v{{version}})",
+        "NAME": "Raias",
+        "INDIVIDUAL_COUNT": "Número de indivíduos",
+        "SUBSAMPLE_INDIVIDUAL_COUNT": "Número de indivíduos amostrados"
+      },
+      "PMFM_TRIP": {
+        "TITLE": "Viagens em bruto > Genérico",
+        "TITLE_PROGRAM": "Viagens em bruto {{label}}",
+        "NAME": "Genérico",
+        "INDIVIDUAL_COUNT": "Número total de indivíduos",
+        "SUBSAMPLE_INDIVIDUAL_COUNT": "Número de indivíduos amostrados"
+      },
+      "ACTIMONIT": {
+        "TITLE": "Progresso dos calendários de atividade",
+        "NAME": "Progresso dos calendários de atividade",
+        "BASE_PORT_LOCATION_LABEL": "Porto de exploração",
+        "BASE_PORT_LOCATION_ID": "Identificador do porto de exploração",
+        "DIRECT_SURVEY_INVESTIGATION": "Objetivo de inquérito direto?",
+        "ECONOMIC_SURVEY": "Objetivo de inquérito económico?",
+        "QUALITY_STATUS": "Estado de validação",
+        "STATUS": "Estado de progresso",
+        "SHEET": {
+          "AC": "Calendários em bruto (AC)",
+          "AM": "Acompanhamento do registo (AM)"
+        }
+      },
+      "STRAT": {
+        "TITLE": "Estratégias de recolha",
+        "NAME": "Estratégias de recolha",
+        "SHEET": {
+          "ST": "Estratégias (ST)",
+          "SM": "Acompanhamento de estratégias (SM)"
+        }
+      },
+      "VESSEL": {
+        "TITLE": "Embarcações observadas",
+        "NAME": "Embarcações observadas",
+        "SHEET": {
+          "VE": "Embarcações"
+        }
+      },
+      "AGG_FREE": {
+        "FISHING_TIME": "Hora",
+        "FISHING_DURATION": "Tempo de pesca (min)"
+      }
+    },
+    "INFO": {
+      "PLEASE_WAIT_WHILE_RUNNING": "Extração em curso. Por favor aguarde..."
+    },
+    "ERROR": {
+      "LOAD_TYPES_ERROR": "Erro ao carregar os tipos de extração",
+      "LOAD_ROWS_ERROR": "Erro ao carregar as linhas de dados.",
+      "DOWNLOAD_FILE_ERROR": "Erro ao descarregar o ficheiro de extração.",
+      "LOAD_GEO_TYPES_ERROR": "Erro ao carregar os tipos de dados espaciais",
+      "LOAD_GEO_JSON_ERROR": "Erro ao carregar os dados espaciais",
+      "LOAD_TECH_ERROR": "Erro ao carregar os dados do gráfico",
+      "LOAD_MIN_MAX_ERROR": "Erro ao carregar os limites",
+      "UPDATE_PRODUCT_ERROR": "Erro durante a execução da extração"
+    }
+  },
+  "NETWORK": {
+    "BTN_CHECK_ALIVE": "Atualizar",
+    "BTN_UPDATE": "Atualizar",
+    "BTN_INIT_OFFLINE_MODE": "Ativar o modo offline",
+    "BTN_UPDATE_OFFLINE_MODE": "Atualizar o modo offline",
+    "PEER": {
+      "OFFLINE": "Nó inacessível",
+      "SELECT_MODAL": {
+        "TITLE": "Seleção do nó de rede",
+        "STARTUP_TITLE": "Iniciação",
+        "TAB_NETWORK": "Bases de dados",
+        "TAB_FEATURES": "Programas de recolha",
+        "BTN_SET_MANUALLY": "Inserir manualmente",
+        "NETWORK_HELP": "Por favor escolha a <b>base de dados</b> à qual deseja conectar-se:",
+        "FEATURES_HELP": "Por favor escolha um <b>programa de recolha ou experimentação</b> no qual deseja participar:",
+        "NOT_COMPATIBLE_HELP": "Versão necessária: v{{version}} ou +"
+      }
+    },
+    "SYNCHRONIZATION_STATUS": {
+      "DIRTY": "Não enviados",
+      "READY_TO_SYNC": "À espera de envio",
+      "SYNC": "Enviados"
+    },
+    "INFO": {
+      "IMPORTATION_PCT_DOTS": "Importação... {{pct}}%",
+      "IMPORTATION_SUCCEED": "Importação concluída com sucesso!<br/>O <b>registo offline</b> é agora possível.",
+      "OFFLINE": "Sem conexão de rede.",
+      "OFFLINE_OR_UNAUTHORIZED": "Sem conexão de rede, ou acesso não autorizado.",
+      "ONLINE": "Conexão de rede <b>estabelecida com sucesso</b>!",
+      "OFFLINE_HELP": "A aplicação está a funcionar em <b>modo offline</b>.",
+      "RETRY_TO_CONNECT": "<i>Tentativa de <b>conexão à rede...</b></i>",
+      "UPDATE_OFFLINE_MODE": "Atualização do <b>modo offline</b> disponível.",
+      "UPDATE_OFFLINE_MODE_HELP": "Antes da atualização, <b>por favor sincronize as suas eventuais viagens concluídas</b>."
+    },
+    "ERROR": {
+      "NOT_COMPATIBLE_PEER": "A aplicação está a funcionar em <b>modo offline</b>, porque o nó de rede <b>utiliza uma versão obsoleta</b>.<br/><small>Se o problema persistir, por favor <b>contacte o seu administrador</b> ou utilize um nó v{{version}} ou superior.</small>"
+    }
+  },
+  "MAP": {
+    "ZOOM_IN": "Ampliar",
+    "ZOOM_OUT": "Reduzir",
+    "ENTER_FULLSCREEN": "Ecrã completo",
+    "EXIT_FULLSCREEN": "Sair do ecrã completo",
+    "SHOW_GRATICULE": "Mostrar grelha",
+    "HIDE_GRATICULE": "Ocultar grelha"
+  },
+  "SOCIAL": {
+    "USER_EVENT": {
+      "NOTIFICATION": {
+        "TITLE": "Notificações",
+        "EMPTY": "Sem notificações",
+        "READ_ALL": "Marcar tudo como lido"
+      },
+      "TYPE": "Tipo",
+      "ICON": "Ícone",
+      "CREATION_DATE": "Data/Hora",
+      "MESSAGE": "Mensagem",
+      "BTN_COPY_TO_LOCAL": "Copiar localmente, para os dados não enviados",
+      "INFO": {
+        "COPIED_LOCALLY": "Copiado com sucesso, para os <b>dados não enviados</b>!"
+      },
+      "TYPE_ENUM": {
+        "DEBUG_DATA": "Problema reportado por <a>{{issuer}}</a>: <b>{{message}}</b>",
+        "INBOX_MESSAGE": "Recebeu <b>uma mensagem</b> de <a>{{issuer}}</a>",
+        "FEED": "Atualidade",
+        "JOB": "{{name}}<br/><b>{{status}}</b>"
+      }
+    },
+    "JOB": {
+      "UNKNOWN_JOB": "Processamento sem nome",
+      "BTN_REPORT": "Relatório",
+      "BTN_REPORT_HELP": "Ver o relatório de execução",
+      "JOB_TYPE": "Processamento",
+      "JOB_STATUS": "Estado de execução",
+      "JOB_ISSUER": "Utilizador",
+      "PROGRESSION": {
+        "TITLE": "Lista das tarefas em curso",
+        "EMPTY": "Nenhuma tarefa em curso"
+      },
+      "STATUS_ENUM": {
+        "PENDING": "Em espera",
+        "RUNNING": "Em curso",
+        "SUCCESS": "Concluído com sucesso",
+        "WARNING": "Concluído com avisos",
+        "ERROR": "Erro",
+        "FATAL": "Erro fatal",
+        "CANCELLED": "Cancelado"
+      },
+      "REPORT": {
+        "TITLE": "Relatório de execução",
+        "BTN_SHOW_LOG": "Mostrar o registo",
+        "STATS": {
+          "INSERTS": "Inserção(ões): {{inserts}}",
+          "UPDATES": "Atualização(ões): {{updates}}",
+          "DELETES": "Eliminação(ões): {{deletes}}",
+          "DISABLES": "Desativado(s): {{disables}}",
+          "WARNINGS": "Aviso(s): {{warnings}}",
+          "ERRORS": "Erro(s): {{errors}}",
+          "MIN_UPDATE_DATE": "min(update_date): '{{minUpdateDate}}'",
+          "FILTER_START_DATE": "Início do período: '{{filterStartDate}}'",
+          "VESSELS": "Navio(s): {{vessels}}"
+        }
+      },
+      "TYPE_ENUM": {
+        "VESSEL_SNAPSHOTS_INDEXATION": "Indexação de navios no ElasticSearch",
+        "SIOP_VESSELS_IMPORTATION": "Importação de navios SIOP",
+        "SYS_P_FILL_TAXON_GROUP_HIERARCHY": "Atualização da hierarquia de grupos de táxons",
+        "SYS_P_FILL_LOCATION_HIERARCHY": "Atualização da hierarquia de locais",
+        "SUMARIS_EXTRACTION": "Extração de dados",
+        "DENORMALIZE_BATCH": "Desnormalização de lotes",
+        "ACTIVITY_CALENDARS_IMPORTATION": "Importação de calendário de atividades"
+      },
+      "ERROR": {
+        "LOAD_TYPES_ERROR": "Erro ao carregar os tipos de processamento",
+        "RUN_JOB_ERROR": "Erro ao iniciar o processamento"
+      }
+    },
+    "MESSAGE": {
+      "TYPE": "Tipo de envio",
+      "RECIPIENTS": "Destinatários",
+      "RECIPIENT_FILTER_COUNT": "{{count}} utilizador(es) filtrado(s)",
+      "SUBJECT": "Assunto",
+      "BODY_HELP": "A sua mensagem...",
+      "NEW": {
+        "TITLE": "Nova mensagem"
+      },
+      "VIEW": {
+        "TITLE": "Mensagem"
+      },
+      "INBOX": {
+        "TITLE": "Mensagens",
+        "FROM": "De: ",
+        "BTN_COMPOSE": "Nova mensagem",
+        "BTN_REPLY": "Responder",
+        "BTN_FORWARD_DOTS": "Encaminhar...",
+        "REPLY_SUBJECT_PREFIX": "Re: ",
+        "FORWARD_SUBJECT_PREFIX": "Enc: ",
+        "FORWARD_BODY_PREFIX": "---------- Mensagem encaminhada ---------\nDe: {{issuer}}\nData: ({{date}})\n\n\n"
+      },
+      "TYPE_ENUM": {
+        "INBOX_MESSAGE": "Mensagem interna",
+        "EMAIL": "Email",
+        "FEED": "Atualidade"
+      }
+    },
+    "ERROR": {
+      "LOAD_USER_EVENTS_ERROR": "Erro ao carregar as notificações",
+      "COUNT_USER_EVENT_ERROR": "Erro ao contar as notificações",
+      "SAVE_USER_EVENT_ERROR": "Erro ao guardar a notificação",
+      "SUBSCRIBE_USER_EVENTS_ERROR": "Erro ao subscrever as notificações",
+      "SEND_MESSAGE_ERROR": "Erro ao enviar a mensagem",
+      "LOAD_JOB_PROGRESSIONS_ERROR": "Erro ao carregar as tarefas",
+      "SUBSCRIBE_JOB_PROGRESSION_ERROR": "Erro ao subscrever uma tarefa"
+    },
+    "INFO": {
+      "MESSAGE_SENT": "Mensagem <b>enviada</b>"
+    }
+  },
+  "JOB": {
+    "LIST": {
+      "TITLE": "Lista de processamentos",
+      "STOP_JOB": "Parar o processamento",
+      "JOB_NAME": "Nome do processamento",
+      "JOB_DESCRIPTION": "Descrição do processamento",
+      "JOB_TYPE": "Tipo de processamento",
+      "JOB_RECIPIENT": "Destinatário",
+      "JOB_PROGRESS": "Progresso"
+    }
+  },
+  "FILE": {
+    "JSON": {
+      "ENCODING": "UTF-8",
+      "FORMAT": "JSON",
+      "BTN_DOWNLOAD_HELP": "Transferir os dados (JSON)"
+    },
+    "CSV": {
+      "SEPARATOR": ";",
+      "ENCODING": "UTF-8",
+      "FORMAT": "CSV",
+      "BTN_DOWNLOAD_HELP": "Transferir os dados (CSV)",
+      "ERROR": {
+        "EMPTY_FILE": "Ficheiro vazio, ou linha de cabeçalho em falta",
+        "NO_HEADER_OR_INVALID_SEPARATOR": "Linha de cabeçalho inválida. Verifique se o separador '{{separator}}' é utilizado.",
+        "UNKNOWN_HEADERS": "Cabeçalho(s) de coluna inválido(s): {{headers}}"
+      }
+    },
+    "UPLOAD": {
+      "DRAG_AND_DROP": "Arrastar e soltar um ficheiro{{ extension }} aqui<br/>ou",
+      "BROWSE": "Procurar",
+      "IMPORTING": "Importação em curso",
+      "ERROR": "Erro durante o envio do ficheiro"
+    },
+    "PROPERTIES": {
+      "CSV_FILENAME": "{{label}}-opcoes.csv",
+      "LABEL_HEADER": "Código",
+      "VALUE_HEADER": "Valor",
+      "DESCRIPTION_HEADER": "Descrição",
+      "ERROR": {
+        "IMPORT_ERROR": "Falha na importação:<br/>{{error}}"
+      }
+    }
+  },
+  "IMAGE": {
+    "BTN_CAMERA_SOURCE": "Tirar uma foto",
+    "BTN_GALLERY_SOURCE": "Abrir a galeria",
+    "GALLERY": {
+      "BTN_EDIT_TITLE": "Editar o título",
+      "BTN_ADD_TITLE": "Adicionar um título",
+      "TITLE": "Título"
+    }
+  },
+  "DEVICE_POSITION": {
+    "MAP": {
+      "TITLE": "Mapas das posições",
+      "EXPORT_CSV_FILENAME": "Posicoes.csv",
+      "EXPORT_GEOJSON_FILENAME": "Posicoes.geojson",
+      "FILTER": {
+        "RECORDER_PERSON": "Registador",
+        "START_DATE": "Início do período",
+        "END_DATE": "Fim do período"
+      },
+      "TABLE": {
+        "TITLE": "Lista das posições",
+        "LIMIT_TO": "Limitado a {{visibleTotal}} resultados de {{total}}",
+        "BTN_OPEN_DATA": "Abrir os dados",
+        "RECORDER_PERSON": "Registador",
+        "DATE_TIME": "Data/Hora",
+        "LATITUDE": "Latitude",
+        "LONGITUDE": "Longitude",
+        "OBJECT_TYPE": "Tipo de dados"
+      }
+    },
+    "OPTIONS": {
+      "TIMER_PERIOD": "Sensor GPS > Intervalo de recuperação em segundo plano (ms)",
+      "TRACKING_ENABLE": "Sensor GPS > Ativar o rastreamento de posições",
+      "TRACKING_SAVE_PERIOD": "Sensor GPS > Rastreamento de posições: Intervalo de salvamento (ms)"
+    },
+    "ERROR": {
+      "NEED_GEOLOCATION": "<b>Ativação da geolocalização necessária</b><br/><br/>Para poder utilizar corretamente a aplicação, por favor autorize a geolocalização do dispositivo."
+    }
+  },
+  "SHARED": {
+    "BLUETOOTH": {
+      "TITLE": "Configurações Bluetooth",
+      "ENABLED": "Ativado",
+      "DISABLED": "Desativado",
+      "SCANNING_DOTS": "Análise em curso...",
+      "AVAILABLE_DEVICES": "Dispositivos disponíveis:",
+      "ADDRESS": "Endereço (MAC)",
+      "NAME": "Nome",
+      "NO_DEVICE": "Nenhum dispositivo encontrado",
+      "BTN_SCAN": "Analisar",
+      "BTN_DISCONNECT": "Desconectar",
+      "ERROR": {
+        "DISABLED": "O bluetooth está desativado",
+        "SCAN_FAILED": "Falha na análise",
+        "ENABLE_FAILED": "Falha na ativação do bluetooth"
+      }
+    },
+    "ICHTHYOMETER": {
+      "TITLE": "Ictiômetro Bluetooth",
+      "SETTINGS": {
+        "DEVICES": "Ictiômetro > Dispositivo(s) conhecido(s)",
+        "AUTO_DISCONNECT": "Ictiômetro > Desconexão automática?",
+        "AUTO_DISCONNECT_ENUM": {
+          "-1": "Nunca",
+          "60000": "Após 1 min",
+          "300000": "Após 5 min",
+          "600000": "Após 10 min"
+        }
+      },
+      "ERROR": {
+        "CONNECTION_ERROR": "Falha na conexão ao ictiômetro '{{name}}'",
+        "CREATE_FAILED": "Falha na criação do ictiômetro '{{type}}'",
+        "UNKNOWN_TYPE": "Tipo de ictiômetro desconhecido: '{{type}}'"
+      }
+    }
+  },
+  "ACTIVITY_CALENDAR": {
+    "TABLE": {
+      "QUALITY": "Estado",
+      "PROGRAM": "Programa",
+      "RECORDER_PERSON": "Registador",
+      "RECORDER_DEPARTMENT": "Organismo registador",
+      "DIRECT_SURVEY_INVESTIGATION": "Objetivo de inquérito direto?",
+      "DOWNLOAD_JSON_FILENAME": "calendarios-atividade-{{year}}.json",
+      "ECONOMIC_SURVEY": "Objetivo de inquérito eco?",
+      "REGISTRATION_LOCATION": "Local de registo",
+      "VESSEL": "Navio",
+      "UPDATE_DATE": "Data de modificação",
+      "YEAR": "Ano",
+      "COMMENTS": "Comentários",
+      "NO_LOCAL_RESULT": "Nenhum resultado (entre os calendários <b>não sincronizados</b>)",
+      "BTN_NEW_OFFLINE": "Entrada de campo (modo offline)",
+      "BTN_NEW_ONLINE": "Entrada de escritório (modo conectado)",
+      "OBSERVERS": "Observador(es)",
+      "FILTER": {
+        "PROGRAM": "Programa de coleta",
+        "REGISTRATION_LOCATION": "Local de registo",
+        "BASE_PORT_LOCATION": "Porto de exploração",
+        "DIRECT_SURVEY_INVESTIGATION": "Objetivo de inquérito direto?",
+        "ECONOMIC_SURVEY": "Objetivo de inquérito eco?",
+        "RECORDER_PERSON": "Registador",
+        "RECORDER_DEPARTMENT": "Organismo registador",
+        "VESSEL": "Navio",
+        "VESSEL_TYPE": "Tipo de navio",
+        "OBSERVERS": "Observador(es)",
+        "QUALITY_FLAG_ID": "Nível de qualidade",
+        "YEAR": "Ano"
+      },
+      "CONFIRM": {
+        "LONG_TIME_REPORT_GENERATION": "Além de <b>{{nbLimit}} calendários</b> a geração do relatório pode ser demorada.<br/><br/><b>Tem certeza</b> que deseja continuar?"
+      }
+    },
+    "NEW": {
+      "TITLE": "Novo calendário de atividade"
+    },
+    "EDIT": {
+      "TITLE": "<small>{{vessel}}<br></small>Atividade {{year}}",
+      "TITLE_MENU": "{{vessel}} - Atividade {{year}}",
+      "PREDOC_TITLE": "Pré-documentação",
+      "BASE_PORT_LOCATION": "Porto de exploração",
+      "SOURCE": "Fonte",
+      "ERRORS": "Erro(s) ",
+      "SOURCE_PREDOC": "",
+      "BTN_ADD_METIER_BLOCK": "Adicionar um bloco de métier",
+      "BTN_REPORT": "Editar o relatório...",
+      "BTN_EXPERTISE_AREA": "Área de competência...",
+      "BTN_NO_EXPERTISE_AREA": "Nenhuma área de competência",
+      "BTN_EXPAND_ALL": "Expandir as linhas\n(duplo clique para expandir tudo)",
+      "BTN_COLLAPSE_ALL": "Recolher as linhas\n(duplo clique para recolher tudo)",
+      "BTN_CLEAR_MONTH": "Esvaziar o mês",
+      "BTN_COPY_PASTE_ALL": "Copiar e colar",
+      "BTN_COLLAPSE_AFTER_SAVE": "Recolher tudo após salvar",
+      "HIDE_PREDOC": "Ocultar a pré-documentação",
+      "SHOW_PREDOC": "Mostrar a pré-documentação",
+      "BTN_SHOW_PREDOC": "<u>P</u>ré-documentação",
+      "YEAR": "Ano:",
+      "VESSEL_SNAPSHOT": "Navio",
+      "DIRECT_SURVEY_INVESTIGATION": "Objetivo de inquérito direto?",
+      "ECONOMIC_SURVEY": "Objetivo de inquérito eco?",
+      "YEAR_PLACEHOLDER": "Ano",
+      "METIER": "Métier",
+      "GEAR": "Equipamento",
+      "METIER_RANKED": "Métier #{{rankOrder}}",
+      "FISHING_AREA": "Área de pesca",
+      "FISHING_AREA_RANKED": "Área de pesca #{{rankOrder}}",
+      "DISTANCE_TO_COAST_GRADIENT": "Gradiente costa",
+      "DEPTH_GRADIENT": "Profundidade",
+      "NEARBY_SPECIFIC_AREA": "Área próxima",
+      "TAB_GENERAL": "Geral",
+      "TAB_VESSEL": "Navio",
+      "TAB_HISTORY": "Histórico",
+      "TAB_PHOTO": "Fotos",
+      "TAB_CALENDAR": "Calendário",
+      "TAB_METIER": "Métiers",
+      "TAB_MAP": "Mapa",
+      "VESSEL_OWNER": "Armador",
+      "REGISTRATION_LOCATION": "Local de registo",
+      "IS_ACTIVE": "Ativo?",
+      "OTHER_FEATURES": "Características de inquérito:",
+      "VESSEL_FEATURES_DIVIDER": "Características do navio",
+      "VESSEL_REGISTRATION_DIVIDER": "Registos",
+      "VESSEL_OWNER_DIVIDER": "Armadores",
+      "PHOTO": "Fotos",
+      "OBSERVERS": "Observador(es):",
+      "OBSERVER_PLACEHOLDER": "Observador #",
+      "BTN_DELETE_CALENDAR": "Eliminar",
+      "BTN_CLEAR_CALENDAR": "Esvaziar o calendário",
+      "BTN_DELETE_CONFLICT": "Eliminar este mês em conflito",
+      "NO_DATA_REQUIRED": "Nenhum dado necessário",
+      "IS_ACTIVE_ENUM": {
+        "ENABLE": "Ativo",
+        "DISABLE": "Inativo",
+        "NOT_EXISTS": "Inexistente"
+      },
+      "DIRECT_SURVEY_INVESTIGATION_ENUM": {
+        "NO": "Não",
+        "YES": "Sim",
+        "OPPORTUNISTIC": "Oportunista"
+      },
+      "SIH-ACTIFLOT": {
+        "SOURCE_PREDOC": "Inquérito N-1"
+      },
+      "SIH-ACTIPRED": {
+        "SOURCE_PREDOC": "Sacrois-ObsDeb"
+      }
+    },
+    "OFFLINE_MODAL": {
+      "TITLE": "Configuração do modo offline",
+      "VESSELS": "Navio(s)",
+      "ENABLE_HISTORICAL_DATA": "Importar o histórico de dados?",
+      "DURATION_PLACEHOLDER": "Período a importar"
+    },
+    "OPTIONS": {
+      "ENABLE": "Calendário de atividade > Ativar?",
+      "NAME": "Calendário de atividade > Título (menu, etc.)"
+    },
+    "REPORT": {
+      "TITLE": "Calendário de atividade {{ year }}",
+      "TITLE_MULTI": "Calendários de atividade",
+      "BLANK_TITLE": "Calendários de atividade em branco",
+      "BASE_PORT_LOCATION": "Porto de exploração",
+      "PMFM": {
+        "DURATION_AT_SEA_DAYS": "Nº dias mar",
+        "DURATION_AT_SEA_JOUR": "Nº dias mar",
+        "FISHING_DURATION_DAYS": "Nº dias pesca",
+        "FISHING_DURATION_JOUR": "Nº dias pesca",
+        "CREW_SIZE": "Nº pess. a bordo",
+        "NB_FISHERMEN": "Nº pess. a bordo"
+      },
+      "EFFORT_SECTION": {
+        "TITLE": "Esforço de pesca"
+      },
+      "METIERS_SECTION": {
+        "TITLE": "Métier",
+        "ROW_METIER": "Métiers",
+        "ROW_FISHING_AREA": "Área/Gradiente"
+      },
+      "VESSEL_SECTION": {
+        "TITLE": "Navio",
+        "EXTERIOR_MARKING": "Marcação exterior:",
+        "REGISTRATION_CODE": "Registo:",
+        "REGISTRATION_LOCATION": "Locais de registo:",
+        "VESSEL_NAME": "Nome:"
+      },
+      "SURVEY_QUALIFICATION_SECTION": {
+        "TITLE": "Qualificação do inquérito"
+      },
+      "GPF_SECTION": {
+        "TITLE": "Características equipamentos",
+        "METIER": "Métier(s)"
+      },
+      "VESSEL_OWNER_SECTION": {
+        "TITLE": "Último armador",
+        "NAME": "Nome:",
+        "ADDRESS": "Endereço:"
+      },
+      "SELL_SECTION": {
+        "TITLE": "Vendas",
+        "ENTIRELY_AUCTION": "Totalidade em leilão",
+        "PARTIALLY_AUCTION": "Parcialmente em leilão",
+        "OUTSIDE_AUCTION": "Totalidade fora de leilão"
+      },
+      "OBSERVER_SECTION": {
+        "TITLE": "Observador",
+        "LAST_NAME": "Sobrenome:",
+        "FIRST_NAME": "Nome:"
+      },
+      "REPORT_TYPE": {
+        "BLANK_FORM": "Formulário em branco",
+        "FORM": "Formulário com dados",
+        "PROGRESS": "Relatório de progresso"
+      },
+      "PROGRESS": {
+        "TITLE": "SIH - Inquérito de atividade das frotas {{ year }} - Relatório de progresso",
+        "COPYRIGHT": "© {{ year }} Ifremer - Sistema de Informações Haliêuticas",
+        "TABLE": {
+          "VESSEL": "Navio",
+          "NB_METIER_PEER_MONTH": "Número de métiers praticados por mês",
+          "COUNT_OF_EMPTY_MONTH": "Nº meses não preenchidos",
+          "CALENDAR_STATUS": "Estado calendário",
+          "VESSEL_REGISTRATION_LOCATION": "QIM",
+          "VESSEL_NAME": "Nome",
+          "VESSEL_LENGTH": "Comprimento T. (m)",
+          "SURVEY_QUALIFICATION_SECTION": "Qualificação do inquérito",
+          "MONTH1": "J",
+          "MONTH2": "F",
+          "MONTH3": "M",
+          "MONTH4": "A",
+          "MONTH5": "M",
+          "MONTH6": "J",
+          "MONTH7": "J",
+          "MONTH8": "A",
+          "MONTH9": "S",
+          "MONTH10": "O",
+          "MONTH11": "N",
+          "MONTH12": "D",
+          "STATUS": {
+            "EMPTY": "Não preenchido",
+            "COMPLETE": "Completo",
+            "INCOMPLETE": "Incompleto"
+          },
+          "ERROR": {
+            "REQUIRED_PORT": "Porto de exploração em falta",
+            "REQUIRED_METIER": "Métier em falta",
+            "REQUIRED_FISHING_AREA": "Área de pesca em falta",
+            "REQUIRED_DISTANCE_TO_COAST_GRADIENT": "Gradiente costa em falta",
+            "TOO_MANY_METIER": "Outros"
+          }
+        },
+        "SYNTHESIS": {
+          "TITLE": "Síntese do progresso dos calendários de atividade",
+          "VESSEL_COUNT": "Número de navios",
+          "DIRECT_SURVEY": "Inquéritos diretos",
+          "EMPTY_VESSEL": "Navios não preenchidos",
+          "INCOMPLETE_VESSEL": "Navios incompletos",
+          "COMPLETED_CALENDAR": "Calendários completos"
+        }
+      }
+    },
+    "CONFIRM": {
+      "CLEAR_MONTH": "<b>Tem certeza</b> que deseja esvaziar este mês?",
+      "CLEAR_CALENDAR": "<b>Tem certeza</b> que deseja esvaziar o calendário?",
+      "DELETE_CONFLICT": "<b>Tem certeza</b> que deseja eliminar este conflito?",
+      "KEEP_REMOTE": "<b>Tem certeza</b> que deseja manter os dados remotos?",
+      "COPY_PASTE": "<b>Tem certeza</b> que deseja copiar a pré-documentação para o calendário?"
+    },
+    "ERROR": {
+      "CANNOT_PASTE_HERE": "Não pode colar aqui.",
+      "CONFLICTUAL_MONTH": "Conflito detetado ao guardar o calendário",
+      "CSV_IMPORT_ERROR": "Falha na importação do ficheiro CSV.<small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+      "MAX_SELECTED_ITEMS": "Demasiados elementos selecionados",
+      "REQUIRED_METIER": "Arte de pesca obrigatória",
+      "REQUIRED_FISHING_AREA": "Zona de pesca obrigatória para a(s) arte(s) de pesca: {{metiers}}",
+      "REQUIRED_INACTIVITY_YEAR": "Inatividade anual a confirmar",
+      "REQUIRED_DISTANCE_TO_COAST": "Distância à costa obrigatória para a(s) zona(s) {{fishingArea}}",
+      "TOO_MANY_RESULT_FOR_REPORT_GENERATION": "Não pode gerar um relatório para mais de {{nbLimit}} calendários. Por favor, ajuste o seu filtro.",
+      "UNIQUE_METIER": "Arte(s) de pesca duplicada(s): {{metiers}}",
+      "UNIQUE_FISHING_AREA": "Zona(s) de pesca duplicada(s): {{fishingArea}}",
+      "VALID_MONTHS": "Por favor, corrija o(s) mês(es) inválido(s)",
+      "VALID_DAY_COUNT": "Número de dias incorreto para o mês",
+      "VALID_METIERS": "Por favor, corrija a(s) arte(s) de pesca inválida(s)"
+    },
+    "WARNING": {
+      "INCONSISTENT_DIRECT_SURVEY_QUALIFICATION": "Qualificação <b>{{surveyQualification}}</b> inconsistente com o objetivo.",
+      "UNAUTHORIZED_ACTION": "Não está <b>autorizado</b> a efetuar esta ação.",
+      "OUTSIDE_EXPERTISE_AREA_PASTE": "Os valores <b>fora da área de competência</b> não foram colados.",
+      "UNAUTHORIZED_PREDOC_PASTE": "Apenas os meses <b>autorizados</b> foram colados no calendário.",
+      "UNAUTHORIZED_REGISTRATION_LOCATION": "Não está <b>autorizado</b> a inserir neste local de registo."
+    }
+  },
+  "ERROR": {
+    "ALERT_HEADER": "Erro",
+    "FIELD_REQUIRED": "Campo obrigatório",
+    "FIELD_TOO_SHORT": "Valor demasiado curto",
+    "FIELD_MIN_LENGTH": "Valor demasiado curto (mínimo {{requiredLength}} caracteres)",
+    "FIELD_MIN_LENGTH_COMPACT": "Valor demasiado curto",
+    "FIELD_MAX_LENGTH": "Valor demasiado longo (máximo {{requiredLength}} caracteres)",
+    "FIELD_MAX_LENGTH_COMPACT": "Valor demasiado longo",
+    "FIELD_MIN": "Valor mínimo: {{min}}",
+    "FIELD_MIN_COMPACT": "Mín {{min}}",
+    "FIELD_MAX": "Valor máximo: {{max}}",
+    "FIELD_MAX_COMPACT": "Máx {{max}}",
+    "FIELD_MAXIMUM_DECIMALS": "Demasiadas casas decimais (máximo: {{maxDecimals}})",
+    "FIELD_MAXIMUM_DECIMALS_COMPACT": "N.º decimais > {{maxDecimals}}",
+    "FIELD_INVALID": "Valor inválido",
+    "FIELD_INCONSISTENT": "Valor inconsistente",
+    "FIELD_NOT_VALID_DECIMAL": "Valor decimal esperado",
+    "FIELD_NOT_VALID_INTEGER": "Valor inteiro esperado",
+    "FIELD_NOT_VALID_PRECISION": "Precisão mínima: {{precision}}",
+    "FIELD_NOT_VALID_PRECISION_COMPACT": "Precisão mín {{precision}}",
+    "FIELD_NOT_VALID_EMAIL": "Endereço de email inválido",
+    "FIELD_NOT_VALID_DATE": "Data inválida",
+    "FIELD_NOT_VALID_DATE_AFTER": "Deve ser posterior a {{minDate}}",
+    "FIELD_NOT_VALID_DATE_BEFORE": "Deve ser anterior a {{maxDate}}",
+    "FIELD_NOT_VALID_DATE_RANGE": "Datas inconsistentes",
+    "FIELD_NOT_VALID_DATE_MAX_DURATION": "Duração demasiado longa",
+    "FIELD_NOT_VALID_DATE_MIN_DURATION": "Duração demasiado curta",
+    "FIELD_NOT_VALID_HOUR_MINUTE": "Hora/minuto inválido",
+    "FIELD_NOT_VALID_DATE_TIME": "Data/hora inválida",
+    "FIELD_NOT_VALID_LATITUDE": "Latitude inválida",
+    "FIELD_NOT_VALID_LONGITUDE": "Longitude inválida",
+    "FIELD_NOT_VALID_PATTERN": "Formato incorreto",
+    "FIELD_NOT_VALID_PUBKEY": "Chave pública inválida",
+    "FIELD_NOT_UNIQUE": "Valor já utilizado",
+    "FIELD_NOT_EQUALS": "Valor diferente",
+    "SPACE_NOT_ALLOW": "Espaços ou caracteres especiais não permitidos",
+    "SCRYPT_ERROR": "Erro na geração das chaves de abertura da conta",
+    "INVALID_OR_INCOMPLETE_FILL": "Preenchimento incompleto ou inválido",
+    "UNKNOWN_ACCOUNT_EMAIL": "Nenhuma conta corresponde a este email.",
+    "BAD_PASSWORD": "Palavra-passe incorreta.",
+    "EMAIL_ALREADY_REGISTERED": "Email já registado",
+    "UNKNOWN_TECHNICAL_ERROR": "Ocorreu um erro técnico.<small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "UNKNOWN_NETWORK_ERROR": "Erro de comunicação com o servidor.<small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "BAD_UPDATE_DATE": "Gravação impossível.<small><br/>Detetada modificação concorrente, por favor recarregue a página e tente novamente.</small>",
+    "DATA_LOCKED": "Gravação impossível (dados bloqueados).",
+    "DATA_NOT_FOUND": "Dados não encontrados",
+    "DATA_NOT_UNIQUE": "Erro de unicidade",
+    "DATA_UPDATE_DATE_CHANGED": "As suas alterações não poderão ser guardadas.<small><br/>Detetada modificação concorrente, por favor recarregue a página e tente novamente.</small>",
+    "DOWNLOAD_FAILED": "Falha no download: {{error}}",
+    "LOAD_ACCOUNT_ERROR": "Erro ao carregar a conta de utilizador.<small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "SAVE_ACCOUNT_ERROR": "Erro ao guardar a sua conta.<small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "SAVE_SETTINGS_ERROR": "Erro ao guardar as suas definições.<small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "LOAD_CONFIG_ERROR": "Erro ao carregar a configuração",
+    "SAVE_CONFIG_ERROR": "Erro ao guardar a configuração",
+    "ACCOUNT_NOT_EXISTS": "A sua conta parece não existir e, portanto, não pode ser guardada.<small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "SENT_ACCOUNT_CONFIRMATION_EMAIL_FAILED": "Erro ao enviar o email de confirmação da conta.<small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "CONFIRM_ACCOUNT_EMAIL_FAILED": "Erro ao confirmar o email. Esta conta já foi confirmada?",
+    "UNAUTHORIZED": "Acesso ao servidor não autorizado",
+    "FORBIDDEN": "Acesso não autorizado",
+    "AUTH_SERVER_ERROR": "Erro durante a autenticação no servidor",
+    "AUTH_CHALLENGE_ERROR": "Erro durante a autenticação no servidor (recuperação do desafio)",
+    "TABLE_INVALID_ROW_ERROR": "Existe uma linha com erro",
+    "TABLE_READ_ONLY": "Tabela em modo de leitura",
+    "SAVE_DATA_ERROR": "Erro ao guardar. <small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "LOAD_DATA_ERROR": "Erro ao carregar os dados. <small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "DELETE_DATA_ERROR": "Erro ao eliminar os dados. <small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "NETWORK_REQUIRED": "Ligação à rede impossível.<br/><b>Verifique a sua ligação de rede</b> antes de tentar novamente.",
+    "THIS_ACTION IMPORT_NEED_ONLINE_NETWORK": "Sem rede. Impossível sincronizar.",
+    "IMPORT_REFERENTIAL_ERROR": "Falha na importação das listas de referência. Impossível ativar o modo offline.",
+    "COPY_STORAGE_ERROR": "Erro ao copiar os dados",
+    "DATA_MIGRATION_FAILED": "Falha na migração de dados. <small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "BAD_APP_VERSION": "Por favor, atualize a aplicação. A recuperação e o envio de dados com a versão atual podem não funcionar.</small>",
+    "LOAD_TRASH_ENTITY_ERROR": "Erro ao carregar o ficheiro da reciclagem",
+    "DELETE_TRASH_ENTITY_ERROR": "Erro ao eliminar o ficheiro na reciclagem",
+    "ENTITY_STORAGE_MIGRATION_FAILED": "Falha na migração da base de dados local",
+    "STARTUP_FAILED": "Falha no arranque",
+    "LOAD_ENTITY_ERROR": "Erro durante o carregamento",
+    "LOAD_ENTITIES_ERROR": "Erro ao carregar a lista",
+    "SAVE_ENTITY_ERROR": "Erro ao guardar",
+    "SAVE_ENTITIES_ERROR": "Erro ao guardar a lista",
+    "DELETE_ENTITY_ERROR": "Erro ao eliminar. <small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "SUBSCRIBE_ENTITY_ERROR": "Erro ao subscrever as modificações remotas",
+    "CONTROL_ENTITY_ERROR": "Erro ao verificar a validade dos dados",
+    "TERMINATE_ENTITY_ERROR": "Conclusão da introdução impossível. <small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "VALIDATE_ENTITY_ERROR": "Erro durante a validação",
+    "UNVALIDATE_ENTITY_ERROR": "Erro durante a desvalidação",
+    "QUALIFY_ENTITY_ERROR": "Erro durante a qualificação",
+    "SYNCHRONIZE_ENTITY_ERROR": "Sincronização impossível. <small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "SYNCHRONIZE_CHILD_BEFORE_PARENT_ERROR": "Erro durante a sincronização, o calamento deve ser sincronizado antes da alagem. <small><br/>Se o problema persistir, contacte o seu administrador.</small>",
+    "LOAD_ERROR": "Erro de carregamento",
+    "SAVE_ERROR": "Erro ao guardar",
+    "SUBSCRIBE_ERROR": "Falha na subscrição remota às modificações",
+    "FIELD_NOT_EXISTS": "Este valor não existe",
+    "FIREFOX_NO_STORAGE": "A aplicação não pode funcionar no Firefox em modo de 'navegação privada' ou se a conservação do histórico estiver desativada",
+    "FEATURE_NOT_IMPLEMENTED": "Funcionalidade não implementada! <small><br/>Por favor, contacte o seu administrador.</small>",
+    "GEOLOCATION_ERROR": "Geolocalização <b>impossível</b>.<small><br/>{{message}}</small>",
+    "PERMISSION_DENIED": "Permissão recusada",
+    "TIMEOUT": "Tempo limite excedido",
+    "SHARE_AS_PUBLIC_FAIL": "Falha na partilha",
+    "INCOMPATIBLE_WEB_BROWSER": "Funcionalidade não compatível com o seu navegador de Internet. <small><br/>Por favor, contacte o seu administrador ou experimente outro navegador.</small>"
+  },
+  "CONFIRM": {
+    "ALERT_HEADER": "Confirmação",
+    "SAVE": "Algumas alterações não foram guardadas.<br/><br/>Deseja <b>guardar</b> antes de continuar?",
+    "SAVE_BEFORE_CLOSE": "Algumas alterações não foram guardadas.<br/><br/>Deseja <b>guardar</b> antes de fechar?",
+    "SAVE_BEFORE_CONTINUE": "Algumas alterações não foram guardadas.<br/><br/>Deseja <b>guardar</b> antes de continuar?",
+    "CANCEL_CHANGES": "As suas últimas alterações serão canceladas.<br/><br/><b>Tem a certeza</b> que deseja continuar?",
+    "DELETE": "<b>Tem a certeza</b> que deseja eliminar?",
+    "ACTION": "<b>Tem a certeza</b> que deseja continuar?",
+    "ACTION_IMMEDIATE": "Esta ação é irreversível.<br/><br/><b>Tem a certeza</b> que deseja continuar?",
+    "DELETE_ROW": "<b>Tem a certeza</b> que deseja eliminar esta linha?",
+    "DELETE_ROWS": "<b>Tem a certeza</b> que deseja eliminar estas linhas?",
+    "CANCEL_ROW": "<b>Tem a certeza</b> que deseja cancelar as alterações nesta linha?",
+    "CANCEL_ROWS": "<b>Tem a certeza</b> que deseja cancelar as alterações nestas linhas?",
+    "SEND_DEBUG_DATA": "Deseja enviar estes dados ao administrador para que o possa ajudar?",
+    "RELOAD_APP": "Uma nova <b>versão {{version}}</b> está disponível para {{name}}:<ul><li><b>Guarde</b> as suas eventuais alterações em curso<li>Clique no botão <b>Atualizar</b>, ou atualize o separador do navegador.</ul>"
+  },
+  "INFO": {
+    "ALERT_HEADER": "Informação",
+    "SYNCHRONIZATION_SUCCEED": "Sincronização <b>concluída com sucesso</b>!<br/>Os dados foram recebidos pelo servidor.",
+    "COPY_SUCCEED": "Copiado com sucesso!",
+    "DEBUG_DATA_SEND": "Pedido de ajuda enviado ao administrador.",
+    "DATA_MIGRATION_STARTED": "Restauração de dados em curso.<br/><b>Por favor, aguarde...</b>",
+    "DATA_MIGRATION_SUCCEED": "Restauração de dados <b>concluída com sucesso</b>!",
+    "DOWNLOAD_APP_TITLE": "{{name}} para {{platform}}",
+    "DOWNLOAD_APP_HELP": "Descarregue a aplicação agora mesmo.",
+    "UPDATE_APP": "<b>Por favor, atualize {{name}}</b>",
+    "UPDATE_APP_TO_VERSION": "<b>Por favor, atualize {{name}}</b> (para v{{version}} ou superior)",
+    "UPDATE_APP_HELP": "Esta atualização é <b>necessária para se ligar corretamente</b> ao nó de rede. Em caso de problemas com a instalação, <b>contacte o seu administrador</b>.",
+    "UPDATE_APP_DOWNLOADED": "O descarregamento da atualização está concluído.<br/><b>Por favor, instale-a</b> a partir dos ficheiros do dispositivo.",
+    "PLEASE_TYPE_MORE_CHARACTERS": "Por favor, digite pelo menos {{minLength}} caracteres",
+    "TEXT_PROGRESS": "{{current}} de {{max}}",
+    "DOWNLOADING_DOTS": "Descarregamento em curso...",
+    "GEOLOCATION_STARTED": "Geolocalização em curso.<br/><b>Por favor, aguarde...</b>"
+  },
+  "WARNING": {
+    "ALERT_HEADER": "Aviso",
+    "OOPS_DOTS": "Ups...",
+    "SYNCHRONIZE_NO_HISTORICAL_DATA": "A importação dos dados históricos não foi efetuada. <small><br/>Por favor, atualize o modo offline.</small>",
+    "DATE_IN_THE_FUTURE": "Data no futuro",
+    "EXPERIMENTAL_FEATURE": "Funcionalidade experimental! Em desenvolvimento."
+  }
+}
+
+
+

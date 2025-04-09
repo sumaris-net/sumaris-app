@@ -912,6 +912,13 @@
         "TRAWL_TYPE": "Type of trawl",
         "RIG_TYPE": "Type of rig",
         "SMALLER_MESH_GAUGE": "Smaller mesh gauge (mm)",
+        "SMALLER_MESH_GAUGE_MM": "Mesh size at gauge (mm)",
+        "NET_LENGTH_KM": "Net length set (km)",
+        "NET_HEIGHT": "Net height (m)",
+        "HAS_BUOY": "Presence of floats?",
+        "EQUIPMENT_MANUFACTURER": "Equipment manufacturer",
+        "HEADLINE_ROPE_COMPOSITION": "Headline rope composition",
+        "HEADLINE_ROPE_DIAMETER": "Headline rope diameter",
         "CHILD": {
           "GEAR_LABEL": "Sub-gear label"
         }
@@ -1043,10 +1050,18 @@
         "SORTING_START_DATE_TIME": "Start of sorting",
         "SORTING_END_DATE_TIME": "End of sorting",
         "TAG_OPERATION": "Label",
+        "GEAR_DEPTH": "Gear depth (m)",
+        "SEA_STATE": "Sea state",
+        "WIND_FORCE_BEAUFORT": "Wind force (Beaufort)",
         "ACCIDENTAL_CATCH": {
           "TRIP_PROGRESS": "Normal progress of the operation?",
           "IS_ACOUSTIC_DEVICE": "Is the pinger activated?",
-          "HAS_ACCIDENTAL_CATCHES": "Accidental catches of small cetaceans?"
+          "HAS_ACCIDENTAL_CATCHES": "Accidental catches of small cetaceans?",
+          "NET_STRING_LAYOUT": "Net string layout",
+          "DISTANCE_TO_NEAREST_NET": "Distance to nearest net",
+          "OTHER_NET_STRING_LAYOUT": "Other net string layout",
+          "DISTANCE_BETWEEN_ZIGZAG_NETS": "Distance between zigzag nets",
+          "DOLPHIN_PRESENCE": "Dolphin presence around vessel?"
         },
         "TRAWL_SELECTIVITY": {
           "TAG_OPERATION": "Match code"
@@ -1412,7 +1427,15 @@
         "ACCIDENTAL_CATCH": {
           "WEIGHT_ESTIMATED_TOTAL_KG": "Estimated weight (kg)",
           "IS_DEAD": "Is dead?",
-          "TAG_ID": "Tag-ID"
+          "TAG_ID": "Caudal Tag Reference",
+          "INDIVIDUAL_ON_DECK": "Brought on deck?",
+          "DECOMPOSITION_STATE": "Decomposition State",
+          "HAS_INJURIES": "Injured?",
+          "LENGTH_TOTAL_CM": "Total Length (cm)",
+          "IS_ENTANGLED": "Entangled?",
+          "NEAREST_PINGER_DISTANCE": "Distance to Nearest Pinger",
+          "PINGER_CODE": "Pinger number",
+          "PINGER_ACCESSIBLE": "Pinger number accessible?"
         },
         "AUCTION_CONTROL": {
           "SAMPLE_MEASURED_WEIGHT": "Sample weight (g)",

@@ -8,6 +8,7 @@ import { IReportData, IReportI18nContext } from './base-report.class';
 import { CommonReportOptions, CommonReportStats } from './common-report.class';
 import { ReportComponent, ReportPmfmsTipsByPmfmIds, ReportTips } from './report-component.class';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 
 export class ReportTableComponentPageDimension {
   columnPmfmWidth: number;
@@ -65,6 +66,7 @@ export abstract class ReportTableComponent<
   protected pageDimensions: D;
   protected readonly pmfmsIdToShortCutTips = [PmfmIds.SEA_STATE];
   protected readonly programRefService = inject(ProgramRefService);
+  protected readonly pmfmNamePipe = inject(PmfmNamePipe);
   protected readonly pmfmIds = PmfmIds;
 
   @Input() hiddenPmfms: number[] = [];
@@ -100,9 +102,10 @@ export abstract class ReportTableComponent<
         .slice(part[0], part[1])
         .filter((pmfm) => isNotNil(pmfm) && PmfmUtils.isQualitative(pmfm))
         .reduce((res, pmfm, index) => {
+          const title = this.pmfmNamePipe.transform(pmfm, { i18nPrefix: this.i18nContext?.pmfmPrefix, i18nSuffix: this.i18nContext?.suffix });
           res[pmfm.id] = {
             index: (index + 1).toString(),
-            title: pmfm.name,
+            title,
             showOnAnnex: pmfm.qualitativeValues.length > limitToPutInAnnex,
             items: pmfm.qualitativeValues.map((qv) => {
               return {
