@@ -134,7 +134,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   /**
    * @deprecated Use panelClass instead
    */
-  @Input({ alias: 'class' }) set classList(value: string) {
+  @Input() set classList(value: string) {
     this.panelClass = value;
   }
   get classList(): string {
@@ -193,9 +193,25 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
-    const attributes = isNotEmptyArray(this.displayAttributes)
-      ? this.settings.getFieldDisplayAttributes('qualitativeValue', this.displayAttributes)
-      : this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
+    // Set columns to show
+    let attributes = this.settings.getFieldDisplayAttributes(
+      'qualitativeValue',
+      isNotEmptyArray(this.displayAttributes) ? this.displayAttributes : ['label', 'name']
+    );
+
+    // Hide label column, if not need - see issue #1016
+    if (attributes.includes('label') && attributes.length > 1) {
+      // Check if always equals to the name or always empty - see issue #1016
+      const skipLabelAttribute =
+        (attributes.includes('name') && !this._qualitativeValues.some((qv) => qv.label != qv.name)) ||
+        !this._qualitativeValues.some((qv) => !qv.label);
+
+      // Remove the label column
+      if (skipLabelAttribute) {
+        attributes = attributes.filter((attr) => attr !== 'label');
+      }
+    }
+
     const displayAttributes =
       this.compact && attributes.length > 1 ? (attributes.includes('label') ? ['label'] : attributes.slice(0, 1)) : attributes;
     this.searchAttributes = (isNotEmptyArray(this.searchAttributes) && this.searchAttributes) || attributes;
