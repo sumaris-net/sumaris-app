@@ -317,13 +317,13 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         },
       },
     },
-    // User options (comment out to enable user properties in AccountPage)
     {
       provide: APP_USER_SETTINGS_OPTIONS,
+      // User options (comment out to enable user properties in AccountPage)
+      //options: {
+      //  ...APP_xxx_OPTIONS
+      //},
       useValue: <UserSettingsOptions>{
-        // options: {
-        //   ...TEST_USER_SETTINGS_OPTIONS,
-        // },
         remoteLocalSettingsKeys: <(keyof LocalSettings)[]>[
           // Properties used by SUMARiS
           'locale',
